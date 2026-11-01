@@ -80,16 +80,19 @@ Ending: the church bell rings, Draconia refuses to explain what "tonight" means,
       chapters: [
         {
           name: 'Fog and Hiccups',
+          part: 1,
           description: 'The Three Broomsticks, three butterbeers, Ron\'s hiccups.',
           note: 'The three friends warm up in the Three Broomsticks while the fog thickens outside. Ron\'s hiccups get worse every time Hermione tells him to hold his breath, and Harry spots Draconia passing the window.',
         },
         {
           name: 'Under the Lamp',
+          part: 3,
           description: 'Draconia, Crabbe and Goyle mock Harry on the main street.',
           note: 'Outside, the lamp on the main street makes a small island in the fog. Draconia, Crabbe and Goyle step into it and mock Harry. He keeps his temper, but he notices that Draconia is the only one who does not laugh.',
         },
         {
           name: 'Behind the Three Broomsticks',
+          part: 4,
           description: 'Harry follows Draconia and finds her crying in the lane.',
           note: 'Harry follows Draconia into the lane behind the pub and finds her crying. She sends him away without explaining anything and the church bell rings; when he asks what is happening tonight she will not say.',
         },
@@ -149,3 +152,62 @@ Ending: the cabinet in the room hums, a knock comes from inside it, and Draconia
     },
   },
 };
+
+// Beta Readers: what the personas answer to the questions of the flow. `answer` is what the plugin asks for ({reasoning, messages: [{speaker,
+// parts: [{type, text}]}]}); the fake model writes it as JSON, or as `**Name:** *action* speech` paragraphs when the chat wants free text.
+const a = text => ({ type: 'action', text });
+const s = text => ({ type: 'speech', text });
+export const betaPersona = {
+  brief: 'A reader who only cares about who did it and why',
+  name: 'Rook',
+  description: 'The Plot Hound. Reads for the mystery and keeps a list of suspects as she goes. She notices every unexplained detail and every convenient coincidence, likes a fair clue and cannot stand a culprit who comes from nowhere.',
+};
+
+export const betaReaders = [
+  {
+    kind: 'group',
+    question: 'Be honest: does the first chapter hook you?',
+    answer: {
+      reasoning: 'Athena reads the structure and likes it, Vesper objects to the pace, Athena answers her.',
+      messages: [
+        { speaker: 'Athena', parts: [a('folds her hands over the pages'), s('The fog on the main street is a quiet, confident opening. It promises that someone is being watched before anyone says so.')] },
+        { speaker: 'Vesper', parts: [a('snorts'), s('Quiet is one word for it. I counted two paragraphs before anybody does anything. I would cut the weather.')] },
+        { speaker: 'Narrator', parts: [a('Athena raises an eyebrow, but for once she does not argue straight away.')] },
+        { speaker: 'Athena', parts: [s('The weather is the point. It is the first thing Draconia lies about.')] },
+      ],
+    },
+  },
+  {
+    kind: 'group',
+    question: 'Which part should I rewrite first?',
+    answer: {
+      reasoning: 'Both agree on one thing for once.',
+      messages: [
+        { speaker: 'Vesper', parts: [s('The Three Broomsticks scene. Everybody explains their motives over butterbeer, and nobody has a motive until they say it.')] },
+        { speaker: 'Athena', parts: [a('nods slowly'), s('She is right. Let the motives show in what they leave on the table.')] },
+      ],
+    },
+  },
+  {
+    kind: 'single',
+    question: 'Read it line by line: what bothers you?',
+    answer: {
+      reasoning: 'One persona, so one voice: the editor goes through the text.',
+      messages: [
+        { speaker: 'Quill', parts: [a('uncaps a red pen'), s('Three "suddenly"s in the second part, and a dialogue tag that says she "exclaimed" a whisper. The fog is mentioned four times in the first page; twice is enough.')] },
+      ],
+    },
+  },
+  {
+    // sent as a scene (Send as scene): what happens in the room, and the personas react
+    kind: 'group',
+    question: 'The lights go out and the rain on the windows gets louder.',
+    answer: {
+      reasoning: 'A scene, not a question: the personas react to the dark and go back to the book.',
+      messages: [
+        { speaker: 'Vesper', parts: [a('lowers her voice'), s('Finally something happens in this room. Keep going, I want to hear what the lamp does in your second chapter.')] },
+        { speaker: 'Athena', parts: [a('lights the candle on the table'), s('The power cut suits the book: the fog hides things and so does the dark. Read us the scene by the lamp.')] },
+      ],
+    },
+  },
+];

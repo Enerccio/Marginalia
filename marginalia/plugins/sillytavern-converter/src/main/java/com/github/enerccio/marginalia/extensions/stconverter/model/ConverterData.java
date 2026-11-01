@@ -4,9 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Everything the converter keeps with a book, as the attribute {@link #KEY} of the book: which chat was imported (the file
+ * Everything the converter keeps with a book, as the attribute {@link #KEY} of the book: which source was loaded (the file
  * itself is a resource of the user, a chat can be megabytes, and is not in this attribute) and the messages the author has
  * ticked, the turn details made of the chat, the model chosen for the wand and the prompt of the user.
+ * <p>
+ * The source is a SillyTavern chat, or, when {@link #isBookSource()}, the stripped parts of another book ({@link BookSource}):
+ * the messages and the turn details are then read from the resource each time, only the ticks are kept here.
  */
 public class ConverterData {
 
@@ -14,7 +17,12 @@ public class ConverterData {
 
     public static final int DEFAULT_BATCH_SIZE = 20;
 
-    /** The name of the uploaded file, null while no chat is loaded. */
+    /** The {@link #sourceKind} of the parts of a book. */
+    public static final String SOURCE_BOOK = "book";
+
+    /** What the resource holds, {@link #SOURCE_BOOK} for the parts of a book, null for a SillyTavern chat (the data stored before books were a source). */
+    private String sourceKind;
+    /** The name of the uploaded file (the name of the book for a book), null while no chat is loaded. */
     private String fileName;
     /** The uuid of the resource with the uploaded file, null while no chat is loaded. */
     private String resourceUuid;
@@ -22,7 +30,9 @@ public class ConverterData {
     private List<Integer> reviewed = new ArrayList<>();
     /** The messages of the chat, read from the resource when the data is loaded; not stored here. */
     private transient List<ChatLine> chat = new ArrayList<>();
-    /** The turn details, in the order of the chat. */
+    /** The numbers (from 1) of the turn details the author has ticked, kept instead of the turns themselves for the parts of a book. */
+    private List<Integer> reviewedTurns = new ArrayList<>();
+    /** The turn details, in the order of the chat; for the parts of a book they are read from the resource and not stored here. */
     private List<TurnItem> turns = new ArrayList<>();
     /** The model the wand runs with, null for the model of the book. */
     private Long aiId;
@@ -32,6 +42,30 @@ public class ConverterData {
     /** Whether the range snaps to the boundaries of the turns, and how many messages the auto mode sends at once. */
     private boolean align;
     private int batchSize = DEFAULT_BATCH_SIZE;
+
+    public String getSourceKind() {
+        return sourceKind;
+    }
+
+    public void setSourceKind(String sourceKind) {
+        this.sourceKind = sourceKind;
+    }
+
+    /** @return true when the source is the parts of a book, not a chat */
+    public boolean isBookSource() {
+        return SOURCE_BOOK.equals(sourceKind);
+    }
+
+    public List<Integer> getReviewedTurns() {
+        if (reviewedTurns == null) {
+            reviewedTurns = new ArrayList<>();
+        }
+        return reviewedTurns;
+    }
+
+    public void setReviewedTurns(List<Integer> reviewedTurns) {
+        this.reviewedTurns = reviewedTurns;
+    }
 
     public String getFileName() {
         return fileName;

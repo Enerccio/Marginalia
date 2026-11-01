@@ -23,6 +23,7 @@ import com.github.enerccio.marginalia.ui.dialogs.story.NewTurnForm;
 import com.github.enerccio.marginalia.ui.main.ApplicationEntryPoint;
 import com.github.enerccio.marginalia.ui.main.Main;
 import com.github.enerccio.marginalia.ui.widgets.TabDock;
+import com.github.enerccio.marginalia.ui.widgets.TabDockIcon;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.ComponentUtil;
 import com.vaadin.flow.component.textfield.TextArea;
@@ -37,6 +38,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
 
+import static com.github.enerccio.marginalia.extensions.charactertracker.CharacterTrackerLocalization.CHARACTERS;
 import static com.github.enerccio.marginalia.extensions.charactertracker.CharacterTrackerLocalization.T;
 
 /**
@@ -44,6 +46,10 @@ import static com.github.enerccio.marginalia.extensions.charactertracker.Charact
  */
 @Configurable
 public class CharacterTrackerExtension implements MarginaliaExtension, ExtensionHasCss {
+
+    /** The icon of the tab in the bar of the minimized tabs: a glyph on a 24 x 24 grid. */
+    private static final TabDockIcon CHARACTERS_ICON = TabDockIcon.glyph(
+            "<circle cx='12' cy='8' r='4'/><path d='M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7'/>");
 
     private static final String VIEW_KEY = CharacterTrackerData.KEY + ".view";
 
@@ -89,7 +95,7 @@ public class CharacterTrackerExtension implements MarginaliaExtension, Extension
                         }
 
                         CharacterTrackerView view = new CharacterTrackerView(currentManuscript, service);
-                        leftBar.add("character-tracker", T.localized("Characters"), view);
+                        leftBar.add("character-tracker", T.localized(CHARACTERS), CHARACTERS_ICON, view);
 
                         ComponentUtil.setData(leftBar, VIEW_KEY, view);
                         activeTabSheets.add(leftBar);

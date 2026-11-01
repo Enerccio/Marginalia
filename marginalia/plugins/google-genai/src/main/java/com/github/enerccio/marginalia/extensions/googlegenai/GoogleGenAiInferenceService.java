@@ -39,7 +39,7 @@ import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-import static com.github.enerccio.marginalia.extensions.googlegenai.GoogleGenAiLocalization.T;
+import static com.github.enerccio.marginalia.extensions.googlegenai.GoogleGenAiLocalization.*;
 
 /**
  * The inference service of a Google Gemini AI, over the Google Gen AI Java SDK. It does what the service of an OpenAI
@@ -65,6 +65,9 @@ public class GoogleGenAiInferenceService implements InferenceService, AutoClosea
 
     @Autowired
     private AILimitService limitService;
+
+    @Autowired
+    private ActivityTracker activityTracker;
 
     private final ExtensionAI ai;
     private final GoogleGenAiSettings settings;
@@ -110,6 +113,14 @@ public class GoogleGenAiInferenceService implements InferenceService, AutoClosea
         this.settings = settings;
         this.log = log;
         this.sessionIds = sessionIds;
+    }
+
+    /**
+     * The time the request of the book is on the wire, for the generation time of the writing statistics; nothing for a request that
+     * is not metered or has no book (and in a test without the application).
+     */
+    private ActivityTracker.Registration generating(Run run) {
+        return run.metered && activityTracker != null ? activityTracker.generate(run.book) : ActivityTracker.NONE;
     }
 
     // ---- models and connection
@@ -218,12 +229,15 @@ public class GoogleGenAiInferenceService implements InferenceService, AutoClosea
                         return;
                     }
                     long began = System.nanoTime();
-                    GenerateContentResponse response = sdk.models.generateContent(model, prepared.contents(), config);
+                    GenerateContentResponse response;
+                    try (ActivityTracker.Registration generating = generating(run)) {
+                        response = sdk.models.generateContent(model, prepared.contents(), config);
+                    }
                     long millis = (System.nanoTime() - began) / 1_000_000;
                     Answer answer = new Answer();
                     List<ChunkPiece> pieces = answer.absorb(response, functionsOffered);
                     TokenUsage counted = run.metered
-                            ? recordUsage(run.attributes, prepared.contents(), answer.reported, answer.received.toString()) : null;
+                            ? recordUsage(run.attributes, run.book, prepared.contents(), answer.reported, answer.received.toString()) : null;
                     if (run.outcome.dead().getAsBoolean() || run.token.isCancelled()) {
                         callback.onCancel();
                     } else if (answer.calls.isEmpty() && answer.isEmptyAndStopped()) {
@@ -306,11 +320,20 @@ public class GoogleGenAiInferenceService implements InferenceService, AutoClosea
                         callback.onCancel();
                         return;
                     }
-                    ResponseStream<GenerateContentResponse> stream = sdk.models.generateContentStream(model, contents, config);
+                    // from the moment the request is sent to the end of the answer (the recorder below is called whichever way it ends)
+                    ActivityTracker.Registration generating = generating(run);
+                    ResponseStream<GenerateContentResponse> stream;
+                    try {
+                        stream = sdk.models.generateContentStream(model, contents, config);
+                    } catch (Throwable e) {
+                        generating.close();
+                        throw e;
+                    }
                     GoogleStreamController controller = new GoogleStreamController(stream, callback, run,
                             (reported, generated) -> {
+                                generating.close();
                                 if (run.metered) {
-                                    recordUsage(run.attributes, contents, reported, generated);
+                                    recordUsage(run.attributes, run.book, contents, reported, generated);
                                 }
                             },
                             functionsOffered && !finalRound
@@ -360,11 +383,14 @@ public class GoogleGenAiInferenceService implements InferenceService, AutoClosea
                         callback.onCancel();
                         return;
                     }
-                    GenerateContentResponse response = sdk.models.generateContent(model, contents, config);
+                    GenerateContentResponse response;
+                    try (ActivityTracker.Registration generating = generating(run)) {
+                        response = sdk.models.generateContent(model, contents, config);
+                    }
                     Answer answer = new Answer();
                     answer.absorb(response, functionsOffered && !finalRound);
                     if (run.metered) {
-                        recordUsage(run.attributes, contents, answer.reported, answer.received.toString());
+                        recordUsage(run.attributes, run.book, contents, answer.reported, answer.received.toString());
                     }
 
                     // the request can not be taken back once sent, but a canceled one gets no result
@@ -405,6 +431,8 @@ public class GoogleGenAiInferenceService implements InferenceService, AutoClosea
         final RequestAttributes attributes = ThreadCopyRequestAttributes.create();
         // read in the thread that starts the request: it is not metered inside an UnmeteredScope (the help assistant)
         final boolean metered = !UnmeteredScope.isActive();
+        // the book the request is made for, read in the same thread (see UsageContext)
+        final Long book = UsageContext.current();
         final String id = UUID.randomUUID().toString();
         // read in the same thread: the header that tells a server with a prompt cache what kind of work this is
         final String sessionId = sessionIds.get();
@@ -544,7 +572,7 @@ public class GoogleGenAiInferenceService implements InferenceService, AutoClosea
 
     private String model() {
         if (settings.model().isBlank()) {
-            throw new InferenceException(Type.MODEL_NOT_FOUND, null, T.localized("No model is set"), null);
+            throw new InferenceException(Type.MODEL_NOT_FOUND, null, T.localized(NO_MODEL_IS_SET), null);
         }
         return settings.model();
     }
@@ -560,7 +588,7 @@ public class GoogleGenAiInferenceService implements InferenceService, AutoClosea
         }
         if (client == null) {
             if (settings.apiKey().isBlank()) {
-                throw new InferenceException(Type.AUTHENTICATION, null, T.localized("No API key is set"), null);
+                throw new InferenceException(Type.AUTHENTICATION, null, T.localized(NO_API_KEY_IS_SET), null);
             }
             Duration timeout = Duration.ofSeconds(settings.timeoutSeconds());
             // read is the wait for the first text and between the chunks; the whole request limit must not cut a long
@@ -700,8 +728,9 @@ public class GoogleGenAiInferenceService implements InferenceService, AutoClosea
      * Google reported, otherwise our count of the contents and of the text that arrived (a stopped request has no
      * report).
      */
-    private TokenUsage recordUsage(RequestAttributes attributes, List<Content> contents, TokenUsage reported, String generated) {
-        try (InRequestScope _ = new InRequestScope(attributes)) {
+    private TokenUsage recordUsage(RequestAttributes attributes, Long book, List<Content> contents, TokenUsage reported, String generated) {
+        // the book of the request, not of the thread that runs it now
+        try (InRequestScope _ = new InRequestScope(attributes); UsageContext _ = UsageContext.open(book)) {
             long prefill;
             long generatedTokens;
             if (reported != null) {

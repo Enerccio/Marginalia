@@ -18,14 +18,18 @@ import com.github.enerccio.marginalia.extensions.arcoutline.service.ArcOutlineSe
 import com.github.enerccio.marginalia.extensions.arcoutline.ui.ArcOutlineSettingsForm;
 import com.github.enerccio.marginalia.extensions.arcoutline.ui.ArcOutlineStyles;
 import com.github.enerccio.marginalia.extensions.arcoutline.ui.ArcOutlineView;
+import com.github.enerccio.marginalia.ui.dialogs.manuscript.ManuscriptStoryPart;
 import com.github.enerccio.marginalia.ui.dialogs.story.NewTurnForm;
+import com.github.enerccio.marginalia.ui.dialogs.story.StoryLazyLoader;
 import com.github.enerccio.marginalia.ui.main.ApplicationEntryPoint;
 import com.github.enerccio.marginalia.ui.main.Main;
 import com.github.enerccio.marginalia.ui.widgets.TabDock;
+import com.github.enerccio.marginalia.ui.widgets.TabDockIcon;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.ComponentUtil;
 import com.vaadin.flow.component.accordion.Accordion;
 import com.vaadin.flow.component.accordion.AccordionPanel;
+import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.popover.Popover;
 import org.osgi.framework.Bundle;
 import org.slf4j.Logger;
@@ -33,16 +37,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 import java.util.WeakHashMap;
+import java.util.function.Consumer;
 
-import static com.github.enerccio.marginalia.extensions.arcoutline.ArcOutlineLocalization.T;
+import static com.github.enerccio.marginalia.extensions.arcoutline.ArcOutlineLocalization.*;
 
 /**
  * Adds the Arcs tab to the left sidebar of the story view.
  */
 @Configurable
 public class ArcOutlineExtension implements MarginaliaExtension, ExtensionHasCss {
+
+    /** The icon of the tab in the bar of the minimized tabs: a glyph on a 24 x 24 grid. */
+    private static final TabDockIcon ARCS_ICON = TabDockIcon.glyph(
+            "<path d='M3 19C6 9 9 5 12 5s6 4 9 14'/><circle cx='3' cy='19' r='1.2' fill='white'/><circle cx='12' cy='5' r='1.2' fill='white'/><circle cx='21' cy='19' r='1.2' fill='white'/>");
 
     private static final String USER_PART = "com.github.enerccio.marginalia.ui.workspace.parts.UserPart";
     private static final String VIEW_KEY = ArcOutlineData.KEY + ".view";
@@ -106,7 +116,7 @@ public class ArcOutlineExtension implements MarginaliaExtension, ExtensionHasCss
                         }
 
                         // the story part loads other books into the same instance, the instructions go into the form of the part as it is then
-                        ArcOutlineView.InstructionsTarget target = new ArcOutlineView.InstructionsTarget() {
+                        ArcOutlineView.StoryTarget target = new ArcOutlineView.StoryTarget() {
                             @Override
                             public TurnInput turn() {
                                 NewTurnForm form = context.getReflectiveFieldValue(instrumented, "newTurnForm", NewTurnForm.class);
@@ -124,9 +134,58 @@ public class ArcOutlineExtension implements MarginaliaExtension, ExtensionHasCss
                                 popover.setOpened(true);
                                 return true;
                             }
+
+                            @Override
+                            public void visiblePart(Consumer<Integer> then) {
+                                StoryLazyLoader<?> loader = context.getReflectiveFieldValue(instrumented, "lazyLoader", StoryLazyLoader.class);
+                                Manuscript book = context.getReflectiveFieldValue(instrumented, "currentManuscript", Manuscript.class);
+                                if (loader == null || book == null) {
+                                    then.accept(null);
+                                    return;
+                                }
+                                loader.mostVisible(id -> {
+                                    try {
+                                        int index = id == null ? -1 : service.branchIds(book).indexOf(id);
+                                        then.accept(index < 0 ? null : index + 1);
+                                    } catch (Exception e) {
+                                        log.warn("Can't find the place of the visible part: {}", e.getMessage(), e);
+                                        then.accept(null);
+                                    }
+                                });
+                            }
+
+                            @Override
+                            public boolean showPart(int order) {
+                                StoryLazyLoader<?> loader = context.getReflectiveFieldValue(instrumented, "lazyLoader", StoryLazyLoader.class);
+                                Manuscript book = context.getReflectiveFieldValue(instrumented, "currentManuscript", Manuscript.class);
+                                if (loader == null || book == null) {
+                                    return false;
+                                }
+                                try {
+                                    List<Long> ids = service.branchIds(book);
+                                    if (order < 1 || order > ids.size()) {
+                                        return false;
+                                    }
+                                    // the drawer of the phone covers the story, the desktop has the tab of it in the sheet
+                                    // (only the phone part has the field "layout": asking the desktop part for it throws)
+                                    boolean phone = instrumented.getClass().getName().contains("PhoneManuscriptStoryPart");
+                                    AppLayout layout = phone
+                                            ? context.getReflectiveFieldValue(instrumented, "layout", AppLayout.class) : null;
+                                    if (layout != null) {
+                                        layout.setDrawerOpened(false);
+                                    } else {
+                                        leftBar.select(ManuscriptStoryPart.STORY_TAB);
+                                    }
+                                    loader.scrollTo(ids.get(order - 1));
+                                    return true;
+                                } catch (Exception e) {
+                                    log.warn("Can't show the part {}: {}", order, e.getMessage(), e);
+                                    return false;
+                                }
+                            }
                         };
                         ArcOutlineView view = new ArcOutlineView(currentManuscript, service, target);
-                        leftBar.add("arc-outline", T.localized("Arcs"), view);
+                        leftBar.add("arc-outline", T.localized(ARCS), ARCS_ICON, view);
 
                         ComponentUtil.setData(leftBar, VIEW_KEY, view);
                         activeTabSheets.add(leftBar);
@@ -165,7 +224,7 @@ public class ArcOutlineExtension implements MarginaliaExtension, ExtensionHasCss
                             }
                         });
                     } else {
-                        panel = extensionSettings.add(T.localized("Arc Outline"), new ArcOutlineSettingsForm(service));
+                        panel = extensionSettings.add(T.localized(ARC_OUTLINE), new ArcOutlineSettingsForm(service));
                         ComponentUtil.setData(extensionSettings, SETTINGS_PANEL_KEY, panel);
                         activeAccordions.add(extensionSettings);
                     }

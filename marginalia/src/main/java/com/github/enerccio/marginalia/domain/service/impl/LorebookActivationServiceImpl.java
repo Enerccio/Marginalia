@@ -4,11 +4,7 @@ import com.github.enerccio.marginalia.domain.collections.FilteringMode;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
-import com.github.enerccio.marginalia.domain.service.ChatMessageService;
-import com.github.enerccio.marginalia.domain.service.LorebookActivationService;
-import com.github.enerccio.marginalia.domain.service.LorebookEntryService;
-import com.github.enerccio.marginalia.domain.service.LorebookService;
-import com.github.enerccio.marginalia.domain.service.TemplateService;
+import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LorebookEntryVerdict;
 import com.github.enerccio.marginalia.domain.templates.LorebookTemplateData;
 import org.apache.commons.lang3.StringUtils;
@@ -91,8 +87,16 @@ public class LorebookActivationServiceImpl implements LorebookActivationService 
 
     @Override
     public Verdict evaluate(LorebookEntry entry, List<String> manuscriptTags, String instructions, List<String> parts) {
+        return evaluate(entry, manuscriptTags, instructions, parts, null);
+    }
+
+    @Override
+    public Verdict evaluate(LorebookEntry entry, List<String> manuscriptTags, String instructions, List<String> parts, Integer position) {
         if (!entry.isEnabled()) {
             return new Verdict(Reason.DISABLED, null);
+        }
+        if (position != null && !entry.inMessageRange(position)) {
+            return new Verdict(Reason.OUT_OF_RANGE, rangeOf(entry));
         }
         String negative = firstShared(entry.getCachedNegativeTags(), manuscriptTags);
         if (negative != null) {
@@ -106,6 +110,24 @@ public class LorebookActivationServiceImpl implements LorebookActivationService 
         }
         return filterMatches(entry, contextOf(entry, instructions, parts)) ? new Verdict(Reason.FILTER_MATCHED, entry.getFiltering())
                 : new Verdict(Reason.FILTER_NOT_MATCHED, entry.getFiltering());
+    }
+
+    private static String rangeOf(LorebookEntry entry) {
+        return Objects.toString(entry.getFromMessage(), "") + ".." + Objects.toString(entry.getToMessage(), "");
+    }
+
+    @Override
+    public int turnPosition(ChatMessage leaf, boolean excludeLeaf) throws Exception {
+        if (leaf == null) {
+            return 1;
+        }
+        int size = chatMessageService.getBranchFromLeaf(leaf).size();
+        return excludeLeaf ? Math.max(1, size) : size + 1;
+    }
+
+    @Override
+    public boolean positionNeeded(List<LorebookEntry> entries) {
+        return entries.stream().anyMatch(entry -> entry.isEnabled() && entry.hasMessageRange());
     }
 
     @Override
@@ -182,11 +204,16 @@ public class LorebookActivationServiceImpl implements LorebookActivationService 
 
     @Override
     public List<LorebookEntryVerdict> evaluateAll(Lorebook root, List<Lorebook> lorebooks, List<String> manuscriptTags, String text, List<String> parts) {
+        return evaluateAll(root, lorebooks, manuscriptTags, text, parts, null);
+    }
+
+    @Override
+    public List<LorebookEntryVerdict> evaluateAll(Lorebook root, List<Lorebook> lorebooks, List<String> manuscriptTags, String text, List<String> parts, Integer position) {
         List<LorebookEntry> entries = orderedEntries(lorebooks);
         LorebookEntryVerdict[] verdicts = new LorebookEntryVerdict[entries.size()];
         List<LorebookEntry> pass = new ArrayList<>();
         for (int i = 0; i < verdicts.length; i++) {
-            verdicts[i] = new LorebookEntryVerdict(entries.get(i), evaluate(entries.get(i), manuscriptTags, text, parts), 0);
+            verdicts[i] = new LorebookEntryVerdict(entries.get(i), evaluate(entries.get(i), manuscriptTags, text, parts, position), 0);
             if (verdicts[i].verdict().activated()) {
                 pass.add(entries.get(i));
             }

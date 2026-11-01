@@ -1,5 +1,7 @@
 package com.github.enerccio.marginalia.domain.service.impl;
 
+import com.github.enerccio.marginalia.domain.collections.RevisionDetail;
+import com.github.enerccio.marginalia.domain.components.RevisionOrigin;
 import com.github.enerccio.marginalia.domain.listener.ExtendableEntityListener;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
@@ -45,6 +47,9 @@ public class ManuscriptReplaceServiceImpl implements ManuscriptReplaceService {
 
     @Autowired
     private AnnotationService annotationService;
+
+    @Autowired
+    private MessageRevisionService messageRevisionService;
 
     @Autowired
     private InferenceServices inferenceServices;
@@ -317,12 +322,15 @@ public class ManuscriptReplaceServiceImpl implements ManuscriptReplaceService {
                     continue;
                 }
                 String responseBefore = message.getResponse();
+                // the text that is replaced is in the history
+                messageRevisionService.ensureCurrent(message);
                 EntityTextSearch.apply(message, change.fields());
                 String response = message.getResponse();
                 message.setTokenCount(countTokens(owned, response));
                 message.setWordCount(chatMessageService.countWords(response));
                 message.setEdited(true);
                 chatMessageService.save(message);
+                messageRevisionService.record(message, RevisionOrigin.automatic(RevisionDetail.REPLACE, false).data(message));
                 // the passages of the annotations move with the text
                 annotationService.shift(owned, message, responseBefore, response);
             } else {

@@ -104,6 +104,27 @@ vaadin-markdown.agent-report td {
     overflow-wrap: normal;
 }
 
+/* The check box of a part while the mass delete of the story is on */
+.mass-delete-box {
+    margin: var(--lumo-space-m) var(--lumo-space-s);
+    width: var(--lumo-icon-size-s);
+    height: var(--lumo-icon-size-s);
+    flex: none;
+    cursor: pointer;
+    accent-color: var(--lumo-primary-color);
+}
+
+/* A part ticked in the mass delete of the story */
+.chat-message.marked-for-delete {
+    border-color: var(--lumo-error-color-50pct);
+    background-color: var(--lumo-error-color-10pct);
+}
+
+.phone-message.marked-for-delete {
+    border-bottom-color: var(--lumo-error-color-50pct);
+    background-color: var(--lumo-error-color-10pct);
+}
+
 /* A message card of the story */
 .chat-message {
     margin-bottom: 8px;
@@ -471,10 +492,102 @@ vaadin-markdown.agent-report td {
     overflow: hidden;
 }
 
-.tab-dock > * {
+/* The bar of the minimized tabs comes after the body in the page; the side it is at is the direction of the dock */
+.tab-dock-at-left {
+    flex-direction: row-reverse;
+}
+
+.tab-dock-at-right {
+    flex-direction: row;
+}
+
+.tab-dock-at-top {
+    flex-direction: column-reverse;
+}
+
+.tab-dock-at-bottom {
+    flex-direction: column;
+}
+
+.tab-dock-body {
+    display: flex;
     flex: 1 1 0;
     min-width: 0;
     min-height: 0;
+}
+
+.tab-dock-body > * {
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 0;
+}
+
+.tab-dock-bar {
+    display: flex;
+    flex: 0 0 auto;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--lumo-space-xs);
+    padding: var(--lumo-space-xs);
+    background: var(--lumo-contrast-5pct);
+    overflow: auto;
+}
+
+.tab-dock-at-top > .tab-dock-bar,
+.tab-dock-at-bottom > .tab-dock-bar {
+    flex-direction: row;
+}
+
+.tab-dock-at-left > .tab-dock-bar {
+    border-right: 1px solid var(--lumo-contrast-10pct);
+}
+
+.tab-dock-at-right > .tab-dock-bar {
+    border-left: 1px solid var(--lumo-contrast-10pct);
+}
+
+.tab-dock-at-top > .tab-dock-bar {
+    border-bottom: 1px solid var(--lumo-contrast-10pct);
+}
+
+.tab-dock-at-bottom > .tab-dock-bar {
+    border-top: 1px solid var(--lumo-contrast-10pct);
+}
+
+.tab-dock-bar-icon {
+    flex: 0 0 auto;
+    width: var(--lumo-size-m);
+    height: var(--lumo-size-m);
+    margin: 0;
+    padding: 0;
+}
+
+.tab-dock-bar-icon {
+    cursor: grab;
+}
+
+.tab-dock-bar-icon.v-dragged {
+    opacity: 0.5;
+}
+
+.tab-dock-bar-icon.v-drag-over-target {
+    background: var(--lumo-primary-color-10pct);
+    box-shadow: inset 0 0 0 2px var(--lumo-primary-color);
+}
+
+.tab-dock-bar-icon img {
+    width: var(--lumo-icon-size-l);
+    height: var(--lumo-icon-size-l);
+}
+
+.tab-dock-bar-move {
+    flex: 0 0 auto;
+    color: var(--lumo-secondary-text-color);
+}
+
+.tab-dock-minimize {
+    margin-inline-start: var(--lumo-space-xs);
+    color: var(--lumo-secondary-text-color);
 }
 
 /* What a splitter separates: a sheet with the strips for a new sheet, or a column */
@@ -597,6 +710,16 @@ vaadin-markdown.agent-report td {
     border-radius: 50%;
 }
 
+/* the style chooser of the reader, opposite to the back button */
+.floating-style-button {
+    position: fixed;
+    top: 16px;
+    right: 24px;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    border-radius: 50%;
+}
+
 /* Message images */
 .message-images {
     display: flex;
@@ -608,6 +731,136 @@ vaadin-markdown.agent-report td {
 .message-image {
     height: auto;
     border-radius: var(--lumo-border-radius-s);
+}
+
+/* The text of a part with its images placed among it (ui.components.PartView): the viewer and the preview of the editor.
+   flow-root keeps a picture the text flows around inside its part, the next part does not wrap around it. */
+.part-view {
+    display: flow-root;
+    width: 100%;
+    container-type: inline-size;
+}
+
+.part-pictures {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: var(--lumo-space-m);
+    clear: both;
+    margin: var(--lumo-space-s) 0;
+}
+
+.part-pictures-left {
+    justify-content: flex-start;
+}
+
+.part-pictures-center {
+    justify-content: center;
+}
+
+.part-pictures-right {
+    justify-content: flex-end;
+}
+
+/* the pictures the text flows around are floats of their own, the group around them takes no room */
+.part-pictures-float {
+    margin: 0;
+}
+
+.part-picture {
+    max-width: 100%;
+    margin: 0;
+    text-align: center;
+    box-sizing: border-box;
+}
+
+.part-picture img {
+    max-width: 100%;
+    max-height: 80vh;
+    height: auto;
+    object-fit: contain;
+    border-radius: var(--lumo-border-radius-s);
+}
+
+/* a width asked for by the author: the picture fills it */
+.part-picture-sized {
+    flex: 0 0 auto;
+}
+
+.part-picture-sized img {
+    width: 100%;
+}
+
+.part-picture-float-left {
+    float: left;
+    margin: 0 var(--lumo-space-m) var(--lumo-space-s) 0;
+}
+
+.part-picture-float-right {
+    float: right;
+    margin: 0 0 var(--lumo-space-s) var(--lumo-space-m);
+}
+
+/* pictures with text on both sides: the text in two columns, the pictures between them (the columns are set on the element) */
+.part-band {
+    display: grid;
+    gap: var(--lumo-space-l);
+    align-items: start;
+    clear: both;
+    margin: var(--lumo-space-s) 0;
+}
+
+.part-band-middle {
+    align-self: center;
+    display: flex;
+    flex-direction: column;
+    gap: var(--lumo-space-s);
+    align-items: center;
+}
+
+.part-band-text {
+    min-width: 0;
+}
+
+/* a narrow part (a phone) has no room for text beside a picture, the picture goes above the text */
+@container (max-width: 30em) {
+    .part-picture-float-left,
+    .part-picture-float-right {
+        float: none;
+        width: 100% !important;
+        margin: var(--lumo-space-s) 0;
+    }
+
+    .part-band {
+        grid-template-columns: 1fr !important;
+    }
+
+    .part-band-middle .part-picture {
+        width: 100% !important;
+    }
+}
+
+/* the 3x3 picker of the place of an image (ui.dialogs.manuscript.ImagesDialog) */
+.image-anchor-picker {
+    display: grid;
+    grid-template-columns: repeat(3, var(--lumo-size-m));
+    gap: var(--lumo-space-xs);
+    flex-shrink: 0;
+}
+
+/* preview of a part as the viewer shows it (ui.dialogs.manuscript.PartPreviewDialog) */
+.part-preview-frame {
+    padding: var(--lumo-space-m);
+    background: var(--lumo-base-color);
+    border: 1px solid var(--lumo-contrast-20pct);
+    border-radius: var(--lumo-border-radius-m);
+    box-sizing: border-box;
+    margin: 0 auto;
+}
+
+.part-preview-phone {
+    width: 22rem;
+    max-width: 100%;
 }
 
 /* Story messages and summaries */
@@ -900,6 +1153,117 @@ vaadin-dialog-overlay.phone-dialog::part(overlay) {
 .token-usage-summary {
     color: var(--lumo-secondary-text-color);
     font-size: var(--lumo-font-size-s);
+}
+
+/* Statistics (ui.dialogs.statistics.StatisticsView): the totals line, and the growth of a book coloured by its sign */
+.statistic-totals {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--lumo-space-xs) var(--lumo-space-l);
+    font-size: var(--lumo-font-size-s);
+}
+
+.statistic-total-item {
+    white-space: nowrap;
+}
+
+/* Activity calendar of the statistics (ui.dialogs.statistics.ActivityCalendarView): a column per week, a square per day */
+.activity-calendar {
+    display: flex;
+    gap: 3px;
+    max-width: 100%;
+    overflow-x: auto;
+    padding-bottom: var(--lumo-space-xs);
+}
+
+.activity-calendar-week {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.activity-calendar-month {
+    height: 1.2em;
+    overflow: visible;
+    white-space: nowrap;
+    font-size: var(--lumo-font-size-xxs);
+    color: var(--lumo-secondary-text-color);
+}
+
+.activity-calendar-day {
+    width: 12px;
+    height: 12px;
+    flex: none;
+    border-radius: 2px;
+    background: var(--lumo-contrast-10pct);
+}
+
+.activity-calendar-level-1 {
+    background: color-mix(in srgb, var(--lumo-success-color) 35%, var(--lumo-contrast-10pct));
+}
+
+.activity-calendar-level-2 {
+    background: color-mix(in srgb, var(--lumo-success-color) 60%, var(--lumo-contrast-10pct));
+}
+
+.activity-calendar-level-3 {
+    background: color-mix(in srgb, var(--lumo-success-color) 80%, var(--lumo-contrast-10pct));
+}
+
+.activity-calendar-level-4 {
+    background: var(--lumo-success-color);
+}
+
+.activity-calendar-today {
+    outline: 2px solid var(--lumo-primary-color);
+    outline-offset: -1px;
+}
+
+.activity-calendar-legend {
+    align-items: center;
+    font-size: var(--lumo-font-size-xs);
+    color: var(--lumo-secondary-text-color);
+}
+
+.activity-goal {
+    display: flex;
+    flex-direction: column;
+    gap: var(--lumo-space-s);
+    font-size: var(--lumo-font-size-s);
+}
+
+.activity-goal-line {
+    display: flex;
+    flex-direction: column;
+    gap: var(--lumo-space-xs);
+}
+
+.activity-goal-bar {
+    max-width: 20em;
+}
+
+vaadin-grid::part(statistic-growth-up) {
+    color: var(--lumo-success-text-color);
+}
+
+vaadin-grid::part(statistic-growth-down) {
+    color: var(--lumo-error-text-color);
+}
+
+/* Prompt comparison (ui.dialogs.PromptComparisonDialog): the message where the prompt first differs from the earlier one, and the ones after it (the cache is not used for them) */
+vaadin-grid::part(prompt-compare-first-difference) {
+    background-color: var(--lumo-error-color-10pct);
+    font-weight: 600;
+}
+
+vaadin-grid::part(prompt-compare-lost) {
+    color: var(--lumo-secondary-text-color);
+}
+
+/* Version history of a part (ui.dialogs.story.PartHistoryDialog): a version in the trash */
+vaadin-grid::part(history-row-deleted) {
+    color: var(--lumo-secondary-text-color);
+    font-style: italic;
 }
 
 /* Help assistant (ui.components.HelpAssistantWidget): a round button fixed in the bottom right corner that opens a chat panel above it */
@@ -1411,4 +1775,42 @@ vaadin-dialog-overlay.agent-console-phone .help-message-user {
     color: var(--lumo-secondary-text-color);
     font-family: var(--lumo-font-family-monospace, monospace);
     font-size: var(--lumo-font-size-xs);
+}
+
+/* the two panes of the dialog that copies and moves books and folders: the one with the cursor has a frame */
+.organise-pane {
+    border: 2px solid transparent;
+    border-radius: var(--lumo-border-radius-m);
+    padding: var(--lumo-space-xs);
+    min-width: 0;
+}
+
+.organise-pane-active {
+    border-color: var(--lumo-primary-color);
+}
+
+/* the row of a pane the keyboard cursor is on (the whole row, the grid focuses a single cell) */
+.organise-pane vaadin-grid::part(organise-cursor-row) {
+    background-color: var(--lumo-primary-color-10pct);
+}
+
+/* Editor of the text styles (ui.styles.PartStyleEditor) */
+.style-editor-list {
+    flex-shrink: 0;
+}
+
+/* the sample text the style being edited is applied to */
+.style-editor-preview {
+    height: 15rem;
+    flex-shrink: 0;
+    overflow: auto;
+    padding: var(--lumo-space-m);
+    background: var(--lumo-base-color);
+    border: 1px solid var(--lumo-contrast-20pct);
+    border-radius: var(--lumo-border-radius-m);
+}
+
+.style-editor-css textarea {
+    font-family: var(--lumo-font-family-monospace, monospace);
+    font-size: var(--lumo-font-size-s);
 }

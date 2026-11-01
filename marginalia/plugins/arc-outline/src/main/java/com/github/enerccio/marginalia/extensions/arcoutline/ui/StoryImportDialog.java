@@ -13,6 +13,7 @@ import com.github.enerccio.marginalia.extensions.arcoutline.service.ArcOutlineSe
 import com.github.enerccio.marginalia.extensions.arcoutline.service.ArcOutlineService.StoryMessage;
 import com.github.enerccio.marginalia.extensions.arcoutline.service.Defaults;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -26,7 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-import static com.github.enerccio.marginalia.extensions.arcoutline.ArcOutlineLocalization.T;
+import static com.github.enerccio.marginalia.extensions.arcoutline.ArcOutlineLocalization.*;
 
 /**
  * Asks the model to turn a part of the written story into an arc with chapters. The part is a range of the messages of
@@ -50,9 +51,21 @@ public class StoryImportDialog extends GeneratorDialog {
     private IntegerField toField;
     private IntegerField chaptersField;
     private Select<OutlineState> stateSelect;
+    private Checkbox mapParts;
     private Span tokenInfo;
     /** The valid answer of the last generation, null while there is none. */
-    private GeneratedStoryArc result;
+    private Imported result;
+    /** The messages the last generation was given and whether the chapters were asked where they begin, to map the answer back. */
+    private List<StoryMessage> sentMessages = List.of();
+    private boolean sentMapped;
+
+    /** An answer of the model, with or without the messages the chapters begin in. */
+    private record Imported(String name, String description, String note, List<ImportedChapter> chapters) {
+    }
+
+    /** @param part the place in the branch of the part the chapter begins in, null when unknown */
+    private record ImportedChapter(String name, String description, String note, Integer part) {
+    }
 
     /**
      * @param outline  the outline of the book, the model is told about its arcs
@@ -61,7 +74,7 @@ public class StoryImportDialog extends GeneratorDialog {
      */
     public StoryImportDialog(ArcOutlineService service, Manuscript manuscript, ArcOutline outline,
                              List<StoryMessage> messages, Consumer<Arc> onSave) {
-        super(service, manuscript, T.localized("Import an arc from the story"), T.localized("Save as arc"));
+        super(service, manuscript, T.localized(IMPORT_AN_ARC), T.localized(SAVE_AS_ARC));
         this.outline = outline;
         this.messages = messages;
         this.onSave = onSave;
@@ -101,8 +114,8 @@ public class StoryImportDialog extends GeneratorDialog {
     protected Component createInputs() {
         int last = messages.size();
 
-        fromField = rangeField(T.localized("From message"), 1, last);
-        toField = rangeField(T.localized("To message"), last, last);
+        fromField = rangeField(T.localized(FROM_MESSAGE), 1, last);
+        toField = rangeField(T.localized(TO_MESSAGE), last, last);
         fromField.addValueChangeListener(_ -> rangeChanged());
         toField.addValueChangeListener(_ -> rangeChanged());
         HorizontalLayout range = new HorizontalLayout(fromField, toField);
@@ -110,30 +123,34 @@ public class StoryImportDialog extends GeneratorDialog {
         range.setPadding(false);
         range.getThemeList().add("spacing-xs");
 
-        Span rangeHint = new Span(T.localized("The messages with text of the active branch, %d in all, are numbered from the first one.").formatted(last));
+        Span rangeHint = new Span(T.localized(THE_MESSAGES_WITH_TEXT).formatted(last));
         rangeHint.addClassNames(CssStyles.TEXT_XS, CssStyles.TEXT_SECONDARY);
 
-        chaptersField = new IntegerField(T.localized("Number of chapters (optional)"));
+        chaptersField = new IntegerField(T.localized(NUMBER_OF_CHAPTERS_OPTIONAL));
         chaptersField.setMin(1);
         chaptersField.setMax(MAX_CHAPTERS);
         chaptersField.setStepButtonsVisible(true);
-        chaptersField.setHelperText(T.localized("Empty: the model divides the story where it divides naturally"));
+        chaptersField.setHelperText(T.localized(EMPTY_THE_MODEL_DIVIDES));
         chaptersField.setWidthFull();
         chaptersField.addValueChangeListener(_ -> updateTokenInfo());
 
         stateSelect = new Select<>();
-        stateSelect.setLabel(T.localized("State of the imported arc and its chapters"));
+        stateSelect.setLabel(T.localized(STATE_OF_THE_IMPORTED_ARC));
         stateSelect.setItems(OutlineState.values());
         stateSelect.setItemLabelGenerator(s -> T.localized(s.getLabel()));
         // the story is written already
         stateSelect.setValue(OutlineState.FINISHED);
         stateSelect.setWidthFull();
 
+        mapParts = new Checkbox(T.localized(LINK_THE_CHAPTERS), true);
+        mapParts.addValueChangeListener(_ -> updateTokenInfo());
+        mapParts.setTooltipText(T.localized(THE_MODEL_SAYS));
+
         tokenInfo = new Span();
         tokenInfo.setWidthFull();
         tokenInfo.addClassNames(CssStyles.TEXT_S);
 
-        VerticalLayout inputs = new VerticalLayout(range, rangeHint, chaptersField, stateSelect, tokenInfo);
+        VerticalLayout inputs = new VerticalLayout(range, rangeHint, chaptersField, mapParts, stateSelect, tokenInfo);
         inputs.setPadding(false);
         inputs.getThemeList().add("spacing-xs");
         return inputs;
@@ -154,7 +171,7 @@ public class StoryImportDialog extends GeneratorDialog {
     /** The beginning of the message, in one line. */
     private String preview(Integer number) {
         if (number == null || number < 1 || number > messages.size()) {
-            return T.localized("No such message");
+            return T.localized(NO_SUCH_MESSAGE);
         }
         String text = StringUtils.normalizeSpace(messages.get(number - 1).text());
         return StringUtils.abbreviate(text, PREVIEW_LENGTH);
@@ -171,6 +188,7 @@ public class StoryImportDialog extends GeneratorDialog {
         fromField.setEnabled(enabled);
         toField.setEnabled(enabled);
         chaptersField.setEnabled(enabled);
+        mapParts.setEnabled(enabled);
         stateSelect.setEnabled(enabled);
     }
 
@@ -183,10 +201,10 @@ public class StoryImportDialog extends GeneratorDialog {
         int from = fromField.getValue() != null ? fromField.getValue() : 1;
         int to = toField.getValue() != null ? toField.getValue() : messages.size();
         if (from < 1 || to > messages.size()) {
-            throw new IllegalArgumentException(T.localized("The messages are numbered 1 to %d.").formatted(messages.size()));
+            throw new IllegalArgumentException(T.localized(THE_MESSAGES_ARE_NUMBERED_1).formatted(messages.size()));
         }
         if (from > to) {
-            throw new IllegalArgumentException(T.localized("The first message is after the last one."));
+            throw new IllegalArgumentException(T.localized(THE_FIRST_MESSAGE_IS_AFTER));
         }
         return messages.subList(from - 1, to);
     }
@@ -220,24 +238,24 @@ public class StoryImportDialog extends GeneratorDialog {
         NumberFormat format = NumberFormat.getIntegerInstance();
         long story = range.stream().mapToLong(StoryMessage::tokens).sum();
         StringBuilder text = new StringBuilder((range.size() == 1
-                ? T.localized("Story: %d message, about %s tokens.")
-                : T.localized("Story: %d messages, about %s tokens.")).formatted(range.size(), format.format(story)));
+                ? T.localized(STORY_MESSAGE_ABOUT_TOKENS)
+                : T.localized(STORY_MESSAGES_ABOUT_TOKENS)).formatted(range.size(), format.format(story)));
         try {
             long prompt = service.countTokens(buildPrompt(promptValue(), null));
             int available = TokenLimits.promptTokens(selectedAi(), selectedProtocol());
             if (available <= 0) {
-                text.append(' ').append(T.localized("Prompt sent to the model: about %s tokens.").formatted(format.format(prompt)));
+                text.append(' ').append(T.localized(PROMPT_SENT_TO_THE_MODEL).formatted(format.format(prompt)));
             } else if (prompt > available) {
-                text.append(' ').append(T.localized("Prompt sent to the model: about %s tokens of %s the model takes - it does not fit, choose fewer messages.")
+                text.append(' ').append(T.localized(PROMPT_SENT_TO_THE_MODEL_ABOUT_TOKENS)
                         .formatted(format.format(prompt), format.format(available)));
                 tokenInfo.addClassName(CssStyles.NOTICE_WARNING);
             } else {
-                text.append(' ').append(T.localized("Prompt sent to the model: about %s tokens of %s the model takes.")
+                text.append(' ').append(T.localized(PROMPT_SENT_TO_THE_MODEL_ABOUT)
                         .formatted(format.format(prompt), format.format(available)));
             }
         } catch (Exception e) {
             // most likely a prompt that is not a valid template
-            text.append(' ').append(T.localized("The prompt can't be built: %s").formatted(StringUtils.defaultIfBlank(e.getMessage(), e.toString())));
+            text.append(' ').append(T.localized(THE_PROMPT_CANT_BE_BUILT).formatted(StringUtils.defaultIfBlank(e.getMessage(), e.toString())));
             tokenInfo.addClassName(CssStyles.NOTICE_WARNING);
         }
         tokenInfo.setText(text.toString());
@@ -247,12 +265,15 @@ public class StoryImportDialog extends GeneratorDialog {
 
     @Override
     protected String buildPrompt(String template, ToolSet tools) throws Exception {
-        return service.buildImportPrompt(manuscript, outline, template, selected(), exactCount());
+        return service.buildImportPrompt(manuscript, outline, template, selected(), exactCount(), mapParts.getValue());
     }
 
     @Override
     protected JsonNode schema() {
-        return service.importSchema(exactCount());
+        // the answer is mapped back with what was sent, the range and the check box may change before it is saved
+        sentMessages = selected();
+        sentMapped = mapParts.getValue();
+        return service.importSchema(exactCount(), sentMapped);
     }
 
     // --- result ---
@@ -282,7 +303,7 @@ public class StoryImportDialog extends GeneratorDialog {
     private void showPreview(String title, String description, String note, List<String[]> chapters) {
         resultHolder().removeAll();
         if (title == null && description == null && note == null && chapters.isEmpty()) {
-            resultHolder().add(emptyHint(T.localized("The arc the model writes appears here, with its chapters.")));
+            resultHolder().add(emptyHint(T.localized(THE_ARC_THE_MODEL_WRITES_APPEARS)));
             return;
         }
         Arc arc = new Arc();
@@ -302,18 +323,32 @@ public class StoryImportDialog extends GeneratorDialog {
     @Override
     protected String accept(String output) {
         result = null;
-        SchemaCheck check = StructuredOutputs.validate(service.importSchema(exactCount()), output);
+        SchemaCheck check = StructuredOutputs.validate(service.importSchema(exactCount(), sentMapped), output);
         if (!check.valid()) {
-            return T.localized("The answer is not a valid arc with chapters: %s").formatted(String.join("; ", check.errors()));
+            return T.localized(THE_ANSWER_IS_NOT_A_VALID_ARC).formatted(String.join("; ", check.errors()));
         }
         try {
-            result = StructuredOutputs.parse(output, GeneratedStoryArc.class);
+            result = sentMapped ? mapped(StructuredOutputs.parse(output, GeneratedMappedStoryArc.class))
+                    : plain(StructuredOutputs.parse(output, GeneratedStoryArc.class));
             showPreview(result.name(), result.description(), result.note(),
                     result.chapters().stream().map(c -> new String[] {c.name(), c.description(), c.note()}).toList());
             return null;
         } catch (Exception e) {
-            return T.localized("The answer can't be read: %s").formatted(e.getMessage());
+            return T.localized(THE_ANSWER_CANT_BE_READ).formatted(e.getMessage());
         }
+    }
+
+    private static Imported plain(GeneratedStoryArc arc) {
+        return new Imported(arc.name(), arc.description(), arc.note(),
+                arc.chapters().stream().map(c -> new ImportedChapter(c.name(), c.description(), c.note(), null)).toList());
+    }
+
+    /**
+     * The model counts the messages from 1 in the range it was given; the chapters are linked to the real places in the branch.
+     */
+    private Imported mapped(GeneratedMappedStoryArc arc) {
+        return new Imported(arc.name(), arc.description(), arc.note(), arc.chapters().stream().map(c -> new ImportedChapter(
+                c.name(), c.description(), c.note(), ArcOutlineService.mapPart(sentMessages, c.part()))).toList());
     }
 
     @Override
@@ -338,8 +373,9 @@ public class StoryImportDialog extends GeneratorDialog {
         // the arc and each of its chapters keep what the model wrote for all of them, as it came
         arc.setGenerationReasoning(reasoning);
         arc.setGenerationResult(answer);
-        for (GeneratedChapter generated : result.chapters()) {
+        for (ImportedChapter generated : result.chapters()) {
             Chapter chapter = new Chapter();
+            chapter.setPart(generated.part());
             chapter.setTitle(generated.name().trim());
             chapter.setDescription(generated.description().trim());
             chapter.setNote(generated.note().trim());
@@ -348,6 +384,8 @@ public class StoryImportDialog extends GeneratorDialog {
             chapter.setState(state);
             arc.getChapters().add(chapter);
         }
+        // the arc begins where its first chapter does
+        arc.setPart(result.chapters().getFirst().part());
         // after the chapters, a finished arc finishes them
         arc.setState(state);
         onSave.accept(arc);

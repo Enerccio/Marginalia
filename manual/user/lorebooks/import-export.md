@@ -136,11 +136,14 @@ SillyTavern settings without a Marginalia counterpart are listed in the entry's 
 - probability, inclusion groups, sticky, cooldown and delay - the entry is simply active whenever it matches;
 - insertion *at depth* - the entry goes before the user prompt instead.
 
-The biggest difference is **what the keys are matched against**. SillyTavern scans the recent chat; Marginalia
-matches the [request for the part being written](entries.md#filters) - its scene, characters and instructions - not
-the earlier story. An entry that SillyTavern activated because a name came up in the last messages is activated in
-Marginalia when you mention the name in the turn instructions. Recursive activation (entries activating other
-entries) is not supported either.
+The biggest difference is **what the keys are matched against**. SillyTavern scans the recent chat. Marginalia matches
+the [request for the part being written](entries.md#filters) - its scene, characters and instructions - and an imported
+entry starts with exactly that (its **Activation Context** is *Instructions*), so an entry that SillyTavern activated because
+a name came up in the last messages is activated in Marginalia only when you mention the name in the turn. To get what
+SillyTavern does, set the **Activation Context** of the entry to *Instructions and parts of the story* and **Parts** to
+the number of the newest parts to look into, see [Looking into the story](entries.md#looking-into-the-story). Recursive activation (entries activating other entries)
+is not set by the import either: switch it on with the **scan depth** of the lorebook, see
+[Entries brought in by other entries](entries.md#entries-brought-in-by-other-entries).
 
 After importing, look through the entries and decide which should be always active, which keep their filters, and
 which are better handled with [tags](entries.md#tags).

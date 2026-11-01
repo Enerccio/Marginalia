@@ -14,7 +14,7 @@ Once a user can use it, they see a round robot button in the bottom right corner
 panel says which model answers and warns when the user's limit applies (see [Who pays](#who-pays)). The model looks
 the answers up in the manual (it can search it and read its pages), names the pages it used as links to the
 [published manual](https://enerccio.github.io/Marginalia/) (they open in a new tab), and explains: it
-changes nothing and does not see the user's books. It can also look at what went wrong when something fails (see
+changes nothing and does not see the user's books unless the user allows it (see [Your books](#your-books)). It can also look at what went wrong when something fails (see
 [When something goes wrong](#when-something-goes-wrong)) and take the user somewhere, if you allow it (see
 [Showing the way](#showing-the-way)). The conversation is kept until the user logs out (closing the panel
 or reloading the page keeps it), the broom button clears it.
@@ -62,6 +62,25 @@ fields (for a model: the response must be smaller than the context). Only the *n
 them. It never gets the text of a story, a lorebook entry, an API key or a password.
 
 ![The assistant explaining why the form of a new model can not be saved yet](../../images/help-assistant-form.png)
+
+## Your books
+
+The panel of the assistant has the check box **Let the assistant look at my books**, off by default and set by each user for
+themselves (it is kept in their settings). A notice under it says what it means: the assistant reads folder names, titles,
+descriptions and the writing settings of the books and searches their text, never reads the text of a story, and what it reads is
+sent to the AI that answers - which is the model you chose above, so say so to the users if it is a service outside your control.
+
+![The assistant panel with the check box for the books](../../images/help-assistant-books.png)
+
+When it is on, the model gets three functions, all read-only and only for the books of the user who asks:
+
+| Function | |
+|---|---|
+| `list_folder` | The subfolders of a folder, with the number of books beneath each, and its books with title and description. A path like `Sci-fi/Expanse` names the folder, none is the top level. |
+| `search_books` | Finds books by the words of the title or description, or by the text of the story, optionally within a folder ("where is my book about true lovers?"). It says where a match was and in which folder; the text found is not returned. |
+| `get_book_settings` | The language, point of view, tense and style of a book and where each comes from (the book, a folder, the user settings or the built-in default). The prompts are only told as *a custom text* or *the built-in text*, with where they come from. |
+
+It can not change, move or create anything. The lists are cut (a hundred entries, twenty matches) and the descriptions shortened.
 
 ## When something goes wrong
 

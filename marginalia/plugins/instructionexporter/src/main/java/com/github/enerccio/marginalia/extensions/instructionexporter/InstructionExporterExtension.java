@@ -7,7 +7,9 @@ import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.ExtensionService;
 import com.github.enerccio.marginalia.domain.service.OsgiService;
 import com.github.enerccio.marginalia.extensions.MarginaliaExtension;
+import com.github.enerccio.marginalia.ui.menu.MenuPosition;
 import com.github.enerccio.marginalia.ui.menu.StoryMenuItem;
+import com.github.enerccio.marginalia.ui.menu.StoryMenuKeys;
 import com.github.enerccio.marginalia.ui.menu.StoryMenuRegistry;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.notification.Notification;
@@ -22,7 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static com.github.enerccio.marginalia.extensions.instructionexporter.InstructionExporterLocalization.T;
+import static com.github.enerccio.marginalia.extensions.instructionexporter.InstructionExporterLocalization.*;
 
 @Configurable
 public class InstructionExporterExtension implements MarginaliaExtension {
@@ -44,14 +46,15 @@ public class InstructionExporterExtension implements MarginaliaExtension {
         // an item of the settings menu of the story, on the desktop and on the phone; the story editor loads other books into the same
         // instance, so the book is read when the item is chosen
         menuRegistry.register(bundle.getSymbolicName(),
-                StoryMenuItem.tools(MENU_ITEM_KEY, l -> T.localized("Export instructions"), story -> exportInstructions(story.getCurrentManuscript()))
-                        .icon(Solid.CLIPBOARD_LIST::create));
+                StoryMenuItem.tools(MENU_ITEM_KEY, l -> T.localized(EXPORT_INSTRUCTIONS), story -> exportInstructions(story.getCurrentManuscript()))
+                        .icon(Solid.CLIPBOARD_LIST::create)
+                        .path(StoryMenuKeys.GROUP_IMPORT_EXPORT).position(MenuPosition.after(StoryMenuKeys.EXPORT)));
     }
 
     private void exportInstructions(Manuscript manuscript) {
         try {
             if (manuscript == null || manuscript.getActiveLeaf() == null) {
-                Notification.show(T.localized("There is no active branch to export"));
+                Notification.show(T.localized(THERE_IS_NO_ACTIVE_BRANCH));
                 return;
             }
 
@@ -63,15 +66,15 @@ public class InstructionExporterExtension implements MarginaliaExtension {
                     .collect(Collectors.joining("\n\n"));
 
             if (text.isEmpty()) {
-                Notification.show(T.localized("There is nothing to export in the active branch"));
+                Notification.show(T.localized(THERE_IS_NOTHING_TO_EXPORT));
                 return;
             }
 
             UI.getCurrent().getPage().executeJs("navigator.clipboard.writeText($0)", text);
-            Notification.show(T.localized("Copied to clipboard"));
+            Notification.show(T.localized(COPIED_TO_CLIPBOARD));
         } catch (Exception e) {
             log.error("Failed to export: {}", e.getMessage(), e);
-            Notification.show(T.localized("Failed to export: %s").formatted(e.getMessage()));
+            Notification.show(T.localized(FAILED_TO_EXPORT).formatted(e.getMessage()));
         }
     }
 

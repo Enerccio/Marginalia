@@ -5,11 +5,14 @@ import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.OpenAICompatible;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
+import com.github.enerccio.marginalia.domain.service.MessageRevisionService;
 import com.github.enerccio.marginalia.test.MarginaliaTestBase;
 import com.github.enerccio.marginalia.ui.components.TreantTree;
 import com.github.enerccio.marginalia.ui.dialogs.ManuscriptDialog;
 import com.github.enerccio.marginalia.ui.dialogs.manuscript.ManuscriptTreePart;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.ComponentUtil;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.html.Span;
@@ -38,6 +41,9 @@ class BranchSearchTest extends MarginaliaTestBase {
 
     @Autowired
     private ManuscriptService manuscriptService;
+
+    @Autowired
+    private MessageRevisionService messageRevisionService;
 
     private Manuscript manuscript;
     private ChatMessage root, a, b1, b2, c2;
@@ -121,6 +127,44 @@ class BranchSearchTest extends MarginaliaTestBase {
 
         box.clear();
         assertThat(status.getText()).isEmpty();
+    }
+
+    @Test
+    void anOldVersionIsFoundOnlyWithTheVersionsIncluded() throws Exception {
+        chatMessageService.updateResponse(manuscript, root, "Fog over the water");
+        @SuppressWarnings("unchecked")
+        ComboBox<String> box = find(content, ComboBox.class);
+        Span status = find(box.getParent().orElseThrow(), Span.class);
+        Checkbox includeVersions = find(box.getParent().orElseThrow(), Checkbox.class);
+        assertThat(includeVersions.getValue()).isFalse();
+
+        box.setValue("dawn");
+        assertThat(status.getText()).isEqualTo("Nothing found.");
+
+        includeVersions.setValue(true);
+        assertThat(status.getText()).as("the search is made again").contains("1 parts found");
+
+        includeVersions.setValue(false);
+        assertThat(status.getText()).isEqualTo("Nothing found.");
+    }
+
+    @Test
+    void showInHistoryOpensTheHistoryOfAPartFoundThroughAVersion() throws Exception {
+        UI ui = new UI();
+        UI.setCurrent(ui);
+        chatMessageService.updateResponse(manuscript, root, "Fog over the water");
+        String version = messageRevisionService.list(root, false).getLast().uuid();
+        TreantTree tree = find(content, TreantTree.class);
+
+        ComponentUtil.fireEvent(tree, new TreantTree.NodeGotoEvent(tree, true, "history:" + root.getId() + ":" + version));
+        // the links of other books and broken ones do nothing
+        ComponentUtil.fireEvent(tree, new TreantTree.NodeGotoEvent(tree, true, "history:nonsense"));
+        ComponentUtil.fireEvent(tree, new TreantTree.NodeGotoEvent(tree, true, "history:"));
+
+        assertThat(shown).as("not shown in the story").isNull();
+        assertThat(manuscriptService.find(manuscript).getActiveLeaf().getId()).isEqualTo(b1.getId());
+        // UI.setCurrent keeps only a weak reference
+        assertThat(UI.getCurrent()).isSameAs(ui);
     }
 
     @Test

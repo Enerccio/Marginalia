@@ -14,6 +14,9 @@ import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Transient;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @DiscriminatorValue("UserSetting")
 public class UserSetting extends Setting {
@@ -27,6 +30,14 @@ public class UserSetting extends Setting {
     @Transient
     @CleanupReference(value = Policy.WEAK, target = Protocol.class)
     private Long defaultProtocol;
+
+    /**
+     * The first day (ISO date) the time of the writing statistics is recorded from; the days before it have counts rebuilt from the
+     * history of the parts but no time. Set once by {@code StatisticsBackfillMigration}; null: the time of every day is known.
+     */
+    @ExtendedAttribute
+    @Transient
+    private String statisticsSince;
 
     // templates
 
@@ -99,6 +110,14 @@ public class UserSetting extends Setting {
     @ExtendedAttribute
     @Transient
     private Boolean annotationsInMargin;
+
+    /**
+     * The arrangement of the tabs of the story editor ({@code TabDock.getLayout()}: columns, sheets, sizes, minimized tabs and
+     * the side of their bar) that books open with when they have none of their own; empty when the user saved none.
+     */
+    @ExtendedAttribute(inject = true, injectPrefix = "defaultStoryLayout")
+    @Transient
+    private JsonObject defaultStoryLayout = new JsonObject();
 
     /**
      * The system prompt of the agents of the user that have none of their own; blank is the one of the application
@@ -184,12 +203,94 @@ public class UserSetting extends Setting {
     private JsonObject workspaceState = new JsonObject();
 
     /**
+     * The uuids of the books the user marked as favorites (the star of the list of books), which the list shows together
+     * in the virtual folder *Favorites*. A book that is gone is dropped when the list is read, see
+     * {@code ManuscriptService.getFavorites}.
+     */
+    @ExtendedAttribute(inject = true, injectPrefix = "favoriteBooks")
+    @Transient
+    private List<String> favoriteBooks = new ArrayList<>();
+
+    /**
      * The keys of the user for the keyboard shortcuts of the story editor: action id to key combination, only the ones
      * that differ from the default of the action (an empty text is no key), see {@code KeyBindings}.
      */
     @ExtendedAttribute(inject = true, injectPrefix = "keyBindings")
     @Transient
     private JsonObject keyBindings = new JsonObject();
+
+    /**
+     * Whether the help assistant may look at the books of the user (folders, titles, descriptions, the settings they
+     * resolve to, a search of their text), asked in the panel of the assistant. Off until the user turns it on: what it
+     * reads is sent to the AI of the administrator that answers.
+     */
+    @ExtendedAttribute
+    @Transient
+    private Boolean helpAssistantBooks = false;
+
+    /**
+     * The most versions of a part the history keeps for the books of the user that set no limit themselves; {@code null} does not limit them here (see
+     * {@code ManuscriptService#resolveHistoryLimit}: the strictest of the book, its folders, the user and the permission wins), zero
+     * keeps no history.
+     */
+    @ExtendedAttribute
+    @Transient
+    private Integer historyMaxVersions;
+
+    /**
+     * The words the author wants to write on a day, over all the books, for the goal and the streak of the statistics; null or
+     * zero is no goal.
+     */
+    @ExtendedAttribute
+    @Transient
+    private Integer dailyGoalWords;
+
+    /**
+     * The minutes the author wants to spend editing on a day, over all the books; null or zero is no goal.
+     */
+    @ExtendedAttribute
+    @Transient
+    private Integer dailyGoalMinutes;
+
+    public Integer getDailyGoalWords() {
+        return dailyGoalWords;
+    }
+
+    public void setDailyGoalWords(Integer dailyGoalWords) {
+        this.dailyGoalWords = dailyGoalWords;
+    }
+
+    public Integer getDailyGoalMinutes() {
+        return dailyGoalMinutes;
+    }
+
+    public void setDailyGoalMinutes(Integer dailyGoalMinutes) {
+        this.dailyGoalMinutes = dailyGoalMinutes;
+    }
+
+    public boolean isHelpAssistantBooks() {
+        return helpAssistantBooks != null && helpAssistantBooks;
+    }
+
+    public void setHelpAssistantBooks(Boolean helpAssistantBooks) {
+        this.helpAssistantBooks = helpAssistantBooks;
+    }
+
+    public Integer getHistoryMaxVersions() {
+        return historyMaxVersions;
+    }
+
+    public void setHistoryMaxVersions(Integer historyMaxVersions) {
+        this.historyMaxVersions = historyMaxVersions;
+    }
+
+    public String getStatisticsSince() {
+        return statisticsSince;
+    }
+
+    public void setStatisticsSince(String statisticsSince) {
+        this.statisticsSince = statisticsSince;
+    }
 
     public Long getDefaultModel() {
         return defaultModel;
@@ -319,6 +420,14 @@ public class UserSetting extends Setting {
         this.annotationsInMargin = annotationsInMargin;
     }
 
+    public JsonObject getDefaultStoryLayout() {
+        return defaultStoryLayout;
+    }
+
+    public void setDefaultStoryLayout(JsonObject defaultStoryLayout) {
+        this.defaultStoryLayout = defaultStoryLayout == null ? new JsonObject() : defaultStoryLayout;
+    }
+
     public String getDefaultRedraftPrompt() {
         return defaultRedraftPrompt;
     }
@@ -421,6 +530,14 @@ public class UserSetting extends Setting {
 
     public void setWorkspaceState(JsonObject workspaceState) {
         this.workspaceState = workspaceState == null ? new JsonObject() : workspaceState;
+    }
+
+    public List<String> getFavoriteBooks() {
+        return favoriteBooks;
+    }
+
+    public void setFavoriteBooks(List<String> favoriteBooks) {
+        this.favoriteBooks = favoriteBooks == null ? new ArrayList<>() : new ArrayList<>(favoriteBooks);
     }
 
     public JsonObject getKeyBindings() {

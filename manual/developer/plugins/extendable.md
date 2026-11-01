@@ -1,7 +1,7 @@
 ---
 label: "@Extendable hooks"
 order: 90
-verified: 60a4afd23
+verified: 6b9a70d37
 covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/instruct
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/ExtensionService.java
@@ -280,13 +280,14 @@ Methods the bundled plugins use, as examples:
 | Class | Method | Reached through | Used for |
 |---|---|---|---|
 | `ManuscriptStoryPart` | `createSidebarButton(msg, orderId, dbId)` | arguments; local `sidebarBtn`; field `sidebarList` | Change the sidebar entry of a part (Chapter Marker). |
-| `ManuscriptStoryPart` | `renderStoryContent()` | fields `leftBar` (a `TabDock`), `currentManuscript` | Add a tab next to the story outline (Side Query). Runs on every redraw of the story. |
+| `ManuscriptStoryPart` | `renderStoryContent()` | fields `leftBar` (a `TabDock`), `currentManuscript`, `lazyLoader` (a `StoryLazyLoader`) | Add a tab next to the story outline (Side Query). Runs on every redraw of the story. Arc Outline also reaches the loader to find the part the reader sees (`mostVisible`) and to scroll the story to a part (`scrollTo`); on the phone the field `layout` (an `AppLayout`, the desktop part has none) is the drawer that is closed first. |
 | `ManuscriptStoryPart` | `populateMenuBar(bar)` / `createCogsMenuItem(bar)` | argument `bar`; local `cogs` | Add items to the menu bar of the story editor / to its settings menu. For an item of the settings menu register a `StoryMenuItem` instead (see [UI extensions](ui-extensions.md#menu-items-of-the-story-editor)). |
 | `ManuscriptStoryPart` | `createCommandBox()` (from 1.4.0) | return value (a `Component`, the `CommandBar`) | Replace or wrap the command line (`CommandBar` with its `CommandResultView` popover), for example to put another `CommandResultTarget` on the bar. |
 | `SummariesDialog` | `populateMenuBar(bar)` | argument `bar` | Add tools to the (empty) menu bar of the summaries overview. Not used by a bundled plugin yet. |
 | `ManuscriptStoryPart$ChatMessageCard` | `createMenuItems()` | fields `hamburgerMenu`, `message` | Add other things to a part's menu; runs when the menu of the part is first opened, after the items of the `StoryMenuRegistry`. Items are better registered there (Reviewer does). |
 | `ManuscriptStoryPart$ChatMessageCard` | `refreshSummaryMenuItems()` | fields `hamburgerMenu`, `message` | Runs each time the menu of the part is about to open, after it reloaded `message` (before the registry refreshes its items). |
 | `ManuscriptStoryPart$ChatMessageCard` | `autosaveAndSwapToMarkdown()` | fields `message`, `this$0` (the outer `ManuscriptStoryPart`) | React to an edited part (Chapter Marker). |
+| `ManuscriptStoryPart$ChatMessageCard` | `openHistory()` / `getHistoryCount()` / `comparePrompt()` (from 1.6.0) | field `message` | Open the [version history](../version-history.md) of the part / the number in the label of its menu item. |
 | `UserPart` | `refresh()` / `save()` | fields `extensionSettings`, `userSetting` | Add a settings panel; save its values (Reviewer, Side Query, Lore Generator). |
 | `LorebookView` | `create()` | local `lorebookHeaderLayout`; field `grid` | Add a panel above the lorebook header (Lorebook VCS); add a column to the entry grid (Lore Generator). |
 | `LorebookPart` | `refresh()` | field `lorebookView` | Reach the view of the workspace tab, which was built when the page opened (Lore Generator). |
@@ -305,7 +306,7 @@ On a phone the book opens in `PhoneManuscriptDialog`, whose tabs are separate cl
 (`createSidebarButton`, `renderStoryContent`, `populateMenuBar`, `createCogsMenuItem`, `createMenuItems`,
 `refreshSummaryMenuItems`, `autosaveAndSwapToMarkdown`; fields `sidebarList`, `leftBar`, `currentManuscript`,
 `hamburgerMenu`, `message`, `this$0`), so a plugin supports the phone by registering the same decorator a second time
-under the other class name. The Reviewer, Chapter Marker and Author's Note do; Side Query, Lore Generator and Lorebook VCS don't.
+under the other class name. The Reviewer, Chapter Marker, Author's Note, Arc Outline, Character Tracker and Converter do (the Converter also closes the drawer, an `AppLayout` found with `leftBar.findAncestor`, before it opens `newTurnPopover`); Side Query, Lore Generator and Lorebook VCS don't.
 Two differences: the card has no right-hand column (the metadata is in a popover), and `leftBar` is the tab sheet in
 the drawer of the story (a `TabDock` that does not detach, like the desktop one); on both, `leftBar` is created once and not rebuilt by `renderStoryContent()` (check for your
 tab first, as Author's Note does). Reach the outer part through `this$0` as an `Object`, since its type depends on the dialog.

@@ -1,5 +1,7 @@
 package com.github.enerccio.marginalia.domain.repository.impl;
 
+import com.github.enerccio.marginalia.domain.components.BookPlacement;
+import com.github.enerccio.marginalia.domain.model.impl.Folder;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.repository.ManuscriptRepository;
 import com.github.enerccio.marginalia.domain.security.model.User;
@@ -19,6 +21,18 @@ public class JpaManuscriptRepository extends JpaExtendableRepository<Manuscript>
     @Override
     protected Class<Manuscript> getEntityClass() {
         return Manuscript.class;
+    }
+
+    /**
+     * A change of a book (saved, deleted) is a change of the folders it is in, see {@link FolderModification}. Not for
+     * {@code saveWithoutModification}, nor for opening and moving a book, which leave the book's own modification alone too.
+     */
+    @Override
+    protected void changed(Manuscript book) throws Exception {
+        // the working copy of an agent is no content of the folder
+        if (book.getFolder() != null && !book.isAgentic()) {
+            FolderModification.touch(entityManager, book.getFolder().getId(), new Date());
+        }
     }
 
     @Override
@@ -41,6 +55,91 @@ public class JpaManuscriptRepository extends JpaExtendableRepository<Manuscript>
                 .setParameter("id", id)
                 .setParameter("ownerId", user.getId())
                 .executeUpdate();
+    }
+
+    @Override
+    public List<Manuscript> findRegularByFolders(Collection<Long> folderIds, User user) throws Exception {
+        List<Manuscript> books = new ArrayList<>();
+        for (List<Long> chunk : chunks(folderIds)) {
+            books.addAll(getEntityManager().createQuery(
+                            "SELECT m FROM Manuscript m WHERE m.deleted = false AND m.agentic = false AND m.owner.id = :ownerId "
+                                    + "AND m.folder.id IN :ids ORDER BY m.id", Manuscript.class)
+                    .setParameter("ownerId", user.getId())
+                    .setParameter("ids", chunk)
+                    .getResultList());
+        }
+        for (Manuscript book : books) {
+            hydrate(book);
+        }
+        return books;
+    }
+
+    @Override
+    public Map<Long, Long> countRegularByFolders(User user) throws Exception {
+        Map<Long, Long> counts = new HashMap<>();
+        for (Object[] row : getEntityManager().createQuery(
+                        "SELECT m.folder.id, COUNT(m) FROM Manuscript m WHERE m.deleted = false AND m.agentic = false "
+                                + "AND m.owner.id = :ownerId AND m.folder IS NOT NULL GROUP BY m.folder.id", Object[].class)
+                .setParameter("ownerId", user.getId())
+                .getResultList()) {
+            counts.put((Long) row[0], (Long) row[1]);
+        }
+        return counts;
+    }
+
+    @Override
+    public Set<String> findExistingRegularUuids(Collection<String> uuids, User user) throws Exception {
+        Set<String> existing = new HashSet<>();
+        for (List<String> chunk : chunks(uuids)) {
+            existing.addAll(getEntityManager().createQuery(
+                            "SELECT m.uuid FROM Manuscript m WHERE m.deleted = false AND m.agentic = false AND m.owner.id = :ownerId "
+                                    + "AND m.uuid IN :uuids", String.class)
+                    .setParameter("ownerId", user.getId())
+                    .setParameter("uuids", chunk)
+                    .getResultList());
+        }
+        return existing;
+    }
+
+    @Override
+    public List<BookPlacement> findPlacements(User user) throws Exception {
+        List<BookPlacement> placements = new ArrayList<>();
+        for (Object[] row : getEntityManager().createQuery(
+                        "SELECT m.uuid, m.name, f.id FROM Manuscript m LEFT JOIN m.folder f WHERE m.deleted = false "
+                                + "AND m.agentic = false AND m.owner.id = :ownerId", Object[].class)
+                .setParameter("ownerId", user.getId())
+                .getResultList()) {
+            placements.add(new BookPlacement((String) row[0], (String) row[1], (Long) row[2]));
+        }
+        return placements;
+    }
+
+    @Override
+    public int moveToFolder(Collection<Long> bookIds, Folder folder, User user) throws Exception {
+        int moved = 0;
+        for (List<Long> chunk : chunks(bookIds)) {
+            moved += getEntityManager().createQuery(
+                            "UPDATE Manuscript m SET m.folder = :folder WHERE m.id IN :ids AND m.owner.id = :ownerId")
+                    .setParameter("folder", folder)
+                    .setParameter("ids", chunk)
+                    .setParameter("ownerId", user.getId())
+                    .executeUpdate();
+        }
+        return moved;
+    }
+
+    @Override
+    public int moveFolderContent(Collection<Long> fromFolderIds, Folder to, User user) throws Exception {
+        int moved = 0;
+        for (List<Long> chunk : chunks(fromFolderIds)) {
+            moved += getEntityManager().createQuery(
+                            "UPDATE Manuscript m SET m.folder = :folder WHERE m.folder.id IN :ids AND m.owner.id = :ownerId")
+                    .setParameter("folder", to)
+                    .setParameter("ids", chunk)
+                    .setParameter("ownerId", user.getId())
+                    .executeUpdate();
+        }
+        return moved;
     }
 
     @Override
@@ -88,6 +187,7 @@ public class JpaManuscriptRepository extends JpaExtendableRepository<Manuscript>
                 parameters.put("agentic", agentic);
             }
 
+            FolderScope.add(ands, parameters, filterValues, "m.folder", "m.uuid");
             if (filterValues.getName() != null) {
                 String nameFilter = filterValues.getName();
                 nameFilter = LikePatterns.fromWildcards(nameFilter);

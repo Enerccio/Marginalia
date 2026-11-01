@@ -549,7 +549,7 @@ public class SideQueryService {
             }
         };
         // a prompt of its own, the cache of the conversation stays
-        try (InferenceSession _ = InferenceSession.open(SESSION_KIND, "tab-name")) {
+        try (InferenceSession _ = InferenceSession.open(SESSION_KIND, "tab-name"); UsageContext _ = UsageContext.open(manuscript)) {
             token[0] = service.stream(payload, protocol, nameCallback);
         }
         return token[0];

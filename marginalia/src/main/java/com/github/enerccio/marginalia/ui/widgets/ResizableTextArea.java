@@ -4,6 +4,7 @@ import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.textfield.TextArea;
@@ -42,6 +43,13 @@ public final class ResizableTextArea {
             collapse.setVisible(false);
             expand.setVisible(true);
         });
+
+        // the field sizes its textarea from a measurement that goes stale (scrollbar appearing, late font): the end of the
+        // text then cannot be scrolled to until the field is resized
+        area.addAttachListener(e -> JavascriptLibrary.keepTextAreaFitted(area.getElement()));
+        if (area.isAttached()) {
+            JavascriptLibrary.keepTextAreaFitted(area.getElement());
+        }
 
         // append (not setSuffixComponent) so a suffix already present, like the info icon, is kept
         area.getElement().appendChild(expand.getElement(), collapse.getElement());

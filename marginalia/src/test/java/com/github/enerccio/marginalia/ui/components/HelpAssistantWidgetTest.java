@@ -17,6 +17,7 @@ import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
@@ -159,6 +160,29 @@ class HelpAssistantWidgetTest extends MarginaliaTestBase {
         assertThat(descendants(panel(widget)).anyMatch(c -> c.getElement().getClassList().contains(CssStyles.HELP_MESSAGE_USER)
                 && "How do I back up?".equals(c.getElement().getText()))).isTrue();
         sessionPoint.getHelpChat().clear();
+    }
+
+    @Test
+    void theUserLetsTheAssistantLookAtTheirBooksWithACheckboxThatIsRemembered() throws Exception {
+        enable(false, false);
+        loginAs(createUser());
+        HelpAssistantWidget widget = new HelpAssistantWidget();
+        ui.add(widget);
+        ((Button) widget.getChildren().findFirst().orElseThrow()).click();
+        Checkbox books = descendants(panel(widget)).filter(Checkbox.class::isInstance).map(Checkbox.class::cast).findFirst().orElseThrow();
+
+        assertThat(books.getValue()).as("off until the user turns it on").isFalse();
+        assertThat(texts(panel(widget))).anyMatch(t -> t.contains("never reads the text of a story"));
+
+        books.setValue(true);
+
+        assertThat(helpService.isBooksAllowed()).isTrue();
+        HelpAssistantWidget again = new HelpAssistantWidget();
+        ui.add(again);
+        ((Button) again.getChildren().findFirst().orElseThrow()).click();
+        assertThat(descendants(panel(again)).filter(Checkbox.class::isInstance).map(Checkbox.class::cast).findFirst().orElseThrow().getValue()).isTrue();
+        books.setValue(false);
+        assertThat(helpService.isBooksAllowed()).isFalse();
     }
 
     /** A part of the page the model can see. */

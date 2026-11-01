@@ -2,14 +2,14 @@ package com.github.enerccio.marginalia.domain.service.impl;
 
 import com.github.enerccio.marginalia.Configuration;
 import com.github.enerccio.marginalia.domain.model.ImageAttachment;
-import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
-import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
-import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
-import com.github.enerccio.marginalia.domain.model.impl.Resource;
+import com.github.enerccio.marginalia.domain.model.impl.*;
+import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.LorebookService.LorebookDecision;
 import com.github.enerccio.marginalia.domain.service.LorebookService.LorebookImportCandidate;
+import com.github.enerccio.marginalia.domain.service.ManuscriptService.MissingHistory;
+import com.github.enerccio.marginalia.extensions.InheritedSettingRegistry;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.google.gson.*;
@@ -54,6 +54,15 @@ public class BackupServiceImpl implements BackupService {
     private LorebookService lorebookService;
 
     @Autowired
+    private FolderService folderService;
+
+    @Autowired
+    private SettingService settingService;
+
+    @Autowired
+    private InheritedSettingRegistry inheritedSettingRegistry;
+
+    @Autowired
     private ResourceService resourceService;
 
     @Autowired
@@ -64,15 +73,25 @@ public class BackupServiceImpl implements BackupService {
 
     @Override
     public ManuscriptBackup takeBackup(Manuscript manuscript) throws Exception {
+        return takeBackup(manuscript, false);
+    }
+
+    @Override
+    public ManuscriptBackup takeBackup(Manuscript manuscript, boolean includeHistory) throws Exception {
         if (manuscript == null) {
             throw new IllegalArgumentException(loc.getValue(L.ERROR_MANUSCRIPT_NULL));
         }
 
         File folder = getManuscriptBackupFolder(manuscript);
 
-        JsonObject backupJson = manuscriptService.createBackup(manuscript);
+        JsonObject backupJson = manuscriptService.createBackup(manuscript, includeHistory);
         if (backupJson == null) {
             return null;
+        }
+
+        Manuscript stored = manuscriptService.find(manuscript);
+        if (stored != null && stored.getFolder() != null) {
+            BackupFolders.write(backupJson, folderService.findChain(stored.getFolder()));
         }
 
         ManuscriptBackup backup = new ManuscriptBackup();
@@ -265,7 +284,7 @@ public class BackupServiceImpl implements BackupService {
                     return null;
                 }
             });
-            return createFromBackup(backupObj, newName, lorebookDecisions);
+            return createFromBackup(backupObj, newName, lorebookDecisions, MissingHistory.FIRST_VERSION);
         }
     }
 
@@ -298,11 +317,18 @@ public class BackupServiceImpl implements BackupService {
                 }
             });
         }
-        return createFromBackup(backupObj, newName, lorebookDecisions);
+        return createFromBackup(backupObj, newName, lorebookDecisions, MissingHistory.FIRST_VERSION);
     }
 
     @Override
     public Manuscript cloneManuscript(Manuscript source, String newName, boolean onlyCurrentBranch) throws Exception {
+        // the copy lies next to the original (and inherits from the same folders)
+        Manuscript stored = source == null || source.getUuid() == null ? null : manuscriptService.findForUser(source.getUuid());
+        return cloneManuscript(source, newName, onlyCurrentBranch, stored == null ? null : stored.getFolder());
+    }
+
+    @Override
+    public Manuscript cloneManuscript(Manuscript source, String newName, boolean onlyCurrentBranch, Folder folder) throws Exception {
         Manuscript stored = source == null || source.getUuid() == null ? null : manuscriptService.findForUser(source.getUuid());
         if (stored == null || stored.isDeleted() || stored.isAgentic()) {
             throw new IllegalArgumentException("The manuscript does not exist");
@@ -325,7 +351,12 @@ public class BackupServiceImpl implements BackupService {
             }
         });
         // the lorebook of the backup is linked by cloneFromBackup, not imported
-        return createFromBackup(backupObj, newName, null);
+        Manuscript clone = createFromBackup(backupObj, newName, null, MissingHistory.DUPLICATE);
+        if (folder != null) {
+            manuscriptService.moveToFolder(List.of(clone), folder);
+            clone = manuscriptService.find(clone.getId());
+        }
+        return clone;
     }
 
     /**
@@ -362,15 +393,22 @@ public class BackupServiceImpl implements BackupService {
         backupObj.add("messages", kept);
     }
 
-    private Manuscript createFromBackup(JsonObject backupObj, String newName, Map<String, LorebookDecision> lorebookDecisions) throws Exception {
+    private Manuscript createFromBackup(JsonObject backupObj, String newName, Map<String, LorebookDecision> lorebookDecisions,
+                                        MissingHistory missingHistory) throws Exception {
         Map<String, Lorebook> lorebooks = importLorebooks(backupObj, lorebookDecisions);
-        Manuscript manuscript = manuscriptService.cloneFromBackup(backupObj);
+        Manuscript manuscript = manuscriptService.cloneFromBackup(backupObj, null, missingHistory);
         manuscript = linkLorebook(manuscript, backupObj, lorebooks, null);
         if (StringUtils.isNotBlank(newName)) {
             manuscript.setName(newName.trim());
             manuscript = manuscriptService.save(manuscript);
         }
         linkImages(manuscript);
+        // the folder the book was in when the backup was taken, see BackupFolders
+        Folder folder = BackupFolders.resolve(backupObj, folderService);
+        if (folder != null) {
+            manuscriptService.moveToFolder(List.of(manuscript), folder);
+            manuscript = manuscriptService.find(manuscript.getId());
+        }
         return manuscript;
     }
 
@@ -667,7 +705,7 @@ public class BackupServiceImpl implements BackupService {
     }
 
     @Override
-    public BackupExport exportBackup(ManuscriptBackup backup, boolean withImages, Runnable imagePacked) throws Exception {
+    public BackupExport exportBackup(ManuscriptBackup backup, boolean withImages, boolean includeInherited, Runnable imagePacked) throws Exception {
         if (backup == null || backup.getFile() == null || !new File(backup.getFile()).isFile()) {
             throw new IllegalArgumentException(loc.getValue(L.ERROR_BACKUP_NULL));
         }
@@ -679,7 +717,9 @@ public class BackupServiceImpl implements BackupService {
         file.deleteOnExit();
         try {
             if (!withImages) {
-                Files.copy(stored.toPath(), file.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                try (OutputStream out = new BufferedOutputStream(Files.newOutputStream(file.toPath()))) {
+                    writeExported(stored, includeInherited, out);
+                }
                 return new BackupExport(file, base + ".json", "application/json", 0);
             }
 
@@ -688,9 +728,9 @@ public class BackupServiceImpl implements BackupService {
             JsonArray manifest = new JsonArray();
             int missing = 0;
             try (ZipOutputStream zip = new ZipOutputStream(new BufferedOutputStream(Files.newOutputStream(file.toPath())))) {
-                // the stored file is copied as it is, the images are streamed one by one from their folder
+                // the stored file without the folder, the images are streamed one by one from their folder
                 zip.putNextEntry(new ZipEntry(ARCHIVE_BACKUP));
-                Files.copy(stored.toPath(), zip);
+                writeExported(stored, includeInherited, zip);
                 zip.closeEntry();
 
                 for (String uuid : uuids) {
@@ -730,6 +770,21 @@ public class BackupServiceImpl implements BackupService {
             FileUtils.deleteQuietly(file);
             throw e;
         }
+    }
+
+    /**
+     * The stored backup as it leaves the installation, see {@link BackupInheritance}; the stream is left open.
+     */
+    private void writeExported(File stored, boolean includeInherited, OutputStream out) throws Exception {
+        JsonObject root;
+        try (Reader reader = Files.newBufferedReader(stored.toPath(), StandardCharsets.UTF_8)) {
+            root = JsonParser.parseReader(reader).getAsJsonObject();
+        }
+        BackupInheritance.prepare(innerOf(root), includeInherited ? settingService.getOrCreate(UserSetting.class) : null,
+                inheritedSettingRegistry, includeInherited);
+        Writer writer = new OutputStreamWriter(out, StandardCharsets.UTF_8);
+        gson.toJson(root, writer);
+        writer.flush();
     }
 
     @Override

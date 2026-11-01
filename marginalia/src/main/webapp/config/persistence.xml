@@ -21,12 +21,17 @@
         <class>com.github.enerccio.marginalia.domain.model.impl.ChatMessage</class>
         <class>com.github.enerccio.marginalia.domain.model.impl.Lorebook</class>
         <class>com.github.enerccio.marginalia.domain.model.impl.LorebookEntry</class>
+        <class>com.github.enerccio.marginalia.domain.model.impl.Folder</class>
         <class>com.github.enerccio.marginalia.domain.model.impl.Tag</class>
         <class>com.github.enerccio.marginalia.domain.model.impl.TagRelation</class>
         <class>com.github.enerccio.marginalia.domain.model.impl.Summary</class>
         <class>com.github.enerccio.marginalia.domain.model.impl.Annotation</class>
         <class>com.github.enerccio.marginalia.domain.model.impl.MessagePrompt</class>
+        <class>com.github.enerccio.marginalia.domain.model.impl.MessageRevision</class>
         <class>com.github.enerccio.marginalia.domain.model.impl.Usage</class>
+        <class>com.github.enerccio.marginalia.domain.model.impl.ManuscriptStatistic</class>
+        <class>com.github.enerccio.marginalia.domain.model.impl.ActivityInterval</class>
+        <class>com.github.enerccio.marginalia.domain.model.impl.ManuscriptSize</class>
         <class>com.github.enerccio.marginalia.domain.model.impl.Agent</class>
         <class>com.github.enerccio.marginalia.domain.model.impl.AgentRun</class>
         <class>com.github.enerccio.marginalia.domain.model.impl.AgentMessage</class>
@@ -40,6 +45,8 @@
         <!-- settings -->
         <class>com.github.enerccio.marginalia.domain.model.impl.settings.AppSettings</class>
         <class>com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting</class>
+        <class>com.github.enerccio.marginalia.domain.model.impl.settings.StylesSetting</class>
+        <class>com.github.enerccio.marginalia.domain.model.impl.settings.ExportSettings</class>
 
         <exclude-unlisted-classes>true</exclude-unlisted-classes>
 

@@ -323,6 +323,26 @@ public class AgentRunServiceImpl extends ExtendableServiceImpl<AgentRun, AgentRu
 
     @Override
     @CommonTxReadOnly
+    public Manuscript findOriginalOfCopy(Manuscript copy) throws Exception {
+        return getRepository().findOriginalOfCopy(copy);
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public Set<Long> findRunningBookIds() throws Exception {
+        Set<Long> ids = new LinkedHashSet<>();
+        for (AgentRun run : getRepository().findAllByStatus(EnumSet.of(AgentRunStatus.RUNNING))) {
+            Agent agent = run.getAgent();
+            Manuscript book = agent == null || agent.isDeleted() ? null : agent.getManuscript();
+            if (book != null && book.getId() != null) {
+                ids.add(book.getId());
+            }
+        }
+        return ids;
+    }
+
+    @Override
+    @CommonTxReadOnly
     public AgentRun findLockingRun(Manuscript manuscript) throws Exception {
         return manuscript == null || manuscript.getId() == null ? null
                 : getRepository().findByManuscript(manuscript, AgentRunStatus.locking());
@@ -709,6 +729,10 @@ public class AgentRunServiceImpl extends ExtendableServiceImpl<AgentRun, AgentRu
         if (old == null || copy == null) {
             throw new IllegalArgumentException("The run has no working copy to replace");
         }
+        // a copy made of a snapshot knows no folder: it is in the one of the book, as the copy it replaces
+        Manuscript original = stored.getAgent() == null || stored.getAgent().getManuscript() == null ? null
+                : manuscriptService.find(stored.getAgent().getManuscript());
+        manuscriptService.setAgenticCopyFolder(copy, original == null ? null : original.getFolder());
         // the run points at the new copy first, then the old one can be deleted
         getRepository().updateWorkingCopy(stored.getId(), copy);
         pairService.replace(stored, pairs);

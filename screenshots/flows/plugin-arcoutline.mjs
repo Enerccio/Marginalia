@@ -34,7 +34,7 @@ async function install(page) {
     console.log('  already installed arc-outline');
     return;
   }
-  const jar = path.join(repo, 'marginalia/plugins/arc-outline/target/arc-outline-1.5.0.jar');
+  const jar = path.join(repo, 'marginalia/plugins/arc-outline/target/arc-outline-1.6.0.jar');
   if (!fs.existsSync(jar)) throw new Error('not built: ' + jar);
   await page.locator('vaadin-upload input[type=file]').setInputFiles(jar);
   await idle(page, 4000);

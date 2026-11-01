@@ -1,0 +1,52 @@
+package com.github.enerccio.marginalia.domain.components;
+
+import java.time.LocalDate;
+import java.util.List;
+
+/**
+ * Everything the statistics windows and the commands show for a filter: the counts, the times (unions, see {@code TimeUnion}) and
+ * the size of the books, in total, by day and by book.
+ *
+ * @param filter the days, the side and the book the report is about; its days are the ones that were read
+ * @param total  the counts of the whole range
+ * @param times  the time of the whole range: the union over the books, not the sum of the lines
+ * @param days   the days that have a count, a stretch of time or a size row, the oldest first
+ * @param books  the books that have anything in the range, one line each (also the deleted ones); only for a report of all the books
+ * @param sizes  the size on every day of the range
+ * @param growth the growth of the size over the range, summed over the books
+ * @param timeSince the first day the time is recorded from ({@code UserSetting#statisticsSince}), null when the time of every day is known;
+ *                  the days before it have counts rebuilt from the history of the parts, but no time
+ */
+public record StatisticReport(StatisticFilter filter, StatisticCounts total, ActivityTimes times, List<DayLine> days,
+                              List<BookLine> books, List<SizeSeries.Point> sizes, SizeGrowth growth, LocalDate timeSince) {
+
+    /**
+     * One day of the range: the counts and the time of the day, the size and growth are in {@link #sizes} (same day).
+     *
+     * @param reconstructed the counts or the size of the day were rebuilt from the history of the parts, so they are an estimate
+     */
+    public record DayLine(LocalDate day, StatisticCounts counts, ActivityTimes times, boolean reconstructed) {
+    }
+
+    /**
+     * One book: its counts, its own time (the times of books overlap, so the lines are not parts of the total) and its growth.
+     */
+    public record BookLine(BookStatistic book, ActivityTimes times, SizeGrowth growth) {
+    }
+
+    /**
+     * Whether the time of the day was recorded.
+     */
+    public boolean timeKnown(LocalDate day) {
+        return timeSince == null || !day.isBefore(timeSince);
+    }
+
+    public long reconstructedDays() {
+        return days.stream().filter(DayLine::reconstructed).count();
+    }
+
+    public boolean isEmpty() {
+        return total.isZero() && times.isZero() && days.isEmpty();
+    }
+
+}

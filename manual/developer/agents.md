@@ -34,7 +34,7 @@ covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/bound/AgentSession.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/ui/dialogs/agent
   - marginalia/src/main/java/com/github/enerccio/marginalia/ui/workspace/parts/AgentPart.java
-verified: 60a4afd23
+verified: 6b9a70d37
 ---
 
 # Agents
@@ -200,6 +200,13 @@ book through its backup JSON, with its own copy of the lorebook tree; everything
 it as `AgentRun.workingCopy`. The lists of the UI leave the `agentic` books out (`findAllRegular...`), the services that delete a copy refuse a book that is not
 `agentic`, so a path that deletes the book of a user does not exist. `FAILED`, a discarded stop and `APPLIED` delete the copy for good (`COPY_ENDING`); a pause, a kept stop and `DONE` keep it,
 `DONE` until the result is applied or discarded (see [Merge and apply](#merge-and-apply)).
+
+The copy is put into the **folder** of the original (`ManuscriptService.setAgenticCopyFolder`, called by `createAgenticCopy`, by
+`AgentRunServiceImpl.replaceWorkingCopy` when a checkpoint is restored and by `AgentMergeServiceImpl.sync` when the book was moved while the run
+was paused), so it resolves the language, templates and prompts through the same [folders](folders.md#resolving-a-setting) as the book. It is
+not content of the folder: `FolderModification`, the counts and the folder lock skip `agentic` books, and a merge (a JSON diff without a
+folder) never moves the original. The reverse holds: a book with a holding run blocks the move or delete of a folder above it and any change
+of what it inherits (`FolderBookLockedException`).
 
 The copy has **new uuids**, so the run records how it relates to the original, in the transaction that makes the copy:
 
@@ -486,6 +493,8 @@ A **round** is an answer of the model with its calls; a **call** is matched to i
 
 Every run asks under its own [`InferenceSession`](services.md) of the kind `AGENT` (the key is the run id, `AgentRunnerImpl` opens it around the loop of the run), so the `X-Session-ID` of a run is its own: a run grows one conversation, and the prompt cache of the provider is kept for it alone.
 
+The same loop opens a `UsageContext` for the working copy of the run, so the tokens of its requests go to the [writing statistics](domain-model.md#writing-statistics-manuscriptstatistic-activityinterval-manuscriptsize) of the original book on the agents' side (`AgentRunService.findOriginalOfCopy` resolves the copy, whoever owns the run). `findRunningBookIds` lists the books of the runs in the status `RUNNING` (not paused, not waiting for the author): the `ActivityTracker` asks for it once a tick to record the *agents running* time. The merge of a result writes its versions as uncounted and does not count the deletes again (they were counted when the agent did them).
+
 `AI.maxConcurrentRequests` (an extended attribute, the **Concurrent requests of agents** field of the `AIDialog`; null or zero is no cap) is enforced by `AIGate` (`AIGateImpl`, a singleton, state in memory keyed by the uuid of the AI): `acquire(ai)` gives a `CompletableFuture<Permit>` that is complete at once when there is room, else when it is its turn (a queue in the order of arrival, per AI); the cap is read from the stored AI at every `acquire`, so a change applies to the next request. Canceling the future takes the caller out of the queue and costs nobody a place; closing a `Permit` twice frees one place.
 
 Two places take a permit: `AgentRunnerImpl.Worker.ask` (every round and every compaction; the wait is part of the round, so `Interrupted` / `Forced` / a discard and an ordinary pause or stop end it) and the commands that start a model on behalf of an agent (`ManuscriptWriteSupport.placeAt(context, ai)`, used by `/next`, `/swipe`, `/regenerate` and the summary commands; it gives a no-op permit to the user at the command bar, who is not queued). The stream of the story window is not gated: the stream ends in several asynchronous places, and an agent never gets a place the user holds. The cap is therefore about the requests of agents only; a user who generates by hand on a one-slot server still shares it with them.
@@ -523,7 +532,7 @@ scope of the commands holds the copy) and tells the agent what came back (`Defau
 
 ## Merge and apply
 
-What a run changed is taken over by `AgentMergeService` (`AgentMergeServiceImpl`), for a run that is `DONE` or `STOPPED_KEPT` (it has its copy). `plan(run)` returns a `MergePlan`, `apply(run, MergeSelection)` applies what
+What a run changed is taken over by `AgentMergeService` (`AgentMergeServiceImpl`), for a run that is `DONE` or `STOPPED_KEPT` (it has its copy). The text it writes into a part is a `AUTOMATIC` version of the [history](version-history.md#recording) with the detail `AGENT_MERGE` and the agent flag. `plan(run)` returns a `MergePlan`, `apply(run, MergeSelection)` applies what
 the user picked. The book is never restored from a backup (that would change the uuid of every part): the items are changed one by one, in place.
 
 **The comparison** is `MergeDiff` (`domain.service.agent`), plain code on JSON without the database. Its three inputs are snapshots in the format of `ManuscriptService.createBackup` plus the lorebooks with the uuids of
@@ -532,7 +541,7 @@ The copy is read through the pairs of the run (`AgentRunPairService.getAll`, cop
 `MergeDiff.translate`), becomes the uuid of its original, and an item without a pair gets the key `new:<uuid in the copy>`. Each item is a map of properties (a part: `response`, `instructions`, `sceneSetting`,
 `povCharacter`, `presentCharacters`, `summary` - one canonical string of the text, type, hash and the links of the summary - and every `attributes_*` key of the part, the JSON of the value with the uuids translated, which
 holds the template variables of the generation (`templateVariables`) and the data of the plugins; `MergeDiff.messageFields`; a lorebook: `name`, `enabled`, `tags`, `subbooks`; an entry: its fields, tags and the lorebook it is in;
-the book: its settings, `tags` and every `attributes_*` key, the data of the plugins) and is compared **field by field**: the field the agent changed (copy differs from base) and the book did not (book equals base) is a change to
+the book: its settings (`MergeDiff.BOOK_FIELDS`, with the number of versions kept per part), `tags` and every `attributes_*` key, the data of the plugins) and is compared **field by field**: the field the agent changed (copy differs from base) and the book did not (book equals base) is a change to
 take over, both changed to different values is a `conflict`, the same value on both sides is nothing. `SET` fields (tags, subbooks) are merged by what each side added and removed and never conflict. A key only in the copy is
 `ADDED`, one only in the base and still in the book is `DELETED` (a conflict when the book changed it since), the ones the user deleted from the book are `problem`s (`PROBLEM_GONE`, `PROBLEM_NEEDS_PARENT`,
 `PROBLEM_NEEDS_LOREBOOK`) and can't be applied. `Item.dependsOn` is the item that must be applied first (the new part a new part follows, the new lorebook a new entry is in); `MergeDiff.chain` and `dependents` follow it. A book that had no lorebook when the run started (the commands `create-lore-entry` and `create-lorebook` make its root in the copy, `LorebookWriteSupport.loreToAddTo`) gets the root of the copy as its lorebook when the apply made it (`Applier.adoptRoot`).

@@ -7,6 +7,7 @@ import com.github.enerccio.marginalia.domain.service.tool.ToolRequest;
 
 import java.util.Collection;
 
+import static com.github.enerccio.marginalia.extensions.placeprovider.PlaceProviderLocalization.REAL_PLACES_OF_THE_EARTH;
 import static com.github.enerccio.marginalia.extensions.placeprovider.PlaceProviderLocalization.T;
 
 /**
@@ -40,7 +41,7 @@ public class PlaceProviderToolProvider implements ToolProvider {
 
     @Override
     public String description() {
-        return T.localized("Real places of the Earth (Natural Earth, about 18 000 notable ones): search by name, type and country, what lies around a place, the distance of two places.");
+        return T.localized(REAL_PLACES_OF_THE_EARTH);
     }
 
     @Override

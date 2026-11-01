@@ -1,0 +1,118 @@
+package com.github.enerccio.marginalia.domain.repository.impl;
+
+import com.github.enerccio.marginalia.domain.components.FolderPlacement;
+import com.github.enerccio.marginalia.domain.model.impl.Folder;
+import com.github.enerccio.marginalia.domain.repository.FolderRepository;
+import com.github.enerccio.marginalia.domain.security.model.User;
+
+import com.github.enerccio.marginalia.domain.service.search.LikePatterns;
+import com.github.enerccio.marginalia.domain.service.search.ManuscriptFilterValues;
+import com.github.enerccio.marginalia.domain.service.search.Sorter;
+
+import java.util.*;
+
+public class JpaFolderRepository extends JpaExtendableRepository<Folder> implements FolderRepository {
+
+    @Override
+    protected Class<Folder> getEntityClass() {
+        return Folder.class;
+    }
+
+    @Override
+    public List<FolderPlacement> findPlacements(User user) throws Exception {
+        List<FolderPlacement> placements = new ArrayList<>();
+        for (Object[] row : getEntityManager().createQuery(
+                        "SELECT f.id, f.name, p.id FROM Folder f LEFT JOIN f.parent p WHERE f.deleted = false AND f.owner.id = :ownerId",
+                        Object[].class)
+                .setParameter("ownerId", user.getId())
+                .getResultList()) {
+            placements.add(new FolderPlacement((Long) row[0], (String) row[1], (Long) row[2]));
+        }
+        return placements;
+    }
+
+    @Override
+    public List<Folder> findChildren(Folder parent, User user) throws Exception {
+        String where = parent == null ? "f.parent IS NULL" : "f.parent.id = :parentId";
+        var query = getEntityManager().createQuery(
+                        "SELECT f FROM Folder f WHERE f.deleted = false AND f.owner.id = :ownerId AND " + where
+                                + " ORDER BY LOWER(f.name), f.id", Folder.class)
+                .setParameter("ownerId", user.getId());
+        if (parent != null) {
+            query.setParameter("parentId", parent.getId());
+        }
+        List<Folder> folders = query.getResultList();
+        for (Folder folder : folders) {
+            hydrate(folder);
+        }
+        return folders;
+    }
+
+    @Override
+    public List<Folder> search(ManuscriptFilterValues filter, List<Sorter> sorters, User user) throws Exception {
+        Map<String, Object> parameters = new HashMap<>();
+        List<String> ands = new ArrayList<>();
+        ands.add("f.deleted = false");
+        ands.add("f.owner.id = :ownerId");
+        parameters.put("ownerId", user.getId());
+        if (filter != null) {
+            FolderScope.add(ands, parameters, filter, "f.parent", null);
+            if (filter.getName() != null) {
+                ands.add("f.name LIKE :name ESCAPE '\\'");
+                parameters.put("name", LikePatterns.fromWildcards(filter.getName()) + "%");
+            }
+            if (filter.getTags() != null) {
+                for (int i = 0; i < filter.getTags().size(); i++) {
+                    ands.add("EXISTS (SELECT 1 FROM TagRelation tr WHERE tr.objectId = f.id AND tr.clazz = :clazz AND tr.negative = false"
+                            + " AND tr.deleted = false AND tr.tag.deleted = false AND tr.tag.value = :tag" + i + ")");
+                    parameters.put("tag" + i, filter.getTags().get(i));
+                }
+                if (!filter.getTags().isEmpty()) {
+                    parameters.put("clazz", Folder.class.getName());
+                }
+            }
+        }
+        String order = sorters == null || sorters.isEmpty() ? " ORDER BY LOWER(f.name), f.id" : Sorter.toOrderBy("f", sorters);
+        var query = getEntityManager().createQuery("SELECT f FROM Folder f WHERE " + String.join(" AND ", ands) + order, Folder.class);
+        parameters.forEach(query::setParameter);
+        List<Folder> folders = query.getResultList();
+        for (Folder folder : folders) {
+            hydrate(folder);
+        }
+        return folders;
+    }
+
+    @Override
+    public Folder findChildByName(Folder parent, String name, Long excludeId, User user) throws Exception {
+        if (name == null) {
+            return null;
+        }
+        String where = parent == null ? "f.parent IS NULL" : "f.parent.id = :parentId";
+        var query = getEntityManager().createQuery(
+                        "SELECT f FROM Folder f WHERE f.deleted = false AND f.owner.id = :ownerId AND " + where
+                                + " AND LOWER(f.name) = :name AND f.id <> :excludeId ORDER BY f.id", Folder.class)
+                .setParameter("ownerId", user.getId())
+                .setParameter("name", name.toLowerCase())
+                .setParameter("excludeId", excludeId == null ? -1L : excludeId)
+                .setMaxResults(1);
+        if (parent != null) {
+            query.setParameter("parentId", parent.getId());
+        }
+        List<Folder> folders = query.getResultList();
+        return folders.isEmpty() ? null : hydrate(folders.getFirst());
+    }
+
+    @Override
+    public int reparentChildren(Collection<Long> fromParentIds, Folder to, User user) throws Exception {
+        int moved = 0;
+        for (List<Long> chunk : chunks(fromParentIds)) {
+            moved += getEntityManager().createQuery(
+                            "UPDATE Folder f SET f.parent = :to WHERE f.parent.id IN :ids AND f.owner.id = :ownerId")
+                    .setParameter("to", to)
+                    .setParameter("ids", chunk)
+                    .setParameter("ownerId", user.getId())
+                    .executeUpdate();
+        }
+        return moved;
+    }
+}

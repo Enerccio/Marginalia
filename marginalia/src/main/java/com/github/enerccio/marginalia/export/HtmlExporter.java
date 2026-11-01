@@ -1,6 +1,8 @@
 package com.github.enerccio.marginalia.export;
 
 import com.github.enerccio.marginalia.domain.service.ExporterService.ExportOptions;
+import com.github.enerccio.marginalia.domain.styles.PartStyle;
+import com.github.enerccio.marginalia.domain.styles.PartStyleRegistry;
 import org.apache.commons.lang3.StringUtils;
 
 import java.nio.charset.StandardCharsets;
@@ -9,16 +11,13 @@ import java.util.List;
 
 public class HtmlExporter extends ExporterBase {
 
+    /**
+     * The page, the title page, the contents and the figures. The look of the text of the book (its font, paragraphs, headings, quotes, scene
+     * breaks) is the style of the export ({@code PartStyleRegistry.htmlExportStyle()} when none is chosen), added after this.
+     */
     static final String STYLE = """
-            body { margin: 0; background: #f4f1ea; color: #222; font-family: Georgia, 'Times New Roman', serif; line-height: 1.6; }
-            main { max-width: 42em; margin: 0 auto; padding: 3em 2em; background: #fffdf8; box-shadow: 0 0 12px rgba(0, 0, 0, 0.12); }
-            p { margin: 0 0 1em 0; text-align: justify; hyphens: auto; }
-            h1, h2, h3, h4, h5, h6 { line-height: 1.25; margin: 2em 0 1em 0; }
-            blockquote { margin: 1em 0 1em 1.5em; padding-left: 1em; border-left: 3px solid #bbb; color: #444; }
-            pre, code { font-family: 'Courier New', monospace; font-size: 0.9em; }
-            pre { background: #eee; padding: 0.8em; overflow-x: auto; white-space: pre-wrap; }
-            hr { border: 0; text-align: center; margin: 2em 0; }
-            hr::after { content: '* * *'; letter-spacing: 0.5em; }
+            body { margin: 0; background: #f4f1ea; }
+            main { max-width: 42em; margin: 0 auto; padding: 3em 2em; background: #fffdf8; box-shadow: 0 0 12px rgba(0, 0, 0, 0.12); color: #222; font-family: Georgia, 'Times New Roman', serif; line-height: 1.6; }
             .title-page { min-height: 90vh; display: flex; flex-direction: column; justify-content: center; text-align: center; page-break-after: always; }
             .title-page h1 { font-size: 2.6em; margin: 0 0 0.6em 0; }
             .title-page p { text-align: center; font-size: 1.3em; }
@@ -32,7 +31,7 @@ public class HtmlExporter extends ExporterBase {
             .contents a { color: inherit; text-decoration: none; }
             .contents a:hover { text-decoration: underline; }
             @media print { body { background: none; } main { box-shadow: none; max-width: none; padding: 0; } }
-            """;
+            """ + PICTURES_CSS;
 
     @Override
     public String getName() {
@@ -47,6 +46,16 @@ public class HtmlExporter extends ExporterBase {
     @Override
     public String getMimeType() {
         return "text/html; charset=UTF-8";
+    }
+
+    @Override
+    public boolean supportsStyles() {
+        return true;
+    }
+
+    @Override
+    public String getDefaultStyleId() {
+        return PartStyleRegistry.EXPORT_HTML;
     }
 
     @Override
@@ -76,17 +85,16 @@ public class HtmlExporter extends ExporterBase {
 
         @Override
         public void message(String markdown, Chapter chapter) {
-            if (chapter == null) {
-                body.append(toHtml(markdown));
-            } else {
-                body.append("<section id=\"").append(chapter.anchor()).append("\">\n").append(toHtml(markdown)).append("</section>\n");
-            }
+            message(List.of(new TextPart(markdown)), chapter);
         }
 
         @Override
-        public void images(List<ExportImage> images) {
-            for (ExportImage image : images) {
-                body.append(figure("data:" + image.mimeType() + ";base64," + Base64.getEncoder().encodeToString(image.data()), image.caption()));
+        public void message(List<Part> parts, Chapter chapter) {
+            String html = toHtml(parts, image -> "data:" + image.mimeType() + ";base64," + Base64.getEncoder().encodeToString(image.data()));
+            if (chapter == null) {
+                body.append(html);
+            } else {
+                body.append("<section id=\"").append(chapter.anchor()).append("\">\n").append(html).append("</section>\n");
             }
         }
 
@@ -99,8 +107,21 @@ public class HtmlExporter extends ExporterBase {
             if (StringUtils.isNotBlank(options.author())) {
                 html.append("<meta name=\"author\" content=\"").append(escapeXml(options.author())).append("\">\n");
             }
-            html.append("<style>\n").append(STYLE).append("</style>\n</head>\n<body>\n<main>\n");
-            html.append(front).append(body);
+            PartStyle style = options.style() != null ? options.style() : PartStyleRegistry.htmlExportStyle();
+            boolean styled = style != null && style.hasContent();
+            html.append("<style>\n").append(STYLE);
+            if (styled) {
+                // the text of the book (not the title page and the contents) is inside the scope of the style
+                html.append(style.toPrintCss(true));
+            }
+            html.append("</style>\n</head>\n<body>\n<main>\n");
+            html.append(front);
+            if (styled) {
+                html.append("<div class=\"").append(style.getCssClass()).append("\"><div class=\"chat-message-markdown\">\n")
+                        .append(body).append("</div></div>\n");
+            } else {
+                html.append(body);
+            }
             html.append("</main>\n</body>\n</html>\n");
             return html.toString().getBytes(StandardCharsets.UTF_8);
         }

@@ -31,7 +31,7 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.WeakHashMap;
 
-import static com.github.enerccio.marginalia.extensions.mangagenerator.MangaGeneratorLocalization.T;
+import static com.github.enerccio.marginalia.extensions.mangagenerator.MangaGeneratorLocalization.*;
 
 /**
  * Adds <i>Manga Generator</i> to the settings menu of the story: a large window that turns the parts of the story into a manga
@@ -58,7 +58,7 @@ public class MangaGeneratorExtension implements MarginaliaExtension, ExtensionHa
         MangaGeneratorLog.install(parentService.createLogger(bundle));
         // the story editor loads other books into the same instance, so the book is read when the item is chosen
         menuRegistry.register(bundle.getSymbolicName(),
-                StoryMenuItem.tools(MENU_ITEM_KEY, l -> T.localized("Manga Generator"), story -> open(story.getCurrentManuscript()))
+                StoryMenuItem.tools(MENU_ITEM_KEY, l -> T.localized(MANGA_GENERATOR), story -> open(story.getCurrentManuscript()))
                         .icon(Solid.BOOK_OPEN::create));
 
         // the defaults are a panel of Settings → Extension Settings
@@ -81,7 +81,7 @@ public class MangaGeneratorExtension implements MarginaliaExtension, ExtensionHa
                         }
                     });
                 } else {
-                    panel = extensionSettings.add(T.localized("Manga Generator Settings"), new MangaSettingsForm(mangaService));
+                    panel = extensionSettings.add(T.localized(MANGA_GENERATOR_SETTINGS), new MangaSettingsForm(mangaService));
                     ComponentUtil.setData(extensionSettings, SETTINGS_PANEL_KEY, panel);
                     activeAccordions.add(extensionSettings);
                 }
@@ -126,7 +126,7 @@ public class MangaGeneratorExtension implements MarginaliaExtension, ExtensionHa
 
     private void open(Manuscript manuscript) {
         if (manuscript == null) {
-            Notification.warning(T.localized("Open a book first"));
+            Notification.warning(T.localized(OPEN_A_BOOK_FIRST));
             return;
         }
         new MangaDialog(manuscript, mangaService).open();

@@ -10,6 +10,7 @@ import com.github.enerccio.marginalia.domain.service.InferenceService.ChunkType;
 import com.github.enerccio.marginalia.domain.service.InferenceService.InferenceAsyncCallback;
 import com.github.enerccio.marginalia.domain.service.InferenceService.InferenceAsyncController;
 import com.github.enerccio.marginalia.domain.service.InferenceSession;
+import com.github.enerccio.marginalia.domain.service.UsageContext;
 import com.github.enerccio.marginalia.domain.service.impl.generation.*;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationController.State;
 import com.github.enerccio.marginalia.loc.L;
@@ -118,7 +119,8 @@ public class InferenceStep extends GenerationStepBase {
                             chatMessage.setTokenReasoningCount(inferenceService.countTokens(chatMessage.getResponseReasoning()));
                         }
                         controller.setMessage(chatMessageService.save(chatMessage));
-                        controller.setManuscript(manuscriptService.save(manuscript));
+                        controller.setManuscript(manuscriptService.update(manuscript, _ -> {
+                    }));
                         controller.setState(State.SUCCESSFUL);
                         controller.next();
                     });
@@ -127,7 +129,8 @@ public class InferenceStep extends GenerationStepBase {
                 @Override
                 public void onCancel() throws Exception {
                     Manuscript manuscript = controller.getManuscript();
-                    controller.setManuscript(manuscriptService.save(manuscript));
+                    controller.setManuscript(manuscriptService.update(manuscript, _ -> {
+                    }));
                     ChatMessage chatMessage = controller.getMessage();
                     chatMessage = chatMessageService.save(chatMessage);
                     controller.jumpTo(GenerationStepType.CLEANUP);
@@ -136,7 +139,8 @@ public class InferenceStep extends GenerationStepBase {
                 @Override
                 public void onError(Throwable exception) throws Exception {
                     Manuscript manuscript = controller.getManuscript();
-                    controller.setManuscript(manuscriptService.save(manuscript));
+                    controller.setManuscript(manuscriptService.update(manuscript, _ -> {
+                    }));
                     ChatMessage chatMessage = controller.getMessage();
                     chatMessageService.save(chatMessage);
                     String description = InferenceErrors.describe(loc, exception);
@@ -156,7 +160,8 @@ public class InferenceStep extends GenerationStepBase {
                 }
             };
             // a new part, a regenerated one and a swipe are the same kind of work for the provider's cache
-            try (InferenceSession _ = InferenceSession.open(InferenceSession.GENERATION)) {
+            try (InferenceSession _ = InferenceSession.open(InferenceSession.GENERATION);
+                 UsageContext _ = UsageContext.open(controller.getManuscript())) {
                 inferenceService.stream(controller.getPayload(), controller.getProtocol(), callback);
             }
         });

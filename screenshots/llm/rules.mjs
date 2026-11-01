@@ -2,7 +2,15 @@
 // ctx: { text, system, last, messages, model, stream, wantsJson, hasTools, mode, body }
 // A rule answers with `reply` (string, or function(ctx) returning a string or {reply, reasoning, status, message}),
 // optionally `reasoning` and `delayMs`.
-import {arcOutline, loreCompaction, loreGeneration, review, sideQuery} from '../dataset/plugins.mjs';
+import {
+  arcOutline,
+  betaPersona,
+  betaReaders,
+  loreCompaction,
+  loreGeneration,
+  review,
+  sideQuery
+} from '../dataset/plugins.mjs';
 import {ginnyTurn, ginnyTurn2, metaSummary, summaryReasoning, turns} from '../dataset/story.mjs';
 
 const storyRules = Object.entries(turns).filter(([id]) => id !== 't2b').map(([id, t]) => ({
@@ -73,7 +81,36 @@ const arcChaptersRule = {
   reply: () => ({ reply: JSON.stringify(arcOutline.generateChapters.answer), reasoning: arcOutline.generateChapters.reasoning }),
 };
 
+// Beta Readers: the personas answer in the schema the plugin sends, or in `**Name:** *action* speech` paragraphs for a chat that wants text.
+const betaRule = {
+  name: 'beta-readers',
+  when: ctx => ctx.system.includes('# How to answer') && /beta reader/i.test(ctx.system),
+  reply: ctx => {
+    const kind = ctx.system.includes('one-on-one') ? 'single' : 'group';
+    const found = betaReaders.find(q => ctx.last.includes(q.question)) ?? betaReaders.find(q => q.kind === kind);
+    if (ctx.wantsJson) return { reply: JSON.stringify({ messages: found.answer.messages }), reasoning: found.answer.reasoning };
+    return found.answer.messages.map(m => `**${m.speaker}:** ` + m.parts.map(p => p.type === 'action' ? `*${p.text}*` : p.text).join(' ')).join('\n\n');
+  },
+};
+
+// Beta Readers: a persona written from a few words (the window of a persona)
+const betaPersonaRule = {
+  name: 'beta-readers-persona',
+  when: ctx => ctx.system.includes('You create personas for beta readers'),
+  reply: () => `Name: ${betaPersona.name}\nDescription: ${betaPersona.description}`,
+};
+
+// Image Generator: the prompt for an image, written from a part of the story
+const imagePromptRule = {
+  name: 'image-prompt',
+  when: ctx => ctx.text.includes('You write prompts for an image generation model'),
+  reply: 'watercolor, a foggy village street at dusk, a girl in a long green coat standing under a gas lamp, a boy with glasses and a red and gold scarf watching from the shadows, cobblestones, stone houses with lit windows, cold blue fog, warm lamplight, melancholy mood',
+};
+
 export default [
+  imagePromptRule,
+  betaPersonaRule,
+  betaRule,
   arcRule,
   arcImportRule,
   arcChaptersRule,

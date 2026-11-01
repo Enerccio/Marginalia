@@ -15,6 +15,7 @@ import com.github.enerccio.marginalia.extensions.authorsnote.model.AuthorsNoteDa
 import com.github.enerccio.marginalia.extensions.authorsnote.service.AuthorsNoteService;
 import com.github.enerccio.marginalia.extensions.authorsnote.ui.AuthorsNoteView;
 import com.github.enerccio.marginalia.ui.widgets.TabDock;
+import com.github.enerccio.marginalia.ui.widgets.TabDockIcon;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.ComponentUtil;
 import org.osgi.framework.Bundle;
@@ -26,10 +27,15 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.WeakHashMap;
 
+import static com.github.enerccio.marginalia.extensions.authorsnote.AuthorsNoteLocalization.AUTHORS_NOTE;
 import static com.github.enerccio.marginalia.extensions.authorsnote.AuthorsNoteLocalization.T;
 
 @Configurable
 public class AuthorsNoteExtension implements MarginaliaExtension {
+
+    /** The icon of the tab in the bar of the minimized tabs: a glyph on a 24 x 24 grid. */
+    private static final TabDockIcon AUTHORS_NOTE_ICON = TabDockIcon.glyph(
+            "<path d='M5 4h14v11l-5 5H5zM14 20v-5h5M8.5 9h7M8.5 12.5h4'/>");
 
     /** The logger of this extension, its lines go to the extension log (Admin → Extensions → Log). */
     private Logger log;
@@ -67,7 +73,7 @@ public class AuthorsNoteExtension implements MarginaliaExtension {
                         }
 
                         AuthorsNoteView view = new AuthorsNoteView(currentManuscript, authorsNoteService);
-                        leftBar.add("authors-note", T.localized("Author's Note"), view);
+                        leftBar.add("authors-note", T.localized(AUTHORS_NOTE), AUTHORS_NOTE_ICON, view);
 
                         ComponentUtil.setData(leftBar, AUTHORS_NOTE_VIEW_KEY, view);
                         activeTabSheets.add(leftBar);

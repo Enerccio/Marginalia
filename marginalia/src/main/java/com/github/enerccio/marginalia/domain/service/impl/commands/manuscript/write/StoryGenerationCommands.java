@@ -388,7 +388,7 @@ public class StoryGenerationCommands extends ManuscriptWriteSupport {
     private void activate(Book book, ChatMessage message) throws Exception {
         if (book.manuscript.getActiveLeaf() == null || !book.manuscript.getActiveLeaf().getId().equals(message.getId())) {
             book.manuscript.setActiveLeaf(message);
-            manuscriptService.save(book.manuscript);
+            manuscriptService.update(book.manuscript, stored -> stored.setActiveLeaf(message));
         }
     }
 

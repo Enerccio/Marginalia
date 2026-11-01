@@ -32,7 +32,7 @@ users and between kinds:
 | summary | Summaries. |
 | agent | The requests of an [agent](agents.md); every run has a value of its own, as it grows its own conversation. |
 | help | The help assistant. |
-| plugins | Each plugin has its own: *Reviewer*, *Side Query* (its tab titles have another), *Lore Generator*, *Arc Outline*, *SillyTavern Converter* and *Manga Generator*. |
+| plugins | Each plugin has its own: *Reviewer*, *Side Query* (its tab titles have another), *Lore Generator*, *Arc Outline*, *Converter* and *Manga Generator*. |
 
 Requests that belong to no kind (listing the models, testing the connection, counting tokens) send no header.
 
@@ -83,8 +83,30 @@ start of the story by one part on every turn. What helps:
   story, and do not disturb the cache. Keep what is always true in the lore block.
 - Leave the blocks you do not use out of the master template (the author's notes, for example, if you do not give notes
   to the model), so that the system message stays the same.
-- Compare the prompts of two parts in a row with **Show Prompt** and look for the first line that differs: that is where
-  the cache ends.
+- Open **Compare Prompt** in the menu of a part to see where the cache ends: it compares the prompt of the part with the
+  one of an earlier part (the nearest one by default; the box lists the parts before it and its swipes) and marks the first
+  message that differs. See [Compare Prompt](#compare-prompt).
+
+### Compare Prompt
+
+**Compare Prompt** in the menu of a part (desktop and phone) answers *why was the cache not used for this part?* It
+lists the messages of the two prompts (the system message, then a user message and a model answer per part, then the
+user message of the turn) with a status for each: the same, changed, added or deleted. The first message that differs is
+highlighted and the ones after it are marked *Read again*, because a server reads everything after the first difference
+again. Above the table:
+
+- where the first difference is (message and character) and how much of the prompt, in characters and about in tokens,
+  is the same from the start;
+- a reading of the difference: the **system message** differs (the jailbreak, the template, the lore, the summaries or
+  the notes changed between the two requests: the usual cause), a part **in the middle of the story** differs (it was
+  edited, regenerated or replaced by a summary), the **start of the story moved** (the oldest parts were left out or
+  summarised), or the difference is only the **last message of the earlier prompt**, the user message of that turn, which
+  the story does not repeat. That last case is the most a next part or a swipe can reuse; if the server still did not use
+  its cache, the prompt is not the cause (check the slot, the model and the session id).
+
+Selecting a message shows the two texts side by side, from just before the first difference. Only the messages are
+compared: the model, the tools of the request and the server slot are not part of the stored prompt. The part needs a
+stored prompt (parts typed by the author and parts generated before the prompts were kept have none).
 
 The request kinds below matter for what is kept when you switch between them; the prompt decides how much of it is used.
 
@@ -98,6 +120,12 @@ their prompts again each time.
 The way out is to keep the cache of every kind on disk and swap it into the one slot when a request of that kind
 arrives. `llama-server` can save a slot to a file and restore it; a proxy in front of it knows which kind a request is
 from the header. The example below is a hook for [LiteLLM](https://docs.litellm.ai/).
+
+**Requirement:** a `llama-server` from 2026-10-08 or later (llama.cpp PR #26004, *preserve context checkpoints across
+slot save/restore*). An older one writes and restores the memory of the slot but not its [context
+checkpoints](#why-a-cache-may-not-help), so a model with a sliding window (Gemma, for one) or a hybrid model reads the
+whole prompt again after every restore, however much of it is unchanged. Check the build with `llama-server --version`;
+a container image with a moving tag (`full`, `server`...) is not updated until you pull it.
 
 Start `llama-server` with one slot and a folder for the files:
 
@@ -557,10 +585,27 @@ itself never fails because of the hook.
 
 Things to know:
 
-- **Size.** A file is as big as the memory of the slot holds: for a long story and a large model hundreds of megabytes
-  to several gigabytes. There is one file per route, user and kind, and each is overwritten in place, so the folder stays as
-  small as that. Check that restoring one is faster than reading the prompt (a fast SSD usually is, by a lot, for a
-  long story: a few seconds against a minute of prefill).
+- **Size.** A file holds the memory of the slot **and its context checkpoints**, so it is as big as both together: for a
+  long story and a large model hundreds of megabytes to several gigabytes. A measured example: a 31 B model with a
+  prompt of 18,000 tokens made files of 1.3 to 11 GB, the largest with about 18 checkpoints of about 450 MB each besides
+  about 1.5 GB of cache. A server keeps up to 32 checkpoints by default, and every swap writes and reads all of them.
+  `--ctx-checkpoints N` of `llama-server` caps that, which makes the files smaller and the swaps shorter, but a
+  checkpoint helps only when the next prompt first differs from the cached one at or just after it. A new part or a
+  swipe differs at the start of the last user message (the newest checkpoint), while an annotation or a redraft can
+  change a part several parts back, so keep as many checkpoints as the story reaches back (look at the `prompt:` lines
+  of the hook, they tell where each request differs). There is one file per route, user and
+  kind, and each is overwritten in place, so the folder stays as small as that.
+- **Speed.** Check that a swap is faster than reading the prompt (the hook logs the size and the time of every save and
+  restore). The example above, on an NVMe disk with an AMD Radeon AI PRO R9700: a save of 11 GB took 6 s and a restore
+  of 7.6 GB for 20,000 tokens 8 s, about 14 s for a swap, while reading a prompt of that length again takes about 45 s
+  at 440 tokens per second, and a prefill grows with the prompt. Without checkpoints the same files were about 1 GB and
+  a swap took 5 s.
+- **Memory.** The checkpoints of the slot are held in the **system memory** of the server (not in the memory of the GPU),
+  up to `--ctx-checkpoints` of them (32 by default, hundreds of megabytes each for a large model), and a save or a
+  restore reads or writes all of them. `llama-server` also keeps the prompts of the slots it gave up in a memory cache of
+  its own (`--cache-ram`, 8 GiB by default); the files of the hook do the same job, so it can be set to 0 on a machine
+  that is short of memory. When the machine starts to swap, saves and restores become several times slower, as the
+  checkpoints have to be read back from the swap first: look at `free -h` before looking at the disk.
 - **Limits.** Without a limit the folder grows with the number of routes, users and kinds. Set `max_files` (a number of
   files) and/or `max_gib` (their total size) in the `slot_cache` of a route (or `LLAMA_CACHE_MAX_FILES` and
   `LLAMA_CACHE_MAX_GIB` in the environment of the proxy for all routes) and the hook deletes the caches **of that route**

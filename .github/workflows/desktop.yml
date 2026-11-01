@@ -4,6 +4,12 @@
 # Artifacts per platform (downloadable from the run, attached to the release for v* tags):
 #   marginalia-<version>-<os>-<arch>.tar.gz|zip       portable folder (bin/marginalia, app/, server/, runtime/)
 #   marginalia-<version>-<os>-<arch>-app.tar.gz|zip   native app image (Marginalia.app / Marginalia.exe / bin/Marginalia)
+#   marginalia-<version>-<os>-<arch>.deb|dmg|msi      installer (Linux / macOS / Windows), made from the app image
+#   marginalia-<version>-<os>-<arch>-full.deb|dmg|msi the same with every built-in plugin inside (the plugins job
+#                                                     builds the JARs once, they are the same on every platform)
+#
+# Installers need tools on the runner: dpkg-deb + fakeroot (Linux), hdiutil (macOS), WiX Toolset 3 (Windows); the
+# GitHub images have them. The build is told to fail when an installer cannot be made (-Ddesktop.installerRequired).
 
 name: Desktop
 
@@ -73,9 +79,54 @@ jobs:
           path: marginalia/target/surefire-reports/
           retention-days: 7
 
+  plugins:
+    name: Plugins
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: maven
+
+      - name: Install the parent POM
+        # the application's POM in the local repository refers to it, the plugins need both
+        working-directory: .
+        run: mvn -N install
+
+      - name: Install the application
+        # the plugins compile against the classes JAR of the application, the frontend is not needed for that
+        run: mvn -DskipTests -Dvaadin.skip=true install
+
+      - name: Build the plugins
+        working-directory: marginalia/plugins
+        run: |
+          mkdir -p ../../plugin-jars
+          for pom in */pom.xml; do
+            dir=$(dirname "$pom")
+            echo "::group::$dir"
+            mvn -f "$pom" package
+            cp "$dir"/target/*.jar ../../plugin-jars/
+            echo "::endgroup::"
+          done
+          ls -l ../../plugin-jars
+
+      - name: Upload plugins
+        uses: actions/upload-artifact@v4
+        with:
+          name: marginalia-plugins
+          path: plugin-jars/*.jar
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14
+
   desktop:
     name: Desktop ${{ matrix.name }}
-    needs: test
+    needs: [test, plugins]
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -102,9 +153,17 @@ jobs:
           java-version: ${{ env.JAVA_VERSION }}
           cache: maven
 
+      - name: Download the plugins
+        # the plugin JARs for the full installer, built against this commit by the plugins job
+        uses: actions/download-artifact@v4
+        with:
+          name: marginalia-plugins
+          path: marginalia/target/desktop-plugins
+
       - name: Build desktop distribution
-        # tests ran in the test job; quoted for PowerShell on Windows
-        run: mvn "-Pdesktop" "-DskipTests" package
+        # tests ran in the test job; quoted for PowerShell on Windows. The full installer takes the JARs of
+        # target/desktop-plugins (desktop.pluginsDir)
+        run: mvn "-Pdesktop" "-DskipTests" "-Ddesktop.installerRequired=true" "-Ddesktop.skipFull=false" package
 
       - name: Smoke test
         # the native app and the portable launcher script must start the bundled server and serve Marginalia
@@ -134,6 +193,33 @@ jobs:
             dists=(target/desktop/marginalia-*/)
             smoke "portable" 18766 "${dists[0]}bin/marginalia"
           fi
+          if [ "$RUNNER_OS" = "Linux" ]; then
+            # both .deb packages must install and the installed app (/opt/marginalia) must start; the full one
+            # brings the plugins, which the launcher copies into the extensions folder of the data directory
+            plain_deb=$(ls target/desktop/marginalia-*.deb | grep -v -- '-full\.deb$')
+            full_deb=$(ls target/desktop/marginalia-*-full.deb)
+            port=18767
+            for entry in "deb:$plain_deb" "deb-full:$full_deb"; do
+              name="${entry%%:*}"
+              deb="${entry#*:}"
+              dpkg-deb --info "$deb"
+              sudo apt-get install -y "$PWD/$deb"
+              smoke "$name" "$port" /opt/marginalia/bin/Marginalia
+              plugin_jars=$(ls "$RUNNER_TEMP/home-$port/.marginalia/extensions/"*.jar 2>/dev/null | wc -l)
+              echo "$name: $plugin_jars plugin JARs installed"
+              if [ "$name" = "deb-full" ] && [ "$plugin_jars" -lt 1 ]; then
+                echo "The full package did not install its plugins"
+                exit 1
+              fi
+              if [ "$name" = "deb" ] && [ "$plugin_jars" -ne 0 ]; then
+                echo "The plain package installed plugins"
+                exit 1
+              fi
+              # the next package replaces this one
+              pkill -f /opt/marginalia || true
+              port=$((port + 1))
+            done
+          fi
 
       - name: Upload distribution
         uses: actions/upload-artifact@v4
@@ -142,6 +228,9 @@ jobs:
           path: |
             marginalia/target/desktop/marginalia-*.tar.gz
             marginalia/target/desktop/marginalia-*.zip
+            marginalia/target/desktop/marginalia-*.deb
+            marginalia/target/desktop/marginalia-*.dmg
+            marginalia/target/desktop/marginalia-*.msi
           if-no-files-found: error
           # archives are already compressed
           compression-level: 0

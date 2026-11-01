@@ -10,10 +10,11 @@ import java.util.Map;
 
 /**
  * Texts of a plugin's own user interface. A plugin can't add keys to the {@code L} enum, so its texts are the English
- * sentences themselves: the code asks for {@code bundle.localized("Export instructions")} and the bundle returns the
+ * sentences themselves, constants of the subclass ({@code String EXPORT_INSTRUCTIONS = "Export instructions"}): the code
+ * asks for {@code bundle.localized(EXPORT_INSTRUCTIONS)} and the bundle returns the
  * translation into the language of the current session, the English key when it has none. A subclass fills the
  * translations in {@link #loadKeys()} with {@link #ja}, {@link #zh} or {@link #add}; text with values uses
- * {@code String.format} placeholders in the key ({@code localized("Failed: %s").formatted(reason)}).
+ * {@code String.format} placeholders in the key ({@code localized(FAILED).formatted(reason)}).
  */
 @Configurable(preConstruction = true)
 public abstract class PluginLocalizationBundle {

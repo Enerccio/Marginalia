@@ -86,15 +86,42 @@ public interface StoryCard {
      */
     void copySelection();
 
+    /**
+     * Opens the version history of the part, see {@link PartHistoryDialog}. The card shows the text the author chose.
+     */
+    void openHistory();
+
+    /**
+     * How many versions of the part the history has now (not counting the ones in the trash); the menu shows it.
+     */
+    long getHistoryCount();
+
     void branch();
 
     void mergeIntoPrevious();
 
     void showPrompt();
 
+    /**
+     * Opens the dialog that compares the prompt of the part with an earlier one (why a prompt cache was not reused).
+     */
+    void comparePrompt();
+
     void showTokenUsage();
 
     void openImagesDialog();
+
+    /**
+     * The images of the part were changed from outside the card (an extension generated one): the card takes the saved part and
+     * shows its images.
+     */
+    void imagesChanged(ChatMessage updated);
+
+    /**
+     * Shows the part with its images placed as the viewer places them (the editor lists them after the text); the text is the one in
+     * the editor when the part is being edited.
+     */
+    void openImagePreview();
 
     /**
      * Opens the dialog that shows or generates the summary of the part.
@@ -107,5 +134,10 @@ public interface StoryCard {
      * Asks, then deletes the part (what followed it continues from its parent).
      */
     void confirmDelete();
+
+    /**
+     * Shows or hides the check box of the mass delete and sets whether the part is ticked.
+     */
+    void showMassDelete(boolean shown, boolean selected);
 
 }

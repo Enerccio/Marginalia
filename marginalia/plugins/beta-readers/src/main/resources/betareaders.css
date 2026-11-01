@@ -1,0 +1,114 @@
+/* Beta Readers: the icon of a persona (an image or a circle with letters) in the lists and in the editor */
+.beta-readers-icon {
+    display: block;
+    flex: none;
+    width: var(--lumo-size-s);
+    height: var(--lumo-size-s);
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.beta-readers-icon-large {
+    display: block;
+    flex: none;
+    width: var(--lumo-size-xl);
+    height: var(--lumo-size-xl);
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+/* The line under a field of the settings that says what the field is for */
+.beta-readers-hint {
+    color: var(--lumo-secondary-text-color);
+    font-size: var(--lumo-font-size-s);
+}
+
+/* The bar with the tabs of the chats, separated from the chat below */
+.beta-readers-bar {
+    border-bottom: 1px solid var(--lumo-contrast-10pct);
+}
+
+/* The box to write in, separated from the conversation above it */
+.beta-readers-top {
+    border-top: 1px solid var(--lumo-contrast-10pct);
+}
+
+/* A persona of a chat: the icon beside its name and description */
+.beta-readers-persona {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--lumo-space-s);
+}
+
+/* A persona that left the group */
+.beta-readers-persona-left {
+    opacity: 0.5;
+}
+
+/* A message of the user, aside from the turns of the personas */
+.beta-readers-user {
+    border: 1px solid var(--lumo-contrast-10pct);
+    border-radius: var(--lumo-border-radius-m);
+    background-color: var(--lumo-contrast-5pct);
+    padding: var(--lumo-space-s) var(--lumo-space-m);
+}
+
+/* Joined, left: a line between the messages */
+.beta-readers-note {
+    text-align: center;
+    color: var(--lumo-secondary-text-color);
+    font-size: var(--lumo-font-size-s);
+}
+
+.beta-readers-turn {
+    display: flex;
+    flex-direction: column;
+    gap: var(--lumo-space-s);
+}
+
+.beta-readers-spoken {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--lumo-space-s);
+}
+
+/* The narrator has no icon: its text starts where the text of the personas does */
+.beta-readers-no-icon {
+    flex: none;
+    width: var(--lumo-size-s);
+}
+
+/* What was said keeps its line breaks, an action is set apart */
+.beta-readers-text {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.beta-readers-action {
+    font-style: italic;
+    color: var(--lumo-secondary-text-color);
+}
+
+/* The buttons at the end of a message or of a persona, out of the way while the model writes */
+.beta-readers-actions {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: var(--lumo-space-xs);
+    margin-left: auto;
+}
+
+.beta-readers-busy .beta-readers-actions {
+    display: none;
+}
+
+.beta-readers-headline {
+    display: flex;
+    align-items: center;
+    gap: var(--lumo-space-s);
+}
+
+.beta-readers-personas {
+    max-height: 14rem;
+    overflow-y: auto;
+}

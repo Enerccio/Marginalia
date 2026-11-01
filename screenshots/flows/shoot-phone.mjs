@@ -1,5 +1,5 @@
 // Phone screenshots (Chrome with a phone profile: 402x874, touch, mobile user agent). Run on the final state; changes nothing.
-import {closeDialog, fill, goto, idle, login, main, section, sleep, snap, snapDialog, users} from '../lib/shot.mjs';
+import {closeDialog, fill, goto, idle, login, main, section, sleep, menuItem, snap, snapDialog, users} from '../lib/shot.mjs';
 
 const drawer = async (page, item) => {
   await page.mouse.click(28, 27);                           // the burger of the top bar
@@ -10,6 +10,7 @@ const drawer = async (page, item) => {
 await main(async ({ page }) => {
   await login(page);
   await sleep(800);
+  await drawer(page); await page.getByRole('tab', { name: 'Books', exact: true }).click(); await idle(page, 900); await page.mouse.click(390, 400); await sleep(600);   // the workspace remembers the last tab of the flows before: start on the books
 
   await section(page, 'list', async () => {
     await snap(page, 'phone-book-list');
@@ -26,7 +27,9 @@ await main(async ({ page }) => {
     await idle(page, 1500);
     await page.mouse.click(349, 173);                        // the settings menu of the story: reading style
     await sleep(500);
-    await page.getByText('Change Styles For Text', { exact: true }).click();
+    await menuItem(page, 'Change Styles For Text').click();      // a sub menu of the styles (Appearance): the Book style is the serif reading look
+    await idle(page, 500);
+    await page.getByRole('menuitem', { name: 'Book', exact: true }).first().click();
     await idle(page, 800);
     await page.evaluate(() => { const p = document.querySelector('.story-scroll-panel'); if (p) p.scrollTop = p.scrollHeight; });
     await sleep(500);
@@ -34,7 +37,7 @@ await main(async ({ page }) => {
     // the search and replace window of the story, in the phone layout (nothing is replaced)
     await page.mouse.click(349, 173);
     await sleep(500);
-    await page.getByText('Search and replace', { exact: true }).click();
+    await menuItem(page, 'Search and replace').click();
     await idle(page, 800);
     await fill(page, 'Search for', 'Draconia');
     await fill(page, 'Replace with', 'Dracona');
@@ -74,7 +77,6 @@ await main(async ({ page }) => {
   await section(page, 'viewer', async () => {
     await login(page, users.admin, '/view');                // the viewer has a login of its own
     await sleep(1200);
-    await snap(page, 'viewer-list');
     await page.getByText('Harry Potter and Half Blood Prince - FDM', { exact: false }).first().click();
     await idle(page, 2000);
     await snap(page, 'viewer-reading');

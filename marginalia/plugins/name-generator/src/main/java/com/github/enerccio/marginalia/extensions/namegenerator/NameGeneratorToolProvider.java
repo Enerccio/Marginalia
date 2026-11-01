@@ -9,6 +9,7 @@ import com.github.enerccio.marginalia.domain.service.tool.ToolRequest;
 
 import java.util.*;
 
+import static com.github.enerccio.marginalia.extensions.namegenerator.NameGeneratorLocalization.NAMES_MADE_UP_BY_MARKOV;
 import static com.github.enerccio.marginalia.extensions.namegenerator.NameGeneratorLocalization.T;
 
 /**
@@ -47,7 +48,7 @@ public class NameGeneratorToolProvider implements ToolProvider {
 
     @Override
     public String description() {
-        return T.localized("Names made up by Markov chains trained on lists of names: places, deities, companies, surnames of countries... Groups (like all Native American names) pick a category at random for every name.");
+        return T.localized(NAMES_MADE_UP_BY_MARKOV);
     }
 
     @Override

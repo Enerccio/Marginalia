@@ -36,10 +36,11 @@ public class ArcOutlineService {
      * A message of the active branch that has text, for the import of an arc.
      *
      * @param number the place among the messages with text, from 1
+     * @param order  the place among all the parts of the branch, from 1: the number the outline of the story shows
      * @param text   the text of the message
      * @param tokens the approximate number of tokens of the text
      */
-    public record StoryMessage(int number, String text, long tokens) {
+    public record StoryMessage(int number, int order, String text, long tokens) {
     }
 
     /**
@@ -325,16 +326,17 @@ public class ArcOutlineService {
      * Asks the model for an answer in the schema and waits for it (the dialogs stream it; a command has no one to show
      * it to).
      *
+     * @param book the book the outline is of; the tokens and the time of the request are counted for it
      * @param type the class the answer is read into, the one the schema was made of
      * @throws CancellationException when the request was cancelled
      * @throws IllegalStateException when the answer does not match the schema
      */
-    public <T> Generated<T> generate(ModelSelection model, String prompt, JsonNode schema, Class<T> type) throws Exception {
+    public <T> Generated<T> generate(ModelSelection model, Manuscript book, String prompt, JsonNode schema, Class<T> type) throws Exception {
         record Answer(String text, SchemaCheck check) {
         }
         CompletableFuture<Answer> answer = new CompletableFuture<>();
         CancellationToken token;
-        try (InferenceSession _ = InferenceSession.open("arc-outline")) {
+        try (InferenceSession _ = InferenceSession.open("arc-outline"); UsageContext _ = UsageContext.open(book)) {
             token = inferenceServices.forAIOrThrow(model.ai()).infer(toPayload(prompt), model.protocol(), schema,
                 new InferenceService.InferenceResultCallback() {
                     @Override
@@ -427,7 +429,15 @@ public class ArcOutlineService {
      * @param exactCount the number of chapters the author wants, null when the model decides (at least one)
      */
     public JsonNode importSchema(Integer exactCount) {
-        ObjectNode schema = StructuredOutputs.schemaOf(GeneratedStoryArc.class);
+        return importSchema(exactCount, false);
+    }
+
+    /**
+     * @param mapParts the chapters say in which message they begin, see {@link GeneratedMappedStoryArc}
+     * @see #importSchema(Integer)
+     */
+    public JsonNode importSchema(Integer exactCount, boolean mapParts) {
+        ObjectNode schema = StructuredOutputs.schemaOf(mapParts ? GeneratedMappedStoryArc.class : GeneratedStoryArc.class);
         limitChapters(schema, exactCount);
         return schema;
     }
@@ -483,10 +493,21 @@ public class ArcOutlineService {
      */
     public String buildImportPrompt(Manuscript manuscript, ArcOutline outline, String template,
                                     List<StoryMessage> messages, Integer numberOfChapters) throws Exception {
+        return buildImportPrompt(manuscript, outline, template, messages, numberOfChapters, false);
+    }
+
+    /**
+     * @param mapParts number the messages from 1 within the range sent, so the chapters can say where they begin
+     *                 (see {@link #mapPart})
+     * @see #buildImportPrompt(Manuscript, ArcOutline, String, List, Integer)
+     */
+    public String buildImportPrompt(Manuscript manuscript, ArcOutline outline, String template,
+                                    List<StoryMessage> messages, Integer numberOfChapters, boolean mapParts) throws Exception {
         ImportGenerationTemplateData data = new ImportGenerationTemplateData();
         data.setBackgroundLore(buildBackgroundLore(manuscript));
         data.setExistingArcs(describeArcs(outline));
-        data.setStory(storyText(messages));
+        data.setStory(storyText(messages, mapParts));
+        data.setMapParts(mapParts);
         data.setNumberOfChapters(numberOfChapters != null ? "exactly " + numberOfChapters
                 : "as many as the story needs, divide it where it naturally divides");
         return templateService.processTemplate(template, "arcImport", data);
@@ -494,12 +515,48 @@ public class ArcOutlineService {
 
     /** The messages as the prompt shows them, each under a heading with its number. */
     public static String storyText(List<StoryMessage> messages) {
+        return storyText(messages, false);
+    }
+
+    /**
+     * @param fromOne number the messages from 1 in the order they are sent, not by their place in the branch: a model that is
+     *                asked where a chapter begins answers with these numbers whatever the range is, and {@link #mapPart} turns
+     *                them back
+     */
+    public static String storyText(List<StoryMessage> messages, boolean fromOne) {
         StringBuilder text = new StringBuilder();
+        int number = 0;
         for (StoryMessage message : messages) {
-            text.append("--- Message ").append(message.number()).append(" ---\n")
+            number++;
+            text.append("--- Message ").append(fromOne ? number : message.number()).append(" ---\n")
                     .append(message.text().strip()).append("\n\n");
         }
         return text.toString().stripTrailing();
+    }
+
+    /**
+     * The place in the branch (the number the outline of the story shows) of the message a model named by its number among the
+     * messages sent with {@link #storyText(List, boolean)} numbered from 1.
+     *
+     * @param sent     the messages that were sent, in order
+     * @param reported the number the model gave
+     * @return null when the model named a message that was not sent
+     */
+    public static Integer mapPart(List<StoryMessage> sent, int reported) {
+        return reported >= 1 && reported <= sent.size() ? sent.get(reported - 1).order() : null;
+    }
+
+    /**
+     * The places in the active branch of the book as it is stored now (the number the outline of the story shows), from the
+     * first, with the ids of the parts at them.
+     */
+    public List<Long> branchIds(Manuscript manuscript) throws Exception {
+        Manuscript current = manuscriptService.find(manuscript);
+        ChatMessage leaf = (current != null ? current : manuscript).getActiveLeaf();
+        if (leaf == null) {
+            return List.of();
+        }
+        return chatMessageService.getBranchFromLeaf(leaf).stream().map(ChatMessage::getId).toList();
     }
 
     /**
@@ -515,11 +572,13 @@ public class ArcOutlineService {
             return List.of();
         }
         List<StoryMessage> messages = new ArrayList<>();
+        int order = 0;
         for (ChatMessage message : chatMessageService.getBranchFromLeaf(leaf)) {
+            order++;
             String text = message.getResponse();
             if (StringUtils.isNotBlank(text)) {
                 long tokens = message.getTokenCount() > 0 ? message.getTokenCount() : countTokens(text);
-                messages.add(new StoryMessage(messages.size() + 1, text, tokens));
+                messages.add(new StoryMessage(messages.size() + 1, order, text, tokens));
             }
         }
         return messages;

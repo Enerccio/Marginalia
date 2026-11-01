@@ -47,7 +47,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
-import static com.github.enerccio.marginalia.extensions.anthropic.AnthropicLocalization.T;
+import static com.github.enerccio.marginalia.extensions.anthropic.AnthropicLocalization.*;
 
 /**
  * The inference service of an Anthropic Claude AI, over the Anthropic Java SDK. It does what the service of an OpenAI
@@ -77,6 +77,9 @@ public class AnthropicInferenceService implements InferenceService, AutoCloseabl
 
     @Autowired
     private AILimitService limitService;
+
+    @Autowired
+    private ActivityTracker activityTracker;
 
     private final ExtensionAI ai;
     private final AnthropicSettings settings;
@@ -131,6 +134,14 @@ public class AnthropicInferenceService implements InferenceService, AutoCloseabl
         this.configuration = configuration;
         this.usageService = usageService;
         this.limitService = limitService;
+    }
+
+    /**
+     * The time the request of the book is on the wire, for the generation time of the writing statistics; nothing for a request that
+     * is not metered or has no book (and in a test without the application).
+     */
+    private ActivityTracker.Registration generating(Run run) {
+        return run.metered && activityTracker != null ? activityTracker.generate(run.book) : ActivityTracker.NONE;
     }
 
     // ---- models and connection
@@ -235,17 +246,20 @@ public class AnthropicInferenceService implements InferenceService, AutoCloseabl
                         return;
                     }
                     long began = System.nanoTime();
-                    Answer answer = collect(sdk, run, params, piece -> {
-                        try {
-                            callback.onChunk(piece.reasoning() ? ChunkType.REASONING : ChunkType.RESPONSE, piece.text());
-                        } catch (RuntimeException e) {
-                            // the view must not fail the round
-                            log.trace("A chunk of a round was not shown", e);
-                        }
-                    });
+                    Answer answer;
+                    try (ActivityTracker.Registration generating = generating(run)) {
+                        answer = collect(sdk, run, params, piece -> {
+                            try {
+                                callback.onChunk(piece.reasoning() ? ChunkType.REASONING : ChunkType.RESPONSE, piece.text());
+                            } catch (RuntimeException e) {
+                                // the view must not fail the round
+                                log.trace("A chunk of a round was not shown", e);
+                            }
+                        });
+                    }
                     long millis = (System.nanoTime() - began) / 1_000_000;
                     TokenUsage counted = run.metered
-                            ? recordUsage(run.attributes, prepared.turns(), answer.reported(), answer.received.toString()) : null;
+                            ? recordUsage(run.attributes, run.book, prepared.turns(), answer.reported(), answer.received.toString()) : null;
                     if (run.outcome.dead().getAsBoolean() || run.token.isCancelled()) {
                         callback.onCancel();
                     } else if (answer.calls().isEmpty() && answer.isEmptyAndStopped()) {
@@ -345,11 +359,20 @@ public class AnthropicInferenceService implements InferenceService, AutoCloseabl
                         callback.onCancel();
                         return;
                     }
-                    StreamResponse<RawMessageStreamEvent> stream = open(sdk, run, params);
+                    // from the moment the request is sent to the end of the answer (the recorder below is called whichever way it ends)
+                    ActivityTracker.Registration generating = generating(run);
+                    StreamResponse<RawMessageStreamEvent> stream;
+                    try {
+                        stream = open(sdk, run, params);
+                    } catch (Throwable e) {
+                        generating.close();
+                        throw e;
+                    }
                     AnthropicStreamController controller = new AnthropicStreamController(stream, callback, run,
                             (reported, generated) -> {
+                                generating.close();
                                 if (run.metered) {
-                                    recordUsage(run.attributes, turns, reported, generated);
+                                    recordUsage(run.attributes, run.book, turns, reported, generated);
                                 }
                             },
                             functionsOffered && !finalRound
@@ -398,9 +421,12 @@ public class AnthropicInferenceService implements InferenceService, AutoCloseabl
                         callback.onCancel();
                         return;
                     }
-                    Answer answer = collect(sdk, run, params, null);
+                    Answer answer;
+                    try (ActivityTracker.Registration generating = generating(run)) {
+                        answer = collect(sdk, run, params, null);
+                    }
                     if (run.metered) {
-                        recordUsage(run.attributes, turns, answer.reported(), answer.received.toString());
+                        recordUsage(run.attributes, run.book, turns, answer.reported(), answer.received.toString());
                     }
 
                     // the request can not be taken back once sent, but a canceled one gets no result
@@ -439,6 +465,8 @@ public class AnthropicInferenceService implements InferenceService, AutoCloseabl
         final RequestAttributes attributes = ThreadCopyRequestAttributes.create();
         // read in the thread that starts the request: it is not metered inside an UnmeteredScope (the help assistant)
         final boolean metered = !UnmeteredScope.isActive();
+        // the book the request is made for, read in the same thread (see UsageContext)
+        final Long book = UsageContext.current();
         // read in the same thread: the header that tells a server with a prompt cache what kind of work this is
         final String sessionId = sessionIds.get();
 
@@ -517,7 +545,7 @@ public class AnthropicInferenceService implements InferenceService, AutoCloseabl
             }
         }
         if (answer.message == null && !run.token.isCancelled()) {
-            throw new InferenceException(Type.CONNECTION, null, T.localized("The connection to Anthropic ended before the answer was complete"), null);
+            throw new InferenceException(Type.CONNECTION, null, T.localized(THE_CONNECTION_TO_ANTHROPIC), null);
         }
         return answer;
     }
@@ -608,7 +636,7 @@ public class AnthropicInferenceService implements InferenceService, AutoCloseabl
 
     private String model() {
         if (settings.model().isBlank()) {
-            throw new InferenceException(Type.MODEL_NOT_FOUND, null, T.localized("No model is set"), null);
+            throw new InferenceException(Type.MODEL_NOT_FOUND, null, T.localized(NO_MODEL_IS_SET), null);
         }
         return settings.model();
     }
@@ -624,7 +652,7 @@ public class AnthropicInferenceService implements InferenceService, AutoCloseabl
         }
         if (client == null) {
             if (settings.apiKey().isBlank()) {
-                throw new InferenceException(Type.AUTHENTICATION, null, T.localized("No API key is set"), null);
+                throw new InferenceException(Type.AUTHENTICATION, null, T.localized(NO_API_KEY_IS_SET), null);
             }
             Duration timeout = Duration.ofSeconds(settings.timeoutSeconds());
             // read is the wait for the first text and between the chunks; the whole request limit must not cut a long
@@ -751,8 +779,9 @@ public class AnthropicInferenceService implements InferenceService, AutoCloseabl
      * Anthropic reported, otherwise our count of the messages and of the text that arrived (a stopped request has no
      * report).
      */
-    private TokenUsage recordUsage(RequestAttributes attributes, List<Turn> turns, TokenUsage reported, String generated) {
-        try (InRequestScope _ = new InRequestScope(attributes)) {
+    private TokenUsage recordUsage(RequestAttributes attributes, Long book, List<Turn> turns, TokenUsage reported, String generated) {
+        // the book of the request, not of the thread that runs it now
+        try (InRequestScope _ = new InRequestScope(attributes); UsageContext _ = UsageContext.open(book)) {
             long prefill;
             long generatedTokens;
             if (reported != null) {
@@ -1040,7 +1069,7 @@ public class AnthropicInferenceService implements InferenceService, AutoCloseabl
                     if (answer.message == null) {
                         // the connection ended without the end of the message: what arrived is not a whole answer
                         fail(run.outcome, new InferenceException(Type.CONNECTION, null,
-                                T.localized("The connection to Anthropic ended before the answer was complete"), null));
+                                T.localized(THE_CONNECTION_TO_ANTHROPIC), null));
                     } else if (answer.isEmptyAndStopped()) {
                         // nothing came and the model was stopped: that is not an empty answer, the user has to know why
                         fail(run.outcome, answer.stopped());

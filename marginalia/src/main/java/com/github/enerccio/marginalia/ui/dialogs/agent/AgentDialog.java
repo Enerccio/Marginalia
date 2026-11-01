@@ -170,7 +170,7 @@ public class AgentDialog extends Dialog implements LLMInteract {
 
         manuscriptCombo = new ComboBox<>(loc.getValue(L.LABEL_BOOK));
         manuscriptCombo.setRequiredIndicatorVisible(true);
-        manuscriptCombo.setItemLabelGenerator(Manuscript::getName);
+        new BookLabels().apply(manuscriptCombo);
         manuscriptCombo.setWidthFull();
 
         modelPicker = new ModelProtocolPicker();

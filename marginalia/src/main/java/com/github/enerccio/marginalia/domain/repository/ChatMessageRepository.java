@@ -1,10 +1,12 @@
 package com.github.enerccio.marginalia.domain.repository;
 
+import com.github.enerccio.marginalia.domain.components.PartTotals;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public interface ChatMessageRepository extends ExtendableRepository<ChatMessage> {
@@ -66,6 +68,13 @@ public interface ChatMessageRepository extends ExtendableRepository<ChatMessage>
     Set<Long> findActiveBranchIds(Long manuscriptId) throws Exception;
 
     /**
+     * The words and the tokens ({@code long[]{words, tokens}}) of the active branch (the parts from the first one to the
+     * active leaf, deleted parts not counted) of each of the manuscripts, summed in one query. A manuscript without an
+     * active part is not a key.
+     */
+    Map<Long, long[]> sumActiveBranches(Collection<Long> manuscriptIds) throws Exception;
+
+    /**
      * Id and {@code _fulltext} ({@code Object[]{Long, String}}) of the messages of the manuscript that are not deleted,
      * oldest first. The rest of the message is not read.
      *
@@ -102,6 +111,11 @@ public interface ChatMessageRepository extends ExtendableRepository<ChatMessage>
      * @return number of the deleted messages
      */
     int softDeleteByIds(Collection<Long> ids) throws Exception;
+
+    /**
+     * How many of the parts are not deleted, and the words they have (their {@code wordCount}).
+     */
+    PartTotals measureLive(Collection<Long> ids) throws Exception;
 
     int getTotalWordCount(Long manuscriptId) throws Exception;
 

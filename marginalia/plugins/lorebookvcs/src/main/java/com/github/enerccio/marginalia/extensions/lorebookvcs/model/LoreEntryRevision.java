@@ -27,6 +27,9 @@ public class LoreEntryRevision {
     // likewise: older revisions read as the instructions only
     private ActivationContext activationContext = ActivationContext.INSTRUCTIONS;
     private int activationParts = 1;
+    // likewise: older revisions have no range of parts
+    private Integer fromMessage;
+    private Integer toMessage;
     private List<String> positiveTags = new ArrayList<>();
     private List<String> negativeTags = new ArrayList<>();
 
@@ -48,6 +51,8 @@ public class LoreEntryRevision {
         rev.setPreventRecursion(entry.isPreventRecursion());
         rev.setActivationContext(entry.getActivationContext());
         rev.setActivationParts(entry.getActivationParts());
+        rev.setFromMessage(entry.getFromMessage());
+        rev.setToMessage(entry.getToMessage());
         rev.setPositiveTags(positiveTags != null ? new ArrayList<>(positiveTags) : new ArrayList<>());
         rev.setNegativeTags(negativeTags != null ? new ArrayList<>(negativeTags) : new ArrayList<>());
         return rev;
@@ -65,6 +70,8 @@ public class LoreEntryRevision {
         entry.setPreventRecursion(this.preventRecursion);
         entry.setActivationContext(getActivationContext());
         entry.setActivationParts(getActivationParts());
+        entry.setFromMessage(getFromMessage());
+        entry.setToMessage(getToMessage());
     }
 
     public boolean matches(LorebookEntry entry, List<String> curPosTags, List<String> curNegTags) {
@@ -80,6 +87,8 @@ public class LoreEntryRevision {
         if (this.preventRecursion != entry.isPreventRecursion()) return false;
         if (getActivationContext() != entry.getActivationContext()) return false;
         if (getActivationParts() != entry.getActivationParts()) return false;
+        if (!Objects.equals(getFromMessage(), entry.getFromMessage())) return false;
+        if (!Objects.equals(getToMessage(), entry.getToMessage())) return false;
 
         List<String> p1 = getPositiveTags() != null ? new ArrayList<>(getPositiveTags()) : new ArrayList<>();
         List<String> p2 = curPosTags != null ? new ArrayList<>(curPosTags) : new ArrayList<>();
@@ -140,6 +149,12 @@ public class LoreEntryRevision {
 
     public int getActivationParts() { return Math.max(1, activationParts); }
     public void setActivationParts(int activationParts) { this.activationParts = activationParts; }
+
+    public Integer getFromMessage() { return fromMessage != null && fromMessage >= 1 ? fromMessage : null; }
+    public void setFromMessage(Integer fromMessage) { this.fromMessage = fromMessage; }
+
+    public Integer getToMessage() { return toMessage != null && toMessage >= 1 ? toMessage : null; }
+    public void setToMessage(Integer toMessage) { this.toMessage = toMessage; }
 
     public List<String> getPositiveTags() { return positiveTags != null ? positiveTags : new ArrayList<>(); }
     public void setPositiveTags(List<String> positiveTags) { this.positiveTags = positiveTags; }

@@ -3,6 +3,8 @@ package com.github.enerccio.marginalia.domain.model.impl;
 import com.github.enerccio.marginalia.domain.collections.Language;
 import com.github.enerccio.marginalia.domain.model.ExtendableEntity;
 import com.github.enerccio.marginalia.domain.service.BackupService.BackupStrategy;
+import com.github.enerccio.marginalia.domain.traits.CleanupReference;
+import com.github.enerccio.marginalia.domain.traits.CleanupReference.Policy;
 import com.github.enerccio.marginalia.domain.traits.ExtendedAttribute;
 import com.github.enerccio.marginalia.domain.traits.Fulltextable;
 import jakarta.persistence.*;
@@ -24,6 +26,12 @@ public class Manuscript extends ExtendableEntity {
 
     @ManyToOne
     private Lorebook lorebook;
+
+    // null is the top level; a folder is never purged with its books, they are moved out of it first
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "folder_id")
+    @CleanupReference(Policy.WEAK)
+    private Folder folder;
 
     @ManyToOne
     private AI ai;
@@ -68,9 +76,21 @@ public class Manuscript extends ExtendableEntity {
     @Transient
     private String userPrompt;
 
+    /**
+     * Legacy: the book style (see {@code PartStyleRegistry.BOOK}) was turned on for the story. Read only when {@link #partStyle} is
+     * not set, never written any more.
+     */
     @ExtendedAttribute
     @Transient
     private Boolean showBookStyles;
+
+    /**
+     * The id of the text style (a built in one or one of the user, see {@code PartStyleService}) the author chose for this book from the
+     * menu of the story; null follows the default style of the user.
+     */
+    @ExtendedAttribute
+    @Transient
+    private String partStyle;
 
     @ExtendedAttribute
     @Transient
@@ -99,6 +119,15 @@ public class Manuscript extends ExtendableEntity {
     @ExtendedAttribute
     @Transient
     private String impersonatePrompt;
+
+    /**
+     * The most versions of a part the history keeps for the book; {@code null} does not limit them here (see
+     * {@code ManuscriptService#resolveHistoryLimit}: the strictest of the book, its folders, the user and the permission wins), zero
+     * keeps no history.
+     */
+    @ExtendedAttribute
+    @Transient
+    private Integer historyMaxVersions;
 
     // the automatic annotation of a generated part (Tools menu of the story): on, what to look for, the model to use (uuids of
     // the AI and the protocol, none is the model of the book), whether the notes are added and the redraft started and applied
@@ -175,8 +204,19 @@ public class Manuscript extends ExtendableEntity {
         this.protocol = protocol;
     }
 
+    /**
+     * The language of the book as it is shown when nothing else decides: English when the book has none. The language that
+     * a book has with the folders above it is {@code ManuscriptService.getLanguage}.
+     */
     public Language getLanguage() {
         return language != null ? language : Language.ENGLISH;
+    }
+
+    /**
+     * @return the language the book sets itself, null when it does not (the folders above it decide)
+     */
+    public Language getOwnLanguage() {
+        return language;
     }
 
     public void setLanguage(Language language) {
@@ -239,6 +279,14 @@ public class Manuscript extends ExtendableEntity {
         this.lorebook = lorebook;
     }
 
+    public Folder getFolder() {
+        return folder;
+    }
+
+    public void setFolder(Folder folder) {
+        this.folder = folder;
+    }
+
     public boolean isAgentic() {
         return agentic;
     }
@@ -269,6 +317,14 @@ public class Manuscript extends ExtendableEntity {
 
     public void setShowBookStyles(Boolean showBookStyles) {
         this.showBookStyles = showBookStyles;
+    }
+
+    public String getPartStyle() {
+        return partStyle;
+    }
+
+    public void setPartStyle(String partStyle) {
+        this.partStyle = partStyle;
     }
 
     public String getMetaSummaryPrompt() {
@@ -309,6 +365,14 @@ public class Manuscript extends ExtendableEntity {
 
     public void setImpersonatePrompt(String impersonatePrompt) {
         this.impersonatePrompt = impersonatePrompt;
+    }
+
+    public Integer getHistoryMaxVersions() {
+        return historyMaxVersions;
+    }
+
+    public void setHistoryMaxVersions(Integer historyMaxVersions) {
+        this.historyMaxVersions = historyMaxVersions;
     }
 
     public String getRedraftPrompt() {

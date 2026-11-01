@@ -1,6 +1,9 @@
 package com.github.enerccio.marginalia.ui.dialogs.story;
 
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
+import com.github.enerccio.marginalia.ui.menu.StoryMenuItem;
+
+import java.util.List;
 
 /**
  * What the items of the settings menu of the story (and the shortcuts of the menus) can do with the story tab. The desktop and the
@@ -16,9 +19,10 @@ public interface StoryEditor {
     Manuscript getCurrentManuscript();
 
     /**
-     * Turns the styles of the book (its fonts and colours) on or off for the story.
+     * The entries of the "Change styles" menu: the default style of the user and all their styles sorted by name, the one the book
+     * shows ticked; choosing one stores it in the book (the default entry removes the choice) and shows the story with it.
      */
-    void toggleBookStyles();
+    List<StoryMenuItem.Choice> getPartStyleChoices();
 
     /**
      * Opens the search and replace of the book.
@@ -34,6 +38,11 @@ public interface StoryEditor {
      * Shows the tokens the story takes in the next prompt.
      */
     void openBranchTokensDialog();
+
+    /**
+     * Shows what was done to the book day by day: words, tokens, time and size.
+     */
+    void openStatisticsDialog();
 
     /**
      * Opens the dialog that lets a model annotate a range of the parts of the story, the story is shown again when annotations were added.
@@ -54,6 +63,16 @@ public interface StoryEditor {
      * Opens the export of the story.
      */
     void openExportDialog();
+
+    /**
+     * Turns the mass delete on or off: while it is on the parts have a check box and the selected ones are deleted together.
+     */
+    void toggleMassDelete();
+
+    /**
+     * Whether the mass delete is on.
+     */
+    boolean isMassDelete();
 
     /**
      * Whether the text of the parts that is still the model's is highlighted (desktop only).
@@ -85,5 +104,12 @@ public interface StoryEditor {
      * Asks, then puts the tabs of the story editor back the way a new book has them (desktop only).
      */
     default void confirmRestoreDefaultLayout() {
+    }
+
+    /**
+     * Saves the arrangement of the tabs as the default of the user: the books that have none of their own open with it
+     * (desktop only).
+     */
+    default void saveLayoutAsDefault() {
     }
 }

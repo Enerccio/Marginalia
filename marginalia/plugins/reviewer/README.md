@@ -18,6 +18,8 @@ Every story part gets a **Review** item in its menu:
   - *Use standard prompt info* - review with the prompt the part was written from (system prompt, lore, earlier
     parts); when off, only the story parts and the options below are sent,
   - *Include Lorebook* - include the lore that was active for the part (with standard prompt info off),
+  - *With summaries* - (with standard prompt info off) send the summaries of the story first, then the parts after the newest
+    summary, as a generation does; the summaries are counted into the token limit before the parts,
   - *Token Limit* - how many tokens of the story (parts up to the reviewed one) are sent along.
 - **Delete Review** removes the reviews of the part.
 

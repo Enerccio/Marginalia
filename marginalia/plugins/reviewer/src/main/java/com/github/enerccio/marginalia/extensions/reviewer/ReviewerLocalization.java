@@ -9,126 +9,175 @@ public class ReviewerLocalization extends PluginLocalizationBundle {
 
     public static final ReviewerLocalization T = new ReviewerLocalization();
 
+    public static final String REVIEW = "Review";
+    public static final String VIEW_GENERATE_REVIEW = "View / Generate Review";
+    public static final String REVIEW_ADVANCED_OPTIONS = "Review: Advanced Options";
+    public static final String ADVANCED_OPTIONS = "Advanced Options";
+    public static final String DELETE_REVIEW = "Delete Review";
+    public static final String REVIEWER_SETTINGS = "Reviewer Settings";
+    public static final String REVIEWER_PROFILE_DEFAULT_SELECTED = "Reviewer Profile (Default: selected in settings)";
+    public static final String MESSAGE_REVIEW = "Message Review";
+    public static final String STOP_GENERATING = "Stop generating";
+    public static final String THINKING_PROCESS = "Thinking Process";
+    public static final String CLOSE = "Close";
+    public static final String GENERATING_REVIEW_PLEASE_WAIT = "Generating review, please wait...";
+    public static final String ERROR_GENERATING_REVIEW = "Error generating review: %s";
+    public static final String FAILED_TO_START_INFERENCE = "Failed to start inference: %s";
+    public static final String PROFILE = "Profile";
+    public static final String NEW = "New";
+    public static final String RENAME = "Rename";
+    public static final String DELETE = "Delete";
+    public static final String REVIEWER_MODEL_DEFAULT_MANUSCRIPT = "Reviewer Model (Default: Manuscript AI)";
+    public static final String REVIEWER_PROTOCOL_DEFAULT_MANUSCRIPT = "Reviewer Protocol (Default: Manuscript Protocol)";
+    public static final String REVIEW_PRE_PROMPT_SYSTEM = "Review Pre-Prompt (System)";
+    public static final String REVIEW_POST_PROMPT_USER = "Review Post-Prompt (User)";
+    public static final String NEW_PROFILE = "New Profile";
+    public static final String PROFILE_NAME = "Profile Name";
+    public static final String CREATE = "Create";
+    public static final String PROFILE_NAME_CANNOT_BE_EMPTY = "Profile name cannot be empty";
+    public static final String PROFILE_ALREADY_EXISTS = "Profile already exists";
+    public static final String CANCEL = "Cancel";
+    public static final String CANNOT_RENAME_PROFILE = "Cannot rename %s profile";
+    public static final String RENAME_PROFILE = "Rename Profile";
+    public static final String NEW_PROFILE_NAME = "New Profile Name";
+    public static final String CANNOT_DELETE_PROFILE = "Cannot delete %s profile";
+    public static final String ADVANCED_REVIEW_OPTIONS = "Advanced Review Options";
+    public static final String PROMPT_FROM_PROFILE = "Prompt from Profile";
+    public static final String PROMPT_OVERRIDE = "Prompt Override";
+    public static final String USE_STANDARD_PROMPT_INFO = "Use standard prompt info";
+    public static final String INCLUDE_LOREBOOK = "Include Lorebook";
+    public static final String WITH_SUMMARIES = "With summaries";
+    public static final String SEND_THE_SUMMARIES = "Send the summaries of the story before the part, then the parts after the newest summary, as a generation does, instead of as many of the latest parts as fit";
+    public static final String TOKEN_LIMIT = "Token Limit";
+    public static final String GENERATE = "Generate";
+    public static final String TOTAL_TOKENS = "Total tokens: %s";
+
     @Override
     protected void loadKeys() {
-        ja("Review", "レビュー");
-        zh("Review", "评论");
+        ja(REVIEW, "レビュー");
+        zh(REVIEW, "评论");
 
-        ja("View / Generate Review", "レビューの表示 / 生成");
-        zh("View / Generate Review", "查看 / 生成评论");
+        ja(VIEW_GENERATE_REVIEW, "レビューの表示 / 生成");
+        zh(VIEW_GENERATE_REVIEW, "查看 / 生成评论");
 
-        ja("Review: Advanced Options", "レビュー: 詳細オプション");
-        zh("Review: Advanced Options", "评论：高级选项");
+        ja(REVIEW_ADVANCED_OPTIONS, "レビュー: 詳細オプション");
+        zh(REVIEW_ADVANCED_OPTIONS, "评论：高级选项");
 
-        ja("Advanced Options", "詳細オプション");
-        zh("Advanced Options", "高级选项");
+        ja(ADVANCED_OPTIONS, "詳細オプション");
+        zh(ADVANCED_OPTIONS, "高级选项");
 
-        ja("Delete Review", "レビューを削除");
-        zh("Delete Review", "删除评论");
+        ja(DELETE_REVIEW, "レビューを削除");
+        zh(DELETE_REVIEW, "删除评论");
 
-        ja("Reviewer Settings", "レビュアー設定");
-        zh("Reviewer Settings", "评论者设置");
+        ja(REVIEWER_SETTINGS, "レビュアー設定");
+        zh(REVIEWER_SETTINGS, "评论者设置");
 
-        ja("Reviewer Profile (Default: selected in settings)", "レビュアープロファイル（デフォルト: 設定で選択したもの）");
-        zh("Reviewer Profile (Default: selected in settings)", "评论者配置文件（默认：在设置中选择的）");
+        ja(REVIEWER_PROFILE_DEFAULT_SELECTED, "レビュアープロファイル（デフォルト: 設定で選択したもの）");
+        zh(REVIEWER_PROFILE_DEFAULT_SELECTED, "评论者配置文件（默认：在设置中选择的）");
 
-        ja("Message Review", "メッセージのレビュー");
-        zh("Message Review", "消息评论");
+        ja(MESSAGE_REVIEW, "メッセージのレビュー");
+        zh(MESSAGE_REVIEW, "消息评论");
 
-        ja("Stop generating", "生成を停止");
-        zh("Stop generating", "停止生成");
+        ja(STOP_GENERATING, "生成を停止");
+        zh(STOP_GENERATING, "停止生成");
 
-        ja("Thinking Process", "思考プロセス");
-        zh("Thinking Process", "思考过程");
+        ja(THINKING_PROCESS, "思考プロセス");
+        zh(THINKING_PROCESS, "思考过程");
 
-        ja("Close", "閉じる");
-        zh("Close", "关闭");
+        ja(CLOSE, "閉じる");
+        zh(CLOSE, "关闭");
 
-        ja("Generating review, please wait...", "レビューを生成中です。お待ちください...");
-        zh("Generating review, please wait...", "正在生成评论，请稍候……");
+        ja(GENERATING_REVIEW_PLEASE_WAIT, "レビューを生成中です。お待ちください...");
+        zh(GENERATING_REVIEW_PLEASE_WAIT, "正在生成评论，请稍候……");
 
-        ja("Error generating review: %s", "レビューの生成中にエラーが発生しました: %s");
-        zh("Error generating review: %s", "生成评论时出错：%s");
+        ja(ERROR_GENERATING_REVIEW, "レビューの生成中にエラーが発生しました: %s");
+        zh(ERROR_GENERATING_REVIEW, "生成评论时出错：%s");
 
-        ja("Failed to start inference: %s", "推論を開始できませんでした: %s");
-        zh("Failed to start inference: %s", "无法启动推理：%s");
+        ja(FAILED_TO_START_INFERENCE, "推論を開始できませんでした: %s");
+        zh(FAILED_TO_START_INFERENCE, "无法启动推理：%s");
 
-        ja("Profile", "プロファイル");
-        zh("Profile", "配置文件");
+        ja(PROFILE, "プロファイル");
+        zh(PROFILE, "配置文件");
 
-        ja("New", "新規");
-        zh("New", "新建");
+        ja(NEW, "新規");
+        zh(NEW, "新建");
 
-        ja("Rename", "名前を変更");
-        zh("Rename", "重命名");
+        ja(RENAME, "名前を変更");
+        zh(RENAME, "重命名");
 
-        ja("Delete", "削除");
-        zh("Delete", "删除");
+        ja(DELETE, "削除");
+        zh(DELETE, "删除");
 
-        ja("Reviewer Model (Default: Manuscript AI)", "レビュアーモデル（デフォルト: 原稿のAI）");
-        zh("Reviewer Model (Default: Manuscript AI)", "评论者模型（默认：稿件的 AI）");
+        ja(REVIEWER_MODEL_DEFAULT_MANUSCRIPT, "レビュアーモデル（デフォルト: 原稿のAI）");
+        zh(REVIEWER_MODEL_DEFAULT_MANUSCRIPT, "评论者模型（默认：稿件的 AI）");
 
-        ja("Reviewer Protocol (Default: Manuscript Protocol)", "レビュアープロトコル（デフォルト: 原稿のプロトコル）");
-        zh("Reviewer Protocol (Default: Manuscript Protocol)", "评论者协议（默认：稿件的协议）");
+        ja(REVIEWER_PROTOCOL_DEFAULT_MANUSCRIPT, "レビュアープロトコル（デフォルト: 原稿のプロトコル）");
+        zh(REVIEWER_PROTOCOL_DEFAULT_MANUSCRIPT, "评论者协议（默认：稿件的协议）");
 
-        ja("Review Pre-Prompt (System)", "レビューの前置プロンプト（システム）");
-        zh("Review Pre-Prompt (System)", "评论前置提示词（系统）");
+        ja(REVIEW_PRE_PROMPT_SYSTEM, "レビューの前置プロンプト（システム）");
+        zh(REVIEW_PRE_PROMPT_SYSTEM, "评论前置提示词（系统）");
 
-        ja("Review Post-Prompt (User)", "レビューの後置プロンプト（ユーザー）");
-        zh("Review Post-Prompt (User)", "评论后置提示词（用户）");
+        ja(REVIEW_POST_PROMPT_USER, "レビューの後置プロンプト（ユーザー）");
+        zh(REVIEW_POST_PROMPT_USER, "评论后置提示词（用户）");
 
-        ja("New Profile", "新しいプロファイル");
-        zh("New Profile", "新建配置文件");
+        ja(NEW_PROFILE, "新しいプロファイル");
+        zh(NEW_PROFILE, "新建配置文件");
 
-        ja("Profile Name", "プロファイル名");
-        zh("Profile Name", "配置文件名称");
+        ja(PROFILE_NAME, "プロファイル名");
+        zh(PROFILE_NAME, "配置文件名称");
 
-        ja("Create", "作成");
-        zh("Create", "创建");
+        ja(CREATE, "作成");
+        zh(CREATE, "创建");
 
-        ja("Profile name cannot be empty", "プロファイル名は空にできません");
-        zh("Profile name cannot be empty", "配置文件名称不能为空");
+        ja(PROFILE_NAME_CANNOT_BE_EMPTY, "プロファイル名は空にできません");
+        zh(PROFILE_NAME_CANNOT_BE_EMPTY, "配置文件名称不能为空");
 
-        ja("Profile already exists", "プロファイルは既に存在します");
-        zh("Profile already exists", "配置文件已存在");
+        ja(PROFILE_ALREADY_EXISTS, "プロファイルは既に存在します");
+        zh(PROFILE_ALREADY_EXISTS, "配置文件已存在");
 
-        ja("Cancel", "キャンセル");
-        zh("Cancel", "取消");
+        ja(CANCEL, "キャンセル");
+        zh(CANCEL, "取消");
 
-        ja("Cannot rename %s profile", "%s プロファイルの名前は変更できません");
-        zh("Cannot rename %s profile", "无法重命名 %s 配置文件");
+        ja(CANNOT_RENAME_PROFILE, "%s プロファイルの名前は変更できません");
+        zh(CANNOT_RENAME_PROFILE, "无法重命名 %s 配置文件");
 
-        ja("Rename Profile", "プロファイル名を変更");
-        zh("Rename Profile", "重命名配置文件");
+        ja(RENAME_PROFILE, "プロファイル名を変更");
+        zh(RENAME_PROFILE, "重命名配置文件");
 
-        ja("New Profile Name", "新しいプロファイル名");
-        zh("New Profile Name", "新配置文件名称");
+        ja(NEW_PROFILE_NAME, "新しいプロファイル名");
+        zh(NEW_PROFILE_NAME, "新配置文件名称");
 
-        ja("Cannot delete %s profile", "%s プロファイルは削除できません");
-        zh("Cannot delete %s profile", "无法删除 %s 配置文件");
+        ja(CANNOT_DELETE_PROFILE, "%s プロファイルは削除できません");
+        zh(CANNOT_DELETE_PROFILE, "无法删除 %s 配置文件");
 
-        ja("Advanced Review Options", "レビューの詳細オプション");
-        zh("Advanced Review Options", "高级评论选项");
+        ja(ADVANCED_REVIEW_OPTIONS, "レビューの詳細オプション");
+        zh(ADVANCED_REVIEW_OPTIONS, "高级评论选项");
 
-        ja("Prompt from Profile", "プロファイルからのプロンプト");
-        zh("Prompt from Profile", "来自配置文件的提示词");
+        ja(PROMPT_FROM_PROFILE, "プロファイルからのプロンプト");
+        zh(PROMPT_FROM_PROFILE, "来自配置文件的提示词");
 
-        ja("Prompt Override", "プロンプトの上書き");
-        zh("Prompt Override", "提示词覆盖");
+        ja(PROMPT_OVERRIDE, "プロンプトの上書き");
+        zh(PROMPT_OVERRIDE, "提示词覆盖");
 
-        ja("Use standard prompt info", "標準のプロンプト情報を使用");
-        zh("Use standard prompt info", "使用标准提示词信息");
+        ja(USE_STANDARD_PROMPT_INFO, "標準のプロンプト情報を使用");
+        zh(USE_STANDARD_PROMPT_INFO, "使用标准提示词信息");
 
-        ja("Include Lorebook", "ロアブックを含める");
-        zh("Include Lorebook", "包含世界书");
+        ja(INCLUDE_LOREBOOK, "ロアブックを含める");
+        zh(INCLUDE_LOREBOOK, "包含世界书");
 
-        ja("Token Limit", "トークン上限");
-        zh("Token Limit", "词元上限");
+        ja(WITH_SUMMARIES, "要約を含める");
+        zh(WITH_SUMMARIES, "包含摘要");
 
-        ja("Generate", "生成");
-        zh("Generate", "生成");
+        ja(SEND_THE_SUMMARIES, "生成と同様に、パートより前の物語の要約を送り、その後に最新の要約より後のパートを送ります（収まる限りの最新のパートを送る代わりに）");
+        zh(SEND_THE_SUMMARIES, "与生成时一样，先发送该段落之前故事的摘要，再发送最新摘要之后的段落（而不是发送尽可能多的最新段落）");
 
-        ja("Total tokens: %s", "合計トークン数: %s");
-        zh("Total tokens: %s", "总词元数：%s");
+        ja(TOKEN_LIMIT, "トークン上限");
+        zh(TOKEN_LIMIT, "词元上限");
+
+        ja(GENERATE, "生成");
+        zh(GENERATE, "生成");
+
+        ja(TOTAL_TOKENS, "合計トークン数: %s");
+        zh(TOTAL_TOKENS, "总词元数：%s");
     }
 }

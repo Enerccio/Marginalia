@@ -2,14 +2,14 @@
 import path from 'node:path';
 import {execFileSync} from 'node:child_process';
 import {openStoryMenu} from '../lib/story.mjs';
-import {bookTab, closeDialog, dialog, idle, login, main, openBook, outDir, pickSelect, press} from '../lib/shot.mjs';
+import {bookTab, closeDialog, dialog, idle, login, main, menuItem, openBook, outDir, pickSelect, press} from '../lib/shot.mjs';
 
 await main(async ({ page }) => {
   await login(page);
   await openBook(page);
   await bookTab(page, 'Story');
   await openStoryMenu(page);
-  await page.getByText('Export story', { exact: true }).click();
+  await menuItem(page, 'Export story').click();
   await idle(page, 800);
   await pickSelect(dialog(page), 'PDF (.pdf)');
   await press(dialog(page), 'Export', { exact: false });

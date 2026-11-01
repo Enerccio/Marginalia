@@ -47,6 +47,9 @@ class MetaSummaryTest extends GenerationTestBase {
     @Autowired
     private UsageService usageService;
 
+    @Autowired
+    private com.github.enerccio.marginalia.domain.service.ManuscriptStatisticService statisticService;
+
     private Manuscript manuscript;
     private List<ChatMessage> story;
 
@@ -137,6 +140,20 @@ class MetaSummaryTest extends GenerationTestBase {
         assertThat(result.started()).isTrue();
         assertThat(usageService.findForUser(ai).getPrefillTokens()).isEqualTo(321);
         assertThat(usageService.findForUser(ai).getGeneratedTokens()).isEqualTo(12);
+    }
+
+    @Test
+    void summaryCostsTheBookToo() throws Exception {
+        llm.enqueue(MockLLMResponse.text("S2").usage(321, 12));
+
+        run(callback -> summaryService.createSummary(manuscriptService.find(manuscript.getId()), m(2), callback));
+
+        com.github.enerccio.marginalia.domain.components.StatisticCounts counts = statisticService.total(
+                com.github.enerccio.marginalia.domain.components.StatisticFilter.of(statisticService.today(), statisticService.today(),
+                        com.github.enerccio.marginalia.domain.collections.StatisticSide.ALL).forBook(manuscript.getUuid()));
+        assertThat(counts.prefillTokens()).isEqualTo(321);
+        assertThat(counts.generatedTokens()).isEqualTo(12);
+        assertThat(counts.requests()).isEqualTo(1);
     }
 
     @Test

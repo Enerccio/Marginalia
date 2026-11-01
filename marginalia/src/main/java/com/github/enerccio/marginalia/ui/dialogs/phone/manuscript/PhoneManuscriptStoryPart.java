@@ -9,25 +9,27 @@ import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationRequest;
+import com.github.enerccio.marginalia.domain.styles.PartStyle;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.RestorableState;
 import com.github.enerccio.marginalia.ui.components.MessageImages;
 import com.github.enerccio.marginalia.ui.dialogs.*;
-import com.github.enerccio.marginalia.ui.dialogs.manuscript.ImagesDialog;
-import com.github.enerccio.marginalia.ui.dialogs.manuscript.ManuscriptStoryPart;
-import com.github.enerccio.marginalia.ui.dialogs.manuscript.SummaryDialog;
-import com.github.enerccio.marginalia.ui.dialogs.manuscript.SummaryRemoval;
+import com.github.enerccio.marginalia.ui.dialogs.manuscript.*;
 import com.github.enerccio.marginalia.ui.dialogs.phone.PhoneManuscriptDialog;
 import com.github.enerccio.marginalia.ui.dialogs.phone.PhoneManuscriptDialogPart;
+import com.github.enerccio.marginalia.ui.dialogs.phone.PhoneStatisticsDialog;
 import com.github.enerccio.marginalia.ui.dialogs.phone.PhoneSummariesDialog;
 import com.github.enerccio.marginalia.ui.dialogs.search.ManuscriptSearchReplaceDialog;
 import com.github.enerccio.marginalia.ui.dialogs.story.*;
 import com.github.enerccio.marginalia.ui.menu.BuiltMenu;
 import com.github.enerccio.marginalia.ui.menu.MenuKind;
+import com.github.enerccio.marginalia.ui.menu.StoryMenuItem;
 import com.github.enerccio.marginalia.ui.menu.StoryMenuRegistry;
+import com.github.enerccio.marginalia.ui.styles.PartStyleApplier;
 import com.github.enerccio.marginalia.ui.widgets.LazyContextMenu;
+import com.github.enerccio.marginalia.ui.widgets.MassDeleteBox;
 import com.github.enerccio.marginalia.ui.widgets.ScrollPanel;
 import com.github.enerccio.marginalia.ui.widgets.TabDock;
 import com.github.enerccio.marginalia.utils.MarkdownArchive;
@@ -75,7 +77,13 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
     private Localization loc;
 
     @Autowired
+    private ActivityTracker activityTracker;
+
+    @Autowired
     private ChatMessageService chatMessageService;
+
+    @Autowired
+    private MessageRevisionService messageRevisionService;
 
     @Autowired
     private MessagePromptService messagePromptService;
@@ -91,6 +99,9 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
 
     @Autowired
     private StoryMenuRegistry menuRegistry;
+
+    @Autowired
+    private PartStyleService partStyleService;
 
     private final PhoneManuscriptDialog parent;
     private CancellationToken activeGenerationToken;
@@ -115,6 +126,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
     private NewTurnForm newTurnForm;
 
     private Manuscript currentManuscript;
+    private StoryActivity activity;
     private boolean isFrozen = false;
 
     private final StoryCards<ChatMessageCard> cards = new StoryCards<>();
@@ -124,10 +136,12 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
     private StoryAnnotations annotations;
     private AnnotationsPanel annotationsPanel;
     private final StoryBackup backup = new StoryBackup();
+    private final StoryMassDelete massDelete;
     private Long scrollToMessageId;
 
     public PhoneManuscriptStoryPart(PhoneManuscriptDialog parent) {
         this.parent = parent;
+        this.massDelete = new StoryMassDelete(parent, this::refreshMassDeleteBoxes, this::reloadStory);
     }
 
     @PublicAPI(from = "1.1.0",
@@ -160,9 +174,15 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
 
         bottomControlsLayout = buildBottomControls();
 
-        centerLayout.add(centerContentPanel, bottomControlsLayout);
+        massDelete.listenTo(centerContentPanel.getElement());
+        centerLayout.add(centerContentPanel, massDelete.getBar(), bottomControlsLayout);
         centerLayout.setFlexGrow(1, centerContentPanel);
+        centerLayout.setFlexGrow(0, massDelete.getBar());
         centerLayout.setFlexGrow(0, bottomControlsLayout);
+
+        // the time the book is open and edited, for the statistics
+        activity = new StoryActivity(centerLayout, activityTracker);
+        activity.track(currentManuscript);
 
         layout.setContent(centerLayout);
         applyBookStyles();
@@ -259,18 +279,36 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
     }
 
     /**
-     * Turns the styles of the book on or off for the story.
+     * The entries of the "Change styles" menu, see {@link StoryEditor#getPartStyleChoices}.
      */
-    @PublicAPI(from = "1.5.0",
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = List.class),
+            locals = {@APILocals(name = "e", type = Exception.class)})
+    @Override
+    public List<StoryMenuItem.Choice> getPartStyleChoices() {
+        try {
+            return PartStyleApplier.choices(loc, partStyleService, currentManuscript, this::choosePartStyle);
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+            return List.of();
+        }
+    }
+
+    /**
+     * Stores the style in the book (null: follow the default of the user) and shows the story with it.
+     */
+    @PublicAPI(from = "1.6.0",
             returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "styleId", type = String.class)},
             locals = {@APILocals(name = "manuscript", type = Manuscript.class),
                     @APILocals(name = "e", type = Exception.class)})
-    @Override
-    public void toggleBookStyles() {
+    private void choosePartStyle(String styleId) {
         try {
             Manuscript manuscript = parent.refreshManuscript();
-            manuscript.setShowBookStyles(!manuscript.getShowBookStyles());
-            manuscriptService.save(manuscript);
+            manuscript.setPartStyle(styleId);
+            // the old switch must not bring the book style back when the choice is removed
+            manuscript.setShowBookStyles(false);
+            currentManuscript = manuscriptService.save(manuscript);
             applyBookStyles();
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
@@ -327,6 +365,49 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
         ArchiveUploadDialog.show(loc.getValue(L.LABEL_IMPORT_FROM_ARCHIVE), loc.getValue(L.MSG_IMPORT_ARCHIVE_TO_BOOK),
                 (archive, fileName) -> new ArchiveImportRunner().appendParts(parent.refreshManuscript(), MarkdownArchive.read(archive),
                         imported -> load(parent.refreshManuscript())));
+    }
+
+    /**
+     * Turns the mass delete on or off, see {@link StoryMassDelete}.
+     */
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = void.class))
+    @Override
+    public void toggleMassDelete() {
+        massDelete.toggle();
+    }
+
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = boolean.class))
+    @Override
+    public boolean isMassDelete() {
+        return massDelete.isActive();
+    }
+
+    /**
+     * Shows the check boxes of the cards when the mass delete is on, hides them when it is off.
+     */
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "card", type = ChatMessageCard.class)})
+    private void refreshMassDeleteBoxes() {
+        for (ChatMessageCard card : cards.values()) {
+            card.showMassDelete(massDelete.isActive(), massDelete.isSelected(card.getMessage().getId()));
+        }
+    }
+
+    /**
+     * Draws the story again from the database, after the mass delete.
+     */
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "e", type = Exception.class)})
+    private void reloadStory() {
+        try {
+            load(parent.refreshManuscript());
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
     }
 
     /**
@@ -397,6 +478,24 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
         }
     }
 
+    /**
+     * Shows what was done to the book day by day: words, tokens, time and size.
+     */
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "dialog", type = PhoneStatisticsDialog.class),
+                    @APILocals(name = "e", type = Exception.class)})
+    @Override
+    public void openStatisticsDialog() {
+        try {
+            PhoneStatisticsDialog dialog = new PhoneStatisticsDialog(parent.refreshManuscript());
+            dialog.create();
+            dialog.open();
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+    }
+
     @PublicAPI(from = "1.1.0",
             returns = @APIReturn(type = void.class),
             locals = {@APILocals(name = "dialog", type = PhoneSummariesDialog.class),
@@ -418,6 +517,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
             returns = @APIReturn(type = void.class),
             locals = {@APILocals(name = "e", type = Exception.class)})
     private void refreshSummariesMenuItem() {
+        refreshOutlineSummaryMarks();
         if (summariesMenuItem == null || currentManuscript == null) {
             return;
         }
@@ -430,25 +530,43 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
         }
     }
 
+    /**
+     * Shows in the outline which parts have a summary (it changes when a summary is made, edited away or deleted).
+     */
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "e", type = Exception.class)})
+    private void refreshOutlineSummaryMarks() {
+        if (sidebarList == null || currentManuscript == null || currentManuscript.getActiveLeaf() == null) {
+            return;
+        }
+        try {
+            OutlineSummaryMarks.refresh(sidebarList, chatMessageService.getBranchFromLeaf(currentManuscript.getActiveLeaf()), loc);
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+    }
+
     @PublicAPI(from = "1.1.0",
             returns = @APIReturn(type = void.class),
             locals = {@APILocals(name = "manuscript", type = Manuscript.class)})
     private void applyBookStyles() throws Exception {
         Manuscript manuscript = parent.refreshManuscript();
         applyLanguage(manuscript);
-        if (manuscript.getShowBookStyles()) {
-            layout.addClassName(CssStyles.MARKDOWN_MANUSCRIPT_STYLES);
-        } else {
-            layout.removeClassName(CssStyles.MARKDOWN_MANUSCRIPT_STYLES);
-        }
+        PartStyleApplier.apply(layout, partStyleService.resolve(manuscript));
     }
 
     // lang drives the browser's hyphenation dictionary (see hyphens in shared-styles.css)
-    @PublicAPI(from = "1.1.0",
+    @PublicAPI(from = "1.6.0",
             returns = @APIReturn(type = void.class),
-            parameters = {@APIParameter(name = "manuscript", type = Manuscript.class)})
+            parameters = {@APIParameter(name = "manuscript", type = Manuscript.class)},
+            locals = {@APILocals(name = "e", type = Exception.class)})
     private void applyLanguage(Manuscript manuscript) {
-        layout.getElement().setAttribute("lang", manuscript.getLanguage().getCode());
+        try {
+            layout.getElement().setAttribute("lang", manuscriptService.getLanguage(manuscript).getCode());
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
     }
 
     @PublicAPI(from = "1.1.0",
@@ -542,6 +660,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
                     positions.put(branch.get(i).getId(), i + 1);
                 }
                 annotationsPanel.refresh(positions);
+                massDelete.setBranch(branch);
                 // the cards of the last parts only, the earlier ones are added when the user scrolls up
                 lazyLoader.render(branch, support.partsLimit(), scrollToMessageId, openedReasonings);
             } catch (Exception e) {
@@ -585,6 +704,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
         sidebarBtn.setThemeName("tertiary small");
         sidebarBtn.setWidthFull();
         sidebarBtn.addClassName(CssStyles.SIDEBAR_BUTTON);
+        OutlineSummaryMarks.init(sidebarBtn, msg, dbId, loc);
 
         sidebarBtn.addClickListener(event -> {
             layout.setDrawerOpened(false);
@@ -763,6 +883,10 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
             layout.setDrawerOpened(false);
         }
         menuBar.setEnabled(!frozen);
+        if (frozen) {
+            // the part that is generated has no id to tick yet
+            massDelete.deactivate();
+        }
 
         cards.setFrozen(frozen);
 
@@ -783,7 +907,15 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
             parameters = {@APIParameter(name = "manuscript", type = Manuscript.class)})
     @Override
     public void load(Manuscript manuscript) {
+        if (massDelete.isActive() && (manuscript == null || currentManuscript == null
+                || !Objects.equals(manuscript.getId(), currentManuscript.getId()))) {
+            // the parts that were ticked are in another book
+            massDelete.deactivate();
+        }
         this.currentManuscript = manuscript;
+        if (activity != null) {
+            activity.track(manuscript);
+        }
         if (manuscript != null && layout != null) {
             applyLanguage(manuscript);
         }
@@ -829,6 +961,10 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
     public void onTabEnter() throws Exception {
         if (parent != null) {
             load(parent.refreshManuscript());
+            if (layout != null) {
+                // the styles may have been edited, or the default changed, in the settings
+                applyBookStyles();
+            }
         }
     }
 
@@ -845,6 +981,10 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
 
         private final Button menuBtn;
         private final Button infoBtn;
+        private final MassDeleteBox massDeleteBox = new MassDeleteBox((checked, shift) -> {
+            massDelete.clicked(this.message.getId(), checked, shift);
+            getClassNames().set(CssStyles.MARKED_FOR_DELETE, checked);
+        });
         private ContextMenu hamburgerMenu;
         private BuiltMenu cardMenu;
         private BuiltMenu textMenu;
@@ -897,7 +1037,9 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
             createHamburgerMenu();
             createInfoPopover();
 
-            headerBar.add(menuBtn, infoBtn);
+            showMassDelete(massDelete.isActive(), massDelete.isSelected(message.getId()));
+
+            headerBar.add(massDeleteBox, menuBtn, infoBtn);
 
             reasoningMarkdown = new Markdown();
             reasoningMarkdown.addClassName(CssStyles.CHAT_MESSAGE_MARKDOWN);
@@ -922,6 +1064,17 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
             messageImages = new MessageImages(message.getImages());
 
             add(headerBar, reasoningDetails, responseMarkdown, messageImages, cardAnnotations.getAnchor());
+        }
+
+        @PublicAPI(from = "1.6.0",
+                returns = @APIReturn(type = void.class),
+                parameters = {@APIParameter(name = "shown", type = boolean.class),
+                        @APIParameter(name = "selected", type = boolean.class)})
+        @Override
+        public void showMassDelete(boolean shown, boolean selected) {
+            massDeleteBox.setVisible(shown && message.getId() != null);
+            massDeleteBox.setChecked(selected);
+            getClassNames().set(CssStyles.MARKED_FOR_DELETE, shown && selected);
         }
 
         @PublicAPI(from = "1.1.0",
@@ -1023,10 +1176,32 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
                 returns = @APIReturn(type = void.class))
         @Override
         public void openImagesDialog() {
-            new ImagesDialog(message, updated -> {
-                message = updated;
-                messageImages.setImages(updated.getImages());
-            }).open();
+            new ImagesDialog(message, this::imagesChanged, this::openImagePreview).open();
+        }
+
+        @PublicAPI(from = "1.6.0",
+                returns = @APIReturn(type = void.class),
+                parameters = {@APIParameter(name = "updated", type = ChatMessage.class)})
+        @Override
+        public void imagesChanged(ChatMessage updated) {
+            message = updated;
+            messageImages.setImages(updated.getImages());
+        }
+
+        @PublicAPI(from = "1.6.0",
+                returns = @APIReturn(type = void.class),
+                locals = {@APILocals(name = "text", type = String.class),
+                        @APILocals(name = "style", type = PartStyle.class)})
+        @Override
+        public void openImagePreview() {
+            String text = responseTextArea != null ? responseTextArea.getValue() : message.getResponse();
+            PartStyle style = null;
+            try {
+                style = partStyleService.resolve(currentManuscript);
+            } catch (Exception e) {
+                // the preview is shown without the style of the book
+            }
+            new PartPreviewDialog(text, message.getImages(), style).open();
         }
 
         @PublicAPI(from = "1.1.0",
@@ -1073,6 +1248,43 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
                 });
             } catch (Exception e) {
                 UIUtils.internalServerError(loc, e);
+            }
+        }
+
+        /**
+         * Opens the version history of the part, see {@link PartHistoryDialog}. A text that was put back replaces the one of the card.
+         */
+        @PublicAPI(from = "1.6.0",
+                returns = @APIReturn(type = void.class),
+                locals = {@APILocals(name = "e", type = Exception.class)})
+        @Override
+        public void openHistory() {
+            try {
+                currentManuscript = parent.refreshManuscript();
+                PartHistoryDialog.open(currentManuscript, message, saved -> {
+                    message = saved;
+                    annotationsChanged();
+                    renderResponse();
+                    updateMetrics(message);
+                });
+            } catch (Exception e) {
+                UIUtils.internalServerError(loc, e);
+            }
+        }
+
+        /**
+         * How many versions of the part the history has, the number the menu item shows.
+         */
+        @PublicAPI(from = "1.6.0",
+                returns = @APIReturn(type = long.class),
+                locals = {@APILocals(name = "e", type = Exception.class)})
+        @Override
+        public long getHistoryCount() {
+            try {
+                return message == null || message.getId() == null ? 0
+                        : messageRevisionService.countFor(List.of(message)).getOrDefault(message.getId(), 0L);
+            } catch (Exception e) {
+                return 0;
             }
         }
 
@@ -1283,6 +1495,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
                 responseTextArea.setValue(StringUtils.defaultString(message.getResponse()));
                 addComponentAtIndex(indexOf(responseMarkdown) + 1, responseTextArea);
                 responseMarkdown.setVisible(false);
+                activity.editorOpened(responseTextArea.getElement());
             }
         }
 
@@ -1310,6 +1523,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
             if (!editing) {
                 return;
             }
+            activity.editorClosed(responseTextArea.getElement());
             remove(responseTextArea);
             responseTextArea = null;
             responseMarkdown.setVisible(true);
@@ -1328,6 +1542,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
                     // the passages of the annotations moved with the edit
                     annotationsChanged();
                     renderResponse();
+                    activity.editorClosed(responseTextArea.getElement());
                     remove(responseTextArea);
                     responseTextArea = null;
                     responseMarkdown.setVisible(true);
@@ -1470,6 +1685,21 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
         public void showPrompt() {
             try {
                 PromptDialog dialog = new PromptDialog(messagePromptService.getBuiltPrompt(message));
+                dialog.create();
+                dialog.open();
+            } catch (Exception e) {
+                UIUtils.internalServerError(loc, e);
+            }
+        }
+
+        @PublicAPI(from = "1.6.0",
+                returns = @APIReturn(type = void.class),
+                locals = {@APILocals(name = "dialog", type = PromptComparisonDialog.class),
+                        @APILocals(name = "e", type = Exception.class)})
+        @Override
+        public void comparePrompt() {
+            try {
+                PromptComparisonDialog dialog = new PromptComparisonDialog(message);
                 dialog.create();
                 dialog.open();
             } catch (Exception e) {

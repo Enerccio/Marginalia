@@ -15,7 +15,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.function.Consumer;
 
-import static com.github.enerccio.marginalia.extensions.charactertracker.CharacterTrackerLocalization.T;
+import static com.github.enerccio.marginalia.extensions.charactertracker.CharacterTrackerLocalization.*;
 
 /**
  * A button at the end of the POV character and the present characters of the new turn form that lists the characters
@@ -32,9 +32,9 @@ public final class TurnCharacterPicker {
      */
     public static void attach(NewTurnForm form, TextField pov, TextArea present, Manuscript manuscript,
                               CharacterTrackerService service) {
-        pov.setSuffixComponent(createButton(manuscript, service, T.localized("Pick the POV character"),
+        pov.setSuffixComponent(createButton(manuscript, service, T.localized(PICK_THE_POV_CHARACTER),
                 name -> form.setPovCharacter(name)));
-        present.setSuffixComponent(createButton(manuscript, service, T.localized("Add a present character"),
+        present.setSuffixComponent(createButton(manuscript, service, T.localized(ADD_A_PRESENT_CHARACTER),
                 name -> form.setPresentCharacters(withName(form.toTurnInput().presentCharacters(), name))));
     }
 
@@ -67,7 +67,7 @@ public final class TurnCharacterPicker {
                 }
             }
             if (!any) {
-                menu.addItem(T.localized("There are no characters yet")).setEnabled(false);
+                menu.addItem(T.localized(THERE_ARE_NO_CHARACTERS_YET)).setEnabled(false);
             }
         };
         fill.run();

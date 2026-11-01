@@ -319,6 +319,8 @@ public class LorebookVCSService {
             rev.setPreventRecursion(fallbackEntry.isPreventRecursion());
             rev.setActivationContext(fallbackEntry.getActivationContext());
             rev.setActivationParts(fallbackEntry.getActivationParts());
+            rev.setFromMessage(fallbackEntry.getFromMessage());
+            rev.setToMessage(fallbackEntry.getToMessage());
 
             // character filter restricts the entry to certain characters/tags - the closest concept are tags
             List<String> posTags = new ArrayList<>();

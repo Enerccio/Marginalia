@@ -1,7 +1,7 @@
 ---
 label: Extending the UI
 order: 70
-verified: 60a4afd23
+verified: 6b9a70d37
 covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/ui
   - marginalia/src/main/java/com/github/enerccio/marginalia/instruct
@@ -121,7 +121,15 @@ is not the selected one of its sheet is hidden and its content disabled (the she
 component then; `leftBar.select(id)` shows a tab. Give the tab a **stable id** of your own
 (`add(id, caption, content)`, not the localized caption): the layout the user made is saved with the book by these ids, and
 a tab added later or after the extension was off lands where the user left it. `add(caption, content)` uses the caption as
-the id. The ids `chapters` (the outline), `lorebook` (the read only lorebook preview, desktop only) and `story` (since 1.5.0) belong to the
+the id. Since 1.6.0 every tab has a minimize button, and a minimized tab is an icon in the bar of the dock: a colored
+circle with a glyph or with one or two letters, made by `TabDockIcons`. `add(id, caption, icon, content)` takes a `TabDockIcon`:
+`TabDockIcon.glyph("<path d='...'/>")` draws your own glyph (SVG elements on a 24 x 24 grid, drawn as a white 2 px round
+stroke without fill; set `fill='white'` on a solid element), `TabDockIcon.letters("SQ")` gives letters (so does
+`add(id, caption, "SQ", content)`); without an icon they are the initials of the caption. The built-in tabs have
+`TabDockIcon.CHAPTERS`, `LOREBOOK` and `ANNOTATIONS`; the plugins of the repository each draw their own. A minimized tab stays in the dock (its content is alive, only not in a sheet);
+`leftBar.select(id)` restores it, `isMinimized(id)`, `minimize(id)` and `restore(id)` do what they say, and
+`setMinimizable(id, false)` takes the button away from a tab. The ids of the minimized tabs and the side of the bar are in
+`getLayout()` (`minimized`, `dock`), so they are saved with the book like the rest of the arrangement. The ids `chapters` (the outline), `lorebook` (the read only lorebook preview, desktop only) and `story` (since 1.5.0) belong to the
 application; a tab with the same id would replace them. Remove the tab with `leftBar.remove(view)`. The phone drawer has a `TabDock` too, but with the detaching off.
 
 ### Panels in an existing layout
@@ -238,7 +246,7 @@ Registering a key again replaces the item. Instruction Exporter is the whole of 
 name of the action in the key bindings table, so make it say what the action does.
 
 `StoryEditor` is the story tab (the desktop or the phone one): `getCurrentManuscript()` (the book it shows **now**, read it when the action runs, the tab loads other
-books into the same instance), `openSearchReplaceDialog()`, `openExportDialog()`, `toggleBookStyles()`... `StoryCard` is the card of the part the menu is of:
+books into the same instance), `openSearchReplaceDialog()`, `openExportDialog()`, `getPartStyleChoices()` (the entries of the *Change Styles For Text* menu)... `StoryCard` is the card of the part the menu is of:
 `getMessage()` (the `ChatMessage`, the card replaces it with the saved copy, so read it each time), `isEditing()`, `isLast()`, and the actions of the part
 (`toggleEdit()`, `swipe()`, `branch()`, `annotatePart()`...). The callback runs on the UI thread of the user, in a request, as any click listener.
 
@@ -259,19 +267,42 @@ A tools item can be a check box: `.checkedWhen(story -> story.isShowGeneratedDif
 refreshed after the action ran). `.actionId("myplugin.summarize")` gives the item the id of its key binding when it is not `menu.<key>` (keep it when you
 rename the item and the user has a key stored), and `.hintAction((story, card) -> id)` shows the key of another action (the *Edit* item shows the key of saving while the text is edited).
 
-**4. Sub menus.** An item that only holds other items has no callback; its items name it with `parent(key)` (any depth). Reviewer:
+**4. Where it goes: groups, paths and positions.** The menus are trees. An item names the group it is in with `path(..)`: names separated by `/`, outermost first
+(`"Whatever/Is"` shows the item as Whatever, Is, the item). The groups are made when a menu is built, so nothing is registered first, and everyone who
+names the same group shares it. The application has the groups of `StoryMenuKeys` (`GROUP_ANALYSIS`, `GROUP_IMPORT_EXPORT`, `GROUP_SUMMARY`...), an extension that fits one
+puts its item there (Instruction Exporter is `.path(StoryMenuKeys.GROUP_IMPORT_EXPORT)`). A slash that is part of a name is written `\/`.
+
+For an extension without translations a literal name is enough, the last name of the path is the text of the item:
 
 ```java
-menuRegistry.register(owner, StoryMenuItem.card("reviewer.review", l -> "Review", null).icon(VaadinIcon.STAR::create));
-menuRegistry.register(owner, StoryMenuItem.card("reviewer.review.view", l -> "View / Generate Review", (story, card) -> openReview(card))
-        .parent("reviewer.review"));
-menuRegistry.register(owner, StoryMenuItem.card("reviewer.review.delete", l -> "Delete Review", (story, card) -> deleteReview(card))
-        .enabledWhen((story, card) -> card != null && hasReview(card.getMessage()))      // the state follows the part
-        .parent("reviewer.review"));
+menuRegistry.register(owner, StoryMenuItem.tools("myplugin.go", "Whatever/Is/Plugin", story -> go(story)));   // Whatever > Is > Plugin
 ```
 
-A parent must be registered before its items; an item whose parent is missing (or not shown on the phone) is left out. Items appear in the order of registration, after the
-application's.
+A group that nobody registered shows its name as it is. To translate it, give it an icon or a place, register it (`group` returns the group to configure; the same path
+registered again replaces it, `unregisterAll(owner)` removes it). Reviewer:
+
+```java
+menuRegistry.group(owner, MenuKind.CARD, "review", l -> T.localized(REVIEW)).icon(VaadinIcon.STAR::create)
+        .position(MenuPosition.after(StoryMenuKeys.GROUP_SUMMARY));
+menuRegistry.register(owner, StoryMenuItem.card("reviewer.review.view", l -> "View / Generate Review", (story, card) -> openReview(card))
+        .path("review"));
+menuRegistry.register(owner, StoryMenuItem.card("reviewer.review.delete", l -> "Delete Review", (story, card) -> deleteReview(card))
+        .enabledWhen((story, card) -> card != null && hasReview(card.getMessage()))      // the state follows the part
+        .path("review"));
+```
+
+A group is shown while one of its items is, and a group that has no item (on the phone: only desktop items) is left out. The groups and the items of a level are in the order of
+registration (a group where it was registered, else where its first item is), the application's first. `position(..)` of an item or a group changes that:
+`MenuPosition.first()`, `last()` (stays last whatever is registered later), `index(n)`, `before(id)` and `after(id)`, where *id* is the key of an item or the path of a group of
+the same level. Positions are worked out when a menu is built, so they do not depend on the order the extensions load in; an anchor that is not there leaves the entry
+at the end of its level, entries placed after the same anchor keep the order of registration. To find a place, ask the registry: `children(kind, path)` lists the entries of
+a level (`MenuEntry(id, group, index)`, `""` is the top level) and `positionOf(kind, id)` gives the index of one (-1 when the menu has none).
+
+`separatorAfter()` draws a line between the item (or the group) and the entry after it, as `ContextMenu.addSeparator()` would; the line is shown only while the item is and
+another entry follows it, so a menu never starts or ends with one. An entry placed `after(..)` an item with a line comes after the line.
+
+The older way to make a sub menu still works: an item without a callback that others name with `parent(key)` (any depth, it must be registered before them; one whose parent is
+missing, or not shown on the phone, is left out). It is hidden when none of its items is shown. A `path` is ignored for an item that has a parent.
 
 **5. Keys.** Every item with a callback is an action of *Settings → Keyboard shortcuts* (the id is `menu.<key>` or the `actionId` you gave) from the moment it is registered, with
 `defaultKey` or without. A key of a `card` or `text` item acts on the part that is being edited, else the part that holds the text selection, else the last part, and on the last
@@ -306,7 +337,8 @@ if (panel == null) {
 // UserPart.save, on ENTER: put the form's values into the user's settings object...
 UserSetting userSetting = context.getReflectiveFieldValue(instrumented, "userSetting", UserSetting.class);
 reviewerService.saveSettings(form.save(), userSetting);     // writes into userSetting.getAttributes()
-// ...which the body of save() then stores with settingService.save(userSetting)
+// ...which the body of save() then stores with settingService.save(userSetting): it loads the setting again first (other code writes it
+// too) and takes over the attributes of this object, so what you wrote into getAttributes() is kept
 ```
 
 Changes in the panel's fields are tracked like the application's own: any value change outside of
@@ -316,6 +348,10 @@ in the `refresh` decorator, not later (e.g. from a background thread), or the lo
 Saving on enter lets the application's own `settingService.save(userSetting)` store the plugin's values too. Note that
 `save()` returns early when the application's own fields don't validate - then the plugin's values are not stored
 either.
+
+A setting that a book or a folder can override (the plugin's panel then holds the user level) does not need a decorator:
+register it in the `InheritedSettingRegistry` and the *Prompts* tab and the folder dialog get the field, see
+[Inherited settings](inherited-settings.md).
 
 ### Dialogs and own components
 
@@ -341,7 +377,8 @@ What plugins can't do:
 
 ### Texts in several languages
 
-A plugin can't add keys to the `L` enum, so the texts of its UI are the English sentences themselves.
+A plugin can't add keys to the `L` enum, so the texts of its UI are the English sentences themselves, kept as
+`String` constants of the plugin's bundle class (never as literals in the UI code).
 `PluginLocalizationBundle` (package `extensions`) turns one into the text of the language of the current session
 (`Localization.getCurrentLanguage()`): `localized(message)` returns the translation, and the English `message` when the
 language has none, so a language or a text that is missing shows English. The bundled plugins have one subclass each and
@@ -352,22 +389,32 @@ public class InstructionExporterLocalization extends PluginLocalizationBundle {
 
     public static final InstructionExporterLocalization T = new InstructionExporterLocalization();
 
+    public static final String EXPORT_INSTRUCTIONS = "Export instructions";
+    public static final String COPIED_TO_CLIPBOARD = "Copied to clipboard";
+    public static final String FAILED_TO_EXPORT = "Failed to export: %s";
+
     @Override
     protected void loadKeys() {
-        ja("Export instructions", "指示をエクスポート");
-        zh("Export instructions", "导出指令");
-        ja("Failed to export: %s", "エクスポートに失敗しました: %s");
-        zh("Failed to export: %s", "导出失败：%s");
+        ja(EXPORT_INSTRUCTIONS, "指示をエクスポート");
+        zh(EXPORT_INSTRUCTIONS, "导出指令");
+        ja(FAILED_TO_EXPORT, "エクスポートに失敗しました: %s");
+        zh(FAILED_TO_EXPORT, "导出失败：%s");
     }
 }
 ```
 
 ```java
-import static ...InstructionExporterLocalization.T;
+import static ...InstructionExporterLocalization.*;
 
-Notification.show(T.localized("Copied to clipboard"));
-Notification.show(T.localized("Failed to export: %s").formatted(e.getMessage()));
+Notification.show(T.localized(COPIED_TO_CLIPBOARD));
+Notification.show(T.localized(FAILED_TO_EXPORT).formatted(e.getMessage()));
 ```
+
+- The English text is a constant named after its words (`EXPORT_INSTRUCTIONS`), declared in the bundle class; the
+  Japanese and Chinese translations are plain literals in `loadKeys`, the only place they appear. A call site passes
+  the constant and never a literal. Import the constants with a static wildcard import, and mind a constant whose name
+  is also a type or a field of the class that uses it (`AI`, `SCENE`): the type or the field is hidden, or the field
+  wins, so give the constant another name or qualify it with the bundle class.
 
 - `ja` and `zh` are shortcuts for `add(Language, message, translation)`; add other languages the same way (the language
   needs a bundle in `Localization`, see the [Chinese localization](example.md#walkthrough-chinese-localization)).
@@ -377,7 +424,7 @@ Notification.show(T.localized("Failed to export: %s").formatted(e.getMessage()))
   order, write one key for each whole sentence (and one for the singular and the plural).
 - Look the text up when it is shown, not in a field or a constant: the bundle answers for the language of the session
   that asks, and a text kept in a field stays in the language of whoever created it. A lambda that is called when a
-  menu is opened (`l -> T.localized("Export instructions")`) is fine.
+  menu is opened (`l -> T.localized(EXPORT_INSTRUCTIONS)`) is fine.
 - Without a session (startup, a worker thread that got no request attributes) the default language is used, so the
   title that a plugin registers in `onExtensionLoad` (`ToolService.registerProvider(..., "Name provider", ...)`) stays in
   English; the same holds for annotation values (`@CommandParameter(descriptionText = ...)`), which must be constants.
@@ -534,6 +581,7 @@ CancellationToken token = service.stream(payload, protocol, new InferenceService
   apart runs that do not share a prompt). The service then sends the header `X-Session-ID` with a hash of the user and
   the kind, which a server or proxy with a prompt cache can use to keep a cache per kind of work; see [Prompt cache and
   session id](../../user/prompt-cache.md). The scope covers only the call itself; a request outside of any scope sends no header.
+- **Name the book.** When the request is made for a book, open a `UsageContext` next to the session: `try (InferenceSession _ = InferenceSession.open("my-plugin"); UsageContext _ = UsageContext.open(book)) { service.stream(...); }`. The tokens of the request then go to the [writing statistics](../domain-model.md#writing-statistics-manuscriptstatistic-activityinterval-manuscriptsize) of that book, and the time of the request to its *generating* time; without it the request is counted for no book. The scope covers only the call itself, like the session.
 - **Call `controller.continueInference()`** after each chunk, or the stream stops after the first one.
   `terminateInference()` ends it early.
 - `protocol` supplies sampling parameters and the response limit; it may be `null`.

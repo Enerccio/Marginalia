@@ -25,6 +25,7 @@ another version of the story, switch to that branch first.
 | Field | |
 |---|---|
 | **Format** | The file type, see below. |
+| **Print style** | Only for the formats that have fonts and colors (HTML, Word, PDF, EPUB). The look of the text, chosen from the styles *for exports*: the application brings one for each of these formats, **HTML page**, **E-book (EPUB)**, **PDF book** and **Word document**, which are the looks the exports always had and are chosen by themselves when you pick the format, and you can make your own, see [Print styles](#print-styles). The style you chose for the format in [Settings → Exports](../account.md#exports) is the one preselected. |
 | **File name** | Name of the downloaded file without the extension, which Marginalia adds. Starts as the name of the book. |
 | **Book title** | The title in the file (title page and file properties). Starts as the name of the book; changing it doesn't rename the book. |
 | **Author** | Starts as your full name from your [account](../account.md). Empty means no author. |
@@ -43,18 +44,81 @@ another version of the story, switch to that branch first.
 | **Word document** (`.docx`) | Opens in Word, LibreOffice and similar programs. Justified text, with the title and author set in the file properties. |
 | **PDF** (`.pdf`) | A5 pages with embedded fonts that cover Latin, Greek and Cyrillic text. |
 | **EPUB** (`.epub`) | An e-book for e-readers and reading apps. Long books are split into several files inside the EPUB so readers stay fast. |
+| **HTML for Archive of Our Own** (`.html`) | For posting on AO3, see [below](#for-other-tools). |
+| **Markdown with front matter** (`.md`) | For static site generators, see [below](#for-other-tools). |
+| **SillyTavern chat** (`.jsonl`) | The story as a chat, see [below](#for-other-tools). |
+| **Obsidian vault** (`.zip`) | The chapters and the lorebook as linked notes, see [below](#for-other-tools). |
 
 The text of the parts is Markdown. Emphasis, headings, quotes, lists, code blocks and scene breaks (`---`) are kept in
 every format that can show them. Raw HTML in the text is shown as text, never run.
 
-[Images](story-editor.md#images) of the parts are placed after the text of their part, with their captions:
+## Images
+
+[Images](story-editor.md#images) of the parts are placed where their position says (after the text unless you chose another
+place), with their captions, in the width you gave them (a percent of the width of the text; without a width the picture keeps
+its size, scaled down to the page). Not every format can put text beside a picture:
 
 | Format | |
 |---|---|
-| **HTML** | Embedded in the page, so it is still one file. |
-| **Markdown** | Embedded in the file as `![caption](data:...)` images with the caption in italics under them, so it is still one file. Not every reader shows embedded images (GitHub does not), and a book with many images has very long lines, so attach images to the parts only when you want them in a Markdown export. |
-| **EPUB**, **Word document**, **PDF** | Embedded in the file and scaled to fit the page. |
-| **Plain text** | Marked with `[Image]` or `[Image: caption]`. |
+| **HTML**, **EPUB** | Embedded (in the page, or as files of the book). The text flows around the pictures at the left or the right; a picture in the middle is between two columns of text. On a narrow screen they go above the text, and a reader without columns (some e-readers) shows the first text, the picture and the rest one under the other. Pictures next to each other in a place stand in a row. |
+| **Word document** | The picture the text flows around is in a small table that Word places at the side or in the middle, and Word wraps the text around it (on both sides for the middle, line by line); the caption is under the picture. Pictures with a width that fit next to each other are a row of a table. |
+| **PDF** | The text flows around the pictures at the side, the caption is drawn under the picture. A picture in the middle is between two columns of left aligned text (a band that does not fit at the end of a page starts on the next one). Pictures with a width that fit next to each other are a row. A picture that is too tall for the rest of the page goes to the next page. |
+| **Markdown** | Embedded in the file as `![caption](data:...)` images with the caption in italics under them, so it is still one file. The position among the text is kept; the width and the flowing text are not. Not every reader shows embedded images (GitHub does not), and a book with many images has very long lines, so attach images to the parts only when you want them in a Markdown export. |
+| **Plain text** | Marked with `[Image]` or `[Image: caption]` at their place in the text. |
+| **HTML for Archive of Our Own** | Marked with `[Image: caption]`: AO3 takes images only from links. |
+| **Obsidian vault** | Saved in the `Attachments` folder of the vault and embedded in the note of their chapter at their place, with the caption in italics. |
+| **SillyTavern chat** | Left out, a chat has only text. |
+
+## For other tools
+
+These formats are made for a tool that reads them, not for reading. They do not have the *Print style* choice.
+
+**HTML for Archive of Our Own.** AO3 asks for the title, the author and the chapter titles in fields of its own and drops what it does not
+know (style blocks, the page around the text, images that are not links), so the file has no title page. Open it in a browser to see the work as
+the paste will look. Every chapter (a part that starts with a heading and the parts after it up to the next heading) has its title above two
+comments, `BEGIN chapter N` and `END chapter N`: copy what is between them into the HTML editor of the chapter on AO3 and the title into its
+title field. The text is clean HTML without line breaks between the tags, because AO3 turns each line break into a `<br>`.
+
+**Markdown with front matter.** The same Markdown as the *Markdown* format, but the file starts with a YAML block (`title`, `author`, `lang`,
+`date` of the export) that Jekyll, Hugo, Eleventy and similar generators read, instead of a title page; **Include title page** has no effect on
+it. The block is a template you can change in [Settings → Exports](../account.md#exports) (`{{title}}`, `{{author}}`, `{{language}}`,
+`{{exportDate}}`; the title and the author are already escaped for use inside double quotes).
+
+**SillyTavern chat.** A JSON Lines file that the chat import of SillyTavern reads: the character is named after the book and you are the
+author. Each part of the story is a message of the character (the text), and when the part was written with instructions they come before it as
+your message. The reasoning of the model, if the part has any, is kept as the reasoning of the message. The title page does not apply.
+
+**Obsidian vault.** A ZIP with a folder named after the book; unpack it and open the folder as a vault. It has a note named after the book (the
+front matter, the title page and the lists of the chapters and of the lore), a note for each chapter in `Chapters` (with links to the previous and
+next chapter), a note for each enabled entry of the [lorebook](../lorebooks/index.md) of the book and of its sub lorebooks in `Lore/<lorebook>` (the tags
+of the entry are the tags of the note, its comment is a callout), and the images in `Attachments`. In every note the first mention of the name of
+an entry (a name of at least three characters, whole words, as spelled) is a link to its note, so the graph view shows which entry is in which
+chapter. A part with a heading starts a chapter; parts before the first heading are the note *Beginning* (or *Story* when the book has no headings).
+The front matter and the title page are templates you can change in [Settings → Exports](../account.md#exports).
+
+## Print styles
+
+The export uses the text styles of [Settings → Styles](../account.md#styles) that are marked **For exports**. Styles are either for books
+(the story and the reader) or for exports: the *Change Styles For Text* menu and the reader show only the first kind, the export dialog only the
+second. The four built-in ones are the looks of the formats; **Duplicate** one (or a book style, and tick **For exports**) to make your own, for
+example the Book style on paper. The style is worked out for paper: colors that depend on the theme of the application (the light text of the dark
+theme) become the dark ones for a white page.
+
+| Format | What the style gives |
+|---|---|
+| **HTML** | The whole stylesheet of the style, including the **custom CSS**, **drop caps**, the text width and the background; the title page and the contents keep the look of the format. |
+| **EPUB** | The stylesheet of the style without the custom CSS (e-readers do not all understand it; some readers also set their own fonts and sizes). |
+| **PDF** | The font family (serif, sans or monospace of the embedded fonts, chosen from the font stack), size, line height, alignment, the space between paragraphs, the first line indent, the **background color** of the page (the whole page, the title page included), the colors of the text, italic, bold, quotes, headings and the scene break, the alignment and size of headings and the symbol of the scene break. |
+| **Word document** | The same as the PDF, with the font named in the style (Word shows its own when the computer lacks it) instead of the embedded ones. The background is the color of the page: Word shows it on the screen, but does not print it unless *Print background colors and images* is on in its print options. |
+
+Drop caps, the custom CSS (PDF, Word, EPUB), small capitals of headings and the text width are not made in the PDF and Word
+files.
+
+## Title page template
+
+The title page is written from a template, one for every format. Change it in [Settings → Exports](../account.md#exports): the template is Markdown
+with `{{title}}` (the book title of the dialog) and `{{author}}`, for example `## {{title}}` and a line `written by {{author}}`. The default is the
+title as a heading and the author in italics.
 
 ## Table of contents
 

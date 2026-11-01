@@ -9,6 +9,7 @@ import com.github.enerccio.marginalia.domain.service.tool.ToolRequest;
 
 import java.util.*;
 
+import static com.github.enerccio.marginalia.extensions.nameprovider.NameProviderLocalization.REAL_NAMES_THE_MOST_COMMON;
 import static com.github.enerccio.marginalia.extensions.nameprovider.NameProviderLocalization.T;
 
 /**
@@ -47,7 +48,7 @@ public class NameProviderToolProvider implements ToolProvider {
 
     @Override
     public String description() {
-        return T.localized("Real names: the most common forenames and surnames of about 100 countries, with the original spelling. Groups (like the Nordic countries) pick a list at random for every name.");
+        return T.localized(REAL_NAMES_THE_MOST_COMMON);
     }
 
     @Override

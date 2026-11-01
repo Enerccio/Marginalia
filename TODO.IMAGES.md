@@ -9,6 +9,26 @@ so that all of them keep matching. The table of the pictures, with the flow that
 Screenshots that show the photograph from Wikimedia Commons (*Harry Potter.jpg*, CC BY-SA 4.0) must stay listed on
 `manual/credits.md`. If another third-party picture is used, add it there too (author, source, license, changes).
 
+## 1.6.0
+
+The Nov 1 screens come from `shoot-styles` (`settings-styles`, `settings-styles-css`, `settings-exports`, `story-style-menu`, `story-style-horror`, `story-part-menu`,
+`images-position`, `images-preview`, `viewer-style-menu`), `plugin-imagegenerator` (`plugin-imagegenerator-settings`, `-menu`, `-prompt`, and `plugin-imagegenerator`) and the Beta Readers
+chain step (`plugin-betareaders-scene`); every other picture of the manual was retaken for the grouped menus (sub menus of the settings menu and of the part menu), the chevron and the glyph
+icons of the tab dock, and the Styles / Exports tabs of the Settings. Not taken: the Image Generator with a ComfyUI backend, the *Print style* of the export dialog changed by hand, the
+*Reorder the icons of the minimized tabs* drag, the desktop installers.
+
+The writing statistics come from `shoot-statistics` (the dataset gets a year of history from `bin/seed-statistics.py` first): `statistics-book`,
+`statistics-time`, `statistics-calendar`, `statistics-global`, `statistics-global-calendar`, `phone-statistics`, `settings-daily-goal`;
+`settings-defaults` was retaken for the two goal fields.
+
+The screens of 1.6.0 come from the flow `shoot-folders` (see [`SCREENSHOTS.md`](screenshots/SCREENSHOTS.md)): `books-folders`, `folder-settings`,
+`organise-dialog`, `mass-change-model-protocol`, `mass-change-language`, `book-prompts-inherited`, `story-minimized-tabs`,
+`story-mass-delete`, `help-assistant-books`, `phone-folders`; the version history comes from `shoot-history` (`history-part-menu`, `history-dialog`,
+`history-clear`, `history-search`, `history-menu`, `phone-history`) and the pictures that got a field or a check box for it were retaken
+(`book-about`, `folder-settings`, `settings-defaults`, `permissions-add`, `book-backups`, `book-search-advanced`, `story-tree-search`); the pictures that show the changed screens (the book list, the tab
+buttons of the story editor, the Backups tab and the help panel) were retaken with `bin/shoot-all.sh`. Not taken: the question of a name
+clash in *Organise* (rename / skip / merge), the question when a folder with content is deleted, the progress bar of a copy.
+
 ## Taken for 1.5.0, not yet (optional)
 
 Every picture of the manual was retaken for 1.5.0 (the footer got the theme button, the story editor is a dock with the story
@@ -54,3 +74,4 @@ retaken); retake them by hand when the screen they show changes.
 * A picture of the Lorebook tab of the story editor with *Include sub lorebooks* on (the dataset has no sub lorebooks; `shoot-books-extra` has a lorebook with two, but the book window is not opened there).
 * The Name provider and the Place provider have no screen of their own (their tools are in the *Tools* window, `tools-dialog`); a picture of the Place provider as a *Use this suite* section is not taken.
 * The login card shows the version and the commit under the button; `00-first-start` hides that line (`login.png` is the card of the empty installation).
+* `images-position` and `images-preview` (`shoot-styles`) show the picture in the middle with the text in two columns. A picture at the *left* or *right* with *Text flows around the image* is not pictured: in the preview the text after it did not run beside it (it started below the caption), so there was nothing to show.
