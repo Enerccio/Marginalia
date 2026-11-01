@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846850830860">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846852475792">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846850830860" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846852475792" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846850830860" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846852475792" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846850830860" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.846850830860" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846852475792" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.846852475792" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -431,17 +431,35 @@ books into the same instance), <code translate="no" v-pre>openSearchReplaceDialo
 <p>A tools item can be a check box: <code translate="no" v-pre>.checkedWhen(story -&gt; story.isShowGeneratedDiff())</code> (the action switches whatever the predicate reads; a ticked item is
 refreshed after the action ran). <code translate="no" v-pre>.actionId(&quot;myplugin.summarize&quot;)</code> gives the item the id of its key binding when it is not <code translate="no" v-pre>menu.&lt;key&gt;</code> (keep it when you
 rename the item and the user has a key stored), and <code translate="no" v-pre>.hintAction((story, card) -&gt; id)</code> shows the key of another action (the <em>Edit</em> item shows the key of saving while the text is edited).</p>
-<p><strong>4. Sub menus.</strong> An item that only holds other items has no callback; its items name it with <code translate="no" v-pre>parent(key)</code> (any depth). Reviewer:</p>
+<p><strong>4. Where it goes: groups, paths and positions.</strong> The menus are trees. An item names the group it is in with <code translate="no" v-pre>path(..)</code>: names separated by <code translate="no" v-pre>/</code>, outermost first
+(<code translate="no" v-pre>&quot;Whatever/Is&quot;</code> shows the item as Whatever, Is, the item). The groups are made when a menu is built, so nothing is registered first, and everyone who
+names the same group shares it. The application has the groups of <code translate="no" v-pre>StoryMenuKeys</code> (<code translate="no" v-pre>GROUP_ANALYSIS</code>, <code translate="no" v-pre>GROUP_IMPORT_EXPORT</code>, <code translate="no" v-pre>GROUP_SUMMARY</code>...), an extension that fits one
+puts its item there (Instruction Exporter is <code translate="no" v-pre>.path(StoryMenuKeys.GROUP_IMPORT_EXPORT)</code>). A slash that is part of a name is written <code translate="no" v-pre>\/</code>.</p>
+<p>For an extension without translations a literal name is enough, the last name of the path is the text of the item:</p>
 <div id="menu-items-of-the-story-editor-code-3" class="codeblock-wrapper"><doc-codeblock>
-<pre translate="no" class="language-java"><code v-pre class="language-java">menuRegistry.register(owner, StoryMenuItem.card(&quot;reviewer.review&quot;, l -&gt; &quot;Review&quot;, null).icon(VaadinIcon.STAR::create));
+<pre translate="no" class="language-java"><code v-pre class="language-java">menuRegistry.register(owner, StoryMenuItem.tools(&quot;myplugin.go&quot;, &quot;Whatever/Is/Plugin&quot;, story -&gt; go(story)));   // Whatever &gt; Is &gt; Plugin</code></pre>
+</doc-codeblock></div>
+<p>A group that nobody registered shows its name as it is. To translate it, give it an icon or a place, register it (<code translate="no" v-pre>group</code> returns the group to configure; the same path
+registered again replaces it, <code translate="no" v-pre>unregisterAll(owner)</code> removes it). Reviewer:</p>
+<div id="menu-items-of-the-story-editor-code-4" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-java"><code v-pre class="language-java">menuRegistry.group(owner, MenuKind.CARD, &quot;review&quot;, l -&gt; T.localized(REVIEW)).icon(VaadinIcon.STAR::create)
+        .position(MenuPosition.after(StoryMenuKeys.GROUP_SUMMARY));
 menuRegistry.register(owner, StoryMenuItem.card(&quot;reviewer.review.view&quot;, l -&gt; &quot;View / Generate Review&quot;, (story, card) -&gt; openReview(card))
-        .parent(&quot;reviewer.review&quot;));
+        .path(&quot;review&quot;));
 menuRegistry.register(owner, StoryMenuItem.card(&quot;reviewer.review.delete&quot;, l -&gt; &quot;Delete Review&quot;, (story, card) -&gt; deleteReview(card))
         .enabledWhen((story, card) -&gt; card != null &amp;&amp; hasReview(card.getMessage()))      // the state follows the part
-        .parent(&quot;reviewer.review&quot;));</code></pre>
+        .path(&quot;review&quot;));</code></pre>
 </doc-codeblock></div>
-<p>A parent must be registered before its items; an item whose parent is missing (or not shown on the phone) is left out. Items appear in the order of registration, after the
-application&#x27;s.</p>
+<p>A group is shown while one of its items is, and a group that has no item (on the phone: only desktop items) is left out. The groups and the items of a level are in the order of
+registration (a group where it was registered, else where its first item is), the application&#x27;s first. <code translate="no" v-pre>position(..)</code> of an item or a group changes that:
+<code translate="no" v-pre>MenuPosition.first()</code>, <code translate="no" v-pre>last()</code> (stays last whatever is registered later), <code translate="no" v-pre>index(n)</code>, <code translate="no" v-pre>before(id)</code> and <code translate="no" v-pre>after(id)</code>, where <em>id</em> is the key of an item or the path of a group of
+the same level. Positions are worked out when a menu is built, so they do not depend on the order the extensions load in; an anchor that is not there leaves the entry
+at the end of its level, entries placed after the same anchor keep the order of registration. To find a place, ask the registry: <code translate="no" v-pre>children(kind, path)</code> lists the entries of
+a level (<code translate="no" v-pre>MenuEntry(id, group, index)</code>, <code translate="no" v-pre>&quot;&quot;</code> is the top level) and <code translate="no" v-pre>positionOf(kind, id)</code> gives the index of one (-1 when the menu has none).</p>
+<p><code translate="no" v-pre>separatorAfter()</code> draws a line between the item (or the group) and the entry after it, as <code translate="no" v-pre>ContextMenu.addSeparator()</code> would; the line is shown only while the item is and
+another entry follows it, so a menu never starts or ends with one. An entry placed <code translate="no" v-pre>after(..)</code> an item with a line comes after the line.</p>
+<p>The older way to make a sub menu still works: an item without a callback that others name with <code translate="no" v-pre>parent(key)</code> (any depth, it must be registered before them; one whose parent is
+missing, or not shown on the phone, is left out). It is hidden when none of its items is shown. A <code translate="no" v-pre>path</code> is ignored for an item that has a parent.</p>
 <p><strong>5. Keys.</strong> Every item with a callback is an action of <em>Settings → Keyboard shortcuts</em> (the id is <code translate="no" v-pre>menu.&lt;key&gt;</code> or the <code translate="no" v-pre>actionId</code> you gave) from the moment it is registered, with
 <code translate="no" v-pre>defaultKey</code> or without. A key of a <code translate="no" v-pre>card</code> or <code translate="no" v-pre>text</code> item acts on the part that is being edited, else the part that holds the text selection, else the last part, and on the last
 part when the item is not visible or enabled for the chosen one (the same predicates decide). A <code translate="no" v-pre>tools</code> item needs no part. Shortcuts work on the desktop only.
@@ -863,7 +881,7 @@ uninstalled for good, its data stays in the database (and in backups) - harmless
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (209412ea8).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (0edcf41d8).</p></div>
             </footer>
         </div>
     </div>

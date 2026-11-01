@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846850830860">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846852475792">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846850830860" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846852475792" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846850830860" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846852475792" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846850830860" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846852475792" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -355,7 +355,7 @@ all of them; each plugin is also a Maven project that is built on its own. See <
 | `ui.workspace` | `Workspace` (interface of the workspace shown after login), `DesktopWorkspace` (its tabbed implementation with footer buttons), `WorkspaceComponent` (interface of its tabs) and `WorkspaceAutosave` (stores the state of the workspace in `UserSetting.workspaceState`). `WorkspaceLLMSupport` (what the workspaces and the table sections tell the help assistant: the sections by their labels, the moves to open them, the state of a table with an add button). |
 | `ui.workspace.phone`, `ui.workspace.phone.parts` | `PhoneWorkspace` (the workspace for phones: an `AppLayout` with a drawer instead of the left-hand tabs) `PhoneManuscriptPart` (single column book list), `PhoneLorebookPart` (reduced lorebook view), `PhoneProtocolPart` / `PhoneAIPart` (two column protocol and model lists) `PhoneSettingsPart` (`UserPart` with a stacked header) and `PhoneTrashPart` (trash with `PhoneTrashGrid`). |
 | `ui.dialogs.phone`, `ui.dialogs.phone.manuscript` | `PhoneManuscriptDialog` (the book dialog for phones: full screen, one scrolling tab row), `PhoneSummariesDialog` (`SummariesDialog` with a wide content column) and its tabs `PhoneManuscriptInfoPart`, `PhoneManuscriptPromptPart`, `PhoneManuscriptLorebookPart` (with `PhoneLorebookView`), `PhoneManuscriptStoryPart` (one column, outline in the drawer of an `AppLayout`, message cards with a header line of icons), `PhoneManuscriptTreePart`, `PhoneManuscriptBackupPart`. |
-| `ui.menu` | The menus of the story editor built from one registry: `StoryMenuRegistry` (Spring bean), `StoryMenuItem`, `StoryMenuKeys`, `MenuKind`, `MenuDefinition` / `BuiltMenu` / `MenuItemContent`, see [User interface](ui.md#menus-of-the-story-editor). |
+| `ui.menu` | The menus of the story editor built from one registry: `StoryMenuRegistry` (Spring bean), `StoryMenuItem`, `StoryMenuKeys`, `MenuKind`, `MenuDefinition` / `MenuNode` / `BuiltMenu` / `MenuItemContent`, `MenuGroup`, `MenuPath`, `MenuPosition`, see [User interface](ui.md#menus-of-the-story-editor). |
 | `ui.shortcuts` | The keyboard shortcuts of the story editor: `ShortcutRegistry`, `ShortcutAction` / `ShortcutActions`, `KeyCombo`, `KeyBindings`, `KeyBindingsEditor`, see [User interface](ui.md#keyboard-shortcuts). |
 | `ui.workspace.parts` | One class per workspace tab: `ManuscriptPart` (Books), `LorebookPart`, `UserPart` (Settings), `ProtocolPart`, `AIPart` (Inference Providers), `ResourcesPart` (Resources: lazy `Grid` over `ResourceService.findPageForUser`), `TrashPart` (Trash: the `TrashGrid` widget), `AdminPart`, plus `NewBookAction` (the *Add Book* flow shared by both book lists). |
 | `ui.workspace.parts.admin` | Admin panels with their own logic: `DatabaseBackupPanel`, `CleanupPanel`, `ResourceGarbagePanel` (the *Resource Files* tab: scan and delete the files nothing refers to), `HelpAssistantPanel` (the settings of the help assistant). |
@@ -399,7 +399,7 @@ all of them; each plugin is also a Maven project that is built on its own. See <
 </tr>
 <tr>
 <td><code translate="no" v-pre>ui.menu</code></td>
-<td>The menus of the story editor built from one registry: <code translate="no" v-pre>StoryMenuRegistry</code> (Spring bean), <code translate="no" v-pre>StoryMenuItem</code>, <code translate="no" v-pre>StoryMenuKeys</code>, <code translate="no" v-pre>MenuKind</code>, <code translate="no" v-pre>MenuDefinition</code> / <code translate="no" v-pre>BuiltMenu</code> / <code translate="no" v-pre>MenuItemContent</code>, see <a href="../ui/#menus-of-the-story-editor">User interface</a>.</td>
+<td>The menus of the story editor built from one registry: <code translate="no" v-pre>StoryMenuRegistry</code> (Spring bean), <code translate="no" v-pre>StoryMenuItem</code>, <code translate="no" v-pre>StoryMenuKeys</code>, <code translate="no" v-pre>MenuKind</code>, <code translate="no" v-pre>MenuDefinition</code> / <code translate="no" v-pre>MenuNode</code> / <code translate="no" v-pre>BuiltMenu</code> / <code translate="no" v-pre>MenuItemContent</code>, <code translate="no" v-pre>MenuGroup</code>, <code translate="no" v-pre>MenuPath</code>, <code translate="no" v-pre>MenuPosition</code>, see <a href="../ui/#menus-of-the-story-editor">User interface</a>.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>ui.shortcuts</code></td>
@@ -1555,7 +1555,7 @@ ignored by Git), see <a href="../packaging/#building-the-plugins-in-docker">Pack
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (209412ea8).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (0edcf41d8).</p></div>
             </footer>
         </div>
     </div>

@@ -121,19 +121,51 @@ class StoryMenuRegistryTest extends MarginaliaTestBase {
 
     @Test
     void theApplicationRegistersItsMenusAndThePhoneShowsOnlyTheItemsMarkedForIt() {
+        // depth first: the items of a group follow it
         assertThat(keys(registry.definition(MenuKind.TOOLS, false, null))).containsExactly(
+                StoryMenuKeys.SEARCH_REPLACE,
                 StoryMenuKeys.CHANGE_STYLES, StoryMenuKeys.HIGHLIGHT_GENERATED, StoryMenuKeys.ANNOTATIONS_IN_MARGIN,
-                StoryMenuKeys.SEARCH_REPLACE, StoryMenuKeys.IMPORT_ARCHIVE, StoryMenuKeys.ANNOTATE_RANGE, StoryMenuKeys.AUTO_ANNOTATE,
-                StoryMenuKeys.BRANCH_TOKENS, StoryMenuKeys.STATISTICS, StoryMenuKeys.EXPORT, StoryMenuKeys.CLEAR_BOOK_HISTORY,
-                StoryMenuKeys.EMPTY_HISTORY_TRASH, StoryMenuKeys.MASS_DELETE, StoryMenuKeys.SAVE_LAYOUT_AS_DEFAULT, StoryMenuKeys.RESTORE_LAYOUT);
+                StoryMenuKeys.ANNOTATE_RANGE, StoryMenuKeys.AUTO_ANNOTATE, StoryMenuKeys.BRANCH_TOKENS, StoryMenuKeys.STATISTICS,
+                StoryMenuKeys.IMPORT_ARCHIVE, StoryMenuKeys.EXPORT,
+                StoryMenuKeys.CLEAR_BOOK_HISTORY, StoryMenuKeys.EMPTY_HISTORY_TRASH, StoryMenuKeys.MASS_DELETE,
+                StoryMenuKeys.SAVE_LAYOUT_AS_DEFAULT, StoryMenuKeys.RESTORE_LAYOUT);
         assertThat(keys(registry.definition(MenuKind.TOOLS, true, null))).containsExactly(
-                StoryMenuKeys.CHANGE_STYLES, StoryMenuKeys.SEARCH_REPLACE, StoryMenuKeys.IMPORT_ARCHIVE, StoryMenuKeys.ANNOTATE_RANGE,
-                StoryMenuKeys.AUTO_ANNOTATE, StoryMenuKeys.BRANCH_TOKENS, StoryMenuKeys.STATISTICS, StoryMenuKeys.EXPORT,
+                StoryMenuKeys.SEARCH_REPLACE, StoryMenuKeys.CHANGE_STYLES,
+                StoryMenuKeys.ANNOTATE_RANGE, StoryMenuKeys.AUTO_ANNOTATE, StoryMenuKeys.BRANCH_TOKENS, StoryMenuKeys.STATISTICS,
+                StoryMenuKeys.IMPORT_ARCHIVE, StoryMenuKeys.EXPORT,
                 StoryMenuKeys.CLEAR_BOOK_HISTORY, StoryMenuKeys.EMPTY_HISTORY_TRASH, StoryMenuKeys.MASS_DELETE);
+        assertThat(ids(registry.definition(MenuKind.TOOLS, false, null).getRoots())).containsExactly(
+                StoryMenuKeys.SEARCH_REPLACE, StoryMenuKeys.GROUP_APPEARANCE, StoryMenuKeys.GROUP_ANALYSIS,
+                StoryMenuKeys.GROUP_IMPORT_EXPORT, StoryMenuKeys.GROUP_CLEAN_UP, StoryMenuKeys.GROUP_LAYOUT);
+        assertThat(ids(registry.definition(MenuKind.TOOLS, true, null).getRoots())).as("the layout is desktop only, its group is not shown")
+                .containsExactly(StoryMenuKeys.SEARCH_REPLACE, StoryMenuKeys.GROUP_APPEARANCE, StoryMenuKeys.GROUP_ANALYSIS,
+                        StoryMenuKeys.GROUP_IMPORT_EXPORT, StoryMenuKeys.GROUP_CLEAN_UP);
+
         assertThat(registry.definition(MenuKind.CARD, false, null).getItems()).hasSize(17);
         assertThat(keys(registry.definition(MenuKind.CARD, false, null))).startsWith(StoryMenuKeys.EDIT, StoryMenuKeys.DISCARD);
+        assertThat(ids(registry.definition(MenuKind.CARD, false, null).getRoots())).containsExactly(
+                StoryMenuKeys.EDIT, StoryMenuKeys.DISCARD, StoryMenuKeys.REGENERATE, StoryMenuKeys.SWIPE, StoryMenuKeys.REDRAFT,
+                StoryMenuKeys.HISTORY, StoryMenuKeys.IMAGES, StoryMenuKeys.GROUP_ANNOTATE, StoryMenuKeys.GROUP_SUMMARY,
+                StoryMenuKeys.GROUP_INSPECT, StoryMenuKeys.GROUP_BRANCH_MERGE, StoryMenuKeys.DELETE);
         assertThat(keys(registry.definition(MenuKind.TEXT, true, null))).containsExactly(
                 StoryMenuKeys.TEXT_ANNOTATE_SELECTION, StoryMenuKeys.TEXT_REDRAFT_SELECTION, StoryMenuKeys.TEXT_COPY);
+    }
+
+    private static List<String> ids(List<MenuNode> nodes) {
+        return nodes.stream().map(MenuNode::getId).collect(Collectors.toList());
+    }
+
+    private static MenuNode node(List<MenuNode> nodes, String id) {
+        for (MenuNode node : nodes) {
+            if (node.getId().equals(id)) {
+                return node;
+            }
+            MenuNode inside = node(node.getChildren(), id);
+            if (inside != null) {
+                return inside;
+            }
+        }
+        return null;
     }
 
     @Test
@@ -321,5 +353,175 @@ class StoryMenuRegistryTest extends MarginaliaTestBase {
         assertThat(keys(registry.definition(MenuKind.CARD, false, null))).doesNotContain("test.review", "test.review.view");
         assertThat(ShortcutRegistry.get("menu.test.review.view")).isNull();
         assertThat(registry.find(StoryMenuKeys.EDIT)).isNotNull();
+    }
+
+    @Test
+    void aPathMakesTheGroupsAndTheLastNameOfALiteralNameIsTheText() {
+        registry.register("test", StoryMenuItem.tools("test.a", "Whatever/Is/Plugin", story -> {
+        }));
+        registry.register("test", StoryMenuItem.tools("test.b", l -> "Other", null).path("Whatever/Is"));
+        registry.register("test", StoryMenuItem.tools("test.c", "Slash\\/Name/Leaf", story -> {
+        }));
+        registry.register("test", StoryMenuItem.tools("test.d", "Alone", story -> {
+        }));
+
+        MenuDefinition definition = registry.definition(MenuKind.TOOLS, false, null);
+        MenuNode whatever = node(definition.getRoots(), "Whatever");
+        assertThat(whatever.isGroup()).isTrue();
+        assertThat(whatever.getText(loc, null, null)).as("a group that is not registered shows its name").isEqualTo("Whatever");
+        MenuNode is = whatever.getChildren().getFirst();
+        assertThat(is.getId()).isEqualTo("Whatever/Is");
+        assertThat(ids(is.getChildren())).containsExactly("test.a", "test.b");
+        assertThat(is.getChildren().getFirst().getText(loc, null, null)).isEqualTo("Plugin");
+        // a slash that is written as \/ is a part of the name
+        assertThat(node(definition.getRoots(), "Slash\\/Name").getText(loc, null, null)).isEqualTo("Slash/Name");
+        assertThat(ids(definition.getRoots())).endsWith("Whatever", "Slash\\/Name", "test.d");
+        assertThat(MenuPath.parse("a/ b \\/c/ /d")).containsExactly("a", "b /c", "d");
+        assertThat(MenuPath.parse(null)).isEmpty();
+    }
+
+    @Test
+    void aRegisteredGroupHasItsTextAndIconAndGoesWhereItWasRegistered() {
+        registry.register("test", StoryMenuItem.tools("test.item", l -> "Item", story -> {
+        }).path("test-group"));
+        registry.group("test", MenuKind.TOOLS, "test-group", l -> "Translated").icon(com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid.STAR::create)
+                .position(MenuPosition.first());
+
+        MenuDefinition definition = registry.definition(MenuKind.TOOLS, false, null);
+        assertThat(ids(definition.getRoots()).getFirst()).isEqualTo("test-group");
+        ContextMenu menu = new ContextMenu(new Button());
+        BuiltMenu built = definition.build(menu, loc, editor(new AtomicReference<>(false), new ArrayList<>()), () -> null);
+        assertThat(textOf(built.getGroup("test-group"))).isEqualTo("Translated");
+        assertThat(built.getGroup("test-group").getSubMenu().getItems()).hasSize(1);
+        assertThat(built.get("test.item").isVisible()).isTrue();
+
+        registry.unregisterAll("test");
+        assertThat(ids(registry.definition(MenuKind.TOOLS, false, null).getRoots())).doesNotContain("test-group");
+    }
+
+    @Test
+    void positionsOrderTheEntriesOfALevelWhateverTheOrderOfRegistration() {
+        java.util.function.Function<String, StoryMenuItem> item = key -> StoryMenuItem.tools("test." + key, l -> key, story -> {
+        }).path("test-pos");
+        registry.register("test", item.apply("a"));
+        // registered before the anchors they name
+        registry.register("test", item.apply("d").position(MenuPosition.after("test.a")));
+        registry.register("test", item.apply("e").position(MenuPosition.before("test.a")));
+        registry.register("test", item.apply("f").position(MenuPosition.first()));
+        registry.register("test", item.apply("g").position(MenuPosition.last()));
+        registry.register("test", item.apply("b"));
+        registry.register("test", item.apply("c"));
+        registry.register("test", item.apply("h"));
+        registry.register("test", item.apply("i").position(MenuPosition.after("test.nothing")));
+        registry.register("test", item.apply("j").position(MenuPosition.after("test.a")));
+        registry.register("test", item.apply("k").position(MenuPosition.index(3)));
+
+        List<String> order = ids(node(registry.definition(MenuKind.TOOLS, false, null).getRoots(), "test-pos").getChildren());
+        // first, then the ones before and after a (after it in the order of their registration), an index counts the entries without a
+        // position (and the ones that are first), the one whose anchor is not there goes to the end, the last one after it
+        assertThat(order).containsExactly("test.f", "test.e", "test.a", "test.d", "test.j", "test.b", "test.k", "test.c", "test.h",
+                "test.i", "test.g");
+    }
+
+    @Test
+    void anEntryCanBePlacedAfterAnEntryThatIsPlacedToo() {
+        registry.register("test", StoryMenuItem.tools("test.x", l -> "x", story -> {
+        }).path("test-chain").position(MenuPosition.after("test.y")));
+        registry.register("test", StoryMenuItem.tools("test.y", l -> "y", story -> {
+        }).path("test-chain").position(MenuPosition.after("test.z")));
+        registry.register("test", StoryMenuItem.tools("test.z", l -> "z", story -> {
+        }).path("test-chain"));
+        // two that ask for each other have no place of their own: they go to the end
+        registry.register("test", StoryMenuItem.tools("test.p", l -> "p", story -> {
+        }).path("test-chain").position(MenuPosition.after("test.q")));
+        registry.register("test", StoryMenuItem.tools("test.q", l -> "q", story -> {
+        }).path("test-chain").position(MenuPosition.after("test.p")));
+
+        assertThat(ids(node(registry.definition(MenuKind.TOOLS, false, null).getRoots(), "test-chain").getChildren()))
+                .containsExactly("test.z", "test.y", "test.x", "test.p", "test.q");
+    }
+
+    @Test
+    void anExtensionFindsAPlaceWithTheEntriesOfALevelAndThePositionOfOne() {
+        assertThat(registry.children(MenuKind.TOOLS, "")).extracting(StoryMenuRegistry.MenuEntry::id).containsExactly(
+                StoryMenuKeys.SEARCH_REPLACE, StoryMenuKeys.GROUP_APPEARANCE, StoryMenuKeys.GROUP_ANALYSIS,
+                StoryMenuKeys.GROUP_IMPORT_EXPORT, StoryMenuKeys.GROUP_CLEAN_UP, StoryMenuKeys.GROUP_LAYOUT);
+        assertThat(registry.children(MenuKind.TOOLS, "")).extracting(StoryMenuRegistry.MenuEntry::group)
+                .containsExactly(false, true, true, true, true, true);
+        assertThat(registry.children(MenuKind.TOOLS, StoryMenuKeys.GROUP_IMPORT_EXPORT)).extracting(StoryMenuRegistry.MenuEntry::id)
+                .containsExactly(StoryMenuKeys.IMPORT_ARCHIVE, StoryMenuKeys.EXPORT);
+        assertThat(registry.children(MenuKind.TOOLS, "nothing")).isEmpty();
+        assertThat(registry.positionOf(MenuKind.TOOLS, StoryMenuKeys.SEARCH_REPLACE)).isZero();
+        assertThat(registry.positionOf(MenuKind.TOOLS, StoryMenuKeys.GROUP_ANALYSIS)).isEqualTo(2);
+        assertThat(registry.positionOf(MenuKind.TOOLS, StoryMenuKeys.EXPORT)).isEqualTo(1);
+        assertThat(registry.positionOf(MenuKind.TOOLS, StoryMenuKeys.DELETE)).as("the delete item is in the other menu").isEqualTo(-1);
+        assertThat(registry.positionOf(MenuKind.CARD, StoryMenuKeys.DELETE)).isEqualTo(11);
+        assertThat(registry.positionOf(MenuKind.TOOLS, "test.unknown")).isEqualTo(-1);
+    }
+
+    @Test
+    void aGroupIsShownWhileOneOfItsEntriesIsAndALineOnlyBetweenShownEntries() {
+        boolean[] shown = {true, true, true};
+        registry.register("test", StoryMenuItem.tools("test.x", l -> "x", story -> {
+        }).path("test-sep").separatorAfter().visibleWhen((part, card) -> shown[0]));
+        registry.register("test", StoryMenuItem.tools("test.y", l -> "y", story -> {
+        }).path("test-sep").separatorAfter().visibleWhen((part, card) -> shown[1]));
+        registry.register("test", StoryMenuItem.tools("test.z", l -> "z", story -> {
+        }).path("test-sep").separatorAfter().visibleWhen((part, card) -> shown[2]));
+
+        ContextMenu menu = new ContextMenu(new Button());
+        BuiltMenu built = registry.definition(MenuKind.TOOLS, false, null)
+                .build(menu, loc, editor(new AtomicReference<>(false), new ArrayList<>()), () -> null);
+        MenuItem group = built.getGroup("test-sep");
+        java.util.function.Supplier<List<Boolean>> lines = () -> group.getSubMenu().getChildren().filter(c -> c instanceof com.vaadin.flow.component.html.Hr)
+                .map(Component::isVisible).collect(Collectors.toList());
+
+        assertThat(group.getSubMenu().getChildren().map(c -> c instanceof MenuItem ? "item" : "line").collect(Collectors.toList()))
+                .containsExactly("item", "line", "item", "line", "item", "line");
+        assertThat(group.isVisible()).isTrue();
+        assertThat(lines.get()).as("none after the last shown entry").containsExactly(true, true, false);
+
+        shown[1] = false;
+        built.refresh();
+        assertThat(lines.get()).as("none after an entry that is not shown").containsExactly(true, false, false);
+
+        shown[2] = false;
+        built.refresh();
+        assertThat(lines.get()).as("none at the end of the menu").containsExactly(false, false, false);
+        assertThat(group.isVisible()).isTrue();
+
+        shown[0] = false;
+        built.refresh();
+        assertThat(group.isVisible()).as("no entry shown, no group").isFalse();
+    }
+
+    @Test
+    void aMenuIsRefreshedWithADefinitionThatWasAskedLaterAndKeepsItsShape() {
+        ContextMenu menu = new ContextMenu(new Button());
+        BuiltMenu built = registry.definition(MenuKind.TOOLS, false, KeyBindings.of(null))
+                .build(menu, loc, editor(new AtomicReference<>(false), new ArrayList<>()), () -> null);
+        List<String> before = menu.getItems().stream().map(MenuItem::getText).collect(Collectors.toList());
+
+        // the story tab asks again when it is entered (the user may have changed the keys); an extension registered since is not in the menu
+        UserSetting setting = new UserSetting();
+        JsonObject stored = new JsonObject();
+        stored.addProperty(ShortcutActions.STORY_SEARCH_REPLACE, "Ctrl+Alt+h");
+        setting.setKeyBindings(stored);
+        registry.register("test", StoryMenuItem.tools("test.late", l -> "Late", story -> {
+        }).path(StoryMenuKeys.GROUP_ANALYSIS));
+        built.refresh(registry.definition(MenuKind.TOOLS, false, KeyBindings.of(setting)));
+
+        assertThat(keyOf(built.get(StoryMenuKeys.SEARCH_REPLACE))).isEqualTo("Ctrl+Alt+h");
+        assertThat(built.get("test.late")).isNull();
+        assertThat(menu.getItems().stream().map(MenuItem::getText).collect(Collectors.toList())).isEqualTo(before);
+    }
+
+    @Test
+    void theKeyBindingsNameAnItemWithTheGroupsItIsIn() {
+        assertThat(ShortcutRegistry.get("menu." + StoryMenuKeys.STATISTICS).getLabel(loc))
+                .isEqualTo(loc.getValue(L.LABEL_ANALYSIS) + " \u203A " + loc.getValue(L.LABEL_STATISTICS));
+        assertThat(ShortcutRegistry.get("menu." + StoryMenuKeys.CHANGE_STYLES)).as("it holds a sub menu, it is no action").isNull();
+        assertThat(ShortcutRegistry.get("menu." + StoryMenuKeys.EXPORT).getLabel(loc))
+                .isEqualTo(loc.getValue(L.LABEL_IMPORT_AND_EXPORT) + " \u203A " + loc.getValue(L.LABEL_EXPORT_STORY));
     }
 }

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846850830860">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846852475792">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846850830860" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846852475792" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846850830860" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846852475792" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846850830860" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846850830860" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846852475792" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846852475792" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -1223,9 +1223,9 @@ menu of a part (<code translate="no" v-pre>CARD</code>, the hamburger button of 
 <p><code translate="no" v-pre>StoryMenuItem</code> defines an item: its key (<code translate="no" v-pre>StoryMenuKeys</code> has the ones of the application, a plugin prefixes its own), the label, an optional
 icon, the <strong>callback</strong> (<code translate="no" v-pre>Consumer&lt;StoryEditor&gt;</code> for the tools menu, <code translate="no" v-pre>BiConsumer&lt;StoryEditor, StoryCard&gt;</code> for the other two), an optional
 default key (null = none), the <code translate="no" v-pre>phone</code> flag (default true, <code translate="no" v-pre>false</code> for the items only the desktop shows), <code translate="no" v-pre>visibleWhen</code> / <code translate="no" v-pre>enabledWhen</code> /
-<code translate="no" v-pre>checkedWhen</code> predicates and <code translate="no" v-pre>contextLabel</code> (text that depends on the part: <em>Edit</em> / <em>Save</em>) that are asked each time the menu opens, and a
-<code translate="no" v-pre>parent</code> key that makes the item an item of the sub menu of another one (the parent has no callback, so a sub menu can have items that
-come and go). <code translate="no" v-pre>StoryEditor</code> and <code translate="no" v-pre>StoryCard</code> are the interfaces both the desktop (<code translate="no" v-pre>ManuscriptStoryPart</code>) and the phone
+<code translate="no" v-pre>checkedWhen</code> predicates and <code translate="no" v-pre>contextLabel</code> (text that depends on the part: <em>Edit</em> / <em>Save</em>) that are asked each time the menu opens, a
+<code translate="no" v-pre>path</code> (the groups it is in), a <code translate="no" v-pre>position</code> among its siblings and <code translate="no" v-pre>separatorAfter</code>, and a <code translate="no" v-pre>parent</code> key that makes the item an item of the sub menu
+of another one (the parent has no callback, so a sub menu can have items that come and go). <code translate="no" v-pre>StoryEditor</code> and <code translate="no" v-pre>StoryCard</code> are the interfaces both the desktop (<code translate="no" v-pre>ManuscriptStoryPart</code>) and the phone
 (<code translate="no" v-pre>PhoneManuscriptStoryPart</code>) tab and their cards implement, so one definition serves both.</p>
 </li>
 <li>
@@ -1234,9 +1234,21 @@ a key stored for, such as <code translate="no" v-pre>story.swipe</code>; <em>Ann
 also none. So a new item is listed in <em>Settings → Keyboard shortcuts</em> the moment it is registered.</p>
 </li>
 <li>
-<p><code translate="no" v-pre>StoryMenuRegistry.definition(kind, phone, bindings)</code> returns a <code translate="no" v-pre>MenuDefinition</code>: the items of the kind in the order they were registered, and
+<p>The menus are trees. The groups are the sub menus that the <code translate="no" v-pre>path</code>s of the items make (<code translate="no" v-pre>MenuPath</code> splits at <code translate="no" v-pre>/</code>, <code translate="no" v-pre>\/</code> is a slash in a name); a group needs no
+registration, <code translate="no" v-pre>StoryMenuRegistry.group(owner, kind, path, label)</code> gives one a translated text (<code translate="no" v-pre>MenuGroup</code>: <code translate="no" v-pre>icon</code>, <code translate="no" v-pre>position</code>, <code translate="no" v-pre>separatorAfter</code>, <code translate="no" v-pre>phone</code>). The
+application&#x27;s groups are <code translate="no" v-pre>StoryMenuKeys.GROUP_*</code> (settings menu: <em>Appearance</em>, <em>Analysis</em>, <em>Import &amp; export</em>, <em>Clean up</em>, <em>Layout</em>; menu of a part: <em>Annotations</em>,
+<em>Summary</em>, <em>Inspect</em>, <em>Branch &amp; merge</em>). <code translate="no" v-pre>MenuPosition</code> (<code translate="no" v-pre>first</code>, <code translate="no" v-pre>last</code>, <code translate="no" v-pre>index</code>, <code translate="no" v-pre>before</code>, <code translate="no" v-pre>after</code>) orders a level; it is resolved in
+<code translate="no" v-pre>StoryMenuRegistry.tree</code> each time a definition is asked, in this order: the entries without a position by registration, <code translate="no" v-pre>first</code> in front, <code translate="no" v-pre>index</code>, then the
+<code translate="no" v-pre>before</code> / <code translate="no" v-pre>after</code> ones (repeated, an anchor can be an entry that is placed too; the ones whose anchor is not there, or that ask for each other, go to the end),
+then <code translate="no" v-pre>last</code>. <code translate="no" v-pre>children(kind, path)</code> and <code translate="no" v-pre>positionOf(kind, id)</code> tell an extension where things are.</p>
+</li>
+<li>
+<p><code translate="no" v-pre>StoryMenuRegistry.definition(kind, phone, bindings)</code> returns a <code translate="no" v-pre>MenuDefinition</code>: the tree (<code translate="no" v-pre>getRoots()</code> of <code translate="no" v-pre>MenuNode</code>s, a node is an item or a group with its
+children; <code translate="no" v-pre>getItems()</code> lists the items depth first) of the kind, and
 the keys (the ones the user changed, else the defaults; <code translate="no" v-pre>null</code> bindings = the phone, which shows no keys). <code translate="no" v-pre>MenuDefinition.build(menu, loc, editor, card)</code> adds the items to a <code translate="no" v-pre>ContextMenu</code> or the sub menu of a menu bar item and wires them; the <code translate="no" v-pre>BuiltMenu</code> it returns finds an item by
-key (<code translate="no" v-pre>get(key)</code>) and <code translate="no" v-pre>refresh(definition)</code> works out text, visibility, enabled and ticked state and the key hint of every item again. The story
+key (<code translate="no" v-pre>get(key)</code>), a group by path (<code translate="no" v-pre>getGroup(path)</code>) and <code translate="no" v-pre>refresh(definition)</code> works out text, visibility, enabled and ticked state and the key hint of every item again;
+a group is visible while one of its entries is, and a line (<code translate="no" v-pre>separatorAfter</code>, an <code translate="no" v-pre>Hr</code> added with <code translate="no" v-pre>addComponent</code>, which is what <code translate="no" v-pre>addSeparator()</code> does) while its entry
+is and another entry follows it. In the key bindings an item in a group is named with its groups (<em>Analysis › Statistics</em>). The story
 tab refreshes a menu when it opens (the part menus are <code translate="no" v-pre>LazyContextMenu</code>s, filled the first time) and the tools menu after an item ran
 and when the story tab is entered (the user may have changed the keys).</p>
 </li>
@@ -1682,7 +1694,7 @@ the buttons a dialog has in its bottom right corner). The server accepts their e
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (209412ea8).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (0edcf41d8).</p></div>
             </footer>
         </div>
     </div>

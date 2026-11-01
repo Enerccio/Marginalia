@@ -644,17 +644,27 @@ menu of a part (`CARD`, the hamburger button of a card) and the right click menu
 - `StoryMenuItem` defines an item: its key (`StoryMenuKeys` has the ones of the application, a plugin prefixes its own), the label, an optional
   icon, the **callback** (`Consumer<StoryEditor>` for the tools menu, `BiConsumer<StoryEditor, StoryCard>` for the other two), an optional
   default key (null = none), the `phone` flag (default true, `false` for the items only the desktop shows), `visibleWhen` / `enabledWhen` /
-  `checkedWhen` predicates and `contextLabel` (text that depends on the part: *Edit* / *Save*) that are asked each time the menu opens, and a
-  `parent` key that makes the item an item of the sub menu of another one (the parent has no callback, so a sub menu can have items that
-  come and go). `StoryEditor` and `StoryCard` are the interfaces both the desktop (`ManuscriptStoryPart`) and the phone
+  `checkedWhen` predicates and `contextLabel` (text that depends on the part: *Edit* / *Save*) that are asked each time the menu opens, a
+  `path` (the groups it is in), a `position` among its siblings and `separatorAfter`, and a `parent` key that makes the item an item of the sub menu
+  of another one (the parent has no callback, so a sub menu can have items that come and go). `StoryEditor` and `StoryCard` are the interfaces both the desktop (`ManuscriptStoryPart`) and the phone
   (`PhoneManuscriptStoryPart`) tab and their cards implement, so one definition serves both.
 - Every item with a callback is also a `ShortcutAction` of the key bindings (id `menu.<key>`, or `actionId(..)` for the ones the user already has
   a key stored for, such as `story.swipe`; *Annotate selection* is only an item of the text menu, `story.annotateSelection`: opening the menu of a part takes the selection away), registered with its default key,
   also none. So a new item is listed in *Settings → Keyboard shortcuts* the moment it is registered.
-- `StoryMenuRegistry.definition(kind, phone, bindings)` returns a `MenuDefinition`: the items of the kind in the order they were registered, and
+- The menus are trees. The groups are the sub menus that the `path`s of the items make (`MenuPath` splits at `/`, `\/` is a slash in a name); a group needs no
+  registration, `StoryMenuRegistry.group(owner, kind, path, label)` gives one a translated text (`MenuGroup`: `icon`, `position`, `separatorAfter`, `phone`). The
+  application's groups are `StoryMenuKeys.GROUP_*` (settings menu: *Appearance*, *Analysis*, *Import & export*, *Clean up*, *Layout*; menu of a part: *Annotations*,
+  *Summary*, *Inspect*, *Branch & merge*). `MenuPosition` (`first`, `last`, `index`, `before`, `after`) orders a level; it is resolved in
+  `StoryMenuRegistry.tree` each time a definition is asked, in this order: the entries without a position by registration, `first` in front, `index`, then the
+  `before` / `after` ones (repeated, an anchor can be an entry that is placed too; the ones whose anchor is not there, or that ask for each other, go to the end),
+  then `last`. `children(kind, path)` and `positionOf(kind, id)` tell an extension where things are.
+- `StoryMenuRegistry.definition(kind, phone, bindings)` returns a `MenuDefinition`: the tree (`getRoots()` of `MenuNode`s, a node is an item or a group with its
+  children; `getItems()` lists the items depth first) of the kind, and
   the keys (the ones the user changed, else the defaults; `null` bindings = the phone, which shows no keys). `MenuDefinition.build(menu, loc,
   editor, card)` adds the items to a `ContextMenu` or the sub menu of a menu bar item and wires them; the `BuiltMenu` it returns finds an item by
-  key (`get(key)`) and `refresh(definition)` works out text, visibility, enabled and ticked state and the key hint of every item again. The story
+  key (`get(key)`), a group by path (`getGroup(path)`) and `refresh(definition)` works out text, visibility, enabled and ticked state and the key hint of every item again;
+  a group is visible while one of its entries is, and a line (`separatorAfter`, an `Hr` added with `addComponent`, which is what `addSeparator()` does) while its entry
+  is and another entry follows it. In the key bindings an item in a group is named with its groups (*Analysis › Statistics*). The story
   tab refreshes a menu when it opens (the part menus are `LazyContextMenu`s, filled the first time) and the tools menu after an item ran
   and when the story tab is entered (the user may have changed the keys).
 - A key of a `CARD` or `TEXT` item acts on the part that is edited, else the part that holds the text selection, else the most visible part (both `JavascriptLibrary.selectionOwner`),

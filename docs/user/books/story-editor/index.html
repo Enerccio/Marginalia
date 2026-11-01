@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846850830860">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846852475792">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846850830860" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846852475792" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846850830860" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846852475792" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846850830860" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846852475792" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -454,8 +454,56 @@ guidance and the plan. It does not see your lorebook entries that a new turn wou
 </figure>
 <p>The same is the command <a href="../../commands/"><code translate="no" v-pre>/impersonate</code></a>, which returns the text. <a href="../../agents/">Agents</a> do not get it, they write
 the story with instructions of their own.</p>
+<h2 id="the-settings-menu">The settings menu</h2>
+<p>The settings menu (⚙) in the bottom bar groups what acts on the whole story. <strong>Search and replace</strong> is at the top; the rest is in sub menus
+(on a phone too, except the desktop-only items):</p>
+<retype-table copy-text="| Sub menu | Items |
+|---|---|
+| **Appearance** | **Change Styles For Text**, **Highlight Generated Text** and **Annotations in the margin** (desktop only, the last two) |
+| **Analysis** | **Annotate a range of parts with AI**, **Automatic annotation**, **Branch Tokens**, **Statistics** |
+| **Import &amp; export** | **Import from archive**, **Export story** (and the items of extensions that import or export, such as **Export instructions**) |
+| **Cleanup** | **Clear history of the book**, **Empty trash of the history**, **Mass delete** |
+| **Layout** (desktop only) | **Save layout as my default**, **Restore default layout** |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Sub menu</th>
+<th>Items</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Appearance</strong></td>
+<td><strong>Change Styles For Text</strong>, <strong>Highlight Generated Text</strong> and <strong>Annotations in the margin</strong> (desktop only, the last two)</td>
+</tr>
+<tr>
+<td><strong>Analysis</strong></td>
+<td><strong>Annotate a range of parts with AI</strong>, <strong>Automatic annotation</strong>, <strong>Branch Tokens</strong>, <strong>Statistics</strong></td>
+</tr>
+<tr>
+<td><strong>Import &amp; export</strong></td>
+<td><strong>Import from archive</strong>, <strong>Export story</strong> (and the items of extensions that import or export, such as <strong>Export instructions</strong>)</td>
+</tr>
+<tr>
+<td><strong>Cleanup</strong></td>
+<td><strong>Clear history of the book</strong>, <strong>Empty trash of the history</strong>, <strong>Mass delete</strong></td>
+</tr>
+<tr>
+<td><strong>Layout</strong> (desktop only)</td>
+<td><strong>Save layout as my default</strong>, <strong>Restore default layout</strong></td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>Items that <a href="../../extensions/">extensions</a> bring are in the sub menu that fits them, or at the end of the menu. The keys of the items are in
+<em>Settings → Keyboard shortcuts</em>, where an item is named with its sub menu (<em>Analysis › Statistics</em>). The sections below say where each item is.</p>
 <h2 id="the-part-menu">The part menu</h2>
-<p>Every part has a menu (☰) in its top right corner:</p>
+<p>Every part has a menu (☰) in its top right corner. <strong>Edit</strong>, <strong>Discard Changes</strong>, <strong>Regenerate</strong>, <strong>Swipe</strong>, <strong>Redraft</strong>, <strong>History</strong> and <strong>Images</strong> are in the
+menu itself, <strong>Delete</strong> is its last item, and the rest is in four sub menus: <strong>Annotations</strong> (<em>Annotate part</em>, <em>Annotate with AI</em>), <strong>Summary</strong>
+(<em>Generate summary</em> / <em>View summary</em>, <em>Delete summary</em>), <strong>Inspect</strong> (<em>Show Prompt</em>, <em>Compare Prompt</em>, <em>Token Usage</em>) and <strong>Branch &amp; merge</strong> (<em>Branch Story</em>,
+<em>Merge into previous part</em>). A sub menu with nothing in it for the part is not shown. The Reviewer adds its <strong>Review</strong> sub menu after <em>Summary</em>. The items:</p>
 <retype-table copy-text="| Item | |
 |---|---|
 | **Edit** | Turns the text into an editable field. **Save** (the same menu item) saves it. Starting a generation or leaving the tab saves open edits too. |
@@ -1044,7 +1092,7 @@ tense, style and <a href="../summaries/">summaries</a>. The jailbreak prompt of 
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (209412ea8).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (0edcf41d8).</p></div>
             </footer>
         </div>
     </div>

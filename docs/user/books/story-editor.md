@@ -184,9 +184,28 @@ guidance and the plan. It does not see your lorebook entries that a new turn wou
 The same is the command [`/impersonate`](../commands/index.md), which returns the text. [Agents](../agents.md) do not get it, they write
 the story with instructions of their own.
 
+## The settings menu
+
+The settings menu (⚙) in the bottom bar groups what acts on the whole story. **Search and replace** is at the top; the rest is in sub menus
+(on a phone too, except the desktop-only items):
+
+| Sub menu | Items |
+|---|---|
+| **Appearance** | **Change Styles For Text**, **Highlight Generated Text** and **Annotations in the margin** (desktop only, the last two) |
+| **Analysis** | **Annotate a range of parts with AI**, **Automatic annotation**, **Branch Tokens**, **Statistics** |
+| **Import & export** | **Import from archive**, **Export story** (and the items of extensions that import or export, such as **Export instructions**) |
+| **Cleanup** | **Clear history of the book**, **Empty trash of the history**, **Mass delete** |
+| **Layout** (desktop only) | **Save layout as my default**, **Restore default layout** |
+
+Items that [extensions](../extensions/index.md) bring are in the sub menu that fits them, or at the end of the menu. The keys of the items are in
+*Settings → Keyboard shortcuts*, where an item is named with its sub menu (*Analysis › Statistics*). The sections below say where each item is.
+
 ## The part menu
 
-Every part has a menu (☰) in its top right corner:
+Every part has a menu (☰) in its top right corner. **Edit**, **Discard Changes**, **Regenerate**, **Swipe**, **Redraft**, **History** and **Images** are in the
+menu itself, **Delete** is its last item, and the rest is in four sub menus: **Annotations** (*Annotate part*, *Annotate with AI*), **Summary**
+(*Generate summary* / *View summary*, *Delete summary*), **Inspect** (*Show Prompt*, *Compare Prompt*, *Token Usage*) and **Branch & merge** (*Branch Story*,
+*Merge into previous part*). A sub menu with nothing in it for the part is not shown. The Reviewer adds its **Review** sub menu after *Summary*. The items:
 
 | Item | |
 |---|---|

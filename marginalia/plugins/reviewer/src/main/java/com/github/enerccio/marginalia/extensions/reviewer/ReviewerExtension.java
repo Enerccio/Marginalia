@@ -16,8 +16,7 @@ import com.github.enerccio.marginalia.extensions.reviewer.ui.ManuscriptProfileSe
 import com.github.enerccio.marginalia.extensions.reviewer.ui.ReviewDialog;
 import com.github.enerccio.marginalia.extensions.reviewer.ui.ReviewerSettingsForm;
 import com.github.enerccio.marginalia.loc.Localization;
-import com.github.enerccio.marginalia.ui.menu.StoryMenuItem;
-import com.github.enerccio.marginalia.ui.menu.StoryMenuRegistry;
+import com.github.enerccio.marginalia.ui.menu.*;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ComponentUtil;
@@ -38,6 +37,8 @@ import static com.github.enerccio.marginalia.extensions.reviewer.ReviewerLocaliz
 @Configurable
 public class ReviewerExtension implements MarginaliaExtension {
 
+    // the group of the menu of a part, which the items of the sub menu name in their path
+    private static final String MENU_GROUP = "review";
     private static final String MENU_REVIEW = ReviewerSettings.KEY + ".review";
     private static final String MENU_VIEW = MENU_REVIEW + ".view";
     private static final String MENU_ADVANCED = MENU_REVIEW + ".advanced";
@@ -69,10 +70,10 @@ public class ReviewerExtension implements MarginaliaExtension {
     public void onExtensionLoad(Bundle bundle, OsgiService parentService, ExtensionService extensionService) {
         String owner = bundle.getSymbolicName();
         try {
-            // the Review sub menu of the menu of a part (desktop and phone), its items are shown by the story tab with the keys of the user;
-            // what each one needs is read from the part the menu is opened for
-            menuRegistry.register(owner, StoryMenuItem.card(MENU_REVIEW, l -> T.localized(REVIEW), null)
-                    .icon(VaadinIcon.STAR::create));
+            // the Review sub menu of the menu of a part (desktop and phone), next to the summary; its items are shown by the story tab with
+            // the keys of the user; what each one needs is read from the part the menu is opened for
+            menuRegistry.group(owner, MenuKind.CARD, MENU_GROUP, l -> T.localized(REVIEW)).icon(VaadinIcon.STAR::create)
+                    .position(MenuPosition.after(StoryMenuKeys.GROUP_SUMMARY));
             menuRegistry.register(owner, StoryMenuItem.card(MENU_VIEW, l -> T.localized(VIEW_GENERATE_REVIEW), (story, card) -> {
                         try {
                             ChatMessage freshMessage = reviewerService.refreshMessage(card.getMessage());
@@ -83,7 +84,7 @@ public class ReviewerExtension implements MarginaliaExtension {
                             UIUtils.internalServerError(loc, ex);
                         }
                     })
-                    .parent(MENU_REVIEW));
+                    .path(MENU_GROUP));
             menuRegistry.register(owner, StoryMenuItem.card(MENU_ADVANCED, l -> T.localized(REVIEW_ADVANCED_OPTIONS), (story, card) -> {
                         try {
                             ChatMessage freshMessage = reviewerService.refreshMessage(card.getMessage());
@@ -104,7 +105,7 @@ public class ReviewerExtension implements MarginaliaExtension {
                         }
                     })
                     .contextLabel((l, story, card) -> T.localized(ADVANCED_OPTIONS))
-                    .parent(MENU_REVIEW));
+                    .path(MENU_GROUP));
             menuRegistry.register(owner, StoryMenuItem.card(MENU_DELETE, l -> T.localized(DELETE_REVIEW), (story, card) -> {
                         try {
                             ChatMessage freshMessage = reviewerService.refreshMessage(card.getMessage());
@@ -115,7 +116,7 @@ public class ReviewerExtension implements MarginaliaExtension {
                     })
                     // the part menu reloads the message before it works the state of its items out
                     .enabledWhen((story, card) -> card != null && reviewerService.getReviewData(card.getMessage()) != null)
-                    .parent(MENU_REVIEW));
+                    .path(MENU_GROUP));
 
             // Hook into UserPart to insert extension settings panel into Accordion
             userPartDecorator = new ExtensionDecorator() {

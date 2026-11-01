@@ -257,19 +257,42 @@ A tools item can be a check box: `.checkedWhen(story -> story.isShowGeneratedDif
 refreshed after the action ran). `.actionId("myplugin.summarize")` gives the item the id of its key binding when it is not `menu.<key>` (keep it when you
 rename the item and the user has a key stored), and `.hintAction((story, card) -> id)` shows the key of another action (the *Edit* item shows the key of saving while the text is edited).
 
-**4. Sub menus.** An item that only holds other items has no callback; its items name it with `parent(key)` (any depth). Reviewer:
+**4. Where it goes: groups, paths and positions.** The menus are trees. An item names the group it is in with `path(..)`: names separated by `/`, outermost first
+(`"Whatever/Is"` shows the item as Whatever, Is, the item). The groups are made when a menu is built, so nothing is registered first, and everyone who
+names the same group shares it. The application has the groups of `StoryMenuKeys` (`GROUP_ANALYSIS`, `GROUP_IMPORT_EXPORT`, `GROUP_SUMMARY`...), an extension that fits one
+puts its item there (Instruction Exporter is `.path(StoryMenuKeys.GROUP_IMPORT_EXPORT)`). A slash that is part of a name is written `\/`.
+
+For an extension without translations a literal name is enough, the last name of the path is the text of the item:
 
 ```java
-menuRegistry.register(owner, StoryMenuItem.card("reviewer.review", l -> "Review", null).icon(VaadinIcon.STAR::create));
-menuRegistry.register(owner, StoryMenuItem.card("reviewer.review.view", l -> "View / Generate Review", (story, card) -> openReview(card))
-        .parent("reviewer.review"));
-menuRegistry.register(owner, StoryMenuItem.card("reviewer.review.delete", l -> "Delete Review", (story, card) -> deleteReview(card))
-        .enabledWhen((story, card) -> card != null && hasReview(card.getMessage()))      // the state follows the part
-        .parent("reviewer.review"));
+menuRegistry.register(owner, StoryMenuItem.tools("myplugin.go", "Whatever/Is/Plugin", story -> go(story)));   // Whatever > Is > Plugin
 ```
 
-A parent must be registered before its items; an item whose parent is missing (or not shown on the phone) is left out. Items appear in the order of registration, after the
-application's.
+A group that nobody registered shows its name as it is. To translate it, give it an icon or a place, register it (`group` returns the group to configure; the same path
+registered again replaces it, `unregisterAll(owner)` removes it). Reviewer:
+
+```java
+menuRegistry.group(owner, MenuKind.CARD, "review", l -> T.localized(REVIEW)).icon(VaadinIcon.STAR::create)
+        .position(MenuPosition.after(StoryMenuKeys.GROUP_SUMMARY));
+menuRegistry.register(owner, StoryMenuItem.card("reviewer.review.view", l -> "View / Generate Review", (story, card) -> openReview(card))
+        .path("review"));
+menuRegistry.register(owner, StoryMenuItem.card("reviewer.review.delete", l -> "Delete Review", (story, card) -> deleteReview(card))
+        .enabledWhen((story, card) -> card != null && hasReview(card.getMessage()))      // the state follows the part
+        .path("review"));
+```
+
+A group is shown while one of its items is, and a group that has no item (on the phone: only desktop items) is left out. The groups and the items of a level are in the order of
+registration (a group where it was registered, else where its first item is), the application's first. `position(..)` of an item or a group changes that:
+`MenuPosition.first()`, `last()` (stays last whatever is registered later), `index(n)`, `before(id)` and `after(id)`, where *id* is the key of an item or the path of a group of
+the same level. Positions are worked out when a menu is built, so they do not depend on the order the extensions load in; an anchor that is not there leaves the entry
+at the end of its level, entries placed after the same anchor keep the order of registration. To find a place, ask the registry: `children(kind, path)` lists the entries of
+a level (`MenuEntry(id, group, index)`, `""` is the top level) and `positionOf(kind, id)` gives the index of one (-1 when the menu has none).
+
+`separatorAfter()` draws a line between the item (or the group) and the entry after it, as `ContextMenu.addSeparator()` would; the line is shown only while the item is and
+another entry follows it, so a menu never starts or ends with one. An entry placed `after(..)` an item with a line comes after the line.
+
+The older way to make a sub menu still works: an item without a callback that others name with `parent(key)` (any depth, it must be registered before them; one whose parent is
+missing, or not shown on the phone, is left out). It is hidden when none of its items is shown. A `path` is ignored for an item that has a parent.
 
 **5. Keys.** Every item with a callback is an action of *Settings → Keyboard shortcuts* (the id is `menu.<key>` or the `actionId` you gave) from the moment it is registered, with
 `defaultKey` or without. A key of a `card` or `text` item acts on the part that is being edited, else the part that holds the text selection, else the last part, and on the last
