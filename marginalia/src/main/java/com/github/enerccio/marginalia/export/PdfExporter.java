@@ -183,6 +183,16 @@ public class PdfExporter extends ExporterBase {
             writer.setPageEvent(new PdfPageEventHelper() {
                 @Override
                 public void onEndPage(PdfWriter writer, Document document) {
+                    if (style.getBackgroundColor() != null) {
+                        // under the text, the whole page including the margins, the cover as well
+                        PdfContentByte under = writer.getDirectContentUnder();
+                        under.saveState();
+                        under.setColorFill(new java.awt.Color(style.getBackgroundColor()));
+                        Rectangle page = document.getPageSize();
+                        under.rectangle(0, 0, page.getWidth(), page.getHeight());
+                        under.fill();
+                        under.restoreState();
+                    }
                     // the title page is the cover, the numbers are the pages of the file as the readers count them
                     if (titleMarkdown != null && writer.getPageNumber() == 1) {
                         return;

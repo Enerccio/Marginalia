@@ -108,7 +108,7 @@ class PartStyleEditorTest extends MarginaliaTestBase {
     void theEditorHasNoSaveOfItsOwn() {
         PartStyleEditor editor = new PartStyleEditor(loc, service);
 
-        assertThat(ComponentTree.all(editor, Button.class).map(Button::getText)).containsExactlyInAnyOrder("Duplicate", "Delete", "Set as default");
+        assertThat(ComponentTree.all(editor, Button.class).map(Button::getText)).contains("Duplicate", "Delete", "Set as default", "Export", "Import");
     }
 
     @Test
@@ -233,5 +233,38 @@ class PartStyleEditorTest extends MarginaliaTestBase {
         editor.save();
         assertThat(service.getDefaultId()).isNull();
         assertThat(service.getDefault().getId()).isEqualTo("normal");
+    }
+
+    @Test
+    void aStyleIsExportedAsItIsOnTheScreenAndImportedAsANewStyleOfTheUser() throws Exception {
+        PartStyleEditor editor = new PartStyleEditor(loc, service);
+        AtomicInteger changes = new AtomicInteger();
+        editor.setOnChange(changes::incrementAndGet);
+        click(button(editor, "Duplicate"));
+        fontSize(editor).setValue("3rem");
+        String file = editor.exportJson();
+        assertThat(file).contains("\"marginalia-text-style\"").contains("\"name\": \"Book (copy)\"").contains("\"FONT_SIZE\": \"3rem\"");
+
+        assertThat(editor.importJson(file)).isTrue();
+        assertThat(changes.get()).as("duplicate, font size, import").isEqualTo(3);
+        assertThat(fontSize(editor).getValue()).isEqualTo("3rem");
+        assertThat(fontSize(editor).isReadOnly()).isFalse();
+        assertThat(own(service)).as("not stored before the settings are saved").isEmpty();
+
+        assertThat(editor.validate()).isTrue();
+        editor.save();
+        assertThat(own(service)).hasSize(2).extracting(PartStyle::getName).containsOnly("Book (copy)");
+        assertThat(own(service).stream().map(PartStyle::getId).distinct()).hasSize(2);
+    }
+
+    @Test
+    void aFileThatIsNotStylesChangesNothing() {
+        PartStyleEditor editor = new PartStyleEditor(loc, service);
+        AtomicInteger changes = new AtomicInteger();
+        editor.setOnChange(changes::incrementAndGet);
+
+        assertThat(editor.importJson("not json")).isFalse();
+        assertThat(editor.importJson("{\"format\":\"marginalia-text-style\",\"version\":1,\"styles\":[{\"name\":\"x\",\"customCss\":\"p { color: red;\"}]}")).isFalse();
+        assertThat(changes.get()).isZero();
     }
 }

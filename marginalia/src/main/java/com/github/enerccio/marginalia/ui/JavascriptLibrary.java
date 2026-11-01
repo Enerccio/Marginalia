@@ -103,6 +103,20 @@ public final class JavascriptLibrary {
     }
 
     /**
+     * Removes the {@code <style>} element with the given id unless an element of the page still carries the class it is for. It
+     * waits for the changes of the page that come with the same response (the host of the style being removed from it).
+     */
+    public static void removePageStyleUnlessUsed(Page page, String id, String cssClass) {
+        page.executeJs("""
+                setTimeout(() => {
+                  if (!document.getElementsByClassName($1).length) {
+                    document.getElementById($0)?.remove();
+                  }
+                }, 0);
+                """, id, cssClass);
+    }
+
+    /**
      * Makes the login overlay accept an empty password.
      */
     public static void disableLoginPasswordValidation(Element element) {

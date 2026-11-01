@@ -100,7 +100,8 @@ left, besides the model, protocol and prompt:
   (template, lore, outline and story) next to what the model takes (context minus the room for the reply). It is
   highlighted when the prompt does not fit. It follows the range, the number of chapters, the prompt and the model.
 - *Prompt* - `{{backgroundLore}}`, `{{existingArcs}}`, `{{story}}` (the messages, each under a `--- Message N ---`
-  heading) and `{{numberOfChapters}}`. It starts as the *Story import prompt* of the settings (default
+  heading), `{{numberOfChapters}}` and `{{mapParts}}` (true when the chapters are linked; the default prompt then explains that the
+  `part` of a chapter is the number of the message it begins in, not the number of the chapter). It starts as the *Story import prompt* of the settings (default
   `Defaults.IMPORT_PROMPT`). There are no tools, the names are in the story.
 
 ![Importing an arc from the story](../../../manual/images/plugin-arcoutline-import.png)

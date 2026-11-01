@@ -110,6 +110,11 @@ public class DocxExporter extends ExporterBase {
                 document.getProperties().getCoreProperties().setCreator(options.author());
             }
             addPageNumbers();
+            if (print.getBackgroundColor() != null) {
+                // the color of the page; Word shows it on the screen (print layout) only when the document says so
+                document.getDocument().addNewBackground().setColor(PrintStyle.hex(print.getBackgroundColor()));
+                document.getSettings().getCTSettings().addNewDisplayBackgroundShape();
+            }
         }
 
         private void addPageNumbers() {

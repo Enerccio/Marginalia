@@ -8,6 +8,7 @@ import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.menu.StoryMenuItem.Choice;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.ComponentUtil;
 import com.vaadin.flow.component.HasStyle;
 import com.vaadin.flow.component.UI;
 
@@ -21,12 +22,17 @@ import java.util.function.Consumer;
  * builds the "Change styles" menu of the story.
  * <p>
  * The stylesheet of a style is a {@code <style>} element of the page with an id derived from the style, written each time the style
- * is applied (so a style that was edited shows the new look at once) and the element carries the class of the style. A style
+ * is applied (so a style that was edited shows the new look at once) and the element carries the class of the style. The stylesheet is
+ * taken out of the page when the element leaves it (and put back if it comes back), or gets another style. A style
  * without content (the plain look) adds neither: it only takes the class of the previous one away.
  */
 public final class PartStyleApplier {
 
     private static final String CLASS_PREFIX = "part-style-";
+    // the id of the style element of a style is this and its class, see PartStyle.getStyleElementId
+    private static final String STYLE_ELEMENT_PREFIX = "marginalia-";
+    private static final String STYLE_DATA = PartStyleApplier.class.getName() + ".style";
+    private static final String LISTENING = PartStyleApplier.class.getName() + ".listening";
 
     private PartStyleApplier() {
     }
@@ -35,19 +41,47 @@ public final class PartStyleApplier {
      * Makes the style the only text style of the host.
      */
     public static <C extends Component & HasStyle> void apply(C host, PartStyle style) {
+        List<String> before = new ArrayList<>();
         for (String className : new ArrayList<>(host.getClassNames())) {
             if (className.startsWith(CLASS_PREFIX)) {
                 host.removeClassName(className);
+                before.add(className);
             }
         }
+        ComponentUtil.setData(host, STYLE_DATA, style == null || !style.hasContent() ? null : style);
+        UI ui = host.getUI().orElse(UI.getCurrent());
         if (style == null || !style.hasContent()) {
+            before.forEach(className -> release(ui, className));
             return;
         }
-        UI ui = host.getUI().orElse(UI.getCurrent());
         if (ui != null) {
             JavascriptLibrary.setPageStyle(ui.getPage(), style.getStyleElementId(), style.toCss());
         }
         host.addClassName(style.getCssClass());
+        // the stylesheet of the style the host had before goes with it, unless something else still uses it
+        before.stream().filter(className -> !className.equals(style.getCssClass())).forEach(className -> release(ui, className));
+        if (ComponentUtil.getData(host, LISTENING) == null) {
+            ComponentUtil.setData(host, LISTENING, Boolean.TRUE);
+            // the stylesheet lives in the page only while the host is on it: the book closed, the reader left for the list
+            host.addDetachListener(event -> release(event.getUI(), host.getClassNames()));
+            host.addAttachListener(event -> {
+                Object applied = ComponentUtil.getData(host, STYLE_DATA);
+                if (applied instanceof PartStyle current) {
+                    JavascriptLibrary.setPageStyle(event.getUI().getPage(), current.getStyleElementId(), current.toCss());
+                }
+            });
+        }
+    }
+
+    private static void release(UI ui, java.util.Collection<String> classNames) {
+        classNames.stream().filter(className -> className.startsWith(CLASS_PREFIX)).toList().forEach(className -> release(ui, className));
+    }
+
+    // takes the stylesheet of the style with the class out of the page, when no element of the page has the class any more
+    private static void release(UI ui, String className) {
+        if (ui != null) {
+            JavascriptLibrary.removePageStyleUnlessUsed(ui.getPage(), STYLE_ELEMENT_PREFIX + className, className);
+        }
     }
 
     /**

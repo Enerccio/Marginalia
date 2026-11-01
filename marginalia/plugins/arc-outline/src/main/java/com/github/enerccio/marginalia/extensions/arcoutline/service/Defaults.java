@@ -67,7 +67,7 @@ Answer only with the JSON object requested by the response format: the list of "
 
     /**
      * Template of the prompt for importing an arc from the written story: {{backgroundLore}}, {{existingArcs}},
-     * {{story}} and {{numberOfChapters}} are replaced by the lore of the book, its arcs, the chosen messages of the
+     * {{story}}, {{numberOfChapters}} and {{mapParts}} (whether the chapters say the message they begin in) are replaced by the lore of the book, its arcs, the chosen messages of the
      * story and what the author asked for.
      */
     public static String IMPORT_PROMPT = """
@@ -93,8 +93,11 @@ The messages below are the story as it was written, in the order they are read.
 3. Divide the story into chapters at its natural turning points (a change of place, time, point of view or situation), in the order the events happen. Together the chapters cover the whole story given, with nothing left out and nothing counted twice.
 4. Give the arc and every chapter a short, memorable name.
 5. The "description" of the arc and of every chapter is shown in the outline, so keep it terse: one to three short sentences for the arc (about 60 words at most), one or two for a chapter (about 40 words at most). Put everything else into the "note": for the arc the premise, the main conflict, the turning points and how it ends; for a chapter the scene, the characters and places involved (by the names used in the story), what happens step by step, what changes and how the chapter ends. Plain text with paragraphs, no headings. Do not repeat the description in the note, extend it.
+{{#if mapParts}}
+6. Every chapter also has a "part": the number N of the "--- Message N ---" heading of the message of the story in which the chapter begins. It is NOT the number of the chapter: the first chapter begins in the first message given, and every later chapter begins in a later message, so the numbers rise from chapter to chapter but skip the messages the chapter covers (a chapter that spans Messages 5 to 9 is followed by one with "part": 10). Never number the chapters 1, 2, 3...
+{{/if}}
 
 ### Output
-Answer only with the JSON object requested by the response format: the "name", the terse "description" and the detailed "note" of the arc and its list of "chapters", each with a "name", a terse "description" and a detailed "note", in the order they are read. No introduction, no commentary.
+Answer only with the JSON object requested by the response format: the "name", the terse "description" and the detailed "note" of the arc and its list of "chapters", each with a "name", a terse "description"{{#if mapParts}}, the "part" (the message it begins in){{/if}} and a detailed "note", in the order they are read. No introduction, no commentary.
 """;
 }

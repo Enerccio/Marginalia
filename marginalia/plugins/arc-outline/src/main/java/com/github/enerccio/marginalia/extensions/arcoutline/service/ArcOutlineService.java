@@ -507,6 +507,7 @@ public class ArcOutlineService {
         data.setBackgroundLore(buildBackgroundLore(manuscript));
         data.setExistingArcs(describeArcs(outline));
         data.setStory(storyText(messages, mapParts));
+        data.setMapParts(mapParts);
         data.setNumberOfChapters(numberOfChapters != null ? "exactly " + numberOfChapters
                 : "as many as the story needs, divide it where it naturally divides");
         return templateService.processTemplate(template, "arcImport", data);

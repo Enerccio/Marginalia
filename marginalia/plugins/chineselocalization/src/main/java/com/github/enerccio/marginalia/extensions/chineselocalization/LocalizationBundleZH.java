@@ -1209,6 +1209,9 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.ERROR_COMMAND_HISTORY_LIMIT_NEGATIVE, "版本数不能为负数；省略则取消本书的限制。");
         setValue(L.ERROR_STYLE_NAME_REQUIRED, "样式需要一个名称。");
         setValue(L.ERROR_STYLE_CSS_UNBALANCED, "自定义 CSS 的花括号 { } 不匹配。");
+        setValue(L.ERROR_STYLE_IMPORT_NOT_STYLES, "该文件不是文本样式文件。");
+        setValue(L.ERROR_STYLE_IMPORT_NEWER, "该文件由更新版本的 Marginalia 创建，无法读取。");
+        setValue(L.ERROR_STYLE_IMPORT_CSS, "样式“%s”的自定义 CSS 的花括号 { } 不匹配。");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "无法保存表单。");
@@ -1575,6 +1578,8 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_GOAL_PROGRESS_WORDS, "今天：%s / %s 字");
         setValue(L.MSG_GOAL_PROGRESS_MINUTES, "今天：编辑 %s / %s 分钟");
         setValue(L.MSG_STYLE_PREVIEW_SAMPLE, "# 第一章\n\n*雨*已经连下了**三天**，通往港口的路成了一条泥河。“我们该回头了，”玛拉说，但没有人动。\n\n> 旧地图是错的。相信水。\n\n---\n\n清晨灰蒙蒙地缓缓到来。她数着码头边的灯笼，`七盏`，然后迈步向前。\n\n## 较小的标题\n\n这一段足够长，可以展示文本如何换行、对齐，以及在开启断字时如何拆分单词。");
+        setValue(L.MSG_STYLES_IMPORTED, "已导入 %d 个样式。保存设置以保留它们。");
+        setValue(L.MSG_STYLE_IMPORT_IGNORED, "文件中有 %d 个选项此版本不认识，已忽略。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");
