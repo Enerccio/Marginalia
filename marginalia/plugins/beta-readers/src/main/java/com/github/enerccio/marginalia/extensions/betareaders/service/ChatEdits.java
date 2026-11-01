@@ -28,7 +28,7 @@ public final class ChatEdits {
      */
     public static void edit(BetaChat chat, String id, String text) {
         BetaMessage message = find(chat, id);
-        if (message == null || message.getKind() != MessageKind.USER) {
+        if (message == null || (message.getKind() != MessageKind.USER && message.getKind() != MessageKind.SCENE_MESSAGE)) {
             throw new IllegalArgumentException("There is no message of the user " + id);
         }
         if (text == null || (text.isBlank() && message.getSentParts().isEmpty())) {

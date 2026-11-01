@@ -69,6 +69,7 @@ public class ChatPanel extends VerticalLayout {
     private final Checkbox includeParts = new Checkbox(T.localized(INCLUDE_THE_LATEST_PARTS));
     private final Button checkParts = new Button(Solid.ROTATE.create());
     private final Button send = new Button();
+    private final Button sendScene = new Button(Solid.CLAPPERBOARD.create());
     private final Span context = new Span();
     private final Span read = new Span();
 
@@ -236,9 +237,13 @@ public class ChatPanel extends VerticalLayout {
                 send();
             }
         });
+        sendScene.setText(T.localized(SEND_AS_A_SCENE));
+        sendScene.addThemeName("tertiary");
+        sendScene.setTooltipText(T.localized(SEND_THE_TEXT_AS_A_SCENE));
+        sendScene.addClickListener(_ -> sendScene());
         showButton();
 
-        HorizontalLayout row = new HorizontalLayout(includeParts, checkParts, send);
+        HorizontalLayout row = new HorizontalLayout(includeParts, checkParts, sendScene, send);
         row.setWidthFull();
         row.setAlignItems(Alignment.CENTER);
         row.setWrap(true);
@@ -266,6 +271,14 @@ public class ChatPanel extends VerticalLayout {
 
     private void send() {
         begin(listener -> service.ask(manuscript, chat, input.getValue(), includeParts.getValue(), listener), true);
+    }
+
+    private void sendScene() {
+        if (input.getValue() == null || input.getValue().isBlank()) {
+            Notification.warning(T.localized(WRITE_THE_SCENE_FIRST));
+            return;
+        }
+        begin(listener -> service.askScene(manuscript, chat, input.getValue(), listener), true);
     }
 
     private void regenerate() {
@@ -383,6 +396,7 @@ public class ChatPanel extends VerticalLayout {
         input.setEnabled(!value);
         includeParts.setEnabled(!value);
         checkParts.setEnabled(!value);
+        sendScene.setEnabled(!value);
         showButton();
         onBusy.accept(value);
     }
@@ -426,7 +440,7 @@ public class ChatPanel extends VerticalLayout {
     private static boolean unanswered(List<BetaMessage> history) {
         for (int i = history.size() - 1; i >= 0; i--) {
             switch (history.get(i).getKind()) {
-                case USER -> {
+                case USER, SCENE_MESSAGE -> {
                     return true;
                 }
                 case ASSISTANT -> {

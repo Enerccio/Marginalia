@@ -194,6 +194,8 @@ public final class PromptBuilder {
         if (options.maxMessages() > 0) {
             text.append("\nWrite at most ").append(options.maxMessages()).append(" messages in a turn.");
         }
+        text.append("\nA line of the author's messages in square brackets that starts with \"Scene:\" describes what happens now or what "
+                + "the author does (a change of scene, an action); it is not something the author says. React to it as it happens.");
         if (chat.getKind() == ChatKind.GROUP) {
             text.append("\nThe personas who join or leave the group are announced in the author's messages.");
         }
@@ -229,6 +231,7 @@ public final class PromptBuilder {
             case LEAVE -> presence(message, "leaves the conversation");
             case MEDIUM -> "[From now on the text is read as: " + message.getText().strip() + ".]";
             case SCENE -> "[The scene is now: " + message.getText().strip() + "]";
+            case SCENE_MESSAGE -> "[Scene: " + message.getText().strip() + "]";
             case ASSISTANT -> assistant(message, options);
         };
     }
