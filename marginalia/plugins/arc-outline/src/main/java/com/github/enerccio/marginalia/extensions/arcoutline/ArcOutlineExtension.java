@@ -167,7 +167,10 @@ public class ArcOutlineExtension implements MarginaliaExtension, ExtensionHasCss
                                         return false;
                                     }
                                     // the drawer of the phone covers the story, the desktop has the tab of it in the sheet
-                                    AppLayout layout = context.getReflectiveFieldValue(instrumented, "layout", AppLayout.class);
+                                    // (only the phone part has the field "layout": asking the desktop part for it throws)
+                                    boolean phone = instrumented.getClass().getName().contains("PhoneManuscriptStoryPart");
+                                    AppLayout layout = phone
+                                            ? context.getReflectiveFieldValue(instrumented, "layout", AppLayout.class) : null;
                                     if (layout != null) {
                                         layout.setDrawerOpened(false);
                                     } else {
