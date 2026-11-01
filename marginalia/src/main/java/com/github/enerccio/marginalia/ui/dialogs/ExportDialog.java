@@ -5,12 +5,9 @@ import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.security.model.User;
-import com.github.enerccio.marginalia.domain.service.ChatMessageService;
-import com.github.enerccio.marginalia.domain.service.ExporterService;
+import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.ExporterService.ExportOptions;
 import com.github.enerccio.marginalia.domain.service.ExporterService.Exporter;
-import com.github.enerccio.marginalia.domain.service.ManuscriptService;
-import com.github.enerccio.marginalia.domain.service.PartStyleService;
 import com.github.enerccio.marginalia.domain.styles.PartStyle;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
@@ -41,6 +38,7 @@ import org.springframework.beans.factory.annotation.Configurable;
 import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -65,6 +63,9 @@ public class ExportDialog extends Dialog implements LLMInteract {
 
     @Autowired
     private PartStyleService partStyleService;
+
+    @Autowired
+    private ExportSettingsService exportSettingsService;
 
     @Autowired
     private User user;
@@ -170,16 +171,29 @@ public class ExportDialog extends Dialog implements LLMInteract {
     }
 
     /**
-     * Chooses the style the format has when the author does not (nothing when the format has none or the user has no such style).
+     * Chooses the style the format has when the author does not: the one the user set for the format in the settings, else the look of the
+     * format itself (nothing when the format has none or the user has no such style).
      */
     @PublicAPI(from = "1.6.0",
             returns = @APIReturn(type = void.class),
-            parameters = {@APIParameter(name = "exporter", type = ExporterService.Exporter.class)})
+            parameters = {@APIParameter(name = "exporter", type = ExporterService.Exporter.class)},
+            locals = {@APILocals(name = "styleId", type = String.class),
+                    @APILocals(name = "e", type = Exception.class)})
     private void selectDefaultStyle(Exporter exporter) {
-        if (exporter == null || exporter.getDefaultStyleId() == null) {
+        if (exporter == null) {
             return;
         }
-        styleChoice.getListDataView().getItems().filter(item -> item.style().getId().equals(exporter.getDefaultStyleId())).findFirst()
+        String styleId;
+        try {
+            styleId = exportSettingsService.getStyleId(exporter);
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+            return;
+        }
+        if (styleId == null) {
+            return;
+        }
+        styleChoice.getListDataView().getItems().filter(item -> item.style().getId().equals(styleId)).findFirst()
                 .ifPresent(styleChoice::setValue);
     }
 
@@ -188,6 +202,7 @@ public class ExportDialog extends Dialog implements LLMInteract {
             locals = {@APILocals(name = "exporter", type = ExporterService.Exporter.class),
                     @APILocals(name = "field", type = TextField.class),
                     @APILocals(name = "languageCode", type = String.class),
+                    @APILocals(name = "templates", type = Map.class),
                     @APILocals(name = "e", type = Exception.class),
                     @APILocals(name = "style", type = PartStyle.class),
                     @APILocals(name = "options", type = ExporterService.ExportOptions.class),
@@ -214,15 +229,17 @@ public class ExportDialog extends Dialog implements LLMInteract {
         }
 
         String languageCode;
+        Map<String, String> templates;
         try {
             languageCode = manuscriptService.getLanguage(manuscript).getCode();
+            templates = exportSettingsService.getTemplates(exporter.getId());
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
             return;
         }
         PartStyle style = exporter.supportsStyles() && styleChoice.getValue() != null ? styleChoice.getValue().style() : null;
         ExportOptions options = new ExportOptions(bookTitle.getValue().trim(), StringUtils.trimToEmpty(author.getValue()),
-                includeHeaders.getValue(), languageCode, style);
+                includeHeaders.getValue(), languageCode, style, templates);
         String file = fileNameFor(fileName.getValue(), exporter);
         int first = from.getValue() == null ? 1 : from.getValue();
         Integer last = to.getValue();

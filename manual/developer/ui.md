@@ -739,6 +739,7 @@ can't leave their declaration; the custom CSS is the author's own and must only 
   every change through `setOnChange` (`UserPart` marks itself changed, which locks the navigation); `UserPart.save` calls `validate()` and
   then `save()` (deletes, saves, `setDefault`), `UserPart.refresh` (the discard) calls `reload()`. `UserPart.trackChanges` skips it, since
   it would also count the editor filling its own fields.
+- The **Exports** tab of the settings (`createExportsTab` of `UserPart`) is the `ui.exports.ExportSettingsEditor`, built like the styles editor: a `Details` per `Exporter` that supports styles or has templates, with a `Select` of the styles for exports and a `TextAreaPopoverComponent` per `ExportTemplate`. Its edits only fill the fields and call `setOnChange`; `validate()` (template syntax), `save()` (what differs from the stored; the default style of the format and the default template are not stored) and `reload()` are called by `UserPart.save` (after the styles editor) and `refresh`, and `trackChanges` skips it.
 
 ### Styles
 

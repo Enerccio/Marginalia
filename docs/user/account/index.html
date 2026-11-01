@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846844762094">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846849867640">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846844762094" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846849867640" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846844762094" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846849867640" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846844762094" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846849867640" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -494,6 +494,23 @@ The braces <code translate="no" v-pre>{ }</code> must match, or the style is not
 away too: duplicating, editing, deleting and setting the default only change the working copy, and <em>Unsaved changes</em> (and
 the lock) appears as soon as you do any of them. A style with no name, or custom CSS whose braces do not match, is
 refused when you save.</p>
+<h3 id="exports">Exports</h3>
+<p>What each file format is exported with: the tab has a section for every format (<strong>Plain text</strong>, <strong>Markdown</strong>, <strong>HTML</strong>, <strong>Word</strong>, <strong>PDF</strong>,
+<strong>EPUB</strong>; click its name to open it).</p>
+<ul>
+<li>
+<p><strong>Print style</strong> (HTML, Word, PDF and EPUB, the formats with fonts and colors) - the style the <a href="../books/export/">export dialog</a> preselects
+for the format. It starts as the look the application brings for the format (<strong>HTML page</strong>, <strong>PDF book</strong>...); the list holds the
+<doc-anchor-trigger to="#styles">styles for exports</doc-anchor-trigger>, the built in ones and yours. Choose another to export that format in it every time, until you change the
+choice in the dialog for one export.</p>
+</li>
+<li>
+<p><strong>Title page</strong> (every format) - the template of the title page, a Handlebars template that writes Markdown, with <code translate="no" v-pre>and</code> (the info icon in the field lists them). Empty is the default one: the title as a heading and the author in italics under it.
+<strong>Fill default</strong> in the info popover starts you from the default.</p>
+</li>
+</ul>
+<p>The tab is saved with the <strong>Save</strong> of the settings and <strong>Discard Changes</strong> throws its changes away, like the others. A template that is not valid
+is refused when you save. A style you make in the Styles tab can be chosen here after you save.</p>
 <h3 id="tags">Tags</h3>
 <p>A table of all your tags (the ones you give to books, lorebooks and lorebook entries) with the number of objects each
 tag is related to. Click a column header to sort by it. Unlike the other tabs, it acts at once: it is not part of the
@@ -622,7 +639,7 @@ settings is installed.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (3b20a129e).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (d2c444082).</p></div>
             </footer>
         </div>
     </div>

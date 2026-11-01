@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846844762094">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846849867640">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846844762094" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846849867640" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846844762094" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846849867640" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846844762094" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846849867640" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -201,7 +201,7 @@ bar shows how far it is.</p>
 <retype-table copy-text="| Field | |
 |---|---|
 | **Format** | The file type, see below. |
-| **Print style** | Only for the formats that have fonts and colors (HTML, Word, PDF, EPUB). The look of the text, chosen from the styles *for exports*: the application brings one for each of these formats, **HTML page**, **E-book (EPUB)**, **PDF book** and **Word document**, which are the looks the exports always had and are chosen by themselves when you pick the format, and you can make your own, see [Print styles](#print-styles). |
+| **Print style** | Only for the formats that have fonts and colors (HTML, Word, PDF, EPUB). The look of the text, chosen from the styles *for exports*: the application brings one for each of these formats, **HTML page**, **E-book (EPUB)**, **PDF book** and **Word document**, which are the looks the exports always had and are chosen by themselves when you pick the format, and you can make your own, see [Print styles](#print-styles). The style you chose for the format in [Settings → Exports](../account.md#exports) is the one preselected. |
 | **File name** | Name of the downloaded file without the extension, which Marginalia adds. Starts as the name of the book. |
 | **Book title** | The title in the file (title page and file properties). Starts as the name of the book; changing it doesn't rename the book. |
 | **Author** | Starts as your full name from your [account](../account.md). Empty means no author. |
@@ -222,7 +222,7 @@ bar shows how far it is.</p>
 </tr>
 <tr>
 <td><strong>Print style</strong></td>
-<td>Only for the formats that have fonts and colors (HTML, Word, PDF, EPUB). The look of the text, chosen from the styles <em>for exports</em>: the application brings one for each of these formats, <strong>HTML page</strong>, <strong>E-book (EPUB)</strong>, <strong>PDF book</strong> and <strong>Word document</strong>, which are the looks the exports always had and are chosen by themselves when you pick the format, and you can make your own, see <doc-anchor-trigger to="#print-styles">Print styles</doc-anchor-trigger>.</td>
+<td>Only for the formats that have fonts and colors (HTML, Word, PDF, EPUB). The look of the text, chosen from the styles <em>for exports</em>: the application brings one for each of these formats, <strong>HTML page</strong>, <strong>E-book (EPUB)</strong>, <strong>PDF book</strong> and <strong>Word document</strong>, which are the looks the exports always had and are chosen by themselves when you pick the format, and you can make your own, see <doc-anchor-trigger to="#print-styles">Print styles</doc-anchor-trigger>. The style you chose for the format in <a href="../../account/#exports">Settings → Exports</a> is the one preselected.</td>
 </tr>
 <tr>
 <td><strong>File name</strong></td>
@@ -379,6 +379,10 @@ theme) become the dark ones for a white page.</p>
 </retype-table>
 <p>Drop caps, the custom CSS (PDF, Word, EPUB), small capitals of headings, the background and the text width are not made in the PDF and Word
 files.</p>
+<h2 id="title-page-template">Title page template</h2>
+<p>The title page is written from a template, one for every format. Change it in <a href="../../account/#exports">Settings → Exports</a>: the template is Markdown
+with <code translate="no" v-pre>(the book title of the dialog) and</code>, for example <code translate="no" v-pre>## </code> and a line <code translate="no" v-pre>written by </code>. The default is the
+title as a heading and the author in italics.</p>
 <h2 id="table-of-contents">Table of contents</h2>
 <p>When the text contains chapters, the file gets a table of contents after the title page. A chapter is a part of the
 story that contains a Markdown heading (a line starting with <code translate="no" v-pre>#</code>, e.g. <code translate="no" v-pre># Chapter 3: The Harbour</code>) - the same rule the
@@ -494,7 +498,7 @@ all of it, make a <a href="../backups/">backup</a>.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (3b20a129e).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (d2c444082).</p></div>
             </footer>
         </div>
     </div>

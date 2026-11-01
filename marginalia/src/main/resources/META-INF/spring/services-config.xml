@@ -287,6 +287,8 @@
     <!-- the built in text styles of the books (the plain look and the book style), registered when the context starts -->
     <bean class="com.github.enerccio.marginalia.domain.styles.PartStyleRegistry" />
     <bean class="com.github.enerccio.marginalia.domain.service.impl.PartStyleServiceImpl" />
+    <!-- the default style and the changed templates of the user's exports, see ExportSettings -->
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.ExportSettingsServiceImpl" />
 
     <bean class="com.github.enerccio.marginalia.extensions.InheritedSettingRegistry" />
 

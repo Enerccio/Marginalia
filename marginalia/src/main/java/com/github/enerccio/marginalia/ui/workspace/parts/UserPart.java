@@ -19,6 +19,7 @@ import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.LLMInteraction;
 import com.github.enerccio.marginalia.ui.components.TagsView;
 import com.github.enerccio.marginalia.ui.dialogs.LorebookImportDialog;
+import com.github.enerccio.marginalia.ui.exports.ExportSettingsEditor;
 import com.github.enerccio.marginalia.ui.shortcuts.KeyBindings;
 import com.github.enerccio.marginalia.ui.shortcuts.KeyBindingsEditor;
 import com.github.enerccio.marginalia.ui.styles.PartStyleEditor;
@@ -99,6 +100,12 @@ public class UserPart implements WorkspaceComponent {
     private PartStyleService partStyleService;
 
     @Autowired
+    private ExporterService exporterService;
+
+    @Autowired
+    private ExportSettingsService exportSettingsService;
+
+    @Autowired
     private User currentUser;
 
     private final Workspace workspace;
@@ -150,6 +157,9 @@ public class UserPart implements WorkspaceComponent {
 
     // Styles: the editor saves and discards with the page
     private PartStyleEditor stylesEditor;
+
+    // Exports: the style and the templates of each format, saved and discarded with the page like the styles
+    private ExportSettingsEditor exportsEditor;
 
     // Tab 5 Extensions
     private Accordion extensionSettings;
@@ -249,6 +259,8 @@ public class UserPart implements WorkspaceComponent {
 
         tabSheet.add(loc.getValue(L.LABEL_STYLES), createStylesTab());
 
+        tabSheet.add(loc.getValue(L.LABEL_EXPORTS), createExportsTab());
+
         tagsView = new TagsView();
         tabSheet.add(loc.getValue(L.LABEL_TAGS), tagsView);
 
@@ -293,6 +305,32 @@ public class UserPart implements WorkspaceComponent {
         stylesEditor = editor;
         layout.add(help, editor);
         layout.setFlexGrow(1, editor);
+        return layout;
+    }
+
+    /**
+     * The exports: the style and the templates of each format. Like the styles it keeps its changes in its fields and tells this part;
+     * {@link #save} stores them (after the styles, which it may choose from) and {@link #refresh} reloads them.
+     */
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = Component.class),
+            locals = {@APILocals(name = "layout", type = VerticalLayout.class),
+                    @APILocals(name = "help", type = Span.class),
+                    @APILocals(name = "editor", type = ExportSettingsEditor.class)})
+    private Component createExportsTab() {
+        VerticalLayout layout = new VerticalLayout();
+        layout.setPadding(false);
+        layout.setWidthFull();
+        Span help = new Span(loc.getValue(L.HELP_EXPORT_SETTINGS));
+        help.addClassName(CssStyles.TEXT_SECONDARY);
+        ExportSettingsEditor editor = new ExportSettingsEditor(loc, exporterService, exportSettingsService, partStyleService, templateService);
+        editor.setOnChange(() -> {
+            if (!loading) {
+                setChanged(true);
+            }
+        });
+        exportsEditor = editor;
+        layout.add(help, editor);
         return layout;
     }
 
@@ -679,6 +717,9 @@ public class UserPart implements WorkspaceComponent {
             if (stylesEditor != null) {
                 stylesEditor.reload();
             }
+            if (exportsEditor != null) {
+                exportsEditor.reload();
+            }
 
             List<AI> allModels = aiService.findAllForUser();
             defaultModelCombo.setItems(allModels);
@@ -797,8 +838,8 @@ public class UserPart implements WorkspaceComponent {
             parameters = {@APIParameter(name = "component", type = Component.class)},
             locals = {@APILocals(name = "field", type = HasValue.class)})
     private void trackChanges(Component component) {
-        if (component instanceof PartStyleEditor) {
-            // reports its changes itself, see createStylesTab
+        if (component instanceof PartStyleEditor || component instanceof ExportSettingsEditor) {
+            // reports its changes itself, see createStylesTab and createExportsTab
             return;
         }
         if (component instanceof HasValue<?, ?> field && ComponentUtil.getData(component, CHANGE_TRACKED_KEY) == null) {
@@ -881,6 +922,9 @@ public class UserPart implements WorkspaceComponent {
         if (stylesEditor != null && !stylesEditor.validate()) {
             return;
         }
+        if (exportsEditor != null && !exportsEditor.validate()) {
+            return;
+        }
 
         String masterTemplate = masterTemplateField.getValue();
         String userPrompt = defaultUserPromptField.getValue();
@@ -943,6 +987,10 @@ public class UserPart implements WorkspaceComponent {
             settingService.save(userSetting);
             if (stylesEditor != null) {
                 stylesEditor.save();
+            }
+            if (exportsEditor != null) {
+                // after the styles: it chooses among them, and a style deleted just now counts as none
+                exportsEditor.save();
             }
             // the open story tabs use the new keys from the next key press
             JavascriptLibrary.setShortcutKeys(UI.getCurrent().getPage(), KeyBindings.of(userSetting).toJson());

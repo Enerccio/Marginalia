@@ -170,6 +170,22 @@ away too: duplicating, editing, deleting and setting the default only change the
 the lock) appears as soon as you do any of them. A style with no name, or custom CSS whose braces do not match, is
 refused when you save.
 
+### Exports
+
+What each file format is exported with: the tab has a section for every format (**Plain text**, **Markdown**, **HTML**, **Word**, **PDF**,
+**EPUB**; click its name to open it).
+
+- **Print style** (HTML, Word, PDF and EPUB, the formats with fonts and colors) - the style the [export dialog](books/export.md) preselects
+  for the format. It starts as the look the application brings for the format (**HTML page**, **PDF book**...); the list holds the
+  [styles for exports](#styles), the built in ones and yours. Choose another to export that format in it every time, until you change the
+  choice in the dialog for one export.
+- **Title page** (every format) - the template of the title page, a Handlebars template that writes Markdown, with `` and
+  `` (the info icon in the field lists them). Empty is the default one: the title as a heading and the author in italics under it.
+  **Fill default** in the info popover starts you from the default.
+
+The tab is saved with the **Save** of the settings and **Discard Changes** throws its changes away, like the others. A template that is not valid
+is refused when you save. A style you make in the Styles tab can be chosen here after you save.
+
 ### Tags
 
 A table of all your tags (the ones you give to books, lorebooks and lorebook entries) with the number of objects each

@@ -924,6 +924,8 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_STYLE_EXPORT_EPUB, "電子書籍（EPUB）");
         setValue(L.LABEL_STYLE_EXPORT_PDF, "PDF の本");
         setValue(L.LABEL_STYLE_EXPORT_DOCX, "Word 文書");
+        setValue(L.LABEL_EXPORTS, "エクスポート");
+        setValue(L.LABEL_EXPORT_STYLE_OF_FORMAT, "形式標準の見た目");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -1661,6 +1663,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_STYLES, "スタイルは、ストーリーとリーダーでのパートのテキストの見た目を変えます。組み込みのスタイルは変更できません。複製して独自のスタイルを作ってください。デフォルトのスタイルは、ストーリーの「テキストのスタイルを変更」メニューでスタイルを選んでいない本に使われます。");
         setValue(L.HELP_STYLE_VALUES, "任意の CSS 値（例：1.1rem、#336699、var(--lumo-body-text-color)）。空欄の場合はアプリケーションの見た目のままです。");
         setValue(L.HELP_STYLE_CUSTOM_CSS, "オプションの後ろ、スタイルの範囲内に追加される CSS です。パートのテキストに対するルール（例：\".chat-message-markdown p { text-indent: 1.5em !important; }\"）か、要素全体に適用される宣言を書きます。");
+        setValue(L.HELP_EXPORT_SETTINGS, "各形式は、エクスポートダイアログで別に選ばない限り、ここで選んだスタイルと自分用のテンプレートでエクスポートされます。エクスポート用のスタイルは「スタイル」タブで作成します（「エクスポート用」にチェック）。テンプレートを空にすると標準のものが使われます。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景設定と世界観の文脈。");
@@ -2043,6 +2046,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.DESC_COMMAND_STATISTICS_RANGE_PARAM, "期間：today、yesterday、last-7-days、last-30-days、this-month、all-time、1つの日付（2026-03-14）、または2つの日付（2026-03-01..2026-03-14）");
         setValue(L.DESC_COMMAND_STATISTICS_SIDE_PARAM, "対象：all（既定）、me、agents");
         setValue(L.DESC_COMMAND_STATISTICS_BY_PARAM, "一覧の単位：day（既定）または book");
+        setValue(L.DESC_TEMPLATE_EXPORT_AUTHOR, "本の著者（いない場合は空）。");
     }
 
     @Override

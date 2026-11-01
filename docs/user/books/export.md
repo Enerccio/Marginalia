@@ -20,7 +20,7 @@ another version of the story, switch to that branch first.
 | Field | |
 |---|---|
 | **Format** | The file type, see below. |
-| **Print style** | Only for the formats that have fonts and colors (HTML, Word, PDF, EPUB). The look of the text, chosen from the styles *for exports*: the application brings one for each of these formats, **HTML page**, **E-book (EPUB)**, **PDF book** and **Word document**, which are the looks the exports always had and are chosen by themselves when you pick the format, and you can make your own, see [Print styles](#print-styles). |
+| **Print style** | Only for the formats that have fonts and colors (HTML, Word, PDF, EPUB). The look of the text, chosen from the styles *for exports*: the application brings one for each of these formats, **HTML page**, **E-book (EPUB)**, **PDF book** and **Word document**, which are the looks the exports always had and are chosen by themselves when you pick the format, and you can make your own, see [Print styles](#print-styles). The style you chose for the format in [Settings → Exports](../account.md#exports) is the one preselected. |
 | **File name** | Name of the downloaded file without the extension, which Marginalia adds. Starts as the name of the book. |
 | **Book title** | The title in the file (title page and file properties). Starts as the name of the book; changing it doesn't rename the book. |
 | **Author** | Starts as your full name from your [account](../account.md). Empty means no author. |
@@ -69,6 +69,12 @@ theme) become the dark ones for a white page.
 
 Drop caps, the custom CSS (PDF, Word, EPUB), small capitals of headings, the background and the text width are not made in the PDF and Word
 files.
+
+## Title page template
+
+The title page is written from a template, one for every format. Change it in [Settings → Exports](../account.md#exports): the template is Markdown
+with `` (the book title of the dialog) and ``, for example `## ` and a line `written by `. The default is the
+title as a heading and the author in italics.
 
 ## Table of contents
 

@@ -5,6 +5,7 @@ import com.github.enerccio.marginalia.domain.model.ImageAttachment;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Resource;
 import com.github.enerccio.marginalia.domain.service.ExporterService.ExportOptions;
+import com.github.enerccio.marginalia.domain.service.ExporterService.ExportTemplate;
 import com.github.enerccio.marginalia.domain.service.ExporterService.Exporter;
 import com.github.enerccio.marginalia.domain.service.ResourceService;
 import com.github.enerccio.marginalia.domain.service.TemplateService;
@@ -39,6 +40,13 @@ public abstract class ExporterBase implements Exporter {
     private static final Pattern HEADER_PATTERN = Pattern.compile("(?m)^\\s*#+\\s*(.+)$");
 
     protected static final String CONTENTS_TITLE = "Contents";
+
+    /**
+     * The title page, which every format writes the same way (the Markdown the template renders); the user can change the template in the
+     * settings.
+     */
+    public static final ExportTemplate TITLE_PAGE_TEMPLATE = new ExportTemplate("titlePage", "Title page",
+            Defaults.DEFAULT_EXPORT_HEADER_TEMPLATE, ExportHeaderTemplateData.class);
 
     private static final Logger log = LoggerFactory.getLogger(ExporterBase.class);
 
@@ -104,6 +112,11 @@ public abstract class ExporterBase implements Exporter {
         }
 
         byte[] finish() throws Exception;
+    }
+
+    @Override
+    public List<ExportTemplate> getTemplates() {
+        return List.of(TITLE_PAGE_TEMPLATE);
     }
 
     protected abstract ExportWriter open(ExportOptions options) throws Exception;
@@ -186,7 +199,7 @@ public abstract class ExporterBase implements Exporter {
     }
 
     protected String buildHeader(ExportOptions options) throws Exception {
-        return templateService.processTemplate(Defaults.DEFAULT_EXPORT_HEADER_TEMPLATE, "exportHeader",
+        return templateService.processTemplate(options.templateText(TITLE_PAGE_TEMPLATE), "exportHeader",
                 new ExportHeaderTemplateData(options.bookName(), StringUtils.trimToNull(options.author())));
     }
 
