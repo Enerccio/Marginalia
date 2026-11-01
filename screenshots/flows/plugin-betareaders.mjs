@@ -284,6 +284,19 @@ await main(async ({ page }) => {
   expect(await page.getByText('There is no reply yet.').count() === 0, 'a change of the medium does not leave a question without a reply');
   await snap(page, '_br-chat-medium');
 
+  // a scene: what happens, not something the author says; a card of its own, and the personas react to it
+  await box.fill('The lights go out and the rain on the windows gets louder. Somebody laughs in the dark.');
+  await box.dispatchEvent('change');
+  await page.getByRole('button', { name: 'Send as scene', exact: true }).click();
+  await page.getByText('The power cut suits the book', { exact: false }).first().waitFor({ timeout: 30000 });
+  await sleep(1200);
+  expect(await page.getByText('The lights go out', { exact: false }).count() >= 1, 'the scene is in the history');
+  expect(systemMessagesSince(logStart).length > 0, 'the model was asked');
+  // the pointer leaves the button (its tooltip covers the line below)
+  await page.mouse.move(1100, 300);
+  await sleep(900);
+  await snap(page, 'plugin-betareaders-scene');
+
   // the spoiler limit and the first part: the personas read parts 2-3 only, then up to part 5
   await plus.click();
   await idle(page, 700);

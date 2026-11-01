@@ -91,7 +91,7 @@ settings commands report the effective values) and the help assistant.
 | Method | |
 |---|---|
 | `create`, `rename`, `move`, `delete(folder, hard)`, `deleteWithContent` | Delete moves the books and folders directly in the folder to its parent (a clash of names stops it before anything moves); `deleteWithContent` soft-deletes them too. |
-| `update(folder, Details)` | The folder dialog: name, description, language and the prompts of a `Map<PromptField, String>`. It writes to the **stored** folder (what the dialog does not set is kept, not the stale copy of the caller) and refuses a change of a setting while an agent works on a book below (`FolderBookLockedException`); the name and the description are free. |
+| `update(folder, Details)` | The folder dialog: name, description, language, the prompts of a `Map<PromptField, String>` and `extensions`, the values of the settings extensions added to the books (`InheritedSetting`, a `Map<String, String>` by key: a blank text is cleared, a key missing from the map is kept; the constructors without it pass `null`, an empty map). It writes to the **stored** folder (what the dialog does not set is kept, not the stale copy of the caller) and refuses a change of a setting (an extension setting too) while an agent works on a book below (`FolderBookLockedException`); the name and the description are free. |
 | `findChildren`, `findChild`, `search`, `resolveScope` | Lists. `search` takes the same `ManuscriptFilterValues` as the book search (`inFolder`, the name, the tags), sorters on `name`, `creation`, `modification`. `resolveScope` turns "the folder, or everything below it" into the ids the repositories filter by (`FolderScope` adds the clause to the books' query and to the folders'). |
 | `getAncestors`, `getPath`, `getPaths`, `findChain` | Paths are the names joined by `/` (`SEPARATOR`); `getPaths` builds all of them from the tree in memory, for the pickers and the *Folder* column. |
 | `describeContent`, `countBooksByFolder` | The numbers for the delete question and the list. The counts are of the folder and everything below it, and leave out the working copies of agents. |
@@ -155,12 +155,12 @@ Plugins that name a changed method or variable must follow `@PublicAPI`, see [Ex
 ## Other places that know about folders
 
 - **Backups.** `BackupServiceImpl.takeBackup` writes the optional key `folder` (the folder's uuid and the `path` from the top, each
-  with name, uuid, description, language and text settings) from `findChain`; `BackupFolders.resolve` finds the folder by uuid, else
+  with name, uuid, description, language, text settings and, as `extensions`, the values of the extension settings by key, kept whether the extension is loaded or not) from `findChain`; `BackupFolders.resolve` finds the folder by uuid, else
   by the name path (creating the missing levels with the saved settings), else returns null (the top level, also on any failure).
   `createBackup`, which the agents' snapshots and `cloneManuscript` share, is unchanged and writes no folder.
   `exportBackup(backup, withImages, includeInherited, progress)` rewrites the stored file on its way out through
   `BackupInheritance`: it drops `folder` and, with the option, writes the values the book inherits (from the backup's own folder
-  path, then the user settings, never the built-in defaults) as the book's own. The old three-argument overload exports with the
+  path, then the user settings, never the built-in defaults) as the book's own; the settings of extensions too (`InheritedSettingRegistry`): a value the book does not set comes from the nearest folder that sets it, else from the user level of the extension (a registered setting, and only when the user settings are written), and the values the book sets itself go along, because they are stored in one object that replaces the book's. The old three-argument overload exports with the
   option on.
 - **Agents.** The working copy (`agentic = true`) used to have no folder and so ignored the folders' settings. It is put in the
   folder of the original: `createAgenticCopy`, `replaceWorkingCopy` (restore of a checkpoint) and `AgentMergeServiceImpl.sync`

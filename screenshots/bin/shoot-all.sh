@@ -55,6 +55,10 @@ python3 bin/seed-statistics.py "$SHOT_HOME/.marginalia/marginalia.sqlite"
 "$SHOT_ROOT/bin/start-app.sh" >/dev/null
 run shoot-statistics.mjs                          # the goals in the Settings, the statistics windows (book, all books, phone): a copy, discarded
 on 13-db-backup
+run shoot-styles.mjs                              # imports the horror style, saves the settings of the administrator, picks a style for the story, the position of a picture: a copy, discarded
+on 13-db-backup
+run plugin-imagegenerator.mjs                     # installs the Image Generator, adds a backend (the fake model draws one fixed picture), makes an image of the last part: a copy, discarded
+on 13-db-backup
 run shoot-books-extra.mjs                        # imports a lorebook with subbooks and a book from a zip: a copy, discarded
 on 22-arcoutline
 run shoot-agents.mjs                             # four agents with runs (the fake model answers from its queue), three more books: a copy, discarded

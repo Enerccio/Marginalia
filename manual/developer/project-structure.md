@@ -353,8 +353,9 @@ plugins/<name>/
 | Plugin | Package | Size |
 |---|---|---|
 | Anthropic Claude | `extensions.anthropic` | Activator and extension, `AnthropicFactory` (the `ExtensionAIFactory`), the settings form, the inference service over the Anthropic Java SDK (embedded in the JAR) and helpers for the messages, the errors and the settings; has unit tests and a test against a fake Messages API. |
-| Arc Outline | `extensions.arcoutline` | Model (arcs, chapters, the in-memory `ArcOutline`, settings, the schema of a generated arc), service (outline, prompt building), a sidebar tab, dialogs (arc, the generators of arcs and chapters on a common `GeneratorDialog`), a settings form, `LegacyNameTools` (reads the name categories saved before the tool dialog) and `arcoutline.css`. |
+| Arc Outline | `extensions.arcoutline` | Model (arcs, chapters, the in-memory `ArcOutline`, settings, the schema of a generated arc and `GeneratedMappedStoryArc` for the import of a story, whose chapters say the message they begin in; `OutlineNode.part` links an arc or chapter to a part of the active branch), service (outline, prompt building, `mapPart`), a sidebar tab, dialogs (arc, the generators of arcs and chapters on a common `GeneratorDialog`, `StoryImportDialog`), a settings form, `LegacyNameTools` (reads the name categories saved before the tool dialog) and `arcoutline.css`. |
 | Author's Note | `extensions.authorsnote` | Model, service, a sidebar panel and a generation listener. |
+| Beta Readers | `extensions.betareaders` | Model (`BetaChat` with its `BetaMessage`s and `ChatPersona`s, the `Persona` library and the `Medium`s, the settings and the data a book keeps, the kinds of a message: said, scene, presence), service (`BetaReadersService` with the store, `ChatRunner` that asks the model, `PromptBuilder` for the system prompt and the story it sends, `PartsTracker` for what the personas have read, `ReplyReader` / `BetaSchemas` / `TextFormat` for the answer in a schema or as text, `PersonaWriter`, `BetaReadersInherited` for the settings a book and a folder inherit), UI (the tab `BetaReadersView`, `ChatPanel` and its message cards, the dialogs of a new chat, of its settings, of the persona and medium libraries and of who is present). |
 | Chapter Marker | `extensions.chaptermarking` | Activator and extension only - the smallest example. |
 | Character Tracker | `extensions.charactertracker` | Model (characters, relationships, the in-memory `CharacterBook`), service, a sidebar tab, dialogs (character, import from the lorebook, relationship map on `GraphView`) and `charactertracker.css`. |
 | Gemma 4 tools fix | `extensions.gemma4toolsfix` | Activator and extension only; registers a `ToolRoleResolver`. |
@@ -405,7 +406,7 @@ See [Plugin development](plugins/index.md).
 | A new service | interface in `domain/service/`, implementation in `impl/`, a bean in `services-config.xml` |
 | The help assistant | `HelpAssistantServiceImpl`, `HelpPrompts` (prompts), `ui/components/HelpAssistantWidget.java`, `ui/LLMInteract.java` (what a part of the UI says and offers), `utils/UiProblems.java` and `bound/ProblemLog.java` (what went wrong), `domain/service/impl/HelpAdminData.java` (the data of the Admin page), `ui/workspace/parts/admin/HelpAssistantPanel.java` (settings) |
 | What an extension can hook into | classes annotated `@Extendable` in `ui/` |
-| Global styles | `src/main/frontend/styles/shared-styles.css`, `reading-mode-styles.css` |
+| Global styles | `src/main/frontend/styles/shared-styles.css` (the book style of the text is code now, `PartStyle`, not a stylesheet) |
 | Login and saved logins | `ui/main/LoginCheckRoute.java`, `UserServiceImpl` |
 | Backups | `BackupServiceImpl` (books), `DatabaseBackupServiceImpl` (database), `Configuration` (pending restore, copy before a migration) |
 | The desktop app | `src/desktop/java/.../DesktopLauncher.java`, the `desktop` profile in `pom.xml` |

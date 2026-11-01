@@ -179,6 +179,13 @@ await main(async ({ page }) => {
       await idle(page, 700);
     }
     await sleep(500);
+    // the last part has a picture below its text: show its text and the start of the picture
+    await page.evaluate(() => {
+      const p = document.querySelector('.story-scroll-panel');
+      const el = [...document.querySelectorAll('.chat-message')].pop();
+      if (p && el) p.scrollTop = el.offsetTop + 60;
+    });
+    await sleep(500);
     await snap(page, 'story-minimized-tabs');
     // and back
     for (let i = 0; i < 2; i++) {

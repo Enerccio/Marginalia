@@ -28,6 +28,8 @@ Where a style is used:
 5. In the story editor open the settings menu (⚙) → **Appearance** → **Change Styles For Text** and tick your style. It is stored in the
    book. To use the style for all your books, select it in the list and press **Set as default**.
 
+![The styles in the menu of the story](../../images/story-style-menu.png)
+
 A box left empty keeps the look of the application, so a style only says what you want different. A style with every box empty is the plain look.
 
 ## The options
@@ -189,6 +191,8 @@ to see it in the preview. It sets **every option** and uses custom CSS for what 
 | **Headings** | Palatino in small capitals, centered, dark red `#8e1b17`, with a faint glow (custom CSS). |
 | **Scene break** | `† † †` in dark red; lists get a cross instead of a dot (custom CSS). |
 | **Code** | Courier New, on a nearly black background. |
+
+![A story in the horror style](../../images/story-style-horror.png)
 
 To try it on a real text, paste this into a part (or the preview shows a similar sample):
 

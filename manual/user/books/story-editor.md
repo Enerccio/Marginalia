@@ -234,6 +234,8 @@ menu itself, **Delete** is its last item, and the rest is in four sub menus: **A
 *Regenerate* and *Swipe* use the turn details of the last part (see [below](#turn-details)). To change what should
 happen, edit them first.
 
+![The menu of a part, with the Inspect sub menu opened](../../images/story-part-menu.png)
+
 ![Token Usage of a part](../../images/token-usage.png)
 
 ## Part metadata
@@ -399,9 +401,13 @@ list of the pictures of the part.
   The height follows the proportions of the picture.
 - The trash button removes the picture from the part.
 
+![The position of a picture: in the middle, with the text flowing around it](../../images/images-position.png)
+
 **Preview as in the viewer** (a button of the dialog, and the same entry in the part menu when the part has pictures) shows the
 part the way the [viewer](publishing.md) shows it, with the text style of the book: the pictures where you put them,
 and a switch for a wide or a narrow (phone) screen. It uses the text in the editor as it is now, saved or not.
+
+![The preview: the text in two columns with the picture between them](../../images/images-preview.png)
 
 The story editor itself does not use the position: it shows the pictures under the text of the part, as a list. The position
 is used by the viewer and by the [exports](export.md#images).
@@ -457,6 +463,8 @@ styles that can not be changed: **Normal** (the look of the application) and **B
 - Choosing another entry stores the style **in the book**, so it overrides the default for that book only; the ticked entry is
   the one the book has now. **Default** takes the choice back.
 - A style you delete falls back to your default in the books that used it.
+
+![Appearance, Change Styles For Text: the styles to choose from](../../images/story-style-menu.png)
 
 In the **Book** style paragraphs are justified and long words are hyphenated automatically, using the dictionary of the
 book's **Language** (set on the [About tab](managing-books.md#the-about-tab)). Hyphenation is done by the browser;

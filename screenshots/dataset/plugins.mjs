@@ -80,16 +80,19 @@ Ending: the church bell rings, Draconia refuses to explain what "tonight" means,
       chapters: [
         {
           name: 'Fog and Hiccups',
+          part: 1,
           description: 'The Three Broomsticks, three butterbeers, Ron\'s hiccups.',
           note: 'The three friends warm up in the Three Broomsticks while the fog thickens outside. Ron\'s hiccups get worse every time Hermione tells him to hold his breath, and Harry spots Draconia passing the window.',
         },
         {
           name: 'Under the Lamp',
+          part: 3,
           description: 'Draconia, Crabbe and Goyle mock Harry on the main street.',
           note: 'Outside, the lamp on the main street makes a small island in the fog. Draconia, Crabbe and Goyle step into it and mock Harry. He keeps his temper, but he notices that Draconia is the only one who does not laugh.',
         },
         {
           name: 'Behind the Three Broomsticks',
+          part: 4,
           description: 'Harry follows Draconia and finds her crying in the lane.',
           note: 'Harry follows Draconia into the lane behind the pub and finds her crying. She sends him away without explaining anything and the church bell rings; when he asks what is happening tonight she will not say.',
         },
@@ -192,6 +195,18 @@ export const betaReaders = [
       reasoning: 'One persona, so one voice: the editor goes through the text.',
       messages: [
         { speaker: 'Quill', parts: [a('uncaps a red pen'), s('Three "suddenly"s in the second part, and a dialogue tag that says she "exclaimed" a whisper. The fog is mentioned four times in the first page; twice is enough.')] },
+      ],
+    },
+  },
+  {
+    // sent as a scene (Send as scene): what happens in the room, and the personas react
+    kind: 'group',
+    question: 'The lights go out and the rain on the windows gets louder.',
+    answer: {
+      reasoning: 'A scene, not a question: the personas react to the dark and go back to the book.',
+      messages: [
+        { speaker: 'Vesper', parts: [a('lowers her voice'), s('Finally something happens in this room. Keep going, I want to hear what the lamp does in your second chapter.')] },
+        { speaker: 'Athena', parts: [a('lights the candle on the table'), s('The power cut suits the book: the fog hides things and so does the dark. Read us the scene by the lamp.')] },
       ],
     },
   },

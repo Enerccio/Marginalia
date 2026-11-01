@@ -11,6 +11,7 @@ import {
     idle,
     login,
     main,
+    menuItem,
     openBook,
     openTab,
     outDir,
@@ -75,7 +76,7 @@ await main(async ({ page }) => {
     await bookTab(page, 'Story');
     await clickCogs(page);
     await idle(page, 400);
-    await page.getByText('Export story', { exact: true }).click();
+    await menuItem(page, 'Export story').click();
     await idle(page, 800);
     await snapDialog(page, 'export-dialog');
     // a PDF: the dialog that offers the finished file
