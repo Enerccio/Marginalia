@@ -993,7 +993,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
     private void createStoryOutlineTab() {
         VerticalLayout leftMarginLayout = new VerticalLayout();
         leftMarginLayout.setSizeFull();
-        leftBar.add(CHAPTERS_TAB, loc.getValue(L.LABEL_CHAPTERS), "Ch", leftMarginLayout);
+        leftBar.add(CHAPTERS_TAB, loc.getValue(L.LABEL_CHAPTERS), TabDockIcon.CHAPTERS, leftMarginLayout);
 
         sidebarHeader = new Span();
         sidebarHeader.addClassName(CssStyles.SIDEBAR_HEADER);
@@ -1020,7 +1020,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
             returns = @APIReturn(type = void.class))
     private void createLorebookTab() {
         lorebookPreview = new LorebookPreview().create();
-        leftBar.add(LOREBOOK_TAB, loc.getValue(L.LABEL_LOREBOOK), "Lo", lorebookPreview);
+        leftBar.add(LOREBOOK_TAB, loc.getValue(L.LABEL_LOREBOOK), TabDockIcon.LOREBOOK, lorebookPreview);
     }
 
     /**
@@ -1060,7 +1060,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
                 }
             }
         });
-        leftBar.add(ANNOTATIONS_TAB, loc.getValue(L.LABEL_ANNOTATIONS), "An", annotationsPanel);
+        leftBar.add(ANNOTATIONS_TAB, loc.getValue(L.LABEL_ANNOTATIONS), TabDockIcon.ANNOTATIONS, annotationsPanel);
     }
 
     /**

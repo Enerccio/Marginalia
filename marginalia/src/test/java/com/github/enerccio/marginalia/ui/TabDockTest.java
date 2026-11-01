@@ -1174,6 +1174,97 @@ class TabDockTest extends MarginaliaTestBase {
         assertThat(descendants(icon, com.vaadin.flow.component.html.Image.class).get(0).getSrc()).startsWith("data:image/svg+xml;base64,");
     }
 
+    private static List<String> iconCaptions(TabDock dock) {
+        return barIcons(dock).stream()
+                .map(icon -> descendants(icon, com.vaadin.flow.component.html.Image.class).get(0).getAlt().orElseThrow())
+                .collect(Collectors.toList());
+    }
+
+    private static void dragIcon(Button source, Button target) {
+        ComponentUtil.fireEvent(source, new DragStartEvent<>(source, true));
+        drop(target);
+    }
+
+    @Test
+    void theIconsOfTheBarAreAlphabeticalUntilTheUserOrdersThem() throws Exception {
+        login();
+        TabDock dock = dock("z", "m", "a", "b");
+        dock.minimize("z");
+        dock.minimize("m");
+        dock.minimize("a");
+
+        assertThat(iconCaptions(dock)).containsExactly("A", "M", "Z");
+        assertThat(dock.getLayout().has("barOrder")).isFalse();
+        // not the order they were minimized in
+        assertThat(dock.getLayout().getAsJsonArray("minimized").toString()).isEqualTo("[\"z\",\"m\",\"a\"]");
+
+        dock.minimize("b");
+        assertThat(iconCaptions(dock)).containsExactly("A", "B", "M", "Z");
+    }
+
+    @Test
+    void anIconDroppedOnAnotherOneTakesItsPlaceAndTheOrderIsSaved() throws Exception {
+        login();
+        TabDock dock = dock("a", "b", "c", "d");
+        List<JsonObject> changes = new java.util.ArrayList<>();
+        dock.minimize("a");
+        dock.minimize("b");
+        dock.minimize("c");
+        dock.setOnLayoutChange(() -> changes.add(dock.getLayout()));
+
+        // forward: A takes the place of C
+        dragIcon(barIcons(dock).get(0), barIcons(dock).get(2));
+        assertThat(iconCaptions(dock)).containsExactly("B", "C", "A");
+        assertThat(changes).hasSize(1);
+        // back: A takes the place of B
+        dragIcon(barIcons(dock).get(2), barIcons(dock).get(0));
+        assertThat(iconCaptions(dock)).containsExactly("A", "B", "C");
+        // an icon dropped on itself changes nothing
+        dragIcon(barIcons(dock).get(1), barIcons(dock).get(1));
+        assertThat(changes).hasSize(2);
+
+        dragIcon(barIcons(dock).get(2), barIcons(dock).get(0));
+        assertThat(iconCaptions(dock)).containsExactly("C", "A", "B");
+        JsonObject saved = dock.getLayout();
+        assertThat(saved.getAsJsonArray("barOrder").toString()).isEqualTo("[\"c\",\"a\",\"b\"]");
+
+        TabDock later = dock("a", "b", "c", "d");
+        later.setLayout(saved);
+        assertThat(iconCaptions(later)).containsExactly("C", "A", "B");
+        assertThat(later.getLayout()).isEqualTo(saved);
+    }
+
+    @Test
+    void aDroppedIconOutsideTheBarDoesNothing() throws Exception {
+        login();
+        TabDock dock = dock("a", "b", "c");
+        dock.minimize("a");
+        dock.minimize("b");
+        // a drop that was not started on an icon (a tab, say)
+        drop(barIcons(dock).get(1));
+
+        assertThat(iconCaptions(dock)).containsExactly("A", "B");
+        assertThat(dock.getLayout().has("barOrder")).isFalse();
+    }
+
+    @Test
+    void aTabThatIsNotInTheBarKeepsItsPlaceInTheOrder() throws Exception {
+        login();
+        TabDock dock = dock("a", "b", "c", "d");
+        dock.minimize("a");
+        dock.minimize("b");
+        dock.minimize("c");
+        dragIcon(barIcons(dock).get(0), barIcons(dock).get(2));
+        assertThat(iconCaptions(dock)).containsExactly("B", "C", "A");
+
+        // B comes back and is minimized again: it is where the user put it, D (never placed) comes after the placed ones
+        dock.restore("b");
+        dock.minimize("d");
+        dock.minimize("b");
+
+        assertThat(iconCaptions(dock)).containsExactly("B", "C", "A", "D");
+    }
+
     @Test
     void storyPartKeepsTheMinimizedTabsInTheManuscript() throws Exception {
         login();

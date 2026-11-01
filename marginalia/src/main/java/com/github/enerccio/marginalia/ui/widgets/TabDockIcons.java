@@ -61,6 +61,23 @@ public final class TabDockIcons {
         return "data:image/svg+xml;base64," + Base64.getEncoder().encodeToString(svg.getBytes(StandardCharsets.UTF_8));
     }
 
+    /**
+     * The SVG of an icon made of a glyph as a data URI: the same colored circle as the one with letters, with the glyph in white
+     * on it. The glyph is drawn on a 24 x 24 grid with {@code stroke="white"}, {@code stroke-width="2"}, round caps and joins and
+     * no fill (set on the group around it), so a path only says {@code d}; an element that is to be solid sets {@code fill="white"}.
+     *
+     * @param markup the SVG elements of the glyph (paths, circles, lines), never script or text from a user
+     * @param key    what the color is taken from, the id of the tab
+     */
+    public static String glyphUri(String markup, String key) {
+        int hue = Math.floorMod(key == null ? 0 : key.hashCode(), 360);
+        String svg = "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'>"
+                + "<circle cx='16' cy='16' r='15' fill='hsl(" + hue + ",55%,42%)'/>"
+                + "<g transform='translate(6.5 6.5) scale(.8)' fill='none' stroke='white' stroke-width='2' "
+                + "stroke-linecap='round' stroke-linejoin='round'>" + markup + "</g></svg>";
+        return "data:image/svg+xml;base64," + Base64.getEncoder().encodeToString(svg.getBytes(StandardCharsets.UTF_8));
+    }
+
     private static String escape(String text) {
         return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
     }

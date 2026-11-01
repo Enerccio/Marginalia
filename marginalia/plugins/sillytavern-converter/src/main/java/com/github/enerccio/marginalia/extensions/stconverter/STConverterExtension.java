@@ -16,6 +16,7 @@ import com.github.enerccio.marginalia.ui.dialogs.story.NewTurnForm;
 import com.github.enerccio.marginalia.ui.main.ApplicationEntryPoint;
 import com.github.enerccio.marginalia.ui.main.Main;
 import com.github.enerccio.marginalia.ui.widgets.TabDock;
+import com.github.enerccio.marginalia.ui.widgets.TabDockIcon;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.google.gson.JsonObject;
 import com.vaadin.flow.component.ComponentUtil;
@@ -39,6 +40,10 @@ import static com.github.enerccio.marginalia.extensions.stconverter.STConverterL
  */
 @Configurable
 public class STConverterExtension implements MarginaliaExtension, ExtensionHasCss {
+
+    /** The icon of the tab in the bar of the minimized tabs: a glyph on a 24 x 24 grid. */
+    private static final TabDockIcon CONVERTER_ICON = TabDockIcon.glyph(
+            "<path d='M4 8h15M15 4l4 4-4 4M20 16H5M9 12l-4 4 4 4'/>");
 
     private static final String VIEW_KEY = ConverterData.KEY + ".view";
     private static final String TAB_ID = "stconverter";
@@ -88,7 +93,7 @@ public class STConverterExtension implements MarginaliaExtension, ExtensionHasCs
                         return true;
                     };
                     ConverterView view = new ConverterView(converterService, currentManuscript, opener, phone);
-                    leftBar.add(TAB_ID, T.localized(CONVERTER), "Cv", view);
+                    leftBar.add(TAB_ID, T.localized(CONVERTER), CONVERTER_ICON, view);
                     ComponentUtil.setData(leftBar, VIEW_KEY, view);
                     activeTabDocks.add(leftBar);
                 }

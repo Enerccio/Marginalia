@@ -18,6 +18,7 @@ import com.github.enerccio.marginalia.extensions.betareaders.ui.BetaReadersView;
 import com.github.enerccio.marginalia.ui.main.ApplicationEntryPoint;
 import com.github.enerccio.marginalia.ui.main.Main;
 import com.github.enerccio.marginalia.ui.widgets.TabDock;
+import com.github.enerccio.marginalia.ui.widgets.TabDockIcon;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.ComponentUtil;
 import com.vaadin.flow.component.accordion.Accordion;
@@ -41,6 +42,10 @@ import static com.github.enerccio.marginalia.extensions.betareaders.BetaReadersL
  */
 @Configurable
 public class BetaReadersExtension implements MarginaliaExtension, ExtensionHasCss {
+
+    /** The icon of the tab in the bar of the minimized tabs: a glyph on a 24 x 24 grid. */
+    private static final TabDockIcon BETA_READERS_ICON = TabDockIcon.glyph(
+            "<circle cx='9' cy='8' r='3.5'/><path d='M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6'/><circle cx='17.5' cy='9' r='2.5'/><path d='M17 14c2.9.2 4.8 2.2 4.8 5'/>");
 
     private static final String SETTINGS_PANEL_KEY = BetaReadersSettings.KEY + ".settingsPanel";
     private static final String VIEW_KEY = BetaReadersSettings.KEY + ".view";
@@ -82,7 +87,7 @@ public class BetaReadersExtension implements MarginaliaExtension, ExtensionHasCs
                         return;
                     }
                     BetaReadersView view = new BetaReadersView(book, service);
-                    leftBar.add("beta-readers", T.localized(BETA_READERS), "BR", view);
+                    leftBar.add("beta-readers", T.localized(BETA_READERS), BETA_READERS_ICON, view);
                     ComponentUtil.setData(leftBar, VIEW_KEY, view);
                     activeTabSheets.add(leftBar);
                 }

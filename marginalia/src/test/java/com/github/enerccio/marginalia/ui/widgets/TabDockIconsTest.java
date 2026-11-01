@@ -48,6 +48,21 @@ class TabDockIconsTest {
         assertThat(decode(TabDockIcons.dataUri(" ", "x"))).contains(">?</text>");
     }
 
+    @Test
+    void aGlyphIsDrawnOnTheColoredCircle() {
+        String svg = decode(TabDockIcons.glyphUri("<path d='M1 1'/>", "chapters"));
+
+        assertThat(svg).contains("<circle").contains("<path d='M1 1'/>").contains("stroke='white'").doesNotContain("<text");
+        assertThat(TabDockIcons.glyphUri("<path d='M1 1'/>", "a")).isNotEqualTo(TabDockIcons.glyphUri("<path d='M1 1'/>", "b"));
+    }
+
+    @Test
+    void theIconOfATabIsItsGlyphItsLettersOrTheInitialsOfTheCaption() {
+        assertThat(decode(TabDockIcon.CHAPTERS.dataUri("Chapters", "chapters"))).doesNotContain("<text");
+        assertThat(decode(TabDockIcon.letters("Xy").dataUri("Chapters", "chapters"))).contains(">Xy</text>");
+        assertThat(decode(TabDockIcon.letters(null).dataUri("Side Query", "sq"))).contains(">SQ</text>");
+    }
+
     private static String decode(String uri) {
         assertThat(uri).startsWith("data:image/svg+xml;base64,");
         return new String(Base64.getDecoder().decode(uri.substring(uri.indexOf(',') + 1)), StandardCharsets.UTF_8);
