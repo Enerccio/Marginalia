@@ -15,5 +15,10 @@ public enum MessageKind {
     /** A line the chat leaves when its medium is changed: the text is now read as another medium (its name is in the text). */
     MEDIUM,
     /** A line the chat leaves when its scene is changed (the new scene is in the text). */
-    SCENE
+    SCENE,
+    /**
+     * A scene the user sends after the first one: a change of scene or a description of what the user does, said by the author and not as
+     * a line of dialogue. The personas react to it, so it is asked for a reply like a message of the user.
+     */
+    SCENE_MESSAGE
 }

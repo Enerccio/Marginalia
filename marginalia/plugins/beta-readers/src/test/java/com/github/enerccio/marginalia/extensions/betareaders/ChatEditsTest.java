@@ -274,6 +274,41 @@ class ChatEditsTest {
     }
 
     @Test
+    void aSceneMessageIsASceneTheModelReadsOnTheSideOfTheUserAndCanBeEdited() {
+        BetaChat chat = group();
+        chat.getMessages().add(BetaMessage.user("Hi"));
+        chat.getMessages().add(turn("Athena"));
+        BetaMessage scene = BetaMessage.scene("  The lights go out.  ");
+        chat.getMessages().add(scene);
+
+        assertEquals(MessageKind.SCENE_MESSAGE, scene.getKind());
+        assertTrue(scene.isUserSide());
+        var system = PromptBuilder.build(chat, "P", new Options(true, 0, 0, null)).messages();
+        assertTrue(system.getFirst().getContent().contains("starts with \"Scene:\""));
+        assertTrue(system.getLast().getContent().startsWith("[Scene: The lights go out.]"));
+        assertEquals(com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole.USER, system.getLast().getRole());
+
+        ChatEdits.edit(chat, scene.getId(), " The door opens. ");
+        assertEquals("The door opens.", scene.getText());
+        assertThrows(IllegalArgumentException.class, () -> ChatEdits.edit(chat, scene.getId(), " "));
+        // the last reply can be taken back and asked again after a scene, as after a message of the user
+        chat.getMessages().add(turn("Vesper"));
+        assertNotNull(ChatEdits.dropLastReply(chat));
+    }
+
+    @Test
+    void aSceneMessageAfterAMessageOfTheUserIsOneMessageOfTheUserSide() {
+        BetaChat chat = group();
+        chat.getMessages().add(BetaMessage.user("I sit down."));
+        chat.getMessages().add(BetaMessage.scene("A storm starts."));
+
+        var messages = PromptBuilder.build(chat, "P", new Options(true, 0, 0, null)).messages();
+
+        assertEquals(2, messages.size());
+        assertTrue(messages.getLast().getContent().startsWith("I sit down.\n\n[Scene: A storm starts.]"));
+    }
+
+    @Test
     void theSameSceneLeavesNoLineAndAnEmptyOneIsTheInheritedOne() {
         BetaChat chat = group();
         assertTrue(ChatEdits.changeScene(chat, "A bar", "A bar"));

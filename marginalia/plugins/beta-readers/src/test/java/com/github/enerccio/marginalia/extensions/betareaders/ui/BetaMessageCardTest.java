@@ -57,6 +57,24 @@ class BetaMessageCardTest {
     }
 
     @Test
+    void aSceneMessageIsACardOfItsOwnWithTheTextAndTheButtons() {
+        BetaMessage scene = BetaMessage.scene("The lights go out.");
+        BetaMessageCard.Actions none = new BetaMessageCard.Actions() {
+            public void edit(BetaMessage message) { }
+            public void delete(BetaMessage message) { }
+            public void deleteSpoken(BetaMessage turn, int index) { }
+            public void regenerate() { }
+        };
+
+        Component card = BetaMessageCard.create(chat(), scene, none, true);
+
+        assertTrue(text(card).contains("Scene"));
+        assertTrue(text(card).contains("The lights go out."));
+        assertFalse(text(card).contains("You"));
+        assertEquals(2, all(card).filter(Button.class::isInstance).count());
+    }
+
+    @Test
     void aMessageOfTheUserShowsTheTextAndWhichPartsItSent() {
         BetaMessage message = BetaMessage.user("What do you think?");
         message.getSentParts().add(new SentPart("a", 41));

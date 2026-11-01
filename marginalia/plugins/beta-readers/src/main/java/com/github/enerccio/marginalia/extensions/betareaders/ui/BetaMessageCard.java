@@ -59,7 +59,8 @@ public final class BetaMessageCard {
      */
     public static Component create(BetaChat chat, BetaMessage message, Actions actions, boolean last) {
         return switch (message.getKind()) {
-            case USER -> user(message, actions);
+            case USER -> user(message, actions, T.localized(YOU));
+            case SCENE_MESSAGE -> user(message, actions, T.localized(SCENE));
             case JOIN -> note(T.localized(JOINED_THE_CONVERSATION).formatted(name(message)), message, actions);
             case LEAVE -> note(T.localized(LEFT_THE_CONVERSATION).formatted(name(message)), message, actions);
             case MEDIUM -> note(T.localized(FROM_NOW_ON_THE_TEXT).formatted(message.getText()), null, actions, message);
@@ -91,10 +92,10 @@ public final class BetaMessageCard {
         return row;
     }
 
-    private static Component user(BetaMessage message, Actions actions) {
+    private static Component user(BetaMessage message, Actions actions, String title) {
         Div card = new Div();
         card.addClassName(BetaReadersStyles.USER);
-        Span who = new Span(T.localized(YOU));
+        Span who = new Span(title);
         who.addClassName(CssStyles.TEXT_BOLD);
         Div headline = new Div(who);
         headline.addClassName(BetaReadersStyles.HEADLINE);

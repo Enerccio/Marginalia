@@ -364,10 +364,26 @@ public class BetaReadersService {
      */
     public Asked ask(Manuscript manuscript, BetaChat chat, String text, boolean includeLatest, ChatRunner.Listener listener)
             throws Exception {
+        return ask(manuscript, chat, text, includeLatest, false, listener);
+    }
+
+    /**
+     * Sends a scene: the text is a change of scene or a description of what the user does, not something the user says, and the model
+     * is asked for the reply to it. It gives no parts of the story. Otherwise it is {@link #ask}.
+     *
+     * @throws NoModelException         when there is no AI to ask
+     * @throws IllegalArgumentException when the text is empty
+     */
+    public Asked askScene(Manuscript manuscript, BetaChat chat, String text, ChatRunner.Listener listener) throws Exception {
+        return ask(manuscript, chat, text, false, true, listener);
+    }
+
+    private Asked ask(Manuscript manuscript, BetaChat chat, String text, boolean includeLatest, boolean scene,
+                      ChatRunner.Listener listener) throws Exception {
         Run run = prepare(manuscript, chat);
 
         Story story = storyFor(manuscript, chat, includeLatest);
-        BetaMessage user = userMessage(chat, story, text, includeLatest);
+        BetaMessage user = scene ? BetaMessage.scene(text) : userMessage(chat, story, text, includeLatest);
         if (user.getText().isBlank() && user.getSentParts().isEmpty()) {
             throw new IllegalArgumentException("There is nothing to send");
         }

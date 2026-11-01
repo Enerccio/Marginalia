@@ -161,6 +161,9 @@ public class BetaReadersLocalization extends PluginLocalizationBundle {
     public static final String READS_UP_TO_PART = "Reads up to part %d";
     public static final String FROM_PART = "from part %d";
     public static final String THE_PERSONAS_HAVE_READ_PARTS = "The personas have read: parts %s";
+    public static final String SEND_AS_A_SCENE = "Send as scene";
+    public static final String SEND_THE_TEXT_AS_A_SCENE = "Send the text as a scene: a change of scene or what you do, not something you say. The personas react to it. Parts of the story are not included.";
+    public static final String WRITE_THE_SCENE_FIRST = "Write the scene first.";
     public static final String MOST_MESSAGES_IN_A_TURN = "Most messages in a turn";
     public static final String EMPTY_INHERITED_THE_MOST_MESSAGES = "Empty: inherited. The most messages the personas write in answer to one message of yours.";
     public static final String EMPTY_AUTOMATIC_THE_MOST_MESSAGES = "Empty: automatic (3 for one persona, about two for each persona of a group, at most 8). The most messages the personas write in answer to one message; a chat can set its own.";
@@ -812,6 +815,21 @@ public class BetaReadersLocalization extends PluginLocalizationBundle {
                 "ペルソナが読んだパート: %s");
         zh(THE_PERSONAS_HAVE_READ_PARTS,
                 "读者角色已读：部分 %s");
+
+        ja(SEND_AS_A_SCENE,
+                "シーンとして送信");
+        zh(SEND_AS_A_SCENE,
+                "作为场景发送");
+
+        ja(SEND_THE_TEXT_AS_A_SCENE,
+                "テキストをシーンとして送信します。シーンの転換や自分の行動であり、自分の発言ではありません。ペルソナはそれに反応します。ストーリーのパートは含まれません。");
+        zh(SEND_THE_TEXT_AS_A_SCENE,
+                "将文本作为场景发送：场景转换或你的行动，而不是你说的话。读者角色会对此作出反应。不包含故事的部分。");
+
+        ja(WRITE_THE_SCENE_FIRST,
+                "先にシーンを書いてください。");
+        zh(WRITE_THE_SCENE_FIRST,
+                "请先写下场景。");
 
         ja(MOST_MESSAGES_IN_A_TURN,
                 "1ターンの最大メッセージ数");

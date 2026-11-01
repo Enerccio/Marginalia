@@ -14,7 +14,7 @@ public class BetaMessage {
     private MessageKind kind = MessageKind.USER;
     private long created = System.currentTimeMillis();
 
-    /** USER: what the user wrote. JOIN and LEAVE: the user's note about it (may be empty). */
+    /** USER, SCENE_MESSAGE: what the user wrote. JOIN and LEAVE: the user's note about it (may be empty). */
     private String text = "";
 
     /**
@@ -43,6 +43,14 @@ public class BetaMessage {
         BetaMessage message = new BetaMessage();
         message.kind = MessageKind.USER;
         message.text = text;
+        return message;
+    }
+
+    /** A scene the user describes (a change of scene, what the user does); the model answers it like a message of the user. */
+    public static BetaMessage scene(String text) {
+        BetaMessage message = new BetaMessage();
+        message.kind = MessageKind.SCENE_MESSAGE;
+        message.text = text == null ? "" : text.strip();
         return message;
     }
 
