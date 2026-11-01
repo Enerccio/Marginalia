@@ -30,6 +30,9 @@ flowchart LR
     war --> desktop["Desktop distribution<br/>jlink runtime + Jetty + WAR + launcher"]
     desktop --> portable["portable archive<br/>marginalia-&lt;v&gt;-&lt;os&gt;-&lt;arch&gt;"]
     desktop --> appimage["native app image<br/>marginalia-&lt;v&gt;-&lt;os&gt;-&lt;arch&gt;-app"]
+    appimage --> installer["installer<br/>.deb / .dmg / .msi"]
+    plugins["plugin JARs"] --> full["full installer<br/>-full.deb / .dmg / .msi"]
+    desktop --> full
     src -.-> plugins["plugin JARs<br/>(built separately)"]
 ```
 
@@ -37,7 +40,7 @@ flowchart LR
 |---|---|---|
 | WAR | `mvn package` | Input of the other two; can be deployed to any Servlet 6.1 container. Attached to GitHub releases for `v*` tags. |
 | Docker image | `Dockerfile`, `docker compose build`, `.github/workflows/server.yml` | `ghcr.io/enerccio/marginalia` (amd64 + arm64) for `master` and `v*` tags; or built from source with compose. |
-| Desktop archives | `mvn package -Pdesktop`, `.github/workflows/desktop.yml` | Attached to GitHub releases for `v*` tags. |
+| Desktop archives and installers | `mvn package -Pdesktop`, `.github/workflows/desktop.yml` | Attached to GitHub releases for `v*` tags. |
 | Plugin JARs | `mvn package` in `marginalia/plugins/<plugin>`, `.github/workflows/server.yml` | Attached to GitHub releases for `v*` tags. |
 | Manual | `retype build` | `docs/`, served by GitHub Pages. |
 
@@ -145,7 +148,19 @@ In `package` (after the WAR is built):
 4. copies the launch scripts from `src/desktop/bin/` into `bin/`;
 5. builds a native app image with `jpackage --type app-image` (no installer), with the runtime, the launcher JAR and
    the `server/` folder as app content;
-6. packs both into archives.
+6. packs both into archives;
+7. (second execution, `desktop-installer`) wraps the app image into an installer with `jpackage --type deb|dmg|msi
+   --app-image` and names it like the archives. Windows installs per user (no administrator rights) with a fixed upgrade
+   UUID (`--win-upgrade-uuid`) so a newer `.msi` replaces the older one; Linux installs to `/opt/marginalia` with a menu
+   entry and the `LICENSE` as the copyright file. jpackage needs `dpkg-deb` and `fakeroot` (Linux), `hdiutil` (macOS) or
+   WiX Toolset 3 (Windows). A machine without them prints a warning and goes on, unless `-Ddesktop.installerRequired=true`
+   (CI sets it); `-Ddesktop.skipInstaller=true` leaves the installer out. The installer steps live in
+   `src/desktop/installer.xml` (targets `plain` and `full`), called from the antrun executions `desktop-installer` and
+   `desktop-full-installer`;
+8. (`desktop-full-installer`, off unless `-Ddesktop.skipFull=false`) the **full** installer: a second app image made
+   with the plugin JARs of `desktop.pluginsDir` (default `target/desktop-plugins`, the build fails when it is empty) as
+   extra `--app-content` (`plugins/` next to `server/`), and an installer of that image named `…-full.deb|dmg|msi`. It has the
+   same name, package name and Windows upgrade UUID as the plain one, so they replace each other.
 
 Outputs in `target/desktop/`:
 
@@ -155,6 +170,8 @@ Outputs in `target/desktop/`:
 | `package/` | The app image: `Marginalia.app` (macOS), `Marginalia/Marginalia.exe` (Windows), `Marginalia/bin/Marginalia` (Linux). |
 | `marginalia-1.6.0-<os>-<arch>.tar.gz` / `.zip` | Archive of the portable folder (`.zip` on Windows). |
 | `marginalia-1.6.0-<os>-<arch>-app.tar.gz` / `.zip` | Archive of the app image. |
+| `marginalia-1.6.0-<os>-<arch>.deb` / `.dmg` / `.msi` | The installer: `.deb` on Linux, `.dmg` on macOS, `.msi` on Windows. |
+| `marginalia-1.6.0-<os>-<arch>-full.deb` / `.dmg` / `.msi` | The installer with the plugins (only when `desktop.skipFull=false`). |
 
 `<os>` is `linux`, `macos` or `windows`, `<arch>` is Java's `os.arch` (`aarch64`...), except that `amd64` is written `x86_64` on every system. Archives are made with
 `tar` so the executable bits of the launchers survive.
@@ -175,6 +192,18 @@ and never ends up in the WAR. On start it:
 5. starts Jetty on `127.0.0.1`, waits up to three minutes for the start page, then shows the tray icon (or a small
    window where there is no system tray) and opens the browser.
 
+**Bundled plugins.** In a full build the plugin JARs are in `plugins/` next to `server/` (`Contents/plugins` in the
+macOS bundle). `BundledPlugins` (JDK only, with unit tests in `BundledPluginsTest`, the launcher sources are a test source
+root) copies them into `<home>/.marginalia/extensions` before Jetty starts: once per JAR file (the names copied are kept
+in `.marginalia/desktop/bundled-plugins.txt`), never a plugin that was copied earlier and is gone from the folder (removed
+by the administrator), a newer version of an installed plugin next to the old JAR (`OsgiService` keeps the newest and moves
+the older ones to `old-versions/`), never over a JAR of the same name. A failure is logged and does not stop the start.
+`-Dmarginalia.pluginsDir` overrides the folder.
+
+The icon is `src/desktop/icons/marginalia.{icns,ico,png}` (made from `src/main/webapp/icons/icon.svg`): the antrun step
+picks the file for the OS (`desktop.icon`) for `jpackage --icon`, and copies the PNG into the launcher jar for the tray
+icon. The browser favicon is `AppShellConfig` (SVG) plus the PNG that Vaadin's `@PWA` reads from `icons/icon.png`.
+
 The JVM options needed by the extension agent (`-Djdk.attach.allowAttachSelf=true -XX:+EnableDynamicAgentLoading`,
 plus `--enable-native-access=ALL-UNNAMED` for SQLite) are passed by `jpackage --java-options` and by the scripts in
 `bin/`. The scripts add `MARGINALIA_JAVA_OPTS`. Keep the three places in sync - the `desktop.javaOptions` property
@@ -193,7 +222,7 @@ list. `jdeps --print-module-deps` on the WAR's libraries helps to find it.
 
 ### Signing
 
-The app images are not signed or notarized. macOS Gatekeeper and Windows SmartScreen warn on the first start; the
+The app images and installers are not signed or notarized. macOS Gatekeeper and Windows SmartScreen warn on the first start; the
 [Desktop app](../user/getting-started/desktop-app.md) page tells users how to get past it. Signing would be added to
 the `jpackage` call (`--mac-sign`, `--mac-signing-key-user-name`...) and, for Windows, as a separate `signtool` step
 in CI.
@@ -253,6 +282,7 @@ on pushes to `master`, on `v*` tags, on pull requests that change `marginalia/**
 ```mermaid
 flowchart LR
     test["test<br/>mvn test (ubuntu)"] --> matrix
+    plugins["plugins<br/>plugin JARs (ubuntu)"] --> matrix
     subgraph matrix["desktop (matrix)"]
         l64[linux-x64]
         la64[linux-arm64]
@@ -266,7 +296,8 @@ flowchart LR
 | Job | Runs on | Does |
 |---|---|---|
 | `test` | `ubuntu-latest` | For `v*` tags, checks that the tag matches the POM version; `mvn test`; uploads `surefire-reports/` when a test fails. |
-| `desktop` | one runner per platform | `mvn -Pdesktop -DskipTests package`, a smoke test, uploads the archives (kept 14 days). |
+| `plugins` | `ubuntu-latest` | Installs the application (`-Dvaadin.skip=true`: the plugins need only its classes JAR) and builds every plugin; uploads the JARs, which are the same on every platform (kept 14 days). |
+| `desktop` | one runner per platform | downloads the plugin JARs to `target/desktop-plugins`, `mvn -Pdesktop -DskipTests -Ddesktop.installerRequired=true -Ddesktop.skipFull=false package`, a smoke test, uploads the archives and the installer (kept 14 days). |
 | `release` | `ubuntu-latest`, `v*` tags only | Downloads all archives and attaches them to the GitHub release of the tag. |
 
 All jobs use Temurin JDK 25 with the Maven cache and check out the full history (`fetch-depth: 0`) for
@@ -274,7 +305,7 @@ All jobs use Temurin JDK 25 with the Maven cache and check out the full history 
 
 The **smoke test** starts the native app (and on Linux and macOS also the portable `bin/marginalia`) with a temporary
 `--home`, a fixed port, `--no-browser --no-tray`, and waits up to three minutes until the start page contains
-`<title>Marginalia</title>`. It fails and prints the launcher log otherwise. It catches broken packaging - a missing
+`<title>Marginalia</title>`. On Linux it also installs the `.deb` and then the full `.deb` and starts the installed `/opt/marginalia/bin/Marginalia` each time; the plain package must install no plugin, the full one must have copied its plugins into the extensions folder. It fails and prints the launcher log otherwise. It catches broken packaging - a missing
 JDK module, a launcher that can't find `server/`, a WAR that doesn't deploy - but doesn't test any feature.
 
 ### server.yml
@@ -317,7 +348,7 @@ the first time it is pushed; make it public in the package settings on GitHub so
    ```
 
 6. **Release.** Create the GitHub release for the tag (by hand or `gh release create v1.6.0`) with the release
-   notes. `desktop.yml` attaches the ten desktop archives when its matrix finishes, `server.yml` the WAR and the
+   notes. `desktop.yml` attaches the desktop archives and installers (twenty files) when its matrix finishes, `server.yml` the WAR and the
    plugin JARs and pushes the Docker image - whichever finishes first creates the release if it doesn't exist yet
    (`softprops/action-gh-release`).
 7. **Plugins.** The plugin versions must match the application version (point 1); the JARs are attached

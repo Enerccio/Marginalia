@@ -305,7 +305,10 @@ in `src/main/bundles/`, `node_modules/`, `package.json` and the Vite configurati
 
 | Path | |
 |---|---|
-| `java/.../desktop/DesktopLauncher.java` | The launcher: options, Jetty base in `~/.marginalia/desktop`, starts Jetty in-process, browser, tray icon, single instance. JDK only. |
+| `java/.../desktop/DesktopLauncher.java` | The launcher: options, Jetty base in `~/.marginalia/desktop`, starts Jetty in-process, browser, tray icon (`marginalia.png`, loaded from the launcher jar), single instance. JDK only. |
+| `java/.../desktop/BundledPlugins.java` | Copies the plugin JARs of a full build (`plugins/` next to `server/`) into the extensions folder, once. JDK only. |
+| `installer.xml` | Ant targets that make the installers (`plain`, `full`) with jpackage, called from the `desktop` profile. |
+| `icons/marginalia.{icns,ico,png}` | The desktop app icon: `--icon` of jpackage (per OS) and the tray icon. Made from `src/main/webapp/icons/icon.svg`. |
 | `bin/marginalia`, `bin/marginalia.bat` | Start scripts of the portable folder (bundled runtime + JVM options + `MARGINALIA_JAVA_OPTS`). |
 
 Built only by the `desktop` profile. See [Packaging & releases](packaging.md).

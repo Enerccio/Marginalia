@@ -433,6 +433,28 @@
         </configuration>
       </plugin>
 
+      <!-- the desktop launcher (JDK only, built apart from the WAR by the desktop profile) is compiled for the tests too,
+           so its plain classes (BundledPlugins) have unit tests -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>3.6.0</version>
+        <executions>
+          <execution>
+            <id>desktop-launcher-tests</id>
+            <phase>generate-test-sources</phase>
+            <goals>
+              <goal>add-test-source</goal>
+            </goals>
+            <configuration>
+              <sources>
+                <source>src/desktop/java</source>
+              </sources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
@@ -605,6 +627,14 @@
         <desktop.dir>${project.build.directory}/desktop</desktop.dir>
         <desktop.dist>${desktop.dir}/marginalia-${project.version}</desktop.dist>
         <desktop.appVersion>${project.version}</desktop.appVersion>
+        <!-- installers (deb / dmg / msi) made from the app image; -Ddesktop.skipInstaller=true leaves them out,
+             -Ddesktop.installerRequired=true (CI) fails the build when one cannot be made (without it a missing
+             dpkg-deb / WiX only prints a warning) -->
+        <desktop.skipInstaller>false</desktop.skipInstaller>
+        <desktop.installerRequired>false</desktop.installerRequired>
+        <!-- the full installer (every built-in plugin inside) needs the plugin JARs in desktop.pluginsDir -->
+        <desktop.skipFull>true</desktop.skipFull>
+        <desktop.pluginsDir>${project.build.directory}/desktop-plugins</desktop.pluginsDir>
         <desktop.jetty.version>12.1.10</desktop.jetty.version>
         <!-- JDK modules of the runtime image: the app, Jetty, the ByteBuddy agent (jdk.attach, java.instrument)
              and the tray icon / browser opening (java.desktop) -->
@@ -636,6 +666,14 @@
                       <os family="mac"/>
                     </condition>
                     <property name="desktop.os" value="linux"/>
+                    <!-- app icon for jpackage: .icns on macOS, .ico on Windows, .png on Linux (src/desktop/icons) -->
+                    <condition property="desktop.icon" value="src/desktop/icons/marginalia.icns">
+                      <equals arg1="${desktop.os}" arg2="macos"/>
+                    </condition>
+                    <condition property="desktop.icon" value="src/desktop/icons/marginalia.ico">
+                      <equals arg1="${desktop.os}" arg2="windows"/>
+                    </condition>
+                    <property name="desktop.icon" value="src/desktop/icons/marginalia.png"/>
 
                     <delete dir="${desktop.dist}"/>
                     <delete dir="${desktop.dir}/package"/>
@@ -645,6 +683,8 @@
                     <mkdir dir="${desktop.dir}/classes"/>
                     <javac srcdir="src/desktop/java" destdir="${desktop.dir}/classes" release="${java.version}"
                            includeantruntime="false" encoding="UTF-8" debug="true"/>
+                    <!-- the tray / window icon is read from the launcher jar -->
+                    <copy file="src/desktop/icons/marginalia.png" todir="${desktop.dir}/classes"/>
                     <mkdir dir="${app}"/>
                     <jar destfile="${app}/marginalia-launcher.jar" basedir="${desktop.dir}/classes">
                       <manifest>
@@ -685,6 +725,8 @@
                       <arg value="${desktop.appVersion}"/>
                       <arg value="--vendor"/>
                       <arg value="enerccio"/>
+                      <arg value="--icon"/>
+                      <arg value="${desktop.icon}"/>
                       <arg value="--input"/>
                       <arg value="${app}"/>
                       <arg value="--main-jar"/>
@@ -731,6 +773,39 @@
                       <arg value="../${desktop.archiveBase}-app.${desktop.archiveExt}"/>
                       <arg value="."/>
                     </exec>
+                  </target>
+                </configuration>
+              </execution>
+
+              <!-- installer of the app image: .deb on Linux, .dmg on macOS, .msi on Windows, named like the archives
+                   (src/desktop/installer.xml) -->
+              <execution>
+                <id>desktop-installer</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>run</goal>
+                </goals>
+                <configuration>
+                  <skip>${desktop.skipInstaller}</skip>
+                  <target>
+                    <ant antfile="src/desktop/installer.xml" target="plain"/>
+                  </target>
+                </configuration>
+              </execution>
+
+              <!-- the same with every plugin in it ("full", -full in the name): a second app image with the plugin JARs of
+                   desktop.pluginsDir, off unless -Ddesktop.skipFull=false (the plugins are built against this
+                   application first, see desktop.yml) -->
+              <execution>
+                <id>desktop-full-installer</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>run</goal>
+                </goals>
+                <configuration>
+                  <skip>${desktop.skipFull}</skip>
+                  <target>
+                    <ant antfile="src/desktop/installer.xml" target="full"/>
                   </target>
                 </configuration>
               </execution>
