@@ -161,6 +161,10 @@ public class BetaReadersLocalization extends PluginLocalizationBundle {
     public static final String READS_UP_TO_PART = "Reads up to part %d";
     public static final String FROM_PART = "from part %d";
     public static final String THE_PERSONAS_HAVE_READ_PARTS = "The personas have read: parts %s";
+    public static final String MOST_MESSAGES_IN_A_TURN = "Most messages in a turn";
+    public static final String EMPTY_INHERITED_THE_MOST_MESSAGES = "Empty: inherited. The most messages the personas write in answer to one message of yours.";
+    public static final String EMPTY_AUTOMATIC_THE_MOST_MESSAGES = "Empty: automatic (3 for one persona, about two for each persona of a group, at most 8). The most messages the personas write in answer to one message; a chat can set its own.";
+    public static final String THE_MOST_MESSAGES_MUST_BE = "The most messages in a turn must be between 1 and %d.";
 
     @Override
     protected void loadKeys() {
@@ -808,5 +812,25 @@ public class BetaReadersLocalization extends PluginLocalizationBundle {
                 "ペルソナが読んだパート: %s");
         zh(THE_PERSONAS_HAVE_READ_PARTS,
                 "读者角色已读：部分 %s");
+
+        ja(MOST_MESSAGES_IN_A_TURN,
+                "1ターンの最大メッセージ数");
+        zh(MOST_MESSAGES_IN_A_TURN,
+                "每轮最多消息数");
+
+        ja(EMPTY_INHERITED_THE_MOST_MESSAGES,
+                "空の場合: 継承。あなたの1通のメッセージに対してペルソナが書くメッセージの最大数。");
+        zh(EMPTY_INHERITED_THE_MOST_MESSAGES,
+                "留空：继承。读者角色回应你的一条消息时最多写的消息数。");
+
+        ja(EMPTY_AUTOMATIC_THE_MOST_MESSAGES,
+                "空の場合: 自動 (1人のペルソナなら3、グループなら1人につき約2、最大8)。1通のメッセージに対してペルソナが書くメッセージの最大数。チャットごとに設定することもできます。");
+        zh(EMPTY_AUTOMATIC_THE_MOST_MESSAGES,
+                "留空：自动（单个读者角色为 3，群组中每个角色约 2，最多 8）。读者角色回应一条消息时最多写的消息数；每个聊天可单独设置。");
+
+        ja(THE_MOST_MESSAGES_MUST_BE,
+                "1ターンの最大メッセージ数は1から%dの間でなければなりません。");
+        zh(THE_MOST_MESSAGES_MUST_BE,
+                "每轮最多消息数必须在 1 到 %d 之间。");
     }
 }

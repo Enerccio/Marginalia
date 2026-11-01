@@ -278,11 +278,42 @@ class BetaReadersStoreTest {
     }
 
     @Test
+    void theMostMessagesOfAChatAndOfTheUserComeBackAndAreNotSetByDefault() {
+        BetaChat chat = new BetaChat("Chat", ChatKind.GROUP);
+        assertEquals(0, chat.getMaxMessages());
+        chat.setMaxMessages(7);
+        BookData data = new BookData();
+        data.getChats().add(chat);
+        JsonObject attributes = new JsonObject();
+        BetaReadersStore.writeBook(attributes, data);
+
+        assertEquals(7, BetaReadersStore.readBook(attributes).getChats().getFirst().getMaxMessages());
+
+        BetaReadersSettings settings = new BetaReadersSettings();
+        assertEquals(0, settings.getMaxMessages());
+        settings.setMaxMessages(9);
+        BetaReadersStore.writeSettings(attributes, settings);
+
+        assertEquals(9, BetaReadersStore.readSettings(attributes).getMaxMessages());
+    }
+
+    @Test
+    void aChatAndSettingsStoredBeforeTheMostMessagesHaveNoLimit() {
+        JsonObject attributes = JsonParser.parseString("{\"" + BookData.KEY + "\": {\"chats\": [{\"title\": \"Old\"}]}, \""
+                + BetaReadersSettings.KEY + "\": {\"scene\": \"x\"}}").getAsJsonObject();
+
+        assertEquals(0, BetaReadersStore.readBook(attributes).getChats().getFirst().getMaxMessages());
+        assertEquals(0, BetaReadersStore.readSettings(attributes).getMaxMessages());
+    }
+
+    @Test
     void aNegativeLimitIsNoLimit() {
         BetaChat chat = new BetaChat("Chat", ChatKind.GROUP);
         chat.setSpoilerLimit(-3);
         chat.setFromPart(-1);
+        chat.setMaxMessages(-2);
 
+        assertEquals(0, chat.getMaxMessages());
         assertEquals(0, chat.getSpoilerLimit());
         assertEquals(0, chat.getFromPart());
     }

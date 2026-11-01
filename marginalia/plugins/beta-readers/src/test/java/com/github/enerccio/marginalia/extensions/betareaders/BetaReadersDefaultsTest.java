@@ -1,9 +1,6 @@
 package com.github.enerccio.marginalia.extensions.betareaders;
 
-import com.github.enerccio.marginalia.extensions.betareaders.model.BetaReadersDefaults;
-import com.github.enerccio.marginalia.extensions.betareaders.model.BetaReadersSettings;
-import com.github.enerccio.marginalia.extensions.betareaders.model.Medium;
-import com.github.enerccio.marginalia.extensions.betareaders.model.Persona;
+import com.github.enerccio.marginalia.extensions.betareaders.model.*;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashSet;
@@ -60,6 +57,23 @@ class BetaReadersDefaultsTest {
         assertEquals("", settings.getMedium());
         assertEquals("", settings.getAi());
         assertEquals("", settings.getProtocol());
+        assertEquals(0, settings.getMaxMessages());
+    }
+
+    @Test
+    void theMostMessagesOfATurnComeFromTheChatThenTheUserThenTheBuiltInRule() {
+        // nothing set: the built-in rule follows the kind and the size of the group
+        assertEquals(3, BetaReadersDefaults.maxMessages(ChatKind.SINGLE, 1, 0, 0));
+        assertEquals(8, BetaReadersDefaults.maxMessages(ChatKind.GROUP, 6, 0, 0));
+        // the user's limit replaces the rule, whatever the kind
+        assertEquals(12, BetaReadersDefaults.maxMessages(ChatKind.SINGLE, 1, 0, 12));
+        assertEquals(12, BetaReadersDefaults.maxMessages(ChatKind.GROUP, 6, 0, 12));
+        // the chat's own limit wins over the user's
+        assertEquals(5, BetaReadersDefaults.maxMessages(ChatKind.GROUP, 6, 5, 12));
+        // a negative limit is not set, a huge one is capped
+        assertEquals(3, BetaReadersDefaults.maxMessages(ChatKind.SINGLE, 1, -1, -4));
+        assertEquals(BetaReadersDefaults.MAX_MESSAGES_LIMIT, BetaReadersDefaults.maxMessages(ChatKind.GROUP, 2, 5000, 0));
+        assertEquals(BetaReadersDefaults.MAX_MESSAGES_LIMIT, BetaReadersDefaults.maxMessages(ChatKind.GROUP, 2, 0, 5000));
     }
 
     @Test

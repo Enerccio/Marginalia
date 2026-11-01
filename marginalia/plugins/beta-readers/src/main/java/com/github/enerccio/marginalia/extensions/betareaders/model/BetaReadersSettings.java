@@ -24,6 +24,8 @@ public class BetaReadersSettings {
     private String ai = "";
     /** The uuid of the protocol of the chats, blank for the protocol of the book. */
     private String protocol = "";
+    /** The most messages the model may write in one turn of a chat that sets no limit itself; 0 for the built-in one (it follows the kind and the size of the group). */
+    private int maxMessages;
     private List<Persona> personas = new ArrayList<>();
     private List<Medium> mediums = new ArrayList<>();
 
@@ -75,6 +77,14 @@ public class BetaReadersSettings {
         this.protocol = protocol;
     }
 
+    public int getMaxMessages() {
+        return maxMessages;
+    }
+
+    public void setMaxMessages(int maxMessages) {
+        this.maxMessages = Math.max(0, maxMessages);
+    }
+
     public List<Persona> getPersonas() {
         return personas;
     }
@@ -101,6 +111,7 @@ public class BetaReadersSettings {
         medium = medium == null ? "" : medium;
         ai = ai == null ? "" : ai;
         protocol = protocol == null ? "" : protocol;
+        maxMessages = Math.max(0, maxMessages);
         personas = personas == null ? new ArrayList<>() : personas;
         mediums = mediums == null ? new ArrayList<>() : mediums;
         return this;

@@ -72,6 +72,26 @@ public final class BetaReadersDefaults {
         return kind == ChatKind.SINGLE ? 3 : Math.clamp(present * 2L, 3, 8);
     }
 
+    /** The most messages a limit set by the user or by a chat may allow. */
+    public static final int MAX_MESSAGES_LIMIT = 50;
+
+    /**
+     * The most messages the model may write in one turn of a chat: the limit of the chat, else the one of the user, else the built-in
+     * one ({@link #maxMessages(ChatKind, int)}). A limit of 0 or less is not set.
+     *
+     * @param chatLimit the limit of the chat
+     * @param userLimit the limit in the settings of the user
+     */
+    public static int maxMessages(ChatKind kind, int present, int chatLimit, int userLimit) {
+        if (chatLimit > 0) {
+            return Math.min(chatLimit, MAX_MESSAGES_LIMIT);
+        }
+        if (userLimit > 0) {
+            return Math.min(userLimit, MAX_MESSAGES_LIMIT);
+        }
+        return maxMessages(kind, present);
+    }
+
     private BetaReadersDefaults() {
     }
 
