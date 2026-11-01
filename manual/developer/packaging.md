@@ -305,7 +305,7 @@ All jobs use Temurin JDK 25 with the Maven cache and check out the full history 
 
 The **smoke test** starts the native app (and on Linux and macOS also the portable `bin/marginalia`) with a temporary
 `--home`, a fixed port, `--no-browser --no-tray`, and waits up to three minutes until the start page contains
-`<title>Marginalia</title>`. On Linux it also installs the `.deb` and then the full `.deb` and starts the installed `/opt/marginalia/bin/Marginalia` each time; the plain package must install no plugin, the full one must have copied its plugins into the extensions folder. It fails and prints the launcher log otherwise. It catches broken packaging - a missing
+`<title>Marginalia</title>`. On Linux it also installs the `.deb` (the package registers its menu entry with `xdg-desktop-menu`, which fails on a runner without a desktop, so the step first creates `/usr/share/desktop-directories`, `/usr/share/applications` and `/etc/xdg/menus/applications-merged`) and then the full `.deb` and starts the installed `/opt/marginalia/bin/Marginalia` each time; the plain package must install no plugin, the full one must have copied its plugins into the extensions folder. It fails and prints the launcher log otherwise. It catches broken packaging - a missing
 JDK module, a launcher that can't find `server/`, a WAR that doesn't deploy - but doesn't test any feature.
 
 ### server.yml
