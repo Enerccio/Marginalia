@@ -405,15 +405,24 @@ instructions of the turn take room from the same budget. Without a model with a 
 
 ![Branch Tokens](../../images/branch-tokens.png)
 
-## Book styles
+## Text styles
 
-The settings menu (⚙) in the bottom bar has **Change Styles For Text**. It switches the text of the parts between the
-normal look of the application and a book-like reading style (the one the [viewer](publishing.md) uses). The setting
-is saved per book.
+The settings menu (⚙) in the bottom bar has **Change Styles For Text**, a menu with one entry per style, sorted by name.
+A style decides how the text of the parts looks: font, size, colors, alignment, headings... The application brings two
+styles that can not be changed: **Normal** (the look of the application) and **Book** (a book-like reading style, the one the
+[viewer](publishing.md) uses), and you can make your own in [Settings → Styles](../account.md#styles).
 
-In this style paragraphs are justified and long words are hyphenated automatically, using the dictionary of the
+- The first entry, **Default (...)**, follows your *default style* (the one marked in *Settings → Styles*, Normal when you
+  chose none). A new book has no style of its own and shows that.
+- Choosing another entry stores the style **in the book**, so it overrides the default for that book only; the ticked entry is
+  the one the book has now. **Default** takes the choice back.
+- A style you delete falls back to your default in the books that used it.
+
+In the **Book** style paragraphs are justified and long words are hyphenated automatically, using the dictionary of the
 book's **Language** (set on the [About tab](managing-books.md#the-about-tab)). Hyphenation is done by the browser;
 for a few rare languages it has no dictionary and the text is simply not hyphenated.
+
+Books that had the old *Change Styles For Text* switch on keep showing the Book style until you choose another entry.
 
 ## Highlighting generated text
 

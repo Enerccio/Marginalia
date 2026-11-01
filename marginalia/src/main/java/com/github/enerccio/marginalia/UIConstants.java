@@ -5,7 +5,7 @@ public class UIConstants {
     public static final String TOOL_COLUMN_SIZE_LARGE = "100px";
     public static final String TOOL_COLUMN_SIZE_HUGE = "120px";
     /** Three icon buttons. */
-    public static final String TOOL_COLUMN_SIZE_TRIPLE = "150px";
+    public static final String TOOL_COLUMN_SIZE_TRIPLE = "180px";
     /** Four icon buttons, e.g. the actions of a shared AI. */
     public static final String TOOL_COLUMN_SIZE_GIANT = "190px";
     /** Five icon buttons, e.g. the actions of an AI that is shared by its owner. */

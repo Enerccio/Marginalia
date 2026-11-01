@@ -710,6 +710,16 @@ vaadin-markdown.agent-report td {
     border-radius: 50%;
 }
 
+/* the style chooser of the reader, opposite to the back button */
+.floating-style-button {
+    position: fixed;
+    top: 16px;
+    right: 24px;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    border-radius: 50%;
+}
+
 /* Message images */
 .message-images {
     display: flex;
@@ -1652,4 +1662,25 @@ vaadin-dialog-overlay.agent-console-phone .help-message-user {
 /* the row of a pane the keyboard cursor is on (the whole row, the grid focuses a single cell) */
 .organise-pane vaadin-grid::part(organise-cursor-row) {
     background-color: var(--lumo-primary-color-10pct);
+}
+
+/* Editor of the text styles (ui.styles.PartStyleEditor) */
+.style-editor-list {
+    flex-shrink: 0;
+}
+
+/* the sample text the style being edited is applied to */
+.style-editor-preview {
+    height: 15rem;
+    flex-shrink: 0;
+    overflow: auto;
+    padding: var(--lumo-space-m);
+    background: var(--lumo-base-color);
+    border: 1px solid var(--lumo-contrast-20pct);
+    border-radius: var(--lumo-border-radius-m);
+}
+
+.style-editor-css textarea {
+    font-family: var(--lumo-font-family-monospace, monospace);
+    font-size: var(--lumo-font-size-s);
 }

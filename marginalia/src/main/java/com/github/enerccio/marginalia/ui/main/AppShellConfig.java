@@ -18,7 +18,6 @@ import org.springframework.beans.factory.annotation.Configurable;
 @ColorScheme(Value.DARK)
 @BodySize(height = "100vh", width = "100vw")
 @CssImport(value = "./styles/shared-styles.css")
-@CssImport(value = "./styles/reading-mode-styles.css")
 @Configurable(preConstruction = true)
 public class AppShellConfig implements AppShellConfigurator {
 

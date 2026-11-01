@@ -27,7 +27,9 @@ import com.github.enerccio.marginalia.ui.dialogs.search.ManuscriptSearchReplaceD
 import com.github.enerccio.marginalia.ui.dialogs.story.*;
 import com.github.enerccio.marginalia.ui.menu.BuiltMenu;
 import com.github.enerccio.marginalia.ui.menu.MenuKind;
+import com.github.enerccio.marginalia.ui.menu.StoryMenuItem;
 import com.github.enerccio.marginalia.ui.menu.StoryMenuRegistry;
+import com.github.enerccio.marginalia.ui.styles.PartStyleApplier;
 import com.github.enerccio.marginalia.ui.widgets.LazyContextMenu;
 import com.github.enerccio.marginalia.ui.widgets.MassDeleteBox;
 import com.github.enerccio.marginalia.ui.widgets.ScrollPanel;
@@ -99,6 +101,9 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
 
     @Autowired
     private StoryMenuRegistry menuRegistry;
+
+    @Autowired
+    private PartStyleService partStyleService;
 
     private final PhoneManuscriptDialog parent;
     private CancellationToken activeGenerationToken;
@@ -276,18 +281,36 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
     }
 
     /**
-     * Turns the styles of the book on or off for the story.
+     * The entries of the "Change styles" menu, see {@link StoryEditor#getPartStyleChoices}.
      */
-    @PublicAPI(from = "1.5.0",
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = List.class),
+            locals = {@APILocals(name = "e", type = Exception.class)})
+    @Override
+    public List<StoryMenuItem.Choice> getPartStyleChoices() {
+        try {
+            return PartStyleApplier.choices(loc, partStyleService, currentManuscript, this::choosePartStyle);
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+            return List.of();
+        }
+    }
+
+    /**
+     * Stores the style in the book (null: follow the default of the user) and shows the story with it.
+     */
+    @PublicAPI(from = "1.6.0",
             returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "styleId", type = String.class)},
             locals = {@APILocals(name = "manuscript", type = Manuscript.class),
                     @APILocals(name = "e", type = Exception.class)})
-    @Override
-    public void toggleBookStyles() {
+    private void choosePartStyle(String styleId) {
         try {
             Manuscript manuscript = parent.refreshManuscript();
-            manuscript.setShowBookStyles(!manuscript.getShowBookStyles());
-            manuscriptService.save(manuscript);
+            manuscript.setPartStyle(styleId);
+            // the old switch must not bring the book style back when the choice is removed
+            manuscript.setShowBookStyles(false);
+            currentManuscript = manuscriptService.save(manuscript);
             applyBookStyles();
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
@@ -532,11 +555,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
     private void applyBookStyles() throws Exception {
         Manuscript manuscript = parent.refreshManuscript();
         applyLanguage(manuscript);
-        if (manuscript.getShowBookStyles()) {
-            layout.addClassName(CssStyles.MARKDOWN_MANUSCRIPT_STYLES);
-        } else {
-            layout.removeClassName(CssStyles.MARKDOWN_MANUSCRIPT_STYLES);
-        }
+        PartStyleApplier.apply(layout, partStyleService.resolve(manuscript));
     }
 
     // lang drives the browser's hyphenation dictionary (see hyphens in shared-styles.css)
@@ -944,6 +963,10 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
     public void onTabEnter() throws Exception {
         if (parent != null) {
             load(parent.refreshManuscript());
+            if (layout != null) {
+                // the styles may have been edited, or the default changed, in the settings
+                applyBookStyles();
+            }
         }
     }
 

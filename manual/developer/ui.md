@@ -709,12 +709,43 @@ The link fires `NodeGotoEvent`. `onNodeGoto` resolves the id among the messages 
 scroll to (`scrollToMessageOnNextRender`) and selects the story tab; entering the tab renders the story, which scrolls to
 the part (and flashes it) instead of scrolling to the bottom; the window of parts is moved around it (`StoryLazyLoader`).
 
+### Text styles
+
+The look of the parts of a book (font, colors, headings, scene break...) is data, not a stylesheet file. `domain.styles.PartStyle`
+holds a name, the options of `PartStyleOption` (an enum: key, label, group, kind) and a custom CSS block; `toCss()` writes the
+stylesheet, scoped to `.part-style-<id> .chat-message-markdown`, with the custom CSS last inside `.part-style-<id> { ... }` (native CSS
+nesting). A style without options and CSS makes no stylesheet (the *Normal* look). Option values are stripped of `{ } ; < >` so they
+can't leave their declaration; the custom CSS is the author's own and must only have balanced braces.
+
+- `PartStyleRegistry` (bean, like `StoryMenuRegistry`) holds the built in styles: `normal` and `book` (the former
+  `reading-mode-styles.css`, now `createBookStyle`), registered in `afterPropertiesSet`; an extension calls `register(owner, style)` and
+  `unregisterAll(owner)` in `onExtensionLoad` / `onExtensionUnload`. Built in styles can't be saved or deleted.
+- `StylesSetting` (a `Setting` row per user, `@DiscriminatorValue`, listed in `persistence.xml`, no migration) keeps the styles of the
+  user as JSON by id (`styles`) and the `defaultStyle` id. `PartStyleService` (`list`, `find`, `save`, `duplicate`, `delete`,
+  `setDefault`, `findChosen`, `resolve`) is the only way to it. A book resolves to its own choice (`Manuscript.partStyle`, an extended
+  attribute holding a style id), else the default of the user, else Normal; a book with the old `showBookStyles` flag and no choice
+  resolves to Book.
+- `ui.styles.PartStyleApplier.apply(host, style)` writes the stylesheet into a `<style id="marginalia-part-style-<id>">` of the page
+  (`JavascriptLibrary.setPageStyle`, every time, so an edited style shows at once) and puts the class on the element, taking the other
+  `part-style-*` classes off. The desktop and phone story tabs call it from `applyBookStyles` (also in `onTabEnter`, so edits in the
+  settings show). The reader (`Viewer`) has a `ReaderStyleChooser` (a floating button with a `ContextMenu`): it offers only the styles of the logged in
+  user (`PartStyleService.list()`, never the owner of a published book), keeps the choice in the cookie `marginalia_reader_style` (through a
+  `ChoiceStore`, a map in the tests) and shows the Book style when there is none or the id is not among the user's styles.
+- The *Change Styles For Text* item of the settings menu is a `StoryMenuItem.choices(...)` item: its sub menu is not registered but
+  worked out from `StoryEditor.getPartStyleChoices()` every time the menu is refreshed (`BuiltMenu` makes the sub menu again only when
+  the texts or ticks changed).
+- `ui.styles.PartStyleEditor` is the **Styles** tab of `UserPart`: a list, the form built from `PartStyleOption`, the custom and
+  generated CSS and a preview that applies a copy of the edited style under the id `preview`. It edits a working copy in memory and reports
+  every change through `setOnChange` (`UserPart` marks itself changed, which locks the navigation); `UserPart.save` calls `validate()` and
+  then `save()` (deletes, saves, `setDefault`), `UserPart.refresh` (the discard) calls `reload()`. `UserPart.trackChanges` skips it, since
+  it would also count the editor filling its own fields.
+
 ### Styles
 
 Global styles are in `src/main/frontend/styles/shared-styles.css` (imported by `AppShellConfig`): spacing helpers,
 the loading indicator, the story text (`.chat-message`), the story tree (`.Treant`) and the utility classes
-(`.text-secondary`, `.hint-text`, `.min-width-0`...). The book style of the reader and editor
-(`.manuscript-styles .chat-message-markdown`) is in `reading-mode-styles.css`, imported separately by `AppShellConfig`. Components are
+(`.text-secondary`, `.hint-text`, `.min-width-0`...). The look of the text of the parts is not in a stylesheet file: it comes from the
+text styles (`PartStyle`, see [Text styles](#text-styles)). Components are
 styled by adding these classes (`addClassName(CssStyles.TEXT_SECONDARY)`), not with `getStyle().set(...)`; keep that
 only for values computed at runtime (the combo box overlay width). A new class goes
 into the stylesheet and into `CssStyles` together. All `vaadin-markdown` elements wrap long lines (and break long words of

@@ -27,6 +27,7 @@ import com.github.enerccio.marginalia.ui.shortcuts.KeyBindings;
 import com.github.enerccio.marginalia.ui.shortcuts.ShortcutAction;
 import com.github.enerccio.marginalia.ui.shortcuts.ShortcutActions;
 import com.github.enerccio.marginalia.ui.shortcuts.ShortcutRegistry;
+import com.github.enerccio.marginalia.ui.styles.PartStyleApplier;
 import com.github.enerccio.marginalia.ui.widgets.*;
 import com.github.enerccio.marginalia.utils.GeneratedTextHighlighter;
 import com.github.enerccio.marginalia.utils.MarkdownArchive;
@@ -124,6 +125,9 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
 
     @Autowired
     private StoryMenuRegistry menuRegistry;
+
+    @Autowired
+    private PartStyleService partStyleService;
 
     private final ManuscriptDialog parent;
     private CancellationToken activeGenerationToken;
@@ -496,18 +500,36 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
     }
 
     /**
-     * Turns the styles of the book on or off for the story.
+     * The entries of the "Change styles" menu, see {@link StoryEditor#getPartStyleChoices}.
      */
-    @PublicAPI(from = "1.5.0",
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = List.class),
+            locals = {@APILocals(name = "e", type = Exception.class)})
+    @Override
+    public List<StoryMenuItem.Choice> getPartStyleChoices() {
+        try {
+            return PartStyleApplier.choices(loc, partStyleService, currentManuscript, this::choosePartStyle);
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+            return List.of();
+        }
+    }
+
+    /**
+     * Stores the style in the book (null: follow the default of the user) and shows the story with it.
+     */
+    @PublicAPI(from = "1.6.0",
             returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "styleId", type = String.class)},
             locals = {@APILocals(name = "manuscript", type = Manuscript.class),
                     @APILocals(name = "e", type = Exception.class)})
-    @Override
-    public void toggleBookStyles() {
+    private void choosePartStyle(String styleId) {
         try {
             Manuscript manuscript = parent.refreshManuscript();
-            manuscript.setShowBookStyles(!manuscript.getShowBookStyles());
-            manuscriptService.save(manuscript);
+            manuscript.setPartStyle(styleId);
+            // the old switch must not bring the book style back when the choice is removed
+            manuscript.setShowBookStyles(false);
+            currentManuscript = manuscriptService.save(manuscript);
             applyBookStyles();
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
@@ -816,11 +838,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
     private void applyBookStyles() throws Exception {
         Manuscript manuscript = parent.refreshManuscript();
         applyLanguage(manuscript);
-        if (manuscript.getShowBookStyles()) {
-            leftBar.addClassName(CssStyles.MARKDOWN_MANUSCRIPT_STYLES);
-        } else {
-            leftBar.removeClassName(CssStyles.MARKDOWN_MANUSCRIPT_STYLES);
-        }
+        PartStyleApplier.apply(leftBar, partStyleService.resolve(manuscript));
     }
 
     // lang drives the browser's hyphenation dictionary (see hyphens in shared-styles.css)
@@ -1378,6 +1396,10 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
             returns = @APIReturn(type = void.class))
     @Override
     public void onTabEnter() throws Exception {
+        if (leftBar != null && parent != null) {
+            // the styles may have been edited, or the default changed, in the settings
+            applyBookStyles();
+        }
         if (scrollToMessageId != null) {
             // a part was asked for (a branch chosen in the tree): the story shows it, not the tab that was open
             showStory();

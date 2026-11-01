@@ -873,6 +873,41 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_DAILY_GOAL_MINUTES, "Daily goal: minutes of editing");
         setValue(L.LABEL_LESS, "Less");
         setValue(L.LABEL_MORE, "More");
+        setValue(L.LABEL_STYLES, "Styles");
+        setValue(L.LABEL_STYLE_NORMAL, "Normal");
+        setValue(L.LABEL_STYLE_BOOK, "Book");
+        setValue(L.LABEL_STYLE_DEFAULT_ENTRY, "Default (%s)");
+        setValue(L.LABEL_STYLE_FONT_FAMILY, "Font");
+        setValue(L.LABEL_STYLE_FONT_SIZE, "Font size");
+        setValue(L.LABEL_STYLE_LINE_HEIGHT, "Line height");
+        setValue(L.LABEL_STYLE_LETTER_SPACING, "Letter spacing");
+        setValue(L.LABEL_STYLE_TEXT_COLOR, "Text color");
+        setValue(L.LABEL_STYLE_TEXT_ALIGN, "Alignment");
+        setValue(L.LABEL_STYLE_HYPHENATION, "Hyphenate words");
+        setValue(L.LABEL_STYLE_PARAGRAPH_SPACING, "Space between paragraphs");
+        setValue(L.LABEL_STYLE_EMPHASIS_COLOR, "Italic text color");
+        setValue(L.LABEL_STYLE_STRONG_COLOR, "Bold text color");
+        setValue(L.LABEL_STYLE_QUOTE_COLOR, "Quote text color");
+        setValue(L.LABEL_STYLE_QUOTE_BORDER_COLOR, "Quote bar color");
+        setValue(L.LABEL_STYLE_HEADING_FONT_FAMILY, "Heading font");
+        setValue(L.LABEL_STYLE_HEADING_COLOR, "Heading color");
+        setValue(L.LABEL_STYLE_HEADING_ALIGN, "Heading alignment");
+        setValue(L.LABEL_STYLE_HEADING_SMALL_CAPS, "Small caps headings");
+        setValue(L.LABEL_STYLE_SCENE_BREAK_TEXT, "Scene break symbol");
+        setValue(L.LABEL_STYLE_SCENE_BREAK_COLOR, "Scene break color");
+        setValue(L.LABEL_STYLE_GROUP_INLINE, "Emphasis");
+        setValue(L.LABEL_STYLE_GROUP_QUOTE, "Quotes");
+        setValue(L.LABEL_STYLE_GROUP_HEADINGS, "Headings");
+        setValue(L.LABEL_STYLE_GROUP_SCENE_BREAK, "Scene break");
+        setValue(L.LABEL_STYLE_OPTIONS, "Options");
+        setValue(L.LABEL_STYLE_CUSTOM_CSS, "Custom CSS");
+        setValue(L.LABEL_STYLE_GENERATED_CSS, "Generated CSS");
+        setValue(L.LABEL_STYLE_PREVIEW, "Preview");
+        setValue(L.LABEL_DUPLICATE, "Duplicate");
+        setValue(L.LABEL_STYLE_SET_DEFAULT, "Set as default");
+        setValue(L.LABEL_STYLE_COPY_NAME, "%s (copy)");
+        setValue(L.LABEL_STYLE_DEFAULT_MARK, "default");
+        setValue(L.LABEL_STYLE_BUILTIN_MARK, "built in");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -1140,6 +1175,8 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.ERROR_FOLDER_TRANSFER_REFUSED, "This can't be done: a folder can't be put into itself or a folder below it, and a folder name must be free.");
         setValue(L.ERROR_FOLDER_BOOK_LOCKED, "The book \"%2$s\" in this folder is locked by the agent \"%1$s\". Pause or stop its run first.");
         setValue(L.ERROR_COMMAND_HISTORY_LIMIT_NEGATIVE, "The number of versions can't be negative; leave it out to take the limit of the book away.");
+        setValue(L.ERROR_STYLE_NAME_REQUIRED, "The style needs a name.");
+        setValue(L.ERROR_STYLE_CSS_UNBALANCED, "The braces { } of the custom CSS do not match.");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "Cannot save form.");
@@ -1505,6 +1542,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_STATISTICS_CALENDAR_LAST, ", last activity at %s");
         setValue(L.MSG_GOAL_PROGRESS_WORDS, "Today: %s of %s words");
         setValue(L.MSG_GOAL_PROGRESS_MINUTES, "Today: %s of %s minutes of editing");
+        setValue(L.MSG_STYLE_PREVIEW_SAMPLE, "# Chapter One\n\nThe *rain* had not stopped for **three days**, and the road to the harbor was a river of mud. \"We should turn back,\" Mara said, but nobody moved.\n\n> The old maps are wrong. Trust the water.\n\n---\n\nMorning came grey and slow. She counted the lanterns along the quay, `seven`, and began to walk.\n\n## A Smaller Heading\n\nThe lines of this paragraph are long enough to show how the text wraps, aligns and, if hyphenation is turned on, breaks a word like extraordinarily.");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");
@@ -1604,6 +1642,9 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_VERSION_HISTORY_PERMISSION, "The most versions of a part the history of the user's books keeps. Empty: no limit from the administrator. A user without this permission has 50; a permission that is not granted keeps no history.");
         setValue(L.HELP_DAILY_GOAL, "The goals of the calendar of the statistics, over all the books: the words you write yourself (not the generated ones) and the minutes you edit on a day. A day that reaches every goal that is set counts for the goal streak. Empty is no goal.");
         setValue(L.HELP_ACTIVATION_RANGE, "The entry is used only for the turns that create a part from this number to this one (the numbers of the outline of the story, both included, the first part is 1). Leave a field empty for no limit. A swipe or a regeneration counts as the part it replaces. A turn that is previewed without a book has no number, the range is not checked.");
+        setValue(L.HELP_STYLES, "Styles change how the text of the parts looks in the story and in the reader. Built in styles can not be changed: duplicate one to make a style of your own. The default style is used by the books that have not chosen one in the Change Styles menu of their story.");
+        setValue(L.HELP_STYLE_VALUES, "Any CSS value (for example 1.1rem, #336699 or var(--lumo-body-text-color)). Empty keeps the look of the application.");
+        setValue(L.HELP_STYLE_CUSTOM_CSS, "CSS added after the options, inside the scope of the style. Write rules for the text of the parts, for example \".chat-message-markdown p { text-indent: 1.5em !important; }\", or declarations that apply to the whole element.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Background lore and world context.");

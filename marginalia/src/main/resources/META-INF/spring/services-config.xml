@@ -284,6 +284,10 @@
 
     <bean class="com.github.enerccio.marginalia.ui.menu.StoryMenuRegistry" />
 
+    <!-- the built in text styles of the books (the plain look and the book style), registered when the context starts -->
+    <bean class="com.github.enerccio.marginalia.domain.styles.PartStyleRegistry" />
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.PartStyleServiceImpl" />
+
     <bean class="com.github.enerccio.marginalia.extensions.InheritedSettingRegistry" />
 
     <bean class="com.github.enerccio.marginalia.domain.service.impl.OsgiServiceImpl" />
