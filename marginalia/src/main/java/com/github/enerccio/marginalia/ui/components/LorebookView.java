@@ -600,6 +600,8 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
                     @APILocals(name = "negativeTagCombo", type = TagMultiComboBox.class),
                     @APILocals(name = "activationPartsField", type = IntegerField.class),
                     @APILocals(name = "activationContextCombo", type = ComboBox.class),
+                    @APILocals(name = "fromMessageField", type = IntegerField.class),
+                    @APILocals(name = "toMessageField", type = IntegerField.class),
                     @APILocals(name = "preventRecursionCheckbox", type = Checkbox.class),
                     @APILocals(name = "commentField", type = TextArea.class)})
     public Component createEntryDetailLayout(LorebookEntry entry) {
@@ -702,6 +704,32 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
             }
         });
 
+        IntegerField fromMessageField = new IntegerField(loc.getValue(L.LABEL_FROM_MESSAGE));
+        fromMessageField.setWidthFull();
+        fromMessageField.setMin(1);
+        fromMessageField.setStepButtonsVisible(true);
+        fromMessageField.setValue(entry.getFromMessage());
+        UIUtils.addTooltip(fromMessageField, loc.getValue(L.HELP_ACTIVATION_RANGE));
+        fromMessageField.addValueChangeListener(e -> {
+            if (e.isFromClient()) {
+                entry.setFromMessage(e.getValue());
+                saveEntry(entry);
+            }
+        });
+
+        IntegerField toMessageField = new IntegerField(loc.getValue(L.LABEL_TO_MESSAGE));
+        toMessageField.setWidthFull();
+        toMessageField.setMin(1);
+        toMessageField.setStepButtonsVisible(true);
+        toMessageField.setValue(entry.getToMessage());
+        UIUtils.addTooltip(toMessageField, loc.getValue(L.HELP_ACTIVATION_RANGE));
+        toMessageField.addValueChangeListener(e -> {
+            if (e.isFromClient()) {
+                entry.setToMessage(e.getValue());
+                saveEntry(entry);
+            }
+        });
+
         Checkbox preventRecursionCheckbox = new Checkbox(loc.getValue(L.LABEL_PREVENT_RECURSION), entry.isPreventRecursion());
         UIUtils.addTooltip(preventRecursionCheckbox, loc.getValue(L.HELP_PREVENT_RECURSION));
         preventRecursionCheckbox.addValueChangeListener(e -> {
@@ -722,7 +750,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
             }
         });
 
-        settingsForm.add(filteringModeCombo, filteringField, insertionModeCombo, negativeTagCombo, activationContextCombo, activationPartsField, preventRecursionCheckbox);
+        settingsForm.add(filteringModeCombo, filteringField, insertionModeCombo, negativeTagCombo, activationContextCombo, activationPartsField, fromMessageField, toMessageField, preventRecursionCheckbox);
 
         detailsLayout.add(payloadField, payloadTokensSpan, settingsForm, commentField);
         return detailsLayout;

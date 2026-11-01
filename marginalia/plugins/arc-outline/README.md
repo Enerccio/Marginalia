@@ -74,6 +74,14 @@ the preview shows under the description; when it finishes, the answer is validat
 arc* adds it at the end of the outline and closes the dialog; *Generate* again tries once more, with the same or an
 edited prompt and specification. The *Model* and *Protocols* lists at the top of the left side start as the model and protocol of the book (the default ones from the user settings when the book has no model) and can be changed for this generation; nothing is saved.
 
+## Linking to the story
+
+An arc or chapter has an optional *Linked part*: its place in the active branch, from 1, as the outline of the story numbers the
+parts (`OutlineNode.part`, stored with the outline). The dialog has the field, a button that fills it with the part that is the
+most visible in the story, and one that scrolls the story to it; a linked card has the scroll button too. The story is reached
+through `ArcOutlineView.StoryTarget` (`visiblePart`, `showPart`), which the extension implements on the story part it decorates:
+`StoryLazyLoader.mostVisible` and `scrollTo`, and the drawer of the phone is closed first.
+
 ## Importing an arc from the story
 
 *Import from story* in the menu of the wand summarizes the written story as an arc with chapters. It always reads the
@@ -84,12 +92,16 @@ left, besides the model, protocol and prompt:
   message it points to.
 - *Number of chapters (optional)* - empty: the model divides the story where it divides naturally; a number (1 to 40) is
   put into the JSON schema, so an answer with another number of chapters is not valid.
+- *Link the chapters to the parts of the story* - on at first: the messages are numbered from 1 within the range sent and every
+  chapter of the answer has a `part`, the message it begins in (the schema requires it); it is mapped back to the place in the
+  branch (`ArcOutlineService.mapPart`) and stored as the `part` of the chapter, the arc gets the part of its first chapter.
 - *State of the imported arc and its chapters* - *Finished* at first, as the story is written already.
 - A counter: the messages of the range and their approximate tokens, and the approximate tokens of the whole prompt
   (template, lore, outline and story) next to what the model takes (context minus the room for the reply). It is
   highlighted when the prompt does not fit. It follows the range, the number of chapters, the prompt and the model.
 - *Prompt* - `{{backgroundLore}}`, `{{existingArcs}}`, `{{story}}` (the messages, each under a `--- Message N ---`
-  heading) and `{{numberOfChapters}}`. It starts as the *Story import prompt* of the settings (default
+  heading), `{{numberOfChapters}}` and `{{mapParts}}` (true when the chapters are linked; the default prompt then explains that the
+  `part` of a chapter is the number of the message it begins in, not the number of the chapter). It starts as the *Story import prompt* of the settings (default
   `Defaults.IMPORT_PROMPT`). There are no tools, the names are in the story.
 
 ![Importing an arc from the story](../../../manual/images/plugin-arcoutline-import.png)

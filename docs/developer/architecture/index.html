@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846522787704">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846880296645">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846522787704" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846880296645" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846522787704" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846880296645" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846522787704" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846522787704" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846880296645" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846880296645" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -67,7 +67,7 @@
                 <div class="flex items-center px-2 md:px-6">
                     <a id="retype-branding-logo" href="https://enerccio.github.io/Marginalia/" class="flex items-center leading-snug text-2xl">
                         <span class="dark:text-white font-bold line-clamp-1 md:line-clamp-2">Marginalia</span>
-                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.5.0</span>
+                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.6.0</span>
                 </div>
     
                 <span class="hidden h-8 border-r md:inline-block border-base-border"></span>
@@ -359,7 +359,7 @@ unloaded and the framework is stopped.</p>
 </li>
 <li>
 <p><code translate="no" v-pre>MarginaliaServlet</code> (<code translate="no" v-pre>@WebServlet(&quot;/*&quot;)</code>, a <code translate="no" v-pre>VaadinServlet</code>) serves the UI. <code translate="no" v-pre>AppShellConfig</code> configures the page:
-push enabled, dark Lumo theme, <code translate="no" v-pre>shared-styles.css</code>.</p>
+push enabled, dark Lumo theme, <code translate="no" v-pre>shared-styles.css</code>, the icons (<code translate="no" v-pre>icons/icon.svg</code> as the vector favicon, <code translate="no" v-pre>icons/icon.png</code> and the PWA icons).</p>
 </li>
 </ol>
 <h2 id="layers-and-packages">Layers and packages</h2>
@@ -371,7 +371,7 @@ push enabled, dark Lumo theme, <code translate="no" v-pre>shared-styles.css</cod
 | `ui.dialogs`, `ui.dialogs.manuscript` | UI | Dialogs; the book window (`ManuscriptDialog`) and its tabs: story, tree, about, prompts, lorebook, backups. `ui.dialogs.agent` has the screens of agents, `ui.dialogs.search` the search and replace windows. |
 | `ui.components`, `ui.widgets` | UI | Reusable components (lorebook editor, story tree, the help assistant's button and chat) and small widgets. |
 | `ui` (`LLMInteract`, `LLMSnapshot`) | UI | How the UI describes itself to the help assistant's model and what the model may do to it. |
-| `domain.components` | Services | Plain data and helpers shared by services and the UI (`TurnInput`, `TokenLimits`, `PromptTokenBreakdown`, `SummaryNode`, `CronSchedule`). |
+| `domain.components` | Services | Plain data and helpers shared by services and the UI (`TurnInput`, `TokenLimits`, `PromptTokenBreakdown`, `PromptComparison`, `SummaryNode`, `CronSchedule`). |
 | `domain.service` (+ `impl`) | Services | Business logic, one service per entity plus generation, templates, backups, cleanup, extensions. |
 | `domain.service.impl.generation` | Services | The generation engine's steps, events and DTOs. |
 | `domain.service.agent`, `domain.service.command`, `domain.service.impl.commands` | Services | [Agents](agents.md) (the runner's tools, the virtual file system, checkpoints, the merge of a result) and [commands](commands/index.md) (the definitions, the scope a command runs in, the commands of the application). |
@@ -424,7 +424,7 @@ push enabled, dark Lumo theme, <code translate="no" v-pre>shared-styles.css</cod
 <tr>
 <td><code translate="no" v-pre>domain.components</code></td>
 <td>Services</td>
-<td>Plain data and helpers shared by services and the UI (<code translate="no" v-pre>TurnInput</code>, <code translate="no" v-pre>TokenLimits</code>, <code translate="no" v-pre>PromptTokenBreakdown</code>, <code translate="no" v-pre>SummaryNode</code>, <code translate="no" v-pre>CronSchedule</code>).</td>
+<td>Plain data and helpers shared by services and the UI (<code translate="no" v-pre>TurnInput</code>, <code translate="no" v-pre>TokenLimits</code>, <code translate="no" v-pre>PromptTokenBreakdown</code>, <code translate="no" v-pre>PromptComparison</code>, <code translate="no" v-pre>SummaryNode</code>, <code translate="no" v-pre>CronSchedule</code>).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>domain.service</code> (+ <code translate="no" v-pre>impl</code>)</td>
@@ -956,6 +956,9 @@ use one particular extension (the name generator) the others find it among <code
 call it by reflection (<a href="../plugins/ipc/">Sharing data between extensions</a>).</p>
 </li>
 <li>
+<p><strong>Inherited settings.</strong> An extension registers a line, a text area or a choice with <code translate="no" v-pre>InheritedSettingRegistry</code> (<code translate="no" v-pre>InheritedSetting</code>); the <em>Prompts</em> tab of a book and the folder window show them with the other prompts and the values live in the <code translate="no" v-pre>attributes</code> of the book or folder (<code translate="no" v-pre>InheritedSettingValues</code>), resolved through the folders (<a href="../plugins/inherited-settings/">Inherited settings</a>).</p>
+</li>
+<li>
 <p><strong>Styles.</strong> An extension that implements <code translate="no" v-pre>ExtensionHasCss</code> gets its CSS put into every open page: <code translate="no" v-pre>CssRegistry</code>
 (owned by <code translate="no" v-pre>Main</code> and <code translate="no" v-pre>Viewer</code>) reads the loaded extensions when its page is attached and listens to the
 loaded/unloaded events of <code translate="no" v-pre>OsgiService</code> afterwards (<a href="../plugins/ui-extensions/#styles-of-a-plugin">Styles of a plugin</a>).</p>
@@ -1103,7 +1106,7 @@ refused, so an extension can&#x27;t replace English.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (60a4afd23).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (3b5a4203d).</p></div>
             </footer>
         </div>
     </div>

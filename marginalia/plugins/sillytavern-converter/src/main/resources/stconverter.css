@@ -1,4 +1,4 @@
-/* Styles of the SillyTavern Converter plugin only. Put into the page by the application while the extension is loaded
+/* Styles of the Converter plugin (sillytavern-converter) only. Put into the page by the application while the extension is loaded
    (STConverterExtension.getCss); the application's shared-styles.css is not used for them. */
 
 /* The whole tab: small text and tight spacing for everything in it (the Lumo variables are read by the fields, the grids
@@ -84,4 +84,16 @@ vaadin-grid::part(stc-current) {
 
 vaadin-grid::part(stc-clickable) {
     cursor: pointer;
+}
+
+/* In the drawer of the story on a phone: a little larger text for the fingers, the tab does not need the room of the desktop one */
+.stc-phone {
+    font-size: var(--lumo-font-size-s);
+    --lumo-font-size-m: var(--lumo-font-size-s);
+    --lumo-font-size-s: var(--lumo-font-size-xs);
+    --lumo-space-m: 0.375rem;
+}
+
+.stc-phone .stc-tabs {
+    min-height: 60vh;
 }

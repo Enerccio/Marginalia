@@ -205,6 +205,12 @@ public class StoryGenerationListener<C extends Component & StoryCard> implements
 
             callbacks.partGenerated();
 
+            try {
+                // the generation moved the active leaf to the new part in a book of its own, the story still has the old one
+                callbacks.reloadManuscript();
+            } catch (Exception e) {
+                UIUtils.internalServerError(loc, e);
+            }
             callbacks.renderStory();
             callbacks.partCompleted(message);
             UIPushGuard.push(ui);

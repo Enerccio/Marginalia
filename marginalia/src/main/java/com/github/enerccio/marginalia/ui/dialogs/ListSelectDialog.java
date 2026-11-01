@@ -59,8 +59,9 @@ public class ListSelectDialog<T> extends Dialog implements LLMInteract {
                     @APILocals(name = "vl", type = VerticalLayout.class)})
     public void create() {
         setHeaderTitle(title);
+        // the height follows the content (a fixed one clipped the buttons); the width gives way on a phone
         setWidth("450px");
-        setHeight("200px");
+        setMaxWidth("100%");
         setModality(ModalityMode.STRICT);
         setCloseOnEsc(false);
         setCloseOnOutsideClick(false);

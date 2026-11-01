@@ -38,7 +38,7 @@ public final class MergeDiff {
      * The settings of a book an agent can change, besides its tags and the data of the plugins ({@code attributes_*}).
      */
     public static final List<String> BOOK_FIELDS = List.of("name", "description", "language", "pov", "tense", "style", "template",
-            "userPrompt", "summaryPrompt", "metaSummaryPrompt");
+            "userPrompt", "summaryPrompt", "metaSummaryPrompt", "historyMaxVersions");
     public static final String TAGS = "tags";
     public static final String ATTRIBUTES = "attributes_";
 

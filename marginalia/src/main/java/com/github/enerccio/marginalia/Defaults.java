@@ -302,6 +302,15 @@ Write the instructions for the next turn of the ongoing narrative "MANUSCRIPT CH
      * Markdown of the first (title) page of an exported book, rendered as Handlebars template with
      * {@link com.github.enerccio.marginalia.domain.templates.ExportHeaderTemplateData}.
      */
+    public static final String DEFAULT_EXPORT_FRONT_MATTER_TEMPLATE = """
+---
+title: "{{title}}"{{#author}}
+author: "{{.}}"{{/author}}
+lang: {{language}}
+date: {{exportDate}}
+---
+""";
+
     public static final String DEFAULT_EXPORT_HEADER_TEMPLATE = """
 # {{title}}
 {{#author}}

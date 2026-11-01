@@ -38,7 +38,7 @@ import java.util.List;
 import java.util.TreeMap;
 import java.util.function.Consumer;
 
-import static com.github.enerccio.marginalia.extensions.sidequery.SideQueryLocalization.T;
+import static com.github.enerccio.marginalia.extensions.sidequery.SideQueryLocalization.*;
 
 @Configurable(preConstruction = true)
 public class SideQueryTabContent extends VerticalLayout {
@@ -113,26 +113,26 @@ public class SideQueryTabContent extends VerticalLayout {
 
         SideQueryOptions opts = session.getOptions();
 
-        lorebookBox = new Checkbox(T.localized("Lorebook"), opts.isIncludeLorebook());
+        lorebookBox = new Checkbox(T.localized(LOREBOOK), opts.isIncludeLorebook());
         lorebookBox.addValueChangeListener(e -> {
             opts.setIncludeLorebook(e.getValue());
             triggerSave();
             updateTokenCount();
         });
 
-        messagesBox = new Checkbox(T.localized("Chat Logs"), opts.isIncludeMessages());
-        messagesBox.setTooltipText(T.localized("Story parts from - to, numbered from 1 as in the outline"));
+        messagesBox = new Checkbox(T.localized(CHAT_LOGS), opts.isIncludeMessages());
+        messagesBox.setTooltipText(T.localized(STORY_PARTS_FROM_TO_NUMBERED));
         messagesFromField = new IntegerField();
         messagesFromField.setWidth("60px");
         messagesFromField.setMin(1);
         messagesFromField.setValue(opts.getPartsFrom());
-        messagesFromField.setTooltipText(T.localized("First story part (from 1)"));
+        messagesFromField.setTooltipText(T.localized(FIRST_STORY_PART_FROM_1));
 
         messagesToField = new IntegerField();
         messagesToField.setWidth("60px");
         messagesToField.setMin(1);
         messagesToField.setValue(opts.getPartsTo());
-        messagesToField.setTooltipText(T.localized("Last story part"));
+        messagesToField.setTooltipText(T.localized(LAST_STORY_PART));
 
         messagesFromField.setEnabled(opts.isIncludeMessages());
         messagesToField.setEnabled(opts.isIncludeMessages());
@@ -161,12 +161,12 @@ public class SideQueryTabContent extends VerticalLayout {
             }
         });
 
-        tokenCountSpan = new Span(T.localized("Tokens: 0"));
+        tokenCountSpan = new Span(T.localized(TOKENS_0));
         tokenCountSpan.addClassNames(CssStyles.MARGIN_LEFT_AUTO, CssStyles.TEXT_S);
 
         sourcesBtn = createSourcesButton(opts);
 
-        optionsBar.add(lorebookBox, messagesBox, messagesFromField, new Span(T.localized("to")), messagesToField, sourcesBtn, tokenCountSpan);
+        optionsBar.add(lorebookBox, messagesBox, messagesFromField, new Span(T.localized(TO)), messagesToField, sourcesBtn, tokenCountSpan);
 
         messagesListLayout = new VerticalLayout();
         messagesListLayout.setWidthFull();
@@ -190,7 +190,7 @@ public class SideQueryTabContent extends VerticalLayout {
         storagePanel.setAlignItems(Alignment.CENTER);
 
         savedQueriesCombo = new ComboBox<>();
-        savedQueriesCombo.setPlaceholder(T.localized("-- Select Saved Query --"));
+        savedQueriesCombo.setPlaceholder(T.localized(SELECT_SAVED_QUERY));
         savedQueriesCombo.setWidthFull();
         refreshSavedQueriesCombo();
 
@@ -205,22 +205,22 @@ public class SideQueryTabContent extends VerticalLayout {
 
         Button saveQueryBtn = new Button(Solid.SAVE.create(), e -> handleSaveQuery());
         saveQueryBtn.setThemeName("tertiary icon small");
-        saveQueryBtn.setTooltipText(T.localized("Save prompt"));
+        saveQueryBtn.setTooltipText(T.localized(SAVE_PROMPT));
 
         Button saveAsQueryBtn = new Button(Solid.FOLDER_PLUS.create(), e -> handleSaveAsQuery());
         saveAsQueryBtn.setThemeName("tertiary icon small");
-        saveAsQueryBtn.setTooltipText(T.localized("Save prompt as..."));
+        saveAsQueryBtn.setTooltipText(T.localized(SAVE_PROMPT_AS));
 
         Button deleteQueryBtn = new Button(Solid.TRASH.create(), e -> handleDeleteQuery());
         deleteQueryBtn.setThemeName("tertiary icon small");
-        deleteQueryBtn.setTooltipText(T.localized("Delete saved prompt"));
+        deleteQueryBtn.setTooltipText(T.localized(DELETE_SAVED_PROMPT));
 
         storagePanel.add(savedQueriesCombo, saveQueryBtn, saveAsQueryBtn, deleteQueryBtn);
         storagePanel.setFlexGrow(1, savedQueriesCombo);
 
         userInputArea = new TextArea();
         userInputArea.setWidthFull();
-        userInputArea.setPlaceholder(T.localized("Enter query..."));
+        userInputArea.setPlaceholder(T.localized(ENTER_QUERY));
         ResizableTextArea.install(loc, userInputArea, "100px");
 
         HorizontalLayout btnRow = new HorizontalLayout();
@@ -251,14 +251,14 @@ public class SideQueryTabContent extends VerticalLayout {
         String currentText = userInputArea.getValue();
 
         if (StringUtils.isBlank(currentText)) {
-            Notification.show(T.localized("Cannot save an empty query"));
+            Notification.show(T.localized(CANNOT_SAVE_AN_EMPTY_QUERY));
             return;
         }
 
         if (StringUtils.isNotBlank(selected)) {
             try {
                 sideQueryService.saveQueryTemplate(selected, currentText);
-                Notification.show(T.localized("Saved query: %s").formatted(selected));
+                Notification.show(T.localized(SAVED_QUERY).formatted(selected));
                 refreshSavedQueriesCombo();
                 savedQueriesCombo.setValue(selected);
             } catch (Exception e) {
@@ -272,28 +272,28 @@ public class SideQueryTabContent extends VerticalLayout {
     private void handleSaveAsQuery() {
         String currentText = userInputArea.getValue();
         if (StringUtils.isBlank(currentText)) {
-            Notification.show(T.localized("Cannot save an empty query"));
+            Notification.show(T.localized(CANNOT_SAVE_AN_EMPTY_QUERY));
             return;
         }
 
         Dialog dialog = new Dialog();
-        dialog.setHeaderTitle(T.localized("Save Query As"));
+        dialog.setHeaderTitle(T.localized(SAVE_QUERY_AS));
 
-        TextField nameField = new TextField(T.localized("Query Name"));
+        TextField nameField = new TextField(T.localized(QUERY_NAME));
         nameField.setWidthFull();
         DialogFocus.onOpen(dialog, nameField);
 
-        Button saveBtn = new Button(T.localized("Save"), e -> {
+        Button saveBtn = new Button(T.localized(SAVE), e -> {
             String name = nameField.getValue() != null ? nameField.getValue().trim() : "";
             if (name.isEmpty()) {
-                Notification.show(T.localized("Name cannot be empty"));
+                Notification.show(T.localized(NAME_CANNOT_BE_EMPTY));
                 return;
             }
             try {
                 sideQueryService.saveQueryTemplate(name, currentText);
                 refreshSavedQueriesCombo();
                 savedQueriesCombo.setValue(name);
-                Notification.show(T.localized("Saved query: %s").formatted(name));
+                Notification.show(T.localized(SAVED_QUERY).formatted(name));
                 dialog.close();
             } catch (Exception ex) {
                 UIUtils.internalServerError(loc, ex);
@@ -301,7 +301,7 @@ public class SideQueryTabContent extends VerticalLayout {
         });
         saveBtn.setThemeName("primary");
 
-        Button cancelBtn = new Button(T.localized("Cancel"), e -> dialog.close());
+        Button cancelBtn = new Button(T.localized(CANCEL), e -> dialog.close());
 
         dialog.add(new VerticalLayout(nameField));
         dialog.getFooter().add(cancelBtn, saveBtn);
@@ -311,7 +311,7 @@ public class SideQueryTabContent extends VerticalLayout {
     private void handleDeleteQuery() {
         String selected = savedQueriesCombo.getValue();
         if (StringUtils.isBlank(selected)) {
-            Notification.show(T.localized("Select a saved query to delete"));
+            Notification.show(T.localized(SELECT_A_SAVED_QUERY));
             return;
         }
 
@@ -319,7 +319,7 @@ public class SideQueryTabContent extends VerticalLayout {
             sideQueryService.deleteQueryTemplate(selected);
             refreshSavedQueriesCombo();
             savedQueriesCombo.setValue(null);
-            Notification.show(T.localized("Deleted query: %s").formatted(selected));
+            Notification.show(T.localized(DELETED_QUERY).formatted(selected));
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
@@ -434,7 +434,7 @@ public class SideQueryTabContent extends VerticalLayout {
 
             SideQueryMessage aiMsg = new SideQueryMessage();
             aiMsg.setFromUser(false);
-            aiMsg.setContents(T.localized("Generating response..."));
+            aiMsg.setContents(T.localized(GENERATING_RESPONSE));
             session.getMessages().add(aiMsg);
 
             // Display messages once to mount the card in the UI
@@ -492,7 +492,7 @@ public class SideQueryTabContent extends VerticalLayout {
                 public void onError(Throwable exception) {
                     ui.access(() -> {
                         activeToken = null;
-                        aiCard.updateContent(T.localized("Error: %s").formatted(InferenceErrors.messageOf(loc, exception)));
+                        aiCard.updateContent(T.localized(ERROR).formatted(InferenceErrors.messageOf(loc, exception)));
                         triggerSave();
                         setGeneratingState(false);
                         updateTokenCount();
@@ -505,14 +505,14 @@ public class SideQueryTabContent extends VerticalLayout {
                     return activeToken == null || activeToken.isCancelled();
                 }
             };
-            try (InferenceSession _ = InferenceSession.open(SideQueryService.SESSION_KIND)) {
+            try (InferenceSession _ = InferenceSession.open(SideQueryService.SESSION_KIND); UsageContext _ = UsageContext.open(manuscript)) {
                 activeToken = service.stream(payload, targetProtocol, queryCallback);
             }
 
         } catch (Exception e) {
             SideQueryMessage aiMsg = new SideQueryMessage();
             aiMsg.setFromUser(false);
-            aiMsg.setContents(T.localized("Failed to start inference: %s").formatted(e.getMessage()));
+            aiMsg.setContents(T.localized(FAILED_TO_START_INFERENCE).formatted(e.getMessage()));
             session.getMessages().add(aiMsg);
             triggerSave();
             displayMessages();
@@ -558,8 +558,8 @@ public class SideQueryTabContent extends VerticalLayout {
     private Button createSourcesButton(SideQueryOptions opts) {
         Button button = new Button(Solid.PLUG.create());
         button.setThemeName("tertiary icon small");
-        button.setAriaLabel(T.localized("Additional sources"));
-        button.setTooltipText(T.localized("Additional sources: data of other extensions"));
+        button.setAriaLabel(T.localized(ADDITIONAL_SOURCES));
+        button.setTooltipText(T.localized(ADDITIONAL_SOURCES_DATA));
 
         VerticalLayout content = new VerticalLayout();
         content.setPadding(true);
@@ -583,15 +583,15 @@ public class SideQueryTabContent extends VerticalLayout {
         List<SideQueryService.Source> messageSources = sideQueryService.listMessageSources();
 
         if (manuscriptSources.isEmpty() && messageSources.isEmpty()) {
-            content.add(new Span(T.localized("No other extension offers data.")));
+            content.add(new Span(T.localized(NO_OTHER_EXTENSION_OFFERS_DATA)));
             return;
         }
         if (!manuscriptSources.isEmpty()) {
-            content.add(sourcesHeading(T.localized("About the book")));
+            content.add(sourcesHeading(T.localized(ABOUT_THE_BOOK)));
             manuscriptSources.forEach(source -> content.add(sourceCheckbox(source, opts.getManuscriptSources())));
         }
         if (!messageSources.isEmpty()) {
-            content.add(sourcesHeading(T.localized("About story parts (added to each included part, needs Chat Logs)")));
+            content.add(sourcesHeading(T.localized(ABOUT_STORY_PARTS_ADDED)));
             messageSources.forEach(source -> content.add(sourceCheckbox(source, opts.getMessageSources())));
         }
     }
@@ -637,13 +637,13 @@ public class SideQueryTabContent extends VerticalLayout {
         messagesListLayout.setEnabled(!generating);
 
         if (generating) {
-            sendBtn.setText(T.localized("STOP"));
+            sendBtn.setText(T.localized(STOP));
             sendBtn.setThemeName("error primary");
             sendBtn.setEnabled(true);
             undoBtn.setEnabled(false);
             generateAgainBtn.setEnabled(false);
         } else {
-            sendBtn.setText(T.localized("SEND"));
+            sendBtn.setText(T.localized(SEND));
             sendBtn.setThemeName("primary");
             sendBtn.setEnabled(true);
             undoBtn.setEnabled(!session.getMessages().isEmpty());
@@ -668,7 +668,7 @@ public class SideQueryTabContent extends VerticalLayout {
             for (LLMChatMessage msg : payload) {
                 count += service.countTokensApprox(msg.getContent());
             }
-            tokenCountSpan.setText(T.localized("Tokens: ~%d").formatted(count));
+            tokenCountSpan.setText(T.localized(TOKENS).formatted(count));
         } catch (Exception ignored) {}
     }
 

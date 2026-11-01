@@ -64,6 +64,20 @@ public class JpaAgentRunRepository extends JpaExtendableRepository<AgentRun> imp
     }
 
     @Override
+    public Manuscript findOriginalOfCopy(Manuscript copy) throws Exception {
+        if (copy == null || copy.getId() == null) {
+            return null;
+        }
+        List<Manuscript> books = entityManager
+                .createQuery("SELECT a.manuscript FROM AgentRun r JOIN r.agent a WHERE r.deleted = false AND r.workingCopy.id = :copy "
+                        + "ORDER BY r.id DESC", Manuscript.class)
+                .setParameter("copy", copy.getId())
+                .setMaxResults(1)
+                .getResultList();
+        return books.isEmpty() ? null : books.getFirst();
+    }
+
+    @Override
     public List<AgentRun> findAllByStatus(Collection<AgentRunStatus> statuses) throws Exception {
         if (statuses.isEmpty()) {
             return List.of();

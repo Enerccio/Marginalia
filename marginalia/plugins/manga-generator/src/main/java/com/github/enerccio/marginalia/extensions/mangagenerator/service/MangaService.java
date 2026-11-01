@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.github.enerccio.marginalia.extensions.mangagenerator.MangaGeneratorLocalization.T;
+import static com.github.enerccio.marginalia.extensions.mangagenerator.MangaGeneratorLocalization.*;
 
 /**
  * What the manga generator does with the book: keeps its data and the defaults of the user, builds the requests (the
@@ -244,7 +244,7 @@ public class MangaService {
         List<ChatMessage> branch = branch(manuscript);
         String source = partsText(branch, section.getContextStart(), section.getContextEnd());
         if (source.isEmpty()) {
-            throw new IllegalStateException(T.localized("The story has no text in the parts of this section"));
+            throw new IllegalStateException(T.localized(THE_STORY_HAS_NO_TEXT));
         }
 
         String userPrompt = compile(StringUtils.defaultIfBlank(
@@ -269,7 +269,7 @@ public class MangaService {
     public Request buildTagsRequest(Manuscript manuscript, Manga manga, MangaSection section) throws Exception {
         MangaSettings settings = getSettings();
         if (StringUtils.isBlank(section.getScript())) {
-            throw new IllegalStateException(T.localized("Generate or write the script of the section first"));
+            throw new IllegalStateException(T.localized(GENERATE_OR_WRITE_THE_SCRIPT));
         }
         List<ChatMessage> branch = branch(manuscript);
         String source = partsText(branch, section.getContextStart(), section.getContextEnd());

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846522787704">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846880296645">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846522787704" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846880296645" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846522787704" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846880296645" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846522787704" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846880296645" data-turbo-eval="false" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -60,7 +60,7 @@
                 <div class="flex items-center px-2 md:px-6">
                     <a id="retype-branding-logo" href="https://enerccio.github.io/Marginalia/" class="flex items-center leading-snug text-2xl">
                         <span class="dark:text-white font-bold line-clamp-1 md:line-clamp-2">Marginalia</span>
-                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.5.0</span>
+                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.6.0</span>
                 </div>
     
                 <span class="hidden h-8 border-r md:inline-block border-base-border"></span>
@@ -199,6 +199,7 @@ gets general mechanisms and the whole application to use them on:</p>
 | **Bundles** | Loading, unloading, the `MarginaliaExtension` lifecycle, access to every Spring service through `@Configurable`. | [Plugin basics](overview.md) |
 | **`@Extendable` hooks** | Code that runs before and after *any* method of an instrumented UI class, with access to its arguments, local variables and fields, and the possibility to replace the return value. | [@Extendable hooks](extendable.md) |
 | **Extended attributes** | A JSON object on every data entity where a plugin keeps its data - saved with the entity, included in backups, no schema change. | [Extended attributes](extended-attributes.md) |
+| **Inherited settings** | A setting of the plugin that books and folders inherit like the prompts: a field in the *Prompts* tab and the folder dialog, `ManuscriptService.resolveExtension` for the value (`InheritedSettingRegistry`). | [Inherited settings](inherited-settings.md) |
 | **Other extensions** | Offer text about a book or a story part to other extensions or ask them for it (`IPCService`), offer a suite of tools for the model with a human name, items and commands (`ToolService`), or call one particular extension by reflection, without importing its classes. | [Sharing data between extensions](ipc.md) |
 | **Inference providers** | A model API of the plugin's own: its settings form in the AI dialog and the inference service of its AIs (`ExtensionAIFactory`). | [Inference providers from a plugin](ai-providers.md) |
 | **Generation events** | Listeners that read and change the prompt, the lore, the summaries and the streamed answer while a story part is generated. | [Generation events](generation-events.md), [Generation pipeline](../generation-pipeline.md#events-for-extensions) |
@@ -227,6 +228,11 @@ gets general mechanisms and the whole application to use them on:</p>
 <td><strong>Extended attributes</strong></td>
 <td>A JSON object on every data entity where a plugin keeps its data - saved with the entity, included in backups, no schema change.</td>
 <td><a href="extended-attributes/">Extended attributes</a></td>
+</tr>
+<tr>
+<td><strong>Inherited settings</strong></td>
+<td>A setting of the plugin that books and folders inherit like the prompts: a field in the <em>Prompts</em> tab and the folder dialog, <code translate="no" v-pre>ManuscriptService.resolveExtension</code> for the value (<code translate="no" v-pre>InheritedSettingRegistry</code>).</td>
+<td><a href="inherited-settings/">Inherited settings</a></td>
 </tr>
 <tr>
 <td><strong>Other extensions</strong></td>
@@ -278,16 +284,18 @@ ones that ask for classes, methods, arguments, locals or fields that don&#x27;t 
     </div>
 </div>
 <h2 id="the-bundled-plugins">The bundled plugins</h2>
-<p>The eighteen plugins in <code translate="no" v-pre>marginalia/plugins/</code> are complete, working examples. Each is a separate Maven project.</p>
+<p>The twenty plugins in <code translate="no" v-pre>marginalia/plugins/</code> are complete, working examples. Each is a separate Maven project.</p>
 <retype-table copy-text="| Plugin | What it adds | Shows how to |
 |---|---|---|
 | [Anthropic Claude](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/anthropic) | Anthropic's Claude models as an inference provider, over the Anthropic Java SDK. | Add a provider (`ExtensionAIFactory`) the same way as the Google plugin, with thinking blocks that must travel with the calls and a stream that is cancelled by closing it. |
 | [Arc Outline](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/arc-outline) | The arcs of the book and their chapters, each planned, current or finished, in the story sidebar (a chapter can show its note under the description); the model can write an arc from the lore, the chapters of an arc, or an arc with chapters from a range of the active branch of the story. | Add a tab to the story editor and a section to the user settings, keep a tree in a book's attributes, stream a structured (JSON schema) answer into the UI with `PartialJson`, read the messages of the active branch (`ChatMessageService.getBranchFromLeaf`) and show how many tokens a prompt has (`TokenizerService.countTokensApprox`, `TokenLimits`), name tools from another plugin ([call it directly](ipc.md#calling-another-extension-directly)), offer data to other plugins with `IPCService`, plugin-only CSS classes. |
 | [Author's Note](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/authorsnote) | A per-book note inserted into the prompt of every generation, at a chosen depth and role. | Listen to generation events and change the payload sent to the model; add a tab to the story editor. |
+| [Beta Readers](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/beta-readers) | Personas and a chat about the book with them, alone or in a group. | Add a tab to the story editor and its phone twin; register [inherited settings](inherited-settings.md); read a model's reply while it streams (`InferenceService.stream` with a JSON schema); keep per-book data in the `attributes` of the book. |
 | [Chapter Marker](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/chaptermarker) | Story parts that start with a Markdown heading are shown as chapters in the story sidebar. | Read method arguments and locals, change a component the method built. The smallest one - start here. |
 | [Character Tracker](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/character-tracker) | The characters of the book with their relationships, imported from lore entries if wanted, and a relationship map, in the story sidebar. | Add a tab to the story editor, add a button to the fields of the new turn form (reading fields of an `@Extendable` object through the one the decorator gets), keep a list in a book's attributes, draw a graph with the application's `GraphView` ([Custom components](../custom-components.md)), upload and scale images. |
 | [Gemma 4 tools fix](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/gemma4toolsfix) | Sends the results of function calls to Gemma 4 models with the role `tool_responses`. | Change how a service talks to the model without UI code: register an `InferenceServices.ToolRoleResolver` on load, remove it on unload. |
 | [Google Gemini](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/google-genai) | Google's Gemini models as an inference provider, over the Google Gen AI Java SDK. | Add a provider (`ExtensionAIFactory`), embed a library only the plugin needs, stream with cancellation, call functions. |
+| [Image Generator](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/image-generator) | Makes an image for a part of the story: the model writes the prompt, a backend (ComfyUI workflow, OpenAI-style images API) draws it, the user rerolls and accepts it. | Add an item to the menu of a part (`StoryMenuItem.card`), a settings panel on `UserPart`, a dialog that streams from the model and works in a thread of its own, store images with `ResourceService`, call HTTP servers around the work (hooks), keep a secret with `protectSecret`. |
 | [Instruction Exporter](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/instructionexporter) | Copies the instructions, scene settings and characters of the active branch to the clipboard, from the story settings menu. | Add an item to the settings menu of the story editor, read the story through a service, write to the clipboard. |
 | [Lore Generator](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/lore-generator) | Writes a lorebook entry with the model from the existing lore: a generation, then a compaction, optional attachments. | Add a column to a grid, open a dialog that streams from the model (with `LLMAttachment`s), keep prompts in the user settings, give the model the functions of another extension ([a direct call](ipc.md#calling-another-extension-directly)), let the user choose the model with `ModelProtocolPicker`. |
 | [Lorebook VCS](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/lorebookvcs) | Revision history of lorebook entries, export and import of the history. | Insert panels into a view, store data in a lorebook's attributes, replace a field of the view. |
@@ -297,7 +305,7 @@ ones that ask for classes, methods, arguments, locals or fields that don&#x27;t 
 | [Place provider](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/place-provider) | `list_place_types`, `search_places`, `places_near` and `distance_between` (also as commands): real places from Natural Earth by name, type and country, around a point, and the distance of two. | Ship a dataset reduced at build time by a Maven profile (`-Pimport-places`, committed result), write functions and commands over an in-memory index. |
 | [Reviewer](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/reviewer) | AI reviews of a story part with configurable reviewer profiles (a book can pick its own profile). | Add a sub-menu to every part, add a settings panel, stream an answer from the model. |
 | [Side Query](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/sidequery) | A chat panel next to the story for questions about the book. | Add a tab to the story editor, keep per-book sessions, build a prompt from lore and parts, use the data other extensions offer through `IPCService` ([Sharing data](ipc.md)). |
-| [SillyTavern Converter](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/sillytavern-converter) | A tab next to the story with a SillyTavern chat and the turn details the model prepares from it. | Add a tab to the story editor, keep data in a book's attributes, stream a structured (JSON schema) answer, fill the new turn form of the story with `NewTurnForm.restoreState`. |
+| [Converter](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/sillytavern-converter) | A tab next to the story with a SillyTavern chat, or the parts of another book (a backup, or a book picked from the list), and the turn details the model prepares from it. | Add a tab to the story editor, keep data in a book's attributes, stream a structured (JSON schema) answer, fill the new turn form of the story with `NewTurnForm.restoreState`. |
 | [Chinese localization](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/chineselocalization) | Simplified Chinese as a language of the user interface. | Add a language with `ExtensionHasLocalization` - no UI code at all. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -325,6 +333,11 @@ ones that ask for classes, methods, arguments, locals or fields that don&#x27;t 
 <td>Listen to generation events and change the payload sent to the model; add a tab to the story editor.</td>
 </tr>
 <tr>
+<td><a href="https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/beta-readers">Beta Readers</a></td>
+<td>Personas and a chat about the book with them, alone or in a group.</td>
+<td>Add a tab to the story editor and its phone twin; register <a href="inherited-settings/">inherited settings</a>; read a model&#x27;s reply while it streams (<code translate="no" v-pre>InferenceService.stream</code> with a JSON schema); keep per-book data in the <code translate="no" v-pre>attributes</code> of the book.</td>
+</tr>
+<tr>
 <td><a href="https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/chaptermarker">Chapter Marker</a></td>
 <td>Story parts that start with a Markdown heading are shown as chapters in the story sidebar.</td>
 <td>Read method arguments and locals, change a component the method built. The smallest one - start here.</td>
@@ -343,6 +356,11 @@ ones that ask for classes, methods, arguments, locals or fields that don&#x27;t 
 <td><a href="https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/google-genai">Google Gemini</a></td>
 <td>Google&#x27;s Gemini models as an inference provider, over the Google Gen AI Java SDK.</td>
 <td>Add a provider (<code translate="no" v-pre>ExtensionAIFactory</code>), embed a library only the plugin needs, stream with cancellation, call functions.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/image-generator">Image Generator</a></td>
+<td>Makes an image for a part of the story: the model writes the prompt, a backend (ComfyUI workflow, OpenAI-style images API) draws it, the user rerolls and accepts it.</td>
+<td>Add an item to the menu of a part (<code translate="no" v-pre>StoryMenuItem.card</code>), a settings panel on <code translate="no" v-pre>UserPart</code>, a dialog that streams from the model and works in a thread of its own, store images with <code translate="no" v-pre>ResourceService</code>, call HTTP servers around the work (hooks), keep a secret with <code translate="no" v-pre>protectSecret</code>.</td>
 </tr>
 <tr>
 <td><a href="https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/instructionexporter">Instruction Exporter</a></td>
@@ -390,8 +408,8 @@ ones that ask for classes, methods, arguments, locals or fields that don&#x27;t 
 <td>Add a tab to the story editor, keep per-book sessions, build a prompt from lore and parts, use the data other extensions offer through <code translate="no" v-pre>IPCService</code> (<a href="ipc/">Sharing data</a>).</td>
 </tr>
 <tr>
-<td><a href="https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/sillytavern-converter">SillyTavern Converter</a></td>
-<td>A tab next to the story with a SillyTavern chat and the turn details the model prepares from it.</td>
+<td><a href="https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/sillytavern-converter">Converter</a></td>
+<td>A tab next to the story with a SillyTavern chat, or the parts of another book (a backup, or a book picked from the list), and the turn details the model prepares from it.</td>
 <td>Add a tab to the story editor, keep data in a book&#x27;s attributes, stream a structured (JSON schema) answer, fill the new turn form of the story with <code translate="no" v-pre>NewTurnForm.restoreState</code>.</td>
 </tr>
 <tr>
@@ -414,6 +432,7 @@ ones that ask for classes, methods, arguments, locals or fields that don&#x27;t 
 <li><a href="generation-events/">Generation events</a> - changing the prompt and the answer during generation.</li>
 <li><a href="ipc/">Sharing data between extensions</a> - <code translate="no" v-pre>IPCService</code>, <code translate="no" v-pre>ToolService</code> and calling another extension directly.</li>
 <li><a href="ai-providers/">Inference providers from a plugin</a> - bringing a model API: factory, settings form, inference service.</li>
+<li><a href="inherited-settings/">Inherited settings</a> - settings of a plugin that books and folders inherit.</li>
 </ol>
 
                 
@@ -452,7 +471,7 @@ ones that ask for classes, methods, arguments, locals or fields that don&#x27;t 
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (60a4afd23).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (3b5a4203d).</p></div>
             </footer>
         </div>
     </div>

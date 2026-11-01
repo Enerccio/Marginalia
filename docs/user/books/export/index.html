@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846522787704">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846880296645">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846522787704" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846880296645" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846522787704" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846880296645" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846522787704" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846880296645" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -65,7 +65,7 @@
                 <div class="flex items-center px-2 md:px-6">
                     <a id="retype-branding-logo" href="https://enerccio.github.io/Marginalia/" class="flex items-center leading-snug text-2xl">
                         <span class="dark:text-white font-bold line-clamp-1 md:line-clamp-2">Marginalia</span>
-                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.5.0</span>
+                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.6.0</span>
                 </div>
     
                 <span class="hidden h-8 border-r md:inline-block border-base-border"></span>
@@ -201,6 +201,7 @@ bar shows how far it is.</p>
 <retype-table copy-text="| Field | |
 |---|---|
 | **Format** | The file type, see below. |
+| **Print style** | Only for the formats that have fonts and colors (HTML, Word, PDF, EPUB). The look of the text, chosen from the styles *for exports*: the application brings one for each of these formats, **HTML page**, **E-book (EPUB)**, **PDF book** and **Word document**, which are the looks the exports always had and are chosen by themselves when you pick the format, and you can make your own, see [Print styles](#print-styles). The style you chose for the format in [Settings → Exports](../account.md#exports) is the one preselected. |
 | **File name** | Name of the downloaded file without the extension, which Marginalia adds. Starts as the name of the book. |
 | **Book title** | The title in the file (title page and file properties). Starts as the name of the book; changing it doesn't rename the book. |
 | **Author** | Starts as your full name from your [account](../account.md). Empty means no author. |
@@ -218,6 +219,10 @@ bar shows how far it is.</p>
 <tr>
 <td><strong>Format</strong></td>
 <td>The file type, see below.</td>
+</tr>
+<tr>
+<td><strong>Print style</strong></td>
+<td>Only for the formats that have fonts and colors (HTML, Word, PDF, EPUB). The look of the text, chosen from the styles <em>for exports</em>: the application brings one for each of these formats, <strong>HTML page</strong>, <strong>E-book (EPUB)</strong>, <strong>PDF book</strong> and <strong>Word document</strong>, which are the looks the exports always had and are chosen by themselves when you pick the format, and you can make your own, see <doc-anchor-trigger to="#print-styles">Print styles</doc-anchor-trigger>. The style you chose for the format in <a href="../../account/#exports">Settings → Exports</a> is the one preselected.</td>
 </tr>
 <tr>
 <td><strong>File name</strong></td>
@@ -255,7 +260,11 @@ bar shows how far it is.</p>
 | **HTML** (`.html`) | One page with a book-like style included, so it looks the same in every browser. It can be printed and has no external files. |
 | **Word document** (`.docx`) | Opens in Word, LibreOffice and similar programs. Justified text, with the title and author set in the file properties. |
 | **PDF** (`.pdf`) | A5 pages with embedded fonts that cover Latin, Greek and Cyrillic text. |
-| **EPUB** (`.epub`) | An e-book for e-readers and reading apps. Long books are split into several files inside the EPUB so readers stay fast. |">
+| **EPUB** (`.epub`) | An e-book for e-readers and reading apps. Long books are split into several files inside the EPUB so readers stay fast. |
+| **HTML for Archive of Our Own** (`.html`) | For posting on AO3, see [below](#for-other-tools). |
+| **Markdown with front matter** (`.md`) | For static site generators, see [below](#for-other-tools). |
+| **SillyTavern chat** (`.jsonl`) | The story as a chat, see [below](#for-other-tools). |
+| **Obsidian vault** (`.zip`) | The chapters and the lorebook as linked notes, see [below](#for-other-tools). |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -289,19 +298,42 @@ bar shows how far it is.</p>
 <td><strong>EPUB</strong> (<code translate="no" v-pre>.epub</code>)</td>
 <td>An e-book for e-readers and reading apps. Long books are split into several files inside the EPUB so readers stay fast.</td>
 </tr>
+<tr>
+<td><strong>HTML for Archive of Our Own</strong> (<code translate="no" v-pre>.html</code>)</td>
+<td>For posting on AO3, see <doc-anchor-trigger to="#for-other-tools">below</doc-anchor-trigger>.</td>
+</tr>
+<tr>
+<td><strong>Markdown with front matter</strong> (<code translate="no" v-pre>.md</code>)</td>
+<td>For static site generators, see <doc-anchor-trigger to="#for-other-tools">below</doc-anchor-trigger>.</td>
+</tr>
+<tr>
+<td><strong>SillyTavern chat</strong> (<code translate="no" v-pre>.jsonl</code>)</td>
+<td>The story as a chat, see <doc-anchor-trigger to="#for-other-tools">below</doc-anchor-trigger>.</td>
+</tr>
+<tr>
+<td><strong>Obsidian vault</strong> (<code translate="no" v-pre>.zip</code>)</td>
+<td>The chapters and the lorebook as linked notes, see <doc-anchor-trigger to="#for-other-tools">below</doc-anchor-trigger>.</td>
+</tr>
 </tbody>
 </table>
 </div>
 </retype-table>
 <p>The text of the parts is Markdown. Emphasis, headings, quotes, lists, code blocks and scene breaks (<code translate="no" v-pre>---</code>) are kept in
 every format that can show them. Raw HTML in the text is shown as text, never run.</p>
-<p><a href="../story-editor/#images">Images</a> of the parts are placed after the text of their part, with their captions:</p>
+<h2 id="images">Images</h2>
+<p><a href="../story-editor/#images">Images</a> of the parts are placed where their position says (after the text unless you chose another
+place), with their captions, in the width you gave them (a percent of the width of the text; without a width the picture keeps
+its size, scaled down to the page). Not every format can put text beside a picture:</p>
 <retype-table copy-text="| Format | |
 |---|---|
-| **HTML** | Embedded in the page, so it is still one file. |
-| **Markdown** | Embedded in the file as `![caption](data:...)` images with the caption in italics under them, so it is still one file. Not every reader shows embedded images (GitHub does not), and a book with many images has very long lines, so attach images to the parts only when you want them in a Markdown export. |
-| **EPUB**, **Word document**, **PDF** | Embedded in the file and scaled to fit the page. |
-| **Plain text** | Marked with `[Image]` or `[Image: caption]`. |">
+| **HTML**, **EPUB** | Embedded (in the page, or as files of the book). The text flows around the pictures at the left or the right; a picture in the middle is between two columns of text. On a narrow screen they go above the text, and a reader without columns (some e-readers) shows the first text, the picture and the rest one under the other. Pictures next to each other in a place stand in a row. |
+| **Word document** | The picture the text flows around is in a small table that Word places at the side or in the middle, and Word wraps the text around it (on both sides for the middle, line by line); the caption is under the picture. Pictures with a width that fit next to each other are a row of a table. |
+| **PDF** | The text flows around the pictures at the side, the caption is drawn under the picture. A picture in the middle is between two columns of left aligned text (a band that does not fit at the end of a page starts on the next one). Pictures with a width that fit next to each other are a row. A picture that is too tall for the rest of the page goes to the next page. |
+| **Markdown** | Embedded in the file as `![caption](data:...)` images with the caption in italics under them, so it is still one file. The position among the text is kept; the width and the flowing text are not. Not every reader shows embedded images (GitHub does not), and a book with many images has very long lines, so attach images to the parts only when you want them in a Markdown export. |
+| **Plain text** | Marked with `[Image]` or `[Image: caption]` at their place in the text. |
+| **HTML for Archive of Our Own** | Marked with `[Image: caption]`: AO3 takes images only from links. |
+| **Obsidian vault** | Saved in the `Attachments` folder of the vault and embedded in the note of their chapter at their place, with the caption in italics. |
+| **SillyTavern chat** | Left out, a chat has only text. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -312,25 +344,108 @@ every format that can show them. Raw HTML in the text is shown as text, never ru
 </thead>
 <tbody>
 <tr>
-<td><strong>HTML</strong></td>
-<td>Embedded in the page, so it is still one file.</td>
+<td><strong>HTML</strong>, <strong>EPUB</strong></td>
+<td>Embedded (in the page, or as files of the book). The text flows around the pictures at the left or the right; a picture in the middle is between two columns of text. On a narrow screen they go above the text, and a reader without columns (some e-readers) shows the first text, the picture and the rest one under the other. Pictures next to each other in a place stand in a row.</td>
+</tr>
+<tr>
+<td><strong>Word document</strong></td>
+<td>The picture the text flows around is in a small table that Word places at the side or in the middle, and Word wraps the text around it (on both sides for the middle, line by line); the caption is under the picture. Pictures with a width that fit next to each other are a row of a table.</td>
+</tr>
+<tr>
+<td><strong>PDF</strong></td>
+<td>The text flows around the pictures at the side, the caption is drawn under the picture. A picture in the middle is between two columns of left aligned text (a band that does not fit at the end of a page starts on the next one). Pictures with a width that fit next to each other are a row. A picture that is too tall for the rest of the page goes to the next page.</td>
 </tr>
 <tr>
 <td><strong>Markdown</strong></td>
-<td>Embedded in the file as <code translate="no" v-pre>![caption](data:...)</code> images with the caption in italics under them, so it is still one file. Not every reader shows embedded images (GitHub does not), and a book with many images has very long lines, so attach images to the parts only when you want them in a Markdown export.</td>
-</tr>
-<tr>
-<td><strong>EPUB</strong>, <strong>Word document</strong>, <strong>PDF</strong></td>
-<td>Embedded in the file and scaled to fit the page.</td>
+<td>Embedded in the file as <code translate="no" v-pre>![caption](data:...)</code> images with the caption in italics under them, so it is still one file. The position among the text is kept; the width and the flowing text are not. Not every reader shows embedded images (GitHub does not), and a book with many images has very long lines, so attach images to the parts only when you want them in a Markdown export.</td>
 </tr>
 <tr>
 <td><strong>Plain text</strong></td>
-<td>Marked with <code translate="no" v-pre>[Image]</code> or <code translate="no" v-pre>[Image: caption]</code>.</td>
+<td>Marked with <code translate="no" v-pre>[Image]</code> or <code translate="no" v-pre>[Image: caption]</code> at their place in the text.</td>
+</tr>
+<tr>
+<td><strong>HTML for Archive of Our Own</strong></td>
+<td>Marked with <code translate="no" v-pre>[Image: caption]</code>: AO3 takes images only from links.</td>
+</tr>
+<tr>
+<td><strong>Obsidian vault</strong></td>
+<td>Saved in the <code translate="no" v-pre>Attachments</code> folder of the vault and embedded in the note of their chapter at their place, with the caption in italics.</td>
+</tr>
+<tr>
+<td><strong>SillyTavern chat</strong></td>
+<td>Left out, a chat has only text.</td>
 </tr>
 </tbody>
 </table>
 </div>
 </retype-table>
+<h2 id="for-other-tools">For other tools</h2>
+<p>These formats are made for a tool that reads them, not for reading. They do not have the <em>Print style</em> choice.</p>
+<p><strong>HTML for Archive of Our Own.</strong> AO3 asks for the title, the author and the chapter titles in fields of its own and drops what it does not
+know (style blocks, the page around the text, images that are not links), so the file has no title page. Open it in a browser to see the work as
+the paste will look. Every chapter (a part that starts with a heading and the parts after it up to the next heading) has its title above two
+comments, <code translate="no" v-pre>BEGIN chapter N</code> and <code translate="no" v-pre>END chapter N</code>: copy what is between them into the HTML editor of the chapter on AO3 and the title into its
+title field. The text is clean HTML without line breaks between the tags, because AO3 turns each line break into a <code translate="no" v-pre>&lt;br&gt;</code>.</p>
+<p><strong>Markdown with front matter.</strong> The same Markdown as the <em>Markdown</em> format, but the file starts with a YAML block (<code translate="no" v-pre>title</code>, <code translate="no" v-pre>author</code>, <code translate="no" v-pre>lang</code>,
+<code translate="no" v-pre>date</code> of the export) that Jekyll, Hugo, Eleventy and similar generators read, instead of a title page; <strong>Include title page</strong> has no effect on
+it. The block is a template you can change in <a href="../../account/#exports">Settings → Exports</a> (<code translate="no" v-pre>, </code>, <code translate="no" v-pre>, </code>; the title and the author are already escaped for use inside double quotes).</p>
+<p><strong>SillyTavern chat.</strong> A JSON Lines file that the chat import of SillyTavern reads: the character is named after the book and you are the
+author. Each part of the story is a message of the character (the text), and when the part was written with instructions they come before it as
+your message. The reasoning of the model, if the part has any, is kept as the reasoning of the message. The title page does not apply.</p>
+<p><strong>Obsidian vault.</strong> A ZIP with a folder named after the book; unpack it and open the folder as a vault. It has a note named after the book (the
+front matter, the title page and the lists of the chapters and of the lore), a note for each chapter in <code translate="no" v-pre>Chapters</code> (with links to the previous and
+next chapter), a note for each enabled entry of the <a href="../../lorebooks/">lorebook</a> of the book and of its sub lorebooks in <code translate="no" v-pre>Lore/&lt;lorebook&gt;</code> (the tags
+of the entry are the tags of the note, its comment is a callout), and the images in <code translate="no" v-pre>Attachments</code>. In every note the first mention of the name of
+an entry (a name of at least three characters, whole words, as spelled) is a link to its note, so the graph view shows which entry is in which
+chapter. A part with a heading starts a chapter; parts before the first heading are the note <em>Beginning</em> (or <em>Story</em> when the book has no headings).
+The front matter and the title page are templates you can change in <a href="../../account/#exports">Settings → Exports</a>.</p>
+<h2 id="print-styles">Print styles</h2>
+<p>The export uses the text styles of <a href="../../account/#styles">Settings → Styles</a> that are marked <strong>For exports</strong>. Styles are either for books
+(the story and the reader) or for exports: the <em>Change Styles For Text</em> menu and the reader show only the first kind, the export dialog only the
+second. The four built-in ones are the looks of the formats; <strong>Duplicate</strong> one (or a book style, and tick <strong>For exports</strong>) to make your own, for
+example the Book style on paper. The style is worked out for paper: colors that depend on the theme of the application (the light text of the dark
+theme) become the dark ones for a white page.</p>
+<retype-table copy-text="| Format | What the style gives |
+|---|---|
+| **HTML** | The whole stylesheet of the style, including the **custom CSS**, **drop caps**, the text width and the background; the title page and the contents keep the look of the format. |
+| **EPUB** | The stylesheet of the style without the custom CSS (e-readers do not all understand it; some readers also set their own fonts and sizes). |
+| **PDF** | The font family (serif, sans or monospace of the embedded fonts, chosen from the font stack), size, line height, alignment, the space between paragraphs, the first line indent, the **background color** of the page (the whole page, the title page included), the colors of the text, italic, bold, quotes, headings and the scene break, the alignment and size of headings and the symbol of the scene break. |
+| **Word document** | The same as the PDF, with the font named in the style (Word shows its own when the computer lacks it) instead of the embedded ones. The background is the color of the page: Word shows it on the screen, but does not print it unless *Print background colors and images* is on in its print options. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Format</th>
+<th>What the style gives</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>HTML</strong></td>
+<td>The whole stylesheet of the style, including the <strong>custom CSS</strong>, <strong>drop caps</strong>, the text width and the background; the title page and the contents keep the look of the format.</td>
+</tr>
+<tr>
+<td><strong>EPUB</strong></td>
+<td>The stylesheet of the style without the custom CSS (e-readers do not all understand it; some readers also set their own fonts and sizes).</td>
+</tr>
+<tr>
+<td><strong>PDF</strong></td>
+<td>The font family (serif, sans or monospace of the embedded fonts, chosen from the font stack), size, line height, alignment, the space between paragraphs, the first line indent, the <strong>background color</strong> of the page (the whole page, the title page included), the colors of the text, italic, bold, quotes, headings and the scene break, the alignment and size of headings and the symbol of the scene break.</td>
+</tr>
+<tr>
+<td><strong>Word document</strong></td>
+<td>The same as the PDF, with the font named in the style (Word shows its own when the computer lacks it) instead of the embedded ones. The background is the color of the page: Word shows it on the screen, but does not print it unless <em>Print background colors and images</em> is on in its print options.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>Drop caps, the custom CSS (PDF, Word, EPUB), small capitals of headings and the text width are not made in the PDF and Word
+files.</p>
+<h2 id="title-page-template">Title page template</h2>
+<p>The title page is written from a template, one for every format. Change it in <a href="../../account/#exports">Settings → Exports</a>: the template is Markdown
+with <code translate="no" v-pre>(the book title of the dialog) and</code>, for example <code translate="no" v-pre>## </code> and a line <code translate="no" v-pre>written by </code>. The default is the
+title as a heading and the author in italics.</p>
 <h2 id="table-of-contents">Table of contents</h2>
 <p>When the text contains chapters, the file gets a table of contents after the title page. A chapter is a part of the
 story that contains a Markdown heading (a line starting with <code translate="no" v-pre>#</code>, e.g. <code translate="no" v-pre># Chapter 3: The Harbour</code>) - the same rule the
@@ -428,10 +543,10 @@ all of it, make a <a href="../backups/">backup</a>.</p>
                     </div>
             
                     <div class="w-1/2">
-                        <a class="px-5 py-4 -mx-px h-full flex items-center justify-end break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-r-lg transition-colors duration-150 relative hover:z-5" href="../../../user/books/backups/">
+                        <a class="px-5 py-4 -mx-px h-full flex items-center justify-end break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-r-lg transition-colors duration-150 relative hover:z-5" href="../../../user/books/styling-guide/">
                             <span>
                                 <span class="block text-xs font-normal text-right text-base-text-muted">Next</span>
-                                <span class="block mt-1">Book backups</span>
+                                <span class="block mt-1">Styling guide</span>
                             </span>
                             <svg xmlns="http://www.w3.org/2000/svg" class="ml-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19.92 12.38a1 1 0 00-.22-1.09l-7-7a.996.996 0 10-1.41 1.41l5.3 5.3H5c-.55 0-1 .45-1 1s.45 1 1 1h11.59l-5.29 5.29a.996.996 0 000 1.41c.19.2.44.3.7.3s.51-.1.71-.29l7-7c.09-.09.16-.21.21-.33z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
                         </a>
@@ -446,7 +561,7 @@ all of it, make a <a href="../backups/">backup</a>.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (60a4afd23).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (3b5a4203d).</p></div>
             </footer>
         </div>
     </div>

@@ -19,11 +19,14 @@ import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.LLMInteraction;
 import com.github.enerccio.marginalia.ui.components.TagsView;
 import com.github.enerccio.marginalia.ui.dialogs.LorebookImportDialog;
+import com.github.enerccio.marginalia.ui.exports.ExportSettingsEditor;
 import com.github.enerccio.marginalia.ui.shortcuts.KeyBindings;
 import com.github.enerccio.marginalia.ui.shortcuts.KeyBindingsEditor;
+import com.github.enerccio.marginalia.ui.styles.PartStyleEditor;
 import com.github.enerccio.marginalia.ui.widgets.*;
 import com.github.enerccio.marginalia.ui.workspace.Workspace;
 import com.github.enerccio.marginalia.ui.workspace.WorkspaceComponent;
+import com.github.enerccio.marginalia.utils.AttributeMerge;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ComponentUtil;
@@ -88,7 +91,19 @@ public class UserPart implements WorkspaceComponent {
     private AgentService agentService;
 
     @Autowired
+    private ManuscriptService manuscriptService;
+
+    @Autowired
     private AgentWebhookService agentWebhookService;
+
+    @Autowired
+    private PartStyleService partStyleService;
+
+    @Autowired
+    private ExporterService exporterService;
+
+    @Autowired
+    private ExportSettingsService exportSettingsService;
 
     @Autowired
     private User currentUser;
@@ -108,6 +123,9 @@ public class UserPart implements WorkspaceComponent {
     private ComboBox<BackupStrategy> backupStrategyCombo;
     private IntegerField backupStrategyValueField;
     private IntegerField storyPartsLimitField;
+    private IntegerField dailyGoalWordsField;
+    private IntegerField dailyGoalMinutesField;
+    private HistoryLimitField historyLimitField;
     // the message to a URL when an agent needs the user, for users who may use agents
     private TextField agentWebhookUrlField;
     private ComboBox<WebhookFormat> agentWebhookFormatCombo;
@@ -136,6 +154,12 @@ public class UserPart implements WorkspaceComponent {
 
     // Tab 4 Keyboard shortcuts
     private KeyBindingsEditor keyBindingsEditor;
+
+    // Styles: the editor saves and discards with the page
+    private PartStyleEditor stylesEditor;
+
+    // Exports: the style and the templates of each format, saved and discarded with the page like the styles
+    private ExportSettingsEditor exportsEditor;
 
     // Tab 5 Extensions
     private Accordion extensionSettings;
@@ -182,6 +206,8 @@ public class UserPart implements WorkspaceComponent {
         defaultsFormLayout.add(defaultAnnotateModelCombo, defaultAnnotateProtocolCombo);
         defaultsFormLayout.add(new HorizontalLayout(backupStrategyCombo, backupStrategyValueField));
         defaultsFormLayout.add(storyPartsLimitField);
+        defaultsFormLayout.add(historyLimitField);
+        defaultsFormLayout.add(dailyGoalWordsField, dailyGoalMinutesField);
         defaultsFormLayout.add(agentWebhookUrlField, 2);
         defaultsFormLayout.add(agentWebhookFormatCombo, agentWebhookAlwaysBox);
         defaultsFormLayout.add(agentWebhookTestButton, 2);
@@ -231,6 +257,10 @@ public class UserPart implements WorkspaceComponent {
 
         tabSheet.add(loc.getValue(L.LABEL_TEMPLATES), templatesFormLayout);
 
+        tabSheet.add(loc.getValue(L.LABEL_STYLES), createStylesTab());
+
+        tabSheet.add(loc.getValue(L.LABEL_EXPORTS), createExportsTab());
+
         tagsView = new TagsView();
         tabSheet.add(loc.getValue(L.LABEL_TAGS), tagsView);
 
@@ -238,6 +268,8 @@ public class UserPart implements WorkspaceComponent {
 
         extensionSettings = new Accordion();
         extensionSettings.setSizeFull();
+        // the first panel is open by default; the panels are added by the extensions and the user opens the one wanted
+        extensionSettings.close();
         tabSheet.add(loc.getValue(L.LABEL_EXTENSION_SETTINGS), extensionSettings);
 
         mainLayout.add(headerLayout, tabSheet);
@@ -246,6 +278,60 @@ public class UserPart implements WorkspaceComponent {
         refresh();
 
         return mainLayout;
+    }
+
+    /**
+     * The text styles of the books: the editor of the styles. It keeps its changes in memory and tells this part (which locks the
+     * navigation); {@link #save} stores them and {@link #refresh} (the discard) reloads them. Its fields are not tracked by
+     * {@link #trackChanges}, which would also count the editor filling them.
+     */
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = Component.class),
+            locals = {@APILocals(name = "layout", type = VerticalLayout.class),
+                    @APILocals(name = "help", type = Span.class),
+                    @APILocals(name = "editor", type = PartStyleEditor.class)})
+    private Component createStylesTab() {
+        VerticalLayout layout = new VerticalLayout();
+        layout.setPadding(false);
+        layout.setSizeFull();
+        Span help = new Span(loc.getValue(L.HELP_STYLES));
+        help.addClassName(CssStyles.TEXT_SECONDARY);
+        PartStyleEditor editor = new PartStyleEditor(loc, partStyleService);
+        editor.setOnChange(() -> {
+            if (!loading) {
+                setChanged(true);
+            }
+        });
+        stylesEditor = editor;
+        layout.add(help, editor);
+        layout.setFlexGrow(1, editor);
+        return layout;
+    }
+
+    /**
+     * The exports: the style and the templates of each format. Like the styles it keeps its changes in its fields and tells this part;
+     * {@link #save} stores them (after the styles, which it may choose from) and {@link #refresh} reloads them.
+     */
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = Component.class),
+            locals = {@APILocals(name = "layout", type = VerticalLayout.class),
+                    @APILocals(name = "help", type = Span.class),
+                    @APILocals(name = "editor", type = ExportSettingsEditor.class)})
+    private Component createExportsTab() {
+        VerticalLayout layout = new VerticalLayout();
+        layout.setPadding(false);
+        layout.setWidthFull();
+        Span help = new Span(loc.getValue(L.HELP_EXPORT_SETTINGS));
+        help.addClassName(CssStyles.TEXT_SECONDARY);
+        ExportSettingsEditor editor = new ExportSettingsEditor(loc, exporterService, exportSettingsService, partStyleService, templateService);
+        editor.setOnChange(() -> {
+            if (!loading) {
+                setChanged(true);
+            }
+        });
+        exportsEditor = editor;
+        layout.add(help, editor);
+        return layout;
     }
 
     /**
@@ -379,6 +465,13 @@ public class UserPart implements WorkspaceComponent {
         storyPartsLimitField.setStepButtonsVisible(true);
         storyPartsLimitField.setClearButtonVisible(true);
         storyPartsLimitField.setHelperText(loc.getValue(L.HELP_STORY_PARTS_LIMIT));
+
+        historyLimitField = new HistoryLimitField(loc.getValue(L.LABEL_HISTORY_MAX_VERSIONS));
+
+        dailyGoalWordsField = goalField(L.LABEL_DAILY_GOAL_WORDS);
+        dailyGoalMinutesField = goalField(L.LABEL_DAILY_GOAL_MINUTES);
+        // one help text for the two goals
+        dailyGoalMinutesField.setHelperText(null);
 
         agentWebhookUrlField = new TextField(loc.getValue(L.LABEL_AGENT_WEBHOOK_URL));
         agentWebhookUrlField.setWidthFull();
@@ -530,6 +623,20 @@ public class UserPart implements WorkspaceComponent {
      * The address, its format and the wish for the message while the application is open, into the setting. Only for a user who
      * sees them: they are hidden where the administrator turned the messages off, and what was set stays then.
      */
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = IntegerField.class),
+            parameters = {@APIParameter(name = "label", type = L.class)},
+            locals = {@APILocals(name = "field", type = IntegerField.class)})
+    private IntegerField goalField(L label) {
+        IntegerField field = new IntegerField(loc.getValue(label));
+        field.setWidthFull();
+        field.setMin(1);
+        field.setStepButtonsVisible(true);
+        field.setClearButtonVisible(true);
+        field.setHelperText(loc.getValue(L.HELP_DAILY_GOAL));
+        return field;
+    }
+
     @PublicAPI(from = "1.4.0",
             returns = @APIReturn(type = void.class),
             parameters = {@APIParameter(name = "userSetting", type = UserSetting.class)},
@@ -607,6 +714,12 @@ public class UserPart implements WorkspaceComponent {
         loading = true;
         try {
             userSetting = settingService.getOrCreate(UserSetting.class);
+            if (stylesEditor != null) {
+                stylesEditor.reload();
+            }
+            if (exportsEditor != null) {
+                exportsEditor.reload();
+            }
 
             List<AI> allModels = aiService.findAllForUser();
             defaultModelCombo.setItems(allModels);
@@ -657,6 +770,9 @@ public class UserPart implements WorkspaceComponent {
             updateBackupStrategyValueField(strategy);
 
             storyPartsLimitField.setValue(userSetting.getStoryPartsLimit());
+            historyLimitField.load(userSetting.getHistoryMaxVersions(), manuscriptService.resolvePermissionHistoryLimit());
+            dailyGoalWordsField.setValue(userSetting.getDailyGoalWords());
+            dailyGoalMinutesField.setValue(userSetting.getDailyGoalMinutes());
             masterTemplateField.setValue(StringUtils.defaultString(userSetting.getMasterTemplate()));
             defaultPovField.setValue(StringUtils.defaultString(userSetting.getDefaultPov()));
             defaultTenseField.setValue(StringUtils.defaultString(userSetting.getDefaultTense()));
@@ -722,6 +838,10 @@ public class UserPart implements WorkspaceComponent {
             parameters = {@APIParameter(name = "component", type = Component.class)},
             locals = {@APILocals(name = "field", type = HasValue.class)})
     private void trackChanges(Component component) {
+        if (component instanceof PartStyleEditor || component instanceof ExportSettingsEditor) {
+            // reports its changes itself, see createStylesTab and createExportsTab
+            return;
+        }
         if (component instanceof HasValue<?, ?> field && ComponentUtil.getData(component, CHANGE_TRACKED_KEY) == null) {
             ComponentUtil.setData(component, CHANGE_TRACKED_KEY, Boolean.TRUE);
             field.addValueChangeListener(e -> {
@@ -799,6 +919,13 @@ public class UserPart implements WorkspaceComponent {
             return;
         }
 
+        if (stylesEditor != null && !stylesEditor.validate()) {
+            return;
+        }
+        if (exportsEditor != null && !exportsEditor.validate()) {
+            return;
+        }
+
         String masterTemplate = masterTemplateField.getValue();
         String userPrompt = defaultUserPromptField.getValue();
         String summaryPrompt = defaultSummaryPromptField.getValue();
@@ -814,8 +941,9 @@ public class UserPart implements WorkspaceComponent {
         String defaultStyle = defaultStyleField.getValue();
 
         try {
-            // the setting is also written by the workspace autosave and the language selector since it was loaded
-            userSetting = settingService.getOrCreate(UserSetting.class);
+            // the setting is also written by the workspace autosave and the language selector since it was loaded; the data the
+            // extensions put into the loaded one (their decorators of this method ran before it) is carried over
+            userSetting = reloadKeepingAttributes(settingService, userSetting);
 
             AI selectedModel = defaultModelCombo.getValue();
             userSetting.setDefaultModel(selectedModel != null ? selectedModel.getId() : null);
@@ -830,6 +958,9 @@ public class UserPart implements WorkspaceComponent {
 
             Integer storyPartsLimit = storyPartsLimitField.getValue();
             userSetting.setStoryPartsLimit(storyPartsLimit != null && storyPartsLimit > 0 ? storyPartsLimit : null);
+            userSetting.setHistoryMaxVersions(historyLimitField.getValue());
+            userSetting.setDailyGoalWords(dailyGoalWordsField.getValue());
+            userSetting.setDailyGoalMinutes(dailyGoalMinutesField.getValue());
 
             userSetting.setMasterTemplate(masterTemplate);
             userSetting.setDefaultPov(defaultPov);
@@ -854,6 +985,13 @@ public class UserPart implements WorkspaceComponent {
             userSetting.setKeyBindings(KeyBindings.toStored(userSetting.getKeyBindings(), keyBindingsEditor.getValue()));
 
             settingService.save(userSetting);
+            if (stylesEditor != null) {
+                stylesEditor.save();
+            }
+            if (exportsEditor != null) {
+                // after the styles: it chooses among them, and a style deleted just now counts as none
+                exportsEditor.save();
+            }
             // the open story tabs use the new keys from the next key press
             JavascriptLibrary.setShortcutKeys(UI.getCurrent().getPage(), KeyBindings.of(userSetting).toJson());
             setChanged(false);
@@ -1016,5 +1154,15 @@ public class UserPart implements WorkspaceComponent {
     @Override
     public void onTabClosed() throws Exception {
 
+    }
+
+    /**
+     * The user setting loaded again, with the attributes of {@code held} over its own: the extensions put their settings into the one
+     * the screen holds (their decorators of {@code save} run before its body).
+     */
+    private static UserSetting reloadKeepingAttributes(SettingService settingService, UserSetting held) throws Exception {
+        UserSetting fresh = settingService.getOrCreate(UserSetting.class);
+        fresh.setAttributes(AttributeMerge.merge(held.getAttributes(), fresh.getAttributes()));
+        return fresh;
     }
 }

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846522787704">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846880296645">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846522787704" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846880296645" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846522787704" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846880296645" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846522787704" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846522787704" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846880296645" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846880296645" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -67,7 +67,7 @@
                 <div class="flex items-center px-2 md:px-6">
                     <a id="retype-branding-logo" href="https://enerccio.github.io/Marginalia/" class="flex items-center leading-snug text-2xl">
                         <span class="dark:text-white font-bold line-clamp-1 md:line-clamp-2">Marginalia</span>
-                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.5.0</span>
+                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.6.0</span>
                 </div>
     
                 <span class="hidden h-8 border-r md:inline-block border-base-border"></span>
@@ -381,8 +381,10 @@ generation ends.</p>
 <p>Fills a new <code translate="no" v-pre>PrePromptData</code> with the parts of the prompt that don&#x27;t depend on the story:</p>
 <ul>
 <li>the provider&#x27;s jailbreak (if <em>Needs Jailbreak</em> is on) and its token count,</li>
-<li>the book&#x27;s effective prompts - master template, POV, tense, style, user prompt - each resolved book → user settings
-→ <code translate="no" v-pre>Defaults</code> by <code translate="no" v-pre>ManuscriptService</code>.</li>
+<li>the book&#x27;s effective prompts - master template, POV, tense, style, user prompt - each resolved book → the folders above it → user settings
+→ <code translate="no" v-pre>Defaults</code> by <code translate="no" v-pre>ManuscriptService</code> (<code translate="no" v-pre>resolve(book, PromptField)</code>, see <a href="../folders/#resolving-a-setting">Folders</a>). The step that creates
+the new part writes the book back with <code translate="no" v-pre>ManuscriptService.update</code> (it loads the stored book and sets only the global template variables and the
+active leaf), so settings changed, or a book moved to a folder, while the generation ran are not overwritten.</li>
 </ul>
 <p>After <code translate="no" v-pre>AFTER_STATIC_TEMPLATE_DATA</code> (where listeners may replace any of these), it renders the <strong>user prompt</strong> template
 with <code translate="no" v-pre>UserPromptData</code> (the four <code translate="no" v-pre>TurnInput</code> fields) into <code translate="no" v-pre>userPromptProcessed</code> and counts its tokens. The first
@@ -400,6 +402,7 @@ is loaded with <code translate="no" v-pre>LorebookService.fillEntries</code> (en
 <retype-table copy-text="| Check | Rule |
    |---|---|
    | enabled | `entry.enabled` |
+   | range of parts | `fromMessage` / `toMessage` are empty, or the number of the part the turn creates is inside them (both included): else `OUT_OF_RANGE`, whatever the rest says - the entry is also never a `FILTER_NOT_MATCHED` candidate of the scan of step 4. Checked only when the position is known (see below) |
    | negative tags | none of the entry's negative tags is a tag of the book |
    | tags | the entry has no tags, or one of them is a tag of the book (the entry's tags include the tags of its lorebook) |
    | filter | no filter, or the filter matches the **rendered user prompt** (for `activationContext = INCLUDE_PARTS`: the text of the newest `activationParts` parts of the branch, oldest first, then the user prompt, all joined by blank lines; see below): `KEYWORDS_OR` / `KEYWORDS_AND` - the filter split by commas, trimmed, blanks dropped; any / every keyword is a case-insensitive substring (no keyword never matches); `TEXT` - case-insensitive substring; `REGEX` - case-insensitive `find()` (`DOTALL`); an invalid regex never matches |">
@@ -415,6 +418,10 @@ is loaded with <code translate="no" v-pre>LorebookService.fillEntries</code> (en
 <tr>
 <td>enabled</td>
 <td><code translate="no" v-pre>entry.enabled</code></td>
+</tr>
+<tr>
+<td>range of parts</td>
+<td><code translate="no" v-pre>fromMessage</code> / <code translate="no" v-pre>toMessage</code> are empty, or the number of the part the turn creates is inside them (both included): else <code translate="no" v-pre>OUT_OF_RANGE</code>, whatever the rest says - the entry is also never a <code translate="no" v-pre>FILTER_NOT_MATCHED</code> candidate of the scan of step 4. Checked only when the position is known (see below)</td>
 </tr>
 <tr>
 <td>negative tags</td>
@@ -436,6 +443,10 @@ is loaded with <code translate="no" v-pre>LorebookService.fillEntries</code> (en
 enabled <code translate="no" v-pre>INCLUDE_PARTS</code> entries, 0 when there is none) and reads that many parts with <code translate="no" v-pre>recentParts(activeLeaf, n, excludeLeaf)</code>: the non-blank <code translate="no" v-pre>response</code> of the branch from the root to the active leaf, the newest <code translate="no" v-pre>n</code>, oldest first (the leaf is left out
 for a swipe or a regeneration - it is the part being replaced). With 0 the story is not read. Each entry then takes the newest of the
 parts it asks for (<code translate="no" v-pre>evaluate(entry, tags, instructions, parts)</code>); the scan of step 4 does not use the parts.</p>
+<p>The position of the turn is <code translate="no" v-pre>activationService.turnPosition(activeLeaf, excludeLeaf)</code>: the number of parts of the branch (blank ones
+included, like the outline) plus one, or - for a swipe or a regeneration (<code translate="no" v-pre>excludeLeaf</code>) - the number of the leaf itself. The step asks for it
+only when <code translate="no" v-pre>positionNeeded(entries)</code> (an enabled entry has a range), else it passes null and no range is checked
+(<code translate="no" v-pre>evaluate(entry, tags, instructions, parts, position)</code>).</p>
 </li>
 <li><strong>Scan</strong> (only with a scan depth): <code translate="no" v-pre>Lorebook.scanDepth</code> of the lorebook the book uses (clamped to
 <code translate="no" v-pre>LorebookActivationService.MAX_SCAN_DEPTH</code>, 5; the value of a sub-lorebook is ignored) is how many passes follow.
@@ -553,7 +564,8 @@ sent).</p>
 Prompt</em>), the activated lore (<code translate="no" v-pre>MessagePrompt.backgroundLore</code>) and the request time. The token breakdown gets the tokens of every message of the final
 payload (as listeners left it, counted with the provider&#x27;s tokenizer) and is stored as the part&#x27;s <code translate="no" v-pre>tokenBreakdown</code>
 (shown by <em>Token Usage</em>, see <a href="../ui/">UI</a>). Parts generated before it existed have none, <code translate="no" v-pre>getTokenBreakdown()</code> is <code translate="no" v-pre>null</code>
-for them. The template variables of the generation are stored: local ones in
+for them. <em>Compare Prompt</em> (<code translate="no" v-pre>PromptComparisonDialog</code>) compares the stored payload of a part with that of an earlier part of the branch or a swipe
+(<code translate="no" v-pre>PromptComparison</code>), to show where a prefix cache ends. The template variables of the generation are stored: local ones in
 the part&#x27;s <code translate="no" v-pre>attributes</code>, global ones in the book&#x27;s. The part becomes the book&#x27;s active leaf, both are saved
 and <code translate="no" v-pre>listener.onNodeCreated(part)</code> lets the UI show it. The state stays <code translate="no" v-pre>NOT_SUCCESSFUL</code> - until text arrives, the
 part is only a placeholder that cleanup removes or restores.</p>
@@ -596,11 +608,28 @@ tokens. Without a report (the provider doesn&#x27;t send it, or the request was 
 arrived with <code translate="no" v-pre>countTokensApprox</code>. It is recorded once, when the stream completes, is stopped (<code translate="no" v-pre>terminateInference</code>, cancellation) or fails
 after some text arrived; a request that fails before any text is not counted. The stream threads have no request, so the service takes
 the <code translate="no" v-pre>ThreadCopyRequestAttributes</code> of the thread that called <code translate="no" v-pre>stream</code> and records inside it (<code translate="no" v-pre>currentUser</code> resolves).</p>
+<p>The same request is counted for the <strong>book</strong> it was made for (the tokens column of the <a href="../domain-model/#writing-statistics-manuscriptstatistic-activityinterval-manuscriptsize">writing statistics</a>):
+the caller opens a <code translate="no" v-pre>UsageContext</code> (a thread-local scope like <code translate="no" v-pre>UnmeteredScope</code>, <code translate="no" v-pre>try (UsageContext _ = UsageContext.open(book)) { service.stream(...); }</code>)
+around the call that starts the request; <code translate="no" v-pre>OpenAICompatibleInferenceService</code> reads <code translate="no" v-pre>UsageContext.current()</code> once in that thread, keeps the id of the
+book in its <code translate="no" v-pre>Request</code> and opens it again around <code translate="no" v-pre>UsageService.record</code> in the stream threads. <code translate="no" v-pre>UsageServiceImpl.record</code> then adds the tokens
+(<code translate="no" v-pre>StatisticCounts.tokens</code>, one request) to the day&#x27;s row of the book through <code translate="no" v-pre>ManuscriptStatisticService.count</code>, whoever the user is: the row is
+the owner&#x27;s of the book, and a thread without a user counts for the book too. A call without a context counts for the AI only. The generation
+(<code translate="no" v-pre>InferenceStep</code>), summaries, impersonate, redraft, annotate (all its stages) and the agent runs (the working copy, see the agents note
+of the statistics) open it; an unmetered request counts for nobody. An extension AI does what the Anthropic and Google plugins do: reads
+<code translate="no" v-pre>UsageContext.current()</code> in the thread that starts the request and reopens it around its <code translate="no" v-pre>UsageService.record</code>; a plugin that asks a model for
+a book opens the scope around its call.</p>
+<p>The same context decides the <strong>generation time</strong> of the book (the <code translate="no" v-pre>GENERATE</code> stretches of the <code translate="no" v-pre>ActivityTracker</code>): <code translate="no" v-pre>OpenAICompatibleInferenceService</code>
+registers the request with <code translate="no" v-pre>ActivityTracker.generate(book)</code> when a metered request has a book, from before it is sent to the end of its answer, the stop or the failure (a
+request with function calls registers each round on its own: the time the functions take between the rounds is not the model&#x27;s, and the tracker keeps the stretch open
+for 2 s so the next round of an agent joins it). An extension AI has no hook for it yet.</p>
 <p>Before a request is built, <code translate="no" v-pre>stream</code> asks <code translate="no" v-pre>AILimitService.check(ai, promptTokens, reservedTokens)</code> (with our estimate of the payload and the response size the request reserves): a user with the AI not available or over their token limit gets an
 <code translate="no" v-pre>InferenceException</code> (<code translate="no" v-pre>NOT_AVAILABLE</code>, <code translate="no" v-pre>LIMIT_REACHED</code>) in the caller&#x27;s thread and nothing is sent, so the steps, summaries and
 extensions handle it like any provider failure. The limits are described in the <a href="../domain-model/#limits-of-the-users-of-a-shared-ai">domain model</a>.</p>
 <h3 id="8-cleanup---cleanupstep">8. <code translate="no" v-pre>CLEANUP</code> - <code translate="no" v-pre>CleanupStep</code></h3>
-<p>Always the last step. Depending on the state:</p>
+<p>Always the last step. It also <strong>records the version</strong> of the text in the history of the part (<code translate="no" v-pre>MessageRevisionService.record</code>: <code translate="no" v-pre>GENERATE</code>
+for a new part, <code translate="no" v-pre>REGENERATE</code> for a regenerated one, with &quot;model · protocol&quot; and the reasoning), also for the text that arrived before
+a stop or an error; a generation that produced nothing records nothing. Regenerate calls <code translate="no" v-pre>ensureCurrent</code> before it clears the part,
+so the text that is replaced is in the history. See <a href="../version-history/#recording">Version history</a>. Depending on the state:</p>
 <retype-table copy-text="| State | What happens |
 |---|---|
 | `SUCCESSFUL` | `onComplete(part)`. |
@@ -986,7 +1015,7 @@ wait for it to finish. See <a href="../testing/">Testing</a>.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (60a4afd23).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (3b5a4203d).</p></div>
             </footer>
         </div>
     </div>

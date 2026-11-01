@@ -6,9 +6,10 @@ package com.github.enerccio.marginalia;
  */
 public final class CssStyles {
 
-    // --- Classes with their own rules in shared-styles.css (manuscript-styles and chat-message-markdown: reading-mode-styles.css) ---
-    public static final String MARKDOWN_MANUSCRIPT_STYLES = "manuscript-styles";
+    // --- Classes with their own rules in shared-styles.css (the look of the text of the parts comes from the PartStyle classes, see PartStyleApplier) ---
     public static final String CHAT_MESSAGE = "chat-message";
+    public static final String MASS_DELETE_BOX = "mass-delete-box";
+    public static final String MARKED_FOR_DELETE = "marked-for-delete";
     public static final String CHAT_MESSAGE_MARKDOWN = "chat-message-markdown";
 
     // --- Typography ---
@@ -45,6 +46,9 @@ public final class CssStyles {
     public static final String DISPLAY_BLOCK = "display-block";
     public static final String POSITION_RELATIVE = "position-relative";
     public static final String FLEX_WRAP = "flex-wrap";
+    public static final String ORGANISE_PANE = "organise-pane";
+    public static final String ORGANISE_PANE_ACTIVE = "organise-pane-active";
+    public static final String ORGANISE_CURSOR_ROW = "organise-cursor-row";
     public static final String FLEX_SHRINK_0 = "flex-shrink-0";
     public static final String GAP_S = "gap-s";
     public static final String MARGIN_LEFT_AUTO = "margin-left-auto";
@@ -78,15 +82,41 @@ public final class CssStyles {
     public static final String TAB_DOCK_ZONE = "tab-dock-zone";
     public static final String TAB_DOCK_SIDE_ZONE = "tab-dock-side-zone";
     public static final String TAB_DOCK_DRAGGING = "tab-dock-dragging";
+    public static final String TAB_DOCK_BODY = "tab-dock-body";
+    public static final String TAB_DOCK_BAR = "tab-dock-bar";
+    public static final String TAB_DOCK_BAR_ICON = "tab-dock-bar-icon";
+    public static final String TAB_DOCK_BAR_MOVE = "tab-dock-bar-move";
+    public static final String TAB_DOCK_MINIMIZE = "tab-dock-minimize";
+    public static final String TAB_DOCK_AT_LEFT = "tab-dock-at-left";
+    public static final String TAB_DOCK_AT_RIGHT = "tab-dock-at-right";
+    public static final String TAB_DOCK_AT_TOP = "tab-dock-at-top";
+    public static final String TAB_DOCK_AT_BOTTOM = "tab-dock-at-bottom";
     public static final String STORY_SCROLL_PANEL = "story-scroll-panel";
     public static final String READER_SCROLL_PANEL = "reader-scroll-panel";
     public static final String LAZY_LOAD_INDICATOR = "lazy-load-indicator";
     public static final String READER_CONTENT = "reader-content";
     public static final String FLOATING_BACK_BUTTON = "floating-back-button";
+    public static final String FLOATING_STYLE_BUTTON = "floating-style-button";
 
     // --- Message images ---
     public static final String MESSAGE_IMAGES = "message-images";
     public static final String MESSAGE_IMAGE = "message-image";
+    public static final String PART_VIEW = "part-view";
+    public static final String PART_PICTURES = "part-pictures";
+    public static final String PART_PICTURES_LEFT = "part-pictures-left";
+    public static final String PART_PICTURES_CENTER = "part-pictures-center";
+    public static final String PART_PICTURES_RIGHT = "part-pictures-right";
+    public static final String PART_PICTURES_FLOAT = "part-pictures-float";
+    public static final String PART_PICTURE = "part-picture";
+    public static final String PART_PICTURE_SIZED = "part-picture-sized";
+    public static final String PART_PICTURE_FLOAT_LEFT = "part-picture-float-left";
+    public static final String PART_PICTURE_FLOAT_RIGHT = "part-picture-float-right";
+    public static final String PART_BAND = "part-band";
+    public static final String PART_BAND_MIDDLE = "part-band-middle";
+    public static final String PART_BAND_TEXT = "part-band-text";
+    public static final String IMAGE_ANCHOR_PICKER = "image-anchor-picker";
+    public static final String PART_PREVIEW_FRAME = "part-preview-frame";
+    public static final String PART_PREVIEW_PHONE = "part-preview-phone";
 
     // --- Story messages and summaries ---
     public static final String CHAT_MESSAGE_CONTENT = "chat-message-content";
@@ -125,6 +155,27 @@ public final class CssStyles {
     // --- Chart.js chart ---
     public static final String CHART_JS = "chart-js";
     public static final String TOKEN_USAGE_SUMMARY = "token-usage-summary";
+
+    // --- statistics ---
+    public static final String STATISTIC_TOTALS = "statistic-totals";
+    public static final String STATISTIC_TOTAL_ITEM = "statistic-total-item";
+    public static final String STATISTIC_GROWTH_UP = "statistic-growth-up";
+    public static final String STATISTIC_GROWTH_DOWN = "statistic-growth-down";
+    public static final String ACTIVITY_CALENDAR = "activity-calendar";
+    public static final String ACTIVITY_CALENDAR_WEEK = "activity-calendar-week";
+    public static final String ACTIVITY_CALENDAR_MONTH = "activity-calendar-month";
+    public static final String ACTIVITY_CALENDAR_DAY = "activity-calendar-day";
+    /** The prefix of the shade classes, the level (0 to 4) follows it. */
+    public static final String ACTIVITY_CALENDAR_LEVEL = "activity-calendar-level-";
+    public static final String ACTIVITY_CALENDAR_TODAY = "activity-calendar-today";
+    public static final String ACTIVITY_CALENDAR_LEGEND = "activity-calendar-legend";
+    public static final String ACTIVITY_GOAL = "activity-goal";
+    public static final String ACTIVITY_GOAL_LINE = "activity-goal-line";
+    public static final String ACTIVITY_GOAL_BAR = "activity-goal-bar";
+
+    public static final String PROMPT_COMPARE_FIRST_DIFFERENCE = "prompt-compare-first-difference";
+    public static final String PROMPT_COMPARE_LOST = "prompt-compare-lost";
+    public static final String HISTORY_ROW_DELETED = "history-row-deleted";
 
     // --- Resizable text area toggle icon ---
     public static final String RESIZABLE_TEXT_AREA_ICON = "resizable-text-area-icon";
@@ -216,6 +267,11 @@ public final class CssStyles {
 
     // --- Version footer (ui.components.BuildInfoFooter) ---
     public static final String BUILD_INFO_FOOTER = "build-info-footer";
+
+    // --- Editor of the text styles in the user settings (ui.styles.PartStyleEditor) ---
+    public static final String STYLE_EDITOR_LIST = "style-editor-list";
+    public static final String STYLE_EDITOR_PREVIEW = "style-editor-preview";
+    public static final String STYLE_EDITOR_CSS = "style-editor-css";
 
     private CssStyles() {
     }

@@ -475,6 +475,32 @@ class ManuscriptWriteCommandsTest extends GenerationTestBase {
         assertThat(tagRelationService.getTagsForObject(book())).hasSize(2);
     }
 
+    @Test
+    void theHistoryLimitOfTheBookIsSetAndTakenAway() throws Exception {
+        JsonObject result = run("/set-book-history-limit 7");
+        assertThat(result.get("bookLimit").getAsInt()).isEqualTo(7);
+        assertThat(result.get("effectiveLimit").getAsInt()).isEqualTo(7);
+        assertThat(result.get("setBy").getAsString()).isEqualTo("BOOK");
+        assertThat(book().getHistoryMaxVersions()).isEqualTo(7);
+
+        result = run("/set-book-history-limit 0");
+        assertThat(result.get("effectiveLimit").getAsInt()).isZero();
+        assertThat(book().getHistoryMaxVersions()).isZero();
+
+        // without a number the book sets no limit: the permission (50 for a user without the row) counts again
+        result = run("/set-book-history-limit");
+        assertThat(result.has("bookLimit")).isFalse();
+        assertThat(result.get("effectiveLimit").getAsInt()).isEqualTo(EffectiveHistoryLimit.DEFAULT_MAX_VERSIONS);
+        assertThat(result.get("setBy").getAsString()).isEqualTo("PERMISSION");
+        assertThat(book().getHistoryMaxVersions()).isNull();
+    }
+
+    @Test
+    void aNegativeHistoryLimitIsRefused() {
+        assertThatThrownBy(() -> run("/set-book-history-limit -3")).isInstanceOf(ExecutionException.class)
+                .hasMessageContaining("negative");
+    }
+
     private static List<String> tagValues(JsonObject result) {
         return result.getAsJsonArray("tags").asList().stream().map(e -> e.getAsString()).toList();
     }

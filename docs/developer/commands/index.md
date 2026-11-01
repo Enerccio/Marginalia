@@ -167,6 +167,10 @@ run or a user did. What a command needs to know about the current state it reads
 - from the **scope** of the call, `context.getScope()` (below): the book the command works on, its lorebooks and the way to ask a question,
 - from the session-scoped `SessionPoint` (`getLanguage()`, `getWorkspace()`), through `CommandUtils`.
 
+The commands that report or set the settings of a book (`get-book-info`, the book settings commands) work with the **effective** values, those the
+book gets through its [folders](../folders.md#resolving-a-setting) (`ManuscriptService.getLanguage`, `getPov`, `resolve(...).isCustom()`), not the
+book's own fields.
+
 ### The scope
 
 `CommandContext.getScope()` is a `CommandScope`: what the command works on and who answers its questions. A command takes the book from it
@@ -217,17 +221,23 @@ A command that changes the UI does it on the UI thread: from a synchronous comma
 The package `domain.service.impl.commands.manuscript.read` holds one class per command (`GetBookInfoCommand`, `ListPartsCommand`,
 `GetPartCommand`, `ListSwipesCommand`, `ListBranchesCommand`, `GetPartMetricsCommand`, `ShowPromptCommand`, `SearchPartsCommand`,
 `FindOccurrencesCommand`, `ComparePartsCommand`, `CountTokensCommand`, `ListSummariesCommand`, `GetSummaryCommand`,
-`CheckSummariesCommand`, `GetTemplateVariablesCommand`), each a `@Configurable` suite registered by `CommandServiceImpl`. They share
+`CheckSummariesCommand`, `GetTemplateVariablesCommand`, `GetBookStatisticsCommand`, `GetStatisticsCommand`), each a `@Configurable` suite registered by `CommandServiceImpl`. They share
 `ManuscriptReadSupport` (the services, the `Book` loaded again from the current manuscript, the JSON helpers) and `StoryTree` (the
 parts as a tree, with the numbers of the branches). All are `NON_DESTRUCTIVE`, synchronous and answer JSON text.
 
+- **Statistics.** `get-book-statistics [range] [side]` (the open book, day by day) and `get-statistics [range] [by] [side]` (all the books of the
+  author: `by` is `day`, the default, or `book`, the books in the order of their words, with `handle`, `name`, `folder` and `deleted`, also the
+  books that are gone) answer from `StatisticReportService`. The `range` is a name of `StatisticRange` (`today`, `yesterday`, `last-7-days`, the
+  default, `last-30-days`, `this-month`, `all-time`), a day (`2026-03-14`) or two (`2026-03-01..2026-03-14`); the `side` is `all`, the default,
+  `me` or `agents`. The numbers are the counts, the time in minutes (`minutesOpen`, `minutesEditing`, `minutesGenerating`, `minutesAgentsRunning`:
+  the union, so books that ran together are counted once) and the growth of the size. `get-statistics` needs no open book.
 - **Handles, positions and numbers.** Every row of an answer has a `handle`, the uuid of the part (an agent sees it as `h:m17`: the
   border of the agent turns the uuids of its copy into handles and back, see `CommandCage`; a command knows nothing of it). A part
   parameter is a `String` that `Book.locate(part, branch)` reads as a handle (`CommandScope.resolveMessage`, so only a part of the
   scope's book is found) or as a *position* (depth on a branch, the first part is 1); a branch is the handle of one of its parts
   (the branch through it to its end, `StoryTree.leafOf`) or its *number*: the ends of the branches (parts without children)
   ordered by creation, the oldest is 1. Positions and numbers move when parts are added or deleted, so the commands that write
-  accept handles only. `list-branches` gives the numbers and `list-swipes`, `search-parts` and `find-occurrences` say the branch that
+  accept handles only. `list-branches` gives the numbers and `list-swipes`, `search-parts` (with `includeVersions` it also searches the [earlier versions](../version-history.md#search) of the parts, and a hit found through one has a `version` object) and `find-occurrences` say the branch that
   shows a part that is not on the active branch. Without a branch the active branch (`getBranchFromLeaf`, the root first) is used; the other
   branches need the whole tree (`ChatMessageService.getAllMessages`, one query), so a command loads it only when asked for one.
   A form with a single `String` that could be a text or a part (`count-tokens`, `preview-lore-activation`) takes the handle in the text:
@@ -273,7 +283,7 @@ name and tag in Java and keeps the numbers of the whole lorebook; `search-lore` 
 
 `preview-lore-activation` asks `LorebookActivationService` (`domain.service`), the rules the generation step `ProcessLorebookStep` uses too: `collectLorebooks` (the enabled
 tree with the entries filled in), `orderedEntries` (by `order`, the older first), `evaluate(entry, bookTags, text, parts)` (`parts`: the story before the turn, from `recentParts` with `partsNeeded` as the count - the active branch of the book, or the parts in front of the given part - for the entries that look into it; a `Verdict` with a `Reason`: `CONSTANT`,
-`FILTER_MATCHED`, `LORE_MATCHED`, `DISABLED`, `NEGATIVE_TAG`, `MISSING_TAG`, `FILTER_NOT_MATCHED`), `evaluateAll` (all the entries and the same `parts`, with the passes of the scan depth of the root
+`FILTER_MATCHED`, `LORE_MATCHED`, `DISABLED`, `OUT_OF_RANGE`, `NEGATIVE_TAG`, `MISSING_TAG`, `FILTER_NOT_MATCHED`; `OUT_OF_RANGE`: the entry is limited to some parts and the turn - the next part of the branch, or the given part - is outside them), `evaluateAll` (all the entries and the same `parts` and the position of the turn, with the passes of the scan depth of the root
 lorebook: an entry found by the content of others is `LORE_MATCHED`, its row has `scanDepth`, the pass) and `renderPayload`. The step only adds its events around them, so what the command
 shows is what a generation does. With a part the filters are looked for in the user prompt of the book rendered from the turn input stored with the part, in a
 fresh `TemplateContext` (the book, the narration settings, the variables of the book and of the part; not the story), so a payload that reads the story renders
@@ -288,7 +298,7 @@ The packages `domain.service.impl.commands.manuscript.write` and `lorebook.write
 `ManuscriptWriteSupport` (which extends `ManuscriptReadSupport`) and `LorebookWriteSupport` (which extends `LorebookReadSupport`):
 `PartEditCommands` (`edit-part`, `replace-part-text`, `append-to-part`, `set-part-fields`), `PartStructureCommands` (`create-part`,
 `insert-part`, `branch-part`, `delete-part`, `switch-branch`), `SummaryWriteCommands` (`set-summary`, `remove-summary`, `revalidate-summaries`),
-`BookSettingsCommands` (`set-book-info`, `set-book-prompts`, `set-book-tags`), `StoryGenerationCommands` (`next`, `swipe`,
+`BookSettingsCommands` (`set-book-info`, `set-book-prompts`, `set-book-tags`, `set-book-history-limit` over `BookSettings.historyMaxVersions`, a negative number takes the limit away), `StoryGenerationCommands` (`next`, `swipe`,
 `regenerate`), `SummaryGenerationCommands` (`regenerate-summary`, `create-meta-summary`), `RedraftCommands` (`redraft-part`, over `RedraftService`; the model is the one of the book as the scope gives it, which for an agent follows `Agent.useAgentModel`, or a `profile` through `ManuscriptWriteSupport.options`), `AnnotationWriteCommands.generate` (`generate-annotation`, over `AnnotateService` in `AUTO` mode with the default task of the prompt; `batch = SINGLE`, `async`; adds every proposal with `AnnotateService.accept`, labelled with the model; the model is `CommandScope.getModel` like in the Lore Generator, or a `profile` through `ManuscriptWriteSupport.options`), `ImpersonateCommands` (`impersonate`, over `ImpersonateService`, returns the drafted instructions; `availableForAgent = false` and `readOnly`), `LoreEntryWriteCommands` and
 `LorebookWriteCommands`. They call the services the screens use (`ChatMessageService.updateResponse` / `createPart` / `insertPart` /
 `branchAndSwitch` / `swipeAndSwitch` / `deleteNodeAndMigrateChildren`, `SummaryService.updateSummaryText` / `removeSummary` /

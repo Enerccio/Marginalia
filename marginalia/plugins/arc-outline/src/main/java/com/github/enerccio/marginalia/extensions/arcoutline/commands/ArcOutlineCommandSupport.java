@@ -109,6 +109,9 @@ abstract class ArcOutlineCommandSupport extends ManuscriptReadSupport {
         row.addProperty("title", node.getTitle());
         row.addProperty("state", node.getState().name());
         row.addProperty("description", node.getDescription());
+        if (node.getPart() != null) {
+            row.addProperty("part", node.getPart());
+        }
         if (notes) {
             row.addProperty("note", node.getNote());
         } else {

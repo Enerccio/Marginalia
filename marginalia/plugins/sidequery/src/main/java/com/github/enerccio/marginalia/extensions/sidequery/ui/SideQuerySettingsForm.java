@@ -26,7 +26,7 @@ import org.springframework.beans.factory.annotation.Configurable;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.github.enerccio.marginalia.extensions.sidequery.SideQueryLocalization.T;
+import static com.github.enerccio.marginalia.extensions.sidequery.SideQueryLocalization.*;
 
 @Configurable(preConstruction = true)
 public class SideQuerySettingsForm extends VerticalLayout {
@@ -68,7 +68,7 @@ public class SideQuerySettingsForm extends VerticalLayout {
         profileLayout.setWidthFull();
         profileLayout.setAlignItems(FlexComponent.Alignment.BASELINE);
 
-        profileCombo = new ComboBox<>(T.localized("Profile"));
+        profileCombo = new ComboBox<>(T.localized(PROFILE));
         profileCombo.setWidthFull();
         profileCombo.setAllowCustomValue(false);
         profileCombo.addValueChangeListener(e -> {
@@ -81,9 +81,9 @@ public class SideQuerySettingsForm extends VerticalLayout {
             }
         });
 
-        newProfileBtn = new Button(T.localized("New"), e -> createNewProfile());
-        renameProfileBtn = new Button(T.localized("Rename"), e -> renameCurrentProfile());
-        deleteProfileBtn = new Button(T.localized("Delete"), e -> deleteCurrentProfile());
+        newProfileBtn = new Button(T.localized(NEW), e -> createNewProfile());
+        renameProfileBtn = new Button(T.localized(RENAME), e -> renameCurrentProfile());
+        deleteProfileBtn = new Button(T.localized(DELETE), e -> deleteCurrentProfile());
 
         profileLayout.add(profileCombo, newProfileBtn, renameProfileBtn, deleteProfileBtn);
         profileLayout.setFlexGrow(1, profileCombo);
@@ -91,27 +91,27 @@ public class SideQuerySettingsForm extends VerticalLayout {
         FormLayout formLayout = new FormLayout();
         formLayout.setWidthFull();
 
-        overrideModelCombo = new ComboBox<>(T.localized("SideQuery Model (Default: Manuscript AI)"));
+        overrideModelCombo = new ComboBox<>(T.localized(SIDEQUERY_MODEL_DEFAULT_MANUSCRIPT));
         overrideModelCombo.setWidthFull();
         overrideModelCombo.setItemLabelGenerator(AI::getName);
         overrideModelCombo.setClearButtonVisible(true);
 
-        overrideProtocolCombo = new ComboBox<>(T.localized("SideQuery Protocol (Default: Manuscript Protocol)"));
+        overrideProtocolCombo = new ComboBox<>(T.localized(SIDEQUERY_PROTOCOL_DEFAULT));
         overrideProtocolCombo.setWidthFull();
         overrideProtocolCombo.setItemLabelGenerator(Protocol::getName);
         overrideProtocolCombo.setClearButtonVisible(true);
 
         formLayout.add(overrideModelCombo, overrideProtocolCombo);
 
-        initialQueryArea = new TextArea(T.localized("Initial System Query"));
+        initialQueryArea = new TextArea(T.localized(INITIAL_SYSTEM_QUERY));
         initialQueryArea.setWidthFull();
         ResizableTextArea.install(loc, initialQueryArea, "160px");
 
-        instructionsBeforeUserArea = new TextArea(T.localized("Instructions Before User Input"));
+        instructionsBeforeUserArea = new TextArea(T.localized(INSTRUCTIONS_BEFORE_USER_INPUT));
         instructionsBeforeUserArea.setWidthFull();
         ResizableTextArea.install(loc, instructionsBeforeUserArea, "120px");
 
-        enableAiTabNamesBox = new Checkbox(T.localized("Enable AI Tab Naming"));
+        enableAiTabNamesBox = new Checkbox(T.localized(ENABLE_AI_TAB_NAMING));
 
         add(profileLayout, formLayout, initialQueryArea, instructionsBeforeUserArea, enableAiTabNamesBox);
     }
@@ -208,9 +208,9 @@ public class SideQuerySettingsForm extends VerticalLayout {
 
     private void createNewProfile() {
         Dialog dialog = new Dialog();
-        dialog.setHeaderTitle(T.localized("New SideQuery Profile"));
+        dialog.setHeaderTitle(T.localized(NEW_SIDEQUERY_PROFILE));
 
-        TextField nameField = new TextField(T.localized("Profile Name"));
+        TextField nameField = new TextField(T.localized(PROFILE_NAME));
         nameField.setWidthFull();
         DialogFocus.onOpen(dialog, nameField);
 
@@ -218,14 +218,14 @@ public class SideQuerySettingsForm extends VerticalLayout {
         dialogLayout.setPadding(false);
         dialog.add(dialogLayout);
 
-        Button createBtn = new Button(T.localized("Create"), e -> {
+        Button createBtn = new Button(T.localized(CREATE), e -> {
             String name = nameField.getValue() != null ? nameField.getValue().trim() : "";
             if (name.isEmpty()) {
-                Notification.error(T.localized("Profile name cannot be empty"));
+                Notification.error(T.localized(PROFILE_NAME_CANNOT_BE_EMPTY));
                 return;
             }
             if (settings.getSettings().containsKey(name)) {
-                Notification.error(T.localized("Profile already exists"));
+                Notification.error(T.localized(PROFILE_ALREADY_EXISTS));
                 return;
             }
 
@@ -245,7 +245,7 @@ public class SideQuerySettingsForm extends VerticalLayout {
         });
         createBtn.setThemeName("primary");
 
-        Button cancelBtn = new Button(T.localized("Cancel"), e -> dialog.close());
+        Button cancelBtn = new Button(T.localized(CANCEL), e -> dialog.close());
 
         dialog.getFooter().add(cancelBtn, createBtn);
         dialog.open();
@@ -253,14 +253,14 @@ public class SideQuerySettingsForm extends VerticalLayout {
 
     private void renameCurrentProfile() {
         if (DEFAULT_PROFILE.equalsIgnoreCase(currentProfileName)) {
-            Notification.error(T.localized("Cannot rename %s profile").formatted(DEFAULT_PROFILE));
+            Notification.error(T.localized(CANNOT_RENAME_PROFILE).formatted(DEFAULT_PROFILE));
             return;
         }
 
         Dialog dialog = new Dialog();
-        dialog.setHeaderTitle(T.localized("Rename SideQuery Profile"));
+        dialog.setHeaderTitle(T.localized(RENAME_SIDEQUERY_PROFILE));
 
-        TextField nameField = new TextField(T.localized("New Profile Name"));
+        TextField nameField = new TextField(T.localized(NEW_PROFILE_NAME));
         nameField.setWidthFull();
         DialogFocus.onOpen(dialog, nameField);
         nameField.setValue(currentProfileName != null ? currentProfileName : "");
@@ -269,10 +269,10 @@ public class SideQuerySettingsForm extends VerticalLayout {
         dialogLayout.setPadding(false);
         dialog.add(dialogLayout);
 
-        Button renameBtn = new Button(T.localized("Rename"), e -> {
+        Button renameBtn = new Button(T.localized(RENAME), e -> {
             String newName = nameField.getValue() != null ? nameField.getValue().trim() : "";
             if (newName.isEmpty()) {
-                Notification.error(T.localized("Profile name cannot be empty"));
+                Notification.error(T.localized(PROFILE_NAME_CANNOT_BE_EMPTY));
                 return;
             }
             if (newName.equals(currentProfileName)) {
@@ -280,7 +280,7 @@ public class SideQuerySettingsForm extends VerticalLayout {
                 return;
             }
             if (settings.getSettings().containsKey(newName)) {
-                Notification.error(T.localized("Profile already exists"));
+                Notification.error(T.localized(PROFILE_ALREADY_EXISTS));
                 return;
             }
 
@@ -303,7 +303,7 @@ public class SideQuerySettingsForm extends VerticalLayout {
         });
         renameBtn.setThemeName("primary");
 
-        Button cancelBtn = new Button(T.localized("Cancel"), e -> dialog.close());
+        Button cancelBtn = new Button(T.localized(CANCEL), e -> dialog.close());
 
         dialog.getFooter().add(cancelBtn, renameBtn);
         dialog.open();
@@ -311,7 +311,7 @@ public class SideQuerySettingsForm extends VerticalLayout {
 
     private void deleteCurrentProfile() {
         if (DEFAULT_PROFILE.equalsIgnoreCase(currentProfileName)) {
-            Notification.error(T.localized("Cannot delete %s profile").formatted(DEFAULT_PROFILE));
+            Notification.error(T.localized(CANNOT_DELETE_PROFILE).formatted(DEFAULT_PROFILE));
             return;
         }
 

@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.domain.service.impl;
 
 import com.github.enerccio.marginalia.domain.collections.*;
+import com.github.enerccio.marginalia.domain.components.RevisionOrigin;
 import com.github.enerccio.marginalia.domain.model.BaseEntity;
 import com.github.enerccio.marginalia.domain.model.ExtendableEntity;
 import com.github.enerccio.marginalia.domain.model.impl.*;
@@ -31,6 +32,9 @@ public class AgentMergeServiceImpl implements AgentMergeService {
 
     private static final Logger log = LoggerFactory.getLogger(AgentMergeServiceImpl.class);
 
+    // the versions of a part an agent's work makes when it is merged into the book
+    private static final RevisionOrigin MERGE_ORIGIN = RevisionOrigin.automatic(RevisionDetail.AGENT_MERGE, true).uncounted();
+
     private static final Set<AgentRunStatus> REVIEWABLE = Set.of(AgentRunStatus.DONE, AgentRunStatus.STOPPED_KEPT);
 
     @Autowired
@@ -56,6 +60,10 @@ public class AgentMergeServiceImpl implements AgentMergeService {
     @Autowired
     @Lazy
     private MessagePromptService messagePromptService;
+
+    @Autowired
+    @Lazy
+    private MessageRevisionService messageRevisionService;
 
     @Autowired
     @Lazy
@@ -300,11 +308,13 @@ public class AgentMergeServiceImpl implements AgentMergeService {
         if (original == null || original.isDeleted()) {
             throw new IllegalArgumentException("The book of the agent does not exist");
         }
+        Manuscript copy = (Manuscript) Hibernate.unproxy(stored.getWorkingCopy());
+        // the book may have been moved while the run was paused, the copy writes with the settings of the folders it is in now
+        manuscriptService.setAgenticCopyFolder(copy, original.getFolder());
         JsonObject base = fileSystemService.readBase(stored);
         if (base == null) {
             return SyncReport.EMPTY;
         }
-        Manuscript copy = (Manuscript) Hibernate.unproxy(stored.getWorkingCopy());
         Map<String, String> copyToOriginal = new HashMap<>();
         Map<String, String> originalToCopy = new HashMap<>();
         for (UuidPair pair : pairService.getAll(stored)) {
@@ -605,6 +615,8 @@ public class AgentMergeServiceImpl implements AgentMergeService {
                     case "userPrompt" -> settings.userPrompt(text);
                     case "summaryPrompt" -> settings.summaryPrompt(text);
                     case "metaSummaryPrompt" -> settings.metaSummaryPrompt(text);
+                    // no number: the agent took the limit of the book away
+                    case "historyMaxVersions" -> settings.historyMaxVersions(StringUtils.isBlank(text) ? -1 : Integer.valueOf(text.strip()));
                     case MergeDiff.TAGS -> tags = item;
                     default -> {
                         attributes.put(field.name(), text);
@@ -893,6 +905,7 @@ public class AgentMergeServiceImpl implements AgentMergeService {
             ChatMessage saved = parent == null ? chatMessageService.createRoot(targetBook, created)
                     : chatMessageService.addChild(messageOf(targetOf(parent.getUuid())), created);
             messagePromptService.copy(source, saved);
+            messageRevisionService.record(saved, MERGE_ORIGIN.data(saved));
             made(AgentRunPairKind.MESSAGE, item.sourceUuid(), saved.getUuid());
             if (text != null && !text.equals(source.getResponse())) {
                 storeResponse(saved, source, text);
@@ -992,21 +1005,25 @@ public class AgentMergeServiceImpl implements AgentMergeService {
          */
         private ChatMessage storeResponse(ChatMessage message, ChatMessage source, String text) throws Exception {
             if (!text.equals(source.getResponse())) {
-                return chatMessageService.storeResponse(targetBook, message, text);
+                return chatMessageService.storeResponse(targetBook, message, text, MERGE_ORIGIN);
             }
             String before = message.getResponse();
+            // the text that is replaced is in the history
+            messageRevisionService.ensureCurrent(message);
             message.setResponse(text);
             message.setTokenCount(source.getTokenCount());
             message.setWordCount(source.getWordCount());
             message.setEdited(true);
             ChatMessage saved = chatMessageService.save(message);
+            messageRevisionService.record(saved, MERGE_ORIGIN.data(saved));
             annotationService.shift(targetBook, saved, before, text);
             return saved;
         }
 
         private void deleteMessage(Item item) throws Exception {
             ChatMessage message = messageOf(item.targetUuid());
-            targetBook = chatMessageService.deleteNodeAndMigrateChildren(message, targetBook, false);
+            // the delete was counted when the agent did it
+            targetBook = chatMessageService.deleteNodeAndMigrateChildren(message, targetBook, false, false);
         }
 
         // --- annotations

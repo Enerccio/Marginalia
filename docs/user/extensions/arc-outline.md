@@ -15,6 +15,7 @@ arc** opens the dialog of an arc:
 | Description | What happens in it. |
 | Note (private) | Notes for yourself. |
 | State | **Planned**, **Current** or **Finished**. |
+| Linked part | The part of the story the arc or chapter belongs to, see [below](#linking-to-the-story). |
 
 Chapters have the same fields. The list shows every arc as a card with its chapters indented below it. The color of a
 card follows its state: grey for planned, blue for the current one, green with a dimmed title for finished ones. The
@@ -28,6 +29,7 @@ buttons of a card:
 | arrows | Move the arc or chapter up or down. |
 | plus (arcs) | Adds a chapter at the end of the arc. |
 | wand (arcs) | Asks the model to write chapters for the arc, see [below](#generating-chapters). |
+| target (arcs and chapters with a linked part) | Scrolls the story to the part it is linked to. |
 | pen | Opens it in the dialog. |
 | trash | Deletes it (an arc with all its chapters), after a confirmation. |
 | robot (generated arcs and chapters) | Shows what the model wrote, see [below](#generating-an-arc). |
@@ -36,6 +38,15 @@ Next to the wand at the top is a pen with a feather: it drafts the instructions 
 [below](#drafting-the-instructions-for-the-current-chapter).
 
 ![The Arcs tab: a finished, a current and a planned arc](../../images/plugin-arcoutline-tab.png)
+
+### Linking to the story
+
+An arc or a chapter can be **linked to a part of the story**, so you can jump from the plan to the place in the text. The dialog has
+the field **Linked part**: the place of the part in the active branch, numbered from 1 as the *Outline* tab shows it (`#12`).
+Type it, or press the **link** button next to it to take the part that is the **most visible** in the story at that moment (scroll to
+the place first, then open the dialog); the **target** button scrolls the story to the part in the field. A linked arc or chapter also
+has the target button on its card. The link is the place in the branch, so it points to another part when parts before it are deleted
+or inserted; change it then. An import from the story links the chapters for you, see [below](#importing-an-arc-from-the-story).
 
 ### The note of a chapter
 
@@ -120,6 +131,7 @@ the one for arcs, with these choices on the left:
 |---|---|
 | From message, To message | The range of the story to send. The messages of the branch that have text are numbered from 1; at first the whole branch is chosen. Under each field you see the beginning of the message it points to. |
 | Number of chapters (optional) | Choose a number to get exactly that many chapters (an answer with another number is rejected), leave it empty to let the model divide the story where it naturally divides. |
+| Link the chapters to the parts of the story | On at first. The messages are numbered from 1 within the range you send, and the model says in which message every chapter begins; the chapter is [linked](#linking-to-the-story) to that part of the story (as numbered in the whole branch, so it is right whatever the range is), and the arc to the part its first chapter begins in. An answer that names a message that was not sent leaves the chapter unlinked. |
 | State of the imported arc and its chapters | **Finished** at first, because the story is written; choose **Current** or **Planned** if you need it. |
 | Token counter | How many messages the range has and their approximate tokens, and the approximate tokens of the whole prompt (instructions, lore, outline and story) next to what the model takes. It turns into a warning when the prompt does not fit, then choose fewer messages. It follows the range, the number of chapters, the prompt and the model. |
 | Prompt | The instructions for the model, with the variables ``, ``, `` (the messages of the range) and ``. It starts as the **Story import prompt** of *Settings → Extension Settings → Arc Outline*. |

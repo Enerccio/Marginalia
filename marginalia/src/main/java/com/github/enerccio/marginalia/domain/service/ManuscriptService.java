@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.domain.service;
 
 import com.github.enerccio.marginalia.domain.collections.Language;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
+import com.github.enerccio.marginalia.domain.model.impl.Folder;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.repository.ManuscriptRepository;
@@ -52,9 +53,121 @@ public interface ManuscriptService extends ExtendableService<Manuscript, Manuscr
     Manuscript findViewable(String uuid) throws Exception;
 
     /**
+     * A change of a book that can throw.
+     */
+    @FunctionalInterface
+    interface BookChange {
+        void apply(Manuscript book) throws Exception;
+    }
+
+    /**
+     * Applies the change to a freshly loaded copy of the book and saves it. The way to change a book that the caller holds
+     * from an earlier time (a generation, an open window): only what the change sets is written, not the old values of the
+     * rest, which someone else may have changed since (the folder, the settings, the active leaf).
+     *
+     * @return the saved book
+     * @throws IllegalStateException when the book no longer exists (nothing is applied)
+     * @throws ManuscriptLockedException when an agent works on the book
+     */
+    Manuscript update(Manuscript book, BookChange change) throws Exception;
+
+    /**
+     * Puts the books on the folder (null is the top level). It is not a change of the content, so the books are not saved
+     * and their {@code modification} stays.
+     *
+     * @throws IllegalArgumentException    when the folder or a book is not the user's
+     * @throws ManuscriptLockedException when an agent works on a book
+     */
+    /**
+     * The books (no agent working copies) of the current user in the folder (null is the top level), with
+     * {@code includeSubfolders} also those in the folders below it (at the top level that is every book).
+     */
+    List<Manuscript> findRegularInFolder(Folder folder, boolean includeSubfolders) throws Exception;
+
+    /**
+     * The uuids of the books the user marked as favorites, in the order they were marked; a book that is gone is dropped
+     * (and forgotten).
+     */
+    List<String> getFavorites() throws Exception;
+
+    /**
+     * Marks the book as a favorite or takes the mark off. Nothing of the book changes (not its modification either).
+     */
+    void setFavorite(Manuscript book, boolean favorite) throws Exception;
+
+    void moveToFolder(Collection<Manuscript> books, Folder folder) throws Exception;
+
+    /**
      * Marks manuscript as opened by its owner, used to order recently opened books.
      */
     void markOpened(Manuscript manuscript) throws Exception;
+
+    /**
+     * The value of a text setting of the book and where it comes from: the book, else the nearest folder above it that sets
+     * one, else the user settings, else the built-in default. A blank text is not set. Works from any thread (a generation
+     * asks from its own).
+     */
+    EffectiveSetting<String> resolve(Manuscript manuscript, PromptField field) throws Exception;
+
+    /**
+     * What a book filed in the folder (or a folder made in it) inherits for the field and where it comes from: the folder
+     * itself if it sets one, else the nearest one above it, else the user settings, else the built-in default. The top
+     * level (null) has the user settings only. What the settings forms show as the placeholder of an empty field.
+     */
+    EffectiveSetting<String> resolveInherited(Folder folder, PromptField field) throws Exception;
+
+    /**
+     * The value of a setting an extension added to the books ({@code InheritedSetting}) and where it comes from: the book, else
+     * the nearest folder above it that sets one, else what the user level of the extension holds, else the default of the
+     * extension. A blank text is not set; the value is blank only when the extension's default is. A key nothing is registered for
+     * (the extension is not loaded) has no user level and an empty default. Works from any thread.
+     */
+    EffectiveSetting<String> resolveExtension(Manuscript manuscript, String key) throws Exception;
+
+    /**
+     * What a book filed in the folder (or a folder made in it) inherits for the extension setting and where it comes from, see
+     * {@link #resolveExtension}; the top level (null) has the user level of the extension only.
+     */
+    EffectiveSetting<String> resolveExtensionInherited(Folder folder, String key) throws Exception;
+
+    /**
+     * The language of the book and where it comes from: the book, else the nearest folder above it that sets one, else
+     * English (the default).
+     */
+    EffectiveSetting<Language> resolveLanguage(Manuscript manuscript) throws Exception;
+
+    /**
+     * The language a book filed in the folder (or a folder made in it) inherits and where it comes from: the folder itself
+     * if it sets one, else the nearest one above it, else English (the default). The top level (null) has English.
+     */
+    EffectiveSetting<Language> resolveInheritedLanguage(Folder folder) throws Exception;
+
+    /**
+     * How many versions of a part the history of the book keeps and where the limit comes from: the smallest of what the book,
+     * the folders above it (all of them), the settings of its owner and the owner's {@code VERSION_HISTORY} permission set (an
+     * owner without the permission has the default of {@link EffectiveHistoryLimit#DEFAULT_MAX_VERSIONS}, one whose permission is
+     * not granted has none). A level that sets nothing, or a negative number, does not limit. Works from any thread.
+     */
+    EffectiveHistoryLimit resolveHistoryLimit(Manuscript manuscript) throws Exception;
+
+    /**
+     * The limit a book filed in the folder (or a folder made in it) inherits, see {@link #resolveHistoryLimit}: the folder itself and
+     * the ones above it, then the settings and the permission of the current user (the windows that ask are the user's own, and the folder
+     * of a book they hold is a lazy proxy without a session: only its id is read). The top level (null) has the user and their permission only.
+     */
+    EffectiveHistoryLimit resolveInheritedHistoryLimit(Folder folder) throws Exception;
+
+    /**
+     * What the administrator's {@code VERSION_HISTORY} permission allows the current user, the level above the user settings: the
+     * number of the permission, the default for a user without one, no history for one that is not granted, no limit for a
+     * granted one without a number.
+     */
+    EffectiveHistoryLimit resolvePermissionHistoryLimit() throws Exception;
+
+    /**
+     * {@code resolveLanguage(manuscript).value()}.
+     */
+    Language getLanguage(Manuscript manuscript) throws Exception;
 
     String getMasterTemplate(Manuscript manuscript) throws Exception;
     String getPov(Manuscript manuscript) throws Exception;
@@ -151,6 +264,16 @@ public interface ManuscriptService extends ExtendableService<Manuscript, Manuscr
     void setAgenticCopyModel(Manuscript copy, AI ai, Protocol protocol) throws Exception;
 
     /**
+     * Puts the working copy of an agent into the folder of the book it is a copy of (null: the top level), which is what the
+     * copy resolves its settings through (language, template, prompts), so it writes as the book does. The copy is a working
+     * copy and not a book of the list, so this changes neither the folder's content nor its modification. Called when the copy
+     * is made and when the run is synced or its copy is replaced, as the book may have been moved while the run was paused.
+     *
+     * @throws IllegalArgumentException when the manuscript is not a working copy of an agent
+     */
+    void setAgenticCopyFolder(Manuscript copy, Folder folder) throws Exception;
+
+    /**
      * Changes the settings of the book that are named in {@code changes} (the others are left as they are) and saves it. The
      * prompt templates are checked first: an invalid one refuses the whole change, a template that uses names that do not
      * exist is saved and reported in the result.
@@ -180,6 +303,7 @@ public interface ManuscriptService extends ExtendableService<Manuscript, Manuscr
         private String userPrompt;
         private String summaryPrompt;
         private String metaSummaryPrompt;
+        private Integer historyMaxVersions;
 
         public String name() {
             return name;
@@ -270,9 +394,42 @@ public interface ManuscriptService extends ExtendableService<Manuscript, Manuscr
             this.metaSummaryPrompt = metaSummaryPrompt;
             return this;
         }
+
+        /**
+         * The most versions of a part the book keeps; a negative number takes the limit of the book away (the levels above
+         * it still apply), null leaves it as it is.
+         */
+        public Integer historyMaxVersions() {
+            return historyMaxVersions;
+        }
+
+        public BookSettings historyMaxVersions(Integer historyMaxVersions) {
+            this.historyMaxVersions = historyMaxVersions;
+            return this;
+        }
     }
 
+    /**
+     * What a part of a restored or copied book gets when the backup has no history of it.
+     */
+    enum MissingHistory {
+        /** Nothing: the working copy of an agent, whose parts get their first version when they are changed. */
+        NONE,
+        /** A first version made as the migration of existing parts did, see {@code MessageRevisionService#recordFirst}. */
+        FIRST_VERSION,
+        /** A {@code DUPLICATE} version of the text: the book was duplicated. */
+        DUPLICATE
+    }
+
+    /**
+     * The backup of the book without the history of its parts.
+     */
     JsonObject createBackup(Manuscript manuscript) throws Exception;
+
+    /**
+     * The backup of the book; with {@code includeHistory} each part has its versions ({@code revisions}, the ones in the trash too).
+     */
+    JsonObject createBackup(Manuscript manuscript, boolean includeHistory) throws Exception;
     Manuscript cloneFromBackup(JsonObject backup) throws Exception;
 
     /**
@@ -282,5 +439,10 @@ public interface ManuscriptService extends ExtendableService<Manuscript, Manuscr
      * @param pairs where to add the pairs, null when nobody wants them
      */
     Manuscript cloneFromBackup(JsonObject backup, Collection<UuidPair> pairs) throws Exception;
+
+    /**
+     * As {@link #cloneFromBackup(JsonObject, Collection)}; the parts the backup has versions of get them, the others what {@code missing} says.
+     */
+    Manuscript cloneFromBackup(JsonObject backup, Collection<UuidPair> pairs, MissingHistory missing) throws Exception;
     Manuscript restoreBackup(Manuscript manuscript, boolean onlyRestoreMessages, JsonObject backup) throws Exception;
 }

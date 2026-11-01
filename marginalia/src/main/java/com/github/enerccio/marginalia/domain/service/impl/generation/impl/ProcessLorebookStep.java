@@ -51,13 +51,14 @@ public class ProcessLorebookStep extends GenerationStepBase {
 
                     // the story is read only as far back as the deepest entry looks
                     List<String> parts = storyParts(controller, activationService.partsNeeded(entries));
+                    Integer position = turnPosition(controller, entries);
                     LoreScan scan = new LoreScan(controller, entries, manuscriptTags, activationService.scanDepth(lorebook));
                     controller.getProperties().put(GenerationProperties.LOREBOOK_VERDICTS, scan.verdicts);
                     forEachAsync(controller, entries, (entry, next) -> {
                         log.debug("Processing entry: {} ", entry.getName());
                         // evaluated before the event: listeners see the verdict and can replace it
                         scan.emit(entry, activationService.evaluate(entry, manuscriptTags,
-                                controller.getPrePromptData().getUserPromptProcessed(), parts), 0, verdict -> {
+                                controller.getPrePromptData().getUserPromptProcessed(), parts, position), 0, verdict -> {
                             scan.record(entry, verdict, 0);
                             next.returnFromEvent();
                         });
@@ -104,6 +105,19 @@ public class ProcessLorebookStep extends GenerationStepBase {
                 controller.emitEvent(Events.AFTER_PROCESS_LOREBOOK, controller::next);
             }
         });
+    }
+
+    /**
+     * The number of the part the turn creates, null when no entry is limited to some parts (nothing to compare it with).
+     * The part being replaced by a swipe or a regeneration is the one the turn creates.
+     */
+    private Integer turnPosition(GenerationController controller, List<LorebookEntry> entries) throws Exception {
+        if (!activationService.positionNeeded(entries)) {
+            return null;
+        }
+        GenerationRequestType requestType = controller.getRequest().getRequestType();
+        return activationService.turnPosition(chatMessageService.find(controller.getManuscript().getActiveLeaf()),
+                requestType == GenerationRequestType.SWIPE || requestType == GenerationRequestType.REGENERATE);
     }
 
     /**

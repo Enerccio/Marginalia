@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846522787704">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846880296645">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846522787704" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846880296645" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846522787704" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846880296645" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846522787704" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846880296645" data-turbo-eval="false" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -60,7 +60,7 @@
                 <div class="flex items-center px-2 md:px-6">
                     <a id="retype-branding-logo" href="https://enerccio.github.io/Marginalia/" class="flex items-center leading-snug text-2xl">
                         <span class="dark:text-white font-bold line-clamp-1 md:line-clamp-2">Marginalia</span>
-                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.5.0</span>
+                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.6.0</span>
                 </div>
     
                 <span class="hidden h-8 border-r md:inline-block border-base-border"></span>
@@ -467,6 +467,9 @@ run or a user did. What a command needs to know about the current state it reads
 <li>from the <strong>scope</strong> of the call, <code translate="no" v-pre>context.getScope()</code> (below): the book the command works on, its lorebooks and the way to ask a question,</li>
 <li>from the session-scoped <code translate="no" v-pre>SessionPoint</code> (<code translate="no" v-pre>getLanguage()</code>, <code translate="no" v-pre>getWorkspace()</code>), through <code translate="no" v-pre>CommandUtils</code>.</li>
 </ul>
+<p>The commands that report or set the settings of a book (<code translate="no" v-pre>get-book-info</code>, the book settings commands) work with the <strong>effective</strong> values, those the
+book gets through its <a href="../folders/#resolving-a-setting">folders</a> (<code translate="no" v-pre>ManuscriptService.getLanguage</code>, <code translate="no" v-pre>getPov</code>, <code translate="no" v-pre>resolve(...).isCustom()</code>), not the
+book&#x27;s own fields.</p>
 <h3 id="the-scope">The scope</h3>
 <p><code translate="no" v-pre>CommandContext.getScope()</code> is a <code translate="no" v-pre>CommandScope</code>: what the command works on and who answers its questions. A command takes the book from it
 (<code translate="no" v-pre>getManuscript()</code>, read again from the database every time, <code translate="no" v-pre>getLorebook()</code> the root lorebook of the book) and asks with
@@ -544,10 +547,18 @@ both:</p>
 <p>The package <code translate="no" v-pre>domain.service.impl.commands.manuscript.read</code> holds one class per command (<code translate="no" v-pre>GetBookInfoCommand</code>, <code translate="no" v-pre>ListPartsCommand</code>,
 <code translate="no" v-pre>GetPartCommand</code>, <code translate="no" v-pre>ListSwipesCommand</code>, <code translate="no" v-pre>ListBranchesCommand</code>, <code translate="no" v-pre>GetPartMetricsCommand</code>, <code translate="no" v-pre>ShowPromptCommand</code>, <code translate="no" v-pre>SearchPartsCommand</code>,
 <code translate="no" v-pre>FindOccurrencesCommand</code>, <code translate="no" v-pre>ComparePartsCommand</code>, <code translate="no" v-pre>CountTokensCommand</code>, <code translate="no" v-pre>ListSummariesCommand</code>, <code translate="no" v-pre>GetSummaryCommand</code>,
-<code translate="no" v-pre>CheckSummariesCommand</code>, <code translate="no" v-pre>GetTemplateVariablesCommand</code>), each a <code translate="no" v-pre>@Configurable</code> suite registered by <code translate="no" v-pre>CommandServiceImpl</code>. They share
+<code translate="no" v-pre>CheckSummariesCommand</code>, <code translate="no" v-pre>GetTemplateVariablesCommand</code>, <code translate="no" v-pre>GetBookStatisticsCommand</code>, <code translate="no" v-pre>GetStatisticsCommand</code>), each a <code translate="no" v-pre>@Configurable</code> suite registered by <code translate="no" v-pre>CommandServiceImpl</code>. They share
 <code translate="no" v-pre>ManuscriptReadSupport</code> (the services, the <code translate="no" v-pre>Book</code> loaded again from the current manuscript, the JSON helpers) and <code translate="no" v-pre>StoryTree</code> (the
 parts as a tree, with the numbers of the branches). All are <code translate="no" v-pre>NON_DESTRUCTIVE</code>, synchronous and answer JSON text.</p>
 <ul>
+<li>
+<p><strong>Statistics.</strong> <code translate="no" v-pre>get-book-statistics [range] [side]</code> (the open book, day by day) and <code translate="no" v-pre>get-statistics [range] [by] [side]</code> (all the books of the
+author: <code translate="no" v-pre>by</code> is <code translate="no" v-pre>day</code>, the default, or <code translate="no" v-pre>book</code>, the books in the order of their words, with <code translate="no" v-pre>handle</code>, <code translate="no" v-pre>name</code>, <code translate="no" v-pre>folder</code> and <code translate="no" v-pre>deleted</code>, also the
+books that are gone) answer from <code translate="no" v-pre>StatisticReportService</code>. The <code translate="no" v-pre>range</code> is a name of <code translate="no" v-pre>StatisticRange</code> (<code translate="no" v-pre>today</code>, <code translate="no" v-pre>yesterday</code>, <code translate="no" v-pre>last-7-days</code>, the
+default, <code translate="no" v-pre>last-30-days</code>, <code translate="no" v-pre>this-month</code>, <code translate="no" v-pre>all-time</code>), a day (<code translate="no" v-pre>2026-03-14</code>) or two (<code translate="no" v-pre>2026-03-01..2026-03-14</code>); the <code translate="no" v-pre>side</code> is <code translate="no" v-pre>all</code>, the default,
+<code translate="no" v-pre>me</code> or <code translate="no" v-pre>agents</code>. The numbers are the counts, the time in minutes (<code translate="no" v-pre>minutesOpen</code>, <code translate="no" v-pre>minutesEditing</code>, <code translate="no" v-pre>minutesGenerating</code>, <code translate="no" v-pre>minutesAgentsRunning</code>:
+the union, so books that ran together are counted once) and the growth of the size. <code translate="no" v-pre>get-statistics</code> needs no open book.</p>
+</li>
 <li>
 <p><strong>Handles, positions and numbers.</strong> Every row of an answer has a <code translate="no" v-pre>handle</code>, the uuid of the part (an agent sees it as <code translate="no" v-pre>h:m17</code>: the
 border of the agent turns the uuids of its copy into handles and back, see <code translate="no" v-pre>CommandCage</code>; a command knows nothing of it). A part
@@ -555,7 +566,7 @@ parameter is a <code translate="no" v-pre>String</code> that <code translate="no
 scope&#x27;s book is found) or as a <em>position</em> (depth on a branch, the first part is 1); a branch is the handle of one of its parts
 (the branch through it to its end, <code translate="no" v-pre>StoryTree.leafOf</code>) or its <em>number</em>: the ends of the branches (parts without children)
 ordered by creation, the oldest is 1. Positions and numbers move when parts are added or deleted, so the commands that write
-accept handles only. <code translate="no" v-pre>list-branches</code> gives the numbers and <code translate="no" v-pre>list-swipes</code>, <code translate="no" v-pre>search-parts</code> and <code translate="no" v-pre>find-occurrences</code> say the branch that
+accept handles only. <code translate="no" v-pre>list-branches</code> gives the numbers and <code translate="no" v-pre>list-swipes</code>, <code translate="no" v-pre>search-parts</code> (with <code translate="no" v-pre>includeVersions</code> it also searches the <a href="../version-history/#search">earlier versions</a> of the parts, and a hit found through one has a <code translate="no" v-pre>version</code> object) and <code translate="no" v-pre>find-occurrences</code> say the branch that
 shows a part that is not on the active branch. Without a branch the active branch (<code translate="no" v-pre>getBranchFromLeaf</code>, the root first) is used; the other
 branches need the whole tree (<code translate="no" v-pre>ChatMessageService.getAllMessages</code>, one query), so a command loads it only when asked for one.
 A form with a single <code translate="no" v-pre>String</code> that could be a text or a part (<code translate="no" v-pre>count-tokens</code>, <code translate="no" v-pre>preview-lore-activation</code>) takes the handle in the text:
@@ -607,7 +618,7 @@ name and tag in Java and keeps the numbers of the whole lorebook; <code translat
 (plain text or a regular expression) and reports one hit per entry with the fields that match.</p>
 <p><code translate="no" v-pre>preview-lore-activation</code> asks <code translate="no" v-pre>LorebookActivationService</code> (<code translate="no" v-pre>domain.service</code>), the rules the generation step <code translate="no" v-pre>ProcessLorebookStep</code> uses too: <code translate="no" v-pre>collectLorebooks</code> (the enabled
 tree with the entries filled in), <code translate="no" v-pre>orderedEntries</code> (by <code translate="no" v-pre>order</code>, the older first), <code translate="no" v-pre>evaluate(entry, bookTags, text, parts)</code> (<code translate="no" v-pre>parts</code>: the story before the turn, from <code translate="no" v-pre>recentParts</code> with <code translate="no" v-pre>partsNeeded</code> as the count - the active branch of the book, or the parts in front of the given part - for the entries that look into it; a <code translate="no" v-pre>Verdict</code> with a <code translate="no" v-pre>Reason</code>: <code translate="no" v-pre>CONSTANT</code>,
-<code translate="no" v-pre>FILTER_MATCHED</code>, <code translate="no" v-pre>LORE_MATCHED</code>, <code translate="no" v-pre>DISABLED</code>, <code translate="no" v-pre>NEGATIVE_TAG</code>, <code translate="no" v-pre>MISSING_TAG</code>, <code translate="no" v-pre>FILTER_NOT_MATCHED</code>), <code translate="no" v-pre>evaluateAll</code> (all the entries and the same <code translate="no" v-pre>parts</code>, with the passes of the scan depth of the root
+<code translate="no" v-pre>FILTER_MATCHED</code>, <code translate="no" v-pre>LORE_MATCHED</code>, <code translate="no" v-pre>DISABLED</code>, <code translate="no" v-pre>OUT_OF_RANGE</code>, <code translate="no" v-pre>NEGATIVE_TAG</code>, <code translate="no" v-pre>MISSING_TAG</code>, <code translate="no" v-pre>FILTER_NOT_MATCHED</code>; <code translate="no" v-pre>OUT_OF_RANGE</code>: the entry is limited to some parts and the turn - the next part of the branch, or the given part - is outside them), <code translate="no" v-pre>evaluateAll</code> (all the entries and the same <code translate="no" v-pre>parts</code> and the position of the turn, with the passes of the scan depth of the root
 lorebook: an entry found by the content of others is <code translate="no" v-pre>LORE_MATCHED</code>, its row has <code translate="no" v-pre>scanDepth</code>, the pass) and <code translate="no" v-pre>renderPayload</code>. The step only adds its events around them, so what the command
 shows is what a generation does. With a part the filters are looked for in the user prompt of the book rendered from the turn input stored with the part, in a
 fresh <code translate="no" v-pre>TemplateContext</code> (the book, the narration settings, the variables of the book and of the part; not the story), so a payload that reads the story renders
@@ -619,7 +630,7 @@ to <code translate="no" v-pre>executePositional</code>, or by name as an agent d
 <code translate="no" v-pre>ManuscriptWriteSupport</code> (which extends <code translate="no" v-pre>ManuscriptReadSupport</code>) and <code translate="no" v-pre>LorebookWriteSupport</code> (which extends <code translate="no" v-pre>LorebookReadSupport</code>):
 <code translate="no" v-pre>PartEditCommands</code> (<code translate="no" v-pre>edit-part</code>, <code translate="no" v-pre>replace-part-text</code>, <code translate="no" v-pre>append-to-part</code>, <code translate="no" v-pre>set-part-fields</code>), <code translate="no" v-pre>PartStructureCommands</code> (<code translate="no" v-pre>create-part</code>,
 <code translate="no" v-pre>insert-part</code>, <code translate="no" v-pre>branch-part</code>, <code translate="no" v-pre>delete-part</code>, <code translate="no" v-pre>switch-branch</code>), <code translate="no" v-pre>SummaryWriteCommands</code> (<code translate="no" v-pre>set-summary</code>, <code translate="no" v-pre>remove-summary</code>, <code translate="no" v-pre>revalidate-summaries</code>),
-<code translate="no" v-pre>BookSettingsCommands</code> (<code translate="no" v-pre>set-book-info</code>, <code translate="no" v-pre>set-book-prompts</code>, <code translate="no" v-pre>set-book-tags</code>), <code translate="no" v-pre>StoryGenerationCommands</code> (<code translate="no" v-pre>next</code>, <code translate="no" v-pre>swipe</code>,
+<code translate="no" v-pre>BookSettingsCommands</code> (<code translate="no" v-pre>set-book-info</code>, <code translate="no" v-pre>set-book-prompts</code>, <code translate="no" v-pre>set-book-tags</code>, <code translate="no" v-pre>set-book-history-limit</code> over <code translate="no" v-pre>BookSettings.historyMaxVersions</code>, a negative number takes the limit away), <code translate="no" v-pre>StoryGenerationCommands</code> (<code translate="no" v-pre>next</code>, <code translate="no" v-pre>swipe</code>,
 <code translate="no" v-pre>regenerate</code>), <code translate="no" v-pre>SummaryGenerationCommands</code> (<code translate="no" v-pre>regenerate-summary</code>, <code translate="no" v-pre>create-meta-summary</code>), <code translate="no" v-pre>RedraftCommands</code> (<code translate="no" v-pre>redraft-part</code>, over <code translate="no" v-pre>RedraftService</code>; the model is the one of the book as the scope gives it, which for an agent follows <code translate="no" v-pre>Agent.useAgentModel</code>, or a <code translate="no" v-pre>profile</code> through <code translate="no" v-pre>ManuscriptWriteSupport.options</code>), <code translate="no" v-pre>AnnotationWriteCommands.generate</code> (<code translate="no" v-pre>generate-annotation</code>, over <code translate="no" v-pre>AnnotateService</code> in <code translate="no" v-pre>AUTO</code> mode with the default task of the prompt; <code translate="no" v-pre>batch = SINGLE</code>, <code translate="no" v-pre>async</code>; adds every proposal with <code translate="no" v-pre>AnnotateService.accept</code>, labelled with the model; the model is <code translate="no" v-pre>CommandScope.getModel</code> like in the Lore Generator, or a <code translate="no" v-pre>profile</code> through <code translate="no" v-pre>ManuscriptWriteSupport.options</code>), <code translate="no" v-pre>ImpersonateCommands</code> (<code translate="no" v-pre>impersonate</code>, over <code translate="no" v-pre>ImpersonateService</code>, returns the drafted instructions; <code translate="no" v-pre>availableForAgent = false</code> and <code translate="no" v-pre>readOnly</code>), <code translate="no" v-pre>LoreEntryWriteCommands</code> and
 <code translate="no" v-pre>LorebookWriteCommands</code>. They call the services the screens use (<code translate="no" v-pre>ChatMessageService.updateResponse</code> / <code translate="no" v-pre>createPart</code> / <code translate="no" v-pre>insertPart</code> /
 <code translate="no" v-pre>branchAndSwitch</code> / <code translate="no" v-pre>swipeAndSwitch</code> / <code translate="no" v-pre>deleteNodeAndMigrateChildren</code>, <code translate="no" v-pre>SummaryService.updateSummaryText</code> / <code translate="no" v-pre>removeSummary</code> /
@@ -696,7 +707,7 @@ change nothing).</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (60a4afd23).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (3b5a4203d).</p></div>
             </footer>
         </div>
     </div>

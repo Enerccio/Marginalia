@@ -25,7 +25,7 @@ public class SearchPartsCommand extends ManuscriptReadSupport {
                     @CommandParameter(name = "query", type = String.class, description = L.DESC_COMMAND_QUERY_PARAM)}),
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_SEARCH_PARTS_RETURN))
     public void searchParts(CommandContext context) throws Exception {
-        searchParts(context, context.get("query", String.class), null);
+        searchParts(context, context.get("query", String.class), null, false);
     }
 
     @Command(commandName = NAME, humanName = L.LABEL_COMMAND_SEARCH_PARTS,
@@ -36,15 +36,28 @@ public class SearchPartsCommand extends ManuscriptReadSupport {
                     @CommandParameter(name = "limit", type = Integer.class, optional = true, defaultValue = "50", min = "1", max = "200", description = L.DESC_COMMAND_LIMIT_PARAM)}),
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_SEARCH_PARTS_RETURN))
     public void searchPartsLimit(CommandContext context) throws Exception {
-        searchParts(context, context.get("query", String.class), context.get("limit", Integer.class));
+        searchParts(context, context.get("query", String.class), context.get("limit", Integer.class), false);
     }
 
-    private void searchParts(CommandContext context, String query, Integer limit) throws Exception {
+    @Command(commandName = NAME, humanName = L.LABEL_COMMAND_SEARCH_PARTS,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
+            description = L.DESC_COMMAND_SEARCH_PARTS, llmDescription = L.DESC_COMMAND_SEARCH_PARTS_LLM,
+            signature = @CommandParameterSignature({
+                    @CommandParameter(name = "query", type = String.class, description = L.DESC_COMMAND_QUERY_PARAM),
+                    @CommandParameter(name = "limit", type = Integer.class, optional = true, defaultValue = "50", min = "1", max = "200", description = L.DESC_COMMAND_LIMIT_PARAM),
+                    @CommandParameter(name = "includeVersions", type = Boolean.class, optional = true, defaultValue = "false", description = L.DESC_COMMAND_INCLUDE_VERSIONS_PARAM)}),
+            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_SEARCH_PARTS_RETURN))
+    public void searchPartsVersions(CommandContext context) throws Exception {
+        searchParts(context, context.get("query", String.class), context.get("limit", Integer.class),
+                Boolean.TRUE.equals(context.get("includeVersions", Boolean.class)));
+    }
+
+    private void searchParts(CommandContext context, String query, Integer limit, boolean includeVersions) throws Exception {
         if (query == null || query.isBlank()) {
             throw new IllegalArgumentException(loc.getValue(L.ERROR_SEARCH_TEXT_EMPTY));
         }
         Book book = new Book(context);
-        List<FulltextHit> found = chatMessageService.searchFulltext(book.manuscript, query);
+        List<FulltextHit> found = chatMessageService.searchFulltext(book.manuscript, query, includeVersions);
         int max = limit(limit);
         StoryTree tree = book.tree();
         JsonArray hits = new JsonArray();
@@ -63,6 +76,14 @@ public class SearchPartsCommand extends ManuscriptReadSupport {
                 row.addProperty("branch", tree.branchOf(message));
             }
             row.addProperty("snippet", hit.snippet());
+            if (hit.isVersion()) {
+                // the part itself does not have the words, an older version of it has
+                JsonObject version = new JsonObject();
+                version.addProperty("id", hit.version());
+                version.addProperty("time", hit.versionTime().toInstant().toString());
+                version.addProperty("source", hit.versionSource().name());
+                row.add("version", version);
+            }
             hits.add(row);
         }
         JsonObject result = new JsonObject();

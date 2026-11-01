@@ -15,12 +15,14 @@ Some entities kept their early names. The UI and this manual use the names on th
 | `Summary` | `summaries` | Summary |
 | `Annotation` | `annotations` | Annotation (a note on a passage of a part) |
 | `MessagePrompt` | `message_prompts` | Prompt of a part (*Show Prompt*) |
+| `MessageRevision` | `message_revisions` | A version of the text of a part (*History*), see [Version history](version-history.md) |
 | `Lorebook`, `LorebookEntry` | `lorebooks`, `entries` | Lorebook, entry |
 | `AI`, `OpenAICompatible`, `ExtensionAI` | `ais`, `ais_openaicompat`, `ais_extension` | Inference provider |
 | `Usage` | `usages` | Tokens sent / generated column of the Inference Providers tab |
+| `ManuscriptStatistic`, `ActivityInterval`, `ManuscriptSize` | `manuscript_statistics`, `activity_intervals`, `manuscript_sizes` | The writing statistics of a book per day: counts, time, size, see [Writing statistics](#writing-statistics-manuscriptstatistic-activityinterval-manuscriptsize) |
 | `Protocol`, `ChatCompletionProtocol` | `protocols`, `protocols_chatcompletion` | Protocol |
 | `Tag`, `TagRelation` | `tags`, `t2e` | Tag |
-| `Setting`, `AppSettings`, `UserSetting` | `settings` | Settings page, admin settings |
+| `Setting`, `AppSettings`, `UserSetting`, `StylesSetting`, `ExportSettings` | `settings` | Settings page, admin settings; `StylesSetting` holds the text styles of a user (see [Text styles](ui.md#text-styles)); `ExportSettings` the style and the changed templates of each export format (see [Story export](services.md#story-export)) |
 | `User` | `users` | User |
 | `Permission` | `permissions` | What an administrator allowed a user to do, see [Permission](#permission-what-a-user-was-allowed) |
 | `Agent`, `AgentRun`, `AgentMessage` | `agents`, `agent_runs`, `agent_messages` | Agents, see [Agent and AgentRun](#agent-and-agentrun-agents) |
@@ -38,6 +40,9 @@ erDiagram
     User ||--o{ Usage : owns
     User ||--o{ Protocol : owns
     User ||--o| UserSetting : has
+    User ||--o{ Folder : owns
+    Folder |o--o{ Folder : "parent / children"
+    Folder |o--o{ Manuscript : contains
 
     Manuscript }o--o| AI : "generates with"
     Manuscript }o--o| Protocol : "generates with"
@@ -55,6 +60,7 @@ erDiagram
     TagRelation }o--|| Manuscript : "objectId + clazz"
     TagRelation }o--|| Lorebook : "objectId + clazz"
     TagRelation }o--|| LorebookEntry : "objectId + clazz"
+    TagRelation }o--|| Folder : "objectId + clazz"
 ```
 
 Every entity except `User` has an owner, so each user has a separate set of books, lorebooks, providers, protocols
@@ -90,6 +96,9 @@ classDiagram
     ExtendableEntity <|-- Lorebook
     ExtendableEntity <|-- LorebookEntry
     OwnedEntity <|-- Usage
+    OwnedEntity <|-- ManuscriptStatistic
+    OwnedEntity <|-- ActivityInterval
+    OwnedEntity <|-- ManuscriptSize
     ExtendableEntity <|-- AI
     ExtendableEntity <|-- Protocol
     ExtendableEntity <|-- Tag
@@ -126,7 +135,7 @@ when it is not a hard delete, soft delete those rows first (the `OWNED_BY` / `OW
 | Deleted | Also deleted |
 |---|---|
 | `Manuscript` | all its `ChatMessage`s and their `Summary`s (`ChatMessageService.softDeleteForManuscript`), its `TagRelation`s |
-| `ChatMessage` | its `Summary`, its `Annotation`s and all messages below it (children, their children...) |
+| `ChatMessage` | its `Summary`, its `Annotation`s, its `MessageRevision`s (`MessageRevisionService.softDeleteForParts`) and all messages below it (children, their children...) |
 | `Lorebook` | its `LorebookEntry`s (through `LorebookEntryService.delete`, so with their tag relations), its `TagRelation`s |
 | `LorebookEntry` | its `TagRelation`s (positive and negative) |
 | `AI` | its `Usage`s |
@@ -176,7 +185,7 @@ kinds of fields end up there:
   `Boolean`, `Date` (ISO-8601 instant in UTC, e.g. `2026-10-09T08:15:30.123Z`; values in the old `yyyy.MM.dd'Z'HH:mm:ss.SSS` format, written in the server's time zone, are still read), enums (by name) and any type for `inject = true`: a `JsonObject` has its keys stored flat as `<injectPrefix>_<key>`, any other type is converted with Gson (object-shaped results are flattened the same way, lists and scalars are stored under the plain `injectPrefix` key).
 - **Types**: the values are written with `toString()`, so a field can't be a collection. A list is kept as a JSON string
   in a `String` field with typed accessors, like `ChatMessage.imageAttachments` (`getImages()` / `setImages(...)`, a JSON
-  array of `ImageAttachment(resource uuid, caption)`).
+  array of `ImageAttachment(resource uuid, caption, anchor, wrap, width)`: the 3x3 `ImageAnchor` of the image (null: after the text, centered), whether the text flows around it (beside it at the left or the right, in two columns on both sides of one in the middle) and its width in percent of the text (null: its size, 30 for one with text on both sides); old values without the last three keep the look they had, and the viewer and the exports place the images with `PartLayout`).
 - **Save**: `JpaExtendableRepository.save` serializes the fields into `extendedContent` before the entity is written.
 
 **Compression.** The document is mostly text, and an entity keeps it next to the fields made from it, so
@@ -257,17 +266,23 @@ joins on is a real column: relations, `name`, `enabled`, `ordinal`, `published`,
 | `description` | JSON | Description shown in the book list. Also `@Fulltextable`. It used to be a column as well; V9 moved what only the column had into the JSON and dropped the column. |
 | `ai`, `protocol` | FK columns | Inference provider and protocol used for generation. |
 | `lorebook` | FK column | The book's lorebook (with its sub-lorebooks). |
+| `folder` | FK column `folder_id` | The [folder](folders.md) the book is in, null is the top level. `@CleanupReference(WEAK)`: purging the folder unlinks a living book. A working copy of an agent is put in the folder of its original. |
 | `activeLeaf` | FK column | The last part of the branch currently shown and continued. |
 | `published` | column | Readable by everyone at `/view/<uuid>`. |
 | `agentic` | column | The working copy of an agent. The lists of the UI leave these books out (`ManuscriptService.findAllRegularForUser`, `searchRegularManuscripts`); `findAllAgenticForUser` and `searchAgenticManuscripts` return only them, `findAllForUser` and `searchManuscripts` both kinds. |
 | `lastOpened` | column | When the owner last opened the book; orders the book lists. |
-| `template`, `pov`, `tense`, `style`, `userPrompt`, `summaryPrompt`, `metaSummaryPrompt`, `redraftSystemPrompt`, `redraftPrompt`, `annotateSystemPrompt`, `annotatePrompt`, `impersonatePrompt` | JSON | The book's prompt overrides (*Prompts* tab); empty means the user's defaults from `UserSetting`, then `Defaults`. |
-| `language` | JSON | Language of the story (`Language`, English when not set): the `lang` of the story views, which the browser uses for hyphenation and justification, and the language of the exports. |
-| `showBookStyles` | JSON | Story display option. |
+| `template`, `pov`, `tense`, `style`, `userPrompt`, `summaryPrompt`, `metaSummaryPrompt`, `redraftSystemPrompt`, `redraftPrompt`, `annotateSystemPrompt`, `annotatePrompt`, `impersonatePrompt` | JSON | The book's prompt overrides (*Prompts* tab); empty means inherited: the folders above the book, then the user's defaults from `UserSetting`, then `Defaults` (see [Folders](folders.md#resolving-a-setting)). |
+| `language` | JSON | Language of the story (`Language`; null is inherited from the folders, English at the end of the chain; `getLanguage()` still says English then and `getOwnLanguage()` null): the `lang` of the story views, which the browser uses for hyphenation and justification, and the language of the exports. |
+| `showBookStyles` | JSON | Legacy story display option (the Book style on or off). Read only while `partStyle` is not set, never written any more. |
+| `partStyle` | JSON | The id of the text style the author chose for this book (a built in style or one of the user, see [Text styles](ui.md#text-styles)); empty follows the default style of the user. |
 | `autoAnnotate`, `autoAnnotateInstructions`, `autoAnnotateModel`, `autoAnnotateProtocol`, `autoAnnotateAccept`, `autoAnnotateRedraft`, `autoAnnotateAcceptRedraft` | JSON | The automatic annotation of a generated part (Tools menu of the story, `AutoAnnotateDialog`; run by `AutoAnnotate`). The getters of the flags return `false` when unset. The model and the protocol are the **uuids** of an AI and a protocol, not ids (a restored backup can't point at somebody else's model: they are looked up among the ones the user can use, `AutoAnnotate.byUuid`, and an unknown or deleted one means the model of the book). |
 | `backupStrategy`, `backupStrategyValue`, `backupStrategyCurrentValue` | JSON | Per-book backup override and its progress counter. |
 
 Tags of a book are `TagRelation`s (see [Tags](#tags)).
+
+### `Folder`
+
+A group of books, nested through `parent` (a column, `OWNED_BY` for the cleanup), with a `name` (column), a `description` and the same twelve text settings and the language as a book, all extended attributes where null means inherit; tags like a book. Described in [Folders](folders.md). Migration V21.
 
 ### `ChatMessage` (part) and the story tree
 
@@ -446,6 +461,7 @@ uuids; the overload with a `Collection<UuidPair>` also reports `ANNOTATION` pair
 | `filtering`, `filteringMode` | JSON | Activation filter: keywords separated by commas, a text to find, or a regular expression (`FilteringMode.KEYWORDS_OR` / `KEYWORDS_AND` / `TEXT` / `REGEX`). |
 | `insertionMode` | JSON | `IN_LORE_BLOCK` or `BEFORE_USER_PROMPT`. |
 | `activationContext`, `activationParts` | JSON | What the filter is looked for in: `ActivationContext.INSTRUCTIONS` (default, the rendered user prompt) or `INCLUDE_PARTS` (the user prompt and the newest `activationParts` parts of the story, at least 1; `partsInContext()` is 0 for `INSTRUCTIONS`). Copied by clone, export (`activationContext`, `activationParts`) and import; the Lorebook VCS plugin keeps both in its revisions. |
+| `fromMessage`, `toMessage` | JSON | `Integer`, null = no limit (a value below 1 is stored as null): the entry is used only for the turns that create a part with a number in the range, both included, numbered like the outline (the first part of the branch is 1). `hasMessageRange()`, `inMessageRange(position)`. The check comes before tags and filter and gives `Reason.OUT_OF_RANGE`. Copied by clone, export (`fromMessage`, `toMessage`) and import; the Lorebook VCS plugin keeps both in its revisions (older ones have none). |
 | `preventRecursion` | JSON | The content of the entry is not searched for the filters of other entries (see `Lorebook.scanDepth`); it can still be used itself. Copied by clone, export and import. |
 | `cachedTags`, `cachedNegativeTags` | transient | Filled by `fillEntries`: the entry's tags plus the tags of its lorebook, and the entry's negative tags. |
 
@@ -528,6 +544,47 @@ response the request reserves (`TokenLimits.responseTokens(ai, protocol)`, the `
 there is none) has to fit into the generated limit. The hard flag does not apply to the total limit. `AILimit.validate()` rejects negative numbers and, when all three are
 set, sent plus generated below the total (the total could never be reached).
 
+### Writing statistics (`ManuscriptStatistic`, `ActivityInterval`, `ManuscriptSize`)
+
+What happened to a book, day by day (design and plan: `TODO.USAGE.MD`; not to be confused with `Usage`, which counts what a *user*
+used of an *AI* and knows no book). Three `OwnedEntity`s of the owner of the book. **The book is a plain `bookUuid` column, not a
+reference**, and none of them has a `@CleanupReference` to it: the trash and the purge of the book leave the rows, the user clears
+them (`ManuscriptStatisticService.clearBook` / `clearAll`, a hard delete of all three tables). So `bookName` and `folderPath` are
+copied into every row, to show a book that is gone. The `day` is a `LocalDate` stored as ISO text (`LocalDateConverter`), the day
+of the server's time zone (`ManuscriptStatisticService.today()`; a test sets the clock of `ManuscriptStatisticServiceImpl`).
+
+| Entity | One row is | Notes |
+|---|---|---|
+| `ManuscriptStatistic` | a book, a day and a side (`agent` false: the author with the models they asked, true: the agents), unique on `(bookUuid, day, is_agent)` | The nine counters (`StatisticCounts`: tokens sent / generated, requests, words written / generated / removed, parts created / deleted, edits) are real columns added up in SQL (`ManuscriptStatisticRepository.add`, `x = x + :n`, like `Usage`). `reconstructed` marks a day rebuilt from the history, `lastChange` the last count. |
+| `ActivityInterval` | a stretch of time of a `kind` (`ActivityKind`: `OPEN`, `EDIT`, `GENERATE`, `RUN`) in a book, inside one day | The time is recorded as it happened, per book, and combined only when shown (a union), so the length is `endTime - startTime` and `endTime` is moved forward while the stretch is open (`ActivityIntervalService.start` / `extend`). The kinds overlap and are never added to each other. |
+| `ManuscriptSize` | a book and a day: the size at the end of the day | `bookWords` / `bookTokens` of the whole book, `branchWords` / `branchTokens` of the current branch (`leafUuid` is the leaf it was measured on), `baseline` (only says how big the book was when tracking began). A day without a change has no row: the size of that day is the latest earlier row (`ManuscriptSizeService.sizeAt`, `sizeBefore`). Tokens are never recounted. |
+
+`ManuscriptStatisticService.count(book, [agent,] StatisticCounts)` is the way to count: it resolves the owner from the book (no
+session needed, it runs on worker threads), reads the folder path from the folder chain (`FolderService.findChain`), updates the
+row of the day and makes it on the first count; it never throws, a failure to count is logged and must not fail the work. The
+writers go one at a time (a read-write transaction takes the SQLite write lock when it begins, see `ReadWriteRoutingDataSource`),
+so nobody inserts the row between the update and the insert. The reads take a `StatisticFilter` (days, `StatisticSide`
+`ALL` / `AUTHOR` / `AGENTS`, optionally a book) and only see the rows of the current user: `total`, `sumByDay`, `sumByBook`
+(with the `BookStatistic.BookState` of every book: `PRESENT`, `TRASHED` for a book in the trash, `PURGED` for one that is gone) and
+`sumByFolder`.
+
+**Name and path.** The rows hold a copy of the name and the folder path of the book (`bookName`, `folderPath`) of the time they were written, and they are kept equal in all the rows of a book of all three tables. `ManuscriptStatisticService.refreshBook(book)` does it for a book (every `ManuscriptServiceImpl.save` of an existing book), `refreshBooks(books, folder)` for books that were moved into a folder (`moveToFolder` is a bulk update), and `refreshFolders()` for every book of the user that is not in the trash, after a folder was renamed, moved or deleted (its content moves up) or an Organise move: it reads the names and folders of the books and folders straight from the database (`findPlacements`), so it sees what a bulk update did. The updates are guarded to write only the rows that differ. A book in the trash, and what `deleteWithContent` of a folder takes with it, keeps its last name and path; deleting a book changes nothing. `noteBook(book, path)` is the safety net, called by the writers of the rows (`count`, `ActivityIntervalService.start`, `ManuscriptSizeService.set`): when the name or path differs from what the last writer told and from the stored book, the rows are corrected. Clones (duplicate, branch into a new book, `cloneFromBackup`), the imports, `restoreBackup` and the agent's working copy book nothing (their versions are `DUPLICATE` or flagged uncounted), and a backup carries no statistics.
+
+**Size.** `ManuscriptSizeService.touch(book)` only notes that the book may have changed; one worker thread measures it 2 s after the last touch (so a burst of edits, the end of a generation or an import is one measurement; `touchNow` when a window is closed). It loads the book by id, skips an agent's hidden working copy and a book in the trash, adds up what the parts have saved (`getTotalWordCount`, `getTotalTokenCount`, `getActiveBranchSizes`: no tokenizer is called, so changing the model changes no stored number) and sets the row of today (nothing is written when nothing differs). The first row of a book that was made under tracking (`touch(book, true)`) is a normal row, so the growth from nothing is the first day's; any other book without a row gets a `baseline` row, which stays baseline for the rest of its day. `growth(book, from, to)` is the size at the end of the range minus the size before it (the latest earlier row, or 0 for a book born in the range, or the baseline row the book was first seen with); a day without a row carries the size before it, and a shrinking book has negative growth. The touches are in the choke points: `ChatMessageServiceImpl.save` / `delete`, `ManuscriptServiceImpl.save` (the active leaf moves with it), `cloneFromBackup`, `restoreBackup`, `MessageRevisionServiceImpl.append`, the restore and the permanent delete of the trash, and the open and close of a book window.
+
+**Time.** The stretches are written only by the `ActivityTracker` (see [Services](services.md)): the registrations of a key (kind, book, side)
+open together are one row, and the owner of a row is the owner of the book, read from it, never the current user. A row is cut at midnight of the server's zone
+(two rows that meet at 00:00:00.000). Every time that is shown goes through `TimeUnion`: the stretches sorted by start, swept, the overlapping and touching
+ones merged, so five agents running for 24 hours on five books are 24 hours in total and 24 hours each, and the four kinds are four numbers that are never
+added (`ActivityTimes`: editing happens while the book is open). `ActivityIntervalService.times(filter)` is the union over the filter (the side `ALL` puts
+the author's and the agents' stretches together before the union), `timesByDay` the union per day, `timesByBook` the own time of each book (they overlap, so they are not parts of the total).
+
+**Showing it.** `StatisticReportService.report(filter)` reads the three tables for a filter and returns one `StatisticReport`: the counts and the time of the range, the days that have anything (`DayLine`), the size on every day (`SizeSeries.build`: a day without a row has the size of the last row before it, the growth of a day is the sum of the books' changes, a book first seen as a `baseline` has no growth that day, a book born in the range grows from nothing, a day with another active leaf is marked), the growth of the range (`SizeSeries.perBook`, the same rules as `ManuscriptSizeService.growth`) and, for all the books, a line per book (`BookLine`: the counts of `sumByBook`, the book's own time of `timesByBook`, its growth; a book that only has time or a size row is named from its size rows or the book). The windows (`StatisticsView`, see [User interface](ui.md)) and the commands only format it. `StatisticRange` (`TODAY`, `YESTERDAY`, `LAST_7_DAYS`, `LAST_30_DAYS`, `THIS_MONTH`, `ALL_TIME`, `CUSTOM`) resolves the presets to two days against the date of the server.
+
+**Rebuilt history.** `StatisticsBackfillMigration` (app 8 → 9, see [Database & migrations](database.md)) writes the rows of the books that existed before the statistics, for the days before the day of the upgrade, with `reconstructed` true; the live counting is the only writer from that day on, and a book that has rows is not touched. `StatisticsReconstruction` holds the rules (the live ones, `StatisticCounts.ofVersion`): the first version of a part is a part created and its words written or generated, a later one is an edit whose change of the word count is written / generated or removed; a copy, a saved version, an import and a repair count nothing; a version of an agent, and the merge of its work, go to the agents' side; a part that was deleted is a delete with its words removed on the day of its last change (not for the parts of a book in the trash); a part without versions is rebuilt from the part itself. The tokens are an estimate: the tokens of the model's versions and the prompt tokens the part saved, on the day of its last generation. The size of the book at the end of each day on which a part changed (a row only when it differs from the day before) is the sum of the newest versions of the parts that existed and were not deleted, whole and along the branch of today's active leaf. The time is not rebuilt: `UserSetting.statisticsSince` (an extended attribute, an ISO date) is the day it is recorded from, `StatisticReport.timeSince` carries it and the windows show a dash for the days before it and leave them out of the chart; a rebuilt day is marked `~` and the notes under the totals say how many there are (`DayLine.reconstructed`). A size row measured live after a rebuilt one is not a baseline: its growth is against the rebuilt size.
+
+**Days worked on, streaks and the goal.** Nothing of it is stored. `StatisticReportService.activity(bookUuid)` reads the author's side (counts per day, the `EDIT` stretches as a union per day, the last change of a count row or the end of the last stretch as the last activity) and returns a `WritingActivity`: the days that were *worked on*, which is `WritingActivity.worked` (words written, an edit, a part created or editing time; the agents' side, generated words alone and opening a book are not a day), the current and longest streak (today not yet worked on does not break the current one) and the shade of a day (`level`: by the goal when there is one, else by the busiest day shown; a day whose time was not recorded is only marked). The daily goal is `UserSetting.dailyGoalWords` / `dailyGoalMinutes` (extended attributes, no migration; the words the author wrote themselves and the minutes of editing, over all the books), read as a `WritingGoal` only for the request of all the books; a day reaches it when every goal that is set is reached, and `currentGoalStreak` / `longestGoalStreak` count those days.
+
 ### `Protocol` / `ChatCompletionProtocol`
 
 | Field | Stored | |
@@ -550,14 +607,15 @@ values are extended attributes.
 | Class | Owner | Contains |
 |---|---|---|
 | `AppSettings` | none (one per installation) | Data versions (`dbVersion`, `appVersion`), the database backup schedule (`backupScheduleEnabled`, `backupSchedule`, `backupKeep`, `lastScheduledBackup`, `backupScheduleChanged`), the help assistant (`helpAiUuid`, `helpAdminData` (may it read the data of the Admin page for an administrator), and the prompts `helpPromptAdmin` / `helpPromptUser`, null = the default; the uuid, not the id; written only by `HelpAssistantService.saveSettings`). The switches `userAisAllowed` and `helpEnabled` and the settings `helpApplyLimits` and `helpInteractions` are replaced by the permissions `CREATE_AI` and `HELPER` with the attributes `helperApplyLimits` and `helperInteractions` (V15 / app version 5); the fields stay, deprecated, only for `PermissionsMigration`. |
-| `UserSetting` | each user | Default model and protocol (ids, `@CleanupReference(WEAK)`), default prompts (`masterTemplate`, `defaultPov`, `defaultTense`, `defaultStyle`, `defaultUserPrompt`, `defaultSummaryPrompt`, `defaultMetaSummaryPrompt`, `defaultRedraftSystemPrompt`, `defaultRedraftPrompt`, `defaultAnnotateSystemPrompt`, `defaultAnnotatePrompt`, `defaultImpersonatePrompt`), default book backup strategy, how many parts the story and the viewer load at a time (`storyPartsLimit`, empty loads all), the code of the language of the UI (`language`, see [Localization](architecture.md#localization)), where the user left the workspace (`workspaceState`, a JSON object written by the workspace autosave, see [User interface](ui.md#remembering-where-the-user-was)). |
+| `UserSetting` | each user | Default model and protocol (ids, `@CleanupReference(WEAK)`), default prompts (`masterTemplate`, `defaultPov`, `defaultTense`, `defaultStyle`, `defaultUserPrompt`, `defaultSummaryPrompt`, `defaultMetaSummaryPrompt`, `defaultRedraftSystemPrompt`, `defaultRedraftPrompt`, `defaultAnnotateSystemPrompt`, `defaultAnnotatePrompt`, `defaultImpersonatePrompt`), default book backup strategy, how many parts the story and the viewer load at a time (`storyPartsLimit`, empty loads all), the code of the language of the UI (`language`, see [Localization](architecture.md#localization)), where the user left the workspace (`workspaceState`, a JSON object written by the workspace autosave, see [User interface](ui.md#remembering-where-the-user-was)), the favorite books (`favoriteBooks`, uuids), the default arrangement of the story tabs (`defaultStoryLayout`) and whether the help assistant may look at the books (`helpAssistantBooks`, false by default). |
 
 `SettingService.getOrCreate(UserSetting.class)` returns the current user's settings, creating them on first use;
-`getOrCreateApp(AppSettings.class)` the installation's. Extensions keep their settings in the `attributes` of
+`getOrCreateApp(AppSettings.class)` the installation's. A function that only reads uses `findOrBlank(cls, user)` instead (a missing setting is a blank one that is not stored, so a read-only transaction does not write: creating the row there fails with `SQLITE_BUSY` when another connection wrote in between; `find` returns `null`). Extensions keep their settings in the `attributes` of
 `UserSetting` (Reviewer and Side Query profiles do).
 
-The prompt used for a book is resolved in three levels: the book's value (`Manuscript.template`...), else the user's
-default (`UserSetting.masterTemplate`...), else the built-in default (`Defaults`).
+The prompt used for a book is resolved in four levels: the book's value (`Manuscript.template`...), else the nearest
+[folder](folders.md#resolving-a-setting) above it that sets one, else the user's default (`UserSetting.masterTemplate`...), else
+the built-in default (`Defaults`).
 
 ## Users
 
@@ -672,9 +730,9 @@ references between rows and decides what may go. Each reference has a policy (`@
 | Policy | Meaning | Used for |
 |---|---|---|
 | `STRONG` (default) | The referenced row can't be purged while the reference exists. | `Manuscript.ai`, `.protocol`, `.lorebook`, `.activeLeaf` |
-| `OWNED_BY` | The referencing row belongs to the referenced one and is purged with it. | `ChatMessage.parentScript`, `.parent`; `LorebookEntry.lorebook`; `TagRelation.tag`, `.objectId`; every `owner` |
+| `OWNED_BY` | The referencing row belongs to the referenced one and is purged with it. | `ChatMessage.parentScript`, `.parent`; `Folder.parent`; `LorebookEntry.lorebook`; `TagRelation.tag`, `.objectId`; every `owner` |
 | `OWNS` | The referenced row belongs to the referencing one and is purged with it, unless referenced elsewhere. | `ChatMessage.summary` |
-| `WEAK` | The reference doesn't block the purge; it is cleared when the referenced row goes. | `Lorebook.subbooks`, `UserSetting.defaultModel`, `.defaultProtocol` |
+| `WEAK` | The reference doesn't block the purge; it is cleared when the referenced row goes. | `Lorebook.subbooks`, `Manuscript.folder`, `UserSetting.defaultModel`, `.defaultProtocol` |
 
 JPA associations are found automatically from the Hibernate metamodel and default to `STRONG`. Plain id fields
 pointing to other entities ("soft references", including extended attributes) are only seen when annotated with
@@ -727,7 +785,7 @@ counted as purgeable, so a blocked lorebook that is still restorable keeps its e
 
 Book backups (`BackupService`) serialize a book as JSON: its columns, its `extendedContent` as is, its tags, all
 parts (with `extendedContent` and summaries) and references to its provider, protocol and lorebook by uuid and name.
-Restoring or cloning creates new rows (new ids and uuids for the parts) and copies `extendedContent` unchanged, so
+The backup also names the folders the book was in (the optional key `folder`, written by `takeBackup`, read by `BackupFolders`; see [Folders](folders.md#other-places-that-know-about-folders)). Restoring or cloning creates new rows (new ids and uuids for the parts) and copies `extendedContent` unchanged, so
 extended attributes and extension data come back exactly as they were. Linked entities are resolved among the
 current user's own entities, first by uuid, then by name.
 

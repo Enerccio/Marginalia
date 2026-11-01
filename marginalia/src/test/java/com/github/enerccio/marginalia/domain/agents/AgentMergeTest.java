@@ -429,6 +429,19 @@ class AgentMergeTest extends AgentTestBase {
     }
 
     @Test
+    void theHistoryLimitOfTheBookIsASettingTheAgentCanChange() throws Exception {
+        Manuscript copied = manuscriptService.find(copy().getId());
+        copied.setHistoryMaxVersions(5);
+        manuscriptService.save(copied);
+
+        MergePlan plan = plan();
+
+        assertThat(field(item(plan, Kind.BOOK, Change.CHANGED, "historyMaxVersions"), "historyMaxVersions").agent()).isEqualTo("5");
+        applyAll(plan);
+        assertThat(manuscriptService.find(book.getId()).getHistoryMaxVersions()).isEqualTo(5);
+    }
+
+    @Test
     void theCopyWritesWithTheModelOfTheAgentAndTheBookKeepsItsOwn() throws Exception {
         // the book is the user's again only when the run is over
         edit(inCopy("there was a dragon"), "there was a small dragon");

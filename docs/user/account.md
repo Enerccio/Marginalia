@@ -92,7 +92,9 @@ unlock them.
 | **Default Protocol** | The [protocol](protocols.md) new books start with. |
 | **Default model for annotating**, **Default protocol for annotating** | The model that [annotates a part](books/annotations.md#letting-a-model-annotate) when you do not choose another one for the run. Empty is the model of the book. |
 | **Backup Strategy** | Automatic [book backups](books/backups.md#automatic-backups) for books without their own strategy: *No Backups*, *After N Messages* or *After N Minutes*, with the number next to it. |
+| **Versions kept per part** | How many earlier versions of the text of a part the [history](books/version-history.md#how-many-versions-are-kept) keeps for all your books, unless a folder, a book or the administrator limits it more. Empty sets no limit here; **0** keeps no history. |
 | **Parts loaded at once in the story** | How many parts of a book the [story](books/story-editor.md) and the [viewer](books/publishing.md) keep loaded. The story starts with the last parts, the viewer where you stopped reading (or the first parts); the parts before and after are loaded as you scroll and the ones far from you are dropped again. Empty loads all the parts at once. |
+| **Daily goal: words written**, **Daily goal: minutes of editing** | The goal of a day for the calendar of the [writing statistics](books/statistics.md#the-daily-goal): the words you write yourself and the minutes you edit, over all your books. Empty is no goal. |
 
 *Default Model* and *Default Protocol* are used only when a book is created; changing them doesn't change existing
 books. The [Lore Generator](extensions/lore-generator.md) extension has no book and generates with them. The backup strategy applies to all books without a *Per manuscript override*, from their next generated part.
@@ -133,6 +135,69 @@ sets its own value on its *Prompts* tab keeps it. So:
 - set what is special to one book on its *Prompts* tab;
 - clear a book's field to bring it back to the default from *Settings*.
 
+### Styles
+
+The text styles of your books: how the text of the parts looks in the story and in the reader. The tab lists the **Normal**
+and **Book** styles, which the application brings and which can not be changed (they are marked *built in*), and your own.
+Select a style to edit it on the right; the buttons under the list:
+
+- **Duplicate** - makes a style of your own from the selected one (also from a built in one: this is how you start), named
+  *... (copy)*, which you can then rename and change;
+- **Delete** - deletes a style of yours; a built in style can not be deleted;
+- **Set as default** - makes the style the one the books use unless they [choose another](books/story-editor.md#text-styles) in the
+  story's settings menu. The default style is marked *default* in the list.
+- **Export** and **Import** - save the selected style as a `.style.json` file, and add the styles of such a file to your own (not stored
+  until you save the settings). See [Share a style](books/styling-guide.md#share-a-style-export-and-import).
+
+The [styling guide](books/styling-guide.md) goes through every option and has an example style to download.
+
+![The Styles tab, with the horror style of the styling guide selected](../images/settings-styles.png)
+
+For a style of your own the form on the right has a **Name**, the box **For exports (not offered for books)** and two tabs. A style is
+either for books or for exports: a style for exports is offered in the [export dialog](books/export.md#print-styles) (the application brings
+four, the looks of the HTML, EPUB, PDF and Word exports) and can not be the default style of the books, and a style for books is not offered
+in the export dialog. The list marks them *(export)*.
+
+- **Options** - in groups: *Text* (font, size, line height, letter and word spacing, color, alignment, hyphenation, the space
+  between paragraphs, the **first line indent** of paragraphs and a **drop cap** after headings), *Page* (the width of the text
+  column, centered, and the **background color**, which fills the whole area behind the text), *Emphasis, links and code* (the colors of italic and bold text and of links, the
+  font of code), *Quotes*, *Headings* (font, size of the first level, color, alignment, small capitals) and the symbol and
+  color of the *Scene break* (`---`). A box is any CSS value (`1.1rem`, `#336699`, `var(--lumo-body-text-color)`); an empty box
+  keeps the look of the application. The font boxes offer common font stacks, and take your own.
+- **Custom CSS** - CSS of your own, added after the options and applied inside the style, so a rule you write is only for the
+  text with this style: `.chat-message-markdown p { text-indent: 1.5em !important; }` indents paragraphs, plain declarations
+  (`font-size: 1.2rem;`) apply to the whole text. Below it, **Generated CSS** shows the stylesheet the options make (read only).
+  The braces `{ }` must match, or the style is not saved.
+
+![The Custom CSS tab of a style](../images/settings-styles-css.png)
+
+Under the form the **Preview** shows a sample text in the style, and follows every change as you type.
+
+Like the other tabs, the Styles tab is saved with the **Save** of the settings, and **Discard Changes** throws its changes
+away too: duplicating, editing, deleting and setting the default only change the working copy, and *Unsaved changes* (and
+the lock) appears as soon as you do any of them. A style with no name, or custom CSS whose braces do not match, is
+refused when you save.
+
+### Exports
+
+What each file format is exported with: the tab has a section for every format that has something to set (**Plain text**, **Markdown**, **HTML**,
+**Word**, **PDF**, **EPUB**, **Markdown with front matter**, **Obsidian vault**; click its name to open it).
+
+- **Print style** (HTML, Word, PDF and EPUB, the formats with fonts and colors) - the style the [export dialog](books/export.md) preselects
+  for the format. It starts as the look the application brings for the format (**HTML page**, **PDF book**...); the list holds the
+  [styles for exports](#styles), the built in ones and yours. Choose another to export that format in it every time, until you change the
+  choice in the dialog for one export.
+- **Front matter** (Markdown with front matter and the Obsidian vault) - the YAML block that starts the file, with ``, ``,
+  `` and ``. Empty is the default block.
+- **Title page** (every format but the ones for other tools; the Obsidian vault has it in the note of the book) - the template of the title page, a Handlebars template that writes Markdown, with `` and
+  `` (the info icon in the field lists them). Empty is the default one: the title as a heading and the author in italics under it.
+  **Fill default** in the info popover starts you from the default.
+
+The tab is saved with the **Save** of the settings and **Discard Changes** throws its changes away, like the others. A template that is not valid
+is refused when you save. A style you make in the Styles tab can be chosen here after you save.
+
+![The Exports tab, with the HTML section opened](../images/settings-exports.png)
+
 ### Tags
 
 A table of all your tags (the ones you give to books, lorebooks and lorebook entries) with the number of objects each
@@ -157,7 +222,7 @@ changes, the tag keeps its old name.
 
 The keys of the [story editor shortcuts](books/story-editor.md#keyboard-shortcuts) (they work in the story
 editor on a computer, the [phone layout](phone.md) has none).
-The table lists every action, also the ones [extensions](extensions/index.md) bring, with its key. Every item of the story's settings menu, of the menu of a part and of the right click menu of its text is an action here (most have no key until you give them one), and the menus show the key next to the item.
+The table lists every action, also the ones [extensions](extensions/index.md) bring, with its key, and the keys of the buttons of the [Organise](books/folders.md#organise) window of the book list. Every item of the story's settings menu, of the menu of a part and of the right click menu of its text is an action here (most have no key until you give them one), and the menus show the key next to the item.
 
 | Button | |
 |---|---|

@@ -7,12 +7,36 @@ and the summary and redraft prompts. They decide the voice of the book far more 
 
 ## Defaults and book values
 
-Every field is optional. An empty field uses the default from **Settings → Templates** (see
-[Account & settings](../account.md)), and when that is empty too, the built-in default. The default is shown in grey in
-the empty field.
+Every field is optional. An empty field is inherited: from the nearest [folder](folders.md) above the book that sets it, else
+from the default in **Settings → Templates** (see [Account & settings](../account.md)), and when that is empty too, the
+built-in default. The value it inherits is shown in grey in the empty field.
 
-So set what all your books share in *Settings*, and only what is special to a book on its *Prompts* tab. Changes are
-saved as you type.
+So set what all your books share in *Settings*, what a series shares in its folder, and only what is special to a book on its
+*Prompts* tab. Changes are saved as you type.
+
+### Inherited settings
+
+Under an empty field a line says where its value comes from, so it is clear why the book writes the way it does:
+
+- *Inherited from the folder "Sci-fi"* - a [folder](folders.md#where-the-settings-of-a-book-come-from) sets it (the nearest one
+  above the book is named),
+- *Inherited from your settings* - the value of *Settings → Templates*,
+- *Built-in default* - nothing sets it.
+
+![The Prompts tab of a book in a folder](../../images/book-prompts-inherited.png)
+
+The same fields are in the settings of a folder, with the same lines. A blank text counts as not set. Because the lookup is
+done when the prompt is built, moving the book to another folder, or changing the folder, changes the next part you
+generate.
+
+### Settings of extensions
+
+An [extension](../extensions/index.md) can add settings that books and folders inherit the same way (for example the medium a
+chat about the book treats it as). They are in an **Extension Settings** section below the prompts, in the *Prompts* tab of a book
+and in the settings of a folder, one group per extension. They work like the fields above: an empty field is inherited from the
+folders above the book, then from the extension's own settings in *Settings → Extension Settings*, then from its default, and the
+line under the field says which. The section is not shown while no loaded extension has such a setting; a value you set stays with
+the book or the folder when the extension is not loaded.
 
 Each field has a hints popover with **Insert Default Template**, which copies the default into the field as a starting
 point for your own version. The template fields also list the **Available Template Variables** and the
@@ -148,7 +172,8 @@ Earlier parts are sent as the model's own answers, so it continues them in the s
 than the [context limit](../protocols.md#limits), the oldest parts are left out first; [summaries](summaries.md)
 keep them in the story in condensed form.
 
-**Show Prompt** in the menu of any part shows the exact prompt that part was written from.
+**Show Prompt** in the menu of any part shows the exact prompt that part was written from. **Compare Prompt** puts it next to
+the prompt of an earlier part and shows where they first differ, which is where a server's [prompt cache](../prompt-cache.md#compare-prompt) ends.
 
 ## Tips
 

@@ -65,6 +65,34 @@
         <property name="repository" ref="usageRepository" />
     </bean>
 
+    <bean id="manuscriptStatisticRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaManuscriptStatisticRepository">
+        <property name="entityManager" ref="em"/>
+    </bean>
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.ManuscriptStatisticServiceImpl">
+        <property name="repository" ref="manuscriptStatisticRepository" />
+    </bean>
+
+    <bean id="activityIntervalRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaActivityIntervalRepository">
+        <property name="entityManager" ref="em"/>
+    </bean>
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.ActivityIntervalServiceImpl">
+        <property name="repository" ref="activityIntervalRepository" />
+    </bean>
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.ActivityTrackerImpl" init-method="start" destroy-method="stop" />
+
+    <bean id="manuscriptSizeRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaManuscriptSizeRepository">
+        <property name="entityManager" ref="em"/>
+    </bean>
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.ManuscriptSizeServiceImpl" destroy-method="stop">
+        <property name="repository" ref="manuscriptSizeRepository" />
+    </bean>
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.StatisticReportServiceImpl" />
+
     <bean class="com.github.enerccio.marginalia.domain.service.impl.AILimitServiceImpl" />
 
     <bean id="protocolRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaProtocolRepository">
@@ -81,6 +109,14 @@
 
     <bean class="com.github.enerccio.marginalia.domain.service.impl.ManuscriptServiceImpl">
         <property name="repository" ref="manuscriptRepository" />
+    </bean>
+
+    <bean id="folderRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaFolderRepository">
+        <property name="entityManager" ref="em"/>
+    </bean>
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.FolderServiceImpl">
+        <property name="repository" ref="folderRepository" />
     </bean>
 
     <bean id="tagRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaTagRepository">
@@ -147,6 +183,14 @@
 
     <bean class="com.github.enerccio.marginalia.domain.service.impl.MessagePromptServiceImpl">
         <property name="repository" ref="messagePromptRepository" />
+    </bean>
+
+    <bean id="messageRevisionRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaMessageRevisionRepository">
+        <property name="entityManager" ref="em"/>
+    </bean>
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.MessageRevisionServiceImpl">
+        <property name="repository" ref="messageRevisionRepository" />
     </bean>
 
     <bean class="com.github.enerccio.marginalia.domain.service.impl.RedraftServiceImpl" />
@@ -239,6 +283,14 @@
     <bean class="com.github.enerccio.marginalia.domain.service.impl.ToolServiceImpl" />
 
     <bean class="com.github.enerccio.marginalia.ui.menu.StoryMenuRegistry" />
+
+    <!-- the built in text styles of the books (the plain look and the book style), registered when the context starts -->
+    <bean class="com.github.enerccio.marginalia.domain.styles.PartStyleRegistry" />
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.PartStyleServiceImpl" />
+    <!-- the default style and the changed templates of the user's exports, see ExportSettings -->
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.ExportSettingsServiceImpl" />
+
+    <bean class="com.github.enerccio.marginalia.extensions.InheritedSettingRegistry" />
 
     <bean class="com.github.enerccio.marginalia.domain.service.impl.OsgiServiceImpl" />
 

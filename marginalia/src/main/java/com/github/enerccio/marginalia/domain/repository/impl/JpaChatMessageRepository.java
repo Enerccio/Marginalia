@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.repository.impl;
 
+import com.github.enerccio.marginalia.domain.components.PartTotals;
 import com.github.enerccio.marginalia.domain.model.ExtendableEntity;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
@@ -14,6 +15,28 @@ public class JpaChatMessageRepository extends JpaExtendableRepository<ChatMessag
     @Override
     protected Class<ChatMessage> getEntityClass() {
         return ChatMessage.class;
+    }
+
+    /**
+     * A part of a book changed (saved, deleted), so the book did: its {@code modification} follows the parts without the
+     * services having to save the book too.
+     */
+    @Override
+    protected void changed(ChatMessage message) throws Exception {
+        touchBook(message.getParentScript());
+    }
+
+    private void touchBook(Manuscript book) {
+        if (book == null || book.getId() == null) {
+            return;
+        }
+        // bulk update: the extended content of the book is not touched, nor is its dirty state
+        Date now = new Date();
+        entityManager.createQuery("UPDATE Manuscript m SET m.modification = :now WHERE m.id = :id")
+                .setParameter("now", now)
+                .setParameter("id", book.getId())
+                .executeUpdate();
+        FolderModification.touchOfBook(entityManager, book.getId(), now);
     }
 
     @Override
@@ -105,6 +128,7 @@ public class JpaChatMessageRepository extends JpaExtendableRepository<ChatMessag
                 .setParameter("newParent", newParent)
                 .setParameter("targetNode", targetNode)
                 .executeUpdate();
+        touchBook(targetNode.getParentScript());
     }
 
     @Override
@@ -118,6 +142,7 @@ public class JpaChatMessageRepository extends JpaExtendableRepository<ChatMessag
                 .setParameter("newParent", newParent)
                 .setParameter("targetNode", targetNode)
                 .executeUpdate();
+        touchBook(targetNode.getParentScript());
     }
 
     @Override
@@ -131,6 +156,7 @@ public class JpaChatMessageRepository extends JpaExtendableRepository<ChatMessag
                 .setParameter("newRoot", newRoot)
                 .setParameter("manuscript", manuscript)
                 .executeUpdate();
+        touchBook(manuscript);
     }
 
     @Override
@@ -155,6 +181,19 @@ public class JpaChatMessageRepository extends JpaExtendableRepository<ChatMessag
     }
 
     @Override
+    public PartTotals measureLive(Collection<Long> ids) throws Exception {
+        PartTotals totals = PartTotals.NONE;
+        for (List<Long> chunk : chunks(ids)) {
+            Object[] row = (Object[]) entityManager
+                    .createQuery("SELECT COUNT(m), COALESCE(SUM(m.wordCount), 0L) FROM ChatMessage m WHERE m.id IN :ids AND m.deleted = false")
+                    .setParameter("ids", chunk)
+                    .getSingleResult();
+            totals = totals.plus(new PartTotals(((Number) row[0]).longValue(), ((Number) row[1]).longValue()));
+        }
+        return totals;
+    }
+
+    @Override
     public int softDeleteByManuscript(Manuscript manuscript) throws Exception {
         if (manuscript == null || manuscript.getId() == null) {
             return 0;
@@ -171,6 +210,12 @@ public class JpaChatMessageRepository extends JpaExtendableRepository<ChatMessag
         int deleted = 0;
         Date now = new Date();
         for (List<Long> chunk : chunks(ids)) {
+            entityManager.createQuery(
+                            "UPDATE Manuscript b SET b.modification = :now WHERE b.id IN "
+                                    + "(SELECT m.parentScript.id FROM ChatMessage m WHERE m.id IN :ids AND m.deleted = false)")
+                    .setParameter("now", now)
+                    .setParameter("ids", chunk)
+                    .executeUpdate();
             deleted += entityManager.createQuery(
                             "UPDATE ChatMessage m SET m.deleted = true, m.modification = :now WHERE m.id IN :ids AND m.deleted = false")
                     .setParameter("now", now)
@@ -248,6 +293,31 @@ public class JpaChatMessageRepository extends JpaExtendableRepository<ChatMessag
                 .setParameter("ids", manuscriptIds);
         parameters.forEach(q::setParameter);
         return q.getResultList();
+    }
+
+    @Override
+    public Map<Long, long[]> sumActiveBranches(Collection<Long> manuscriptIds) throws Exception {
+        Map<Long, long[]> sums = new HashMap<>();
+        String sql = """
+                WITH RECURSIVE branch(book, id, parent_id, words, tokens) AS (
+                    SELECT b.id, c.id, c.parent_id, c.wordCount, c.tokenCount
+                    FROM manuscripts b INNER JOIN messages c ON c.id = b.activeLeaf_id
+                    WHERE b.id IN (:ids) AND c.is_deleted = 0
+                    UNION ALL
+                    SELECT r.book, c.id, c.parent_id, c.wordCount, c.tokenCount
+                    FROM branch r INNER JOIN messages c ON c.id = r.parent_id
+                    WHERE c.is_deleted = 0
+                )
+                SELECT book, SUM(words), SUM(tokens) FROM branch GROUP BY book
+                """;
+        for (List<Long> chunk : chunks(manuscriptIds)) {
+            @SuppressWarnings("unchecked")
+            List<Object[]> rows = getEntityManager().createNativeQuery(sql).setParameter("ids", chunk).getResultList();
+            for (Object[] row : rows) {
+                sums.put(((Number) row[0]).longValue(), new long[]{((Number) row[1]).longValue(), ((Number) row[2]).longValue()});
+            }
+        }
+        return sums;
     }
 
     @Override

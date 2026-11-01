@@ -1,16 +1,18 @@
 # Extensions
 
-Extensions add features to Marginalia without changing the application itself. Eighteen extensions come with Marginalia:
+Extensions add features to Marginalia without changing the application itself. Twenty extensions come with Marginalia:
 
 | Extension | What it adds |
 |---|---|
 | [Arc Outline](arc-outline.md) | The arcs of the book and their chapters, with their state, in the sidebar; the model can write an arc for you. |
 | [Anthropic Claude](anthropic.md) | Anthropic's Claude models as an inference provider, over Anthropic's own API, with the thinking summaries shown as reasoning. |
 | [Author's Note](authors-note.md) | A note to the model, inserted into every generation of the book. |
+| [Beta Readers](beta-readers.md) | Readers you invent (personas) and a chat with them about the book, alone or in a group. |
 | [Chapter Marker](chapter-marker.md) | Chapter titles in the story outline, from Markdown headings in the parts. |
 | [Character Tracker](character-tracker.md) | The characters of the book with their relationships, and a map of them. |
 | [Gemma 4 tools fix](gemma-4-tools-fix.md) | Makes function calling work with Gemma 4 models whose API wants another role for tool results. |
 | [Google Gemini](google-genai.md) | Google's Gemini models as an inference provider, over Google's own API, with the thinking summaries shown as reasoning. |
+| [Image Generator](image-generator.md) | Makes an image for a part of the story: the model writes the prompt, ComfyUI or an OpenAI-style images API draws it, you reroll and accept it. |
 | [Instruction Exporter](instruction-exporter.md) | Copies the instructions, scene settings and characters of the story to the clipboard. |
 | [Lore Generator](lore-generator.md) | Writes the content of a lorebook entry with the model, from the lore you already have. |
 | [Lorebook VCS](lorebook-vcs.md) | Revision history for lorebook entries. |
@@ -21,7 +23,7 @@ Extensions add features to Marginalia without changing the application itself. E
 | [Place provider](place-provider.md) | Real places for the model to look up: cities, seas, bays, rivers, mountains and more with coordinates and countries, what is around a place and the distance of two. |
 | [Reviewer](reviewer.md) | Reviews of story parts written by the model - reader reactions, critique. |
 | [Side Query](side-query.md) | A chat with the model about your book, next to the story. |
-| [SillyTavern Converter](sillytavern-converter.md) | A SillyTavern chat next to the story and turn details the model prepares from it, to rewrite the chat as a story. |
+| [Converter](sillytavern-converter.md) | A SillyTavern chat next to the story and turn details the model prepares from it, to rewrite the chat as a story; or the parts of an older book (from a backup or the book itself) with their instructions, to redraft it. |
 | [Chinese localization](chinese-localization.md) | Simplified Chinese as a language of the user interface. |
 
 ## Installing
@@ -38,12 +40,12 @@ Extensions hook into the user interface of one Marginalia version. An extension 
 working or break parts of the application. Use the extensions that come with your version of Marginalia.
 !!!
 
-The eighteen extensions above are part of the Marginalia source code (`marginalia/plugins`) and are built separately;
+The twenty extensions above are part of the Marginalia source code (`marginalia/plugins`) and are built separately;
 see the [plugins README](https://github.com/Enerccio/Marginalia/blob/master/marginalia/plugins/README.md).
 
 ## Extensions on a phone
 
-The [phone layout](../phone.md) has its own classes, so an extension has to support it. Arc Outline, Author's Note, Chapter Marker,
+The [phone layout](../phone.md) has its own classes, so an extension has to support it. Arc Outline, Author's Note, Beta Readers, Chapter Marker,
 Character Tracker, Instruction Exporter and Reviewer do; Side Query, Lore Generator and Lorebook VCS add nothing on a phone (see [Using Marginalia on a phone](../phone.md#extensions)). Name generator, Name provider, Place provider, Gemma 4 tools fix and Google Gemini have no screens of their own (Google Gemini only adds a provider to the model dialog, which a phone has as well), and Chinese localization is in the language selector of the phone menu. Extensions are installed from the Admin page,
 which a phone doesn't have.
 

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846522787704">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846880296645">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846522787704" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846880296645" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846522787704" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846880296645" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846522787704" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.846522787704" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846880296645" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.846880296645" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -66,7 +66,7 @@
                 <div class="flex items-center px-2 md:px-6">
                     <a id="retype-branding-logo" href="https://enerccio.github.io/Marginalia/" class="flex items-center leading-snug text-2xl">
                         <span class="dark:text-white font-bold line-clamp-1 md:line-clamp-2">Marginalia</span>
-                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.5.0</span>
+                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.6.0</span>
                 </div>
     
                 <span class="hidden h-8 border-r md:inline-block border-base-border"></span>
@@ -255,6 +255,8 @@ can use <code translate="no" v-pre>(?i)</code> to ignore the case). Entries that
 | **Insertion Mode** | **In Lore Block** or **Before User Prompt**, see [Order and insertion](#order-and-insertion). |
 | **Activation Context** | Where the filter is looked for: **Instructions** (the request for the part, the default) or **Instructions and parts of the story**, see [Looking into the story](#looking-into-the-story). |
 | **Parts** | With *Instructions and parts of the story*: how many of the newest parts of the story are searched together with the request, at least 1. |
+| **From message** | The entry is used only from the part with this number on, see [Limiting an entry to some parts](#limiting-an-entry-to-some-parts). Empty: from the start. |
+| **To message** | The entry is used only up to the part with this number. Empty: to the end. |
 | **Negative Tags (Exclusion)** | Tags that switch the entry off, see [Tags](#tags). |
 | **Do not search its content for other entries** | When ticked, the words in this entry's content never bring other entries in, see [Entries brought in by other entries](#entries-brought-in-by-other-entries). The phone layout shows it when it is ticked. |
 | **Note** | Your notes. Not sent to the model. Entries imported from SillyTavern list the settings that couldn't be imported here. |">
@@ -292,6 +294,14 @@ can use <code translate="no" v-pre>(?i)</code> to ignore the case). Entries that
 <td>With <em>Instructions and parts of the story</em>: how many of the newest parts of the story are searched together with the request, at least 1.</td>
 </tr>
 <tr>
+<td><strong>From message</strong></td>
+<td>The entry is used only from the part with this number on, see <doc-anchor-trigger to="#limiting-an-entry-to-some-parts">Limiting an entry to some parts</doc-anchor-trigger>. Empty: from the start.</td>
+</tr>
+<tr>
+<td><strong>To message</strong></td>
+<td>The entry is used only up to the part with this number. Empty: to the end.</td>
+</tr>
+<tr>
 <td><strong>Negative Tags (Exclusion)</strong></td>
 <td>Tags that switch the entry off, see <doc-anchor-trigger to="#tags">Tags</doc-anchor-trigger>.</td>
 </tr>
@@ -317,9 +327,10 @@ the mages&#x27; guild. Speaks in short, clipped sentences.</p>
 <a href="../lorebooks/#sub-lorebooks">sub lorebooks</a>. An entry is <strong>activated</strong> when:</p>
 <ol>
 <li>the entry is enabled, and so is its lorebook;</li>
+<li>the part being written is inside its range of parts, if it has one (<strong>From message</strong>, <strong>To message</strong>);</li>
 <li>none of its <strong>negative tags</strong> is a tag of the book;</li>
 <li>it has no <strong>tags</strong>, or at least one of them is a tag of the book;</li>
-<li>it has no <strong>filter</strong>, or the filter matches the instructions for the part.</li>
+<li>it has no <strong>filter</strong>, or the filter matches the instructions for the part (or, with <strong>Activation Context</strong> <em>Instructions and parts of the story</em>, the instructions and the newest parts of the story).</li>
 </ol>
 <p>All conditions must hold. An entry without tags and filter is always active.</p>
 <h3 id="tags">Tags</h3>
@@ -427,8 +438,9 @@ from files can carry them). They then count as tags of each of its entries.</p>
             </svg>
         </div>
         <div class="pr-5 ml-3 w-full">
-            <h5>The filter sees the request, not the story</h5>
-<p>Filters check the instructions for the new part only, not the text of earlier parts. An entry about Varro is
+            <h5>By default the filter sees the request, not the story</h5>
+<p>Unless the entry looks into the story (see <doc-anchor-trigger to="#looking-into-the-story">Looking into the story</doc-anchor-trigger>), a filter checks the instructions for
+the new part only, not the text of earlier parts. An entry about Varro is
 activated when Varro is mentioned in the scene, characters or instructions of the part you are writing - put him
 into <em>Present Characters</em> when he is in the scene.</p>
 <p>The request also contains the text of the user prompt template itself. A filter for a word the template uses
@@ -460,6 +472,33 @@ so a lorebook without such entries does not touch the story at all.</p>
 <li>
 <p>Entries brought in by <doc-anchor-trigger to="#entries-brought-in-by-other-entries">other entries</doc-anchor-trigger> are not looked for in the story, only in the
 content of the entries that were used.</p>
+</li>
+</ul>
+<h3 id="limiting-an-entry-to-some-parts">Limiting an entry to some parts</h3>
+<p>Some lore is true only for a part of the story: the disguise of a character that is blown in chapter 5, the rumours
+before the war starts. Fill <strong>From message</strong> and/or <strong>To message</strong> with the numbers of the parts, as the outline of the story
+numbers them (the first part is <code translate="no" v-pre>1</code>; both numbers are included). The entry is then used only when the part being written has
+a number inside the range, whatever its filter says - an entry without a filter is a constant one inside the range only.</p>
+<ul>
+<li>
+<p>An empty field is no limit: only <strong>From message</strong> <code translate="no" v-pre>10</code> is &quot;from part 10 on&quot;, only <strong>To message</strong> <code translate="no" v-pre>4</code> is &quot;until part 4&quot;.</p>
+</li>
+<li>
+<p>The part being written is the one after the last part of the branch (a story of 9 parts writes part <code translate="no" v-pre>10</code>). A swipe or a
+regeneration writes the part it replaces.</p>
+</li>
+<li>
+<p>Parts without text count too, as they do in the outline. Deleting or inserting parts moves the numbers.</p>
+</li>
+<li>
+<p>If <strong>From message</strong> is bigger than <strong>To message</strong> the entry is never used.</p>
+</li>
+<li>
+<p>An entry outside its range is not brought in by <doc-anchor-trigger to="#entries-brought-in-by-other-entries">other entries</doc-anchor-trigger> either.</p>
+</li>
+<li>
+<p>The <a href="../../extensions/">Lorebook VCS</a> extension keeps the range in the versions of an entry; import, export and cloning of a
+lorebook keep it.</p>
 </li>
 </ul>
 <h3 id="entries-brought-in-by-other-entries">Entries brought in by other entries</h3>
@@ -508,11 +547,12 @@ brought in by <doc-anchor-trigger to="#entries-brought-in-by-other-entries">othe
 </li>
 <li>
 <p>the <strong>Reason</strong>: no filter, filter found in the text, filter found in the content of another entry (with the filter and the
-entry), or why not: switched off, a negative tag of the book, the book lacks a tag of the entry, the filter was not found.</p>
+entry), or why not: switched off, the part is outside its range, a negative tag of the book, the book lacks a tag of the entry, the filter was not found.</p>
 </li>
 </ul>
 <p>The tags decide too, so pick a book in <strong>Tags of the book</strong> to use its tags (without one, no tags count). That book also
-gives the parts of its story for the entries that <doc-anchor-trigger to="#looking-into-the-story">look into the story</doc-anchor-trigger> (without one, they search the text only). Below the text, a line says how many entries
+gives the parts of its story for the entries that <doc-anchor-trigger to="#looking-into-the-story">look into the story</doc-anchor-trigger> (without one, they search the text only)
+and the number of the next part for the entries <doc-anchor-trigger to="#limiting-an-entry-to-some-parts">limited to some parts</doc-anchor-trigger> (without one, their range is not checked). Below the text, a line says how many entries
 would be used and about how many tokens of lore that is. The scan depth of the lorebook is used.</p>
 <figure class="content-center">
     <img src="../../../images/lorebook-preview-activation.png" alt="Preview activation of a lorebook" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1000" height="765" />
@@ -643,7 +683,7 @@ between books.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (60a4afd23).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (3b5a4203d).</p></div>
             </footer>
         </div>
     </div>

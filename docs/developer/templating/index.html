@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846522787704">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846880296645">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846522787704" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846880296645" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846522787704" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846880296645" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846522787704" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846522787704" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846880296645" data-turbo-eval="false" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -61,7 +60,7 @@
                 <div class="flex items-center px-2 md:px-6">
                     <a id="retype-branding-logo" href="https://enerccio.github.io/Marginalia/" class="flex items-center leading-snug text-2xl">
                         <span class="dark:text-white font-bold line-clamp-1 md:line-clamp-2">Marginalia</span>
-                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.5.0</span>
+                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.6.0</span>
                 </div>
     
                 <span class="hidden h-8 border-r md:inline-block border-base-border"></span>
@@ -220,7 +219,8 @@ parameters (<code translate="no" v-pre>{{#if name}}</code>) are not checked.</p>
 | Meta summary prompt | `SummaryServiceImpl.createMetaSummaryPayload` | `MetaSummaryTemplateData` | `backgroundLore`, `summaryBlocks` (the summaries to merge, oldest first) |
 | Redraft system prompt and redraft prompt | `RedraftServiceImpl.createPayload` (an estimation render of both on a fork, then for real: the system prompt is the system message, the story before the part follows as the earlier messages, the redraft prompt is the last message) | `RedraftTemplateData` | `text` (the part), `redraftInstructions`, `previousStory` (only a note that the story follows as messages), `summaries`, `followingStory`, `backgroundLore` (stored on the part), `narrativePov`, `narrativeTense`, `style`, and the turn of the part: `povCharacter`, `sceneSetting`, `presentCharacters`, `instructions`, `annotations` (the open annotations of the part when the redraft is asked to deal with them), and for the redraft of a passage `selection`, `selectionBefore`, `selectionAfter` (all `null` for the whole part, so `{{#selection}}` tells the cases apart) |
 | Impersonate prompt | `ImpersonateServiceImpl.createPayload` (an estimation render on a fork, then for real) | `ImpersonateTemplateData` | `impersonateInstructions` (the guidance of the author), `outline` (the plan a caller gives), `previousStory`, `summaries`, `backgroundLore` (stored on the last part), `instructionExamples` (the instructions of the last three parts that have some, oldest first), `narrativePov`, `narrativeTense`, `style`, `sceneSetting`, `povCharacter`, `presentCharacters` (of the request, else of the last part) |
-| Annotate system prompt and annotate prompt | `AnnotateServiceImpl.createPayload` (as the redraft) | `AnnotateTemplateData` | the variables of the redraft prompts with `annotateInstructions` instead of `redraftInstructions`, `annotations` (the open ones the part has) and `outputFormat` (the description of the answer of the mode; the service writes it, a prompt of the author has to print it) |">
+| Annotate system prompt and annotate prompt | `AnnotateServiceImpl.createPayload` (as the redraft) | `AnnotateTemplateData` | the variables of the redraft prompts with `annotateInstructions` instead of `redraftInstructions`, `annotations` (the open ones the part has) and `outputFormat` (the description of the answer of the mode; the service writes it, a prompt of the author has to print it) |
+| Title page and front matter of an export | `ExporterBase` (the title page of every format that has one, `DEFAULT_EXPORT_HEADER_TEMPLATE`, and the YAML block of *Markdown with front matter* and the Obsidian vault, `DEFAULT_EXPORT_FRONT_MATTER_TEMPLATE`; the text is the user's own from *Settings → Exports* or the default, see [Services](services.md)) | `ExportHeaderTemplateData` / `ExportFrontMatterTemplateData` | the title page: `title`, `author`; the front matter: `title`, `author`, `language` and `exportDate`. Not part of a generation: no context, no macros of the story |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -280,444 +280,17 @@ parameters (<code translate="no" v-pre>{{#if name}}</code>) are not checked.</p>
 <td><code translate="no" v-pre>AnnotateTemplateData</code></td>
 <td>the variables of the redraft prompts with <code translate="no" v-pre>annotateInstructions</code> instead of <code translate="no" v-pre>redraftInstructions</code>, <code translate="no" v-pre>annotations</code> (the open ones the part has) and <code translate="no" v-pre>outputFormat</code> (the description of the answer of the mode; the service writes it, a prompt of the author has to print it)</td>
 </tr>
-</tbody>
-</table>
-</div>
-</retype-table>
-<p>The order of the <a href="../generation-pipeline/">generation pipeline</a> matters: the user prompt is rendered first, then the
-lorebook entries, then the master template - a variable set in the user prompt is visible in lore, and lore can set
-variables the master template reads.</p>
-<p>POV, tense and style are <em>values</em>, not templates: they are passed into the templates as variables but not rendered
-themselves.</p>
-<h2 id="template-data">Template data</h2>
-<p>Each template gets an instance of a <code translate="no" v-pre>TemplateData</code> subclass. Its <strong>bean properties</strong> (getters declared in the
-subclass - <code translate="no" v-pre>TemplateData</code>&#x27;s own methods are excluded) are the template&#x27;s variables. A field annotated
-<code translate="no" v-pre>@LocalizedTemplateDescription(loc = L.DESC_TEMPLATE_...)</code> is listed, with that description, in the hints popover of
-the prompt fields (<code translate="no" v-pre>TemplateHints</code>), followed by the shared context properties the class doesn&#x27;t declare.</p>
-<p>Names are resolved by <code translate="no" v-pre>MacroHelpers.TemplateDataValueResolver</code>, in this order:</p>
-<ol>
-<li>
-<p>a property of the data object - <code translate="no" v-pre>null</code> renders as an empty string,</p>
-</li>
-<li>
-<p>a property of the shared <code translate="no" v-pre>TemplateContext</code> (<code translate="no" v-pre>povCharacter</code>, <code translate="no" v-pre>presentCharacters</code>, <code translate="no" v-pre>sceneSetting</code>, <code translate="no" v-pre>instructions</code>,
-<code translate="no" v-pre>narrativePov</code>, <code translate="no" v-pre>narrativeTense</code>, <code translate="no" v-pre>style</code>, <code translate="no" v-pre>manuscriptName</code>, <code translate="no" v-pre>manuscriptDescription</code>) - that is why these work in
-every template,</p>
-</li>
-<li>
-<p>an argument-less macro used as a value, so <code translate="no" v-pre>{{#if user}}</code> works like <code translate="no" v-pre>{{if user}}</code>,</p>
-</li>
-<li>
-<p>otherwise the name is missing and Handlebars&#x27; <em>helperMissing</em> hook renders the word <code translate="no" v-pre>Error</code>, so typos are visible
-in the prompt (<code translate="no" v-pre>MacroHelpers.resolves</code> is the same check, used by validation).</p>
-</li>
-</ol>
-<p>Reflection into anything else is blocked: the resolver returns nothing for other names instead of letting the default
-resolvers call methods of <code translate="no" v-pre>TemplateData</code> (there is deliberately no <code translate="no" v-pre>getTemplateContext()</code> getter).</p>
-<h2 id="the-template-context">The template context</h2>
-<p><code translate="no" v-pre>TemplateContext</code> is the environment macros read: the turn fields, POV / tense / style, book name and description,
-model name and token limits, the generation type, the story so far (<code translate="no" v-pre>storyMessages</code>), the last instructions and time,
-the latest summary, the variables, a clock, a random generator and the seed for <code translate="no" v-pre>{{pick}}</code>.</p>
-<p>One context is created per generation (<code translate="no" v-pre>GenerationStepBase.getTemplateContext</code>, stored as
-<code translate="no" v-pre>GenerationProperties.TEMPLATE_CONTEXT</code>) and set into every data object of that generation, so all templates see
-the same variables. <code translate="no" v-pre>fork()</code> makes a copy with copied variables for renders whose side effects must not count - the
-token estimate of the master template uses one.</p>
-<p>Summaries and meta summaries build their own context (<code translate="no" v-pre>SummaryServiceImpl.createTemplateContext</code>) from the part being
-summarized (for a meta summary: the part it is stored on); the variable changes made by a summary prompt are not
-stored. A redraft uses the same method for the part being redrafted.</p>
-<h2 id="how-macros-are-translated">How macros are translated</h2>
-<p><code translate="no" v-pre>MacroTranslator</code> scans the template, recognizes SillyTavern constructs, and rewrites only those into calls of
-helpers named <code translate="no" v-pre>st_*</code>. Everything else - <code translate="no" v-pre>{{variable}}</code>, <code translate="no" v-pre>{{#section}}...{{/section}}</code>, <code translate="no" v-pre>{{#if}}</code>, <code translate="no" v-pre>{{#each}}</code>,
-<code translate="no" v-pre>{{.}}</code>, <code translate="no" v-pre>{{!-- comments --}}</code>, triple mustaches - is left for Handlebars untouched.</p>
-<p>Real translator output:</p>
-<retype-table copy-text="| Template | Handlebars source | Literal table |
-|---|---|---|
-| `Hello {{user}}` | `Hello {{st_user 0}}` | |
-| `{{getvar::{{char}}_mood}}` | `{{st_getvar 1 (st_concat 3 (st_char 2) (st_lit 0))}}` | `_mood` |
-| `{{#sceneSetting}}Scene: {{.}}{{/sceneSetting}}` | unchanged | |
-| `{{if .mood == sad}}cry{{else}}smile{{/if}}` | `{{#st_if 0 (st_var 1 &quot;local&quot; &quot;mood&quot; &quot;==&quot; (st_lit 0)) false}}cry{{else}}smile{{/st_if}}` | `sad` |
-| `{{.turn++}}` | `{{st_var 0 &quot;local&quot; &quot;turn&quot; &quot;++&quot;}}` | |
-| `{{$count += 2}}` | `{{#st_var 1 &quot;global&quot; &quot;count&quot; &quot;+=&quot;}}2{{/st_var}}` | |
-| `{{random::a::b::c}}` | `{{st_random 2 (st_lit 0) (st_lit 1) (st_lit 2)}}` | `a`, `b`, `c` |
-| `{{setvar name}}Bob{{/setvar}}` | `{{#st_setvar 0 (st_lit 0)}}Bob{{/st_setvar}}` | `name` |
-| `{{// note}}` | removed | |
-| `\{\{x\}\}` | `{{st_lit 1}}x{{st_lit 2}}` | `{{`, `}}` |
-| `&lt;USER&gt;` | `{{st_user 1}}` | |
-| `{{unknownmacro::x}}` | `{{st_lit 3}}` | `{{unknownmacro::x}}` |">
-<div class="table-wrapper scrollbar overflow-hidden">
-<table class="comfortable">
-<thead>
 <tr>
-<th>Template</th>
-<th>Handlebars source</th>
-<th>Literal table</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code translate="no" v-pre>Hello {{user}}</code></td>
-<td><code translate="no" v-pre>Hello {{st_user 0}}</code></td>
-<td> </td>
-</tr>
-<tr>
-<td><code translate="no" v-pre>{{getvar::{{char}}_mood}}</code></td>
-<td><code translate="no" v-pre>{{st_getvar 1 (st_concat 3 (st_char 2) (st_lit 0))}}</code></td>
-<td><code translate="no" v-pre>_mood</code></td>
-</tr>
-<tr>
-<td><code translate="no" v-pre>{{#sceneSetting}}Scene: {{.}}{{/sceneSetting}}</code></td>
-<td>unchanged</td>
-<td> </td>
-</tr>
-<tr>
-<td><code translate="no" v-pre>{{if .mood == sad}}cry{{else}}smile{{/if}}</code></td>
-<td><code translate="no" v-pre>{{#st_if 0 (st_var 1 &quot;local&quot; &quot;mood&quot; &quot;==&quot; (st_lit 0)) false}}cry{{else}}smile{{/st_if}}</code></td>
-<td><code translate="no" v-pre>sad</code></td>
-</tr>
-<tr>
-<td><code translate="no" v-pre>{{.turn++}}</code></td>
-<td><code translate="no" v-pre>{{st_var 0 &quot;local&quot; &quot;turn&quot; &quot;++&quot;}}</code></td>
-<td> </td>
-</tr>
-<tr>
-<td><code translate="no" v-pre>{{$count += 2}}</code></td>
-<td><code translate="no" v-pre>{{#st_var 1 &quot;global&quot; &quot;count&quot; &quot;+=&quot;}}2{{/st_var}}</code></td>
-<td> </td>
-</tr>
-<tr>
-<td><code translate="no" v-pre>{{random::a::b::c}}</code></td>
-<td><code translate="no" v-pre>{{st_random 2 (st_lit 0) (st_lit 1) (st_lit 2)}}</code></td>
-<td><code translate="no" v-pre>a</code>, <code translate="no" v-pre>b</code>, <code translate="no" v-pre>c</code></td>
-</tr>
-<tr>
-<td><code translate="no" v-pre>{{setvar name}}Bob{{/setvar}}</code></td>
-<td><code translate="no" v-pre>{{#st_setvar 0 (st_lit 0)}}Bob{{/st_setvar}}</code></td>
-<td><code translate="no" v-pre>name</code></td>
-</tr>
-<tr>
-<td><code translate="no" v-pre>{{// note}}</code></td>
-<td>removed</td>
-<td> </td>
-</tr>
-<tr>
-<td><code translate="no" v-pre>\{\{x\}\}</code></td>
-<td><code translate="no" v-pre>{{st_lit 1}}x{{st_lit 2}}</code></td>
-<td><code translate="no" v-pre>{{</code>, <code translate="no" v-pre>}}</code></td>
-</tr>
-<tr>
-<td><code translate="no" v-pre>&lt;USER&gt;</code></td>
-<td><code translate="no" v-pre>{{st_user 1}}</code></td>
-<td> </td>
-</tr>
-<tr>
-<td><code translate="no" v-pre>{{unknownmacro::x}}</code></td>
-<td><code translate="no" v-pre>{{st_lit 3}}</code></td>
-<td><code translate="no" v-pre>{{unknownmacro::x}}</code></td>
+<td>Title page and front matter of an export</td>
+<td><code translate="no" v-pre>ExporterBase</code> (the title page of every format that has one, <code translate="no" v-pre>DEFAULT_EXPORT_HEADER_TEMPLATE</code>, and the YAML block of <em>Markdown with front matter</em> and the Obsidian vault, <code translate="no" v-pre>DEFAULT_EXPORT_FRONT_MATTER_TEMPLATE</code>; the text is the user&#x27;s own from <em>Settings → Exports</em> or the default, see <a href="../services/">Services</a>)</td>
+<td><code translate="no" v-pre>ExportHeaderTemplateData</code> / <code translate="no" v-pre>ExportFrontMatterTemplateData</code></td>
+<td>the title page: <code translate="no" v-pre>title</code>, <code translate="no" v-pre>author</code>; the front matter: <code translate="no" v-pre>title</code>, <code translate="no" v-pre>author</code>, <code translate="no" v-pre>language</code> and <code translate="no" v-pre>exportDate</code>. Not part of a generation: no context, no macros of the story</td>
 </tr>
 </tbody>
 </table>
 </div>
 </retype-table>
-<p>What the translator handles:</p>
-<ul>
-<li><strong>Names</strong> are case-insensitive (<code translate="no" v-pre>{{User}}</code>, <code translate="no" v-pre>{{USER}}</code>); template <em>variables</em> are not.</li>
-<li><strong>Arguments</strong> in all SillyTavern forms: <code translate="no" v-pre>{{macro arg}}</code>, <code translate="no" v-pre>{{macro::a::b}}</code>, legacy <code translate="no" v-pre>{{macro:arg}}</code>.</li>
-<li><strong>Nesting</strong>: macros inside arguments are evaluated first and joined with <code translate="no" v-pre>st_concat</code>.</li>
-<li><strong>Scoped macros</strong>: a macro that gets fewer arguments than it needs becomes a block - <code translate="no" v-pre>{{setvar name}}...{{/setvar}}</code>
-<ul>
-<li>and the block content is its last argument. <code translate="no" v-pre>#</code> (<code translate="no" v-pre>{{#setvar ...}}</code>) keeps the block&#x27;s whitespace.</li>
-</ul>
-</li>
-<li><strong>Conditionals</strong> <code translate="no" v-pre>{{if cond}}...{{else}}...{{/if}}</code> and <code translate="no" v-pre>{{if !cond}}</code>; the condition can be a macro, a variable
-shorthand or a template variable (<code translate="no" v-pre>st_cond</code> decides which).</li>
-<li><strong>Variable shorthands</strong> <code translate="no" v-pre>{{.local}}</code>, <code translate="no" v-pre>{{$global}}</code> with the operators <code translate="no" v-pre>=</code>, <code translate="no" v-pre>++</code>, <code translate="no" v-pre>--</code>, <code translate="no" v-pre>+=</code>, <code translate="no" v-pre>-=</code>, <code translate="no" v-pre>||</code>, <code translate="no" v-pre>??</code>,
-<code translate="no" v-pre>||=</code>, <code translate="no" v-pre>??=</code>, <code translate="no" v-pre>==</code>, <code translate="no" v-pre>!=</code>, <code translate="no" v-pre>&gt;</code>, <code translate="no" v-pre>&gt;=</code>, <code translate="no" v-pre>&lt;</code>, <code translate="no" v-pre>&lt;=</code> (<code translate="no" v-pre>st_var</code>).</li>
-<li><strong>Comments</strong> <code translate="no" v-pre>{{// ...}}</code> and blocks <code translate="no" v-pre>{{//}}...{{///}}</code> are removed.</li>
-<li><strong>Escapes</strong> <code translate="no" v-pre>\{\{...\}\}</code> produce literal braces; Handlebars&#x27; own <code translate="no" v-pre>\{{</code> still works.</li>
-<li><strong>Legacy markers</strong> <code translate="no" v-pre>&lt;USER&gt;</code>, <code translate="no" v-pre>&lt;BOT&gt;</code>, <code translate="no" v-pre>&lt;CHAR&gt;</code>, <code translate="no" v-pre>&lt;GROUP&gt;</code>, <code translate="no" v-pre>&lt;CHARIFNOTGROUP&gt;</code>.</li>
-<li><strong>Unknown macros with <code translate="no" v-pre>::</code> arguments</strong> are output literally, as SillyTavern does; other unknown names are passed to
-Handlebars as variables.</li>
-</ul>
-<p><strong>User text never becomes Handlebars source.</strong> Every argument and literal goes into the literal table and is
-referenced by index through <code translate="no" v-pre>st_lit</code>, so a lorebook entry containing <code translate="no" v-pre>}}</code> or <code translate="no" v-pre>{{#each}}</code> in an argument can&#x27;t break
-or inject into the generated template.</p>
-<p>The first parameter of every <code translate="no" v-pre>st_*</code> call is the <strong>site</strong> - the index of the call in the template. <code translate="no" v-pre>{{pick}}</code> uses it
-to make each position pick independently but stably.</p>
-<h2 id="helpers">Helpers</h2>
-<p><code translate="no" v-pre>MacroHelpers.register</code> registers on the Handlebars instance:</p>
-<retype-table copy-text="| Helper | Does |
-|---|---|
-| `st_&lt;macro&gt;` | One per macro in `Macros`; unpacks the arguments (plus the block content for block calls) into a `MacroCall` and calls the macro's function on the `TemplateData`. |
-| `st_lit` | Returns a literal from the table. |
-| `st_concat` | Joins its arguments (nested macros in arguments). |
-| `st_prop` | Resolves a template property by name. |
-| `st_cond` | Evaluates an `if` condition: argument-less macro, template property, or the text itself (non-empty text is true). |
-| `st_if` | The conditional itself, block or inline. |
-| `st_var` | Variable shorthands. |
-| *helperMissing* | Renders `Error` for unknown names. |">
-<div class="table-wrapper scrollbar overflow-hidden">
-<table class="comfortable">
-<thead>
-<tr>
-<th>Helper</th>
-<th>Does</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code translate="no" v-pre>st_&lt;macro&gt;</code></td>
-<td>One per macro in <code translate="no" v-pre>Macros</code>; unpacks the arguments (plus the block content for block calls) into a <code translate="no" v-pre>MacroCall</code> and calls the macro&#x27;s function on the <code translate="no" v-pre>TemplateData</code>.</td>
-</tr>
-<tr>
-<td><code translate="no" v-pre>st_lit</code></td>
-<td>Returns a literal from the table.</td>
-</tr>
-<tr>
-<td><code translate="no" v-pre>st_concat</code></td>
-<td>Joins its arguments (nested macros in arguments).</td>
-</tr>
-<tr>
-<td><code translate="no" v-pre>st_prop</code></td>
-<td>Resolves a template property by name.</td>
-</tr>
-<tr>
-<td><code translate="no" v-pre>st_cond</code></td>
-<td>Evaluates an <code translate="no" v-pre>if</code> condition: argument-less macro, template property, or the text itself (non-empty text is true).</td>
-</tr>
-<tr>
-<td><code translate="no" v-pre>st_if</code></td>
-<td>The conditional itself, block or inline.</td>
-</tr>
-<tr>
-<td><code translate="no" v-pre>st_var</code></td>
-<td>Variable shorthands.</td>
-</tr>
-<tr>
-<td><em>helperMissing</em></td>
-<td>Renders <code translate="no" v-pre>Error</code> for unknown names.</td>
-</tr>
-</tbody>
-</table>
-</div>
-</retype-table>
-<p>Truthiness (<code translate="no" v-pre>TemplateData.isTruthy</code>): <code translate="no" v-pre>null</code>, empty collections and the strings <code translate="no" v-pre>&quot;&quot;</code>, <code translate="no" v-pre>false</code>, <code translate="no" v-pre>0</code>, <code translate="no" v-pre>off</code>, <code translate="no" v-pre>no</code>
-(case-insensitive) are false; everything else is true.</p>
-<h2 id="the-macro-registry">The macro registry</h2>
-<p><code translate="no" v-pre>Macros</code> (in <code translate="no" v-pre>domain/templates/macros/</code>) is a static registry of <code translate="no" v-pre>MacroDefinition</code>s - name, signature for the UI,
-minimum and maximum number of arguments, description key and the function:</p>
-<div id="the-macro-registry-code-1" class="codeblock-wrapper"><doc-codeblock>
-<pre translate="no" class="language-java"><code v-pre class="language-java">define(&quot;{{roll::1d20}}&quot;, 1, 1, L.DESC_MACRO_ROLL, (d, c) -&gt; d.roll(c.arg(0)), &quot;roll&quot;);</code></pre>
-</doc-codeblock></div>
-<ul>
-<li>The first name is canonical; further names are aliases (<code translate="no" v-pre>char</code>, <code translate="no" v-pre>charIfNotGroup</code>).</li>
-<li>Definitions with a description appear in the hints popover (<em>Available Macros</em>).</li>
-<li><code translate="no" v-pre>ignored(...)</code> registers SillyTavern macros that have no meaning in Marginalia (instruct sequences, swipes, author&#x27;s
-notes, character card fields...): they render as an empty string (or <code translate="no" v-pre>false</code>), so imported world info doesn&#x27;t leak
-raw macros into prompts.</li>
-</ul>
-<p>The macro logic lives in <code translate="no" v-pre>TemplateData</code> (<code translate="no" v-pre>user()</code>, <code translate="no" v-pre>lastMessage()</code>, <code translate="no" v-pre>time(offset)</code>, <code translate="no" v-pre>setVar(...)</code>, <code translate="no" v-pre>pick(...)</code>...),
-using the <code translate="no" v-pre>TemplateContext</code>. A few mappings worth knowing, since Marginalia has no chat:</p>
-<retype-table copy-text="| SillyTavern | In Marginalia |
-|---|---|
-| `{{user}}`, `{{char}}` | the POV character |
-| `{{group}}` | the present characters (or the POV character) |
-| `{{notChar}}` | present characters except the POV character |
-| `{{description}}` | the book's description |
-| `{{scenario}}` | the scene setting |
-| `{{input}}` | the instructions of this turn |
-| `{{lastMessage}}` | the text of the last part of the branch |
-| `{{lastUserMessage}}` | the instructions of the last part |
-| `{{summary}}` | the latest summary on the branch |">
-<div class="table-wrapper scrollbar overflow-hidden">
-<table class="comfortable">
-<thead>
-<tr>
-<th>SillyTavern</th>
-<th>In Marginalia</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code translate="no" v-pre>{{user}}</code>, <code translate="no" v-pre>{{char}}</code></td>
-<td>the POV character</td>
-</tr>
-<tr>
-<td><code translate="no" v-pre>{{group}}</code></td>
-<td>the present characters (or the POV character)</td>
-</tr>
-<tr>
-<td><code translate="no" v-pre>{{notChar}}</code></td>
-<td>present characters except the POV character</td>
-</tr>
-<tr>
-<td><code translate="no" v-pre>{{description}}</code></td>
-<td>the book&#x27;s description</td>
-</tr>
-<tr>
-<td><code translate="no" v-pre>{{scenario}}</code></td>
-<td>the scene setting</td>
-</tr>
-<tr>
-<td><code translate="no" v-pre>{{input}}</code></td>
-<td>the instructions of this turn</td>
-</tr>
-<tr>
-<td><code translate="no" v-pre>{{lastMessage}}</code></td>
-<td>the text of the last part of the branch</td>
-</tr>
-<tr>
-<td><code translate="no" v-pre>{{lastUserMessage}}</code></td>
-<td>the instructions of the last part</td>
-</tr>
-<tr>
-<td><code translate="no" v-pre>{{summary}}</code></td>
-<td>the latest summary on the branch</td>
-</tr>
-</tbody>
-</table>
-</div>
-</retype-table>
-<h2 id="variables">Variables</h2>
-<p><code translate="no" v-pre>TemplateVariables</code> stores the variables of <code translate="no" v-pre>getvar</code> / <code translate="no" v-pre>setvar</code> and the shorthands, as strings:</p>
-<retype-table copy-text="| Scope | Macros | Stored in | Loaded from |
-|---|---|---|---|
-| local | `{{getvar}}`, `{{setvar}}`... `{{.name}}` | the generated part's `attributes` | the last part of the branch the new part continues |
-| global | `{{getglobalvar}}`... `{{$name}}` | the book's `attributes` | the book |">
-<div class="table-wrapper scrollbar overflow-hidden">
-<table class="comfortable">
-<thead>
-<tr>
-<th>Scope</th>
-<th>Macros</th>
-<th>Stored in</th>
-<th>Loaded from</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>local</td>
-<td><code translate="no" v-pre>{{getvar}}</code>, <code translate="no" v-pre>{{setvar}}</code>... <code translate="no" v-pre>{{.name}}</code></td>
-<td>the generated part&#x27;s <code translate="no" v-pre>attributes</code></td>
-<td>the last part of the branch the new part continues</td>
-</tr>
-<tr>
-<td>global</td>
-<td><code translate="no" v-pre>{{getglobalvar}}</code>... <code translate="no" v-pre>{{$name}}</code></td>
-<td>the book&#x27;s <code translate="no" v-pre>attributes</code></td>
-<td>the book</td>
-</tr>
-</tbody>
-</table>
-</div>
-</retype-table>
-<p>Both are kept under the attribute key <code translate="no" v-pre>templateVariables</code> and saved by <code translate="no" v-pre>GenerateNewMessageStep</code> after the prompt is
-rendered (see <a href="../domain-model/#chatmessage-part-and-the-story-tree">Domain model</a>). Because local variables are
-read from the part being continued, regenerating or branching doesn&#x27;t apply a turn&#x27;s changes twice. Numbers are
-handled with <code translate="no" v-pre>BigDecimal</code> (<code translate="no" v-pre>addVar</code>, <code translate="no" v-pre>++</code>, <code translate="no" v-pre>+=</code>); non-numeric <code translate="no" v-pre>add</code> concatenates.</p>
-<h2 id="randomness-and-time">Randomness and time</h2>
-<ul>
-<li>
-<p><code translate="no" v-pre>{{random}}</code> and <code translate="no" v-pre>{{roll}}</code> use the context&#x27;s <code translate="no" v-pre>Random</code> - a new result on every render.</p>
-</li>
-<li>
-<p><code translate="no" v-pre>{{pick}}</code> is stable: the choice is derived from SHA-256 of the book id (<code translate="no" v-pre>pickSeed</code>), the template key (a hash of
-the template text), the call site and the options. The same template in the same book picks the same option
-every time; editing the template or moving the macro can change the pick.</p>
-</li>
-<li>
-<p>Time macros (<code translate="no" v-pre>{{time}}</code>, <code translate="no" v-pre>{{date}}</code>, <code translate="no" v-pre>{{weekday}}</code>, <code translate="no" v-pre>{{datetimeformat}}</code>...) use the context&#x27;s clock, which is the
-<strong>server&#x27;s</strong> default time zone - UTC in the Docker image - unless an offset is given (<code translate="no" v-pre>{{time::UTC+2}}</code>).
-<code translate="no" v-pre>MomentFormat</code> converts moment.js patterns (SillyTavern&#x27;s) for <code translate="no" v-pre>{{datetimeformat}}</code>.</p>
-</li>
-<li>
-<p><code translate="no" v-pre>{{trim}}</code> outputs a marker - the word <code translate="no" v-pre>trim</code> wrapped in the private-use character U+E000, so normal text can&#x27;t
-contain it - which <code translate="no" v-pre>postProcess</code> removes together with the surrounding newlines.</p>
-</li>
-</ul>
-<h2 id="adding-a-template-variable">Adding a template variable</h2>
-<ol>
-<li>
-<p>Add a field with getter and setter to the data class (e.g. <code translate="no" v-pre>MasterTemplateData</code>) and annotate the field with
-<code translate="no" v-pre>@LocalizedTemplateDescription(loc = L.DESC_TEMPLATE_X)</code>.</p>
-</li>
-<li>
-<p>Add the key to <code translate="no" v-pre>L</code> and the text to <code translate="no" v-pre>LocalizationBundleEN</code> (and <code translate="no" v-pre>LocalizationBundleJP</code>) - it is shown in the hints.</p>
-</li>
-<li>
-<p>Set the value where the data object is filled (the generation step or <code translate="no" v-pre>SummaryServiceImpl</code>).</p>
-</li>
-<li>
-<p>If it should be available in <em>every</em> template, add it to <code translate="no" v-pre>TemplateContext</code> (field, <code translate="no" v-pre>fork()</code>, <code translate="no" v-pre>property(name)</code>)
-and fill it in <code translate="no" v-pre>GenerationStepBase.createTemplateContext</code> instead.</p>
-</li>
-<li>
-<p>Check that the name isn&#x27;t also a macro name - the translator turns known macro names into macro calls, which would
-hide the variable.</p>
-</li>
-</ol>
-<h2 id="adding-a-macro">Adding a macro</h2>
-<ol>
-<li>
-<p>Implement the logic as a public method of <code translate="no" v-pre>TemplateData</code> using <code translate="no" v-pre>templateContext()</code> and <code translate="no" v-pre>variables()</code>.</p>
-</li>
-<li>
-<p>Register it in the static block of <code translate="no" v-pre>Macros</code> with <code translate="no" v-pre>define(signature, minArgs, maxArgs, L.DESC_MACRO_X, function, names...)</code>. <code translate="no" v-pre>maxArgs</code> -1 means unlimited; a macro with <code translate="no" v-pre>minArgs &gt; 0</code> called with fewer arguments becomes a block
-whose content is the last argument.</p>
-</li>
-<li>
-<p>Add the description to <code translate="no" v-pre>L</code> / <code translate="no" v-pre>LocalizationBundleEN</code>.</p>
-</li>
-<li>
-<p>Document it in the user guide&#x27;s <a href="../../user/templates/macros/">Macro reference</a>.</p>
-</li>
-<li>
-<p>Add rendering tests to <code translate="no" v-pre>templates/MacroRenderingTest</code>.</p>
-</li>
-</ol>
-<p>No changes to the translator or the helpers are needed - helpers are registered for every definition.</p>
-<h2 id="tests">Tests</h2>
-<retype-table copy-text="| Test | Covers |
-|---|---|
-| `templates/MacroRenderingTest` | Macros, shorthands, conditionals, escaping, nesting - rendered end to end. |
-| `templates/TemplateServiceTest` | Property resolution, no HTML escaping, `Error` for unknown names, sections, validation, macro arguments can't inject Handlebars, variables shared through the data / context, forks. |
-| `templates/DefaultTemplatesTest` | The built-in templates from `Defaults` render. |
-| `templates/MacroLorebookFixtureTest` | A SillyTavern-style lorebook full of macros (`src/test/resources/macro-test.json`). |
-| `domain/templates/TemplateHelpersTest` | Helper-level details. |">
-<div class="table-wrapper scrollbar overflow-hidden">
-<table class="comfortable">
-<thead>
-<tr>
-<th>Test</th>
-<th>Covers</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code translate="no" v-pre>templates/MacroRenderingTest</code></td>
-<td>Macros, shorthands, conditionals, escaping, nesting - rendered end to end.</td>
-</tr>
-<tr>
-<td><code translate="no" v-pre>templates/TemplateServiceTest</code></td>
-<td>Property resolution, no HTML escaping, <code translate="no" v-pre>Error</code> for unknown names, sections, validation, macro arguments can&#x27;t inject Handlebars, variables shared through the data / context, forks.</td>
-</tr>
-<tr>
-<td><code translate="no" v-pre>templates/DefaultTemplatesTest</code></td>
-<td>The built-in templates from <code translate="no" v-pre>Defaults</code> render.</td>
-</tr>
-<tr>
-<td><code translate="no" v-pre>templates/MacroLorebookFixtureTest</code></td>
-<td>A SillyTavern-style lorebook full of macros (<code translate="no" v-pre>src/test/resources/macro-test.json</code>).</td>
-</tr>
-<tr>
-<td><code translate="no" v-pre>domain/templates/TemplateHelpersTest</code></td>
-<td>Helper-level details.</td>
-</tr>
-</tbody>
-</table>
-</div>
-</retype-table>
-<p><code translate="no" v-pre>TemplateTestBase</code> provides a template service and a <code translate="no" v-pre>LorebookTemplateData</code> with a fresh context whose clock is fixed (<code translate="no" v-pre>2026-03-15T14:30:45Z</code>, UTC) and whose random generator is seeded. Run them with
-<code translate="no" v-pre>mvn test -Dtest='Macro*Test,Template*Test'</code>.</p>
+<p>The order of the [generation pipeline]</p>
 
                 
                 <!-- Required only on API pages -->
@@ -755,7 +328,7 @@ whose content is the last argument.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (60a4afd23).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (3b5a4203d).</p></div>
             </footer>
         </div>
     </div>
@@ -784,6 +357,6 @@ whose content is the last argument.</p>
 
     <div id="retype-overlay-target"></div>
 
-        <script data-cfasync="false">window.__DOCS__ = { "title": "Templating & macros", level: 2, icon: "file", hasPrism: true, hasInstagram: false, hasMermaid: true, hasMath: false, tocDepth: 23, "md": "/developer/templating.md" }</script>
+        <script data-cfasync="false">window.__DOCS__ = { "title": "Templating & macros", level: 2, icon: "file", hasPrism: false, hasInstagram: false, hasMermaid: true, hasMath: false, tocDepth: 23, "md": "/developer/templating.md" }</script>
 </body>
 </html>

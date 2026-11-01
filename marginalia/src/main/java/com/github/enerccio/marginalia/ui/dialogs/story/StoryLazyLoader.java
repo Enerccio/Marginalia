@@ -11,6 +11,7 @@ import com.vaadin.flow.dom.DomEvent;
 
 import java.util.*;
 import java.util.function.BooleanSupplier;
+import java.util.function.Consumer;
 
 /**
  * Keeps the panel of a story tab filled with the cards of a window over the branch (the size is the setting of the
@@ -167,6 +168,18 @@ public class StoryLazyLoader<C extends Component & StoryCard> {
         if (card != null) {
             JavascriptLibrary.scrollToAndHighlight(card.getElement());
         }
+    }
+
+    /**
+     * Finds the part that is the most visible on the screen (the largest part of its card inside the story panel).
+     *
+     * @param then gets the id of the part, null when no card is visible; called later, from the UI
+     */
+    public void mostVisible(Consumer<Long> then) {
+        List<C> shown = new ArrayList<>(cards.values());
+        JavascriptLibrary.mostVisible(panel.getElement(), shown.stream().map(Component::getElement).toList())
+                .then(Integer.class, index -> then.accept(
+                        index != null && index >= 0 && index < shown.size() ? shown.get(index).getMessage().getId() : null));
     }
 
     /**

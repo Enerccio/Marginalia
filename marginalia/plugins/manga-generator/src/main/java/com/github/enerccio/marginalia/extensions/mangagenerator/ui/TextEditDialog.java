@@ -10,7 +10,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.function.Consumer;
 
-import static com.github.enerccio.marginalia.extensions.mangagenerator.MangaGeneratorLocalization.T;
+import static com.github.enerccio.marginalia.extensions.mangagenerator.MangaGeneratorLocalization.*;
 
 /**
  * Edits a text that may replace an inherited one (a prompt of a section replaces the prompt of the manga, which replaces the
@@ -42,16 +42,16 @@ public class TextEditDialog extends Dialog {
         content.expand(area);
         add(content);
 
-        Button save = new Button(T.localized("Save"), e -> {
+        Button save = new Button(T.localized(SAVE), e -> {
             String value = area.getValue();
             boolean useInherited = StringUtils.isBlank(value) || value.equals(inherited);
             onSave.accept(useInherited ? null : value);
             close();
         });
         save.setThemeName("primary");
-        Button cancel = new Button(T.localized("Cancel"), e -> close());
+        Button cancel = new Button(T.localized(CANCEL), e -> close());
         if (StringUtils.isNotEmpty(inherited)) {
-            Button reset = new Button(T.localized("Reset to default"), e -> area.setValue(inherited));
+            Button reset = new Button(T.localized(RESET_TO_DEFAULT), e -> area.setValue(inherited));
             reset.setThemeName("tertiary");
             getFooter().add(reset);
         }

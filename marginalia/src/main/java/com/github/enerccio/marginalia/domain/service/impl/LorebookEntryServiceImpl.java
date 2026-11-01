@@ -155,6 +155,8 @@ public class LorebookEntryServiceImpl extends ExtendableServiceImpl<LorebookEntr
         to.setPreventRecursion(from.isPreventRecursion());
         to.setActivationContext(from.getActivationContext());
         to.setActivationParts(from.getActivationParts());
+        to.setFromMessage(from.getFromMessage());
+        to.setToMessage(from.getToMessage());
     }
 
     @Override

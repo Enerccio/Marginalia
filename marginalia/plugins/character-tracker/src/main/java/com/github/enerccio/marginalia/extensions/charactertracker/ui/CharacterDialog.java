@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.extensions.charactertracker.ui;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
+import com.github.enerccio.marginalia.extensions.charactertracker.CharacterTrackerLocalization;
 import com.github.enerccio.marginalia.extensions.charactertracker.model.CharacterBook;
 import com.github.enerccio.marginalia.extensions.charactertracker.model.CharacterRelation;
 import com.github.enerccio.marginalia.extensions.charactertracker.model.RelationDirection;
@@ -35,7 +36,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 
-import static com.github.enerccio.marginalia.extensions.charactertracker.CharacterTrackerLocalization.T;
+import static com.github.enerccio.marginalia.extensions.charactertracker.CharacterTrackerLocalization.*;
 
 /**
  * Creates a character or edits one. The fields are applied when the character is saved; relationships (shown for an
@@ -49,9 +50,9 @@ public class CharacterDialog extends Dialog {
      * Which way a new relationship goes, seen from the character of the dialog.
      */
     private enum Perspective {
-        OUTGOING("This character → other character"),
-        INCOMING("Other character → this character"),
-        BOTH_WAYS("Both ways (↔)");
+        OUTGOING(CharacterTrackerLocalization.THIS_CHARACTER_OTHER_CHARACTER),
+        INCOMING(CharacterTrackerLocalization.OTHER_CHARACTER_THIS_CHARACTER),
+        BOTH_WAYS(CharacterTrackerLocalization.BOTH_WAYS);
 
         private final String label;
 
@@ -92,7 +93,7 @@ public class CharacterDialog extends Dialog {
         this.icon = character.getIcon();
         this.color = CharacterTrackerService.safeColor(character.getColor());
 
-        setHeaderTitle(isNew ? T.localized("New character") : T.localized("Edit character"));
+        setHeaderTitle(isNew ? T.localized(NEW_CHARACTER) : T.localized(EDIT_CHARACTER));
         setWidth("640px");
         setMaxWidth("95vw");
         setMaxHeight("90vh");
@@ -104,30 +105,30 @@ public class CharacterDialog extends Dialog {
         content.setPadding(false);
         content.add(buildFields());
         if (isNew) {
-            content.add(new Span(T.localized("Save the character to add its relationships.")));
+            content.add(new Span(T.localized(SAVE_THE_CHARACTER_TO_ADD)));
         } else {
             content.add(buildRelations());
         }
         add(content);
 
-        Button save = new Button(T.localized("Save"), _ -> save());
+        Button save = new Button(T.localized(SAVE), _ -> save());
         save.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        Button cancel = new Button(T.localized("Cancel"), _ -> requestClose());
+        Button cancel = new Button(T.localized(CANCEL), _ -> requestClose());
         getFooter().add(cancel, save);
     }
 
     private Component buildFields() {
-        name = new TextField(T.localized("Name"));
+        name = new TextField(T.localized(NAME));
         name.setRequiredIndicatorVisible(true);
         name.setWidthFull();
         DialogFocus.onOpen(this, name);
         name.setValue(StringUtils.defaultString(character.getName()));
 
-        tagline = new TextField(T.localized("Tagline"));
+        tagline = new TextField(T.localized(TAGLINE));
         tagline.setWidthFull();
         tagline.setValue(StringUtils.defaultString(character.getTagline()));
 
-        note = new TextArea(T.localized("Note"));
+        note = new TextArea(T.localized(NOTE));
         note.setWidthFull();
         note.setMinHeight("120px");
         note.setValue(StringUtils.defaultString(character.getNote()));
@@ -139,7 +140,7 @@ public class CharacterDialog extends Dialog {
 
     private Component buildIcon() {
         iconPreview = new Image();
-        iconPreview.setAlt(T.localized("Icon"));
+        iconPreview.setAlt(T.localized(ICON));
         iconPreview.addClassName(CharacterTrackerStyles.ICON);
 
         InMemoryUploadHandler handler = new InMemoryUploadHandler((_, data) -> {
@@ -147,7 +148,7 @@ public class CharacterDialog extends Dialog {
                 icon = CharacterTrackerService.createIcon(data);
                 refreshIcon();
             } catch (IllegalArgumentException e) {
-                Notification.error(T.localized("The file is not an image that can be read"));
+                Notification.error(T.localized(THE_FILE));
             }
         });
         Upload upload = new Upload(handler);
@@ -155,17 +156,17 @@ public class CharacterDialog extends Dialog {
         upload.setMaxFileSize((int) MAX_UPLOAD_BYTES);
         upload.setMaxFiles(1);
         upload.setDropAllowed(true);
-        upload.setUploadButton(new Button(T.localized("Upload icon"), Solid.IMAGE.create()));
-        upload.addFileRejectedListener(_ -> Notification.error(T.localized("The file is not an image or it is too big")));
+        upload.setUploadButton(new Button(T.localized(UPLOAD_ICON), Solid.IMAGE.create()));
+        upload.addFileRejectedListener(_ -> Notification.error(T.localized(THE_FILE_IS_NOT_AN_IMAGE)));
         upload.addSucceededListener(_ -> upload.clearFileList());
 
-        removeIcon = new Button(T.localized("Remove icon"), Solid.TRASH.create(), _ -> {
+        removeIcon = new Button(T.localized(REMOVE_ICON), Solid.TRASH.create(), _ -> {
             icon = null;
             refreshIcon();
         });
         removeIcon.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
 
-        Span caption = new Span(T.localized("Icon (scaled down to at most %1$d x %1$d pixels)").formatted(CharacterTrackerService.MAX_ICON_SIZE));
+        Span caption = new Span(T.localized(ICON_SCALED_DOWN).formatted(CharacterTrackerService.MAX_ICON_SIZE));
         VerticalLayout layout = new VerticalLayout(caption, new HorizontalLayout(upload, removeIcon), iconPreview);
         layout.setPadding(false);
         layout.setSpacing(false);
@@ -190,7 +191,7 @@ public class CharacterDialog extends Dialog {
         input.addClassName(CharacterTrackerStyles.COLOR_INPUT);
         input.addValueChangeListener(e -> color = CharacterTrackerService.safeColor(e.getValue()));
 
-        HorizontalLayout layout = new HorizontalLayout(new Span(T.localized("Color")), input);
+        HorizontalLayout layout = new HorizontalLayout(new Span(T.localized(COLOR)), input);
         layout.setAlignItems(FlexComponent.Alignment.CENTER);
         return layout;
     }
@@ -199,18 +200,18 @@ public class CharacterDialog extends Dialog {
         relationsGrid = new Grid<>();
         relationsGrid.addThemeVariants(GridVariant.LUMO_COMPACT, GridVariant.LUMO_NO_BORDER);
         relationsGrid.setAllRowsVisible(true);
-        relationsGrid.addColumn(this::describeRelation).setHeader(T.localized("Character")).setFlexGrow(2);
-        relationsGrid.addColumn(CharacterRelation::getName).setHeader(T.localized("Name")).setFlexGrow(2);
-        relationsGrid.addColumn(CharacterRelation::getTagline).setHeader(T.localized("Tagline")).setFlexGrow(2);
+        relationsGrid.addColumn(this::describeRelation).setHeader(T.localized(CHARACTER)).setFlexGrow(2);
+        relationsGrid.addColumn(CharacterRelation::getName).setHeader(T.localized(NAME)).setFlexGrow(2);
+        relationsGrid.addColumn(CharacterRelation::getTagline).setHeader(T.localized(TAGLINE)).setFlexGrow(2);
         relationsGrid.addComponentColumn(relation -> {
             Button delete = new Button(Solid.TRASH.create(), _ -> deleteRelation(relation));
             delete.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_SMALL);
-            delete.setAriaLabel(T.localized("Delete relationship"));
+            delete.setAriaLabel(T.localized(DELETE_RELATIONSHIP));
             return delete;
         }).setFlexGrow(0).setWidth("4rem");
         refreshRelations();
 
-        VerticalLayout layout = new VerticalLayout(new H4(T.localized("Relationships")), relationsGrid, buildNewRelation());
+        VerticalLayout layout = new VerticalLayout(new H4(T.localized(RELATIONSHIPS)), relationsGrid, buildNewRelation());
         layout.setPadding(false);
         layout.addClassName(CharacterTrackerStyles.DIALOG_SECTION);
         return layout;
@@ -220,7 +221,7 @@ public class CharacterDialog extends Dialog {
         List<StoryCharacter> others = book.sortedCharacters().stream()
                 .filter(c -> !c.getUuid().equals(character.getUuid())).toList();
 
-        relationOther = new ComboBox<>(T.localized("Search character"));
+        relationOther = new ComboBox<>(T.localized(SEARCH_CHARACTER));
         relationOther.setItems((c, filter) -> StringUtils.defaultString(c.getName()).toLowerCase(Locale.ROOT)
                 .contains(StringUtils.defaultString(filter).toLowerCase(Locale.ROOT)), others);
         relationOther.setItemLabelGenerator(StoryCharacter::getName);
@@ -228,21 +229,21 @@ public class CharacterDialog extends Dialog {
         relationOther.setWidthFull();
 
         Select<Perspective> perspective = new Select<>();
-        perspective.setLabel(T.localized("Direction"));
+        perspective.setLabel(T.localized(DIRECTION));
         perspective.setItems(Perspective.values());
         perspective.setItemLabelGenerator(p -> T.localized(p.label));
         perspective.setValue(Perspective.OUTGOING);
         perspective.setWidthFull();
 
-        relationName = new TextField(T.localized("Name"));
+        relationName = new TextField(T.localized(NAME));
         relationName.setWidthFull();
-        relationTagline = new TextField(T.localized("Tagline"));
+        relationTagline = new TextField(T.localized(TAGLINE));
         relationTagline.setWidthFull();
 
-        Button add = new Button(T.localized("Add relationship"), Solid.PLUS.create(), _ -> {
+        Button add = new Button(T.localized(ADD_RELATIONSHIP), Solid.PLUS.create(), _ -> {
             StoryCharacter target = relationOther.getValue();
             if (target == null || StringUtils.isBlank(relationName.getValue())) {
-                Notification.error(T.localized("Choose a character and enter the name of the relationship"));
+                Notification.error(T.localized(CHOOSE_A_CHARACTER_AND_ENTER));
                 return;
             }
             addRelation(target, perspective.getValue(), relationName.getValue().trim(),
@@ -253,7 +254,7 @@ public class CharacterDialog extends Dialog {
         });
         add.setEnabled(!others.isEmpty());
         if (others.isEmpty()) {
-            relationOther.setHelperText(T.localized("There is no other character yet"));
+            relationOther.setHelperText(T.localized(THERE_IS_NO_OTHER_CHARACTER));
         }
 
         VerticalLayout layout = new VerticalLayout(add, relationOther, perspective, relationName, relationTagline);
@@ -329,7 +330,7 @@ public class CharacterDialog extends Dialog {
 
     private void requestClose() {
         if (hasUnsavedChanges()) {
-            ConfirmDialog.show(T.localized("There are unsaved changes. Discard them?"), this::close);
+            ConfirmDialog.show(T.localized(THERE_ARE_UNSAVED_CHANGES_DISCARD), this::close);
         } else {
             close();
         }
@@ -338,7 +339,7 @@ public class CharacterDialog extends Dialog {
     private void save() {
         if (StringUtils.isBlank(name.getValue())) {
             name.setInvalid(true);
-            name.setErrorMessage(T.localized("The name is required"));
+            name.setErrorMessage(T.localized(THE_NAME_IS_REQUIRED));
             return;
         }
         character.setName(name.getValue().trim());

@@ -15,6 +15,8 @@ public class ImportGenerationTemplateData extends TemplateData {
     private String story;
     /** How many chapters the author wants, in words. */
     private String numberOfChapters;
+    /** Whether every chapter must say the message it begins in (its "part"), see {@code GeneratedMappedChapter}. */
+    private boolean mapParts;
 
     public String getBackgroundLore() {
         return backgroundLore;
@@ -46,5 +48,13 @@ public class ImportGenerationTemplateData extends TemplateData {
 
     public void setNumberOfChapters(String numberOfChapters) {
         this.numberOfChapters = numberOfChapters;
+    }
+
+    public boolean isMapParts() {
+        return mapParts;
+    }
+
+    public void setMapParts(boolean mapParts) {
+        this.mapParts = mapParts;
     }
 }

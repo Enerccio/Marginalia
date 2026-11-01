@@ -60,6 +60,8 @@ The ⌄ button opens the details:
 | **Insertion Mode** | **In Lore Block** or **Before User Prompt**, see [Order and insertion](#order-and-insertion). |
 | **Activation Context** | Where the filter is looked for: **Instructions** (the request for the part, the default) or **Instructions and parts of the story**, see [Looking into the story](#looking-into-the-story). |
 | **Parts** | With *Instructions and parts of the story*: how many of the newest parts of the story are searched together with the request, at least 1. |
+| **From message** | The entry is used only from the part with this number on, see [Limiting an entry to some parts](#limiting-an-entry-to-some-parts). Empty: from the start. |
+| **To message** | The entry is used only up to the part with this number. Empty: to the end. |
 | **Negative Tags (Exclusion)** | Tags that switch the entry off, see [Tags](#tags). |
 | **Do not search its content for other entries** | When ticked, the words in this entry's content never bring other entries in, see [Entries brought in by other entries](#entries-brought-in-by-other-entries). The phone layout shows it when it is ticked. |
 | **Note** | Your notes. Not sent to the model. Entries imported from SillyTavern list the settings that couldn't be imported here. |
@@ -75,9 +77,10 @@ Before each generated part, Marginalia goes through the entries of the book's lo
 [sub lorebooks](lorebooks.md#sub-lorebooks). An entry is **activated** when:
 
 1. the entry is enabled, and so is its lorebook;
-2. none of its **negative tags** is a tag of the book;
-3. it has no **tags**, or at least one of them is a tag of the book;
-4. it has no **filter**, or the filter matches the instructions for the part.
+2. the part being written is inside its range of parts, if it has one (**From message**, **To message**);
+3. none of its **negative tags** is a tag of the book;
+4. it has no **tags**, or at least one of them is a tag of the book;
+5. it has no **filter**, or the filter matches the instructions for the part (or, with **Activation Context** *Instructions and parts of the story*, the instructions and the newest parts of the story).
 
 All conditions must hold. An entry without tags and filter is always active.
 
@@ -115,8 +118,9 @@ A filter activates the entry only when the **request for the part** mentions it.
 For example, the regex `\b(varro|captain)\b` matches the whole word *Varro* or *Captain*, and
 `varro.*(harbor|docks)` matches only when Varro and the harbor or the docks are both mentioned, in that order.
 
-!!!warning The filter sees the request, not the story
-Filters check the instructions for the new part only, not the text of earlier parts. An entry about Varro is
+!!!warning By default the filter sees the request, not the story
+Unless the entry looks into the story (see [Looking into the story](#looking-into-the-story)), a filter checks the instructions for
+the new part only, not the text of earlier parts. An entry about Varro is
 activated when Varro is mentioned in the scene, characters or instructions of the part you are writing - put him
 into *Present Characters* when he is in the scene.
 
@@ -144,6 +148,22 @@ before it...).
   so a lorebook without such entries does not touch the story at all.
 - Entries brought in by [other entries](#entries-brought-in-by-other-entries) are not looked for in the story, only in the
   content of the entries that were used.
+
+### Limiting an entry to some parts
+
+Some lore is true only for a part of the story: the disguise of a character that is blown in chapter 5, the rumours
+before the war starts. Fill **From message** and/or **To message** with the numbers of the parts, as the outline of the story
+numbers them (the first part is `1`; both numbers are included). The entry is then used only when the part being written has
+a number inside the range, whatever its filter says - an entry without a filter is a constant one inside the range only.
+
+- An empty field is no limit: only **From message** `10` is "from part 10 on", only **To message** `4` is "until part 4".
+- The part being written is the one after the last part of the branch (a story of 9 parts writes part `10`). A swipe or a
+  regeneration writes the part it replaces.
+- Parts without text count too, as they do in the outline. Deleting or inserting parts moves the numbers.
+- If **From message** is bigger than **To message** the entry is never used.
+- An entry outside its range is not brought in by [other entries](#entries-brought-in-by-other-entries) either.
+- The [Lorebook VCS](../extensions/index.md) extension keeps the range in the versions of an entry; import, export and cloning of a
+  lorebook keep it.
 
 ### Entries brought in by other entries
 
@@ -177,10 +197,11 @@ of the lorebook and of its sub lorebooks, in the order they are used:
 - the lorebook of the entry, its **Order**, the **Pass** (empty for the entries the text activated, `1`, `2`... for the entries
   brought in by [other entries](#entries-brought-in-by-other-entries));
 - the **Reason**: no filter, filter found in the text, filter found in the content of another entry (with the filter and the
-  entry), or why not: switched off, a negative tag of the book, the book lacks a tag of the entry, the filter was not found.
+  entry), or why not: switched off, the part is outside its range, a negative tag of the book, the book lacks a tag of the entry, the filter was not found.
 
 The tags decide too, so pick a book in **Tags of the book** to use its tags (without one, no tags count). That book also
-gives the parts of its story for the entries that [look into the story](#looking-into-the-story) (without one, they search the text only). Below the text, a line says how many entries
+gives the parts of its story for the entries that [look into the story](#looking-into-the-story) (without one, they search the text only)
+and the number of the next part for the entries [limited to some parts](#limiting-an-entry-to-some-parts) (without one, their range is not checked). Below the text, a line says how many entries
 would be used and about how many tokens of lore that is. The scan depth of the lorebook is used.
 
 ![Preview activation of a lorebook](../../images/lorebook-preview-activation.png)

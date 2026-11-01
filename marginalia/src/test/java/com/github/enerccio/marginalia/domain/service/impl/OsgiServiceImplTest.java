@@ -6,6 +6,7 @@ import com.github.enerccio.marginalia.domain.service.ExtensionVerificationExcept
 import com.github.enerccio.marginalia.domain.service.IPCService;
 import com.github.enerccio.marginalia.domain.service.OsgiService;
 import com.github.enerccio.marginalia.domain.service.OsgiService.ExtensionReport;
+import com.github.enerccio.marginalia.extensions.InheritedSettingRegistry;
 import com.github.enerccio.marginalia.extensions.MarginaliaExtension;
 import com.github.enerccio.marginalia.instruct.fixture.verify.VerifyFixtures;
 import com.github.enerccio.marginalia.loc.Language;
@@ -77,6 +78,7 @@ class OsgiServiceImplTest {
         ReflectionTestUtils.setField(service, "ipcService", ipc);
         ReflectionTestUtils.setField(service, "toolService", new ToolServiceImpl());
         ReflectionTestUtils.setField(service, "storyMenuRegistry", new StoryMenuRegistry());
+        ReflectionTestUtils.setField(service, "inheritedSettingRegistry", new InheritedSettingRegistry());
         localization = new LocalizationImpl();
         localization.setBundles(List.of(new LocalizationBundleEN()));
         ReflectionTestUtils.setField(service, "localization", localization);

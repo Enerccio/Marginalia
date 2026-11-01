@@ -1,7 +1,8 @@
 package com.github.enerccio.marginalia.domain.service.impl;
 
-import com.github.enerccio.marginalia.Defaults;
 import com.github.enerccio.marginalia.domain.collections.AgentRunPairKind;
+import com.github.enerccio.marginalia.domain.collections.Language;
+import com.github.enerccio.marginalia.domain.collections.RevisionSource;
 import com.github.enerccio.marginalia.domain.collections.SummaryType;
 import com.github.enerccio.marginalia.domain.listener.ExtendableEntityListener;
 import com.github.enerccio.marginalia.domain.model.BaseEntity;
@@ -9,6 +10,10 @@ import com.github.enerccio.marginalia.domain.model.OwnedEntity;
 import com.github.enerccio.marginalia.domain.model.impl.*;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.repository.ManuscriptRepository;
+import com.github.enerccio.marginalia.domain.security.model.Permission;
+import com.github.enerccio.marginalia.domain.security.model.User;
+import com.github.enerccio.marginalia.domain.security.permissions.PermissionType;
+import com.github.enerccio.marginalia.domain.security.service.PermissionService;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.BackupService.BackupStrategy;
 import com.github.enerccio.marginalia.domain.service.agent.UuidPair;
@@ -18,6 +23,9 @@ import com.github.enerccio.marginalia.domain.service.search.Sorter;
 import com.github.enerccio.marginalia.domain.templates.*;
 import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
+import com.github.enerccio.marginalia.extensions.InheritedSetting;
+import com.github.enerccio.marginalia.extensions.InheritedSettingRegistry;
+import com.github.enerccio.marginalia.extensions.InheritedSettingValues;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -61,6 +69,10 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
     private AnnotationService annotationService;
 
     @Autowired
+    @Lazy
+    private MessageRevisionService messageRevisionService;
+
+    @Autowired
     private MessagePromptService messagePromptService;
 
     @Autowired
@@ -86,6 +98,25 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
     @Lazy
     private AgentRunService agentRunService;
 
+    @Autowired
+    @Lazy
+    private FolderService folderService;
+
+    @Autowired
+    @Lazy
+    private PermissionService permissionService;
+
+    @Autowired
+    @Lazy
+    private ManuscriptSizeService sizeService;
+
+    @Autowired
+    @Lazy
+    private ManuscriptStatisticService statisticService;
+
+    @Autowired
+    private InheritedSettingRegistry inheritedSettingRegistry;
+
     /**
      * A book an agent works on can't be changed, see {@link AgentRunService#checkNotLocked}.
      */
@@ -93,7 +124,102 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
     @CommonTx
     public Manuscript save(Manuscript manuscript) throws Exception {
         agentRunService.checkNotLocked(manuscript);
-        return super.save(manuscript);
+        checkFolder(manuscript);
+        boolean born = manuscript.getId() == null;
+        Manuscript saved = super.save(manuscript);
+        if (!born) {
+            // a rename (or a new folder) of the book is in the rows of its statistics; only the rows that differ are written
+            statisticService.refreshBook(saved);
+        }
+        // the active leaf may have moved, and a new book has its first size
+        sizeService.touch(saved, born);
+        return saved;
+    }
+
+    @Override
+    @CommonTx
+    public Manuscript update(Manuscript book, BookChange change) throws Exception {
+        // by id and without the current user, like save: a generation calls this from threads that have no session
+        Manuscript fresh = book == null ? null : find(book.getId());
+        if (fresh == null || fresh.isDeleted()) {
+            throw new IllegalStateException("The book no longer exists");
+        }
+        change.apply(fresh);
+        return save(fresh);
+    }
+
+    /**
+     * A book is only put into a folder of its user.
+     */
+    private void checkFolder(Manuscript manuscript) throws Exception {
+        // the owner of the book, the current user only for a new book: a generation saves from threads that have no session
+        Long ownerId = manuscript.getOwner() != null ? manuscript.getOwner().getId() : currentUser.getId();
+        checkFolder(manuscript.getFolder(), ownerId);
+    }
+
+    private Folder checkFolder(Folder folder, Long ownerId) throws Exception {
+        if (folder == null) {
+            return null;
+        }
+        Folder stored = folderService.find(folder.getId());
+        if (stored == null || stored.isDeleted() || stored.getOwner() == null || !stored.getOwner().getId().equals(ownerId)) {
+            throw new IllegalArgumentException("The folder does not exist");
+        }
+        return stored;
+    }
+
+    @Override
+    @CommonTx
+    public List<String> getFavorites() throws Exception {
+        UserSetting setting = settingService.getOrCreate(UserSetting.class);
+        List<String> stored = setting.getFavoriteBooks();
+        if (stored.isEmpty()) {
+            return List.of();
+        }
+        Set<String> existing = getRepository().findExistingRegularUuids(stored, currentUser);
+        List<String> favorites = stored.stream().filter(existing::contains).distinct().toList();
+        if (favorites.size() != stored.size()) {
+            setting.setFavoriteBooks(favorites);
+            settingService.save(setting);
+        }
+        return favorites;
+    }
+
+    @Override
+    @CommonTx
+    public void setFavorite(Manuscript book, boolean favorite) throws Exception {
+        Manuscript stored = book == null || book.getUuid() == null ? null : findForUser(book.getUuid());
+        if (stored == null || stored.isDeleted()) {
+            throw new IllegalArgumentException("The book does not exist");
+        }
+        UserSetting setting = settingService.getOrCreate(UserSetting.class);
+        List<String> favorites = new ArrayList<>(setting.getFavoriteBooks());
+        if (favorite ? !favorites.contains(stored.getUuid()) : favorites.remove(stored.getUuid())) {
+            if (favorite) {
+                favorites.add(stored.getUuid());
+            }
+            setting.setFavoriteBooks(favorites);
+            settingService.save(setting);
+        }
+    }
+
+    @Override
+    @CommonTx
+    public void moveToFolder(Collection<Manuscript> books, Folder folder) throws Exception {
+        Folder target = checkFolder(folder, currentUser.getId());
+        List<Long> ids = new ArrayList<>();
+        List<Manuscript> moved = new ArrayList<>();
+        for (Manuscript book : books) {
+            Manuscript stored = book == null ? null : findForUser(book.getUuid());
+            if (stored == null) {
+                throw new IllegalArgumentException("The book does not exist");
+            }
+            agentRunService.checkNotLocked(stored);
+            ids.add(stored.getId());
+            moved.add(stored);
+        }
+        getRepository().moveToFolder(ids, target, currentUser);
+        statisticService.refreshBooks(moved, target);
     }
 
     /**
@@ -121,13 +247,13 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
     @Override
     @CommonTxReadOnly
     public List<Long> searchManuscripts(ManuscriptFilterValues filterValues, Sorter... sorters) throws Exception {
-        return getRepository().searchManuscripts(filterValues, List.of(sorters), currentUser);
+        return getRepository().searchManuscripts(folderService.resolveScope(filterValues), List.of(sorters), currentUser);
     }
 
     @Override
     @CommonTxReadOnly
     public List<Long> searchRegularManuscripts(ManuscriptFilterValues filterValues, Sorter... sorters) throws Exception {
-        return getRepository().searchManuscripts(filterValues, List.of(sorters), currentUser, false);
+        return getRepository().searchManuscripts(folderService.resolveScope(filterValues), List.of(sorters), currentUser, false);
     }
 
     @Override
@@ -137,14 +263,25 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
         if (StringUtils.isBlank(criteria.getFulltext()) || ids.isEmpty()) {
             return ids;
         }
-        Set<Long> withText = chatMessageService.findManuscriptsWithText(ids, criteria.getFulltext(), criteria.isAllBranches());
+        Set<Long> withText = chatMessageService.findManuscriptsWithText(ids, criteria.getFulltext(), criteria.isAllBranches(), criteria.isIncludeVersions());
         return ids.stream().filter(withText::contains).toList();
     }
 
     @Override
     @CommonTxReadOnly
     public List<Long> searchAgenticManuscripts(ManuscriptFilterValues filterValues, Sorter... sorters) throws Exception {
-        return getRepository().searchManuscripts(filterValues, List.of(sorters), currentUser, true);
+        return getRepository().searchManuscripts(folderService.resolveScope(filterValues), List.of(sorters), currentUser, true);
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public List<Manuscript> findRegularInFolder(Folder folder, boolean includeSubfolders) throws Exception {
+        ManuscriptFilterValues scope = folderService.resolveScope(new ManuscriptFilterValues().inFolder(folder, includeSubfolders));
+        List<Manuscript> books = new ArrayList<>();
+        for (Long id : getRepository().searchManuscripts(scope, List.of(), currentUser, false)) {
+            books.add(getRepository().find(id));
+        }
+        return books;
     }
 
     @Override
@@ -177,160 +314,203 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
     }
 
     @Override
-    @CommonTxReadOnly
+    public EffectiveSetting<String> resolve(Manuscript manuscript, PromptField field) throws Exception {
+        String own = field.ofBook(manuscript);
+        if (StringUtils.isNotBlank(own)) {
+            return new EffectiveSetting<>(own, EffectiveSetting.Origin.BOOK, null);
+        }
+        return resolveInherited(manuscript.getFolder(), field);
+    }
+
+    @Override
+    public EffectiveSetting<String> resolveInherited(Folder start, PromptField field) throws Exception {
+        for (Folder folder : folderService.findChain(start)) {
+            String inherited = field.ofFolder(folder);
+            if (StringUtils.isNotBlank(inherited)) {
+                return new EffectiveSetting<>(inherited, EffectiveSetting.Origin.FOLDER, folder);
+            }
+        }
+        // read only: the settings of a user that has none yet are not created here (a resolver runs inside read-only transactions, where
+        // a write fails with SQLITE_BUSY when another connection wrote in between), a user without settings has set nothing
+        UserSetting userSetting = settingService.find(UserSetting.class, currentUser);
+        String fromUser = userSetting == null ? null : field.ofUser(userSetting);
+        if (StringUtils.isNotBlank(fromUser)) {
+            return new EffectiveSetting<>(fromUser, EffectiveSetting.Origin.USER, null);
+        }
+        return new EffectiveSetting<>(field.fallback(), EffectiveSetting.Origin.DEFAULT, null);
+    }
+
+    @Override
+    public EffectiveSetting<String> resolveExtension(Manuscript manuscript, String key) throws Exception {
+        String own = InheritedSettingValues.get(manuscript, key);
+        if (StringUtils.isNotBlank(own)) {
+            return new EffectiveSetting<>(own, EffectiveSetting.Origin.BOOK, null);
+        }
+        return resolveExtensionInherited(manuscript.getFolder(), key);
+    }
+
+    @Override
+    public EffectiveSetting<String> resolveExtensionInherited(Folder start, String key) throws Exception {
+        for (Folder folder : folderService.findChain(start)) {
+            String inherited = InheritedSettingValues.get(folder, key);
+            if (StringUtils.isNotBlank(inherited)) {
+                return new EffectiveSetting<>(inherited, EffectiveSetting.Origin.FOLDER, folder);
+            }
+        }
+        InheritedSetting setting = inheritedSettingRegistry.find(key);
+        String fromUser = setting == null ? null : setting.userValue();
+        if (StringUtils.isNotBlank(fromUser)) {
+            return new EffectiveSetting<>(fromUser, EffectiveSetting.Origin.USER, null);
+        }
+        return new EffectiveSetting<>(setting == null ? "" : setting.fallback(), EffectiveSetting.Origin.DEFAULT, null);
+    }
+
+    @Override
+    public EffectiveSetting<Language> resolveLanguage(Manuscript manuscript) throws Exception {
+        if (manuscript.getOwnLanguage() != null) {
+            return new EffectiveSetting<>(manuscript.getOwnLanguage(), EffectiveSetting.Origin.BOOK, null);
+        }
+        return resolveInheritedLanguage(manuscript.getFolder());
+    }
+
+    @Override
+    public EffectiveSetting<Language> resolveInheritedLanguage(Folder start) throws Exception {
+        for (Folder folder : folderService.findChain(start)) {
+            if (folder.getLanguage() != null) {
+                return new EffectiveSetting<>(folder.getLanguage(), EffectiveSetting.Origin.FOLDER, folder);
+            }
+        }
+        return new EffectiveSetting<>(Language.ENGLISH, EffectiveSetting.Origin.DEFAULT, null);
+    }
+
+    @Override
+    public EffectiveHistoryLimit resolveHistoryLimit(Manuscript manuscript) throws Exception {
+        EffectiveHistoryLimit inherited = resolveInheritedHistoryLimit(manuscript.getFolder(), manuscript.getOwner());
+        return stricter(manuscript.getHistoryMaxVersions(), EffectiveHistoryLimit.Origin.BOOK, null, inherited);
+    }
+
+    @Override
+    public EffectiveHistoryLimit resolveInheritedHistoryLimit(Folder start) throws Exception {
+        // the folder of a book that a window holds is a lazy proxy without a session: its owner is not read, the windows are the user's own
+        return resolveInheritedHistoryLimit(start, currentUser);
+    }
+
+    private EffectiveHistoryLimit resolveInheritedHistoryLimit(Folder start, User owner) throws Exception {
+        // from the permission to the book, so that the nearer level wins when several set the same
+        EffectiveHistoryLimit limit = permissionHistoryLimit(owner);
+        UserSetting settings = owner == null ? null : settingService.find(UserSetting.class, owner);
+        limit = stricter(settings == null ? null : settings.getHistoryMaxVersions(), EffectiveHistoryLimit.Origin.USER, null, limit);
+        for (Folder folder : folderService.findChain(start).reversed()) {
+            limit = stricter(folder.getHistoryMaxVersions(), EffectiveHistoryLimit.Origin.FOLDER, folder, limit);
+        }
+        return limit;
+    }
+
+    @Override
+    public EffectiveHistoryLimit resolvePermissionHistoryLimit() throws Exception {
+        return permissionHistoryLimit(currentUser);
+    }
+
+    /**
+     * The ceiling of the administrator: no permission at all is the default, one that is not granted keeps no history.
+     */
+    private EffectiveHistoryLimit permissionHistoryLimit(User owner) throws Exception {
+        Permission permission = owner == null ? null : permissionService.getPermission(owner, PermissionType.VERSION_HISTORY);
+        if (permission == null) {
+            return new EffectiveHistoryLimit(EffectiveHistoryLimit.DEFAULT_MAX_VERSIONS, EffectiveHistoryLimit.Origin.PERMISSION, null);
+        }
+        if (!permission.isGranted()) {
+            return new EffectiveHistoryLimit(0, EffectiveHistoryLimit.Origin.PERMISSION, null);
+        }
+        Integer set = permission.getHistoryMaxVersions();
+        return set == null || set < 0 ? new EffectiveHistoryLimit(null, EffectiveHistoryLimit.Origin.NONE, null)
+                : new EffectiveHistoryLimit(set, EffectiveHistoryLimit.Origin.PERMISSION, null);
+    }
+
+    /**
+     * The nearer level replaces the limit when it is smaller or equal (equal: the nearer is the one to change to get more).
+     */
+    private static EffectiveHistoryLimit stricter(Integer set, EffectiveHistoryLimit.Origin origin, Folder folder, EffectiveHistoryLimit farther) {
+        if (set == null || set < 0) {
+            return farther;
+        }
+        if (farther.isUnlimited() || set <= farther.value()) {
+            return new EffectiveHistoryLimit(set, origin, folder);
+        }
+        return farther;
+    }
+
+    @Override
+    public Language getLanguage(Manuscript manuscript) throws Exception {
+        return resolveLanguage(manuscript).value();
+    }
+
+    @Override
     public String getMasterTemplate(Manuscript manuscript) throws Exception {
-        if (StringUtils.isNotBlank(manuscript.getTemplate())) {
-            return manuscript.getTemplate();
-        }
-        UserSetting userSetting = settingService.getOrCreate(UserSetting.class);
-        if (StringUtils.isNotBlank(userSetting.getMasterTemplate())) {
-            return userSetting.getMasterTemplate();
-        }
-        return Defaults.DEFAULT_MASTER_TEMPLATE;
+        return resolve(manuscript, PromptField.MASTER_TEMPLATE).value();
     }
 
     @Override
-    @CommonTxReadOnly
     public String getPov(Manuscript manuscript) throws Exception {
-        if (StringUtils.isNotBlank(manuscript.getPov())) {
-            return manuscript.getPov();
-        }
-        UserSetting userSetting = settingService.getOrCreate(UserSetting.class);
-        if (StringUtils.isNotBlank(userSetting.getDefaultPov())) {
-            return userSetting.getDefaultPov();
-        }
-        return Defaults.DEFAULT_POV;
+        return resolve(manuscript, PromptField.POV).value();
     }
 
     @Override
-    @CommonTxReadOnly
     public String getTense(Manuscript manuscript) throws Exception {
-        if (StringUtils.isNotBlank(manuscript.getTense())) {
-            return manuscript.getTense();
-        }
-        UserSetting userSetting = settingService.getOrCreate(UserSetting.class);
-        if (StringUtils.isNotBlank(userSetting.getDefaultTense())) {
-            return userSetting.getDefaultTense();
-        }
-        return Defaults.DEFAULT_TENSE;
+        return resolve(manuscript, PromptField.TENSE).value();
     }
 
     @Override
-    @CommonTxReadOnly
     public String getStyle(Manuscript manuscript) throws Exception {
-        if (StringUtils.isNotBlank(manuscript.getStyle())) {
-            return manuscript.getStyle();
-        }
-        UserSetting userSetting = settingService.getOrCreate(UserSetting.class);
-        if (StringUtils.isNotBlank(userSetting.getDefaultStyle())) {
-            return userSetting.getDefaultStyle();
-        }
-        return Defaults.DEFAULT_STYLE;
+        return resolve(manuscript, PromptField.STYLE).value();
     }
 
     @Override
-    @CommonTxReadOnly
     public String getUserPrompt(Manuscript manuscript) throws Exception {
-        if (StringUtils.isNotBlank(manuscript.getUserPrompt())) {
-            return manuscript.getUserPrompt();
-        }
-        UserSetting userSetting = settingService.getOrCreate(UserSetting.class);
-        if (StringUtils.isNotBlank(userSetting.getDefaultUserPrompt())) {
-            return userSetting.getDefaultUserPrompt();
-        }
-        return Defaults.DEFAULT_USER_PROMPT;
+        return resolve(manuscript, PromptField.USER_PROMPT).value();
     }
 
     @Override
     public String getSummaryPrompt(Manuscript manuscript) throws Exception {
-        if (StringUtils.isNotBlank(manuscript.getSummaryPrompt())) {
-            return manuscript.getSummaryPrompt();
-        }
-        UserSetting userSetting = settingService.getOrCreate(UserSetting.class);
-        if (StringUtils.isNotBlank(userSetting.getDefaultSummaryPrompt())) {
-            return userSetting.getDefaultSummaryPrompt();
-        }
-        return Defaults.DEFAULT_SUMMARY_PROMPT;
+        return resolve(manuscript, PromptField.SUMMARY_PROMPT).value();
     }
 
     @Override
     public String getRedraftSystemPrompt(Manuscript manuscript) throws Exception {
-        if (StringUtils.isNotBlank(manuscript.getRedraftSystemPrompt())) {
-            return manuscript.getRedraftSystemPrompt();
-        }
-        UserSetting userSetting = settingService.getOrCreate(UserSetting.class);
-        if (StringUtils.isNotBlank(userSetting.getDefaultRedraftSystemPrompt())) {
-            return userSetting.getDefaultRedraftSystemPrompt();
-        }
-        return Defaults.DEFAULT_REDRAFT_SYSTEM_PROMPT;
+        return resolve(manuscript, PromptField.REDRAFT_SYSTEM_PROMPT).value();
     }
 
     @Override
     public String getAnnotateSystemPrompt(Manuscript manuscript) throws Exception {
-        if (StringUtils.isNotBlank(manuscript.getAnnotateSystemPrompt())) {
-            return manuscript.getAnnotateSystemPrompt();
-        }
-        UserSetting userSetting = settingService.getOrCreate(UserSetting.class);
-        if (StringUtils.isNotBlank(userSetting.getDefaultAnnotateSystemPrompt())) {
-            return userSetting.getDefaultAnnotateSystemPrompt();
-        }
-        return Defaults.DEFAULT_ANNOTATE_SYSTEM_PROMPT;
+        return resolve(manuscript, PromptField.ANNOTATE_SYSTEM_PROMPT).value();
     }
 
     @Override
     public String getRedraftPrompt(Manuscript manuscript) throws Exception {
-        if (StringUtils.isNotBlank(manuscript.getRedraftPrompt())) {
-            return manuscript.getRedraftPrompt();
-        }
-        UserSetting userSetting = settingService.getOrCreate(UserSetting.class);
-        if (StringUtils.isNotBlank(userSetting.getDefaultRedraftPrompt())) {
-            return userSetting.getDefaultRedraftPrompt();
-        }
-        return Defaults.DEFAULT_REDRAFT_PROMPT;
+        return resolve(manuscript, PromptField.REDRAFT_PROMPT).value();
     }
 
     @Override
     public String getAnnotatePrompt(Manuscript manuscript) throws Exception {
-        if (StringUtils.isNotBlank(manuscript.getAnnotatePrompt())) {
-            return manuscript.getAnnotatePrompt();
-        }
-        UserSetting userSetting = settingService.getOrCreate(UserSetting.class);
-        if (StringUtils.isNotBlank(userSetting.getDefaultAnnotatePrompt())) {
-            return userSetting.getDefaultAnnotatePrompt();
-        }
-        return Defaults.DEFAULT_ANNOTATE_PROMPT;
+        return resolve(manuscript, PromptField.ANNOTATE_PROMPT).value();
     }
 
     @Override
     public String getImpersonatePrompt(Manuscript manuscript) throws Exception {
-        if (StringUtils.isNotBlank(manuscript.getImpersonatePrompt())) {
-            return manuscript.getImpersonatePrompt();
-        }
-        UserSetting userSetting = settingService.getOrCreate(UserSetting.class);
-        if (StringUtils.isNotBlank(userSetting.getDefaultImpersonatePrompt())) {
-            return userSetting.getDefaultImpersonatePrompt();
-        }
-        return Defaults.DEFAULT_IMPERSONATE_PROMPT;
+        return resolve(manuscript, PromptField.IMPERSONATE_PROMPT).value();
     }
 
     @Override
     public String getMetaSummaryPrompt(Manuscript manuscript) throws Exception {
-        if (StringUtils.isNotBlank(manuscript.getMetaSummaryPrompt())) {
-            return manuscript.getMetaSummaryPrompt();
-        }
-        UserSetting userSetting = settingService.getOrCreate(UserSetting.class);
-        if (StringUtils.isNotBlank(userSetting.getDefaultMetaSummaryPrompt())) {
-            return userSetting.getDefaultMetaSummaryPrompt();
-        }
-        return Defaults.DEFAULT_META_SUMMARY;
+        return resolve(manuscript, PromptField.META_SUMMARY_PROMPT).value();
     }
 
     @Override
     public BackupStrategy getBackupStrategy(Manuscript manuscript) throws Exception {
         if (manuscript.getBackupStrategy() != null)
             return manuscript.getBackupStrategy();
-        UserSetting userSetting = settingService.getOrCreate(UserSetting.class);
-        if (userSetting.getBackupStrategy() != null)
+        UserSetting userSetting = settingService.find(UserSetting.class, currentUser);
+        if (userSetting != null && userSetting.getBackupStrategy() != null)
             return userSetting.getBackupStrategy();
         return null;
     }
@@ -339,8 +519,8 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
     public String getBackupStrategyValue(Manuscript manuscript) throws Exception {
         if (manuscript.getBackupStrategy() != null)
             return manuscript.getBackupStrategyValue();
-        UserSetting userSetting = settingService.getOrCreate(UserSetting.class);
-        if (userSetting.getBackupStrategy() != null)
+        UserSetting userSetting = settingService.find(UserSetting.class, currentUser);
+        if (userSetting != null && userSetting.getBackupStrategy() != null)
             return userSetting.getBackupStrategyValue();
         return null;
     }
@@ -348,6 +528,12 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
     @Override
     @CommonTxReadOnly
     public JsonObject createBackup(Manuscript manuscript) throws Exception {
+        return createBackup(manuscript, false);
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public JsonObject createBackup(Manuscript manuscript, boolean includeHistory) throws Exception {
         Manuscript m = find(manuscript);
         if (m == null) {
             return null;
@@ -425,6 +611,8 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
         ExtendableEntityListener listener = new ExtendableEntityListener();
         Map<Long, JsonArray> annotations = annotationService.marshalForManuscript(m);
         Map<Long, MessagePrompt> prompts = messagePromptService.findAllFor(allMessages);
+        Map<Long, JsonArray> revisions = includeHistory
+                ? messageRevisionService.marshalForParts(allMessages.stream().map(ChatMessage::getId).toList()) : Map.of();
 
         for (ChatMessage msg : allMessages) {
             JsonObject msgObj = new JsonObject();
@@ -486,6 +674,11 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
                 msgObj.add("annotations", messageAnnotations);
             }
 
+            JsonArray messageRevisions = revisions.get(msg.getId());
+            if (messageRevisions != null) {
+                msgObj.add("revisions", messageRevisions);
+            }
+
             messagesArray.add(msgObj);
         }
 
@@ -541,6 +734,9 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
         if (changes.metaSummaryPrompt() != null) {
             book.setMetaSummaryPrompt(changes.metaSummaryPrompt());
         }
+        if (changes.historyMaxVersions() != null) {
+            book.setHistoryMaxVersions(changes.historyMaxVersions() < 0 ? null : changes.historyMaxVersions());
+        }
         return new SettingsSaved(save(book), warnings);
     }
 
@@ -575,7 +771,7 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
             // the entries have no uuid in the backup format, the base and the copy need them
             base.add("lorebooks", lorebookService.marshalLorebooks(originalLorebook, true));
         }
-        return copyFromSnapshot(base);
+        return copyFromSnapshot(base, source.getFolder());
     }
 
     @Override
@@ -584,7 +780,8 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
         if (snapshot == null || !snapshot.has("messages") && !snapshot.has("name")) {
             throw new IllegalArgumentException("The snapshot is not the backup of a book");
         }
-        return copyFromSnapshot(snapshot);
+        // the folder is the book's, which a snapshot does not name: the run puts the copy there, see setAgenticCopyFolder
+        return copyFromSnapshot(snapshot, null);
     }
 
     @Override
@@ -608,7 +805,7 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
     /**
      * The working copy of a backup with its lorebooks ({@code lorebooks}); the backup is also the base that is returned.
      */
-    private AgenticCopy copyFromSnapshot(JsonObject base) throws Exception {
+    private AgenticCopy copyFromSnapshot(JsonObject base, Folder folder) throws Exception {
         JsonObject lorebookRef = base.has("lorebook") && base.get("lorebook").isJsonObject() ? base.getAsJsonObject("lorebook") : null;
         JsonArray lorebooks = base.has("lorebooks") && base.get("lorebooks").isJsonArray() ? base.getAsJsonArray("lorebooks") : null;
 
@@ -624,6 +821,8 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
         List<UuidPair> pairs = new ArrayList<>();
         Manuscript copy = cloneFromBackup(cloneSource, pairs);
         copy.setAgentic(true);
+        // the copy resolves its settings through the folders of the book it copies
+        copy.setFolder(folder);
         if (lorebookRef != null && lorebooks != null && lorebookRef.has("uuid") && !lorebookRef.get("uuid").isJsonNull()) {
             copy.setLorebook(lorebookService.copyLorebooks(lorebooks, pairs).get(lorebookRef.get("uuid").getAsString()));
         }
@@ -674,6 +873,24 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
 
     @Override
     @CommonTx
+    public void setAgenticCopyFolder(Manuscript copy, Folder folder) throws Exception {
+        Manuscript stored = copy == null ? null : find(copy);
+        if (stored == null) {
+            return;
+        }
+        if (!stored.isAgentic()) {
+            throw new IllegalArgumentException("The manuscript " + stored.getUuid() + " is not a working copy of an agent");
+        }
+        Folder target = folder == null ? null : folderService.find(folder.getId());
+        if (Objects.equals(stored.getFolder() == null ? null : stored.getFolder().getId(), target == null ? null : target.getId())) {
+            return;
+        }
+        stored.setFolder(target);
+        saveWithoutModification(stored);
+    }
+
+    @Override
+    @CommonTx
     public Manuscript cloneFromBackup(JsonObject backup) throws Exception {
         return cloneFromBackup(backup, null);
     }
@@ -681,6 +898,12 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
     @Override
     @CommonTx
     public Manuscript cloneFromBackup(JsonObject backup, Collection<UuidPair> pairs) throws Exception {
+        return cloneFromBackup(backup, pairs, MissingHistory.NONE);
+    }
+
+    @Override
+    @CommonTx
+    public Manuscript cloneFromBackup(JsonObject backup, Collection<UuidPair> pairs, MissingHistory missing) throws Exception {
         if (backup == null) {
             return null;
         }
@@ -731,7 +954,7 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
 
         Map<String, ChatMessage> uuidToNodeMap = new HashMap<>();
         if (backup.has("messages") && backup.get("messages").isJsonArray()) {
-            uuidToNodeMap = restoreMessages(backup.getAsJsonArray("messages"), manuscript, pairs);
+            uuidToNodeMap = restoreMessages(backup.getAsJsonArray("messages"), manuscript, pairs, missing);
         }
 
         if (backup.has("activeLeafUuid") && !backup.get("activeLeafUuid").isJsonNull()) {
@@ -743,6 +966,7 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
             }
         }
 
+        sizeService.touch(manuscript, true);
         return manuscript;
     }
 
@@ -818,7 +1042,7 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
         // 2. Restore all backed up messages
         Map<String, ChatMessage> uuidToNodeMap = new HashMap<>();
         if (backup.has("messages") && backup.get("messages").isJsonArray()) {
-            uuidToNodeMap = restoreMessages(backup.getAsJsonArray("messages"), m, null);
+            uuidToNodeMap = restoreMessages(backup.getAsJsonArray("messages"), m, null, MissingHistory.FIRST_VERSION);
         }
 
         // Link active leaf
@@ -846,6 +1070,7 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
             chatMessageService.delete(oldMsg, true);
         }
 
+        sizeService.touch(m);
         return m;
     }
 
@@ -898,10 +1123,11 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
     }
 
     /**
-     * @param pairs where the messages and summaries made are reported with the uuids they were made from (the uuids of the
-     *              backup), null when nobody wants them
+     * @param pairs   where the messages and summaries made are reported with the uuids they were made from (the uuids of the
+     *                backup), null when nobody wants them
+     * @param missing what a part gets of which the backup has no versions
      */
-    private Map<String, ChatMessage> restoreMessages(JsonArray messagesArray, Manuscript manuscript, Collection<UuidPair> pairs) throws Exception {
+    private Map<String, ChatMessage> restoreMessages(JsonArray messagesArray, Manuscript manuscript, Collection<UuidPair> pairs, MissingHistory missing) throws Exception {
         Map<String, ChatMessage> uuidToNodeMap = new HashMap<>();
         if (messagesArray == null) {
             return uuidToNodeMap;
@@ -964,6 +1190,19 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
 
             if (msgObj.has("annotations") && msgObj.get("annotations").isJsonArray()) {
                 annotationService.restoreForPart(msg, msgObj.getAsJsonArray("annotations"), pairs);
+            }
+
+            // the history the backup has, else the first version of the text; the part was made of its extended content, its
+            // fields are read from it for the versions
+            if (missing != MissingHistory.NONE || msgObj.has("revisions")) {
+                new ExtendableEntityListener().deserialize(msg);
+            }
+            if (msgObj.has("revisions") && msgObj.get("revisions").isJsonArray()) {
+                messageRevisionService.restoreForPart(msg, msgObj.getAsJsonArray("revisions"));
+            } else if (missing == MissingHistory.FIRST_VERSION) {
+                messageRevisionService.recordFirst(msg, null);
+            } else if (missing == MissingHistory.DUPLICATE) {
+                messageRevisionService.recordFirst(msg, RevisionSource.DUPLICATE);
             }
 
             if (msgObj.has("uuid") && !msgObj.get("uuid").isJsonNull()) {

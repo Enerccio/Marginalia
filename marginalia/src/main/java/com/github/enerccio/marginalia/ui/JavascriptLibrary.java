@@ -103,6 +103,20 @@ public final class JavascriptLibrary {
     }
 
     /**
+     * Removes the {@code <style>} element with the given id unless an element of the page still carries the class it is for. It
+     * waits for the changes of the page that come with the same response (the host of the style being removed from it).
+     */
+    public static void removePageStyleUnlessUsed(Page page, String id, String cssClass) {
+        page.executeJs("""
+                setTimeout(() => {
+                  if (!document.getElementsByClassName($1).length) {
+                    document.getElementById($0)?.remove();
+                  }
+                }, 0);
+                """, id, cssClass);
+    }
+
+    /**
      * Makes the login overlay accept an empty password.
      */
     public static void disableLoginPasswordValidation(Element element) {
@@ -141,6 +155,34 @@ public final class JavascriptLibrary {
                 requestAnimationFrame(() => {
                   const input = $0.inputElement;
                   if (input) input.scrollTop = input.scrollHeight;
+                });
+                """, textArea);
+    }
+
+    /**
+     * Keeps the inner textarea of a Vaadin {@code TextArea} as tall as its text. The field measures the text only when
+     * the value or its own size changes, so when the scrollbar of the field appears (the text gets narrower and wraps
+     * into more lines) or the font loads the textarea stays too short and the end of the text cannot be scrolled to
+     * until the field is resized. Re-measures when the width of the scrolling container changes.
+     */
+    public static void keepTextAreaFitted(Element textArea) {
+        textArea.executeJs("""
+                const field = $0;
+                if (field._fitObserver) return;
+                const fit = () => {
+                  field._fitFrame = null;
+                  if (typeof field._updateHeight === 'function') field._updateHeight();
+                };
+                const schedule = () => {
+                  if (!field._fitFrame) field._fitFrame = requestAnimationFrame(fit);
+                };
+                requestAnimationFrame(() => {
+                  const inputField = field._inputField;
+                  if (!inputField) return;
+                  field._fitObserver = new ResizeObserver(schedule);
+                  field._fitObserver.observe(inputField);
+                  if (field.inputElement) field._fitObserver.observe(field.inputElement);
+                  schedule();
                 });
                 """, textArea);
     }
@@ -436,6 +478,31 @@ public final class JavascriptLibrary {
         return page.executeJs("""
                 try { return localStorage.getItem($0 + $1); } catch (e) { return null; }
                 """, READER_POSITION_KEY, manuscriptUuid);
+    }
+
+    private static final String VIEWER_FOLDER_COOKIE = "marginalia_viewer_folder";
+
+    /**
+     * Keeps where the list of the viewer was left (the uuid of the folder, or a marker for the favorites; empty is the top
+     * level) in a cookie of the browser, for a year. The list reads it back by {@link #readViewerFolder}.
+     */
+    public static void rememberViewerFolder(Page page, String value) {
+        page.executeJs("""
+                document.cookie = $0 + '=' + encodeURIComponent($1) + '; path=/; max-age=31536000; SameSite=Lax'
+                        + (location.protocol === 'https:' ? '; Secure' : '');
+                """, VIEWER_FOLDER_COOKIE, value);
+    }
+
+    /**
+     * What {@link #rememberViewerFolder} stored in this browser; empty text when nothing was or cookies are blocked.
+     */
+    public static PendingJavaScriptResult readViewerFolder(Page page) {
+        return page.executeJs("""
+                const prefix = $0 + '=';
+                const found = document.cookie.split('; ').find(c => c.startsWith(prefix));
+                if (!found) return '';
+                try { return decodeURIComponent(found.substring(prefix.length)); } catch (e) { return ''; }
+                """, VIEWER_FOLDER_COOKIE);
     }
 
     // --- element events ---
@@ -751,6 +818,74 @@ public final class JavascriptLibrary {
                 """, element);
     }
 
+    // --- two-pane dialog ---
+
+    /**
+     * Fires {@code organise-key} ({@code detail}: {@code ArrowLeft}, {@code ArrowRight}, {@code Enter}, {@code Backspace},
+     * {@code Insert}, {@code Space}, {@code Shift+ArrowUp}, {@code Shift+ArrowDown}) on the grid when the user presses one of the
+     * keys in it; the key combinations of {@code actions} fire it with the id of the action as the {@code detail}. The keys are caught before the grid sees them, so Left / Right do not move the focus between the cells and Enter
+     * does not toggle the checkbox of the row; Up / Down (with or without Shift) are left to the grid, which moves between the
+     * rows. Any other key with Ctrl, Alt or Meta, and a key typed in a field, are left alone. The listener is added once for a
+     * grid, a later call only replaces the actions.
+     *
+     * @param actions JSON object, canonical key combination ({@code KeyCombo}) to the id of the action
+     */
+    public static void fireOrganiseKeys(Element grid, String actions) {
+        grid.executeJs(KEY_COMBO + """
+                var el = $0;
+                el.__organiseActions = JSON.parse($1);
+                if (el.__organiseKeys) { return; }
+                el.__organiseKeys = true;
+                var caught = ['ArrowLeft', 'ArrowRight', 'Enter', 'Backspace', 'Insert', ' '];
+                el.addEventListener('keydown', function (e) {
+                    if (e.isComposing) { return; }
+                    var path = e.composedPath();
+                    for (var i = 0; i < path.length && path[i] !== el; i++) {
+                        var tag = path[i].tagName;
+                        if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || path[i].isContentEditable) { return; }
+                    }
+                    var action = e.repeat ? null : el.__organiseActions[window.marginaliaKeyCombo(e)];
+                    if (action) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        el.dispatchEvent(new CustomEvent('organise-key', { detail: action }));
+                        return;
+                    }
+                    if (e.ctrlKey || e.altKey || e.metaKey) { return; }
+                    if (e.shiftKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
+                        el.dispatchEvent(new CustomEvent('organise-key', { detail: 'Shift+' + e.key }));
+                        return;
+                    }
+                    if (e.shiftKey || caught.indexOf(e.key) < 0) { return; }
+                    e.preventDefault();
+                    e.stopPropagation();
+                    el.dispatchEvent(new CustomEvent('organise-key', { detail: e.key === ' ' ? 'Space' : e.key }));
+                }, true);
+                """, grid, actions);
+    }
+
+    /**
+     * Puts the keyboard focus into a cell of the grid (the host element of a {@code vaadin-grid} can't take the focus itself, so
+     * {@code focus()} on it does nothing and the focus would stay in the other pane): the row with the {@code index}. Scrolls to
+     * the row and tries again until the rows are rendered and the cell has the focus.
+     */
+    public static void focusOrganiseGrid(Element grid, int index) {
+        grid.executeJs("""
+                var el = $0;
+                var index = $1;
+                var tries = 0;
+                if (el.scrollToIndex) { el.scrollToIndex(index); }
+                var timer = setInterval(function () {
+                    var rows = (el._getRenderedRows ? el._getRenderedRows() : []).filter(function (r) { return !r.hidden; });
+                    var row = rows.filter(function (r) { return r.index === index; })[0]
+                        || rows.sort(function (a, b) { return a.index - b.index; })[0];
+                    var cell = row ? row.children[0] : null;
+                    if (cell) { cell.focus(); }
+                    if ((cell && el.contains(document.activeElement)) || ++tries > 20) { clearInterval(timer); }
+                }, 30);
+                """, grid, index);
+    }
+
     // --- keyboard shortcuts ---
 
     /**
@@ -777,6 +912,21 @@ public final class JavascriptLibrary {
                 return (e.ctrlKey ? 'Ctrl+' : '') + (e.altKey ? 'Alt+' : '') + (shift ? 'Shift+' : '') + (e.metaKey ? 'Meta+' : '') + key;
             };
             """;
+
+    /**
+     * Keeps the browser from selecting the text between two clicks when Shift is held on a check box with the class
+     * {@code boxClass} inside the element (the click still ticks the box). Done once for an element.
+     */
+    public static void noTextSelectionOnShiftClick(Element element, String boxClass) {
+        element.executeJs("""
+                var el = $0;
+                if (el.__noShiftSelection) { return; }
+                el.__noShiftSelection = true;
+                el.addEventListener('mousedown', function (e) {
+                    if (e.shiftKey && e.target.classList && e.target.classList.contains($1)) { e.preventDefault(); }
+                }, true);
+                """, element, boxClass);
+    }
 
     /**
      * Makes the element fire {@code marginalia-shortcut} ({@code detail}: the id of the action) when the user presses the
@@ -830,25 +980,79 @@ public final class JavascriptLibrary {
     }
 
     /**
-     * Finds out which of the elements holds the text the user has selected.
+     * The script that picks the most visible of {@code elements}: the one with the largest height inside the viewport and the scrolling
+     * areas around it. Leaves the index in {@code best}, -1 when none is visible.
+     */
+    private static final String MOST_VISIBLE = """
+            let best = -1;
+            let bestHeight = 0;
+            elements.forEach((el, index) => {
+              if (!el || !el.isConnected) {
+                return;
+              }
+              const rect = el.getBoundingClientRect();
+              let top = Math.max(rect.top, 0);
+              let bottom = Math.min(rect.bottom, window.innerHeight);
+              for (let parent = el.parentElement; parent; parent = parent.parentElement) {
+                if (parent.scrollHeight > parent.clientHeight && getComputedStyle(parent).overflowY !== 'visible') {
+                  const box = parent.getBoundingClientRect();
+                  top = Math.max(top, box.top);
+                  bottom = Math.min(bottom, box.bottom);
+                }
+              }
+              if (bottom - top > bestHeight) {
+                bestHeight = bottom - top;
+                best = index;
+              }
+            });
+            """;
+
+    /**
+     * Finds out which of the elements the user means: the one that holds the text the user has selected, else the one that
+     * is the most visible (the largest part of it inside the viewport and the scrolling areas around it).
      *
-     * @return the index in {@code candidates} of the first element that contains the start of the selection, -1 when the
-     * selection is empty or in none of them
+     * @return the index in {@code candidates} of the first element that contains the start of the selection, else of the
+     * most visible element, -1 when nothing is selected and no element is visible
      */
     public static PendingJavaScriptResult selectionOwner(Element anchor, List<Element> candidates) {
+        return anchor.executeJs("""
+                const elements = [""" + placeholders(candidates) + """
+                ];
+                const selection = window.getSelection();
+                if (selection && selection.rangeCount > 0 && !selection.isCollapsed) {
+                  const node = selection.getRangeAt(0).startContainer;
+                  const owner = elements.findIndex(el => el && el.contains(node));
+                  if (owner >= 0) {
+                    return owner;
+                  }
+                }
+                """ + MOST_VISIBLE + """
+                return best;
+                """, concat(anchor, candidates));
+    }
+
+    /**
+     * Finds out which of the elements is the most visible: the largest part of it inside the viewport and the scrolling areas
+     * around it.
+     *
+     * @return the index in {@code candidates}, -1 when no element is visible
+     */
+    public static PendingJavaScriptResult mostVisible(Element anchor, List<Element> candidates) {
+        return anchor.executeJs("""
+                const elements = [""" + placeholders(candidates) + """
+                ];
+                """ + MOST_VISIBLE + """
+                return best;
+                """, concat(anchor, candidates));
+    }
+
+    /** {@code $2,$3...}: the references to the candidates in the arguments of a script ({@code $0} is the anchor). */
+    private static String placeholders(List<Element> candidates) {
         StringBuilder list = new StringBuilder();
         for (int i = 0; i < candidates.size(); i++) {
             list.append(i == 0 ? "" : ",").append('$').append(i + 1);
         }
-        return anchor.executeJs("""
-                const selection = window.getSelection();
-                if (!selection || selection.rangeCount === 0 || selection.isCollapsed) {
-                  return -1;
-                }
-                const node = selection.getRangeAt(0).startContainer;
-                return [""" + list + """
-                ].findIndex(el => el && el.contains(node));
-                """, concat(anchor, candidates));
+        return list.toString();
     }
 
     private static Object[] concat(Element first, List<Element> rest) {
@@ -924,6 +1128,93 @@ public final class JavascriptLibrary {
                     if (!active || active === document.body || (active.closest && active.closest('vaadin-popover-overlay'))) { el.focus(); }
                 }, 50);
                 """, element);
+    }
+
+    // --- activity (the time of the writing statistics) ---
+
+    /**
+     * Tells the element, with the event {@code marginalia-visibility} (the detail is true or false), whether the page of the
+     * browser is visible: now, and on every change. A book left open in a hidden tab does not count as open. Calling it again
+     * replaces the earlier watch.
+     */
+    public static void watchPageVisibility(Element element) {
+        element.executeJs("""
+                var el = $0;
+                if (el.__visibilityWatch) { el.__visibilityWatch(); }
+                var send = function () {
+                    el.dispatchEvent(new CustomEvent('marginalia-visibility', { detail: !document.hidden }));
+                };
+                document.addEventListener('visibilitychange', send);
+                el.__visibilityWatch = function () {
+                    document.removeEventListener('visibilitychange', send);
+                    el.__visibilityWatch = null;
+                };
+                send();
+                """, element);
+    }
+
+    /**
+     * Stops {@link #watchPageVisibility}.
+     */
+    public static void unwatchPageVisibility(Element element) {
+        element.executeJs("if ($0.__visibilityWatch) { $0.__visibilityWatch(); }", element);
+    }
+
+    /**
+     * Tells the element, with the event {@code marginalia-typing} (the detail is true or false), whether the author is typing in
+     * the text area: true on a key after an idle time, again at most once a minute while the keys go on (the server treats a
+     * silence longer than the cut-off as idle, so a long run of typing must be heard now and then), false when the last key was
+     * {@code cutoffMillis} ago. Only the keys of the text areas that were watched count; the mouse and the scrolling are reading.
+     *
+     * @param element      the element the events are fired on
+     * @param textArea     the editor of a part (its element)
+     * @param cutoffMillis the time after the last key when the author is idle
+     */
+    public static void watchTyping(Element element, Element textArea, int cutoffMillis) {
+        element.executeJs("""
+                var el = $0, area = $1, cutoff = $2;
+                var state = el.__typing;
+                if (!state) {
+                    state = el.__typing = { areas: [], typing: false, timer: null, sent: 0 };
+                }
+                var send = function (typing) {
+                    state.typing = typing;
+                    state.sent = Date.now();
+                    el.dispatchEvent(new CustomEvent('marginalia-typing', { detail: typing }));
+                };
+                if (area.__typingHandler) { return; }
+                area.__typingHandler = function (e) {
+                    if (e.isComposing && e.key === 'Process') { return; }
+                    if (!state.typing || Date.now() - state.sent > 60000) { send(true); }
+                    clearTimeout(state.timer);
+                    state.timer = setTimeout(function () { state.timer = null; send(false); }, cutoff);
+                };
+                area.addEventListener('keydown', area.__typingHandler);
+                state.areas.push(area);
+                """, element, textArea, cutoffMillis);
+    }
+
+    /**
+     * Stops watching the keys of the editor of a part; when it was the last one the author is idle.
+     */
+    public static void unwatchTyping(Element element, Element textArea) {
+        element.executeJs("""
+                var el = $0, area = $1, state = el.__typing;
+                if (!state) { return; }
+                if (area.__typingHandler) {
+                    area.removeEventListener('keydown', area.__typingHandler);
+                    area.__typingHandler = null;
+                }
+                state.areas = state.areas.filter(function (a) { return a !== area; });
+                if (state.areas.length === 0) {
+                    clearTimeout(state.timer);
+                    state.timer = null;
+                    if (state.typing) {
+                        state.typing = false;
+                        el.dispatchEvent(new CustomEvent('marginalia-typing', { detail: false }));
+                    }
+                }
+                """, element, textArea);
     }
 
     // --- help assistant ---

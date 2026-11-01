@@ -15,7 +15,7 @@ This page describes the desktop layout. On a phone the story is one column with 
 
 | Area | |
 |---|---|
-| **Outline** (left) | One entry per part, `#1`, `#2`... with the part's database ID. Click an entry to scroll to the part (the parts before it are loaded first when it is not loaded yet). The header shows how many parts the branch has. The [Chapter Marker](../extensions/chapter-marker.md) extension shows chapter titles here. |
+| **Outline** (left) | One entry per part, `#1`, `#2`... with the part's database ID. Click an entry to scroll to the part (the parts before it are loaded first when it is not loaded yet). The header shows how many parts the branch has. A part that has a [summary](summaries.md) has a small document icon after its entry. The [Chapter Marker](../extensions/chapter-marker.md) extension shows chapter titles here. |
 | **Lorebook** (left, next to the Outline) | A read only look at the lore of the book, see [The lorebook tab](#the-lorebook-tab). |
 | **Annotations** (left, next to the Outline) | The [notes](annotations.md) on passages of the story, for the whole book. |
 | **Story** (center) | The text of each part, with its menu (☰) and its metadata on the right, and under it the bottom bar. |
@@ -97,9 +97,34 @@ while another one is selected. Whatever shows a part brings the story back: clic
 search, choosing a branch in the [story tree](branches-and-story-tree.md), and starting a generation select the **Story** tab
 first. While a generation runs the other tabs are disabled and only the story stays usable, so you can stop it.
 
-To go back to the arrangement of a new book, choose **Restore default layout** in the settings menu (⚙) of the story and confirm.
-It only moves the tabs back (and forgets the sizes): your texts, the tab each panel shows and the tabs of extensions stay, the
-latter in the first panel.
+### Minimizing tabs
+
+Every tab but the story has a small **⌄** (chevron) button next to its name. It **minimizes** the tab: the tab leaves its panel (a panel
+whose tabs are all minimized disappears for the time being) and a round icon of it, a colored circle with a drawing (a list for
+the outline, a book for the lorebook, a speech bubble for the annotations, a magnifier for Side Query, and so on; a tab of an
+extension that has no drawing gets one or two letters), shows up in a bar at the
+edge of the editor. Hover over the icon to see which tab it is. Nothing is closed, the tab keeps what it was showing. Click the
+icon and the tab comes back to the panel and the place among the tabs where it was, and is shown.
+
+The bar is there while some tab is minimized. The button at its top (the circling arrows) sends the bar to the next side of
+the editor, clockwise: left, top, right, bottom. The story can't be minimized, so there is always something on the screen.
+
+![Minimized tabs in the bar at the edge of the editor](../../images/story-minimized-tabs.png)
+
+The icons are in the alphabetical order of the names of the tabs until you change it: drag an icon onto another one and it takes
+the place of that one. Which tabs are minimized, where the bar is and the order of the icons are saved with the book, together with the arrangement and the sizes.
+
+### The default arrangement
+
+A new book opens with the standard arrangement (the outline, the lorebook and the annotations on the left, the story on the
+right). To make your own arrangement the standard one, set the tabs as you like them (panels, sizes, minimized tabs, the side of
+the bar) and choose **Save layout as my default** in the settings menu (⚙) of the story. Every book that has no arrangement of its
+own (a book you have not rearranged) then opens with it; a book you have arranged keeps its arrangement. The default is
+kept in your user settings.
+
+To go back to the default arrangement, choose **Restore default layout** in the settings menu (⚙) of the story and confirm. This is
+the one you saved, or the standard one when you saved none. It only moves the tabs back (and forgets the sizes and what is
+minimized): your texts, the tab each panel shows and the tabs of extensions stay, the latter in the first panel.
 
 ## Writing the next part
 
@@ -164,9 +189,28 @@ guidance and the plan. It does not see your lorebook entries that a new turn wou
 The same is the command [`/impersonate`](../commands/index.md), which returns the text. [Agents](../agents.md) do not get it, they write
 the story with instructions of their own.
 
+## The settings menu
+
+The settings menu (⚙) in the bottom bar groups what acts on the whole story. **Search and replace** is at the top; the rest is in sub menus
+(on a phone too, except the desktop-only items):
+
+| Sub menu | Items |
+|---|---|
+| **Appearance** | **Change Styles For Text**, **Highlight Generated Text** and **Annotations in the margin** (desktop only, the last two) |
+| **Analysis** | **Annotate a range of parts with AI**, **Automatic annotation**, **Branch Tokens**, **Statistics** |
+| **Import & export** | **Import from archive**, **Export story** (and the items of extensions that import or export, such as **Export instructions**) |
+| **Cleanup** | **Clear history of the book**, **Empty trash of the history**, **Mass delete** |
+| **Layout** (desktop only) | **Save layout as my default**, **Restore default layout** |
+
+Items that [extensions](../extensions/index.md) bring are in the sub menu that fits them, or at the end of the menu. The keys of the items are in
+*Settings → Keyboard shortcuts*, where an item is named with its sub menu (*Analysis › Statistics*). The sections below say where each item is.
+
 ## The part menu
 
-Every part has a menu (☰) in its top right corner:
+Every part has a menu (☰) in its top right corner. **Edit**, **Discard Changes**, **Regenerate**, **Swipe**, **Redraft**, **History** and **Images** are in the
+menu itself, **Delete** is its last item, and the rest is in four sub menus: **Annotations** (*Annotate part*, *Annotate with AI*), **Summary**
+(*Generate summary* / *View summary*, *Delete summary*), **Inspect** (*Show Prompt*, *Compare Prompt*, *Token Usage*) and **Branch & merge** (*Branch Story*,
+*Merge into previous part*). A sub menu with nothing in it for the part is not shown. The Reviewer adds its **Review** sub menu after *Summary*. The items:
 
 | Item | |
 |---|---|
@@ -175,6 +219,7 @@ Every part has a menu (☰) in its top right corner:
 | **Regenerate** | Writes the last part again, replacing its text. Only on the last part. |
 | **Swipe** | Writes another version of the last part and keeps the old one as a separate branch. Only on the last part. See [Branches & story tree](branches-and-story-tree.md#trying-another-version-of-the-last-part). |
 | **Redraft** | Lets the model write this part again from your instructions, on any part, see [below](#redrafting-a-part). Not while the text is edited. |
+| **History (n)** | The [versions of the text](version-history.md) of the part, with the number of versions: compare them, put one back, name one. Not while the text is edited. |
 | **Annotate part** | Makes a [note](annotations.md#making-an-annotation) about the whole part. To annotate words, select them and right click (**Annotate selection**). |
 | **Annotate with AI** | Lets a model [review the part](annotations.md#letting-a-model-annotate) and propose notes. Not while the text is edited. For several parts at once use **Annotate a range of parts with AI** in the settings menu (⚙), and for every new part **Automatic annotation** (see [Annotations](annotations.md#annotating-every-new-part-automatically)). |
 | **Branch Story** | Starts a new branch from this part, see [Branches & story tree](branches-and-story-tree.md#branching-from-an-earlier-part). |
@@ -188,6 +233,8 @@ Every part has a menu (☰) in its top right corner:
 
 *Regenerate* and *Swipe* use the turn details of the last part (see [below](#turn-details)). To change what should
 happen, edit them first.
+
+![The menu of a part, with the Inspect sub menu opened](../../images/story-part-menu.png)
 
 ![Token Usage of a part](../../images/token-usage.png)
 
@@ -229,7 +276,7 @@ On a computer (the [phone layout](../phone.md) has none) the writing loop works 
 | `Ctrl+Enter` | Generates from the open panel. `Esc` closes it; the keyboard goes back to the story. |
 | `Ctrl+.` | Stops the generation that runs. |
 | `s` / `r` | **Swipe** / **Regenerate** the last part. |
-| `e` | Opens the editor of the last part. |
+| `e` | Opens the editor of the part that is the most visible on the screen (the last part when none is). |
 | `Ctrl+S` | Saves the part that is being edited (also while the cursor is in its text). |
 | `/` | Puts the cursor into the command bar (the story tab is shown first). |
 | `Ctrl+Shift+F` | Opens the *Outline* tab and puts the cursor into the search of the branch (`Enter` / `Shift+Enter` go to the next / previous match). |
@@ -247,6 +294,19 @@ open above it. The buttons show their key in the tooltip, and the menu of the la
 **Delete** removes the part from the story. The parts that followed it stay and continue from the part before it, so
 deleting a part in the middle of the story just takes it out. Deleting the last part makes the part before it the new
 end of the branch.
+
+### Deleting many parts at once
+
+The settings menu (⚙) has **Mass delete**. Turning it on puts a check box at the left of every part and shows a bar under
+the story with the number of ticked parts and a **Delete** button. Tick the parts you want to get rid of (the ticks are kept
+while you scroll, the story loads only a window of the parts); **Shift + click** on a check box ticks (or clears) all the parts
+between it and the one you clicked before; a ticked part is tinted red. Then press **Delete**: after a confirmation the parts are deleted
+one by one behind a progress bar that can't be stopped. They are deleted as a single part is: the parts that followed a deleted
+part continue from the part before it, and the deleted parts go to the trash. Then the story is shown again and the mass delete
+is off. **Cancel** in the bar, or choosing **Mass delete** again, turns it off without deleting anything. Starting a
+generation also turns it off.
+
+![Mass delete with some parts ticked](../../images/story-mass-delete.png)
 
 ## Redrafting a part
 
@@ -314,7 +374,7 @@ same text reliably. Write the next part instead (*continue from where the last p
 The previous part keeps its place, its summary and how it was generated (prompt, model, times); it gets the joined text,
 the joined reasoning and pictures, and its words and tokens are counted again. The part you merged is deleted (it is in
 the [Trash](../trash.md)) and what followed it continues from the previous part. Summaries that cover the two parts become
-outdated, as after an edit. The part cannot be merged when it is the first part of the book, or when the part before it has
+outdated, as after an edit. The [history](version-history.md#backups-copies-and-the-trash) of the part that was merged is removed, and the surviving part has the joined text as a **Merged** version. The part cannot be merged when it is the first part of the book, or when the part before it has
 other continuations (swipes of the part): delete them or make them a branch first.
 
 ## Images
@@ -327,11 +387,35 @@ list of the pictures of the part.
 - **Add image** (or drop a file on it) uploads a PNG, JPEG, GIF or WebP picture of up to 10 MB. WebP pictures are
   converted to PNG when they are uploaded, because Word and PDF files can't contain WebP.
 - **Caption** is shown under the picture. It can be empty.
+- **Position in the part** is a 3x3 grid. The column is the side of the text (left, center, right), the row is the place in it:
+  the top is before the text, the middle is in the middle of it, the bottom is after it. Click a square to choose.
+- **Text flows around the image** lets the text run around the picture instead of above and below it. At the left or the
+  right, the text runs beside the picture. In the middle column the text is on both sides of it: a few blocks of the text (about 400
+  characters, two blocks at least) at that row become two columns, the first part at the left of the picture and the rest at the
+  right, so the text reads down the left column and goes on in the right one. Two pictures in the same place are one above the other
+  between the columns. When the text has no room for two columns (one paragraph only, or the blocks are already taken by the band
+  above), the picture is a block of its own, centered.
+- **Width** is the width of the picture as a percent of the width of the text. **Automatic** keeps the size of the
+  picture (never wider than the text; a picture with text on both sides is 30 %). A picture the text flows beside is at most 60 %,
+  and one with text on both sides at most 40 %, so the text keeps some room.
+  The height follows the proportions of the picture.
 - The trash button removes the picture from the part.
 
-The pictures are shown under the text of the part and in the same order in every [export](export.md).
+![The position of a picture: in the middle, with the text flowing around it](../../images/images-position.png)
 
-![A part with a picture](../../images/part-with-image.png)
+**Preview as in the viewer** (a button of the dialog, and the same entry in the part menu when the part has pictures) shows the
+part the way the [viewer](publishing.md) shows it, with the text style of the book: the pictures where you put them,
+and a switch for a wide or a narrow (phone) screen. It uses the text in the editor as it is now, saved or not.
+
+![The preview: the text in two columns with the picture between them](../../images/images-preview.png)
+
+The story editor itself does not use the position: it shows the pictures under the text of the part, as a list. The position
+is used by the viewer and by the [exports](export.md#images).
+
+Where in the text a picture goes does not depend on numbers saved with it: the text is cut between its blocks (paragraphs,
+lists, quotes and code blocks are never cut), so the pictures stay where they belong when you edit the text. The middle is the
+place between blocks that is nearest to the middle of the text; a picture the text flows around at the bottom is put before the
+last block, so that at least that block runs beside it. Pictures in the same place stay in the order of the list; ones that are next to each other in the same place (and do not let the text flow around them) stand in a row when they fit. PDF and Word do that for pictures that have a width.
 
 Pictures are **not part of the text**. The model never sees them, they are not in the prompt, they do not count as
 tokens and they do not change the [summaries](summaries.md). They are also not Markdown: a `![](...)` link written in
@@ -366,15 +450,27 @@ instructions of the turn take room from the same budget. Without a model with a 
 
 ![Branch Tokens](../../images/branch-tokens.png)
 
-## Book styles
+## Text styles
 
-The settings menu (⚙) in the bottom bar has **Change Styles For Text**. It switches the text of the parts between the
-normal look of the application and a book-like reading style (the one the [viewer](publishing.md) uses). The setting
-is saved per book.
+The settings menu (⚙) in the bottom bar has **Appearance → Change Styles For Text**, a menu with one entry per style, sorted by name.
+For how to make a style, see the [styling guide](styling-guide.md).
+A style decides how the text of the parts looks: font, size, colors, alignment, headings... The application brings two
+styles that can not be changed: **Normal** (the look of the application) and **Book** (a book-like reading style, the one the
+[viewer](publishing.md) uses), and you can make your own in [Settings → Styles](../account.md#styles).
 
-In this style paragraphs are justified and long words are hyphenated automatically, using the dictionary of the
+- The first entry, **Default (...)**, follows your *default style* (the one marked in *Settings → Styles*, Normal when you
+  chose none). A new book has no style of its own and shows that.
+- Choosing another entry stores the style **in the book**, so it overrides the default for that book only; the ticked entry is
+  the one the book has now. **Default** takes the choice back.
+- A style you delete falls back to your default in the books that used it.
+
+![Appearance, Change Styles For Text: the styles to choose from](../../images/story-style-menu.png)
+
+In the **Book** style paragraphs are justified and long words are hyphenated automatically, using the dictionary of the
 book's **Language** (set on the [About tab](managing-books.md#the-about-tab)). Hyphenation is done by the browser;
 for a few rare languages it has no dictionary and the text is simply not hyphenated.
+
+Books that had the old *Change Styles For Text* switch on keep showing the Book style until you choose another entry.
 
 ## Highlighting generated text
 
@@ -397,6 +493,8 @@ Next to the menu below the story there is a **command line**: type `/` to see th
 while. The command line is only in the story tab of the desktop layout so far.
 
 ## Search and replace
+
+The settings menu (⚙) also has **Clear history of the book** and **Empty trash of the history**, see [Version history](version-history.md#deleting-versions).
 
 The settings menu (⚙) also has **Search and replace**, which changes a word, a name or a phrase in the whole story at
 once. The window has a **Search for** and a **Replace with** field and these options:

@@ -16,6 +16,7 @@ import com.github.enerccio.marginalia.extensions.sidequery.ui.SideQueryView;
 import com.github.enerccio.marginalia.ui.main.ApplicationEntryPoint;
 import com.github.enerccio.marginalia.ui.main.Main;
 import com.github.enerccio.marginalia.ui.widgets.TabDock;
+import com.github.enerccio.marginalia.ui.widgets.TabDockIcon;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.ComponentUtil;
 import com.vaadin.flow.component.accordion.Accordion;
@@ -27,10 +28,14 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.WeakHashMap;
 
-import static com.github.enerccio.marginalia.extensions.sidequery.SideQueryLocalization.T;
+import static com.github.enerccio.marginalia.extensions.sidequery.SideQueryLocalization.*;
 
 @Configurable
 public class SideQueryExtension implements MarginaliaExtension, ExtensionHasCss {
+
+    /** The icon of the tab in the bar of the minimized tabs: a glyph on a 24 x 24 grid. */
+    private static final TabDockIcon SIDE_QUERY_ICON = TabDockIcon.glyph(
+            "<circle cx='10.5' cy='10.5' r='6'/><path d='M15 15l5.5 5.5M8.5 9a2 2 0 1 1 2.8 1.8c-.5.3-.8.7-.8 1.2'/><circle cx='10.5' cy='13.9' r='.6' fill='white'/>");
 
     private static final String SIDE_QUERY_VIEW_KEY = SideQuerySettings.KEY + ".view";
     private static final String SETTINGS_PANEL_KEY = SideQuerySettings.KEY + ".settingsPanel";
@@ -65,7 +70,7 @@ public class SideQueryExtension implements MarginaliaExtension, ExtensionHasCss 
                         }
 
                         SideQueryView sideQueryView = new SideQueryView(currentManuscript, sideQueryService);
-                        leftBar.add("sidequery", T.localized("Side Query"), sideQueryView);
+                        leftBar.add("sidequery", T.localized(SIDE_QUERY), SIDE_QUERY_ICON, sideQueryView);
 
                         ComponentUtil.setData(leftBar, SIDE_QUERY_VIEW_KEY, sideQueryView);
                         activeTabSheets.add(leftBar);
@@ -97,7 +102,7 @@ public class SideQueryExtension implements MarginaliaExtension, ExtensionHasCss 
                             });
                         } else {
                             SideQuerySettingsForm form = new SideQuerySettingsForm(sideQueryService);
-                            contentPanel = extensionSettings.add(T.localized("SideQuery Settings"), form);
+                            contentPanel = extensionSettings.add(T.localized(SIDEQUERY_SETTINGS), form);
                             ComponentUtil.setData(extensionSettings, SETTINGS_PANEL_KEY, contentPanel);
                             activeAccordions.add(extensionSettings);
                         }

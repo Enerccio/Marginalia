@@ -21,11 +21,36 @@ the active sort button again reverses the order.
 
 Click a book to read it.
 
+### Folders in the list
+
+The list shows your [folders](folders.md) like the phone list of the workspace does: the folders come first, each with
+the number of books beneath it, then the books of the current folder. Click a folder to go into it. The path above the
+filters (`Books / Fan fiction / Harry Potter`) shows where you are, and a click on a part of it goes back there.
+
+![The viewer inside a folder](../../images/viewer-folder.png)
+
+- **Include subfolders** lists every book below the current folder, at any depth, with the folder of each under its name.
+- **Favorites**, the folder of the top level that exists while you have a favorite book, lists the favorite books of all
+  folders. Favorites are set in the [list of books](folders.md#favorites), not in the viewer.
+- The filters work inside the current folder (or below it with *Include subfolders*), so to search all your books go to the
+  top level and check the box. **Last Opened** orders the folders by their last modification.
+- The viewer opens in the folder where you left it: after reading a book the arrow takes you back to the same folder, and the
+  next visit, or a reload, starts there too. The place is kept in a cookie of your browser (`marginalia_viewer_folder`), the
+  server does not store it, so another browser starts at the top level. A folder that was deleted is the top level.
+
 ## Reading
 
 The reading view shows the [active branch](branches-and-story-tree.md) of the book from the first to the last part,
 in the book reading style (justified, with hyphenation for the book's [language](managing-books.md#the-about-tab)). Other branches, the turn instructions and the metadata are not shown. The arrow button in
 the top left corner returns to the list.
+
+The round button in the top right corner opens a menu of **text styles** to read in: the *Normal* and *Book* styles and
+the styles you made in [Settings → Styles](../account.md#styles) (the ticked one is shown; the Book style until you choose).
+Only your own styles are offered, also in a published book of another user: what the author uses for writing does not
+reach the reader. The choice is kept in a cookie of your browser (`marginalia_reader_style`), so it holds for every book you
+read there and the server does not store it; a style that is not yours (another user logged in in the same browser) is ignored.
+
+![The menu of the styles in the reader](../../images/viewer-style-menu.png)
 
 ![Reading a book](../../images/viewer-reading.png)
 
@@ -40,7 +65,7 @@ The viewer remembers where you stopped reading each book: it opens the book at t
 kept in the local storage of your browser only (per book), it is not saved on the server, so another browser or a cleared
 browser storage starts at the beginning.
 
-[Pictures of the parts](story-editor.md#images) are shown under the text, but only to you, the owner. Readers of a
+[Pictures of the parts](story-editor.md#images) are shown where the author placed them (after the text unless the author chose another place), but only to you, the owner. Readers of a
 [published](#publishing-a-book) book see the text without the pictures.
 
 ## Publishing a book

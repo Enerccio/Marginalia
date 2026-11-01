@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <meta name="turbo-root" content="/Marginalia">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846880296645">
+
+    <!-- See retype.com -->
+    <meta name="generator" content="Retype 4.6.0">
+
+    <!-- Primary Meta Tags -->
+    <title>Styling guide: make your book look like your book</title>
+    <meta name="title" content="Styling guide: make your book look like your book">
+    <meta name="description" content="A text style decides how the text of your parts looks: the font, the colors, the width of the column, the headings, the line between scenes. This guide">
+
+    <!-- Canonical -->
+    <link rel="canonical" href="https://enerccio.github.io/Marginalia/user/books/styling-guide/">
+    <link rel="sitemap" type="application/xml" title="Sitemap" href="https://enerccio.github.io/Marginalia/sitemap.xml">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://enerccio.github.io/Marginalia/user/books/styling-guide/">
+    <meta property="og:title" content="Styling guide: make your book look like your book">
+    <meta property="og:description" content="A text style decides how the text of your parts looks: the font, the colors, the width of the column, the headings, the line between scenes. This guide">
+    <meta property="og:image" content="https://enerccio.github.io/Marginalia/images/story-style-menu.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Styling guide: make your book look like your book">
+    <meta property="og:site_name" content="Marginalia">
+    <meta property="og:locale" content="en_US">
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://enerccio.github.io/Marginalia/user/books/styling-guide/">
+    <meta name="twitter:title" content="Styling guide: make your book look like your book">
+    <meta name="twitter:description" content="A text style decides how the text of your parts looks: the font, the colors, the width of the column, the headings, the line between scenes. This guide">
+    <meta name="twitter:image" content="https://enerccio.github.io/Marginalia/images/story-style-menu.png">
+    <meta name="twitter:image:alt" content="Styling guide: make your book look like your book">
+
+    <!-- Alternate Markdown -->
+    <link rel="alternate" type="text/markdown" href="https://enerccio.github.io/Marginalia/user/books/styling-guide.md">
+
+    <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
+
+    <link href="../../../resources/css/retype.css?v=4.6.0.846880296645" rel="stylesheet">
+
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846880296645" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846880296645" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.846880296645" defer></script>
+</head>
+<body>
+    <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
+    <div class="absolute bottom-0 left-0" style="top: 5rem; right: 50%"></div>
+
+    <header id="retype-header" class="sticky top-0 z-30 flex w-full h-16 bg-header-bg border-b border-header-border md:h-20">
+        <div class="container relative flex items-center justify-between pr-6 grow md:justify-start">
+            <!-- Mobile menu button skeleton -->
+            <button v-cloak class="skeleton retype-mobile-menu-button flex items-center justify-center shrink-0 overflow-hidden dark:text-white focus:outline-hidden rounded-full w-10 h-10 ml-3.5 md:hidden"><svg xmlns="http://www.w3.org/2000/svg" class="mb-px shrink-0" width="24" height="24" viewBox="0 0 24 24" role="presentation" style="margin-bottom: 0px;"><g fill="currentColor"><path d="M2 4h20v2H2zM2 11h20v2H2zM2 18h20v2H2z"></path></g></svg></button>
+            <div v-cloak id="retype-sidebar-left-toggle-button"></div>
+    
+            <!-- Logo -->
+            <div class="flex items-center justify-between h-full py-2 md:w-75">
+                <div class="flex items-center px-2 md:px-6">
+                    <a id="retype-branding-logo" href="https://enerccio.github.io/Marginalia/" class="flex items-center leading-snug text-2xl">
+                        <span class="dark:text-white font-bold line-clamp-1 md:line-clamp-2">Marginalia</span>
+                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.6.0</span>
+                </div>
+    
+                <span class="hidden h-8 border-r md:inline-block border-base-border"></span>
+            </div>
+    
+            <div class="flex justify-between md:grow">
+                <!-- Top Nav -->
+                <nav id="retype-header-nav" class="hidden md:flex">
+                    <ul class="flex flex-col mb-4 md:pl-16 md:mb-0 md:flex-row md:items-center">
+                        <li class="mr-6">
+                            <a class="py-2 md:mb-0 inline-flex items-center text-sm whitespace-nowrap transition-colors duration-200 ease-linear md:text-header-text font-header-text hover:text-header-text-hover" href="https://github.com/Enerccio/Marginalia">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="block shrink-0 mr-1.5" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+                                    <path d="M10.226 17.284c-2.965-.36-5.054-2.493-5.054-5.256 0-1.123.404-2.336 1.078-3.144-.292-.741-.247-2.314.09-2.965.898-.112 2.111.36 2.83 1.01.853-.269 1.752-.404 2.853-.404 1.1 0 1.999.135 2.807.382.696-.629 1.932-1.1 2.83-.988.315.606.36 2.179.067 2.942.72.854 1.101 2 1.101 3.167 0 2.763-2.089 4.852-5.098 5.234.763.494 1.28 1.572 1.28 2.807v2.336c0 .674.561 1.056 1.235.786 4.066-1.55 7.255-5.615 7.255-10.646C23.5 6.188 18.334 1 11.978 1 5.62 1 .5 6.188.5 12.545c0 4.986 3.167 9.12 7.435 10.669.606.225 1.19-.18 1.19-.786V20.63a2.9 2.9 0 0 1-1.078.224c-1.483 0-2.359-.808-2.987-2.313-.247-.607-.517-.966-1.034-1.033-.27-.023-.359-.135-.359-.27 0-.27.45-.471.898-.471.652 0 1.213.404 1.797 1.235.45.651.921.943 1.483.943.561 0 .92-.202 1.437-.719.382-.381.674-.718.944-.943"/>
+                                </svg>
+                                <span>GitHub</span>
+                            </a>
+                        </li>
+                        <li class="mr-6">
+                            <a class="py-2 md:mb-0 inline-flex items-center text-sm whitespace-nowrap transition-colors duration-200 ease-linear md:text-header-text font-header-text hover:text-header-text-hover" href="https://github.com/Enerccio/Marginalia/releases">Releases</a>
+                        </li>
+    
+                    </ul>
+                </nav>
+    
+                <div v-cloak class="flex justify-end grow">
+                    <div id="retype-mobile-search-button"></div>
+                    <doc-search-desktop></doc-search-desktop>
+    
+                    <doc-theme-switch class="lg:ml-2"></doc-theme-switch>
+                    <doc-history></doc-history>
+                </div>
+            </div>
+        </div>
+    </header>
+
+
+    <div id="retype-container" class="container relative flex bg-white">
+        <!-- Sidebar Skeleton -->
+        <div v-cloak class="fixed flex flex-col shrink-0 duration-300 ease-in-out bg-sidebar-left-bg border-sidebar-left-border sidebar top-20 w-75 border-r h-screen md:sticky transition-transform skeleton">
+        
+            <div class="flex items-center h-16 px-6">
+                <input id="retype-filter-input-mock" class="w-full h-10 pl-8 px-3 py-2 transition-colors duration-200 ease-linear bg-filter-bg border border-filter-border rounded-lg shadow-none md:text-sm hover:border-filter-border-hover focus:outline-hidden focus:border-filter-border-focus placeholder-filter-placeholder" type="text">
+            </div>
+        
+            <div class="pl-6 mt-1 mb-4">
+                <div class="w-32 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-48 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-40 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-32 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-48 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-40 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+            </div>
+        
+            <div class="shrink-0 mt-auto bg-transparent dark:border-base-border">
+                <a class="flex items-center justify-center flex-nowrap h-16 text-gray-350 dark:text-dark-400 hover:text-gray-600 dark:hover:text-dark-300 transition-colors duration-150 ease-in docs-powered-by" target="_blank" href="https://retype.com/" rel="noopener">
+                    <span class="text-xs whitespace-nowrap">Powered by</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="ml-2" fill="currentColor" width="96" height="20" overflow="visible"><path d="M0 0v20h13.59V0H0zm11.15 17.54H2.44V2.46h8.71v15.08zM15.8 20h2.44V4.67L15.8 2.22zM20.45 6.89V20h2.44V9.34z"/><g><path d="M40.16 8.44c0 1.49-.59 2.45-1.75 2.88l2.34 3.32h-2.53l-2.04-2.96h-1.43v2.96h-2.06V5.36h3.5c1.43 0 2.46.24 3.07.73s.9 1.27.9 2.35zm-2.48 1.1c.26-.23.38-.59.38-1.09 0-.5-.13-.84-.4-1.03s-.73-.28-1.39-.28h-1.54v2.75h1.5c.72 0 1.2-.12 1.45-.35zM51.56 5.36V7.2h-4.59v1.91h4.13v1.76h-4.13v1.92h4.74v1.83h-6.79V5.36h6.64zM60.09 7.15v7.48h-2.06V7.15h-2.61V5.36h7.28v1.79h-2.61zM70.81 14.64h-2.06v-3.66l-3.19-5.61h2.23l1.99 3.45 1.99-3.45H74l-3.19 5.61v3.66zM83.99 6.19c.65.55.97 1.4.97 2.55s-.33 1.98-1 2.51-1.68.8-3.04.8h-1.23v2.59h-2.06V5.36h3.26c1.42 0 2.45.28 3.1.83zm-1.51 3.65c.25-.28.37-.69.37-1.22s-.16-.92-.48-1.14c-.32-.23-.82-.34-1.5-.34H79.7v3.12h1.38c.68 0 1.15-.14 1.4-.42zM95.85 5.36V7.2h-4.59v1.91h4.13v1.76h-4.13v1.92H96v1.83h-6.79V5.36h6.64z"/></g></svg>
+                </a>
+            </div>
+        </div>
+        
+        <!-- Sidebar component -->
+        <doc-sidebar v-cloak>
+            <template #sidebar-footer>
+                <div class="shrink-0 mt-auto border-t md:bg-transparent md:border-none dark:border-base-border">
+        
+                    <div class="py-3 px-6 md:hidden border-b dark:border-base-border">
+                        <nav>
+                            <ul class="flex flex-wrap justify-center items-center">
+                                <li class="mr-6">
+                                    <a class="block py-1 inline-flex items-center text-sm whitespace-nowrap transition-colors duration-200 ease-linear md:text-header-text font-header-text hover:text-header-text-hover" href="https://github.com/Enerccio/Marginalia">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="block shrink-0 mr-1.5" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+                                            <path d="M10.226 17.284c-2.965-.36-5.054-2.493-5.054-5.256 0-1.123.404-2.336 1.078-3.144-.292-.741-.247-2.314.09-2.965.898-.112 2.111.36 2.83 1.01.853-.269 1.752-.404 2.853-.404 1.1 0 1.999.135 2.807.382.696-.629 1.932-1.1 2.83-.988.315.606.36 2.179.067 2.942.72.854 1.101 2 1.101 3.167 0 2.763-2.089 4.852-5.098 5.234.763.494 1.28 1.572 1.28 2.807v2.336c0 .674.561 1.056 1.235.786 4.066-1.55 7.255-5.615 7.255-10.646C23.5 6.188 18.334 1 11.978 1 5.62 1 .5 6.188.5 12.545c0 4.986 3.167 9.12 7.435 10.669.606.225 1.19-.18 1.19-.786V20.63a2.9 2.9 0 0 1-1.078.224c-1.483 0-2.359-.808-2.987-2.313-.247-.607-.517-.966-1.034-1.033-.27-.023-.359-.135-.359-.27 0-.27.45-.471.898-.471.652 0 1.213.404 1.797 1.235.45.651.921.943 1.483.943.561 0 .92-.202 1.437-.719.382-.381.674-.718.944-.943"/>
+                                        </svg>
+                                        <span>GitHub</span>
+                                    </a>
+                                </li>
+                                <li class="mr-6">
+                                    <a class="block py-1 inline-flex items-center text-sm whitespace-nowrap transition-colors duration-200 ease-linear md:text-header-text font-header-text hover:text-header-text-hover" href="https://github.com/Enerccio/Marginalia/releases">Releases</a>
+                                </li>
+        
+                            </ul>
+                        </nav>
+                    </div>
+        
+                    <a class="flex items-center justify-center flex-nowrap h-16 text-gray-350 dark:text-dark-400 hover:text-gray-600 dark:hover:text-dark-300 transition-colors duration-150 ease-in docs-powered-by" target="_blank" href="https://retype.com/" rel="noopener">
+                        <span class="text-xs whitespace-nowrap">Powered by</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="ml-2" fill="currentColor" width="96" height="20" overflow="visible"><path d="M0 0v20h13.59V0H0zm11.15 17.54H2.44V2.46h8.71v15.08zM15.8 20h2.44V4.67L15.8 2.22zM20.45 6.89V20h2.44V9.34z"/><g><path d="M40.16 8.44c0 1.49-.59 2.45-1.75 2.88l2.34 3.32h-2.53l-2.04-2.96h-1.43v2.96h-2.06V5.36h3.5c1.43 0 2.46.24 3.07.73s.9 1.27.9 2.35zm-2.48 1.1c.26-.23.38-.59.38-1.09 0-.5-.13-.84-.4-1.03s-.73-.28-1.39-.28h-1.54v2.75h1.5c.72 0 1.2-.12 1.45-.35zM51.56 5.36V7.2h-4.59v1.91h4.13v1.76h-4.13v1.92h4.74v1.83h-6.79V5.36h6.64zM60.09 7.15v7.48h-2.06V7.15h-2.61V5.36h7.28v1.79h-2.61zM70.81 14.64h-2.06v-3.66l-3.19-5.61h2.23l1.99 3.45 1.99-3.45H74l-3.19 5.61v3.66zM83.99 6.19c.65.55.97 1.4.97 2.55s-.33 1.98-1 2.51-1.68.8-3.04.8h-1.23v2.59h-2.06V5.36h3.26c1.42 0 2.45.28 3.1.83zm-1.51 3.65c.25-.28.37-.69.37-1.22s-.16-.92-.48-1.14c-.32-.23-.82-.34-1.5-.34H79.7v3.12h1.38c.68 0 1.15-.14 1.4-.42zM95.85 5.36V7.2h-4.59v1.91h4.13v1.76h-4.13v1.92H96v1.83h-6.79V5.36h6.64z"/></g></svg>
+                    </a>
+                </div>
+            </template>
+        </doc-sidebar>
+
+        <div class="grow min-w-0 bg-body-bg">
+            <!-- Render "toolbar" template here on api pages --><!-- Render page content -->
+<div class="flex">
+    <div id="retype-main" class="min-w-0 p-4 grow md:px-16">
+        <main class="relative pb-12 lg:pt-2">
+            <div class="relative retype-markdown" id="retype-content">
+                <!-- Rendered if sidebar right is enabled -->
+                <div id="retype-sidebar-right-toggle"></div>
+                <doc-page-actions></doc-page-actions>
+
+                <!-- Page content  -->
+<h1 id="styling-guide-make-your-book-look-like-your-book">Styling guide: make your book look like your book</h1>
+<p>A <strong>text style</strong> decides how the text of your parts looks: the font, the colors, the width of the column, the headings, the line
+between scenes. This guide takes you from the first change to a finished look, and ends with a complete example to download: a style for a
+horror book that uses every option and some CSS of its own.</p>
+<p>Where a style is used:</p>
+<retype-table copy-text="| Where | What happens |
+|---|---|
+| **The story editor** | The style of the book (or your default) is the look of every part. See [Text styles](story-editor.md#text-styles). |
+| **The reader** | A [published book](publishing.md) is read in the style the *reader* chose from their own styles (the Book style until they choose). |
+| **Exports** | A style marked **For exports** is chosen in the [export dialog](export.md#print-styles). HTML and EPUB take the stylesheet, PDF and Word take the numbers (see [what each export takes](#what-the-exports-take)). |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Where</th>
+<th>What happens</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>The story editor</strong></td>
+<td>The style of the book (or your default) is the look of every part. See <a href="../story-editor/#text-styles">Text styles</a>.</td>
+</tr>
+<tr>
+<td><strong>The reader</strong></td>
+<td>A <a href="../publishing/">published book</a> is read in the style the <em>reader</em> chose from their own styles (the Book style until they choose).</td>
+</tr>
+<tr>
+<td><strong>Exports</strong></td>
+<td>A style marked <strong>For exports</strong> is chosen in the <a href="../export/#print-styles">export dialog</a>. HTML and EPUB take the stylesheet, PDF and Word take the numbers (see <doc-anchor-trigger to="#what-the-exports-take">what each export takes</doc-anchor-trigger>).</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<h2 id="make-your-first-style">Make your first style</h2>
+<ol>
+<li>
+<p>Open <strong>Settings → Styles</strong> (the <a href="../../account/#styles">Styles tab</a>).</p>
+</li>
+<li>
+<p>Select <strong>Book</strong> in the list and press <strong>Duplicate</strong>. The built in styles can not be changed, so you always start from a copy named
+<em>Book (copy)</em>. Give it a name.</p>
+</li>
+<li>
+<p>Change a few boxes on the <strong>Options</strong> tab. The <strong>Preview</strong> under the form shows a sample text (a chapter title, emphasis, a quote, a scene break,
+a smaller heading) and follows every change as you type.</p>
+</li>
+<li>
+<p>Press <strong>Save</strong> of the settings. Nothing is stored before that, and <strong>Discard Changes</strong> throws the work away.</p>
+</li>
+<li>
+<p>In the story editor open the settings menu (⚙) → <strong>Appearance</strong> → <strong>Change Styles For Text</strong> and tick your style. It is stored in the
+book. To use the style for all your books, select it in the list and press <strong>Set as default</strong>.</p>
+</li>
+</ol>
+<figure class="content-center">
+    <img src="../../../images/story-style-menu.png" alt="The styles in the menu of the story" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="825" height="338" />
+    <figcaption class="caption">The styles in the menu of the story</figcaption>
+</figure>
+<p>A box left empty keeps the look of the application, so a style only says what you want different. A style with every box empty is the plain look.</p>
+<h2 id="the-options">The options</h2>
+<p>Every box takes a CSS value. Units you will use: <code translate="no" v-pre>rem</code> (the size of the text of the page, 1rem is normally 16px), <code translate="no" v-pre>em</code> (the size of the
+current text), <code translate="no" v-pre>px</code>, <code translate="no" v-pre>%</code>, and colors as <code translate="no" class="whitespace-nowrap" v-pre>#336699<span class="color-preview-display ml-color-preview-margin-left border border-color-preview-border rounded-full h-color-preview-height w-color-preview-width" style="background-color:#336699;"></span></code>, <code translate="no" v-pre>rgb(51, 102, 153)</code> or a name such as <code translate="no" v-pre>ivory</code>.</p>
+<h3 id="text">Text</h3>
+<retype-table copy-text="| Option | What it does | Example |
+|---|---|---|
+| **Font family** | The font of the text. Give a list: the first one the computer has is used, the last should be a generic family (`serif`, `sans-serif`, `monospace`). | `&quot;Garamond&quot;, &quot;Georgia&quot;, serif` |
+| **Font size** | The size of the text. | `1.1rem` |
+| **Line height** | The distance between lines. A bare number is a multiple of the font size. | `1.7` |
+| **Letter spacing**, **Word spacing** | Extra space between letters, between words. Small values: a tiny amount of letter spacing makes text airy. | `0.01em`, `0.05em` |
+| **Text color** | The color of the text. | `#cfc6bb` |
+| **Text align** | `left`, `right`, `center` or `justify`. | `justify` |
+| **Hyphenation** | Breaks long words at the end of a line. It uses the dictionary of the book's [language](managing-books.md#the-about-tab), so set the language first. Best together with *justify*. | on |
+| **Paragraph spacing** | The space under a paragraph. A book usually has little, or none with a first line indent. | `0.3em` |
+| **First line indent** | Indents the first line of a paragraph, as in a printed book, except after a heading or a scene break. | `1.5em` |
+| **Drop cap** | A large first letter of the first paragraph after a heading. | on |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Option</th>
+<th>What it does</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Font family</strong></td>
+<td>The font of the text. Give a list: the first one the computer has is used, the last should be a generic family (<code translate="no" v-pre>serif</code>, <code translate="no" v-pre>sans-serif</code>, <code translate="no" v-pre>monospace</code>).</td>
+<td><code translate="no" v-pre>&quot;Garamond&quot;, &quot;Georgia&quot;, serif</code></td>
+</tr>
+<tr>
+<td><strong>Font size</strong></td>
+<td>The size of the text.</td>
+<td><code translate="no" v-pre>1.1rem</code></td>
+</tr>
+<tr>
+<td><strong>Line height</strong></td>
+<td>The distance between lines. A bare number is a multiple of the font size.</td>
+<td><code translate="no" v-pre>1.7</code></td>
+</tr>
+<tr>
+<td><strong>Letter spacing</strong>, <strong>Word spacing</strong></td>
+<td>Extra space between letters, between words. Small values: a tiny amount of letter spacing makes text airy.</td>
+<td><code translate="no" v-pre>0.01em</code>, <code translate="no" v-pre>0.05em</code></td>
+</tr>
+<tr>
+<td><strong>Text color</strong></td>
+<td>The color of the text.</td>
+<td><code translate="no" class="whitespace-nowrap" v-pre>#cfc6bb<span class="color-preview-display ml-color-preview-margin-left border border-color-preview-border rounded-full h-color-preview-height w-color-preview-width" style="background-color:#cfc6bb;"></span></code></td>
+</tr>
+<tr>
+<td><strong>Text align</strong></td>
+<td><code translate="no" v-pre>left</code>, <code translate="no" v-pre>right</code>, <code translate="no" v-pre>center</code> or <code translate="no" v-pre>justify</code>.</td>
+<td><code translate="no" v-pre>justify</code></td>
+</tr>
+<tr>
+<td><strong>Hyphenation</strong></td>
+<td>Breaks long words at the end of a line. It uses the dictionary of the book&#x27;s <a href="../managing-books/#the-about-tab">language</a>, so set the language first. Best together with <em>justify</em>.</td>
+<td>on</td>
+</tr>
+<tr>
+<td><strong>Paragraph spacing</strong></td>
+<td>The space under a paragraph. A book usually has little, or none with a first line indent.</td>
+<td><code translate="no" v-pre>0.3em</code></td>
+</tr>
+<tr>
+<td><strong>First line indent</strong></td>
+<td>Indents the first line of a paragraph, as in a printed book, except after a heading or a scene break.</td>
+<td><code translate="no" v-pre>1.5em</code></td>
+</tr>
+<tr>
+<td><strong>Drop cap</strong></td>
+<td>A large first letter of the first paragraph after a heading.</td>
+<td>on</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<h3 id="page">Page</h3>
+<retype-table copy-text="| Option | What it does | Example |
+|---|---|---|
+| **Text width** | A column of its own width, centered. A line of 60 to 75 characters reads best, about `34em` to `40em`. | `38em` |
+| **Background color** | The color behind the text; it fills the whole area, not only the text blocks. Choose a text color that reads on it. | `#0c0a0a` |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Option</th>
+<th>What it does</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Text width</strong></td>
+<td>A column of its own width, centered. A line of 60 to 75 characters reads best, about <code translate="no" v-pre>34em</code> to <code translate="no" v-pre>40em</code>.</td>
+<td><code translate="no" v-pre>38em</code></td>
+</tr>
+<tr>
+<td><strong>Background color</strong></td>
+<td>The color behind the text; it fills the whole area, not only the text blocks. Choose a text color that reads on it.</td>
+<td><code translate="no" class="whitespace-nowrap" v-pre>#0c0a0a<span class="color-preview-display ml-color-preview-margin-left border border-color-preview-border rounded-full h-color-preview-height w-color-preview-width" style="background-color:#0c0a0a;"></span></code></td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<h3 id="emphasis-links-and-code">Emphasis, links and code</h3>
+<retype-table copy-text="| Option | What it does |
+|---|---|
+| **Emphasis color** | The color of *italic* text. |
+| **Strong color** | The color of **bold** text. |
+| **Link color** | The color of links. |
+| **Code font family** | The font of `code` and of code blocks. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Option</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Emphasis color</strong></td>
+<td>The color of <em>italic</em> text.</td>
+</tr>
+<tr>
+<td><strong>Strong color</strong></td>
+<td>The color of <strong>bold</strong> text.</td>
+</tr>
+<tr>
+<td><strong>Link color</strong></td>
+<td>The color of links.</td>
+</tr>
+<tr>
+<td><strong>Code font family</strong></td>
+<td>The font of <code translate="no" v-pre>code</code> and of code blocks.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<h3 id="quotes">Quotes</h3>
+<retype-table copy-text="| Option | What it does |
+|---|---|
+| **Quote color** | The color of the text of a quote (`&gt; a line`). |
+| **Quote border color** | The color of the bar at the side of a quote. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Option</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Quote color</strong></td>
+<td>The color of the text of a quote (<code translate="no" v-pre>&gt; a line</code>).</td>
+</tr>
+<tr>
+<td><strong>Quote border color</strong></td>
+<td>The color of the bar at the side of a quote.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<h3 id="headings">Headings</h3>
+<retype-table copy-text="| Option | What it does |
+|---|---|
+| **Heading font family** | The font of `#`, `##` and `###` headings. |
+| **Heading size** | The size of the first level; the lower ones are smaller in proportion. |
+| **Heading color** | The color of headings. |
+| **Heading align** | `left`, `center` or `right`. |
+| **Heading small caps** | Writes the headings in small capitals. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Option</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Heading font family</strong></td>
+<td>The font of <code translate="no" v-pre>#</code>, <code translate="no" v-pre>##</code> and <code translate="no" v-pre>###</code> headings.</td>
+</tr>
+<tr>
+<td><strong>Heading size</strong></td>
+<td>The size of the first level; the lower ones are smaller in proportion.</td>
+</tr>
+<tr>
+<td><strong>Heading color</strong></td>
+<td>The color of headings.</td>
+</tr>
+<tr>
+<td><strong>Heading align</strong></td>
+<td><code translate="no" v-pre>left</code>, <code translate="no" v-pre>center</code> or <code translate="no" v-pre>right</code>.</td>
+</tr>
+<tr>
+<td><strong>Heading small caps</strong></td>
+<td>Writes the headings in small capitals.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<h3 id="scene-break">Scene break</h3>
+<p>A line with <code translate="no" v-pre>---</code> in the text is a break between scenes. By default it is three dots. <strong>Scene break text</strong> is what is shown instead
+(<code translate="no" v-pre>* * *</code>, <code translate="no" v-pre>~</code>, <code translate="no" v-pre>† † †</code>), <strong>Scene break color</strong> its color.</p>
+<h2 id="custom-css">Custom CSS</h2>
+<p>The options cover the common things. For the rest, the <strong>Custom CSS</strong> tab takes CSS of your own, added after everything else and applied only
+inside the style. Two ways to write it:</p>
+<ul>
+<li>
+<p><strong>Plain declarations</strong> apply to the whole area that holds the text:</p>
+<div class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-css"><code v-pre class="language-css">box-shadow: inset 0 0 120px rgba(0, 0, 0, 0.8);</code></pre>
+</doc-codeblock></div>
+</li>
+<li>
+<p><strong>Rules</strong> with a selector. Write them with <code translate="no" v-pre>&amp;</code> (the area of the style) in front, or without it: either way they only reach text that has this style.</p>
+<div class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-css"><code v-pre class="language-css">&amp; .chat-message-markdown h1 { text-shadow: 0 0 12px #8e1b17; }
+&amp; .chat-message-markdown a:hover { color: #b3261e; }</code></pre>
+</doc-codeblock></div>
+</li>
+</ul>
+<p>The text of a part sits in an element with the class <code translate="no" v-pre>chat-message-markdown</code>, so a selector for something in the text starts there. The
+<strong>Generated CSS</strong> field under the CSS box shows the stylesheet the options make: copy its selectors to see what you can override.</p>
+<retype-table copy-text="| You want to change | Selector (after `&amp; .chat-message-markdown`) |
+|---|---|
+| paragraphs | `p` |
+| headings | `h1`, `h2`, `h3` |
+| italic, bold | `em`, `strong` |
+| links | `a`, `a:hover` |
+| quotes | `blockquote` |
+| lists | `ul`, `ol`, `li` |
+| code | `code` (inline), `pre` (block) |
+| scene break | `hr`, `hr::after` (the symbol) |
+| the first line of a paragraph | `p::first-line` |
+| selected text | `::selection` |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>You want to change</th>
+<th>Selector (after <code translate="no" v-pre>&amp; .chat-message-markdown</code>)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>paragraphs</td>
+<td><code translate="no" v-pre>p</code></td>
+</tr>
+<tr>
+<td>headings</td>
+<td><code translate="no" v-pre>h1</code>, <code translate="no" v-pre>h2</code>, <code translate="no" v-pre>h3</code></td>
+</tr>
+<tr>
+<td>italic, bold</td>
+<td><code translate="no" v-pre>em</code>, <code translate="no" v-pre>strong</code></td>
+</tr>
+<tr>
+<td>links</td>
+<td><code translate="no" v-pre>a</code>, <code translate="no" v-pre>a:hover</code></td>
+</tr>
+<tr>
+<td>quotes</td>
+<td><code translate="no" v-pre>blockquote</code></td>
+</tr>
+<tr>
+<td>lists</td>
+<td><code translate="no" v-pre>ul</code>, <code translate="no" v-pre>ol</code>, <code translate="no" v-pre>li</code></td>
+</tr>
+<tr>
+<td>code</td>
+<td><code translate="no" v-pre>code</code> (inline), <code translate="no" v-pre>pre</code> (block)</td>
+</tr>
+<tr>
+<td>scene break</td>
+<td><code translate="no" v-pre>hr</code>, <code translate="no" v-pre>hr::after</code> (the symbol)</td>
+</tr>
+<tr>
+<td>the first line of a paragraph</td>
+<td><code translate="no" v-pre>p::first-line</code></td>
+</tr>
+<tr>
+<td>selected text</td>
+<td><code translate="no" v-pre>::selection</code></td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>Things to know:</p>
+<ul>
+<li>
+<p><strong>The braces <code translate="no" v-pre>{ }</code> must match</strong>, or the style is refused when you save. Comments <code translate="no" v-pre>/* ... */</code> are fine.</p>
+</li>
+<li>
+<p>A few rules the application needs are <code translate="no" v-pre>!important</code> (the text never gets wider than its area, long words wrap, paragraphs keep their line
+breaks). Your CSS can not override those; it can override everything else, because it comes last.</p>
+</li>
+<li>
+<p>CSS can change how things look, not what they say. It does not reach the toolbars and tabs around the text.</p>
+</li>
+<li>
+<p>Custom CSS is used in the story, the reader and HTML exports. EPUB, PDF and Word do not take it.</p>
+</li>
+</ul>
+<h2 id="what-the-exports-take">What the exports take</h2>
+<p>A style for exports is chosen in the <a href="../export/#print-styles">export dialog</a>; <strong>Duplicate</strong> a style and tick <strong>For exports</strong>, or start from one of the four
+the application brings. Colors that depend on the theme of the application (the light text of the dark theme) become dark ones for a white
+page when exporting.</p>
+<retype-table copy-text="| | HTML | EPUB | PDF | Word |
+|---|---|---|---|---|
+| fonts, sizes, line height, spacing, alignment, first line indent | ✓ | ✓ | ✓ | ✓ |
+| colors of text, emphasis, strong, quotes, headings, scene break | ✓ | ✓ | ✓ | ✓ |
+| background color | ✓ | ✓ | ✓ | ✓ (the color of the page) |
+| text width, drop caps, hyphenation, small capitals of headings | ✓ | ✓ | | |
+| custom CSS | ✓ | | | |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th> </th>
+<th>HTML</th>
+<th>EPUB</th>
+<th>PDF</th>
+<th>Word</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>fonts, sizes, line height, spacing, alignment, first line indent</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>colors of text, emphasis, strong, quotes, headings, scene break</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>background color</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓ (the color of the page)</td>
+</tr>
+<tr>
+<td>text width, drop caps, hyphenation, small capitals of headings</td>
+<td>✓</td>
+<td>✓</td>
+<td> </td>
+<td> </td>
+</tr>
+<tr>
+<td>custom CSS</td>
+<td>✓</td>
+<td> </td>
+<td> </td>
+<td> </td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>E-book readers often use their own fonts, sizes and colors whatever the stylesheet says. PDF and Word can only use the fonts the format has: the PDF chooses serif, sans or monospace from the stack you wrote; Word names the first font of
+the stack and shows its own if the computer lacks it.</p>
+<h2 id="share-a-style-export-and-import">Share a style: export and import</h2>
+<p>Under the list of styles, <strong>Export</strong> saves the selected style as a file (<code translate="no" v-pre>name.style.json</code>; a built in style can be exported too) and <strong>Import</strong>
+reads such a file. An imported style is added to your own styles as a new style, it is not stored before you press <strong>Save</strong>, and it keeps its
+name, so rename it if you already have one like it.</p>
+<p>The file is JSON:</p>
+<div id="share-a-style-export-and-import-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-json"><code v-pre class="language-json">{
+  &quot;format&quot;: &quot;marginalia-text-style&quot;,
+  &quot;version&quot;: 1,
+  &quot;styles&quot;: [
+    {
+      &quot;name&quot;: &quot;My style&quot;,
+      &quot;forExport&quot;: false,
+      &quot;options&quot;: { &quot;FONT_SIZE&quot;: &quot;1.1rem&quot;, &quot;TEXT_COLOR&quot;: &quot;#222222&quot; },
+      &quot;customCss&quot;: &quot;&amp; .chat-message-markdown h1 { letter-spacing: 0.1em; }&quot;
+    }
+  ]
+}</code></pre>
+</doc-codeblock></div>
+<p>It can hold several styles, and you can write one by hand. The options are named in capitals (<code translate="no" v-pre>FONT_SIZE</code>, <code translate="no" v-pre>TEXT_COLOR</code>, <code translate="no" v-pre>SCENE_BREAK_TEXT</code>...); the <doc-anchor-trigger to="#an-example-a-horror-book">horror example</doc-anchor-trigger> has all of them. An option this version of Marginalia
+does not know is left out (you are told how many), a file from a newer format version is refused, and so is a style whose custom CSS has
+braces that do not match.</p>
+<h2 id="an-example-a-horror-book">An example: a horror book</h2>
+<p><a href="../../../files/horror-book.style.json">Download the horror style</a> (<code translate="no" v-pre>horror-book.style.json</code>), import it in <em>Settings → Styles</em> and select it
+to see it in the preview. It sets <strong>every option</strong> and uses custom CSS for what the options do not cover:</p>
+<retype-table copy-text="| | |
+|---|---|
+| **Page** | Almost black background `#0c0a0a`, a column of `38em`, and a dark vignette closing in on the edges (custom CSS). |
+| **Text** | Garamond at `1.12rem`, line height `1.8`, justified with hyphenation, a first line indent of `1.6em` and almost no space between paragraphs, like a printed novel. The text is the grey of old paper `#cfc6bb`, with a drop cap after each heading. |
+| **Emphasis** | Italics in a dusty rose `#b99a94`, bold in blood red `#b3261e`. |
+| **Links** | Sickly green `#8fa07e` that turns red and wavy when the pointer is on it (custom CSS). |
+| **Quotes** | Grey text with a dark red bar `#5c1010` and a faint red stain behind (custom CSS). |
+| **Headings** | Palatino in small capitals, centered, dark red `#8e1b17`, with a faint glow (custom CSS). |
+| **Scene break** | `† † †` in dark red; lists get a cross instead of a dot (custom CSS). |
+| **Code** | Courier New, on a nearly black background. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th> </th>
+<th> </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Page</strong></td>
+<td>Almost black background <code translate="no" class="whitespace-nowrap" v-pre>#0c0a0a<span class="color-preview-display ml-color-preview-margin-left border border-color-preview-border rounded-full h-color-preview-height w-color-preview-width" style="background-color:#0c0a0a;"></span></code>, a column of <code translate="no" v-pre>38em</code>, and a dark vignette closing in on the edges (custom CSS).</td>
+</tr>
+<tr>
+<td><strong>Text</strong></td>
+<td>Garamond at <code translate="no" v-pre>1.12rem</code>, line height <code translate="no" v-pre>1.8</code>, justified with hyphenation, a first line indent of <code translate="no" v-pre>1.6em</code> and almost no space between paragraphs, like a printed novel. The text is the grey of old paper <code translate="no" class="whitespace-nowrap" v-pre>#cfc6bb<span class="color-preview-display ml-color-preview-margin-left border border-color-preview-border rounded-full h-color-preview-height w-color-preview-width" style="background-color:#cfc6bb;"></span></code>, with a drop cap after each heading.</td>
+</tr>
+<tr>
+<td><strong>Emphasis</strong></td>
+<td>Italics in a dusty rose <code translate="no" class="whitespace-nowrap" v-pre>#b99a94<span class="color-preview-display ml-color-preview-margin-left border border-color-preview-border rounded-full h-color-preview-height w-color-preview-width" style="background-color:#b99a94;"></span></code>, bold in blood red <code translate="no" class="whitespace-nowrap" v-pre>#b3261e<span class="color-preview-display ml-color-preview-margin-left border border-color-preview-border rounded-full h-color-preview-height w-color-preview-width" style="background-color:#b3261e;"></span></code>.</td>
+</tr>
+<tr>
+<td><strong>Links</strong></td>
+<td>Sickly green <code translate="no" class="whitespace-nowrap" v-pre>#8fa07e<span class="color-preview-display ml-color-preview-margin-left border border-color-preview-border rounded-full h-color-preview-height w-color-preview-width" style="background-color:#8fa07e;"></span></code> that turns red and wavy when the pointer is on it (custom CSS).</td>
+</tr>
+<tr>
+<td><strong>Quotes</strong></td>
+<td>Grey text with a dark red bar <code translate="no" class="whitespace-nowrap" v-pre>#5c1010<span class="color-preview-display ml-color-preview-margin-left border border-color-preview-border rounded-full h-color-preview-height w-color-preview-width" style="background-color:#5c1010;"></span></code> and a faint red stain behind (custom CSS).</td>
+</tr>
+<tr>
+<td><strong>Headings</strong></td>
+<td>Palatino in small capitals, centered, dark red <code translate="no" class="whitespace-nowrap" v-pre>#8e1b17<span class="color-preview-display ml-color-preview-margin-left border border-color-preview-border rounded-full h-color-preview-height w-color-preview-width" style="background-color:#8e1b17;"></span></code>, with a faint glow (custom CSS).</td>
+</tr>
+<tr>
+<td><strong>Scene break</strong></td>
+<td><code translate="no" v-pre>† † †</code> in dark red; lists get a cross instead of a dot (custom CSS).</td>
+</tr>
+<tr>
+<td><strong>Code</strong></td>
+<td>Courier New, on a nearly black background.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<figure class="content-center">
+    <img src="../../../images/story-style-horror.png" alt="A story in the horror style" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1920" height="932" />
+    <figcaption class="caption">A story in the horror style</figcaption>
+</figure>
+<p>To try it on a real text, paste this into a part (or the preview shows a similar sample):</p>
+<div id="an-example-a-horror-book-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-markdown"><code v-pre class="language-markdown"># Chapter One: The House on Harrow Lane
+
+The rain had been falling for *three days* when Mara found the door. It was not on the plan of the house, and it was **warm** to the touch.
+
+&gt; Do not open it after dark. — scratched into the plaster, in a hand that was not hers
+
+She counted the steps down. Thirteen. At the bottom there were:
+
+- a lantern, still burning;
+- a chair, turned to face the wall;
+- her own name, written in the dust.
+
+---
+
+By morning the lantern was out, and the [house records](https://example.com) said nobody had lived there for forty years.</code></pre>
+</doc-codeblock></div>
+<p>Then change it: make the background <code translate="no" class="whitespace-nowrap" v-pre>#14100c<span class="color-preview-display ml-color-preview-margin-left border border-color-preview-border rounded-full h-color-preview-height w-color-preview-width" style="background-color:#14100c;"></span></code> for a candle-lit brown, set <strong>Text width</strong> to <code translate="no" v-pre>32em</code> for a narrower page, or remove the custom CSS to see
+what the options alone do. When you have a look you like, <strong>Export</strong> it and keep the file with your book.</p>
+
+                
+                <!-- Required only on API pages -->
+                <doc-toolbar-member-filter-no-results></doc-toolbar-member-filter-no-results>
+            </div>
+            <footer id="retype-content-footer" class="clear-both">
+            
+                <nav id="retype-nextprev" class="print:hidden flex mt-14">
+                    <div class="w-1/2">
+                        <a class="px-5 py-4 h-full flex items-center break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-l-lg transition-colors duration-150 relative hover:z-5" href="../../../user/books/export/">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="mr-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19 11H7.41l5.29-5.29a.996.996 0 10-1.41-1.41l-7 7a1 1 0 000 1.42l7 7a1.024 1.024 0 001.42-.01.996.996 0 000-1.41L7.41 13H19c.55 0 1-.45 1-1s-.45-1-1-1z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
+                            <span>
+                                <span class="block text-xs font-normal text-base-text-muted">Previous</span>
+                                <span class="block mt-1">Exporting a book</span>
+                            </span>
+                        </a>
+                    </div>
+            
+                    <div class="w-1/2">
+                        <a class="px-5 py-4 -mx-px h-full flex items-center justify-end break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-r-lg transition-colors duration-150 relative hover:z-5" href="../../../user/books/backups/">
+                            <span>
+                                <span class="block text-xs font-normal text-right text-base-text-muted">Next</span>
+                                <span class="block mt-1">Book backups</span>
+                            </span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="ml-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19.92 12.38a1 1 0 00-.22-1.09l-7-7a.996.996 0 10-1.41 1.41l5.3 5.3H5c-.55 0-1 .45-1 1s.45 1 1 1h11.59l-5.29 5.29a.996.996 0 000 1.41c.19.2.44.3.7.3s.51-.1.71-.29l7-7c.09-.09.16-.21.21-.33z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
+                        </a>
+                    </div>
+                </nav>
+            </footer>
+        </main>
+
+        <div id="retype-page-footer" class="print:border-none border-t border-base-border pt-6 mb-8">
+            <footer class="flex flex-wrap items-center justify-between print:justify-center">
+                <div id="retype-footer-links" class="print:hidden">
+                    <ul class="flex flex-wrap items-center text-sm">
+                    </ul>
+                </div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (3b5a4203d).</p></div>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Rendered if sidebar right is enabled -->
+    <!-- Sidebar right skeleton-->
+    <div v-cloak class="fixed top-0 bottom-0 right-0 translate-x-full bg-sidebar-right-bg border-sidebar-right-border lg:sticky lg:border-l lg:shrink-0 lg:pt-6 lg:translate-x-0 sm:w-1/2 lg:w-64 lg:z-0 md:w-104 sidebar-right skeleton">
+        <div class="pl-5">
+            <div class="w-32 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+            <div class="w-48 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+            <div class="w-40 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+        </div>
+    </div>
+
+    <!-- User should be able to hide sidebar right -->
+    <doc-sidebar-right v-cloak></doc-sidebar-right>
+</div>
+
+        </div>
+    </div>
+
+    <doc-search-mobile></doc-search-mobile>
+    <doc-back-to-top></doc-back-to-top>
+</div>
+
+
+    <div id="retype-overlay-target"></div>
+
+        <script data-cfasync="false">window.__DOCS__ = { "title": "Styling guide", level: 3, icon: "file", hasPrism: true, hasInstagram: false, hasMermaid: false, hasMath: false, tocDepth: 23, "md": "/user/books/styling-guide.md" }</script>
+</body>
+</html>

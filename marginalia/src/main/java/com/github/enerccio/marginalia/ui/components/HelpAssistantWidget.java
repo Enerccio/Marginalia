@@ -27,6 +27,7 @@ import com.github.enerccio.marginalia.utils.UiProblems;
 import com.vaadin.flow.component.*;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.markdown.Markdown;
@@ -88,6 +89,8 @@ public class HelpAssistantWidget extends Div {
     private Div messages;
     private Span infoSpan;
     private Div warning;
+    private Checkbox booksBox;
+    private boolean loadingBooks;
     private TextField input;
     private Button sendButton;
     private Button clearButton;
@@ -123,12 +126,14 @@ public class HelpAssistantWidget extends Div {
         }
     }
 
-    @PublicAPI(from = "1.4.0",
+    @PublicAPI(from = "1.6.0",
             returns = @APIReturn(type = void.class),
             locals = {@APILocals(name = "title", type = Span.class),
                     @APILocals(name = "close", type = Button.class),
                     @APILocals(name = "header", type = HorizontalLayout.class),
                     @APILocals(name = "infoRow", type = Div.class),
+                    @APILocals(name = "booksNotice", type = Span.class),
+                    @APILocals(name = "booksRow", type = Div.class),
                     @APILocals(name = "inputRow", type = HorizontalLayout.class)})
     private void buildPanel() {
         Span title = new Span(loc.getValue(L.LABEL_HELP_ASSISTANT));
@@ -151,6 +156,18 @@ public class HelpAssistantWidget extends Div {
         infoSpan.addClassNames(CssStyles.TEXT_SECONDARY, CssStyles.TEXT_S);
         Div infoRow = new Div(infoSpan);
         infoRow.addClassName(CssStyles.PADDING_COMPACT);
+
+        // the books of the user go to the AI that answers, so it is the user's choice, kept in their settings
+        booksBox = new Checkbox(loc.getValue(L.LABEL_HELP_BOOKS_ACCESS));
+        booksBox.addValueChangeListener(e -> {
+            if (!loadingBooks) {
+                saveBooksAllowed(e.getValue());
+            }
+        });
+        Span booksNotice = new Span(loc.getValue(L.MSG_HELP_BOOKS_NOTICE));
+        booksNotice.addClassNames(CssStyles.TEXT_SECONDARY, CssStyles.TEXT_S);
+        Div booksRow = new Div(booksBox, booksNotice);
+        booksRow.addClassName(CssStyles.PADDING_COMPACT);
 
         warning = new Div(new Span(loc.getValue(L.MSG_HELP_LIMITS_APPLY)));
         warning.addClassName(CssStyles.HELP_WARNING);
@@ -175,7 +192,7 @@ public class HelpAssistantWidget extends Div {
         inputRow.expand(input);
         inputRow.addClassName(CssStyles.HELP_INPUT);
 
-        panel = new Div(header, infoRow, warning, messages, inputRow);
+        panel = new Div(header, infoRow, booksRow, warning, messages, inputRow);
         panel.addClassName(CssStyles.HELP_PANEL);
         panel.setVisible(false);
     }
@@ -215,12 +232,39 @@ public class HelpAssistantWidget extends Div {
                 ? info.aiName() : info.aiName() + " (" + info.model() + ")";
         infoSpan.setText(String.format(loc.getValue(L.MSG_HELP_ANSWERING_WITH), ai));
         warning.setVisible(info.metered());
+        loadBooksAllowed();
         panel.setVisible(true);
         if (!generating) {
             renderHistory();
         }
         JavascriptLibrary.scrollToBottomAfterLayout(messages.getElement());
         input.focus();
+    }
+
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "e", type = Exception.class)})
+    private void loadBooksAllowed() {
+        loadingBooks = true;
+        try {
+            booksBox.setValue(helpService.isBooksAllowed());
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        } finally {
+            loadingBooks = false;
+        }
+    }
+
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "allowed", type = boolean.class)},
+            locals = {@APILocals(name = "e", type = Exception.class)})
+    private void saveBooksAllowed(boolean allowed) {
+        try {
+            helpService.setBooksAllowed(allowed);
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
     }
 
     @PublicAPI(from = "1.4.0",

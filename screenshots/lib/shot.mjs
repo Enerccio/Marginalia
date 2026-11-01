@@ -361,7 +361,30 @@ export async function addPermission(d, label) {
  */
 export function menuItem(page, label) {
   const esc = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  return page.getByRole('menuitem', { name: new RegExp('^\\s*' + esc + '(\\s+\\S{1,14})?\\s*$') }).first();
+  const direct = page.getByRole('menuitem', { name: new RegExp('^\\s*' + esc + '(\\s+\\S{1,14})?\\s*$') }).first();
+  return {
+    locator: direct,
+    /**
+     * Clicks the item. The menus of the story editor are grouped (Appearance, Analysis, Inspect...): when the item is not on the
+     * visible level, the sub menus are opened one after the other until it shows.
+     */
+    async click(opts) {
+      const shown = async () => (await direct.count()) > 0 && await direct.isVisible().catch(() => false);
+      if (!(await shown())) {
+        // the items that open a sub menu (aria-haspopup="true"; the buttons of the menu bar itself are not items)
+        const subs = page.locator('[role=menuitem][aria-haspopup=true]:not(vaadin-menu-bar-button)');
+        for (let level = 0; level < 3 && !(await shown()); level++) {
+          const n = await subs.count();
+          for (let i = 0; i < n && !(await shown()); i++) {
+            if (await subs.nth(i).getAttribute('aria-expanded') === 'true') continue;
+            await subs.nth(i).click().catch(() => {});
+            await idle(page, 350);
+          }
+        }
+      }
+      return direct.click(opts);
+    },
+  };
 }
 
 /**

@@ -36,10 +36,20 @@ While the *Settings* tab has unsaved changes, the drawer is locked as on the des
 ### Books
 
 The book list is one column. Above it are the name filter, the tag filter and the sort buttons (*Last Modified*,
-*Created*, *Name*; tap the active one again to reverse the order), then **Add Book**, the magnifier (the [advanced search](books/managing-books.md#advanced-search): tags to include and exclude, dates, number of parts and text) and refresh. Each book has two
-buttons: the pencil opens it, the trash deletes it (into the [Trash](trash.md)).
+*Created*, *Name*; tap the active one again to reverse the order), then **Add Book**, the magnifier (the [advanced search](books/managing-books.md#advanced-search): tags to include and exclude, dates, number of parts and text) and refresh. Each book has
+buttons: the star makes it a favorite, **Move to folder** puts it into a [folder](books/folders.md), the pencil opens it and the trash deletes it (into the [Trash](trash.md)).
 
 ![The book list on a phone](../images/phone-book-list.png)
+
+The list shows one [folder](books/folders.md) at a time, as on the desktop: the path of the folder you are in as buttons to go back on,
+the check box **Include subfolders**, then the folders above the books (tap one to go in; it shows how many books are beneath it) and, at
+the top level, the virtual **Favorites** folder. The name and tag filters search the current folder, or everything below it with *Include
+subfolders*. **Add Book** and the imports put the new book into the folder you are in. The folder you are in is remembered.
+
+![Folders on a phone](../images/phone-folders.png)
+
+A folder can't be made, renamed or deleted on the phone, and there is no *Organise* window or mass change; do that on a computer. The
+language of a book can be inherited from a folder here too, and the *Prompts* tab shows where each value comes from.
 
 ### Lorebooks
 
@@ -87,7 +97,7 @@ The story tab is one column of parts. The differences from the [story editor](bo
 
 - The **outline** (and the tabs extensions add next to it, such as the [Author's Note](extensions/authors-note.md))
   is in a **drawer**. Open it with the button at the top left.
-- The **Summaries** button and the settings menu (⚙, with *Change Styles For Text*, *Search and replace*, *Import from archive* and *Export story*) are in the top bar, not
+- The **Summaries** button and the settings menu (⚙, with *Change Styles For Text*, *Search and replace*, *Import from archive*, *Mass delete* and *Export story*) are in the top bar, not
   at the bottom.
 - The **+** button for a new part is at the bottom.
 - [Annotations](books/annotations.md): the **Annotations** tab is in the drawer next to the outline; a tap on an underlined passage
@@ -97,8 +107,19 @@ The story tab is one column of parts. The differences from the [story editor](bo
   ![Search and replace of the story on a phone](../images/phone-search-replace.png)
 
 - A part is only its text under one small line with two icons. The first is the part's **menu** (edit, regenerate,
-  swipe, branch, show prompt, images, summary, delete); the second opens a **popup** with what the desktop shows in the
+  swipe, branch, history, show prompt, images, summary, delete); the second opens a **popup** with what the desktop shows in the
   column on the right of a part: the ids, model, protocol, tokens, words and the turn details.
+- **History** in the menu of a part opens the [version history](books/version-history.md) as a full screen page: the versions are
+  cards above the selected version, with the same actions as on the desktop.
+
+  ![The version history of a part on a phone](../images/phone-history.png)
+
+- **Statistics** is in the settings menu of the story (the statistics of the book) and a button in the header of the list of books
+  (all books). The window is a full screen page; its calendar shows the last 16 weeks (a year on the desktop), see
+  [Writing statistics](books/statistics.md).
+
+  ![The statistics of all books on a phone](../images/phone-statistics.png)
+
 - The [summaries](books/summaries.md) overview keeps a fixed width and scrolls sideways.
 
 ## What is missing
@@ -126,8 +147,10 @@ Marginalia:
 |---|---|
 | [Arc Outline](extensions/arc-outline.md) | Works. The Arcs tab is in the outline drawer. |
 | [Author's Note](extensions/authors-note.md) | Works. The note is in the outline drawer of the story. |
+| [Beta Readers](extensions/beta-readers.md) | Works. The Beta Readers tab is in the outline drawer; the room for the conversation is small, landscape is easier. |
 | [Chapter Marker](extensions/chapter-marker.md) | Works. Chapter titles are in the outline drawer. |
 | [Character Tracker](extensions/character-tracker.md) | Works. The Characters tab is in the outline drawer. |
+| [Converter](extensions/sillytavern-converter.md) | Works. The Converter tab is in the outline drawer; the range of the chat is chosen with two taps, see [On a phone](extensions/sillytavern-converter.md#on-a-phone). |
 | [Instruction Exporter](extensions/instruction-exporter.md) | Works. **Export instructions** is in the settings menu of the story. |
 | [Manga Generator](extensions/manga-generator.md) | Works. **Manga Generator** is in the settings menu of the story; its window is large, so landscape is easier. |
 | [Reviewer](extensions/reviewer.md) | Works. Its items are in the menu of a part, its settings in *Settings → Extension Settings*. |

@@ -17,6 +17,7 @@ import com.github.enerccio.marginalia.ui.widgets.ModelProtocolPicker;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.ui.widgets.ScrollPanel;
 import com.github.enerccio.marginalia.utils.UIUtils;
+import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
@@ -24,6 +25,7 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.Tabs;
 import com.vaadin.flow.component.textfield.IntegerField;
@@ -37,7 +39,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import static com.github.enerccio.marginalia.extensions.mangagenerator.MangaGeneratorLocalization.T;
+import static com.github.enerccio.marginalia.extensions.mangagenerator.MangaGeneratorLocalization.*;
 
 /**
  * The window of the manga generator, opened from the settings menu of the story: the mangas of the book as tabs, the settings of the
@@ -64,6 +66,9 @@ public class MangaDialog extends Dialog {
     private IntegerField contextLeft;
     private IntegerField contextRight;
     private Button addSectionButton;
+    private Button continuousButton;
+    /** What the continuous mode generates: true the tags of the scripts that are there, false the scripts (and new sections). */
+    private Select<Boolean> continuousWhat;
     private Button copyAllButton;
     private Span emptyHint;
     /** The note that stands in the place of the sections while there are none, null otherwise. */
@@ -134,12 +139,14 @@ public class MangaDialog extends Dialog {
     /** Set while the widgets are filled in from the data, so that this does not count as the user's change. */
     private boolean binding;
     private int running;
+    /** The continuous mode is on: sections are added and generated one after the other until the story runs out or the user stops it. */
+    private boolean continuous;
 
     public MangaDialog(Manuscript manuscript, MangaService service) {
         this.manuscript = manuscript;
         this.service = service;
 
-        setHeaderTitle(T.localized("Manga Generator"));
+        setHeaderTitle(T.localized(MANGA_GENERATOR));
         setWidth("96vw");
         setHeight("94vh");
         setMaxWidth("96vw");
@@ -159,6 +166,13 @@ public class MangaDialog extends Dialog {
         refreshTabs();
     }
 
+    @Override
+    protected void onDetach(DetachEvent detachEvent) {
+        super.onDetach(detachEvent);
+        // the sections cancel what they generate when the window is closed
+        continuous = false;
+    }
+
     // --- building ---
 
     private void buildUI() {
@@ -172,11 +186,11 @@ public class MangaDialog extends Dialog {
             }
         });
 
-        Button addMangaButton = iconButton(Solid.PLUS, T.localized("New manga"), e -> addManga());
-        renameButton = iconButton(Solid.PEN, T.localized("Rename the manga"), e -> renameManga());
-        moveLeftButton = iconButton(Solid.ARROW_LEFT, T.localized("Move the manga to the left"), e -> moveManga(-1));
-        moveRightButton = iconButton(Solid.ARROW_RIGHT, T.localized("Move the manga to the right"), e -> moveManga(1));
-        deleteMangaButton = iconButton(Solid.TRASH, T.localized("Delete the manga"), e -> deleteManga());
+        Button addMangaButton = iconButton(Solid.PLUS, T.localized(NEW_MANGA), e -> addManga());
+        renameButton = iconButton(Solid.PEN, T.localized(RENAME_THE_MANGA), e -> renameManga());
+        moveLeftButton = iconButton(Solid.ARROW_LEFT, T.localized(MOVE_THE_MANGA), e -> moveManga(-1));
+        moveRightButton = iconButton(Solid.ARROW_RIGHT, T.localized(MOVE_THE_MANGA_TO_THE_RIGHT), e -> moveManga(1));
+        deleteMangaButton = iconButton(Solid.TRASH, T.localized(DELETE_THE_MANGA), e -> deleteManga());
 
         HorizontalLayout tabBar = new HorizontalLayout(tabs, addMangaButton, renameButton, moveLeftButton, moveRightButton, deleteMangaButton);
         tabBar.setWidthFull();
@@ -184,37 +198,47 @@ public class MangaDialog extends Dialog {
         tabBar.addClassName(MangaStyles.BAR);
         tabBar.expand(tabs);
 
-        tokenBudget = numberField(T.localized("Token budget"), 512, "9em", Manga::setTokenBudget);
-        tokenBudget.setTooltipText(T.localized("How long a script the model is asked for"));
-        splitCount = numberField(T.localized("Parts per section"), 1, "9em", Manga::setSplitCount);
-        splitCount.setTooltipText(T.localized("How many parts of the story a new section adapts"));
-        contextLeft = numberField(T.localized("Context before"), 0, "9em", Manga::setContextLeft);
-        contextLeft.setTooltipText(T.localized("Parts before the adapted ones that a new section gives the model as the background"));
-        contextRight = numberField(T.localized("Context after"), 0, "9em", Manga::setContextRight);
-        contextRight.setTooltipText(T.localized("Parts after the adapted ones that a new section gives the model as the background"));
+        tokenBudget = numberField(T.localized(TOKEN_BUDGET), 512, "9em", Manga::setTokenBudget);
+        tokenBudget.setTooltipText(T.localized(HOW_LONG_A_SCRIPT));
+        splitCount = numberField(T.localized(PARTS_PER_SECTION), 1, "9em", Manga::setSplitCount);
+        splitCount.setTooltipText(T.localized(HOW_MANY_PARTS));
+        contextLeft = numberField(T.localized(CONTEXT_BEFORE), 0, "9em", Manga::setContextLeft);
+        contextLeft.setTooltipText(T.localized(PARTS_BEFORE_THE_ADAPTED_ONES));
+        contextRight = numberField(T.localized(CONTEXT_AFTER), 0, "9em", Manga::setContextRight);
+        contextRight.setTooltipText(T.localized(PARTS_AFTER_THE_ADAPTED_ONES));
 
-        Button scriptPrompt = new Button(T.localized("Script prompt"), e -> editMangaText(T.localized("Script prompt"),
+        Button scriptPrompt = new Button(T.localized(SCRIPT_PROMPT), e -> editMangaText(T.localized(SCRIPT_PROMPT),
                 current().getPromptOverride(), Defaults.DEFAULT_PROMPT, current()::setPromptOverride));
-        Button tagsPrompt = new Button(T.localized("Tags prompt"), e -> editMangaText(T.localized("Tags prompt"),
+        Button tagsPrompt = new Button(T.localized(TAGS_PROMPT), e -> editMangaText(T.localized(TAGS_PROMPT),
                 current().getTagsPromptOverride(), Defaults.DEFAULT_TAGS_PROMPT, current()::setTagsPromptOverride));
-        Button rules = new Button(T.localized("Additional rules"), e -> editMangaText(T.localized("Additional rules"),
+        Button rules = new Button(T.localized(ADDITIONAL_RULES), e -> editMangaText(T.localized(ADDITIONAL_RULES),
                 current().getAdditionalRules(), "", current()::setAdditionalRules));
-        rules.setTooltipText(T.localized("Put in place of {{additionalRules}} in the script prompt"));
-        copyAllButton = new Button(T.localized("Copy all"), Solid.COPY.create(), e -> copyAll());
-        addSectionButton = new Button(T.localized("Add section"), Solid.PLUS.create(), e -> addSection());
+        rules.setTooltipText(T.localized(PUT_IN_PLACE_OF_ADDITIONALRULES));
+        copyAllButton = new Button(T.localized(COPY_ALL), Solid.COPY.create(), e -> copyAll());
+        addSectionButton = new Button(T.localized(ADD_SECTION), Solid.PLUS.create(), e -> addSection());
         addSectionButton.setThemeName("primary");
+        continuousWhat = new Select<>();
+        continuousWhat.setItems(false, true);
+        continuousWhat.setItemLabelGenerator(tags -> tags ? T.localized(TAGS_ONLY) : T.localized(SCRIPTS_ONLY));
+        continuousWhat.setValue(false);
+        continuousWhat.addValueChangeListener(e -> updateContinuousButton());
+        continuousWhat.setWidth("10em");
+        continuousWhat.setTooltipText(T.localized(WHAT_THE_CONTINUOUS_MODE_GENERATES));
+        continuousButton = new Button(Solid.FORWARD.create(), e -> toggleContinuous());
+        continuousButton.setThemeName("primary");
+        updateContinuousButton();
 
         modelPicker = new ModelProtocolPicker();
         initModelPicker();
 
         settingsBar = new HorizontalLayout(modelPicker, tokenBudget, splitCount, contextLeft, contextRight, scriptPrompt, tagsPrompt, rules,
-                copyAllButton, addSectionButton);
+                copyAllButton, addSectionButton, continuousWhat, continuousButton);
         settingsBar.setWidthFull();
         settingsBar.setWrap(true);
         settingsBar.setAlignItems(FlexComponent.Alignment.END);
         settingsBar.addClassName(MangaStyles.BAR);
 
-        emptyHint = new Span(T.localized("There is no manga in this book yet. Create one with the plus."));
+        emptyHint = new Span(T.localized(THERE_IS_NO_MANGA));
         emptyHint.addClassName(MangaStyles.EMPTY);
 
         sectionsList = new VerticalLayout();
@@ -235,7 +259,7 @@ public class MangaDialog extends Dialog {
         content.setFlexGrow(1, sectionsPanel);
         add(content);
 
-        getFooter().add(new Button(T.localized("Close"), e -> close()));
+        getFooter().add(new Button(T.localized(CLOSE), e -> close()));
     }
 
     private static Button iconButton(Solid icon, String tooltip, com.vaadin.flow.component.ComponentEventListener<com.vaadin.flow.component.ClickEvent<Button>> listener) {
@@ -355,7 +379,7 @@ public class MangaDialog extends Dialog {
             addCard(manga, sections, i);
         }
         if (sections.isEmpty()) {
-            noSections = new Span(T.localized("No sections yet. Add one to start with the first parts of the story."));
+            noSections = new Span(T.localized(NO_SECTIONS_YET_ADD_ONE));
             noSections.addClassName(MangaStyles.EMPTY);
             sectionsList.add(noSections);
         }
@@ -364,7 +388,7 @@ public class MangaDialog extends Dialog {
         }
     }
 
-    private void addCard(Manga manga, List<MangaSection> sections, int index) {
+    private MangaSectionCard addCard(Manga manga, List<MangaSection> sections, int index) {
         MangaSection section = sections.get(index);
         MangaSectionCard card = new MangaSectionCard(service, manuscript, manga, section, index + 1,
                 () -> {
@@ -372,9 +396,11 @@ public class MangaDialog extends Dialog {
                     return position > 0 ? sections.get(position - 1) : null;
                 },
                 this::save, this::runChanged, () -> deleteSection(section));
-        card.setLocked(running > 0);
+        card.setLocked(busy());
+        card.setFrozen(continuous);
         cards.add(card);
         sectionsList.add(card);
+        return card;
     }
 
     /**
@@ -382,12 +408,26 @@ public class MangaDialog extends Dialog {
      */
     private void runChanged(boolean started) {
         running += started ? 1 : -1;
-        cards.forEach(card -> card.setLocked(running > 0));
+        lockCards();
         updateStructureControls();
     }
 
+    private void lockCards() {
+        cards.forEach(card -> {
+            card.setLocked(busy());
+            card.setFrozen(continuous);
+        });
+    }
+
+    /**
+     * Whether a model is writing into a section, or the continuous mode is on (and is about to start the next one).
+     */
+    private boolean busy() {
+        return running > 0 || continuous;
+    }
+
     private void updateStructureControls() {
-        boolean free = running == 0;
+        boolean free = !busy();
         boolean has = current() != null;
         int index = data.getActiveManga();
         tabs.setEnabled(free);
@@ -397,13 +437,15 @@ public class MangaDialog extends Dialog {
         moveRightButton.setEnabled(free && has && index < data.getMangas().size() - 1);
         addSectionButton.setEnabled(free);
         copyAllButton.setEnabled(has);
+        continuousButton.setEnabled(has && (continuous || running == 0));
+        continuousWhat.setEnabled(has && !busy());
     }
 
     private void addManga() {
-        if (running > 0) {
+        if (busy()) {
             return;
         }
-        Manga manga = new Manga(T.localized("Manga Script %d").formatted(data.getMangas().size() + 1), service.getSettings());
+        Manga manga = new Manga(T.localized(MANGA_SCRIPT).formatted(data.getMangas().size() + 1), service.getSettings());
         data.getMangas().add(manga);
         data.setActiveManga(data.getMangas().size() - 1);
         save();
@@ -413,12 +455,12 @@ public class MangaDialog extends Dialog {
     private void renameManga() {
         Manga manga = current();
         Dialog dialog = new Dialog();
-        dialog.setHeaderTitle(T.localized("Rename the manga"));
-        TextField name = new TextField(T.localized("Title"));
+        dialog.setHeaderTitle(T.localized(RENAME_THE_MANGA));
+        TextField name = new TextField(T.localized(TITLE));
         name.setWidthFull();
         name.setValue(manga.getTitle());
         DialogFocus.onOpen(dialog, name);
-        Button save = new Button(T.localized("Save"), e -> {
+        Button save = new Button(T.localized(SAVE), e -> {
             if (StringUtils.isNotBlank(name.getValue())) {
                 manga.setTitle(name.getValue().strip());
                 save();
@@ -428,14 +470,14 @@ public class MangaDialog extends Dialog {
         });
         save.setThemeName("primary");
         dialog.add(name);
-        dialog.getFooter().add(new Button(T.localized("Cancel"), e -> dialog.close()), save);
+        dialog.getFooter().add(new Button(T.localized(CANCEL), e -> dialog.close()), save);
         dialog.open();
     }
 
     private void moveManga(int by) {
         int from = data.getActiveManga();
         int to = from + by;
-        if (running > 0 || from < 0 || to < 0 || to >= data.getMangas().size()) {
+        if (busy() || from < 0 || to < 0 || to >= data.getMangas().size()) {
             return;
         }
         data.getMangas().add(to, data.getMangas().remove(from));
@@ -446,7 +488,7 @@ public class MangaDialog extends Dialog {
 
     private void deleteManga() {
         Manga manga = current();
-        ConfirmDialog.show(T.localized("Delete the manga \"%s\"? This cannot be undone.").formatted(manga.getTitle()), () -> {
+        ConfirmDialog.show(T.localized(DELETE_THE_MANGA_THIS_CANNOT).formatted(manga.getTitle()), () -> {
             int index = data.getActiveManga();
             data.getMangas().remove(manga);
             data.setActiveManga(Math.min(index, data.getMangas().size() - 1));
@@ -456,7 +498,7 @@ public class MangaDialog extends Dialog {
     }
 
     private void editMangaText(String title, String currentText, String inherited, Consumer<String> setter) {
-        new TextEditDialog(title, T.localized("Empty or unchanged: the built-in text is used"), currentText, inherited, value -> {
+        new TextEditDialog(title, T.localized(EMPTY_OR_UNCHANGED_THE_BUILT), currentText, inherited, value -> {
             setter.accept(value);
             save();
         }).open();
@@ -468,21 +510,33 @@ public class MangaDialog extends Dialog {
      * Adds a section for the next parts of the story: the ones after the last section, as many as the manga says.
      */
     private void addSection() {
-        Manga manga = current();
-        if (manga == null || running > 0) {
+        if (current() == null || busy()) {
             return;
         }
+        addNextSection(false);
+    }
+
+    /**
+     * @param quiet do not tell the user that the story has no part left for a section (the caller does)
+     * @return the card of the new section, null when it was not added
+     */
+    private MangaSectionCard addNextSection(boolean quiet) {
+        Manga manga = current();
         try {
             int parts = service.branch(manuscript).size();
             if (parts == 0) {
-                Notification.warning(T.localized("The story has no parts yet"));
-                return;
+                if (!quiet) {
+                    Notification.warning(T.localized(THE_STORY_HAS_NO_PARTS));
+                }
+                return null;
             }
             List<MangaSection> sections = manga.getSections();
             int start = sections.isEmpty() ? 1 : sections.getLast().getEndPart() + 1;
             if (start > parts) {
-                Notification.warning(T.localized("No new parts of the story for another section (the story has %d parts)").formatted(parts));
-                return;
+                if (!quiet) {
+                    Notification.warning(T.localized(NO_NEW_PARTS).formatted(parts));
+                }
+                return null;
             }
             int end = Math.min(parts, start + Math.max(1, manga.getSplitCount()) - 1);
 
@@ -498,14 +552,100 @@ public class MangaDialog extends Dialog {
                 sectionsList.remove(noSections);
                 noSections = null;
             }
-            addCard(manga, sections, sections.size() - 1);
+            return addCard(manga, sections, sections.size() - 1);
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
+            return null;
+        }
+    }
+
+    // --- the continuous mode ---
+
+    private void toggleContinuous() {
+        if (continuous) {
+            stopContinuous(null);
+            return;
+        }
+        if (current() == null || running > 0) {
+            return;
+        }
+        continuous = true;
+        lockCards();
+        updateStructureControls();
+        updateContinuousButton();
+        continueWork();
+    }
+
+    /**
+     * Turns the continuous mode off and stops what is being generated; what came in so far is kept.
+     *
+     * @param message what to tell the user, null for nothing
+     */
+    private void stopContinuous(String message) {
+        boolean wasOn = continuous;
+        continuous = false;
+        cards.forEach(MangaSectionCard::abort);
+        lockCards();
+        updateStructureControls();
+        updateContinuousButton();
+        if (wasOn && message != null) {
+            Notification.show(message);
+        }
+    }
+
+    private void updateContinuousButton() {
+        continuousButton.setText(continuous ? T.localized(STOP_CONTINUOUS_MODE) : T.localized(CONTINUOUS_MODE));
+        continuousButton.setIcon((continuous ? Solid.STOP : Solid.FORWARD).create());
+        continuousButton.setTooltipText(continuousWhat.getValue()
+                ? T.localized(GENERATE_THE_TAGS)
+                : T.localized(GENERATE_THE_SCRIPT));
+    }
+
+    /**
+     * The next step of the continuous mode. Scripts: the script of the first section that has none, else a new section for the next
+     * parts of the story, until there is no part of the story left. Tags: the tags of the first section that has a script but no tags,
+     * until there is none. Every step calls this again when its answer is over.
+     */
+    private void continueWork() {
+        boolean tags = continuousWhat.getValue();
+        while (continuous) {
+            for (MangaSectionCard card : cards) {
+                if (tags ? card.hasText(false) && !card.hasText(true) : !card.hasText(false)) {
+                    generateStep(card, tags);
+                    return;
+                }
+            }
+            if (tags) {
+                stopContinuous(T.localized(CONTINUOUS_MODE_IS_FINISHED));
+                return;
+            }
+            MangaSectionCard added = addNextSection(true);
+            if (added == null) {
+                stopContinuous(T.localized(CONTINUOUS_MODE_IS_FINISHED_THERE));
+                return;
+            }
+        }
+    }
+
+    private void generateStep(MangaSectionCard card, boolean tags) {
+        card.scrollIntoView();
+        boolean started = card.generate(tags, outcome -> {
+            if (outcome != MangaService.Outcome.COMPLETED) {
+                stopContinuous(T.localized(CONTINUOUS_MODE_STOPPED));
+            } else if (!card.hasText(tags)) {
+                // an empty answer would be asked for again and again
+                stopContinuous(T.localized(CONTINUOUS_MODE_STOPPED_THE_MODEL));
+            } else {
+                continueWork();
+            }
+        });
+        if (!started) {
+            stopContinuous(T.localized(CONTINUOUS_MODE_STOPPED));
         }
     }
 
     private void deleteSection(MangaSection section) {
-        if (running > 0) {
+        if (busy()) {
             return;
         }
         int index = current().getSections().indexOf(section);
@@ -522,10 +662,10 @@ public class MangaDialog extends Dialog {
                 .collect(Collectors.joining("\n\n"));
         String all = scripts + (scripts.isEmpty() || tags.isEmpty() ? "" : "\n\n") + tags;
         if (all.isBlank()) {
-            Notification.warning(T.localized("There is no script or tags to copy"));
+            Notification.warning(T.localized(THERE_IS_NO_SCRIPT));
             return;
         }
         UI.getCurrent().getPage().executeJs("navigator.clipboard.writeText($0)", all);
-        Notification.show(T.localized("All scripts and tags copied"));
+        Notification.show(T.localized(ALL_SCRIPTS_AND_TAGS_COPIED));
     }
 }

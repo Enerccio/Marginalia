@@ -104,6 +104,8 @@ public class CommandServiceImpl implements CommandService, InitializingBean, Dis
 
     private void registerManuscriptReadCommands() {
         registerCommands(new GetBookInfoCommand());
+        registerCommands(new GetBookStatisticsCommand());
+        registerCommands(new GetStatisticsCommand());
         registerCommands(new ListPartsCommand());
         registerCommands(new GetPartCommand());
         registerCommands(new ListSwipesCommand());

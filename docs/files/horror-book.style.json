@@ -1,0 +1,39 @@
+{
+  "format": "marginalia-text-style",
+  "version": 1,
+  "styles": [
+    {
+      "name": "Horror book",
+      "forExport": false,
+      "options": {
+        "FONT_FAMILY": "\"Garamond\", \"Georgia\", \"Times New Roman\", serif",
+        "FONT_SIZE": "1.12rem",
+        "LINE_HEIGHT": "1.8",
+        "LETTER_SPACING": "0.01em",
+        "WORD_SPACING": "0.04em",
+        "TEXT_COLOR": "#cfc6bb",
+        "TEXT_ALIGN": "justify",
+        "HYPHENATION": "true",
+        "PARAGRAPH_SPACING": "0.2em",
+        "FIRST_LINE_INDENT": "1.6em",
+        "DROP_CAP": "true",
+        "TEXT_WIDTH": "38em",
+        "BACKGROUND_COLOR": "#0c0a0a",
+        "EMPHASIS_COLOR": "#b99a94",
+        "STRONG_COLOR": "#b3261e",
+        "LINK_COLOR": "#8fa07e",
+        "CODE_FONT_FAMILY": "\"Courier New\", Courier, monospace",
+        "QUOTE_COLOR": "#9d9186",
+        "QUOTE_BORDER_COLOR": "#5c1010",
+        "HEADING_FONT_FAMILY": "\"Palatino Linotype\", \"Book Antiqua\", Palatino, serif",
+        "HEADING_SIZE": "1.9rem",
+        "HEADING_COLOR": "#8e1b17",
+        "HEADING_ALIGN": "center",
+        "HEADING_SMALL_CAPS": "true",
+        "SCENE_BREAK_TEXT": "† † †",
+        "SCENE_BREAK_COLOR": "#5c1010"
+      },
+      "customCss": "/* The room around the text: a dark vignette that closes in on the edges. */\n& {\n  box-shadow: inset 0 0 140px rgba(0, 0, 0, 0.9);\n}\n\n/* Chapter titles glow like a candle behind a curtain, and the line under them is dried blood. */\n& .chat-message-markdown h1 {\n  text-shadow: 0 0 14px rgba(142, 27, 23, 0.55);\n  border-bottom-color: #3a0c0b;\n  padding-bottom: 0.4em;\n}\n& .chat-message-markdown h2,\n& .chat-message-markdown h3 {\n  letter-spacing: 0.12em;\n}\n\n/* Quotes: letters, diaries and whispers, set apart by a dark red bar and a stain. */\n& .chat-message-markdown blockquote {\n  background-color: rgba(92, 16, 16, 0.14);\n  border-radius: 0;\n}\n\n/* Lists get a cross instead of a dot. */\n& .chat-message-markdown ul {\n  list-style: none;\n  padding-left: 1.4em;\n}\n& .chat-message-markdown ul > li::before {\n  content: \"†\";\n  color: #8e1b17;\n  display: inline-block;\n  width: 1.4em;\n  margin-left: -1.4em;\n}\n\n/* Links creep: pale green, and wavy when you reach for them. */\n& .chat-message-markdown a {\n  text-decoration: none;\n}\n& .chat-message-markdown a:hover {\n  color: #b3261e;\n  text-decoration: underline wavy;\n}\n\n/* Code and prompts: a terminal found in the cellar. */\n& .chat-message-markdown pre {\n  background-color: #120e0e;\n  border-color: #2b1717;\n}\n& .chat-message-markdown code {\n  background-color: #1a1313;\n  color: #bfae9f;\n}\n\n/* Selecting text paints it red. */\n& .chat-message-markdown ::selection {\n  background: #5c1010;\n  color: #fff;\n}\n"
+    }
+  ]
+}

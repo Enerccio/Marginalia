@@ -10,6 +10,7 @@ import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationRequest;
+import com.github.enerccio.marginalia.domain.styles.PartStyle;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
@@ -27,9 +28,8 @@ import com.github.enerccio.marginalia.ui.shortcuts.KeyBindings;
 import com.github.enerccio.marginalia.ui.shortcuts.ShortcutAction;
 import com.github.enerccio.marginalia.ui.shortcuts.ShortcutActions;
 import com.github.enerccio.marginalia.ui.shortcuts.ShortcutRegistry;
-import com.github.enerccio.marginalia.ui.widgets.LazyContextMenu;
-import com.github.enerccio.marginalia.ui.widgets.ScrollPanel;
-import com.github.enerccio.marginalia.ui.widgets.TabDock;
+import com.github.enerccio.marginalia.ui.styles.PartStyleApplier;
+import com.github.enerccio.marginalia.ui.widgets.*;
 import com.github.enerccio.marginalia.utils.GeneratedTextHighlighter;
 import com.github.enerccio.marginalia.utils.MarkdownArchive;
 import com.github.enerccio.marginalia.utils.TextMarkup;
@@ -101,7 +101,13 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
     private Localization loc;
 
     @Autowired
+    private ActivityTracker activityTracker;
+
+    @Autowired
     private ChatMessageService chatMessageService;
+
+    @Autowired
+    private MessageRevisionService messageRevisionService;
 
     @Autowired
     private MessagePromptService messagePromptService;
@@ -120,6 +126,9 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
 
     @Autowired
     private StoryMenuRegistry menuRegistry;
+
+    @Autowired
+    private PartStyleService partStyleService;
 
     private final ManuscriptDialog parent;
     private CancellationToken activeGenerationToken;
@@ -146,6 +155,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
     private KeyBindings keyBindings;
 
     private Manuscript currentManuscript;
+    private StoryActivity activity;
     private boolean isFrozen = false;
     // diff view, not stored: the response of the cards is shown with the generated text highlighted
     private boolean showGeneratedDiff = false;
@@ -159,10 +169,12 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
     private StoryAnnotations annotations;
     private AnnotationsPanel annotationsPanel;
     private final StoryBackup backup = new StoryBackup();
+    private final StoryMassDelete massDelete;
     private Long scrollToMessageId;
 
     public ManuscriptStoryPart(ManuscriptDialog parent) {
         this.parent = parent;
+        this.massDelete = new StoryMassDelete(parent, this::refreshMassDeleteBoxes, this::reloadStory);
     }
 
     @PublicAPI(from = "1.1.0",
@@ -200,12 +212,20 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
 
         bottomControlsLayout = buildBottomControls();
 
-        centerLayout.add(centerContentPanel, bottomControlsLayout);
+        massDelete.listenTo(centerContentPanel.getElement());
+        centerLayout.add(centerContentPanel, massDelete.getBar(), bottomControlsLayout);
         centerLayout.setFlexGrow(1, centerContentPanel);
+        centerLayout.setFlexGrow(0, massDelete.getBar());
         centerLayout.setFlexGrow(0, bottomControlsLayout);
+
+        // the time the book is open and edited, for the statistics
+        activity = new StoryActivity(centerLayout, activityTracker);
+        activity.track(currentManuscript);
 
         // the story is a tab like the others, the user puts it where they want it
         leftBar.add(STORY_TAB, loc.getValue(L.LABEL_STORY_PART), centerLayout);
+        // the one tab that stays on the screen when all the others are minimized
+        leftBar.setMinimizable(STORY_TAB, false);
         // a tab sheet drops the content of the tabs it does not show from the page: the browser builds the story again
         // when its tab is shown, without the scripts that watch the edges
         centerLayout.addAttachListener(event -> lazyLoader.reattached());
@@ -327,7 +347,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
             }
             return;
         }
-        // the part that is edited, else the part that holds the selection, else the last part
+        // the part that is edited, else the part that holds the selection, else the most visible part (else the last part)
         ChatMessageCard editing = cards.values().stream().filter(ChatMessageCard::isEditing).findFirst().orElse(null);
         if (editing != null) {
             runOnCard(item, editing);
@@ -481,18 +501,36 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
     }
 
     /**
-     * Turns the styles of the book on or off for the story.
+     * The entries of the "Change styles" menu, see {@link StoryEditor#getPartStyleChoices}.
      */
-    @PublicAPI(from = "1.5.0",
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = List.class),
+            locals = {@APILocals(name = "e", type = Exception.class)})
+    @Override
+    public List<StoryMenuItem.Choice> getPartStyleChoices() {
+        try {
+            return PartStyleApplier.choices(loc, partStyleService, currentManuscript, this::choosePartStyle);
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+            return List.of();
+        }
+    }
+
+    /**
+     * Stores the style in the book (null: follow the default of the user) and shows the story with it.
+     */
+    @PublicAPI(from = "1.6.0",
             returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "styleId", type = String.class)},
             locals = {@APILocals(name = "manuscript", type = Manuscript.class),
                     @APILocals(name = "e", type = Exception.class)})
-    @Override
-    public void toggleBookStyles() {
+    private void choosePartStyle(String styleId) {
         try {
             Manuscript manuscript = parent.refreshManuscript();
-            manuscript.setShowBookStyles(!manuscript.getShowBookStyles());
-            manuscriptService.save(manuscript);
+            manuscript.setPartStyle(styleId);
+            // the old switch must not bring the book style back when the choice is removed
+            manuscript.setShowBookStyles(false);
+            currentManuscript = manuscriptService.save(manuscript);
             applyBookStyles();
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
@@ -616,6 +654,49 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
     }
 
     /**
+     * Turns the mass delete on or off, see {@link StoryMassDelete}.
+     */
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = void.class))
+    @Override
+    public void toggleMassDelete() {
+        massDelete.toggle();
+    }
+
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = boolean.class))
+    @Override
+    public boolean isMassDelete() {
+        return massDelete.isActive();
+    }
+
+    /**
+     * Shows the check boxes of the cards when the mass delete is on, hides them when it is off.
+     */
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "card", type = ChatMessageCard.class)})
+    private void refreshMassDeleteBoxes() {
+        for (ChatMessageCard card : cards.values()) {
+            card.showMassDelete(massDelete.isActive(), massDelete.isSelected(card.getMessage().getId()));
+        }
+    }
+
+    /**
+     * Draws the story again from the database, after the mass delete.
+     */
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "e", type = Exception.class)})
+    private void reloadStory() {
+        try {
+            load(parent.refreshManuscript());
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+    }
+
+    /**
      * Opens the annotation by a model of a range of the parts of the story ({@link AnnotateDialog#openRange}); the story is shown
      * again when annotations were added.
      */
@@ -683,6 +764,24 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
         }
     }
 
+    /**
+     * Shows what was done to the book day by day: words, tokens, time and size.
+     */
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "dialog", type = StatisticsDialog.class),
+                    @APILocals(name = "e", type = Exception.class)})
+    @Override
+    public void openStatisticsDialog() {
+        try {
+            StatisticsDialog dialog = new StatisticsDialog(parent.refreshManuscript());
+            dialog.create();
+            dialog.open();
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+    }
+
     @PublicAPI(from = "1.1.0",
             returns = @APIReturn(type = void.class),
             locals = {@APILocals(name = "dialog", type = SummariesDialog.class),
@@ -704,6 +803,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
             returns = @APIReturn(type = void.class),
             locals = {@APILocals(name = "e", type = Exception.class)})
     private void refreshSummariesMenuItem() {
+        refreshOutlineSummaryMarks();
         if (summariesMenuItem == null || currentManuscript == null) {
             return;
         }
@@ -716,25 +816,43 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
         }
     }
 
+    /**
+     * Shows in the outline which parts have a summary (it changes when a summary is made, edited away or deleted).
+     */
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "e", type = Exception.class)})
+    private void refreshOutlineSummaryMarks() {
+        if (sidebarList == null || currentManuscript == null || currentManuscript.getActiveLeaf() == null) {
+            return;
+        }
+        try {
+            OutlineSummaryMarks.refresh(sidebarList, chatMessageService.getBranchFromLeaf(currentManuscript.getActiveLeaf()), loc);
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+    }
+
     @PublicAPI(from = "1.1.0",
             returns = @APIReturn(type = void.class),
             locals = {@APILocals(name = "manuscript", type = Manuscript.class)})
     private void applyBookStyles() throws Exception {
         Manuscript manuscript = parent.refreshManuscript();
         applyLanguage(manuscript);
-        if (manuscript.getShowBookStyles()) {
-            leftBar.addClassName(CssStyles.MARKDOWN_MANUSCRIPT_STYLES);
-        } else {
-            leftBar.removeClassName(CssStyles.MARKDOWN_MANUSCRIPT_STYLES);
-        }
+        PartStyleApplier.apply(leftBar, partStyleService.resolve(manuscript));
     }
 
     // lang drives the browser's hyphenation dictionary (see hyphens in shared-styles.css)
-    @PublicAPI(from = "1.1.0",
+    @PublicAPI(from = "1.6.0",
             returns = @APIReturn(type = void.class),
-            parameters = {@APIParameter(name = "manuscript", type = Manuscript.class)})
+            parameters = {@APIParameter(name = "manuscript", type = Manuscript.class)},
+            locals = {@APILocals(name = "e", type = Exception.class)})
     private void applyLanguage(Manuscript manuscript) {
-        leftBar.getElement().setAttribute("lang", manuscript.getLanguage().getCode());
+        try {
+            leftBar.getElement().setAttribute("lang", manuscriptService.getLanguage(manuscript).getCode());
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
     }
 
     @PublicAPI(from = "1.1.0",
@@ -833,6 +951,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
                     positions.put(branch.get(i).getId(), i + 1);
                 }
                 annotationsPanel.refresh(positions);
+                massDelete.setBranch(branch);
                 // the cards of the last parts only, the earlier ones are added when the user scrolls up
                 lazyLoader.render(branch, support.partsLimit(), scrollToMessageId, openedReasonings);
             } catch (Exception e) {
@@ -876,6 +995,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
         sidebarBtn.setThemeName("tertiary small");
         sidebarBtn.setWidthFull();
         sidebarBtn.addClassName(CssStyles.SIDEBAR_BUTTON);
+        OutlineSummaryMarks.init(sidebarBtn, msg, dbId, loc);
 
         sidebarBtn.addClickListener(event -> {
             if (dbId != null) {
@@ -892,7 +1012,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
     private void createStoryOutlineTab() {
         VerticalLayout leftMarginLayout = new VerticalLayout();
         leftMarginLayout.setSizeFull();
-        leftBar.add(CHAPTERS_TAB, loc.getValue(L.LABEL_CHAPTERS), leftMarginLayout);
+        leftBar.add(CHAPTERS_TAB, loc.getValue(L.LABEL_CHAPTERS), TabDockIcon.CHAPTERS, leftMarginLayout);
 
         sidebarHeader = new Span();
         sidebarHeader.addClassName(CssStyles.SIDEBAR_HEADER);
@@ -919,7 +1039,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
             returns = @APIReturn(type = void.class))
     private void createLorebookTab() {
         lorebookPreview = new LorebookPreview().create();
-        leftBar.add(LOREBOOK_TAB, loc.getValue(L.LABEL_LOREBOOK), lorebookPreview);
+        leftBar.add(LOREBOOK_TAB, loc.getValue(L.LABEL_LOREBOOK), TabDockIcon.LOREBOOK, lorebookPreview);
     }
 
     /**
@@ -959,7 +1079,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
                 }
             }
         });
-        leftBar.add(ANNOTATIONS_TAB, loc.getValue(L.LABEL_ANNOTATIONS), annotationsPanel);
+        leftBar.add(ANNOTATIONS_TAB, loc.getValue(L.LABEL_ANNOTATIONS), TabDockIcon.ANNOTATIONS, annotationsPanel);
     }
 
     /**
@@ -1070,6 +1190,10 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
         leftBar.setTabsEnabled(!frozen, STORY_TAB);
         menuBar.setEnabled(!frozen);
         commandBar.setEnabled(!frozen);
+        if (frozen) {
+            // the part that is generated has no id to tick yet
+            massDelete.deactivate();
+        }
 
         cards.setFrozen(frozen);
 
@@ -1091,7 +1215,15 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
             parameters = {@APIParameter(name = "manuscript", type = Manuscript.class)})
     @Override
     public void load(Manuscript manuscript) {
+        if (massDelete.isActive() && (manuscript == null || currentManuscript == null
+                || !Objects.equals(manuscript.getId(), currentManuscript.getId()))) {
+            // the parts that were ticked are in another book
+            massDelete.deactivate();
+        }
         this.currentManuscript = manuscript;
+        if (activity != null) {
+            activity.track(manuscript);
+        }
         if (manuscript != null && leftBar != null) {
             applyLanguage(manuscript);
         }
@@ -1114,16 +1246,59 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
             returns = @APIReturn(type = void.class),
             parameters = {@APIParameter(name = "manuscript", type = Manuscript.class)},
             locals = {@APILocals(name = "config", type = JsonElement.class),
-                    @APILocals(name = "position", type = JsonElement.class)})
+                    @APILocals(name = "position", type = JsonElement.class),
+                    @APILocals(name = "stored", type = JsonObject.class)})
     private void applyTabsConfig(Manuscript manuscript) {
         if (leftBar == null || manuscript == null) {
             return;
         }
         JsonElement config = manuscript.getAttributes().get(TABS_CONFIG_ATTRIBUTE);
         JsonElement position = manuscript.getAttributes().get(SPLIT_POSITION_ATTRIBUTE);
-        leftBar.setLayout(StoryDockLayout.migrate(config != null && config.isJsonObject() ? config.getAsJsonObject() : null,
+        JsonObject stored = config != null && config.isJsonObject() ? config.getAsJsonObject() : null;
+        if (stored == null) {
+            // a book that has no arrangement of its own opens with the one the user saved as their default
+            stored = userDefaultLayout();
+        }
+        leftBar.setLayout(StoryDockLayout.migrate(stored,
                 position != null && position.isJsonPrimitive() && position.getAsJsonPrimitive().isNumber() ? position.getAsDouble() : null,
                 STORY_TAB, CHAPTERS_TAB, LOREBOOK_TAB, ANNOTATIONS_TAB));
+    }
+
+    /**
+     * The arrangement the user saved as their default, null when there is none.
+     */
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = JsonObject.class),
+            locals = {@APILocals(name = "layout", type = JsonObject.class),
+                    @APILocals(name = "e", type = Exception.class)})
+    private JsonObject userDefaultLayout() {
+        try {
+            JsonObject layout = settingService.getOrCreate(UserSetting.class).getDefaultStoryLayout();
+            return layout == null || layout.size() == 0 ? null : layout;
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+            return null;
+        }
+    }
+
+    /**
+     * Saves the current arrangement of the tabs (including the minimized ones) as the default of the user, which the books
+     * that have no arrangement of their own open with.
+     */
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "setting", type = UserSetting.class),
+                    @APILocals(name = "e", type = Exception.class)})
+    @Override
+    public void saveLayoutAsDefault() {
+        try {
+            UserSetting setting = settingService.getOrCreate(UserSetting.class);
+            setting.setDefaultStoryLayout(leftBar.getLayout());
+            settingService.save(setting);
+            Notification.success(loc.getValue(L.MSG_LAYOUT_SAVED_AS_DEFAULT));
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
     }
 
     /**
@@ -1222,6 +1397,10 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
             returns = @APIReturn(type = void.class))
     @Override
     public void onTabEnter() throws Exception {
+        if (leftBar != null && parent != null) {
+            // the styles may have been edited, or the default changed, in the settings
+            applyBookStyles();
+        }
         if (scrollToMessageId != null) {
             // a part was asked for (a branch chosen in the tree): the story shows it, not the tab that was open
             showStory();
@@ -1247,6 +1426,10 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
 
         private final VerticalLayout contentLayout;
         private Button menuBtn;
+        private final MassDeleteBox massDeleteBox = new MassDeleteBox((checked, shift) -> {
+            massDelete.clicked(this.message.getId(), checked, shift);
+            getClassNames().set(CssStyles.MARKED_FOR_DELETE, checked);
+        });
         private ContextMenu hamburgerMenu;
         private BuiltMenu cardMenu;
         private BuiltMenu textMenu;
@@ -1361,9 +1544,23 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
             metaLayout.add(metrics.getLines());
             metaLayout.add(turnDetailsBtn);
 
-            add(contentLayout, metaLayout);
+            showMassDelete(massDelete.isActive(), massDelete.isSelected(message.getId()));
+
+            add(massDeleteBox, contentLayout, metaLayout);
+            setAlignSelf(FlexComponent.Alignment.START, massDeleteBox);
             setFlexGrow(1, contentLayout);
             setFlexGrow(0, metaLayout);
+        }
+
+        @PublicAPI(from = "1.6.0",
+                returns = @APIReturn(type = void.class),
+                parameters = {@APIParameter(name = "shown", type = boolean.class),
+                        @APIParameter(name = "selected", type = boolean.class)})
+        @Override
+        public void showMassDelete(boolean shown, boolean selected) {
+            massDeleteBox.setVisible(shown && message.getId() != null);
+            massDeleteBox.setChecked(selected);
+            getClassNames().set(CssStyles.MARKED_FOR_DELETE, shown && selected);
         }
 
         /**
@@ -1440,10 +1637,32 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
                 returns = @APIReturn(type = void.class))
         @Override
         public void openImagesDialog() {
-            new ImagesDialog(message, updated -> {
-                message = updated;
-                messageImages.setImages(updated.getImages());
-            }).open();
+            new ImagesDialog(message, this::imagesChanged, this::openImagePreview).open();
+        }
+
+        @PublicAPI(from = "1.6.0",
+                returns = @APIReturn(type = void.class),
+                parameters = {@APIParameter(name = "updated", type = ChatMessage.class)})
+        @Override
+        public void imagesChanged(ChatMessage updated) {
+            message = updated;
+            messageImages.setImages(updated.getImages());
+        }
+
+        @PublicAPI(from = "1.6.0",
+                returns = @APIReturn(type = void.class),
+                locals = {@APILocals(name = "text", type = String.class),
+                        @APILocals(name = "style", type = PartStyle.class)})
+        @Override
+        public void openImagePreview() {
+            String text = responseTextArea != null ? responseTextArea.getValue() : message.getResponse();
+            PartStyle style = null;
+            try {
+                style = partStyleService.resolve(currentManuscript);
+            } catch (Exception e) {
+                // the preview is shown without the style of the book
+            }
+            new PartPreviewDialog(text, message.getImages(), style).open();
         }
 
         @PublicAPI(from = "1.1.0",
@@ -1490,6 +1709,43 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
                 });
             } catch (Exception e) {
                 UIUtils.internalServerError(loc, e);
+            }
+        }
+
+        /**
+         * Opens the version history of the part, see {@link PartHistoryDialog}. A text that was put back replaces the one of the card.
+         */
+        @PublicAPI(from = "1.6.0",
+                returns = @APIReturn(type = void.class),
+                locals = {@APILocals(name = "e", type = Exception.class)})
+        @Override
+        public void openHistory() {
+            try {
+                currentManuscript = parent.refreshManuscript();
+                PartHistoryDialog.open(currentManuscript, message, saved -> {
+                    message = saved;
+                    annotationsChanged();
+                    renderResponse();
+                    updateMetrics(message);
+                });
+            } catch (Exception e) {
+                UIUtils.internalServerError(loc, e);
+            }
+        }
+
+        /**
+         * How many versions of the part the history has, the number the menu item shows.
+         */
+        @PublicAPI(from = "1.6.0",
+                returns = @APIReturn(type = long.class),
+                locals = {@APILocals(name = "e", type = Exception.class)})
+        @Override
+        public long getHistoryCount() {
+            try {
+                return message == null || message.getId() == null ? 0
+                        : messageRevisionService.countFor(List.of(message)).getOrDefault(message.getId(), 0L);
+            } catch (Exception e) {
+                return 0;
             }
         }
 
@@ -1707,6 +1963,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
                 contentLayout.addComponentAtIndex(contentLayout.indexOf(responseMarkdown) + 1, responseTextArea);
                 responseMarkdown.setVisible(false);
                 JavascriptLibrary.focusAfterRender(responseTextArea.getElement());
+                activity.editorOpened(responseTextArea.getElement());
             }
         }
 
@@ -1734,6 +1991,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
             if (!editing) {
                 return;
             }
+            activity.editorClosed(responseTextArea.getElement());
             contentLayout.remove(responseTextArea);
             responseTextArea = null;
             responseMarkdown.setVisible(true);
@@ -1752,6 +2010,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
                     // the passages of the annotations moved with the edit
                     annotationsChanged();
                     renderResponse();
+                    activity.editorClosed(responseTextArea.getElement());
                     contentLayout.remove(responseTextArea);
                     responseTextArea = null;
                     responseMarkdown.setVisible(true);
@@ -1930,6 +2189,21 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
         public void showPrompt() {
             try {
                 PromptDialog dialog = new PromptDialog(messagePromptService.getBuiltPrompt(message));
+                dialog.create();
+                dialog.open();
+            } catch (Exception e) {
+                UIUtils.internalServerError(loc, e);
+            }
+        }
+
+        @PublicAPI(from = "1.6.0",
+                returns = @APIReturn(type = void.class),
+                locals = {@APILocals(name = "dialog", type = PromptComparisonDialog.class),
+                        @APILocals(name = "e", type = Exception.class)})
+        @Override
+        public void comparePrompt() {
+            try {
+                PromptComparisonDialog dialog = new PromptComparisonDialog(message);
                 dialog.create();
                 dialog.open();
             } catch (Exception e) {

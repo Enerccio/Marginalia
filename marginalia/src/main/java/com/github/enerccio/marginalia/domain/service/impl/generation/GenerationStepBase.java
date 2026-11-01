@@ -63,6 +63,9 @@ public abstract class GenerationStepBase implements GenerationStep {
     @Autowired
     protected MessagePromptService messagePromptService;
 
+    @Autowired
+    protected MessageRevisionService messageRevisionService;
+
     protected abstract void onStep(GenerationController controller) throws Exception;
 
     @Override

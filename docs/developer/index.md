@@ -34,7 +34,7 @@ Marginalia/
 │   ├── src/main/frontend  CSS and JS used by the Vaadin frontend
 │   ├── src/desktop        desktop launcher (tray icon, starts Jetty) and launch scripts
 │   ├── src/test           tests
-│   └── plugins/           the eighteen bundled extensions, each a separate Maven project
+│   └── plugins/           the nineteen bundled extensions, each a separate Maven project
 ├── manual/                this manual (Retype sources); manual/user is also packed into the WAR for the help assistant
 ├── docs/                  generated manual, served by GitHub Pages
 ├── Dockerfile, docker-compose.yml
@@ -56,10 +56,10 @@ The shortest path from a fresh clone to a running instance:
 ```sh
 git clone https://github.com/Enerccio/Marginalia.git
 cd Marginalia/marginalia
-mvn package -DskipTests                     # target/marginalia-1.5.0.war
+mvn package -DskipTests                     # target/marginalia-1.6.0.war
 ```
 
-Deploy `target/marginalia-1.5.0.war` (or the exploded `target/marginalia-1.5.0/` folder) to Tomcat 11 or Jetty 12,
+Deploy `target/marginalia-1.6.0.war` (or the exploded `target/marginalia-1.6.0/` folder) to Tomcat 11 or Jetty 12,
 or use `docker compose up --build` from the repository root. [Building from source](building.md#running-locally) has
 the details.
 
@@ -73,6 +73,8 @@ the details.
 | [Domain model](domain-model.md) | Entities (books, parts, lorebooks, providers, protocols...), ownership, soft delete. |
 | [Database & migrations](database.md) | SQLite, Flyway migrations, adding an entity or a column. |
 | [Services](services.md) | Service and repository layer, transactions, the current user. |
+| [Folders](folders.md) | Folders of books and the settings they pass down: data, resolution, services, windows, backups, agents. |
+| [Version history](version-history.md) | The versions of the text of a part: data, recording, limit and pruning, restoring, search, backups, migrations, windows. |
 | [Generation pipeline](generation-pipeline.md) | How a story part is generated, step by step. |
 | [Agents](agents.md) | How agents work inside: runs and their states, the runner, the tools, references, the files, the screens. |
 | [Templating & macros](templating.md) | Prompt templates, template data, the macro translator. |

@@ -1,7 +1,7 @@
 ---
 label: Architecture
 order: 980
-verified: 60a4afd23
+verified: 6b9a70d37
 covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/bound
   - marginalia/src/main/java/com/github/enerccio/marginalia/Configuration.java
@@ -133,7 +133,7 @@ sequenceDiagram
    `MarginaliaExtension`. A JAR that fails is logged and skipped. When the root context closes, the extensions are
    unloaded and the framework is stopped.
 7. `MarginaliaServlet` (`@WebServlet("/*")`, a `VaadinServlet`) serves the UI. `AppShellConfig` configures the page:
-   push enabled, dark Lumo theme, `shared-styles.css`.
+   push enabled, dark Lumo theme, `shared-styles.css`, the icons (`icons/icon.svg` as the vector favicon, `icons/icon.png` and the PWA icons).
 
 ## Layers and packages
 
@@ -146,7 +146,7 @@ All application code is in `com.github.enerccio.marginalia` (`marginalia/src/mai
 | `ui.dialogs`, `ui.dialogs.manuscript` | UI | Dialogs; the book window (`ManuscriptDialog`) and its tabs: story, tree, about, prompts, lorebook, backups. `ui.dialogs.agent` has the screens of agents, `ui.dialogs.search` the search and replace windows. |
 | `ui.components`, `ui.widgets` | UI | Reusable components (lorebook editor, story tree, the help assistant's button and chat) and small widgets. |
 | `ui` (`LLMInteract`, `LLMSnapshot`) | UI | How the UI describes itself to the help assistant's model and what the model may do to it. |
-| `domain.components` | Services | Plain data and helpers shared by services and the UI (`TurnInput`, `TokenLimits`, `PromptTokenBreakdown`, `SummaryNode`, `CronSchedule`). |
+| `domain.components` | Services | Plain data and helpers shared by services and the UI (`TurnInput`, `TokenLimits`, `PromptTokenBreakdown`, `PromptComparison`, `SummaryNode`, `CronSchedule`). |
 | `domain.service` (+ `impl`) | Services | Business logic, one service per entity plus generation, templates, backups, cleanup, extensions. |
 | `domain.service.impl.generation` | Services | The generation engine's steps, events and DTOs. |
 | `domain.service.agent`, `domain.service.command`, `domain.service.impl.commands` | Services | [Agents](agents.md) (the runner's tools, the virtual file system, checkpoints, the merge of a result) and [commands](commands/index.md) (the definitions, the scope a command runs in, the commands of the application). |
@@ -485,6 +485,7 @@ sequenceDiagram
   book or a story part under their bundle's symbolic name (removed when the extension is unloaded) and ask for it; to
   use one particular extension (the name generator) the others find it among `OsgiService.getLoadedExtensions()` and
   call it by reflection ([Sharing data between extensions](plugins/ipc.md)).
+- **Inherited settings.** An extension registers a line, a text area or a choice with `InheritedSettingRegistry` (`InheritedSetting`); the *Prompts* tab of a book and the folder window show them with the other prompts and the values live in the `attributes` of the book or folder (`InheritedSettingValues`), resolved through the folders ([Inherited settings](plugins/inherited-settings.md)).
 - **Styles.** An extension that implements `ExtensionHasCss` gets its CSS put into every open page: `CssRegistry`
   (owned by `Main` and `Viewer`) reads the loaded extensions when its page is attached and listens to the
   loaded/unloaded events of `OsgiService` afterwards ([Styles of a plugin](plugins/ui-extensions.md#styles-of-a-plugin)).

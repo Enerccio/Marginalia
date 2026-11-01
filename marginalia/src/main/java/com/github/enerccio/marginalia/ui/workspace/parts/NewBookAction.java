@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.ui.workspace.parts;
 
 import com.github.enerccio.marginalia.domain.model.impl.AI;
+import com.github.enerccio.marginalia.domain.model.impl.Folder;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
@@ -41,6 +42,7 @@ public class NewBookAction {
     private ProtocolService protocolService;
 
     private final Opener opener;
+    private final Folder folder;
 
     /**
      * What opens the new book in the window of the list.
@@ -54,7 +56,16 @@ public class NewBookAction {
      * @param opener opens the created book, the way the list opens a book from its rows
      */
     public NewBookAction(Opener opener) {
+        this(opener, null);
+    }
+
+    /**
+     * @param opener opens the created book, the way the list opens a book from its rows
+     * @param folder the folder the new book is put in, null is the top level
+     */
+    public NewBookAction(Opener opener, Folder folder) {
         this.opener = opener;
+        this.folder = folder;
     }
 
     @PublicAPI(from = "1.4.0",
@@ -115,6 +126,7 @@ public class NewBookAction {
     private Manuscript createBook(String name) throws Exception {
         Manuscript manuscript = new Manuscript();
         manuscript.setName(name);
+        manuscript.setFolder(folder);
 
         UserSetting userSetting = settingService.getOrCreate(UserSetting.class);
         Long defaultModelId = userSetting.getDefaultModel();

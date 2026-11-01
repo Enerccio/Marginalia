@@ -7,7 +7,8 @@ order: 100
 
 ## The book list
 
-The **Books** tab lists your books. Other users' books are not shown.
+The **Books** tab lists your books. Other users' books are not shown. The list shows one [folder](folders.md) at a time, the
+folders of the current one above its books; at the top level, with no folders made, it is simply all your books.
 
 ![The Books tab](../../images/books.png)
 
@@ -29,7 +30,9 @@ The row below the headers filters the list:
 
 The refresh button at the end of the filter row reloads the list.
 
-Each row has three buttons: the pen opens the book, the clone button makes a copy of it and the trash button deletes it.
+Each row has buttons: the star makes the book a [favorite](folders.md#favorites), the pen opens it, **Move to folder** puts it
+into a [folder](folders.md), the clone button makes a copy of it and the trash button deletes it. The header has **New folder**
+and **Organise** (the window to [move and copy](folders.md#organise) books and folders), and the **Mass changes** menu.
 
 ### Advanced search
 
@@ -44,6 +47,7 @@ the filter row can. Fill in what you want to check, leave the rest empty, and pr
 | **Created from / to**, **Modified from / to** | created or last changed in the range; the day of a *to* date is included. |
 | **Number of parts from / to** | with that many parts in all its branches (parts in the trash are not counted). |
 | **Text** | with a part that has every word of the text. Words, `"phrases"` and `*` work as in [the search of the story](story-editor.md#searching-the-story). |
+| **Include versions** | off (the default): only the current text of the parts is searched; on: a book is also found when an earlier version of one of its parts has the words, see [Version history](version-history.md#searching-the-old-text). |
 | **Search in all branches** | off (the default): the text is searched only in the branch the book is at (the story as you see it when you open the book); on: in the parts of all branches. |
 
 A book has to pass every check you filled in. The books found are listed below with their tags, the last changed first;
@@ -67,7 +71,10 @@ check box **Only current branch**, checked by default. The new book is a separat
   the beginning to the end of the [active branch](branches-and-story-tree.md) are copied; without it all the branches
   are.
 
-The clone is not published, even if the original is. The original is not changed.
+The clone starts a [version history](version-history.md#backups-copies-and-the-trash) of its own (one version per part); the history of the original is not copied.
+
+The clone is not published, even if the original is. The original is not changed. It is put into the same
+[folder](folders.md) as the original.
 
 ### Tagging many books at once
 
@@ -81,12 +88,53 @@ grayed out: it is locked, so it can not be ticked or changed until the run is pa
 
 ![Tagging books](../../images/multi-tag-books.png)
 
+### Changing the model and protocol of many books
+
+The **Mass changes** menu (next to **Tag books**) has the item **Mass Change Model/Protocol**. It opens a window that puts one
+**Model** and/or one **Protocol** on many books without opening each. Leave a box empty (it shows *Do not replace*) and that
+part of the books stays as it is: pick only a model to change the models and keep the protocols. The table lists the books of
+the current [folder](folders.md) by name with the model and protocol they have now; **Include subfolders** adds the books
+below it. Type in the filter under **Name** to narrow the list, tick the
+books to change (the box in the header ticks all the books that are shown) and press **Replace and exit**. Books that the
+filter hides are unticked, so only what you see is changed. A book an agent works on is grayed out: it is locked, so it can
+not be ticked or changed until the run is paused or stopped.
+
+![Changing the model and protocol of many books](../../images/mass-change-model-protocol.png)
+
+The item **Mass Change Language** of the same menu works the same way for the **Language** of the books: pick the language,
+filter and tick the books, press **Replace and exit**. The table shows the language each book has now, with what it inherits
+from its folders (see [Language](folders.md#language)).
+
+![Changing the language of many books](../../images/mass-change-language.png)
+
+### Renaming many books
+
+The item **Mass Rename** renames the checked books at once. Pick how:
+
+| Way | What it does |
+|---|---|
+| **Add prefix** | Puts the **Text to add** before the name. |
+| **Add postfix** | Puts the **Text to add** after the name. |
+| **Find and replace** | Replaces every occurrence of **Find** in the name with **Replace with** (empty removes it). The text is taken as it is, not as a pattern; **Case sensitive** is off by default. |
+| **Number the books** | Gives the books numbers: the **Name pattern** is the new name, with `{name}` for the current name and `{n}` for the number, for example `{name} {n}`, `{n}. {name}` or `Chapter {n}`. The first checked book gets **Start at**, each next one the **Step** more, and **Digits** pads the number with zeros (`007`). |
+
+![Numbering the books of all folders](../../images/mass-rename.png)
+
+The column **New name** shows what each checked book would get while you type, so check it before you press **Rename**. A
+numbering counts the checked books in the order of the list (by name). Spaces at the start and the end of the new name are
+removed. Nothing is renamed, and the window stays open, when a text is missing, when the pattern has no `{n}`, when no name
+would change, or when a name would end up empty. Filtering, **Include subfolders** and locked books work as in the other mass
+changes.
+
+**Tag books** and the item **Tag folders** work on the books, or on the folders, of the current folder in the same way.
+
 ## Creating a book
 
 1. Click **Add Book**.
 2. Enter the name and confirm.
 
-The new book opens right away. It starts with your **Default Model** and **Default Protocol** from the *Settings* tab
+The new book is put into the [folder](folders.md) the list shows, and so are the books you import from an archive or
+from SillyTavern. It opens right away. It starts with your **Default Model** and **Default Protocol** from the *Settings* tab
 (see [Account & settings](../account.md)), if you have set them; otherwise select them on the *About* tab before
 generating.
 
@@ -130,9 +178,10 @@ To start a book from a backup file, use **Import Backup as New Book** in the *Se
 | **Name** | The name of the book. |
 | **Tags** | Tags for sorting your books and for [lorebook](../lorebooks/entries.md) activation. Type to pick an existing tag or create a new one. |
 | **Description** | What the book is about. Available to the prompt templates as the book description. |
-| **Language** | The language the book is written in (English by default). Used for automatic hyphenation of the text in the book reading style and in the [viewer](publishing.md); it does not change what the model writes. |
+| **Language** | The language the book is written in. Used for automatic hyphenation of the text in the book reading style and in the [viewer](publishing.md); it does not change what the model writes. Empty means *inherit*: the language of the nearest [folder](folders.md#language) above the book that sets one, else English; the box then shows which and from where. |
 | **Model** | The [inference provider](../inference-providers.md) that writes this book. |
 | **Protocols** | The [protocol](../protocols.md) with the generation settings. |
+| **Versions kept per part** | How many earlier versions of the text of a part the [history](version-history.md) keeps. Empty means *inherit*: the grey number in the box is the limit that applies and the line under it says which folder, your settings or the administrator sets it. **0** keeps no history. |
 | **Published** | Lets other users read the book, see [Publishing & viewer](publishing.md). Once checked, the reader link of the book (`<address of Marginalia>/view/<book ID>`) is shown under the checkbox; copy it and send it to the readers. |
 
 Changes are saved as you type.

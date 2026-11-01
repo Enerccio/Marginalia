@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846522787704">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846880296645">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846522787704" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846880296645" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846522787704" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846880296645" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846522787704" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846880296645" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -65,7 +65,7 @@
                 <div class="flex items-center px-2 md:px-6">
                     <a id="retype-branding-logo" href="https://enerccio.github.io/Marginalia/" class="flex items-center leading-snug text-2xl">
                         <span class="dark:text-white font-bold line-clamp-1 md:line-clamp-2">Marginalia</span>
-                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.5.0</span>
+                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.6.0</span>
                 </div>
     
                 <span class="hidden h-8 border-r md:inline-block border-base-border"></span>
@@ -186,6 +186,20 @@ the number of <strong>Messages</strong> (parts) it contains and the number of <s
 <p>Backups can also be taken automatically, see <doc-anchor-trigger to="#automatic-backups">below</doc-anchor-trigger>.</p>
 <p>A backup holds the whole story tree, the summaries and the <a href="../annotations/">annotations</a> of the parts; restoring it, copying a book and importing a
 backup bring the notes back.</p>
+<h2 id="the-history-of-the-parts">The history of the parts</h2>
+<p>A backup does not hold the <a href="../version-history/">version history</a> of the parts unless you ask: check <strong>Include version history</strong>
+next to <strong>Take Backup</strong> (it is unchecked at first, because the history can be several times the size of the story).
+Restoring such a backup, as the book or as a copy, brings the versions back with their names, the reasoning of the generated
+ones and the trash of the history; the versions are cut down to the limit of the book they come to. The automatic backups
+never have the history. Restoring a backup without it gives each part one first version, as for a book from before the
+history.</p>
+<h2 id="backups-and-folders">Backups and folders</h2>
+<p>A backup remembers the <a href="../folders/">folders</a> its book was in, from the top one down, each with its name, description,
+language and the text settings it sets. <strong>Restore as new book</strong> and <strong>Clone Backup</strong> put the new book into the folder the
+backup names if you still have it; if not, into the folders of the same names (one you have is used as it is, a missing
+one is made with the settings it had). A backup without a folder, or folders that can&#x27;t be made, restores to the top level.
+<strong>Restore</strong> on a book (full or messages only) keeps the book in its folder. The tags of a folder are not in the backup.
+Older backups restore as before.</p>
 <h2 id="pictures-in-a-backup">Pictures in a backup</h2>
 <p>A backup remembers <strong>which pictures</strong> the parts have (and their captions), but <strong>not the picture files</strong>. This keeps
 backups, and the automatic ones, small. The pictures stay in your <a href="../../resources/">Resources</a>. To take the pictures
@@ -281,6 +295,13 @@ large pictures does not use much memory. When it is ready, click <strong>Downloa
 that dialog.</li>
 </ul>
 <p>If a picture can&#x27;t be packed because you deleted it or its file is missing, the dialog tells how many were left out.</p>
+<p>The check box <strong>Include inherited settings in the export</strong> (on by default, next to the export buttons) decides what the file
+says about the settings the book gets from its <a href="../folders/#where-the-settings-of-a-book-come-from">folders</a>. On, the language,
+master template, point of view, tense, style and prompts that the book does not set itself are written into the file as its
+own values, taken from the folders it was in when the backup was taken (the nearest first) and then from your settings, so the
+book reads the same in an installation or an account that has no such folders and settings; built-in defaults are not written.
+Off, the file has only what the book sets itself. The file never says which folder the book is in: where a book is filed is a
+local choice. (The story export, <a href="../export/">Exporting a book</a>, writes the text only and has no settings.)</p>
 <p>The ZIP contains <code translate="no" v-pre>backup.json</code> (the same JSON), <code translate="no" v-pre>resources.json</code> (the list of the pictures) and the pictures. You don&#x27;t
 have to unpack it: both ways of bringing a backup back accept the <code translate="no" v-pre>.zip</code> as well as the <code translate="no" v-pre>.json</code>.</p>
 <p>There are two ways to bring a backup file back:</p>
@@ -368,11 +389,11 @@ the whole <code translate="no" v-pre>.marginalia</code> folder in your own backu
             
                 <nav id="retype-nextprev" class="print:hidden flex mt-14">
                     <div class="w-1/2">
-                        <a class="px-5 py-4 h-full flex items-center break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-l-lg transition-colors duration-150 relative hover:z-5" href="../../../user/books/export/">
+                        <a class="px-5 py-4 h-full flex items-center break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-l-lg transition-colors duration-150 relative hover:z-5" href="../../../user/books/styling-guide/">
                             <svg xmlns="http://www.w3.org/2000/svg" class="mr-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19 11H7.41l5.29-5.29a.996.996 0 10-1.41-1.41l-7 7a1 1 0 000 1.42l7 7a1.024 1.024 0 001.42-.01.996.996 0 000-1.41L7.41 13H19c.55 0 1-.45 1-1s-.45-1-1-1z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
                             <span>
                                 <span class="block text-xs font-normal text-base-text-muted">Previous</span>
-                                <span class="block mt-1">Exporting a book</span>
+                                <span class="block mt-1">Styling guide</span>
                             </span>
                         </a>
                     </div>
@@ -396,7 +417,7 @@ the whole <code translate="no" v-pre>.marginalia</code> folder in your own backu
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (60a4afd23).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (3b5a4203d).</p></div>
             </footer>
         </div>
     </div>

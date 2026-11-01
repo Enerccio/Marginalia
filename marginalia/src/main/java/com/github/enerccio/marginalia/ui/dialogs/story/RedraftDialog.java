@@ -2,16 +2,20 @@ package com.github.enerccio.marginalia.ui.dialogs.story;
 
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.collections.AnnotationStatus;
+import com.github.enerccio.marginalia.domain.collections.RevisionSource;
+import com.github.enerccio.marginalia.domain.components.RevisionOrigin;
 import com.github.enerccio.marginalia.domain.model.impl.Annotation;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.ui.widgets.ResizableTextArea;
 import com.github.enerccio.marginalia.ui.widgets.WordDiffView;
+import com.github.enerccio.marginalia.utils.TextMarkup;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.ModalityMode;
 import com.vaadin.flow.component.UI;
@@ -19,9 +23,11 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.details.Details;
 import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.markdown.Markdown;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.tabs.TabSheet;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.data.value.ValueChangeMode;
 import org.apache.commons.lang3.StringUtils;
@@ -40,7 +46,9 @@ import java.util.function.Consumer;
  * Opened by {@link #openAuto} (the automatic annotation of a generated part) it starts at once, with the open annotations of the part
  * for the author's instructions, and with {@code apply} it also applies the redraft when the model is done, without asking, and closes.
  * Stopping it or closing it before that applies nothing. The part was only just generated, so no summary describes it and the box to
- * revalidate summaries is not offered.
+ * revalidate summaries is not offered. The redrafted text (with its reasoning and differences) is then one tab and the original text with
+ * the annotations marked in it another, so the author can compare what the model did with what it was asked to deal with, and stop it
+ * or close the window if the redraft is not what is wanted.
  */
 @Configurable(preConstruction = true)
 public class RedraftDialog extends Dialog {
@@ -90,6 +98,8 @@ public class RedraftDialog extends Dialog {
     private CancellationToken cancellationToken;
     private boolean generating;
     private boolean hasRedraft;
+    // the reasoning the model wrote the text of the field with, it goes to the history of the part
+    private String redraftReasoning;
 
     /**
      * @param onApplied gets the part with the redrafted text, after it was stored
@@ -221,7 +231,19 @@ public class RedraftDialog extends Dialog {
         changesDetails.setWidthFull();
         changesDetails.setVisible(false);
 
-        VerticalLayout content = new VerticalLayout(info, instructions, withAnnotations, revalidateSummaries, start, reasoningDetails, result, changesDetails);
+        VerticalLayout content;
+        if (automatic) {
+            TabSheet tabs = new TabSheet();
+            tabs.setWidthFull();
+            VerticalLayout redrafted = new VerticalLayout(reasoningDetails, result, changesDetails);
+            redrafted.setPadding(false);
+            redrafted.addClassName(CssStyles.GAP_S);
+            tabs.add(loc.getValue(L.LABEL_REDRAFTED_TEXT), redrafted);
+            tabs.add(loc.getValue(L.LABEL_REDRAFT_ORIGINAL_TEXT), originalWithAnnotations());
+            content = new VerticalLayout(info, instructions, withAnnotations, revalidateSummaries, start, tabs);
+        } else {
+            content = new VerticalLayout(info, instructions, withAnnotations, revalidateSummaries, start, reasoningDetails, result, changesDetails);
+        }
         if (passage != null) {
             content.addComponentAtIndex(1, selection);
         }
@@ -242,6 +264,65 @@ public class RedraftDialog extends Dialog {
                 cancellationToken.cancel();
             }
         });
+    }
+
+    /**
+     * The text of the part as it was when the dialog was opened with the passages of its open annotations marked as in the story, and
+     * the notes under it.
+     */
+    private VerticalLayout originalWithAnnotations() {
+        VerticalLayout original = new VerticalLayout();
+        original.setPadding(false);
+        original.addClassName(CssStyles.GAP_S);
+        try {
+            StoryAnnotations annotations = new StoryAnnotations(() -> manuscript, _ -> {
+            });
+            Markdown text = new Markdown(TextMarkup.apply(partText, annotations.marks(part, partText)));
+            text.addClassName(CssStyles.CHAT_MESSAGE_MARKDOWN);
+            original.add(text);
+            List<Annotation> open = openAnnotations();
+            if (!open.isEmpty()) {
+                // a popover would open behind the modal window: the notes are here, a click on a mark brings its note into view and
+                // the pointer over a mark or a note lights both
+                VerticalLayout notes = new VerticalLayout();
+                notes.setPadding(false);
+                notes.setSpacing(false);
+                notes.addClassNames(CssStyles.ANNOTATION_MARGIN, CssStyles.GAP_S);
+                for (Annotation annotation : open) {
+                    notes.add(note(annotation));
+                }
+                Div anchor = new Div();
+                anchor.addClassName(CssStyles.ANNOTATION_ANCHOR);
+                original.add(new Span(loc.getValue(L.LABEL_ANNOTATIONS)), notes, anchor);
+                JavascriptLibrary.linkMarginNotes(text.getElement(), notes.getElement());
+                JavascriptLibrary.fireAnnotationClickEvent(text.getElement(), anchor.getElement());
+                text.getElement().addEventListener("annotation-click",
+                        event -> JavascriptLibrary.flashMarginNote(notes.getElement(),
+                                event.getEventData().get("event.detail.ids").asString().split(",")[0]))
+                        .addEventData("event.detail.ids");
+            }
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+        return original;
+    }
+
+    /**
+     * The note of an annotation, read only: the words it is about and what it says.
+     */
+    private static Div note(Annotation annotation) {
+        Div note = new Div();
+        note.addClassName(CssStyles.ANNOTATION_VIEW);
+        note.getElement().setAttribute(StoryAnnotations.NOTE_ATTRIBUTE, annotation.getUuid());
+        if (StringUtils.isNotBlank(annotation.getQuote())) {
+            Div quote = new Div("\u201c" + annotation.getQuote() + "\u201d");
+            quote.addClassName(CssStyles.ANNOTATION_QUOTE);
+            note.add(quote);
+        }
+        Div text = new Div(StringUtils.defaultString(annotation.getText()));
+        text.addClassName(CssStyles.ANNOTATION_NOTE);
+        note.add(text);
+        return note;
     }
 
     // for the tests
@@ -328,6 +409,7 @@ public class RedraftDialog extends Dialog {
         };
 
         result.setValue("");
+        redraftReasoning = null;
         reasoningMarkdown.setContent("");
         reasoningDetails.setVisible(false);
         changesDetails.setVisible(false);
@@ -355,6 +437,7 @@ public class RedraftDialog extends Dialog {
     }
 
     private void show(String reasoning, String text) {
+        redraftReasoning = StringUtils.defaultIfEmpty(reasoning, null);
         if (StringUtils.isNotBlank(reasoning)) {
             reasoningMarkdown.setContent(reasoning);
             reasoningDetails.setVisible(true);
@@ -392,6 +475,18 @@ public class RedraftDialog extends Dialog {
         changesDetails.setVisible(text != null);
     }
 
+    /**
+     * The model and the protocol of the book, which the redraft is made with: "model · protocol" for the history of the part.
+     */
+    private String modelAndProtocol() {
+        try {
+            return (manuscript.getAi() == null ? "" : manuscript.getAi().getName()) + " · "
+                    + (manuscript.getProtocol() == null ? "" : manuscript.getProtocol().getName());
+        } catch (RuntimeException e) {
+            return null;
+        }
+    }
+
     private void apply() {
         String text = result.getValue();
         if (StringUtils.isBlank(text)) {
@@ -407,7 +502,8 @@ public class RedraftDialog extends Dialog {
                 }
                 text = replacePassage(partText, passage, text);
             }
-            ChatMessageService.PartEdit edit = chatMessageService.updateResponse(manuscript, part, text);
+            ChatMessageService.PartEdit edit = chatMessageService.updateResponse(manuscript, part, text,
+                    RevisionOrigin.model(RevisionSource.REDRAFT, modelAndProtocol(), false, redraftReasoning));
             // the notes the redraft was asked to deal with are dealt with
             for (Annotation annotation : addressed) {
                 annotationService.setStatus(manuscript, annotation, AnnotationStatus.RESOLVED);

@@ -11,7 +11,7 @@ import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.TextArea;
 import org.apache.commons.lang3.StringUtils;
 
-import static com.github.enerccio.marginalia.extensions.mangagenerator.MangaGeneratorLocalization.T;
+import static com.github.enerccio.marginalia.extensions.mangagenerator.MangaGeneratorLocalization.*;
 
 /**
  * The defaults a new manga starts with, and the text put before every request: a panel of <i>Settings → Extension Settings</i>.
@@ -37,22 +37,22 @@ public class MangaSettingsForm extends VerticalLayout {
         setPadding(true);
         setSpacing(true);
 
-        Span hint = new Span(T.localized("A new manga starts with these settings. A manga you made already keeps its own."));
+        Span hint = new Span(T.localized(A_NEW_MANGA_STARTS));
         hint.addClassName(CssStyles.HINT_TEXT);
 
-        initialQuery = area(T.localized("Text before every request"),
-                T.localized("Put into the system message, before the lore. For instructions that hold for all of your mangas."), "8em");
-        tokenBudget = number(T.localized("Token budget"), 512);
-        splitCount = number(T.localized("Parts per section"), 1);
-        contextLeft = number(T.localized("Context parts before"), 0);
-        contextRight = number(T.localized("Context parts after"), 0);
+        initialQuery = area(T.localized(TEXT_BEFORE_EVERY_REQUEST),
+                T.localized(PUT_INTO_THE_SYSTEM_MESSAGE), "8em");
+        tokenBudget = number(T.localized(TOKEN_BUDGET), 512);
+        splitCount = number(T.localized(PARTS_PER_SECTION), 1);
+        contextLeft = number(T.localized(CONTEXT_PARTS_BEFORE), 0);
+        contextRight = number(T.localized(CONTEXT_PARTS_AFTER), 0);
         HorizontalLayout numbers = new HorizontalLayout(tokenBudget, splitCount, contextLeft, contextRight);
         numbers.setWidthFull();
         numbers.setWrap(true);
 
-        prompt = area(T.localized("Default script prompt"), T.localized("Empty or unchanged: the built-in prompt is used"), "16em");
-        tagsPrompt = area(T.localized("Default tags prompt"), T.localized("Empty or unchanged: the built-in prompt is used"), "12em");
-        rules = area(T.localized("Default additional rules"), T.localized("Put in place of {{additionalRules}} in the script prompt"), "6em");
+        prompt = area(T.localized(DEFAULT_SCRIPT_PROMPT), T.localized(EMPTY_OR_UNCHANGED_THE_BUILT_IN_PROMPT), "16em");
+        tagsPrompt = area(T.localized(DEFAULT_TAGS_PROMPT), T.localized(EMPTY_OR_UNCHANGED_THE_BUILT_IN_PROMPT), "12em");
+        rules = area(T.localized(DEFAULT_ADDITIONAL_RULES), T.localized(PUT_IN_PLACE_OF_ADDITIONALRULES), "6em");
 
         add(hint, initialQuery, numbers, prompt, tagsPrompt, rules);
         refresh();

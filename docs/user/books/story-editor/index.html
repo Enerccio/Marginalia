@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846522787704">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846880296645">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846522787704" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846880296645" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846522787704" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846880296645" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846522787704" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846880296645" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -65,7 +65,7 @@
                 <div class="flex items-center px-2 md:px-6">
                     <a id="retype-branding-logo" href="https://enerccio.github.io/Marginalia/" class="flex items-center leading-snug text-2xl">
                         <span class="dark:text-white font-bold line-clamp-1 md:line-clamp-2">Marginalia</span>
-                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.5.0</span>
+                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.6.0</span>
                 </div>
     
                 <span class="hidden h-8 border-r md:inline-block border-base-border"></span>
@@ -181,7 +181,7 @@ from the beginning to the end.</p>
 <a href="../../phone/#the-story">Using Marginalia on a phone</a>.</p>
 <retype-table copy-text="| Area | |
 |---|---|
-| **Outline** (left) | One entry per part, `#1`, `#2`... with the part's database ID. Click an entry to scroll to the part (the parts before it are loaded first when it is not loaded yet). The header shows how many parts the branch has. The [Chapter Marker](../extensions/chapter-marker.md) extension shows chapter titles here. |
+| **Outline** (left) | One entry per part, `#1`, `#2`... with the part's database ID. Click an entry to scroll to the part (the parts before it are loaded first when it is not loaded yet). The header shows how many parts the branch has. A part that has a [summary](summaries.md) has a small document icon after its entry. The [Chapter Marker](../extensions/chapter-marker.md) extension shows chapter titles here. |
 | **Lorebook** (left, next to the Outline) | A read only look at the lore of the book, see [The lorebook tab](#the-lorebook-tab). |
 | **Annotations** (left, next to the Outline) | The [notes](annotations.md) on passages of the story, for the whole book. |
 | **Story** (center) | The text of each part, with its menu (☰) and its metadata on the right, and under it the bottom bar. |
@@ -197,7 +197,7 @@ from the beginning to the end.</p>
 <tbody>
 <tr>
 <td><strong>Outline</strong> (left)</td>
-<td>One entry per part, <code translate="no" v-pre>#1</code>, <code translate="no" v-pre>#2</code>... with the part&#x27;s database ID. Click an entry to scroll to the part (the parts before it are loaded first when it is not loaded yet). The header shows how many parts the branch has. The <a href="../../extensions/chapter-marker/">Chapter Marker</a> extension shows chapter titles here.</td>
+<td>One entry per part, <code translate="no" v-pre>#1</code>, <code translate="no" v-pre>#2</code>... with the part&#x27;s database ID. Click an entry to scroll to the part (the parts before it are loaded first when it is not loaded yet). The header shows how many parts the branch has. A part that has a <a href="../summaries/">summary</a> has a small document icon after its entry. The <a href="../../extensions/chapter-marker/">Chapter Marker</a> extension shows chapter titles here.</td>
 </tr>
 <tr>
 <td><strong>Lorebook</strong> (left, next to the Outline)</td>
@@ -310,9 +310,30 @@ the extension is back.</p>
 while another one is selected. Whatever shows a part brings the story back: clicking an entry of the outline, a hit of the
 search, choosing a branch in the <a href="../branches-and-story-tree/">story tree</a>, and starting a generation select the <strong>Story</strong> tab
 first. While a generation runs the other tabs are disabled and only the story stays usable, so you can stop it.</p>
-<p>To go back to the arrangement of a new book, choose <strong>Restore default layout</strong> in the settings menu (⚙) of the story and confirm.
-It only moves the tabs back (and forgets the sizes): your texts, the tab each panel shows and the tabs of extensions stay, the
-latter in the first panel.</p>
+<h3 id="minimizing-tabs">Minimizing tabs</h3>
+<p>Every tab but the story has a small <strong>⌄</strong> (chevron) button next to its name. It <strong>minimizes</strong> the tab: the tab leaves its panel (a panel
+whose tabs are all minimized disappears for the time being) and a round icon of it, a colored circle with a drawing (a list for
+the outline, a book for the lorebook, a speech bubble for the annotations, a magnifier for Side Query, and so on; a tab of an
+extension that has no drawing gets one or two letters), shows up in a bar at the
+edge of the editor. Hover over the icon to see which tab it is. Nothing is closed, the tab keeps what it was showing. Click the
+icon and the tab comes back to the panel and the place among the tabs where it was, and is shown.</p>
+<p>The bar is there while some tab is minimized. The button at its top (the circling arrows) sends the bar to the next side of
+the editor, clockwise: left, top, right, bottom. The story can&#x27;t be minimized, so there is always something on the screen.</p>
+<figure class="content-center">
+    <img src="../../../images/story-minimized-tabs.png" alt="Minimized tabs in the bar at the edge of the editor" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1920" height="932" />
+    <figcaption class="caption">Minimized tabs in the bar at the edge of the editor</figcaption>
+</figure>
+<p>The icons are in the alphabetical order of the names of the tabs until you change it: drag an icon onto another one and it takes
+the place of that one. Which tabs are minimized, where the bar is and the order of the icons are saved with the book, together with the arrangement and the sizes.</p>
+<h3 id="the-default-arrangement">The default arrangement</h3>
+<p>A new book opens with the standard arrangement (the outline, the lorebook and the annotations on the left, the story on the
+right). To make your own arrangement the standard one, set the tabs as you like them (panels, sizes, minimized tabs, the side of
+the bar) and choose <strong>Save layout as my default</strong> in the settings menu (⚙) of the story. Every book that has no arrangement of its
+own (a book you have not rearranged) then opens with it; a book you have arranged keeps its arrangement. The default is
+kept in your user settings.</p>
+<p>To go back to the default arrangement, choose <strong>Restore default layout</strong> in the settings menu (⚙) of the story and confirm. This is
+the one you saved, or the standard one when you saved none. It only moves the tabs back (and forgets the sizes and what is
+minimized): your texts, the tab each panel shows and the tabs of extensions stay, the latter in the first panel.</p>
 <h2 id="writing-the-next-part">Writing the next part</h2>
 <ol>
 <li>Click <strong>+</strong> in the bottom right corner. The <em>New Turn Instructions</em> panel opens.</li>
@@ -433,8 +454,56 @@ guidance and the plan. It does not see your lorebook entries that a new turn wou
 </figure>
 <p>The same is the command <a href="../../commands/"><code translate="no" v-pre>/impersonate</code></a>, which returns the text. <a href="../../agents/">Agents</a> do not get it, they write
 the story with instructions of their own.</p>
+<h2 id="the-settings-menu">The settings menu</h2>
+<p>The settings menu (⚙) in the bottom bar groups what acts on the whole story. <strong>Search and replace</strong> is at the top; the rest is in sub menus
+(on a phone too, except the desktop-only items):</p>
+<retype-table copy-text="| Sub menu | Items |
+|---|---|
+| **Appearance** | **Change Styles For Text**, **Highlight Generated Text** and **Annotations in the margin** (desktop only, the last two) |
+| **Analysis** | **Annotate a range of parts with AI**, **Automatic annotation**, **Branch Tokens**, **Statistics** |
+| **Import &amp; export** | **Import from archive**, **Export story** (and the items of extensions that import or export, such as **Export instructions**) |
+| **Cleanup** | **Clear history of the book**, **Empty trash of the history**, **Mass delete** |
+| **Layout** (desktop only) | **Save layout as my default**, **Restore default layout** |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Sub menu</th>
+<th>Items</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Appearance</strong></td>
+<td><strong>Change Styles For Text</strong>, <strong>Highlight Generated Text</strong> and <strong>Annotations in the margin</strong> (desktop only, the last two)</td>
+</tr>
+<tr>
+<td><strong>Analysis</strong></td>
+<td><strong>Annotate a range of parts with AI</strong>, <strong>Automatic annotation</strong>, <strong>Branch Tokens</strong>, <strong>Statistics</strong></td>
+</tr>
+<tr>
+<td><strong>Import &amp; export</strong></td>
+<td><strong>Import from archive</strong>, <strong>Export story</strong> (and the items of extensions that import or export, such as <strong>Export instructions</strong>)</td>
+</tr>
+<tr>
+<td><strong>Cleanup</strong></td>
+<td><strong>Clear history of the book</strong>, <strong>Empty trash of the history</strong>, <strong>Mass delete</strong></td>
+</tr>
+<tr>
+<td><strong>Layout</strong> (desktop only)</td>
+<td><strong>Save layout as my default</strong>, <strong>Restore default layout</strong></td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>Items that <a href="../../extensions/">extensions</a> bring are in the sub menu that fits them, or at the end of the menu. The keys of the items are in
+<em>Settings → Keyboard shortcuts</em>, where an item is named with its sub menu (<em>Analysis › Statistics</em>). The sections below say where each item is.</p>
 <h2 id="the-part-menu">The part menu</h2>
-<p>Every part has a menu (☰) in its top right corner:</p>
+<p>Every part has a menu (☰) in its top right corner. <strong>Edit</strong>, <strong>Discard Changes</strong>, <strong>Regenerate</strong>, <strong>Swipe</strong>, <strong>Redraft</strong>, <strong>History</strong> and <strong>Images</strong> are in the
+menu itself, <strong>Delete</strong> is its last item, and the rest is in four sub menus: <strong>Annotations</strong> (<em>Annotate part</em>, <em>Annotate with AI</em>), <strong>Summary</strong>
+(<em>Generate summary</em> / <em>View summary</em>, <em>Delete summary</em>), <strong>Inspect</strong> (<em>Show Prompt</em>, <em>Compare Prompt</em>, <em>Token Usage</em>) and <strong>Branch &amp; merge</strong> (<em>Branch Story</em>,
+<em>Merge into previous part</em>). A sub menu with nothing in it for the part is not shown. The Reviewer adds its <strong>Review</strong> sub menu after <em>Summary</em>. The items:</p>
 <retype-table copy-text="| Item | |
 |---|---|
 | **Edit** | Turns the text into an editable field. **Save** (the same menu item) saves it. Starting a generation or leaving the tab saves open edits too. |
@@ -442,6 +511,7 @@ the story with instructions of their own.</p>
 | **Regenerate** | Writes the last part again, replacing its text. Only on the last part. |
 | **Swipe** | Writes another version of the last part and keeps the old one as a separate branch. Only on the last part. See [Branches &amp; story tree](branches-and-story-tree.md#trying-another-version-of-the-last-part). |
 | **Redraft** | Lets the model write this part again from your instructions, on any part, see [below](#redrafting-a-part). Not while the text is edited. |
+| **History (n)** | The [versions of the text](version-history.md) of the part, with the number of versions: compare them, put one back, name one. Not while the text is edited. |
 | **Annotate part** | Makes a [note](annotations.md#making-an-annotation) about the whole part. To annotate words, select them and right click (**Annotate selection**). |
 | **Annotate with AI** | Lets a model [review the part](annotations.md#letting-a-model-annotate) and propose notes. Not while the text is edited. For several parts at once use **Annotate a range of parts with AI** in the settings menu (⚙), and for every new part **Automatic annotation** (see [Annotations](annotations.md#annotating-every-new-part-automatically)). |
 | **Branch Story** | Starts a new branch from this part, see [Branches &amp; story tree](branches-and-story-tree.md#branching-from-an-earlier-part). |
@@ -480,6 +550,10 @@ the story with instructions of their own.</p>
 <tr>
 <td><strong>Redraft</strong></td>
 <td>Lets the model write this part again from your instructions, on any part, see <doc-anchor-trigger to="#redrafting-a-part">below</doc-anchor-trigger>. Not while the text is edited.</td>
+</tr>
+<tr>
+<td><strong>History (n)</strong></td>
+<td>The <a href="../version-history/">versions of the text</a> of the part, with the number of versions: compare them, put one back, name one. Not while the text is edited.</td>
 </tr>
 <tr>
 <td><strong>Annotate part</strong></td>
@@ -527,6 +601,10 @@ the story with instructions of their own.</p>
 </retype-table>
 <p><em>Regenerate</em> and <em>Swipe</em> use the turn details of the last part (see <doc-anchor-trigger to="#turn-details">below</doc-anchor-trigger>). To change what should
 happen, edit them first.</p>
+<figure class="content-center">
+    <img src="../../../images/story-part-menu.png" alt="The menu of a part, with the Inspect sub menu opened" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="429" height="530" />
+    <figcaption class="caption">The menu of a part, with the Inspect sub menu opened</figcaption>
+</figure>
 <figure class="content-center">
     <img src="../../../images/token-usage.png" alt="Token Usage of a part" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="850" height="700" />
     <figcaption class="caption">Token Usage of a part</figcaption>
@@ -594,7 +672,7 @@ generation and drops the summary.</p>
 | `Ctrl+Enter` | Generates from the open panel. `Esc` closes it; the keyboard goes back to the story. |
 | `Ctrl+.` | Stops the generation that runs. |
 | `s` / `r` | **Swipe** / **Regenerate** the last part. |
-| `e` | Opens the editor of the last part. |
+| `e` | Opens the editor of the part that is the most visible on the screen (the last part when none is). |
 | `Ctrl+S` | Saves the part that is being edited (also while the cursor is in its text). |
 | `/` | Puts the cursor into the command bar (the story tab is shown first). |
 | `Ctrl+Shift+F` | Opens the *Outline* tab and puts the cursor into the search of the branch (`Enter` / `Shift+Enter` go to the next / previous match). |
@@ -628,7 +706,7 @@ generation and drops the summary.</p>
 </tr>
 <tr>
 <td><code translate="no" v-pre>e</code></td>
-<td>Opens the editor of the last part.</td>
+<td>Opens the editor of the part that is the most visible on the screen (the last part when none is).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>Ctrl+S</code></td>
@@ -666,6 +744,19 @@ open above it. The buttons show their key in the tooltip, and the menu of the la
 <p><strong>Delete</strong> removes the part from the story. The parts that followed it stay and continue from the part before it, so
 deleting a part in the middle of the story just takes it out. Deleting the last part makes the part before it the new
 end of the branch.</p>
+<h3 id="deleting-many-parts-at-once">Deleting many parts at once</h3>
+<p>The settings menu (⚙) has <strong>Mass delete</strong>. Turning it on puts a check box at the left of every part and shows a bar under
+the story with the number of ticked parts and a <strong>Delete</strong> button. Tick the parts you want to get rid of (the ticks are kept
+while you scroll, the story loads only a window of the parts); <strong>Shift + click</strong> on a check box ticks (or clears) all the parts
+between it and the one you clicked before; a ticked part is tinted red. Then press <strong>Delete</strong>: after a confirmation the parts are deleted
+one by one behind a progress bar that can&#x27;t be stopped. They are deleted as a single part is: the parts that followed a deleted
+part continue from the part before it, and the deleted parts go to the trash. Then the story is shown again and the mass delete
+is off. <strong>Cancel</strong> in the bar, or choosing <strong>Mass delete</strong> again, turns it off without deleting anything. Starting a
+generation also turns it off.</p>
+<figure class="content-center">
+    <img src="../../../images/story-mass-delete.png" alt="Mass delete with some parts ticked" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1920" height="932" />
+    <figcaption class="caption">Mass delete with some parts ticked</figcaption>
+</figure>
 <h2 id="redrafting-a-part">Redrafting a part</h2>
 <p><strong>Regenerate</strong> and <strong>Swipe</strong> work on the last part only and write it from scratch. <strong>Redraft</strong> works on any part, also an
 old one in the middle of the story, and keeps what you do not ask to change. Choose <strong>Redraft</strong> in the menu of the part:</p>
@@ -741,13 +832,13 @@ part for it, or leave the value out. Values that are the same are hidden unless 
 <p>The previous part keeps its place, its summary and how it was generated (prompt, model, times); it gets the joined text,
 the joined reasoning and pictures, and its words and tokens are counted again. The part you merged is deleted (it is in
 the <a href="../../trash/">Trash</a>) and what followed it continues from the previous part. Summaries that cover the two parts become
-outdated, as after an edit. The part cannot be merged when it is the first part of the book, or when the part before it has
+outdated, as after an edit. The <a href="../version-history/#backups-copies-and-the-trash">history</a> of the part that was merged is removed, and the surviving part has the joined text as a <strong>Merged</strong> version. The part cannot be merged when it is the first part of the book, or when the part before it has
 other continuations (swipes of the part): delete them or make them a branch first.</p>
 <h2 id="images">Images</h2>
 <p>A part can have pictures: a map, a character portrait, an illustration. Choose <strong>Images</strong> in the part menu to open the
 list of the pictures of the part.</p>
 <figure class="content-center">
-    <img src="../../../images/images-dialog.png" alt="The Images dialog of a part" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="600" height="555" />
+    <img src="../../../images/images-dialog.png" alt="The Images dialog of a part" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="600" height="593" />
     <figcaption class="caption">The Images dialog of a part</figcaption>
 </figure>
 <ul>
@@ -759,14 +850,44 @@ converted to PNG when they are uploaded, because Word and PDF files can&#x27;t c
 <p><strong>Caption</strong> is shown under the picture. It can be empty.</p>
 </li>
 <li>
+<p><strong>Position in the part</strong> is a 3x3 grid. The column is the side of the text (left, center, right), the row is the place in it:
+the top is before the text, the middle is in the middle of it, the bottom is after it. Click a square to choose.</p>
+</li>
+<li>
+<p><strong>Text flows around the image</strong> lets the text run around the picture instead of above and below it. At the left or the
+right, the text runs beside the picture. In the middle column the text is on both sides of it: a few blocks of the text (about 400
+characters, two blocks at least) at that row become two columns, the first part at the left of the picture and the rest at the
+right, so the text reads down the left column and goes on in the right one. Two pictures in the same place are one above the other
+between the columns. When the text has no room for two columns (one paragraph only, or the blocks are already taken by the band
+above), the picture is a block of its own, centered.</p>
+</li>
+<li>
+<p><strong>Width</strong> is the width of the picture as a percent of the width of the text. <strong>Automatic</strong> keeps the size of the
+picture (never wider than the text; a picture with text on both sides is 30 %). A picture the text flows beside is at most 60 %,
+and one with text on both sides at most 40 %, so the text keeps some room.
+The height follows the proportions of the picture.</p>
+</li>
+<li>
 <p>The trash button removes the picture from the part.</p>
 </li>
 </ul>
-<p>The pictures are shown under the text of the part and in the same order in every <a href="../export/">export</a>.</p>
 <figure class="content-center">
-    <img src="../../../images/part-with-image.png" alt="A part with a picture" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1920" height="932" />
-    <figcaption class="caption">A part with a picture</figcaption>
+    <img src="../../../images/images-position.png" alt="The position of a picture: in the middle, with the text flowing around it" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="760" height="525" />
+    <figcaption class="caption">The position of a picture: in the middle, with the text flowing around it</figcaption>
 </figure>
+<p><strong>Preview as in the viewer</strong> (a button of the dialog, and the same entry in the part menu when the part has pictures) shows the
+part the way the <a href="../publishing/">viewer</a> shows it, with the text style of the book: the pictures where you put them,
+and a switch for a wide or a narrow (phone) screen. It uses the text in the editor as it is now, saved or not.</p>
+<figure class="content-center">
+    <img src="../../../images/images-preview.png" alt="The preview: the text in two columns with the picture between them" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="900" height="838" />
+    <figcaption class="caption">The preview: the text in two columns with the picture between them</figcaption>
+</figure>
+<p>The story editor itself does not use the position: it shows the pictures under the text of the part, as a list. The position
+is used by the viewer and by the <a href="../export/#images">exports</a>.</p>
+<p>Where in the text a picture goes does not depend on numbers saved with it: the text is cut between its blocks (paragraphs,
+lists, quotes and code blocks are never cut), so the pictures stay where they belong when you edit the text. The middle is the
+place between blocks that is nearest to the middle of the text; a picture the text flows around at the bottom is put before the
+last block, so that at least that block runs beside it. Pictures in the same place stay in the order of the list; ones that are next to each other in the same place (and do not let the text flow around them) stand in a row when they fit. PDF and Word do that for pictures that have a width.</p>
 <p>Pictures are <strong>not part of the text</strong>. The model never sees them, they are not in the prompt, they do not count as
 tokens and they do not change the <a href="../summaries/">summaries</a>. They are also not Markdown: a <code translate="no" v-pre>![](...)</code> link written in
 the text is not a picture of the part, use <strong>Images</strong> instead.</p>
@@ -805,13 +926,33 @@ instructions of the turn take room from the same budget. Without a model with a 
     <img src="../../../images/branch-tokens.png" alt="Branch Tokens" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="750" height="641" />
     <figcaption class="caption">Branch Tokens</figcaption>
 </figure>
-<h2 id="book-styles">Book styles</h2>
-<p>The settings menu (⚙) in the bottom bar has <strong>Change Styles For Text</strong>. It switches the text of the parts between the
-normal look of the application and a book-like reading style (the one the <a href="../publishing/">viewer</a> uses). The setting
-is saved per book.</p>
-<p>In this style paragraphs are justified and long words are hyphenated automatically, using the dictionary of the
+<h2 id="text-styles">Text styles</h2>
+<p>The settings menu (⚙) in the bottom bar has <strong>Appearance → Change Styles For Text</strong>, a menu with one entry per style, sorted by name.
+For how to make a style, see the <a href="../styling-guide/">styling guide</a>.
+A style decides how the text of the parts looks: font, size, colors, alignment, headings... The application brings two
+styles that can not be changed: <strong>Normal</strong> (the look of the application) and <strong>Book</strong> (a book-like reading style, the one the
+<a href="../publishing/">viewer</a> uses), and you can make your own in <a href="../../account/#styles">Settings → Styles</a>.</p>
+<ul>
+<li>
+<p>The first entry, <strong>Default (...)</strong>, follows your <em>default style</em> (the one marked in <em>Settings → Styles</em>, Normal when you
+chose none). A new book has no style of its own and shows that.</p>
+</li>
+<li>
+<p>Choosing another entry stores the style <strong>in the book</strong>, so it overrides the default for that book only; the ticked entry is
+the one the book has now. <strong>Default</strong> takes the choice back.</p>
+</li>
+<li>
+<p>A style you delete falls back to your default in the books that used it.</p>
+</li>
+</ul>
+<figure class="content-center">
+    <img src="../../../images/story-style-menu.png" alt="Appearance, Change Styles For Text: the styles to choose from" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="825" height="338" />
+    <figcaption class="caption">Appearance, Change Styles For Text: the styles to choose from</figcaption>
+</figure>
+<p>In the <strong>Book</strong> style paragraphs are justified and long words are hyphenated automatically, using the dictionary of the
 book&#x27;s <strong>Language</strong> (set on the <a href="../managing-books/#the-about-tab">About tab</a>). Hyphenation is done by the browser;
 for a few rare languages it has no dictionary and the text is simply not hyphenated.</p>
+<p>Books that had the old <em>Change Styles For Text</em> switch on keep showing the Book style until you choose another entry.</p>
 <h2 id="highlighting-generated-text">Highlighting generated text</h2>
 <p>The settings menu (⚙) also has the checkable <strong>Highlight Generated Text</strong>. While it is on, the text that is still the
 way the model wrote it is highlighted in every part, so what you added or rewrote stands out. Marginalia keeps the
@@ -830,10 +971,11 @@ The highlight is available in the desktop view only, not in the <a href="../../p
 <a href="../../commands/">Commands</a> for how to write arguments, what the help shows and how to stop a command that takes a
 while. The command line is only in the story tab of the desktop layout so far.</p>
 <h2 id="search-and-replace">Search and replace</h2>
+<p>The settings menu (⚙) also has <strong>Clear history of the book</strong> and <strong>Empty trash of the history</strong>, see <a href="../version-history/#deleting-versions">Version history</a>.</p>
 <p>The settings menu (⚙) also has <strong>Search and replace</strong>, which changes a word, a name or a phrase in the whole story at
 once. The window has a <strong>Search for</strong> and a <strong>Replace with</strong> field and these options:</p>
 <figure class="content-center">
-    <img src="../../../images/story-settings-menu.png" alt="The settings menu with Search and replace" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="455" height="474" />
+    <img src="../../../images/story-settings-menu.png" alt="The settings menu with Search and replace" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="455" height="388" />
     <figcaption class="caption">The settings menu with Search and replace</figcaption>
 </figure>
 <figure class="content-center">
@@ -971,10 +1113,10 @@ tense, style and <a href="../summaries/">summaries</a>. The jailbreak prompt of 
                     </div>
             
                     <div class="w-1/2">
-                        <a class="px-5 py-4 -mx-px h-full flex items-center justify-end break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-r-lg transition-colors duration-150 relative hover:z-5" href="../../../user/books/branches-and-story-tree/">
+                        <a class="px-5 py-4 -mx-px h-full flex items-center justify-end break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-r-lg transition-colors duration-150 relative hover:z-5" href="../../../user/books/version-history/">
                             <span>
                                 <span class="block text-xs font-normal text-right text-base-text-muted">Next</span>
-                                <span class="block mt-1">Branches &amp; story tree</span>
+                                <span class="block mt-1">Version history</span>
                             </span>
                             <svg xmlns="http://www.w3.org/2000/svg" class="ml-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19.92 12.38a1 1 0 00-.22-1.09l-7-7a.996.996 0 10-1.41 1.41l5.3 5.3H5c-.55 0-1 .45-1 1s.45 1 1 1h11.59l-5.29 5.29a.996.996 0 000 1.41c.19.2.44.3.7.3s.51-.1.71-.29l7-7c.09-.09.16-.21.21-.33z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
                         </a>
@@ -989,7 +1131,7 @@ tense, style and <a href="../summaries/">summaries</a>. The jailbreak prompt of 
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (60a4afd23).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (3b5a4203d).</p></div>
             </footer>
         </div>
     </div>

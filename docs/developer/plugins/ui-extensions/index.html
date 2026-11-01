@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846522787704">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846880296645">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846522787704" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846880296645" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846522787704" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846880296645" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846522787704" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.846522787704" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846880296645" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.846880296645" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -60,7 +60,7 @@
                 <div class="flex items-center px-2 md:px-6">
                     <a id="retype-branding-logo" href="https://enerccio.github.io/Marginalia/" class="flex items-center leading-snug text-2xl">
                         <span class="dark:text-white font-bold line-clamp-1 md:line-clamp-2">Marginalia</span>
-                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.5.0</span>
+                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.6.0</span>
                 </div>
     
                 <span class="hidden h-8 border-r md:inline-block border-base-border"></span>
@@ -284,7 +284,15 @@ is not the selected one of its sheet is hidden and its content disabled (the she
 component then; <code translate="no" v-pre>leftBar.select(id)</code> shows a tab. Give the tab a <strong>stable id</strong> of your own
 (<code translate="no" v-pre>add(id, caption, content)</code>, not the localized caption): the layout the user made is saved with the book by these ids, and
 a tab added later or after the extension was off lands where the user left it. <code translate="no" v-pre>add(caption, content)</code> uses the caption as
-the id. The ids <code translate="no" v-pre>chapters</code> (the outline), <code translate="no" v-pre>lorebook</code> (the read only lorebook preview, desktop only) and <code translate="no" v-pre>story</code> (since 1.5.0) belong to the
+the id. Since 1.6.0 every tab has a minimize button, and a minimized tab is an icon in the bar of the dock: a colored
+circle with a glyph or with one or two letters, made by <code translate="no" v-pre>TabDockIcons</code>. <code translate="no" v-pre>add(id, caption, icon, content)</code> takes a <code translate="no" v-pre>TabDockIcon</code>:
+<code translate="no" v-pre>TabDockIcon.glyph(&quot;&lt;path d='...'/&gt;&quot;)</code> draws your own glyph (SVG elements on a 24 x 24 grid, drawn as a white 2 px round
+stroke without fill; set <code translate="no" v-pre>fill='white'</code> on a solid element), <code translate="no" v-pre>TabDockIcon.letters(&quot;SQ&quot;)</code> gives letters (so does
+<code translate="no" v-pre>add(id, caption, &quot;SQ&quot;, content)</code>); without an icon they are the initials of the caption. The built-in tabs have
+<code translate="no" v-pre>TabDockIcon.CHAPTERS</code>, <code translate="no" v-pre>LOREBOOK</code> and <code translate="no" v-pre>ANNOTATIONS</code>; the plugins of the repository each draw their own. A minimized tab stays in the dock (its content is alive, only not in a sheet);
+<code translate="no" v-pre>leftBar.select(id)</code> restores it, <code translate="no" v-pre>isMinimized(id)</code>, <code translate="no" v-pre>minimize(id)</code> and <code translate="no" v-pre>restore(id)</code> do what they say, and
+<code translate="no" v-pre>setMinimizable(id, false)</code> takes the button away from a tab. The ids of the minimized tabs and the side of the bar are in
+<code translate="no" v-pre>getLayout()</code> (<code translate="no" v-pre>minimized</code>, <code translate="no" v-pre>dock</code>), so they are saved with the book like the rest of the arrangement. The ids <code translate="no" v-pre>chapters</code> (the outline), <code translate="no" v-pre>lorebook</code> (the read only lorebook preview, desktop only) and <code translate="no" v-pre>story</code> (since 1.5.0) belong to the
 application; a tab with the same id would replace them. Remove the tab with <code translate="no" v-pre>leftBar.remove(view)</code>. The phone drawer has a <code translate="no" v-pre>TabDock</code> too, but with the detaching off.</p>
 <h3 id="panels-in-an-existing-layout">Panels in an existing layout</h3>
 <p>Find the layout and insert at a position relative to a known child. Lorebook VCS puts its panel above the lorebook
@@ -406,7 +414,7 @@ Registering a key again replaces the item. Instruction Exporter is the whole of 
 <code translate="no" v-pre>Localization.getCurrentLanguage()</code> for your own table), and the overloads with an <code translate="no" v-pre>L</code> key are for the application&#x27;s own items. The label is also the
 name of the action in the key bindings table, so make it say what the action does.</p>
 <p><code translate="no" v-pre>StoryEditor</code> is the story tab (the desktop or the phone one): <code translate="no" v-pre>getCurrentManuscript()</code> (the book it shows <strong>now</strong>, read it when the action runs, the tab loads other
-books into the same instance), <code translate="no" v-pre>openSearchReplaceDialog()</code>, <code translate="no" v-pre>openExportDialog()</code>, <code translate="no" v-pre>toggleBookStyles()</code>... <code translate="no" v-pre>StoryCard</code> is the card of the part the menu is of:
+books into the same instance), <code translate="no" v-pre>openSearchReplaceDialog()</code>, <code translate="no" v-pre>openExportDialog()</code>, <code translate="no" v-pre>getPartStyleChoices()</code> (the entries of the <em>Change Styles For Text</em> menu)... <code translate="no" v-pre>StoryCard</code> is the card of the part the menu is of:
 <code translate="no" v-pre>getMessage()</code> (the <code translate="no" v-pre>ChatMessage</code>, the card replaces it with the saved copy, so read it each time), <code translate="no" v-pre>isEditing()</code>, <code translate="no" v-pre>isLast()</code>, and the actions of the part
 (<code translate="no" v-pre>toggleEdit()</code>, <code translate="no" v-pre>swipe()</code>, <code translate="no" v-pre>branch()</code>, <code translate="no" v-pre>annotatePart()</code>...). The callback runs on the UI thread of the user, in a request, as any click listener.</p>
 <p><strong>3. Describe when it shows.</strong> All of these are optional and are asked again each time the menu opens (and after an item of the settings menu ran):</p>
@@ -423,17 +431,35 @@ books into the same instance), <code translate="no" v-pre>openSearchReplaceDialo
 <p>A tools item can be a check box: <code translate="no" v-pre>.checkedWhen(story -&gt; story.isShowGeneratedDiff())</code> (the action switches whatever the predicate reads; a ticked item is
 refreshed after the action ran). <code translate="no" v-pre>.actionId(&quot;myplugin.summarize&quot;)</code> gives the item the id of its key binding when it is not <code translate="no" v-pre>menu.&lt;key&gt;</code> (keep it when you
 rename the item and the user has a key stored), and <code translate="no" v-pre>.hintAction((story, card) -&gt; id)</code> shows the key of another action (the <em>Edit</em> item shows the key of saving while the text is edited).</p>
-<p><strong>4. Sub menus.</strong> An item that only holds other items has no callback; its items name it with <code translate="no" v-pre>parent(key)</code> (any depth). Reviewer:</p>
+<p><strong>4. Where it goes: groups, paths and positions.</strong> The menus are trees. An item names the group it is in with <code translate="no" v-pre>path(..)</code>: names separated by <code translate="no" v-pre>/</code>, outermost first
+(<code translate="no" v-pre>&quot;Whatever/Is&quot;</code> shows the item as Whatever, Is, the item). The groups are made when a menu is built, so nothing is registered first, and everyone who
+names the same group shares it. The application has the groups of <code translate="no" v-pre>StoryMenuKeys</code> (<code translate="no" v-pre>GROUP_ANALYSIS</code>, <code translate="no" v-pre>GROUP_IMPORT_EXPORT</code>, <code translate="no" v-pre>GROUP_SUMMARY</code>...), an extension that fits one
+puts its item there (Instruction Exporter is <code translate="no" v-pre>.path(StoryMenuKeys.GROUP_IMPORT_EXPORT)</code>). A slash that is part of a name is written <code translate="no" v-pre>\/</code>.</p>
+<p>For an extension without translations a literal name is enough, the last name of the path is the text of the item:</p>
 <div id="menu-items-of-the-story-editor-code-3" class="codeblock-wrapper"><doc-codeblock>
-<pre translate="no" class="language-java"><code v-pre class="language-java">menuRegistry.register(owner, StoryMenuItem.card(&quot;reviewer.review&quot;, l -&gt; &quot;Review&quot;, null).icon(VaadinIcon.STAR::create));
+<pre translate="no" class="language-java"><code v-pre class="language-java">menuRegistry.register(owner, StoryMenuItem.tools(&quot;myplugin.go&quot;, &quot;Whatever/Is/Plugin&quot;, story -&gt; go(story)));   // Whatever &gt; Is &gt; Plugin</code></pre>
+</doc-codeblock></div>
+<p>A group that nobody registered shows its name as it is. To translate it, give it an icon or a place, register it (<code translate="no" v-pre>group</code> returns the group to configure; the same path
+registered again replaces it, <code translate="no" v-pre>unregisterAll(owner)</code> removes it). Reviewer:</p>
+<div id="menu-items-of-the-story-editor-code-4" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-java"><code v-pre class="language-java">menuRegistry.group(owner, MenuKind.CARD, &quot;review&quot;, l -&gt; T.localized(REVIEW)).icon(VaadinIcon.STAR::create)
+        .position(MenuPosition.after(StoryMenuKeys.GROUP_SUMMARY));
 menuRegistry.register(owner, StoryMenuItem.card(&quot;reviewer.review.view&quot;, l -&gt; &quot;View / Generate Review&quot;, (story, card) -&gt; openReview(card))
-        .parent(&quot;reviewer.review&quot;));
+        .path(&quot;review&quot;));
 menuRegistry.register(owner, StoryMenuItem.card(&quot;reviewer.review.delete&quot;, l -&gt; &quot;Delete Review&quot;, (story, card) -&gt; deleteReview(card))
         .enabledWhen((story, card) -&gt; card != null &amp;&amp; hasReview(card.getMessage()))      // the state follows the part
-        .parent(&quot;reviewer.review&quot;));</code></pre>
+        .path(&quot;review&quot;));</code></pre>
 </doc-codeblock></div>
-<p>A parent must be registered before its items; an item whose parent is missing (or not shown on the phone) is left out. Items appear in the order of registration, after the
-application&#x27;s.</p>
+<p>A group is shown while one of its items is, and a group that has no item (on the phone: only desktop items) is left out. The groups and the items of a level are in the order of
+registration (a group where it was registered, else where its first item is), the application&#x27;s first. <code translate="no" v-pre>position(..)</code> of an item or a group changes that:
+<code translate="no" v-pre>MenuPosition.first()</code>, <code translate="no" v-pre>last()</code> (stays last whatever is registered later), <code translate="no" v-pre>index(n)</code>, <code translate="no" v-pre>before(id)</code> and <code translate="no" v-pre>after(id)</code>, where <em>id</em> is the key of an item or the path of a group of
+the same level. Positions are worked out when a menu is built, so they do not depend on the order the extensions load in; an anchor that is not there leaves the entry
+at the end of its level, entries placed after the same anchor keep the order of registration. To find a place, ask the registry: <code translate="no" v-pre>children(kind, path)</code> lists the entries of
+a level (<code translate="no" v-pre>MenuEntry(id, group, index)</code>, <code translate="no" v-pre>&quot;&quot;</code> is the top level) and <code translate="no" v-pre>positionOf(kind, id)</code> gives the index of one (-1 when the menu has none).</p>
+<p><code translate="no" v-pre>separatorAfter()</code> draws a line between the item (or the group) and the entry after it, as <code translate="no" v-pre>ContextMenu.addSeparator()</code> would; the line is shown only while the item is and
+another entry follows it, so a menu never starts or ends with one. An entry placed <code translate="no" v-pre>after(..)</code> an item with a line comes after the line.</p>
+<p>The older way to make a sub menu still works: an item without a callback that others name with <code translate="no" v-pre>parent(key)</code> (any depth, it must be registered before them; one whose parent is
+missing, or not shown on the phone, is left out). It is hidden when none of its items is shown. A <code translate="no" v-pre>path</code> is ignored for an item that has a parent.</p>
 <p><strong>5. Keys.</strong> Every item with a callback is an action of <em>Settings → Keyboard shortcuts</em> (the id is <code translate="no" v-pre>menu.&lt;key&gt;</code> or the <code translate="no" v-pre>actionId</code> you gave) from the moment it is registered, with
 <code translate="no" v-pre>defaultKey</code> or without. A key of a <code translate="no" v-pre>card</code> or <code translate="no" v-pre>text</code> item acts on the part that is being edited, else the part that holds the text selection, else the last part, and on the last
 part when the item is not visible or enabled for the chosen one (the same predicates decide). A <code translate="no" v-pre>tools</code> item needs no part. Shortcuts work on the desktop only.
@@ -462,7 +488,8 @@ if (panel == null) {
 // UserPart.save, on ENTER: put the form's values into the user's settings object...
 UserSetting userSetting = context.getReflectiveFieldValue(instrumented, &quot;userSetting&quot;, UserSetting.class);
 reviewerService.saveSettings(form.save(), userSetting);     // writes into userSetting.getAttributes()
-// ...which the body of save() then stores with settingService.save(userSetting)</code></pre>
+// ...which the body of save() then stores with settingService.save(userSetting): it loads the setting again first (other code writes it
+// too) and takes over the attributes of this object, so what you wrote into getAttributes() is kept</code></pre>
 </doc-codeblock></div>
 <p>Changes in the panel&#x27;s fields are tracked like the application&#x27;s own: any value change outside of
 <code translate="no" v-pre>UserPart.refresh</code> (and its decorators) locks the workspace navigation until the user saves or discards. Fill the form
@@ -470,6 +497,9 @@ in the <code translate="no" v-pre>refresh</code> decorator, not later (e.g. from
 <p>Saving on enter lets the application&#x27;s own <code translate="no" v-pre>settingService.save(userSetting)</code> store the plugin&#x27;s values too. Note that
 <code translate="no" v-pre>save()</code> returns early when the application&#x27;s own fields don&#x27;t validate - then the plugin&#x27;s values are not stored
 either.</p>
+<p>A setting that a book or a folder can override (the plugin&#x27;s panel then holds the user level) does not need a decorator:
+register it in the <code translate="no" v-pre>InheritedSettingRegistry</code> and the <em>Prompts</em> tab and the folder dialog get the field, see
+<a href="../inherited-settings/">Inherited settings</a>.</p>
 <h3 id="dialogs-and-own-components">Dialogs and own components</h3>
 <p>Plugin dialogs and components are ordinary Vaadin classes in the bundle. Annotate them <code translate="no" v-pre>@Configurable</code> to inject
 services. Follow the application&#x27;s conventions (<a href="../../ui/#conventions">User interface → Conventions</a>).</p>
@@ -497,7 +527,8 @@ can also add a <em>language</em> for the application&#x27;s texts, see
 </li>
 </ul>
 <h3 id="texts-in-several-languages">Texts in several languages</h3>
-<p>A plugin can&#x27;t add keys to the <code translate="no" v-pre>L</code> enum, so the texts of its UI are the English sentences themselves.
+<p>A plugin can&#x27;t add keys to the <code translate="no" v-pre>L</code> enum, so the texts of its UI are the English sentences themselves, kept as
+<code translate="no" v-pre>String</code> constants of the plugin&#x27;s bundle class (never as literals in the UI code).
 <code translate="no" v-pre>PluginLocalizationBundle</code> (package <code translate="no" v-pre>extensions</code>) turns one into the text of the language of the current session
 (<code translate="no" v-pre>Localization.getCurrentLanguage()</code>): <code translate="no" v-pre>localized(message)</code> returns the translation, and the English <code translate="no" v-pre>message</code> when the
 language has none, so a language or a text that is missing shows English. The bundled plugins have one subclass each and
@@ -507,22 +538,33 @@ call it through a static field:</p>
 
     public static final InstructionExporterLocalization T = new InstructionExporterLocalization();
 
+    public static final String EXPORT_INSTRUCTIONS = &quot;Export instructions&quot;;
+    public static final String COPIED_TO_CLIPBOARD = &quot;Copied to clipboard&quot;;
+    public static final String FAILED_TO_EXPORT = &quot;Failed to export: %s&quot;;
+
     @Override
     protected void loadKeys() {
-        ja(&quot;Export instructions&quot;, &quot;指示をエクスポート&quot;);
-        zh(&quot;Export instructions&quot;, &quot;导出指令&quot;);
-        ja(&quot;Failed to export: %s&quot;, &quot;エクスポートに失敗しました: %s&quot;);
-        zh(&quot;Failed to export: %s&quot;, &quot;导出失败：%s&quot;);
+        ja(EXPORT_INSTRUCTIONS, &quot;指示をエクスポート&quot;);
+        zh(EXPORT_INSTRUCTIONS, &quot;导出指令&quot;);
+        ja(FAILED_TO_EXPORT, &quot;エクスポートに失敗しました: %s&quot;);
+        zh(FAILED_TO_EXPORT, &quot;导出失败：%s&quot;);
     }
 }</code></pre>
 </doc-codeblock></div>
 <div id="texts-in-several-languages-code-2" class="codeblock-wrapper"><doc-codeblock>
-<pre translate="no" class="language-java"><code v-pre class="language-java">import static ...InstructionExporterLocalization.T;
+<pre translate="no" class="language-java"><code v-pre class="language-java">import static ...InstructionExporterLocalization.*;
 
-Notification.show(T.localized(&quot;Copied to clipboard&quot;));
-Notification.show(T.localized(&quot;Failed to export: %s&quot;).formatted(e.getMessage()));</code></pre>
+Notification.show(T.localized(COPIED_TO_CLIPBOARD));
+Notification.show(T.localized(FAILED_TO_EXPORT).formatted(e.getMessage()));</code></pre>
 </doc-codeblock></div>
 <ul>
+<li>
+<p>The English text is a constant named after its words (<code translate="no" v-pre>EXPORT_INSTRUCTIONS</code>), declared in the bundle class; the
+Japanese and Chinese translations are plain literals in <code translate="no" v-pre>loadKeys</code>, the only place they appear. A call site passes
+the constant and never a literal. Import the constants with a static wildcard import, and mind a constant whose name
+is also a type or a field of the class that uses it (<code translate="no" v-pre>AI</code>, <code translate="no" v-pre>SCENE</code>): the type or the field is hidden, or the field
+wins, so give the constant another name or qualify it with the bundle class.</p>
+</li>
 <li>
 <p><code translate="no" v-pre>ja</code> and <code translate="no" v-pre>zh</code> are shortcuts for <code translate="no" v-pre>add(Language, message, translation)</code>; add other languages the same way (the language
 needs a bundle in <code translate="no" v-pre>Localization</code>, see the <a href="../example/#walkthrough-chinese-localization">Chinese localization</a>).</p>
@@ -536,7 +578,7 @@ order, write one key for each whole sentence (and one for the singular and the p
 <li>
 <p>Look the text up when it is shown, not in a field or a constant: the bundle answers for the language of the session
 that asks, and a text kept in a field stays in the language of whoever created it. A lambda that is called when a
-menu is opened (<code translate="no" v-pre>l -&gt; T.localized(&quot;Export instructions&quot;)</code>) is fine.</p>
+menu is opened (<code translate="no" v-pre>l -&gt; T.localized(EXPORT_INSTRUCTIONS)</code>) is fine.</p>
 </li>
 <li>
 <p>Without a session (startup, a worker thread that got no request attributes) the default language is used, so the
@@ -717,6 +759,9 @@ the kind, which a server or proxy with a prompt cache can use to keep a cache pe
 session id</a>. The scope covers only the call itself; a request outside of any scope sends no header.</p>
 </li>
 <li>
+<p><strong>Name the book.</strong> When the request is made for a book, open a <code translate="no" v-pre>UsageContext</code> next to the session: <code translate="no" v-pre>try (InferenceSession _ = InferenceSession.open(&quot;my-plugin&quot;); UsageContext _ = UsageContext.open(book)) { service.stream(...); }</code>. The tokens of the request then go to the <a href="../../domain-model/#writing-statistics-manuscriptstatistic-activityinterval-manuscriptsize">writing statistics</a> of that book, and the time of the request to its <em>generating</em> time; without it the request is counted for no book. The scope covers only the call itself, like the session.</p>
+</li>
+<li>
 <p><strong>Call <code translate="no" v-pre>controller.continueInference()</code></strong> after each chunk, or the stream stops after the first one.
 <code translate="no" v-pre>terminateInference()</code> ends it early.</p>
 </li>
@@ -818,10 +863,10 @@ uninstalled for good, its data stays in the database (and in backups) - harmless
                     </div>
             
                     <div class="w-1/2">
-                        <a class="px-5 py-4 -mx-px h-full flex items-center justify-end break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-r-lg transition-colors duration-150 relative hover:z-5" href="../../../developer/plugins/generation-events/">
+                        <a class="px-5 py-4 -mx-px h-full flex items-center justify-end break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-r-lg transition-colors duration-150 relative hover:z-5" href="../../../developer/plugins/inherited-settings/">
                             <span>
                                 <span class="block text-xs font-normal text-right text-base-text-muted">Next</span>
-                                <span class="block mt-1">Generation events</span>
+                                <span class="block mt-1">Inherited settings</span>
                             </span>
                             <svg xmlns="http://www.w3.org/2000/svg" class="ml-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19.92 12.38a1 1 0 00-.22-1.09l-7-7a.996.996 0 10-1.41 1.41l5.3 5.3H5c-.55 0-1 .45-1 1s.45 1 1 1h11.59l-5.29 5.29a.996.996 0 000 1.41c.19.2.44.3.7.3s.51-.1.71-.29l7-7c.09-.09.16-.21.21-.33z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
                         </a>
@@ -836,7 +881,7 @@ uninstalled for good, its data stays in the database (and in backups) - harmless
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.5.0 (60a4afd23).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (3b5a4203d).</p></div>
             </footer>
         </div>
     </div>

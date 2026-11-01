@@ -135,7 +135,10 @@ public class PreviewLoreActivationCommand extends LorebookReadSupport {
         ChatMessage storyEnd = part != null ? part : manuscript.getActiveLeaf();
         List<String> storyParts = activationService.recentParts(storyEnd,
                 activationService.partsNeeded(activationService.orderedEntries(books)), part != null);
-        for (LorebookEntryVerdict decided : activationService.evaluateAll(root, books, bookTags, matched, storyParts)) {
+        // the number of the part the turn creates, for the entries that are limited to some parts
+        Integer turnPosition = activationService.positionNeeded(activationService.orderedEntries(books))
+                ? activationService.turnPosition(storyEnd, part != null) : null;
+        for (LorebookEntryVerdict decided : activationService.evaluateAll(root, books, bookTags, matched, storyParts, turnPosition)) {
             LorebookEntry entry = decided.entry();
             Verdict verdict = decided.verdict();
             Lorebook owner = bookOf.get(entry.getId());

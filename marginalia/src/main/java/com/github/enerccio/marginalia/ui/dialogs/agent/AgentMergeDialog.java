@@ -920,6 +920,7 @@ public class AgentMergeDialog extends Dialog implements LLMInteract {
             case "userPrompt" -> L.LABEL_TOKEN_USER_PROMPT;
             case "summaryPrompt" -> L.LABEL_SUMMARY_PROMPT;
             case "metaSummaryPrompt" -> L.LABEL_META_SUMMARY_PROMPT;
+            case "historyMaxVersions" -> L.LABEL_HISTORY_MAX_VERSIONS;
             case "tags" -> L.LABEL_TAGS;
             case "negativeTags" -> L.LABEL_NEGATIVE_TAGS;
             case "response" -> L.LABEL_PART_TEXT;

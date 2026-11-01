@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.service;
 
+import com.github.enerccio.marginalia.domain.model.impl.Folder;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.LorebookService.LorebookDecision;
 import com.github.enerccio.marginalia.domain.service.LorebookService.LorebookImportCandidate;
@@ -12,7 +13,17 @@ import java.util.Map;
 
 public interface BackupService {
 
+    /**
+     * Takes a backup of the book without the history of its parts.
+     */
     ManuscriptBackup takeBackup(Manuscript manuscript) throws Exception;
+
+    /**
+     * Takes a backup of the book; with {@code includeHistory} it has the versions of each part (the ones in the trash too), and
+     * so a restore of it, as the book or as a copy, brings the history back. A backup without it gives the parts one first version.
+     * The history can be large: an automatic backup does not have it.
+     */
+    ManuscriptBackup takeBackup(Manuscript manuscript, boolean includeHistory) throws Exception;
     List<ManuscriptBackup> getBackups(Manuscript manuscript) throws Exception;
     Manuscript applyBackup(Manuscript manuscript, ManuscriptBackup backup, boolean messagesOnly,
                            Map<String, LorebookDecision> lorebookDecisions) throws Exception;
@@ -64,6 +75,12 @@ public interface BackupService {
      */
     Manuscript cloneManuscript(Manuscript source, String newName, boolean onlyCurrentBranch) throws Exception;
 
+    /**
+     * Like {@link #cloneManuscript(Manuscript, String, boolean)}, but the clone is put into the given folder (null is the top
+     * level) instead of next to the original.
+     */
+    Manuscript cloneManuscript(Manuscript source, String newName, boolean onlyCurrentBranch, Folder folder) throws Exception;
+
     List<LorebookImportCandidate> analyzeLorebooks(ManuscriptBackup backup) throws Exception;
     List<LorebookImportCandidate> analyzeLorebooks(File backupFile) throws Exception;
     List<LorebookImportCandidate> analyzeLorebooks(byte[] backupData) throws Exception;
@@ -77,7 +94,21 @@ public interface BackupService {
      *                    times)
      * @return the file, the caller deletes it when it's done with it
      */
-    BackupExport exportBackup(ManuscriptBackup backup, boolean withImages, Runnable imagePacked) throws Exception;
+    default BackupExport exportBackup(ManuscriptBackup backup, boolean withImages, Runnable imagePacked) throws Exception {
+        return exportBackup(backup, withImages, true, imagePacked);
+    }
+
+    /**
+     * Like {@link #exportBackup(ManuscriptBackup, boolean, Runnable)}, with the choice of what the file says about the settings
+     * the book inherits. The file never says which folder the book is in: where a book is filed is a local choice (the stored
+     * backup keeps it, for the restore here).
+     *
+     * @param includeInherited write what the book inherits into the file as the book's own values, where it has none of its own
+     *                         (from the folders it was in when the backup was taken, then from the user settings: language,
+     *                         master template, point of view, tense, style and the prompts), so it reads the same where there
+     *                         are no such folders; the built-in defaults are not written
+     */
+    BackupExport exportBackup(ManuscriptBackup backup, boolean withImages, boolean includeInherited, Runnable imagePacked) throws Exception;
 
     /**
      * @param file          temporary file with the backup

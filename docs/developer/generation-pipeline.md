@@ -121,8 +121,10 @@ Events: `BEFORE_PREPARE_GENERATION`, `AFTER_PREPARE_GENERATION`.
 Fills a new `PrePromptData` with the parts of the prompt that don't depend on the story:
 
 - the provider's jailbreak (if *Needs Jailbreak* is on) and its token count,
-- the book's effective prompts - master template, POV, tense, style, user prompt - each resolved book → user settings
-  → `Defaults` by `ManuscriptService`.
+- the book's effective prompts - master template, POV, tense, style, user prompt - each resolved book → the folders above it → user settings
+  → `Defaults` by `ManuscriptService` (`resolve(book, PromptField)`, see [Folders](folders.md#resolving-a-setting)). The step that creates
+  the new part writes the book back with `ManuscriptService.update` (it loads the stored book and sets only the global template variables and the
+  active leaf), so settings changed, or a book moved to a folder, while the generation ran are not overwritten.
 
 After `AFTER_STATIC_TEMPLATE_DATA` (where listeners may replace any of these), it renders the **user prompt** template
 with `UserPromptData` (the four `TurnInput` fields) into `userPromptProcessed` and counts its tokens. The first
@@ -143,6 +145,7 @@ Skipped when the book has no lorebook. Otherwise:
    | Check | Rule |
    |---|---|
    | enabled | `entry.enabled` |
+   | range of parts | `fromMessage` / `toMessage` are empty, or the number of the part the turn creates is inside them (both included): else `OUT_OF_RANGE`, whatever the rest says - the entry is also never a `FILTER_NOT_MATCHED` candidate of the scan of step 4. Checked only when the position is known (see below) |
    | negative tags | none of the entry's negative tags is a tag of the book |
    | tags | the entry has no tags, or one of them is a tag of the book (the entry's tags include the tags of its lorebook) |
    | filter | no filter, or the filter matches the **rendered user prompt** (for `activationContext = INCLUDE_PARTS`: the text of the newest `activationParts` parts of the branch, oldest first, then the user prompt, all joined by blank lines; see below): `KEYWORDS_OR` / `KEYWORDS_AND` - the filter split by commas, trimmed, blanks dropped; any / every keyword is a case-insensitive substring (no keyword never matches); `TEXT` - case-insensitive substring; `REGEX` - case-insensitive `find()` (`DOTALL`); an invalid regex never matches |
@@ -152,6 +155,11 @@ Skipped when the book has no lorebook. Otherwise:
    excludeLeaf)`: the non-blank `response` of the branch from the root to the active leaf, the newest `n`, oldest first (the leaf is left out
    for a swipe or a regeneration - it is the part being replaced). With 0 the story is not read. Each entry then takes the newest of the
    parts it asks for (`evaluate(entry, tags, instructions, parts)`); the scan of step 4 does not use the parts.
+
+   The position of the turn is `activationService.turnPosition(activeLeaf, excludeLeaf)`: the number of parts of the branch (blank ones
+   included, like the outline) plus one, or - for a swipe or a regeneration (`excludeLeaf`) - the number of the leaf itself. The step asks for it
+   only when `positionNeeded(entries)` (an enabled entry has a range), else it passes null and no range is checked
+   (`evaluate(entry, tags, instructions, parts, position)`).
 4. **Scan** (only with a scan depth): `Lorebook.scanDepth` of the lorebook the book uses (clamped to
    `LorebookActivationService.MAX_SCAN_DEPTH`, 5; the value of a sub-lorebook is ignored) is how many passes follow.
    Pass n takes the entries pass n - 1 activated (pass 0 is step 3), leaves out those with `preventRecursion` or no
@@ -262,7 +270,8 @@ The part gets the `TurnInput`, the model and protocol names, the payload as JSON
 Prompt*), the activated lore (`MessagePrompt.backgroundLore`) and the request time. The token breakdown gets the tokens of every message of the final
 payload (as listeners left it, counted with the provider's tokenizer) and is stored as the part's `tokenBreakdown`
 (shown by *Token Usage*, see [UI](ui.md)). Parts generated before it existed have none, `getTokenBreakdown()` is `null`
-for them. The template variables of the generation are stored: local ones in
+for them. *Compare Prompt* (`PromptComparisonDialog`) compares the stored payload of a part with that of an earlier part of the branch or a swipe
+(`PromptComparison`), to show where a prefix cache ends. The template variables of the generation are stored: local ones in
 the part's `attributes`, global ones in the book's. The part becomes the book's active leaf, both are saved
 and `listener.onNodeCreated(part)` lets the UI show it. The state stays `NOT_SUCCESSFUL` - until text arrives, the
 part is only a placeholder that cleanup removes or restores.
@@ -302,13 +311,32 @@ arrived with `countTokensApprox`. It is recorded once, when the stream completes
 after some text arrived; a request that fails before any text is not counted. The stream threads have no request, so the service takes
 the `ThreadCopyRequestAttributes` of the thread that called `stream` and records inside it (`currentUser` resolves).
 
+The same request is counted for the **book** it was made for (the tokens column of the [writing statistics](domain-model.md#writing-statistics-manuscriptstatistic-activityinterval-manuscriptsize)):
+the caller opens a `UsageContext` (a thread-local scope like `UnmeteredScope`, `try (UsageContext _ = UsageContext.open(book)) { service.stream(...); }`)
+around the call that starts the request; `OpenAICompatibleInferenceService` reads `UsageContext.current()` once in that thread, keeps the id of the
+book in its `Request` and opens it again around `UsageService.record` in the stream threads. `UsageServiceImpl.record` then adds the tokens
+(`StatisticCounts.tokens`, one request) to the day's row of the book through `ManuscriptStatisticService.count`, whoever the user is: the row is
+the owner's of the book, and a thread without a user counts for the book too. A call without a context counts for the AI only. The generation
+(`InferenceStep`), summaries, impersonate, redraft, annotate (all its stages) and the agent runs (the working copy, see the agents note
+of the statistics) open it; an unmetered request counts for nobody. An extension AI does what the Anthropic and Google plugins do: reads
+`UsageContext.current()` in the thread that starts the request and reopens it around its `UsageService.record`; a plugin that asks a model for
+a book opens the scope around its call.
+
+The same context decides the **generation time** of the book (the `GENERATE` stretches of the `ActivityTracker`): `OpenAICompatibleInferenceService`
+registers the request with `ActivityTracker.generate(book)` when a metered request has a book, from before it is sent to the end of its answer, the stop or the failure (a
+request with function calls registers each round on its own: the time the functions take between the rounds is not the model's, and the tracker keeps the stretch open
+for 2 s so the next round of an agent joins it). An extension AI has no hook for it yet.
+
 Before a request is built, `stream` asks `AILimitService.check(ai, promptTokens, reservedTokens)` (with our estimate of the payload and the response size the request reserves): a user with the AI not available or over their token limit gets an
 `InferenceException` (`NOT_AVAILABLE`, `LIMIT_REACHED`) in the caller's thread and nothing is sent, so the steps, summaries and
 extensions handle it like any provider failure. The limits are described in the [domain model](domain-model.md#limits-of-the-users-of-a-shared-ai).
 
 ### 8. `CLEANUP` - `CleanupStep`
 
-Always the last step. Depending on the state:
+Always the last step. It also **records the version** of the text in the history of the part (`MessageRevisionService.record`: `GENERATE`
+for a new part, `REGENERATE` for a regenerated one, with "model · protocol" and the reasoning), also for the text that arrived before
+a stop or an error; a generation that produced nothing records nothing. Regenerate calls `ensureCurrent` before it clears the part,
+so the text that is replaced is in the history. See [Version history](version-history.md#recording). Depending on the state:
 
 | State | What happens |
 |---|---|
