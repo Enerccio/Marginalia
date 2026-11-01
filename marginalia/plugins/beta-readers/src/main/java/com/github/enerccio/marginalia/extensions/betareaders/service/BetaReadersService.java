@@ -86,6 +86,15 @@ public class BetaReadersService {
         }
     }
 
+    /**
+     * The most messages the model may write in a turn of the chat: its own limit, else the one in the settings of the user, else the
+     * built-in one.
+     */
+    public int maxMessages(BetaChat chat) {
+        return BetaReadersDefaults.maxMessages(chat.getKind(), chat.present().size(), chat.getMaxMessages(),
+                settingsOrDefaults().getMaxMessages());
+    }
+
     public void saveSettings(BetaReadersSettings settings) throws Exception {
         UserSetting userSetting = settingService.getOrCreate(UserSetting.class);
         saveSettings(settings, userSetting);
@@ -402,7 +411,7 @@ public class BetaReadersService {
             return Map.of();
         }
         PromptBuilder.Options options = new PromptBuilder.Options(ChatRunner.mode(chat.getFormat()).json(),
-                BetaReadersDefaults.maxMessages(chat.getKind(), chat.present().size()), 0, run.tokens());
+                maxMessages(chat), 0, run.tokens());
         int used = PromptBuilder.build(view, run.system(), options).tokens();
         int budget = run.limit() > 0 ? Math.max(run.limit() / 2, run.limit() - used) : 0;
         return PartsTracker.blocks(view, story.parts(), story.summaries(), chat.getFromPart(), chat.getSpoilerLimit(), budget, run.tokens())
@@ -476,7 +485,7 @@ public class BetaReadersService {
             }
         }
         PromptBuilder.Options options = new PromptBuilder.Options(ChatRunner.mode(chat.getFormat()).json(),
-                BetaReadersDefaults.maxMessages(chat.getKind(), chat.present().size()), 0, run.tokens(), Map.of());
+                maxMessages(chat), 0, run.tokens(), Map.of());
         // a message that is not sent yet may bring parts: the story is the one the request would read
         options = options.withStory(storyBlocks(chat, view, run, story));
         return new ContextUsage(PromptBuilder.build(view, run.system(), options).tokens(), run.limit());
@@ -508,7 +517,7 @@ public class BetaReadersService {
         // the reply ends on another thread: it is stored as the user who asked
         RequestAttributes attributes = ThreadCopyRequestAttributes.create();
         ChatRunner.Request request = new ChatRunner.Request(chat, run.system(),
-                BetaReadersDefaults.maxMessages(chat.getKind(), chat.present().size()), run.limit(), run.tokens(), story);
+                maxMessages(chat), run.limit(), run.tokens(), story);
         ChatRunner.Listener storing = new ChatRunner.Listener() {
             @Override
             public void onProgress(ReplyReader.Reading reading) {

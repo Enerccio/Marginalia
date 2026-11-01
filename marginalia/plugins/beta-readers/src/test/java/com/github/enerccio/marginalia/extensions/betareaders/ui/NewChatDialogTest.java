@@ -1,11 +1,7 @@
 package com.github.enerccio.marginalia.extensions.betareaders.ui;
 
 import com.github.enerccio.marginalia.extensions.InheritedSetting.Choice;
-import com.github.enerccio.marginalia.extensions.betareaders.model.BetaChat;
-import com.github.enerccio.marginalia.extensions.betareaders.model.ChatKind;
-import com.github.enerccio.marginalia.extensions.betareaders.model.Medium;
-import com.github.enerccio.marginalia.extensions.betareaders.model.Persona;
-import com.github.enerccio.marginalia.extensions.betareaders.model.ReplyFormat;
+import com.github.enerccio.marginalia.extensions.betareaders.model.*;
 import com.github.enerccio.marginalia.extensions.betareaders.service.BetaReadersStore.Available;
 import com.github.enerccio.marginalia.extensions.betareaders.service.BetaReadersStore.Scope;
 import com.vaadin.flow.component.ClickEvent;
@@ -149,6 +145,30 @@ class NewChatDialogTest {
         assertEquals("ai-1", chat.getAi());
         assertEquals("pr-1", chat.getProtocol());
         assertEquals(ReplyFormat.TEXT, chat.getFormat());
+    }
+
+    @Test
+    void theMostMessagesOfATurnAreInheritedUnlessTheChatSetsThem() {
+        NewChatDialog dialog = dialog();
+        dialog.groupPersonas.select(athena);
+        assertEquals("Inherited: Automatic", dialog.options.maxMessages.getPlaceholder());
+
+        create(dialog);
+        assertEquals(0, created.getFirst().getMaxMessages());
+
+        NewChatDialog other = dialog();
+        other.groupPersonas.select(athena);
+        other.options.maxMessages.setValue(6);
+        create(other);
+        assertEquals(6, created.getLast().getMaxMessages());
+    }
+
+    @Test
+    void theInheritedMostMessagesAreShownWhenTheUserSetsThem() {
+        ChatOptionsForm form = new ChatOptionsForm(List.of(), List.of(), List.of(),
+                new ChatOptionsForm.Inherited("Book", "Model", null, "Scene", 10));
+
+        assertEquals("Inherited: 10", form.maxMessages.getPlaceholder());
     }
 
     @Test

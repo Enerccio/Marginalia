@@ -218,7 +218,7 @@ public class BetaReadersView extends VerticalLayout {
         var medium = service.resolveMedium(manuscript, null);
         return new ChatOptionsForm.Inherited(medium == null ? null : medium.getName(),
                 model.ai() == null ? null : model.ai().getName(), model.protocol() == null ? null : model.protocol().getName(),
-                service.resolveScene(manuscript, null));
+                service.resolveScene(manuscript, null), service.settingsOrDefaults().getMaxMessages());
     }
 
     private void settings() {

@@ -38,6 +38,8 @@ public class BetaChat {
     /** The uuids of the AI and the protocol of this chat (the highest priority); null: the inherited ones. */
     private String ai;
     private String protocol;
+    /** The most messages the model may write in one turn of this chat; 0: the inherited limit (the one of the user, else the built-in one). */
+    private int maxMessages;
 
     /** A list that can be read while the reply of the model, which ends on another thread, is added to it. */
     private List<BetaMessage> messages = new CopyOnWriteArrayList<>();
@@ -208,6 +210,14 @@ public class BetaChat {
         this.protocol = protocol;
     }
 
+    public int getMaxMessages() {
+        return maxMessages;
+    }
+
+    public void setMaxMessages(int maxMessages) {
+        this.maxMessages = Math.max(0, maxMessages);
+    }
+
     public List<BetaMessage> getMessages() {
         return messages;
     }
@@ -222,6 +232,7 @@ public class BetaChat {
     public BetaChat normalize() {
         kind = kind == null ? ChatKind.GROUP : kind;
         format = format == null ? ReplyFormat.AUTO : format;
+        maxMessages = Math.max(0, maxMessages);
         personas = personas == null ? new ArrayList<>() : personas;
         messages = messages == null ? new CopyOnWriteArrayList<>() : new CopyOnWriteArrayList<>(messages);
         messages.forEach(BetaMessage::normalize);

@@ -19,6 +19,7 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.TextField;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,6 +50,7 @@ public class BetaReadersSettingsForm extends VerticalLayout {
     private final ComboBox<Medium> mediumCombo = new ComboBox<>(T.localized(MEDIUM));
     private final ComboBox<AI> aiCombo = new ComboBox<>(T.localized(MODEL_OF_THE_CHATS));
     private final ComboBox<Protocol> protocolCombo = new ComboBox<>(T.localized(PROTOCOL_OF_THE_CHATS));
+    private final IntegerField maxMessages = new IntegerField(T.localized(MOST_MESSAGES_IN_A_TURN));
     private final TextField personaSummary = new TextField(T.localized(PERSONA_LIBRARY));
     private final TextField mediumSummary = new TextField(T.localized(MEDIUMS));
 
@@ -105,7 +107,14 @@ public class BetaReadersSettingsForm extends VerticalLayout {
         protocolCombo.setClearButtonVisible(true);
         protocolCombo.setHelperText(T.localized(EMPTY_THE_PROTOCOL));
 
-        FormLayout choices = new FormLayout(mediumCombo, aiCombo, protocolCombo);
+        maxMessages.setWidthFull();
+        maxMessages.setMin(1);
+        maxMessages.setMax(BetaReadersDefaults.MAX_MESSAGES_LIMIT);
+        maxMessages.setStepButtonsVisible(true);
+        maxMessages.setPlaceholder(T.localized(AUTOMATIC));
+        maxMessages.setHelperText(T.localized(EMPTY_AUTOMATIC_THE_MOST_MESSAGES));
+
+        FormLayout choices = new FormLayout(mediumCombo, aiCombo, protocolCombo, maxMessages);
         choices.setWidthFull();
 
         add(intro, choices, singlePrompt, groupPrompt, scene, libraryRow(personaSummary, T.localized(EDIT_PERSONAS), this::editPersonas),
@@ -134,6 +143,7 @@ public class BetaReadersSettingsForm extends VerticalLayout {
             singlePrompt.setValue(settings.getSinglePrompt());
             groupPrompt.setValue(settings.getGroupPrompt());
             scene.setValue(settings.getScene());
+            maxMessages.setValue(settings.getMaxMessages() > 0 ? settings.getMaxMessages() : null);
             loadCombos();
             refreshSummaries();
         } catch (Exception e) {
@@ -190,6 +200,8 @@ public class BetaReadersSettingsForm extends VerticalLayout {
         settings.setSinglePrompt(StringUtils.defaultString(singlePrompt.getValue()));
         settings.setGroupPrompt(StringUtils.defaultString(groupPrompt.getValue()));
         settings.setScene(StringUtils.defaultString(scene.getValue()));
+        Integer most = maxMessages.getValue();
+        settings.setMaxMessages(most == null ? 0 : Math.min(most, BetaReadersDefaults.MAX_MESSAGES_LIMIT));
         Medium medium = mediumCombo.getValue();
         settings.setMedium(medium == null ? "" : medium.getId());
         AI ai = aiCombo.getValue();

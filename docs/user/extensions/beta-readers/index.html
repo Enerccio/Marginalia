@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846858660714">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846859002389">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846858660714" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846859002389" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846858660714" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846859002389" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846858660714" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846859002389" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -394,7 +394,8 @@ persona can&#x27;t leave.</p>
 | Reply format | How the model is asked to write: **Automatic** (JSON in a schema when the model can follow one, free text otherwise), **JSON** (always in a schema), **JSON without a schema** or **Free text**. See [the reasoning](#the-reasoning). |
 | Personas read up to part | The [spoiler limit](#how-much-of-the-story-the-personas-read). |
 | Start from part | The part where the story the personas get begins. |
-| Use the summaries of the story | See below. |">
+| Use the summaries of the story | See below. |
+| Most messages in a turn | The most messages the personas write in answer to one message of yours (1 to 50). Empty: your setting in *Settings → Extension Settings → Beta Readers*. A reply that has more is cut, and the model is told the limit. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -435,6 +436,10 @@ persona can&#x27;t leave.</p>
 <tr>
 <td>Use the summaries of the story</td>
 <td>See below.</td>
+</tr>
+<tr>
+<td>Most messages in a turn</td>
+<td>The most messages the personas write in answer to one message of yours (1 to 50). Empty: your setting in <em>Settings → Extension Settings → Beta Readers</em>. A reply that has more is cut, and the model is told the limit.</td>
 </tr>
 </tbody>
 </table>
@@ -499,6 +504,7 @@ story is built for every message.</p>
 | Prompt of a chat with one persona | The system prompt of a one-to-one chat. Empty: the built-in prompt. |
 | Prompt of a group chat | The system prompt of a group chat. Empty: the built-in prompt. |
 | Scene | See [above](#the-scene). Empty: an online chat. |
+| Most messages in a turn | The most messages the personas write in answer to one message of yours, for every chat that sets no limit of its own (1 to 50). Empty: automatic, 3 for a chat with one persona and about two for each persona of a group (at most 8). A short limit keeps the replies short; raise it when the personas are cut off mid-conversation. |
 | Persona library | **Edit personas**, see [above](#personas). |
 | Mediums | **Edit mediums**: each medium has a name and the prompt that tells the personas how to react to it. **Restore the built-in mediums** adds the ones that are missing. |">
 <div class="table-wrapper scrollbar overflow-hidden">
@@ -533,6 +539,10 @@ story is built for every message.</p>
 <tr>
 <td>Scene</td>
 <td>See <doc-anchor-trigger to="#the-scene">above</doc-anchor-trigger>. Empty: an online chat.</td>
+</tr>
+<tr>
+<td>Most messages in a turn</td>
+<td>The most messages the personas write in answer to one message of yours, for every chat that sets no limit of its own (1 to 50). Empty: automatic, 3 for a chat with one persona and about two for each persona of a group (at most 8). A short limit keeps the replies short; raise it when the personas are cut off mid-conversation.</td>
 </tr>
 <tr>
 <td>Persona library</td>
@@ -594,7 +604,7 @@ settings in your user settings. The model is asked with the usual limits of the 
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (bb1b960bb).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (8e1e166a0).</p></div>
             </footer>
         </div>
     </div>

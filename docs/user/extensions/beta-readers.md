@@ -138,6 +138,7 @@ The window of a new chat and **Chat settings** have the same options; every one 
 | Personas read up to part | The [spoiler limit](#how-much-of-the-story-the-personas-read). |
 | Start from part | The part where the story the personas get begins. |
 | Use the summaries of the story | See below. |
+| Most messages in a turn | The most messages the personas write in answer to one message of yours (1 to 50). Empty: your setting in *Settings → Extension Settings → Beta Readers*. A reply that has more is cut, and the model is told the limit. |
 
 ![The settings of a chat](../../images/plugin-betareaders-chat-settings.png)
 
@@ -200,6 +201,7 @@ The lorebook is not sent to the personas: they only know what the story tells th
 | Prompt of a chat with one persona | The system prompt of a one-to-one chat. Empty: the built-in prompt. |
 | Prompt of a group chat | The system prompt of a group chat. Empty: the built-in prompt. |
 | Scene | See [above](#the-scene). Empty: an online chat. |
+| Most messages in a turn | The most messages the personas write in answer to one message of yours, for every chat that sets no limit of its own (1 to 50). Empty: automatic, 3 for a chat with one persona and about two for each persona of a group (at most 8). A short limit keeps the replies short; raise it when the personas are cut off mid-conversation. |
 | Persona library | **Edit personas**, see [above](#personas). |
 | Mediums | **Edit mediums**: each medium has a name and the prompt that tells the personas how to react to it. **Restore the built-in mediums** adds the ones that are missing. |
 

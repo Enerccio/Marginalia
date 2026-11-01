@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.extensions.betareaders.ui;
 
 import com.github.enerccio.marginalia.extensions.InheritedSetting.Choice;
 import com.github.enerccio.marginalia.extensions.betareaders.model.BetaChat;
+import com.github.enerccio.marginalia.extensions.betareaders.model.BetaReadersDefaults;
 import com.github.enerccio.marginalia.extensions.betareaders.model.Medium;
 import com.github.enerccio.marginalia.extensions.betareaders.model.ReplyFormat;
 import com.vaadin.flow.component.checkbox.Checkbox;
@@ -25,10 +26,14 @@ public class ChatOptionsForm extends VerticalLayout {
     /**
      * What the chat gets when it chooses nothing, as the names shown in the empty fields ("Inherited: ...").
      */
-    public record Inherited(String medium, String ai, String protocol, String scene) {
+    public record Inherited(String medium, String ai, String protocol, String scene, int maxMessages) {
+
+        public Inherited(String medium, String ai, String protocol, String scene) {
+            this(medium, ai, protocol, scene, 0);
+        }
 
         public Inherited(String medium, String ai, String protocol) {
-            this(medium, ai, protocol, null);
+            this(medium, ai, protocol, null, 0);
         }
     }
 
@@ -39,6 +44,7 @@ public class ChatOptionsForm extends VerticalLayout {
     final Select<ReplyFormat> format = new Select<>();
     final IntegerField spoilerLimit = new IntegerField(T.localized(PERSONAS_READ_UP_TO_PART));
     final IntegerField fromPart = new IntegerField(T.localized(START_FROM_PART));
+    final IntegerField maxMessages = new IntegerField(T.localized(MOST_MESSAGES_IN_A_TURN));
     final Checkbox summaries = new Checkbox(T.localized(USE_THE_SUMMARIES));
 
     private final Inherited inherited;
@@ -82,7 +88,15 @@ public class ChatOptionsForm extends VerticalLayout {
         fromPart.setHelperText(T.localized(EMPTY_FROM_THE_FIRST_PART));
         summaries.setValue(true);
 
-        add(spoilerLimit, fromPart, summaries, medium, scene, ai, protocol, format);
+        maxMessages.setMin(1);
+        maxMessages.setMax(BetaReadersDefaults.MAX_MESSAGES_LIMIT);
+        maxMessages.setStepButtonsVisible(true);
+        maxMessages.setWidthFull();
+        maxMessages.setPlaceholder(inheritedText(inherited.maxMessages() > 0 ? String.valueOf(inherited.maxMessages())
+                : T.localized(AUTOMATIC)));
+        maxMessages.setHelperText(T.localized(EMPTY_INHERITED_THE_MOST_MESSAGES));
+
+        add(spoilerLimit, fromPart, summaries, maxMessages, medium, scene, ai, protocol, format);
     }
 
     /**
@@ -91,6 +105,10 @@ public class ChatOptionsForm extends VerticalLayout {
     public String problem() {
         Integer first = fromPart.getValue();
         Integer last = spoilerLimit.getValue();
+        Integer most = maxMessages.getValue();
+        if (most != null && (most < 1 || most > BetaReadersDefaults.MAX_MESSAGES_LIMIT)) {
+            return T.localized(THE_MOST_MESSAGES_MUST_BE).formatted(BetaReadersDefaults.MAX_MESSAGES_LIMIT);
+        }
         if (first != null && last != null && first > last) {
             return T.localized(THE_FIRST_PART_CANT_COME);
         }
@@ -130,6 +148,7 @@ public class ChatOptionsForm extends VerticalLayout {
         spoilerLimit.setValue(chat.getSpoilerLimit() > 0 ? chat.getSpoilerLimit() : null);
         fromPart.setValue(chat.getFromPart() > 0 ? chat.getFromPart() : null);
         summaries.setValue(chat.isSummaries());
+        maxMessages.setValue(chat.getMaxMessages() > 0 ? chat.getMaxMessages() : null);
     }
 
     /**
@@ -152,6 +171,7 @@ public class ChatOptionsForm extends VerticalLayout {
         chat.setSpoilerLimit(spoilerLimit.getValue() == null ? 0 : spoilerLimit.getValue());
         chat.setFromPart(fromPart.getValue() == null ? 0 : fromPart.getValue());
         chat.setSummaries(summaries.getValue());
+        chat.setMaxMessages(maxMessages.getValue() == null ? 0 : maxMessages.getValue());
     }
 
     /** The id of the medium chosen; null for the inherited one. */
