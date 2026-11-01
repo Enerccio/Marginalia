@@ -199,6 +199,9 @@ jobs:
             plain_deb=$(ls target/desktop/marginalia-*.deb | grep -v -- '-full\.deb$')
             full_deb=$(ls target/desktop/marginalia-*-full.deb)
             port=18767
+            # the package registers its menu entry with xdg-desktop-menu, which fails (exit 3) on a runner without a
+            # desktop: give it the directories a desktop has
+            sudo mkdir -p /usr/share/desktop-directories /usr/share/applications /etc/xdg/menus/applications-merged
             for entry in "deb:$plain_deb" "deb-full:$full_deb"; do
               name="${entry%%:*}"
               deb="${entry#*:}"
