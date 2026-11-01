@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846887737519">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846887766642">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846887737519" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846887766642" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846887737519" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846887766642" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846887737519" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846887737519" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846887766642" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846887766642" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -598,7 +598,7 @@ on pushes to <code translate="no" v-pre>master</code>, on <code translate="no" v
 <code translate="no" v-pre>git-commit-id-plugin</code>.</p>
 <p>The <strong>smoke test</strong> starts the native app (and on Linux and macOS also the portable <code translate="no" v-pre>bin/marginalia</code>) with a temporary
 <code translate="no" v-pre>--home</code>, a fixed port, <code translate="no" v-pre>--no-browser --no-tray</code>, and waits up to three minutes until the start page contains
-<code translate="no" v-pre>&lt;title&gt;Marginalia&lt;/title&gt;</code>. On Linux it also installs the <code translate="no" v-pre>.deb</code> and then the full <code translate="no" v-pre>.deb</code> and starts the installed <code translate="no" v-pre>/opt/marginalia/bin/Marginalia</code> each time; the plain package must install no plugin, the full one must have copied its plugins into the extensions folder. It fails and prints the launcher log otherwise. It catches broken packaging - a missing
+<code translate="no" v-pre>&lt;title&gt;Marginalia&lt;/title&gt;</code>. On Linux it also installs the <code translate="no" v-pre>.deb</code> (the package registers its menu entry with <code translate="no" v-pre>xdg-desktop-menu</code>, which fails on a runner without a desktop, so the step first creates <code translate="no" v-pre>/usr/share/desktop-directories</code>, <code translate="no" v-pre>/usr/share/applications</code> and <code translate="no" v-pre>/etc/xdg/menus/applications-merged</code>) and then the full <code translate="no" v-pre>.deb</code> and starts the installed <code translate="no" v-pre>/opt/marginalia/bin/Marginalia</code> each time; the plain package must install no plugin, the full one must have copied its plugins into the extensions folder. It fails and prints the launcher log otherwise. It catches broken packaging - a missing
 JDK module, a launcher that can&#x27;t find <code translate="no" v-pre>server/</code>, a WAR that doesn&#x27;t deploy - but doesn&#x27;t test any feature.</p>
 <h3 id="serveryml">server.yml</h3>
 <div class="overflow-hidden mb-6 py-4 dark:px-5 dark:bg-white rounded-md"><pre translate="no" class="mermaid w-full">flowchart LR
@@ -719,7 +719,7 @@ with a new <code translate="no" v-pre>docs/</code> reaches <code translate="no" 
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (72d77a1f0).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (27259f2e8).</p></div>
             </footer>
         </div>
     </div>
