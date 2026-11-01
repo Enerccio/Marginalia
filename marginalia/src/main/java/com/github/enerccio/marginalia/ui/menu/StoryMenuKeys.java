@@ -6,6 +6,17 @@ package com.github.enerccio.marginalia.ui.menu;
  */
 public final class StoryMenuKeys {
 
+    // --- GROUPS: the paths of the groups of the menus, an extension puts its item into one with StoryMenuItem.path ---
+    public static final String GROUP_APPEARANCE = "appearance";
+    public static final String GROUP_ANALYSIS = "analysis";
+    public static final String GROUP_IMPORT_EXPORT = "importExport";
+    public static final String GROUP_CLEAN_UP = "cleanUp";
+    public static final String GROUP_LAYOUT = "layout";
+    public static final String GROUP_ANNOTATE = "annotate";
+    public static final String GROUP_SUMMARY = "summary";
+    public static final String GROUP_INSPECT = "inspect";
+    public static final String GROUP_BRANCH_MERGE = "branchMerge";
+
     // --- TOOLS ---
     public static final String CHANGE_STYLES = "tools.changeStyles";
     public static final String HIGHLIGHT_GENERATED = "tools.highlightGenerated";

@@ -644,3 +644,15 @@ Most are 🧩 plugin-sized; the ones that need a core hook say so.
     - **Summaries, annotations and the history use the style too.** Only the parts of the story and the reader do now
       (`.chat-message-markdown` inside the element that carries the class); the summaries dialog and the history view show
       the plain look.
+
+75. ✅ **Shorter menus.** Done (see the CHANGELOG, *Unreleased*): the registry (`StoryMenuRegistry`) has paths (`Whatever/Is`, groups made from
+    the segments, `StoryMenuRegistry.group` for a translated text and an icon), positions (`MenuPosition`: first, last, index, before / after,
+    resolved when the menu is built, `children` / `positionOf` to find a place) and separators (`separatorAfter`); the settings menu is
+    grouped into Appearance, Analysis, Import & export, Cleanup and Layout, the menu of a part into Annotations, Summary, Inspect and
+    Branch & merge. Left over:
+    - **The header of the book list.** `ManuscriptPart` has nine fixed controls in one row (Search, Organise, Tag books,
+      Statistics, the Mass changes menu, two import icons, New folder, Add book) that wraps in a narrow panel. Fold the two
+      imports into an *Import* menu and Organise, Tag books and Statistics into the Mass changes menu (renamed *Manage*);
+      Search, New folder and Add book stay buttons.
+    - **Screenshots.** `history-part-menu.png`, `history-menu.png` and `story-settings-menu.png` show the menus before the grouping.
+    - **A look in a browser.** The grouped menus, the lines and the nested *Change Styles For Text* are tested without a browser only.

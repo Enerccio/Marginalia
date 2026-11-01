@@ -934,6 +934,12 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_STYLE_EXPORT_DOCX, "Word 文档");
         setValue(L.LABEL_EXPORTS, "导出");
         setValue(L.LABEL_EXPORT_STYLE_OF_FORMAT, "格式自带的外观");
+        setValue(L.LABEL_APPEARANCE, "外观");
+        setValue(L.LABEL_ANALYSIS, "分析");
+        setValue(L.LABEL_IMPORT_AND_EXPORT, "导入与导出");
+        setValue(L.LABEL_LAYOUT, "布局");
+        setValue(L.LABEL_INSPECT, "查看");
+        setValue(L.LABEL_BRANCH_AND_MERGE, "分支与合并");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");

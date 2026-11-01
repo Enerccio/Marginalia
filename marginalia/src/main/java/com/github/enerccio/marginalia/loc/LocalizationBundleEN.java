@@ -926,6 +926,12 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_STYLE_EXPORT_DOCX, "Word document");
         setValue(L.LABEL_EXPORTS, "Exports");
         setValue(L.LABEL_EXPORT_STYLE_OF_FORMAT, "Look of the format");
+        setValue(L.LABEL_APPEARANCE, "Appearance");
+        setValue(L.LABEL_ANALYSIS, "Analysis");
+        setValue(L.LABEL_IMPORT_AND_EXPORT, "Import & export");
+        setValue(L.LABEL_LAYOUT, "Layout");
+        setValue(L.LABEL_INSPECT, "Inspect");
+        setValue(L.LABEL_BRANCH_AND_MERGE, "Branch & merge");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");

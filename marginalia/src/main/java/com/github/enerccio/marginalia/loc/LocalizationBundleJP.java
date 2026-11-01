@@ -926,6 +926,12 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_STYLE_EXPORT_DOCX, "Word 文書");
         setValue(L.LABEL_EXPORTS, "エクスポート");
         setValue(L.LABEL_EXPORT_STYLE_OF_FORMAT, "形式標準の見た目");
+        setValue(L.LABEL_APPEARANCE, "表示");
+        setValue(L.LABEL_ANALYSIS, "分析");
+        setValue(L.LABEL_IMPORT_AND_EXPORT, "インポートとエクスポート");
+        setValue(L.LABEL_LAYOUT, "レイアウト");
+        setValue(L.LABEL_INSPECT, "確認");
+        setValue(L.LABEL_BRANCH_AND_MERGE, "分岐と統合");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");

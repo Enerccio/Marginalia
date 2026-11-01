@@ -6,6 +6,7 @@ import com.github.enerccio.marginalia.ui.dialogs.story.StoryCard;
 import com.github.enerccio.marginalia.ui.dialogs.story.StoryEditor;
 import com.vaadin.flow.component.icon.Icon;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.*;
@@ -53,6 +54,9 @@ public final class StoryMenuItem {
     private String defaultKey;
     private boolean phone = true;
     private String parent;
+    private List<String> path = List.of();
+    private MenuPosition position = MenuPosition.DEFAULT;
+    private boolean separatorAfter;
     private BiPredicate<StoryEditor, StoryCard> visible = (part, card) -> true;
     private BiPredicate<StoryEditor, StoryCard> enabled = (part, card) -> true;
     private Predicate<StoryEditor> checked;
@@ -92,6 +96,17 @@ public final class StoryMenuItem {
     }
 
     /**
+     * An item whose text is the last name of the path, not translated: {@code "Whatever/Is/Plugin"} is the item Plugin in the group Is
+     * of the group Whatever (see {@link #path}); a slash in a name is written {@code \/}. For an extension that has no translations;
+     * the application and the extensions that translate their texts give the group in {@link #path} and the text as a label.
+     */
+    public static StoryMenuItem tools(String key, String name, Consumer<StoryEditor> action) {
+        List<String> names = MenuPath.parse(name);
+        String text = names.isEmpty() ? key : names.removeLast();
+        return tools(key, loc -> text, action).path(MenuPath.join(names));
+    }
+
+    /**
      * An item of the menu of a part.
      *
      * @param action does what the item says, null for an item that only holds a sub menu
@@ -105,6 +120,15 @@ public final class StoryMenuItem {
     }
 
     /**
+     * An item of the menu of a part whose text is the last name of the path, see {@link #tools(String, String, Consumer)}.
+     */
+    public static StoryMenuItem card(String key, String name, BiConsumer<StoryEditor, StoryCard> action) {
+        List<String> names = MenuPath.parse(name);
+        String text = names.isEmpty() ? key : names.removeLast();
+        return card(key, loc -> text, action).path(MenuPath.join(names));
+    }
+
+    /**
      * An item of the menu of the text of a part (right click).
      */
     public static StoryMenuItem text(String key, Function<Localization, String> label, BiConsumer<StoryEditor, StoryCard> action) {
@@ -113,6 +137,15 @@ public final class StoryMenuItem {
 
     public static StoryMenuItem text(String key, L label, BiConsumer<StoryEditor, StoryCard> action) {
         return text(key, loc -> loc.getValue(label), action);
+    }
+
+    /**
+     * An item of the menu of the text whose text is the last name of the path, see {@link #tools(String, String, Consumer)}.
+     */
+    public static StoryMenuItem text(String key, String name, BiConsumer<StoryEditor, StoryCard> action) {
+        List<String> names = MenuPath.parse(name);
+        String text = names.isEmpty() ? key : names.removeLast();
+        return text(key, loc -> text, action).path(MenuPath.join(names));
     }
 
     /**
@@ -171,6 +204,34 @@ public final class StoryMenuItem {
      */
     public StoryMenuItem parent(String parentKey) {
         this.parent = parentKey;
+        return this;
+    }
+
+    /**
+     * Puts the item into a group of the menu: the names of the groups, outermost first, separated by {@code /} ({@code "Whatever/Is"}
+     * shows the item as Whatever, Is, the item). The groups are made when a menu is built, extensions that name the same group share it;
+     * to translate the name of a group or to give it an icon see {@link StoryMenuRegistry#group}, without that it shows the name as it
+     * is. A blank path (the default) is the top level. Ignored for an item that has a {@link #parent}.
+     */
+    public StoryMenuItem path(String path) {
+        this.path = MenuPath.parse(path);
+        return this;
+    }
+
+    /**
+     * Where the item stands among the entries of its group (default: after the ones registered before it).
+     */
+    public StoryMenuItem position(MenuPosition position) {
+        this.position = position == null ? MenuPosition.DEFAULT : position;
+        return this;
+    }
+
+    /**
+     * A line between this item and the one after it in its group. It is shown only when the item is and an entry follows it that is,
+     * so a menu never starts or ends with a line.
+     */
+    public StoryMenuItem separatorAfter() {
+        this.separatorAfter = true;
         return this;
     }
 
@@ -249,6 +310,21 @@ public final class StoryMenuItem {
 
     public String getParent() {
         return parent;
+    }
+
+    /**
+     * The names of the groups the item is in, outermost first.
+     */
+    public List<String> getPath() {
+        return new ArrayList<>(path);
+    }
+
+    public MenuPosition getPosition() {
+        return position;
+    }
+
+    public boolean hasSeparatorAfter() {
+        return separatorAfter;
     }
 
     public boolean hasAction() {

@@ -7,7 +7,9 @@ import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.ExtensionService;
 import com.github.enerccio.marginalia.domain.service.OsgiService;
 import com.github.enerccio.marginalia.extensions.MarginaliaExtension;
+import com.github.enerccio.marginalia.ui.menu.MenuPosition;
 import com.github.enerccio.marginalia.ui.menu.StoryMenuItem;
+import com.github.enerccio.marginalia.ui.menu.StoryMenuKeys;
 import com.github.enerccio.marginalia.ui.menu.StoryMenuRegistry;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.notification.Notification;
@@ -45,7 +47,8 @@ public class InstructionExporterExtension implements MarginaliaExtension {
         // instance, so the book is read when the item is chosen
         menuRegistry.register(bundle.getSymbolicName(),
                 StoryMenuItem.tools(MENU_ITEM_KEY, l -> T.localized(EXPORT_INSTRUCTIONS), story -> exportInstructions(story.getCurrentManuscript()))
-                        .icon(Solid.CLIPBOARD_LIST::create));
+                        .icon(Solid.CLIPBOARD_LIST::create)
+                        .path(StoryMenuKeys.GROUP_IMPORT_EXPORT).position(MenuPosition.after(StoryMenuKeys.EXPORT)));
     }
 
     private void exportInstructions(Manuscript manuscript) {
