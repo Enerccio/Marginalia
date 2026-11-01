@@ -208,7 +208,8 @@ jobs:
               dpkg-deb --info "$deb"
               sudo apt-get install -y "$PWD/$deb"
               smoke "$name" "$port" /opt/marginalia/bin/Marginalia
-              plugin_jars=$(ls "$RUNNER_TEMP/home-$port/.marginalia/extensions/"*.jar 2>/dev/null | wc -l)
+              # ls fails when there is no JAR (the plain package), which pipefail would turn into the end of the step
+              plugin_jars=$( (ls "$RUNNER_TEMP/home-$port/.marginalia/extensions/"*.jar 2>/dev/null || true) | wc -l)
               echo "$name: $plugin_jars plugin JARs installed"
               if [ "$name" = "deb-full" ] && [ "$plugin_jars" -lt 1 ]; then
                 echo "The full package did not install its plugins"
