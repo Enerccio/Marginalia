@@ -14,7 +14,7 @@ covers:
   - marginalia/src/main/resources/migration/V14__extension_ai.sql
   - marginalia/plugins/google-genai
   - marginalia/plugins/anthropic
-verified: b102fd45a
+verified: 6b9a70d37
 ---
 
 # Inference providers from a plugin
