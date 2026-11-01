@@ -63,6 +63,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+- **The Images window cut off its fields.** Since the position picker was added, the window of the pictures of a part (*Images* in the menu of a part) was too narrow for its row: the caption, the width box, the help text and the button that removes the picture were cut off at the right edge. The window is 760 px wide now (`ImagesDialog`).
+
 - **The sidebar dock was not fully frozen while a part is generated.** The tabs were disabled but the icons of the minimized tabs still restored them (the tab opened as a blank screen until the header of another tab was clicked), and the tabs could still be dragged around and minimized. The whole layout of the dock is frozen now and works again when the generation ends.
 - **Arc Outline: the story import numbered the linked chapters 1, 2, 3...** The prompt never told the model what the `part` of a chapter is (only the response schema did), so models answered with the number of the chapter. The default *Story import prompt* now says, when the chapters are linked, that `part` is the N of the `--- Message N ---` the chapter begins in (new template variable `{{mapParts}}`). A prompt you changed in the settings keeps its text: add `{{#if mapParts}}...{{/if}}` with the instruction to it.
 - **Arc Outline: "The active branch has no part N" for every part on the desktop.** The go-to-part button looked for the `layout` field of the phone story part, which the desktop story part doesn't have, and the failed lookup was reported as a missing part. Only the phone part is asked for its drawer now.

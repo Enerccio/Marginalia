@@ -68,7 +68,7 @@ public class ImagesDialog extends Dialog implements LLMInteract {
         this.message = message;
 
         setHeaderTitle(loc.getValue(L.LABEL_IMAGES));
-        setWidth("600px");
+        setWidth("760px");
         setMaxHeight("80vh");
 
         list.setPadding(false);
