@@ -105,6 +105,10 @@ public final class DesktopLauncher {
             log("WARNING: listening on " + options.host + " makes Marginalia reachable from the network without HTTPS");
         }
 
+        // a "full" build brings the plugins in plugins/ next to server/ (installed once, see BundledPlugins)
+        BundledPlugins.install(pluginsDirectory(), dataDir.resolve("extensions"), desktopDir.resolve("bundled-plugins.txt"),
+                DesktopLauncher::log);
+
         Path base = prepareJettyBase(desktopDir.resolve("jetty-base"), war);
         showControls("Starting " + APP_NAME + "...");
         log("Starting " + APP_NAME + " (data in " + dataDir + ")");
@@ -312,12 +316,36 @@ public final class DesktopLauncher {
         }
     }
 
+    /**
+     * The application icon at {@code size} pixels: {@code marginalia.png} (in the launcher jar, copied from
+     * {@code src/desktop/icons}) scaled down smoothly, or a plain "M" tile if the resource cannot be read.
+     */
     static BufferedImage icon(int size) {
+        try (InputStream in = DesktopLauncher.class.getResourceAsStream("/marginalia.png")) {
+            if (in != null) {
+                BufferedImage source = javax.imageio.ImageIO.read(in);
+                if (source != null) {
+                    BufferedImage image = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
+                    Graphics2D g = image.createGraphics();
+                    g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+                    g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+                    g.drawImage(source.getScaledInstance(size, size, Image.SCALE_AREA_AVERAGING), 0, 0, null);
+                    g.dispose();
+                    return image;
+                }
+            }
+        } catch (IOException | RuntimeException _) {
+            // fall back to the drawn icon
+        }
+        return fallbackIcon(size);
+    }
+
+    private static BufferedImage fallbackIcon(int size) {
         BufferedImage image = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = image.createGraphics();
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-        g.setColor(new Color(0x2b, 0x4c, 0x7e));
+        g.setColor(new Color(0x3b, 0x3f, 0x8f));
         g.fillRoundRect(0, 0, size, size, size / 4, size / 4);
         g.setColor(Color.WHITE);
         g.setFont(new Font(Font.SERIF, Font.BOLD, (int) (size * 0.72)));
@@ -354,6 +382,12 @@ public final class DesktopLauncher {
             }
         }
         throw new IllegalStateException("Marginalia server files (server/jetty-home, server/marginalia.war) not found near " + dir);
+    }
+
+    /** The plugins of a full build: {@code -Dmarginalia.pluginsDir}, else {@code plugins/} next to {@code server/}. */
+    private Path pluginsDirectory() {
+        String override = System.getProperty("marginalia.pluginsDir");
+        return override != null ? Path.of(override) : serverDir.resolveSibling("plugins");
     }
 
     private static void require(Path path, String what) {

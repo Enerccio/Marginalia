@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Installers of the desktop app, called by the antrun executions of the `desktop` profile in pom.xml after the app
+  image is built (target "plain") and, with -Ddesktop.skipFull=false, for the full build that carries the plugins
+  (target "full"). jpackage needs dpkg-deb + fakeroot (Linux), hdiutil (macOS) or WiX Toolset 3 (Windows).
+
+  Inputs (properties of the pom): project.version, desktop.dir, desktop.dist, desktop.appVersion, desktop.javaOptions,
+  desktop.installerRequired (a failed jpackage fails the build), desktop.pluginsDir (the plugin JARs of the full build).
+
+  Outputs in ${desktop.dir}: marginalia-<version>-<os>-<arch>[-full].deb|dmg|msi
+-->
+<project name="marginalia-desktop-installer" default="plain" basedir=".">
+
+  <target name="init">
+    <condition property="desktop.os" value="windows">
+      <os family="windows"/>
+    </condition>
+    <condition property="desktop.os" value="macos">
+      <os family="mac"/>
+    </condition>
+    <property name="desktop.os" value="linux"/>
+    <!-- Java calls x86-64 "amd64" on Windows and Linux and "x86_64" on macOS: one name for all -->
+    <condition property="desktop.arch" value="x86_64">
+      <equals arg1="${os.arch}" arg2="amd64"/>
+    </condition>
+    <property name="desktop.arch" value="${os.arch}"/>
+    <property name="desktop.archiveBase" value="marginalia-${project.version}-${desktop.os}-${desktop.arch}"/>
+
+    <condition property="desktop.installerType" value="dmg">
+      <equals arg1="${desktop.os}" arg2="macos"/>
+    </condition>
+    <condition property="desktop.installerType" value="msi">
+      <equals arg1="${desktop.os}" arg2="windows"/>
+    </condition>
+    <property name="desktop.installerType" value="deb"/>
+
+    <!-- the app image of jpackage: Marginalia.app on macOS, a Marginalia folder elsewhere -->
+    <condition property="desktop.appImageName" value="Marginalia.app" else="Marginalia">
+      <equals arg1="${desktop.os}" arg2="macos"/>
+    </condition>
+
+    <!-- the app image carries the icon, the options below are for the installer itself; Windows installs per user
+         (no administrator rights) and keeps the upgrade code, so a newer msi replaces the older one (and the plain
+         and the full installer replace each other) -->
+    <condition property="desktop.installerArgs" value="--mac-package-name Marginalia">
+      <equals arg1="${desktop.os}" arg2="macos"/>
+    </condition>
+    <condition property="desktop.installerArgs" value="--win-menu --win-shortcut --win-dir-chooser --win-per-user-install --win-upgrade-uuid 34858e8f-2832-46fc-9cb5-94322d697f3b">
+      <equals arg1="${desktop.os}" arg2="windows"/>
+    </condition>
+    <property name="desktop.installerArgs" value="--linux-package-name marginalia --linux-shortcut --linux-app-category editors --license-file ../LICENSE"/>
+
+    <condition property="desktop.icon" value="src/desktop/icons/marginalia.icns">
+      <equals arg1="${desktop.os}" arg2="macos"/>
+    </condition>
+    <condition property="desktop.icon" value="src/desktop/icons/marginalia.ico">
+      <equals arg1="${desktop.os}" arg2="windows"/>
+    </condition>
+    <property name="desktop.icon" value="src/desktop/icons/marginalia.png"/>
+  </target>
+
+  <!-- jpackage of an app image into a deb, dmg or msi, the result is moved to ${desktop.dir} under the archive name -->
+  <macrodef name="installer">
+    <attribute name="appimage"/>
+    <attribute name="suffix" default=""/>
+    <sequential>
+      <delete dir="${desktop.dir}/installers"/>
+      <mkdir dir="${desktop.dir}/installers"/>
+      <exec executable="${java.home}/bin/jpackage" failonerror="${desktop.installerRequired}"
+            failifexecutionfails="${desktop.installerRequired}" resultproperty="desktop.installer.result@{suffix}">
+        <arg value="--type"/>
+        <arg value="${desktop.installerType}"/>
+        <arg value="--app-image"/>
+        <arg value="@{appimage}"/>
+        <arg value="--name"/>
+        <arg value="Marginalia"/>
+        <arg value="--app-version"/>
+        <arg value="${desktop.appVersion}"/>
+        <arg value="--vendor"/>
+        <arg value="enerccio"/>
+        <arg value="--description"/>
+        <arg value="Co-writing long fiction with language models"/>
+        <arg line="${desktop.installerArgs}"/>
+        <arg value="--dest"/>
+        <arg value="${desktop.dir}/installers"/>
+      </exec>
+      <echo message="jpackage ${desktop.installerType} @{suffix} exit code: ${desktop.installer.result@{suffix}}"/>
+      <move todir="${desktop.dir}">
+        <fileset dir="${desktop.dir}/installers" includes="*.deb"/>
+        <globmapper from="*.deb" to="${desktop.archiveBase}@{suffix}.deb"/>
+      </move>
+      <move todir="${desktop.dir}">
+        <fileset dir="${desktop.dir}/installers" includes="*.dmg"/>
+        <globmapper from="*.dmg" to="${desktop.archiveBase}@{suffix}.dmg"/>
+      </move>
+      <move todir="${desktop.dir}">
+        <fileset dir="${desktop.dir}/installers" includes="*.msi"/>
+        <globmapper from="*.msi" to="${desktop.archiveBase}@{suffix}.msi"/>
+      </move>
+      <delete dir="${desktop.dir}/installers"/>
+    </sequential>
+  </macrodef>
+
+  <!-- installer of the app image the pom built (no plugins) -->
+  <target name="plain" depends="init">
+    <delete>
+      <fileset dir="${desktop.dir}" includes="marginalia-*.deb,marginalia-*.dmg,marginalia-*.msi"/>
+    </delete>
+    <installer appimage="${desktop.dir}/package/${desktop.appImageName}"/>
+  </target>
+
+  <!-- installer of a second app image that carries the plugin JARs: plugins/ next to server/ (the launcher installs
+       them into the extensions folder when it starts, see BundledPlugins). Keep the app image call in sync with the
+       one in pom.xml -->
+  <target name="full" depends="init">
+    <property name="desktop.app" value="${desktop.dist}/app"/>
+    <resourcecount property="desktop.pluginCount">
+      <fileset dir="${desktop.pluginsDir}" includes="*.jar" erroronmissingdir="false"/>
+    </resourcecount>
+    <fail message="The full build needs the plugin JARs in ${desktop.pluginsDir} (build them against this application, see .github/workflows/desktop.yml)">
+      <condition>
+        <equals arg1="${desktop.pluginCount}" arg2="0"/>
+      </condition>
+    </fail>
+
+    <delete dir="${desktop.dir}/full"/>
+    <delete dir="${desktop.dir}/package-full"/>
+    <mkdir dir="${desktop.dir}/full/plugins"/>
+    <copy todir="${desktop.dir}/full/plugins">
+      <fileset dir="${desktop.pluginsDir}" includes="*.jar"/>
+    </copy>
+    <exec executable="${java.home}/bin/jpackage" failonerror="true">
+      <arg value="--type"/>
+      <arg value="app-image"/>
+      <arg value="--name"/>
+      <arg value="Marginalia"/>
+      <arg value="--app-version"/>
+      <arg value="${desktop.appVersion}"/>
+      <arg value="--vendor"/>
+      <arg value="enerccio"/>
+      <arg value="--icon"/>
+      <arg value="${desktop.icon}"/>
+      <arg value="--input"/>
+      <arg value="${desktop.app}"/>
+      <arg value="--main-jar"/>
+      <arg value="marginalia-launcher.jar"/>
+      <arg value="--app-content"/>
+      <arg value="${desktop.dist}/server,${desktop.dir}/full/plugins"/>
+      <arg value="--runtime-image"/>
+      <arg value="${desktop.dist}/runtime"/>
+      <arg value="--java-options"/>
+      <arg value="${desktop.javaOptions} -Dapple.awt.UIElement=true"/>
+      <arg value="--dest"/>
+      <arg value="${desktop.dir}/package-full"/>
+    </exec>
+    <installer appimage="${desktop.dir}/package-full/${desktop.appImageName}" suffix="-full"/>
+  </target>
+</project>

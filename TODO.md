@@ -86,8 +86,10 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
      app image, archives). Built by `.github/workflows/desktop.yml` on Linux x64/arm64, Windows x64 and macOS
      arm64/x64 (tests once, smoke test per platform, archives attached to `v*` releases). Signing / notarization
      (macOS Gatekeeper, Windows SmartScreen) is deliberately not planned: it costs money and nobody pays for it, so
-     users get the unsigned archives and the manual explains the warnings. Still missing: an app icon, installers
-     (dmg/msi/deb), and the release version is the pom version, not the tag.
+     users get the unsigned archives and the manual explains the warnings. ✅ App icon (`src/desktop/icons`: `.icns`,
+     `.ico`, `.png` for jpackage, the tray icon and the browser favicon / PWA icon). ✅ Installers (`.deb`, `.dmg`, `.msi`,
+     `desktop-installer` execution, attached to releases) and the `-full` ones with all built-in plugins. Still missing: the release version is the pom version, not
+     the tag; signing; an `.rpm`/AppImage if somebody asks.
 
 9. **WAR size / dependency hygiene.** The WAR was ~200 MB. `tika-parsers-standard-package` + `tika-async-cli`
    were unused and are removed (the WAR is ~185 MB; the export tests declare PDFBox themselves). `Resource` is now used for the image attachments of parts (story editor, exports) and listed in the Resources tab. Logging moved from `slf4j-log4j12` + `reload4j` to logback (`log4j-to-slf4j` for the `log4j-api` of POI). ✅ Done.

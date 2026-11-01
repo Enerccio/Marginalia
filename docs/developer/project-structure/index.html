@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846793869499">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846835337216">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846793869499" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846835337216" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846793869499" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846835337216" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846793869499" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846835337216" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -1118,7 +1118,10 @@ in <code translate="no" v-pre>src/main/bundles/</code>, <code translate="no" v-p
 <h2 id="desktop-app-srcdesktop">Desktop app (<code translate="no" v-pre>src/desktop/</code>)</h2>
 <retype-table copy-text="| Path | |
 |---|---|
-| `java/.../desktop/DesktopLauncher.java` | The launcher: options, Jetty base in `~/.marginalia/desktop`, starts Jetty in-process, browser, tray icon, single instance. JDK only. |
+| `java/.../desktop/DesktopLauncher.java` | The launcher: options, Jetty base in `~/.marginalia/desktop`, starts Jetty in-process, browser, tray icon (`marginalia.png`, loaded from the launcher jar), single instance. JDK only. |
+| `java/.../desktop/BundledPlugins.java` | Copies the plugin JARs of a full build (`plugins/` next to `server/`) into the extensions folder, once. JDK only. |
+| `installer.xml` | Ant targets that make the installers (`plain`, `full`) with jpackage, called from the `desktop` profile. |
+| `icons/marginalia.{icns,ico,png}` | The desktop app icon: `--icon` of jpackage (per OS) and the tray icon. Made from `src/main/webapp/icons/icon.svg`. |
 | `bin/marginalia`, `bin/marginalia.bat` | Start scripts of the portable folder (bundled runtime + JVM options + `MARGINALIA_JAVA_OPTS`). |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -1131,7 +1134,19 @@ in <code translate="no" v-pre>src/main/bundles/</code>, <code translate="no" v-p
 <tbody>
 <tr>
 <td><code translate="no" v-pre>java/.../desktop/DesktopLauncher.java</code></td>
-<td>The launcher: options, Jetty base in <code translate="no" v-pre>~/.marginalia/desktop</code>, starts Jetty in-process, browser, tray icon, single instance. JDK only.</td>
+<td>The launcher: options, Jetty base in <code translate="no" v-pre>~/.marginalia/desktop</code>, starts Jetty in-process, browser, tray icon (<code translate="no" v-pre>marginalia.png</code>, loaded from the launcher jar), single instance. JDK only.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>java/.../desktop/BundledPlugins.java</code></td>
+<td>Copies the plugin JARs of a full build (<code translate="no" v-pre>plugins/</code> next to <code translate="no" v-pre>server/</code>) into the extensions folder, once. JDK only.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>installer.xml</code></td>
+<td>Ant targets that make the installers (<code translate="no" v-pre>plain</code>, <code translate="no" v-pre>full</code>) with jpackage, called from the <code translate="no" v-pre>desktop</code> profile.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>icons/marginalia.{icns,ico,png}</code></td>
+<td>The desktop app icon: <code translate="no" v-pre>--icon</code> of jpackage (per OS) and the tray icon. Made from <code translate="no" v-pre>src/main/webapp/icons/icon.svg</code>.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>bin/marginalia</code>, <code translate="no" v-pre>bin/marginalia.bat</code></td>
@@ -1545,7 +1560,7 @@ ignored by Git), see <a href="../packaging/#building-the-plugins-in-docker">Pack
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (7d408d984).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (d8691f3ec).</p></div>
             </footer>
         </div>
     </div>

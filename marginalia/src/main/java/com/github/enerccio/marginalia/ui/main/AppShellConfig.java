@@ -25,6 +25,8 @@ public class AppShellConfig implements AppShellConfigurator {
     @Override
     public void configurePage(AppShellSettings settings) {
         settings.setPageTitle("Marginalia");
+        // vector favicon for browsers that support it; the PNG one (and the PWA icons) come from icons/icon.png
+        settings.addFavIcon("icon", "icons/icon.svg", "any");
     }
 
 }
