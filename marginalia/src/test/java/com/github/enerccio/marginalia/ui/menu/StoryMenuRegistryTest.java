@@ -141,11 +141,11 @@ class StoryMenuRegistryTest extends MarginaliaTestBase {
                 .containsExactly(StoryMenuKeys.SEARCH_REPLACE, StoryMenuKeys.GROUP_APPEARANCE, StoryMenuKeys.GROUP_ANALYSIS,
                         StoryMenuKeys.GROUP_IMPORT_EXPORT, StoryMenuKeys.GROUP_CLEAN_UP);
 
-        assertThat(registry.definition(MenuKind.CARD, false, null).getItems()).hasSize(17);
+        assertThat(registry.definition(MenuKind.CARD, false, null).getItems()).hasSize(18);
         assertThat(keys(registry.definition(MenuKind.CARD, false, null))).startsWith(StoryMenuKeys.EDIT, StoryMenuKeys.DISCARD);
         assertThat(ids(registry.definition(MenuKind.CARD, false, null).getRoots())).containsExactly(
                 StoryMenuKeys.EDIT, StoryMenuKeys.DISCARD, StoryMenuKeys.REGENERATE, StoryMenuKeys.SWIPE, StoryMenuKeys.REDRAFT,
-                StoryMenuKeys.HISTORY, StoryMenuKeys.IMAGES, StoryMenuKeys.GROUP_ANNOTATE, StoryMenuKeys.GROUP_SUMMARY,
+                StoryMenuKeys.HISTORY, StoryMenuKeys.IMAGES, StoryMenuKeys.IMAGE_PREVIEW, StoryMenuKeys.GROUP_ANNOTATE, StoryMenuKeys.GROUP_SUMMARY,
                 StoryMenuKeys.GROUP_INSPECT, StoryMenuKeys.GROUP_BRANCH_MERGE, StoryMenuKeys.DELETE);
         assertThat(keys(registry.definition(MenuKind.TEXT, true, null))).containsExactly(
                 StoryMenuKeys.TEXT_ANNOTATE_SELECTION, StoryMenuKeys.TEXT_REDRAFT_SELECTION, StoryMenuKeys.TEXT_COPY);
@@ -455,7 +455,7 @@ class StoryMenuRegistryTest extends MarginaliaTestBase {
         assertThat(registry.positionOf(MenuKind.TOOLS, StoryMenuKeys.GROUP_ANALYSIS)).isEqualTo(2);
         assertThat(registry.positionOf(MenuKind.TOOLS, StoryMenuKeys.EXPORT)).isEqualTo(1);
         assertThat(registry.positionOf(MenuKind.TOOLS, StoryMenuKeys.DELETE)).as("the delete item is in the other menu").isEqualTo(-1);
-        assertThat(registry.positionOf(MenuKind.CARD, StoryMenuKeys.DELETE)).isEqualTo(11);
+        assertThat(registry.positionOf(MenuKind.CARD, StoryMenuKeys.DELETE)).isEqualTo(12);
         assertThat(registry.positionOf(MenuKind.TOOLS, "test.unknown")).isEqualTo(-1);
     }
 

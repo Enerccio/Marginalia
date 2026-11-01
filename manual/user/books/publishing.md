@@ -68,7 +68,7 @@ The viewer remembers where you stopped reading each book: it opens the book at t
 kept in the local storage of your browser only (per book), it is not saved on the server, so another browser or a cleared
 browser storage starts at the beginning.
 
-[Pictures of the parts](story-editor.md#images) are shown under the text, but only to you, the owner. Readers of a
+[Pictures of the parts](story-editor.md#images) are shown where the author placed them (after the text unless the author chose another place), but only to you, the owner. Readers of a
 [published](#publishing-a-book) book see the text without the pictures.
 
 ## Publishing a book

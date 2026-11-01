@@ -68,3 +68,4 @@ retaken); retake them by hand when the screen they show changes.
 * A picture of the Lorebook tab of the story editor with *Include sub lorebooks* on (the dataset has no sub lorebooks; `shoot-books-extra` has a lorebook with two, but the book window is not opened there).
 * The Name provider and the Place provider have no screen of their own (their tools are in the *Tools* window, `tools-dialog`); a picture of the Place provider as a *Use this suite* section is not taken.
 * The login card shows the version and the commit under the button; `00-first-start` hides that line (`login.png` is the card of the empty installation).
+* The Images dialog of a part (`images-dialog`) has the 3x3 position picker, *Text flows around the image* and the width now, and the part menu has *Preview as in the viewer*; a picture of the dialog and one of the preview with a picture beside the text are not taken yet.

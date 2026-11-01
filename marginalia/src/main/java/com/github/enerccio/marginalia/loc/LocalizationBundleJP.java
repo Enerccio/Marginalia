@@ -932,6 +932,12 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_LAYOUT, "レイアウト");
         setValue(L.LABEL_INSPECT, "確認");
         setValue(L.LABEL_BRANCH_AND_MERGE, "分岐と統合");
+        setValue(L.LABEL_PREVIEW_AS_VIEWER, "ビューアでのプレビュー");
+        setValue(L.LABEL_PREVIEW_WIDE, "広い");
+        setValue(L.LABEL_PREVIEW_NARROW, "狭い（スマートフォン）");
+        setValue(L.LABEL_IMAGE_POSITION, "パート内の位置");
+        setValue(L.LABEL_IMAGE_WRAP, "テキストを画像の周りに回り込ませる");
+        setValue(L.LABEL_IMAGE_WIDTH, "幅（テキスト幅の％）");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -1097,6 +1103,15 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.ENUM_STATISTIC_RANGE_CUSTOM, "期間を指定");
         setValue(L.ENUM_STATISTIC_SIDE_AUTHOR, "自分");
         setValue(L.ENUM_ACTIVATION_REASON_OUT_OF_RANGE, "未使用: ターンがパートの範囲外");
+        setValue(L.ENUM_IMAGE_ANCHOR_TOP_LEFT, "左上");
+        setValue(L.ENUM_IMAGE_ANCHOR_TOP_CENTER, "上中央");
+        setValue(L.ENUM_IMAGE_ANCHOR_TOP_RIGHT, "右上");
+        setValue(L.ENUM_IMAGE_ANCHOR_CENTER_LEFT, "中央左");
+        setValue(L.ENUM_IMAGE_ANCHOR_CENTER_CENTER, "中央");
+        setValue(L.ENUM_IMAGE_ANCHOR_CENTER_RIGHT, "中央右");
+        setValue(L.ENUM_IMAGE_ANCHOR_BOTTOM_LEFT, "左下");
+        setValue(L.ENUM_IMAGE_ANCHOR_BOTTOM_CENTER, "下中央");
+        setValue(L.ENUM_IMAGE_ANCHOR_BOTTOM_RIGHT, "右下");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "内部サーバーエラー");
@@ -1675,6 +1690,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_STYLE_VALUES, "任意の CSS 値（例：1.1rem、#336699、var(--lumo-body-text-color)）。空欄の場合はアプリケーションの見た目のままです。");
         setValue(L.HELP_STYLE_CUSTOM_CSS, "オプションの後ろ、スタイルの範囲内に追加される CSS です。パートのテキストに対するルール（例：\".chat-message-markdown p { text-indent: 1.5em !important; }\"）か、要素全体に適用される宣言を書きます。");
         setValue(L.HELP_EXPORT_SETTINGS, "各形式は、エクスポートダイアログで別に選ばない限り、ここで選んだスタイルと自分用のテンプレートでエクスポートされます。エクスポート用のスタイルは「スタイル」タブで作成します（「エクスポート用」にチェック）。テンプレートを空にすると標準のものが使われます。");
+        setValue(L.HELP_IMAGE_LAYOUT, "ビューアとエクスポートでは、画像はこのように配置されます。ストーリーエディタでは画像はテキストの後に一覧表示されます。「ビューアでのプレビュー」で結果を確認できます。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景設定と世界観の文脈。");

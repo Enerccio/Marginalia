@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.backup;
 
 import com.github.enerccio.marginalia.Configuration;
+import com.github.enerccio.marginalia.domain.model.ImageAnchor;
 import com.github.enerccio.marginalia.domain.model.ImageAttachment;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
@@ -67,7 +68,7 @@ class BackupImagesTest extends BackupTestBase {
 
         ChatMessage part = messageByResponse(original, "chapter 1");
         image = resourceService.uploadImage("map.png", imageData, ChatMessage.class, part.getId());
-        part.setImages(List.of(new ImageAttachment(image.getUuid(), "The map")));
+        part.setImages(List.of(new ImageAttachment(image.getUuid(), "The map", ImageAnchor.CENTER_LEFT, true, 35)));
         chatMessageService.save(part);
     }
 
@@ -185,6 +186,11 @@ class BackupImagesTest extends BackupTestBase {
         assertThat(copy.getPath()).isEqualTo(image.getPath());
         assertThat(resourceService.getResourceData(copy)).isEqualTo(imageData);
         assertThat(imagesOf(restored, "chapter 1").getFirst().caption()).isEqualTo("The map");
+        // where the image is in the part travels with it
+        ImageAttachment placed = imagesOf(restored, "chapter 1").getFirst();
+        assertThat(placed.anchor()).isEqualTo(ImageAnchor.CENTER_LEFT);
+        assertThat(placed.wrap()).isTrue();
+        assertThat(placed.width()).isEqualTo(35);
         // each book has its own resource, noted for its own part
         assertThat(copy.getObjectId()).isEqualTo(messageByResponse(restored, "chapter 1").getId());
         assertThat(resourceService.describeLink(copy).present()).isTrue();

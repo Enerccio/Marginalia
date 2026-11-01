@@ -52,16 +52,21 @@ another version of the story, switch to that branch first.
 The text of the parts is Markdown. Emphasis, headings, quotes, lists, code blocks and scene breaks (`---`) are kept in
 every format that can show them. Raw HTML in the text is shown as text, never run.
 
-[Images](story-editor.md#images) of the parts are placed after the text of their part, with their captions:
+## Images
+
+[Images](story-editor.md#images) of the parts are placed where their position says (after the text unless you chose another
+place), with their captions, in the width you gave them (a percent of the width of the text; without a width the picture keeps
+its size, scaled down to the page). Not every format can put text beside a picture:
 
 | Format | |
 |---|---|
-| **HTML** | Embedded in the page, so it is still one file. |
-| **Markdown** | Embedded in the file as `![caption](data:...)` images with the caption in italics under them, so it is still one file. Not every reader shows embedded images (GitHub does not), and a book with many images has very long lines, so attach images to the parts only when you want them in a Markdown export. |
-| **EPUB**, **Word document**, **PDF** | Embedded in the file and scaled to fit the page. |
-| **Plain text** | Marked with `[Image]` or `[Image: caption]`. |
+| **HTML**, **EPUB** | Embedded (in the page, or as files of the book). The text flows around the pictures at the left or the right, and on a narrow screen they go above the text. Pictures next to each other in a place stand in a row. |
+| **Word document** | The picture the text flows around is in a small table that Word places at the side, and Word wraps the text around it; the caption is under the picture. Pictures with a width that fit next to each other are a row of a table. |
+| **PDF** | The text flows around the pictures at the side, the caption is drawn under the picture. Pictures with a width that fit next to each other are a row. A picture that is too tall for the rest of the page goes to the next page. |
+| **Markdown** | Embedded in the file as `![caption](data:...)` images with the caption in italics under them, so it is still one file. The position among the text is kept; the width and the flowing text are not. Not every reader shows embedded images (GitHub does not), and a book with many images has very long lines, so attach images to the parts only when you want them in a Markdown export. |
+| **Plain text** | Marked with `[Image]` or `[Image: caption]` at their place in the text. |
 | **HTML for Archive of Our Own** | Marked with `[Image: caption]`: AO3 takes images only from links. |
-| **Obsidian vault** | Saved in the `Attachments` folder of the vault and embedded in the note of their chapter, with the caption in italics. |
+| **Obsidian vault** | Saved in the `Attachments` folder of the vault and embedded in the note of their chapter at their place, with the caption in italics. |
 | **SillyTavern chat** | Left out, a chat has only text. |
 
 ## For other tools

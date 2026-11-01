@@ -38,7 +38,7 @@ public class EpubExporter extends ExporterBase {
             nav ol { list-style: none; padding: 0; }
             nav li { margin: 0.4em 0; }
             nav a { color: inherit; text-decoration: none; }
-            """;
+            """ + PICTURES_CSS;
 
     @Override
     public String getName() {
@@ -98,26 +98,23 @@ public class EpubExporter extends ExporterBase {
 
         @Override
         public void message(String markdown, Chapter chapter) {
-            if (chapter == null) {
-                current.append(toHtml(markdown));
-            } else {
-                chapterParts.put(chapter.number(), parts.size() + 1);
-                current.append("<section class=\"chapter\" id=\"").append(chapter.anchor()).append("\">\n").append(toHtml(markdown)).append("</section>\n");
-            }
-            if (current.length() >= PART_SIZE) {
-                parts.add(current.toString());
-                current.setLength(0);
-            }
+            message(List.of(new TextPart(markdown)), chapter);
         }
 
         @Override
-        public void images(List<ExportImage> messageImages) {
-            for (ExportImage image : messageImages) {
+        public void message(List<Part> pieces, Chapter chapter) {
+            String html = toHtml(pieces, image -> {
                 images.add(image);
-                current.append(figure("images/image" + images.size() + "." + image.extension(), image.caption()));
+                return "images/image" + images.size() + "." + image.extension();
+            });
+            if (chapter == null) {
+                current.append(html);
+            } else {
+                chapterParts.put(chapter.number(), this.parts.size() + 1);
+                current.append("<section class=\"chapter\" id=\"").append(chapter.anchor()).append("\">\n").append(html).append("</section>\n");
             }
             if (current.length() >= PART_SIZE) {
-                parts.add(current.toString());
+                this.parts.add(current.toString());
                 current.setLength(0);
             }
         }

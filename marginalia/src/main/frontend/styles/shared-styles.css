@@ -733,6 +733,107 @@ vaadin-markdown.agent-report td {
     border-radius: var(--lumo-border-radius-s);
 }
 
+/* The text of a part with its images placed among it (ui.components.PartView): the viewer and the preview of the editor.
+   flow-root keeps a picture the text flows around inside its part, the next part does not wrap around it. */
+.part-view {
+    display: flow-root;
+    width: 100%;
+    container-type: inline-size;
+}
+
+.part-pictures {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: var(--lumo-space-m);
+    clear: both;
+    margin: var(--lumo-space-s) 0;
+}
+
+.part-pictures-left {
+    justify-content: flex-start;
+}
+
+.part-pictures-center {
+    justify-content: center;
+}
+
+.part-pictures-right {
+    justify-content: flex-end;
+}
+
+/* the pictures the text flows around are floats of their own, the group around them takes no room */
+.part-pictures-float {
+    margin: 0;
+}
+
+.part-picture {
+    max-width: 100%;
+    margin: 0;
+    text-align: center;
+    box-sizing: border-box;
+}
+
+.part-picture img {
+    max-width: 100%;
+    max-height: 80vh;
+    height: auto;
+    object-fit: contain;
+    border-radius: var(--lumo-border-radius-s);
+}
+
+/* a width asked for by the author: the picture fills it */
+.part-picture-sized {
+    flex: 0 0 auto;
+}
+
+.part-picture-sized img {
+    width: 100%;
+}
+
+.part-picture-float-left {
+    float: left;
+    margin: 0 var(--lumo-space-m) var(--lumo-space-s) 0;
+}
+
+.part-picture-float-right {
+    float: right;
+    margin: 0 0 var(--lumo-space-s) var(--lumo-space-m);
+}
+
+/* a narrow part (a phone) has no room for text beside a picture, the picture goes above the text */
+@container (max-width: 30em) {
+    .part-picture-float-left,
+    .part-picture-float-right {
+        float: none;
+        width: 100% !important;
+        margin: var(--lumo-space-s) 0;
+    }
+}
+
+/* the 3x3 picker of the place of an image (ui.dialogs.manuscript.ImagesDialog) */
+.image-anchor-picker {
+    display: grid;
+    grid-template-columns: repeat(3, var(--lumo-size-m));
+    gap: var(--lumo-space-xs);
+    flex-shrink: 0;
+}
+
+/* preview of a part as the viewer shows it (ui.dialogs.manuscript.PartPreviewDialog) */
+.part-preview-frame {
+    padding: var(--lumo-space-m);
+    background: var(--lumo-base-color);
+    border: 1px solid var(--lumo-contrast-20pct);
+    border-radius: var(--lumo-border-radius-m);
+    box-sizing: border-box;
+    margin: 0 auto;
+}
+
+.part-preview-phone {
+    width: 22rem;
+    max-width: 100%;
+}
+
 /* Story messages and summaries */
 .chat-message-content {
     position: relative;

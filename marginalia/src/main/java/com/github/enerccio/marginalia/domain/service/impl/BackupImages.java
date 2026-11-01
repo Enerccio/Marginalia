@@ -58,7 +58,7 @@ final class BackupImages {
             for (ImageAttachment image : images) {
                 String resource = image.resource() == null ? null : resolver.apply(image.resource());
                 if (resource != null) {
-                    mapped.add(new ImageAttachment(resource, image.caption()));
+                    mapped.add(image.withResource(resource));
                 }
             }
             JsonObject extended = message.getAsJsonObject("extendedContent");

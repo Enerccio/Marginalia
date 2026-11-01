@@ -9,16 +9,14 @@ import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationRequest;
+import com.github.enerccio.marginalia.domain.styles.PartStyle;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.RestorableState;
 import com.github.enerccio.marginalia.ui.components.MessageImages;
 import com.github.enerccio.marginalia.ui.dialogs.*;
-import com.github.enerccio.marginalia.ui.dialogs.manuscript.ImagesDialog;
-import com.github.enerccio.marginalia.ui.dialogs.manuscript.ManuscriptStoryPart;
-import com.github.enerccio.marginalia.ui.dialogs.manuscript.SummaryDialog;
-import com.github.enerccio.marginalia.ui.dialogs.manuscript.SummaryRemoval;
+import com.github.enerccio.marginalia.ui.dialogs.manuscript.*;
 import com.github.enerccio.marginalia.ui.dialogs.phone.PhoneManuscriptDialog;
 import com.github.enerccio.marginalia.ui.dialogs.phone.PhoneManuscriptDialogPart;
 import com.github.enerccio.marginalia.ui.dialogs.phone.PhoneStatisticsDialog;
@@ -1181,7 +1179,23 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
             new ImagesDialog(message, updated -> {
                 message = updated;
                 messageImages.setImages(updated.getImages());
-            }).open();
+            }, this::openImagePreview).open();
+        }
+
+        @PublicAPI(from = "1.6.0",
+                returns = @APIReturn(type = void.class),
+                locals = {@APILocals(name = "text", type = String.class),
+                        @APILocals(name = "style", type = PartStyle.class)})
+        @Override
+        public void openImagePreview() {
+            String text = responseTextArea != null ? responseTextArea.getValue() : message.getResponse();
+            PartStyle style = null;
+            try {
+                style = partStyleService.resolve(currentManuscript);
+            } catch (Exception e) {
+                // the preview is shown without the style of the book
+            }
+            new PartPreviewDialog(text, message.getImages(), style).open();
         }
 
         @PublicAPI(from = "1.1.0",

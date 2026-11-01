@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.export;
 
+import com.github.enerccio.marginalia.domain.model.ImageAnchor;
 import com.github.enerccio.marginalia.domain.service.ExporterService.ExportOptions;
 import com.github.enerccio.marginalia.domain.styles.PartStyleRegistry;
 import com.github.enerccio.marginalia.domain.styles.PrintStyle;
@@ -91,9 +92,8 @@ public class PdfExporter extends ExporterBase {
         private static final int MAX_PASSES = 4;
 
         private final ExportOptions options;
-        private final List<String> messages = new ArrayList<>();
+        private final List<List<Part>> messages = new ArrayList<>();
         private final List<Chapter> chapterOf = new ArrayList<>();
-        private final List<List<ExportImage>> imagesOf = new ArrayList<>();
         private List<Chapter> chapters = List.of();
         private String titleMarkdown;
 
@@ -113,22 +113,21 @@ public class PdfExporter extends ExporterBase {
 
         @Override
         public void message(String markdown, Chapter chapter) {
-            messages.add(markdown);
-            chapterOf.add(chapter);
-            imagesOf.add(List.of());
+            message(List.of(new TextPart(markdown)), chapter);
         }
 
         @Override
-        public void images(List<ExportImage> images) {
-            imagesOf.set(imagesOf.size() - 1, images);
+        public void message(List<Part> parts, Chapter chapter) {
+            messages.add(parts);
+            chapterOf.add(chapter);
         }
 
         @Override
         public byte[] finish() throws Exception {
-            PdfRendering rendering = new PdfRendering(options, titleMarkdown, chapters, messages, chapterOf, imagesOf, Map.of());
+            PdfRendering rendering = new PdfRendering(options, titleMarkdown, chapters, messages, chapterOf, Map.of());
             byte[] result = rendering.render();
             for (int pass = 1; pass < MAX_PASSES && !chapters.isEmpty() && !rendering.chapterPages.equals(rendering.shownPages); pass++) {
-                rendering = new PdfRendering(options, titleMarkdown, chapters, messages, chapterOf, imagesOf, rendering.chapterPages);
+                rendering = new PdfRendering(options, titleMarkdown, chapters, messages, chapterOf, rendering.chapterPages);
                 result = rendering.render();
             }
             return result;
@@ -148,22 +147,20 @@ public class PdfExporter extends ExporterBase {
         private final PdfWriter writer;
         private final String titleMarkdown;
         private final List<Chapter> chapters;
-        private final List<String> messages;
+        private final List<List<Part>> messages;
         private final List<Chapter> chapterOf;
-        private final List<List<ExportImage>> imagesOf;
         // pages of the chapters (by anchor) as laid out in this rendering, and as the contents of it show them
         private final Map<String, Integer> chapterPages = new HashMap<>();
         private final Map<String, Integer> shownPages;
         // destination of the chapter that is going to be written, given to its first paragraph
         private Chapter pendingChapter;
 
-        private PdfRendering(ExportOptions options, String titleMarkdown, List<Chapter> chapters, List<String> messages,
-                             List<Chapter> chapterOf, List<List<ExportImage>> imagesOf, Map<String, Integer> shownPages) throws Exception {
+        private PdfRendering(ExportOptions options, String titleMarkdown, List<Chapter> chapters, List<List<Part>> messages,
+                             List<Chapter> chapterOf, Map<String, Integer> shownPages) throws Exception {
             this.titleMarkdown = titleMarkdown;
             this.chapters = chapters;
             this.messages = messages;
             this.chapterOf = chapterOf;
-            this.imagesOf = imagesOf;
             this.shownPages = shownPages;
 
             style = PrintStyle.of(options.style() != null ? options.style() : PartStyleRegistry.pdfExportStyle());
@@ -229,11 +226,13 @@ public class PdfExporter extends ExporterBase {
                     // a chapter starts on a new page, nothing happens when the page is still empty
                     document.newPage();
                 }
-                walk(messages.get(i), bodySink);
-                pendingChapter = null;
-                for (ExportImage image : imagesOf.get(i)) {
-                    writeImage(image);
+                for (Part part : messages.get(i)) {
+                    switch (part) {
+                        case TextPart text -> walk(text.markdown(), bodySink);
+                        case PicturePart pictures -> writePictures(pictures);
+                    }
                 }
+                pendingChapter = null;
             }
             if (document.getPageNumber() == 0) {
                 // nothing was exported, the document needs at least one page
@@ -243,19 +242,146 @@ public class PdfExporter extends ExporterBase {
             return bytes.toByteArray();
         }
 
-        private void writeImage(ExportImage export) throws Exception {
+        /**
+         * @return the size in points of the image: the width asked for as a part of the text (else the size it has, 96 dpi, and no more than
+         * the text), and no higher than most of a page, in the proportions of the image
+         */
+        private float[] sizeOf(Image image, ExportImage export) {
+            float textWidth = document.right() - document.left();
+            float maxHeight = (document.top() - document.bottom()) * 0.8f;
+            float naturalWidth = image.getWidth() * 0.75f;
+            float naturalHeight = image.getHeight() * 0.75f;
+            float scale = export.width() == null ? 1 : textWidth * export.width() / 100f / naturalWidth;
+            scale = Math.min(scale, Math.min(textWidth / naturalWidth, maxHeight / naturalHeight));
+            return new float[]{naturalWidth * scale, naturalHeight * scale};
+        }
+
+        private static int horizontal(ImageAnchor anchor) {
+            return switch (anchor.horizontal()) {
+                case LEFT -> Element.ALIGN_LEFT;
+                case CENTER -> Element.ALIGN_CENTER;
+                case RIGHT -> Element.ALIGN_RIGHT;
+            };
+        }
+
+        private Paragraph captionOf(ExportImage export, int alignment) {
+            Paragraph caption = new Paragraph(export.caption(), small);
+            caption.setAlignment(alignment);
+            caption.setLeading(small.getSize() * 1.25f);
+            return caption;
+        }
+
+        private void writePictures(PicturePart pictures) throws Exception {
+            if (pictures.wrap()) {
+                for (ExportImage export : pictures.images()) {
+                    writeWrapped(export, pictures.anchor());
+                }
+            } else if (isRow(pictures)) {
+                writeRow(pictures);
+            } else {
+                for (ExportImage export : pictures.images()) {
+                    writeBlock(export, pictures.anchor());
+                }
+            }
+        }
+
+        private void writeBlock(ExportImage export, ImageAnchor anchor) throws Exception {
             Image image = Image.getInstance(export.data());
-            image.scaleToFit(document.right() - document.left(), (document.top() - document.bottom()) * 0.8f);
-            image.setAlignment(Element.ALIGN_CENTER);
+            float[] size = sizeOf(image, export);
+            image.scaleAbsolute(size[0], size[1]);
+            image.setAlignment(horizontal(anchor));
             image.setSpacingBefore(8);
             image.setSpacingAfter(export.caption().isEmpty() ? 12 : 4);
             document.add(image);
             if (!export.caption().isEmpty()) {
-                Paragraph caption = new Paragraph(export.caption(), small);
-                caption.setAlignment(Element.ALIGN_CENTER);
+                Paragraph caption = captionOf(export, horizontal(anchor));
                 caption.setSpacingAfter(12);
                 document.add(caption);
             }
+        }
+
+        /**
+         * Images that were given a width and fit next to each other are a row.
+         */
+        private static boolean isRow(PicturePart pictures) {
+            int sum = 0;
+            for (ExportImage export : pictures.images()) {
+                if (export.width() == null) {
+                    return false;
+                }
+                sum += export.width();
+            }
+            return pictures.images().size() > 1 && sum <= 100;
+        }
+
+        private void writeRow(PicturePart pictures) throws Exception {
+            float[] widths = new float[pictures.images().size()];
+            int sum = 0;
+            for (int i = 0; i < widths.length; i++) {
+                widths[i] = pictures.images().get(i).width();
+                sum += pictures.images().get(i).width();
+            }
+            PdfPTable table = new PdfPTable(widths);
+            table.setWidthPercentage(sum);
+            table.setHorizontalAlignment(horizontal(pictures.anchor()));
+            table.setSpacingBefore(8);
+            table.setSpacingAfter(12);
+            for (ExportImage export : pictures.images()) {
+                PdfPCell cell = new PdfPCell();
+                cell.setBorder(Rectangle.NO_BORDER);
+                cell.setPadding(3);
+                Image image = Image.getInstance(export.data());
+                float[] size = sizeOf(image, export);
+                image.scaleAbsolute(size[0] - 6, size[1] - 6 * size[1] / size[0]);
+                image.setAlignment(Element.ALIGN_CENTER);
+                cell.addElement(image);
+                if (!export.caption().isEmpty()) {
+                    cell.addElement(captionOf(export, Element.ALIGN_CENTER));
+                }
+                table.addCell(cell);
+            }
+            document.add(table);
+        }
+
+        /**
+         * The text that follows flows around the image: it is an image of OpenPDF that wraps text, and the caption is drawn under it in the
+         * same template, as the wrapping is only for images.
+         */
+        private void writeWrapped(ExportImage export, ImageAnchor anchor) throws Exception {
+            Image image = Image.getInstance(export.data());
+            float[] size = sizeOf(image, export);
+            float gap = 10;
+            Image placed;
+            if (export.caption().isEmpty()) {
+                image.scaleAbsolute(size[0], size[1]);
+                placed = image;
+            } else {
+                Paragraph caption = captionOf(export, Element.ALIGN_CENTER);
+                ColumnText measure = new ColumnText(null);
+                measure.setSimpleColumn(0, -10000, size[0], 0);
+                measure.addElement(caption);
+                measure.go(true);
+                float captionHeight = -measure.getYLine() + 2;
+
+                PdfTemplate template = writer.getDirectContent().createTemplate(size[0], size[1] + 4 + captionHeight);
+                image.scaleAbsolute(size[0], size[1]);
+                image.setAbsolutePosition(0, captionHeight + 4);
+                template.addImage(image);
+                ColumnText text = new ColumnText(template);
+                text.setSimpleColumn(0, 0, size[0], captionHeight);
+                text.addElement(captionOf(export, Element.ALIGN_CENTER));
+                text.go();
+                placed = Image.getInstance(template);
+            }
+            boolean left = anchor.horizontal() == ImageAnchor.Horizontal.LEFT;
+            placed.setAlignment((left ? Image.LEFT : Image.RIGHT) | Image.TEXTWRAP);
+            if (left) {
+                placed.setIndentationRight(gap);
+            } else {
+                placed.setIndentationLeft(gap);
+            }
+            placed.setSpacingAfter(gap);
+            document.add(placed);
         }
 
         private void writeContents() {

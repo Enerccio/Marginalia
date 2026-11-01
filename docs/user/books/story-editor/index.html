@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846855779581">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846857686590">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846855779581" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846857686590" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846855779581" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846857686590" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846855779581" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846857686590" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -846,14 +846,32 @@ converted to PNG when they are uploaded, because Word and PDF files can&#x27;t c
 <p><strong>Caption</strong> is shown under the picture. It can be empty.</p>
 </li>
 <li>
+<p><strong>Position in the part</strong> is a 3x3 grid. The column is the side of the text (left, center, right), the row is the place in it:
+the top is before the text, the middle is in the middle of it, the bottom is after it. Click a square to choose.</p>
+</li>
+<li>
+<p><strong>Text flows around the image</strong> lets the text run beside the picture instead of above and below it. It works for the
+left and the right column; text cannot flow on both sides of a picture in the middle, so there the picture stays a block
+of its own, centered between the paragraphs.</p>
+</li>
+<li>
+<p><strong>Width</strong> is the width of the picture as a percent of the width of the text. <strong>Automatic</strong> keeps the size of the
+picture (never wider than the text). A picture the text flows around is at most 60 %, so the text keeps some room.
+The height follows the proportions of the picture.</p>
+</li>
+<li>
 <p>The trash button removes the picture from the part.</p>
 </li>
 </ul>
-<p>The pictures are shown under the text of the part and in the same order in every <a href="../export/">export</a>.</p>
-<figure class="content-center">
-    <img src="../../../images/part-with-image.png" alt="A part with a picture" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1920" height="932" />
-    <figcaption class="caption">A part with a picture</figcaption>
-</figure>
+<p><strong>Preview as in the viewer</strong> (a button of the dialog, and the same entry in the part menu when the part has pictures) shows the
+part the way the <a href="../publishing/">viewer</a> shows it, with the text style of the book: the pictures where you put them,
+and a switch for a wide or a narrow (phone) screen. It uses the text in the editor as it is now, saved or not.</p>
+<p>The story editor itself does not use the position: it shows the pictures under the text of the part, as a list. The position
+is used by the viewer and by the <a href="../export/#images">exports</a>.</p>
+<p>Where in the text a picture goes does not depend on numbers saved with it: the text is cut between its blocks (paragraphs,
+lists, quotes and code blocks are never cut), so the pictures stay where they belong when you edit the text. The middle is the
+place between blocks that is nearest to the middle of the text; a picture the text flows around at the bottom is put before the
+last block, so that at least that block runs beside it. Pictures in the same place stay in the order of the list; ones that are next to each other in the same place (and do not let the text flow around them) stand in a row when they fit. PDF and Word do that for pictures that have a width.</p>
 <p>Pictures are <strong>not part of the text</strong>. The model never sees them, they are not in the prompt, they do not count as
 tokens and they do not change the <a href="../summaries/">summaries</a>. They are also not Markdown: a <code translate="no" v-pre>![](...)</code> link written in
 the text is not a picture of the part, use <strong>Images</strong> instead.</p>
@@ -1093,7 +1111,7 @@ tense, style and <a href="../summaries/">summaries</a>. The jailbreak prompt of 
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (f7e38b195).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (cc8327627).</p></div>
             </footer>
         </div>
     </div>

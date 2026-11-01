@@ -385,11 +385,27 @@ list of the pictures of the part.
 - **Add image** (or drop a file on it) uploads a PNG, JPEG, GIF or WebP picture of up to 10 MB. WebP pictures are
   converted to PNG when they are uploaded, because Word and PDF files can't contain WebP.
 - **Caption** is shown under the picture. It can be empty.
+- **Position in the part** is a 3x3 grid. The column is the side of the text (left, center, right), the row is the place in it:
+  the top is before the text, the middle is in the middle of it, the bottom is after it. Click a square to choose.
+- **Text flows around the image** lets the text run beside the picture instead of above and below it. It works for the
+  left and the right column; text cannot flow on both sides of a picture in the middle, so there the picture stays a block
+  of its own, centered between the paragraphs.
+- **Width** is the width of the picture as a percent of the width of the text. **Automatic** keeps the size of the
+  picture (never wider than the text). A picture the text flows around is at most 60 %, so the text keeps some room.
+  The height follows the proportions of the picture.
 - The trash button removes the picture from the part.
 
-The pictures are shown under the text of the part and in the same order in every [export](export.md).
+**Preview as in the viewer** (a button of the dialog, and the same entry in the part menu when the part has pictures) shows the
+part the way the [viewer](publishing.md) shows it, with the text style of the book: the pictures where you put them,
+and a switch for a wide or a narrow (phone) screen. It uses the text in the editor as it is now, saved or not.
 
-![A part with a picture](../../images/part-with-image.png)
+The story editor itself does not use the position: it shows the pictures under the text of the part, as a list. The position
+is used by the viewer and by the [exports](export.md#images).
+
+Where in the text a picture goes does not depend on numbers saved with it: the text is cut between its blocks (paragraphs,
+lists, quotes and code blocks are never cut), so the pictures stay where they belong when you edit the text. The middle is the
+place between blocks that is nearest to the middle of the text; a picture the text flows around at the bottom is put before the
+last block, so that at least that block runs beside it. Pictures in the same place stay in the order of the list; ones that are next to each other in the same place (and do not let the text flow around them) stand in a row when they fit. PDF and Word do that for pictures that have a width.
 
 Pictures are **not part of the text**. The model never sees them, they are not in the prompt, they do not count as
 tokens and they do not change the [summaries](summaries.md). They are also not Markdown: a `![](...)` link written in

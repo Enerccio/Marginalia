@@ -460,7 +460,9 @@ public class StoryMenuRegistry implements InitializingBean {
                 .contextLabel((loc, part, card) -> card == null || card.getHistoryCount() == 0 ? loc.getValue(L.LABEL_HISTORY)
                         : String.format(loc.getValue(L.LABEL_HISTORY_WITH_COUNT), card.getHistoryCount()))
                 .visibleWhen((part, card) -> card != null && !card.isEditing() && card.getMessage().getId() != null));
-        application(StoryMenuItem.card(StoryMenuKeys.IMAGES, L.LABEL_IMAGES, (part, card) -> card.openImagesDialog()).separatorAfter());
+        application(StoryMenuItem.card(StoryMenuKeys.IMAGES, L.LABEL_IMAGES, (part, card) -> card.openImagesDialog()));
+        application(StoryMenuItem.card(StoryMenuKeys.IMAGE_PREVIEW, L.LABEL_PREVIEW_AS_VIEWER, (part, card) -> card.openImagePreview())
+                .visibleWhen((part, card) -> card != null && !card.getMessage().getImages().isEmpty()).separatorAfter());
 
         group(APPLICATION, MenuKind.CARD, StoryMenuKeys.GROUP_ANNOTATE, L.LABEL_ANNOTATIONS);
         application(StoryMenuItem.card(StoryMenuKeys.ANNOTATE_PART, L.LABEL_ANNOTATE_PART, (part, card) -> card.annotatePart())

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846855779581">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846857686590">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846855779581" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846857686590" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846855779581" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846857686590" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846855779581" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846855779581" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846857686590" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846857686590" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -223,7 +223,7 @@ change it. The code is in <code translate="no" v-pre>ui/</code>.</p>
 | `ui.workspace.parts`, `.admin` | The workspace tabs and the admin panels. |
 | `ui.dialogs` | Entity dialogs, the book window and generic dialogs. |
 | `ui.dialogs.manuscript` | The tabs of the book window (`ManuscriptDialogPart`). |
-| `ui.components` | Larger reusable components: `LorebookView`, `PhoneLorebookView`, `LorebookPreview`, `InvalidExtensionsWarning`, `HelpAssistantWidget`, `TreantTree`, `MessageImages`, `ThreadCopyRequestAttributes`. |
+| `ui.components` | Larger reusable components: `LorebookView`, `PhoneLorebookView`, `LorebookPreview`, `InvalidExtensionsWarning`, `HelpAssistantWidget`, `TreantTree`, `MessageImages`, `PartView`, `ThreadCopyRequestAttributes`. |
 | `ui.widgets` | Small reusable widgets, among them `TrashGrid` (see [Trash](#trash)). |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -264,7 +264,7 @@ change it. The code is in <code translate="no" v-pre>ui/</code>.</p>
 </tr>
 <tr>
 <td><code translate="no" v-pre>ui.components</code></td>
-<td>Larger reusable components: <code translate="no" v-pre>LorebookView</code>, <code translate="no" v-pre>PhoneLorebookView</code>, <code translate="no" v-pre>LorebookPreview</code>, <code translate="no" v-pre>InvalidExtensionsWarning</code>, <code translate="no" v-pre>HelpAssistantWidget</code>, <code translate="no" v-pre>TreantTree</code>, <code translate="no" v-pre>MessageImages</code>, <code translate="no" v-pre>ThreadCopyRequestAttributes</code>.</td>
+<td>Larger reusable components: <code translate="no" v-pre>LorebookView</code>, <code translate="no" v-pre>PhoneLorebookView</code>, <code translate="no" v-pre>LorebookPreview</code>, <code translate="no" v-pre>InvalidExtensionsWarning</code>, <code translate="no" v-pre>HelpAssistantWidget</code>, <code translate="no" v-pre>TreantTree</code>, <code translate="no" v-pre>MessageImages</code>, <code translate="no" v-pre>PartView</code>, <code translate="no" v-pre>ThreadCopyRequestAttributes</code>.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>ui.widgets</code></td>
@@ -1365,6 +1365,9 @@ the page. <code translate="no" v-pre>exportJson()</code> is the selected style a
 <code translate="no" v-pre>manual/files/horror-book.style.json</code>, and <code translate="no" v-pre>PartStyleTransferTest</code> loads it.</p>
 </li>
 <li>
+<p><strong>Where the images of a part are</strong> is decided in <code translate="no" v-pre>domain.model.PartLayout</code> (<code translate="no" v-pre>layout(markdown, images)</code>: the text cut at the boundaries of its top level blocks, found with commonmark source spans, and the images put at the cuts of their <code translate="no" v-pre>ImageAnchor</code> rows) and drawn by <code translate="no" v-pre>ui.components.PartView</code>, one <code translate="no" v-pre>Markdown</code> per piece of text (each with <code translate="no" v-pre>CHAT_MESSAGE_MARKDOWN</code>, so the text style applies to all of them) and a <code translate="no" v-pre>div.part-pictures</code> per group of pictures (a flex row, aligned by the column; floats of their own, <code translate="no" v-pre>part-picture-float-left|right</code>, when the text flows around them). <code translate="no" v-pre>.part-view</code> is <code translate="no" v-pre>display: flow-root</code> (a float stays in its part) and a container (<code translate="no" v-pre>@container (max-width: 30em)</code> turns a float into a block, a phone). <code translate="no" v-pre>Viewer.createPart</code> and <code translate="no" v-pre>PartPreviewDialog</code> (the <strong>Preview as in the viewer</strong> entry of the part menu, <code translate="no" v-pre>StoryCard.openImagePreview</code>, with the text of the editor as it is, saved or not, the style of the book, and a narrow switch) build the part with <code translate="no" v-pre>PartView</code>; the story editor keeps <code translate="no" v-pre>MessageImages</code> (the list after the text). <code translate="no" v-pre>ImagesDialog</code> edits the position (<code translate="no" v-pre>layoutControls</code>: the 3x3 picker, the wrap checkbox, the width) and saves with <code translate="no" v-pre>ChatMessageService.save</code> on every change.</p>
+</li>
+<li>
 <p>The <strong>Exports</strong> tab of the settings (<code translate="no" v-pre>createExportsTab</code> of <code translate="no" v-pre>UserPart</code>) is the <code translate="no" v-pre>ui.exports.ExportSettingsEditor</code>, built like the styles editor: a <code translate="no" v-pre>Details</code> per <code translate="no" v-pre>Exporter</code> that supports styles or has templates, with a <code translate="no" v-pre>Select</code> of the styles for exports and a <code translate="no" v-pre>TextAreaPopoverComponent</code> per <code translate="no" v-pre>ExportTemplate</code>. Its edits only fill the fields and call <code translate="no" v-pre>setOnChange</code>; <code translate="no" v-pre>validate()</code> (template syntax), <code translate="no" v-pre>save()</code> (what differs from the stored; the default style of the format and the default template are not stored) and <code translate="no" v-pre>reload()</code> are called by <code translate="no" v-pre>UserPart.save</code> (after the styles editor) and <code translate="no" v-pre>refresh</code>, and <code translate="no" v-pre>trackChanges</code> skips it.</p>
 </li>
 </ul>
@@ -1390,7 +1393,7 @@ runs before and after that method and can read its arguments and local variables
 |---|---|
 | Workspace | `Workspace`, `DesktopWorkspace`, `PhoneWorkspace`, `ManuscriptPart`, `PhoneManuscriptPart`, `PhoneLorebookPart`, `PhoneProtocolPart`, `PhoneAIPart`, `PhoneSettingsPart`, `PhoneTrashPart`, `LorebookPart`, `UserPart`, `ProtocolPart`, `AIPart`, `ResourcesPart`, `TrashPart`, `AdminPart`, `DatabaseBackupPanel`, `CleanupPanel` |
 | Book window | `ManuscriptDialog`, `ManuscriptStoryPart` (and its `ChatMessageCard`), the shared story helpers (`StoryCards`, `StoryGenerationListener`, `NewTurnForm`, `TurnDetailsForm`, `MessageMetrics`, `StoryBackup`, `StorySupport`), `ManuscriptInfoPart`, `ManuscriptPromptPart`, `ManuscriptLorebookPart`, `ManuscriptTreePart`, `ManuscriptBackupPart`, `SummariesDialog` (and its `SummaryContent`), `SummaryDialog`, `ImagesDialog`; the phone twins of the tabs (`PhoneManuscriptStoryPart` and its `ChatMessageCard`, `PhoneManuscriptInfoPart`, `PhoneManuscriptPromptPart`, `PhoneManuscriptLorebookPart`, `PhoneManuscriptTreePart`, `PhoneManuscriptBackupPart`), see [the phone twins](plugins/extendable.md#the-phone-twins) |
-| Dialogs and components | `AIDialog`, `ProtocolDialog`, `UserDialog`, `LorebookDialog`, `LorebookImportDialog`, `PromptDialog`, `TokenUsageDialog`, `UsageDialog`, `StatisticsDialog`, `GlobalStatisticsDialog`, `PhoneStatisticsDialog`, `PhoneGlobalStatisticsDialog`, `ExportDialog`, `PhoneManuscriptDialog`, `PhoneSummariesDialog`, `LorebookView`, `PhoneLorebookView`, `TreantTree`, `MessageImages`, `TagMultiComboBox`, `ChartJs`, `TrashGrid`, `PhoneTrashGrid` |
+| Dialogs and components | `AIDialog`, `ProtocolDialog`, `UserDialog`, `LorebookDialog`, `LorebookImportDialog`, `PromptDialog`, `TokenUsageDialog`, `UsageDialog`, `StatisticsDialog`, `GlobalStatisticsDialog`, `PhoneStatisticsDialog`, `PhoneGlobalStatisticsDialog`, `ExportDialog`, `PhoneManuscriptDialog`, `PhoneSummariesDialog`, `LorebookView`, `PhoneLorebookView`, `TreantTree`, `MessageImages`, `PartView`, `PartPreviewDialog`, `TagMultiComboBox`, `ChartJs`, `TrashGrid`, `PhoneTrashGrid` |
 | Agents (since 1.4.0) | The tab `AgentPart` and the admin panel `AgentSettingsPanel`; the screens of `ui.dialogs.agent`: `AgentDialog`, `AgentCommandsEditor` (with `AgentCommandPreset`, the roles of its Selection box), `AgentModelsEditor`, `AgentModelDialog`, `AgentCloneDialog`, `AgentStopDialog`, `AgentResumeDialog`, `AgentApprovalDialog`, `AgentLockCheck`, `AgentCard` (an agent on a phone), `AgentConsoleDialog` with its tabs (`AgentRunHistory`, `AgentWorkspaceBrowser`, `AgentCheckpointBrowser`, `AgentContextView`, `AgentCopyView`, `AgentSubAgentsView`, `AgentDiagnosticsView`, `AgentFindingsView`, `AgentTranscriptRenderer`), the review `AgentMergeDialog` and `JsonMergeDialog`, and `WordDiffView` |
 | Commands, search and other new dialogs (since 1.4.0) | `CommandBar`, `CommandResultView`, `CommandProgressDialog`; `SearchReplaceDialog` with `ManuscriptSearchReplaceDialog` and `LorebookSearchReplaceDialog`; `ManuscriptCloneDialog`, `ArchiveUploadDialog`, `ArchiveEntryNamesDialog`, `ArchiveImportRunner`, `NewBookAction`; `MultiTagDialog`, `MassChangeModelProtocolDialog`, `MassChangeLanguageDialog`, `FolderDialog`, `FolderActions`, `FolderClashDialog`, `OrganiseDialog`, `LorebookMassEditDialog`, `LorebookPreview`; `PermissionsDialog`, `HelperPermissionComponent`, `AgentsPermissionComponent`; `HelpAssistantWidget`, `HelpAssistantPanel`; `Reset` (route `/reset`) |
 | Also | `TagsView`, `AILimitsDialog`, `AILimitEditDialog`, `AILimitInfoDialog`, `ExtensionLogDialog`, `InvalidExtensionsWarning`, `TextInputDialog`, `ListSelectDialog`, `ThreadAccessDialog`, `GraphView`, `LanguageSelector`, `ModelProtocolPicker`, `TabDock` |
@@ -1414,7 +1417,7 @@ runs before and after that method and can read its arguments and local variables
 </tr>
 <tr>
 <td>Dialogs and components</td>
-<td><code translate="no" v-pre>AIDialog</code>, <code translate="no" v-pre>ProtocolDialog</code>, <code translate="no" v-pre>UserDialog</code>, <code translate="no" v-pre>LorebookDialog</code>, <code translate="no" v-pre>LorebookImportDialog</code>, <code translate="no" v-pre>PromptDialog</code>, <code translate="no" v-pre>TokenUsageDialog</code>, <code translate="no" v-pre>UsageDialog</code>, <code translate="no" v-pre>StatisticsDialog</code>, <code translate="no" v-pre>GlobalStatisticsDialog</code>, <code translate="no" v-pre>PhoneStatisticsDialog</code>, <code translate="no" v-pre>PhoneGlobalStatisticsDialog</code>, <code translate="no" v-pre>ExportDialog</code>, <code translate="no" v-pre>PhoneManuscriptDialog</code>, <code translate="no" v-pre>PhoneSummariesDialog</code>, <code translate="no" v-pre>LorebookView</code>, <code translate="no" v-pre>PhoneLorebookView</code>, <code translate="no" v-pre>TreantTree</code>, <code translate="no" v-pre>MessageImages</code>, <code translate="no" v-pre>TagMultiComboBox</code>, <code translate="no" v-pre>ChartJs</code>, <code translate="no" v-pre>TrashGrid</code>, <code translate="no" v-pre>PhoneTrashGrid</code></td>
+<td><code translate="no" v-pre>AIDialog</code>, <code translate="no" v-pre>ProtocolDialog</code>, <code translate="no" v-pre>UserDialog</code>, <code translate="no" v-pre>LorebookDialog</code>, <code translate="no" v-pre>LorebookImportDialog</code>, <code translate="no" v-pre>PromptDialog</code>, <code translate="no" v-pre>TokenUsageDialog</code>, <code translate="no" v-pre>UsageDialog</code>, <code translate="no" v-pre>StatisticsDialog</code>, <code translate="no" v-pre>GlobalStatisticsDialog</code>, <code translate="no" v-pre>PhoneStatisticsDialog</code>, <code translate="no" v-pre>PhoneGlobalStatisticsDialog</code>, <code translate="no" v-pre>ExportDialog</code>, <code translate="no" v-pre>PhoneManuscriptDialog</code>, <code translate="no" v-pre>PhoneSummariesDialog</code>, <code translate="no" v-pre>LorebookView</code>, <code translate="no" v-pre>PhoneLorebookView</code>, <code translate="no" v-pre>TreantTree</code>, <code translate="no" v-pre>MessageImages</code>, <code translate="no" v-pre>PartView</code>, <code translate="no" v-pre>PartPreviewDialog</code>, <code translate="no" v-pre>TagMultiComboBox</code>, <code translate="no" v-pre>ChartJs</code>, <code translate="no" v-pre>TrashGrid</code>, <code translate="no" v-pre>PhoneTrashGrid</code></td>
 </tr>
 <tr>
 <td>Agents (since 1.4.0)</td>
@@ -1703,7 +1706,7 @@ the buttons a dialog has in its bottom right corner). The server accepts their e
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (f7e38b195).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (cc8327627).</p></div>
             </footer>
         </div>
     </div>
