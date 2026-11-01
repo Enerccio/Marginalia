@@ -626,11 +626,15 @@ Most are 🧩 plugin-sized; the ones that need a core hook say so.
       style id could travel the same way (book, folders, user default, Normal), with *Inherit* shown in the menu.
     - **A published book carries the author's style.** The reader chooses among their own styles only (cookie
       `marginalia_reader_style`, see the CHANGELOG), the author's choice is never seen. If the author's look should be
-      offered, it has to be a copy that the book publishes (not an id resolved through the author's setting), and the
-      PDF/HTML export could take its font and colors from the style.
-    - **More options.** First-line indent, drop caps, a paragraph gap vs. indent switch, a monospace dialogue font, the
-      width of the text column; a colour picker (the Vaadin one is a paid component, so a small own widget or the browser's
-      `<input type=color>`); a choice of fonts from the ones installed (or uploaded as a `Resource`, with `@font-face`).
+      offered, it has to be a copy that the book publishes (not an id resolved through the author's setting).
+    - **More options.** ✅ First-line indent, drop cap, word spacing, text width, background, link color, code font and
+      heading size are done. Still open: a monospace dialogue font, a paragraph-gap-vs-indent switch, a colour picker
+      (the Vaadin one is a paid component, so a small own widget or the browser's `<input type=color>`), a choice of
+      fonts from the ones installed (or uploaded as a `Resource`, with `@font-face`).
+    - **Print style, the rest.** ✅ Done for HTML, EPUB, PDF and Word (the *Print style* choice of the export dialog, styles *for exports*
+      with the looks of the formats as built-in ones).
+      Missing there: drop caps, small capitals, the background and the custom CSS in PDF and Word; the page size, the
+      margins and running heads as style options; fonts of the style embedded in PDF (only the Liberation families are).
     - **Share styles.** Export and import a style as JSON (the stored form is already a small JSON), and styles registered
       by extensions (`PartStyleRegistry.register`) such as a sepia or high-contrast set 🧩.
     - **Summaries, annotations and the history use the style too.** Only the parts of the story and the reader do now

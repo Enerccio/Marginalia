@@ -903,7 +903,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_STYLE_HEADING_SMALL_CAPS, "标题使用小型大写");
         setValue(L.LABEL_STYLE_SCENE_BREAK_TEXT, "场景分隔符号");
         setValue(L.LABEL_STYLE_SCENE_BREAK_COLOR, "场景分隔颜色");
-        setValue(L.LABEL_STYLE_GROUP_INLINE, "强调");
+        setValue(L.LABEL_STYLE_GROUP_INLINE, "强调、链接和代码");
         setValue(L.LABEL_STYLE_GROUP_QUOTE, "引用");
         setValue(L.LABEL_STYLE_GROUP_HEADINGS, "标题");
         setValue(L.LABEL_STYLE_GROUP_SCENE_BREAK, "场景分隔");
@@ -916,6 +916,22 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_STYLE_COPY_NAME, "%s（副本）");
         setValue(L.LABEL_STYLE_DEFAULT_MARK, "默认");
         setValue(L.LABEL_STYLE_BUILTIN_MARK, "内置");
+        setValue(L.LABEL_STYLE_WORD_SPACING, "词间距");
+        setValue(L.LABEL_STYLE_FIRST_LINE_INDENT, "首行缩进");
+        setValue(L.LABEL_STYLE_DROP_CAP, "标题后首字下沉");
+        setValue(L.LABEL_STYLE_TEXT_WIDTH, "文本宽度");
+        setValue(L.LABEL_STYLE_BACKGROUND_COLOR, "背景颜色");
+        setValue(L.LABEL_STYLE_LINK_COLOR, "链接颜色");
+        setValue(L.LABEL_STYLE_CODE_FONT_FAMILY, "代码字体");
+        setValue(L.LABEL_STYLE_HEADING_SIZE, "标题大小（一级）");
+        setValue(L.LABEL_STYLE_GROUP_PAGE, "页面");
+        setValue(L.LABEL_EXPORT_STYLE, "打印样式");
+        setValue(L.LABEL_STYLE_FOR_EXPORT, "用于导出（不用于书籍）");
+        setValue(L.LABEL_STYLE_EXPORT_MARK, "导出");
+        setValue(L.LABEL_STYLE_EXPORT_HTML, "HTML 页面");
+        setValue(L.LABEL_STYLE_EXPORT_EPUB, "电子书（EPUB）");
+        setValue(L.LABEL_STYLE_EXPORT_PDF, "PDF 书籍");
+        setValue(L.LABEL_STYLE_EXPORT_DOCX, "Word 文档");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");

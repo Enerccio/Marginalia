@@ -21,6 +21,15 @@ public class PartStyleRegistry implements InitializingBean {
     /** The style of a printed book: serif font, justified and hyphenated text, centered headings, a dotted scene break. */
     public static final String BOOK = "book";
 
+    /** The look of the HTML export: a page of a web browser, Georgia, justified, a light sheet. */
+    public static final String EXPORT_HTML = "export-html";
+    /** The look of the EPUB export: the font of the reader, justified, spaced paragraphs. */
+    public static final String EXPORT_EPUB = "export-epub";
+    /** The look of the PDF export: Liberation Serif 12 pt, justified, headings to the left. */
+    public static final String EXPORT_PDF = "export-pdf";
+    /** The look of the Word export: Times New Roman 12 pt, justified, headings to the left. */
+    public static final String EXPORT_DOCX = "export-docx";
+
     private static final String APPLICATION = "marginalia";
 
     private final Map<String, PartStyle> styles = new LinkedHashMap<>();
@@ -30,6 +39,69 @@ public class PartStyleRegistry implements InitializingBean {
     public void afterPropertiesSet() {
         register(APPLICATION, PartStyle.builtin(NORMAL, "Normal", L.LABEL_STYLE_NORMAL));
         register(APPLICATION, createBookStyle());
+        register(APPLICATION, htmlExportStyle());
+        register(APPLICATION, epubExportStyle());
+        register(APPLICATION, pdfExportStyle());
+        register(APPLICATION, docxExportStyle());
+    }
+
+    /**
+     * The look the HTML export had before styles existed (the text part of its stylesheet); the exporter uses it when no style is chosen.
+     */
+    public static PartStyle htmlExportStyle() {
+        return PartStyle.builtin(EXPORT_HTML, "HTML page", L.LABEL_STYLE_EXPORT_HTML).setForExport(true)
+                .set(PartStyleOption.FONT_FAMILY, "Georgia, 'Times New Roman', serif")
+                .set(PartStyleOption.LINE_HEIGHT, "1.6")
+                .set(PartStyleOption.TEXT_COLOR, "#222")
+                .set(PartStyleOption.TEXT_ALIGN, "justify")
+                .set(PartStyleOption.HYPHENATION, "true")
+                .set(PartStyleOption.PARAGRAPH_SPACING, "1em")
+                .set(PartStyleOption.QUOTE_COLOR, "#444")
+                .set(PartStyleOption.QUOTE_BORDER_COLOR, "#bbb")
+                .set(PartStyleOption.CODE_FONT_FAMILY, "'Courier New', monospace")
+                .set(PartStyleOption.SCENE_BREAK_TEXT, "* * *");
+    }
+
+    /**
+     * The look the EPUB export had before styles existed; the exporter uses it when no style is chosen.
+     */
+    public static PartStyle epubExportStyle() {
+        return PartStyle.builtin(EXPORT_EPUB, "E-book (EPUB)", L.LABEL_STYLE_EXPORT_EPUB).setForExport(true)
+                .set(PartStyleOption.FONT_FAMILY, "serif")
+                .set(PartStyleOption.LINE_HEIGHT, "1.5")
+                .set(PartStyleOption.TEXT_ALIGN, "justify")
+                .set(PartStyleOption.PARAGRAPH_SPACING, "1em")
+                .set(PartStyleOption.QUOTE_BORDER_COLOR, "#999")
+                .set(PartStyleOption.CODE_FONT_FAMILY, "monospace")
+                .set(PartStyleOption.SCENE_BREAK_TEXT, "* * *");
+    }
+
+    /**
+     * The look the PDF export had before styles existed (the fonts are the embedded Liberation ones); the exporter uses it when no style is chosen.
+     */
+    public static PartStyle pdfExportStyle() {
+        return PartStyle.builtin(EXPORT_PDF, "PDF book", L.LABEL_STYLE_EXPORT_PDF).setForExport(true)
+                .set(PartStyleOption.FONT_FAMILY, "serif")
+                .set(PartStyleOption.FONT_SIZE, "12pt")
+                .set(PartStyleOption.LINE_HEIGHT, "1.4")
+                .set(PartStyleOption.TEXT_ALIGN, "justify")
+                .set(PartStyleOption.PARAGRAPH_SPACING, "8pt")
+                .set(PartStyleOption.HEADING_ALIGN, "left")
+                .set(PartStyleOption.SCENE_BREAK_TEXT, "*   *   *");
+    }
+
+    /**
+     * The look the Word export had before styles existed; the exporter uses it when no style is chosen. It does not set the line
+     * height, Word keeps its single spacing.
+     */
+    public static PartStyle docxExportStyle() {
+        return PartStyle.builtin(EXPORT_DOCX, "Word document", L.LABEL_STYLE_EXPORT_DOCX).setForExport(true)
+                .set(PartStyleOption.FONT_FAMILY, "\"Times New Roman\", serif")
+                .set(PartStyleOption.FONT_SIZE, "12pt")
+                .set(PartStyleOption.TEXT_ALIGN, "justify")
+                .set(PartStyleOption.PARAGRAPH_SPACING, "8pt")
+                .set(PartStyleOption.HEADING_ALIGN, "left")
+                .set(PartStyleOption.SCENE_BREAK_TEXT, "*   *   *");
     }
 
     /**
@@ -65,7 +137,7 @@ public class PartStyleRegistry implements InitializingBean {
      */
     public synchronized void register(String owner, PartStyle style) {
         Objects.requireNonNull(style.getId(), "id");
-        PartStyle builtin = PartStyle.builtin(style.getId(), style.getName(), null);
+        PartStyle builtin = PartStyle.builtin(style.getId(), style.getName(), null).setForExport(style.isForExport());
         // keep the localized name of a style the application registered itself
         styles.put(style.getId(), style.isBuiltin() ? style : copyAsBuiltin(style, builtin));
         owners.put(style.getId(), owner);

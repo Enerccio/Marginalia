@@ -1,6 +1,8 @@
 package com.github.enerccio.marginalia.export;
 
 import com.github.enerccio.marginalia.domain.service.ExporterService.ExportOptions;
+import com.github.enerccio.marginalia.domain.styles.PartStyle;
+import com.github.enerccio.marginalia.domain.styles.PartStyleRegistry;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.ByteArrayOutputStream;
@@ -20,15 +22,12 @@ public class EpubExporter extends ExporterBase {
     // readers load a part as a whole, so the text is split to parts of about this size
     private static final int PART_SIZE = 100_000;
 
+    /**
+     * The page, the title page, the chapters, the figures and the contents. The look of the text of the book is the style of the export
+     * ({@code PartStyleRegistry.epubExportStyle()} when none is chosen), added after this.
+     */
     private static final String STYLE = """
             body { font-family: serif; line-height: 1.5; margin: 5%; }
-            p { margin: 0 0 1em 0; text-align: justify; }
-            h1, h2, h3, h4, h5, h6 { margin: 1.5em 0 1em 0; }
-            blockquote { margin: 1em 0 1em 1.5em; padding-left: 1em; border-left: 3px solid #999; }
-            pre, code { font-family: monospace; }
-            pre { white-space: pre-wrap; }
-            hr { border: 0; text-align: center; margin: 2em 0; }
-            hr::after { content: '* * *'; }
             .title-page { margin-top: 30%; text-align: center; }
             .title-page h1 { font-size: 2.4em; }
             .title-page p { text-align: center; font-size: 1.3em; }
@@ -57,12 +56,23 @@ public class EpubExporter extends ExporterBase {
     }
 
     @Override
+    public boolean supportsStyles() {
+        return true;
+    }
+
+    @Override
+    public String getDefaultStyleId() {
+        return PartStyleRegistry.EXPORT_EPUB;
+    }
+
+    @Override
     protected ExportWriter open(ExportOptions options) {
         return new EpubWriter(options);
     }
 
     private static class EpubWriter implements ExportWriter {
         private final ExportOptions options;
+        private final PartStyle style;
         private final List<String> parts = new ArrayList<>();
         private final StringBuilder current = new StringBuilder();
         private final List<Chapter> chapters = new ArrayList<>();
@@ -73,6 +83,7 @@ public class EpubExporter extends ExporterBase {
 
         private EpubWriter(ExportOptions options) {
             this.options = options;
+            this.style = options.style() != null ? options.style() : PartStyleRegistry.epubExportStyle();
         }
 
         @Override
@@ -141,7 +152,8 @@ public class EpubExporter extends ExporterBase {
                           </rootfiles>
                         </container>
                         """);
-                add(zip, "OEBPS/style.css", STYLE);
+                // the stylesheet of the chosen style comes after the base one, without its custom CSS (the nesting of it is not understood by every reader)
+                add(zip, "OEBPS/style.css", styled() ? STYLE + style.toPrintCss(false) : STYLE);
                 for (int i = 0; i < images.size(); i++) {
                     zip.putNextEntry(new ZipEntry("OEBPS/images/image" + (i + 1) + "." + images.get(i).extension()));
                     zip.write(images.get(i).data());
@@ -159,7 +171,7 @@ public class EpubExporter extends ExporterBase {
                     String file = "part" + (i + 1) + ".xhtml";
                     files.add(file);
                     labels.add(parts.size() == 1 ? options.bookName() : options.bookName() + " (" + (i + 1) + ")");
-                    add(zip, "OEBPS/" + file, page(language, options.bookName(), parts.get(i)));
+                    add(zip, "OEBPS/" + file, page(language, options.bookName(), inStyle(parts.get(i))));
                 }
 
                 add(zip, "OEBPS/nav.xhtml", navigation(language, files, labels));
@@ -167,6 +179,15 @@ public class EpubExporter extends ExporterBase {
                 add(zip, "OEBPS/content.opf", packageDocument(language, files, chapters.isEmpty() ? -1 : titlePage == null ? 0 : 1));
             }
             return bytes.toByteArray();
+        }
+
+        private boolean styled() {
+            return style.hasContent();
+        }
+
+        // the text of the book (not the title page) is inside the scope of the style
+        private String inStyle(String body) {
+            return styled() ? "<div class=\"" + style.getCssClass() + "\"><div class=\"chat-message-markdown\">\n" + body + "</div></div>\n" : body;
         }
 
         private static void add(ZipOutputStream zip, String name, String content) throws Exception {

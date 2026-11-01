@@ -10,10 +10,13 @@ import com.github.enerccio.marginalia.domain.service.ExporterService;
 import com.github.enerccio.marginalia.domain.service.ExporterService.ExportOptions;
 import com.github.enerccio.marginalia.domain.service.ExporterService.Exporter;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
+import com.github.enerccio.marginalia.domain.service.PartStyleService;
+import com.github.enerccio.marginalia.domain.styles.PartStyle;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
+import com.github.enerccio.marginalia.ui.styles.PartStyleApplier;
 import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.utils.UIUtils;
@@ -36,6 +39,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
 import java.io.ByteArrayInputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -60,11 +64,21 @@ public class ExportDialog extends Dialog implements LLMInteract {
     private ManuscriptService manuscriptService;
 
     @Autowired
+    private PartStyleService partStyleService;
+
+    @Autowired
     private User user;
 
     private final Manuscript manuscript;
 
+    /**
+     * One entry of the choice of the print style: null style is the look the format has by itself.
+     */
+    private record StyleChoice(String text, PartStyle style) {
+    }
+
     private Select<Exporter> format;
+    private Select<StyleChoice> styleChoice;
     private TextField fileName;
     private TextField bookTitle;
     private TextField author;
@@ -93,6 +107,15 @@ public class ExportDialog extends Dialog implements LLMInteract {
             format.setValue(exporters.getFirst());
         }
 
+        styleChoice = createStyleChoice();
+        // only a format that has fonts and colors takes a style, and each has the look it had before styles
+        styleChoice.setVisible(format.getValue() != null && format.getValue().supportsStyles());
+        selectDefaultStyle(format.getValue());
+        format.addValueChangeListener(event -> {
+            styleChoice.setVisible(event.getValue() != null && event.getValue().supportsStyles());
+            selectDefaultStyle(event.getValue());
+        });
+
         fileName = new TextField(loc.getValue(L.LABEL_FILE_NAME), StringUtils.defaultString(manuscript.getName()), "");
         bookTitle = new TextField(loc.getValue(L.LABEL_BOOK_TITLE), StringUtils.defaultString(manuscript.getName()), "");
         author = new TextField(loc.getValue(L.LABEL_AUTHOR), StringUtils.defaultIfBlank(user.getFullName(), user.getLogin()), "");
@@ -110,7 +133,7 @@ public class ExportDialog extends Dialog implements LLMInteract {
 
         FormLayout form = new FormLayout();
         form.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 1));
-        form.add(format, fileName, bookTitle, author, from, to, includeHeaders);
+        form.add(format, styleChoice, fileName, bookTitle, author, from, to, includeHeaders);
         form.getChildren().forEach(c -> c.getElement().getClassList().add(CssStyles.FULL_WIDTH));
         add(form);
 
@@ -120,12 +143,53 @@ public class ExportDialog extends Dialog implements LLMInteract {
         getFooter().add(new Button(loc.getValue(L.LABEL_CANCEL), event -> close()), export);
     }
 
+    /**
+     * The choice of the style of the exported text: the styles for exports (the looks of the formats that the application brings, and the
+     * user's own styles marked for exports) by name. The style of the format is chosen first, and again when the format changes.
+     */
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = Select.class),
+            locals = {@APILocals(name = "choice", type = Select.class),
+                    @APILocals(name = "choices", type = List.class),
+                    @APILocals(name = "style", type = PartStyle.class),
+                    @APILocals(name = "e", type = Exception.class)})
+    private Select<StyleChoice> createStyleChoice() {
+        Select<StyleChoice> choice = new Select<>();
+        choice.setLabel(loc.getValue(L.LABEL_EXPORT_STYLE));
+        choice.setItemLabelGenerator(StyleChoice::text);
+        List<StyleChoice> choices = new ArrayList<>();
+        try {
+            for (PartStyle style : PartStyleApplier.sorted(partStyleService.listForExport(), loc)) {
+                choices.add(new StyleChoice(style.getDisplayName(loc), style));
+            }
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+        choice.setItems(choices);
+        return choice;
+    }
+
+    /**
+     * Chooses the style the format has when the author does not (nothing when the format has none or the user has no such style).
+     */
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "exporter", type = ExporterService.Exporter.class)})
+    private void selectDefaultStyle(Exporter exporter) {
+        if (exporter == null || exporter.getDefaultStyleId() == null) {
+            return;
+        }
+        styleChoice.getListDataView().getItems().filter(item -> item.style().getId().equals(exporter.getDefaultStyleId())).findFirst()
+                .ifPresent(styleChoice::setValue);
+    }
+
     @PublicAPI(from = "1.6.0",
             returns = @APIReturn(type = void.class),
             locals = {@APILocals(name = "exporter", type = ExporterService.Exporter.class),
                     @APILocals(name = "field", type = TextField.class),
                     @APILocals(name = "languageCode", type = String.class),
                     @APILocals(name = "e", type = Exception.class),
+                    @APILocals(name = "style", type = PartStyle.class),
                     @APILocals(name = "options", type = ExporterService.ExportOptions.class),
                     @APILocals(name = "file", type = String.class),
                     @APILocals(name = "last", type = Integer.class)})
@@ -156,8 +220,9 @@ public class ExportDialog extends Dialog implements LLMInteract {
             UIUtils.internalServerError(loc, e);
             return;
         }
+        PartStyle style = exporter.supportsStyles() && styleChoice.getValue() != null ? styleChoice.getValue().style() : null;
         ExportOptions options = new ExportOptions(bookTitle.getValue().trim(), StringUtils.trimToEmpty(author.getValue()),
-                includeHeaders.getValue(), languageCode);
+                includeHeaders.getValue(), languageCode, style);
         String file = fileNameFor(fileName.getValue(), exporter);
         int first = from.getValue() == null ? 1 : from.getValue();
         Integer last = to.getValue();

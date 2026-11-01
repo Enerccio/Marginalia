@@ -71,7 +71,7 @@ public final class PartStyleApplier {
         List<Choice> choices = new ArrayList<>();
         choices.add(new Choice(String.format(loc.getValue(L.LABEL_STYLE_DEFAULT_ENTRY), service.getDefault().getDisplayName(loc)),
                 chosen == null, () -> choose.accept(null)));
-        for (PartStyle style : sorted(service.list(), loc)) {
+        for (PartStyle style : sorted(service.listForBooks(), loc)) {
             choices.add(new Choice(style.getDisplayName(loc), chosen != null && style.getId().equals(chosen.getId()),
                     () -> choose.accept(style.getId())));
         }

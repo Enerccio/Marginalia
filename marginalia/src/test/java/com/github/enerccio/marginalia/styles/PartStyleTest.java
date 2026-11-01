@@ -23,7 +23,10 @@ class PartStyleTest {
     void theRegistryHasTheNormalAndTheBookStyle() {
         PartStyleRegistry registry = registry();
 
-        assertThat(registry.getAll()).extracting(PartStyle::getId).containsExactly(PartStyleRegistry.NORMAL, PartStyleRegistry.BOOK);
+        assertThat(registry.getAll()).extracting(PartStyle::getId).containsExactly(PartStyleRegistry.NORMAL, PartStyleRegistry.BOOK,
+                PartStyleRegistry.EXPORT_HTML, PartStyleRegistry.EXPORT_EPUB, PartStyleRegistry.EXPORT_PDF, PartStyleRegistry.EXPORT_DOCX);
+        assertThat(registry.getAll()).filteredOn(PartStyle::isForExport).extracting(PartStyle::getId)
+                .containsExactly("export-html", "export-epub", "export-pdf", "export-docx");
         assertThat(registry.getAll()).allMatch(PartStyle::isBuiltin);
         assertThat(registry.isBuiltin("book")).isTrue();
         assertThat(registry.isBuiltin("someone-elses")).isFalse();

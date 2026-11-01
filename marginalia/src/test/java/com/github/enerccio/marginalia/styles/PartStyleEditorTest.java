@@ -11,6 +11,7 @@ import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.ComponentUtil;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.page.Page;
 import com.vaadin.flow.component.page.PendingJavaScriptResult;
@@ -95,7 +96,7 @@ class PartStyleEditorTest extends MarginaliaTestBase {
         PartStyleEditor editor = new PartStyleEditor(loc, service);
 
         Grid<PartStyle> grid = ComponentTree.all(editor, Grid.class).findFirst().orElseThrow();
-        assertThat(grid.getListDataView().getItems().map(PartStyle::getId).toList()).containsExactly("book", "normal");
+        assertThat(grid.getListDataView().getItems().map(PartStyle::getId).toList()).containsExactly("book", "export-epub", "export-html", "normal", "export-pdf", "export-docx");
         PartStyle shown = grid.getSelectedItems().iterator().next();
         assertThat(shown.getId()).isEqualTo("book");
         assertThat(button(editor, "Delete").isEnabled()).isFalse();
@@ -155,7 +156,7 @@ class PartStyleEditorTest extends MarginaliaTestBase {
         assertThat(own(service)).hasSize(1);
         assertThat(fontSize(editor).getValue()).isEqualTo("1.04rem");
         assertThat(editor.getCustomCssField().getValue()).isEmpty();
-        assertThat(ComponentTree.all(editor, Grid.class).findFirst().map(g -> ((Grid<?>) g).getListDataView().getItemCount()).orElseThrow()).isEqualTo(3);
+        assertThat(ComponentTree.all(editor, Grid.class).findFirst().map(g -> ((Grid<?>) g).getListDataView().getItemCount()).orElseThrow()).isEqualTo(7);
         assertThat(service.find(copy.getId()).get(PartStyleOption.FONT_SIZE)).isEqualTo("1.04rem");
     }
 
@@ -185,6 +186,30 @@ class PartStyleEditorTest extends MarginaliaTestBase {
         editor.save();
 
         assertThat(own(service)).isEmpty();
+    }
+
+    private static Checkbox forExportBox(PartStyleEditor editor) {
+        return ComponentTree.all(editor, Checkbox.class).filter(box -> box.getLabel() != null && box.getLabel().startsWith("For exports"))
+                .findFirst().orElseThrow();
+    }
+
+    @Test
+    void aStyleCanBeMarkedForExportsWhichTakesItOutOfTheDefaultOfBooks() throws Exception {
+        PartStyleEditor editor = new PartStyleEditor(loc, service);
+        assertThat(forExportBox(editor).isReadOnly()).as("built in").isTrue();
+        click(button(editor, "Duplicate"));
+        click(button(editor, "Set as default"));
+        assertThat(button(editor, "Set as default").isEnabled()).isFalse();
+
+        forExportBox(editor).setValue(true);
+        assertThat(button(editor, "Set as default").isEnabled()).as("a style for exports is not one for books").isFalse();
+        editor.save();
+
+        PartStyle stored = own(service).getFirst();
+        assertThat(stored.isForExport()).isTrue();
+        assertThat(service.getDefaultId()).as("it was the default, and is not any more").isNull();
+        assertThat(service.listForExport()).extracting(PartStyle::getId).contains(stored.getId());
+        assertThat(service.listForBooks()).extracting(PartStyle::getId).doesNotContain(stored.getId());
     }
 
     @Test
