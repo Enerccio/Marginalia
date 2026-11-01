@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846843452879">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846844762094">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846843452879" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846844762094" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846843452879" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846844762094" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846843452879" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846844762094" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -201,6 +201,7 @@ bar shows how far it is.</p>
 <retype-table copy-text="| Field | |
 |---|---|
 | **Format** | The file type, see below. |
+| **Print style** | Only for the formats that have fonts and colors (HTML, Word, PDF, EPUB). The look of the text, chosen from the styles *for exports*: the application brings one for each of these formats, **HTML page**, **E-book (EPUB)**, **PDF book** and **Word document**, which are the looks the exports always had and are chosen by themselves when you pick the format, and you can make your own, see [Print styles](#print-styles). |
 | **File name** | Name of the downloaded file without the extension, which Marginalia adds. Starts as the name of the book. |
 | **Book title** | The title in the file (title page and file properties). Starts as the name of the book; changing it doesn't rename the book. |
 | **Author** | Starts as your full name from your [account](../account.md). Empty means no author. |
@@ -218,6 +219,10 @@ bar shows how far it is.</p>
 <tr>
 <td><strong>Format</strong></td>
 <td>The file type, see below.</td>
+</tr>
+<tr>
+<td><strong>Print style</strong></td>
+<td>Only for the formats that have fonts and colors (HTML, Word, PDF, EPUB). The look of the text, chosen from the styles <em>for exports</em>: the application brings one for each of these formats, <strong>HTML page</strong>, <strong>E-book (EPUB)</strong>, <strong>PDF book</strong> and <strong>Word document</strong>, which are the looks the exports always had and are chosen by themselves when you pick the format, and you can make your own, see <doc-anchor-trigger to="#print-styles">Print styles</doc-anchor-trigger>.</td>
 </tr>
 <tr>
 <td><strong>File name</strong></td>
@@ -331,6 +336,49 @@ every format that can show them. Raw HTML in the text is shown as text, never ru
 </table>
 </div>
 </retype-table>
+<h2 id="print-styles">Print styles</h2>
+<p>The export uses the text styles of <a href="../../account/#styles">Settings → Styles</a> that are marked <strong>For exports</strong>. Styles are either for books
+(the story and the reader) or for exports: the <em>Change Styles For Text</em> menu and the reader show only the first kind, the export dialog only the
+second. The four built-in ones are the looks of the formats; <strong>Duplicate</strong> one (or a book style, and tick <strong>For exports</strong>) to make your own, for
+example the Book style on paper. The style is worked out for paper: colors that depend on the theme of the application (the light text of the dark
+theme) become the dark ones for a white page.</p>
+<retype-table copy-text="| Format | What the style gives |
+|---|---|
+| **HTML** | The whole stylesheet of the style, including the **custom CSS**, **drop caps**, the text width and the background; the title page and the contents keep the look of the format. |
+| **EPUB** | The stylesheet of the style without the custom CSS (e-readers do not all understand it; some readers also set their own fonts and sizes). |
+| **PDF** | The font family (serif, sans or monospace of the embedded fonts, chosen from the font stack), size, line height, alignment, the space between paragraphs, the first line indent, the colors of the text, italic, bold, quotes, headings and the scene break, the alignment and size of headings and the symbol of the scene break. |
+| **Word document** | The same as the PDF, with the font named in the style (Word shows its own when the computer lacks it) instead of the embedded ones. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Format</th>
+<th>What the style gives</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>HTML</strong></td>
+<td>The whole stylesheet of the style, including the <strong>custom CSS</strong>, <strong>drop caps</strong>, the text width and the background; the title page and the contents keep the look of the format.</td>
+</tr>
+<tr>
+<td><strong>EPUB</strong></td>
+<td>The stylesheet of the style without the custom CSS (e-readers do not all understand it; some readers also set their own fonts and sizes).</td>
+</tr>
+<tr>
+<td><strong>PDF</strong></td>
+<td>The font family (serif, sans or monospace of the embedded fonts, chosen from the font stack), size, line height, alignment, the space between paragraphs, the first line indent, the colors of the text, italic, bold, quotes, headings and the scene break, the alignment and size of headings and the symbol of the scene break.</td>
+</tr>
+<tr>
+<td><strong>Word document</strong></td>
+<td>The same as the PDF, with the font named in the style (Word shows its own when the computer lacks it) instead of the embedded ones.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>Drop caps, the custom CSS (PDF, Word, EPUB), small capitals of headings, the background and the text width are not made in the PDF and Word
+files.</p>
 <h2 id="table-of-contents">Table of contents</h2>
 <p>When the text contains chapters, the file gets a table of contents after the title page. A chapter is a part of the
 story that contains a Markdown heading (a line starting with <code translate="no" v-pre>#</code>, e.g. <code translate="no" v-pre># Chapter 3: The Harbour</code>) - the same rule the
@@ -446,7 +494,7 @@ all of it, make a <a href="../backups/">backup</a>.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (7fe9f2d88).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (3b20a129e).</p></div>
             </footer>
         </div>
     </div>

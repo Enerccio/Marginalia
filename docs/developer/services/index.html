@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846843452879">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846844762094">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846843452879" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846844762094" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846843452879" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846844762094" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846843452879" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846843452879" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846844762094" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846844762094" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -477,7 +477,7 @@ doesn&#x27;t take them.</p>
 <h3 id="story-export">Story export</h3>
 <p><code translate="no" v-pre>ExportDialog</code> (opened from the settings menu of <code translate="no" v-pre>ManuscriptStoryPart</code>) collects the active branch in one
 <code translate="no" v-pre>ProgressBarDialog</code> (indeterminate), cuts the chosen range and exports it in a second one whose total is the number of
-messages, then shows the download link. The exporter gets <code translate="no" v-pre>ExportOptions</code> (title, author, title page, language), the
+messages, then shows the download link. The exporter gets <code translate="no" v-pre>ExportOptions</code> (title, author, title page, language, and the <code translate="no" v-pre>PartStyle</code> chosen in the dialog, null for the look of the format), the
 messages and the progress dialog, on which it calls <code translate="no" v-pre>updateProgress()</code> for every message.</p>
 <p><code translate="no" v-pre>ExporterBase</code> does the common work: it renders the title page from <code translate="no" v-pre>Defaults.DEFAULT_EXPORT_HEADER_TEMPLATE</code>
 (Handlebars, data <code translate="no" v-pre>ExportHeaderTemplateData</code>), skips parts without text, reports progress and feeds the Markdown of
@@ -493,6 +493,13 @@ Images attached to a part (<code translate="no" v-pre>ChatMessage.getImages()</c
 in <code translate="no" v-pre>images(List&lt;ExportImage&gt;)</code> right after <code translate="no" v-pre>message(...)</code>. A part with images but no text is exported with an empty text.
 HTML embeds them as data URIs, EPUB as files in <code translate="no" v-pre>OEBPS/images/</code> with manifest items, DOCX with POI pictures (scaled to
 fit the page), PDF with OpenPDF images, TXT as <code translate="no" v-pre>[Image: caption]</code>, Markdown as <code translate="no" v-pre>![caption](data:...)</code> plus an italic caption line. <code translate="no" v-pre>figure(src, caption)</code> renders the XHTML figure.
+An exporter that has fonts and colors returns <code translate="no" v-pre>true</code> from <code translate="no" v-pre>Exporter.supportsStyles()</code> (HTML, EPUB, PDF, DOCX), which is what makes the dialog show
+the <em>Print style</em> choice (<code translate="no" v-pre>PartStyleService.listForExport()</code>: the styles with <code translate="no" v-pre>forExport</code>, built in and the user&#x27;s), preselecting <code translate="no" v-pre>Exporter.getDefaultStyleId()</code> of the format and again when the format changes. The look each format had before styles are the built-in styles <code translate="no" v-pre>PartStyleRegistry.htmlExportStyle()</code> (<code translate="no" v-pre>export-html</code>), <code translate="no" v-pre>epubExportStyle()</code>, <code translate="no" v-pre>pdfExportStyle()</code> and <code translate="no" v-pre>docxExportStyle()</code>, which the exporter uses when <code translate="no" v-pre>ExportOptions.style</code> is null (the text part of the old <code translate="no" v-pre>STYLE</code> constants moved there; what is left in them is the page, the title page, the contents and the figures). HTML and EPUB
+add <code translate="no" v-pre>PartStyle.toPrintCss(withCustomCss)</code> (the stylesheet worked out for paper: <code translate="no" v-pre>resolveForPrint</code> takes the fallback of <code translate="no" v-pre>var(...)</code> and the light
+side of <code translate="no" v-pre>light-dark(...)</code>) after their own, and wrap the text of the book in <code translate="no" v-pre>&lt;div class=&quot;part-style-ID&quot;&gt;&lt;div class=&quot;chat-message-markdown&quot;&gt;</code>, so the
+rules of the style (also drop caps, the width) apply as on the screen; EPUB leaves the custom CSS out (nested CSS). PDF and DOCX read <code translate="no" v-pre>PrintStyle.of(style)</code>
+(<code translate="no" v-pre>toPrintStyle()</code>): points, RGB, the family of the stack (<code translate="no" v-pre>Liberation</code> serif, sans and mono of the PDF; the named font in Word), indent, spacing, alignment and
+the scene break; a style without content gives the defaults, which are the look these exporters had before styles.
 <code translate="no" v-pre>MarkdownExporter</code> is the only one that does not parse: the Markdown of each part is written as it is (raw HTML included, since the output is
 source and not a rendered format), as blocks separated by an empty line.
 It also provides <code translate="no" v-pre>toHtml</code> (CommonMark, raw HTML escaped, XHTML safe) and <code translate="no" v-pre>walk</code>, which turns
@@ -1088,7 +1095,7 @@ call. See
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (7fe9f2d88).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (3b20a129e).</p></div>
             </footer>
         </div>
     </div>

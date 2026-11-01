@@ -52,6 +52,7 @@ public class PartStyleEditor extends HorizontalLayout {
     private final Button defaultButton;
 
     private final TextField nameField = new TextField();
+    private final Checkbox forExportBox = new Checkbox();
     private final Map<PartStyleOption, HasValue<?, ?>> optionFields = new EnumMap<>(PartStyleOption.class);
     private final TextArea customCssField = new TextArea();
     private final TextArea generatedCssField = new TextArea();
@@ -160,6 +161,9 @@ public class PartStyleEditor extends HorizontalLayout {
         if (style.isBuiltin()) {
             notes.add(loc.getValue(L.LABEL_STYLE_BUILTIN_MARK));
         }
+        if (style.isForExport()) {
+            notes.add(loc.getValue(L.LABEL_STYLE_EXPORT_MARK));
+        }
         if (style.getId().equals(defaultId)) {
             notes.add(loc.getValue(L.LABEL_STYLE_DEFAULT_MARK));
         }
@@ -185,6 +189,18 @@ public class PartStyleEditor extends HorizontalLayout {
             }
         });
 
+        forExportBox.setLabel(loc.getValue(L.LABEL_STYLE_FOR_EXPORT));
+        forExportBox.addValueChangeListener(event -> {
+            changed();
+            if (!loading) {
+                // a style for exports is not one for books: it can't be the default of the books
+                if (selected != null && selected.isForExport() && selected.getId().equals(defaultId)) {
+                    defaultId = null;
+                }
+                refreshList();
+            }
+        });
+
         TabSheet tabs = new TabSheet();
         tabs.setSizeFull();
         tabs.addClassName(CssStyles.MIN_HEIGHT_0);
@@ -198,7 +214,7 @@ public class PartStyleEditor extends HorizontalLayout {
         Span previewLabel = new Span(loc.getValue(L.LABEL_STYLE_PREVIEW));
         previewLabel.addClassName(CssStyles.TEXT_SEMIBOLD);
 
-        VerticalLayout column = new VerticalLayout(nameField, tabs, previewLabel, preview);
+        VerticalLayout column = new VerticalLayout(nameField, forExportBox, tabs, previewLabel, preview);
         // takes what the list leaves (the flex grow of the row), and may shrink below its content
         column.setWidth(null);
         column.addClassName(CssStyles.MIN_WIDTH_0);
@@ -398,6 +414,8 @@ public class PartStyleEditor extends HorizontalLayout {
             nameField.setInvalid(false);
             nameField.setValue(style == null ? "" : style.getDisplayName(loc));
             nameField.setReadOnly(readOnly);
+            forExportBox.setValue(style != null && style.isForExport());
+            forExportBox.setReadOnly(readOnly);
             for (Map.Entry<PartStyleOption, HasValue<?, ?>> entry : optionFields.entrySet()) {
                 setField(entry.getValue(), style == null ? null : style.get(entry.getKey()));
                 entry.getValue().setReadOnly(readOnly);
@@ -438,6 +456,7 @@ public class PartStyleEditor extends HorizontalLayout {
             return;
         }
         selected.setName(nameField.getValue());
+        selected.setForExport(forExportBox.getValue());
         optionFields.forEach((option, field) -> selected.set(option, valueOf(field)));
         selected.setCustomCss(customCssField.getValue());
         refresh();
@@ -451,7 +470,8 @@ public class PartStyleEditor extends HorizontalLayout {
         boolean builtin = selected == null || selected.isBuiltin();
         duplicateButton.setEnabled(selected != null);
         deleteButton.setEnabled(!builtin);
-        defaultButton.setEnabled(selected != null && !selected.getId().equals(defaultId));
+        // the styles for exports are not offered for books
+        defaultButton.setEnabled(selected != null && !selected.isForExport() && !selected.getId().equals(defaultId));
         grid.getDataProvider().refreshAll();
 
         PartStyle now = selected == null ? new PartStyle(PREVIEW_ID, "") : selected;

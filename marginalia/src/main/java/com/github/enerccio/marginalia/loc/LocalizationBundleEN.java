@@ -895,7 +895,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_STYLE_HEADING_SMALL_CAPS, "Small caps headings");
         setValue(L.LABEL_STYLE_SCENE_BREAK_TEXT, "Scene break symbol");
         setValue(L.LABEL_STYLE_SCENE_BREAK_COLOR, "Scene break color");
-        setValue(L.LABEL_STYLE_GROUP_INLINE, "Emphasis");
+        setValue(L.LABEL_STYLE_GROUP_INLINE, "Emphasis, links and code");
         setValue(L.LABEL_STYLE_GROUP_QUOTE, "Quotes");
         setValue(L.LABEL_STYLE_GROUP_HEADINGS, "Headings");
         setValue(L.LABEL_STYLE_GROUP_SCENE_BREAK, "Scene break");
@@ -908,6 +908,22 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_STYLE_COPY_NAME, "%s (copy)");
         setValue(L.LABEL_STYLE_DEFAULT_MARK, "default");
         setValue(L.LABEL_STYLE_BUILTIN_MARK, "built in");
+        setValue(L.LABEL_STYLE_WORD_SPACING, "Word spacing");
+        setValue(L.LABEL_STYLE_FIRST_LINE_INDENT, "First line indent");
+        setValue(L.LABEL_STYLE_DROP_CAP, "Drop cap after headings");
+        setValue(L.LABEL_STYLE_TEXT_WIDTH, "Text width");
+        setValue(L.LABEL_STYLE_BACKGROUND_COLOR, "Background color");
+        setValue(L.LABEL_STYLE_LINK_COLOR, "Link color");
+        setValue(L.LABEL_STYLE_CODE_FONT_FAMILY, "Code font");
+        setValue(L.LABEL_STYLE_HEADING_SIZE, "Heading size (first level)");
+        setValue(L.LABEL_STYLE_GROUP_PAGE, "Page");
+        setValue(L.LABEL_EXPORT_STYLE, "Print style");
+        setValue(L.LABEL_STYLE_FOR_EXPORT, "For exports (not offered for books)");
+        setValue(L.LABEL_STYLE_EXPORT_MARK, "export");
+        setValue(L.LABEL_STYLE_EXPORT_HTML, "HTML page");
+        setValue(L.LABEL_STYLE_EXPORT_EPUB, "E-book (EPUB)");
+        setValue(L.LABEL_STYLE_EXPORT_PDF, "PDF book");
+        setValue(L.LABEL_STYLE_EXPORT_DOCX, "Word document");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");

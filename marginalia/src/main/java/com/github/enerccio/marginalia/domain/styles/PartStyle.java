@@ -28,9 +28,13 @@ public class PartStyle {
     private String name;
     private Map<String, String> options = new LinkedHashMap<>();
     private String customCss;
+    // a style for exports (HTML, EPUB, PDF, Word): offered in the export dialog and not for the story and the reader
+    private boolean forExport;
 
     private transient boolean builtin;
     private transient L nameKey;
+    // set while toCss works: the values are worked out for paper
+    private transient boolean printing;
 
     public PartStyle() {
     }
@@ -78,6 +82,19 @@ public class PartStyle {
 
     public boolean isBuiltin() {
         return builtin;
+    }
+
+    /**
+     * Whether the style is for exports: the export dialog offers it, the menus of the story and the reader do not. A style for books is not
+     * offered for exports.
+     */
+    public boolean isForExport() {
+        return forExport;
+    }
+
+    public PartStyle setForExport(boolean forExport) {
+        this.forExport = forExport;
+        return this;
     }
 
     public String getCustomCss() {
@@ -133,6 +150,7 @@ public class PartStyle {
         PartStyle copy = new PartStyle(newId, newName);
         copy.options = new LinkedHashMap<>(options);
         copy.customCss = customCss;
+        copy.forExport = forExport;
         return copy;
     }
 
@@ -173,9 +191,112 @@ public class PartStyle {
      * {@code & p { ... }}.
      */
     public String toCss() {
+        return toCss(false, true);
+    }
+
+    /**
+     * The stylesheet for a printed or exported book (HTML, EPUB): the same rules, with the values worked out for paper
+     * ({@link #resolveForPrint}: no variables of the application, the light colors of the pairs).
+     *
+     * @param withCustomCss whether the custom CSS of the author comes with it; it is nested CSS, which not every reader of e-books understands
+     */
+    public String toPrintCss(boolean withCustomCss) {
+        return toCss(true, withCustomCss);
+    }
+
+    /**
+     * What the stylesheet of the style says in the units of paper: points, colors, fonts that exist in a PDF or a Word document.
+     */
+    public PrintStyle toPrintStyle() {
+        return PrintStyle.of(this);
+    }
+
+    /**
+     * Works out a CSS value of an option for paper: {@code var(--x, fallback)} becomes the fallback (the body text color of the application,
+     * which is light in the dark theme, becomes near black) and {@code light-dark(a, b)} becomes {@code a}, the color for a light page.
+     */
+    public static String resolveForPrint(String value) {
+        if (value == null) {
+            return null;
+        }
+        String resolved = value;
+        for (int guard = 0; guard < 32; guard++) {
+            int start = resolved.indexOf("var(");
+            if (start < 0) {
+                break;
+            }
+            int end = closing(resolved, start + 3);
+            if (end < 0) {
+                break;
+            }
+            String inner = resolved.substring(start + 4, end);
+            int comma = topLevelComma(inner);
+            String name = (comma < 0 ? inner : inner.substring(0, comma)).trim();
+            String fallback = comma < 0 ? "" : inner.substring(comma + 1).trim();
+            String replacement = "--lumo-body-text-color".equals(name) ? "#1a1a1a" : fallback;
+            if (name.startsWith("--lumo-contrast-") && name.endsWith("pct") && fallback.replace(" ", "").startsWith("rgba(255,255,255,")) {
+                // the light veil of the dark theme: a dark one of the same strength on paper
+                replacement = fallback.replaceFirst("rgba\\(\\s*255\\s*,\\s*255\\s*,\\s*255\\s*,", "rgba(0, 0, 0,");
+            }
+            resolved = resolved.substring(0, start) + replacement + resolved.substring(end + 1);
+        }
+        for (int guard = 0; guard < 32; guard++) {
+            int start = resolved.indexOf("light-dark(");
+            if (start < 0) {
+                break;
+            }
+            int end = closing(resolved, start + 10);
+            if (end < 0) {
+                break;
+            }
+            String inner = resolved.substring(start + 11, end);
+            int comma = topLevelComma(inner);
+            resolved = resolved.substring(0, start) + (comma < 0 ? inner : inner.substring(0, comma)).trim() + resolved.substring(end + 1);
+        }
+        return resolved.trim();
+    }
+
+    // the index of the parenthesis that closes the one at open, -1 when there is none
+    private static int closing(String text, int open) {
+        int depth = 0;
+        for (int i = open; i < text.length(); i++) {
+            if (text.charAt(i) == '(') {
+                depth++;
+            } else if (text.charAt(i) == ')' && --depth == 0) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private static int topLevelComma(String text) {
+        int depth = 0;
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+            if (c == '(') {
+                depth++;
+            } else if (c == ')') {
+                depth--;
+            } else if (c == ',' && depth == 0) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private String toCss(boolean print, boolean withCustomCss) {
         if (!hasContent()) {
             return "";
         }
+        printing = print;
+        try {
+            return buildCss(withCustomCss);
+        } finally {
+            printing = false;
+        }
+    }
+
+    private String buildCss(boolean withCustomCss) {
         String root = "." + getCssClass();
         String md = root + " ." + CssStyles.CHAT_MESSAGE_MARKDOWN;
         StringBuilder css = new StringBuilder();
@@ -185,13 +306,20 @@ public class PartStyle {
                 .option("font-size", PartStyleOption.FONT_SIZE)
                 .option("line-height", PartStyleOption.LINE_HEIGHT)
                 .option("letter-spacing", PartStyleOption.LETTER_SPACING)
+                .option("word-spacing", PartStyleOption.WORD_SPACING)
                 .option("color", PartStyleOption.TEXT_COLOR)
+                .option("background-color", PartStyleOption.BACKGROUND_COLOR)
                 .fixed("width", "100% !important")
                 .fixed("max-width", "100% !important")
                 .fixed("box-sizing", "border-box !important")
                 .fixed("overflow-wrap", "anywhere !important")
                 .fixed("word-break", "break-word !important");
         base.appendTo(css);
+        if (get(PartStyleOption.TEXT_WIDTH) != null) {
+            // a column of its own width in the middle
+            new Rule(md).option("max-width", PartStyleOption.TEXT_WIDTH, "", " !important")
+                    .fixed("margin-left", "auto").fixed("margin-right", "auto").appendTo(css);
+        }
 
         // children stay flush-left and inside the boundaries (no stair-casing of dialogue, no horizontal scrolling)
         new Rule(selectors(md, " *", " p", " div", " pre", " code", " blockquote", " ul", " ol", " li"))
@@ -219,6 +347,20 @@ public class PartStyle {
         }
         paragraph.fixed("orphans", "2").fixed("widows", "2");
         paragraph.appendTo(css);
+        if (get(PartStyleOption.FIRST_LINE_INDENT) != null) {
+            // not after a heading or a scene break, as in a printed book
+            new Rule(md + " p").option("text-indent", PartStyleOption.FIRST_LINE_INDENT, "", " !important").appendTo(css);
+            new Rule(selectors(md, " h1 + p", " h2 + p", " h3 + p", " hr + p")).fixed("text-indent", "0 !important").appendTo(css);
+        }
+        if (getBoolean(PartStyleOption.DROP_CAP)) {
+            new Rule(selectors(md, " h1 + p::first-letter", " h2 + p::first-letter"))
+                    .fixed("float", "left")
+                    .fixed("font-size", "3.1em")
+                    .fixed("line-height", "0.85")
+                    .fixed("font-weight", "600")
+                    .fixed("padding", "0.06em 0.1em 0 0")
+                    .appendTo(css);
+        }
 
         new Rule(selectors(md, " em", " i"))
                 .fixed("font-style", "italic")
@@ -228,6 +370,8 @@ public class PartStyle {
                 .fixed("font-weight", "700")
                 .option("color", PartStyleOption.STRONG_COLOR)
                 .appendTo(css);
+
+        new Rule(md + " a").option("color", PartStyleOption.LINK_COLOR).appendTo(css);
 
         new Rule(md + " blockquote")
                 .fixed("margin", "1em 0")
@@ -247,14 +391,14 @@ public class PartStyle {
                 .fixed("border-radius", "4px")
                 .fixed("padding", "0.6em 0.8em")
                 .fixed("margin", "0.8em 0")
-                .fixed("font-family", "var(--lumo-font-family-monospace, monospace)")
+                .optionOr("font-family", PartStyleOption.CODE_FONT_FAMILY, "var(--lumo-font-family-monospace, monospace)")
                 .fixed("font-size", "0.88em")
                 .fixed("line-height", "1.5")
                 .fixed("white-space", "pre-wrap !important")
                 .fixed("overflow-x", "hidden !important")
                 .appendTo(css);
         new Rule(md + " code")
-                .fixed("font-family", "var(--lumo-font-family-monospace, monospace)")
+                .optionOr("font-family", PartStyleOption.CODE_FONT_FAMILY, "var(--lumo-font-family-monospace, monospace)")
                 .fixed("font-size", "0.88em")
                 .fixed("background-color", "var(--lumo-contrast-10pct, rgba(255, 255, 255, 0.08))")
                 .fixed("padding", "0.1em 0.3em")
@@ -271,17 +415,18 @@ public class PartStyle {
                 .fixed("margin-bottom", "0.6em")
                 .option("color", PartStyleOption.HEADING_COLOR)
                 .appendTo(css);
-        Rule h1 = new Rule(md + " h1").fixed("font-size", "1.35rem")
+        String headingSize = get(PartStyleOption.HEADING_SIZE) == null ? null : cssValue(valueForCss(PartStyleOption.HEADING_SIZE));
+        Rule h1 = new Rule(md + " h1").fixed("font-size", headingSize != null && !headingSize.isEmpty() ? headingSize : "1.35rem")
                 .fixed("border-bottom", "1px solid var(--lumo-contrast-10pct, rgba(255, 255, 255, 0.1))")
                 .fixed("padding-bottom", "0.3em");
-        Rule h2 = new Rule(md + " h2").fixed("font-size", "1.2rem");
+        Rule h2 = new Rule(md + " h2").fixed("font-size", headingSize != null && !headingSize.isEmpty() ? "calc(" + headingSize + " * 0.89)" : "1.2rem");
         if (getBoolean(PartStyleOption.HEADING_SMALL_CAPS)) {
             h1.fixed("font-variant", "small-caps");
             h2.fixed("font-variant", "small-caps");
         }
         h1.appendTo(css);
         h2.appendTo(css);
-        new Rule(md + " h3").fixed("font-size", "1.08rem").appendTo(css);
+        new Rule(md + " h3").fixed("font-size", headingSize != null && !headingSize.isEmpty() ? "calc(" + headingSize + " * 0.8)" : "1.08rem").appendTo(css);
 
         new Rule(md + " hr").fixed("border", "none").fixed("text-align", "center").fixed("margin", "1.8em 0").appendTo(css);
         new Rule(md + " hr::after")
@@ -292,7 +437,7 @@ public class PartStyle {
                 .option("color", PartStyleOption.SCENE_BREAK_COLOR)
                 .appendTo(css);
 
-        if (StringUtils.isNotBlank(customCss)) {
+        if (withCustomCss && StringUtils.isNotBlank(customCss)) {
             css.append(SCOPE_COMMENT).append('\n').append(root).append(" {\n").append(customCss.strip()).append("\n}\n");
         }
         return css.toString();
@@ -313,6 +458,12 @@ public class PartStyle {
         return text.replace("\\", "\\\\").replace("\"", "\\\"").replaceAll("[\\r\\n]+", " ");
     }
 
+    // the value of the option as it goes into a stylesheet (worked out for paper when printing)
+    private String valueForCss(PartStyleOption option) {
+        String value = get(option);
+        return printing && value != null ? StringUtils.defaultString(resolveForPrint(value)) : StringUtils.defaultString(value);
+    }
+
     static String cssValue(String value) {
         return value.replaceAll("[{};<>\\r\\n]", " ").trim();
     }
@@ -326,7 +477,7 @@ public class PartStyle {
         }
 
         Rule fixed(String property, String value) {
-            declarations.append("    ").append(property).append(": ").append(value).append(";\n");
+            declarations.append("    ").append(property).append(": ").append(printing ? resolveForPrint(value) : value).append(";\n");
             return this;
         }
 
@@ -335,9 +486,24 @@ public class PartStyle {
         }
 
         Rule option(String property, PartStyleOption option, String prefix) {
+            return option(property, option, prefix, "");
+        }
+
+        // the option, else the value
+        Rule optionOr(String property, PartStyleOption option, String fallback) {
+            if (get(option) != null) {
+                return option(property, option);
+            }
+            return fixed(property, printing ? resolveForPrint(fallback) : fallback);
+        }
+
+        Rule option(String property, PartStyleOption option, String prefix, String suffix) {
             String value = option == null ? null : get(option);
+            if (value != null && printing) {
+                value = StringUtils.trimToNull(resolveForPrint(value));
+            }
             if (value != null) {
-                declarations.append("    ").append(property).append(": ").append(prefix).append(cssValue(value)).append(";\n");
+                declarations.append("    ").append(property).append(": ").append(prefix).append(cssValue(value)).append(suffix).append(";\n");
             }
             return this;
         }

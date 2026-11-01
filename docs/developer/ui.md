@@ -713,8 +713,8 @@ can't leave their declaration; the custom CSS is the author's own and must only 
   `reading-mode-styles.css`, now `createBookStyle`), registered in `afterPropertiesSet`; an extension calls `register(owner, style)` and
   `unregisterAll(owner)` in `onExtensionLoad` / `onExtensionUnload`. Built in styles can't be saved or deleted.
 - `StylesSetting` (a `Setting` row per user, `@DiscriminatorValue`, listed in `persistence.xml`, no migration) keeps the styles of the
-  user as JSON by id (`styles`) and the `defaultStyle` id. `PartStyleService` (`list`, `find`, `save`, `duplicate`, `delete`,
-  `setDefault`, `findChosen`, `resolve`) is the only way to it. A book resolves to its own choice (`Manuscript.partStyle`, an extended
+  user as JSON by id (`styles`) and the `defaultStyle` id. `PartStyleService` (`list`, `listForBooks`, `listForExport`, `find`, `save`, `duplicate`, `delete`,
+  `setDefault`, `findChosen`, `resolve`) is the only way to it. `PartStyle.forExport` splits the styles: the menus of the story, the reader and the default are for books (`listForBooks`), the export dialog is for exports (`listForExport`), the editor shows both (checkbox *For exports*); a style for exports can't be the default and is not chosen by a book. A book resolves to its own choice (`Manuscript.partStyle`, an extended
   attribute holding a style id), else the default of the user, else Normal; a book with the old `showBookStyles` flag and no choice
   resolves to Book.
 - `ui.styles.PartStyleApplier.apply(host, style)` writes the stylesheet into a `<style id="marginalia-part-style-<id>">` of the page

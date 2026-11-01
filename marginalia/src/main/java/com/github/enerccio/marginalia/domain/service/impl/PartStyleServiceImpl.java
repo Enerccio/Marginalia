@@ -40,6 +40,18 @@ public class PartStyleServiceImpl implements PartStyleService {
 
     @Override
     @CommonTxReadOnly
+    public List<PartStyle> listForBooks() throws Exception {
+        return list().stream().filter(style -> !style.isForExport()).toList();
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public List<PartStyle> listForExport() throws Exception {
+        return list().stream().filter(PartStyle::isForExport).toList();
+    }
+
+    @Override
+    @CommonTxReadOnly
     public PartStyle find(String id) throws Exception {
         return find(read(), id);
     }
@@ -63,6 +75,10 @@ public class PartStyleServiceImpl implements PartStyleService {
             return null;
         }
         PartStyle chosen = find(setting, manuscript.getPartStyle());
+        if (chosen != null && chosen.isForExport()) {
+            // a style that was marked for exports after the book chose it
+            chosen = null;
+        }
         if (chosen == null && StringUtils.isBlank(manuscript.getPartStyle()) && manuscript.getShowBookStyles()) {
             chosen = registry.find(PartStyleRegistry.BOOK);
         }
@@ -85,8 +101,12 @@ public class PartStyleServiceImpl implements PartStyleService {
     @CommonTx
     public void setDefault(String id) throws Exception {
         StylesSetting setting = write();
-        if (StringUtils.isNotBlank(id) && find(setting, id) == null) {
+        PartStyle style = StringUtils.isBlank(id) ? null : find(setting, id);
+        if (StringUtils.isNotBlank(id) && style == null) {
             throw new IllegalArgumentException("No style " + id);
+        }
+        if (style != null && style.isForExport()) {
+            throw new IllegalArgumentException("A style for exports can not be the style of the books");
         }
         setting.setDefaultStyle(StringUtils.isBlank(id) ? null : id);
         settingService.save(setting);
@@ -152,7 +172,7 @@ public class PartStyleServiceImpl implements PartStyleService {
 
     private PartStyle getDefault(StylesSetting setting) {
         PartStyle style = find(setting, setting.getDefaultStyle());
-        return style != null ? style : registry.find(PartStyleRegistry.NORMAL);
+        return style != null && !style.isForExport() ? style : registry.find(PartStyleRegistry.NORMAL);
     }
 
     private PartStyle find(StylesSetting setting, String id) {

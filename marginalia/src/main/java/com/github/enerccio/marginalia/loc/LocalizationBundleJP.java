@@ -895,7 +895,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_STYLE_HEADING_SMALL_CAPS, "見出しをスモールキャップにする");
         setValue(L.LABEL_STYLE_SCENE_BREAK_TEXT, "場面転換の記号");
         setValue(L.LABEL_STYLE_SCENE_BREAK_COLOR, "場面転換の色");
-        setValue(L.LABEL_STYLE_GROUP_INLINE, "強調");
+        setValue(L.LABEL_STYLE_GROUP_INLINE, "強調、リンク、コード");
         setValue(L.LABEL_STYLE_GROUP_QUOTE, "引用");
         setValue(L.LABEL_STYLE_GROUP_HEADINGS, "見出し");
         setValue(L.LABEL_STYLE_GROUP_SCENE_BREAK, "場面転換");
@@ -908,6 +908,22 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_STYLE_COPY_NAME, "%s（コピー）");
         setValue(L.LABEL_STYLE_DEFAULT_MARK, "デフォルト");
         setValue(L.LABEL_STYLE_BUILTIN_MARK, "組み込み");
+        setValue(L.LABEL_STYLE_WORD_SPACING, "単語の間隔");
+        setValue(L.LABEL_STYLE_FIRST_LINE_INDENT, "1行目のインデント");
+        setValue(L.LABEL_STYLE_DROP_CAP, "見出しの後のドロップキャップ");
+        setValue(L.LABEL_STYLE_TEXT_WIDTH, "テキストの幅");
+        setValue(L.LABEL_STYLE_BACKGROUND_COLOR, "背景色");
+        setValue(L.LABEL_STYLE_LINK_COLOR, "リンクの色");
+        setValue(L.LABEL_STYLE_CODE_FONT_FAMILY, "コードのフォント");
+        setValue(L.LABEL_STYLE_HEADING_SIZE, "見出しのサイズ（第1レベル）");
+        setValue(L.LABEL_STYLE_GROUP_PAGE, "ページ");
+        setValue(L.LABEL_EXPORT_STYLE, "印刷スタイル");
+        setValue(L.LABEL_STYLE_FOR_EXPORT, "エクスポート用（本には表示しない）");
+        setValue(L.LABEL_STYLE_EXPORT_MARK, "エクスポート");
+        setValue(L.LABEL_STYLE_EXPORT_HTML, "HTML ページ");
+        setValue(L.LABEL_STYLE_EXPORT_EPUB, "電子書籍（EPUB）");
+        setValue(L.LABEL_STYLE_EXPORT_PDF, "PDF の本");
+        setValue(L.LABEL_STYLE_EXPORT_DOCX, "Word 文書");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");

@@ -166,7 +166,7 @@ doesn't take them.
 
 `ExportDialog` (opened from the settings menu of `ManuscriptStoryPart`) collects the active branch in one
 `ProgressBarDialog` (indeterminate), cuts the chosen range and exports it in a second one whose total is the number of
-messages, then shows the download link. The exporter gets `ExportOptions` (title, author, title page, language), the
+messages, then shows the download link. The exporter gets `ExportOptions` (title, author, title page, language, and the `PartStyle` chosen in the dialog, null for the look of the format), the
 messages and the progress dialog, on which it calls `updateProgress()` for every message.
 
 `ExporterBase` does the common work: it renders the title page from `Defaults.DEFAULT_EXPORT_HEADER_TEMPLATE`
@@ -183,6 +183,13 @@ Images attached to a part (`ChatMessage.getImages()`) are loaded once per part (
 in `images(List<ExportImage>)` right after `message(...)`. A part with images but no text is exported with an empty text.
 HTML embeds them as data URIs, EPUB as files in `OEBPS/images/` with manifest items, DOCX with POI pictures (scaled to
 fit the page), PDF with OpenPDF images, TXT as `[Image: caption]`, Markdown as `![caption](data:...)` plus an italic caption line. `figure(src, caption)` renders the XHTML figure.
+An exporter that has fonts and colors returns `true` from `Exporter.supportsStyles()` (HTML, EPUB, PDF, DOCX), which is what makes the dialog show
+the *Print style* choice (`PartStyleService.listForExport()`: the styles with `forExport`, built in and the user's), preselecting `Exporter.getDefaultStyleId()` of the format and again when the format changes. The look each format had before styles are the built-in styles `PartStyleRegistry.htmlExportStyle()` (`export-html`), `epubExportStyle()`, `pdfExportStyle()` and `docxExportStyle()`, which the exporter uses when `ExportOptions.style` is null (the text part of the old `STYLE` constants moved there; what is left in them is the page, the title page, the contents and the figures). HTML and EPUB
+add `PartStyle.toPrintCss(withCustomCss)` (the stylesheet worked out for paper: `resolveForPrint` takes the fallback of `var(...)` and the light
+side of `light-dark(...)`) after their own, and wrap the text of the book in `<div class="part-style-ID"><div class="chat-message-markdown">`, so the
+rules of the style (also drop caps, the width) apply as on the screen; EPUB leaves the custom CSS out (nested CSS). PDF and DOCX read `PrintStyle.of(style)`
+(`toPrintStyle()`): points, RGB, the family of the stack (`Liberation` serif, sans and mono of the PDF; the named font in Word), indent, spacing, alignment and
+the scene break; a style without content gives the defaults, which are the look these exporters had before styles.
 `MarkdownExporter` is the only one that does not parse: the Markdown of each part is written as it is (raw HTML included, since the output is
 source and not a rendered format), as blocks separated by an empty line.
 It also provides `toHtml` (CommonMark, raw HTML escaped, XHTML safe) and `walk`, which turns

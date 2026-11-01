@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846843452879">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846844762094">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846843452879" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846844762094" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846843452879" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846844762094" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846843452879" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846843452879" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846844762094" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846844762094" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -1318,8 +1318,8 @@ can&#x27;t leave their declaration; the custom CSS is the author&#x27;s own and 
 </li>
 <li>
 <p><code translate="no" v-pre>StylesSetting</code> (a <code translate="no" v-pre>Setting</code> row per user, <code translate="no" v-pre>@DiscriminatorValue</code>, listed in <code translate="no" v-pre>persistence.xml</code>, no migration) keeps the styles of the
-user as JSON by id (<code translate="no" v-pre>styles</code>) and the <code translate="no" v-pre>defaultStyle</code> id. <code translate="no" v-pre>PartStyleService</code> (<code translate="no" v-pre>list</code>, <code translate="no" v-pre>find</code>, <code translate="no" v-pre>save</code>, <code translate="no" v-pre>duplicate</code>, <code translate="no" v-pre>delete</code>,
-<code translate="no" v-pre>setDefault</code>, <code translate="no" v-pre>findChosen</code>, <code translate="no" v-pre>resolve</code>) is the only way to it. A book resolves to its own choice (<code translate="no" v-pre>Manuscript.partStyle</code>, an extended
+user as JSON by id (<code translate="no" v-pre>styles</code>) and the <code translate="no" v-pre>defaultStyle</code> id. <code translate="no" v-pre>PartStyleService</code> (<code translate="no" v-pre>list</code>, <code translate="no" v-pre>listForBooks</code>, <code translate="no" v-pre>listForExport</code>, <code translate="no" v-pre>find</code>, <code translate="no" v-pre>save</code>, <code translate="no" v-pre>duplicate</code>, <code translate="no" v-pre>delete</code>,
+<code translate="no" v-pre>setDefault</code>, <code translate="no" v-pre>findChosen</code>, <code translate="no" v-pre>resolve</code>) is the only way to it. <code translate="no" v-pre>PartStyle.forExport</code> splits the styles: the menus of the story, the reader and the default are for books (<code translate="no" v-pre>listForBooks</code>), the export dialog is for exports (<code translate="no" v-pre>listForExport</code>), the editor shows both (checkbox <em>For exports</em>); a style for exports can&#x27;t be the default and is not chosen by a book. A book resolves to its own choice (<code translate="no" v-pre>Manuscript.partStyle</code>, an extended
 attribute holding a style id), else the default of the user, else Normal; a book with the old <code translate="no" v-pre>showBookStyles</code> flag and no choice
 resolves to Book.</p>
 </li>
@@ -1679,7 +1679,7 @@ the buttons a dialog has in its bottom right corner). The server accepts their e
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (7fe9f2d88).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (3b20a129e).</p></div>
             </footer>
         </div>
     </div>

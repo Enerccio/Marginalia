@@ -19,6 +19,17 @@ public interface PartStyleService {
     List<PartStyle> list() throws Exception;
 
     /**
+     * The styles for the story and the reader (not the ones {@link PartStyle#isForExport() for exports}), in the order of {@link #list()}.
+     */
+    List<PartStyle> listForBooks() throws Exception;
+
+    /**
+     * The styles for exports, in the order of {@link #list()}: the looks of the exporters that the application brings and the user's own
+     * styles that are marked for exports.
+     */
+    List<PartStyle> listForExport() throws Exception;
+
+    /**
      * The style of the id (built in, or of the user), null when there is none.
      */
     PartStyle find(String id) throws Exception;
@@ -31,7 +42,7 @@ public interface PartStyleService {
 
     /**
      * The style the story of the book shows: the one the author chose for the book, else the default of the user, else the plain look.
-     * A chosen style that does not exist any more (deleted, or of another user after an import) counts as not chosen. A book that
+     * A chosen style that does not exist any more (deleted, or of another user after an import), or that is now for exports, counts as not chosen. A book that
      * had the old "book style" switch on and no choice yet gets the book style.
      */
     PartStyle resolve(Manuscript manuscript) throws Exception;
@@ -49,7 +60,7 @@ public interface PartStyleService {
     /**
      * Makes the style (built in or own) the default one of the user's books, null removes the default.
      *
-     * @throws IllegalArgumentException when no style has the id
+     * @throws IllegalArgumentException when no style has the id, or the style is for exports
      */
     void setDefault(String id) throws Exception;
 

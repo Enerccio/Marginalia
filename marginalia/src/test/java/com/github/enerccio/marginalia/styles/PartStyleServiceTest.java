@@ -32,7 +32,9 @@ class PartStyleServiceTest extends MarginaliaTestBase {
 
     @Test
     void aUserWithoutStylesHasTheBuiltInOnes() throws Exception {
-        assertThat(service.list()).extracting(PartStyle::getId).containsExactly("normal", "book");
+        assertThat(service.listForBooks()).extracting(PartStyle::getId).containsExactly("normal", "book");
+        assertThat(service.listForExport()).extracting(PartStyle::getId)
+                .containsExactly("export-html", "export-epub", "export-pdf", "export-docx");
         assertThat(service.getDefault().getId()).isEqualTo("normal");
         assertThat(service.getDefaultId()).isNull();
     }
@@ -42,7 +44,7 @@ class PartStyleServiceTest extends MarginaliaTestBase {
         created("zebra");
         created("Apple");
 
-        assertThat(service.list()).extracting(PartStyle::getName).containsExactly("Normal", "Book", "Apple", "zebra");
+        assertThat(service.listForBooks()).extracting(PartStyle::getName).containsExactly("Normal", "Book", "Apple", "zebra");
     }
 
     @Test
@@ -70,7 +72,7 @@ class PartStyleServiceTest extends MarginaliaTestBase {
 
         service.save(saved);
 
-        assertThat(service.list()).hasSize(3);
+        assertThat(service.listForBooks()).hasSize(3);
         assertThat(service.find(saved.getId()).getName()).isEqualTo("Renamed");
         assertThat(service.find(saved.getId()).get(PartStyleOption.FONT_SIZE)).isNull();
     }
@@ -83,7 +85,8 @@ class PartStyleServiceTest extends MarginaliaTestBase {
         assertThatThrownBy(() -> service.save(new PartStyle("book", "Mine"))).isInstanceOf(IllegalArgumentException.class);
         assertThatThrownBy(() -> service.delete("book")).isInstanceOf(IllegalArgumentException.class);
         assertThatThrownBy(() -> service.delete("normal")).isInstanceOf(IllegalArgumentException.class);
-        assertThat(service.list()).hasSize(2);
+        assertThatThrownBy(() -> service.delete("export-pdf")).isInstanceOf(IllegalArgumentException.class);
+        assertThat(service.listForBooks()).hasSize(2);
     }
 
     @Test
@@ -166,13 +169,50 @@ class PartStyleServiceTest extends MarginaliaTestBase {
     }
 
     @Test
+    void aStyleForExportsIsListedForExportsOnlyAndIsNotAStyleOfBooks() throws Exception {
+        PartStyle mine = service.save(new PartStyle(null, "Print").set(PartStyleOption.FONT_SIZE, "11pt").setForExport(true));
+        created("Reading");
+
+        assertThat(service.listForExport()).extracting(PartStyle::getName).contains("Print").doesNotContain("Reading", "Book");
+        assertThat(service.listForBooks()).extracting(PartStyle::getName).contains("Reading").doesNotContain("Print", "HTML page");
+        assertThat(service.find(mine.getId()).isForExport()).isTrue();
+        assertThatThrownBy(() -> service.setDefault(mine.getId())).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> service.setDefault("export-html")).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void aStyleThatBecameForExportsIsNotChosenByABookAnymore() throws Exception {
+        PartStyle mine = created("Mine");
+        service.setDefault(mine.getId());
+        Manuscript book = new Manuscript();
+        book.setPartStyle(mine.getId());
+        assertThat(service.resolve(book).getId()).isEqualTo(mine.getId());
+
+        mine.setForExport(true);
+        service.save(mine);
+
+        assertThat(service.findChosen(book)).isNull();
+        assertThat(service.resolve(book).getId()).as("the default is a style of books too").isEqualTo("normal");
+    }
+
+    @Test
+    void aDuplicateOfAnExportStyleIsAnExportStyleOfTheUser() throws Exception {
+        PartStyle copy = service.duplicate("export-html", "My page");
+
+        assertThat(copy.isBuiltin()).isFalse();
+        assertThat(copy.isForExport()).isTrue();
+        assertThat(service.listForExport()).extracting(PartStyle::getName).contains("My page");
+        assertThat(service.find(copy.getId()).get(PartStyleOption.LINE_HEIGHT)).isEqualTo("1.6");
+    }
+
+    @Test
     void theStylesBelongToTheirUser() throws Exception {
         PartStyle mine = created("Mine");
         service.setDefault(mine.getId());
 
         login();
 
-        assertThat(service.list()).extracting(PartStyle::getName).containsExactly("Normal", "Book");
+        assertThat(service.listForBooks()).extracting(PartStyle::getName).containsExactly("Normal", "Book");
         assertThat(service.find(mine.getId())).isNull();
         assertThat(service.getDefaultId()).isNull();
     }

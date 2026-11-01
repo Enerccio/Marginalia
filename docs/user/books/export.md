@@ -20,6 +20,7 @@ another version of the story, switch to that branch first.
 | Field | |
 |---|---|
 | **Format** | The file type, see below. |
+| **Print style** | Only for the formats that have fonts and colors (HTML, Word, PDF, EPUB). The look of the text, chosen from the styles *for exports*: the application brings one for each of these formats, **HTML page**, **E-book (EPUB)**, **PDF book** and **Word document**, which are the looks the exports always had and are chosen by themselves when you pick the format, and you can make your own, see [Print styles](#print-styles). |
 | **File name** | Name of the downloaded file without the extension, which Marginalia adds. Starts as the name of the book. |
 | **Book title** | The title in the file (title page and file properties). Starts as the name of the book; changing it doesn't rename the book. |
 | **Author** | Starts as your full name from your [account](../account.md). Empty means no author. |
@@ -50,6 +51,24 @@ every format that can show them. Raw HTML in the text is shown as text, never ru
 | **Markdown** | Embedded in the file as `![caption](data:...)` images with the caption in italics under them, so it is still one file. Not every reader shows embedded images (GitHub does not), and a book with many images has very long lines, so attach images to the parts only when you want them in a Markdown export. |
 | **EPUB**, **Word document**, **PDF** | Embedded in the file and scaled to fit the page. |
 | **Plain text** | Marked with `[Image]` or `[Image: caption]`. |
+
+## Print styles
+
+The export uses the text styles of [Settings → Styles](../account.md#styles) that are marked **For exports**. Styles are either for books
+(the story and the reader) or for exports: the *Change Styles For Text* menu and the reader show only the first kind, the export dialog only the
+second. The four built-in ones are the looks of the formats; **Duplicate** one (or a book style, and tick **For exports**) to make your own, for
+example the Book style on paper. The style is worked out for paper: colors that depend on the theme of the application (the light text of the dark
+theme) become the dark ones for a white page.
+
+| Format | What the style gives |
+|---|---|
+| **HTML** | The whole stylesheet of the style, including the **custom CSS**, **drop caps**, the text width and the background; the title page and the contents keep the look of the format. |
+| **EPUB** | The stylesheet of the style without the custom CSS (e-readers do not all understand it; some readers also set their own fonts and sizes). |
+| **PDF** | The font family (serif, sans or monospace of the embedded fonts, chosen from the font stack), size, line height, alignment, the space between paragraphs, the first line indent, the colors of the text, italic, bold, quotes, headings and the scene break, the alignment and size of headings and the symbol of the scene break. |
+| **Word document** | The same as the PDF, with the font named in the style (Word shows its own when the computer lacks it) instead of the embedded ones. |
+
+Drop caps, the custom CSS (PDF, Word, EPUB), small capitals of headings, the background and the text width are not made in the PDF and Word
+files.
 
 ## Table of contents
 
