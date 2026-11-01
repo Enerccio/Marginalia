@@ -6,6 +6,7 @@ import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.service.*;
+import com.github.enerccio.marginalia.domain.service.ExporterService.ExportLoreEntry;
 import com.github.enerccio.marginalia.domain.service.ExporterService.ExportOptions;
 import com.github.enerccio.marginalia.domain.service.ExporterService.Exporter;
 import com.github.enerccio.marginalia.domain.styles.PartStyle;
@@ -203,6 +204,7 @@ public class ExportDialog extends Dialog implements LLMInteract {
                     @APILocals(name = "field", type = TextField.class),
                     @APILocals(name = "languageCode", type = String.class),
                     @APILocals(name = "templates", type = Map.class),
+                    @APILocals(name = "lore", type = List.class),
                     @APILocals(name = "e", type = Exception.class),
                     @APILocals(name = "style", type = PartStyle.class),
                     @APILocals(name = "options", type = ExporterService.ExportOptions.class),
@@ -230,16 +232,18 @@ public class ExportDialog extends Dialog implements LLMInteract {
 
         String languageCode;
         Map<String, String> templates;
+        List<ExportLoreEntry> lore;
         try {
             languageCode = manuscriptService.getLanguage(manuscript).getCode();
             templates = exportSettingsService.getTemplates(exporter.getId());
+            lore = exporter.usesLore() ? exporterService.collectLore(manuscript) : List.of();
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
             return;
         }
         PartStyle style = exporter.supportsStyles() && styleChoice.getValue() != null ? styleChoice.getValue().style() : null;
         ExportOptions options = new ExportOptions(bookTitle.getValue().trim(), StringUtils.trimToEmpty(author.getValue()),
-                includeHeaders.getValue(), languageCode, style, templates);
+                includeHeaders.getValue(), languageCode, style, templates, lore);
         String file = fileNameFor(fileName.getValue(), exporter);
         int first = from.getValue() == null ? 1 : from.getValue();
         Integer last = to.getValue();

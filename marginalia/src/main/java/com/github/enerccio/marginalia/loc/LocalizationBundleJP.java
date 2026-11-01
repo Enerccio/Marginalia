@@ -2047,6 +2047,10 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.DESC_COMMAND_STATISTICS_SIDE_PARAM, "対象：all（既定）、me、agents");
         setValue(L.DESC_COMMAND_STATISTICS_BY_PARAM, "一覧の単位：day（既定）または book");
         setValue(L.DESC_TEMPLATE_EXPORT_AUTHOR, "本の著者（いない場合は空）。");
+        setValue(L.DESC_TEMPLATE_EXPORT_QUOTED_TITLE, "本のタイトル（二重引用符内で使えるようエスケープ済み）。");
+        setValue(L.DESC_TEMPLATE_EXPORT_QUOTED_AUTHOR, "本の著者（二重引用符内で使えるようエスケープ済み。いない場合は空）。");
+        setValue(L.DESC_TEMPLATE_EXPORT_LANGUAGE, "本の言語のISO 639-1コード。");
+        setValue(L.DESC_TEMPLATE_EXPORT_DATE, "エクスポート日（YYYY-MM-DD）。");
     }
 
     @Override

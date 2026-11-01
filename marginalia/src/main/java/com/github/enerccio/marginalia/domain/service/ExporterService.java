@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.domain.service;
 
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
+import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.styles.PartStyle;
 import com.github.enerccio.marginalia.domain.templates.TemplateData;
 import com.github.enerccio.marginalia.ui.dialogs.ProgressBarDialog;
@@ -15,6 +16,15 @@ public interface ExporterService {
     void registerExporter(Exporter exporter);
     void unregisterExporter(Exporter exporter);
     List<Exporter> getExporters();
+
+    /**
+     * Reads the lore of the book for the exporters that {@link Exporter#usesLore() use it}. It is read on the thread of the user, the
+     * exporters run without the session.
+     *
+     * @return the enabled entries of the lorebook of the book and of its subbooks, however deep (the disabled lorebooks and entries
+     * are left out), the lorebook first; empty when the book has no lorebook
+     */
+    List<ExportLoreEntry> collectLore(Manuscript manuscript) throws Exception;
 
 
     /**
@@ -73,6 +83,14 @@ public interface ExporterService {
             return List.of();
         }
 
+        /**
+         * @return whether the exporter writes the lorebook of the book ({@link ExportOptions#lore()}); the export dialog reads it only for
+         * these
+         */
+        default boolean usesLore() {
+            return false;
+        }
+
     }
 
     /**
@@ -87,6 +105,22 @@ public interface ExporterService {
     }
 
     /**
+     * An entry of the lorebook of the book, as the exporters that write the lore get it.
+     *
+     * @param lorebook name of the lorebook the entry is in
+     * @param name     name of the entry
+     * @param content  text of the entry
+     * @param tags     tags of the entry
+     * @param comment  note of the author to the entry, may be blank
+     */
+    record ExportLoreEntry(String lorebook, String name, String content, List<String> tags, String comment) {
+
+        public ExportLoreEntry {
+            tags = tags == null ? List.of() : List.copyOf(tags);
+        }
+    }
+
+    /**
      * @param bookName       title of the exported book
      * @param author         author of the exported book, may be blank
      * @param includeHeaders true to start the export with a title page
@@ -96,9 +130,10 @@ public interface ExporterService {
      *                       only {@link Exporter#supportsStyles() exporters that support styles} use it
      * @param templates      the templates of the exporter that the user changed, by {@link ExportTemplate#key()}; a template that is not here
      *                       is rendered as {@link ExportTemplate#defaultText()}
+     * @param lore           the lore of the book, filled only for the exporters that {@link Exporter#usesLore() use it}
      */
     record ExportOptions(String bookName, String author, boolean includeHeaders, String language, PartStyle style,
-                         Map<String, String> templates) {
+                         Map<String, String> templates, List<ExportLoreEntry> lore) {
 
         public ExportOptions {
             Map<String, String> changed = new HashMap<>();
@@ -110,6 +145,15 @@ public interface ExporterService {
                 });
             }
             templates = Map.copyOf(changed);
+            lore = lore == null ? List.of() : List.copyOf(lore);
+        }
+
+        /**
+         * An export without the lore.
+         */
+        public ExportOptions(String bookName, String author, boolean includeHeaders, String language, PartStyle style,
+                             Map<String, String> templates) {
+            this(bookName, author, includeHeaders, language, style, templates, null);
         }
 
         /**
