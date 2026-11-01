@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.export;
 
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
+import com.github.enerccio.marginalia.domain.service.ExportSettingsService;
 import com.github.enerccio.marginalia.domain.service.ExporterService;
 import com.github.enerccio.marginalia.domain.service.PartStyleService;
 import com.github.enerccio.marginalia.domain.styles.PartStyle;
@@ -27,6 +28,9 @@ class ExportDialogStyleTest extends MarginaliaTestBase {
 
     @Autowired
     private PartStyleService styleService;
+
+    @Autowired
+    private ExportSettingsService settingsService;
 
     // UI.setCurrent keeps only a weak reference
     private UI ui;
@@ -103,6 +107,27 @@ class ExportDialogStyleTest extends MarginaliaTestBase {
             format.setValue(item);
             boolean supports = ((ExporterService.Exporter) item).supportsStyles();
             assertThat(style.isVisible()).as(format.getItemLabelGenerator().apply(item)).isEqualTo(supports);
+        }
+    }
+
+    @Test
+    void theStyleTheUserSetForTheFormatIsSelectedInsteadOfTheOneOfTheFormat() throws Exception {
+        PartStyle mine = styleService.save(new PartStyle(null, "My print").set(PartStyleOption.FONT_SIZE, "11pt").setForExport(true));
+        settingsService.setStyleId("pdf", mine.getId());
+        Manuscript book = new Manuscript();
+        book.setName("A book");
+        ExportDialog dialog = new ExportDialog(book);
+        Select<Object> format = formatSelect(dialog);
+        Select<Object> style = styleSelect(dialog);
+
+        for (Object item : format.getListDataView().getItems().toList()) {
+            format.setValue(item);
+            ExporterService.Exporter exporter = (ExporterService.Exporter) item;
+            if (exporter.getId().equals("pdf")) {
+                assertThat(style.getItemLabelGenerator().apply(style.getValue())).isEqualTo("My print");
+            } else if (exporter.getId().equals("html")) {
+                assertThat(style.getItemLabelGenerator().apply(style.getValue())).isEqualTo("HTML page");
+            }
         }
     }
 }

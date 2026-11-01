@@ -631,6 +631,10 @@ Most are 🧩 plugin-sized; the ones that need a core hook say so.
       heading size are done. Still open: a monospace dialogue font, a paragraph-gap-vs-indent switch, a colour picker
       (the Vaadin one is a paid component, so a small own widget or the browser's `<input type=color>`), a choice of
       fonts from the ones installed (or uploaded as a `Resource`, with `@font-face`).
+    - **Export settings.** ✅ A default print style per format and the title page template per format are in **Settings → Exports**
+      (`ExportSettings`, `ExportSettingsService`). Templates other than the title page (HTML `<head>` and metadata, the EPUB
+      stylesheet and package file, the Word/PDF page setup) are not changeable yet; an exporter can already list them in
+      `Exporter.getTemplates()`.
     - **Print style, the rest.** ✅ Done for HTML, EPUB, PDF and Word (the *Print style* choice of the export dialog, styles *for exports*
       with the looks of the formats as built-in ones).
       Missing there: drop caps, small capitals, the background and the custom CSS in PDF and Word; the page size, the

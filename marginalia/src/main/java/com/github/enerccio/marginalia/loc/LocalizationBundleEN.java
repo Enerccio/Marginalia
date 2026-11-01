@@ -924,6 +924,8 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_STYLE_EXPORT_EPUB, "E-book (EPUB)");
         setValue(L.LABEL_STYLE_EXPORT_PDF, "PDF book");
         setValue(L.LABEL_STYLE_EXPORT_DOCX, "Word document");
+        setValue(L.LABEL_EXPORTS, "Exports");
+        setValue(L.LABEL_EXPORT_STYLE_OF_FORMAT, "Look of the format");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -1661,6 +1663,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_STYLES, "Styles change how the text of the parts looks in the story and in the reader. Built in styles can not be changed: duplicate one to make a style of your own. The default style is used by the books that have not chosen one in the Change Styles menu of their story.");
         setValue(L.HELP_STYLE_VALUES, "Any CSS value (for example 1.1rem, #336699 or var(--lumo-body-text-color)). Empty keeps the look of the application.");
         setValue(L.HELP_STYLE_CUSTOM_CSS, "CSS added after the options, inside the scope of the style. Write rules for the text of the parts, for example \".chat-message-markdown p { text-indent: 1.5em !important; }\", or declarations that apply to the whole element.");
+        setValue(L.HELP_EXPORT_SETTINGS, "Each format is exported in the style chosen here, and with your version of its templates, until you choose otherwise in the export dialog. Styles for exports are made in the Styles tab (tick \"For exports\"). Leave a template empty to use the default one.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Background lore and world context.");
@@ -2043,6 +2046,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.DESC_COMMAND_STATISTICS_RANGE_PARAM, "The days: today, yesterday, last-7-days, last-30-days, this-month, all-time, one day (2026-03-14) or two days (2026-03-01..2026-03-14)");
         setValue(L.DESC_COMMAND_STATISTICS_SIDE_PARAM, "Whose work: all (the default), me or agents");
         setValue(L.DESC_COMMAND_STATISTICS_BY_PARAM, "How to list: day (the default) or book");
+        setValue(L.DESC_TEMPLATE_EXPORT_AUTHOR, "Author of the book (empty when there is none).");
 
     }
 

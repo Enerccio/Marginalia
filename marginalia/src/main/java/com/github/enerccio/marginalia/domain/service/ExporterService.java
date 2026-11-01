@@ -2,9 +2,13 @@ package com.github.enerccio.marginalia.domain.service;
 
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.styles.PartStyle;
+import com.github.enerccio.marginalia.domain.templates.TemplateData;
 import com.github.enerccio.marginalia.ui.dialogs.ProgressBarDialog;
+import org.apache.commons.lang3.StringUtils;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public interface ExporterService {
 
@@ -22,6 +26,14 @@ public interface ExporterService {
          * @return name of the format shown to the user
          */
         String getName();
+
+        /**
+         * @return stable identifier of the exporter, under which the user's export settings (the default style, the changed templates) are
+         * kept; unique among the exporters, and it must not change between versions. The file extension unless the exporter says otherwise.
+         */
+        default String getId() {
+            return getFileExtension();
+        }
 
         /**
          * @return extension of the exported file without the dot
@@ -53,6 +65,25 @@ public interface ExporterService {
             return null;
         }
 
+        /**
+         * @return the templates of the exporter that the user can change in the settings (the title page, for example), in the order they are
+         * shown; none for an exporter that writes everything itself
+         */
+        default List<ExportTemplate> getTemplates() {
+            return List.of();
+        }
+
+    }
+
+    /**
+     * A text of an export that the user can change: a Handlebars template the exporter renders.
+     *
+     * @param key         identifier of the template among the templates of its exporter, stable like {@link Exporter#getId()}
+     * @param label       name shown to the user
+     * @param defaultText the template when the user changed none
+     * @param dataClass   the values the template is rendered with, which the settings list as the variables it can use
+     */
+    record ExportTemplate(String key, String label, String defaultText, Class<? extends TemplateData> dataClass) {
     }
 
     /**
@@ -63,14 +94,43 @@ public interface ExporterService {
      * @param style          text style (see {@code PartStyle}) the author wants the exported text to have, null for the look the exporter had before
      *                       styles ({@link Exporter#getDefaultStyleId()});
      *                       only {@link Exporter#supportsStyles() exporters that support styles} use it
+     * @param templates      the templates of the exporter that the user changed, by {@link ExportTemplate#key()}; a template that is not here
+     *                       is rendered as {@link ExportTemplate#defaultText()}
      */
-    record ExportOptions(String bookName, String author, boolean includeHeaders, String language, PartStyle style) {
+    record ExportOptions(String bookName, String author, boolean includeHeaders, String language, PartStyle style,
+                         Map<String, String> templates) {
+
+        public ExportOptions {
+            Map<String, String> changed = new HashMap<>();
+            if (templates != null) {
+                templates.forEach((key, text) -> {
+                    if (StringUtils.isNotBlank(text)) {
+                        changed.put(key, text);
+                    }
+                });
+            }
+            templates = Map.copyOf(changed);
+        }
+
+        /**
+         * An export with the default templates of the exporter.
+         */
+        public ExportOptions(String bookName, String author, boolean includeHeaders, String language, PartStyle style) {
+            this(bookName, author, includeHeaders, language, style, null);
+        }
 
         /**
          * An export in the look of the exporter.
          */
         public ExportOptions(String bookName, String author, boolean includeHeaders, String language) {
-            this(bookName, author, includeHeaders, language, null);
+            this(bookName, author, includeHeaders, language, null, null);
+        }
+
+        /**
+         * @return the text of the template for this export: the one the user changed, else its default
+         */
+        public String templateText(ExportTemplate template) {
+            return templates.getOrDefault(template.key(), template.defaultText());
         }
 
     }

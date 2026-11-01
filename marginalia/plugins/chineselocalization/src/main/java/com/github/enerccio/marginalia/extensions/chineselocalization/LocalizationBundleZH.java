@@ -932,6 +932,8 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_STYLE_EXPORT_EPUB, "电子书（EPUB）");
         setValue(L.LABEL_STYLE_EXPORT_PDF, "PDF 书籍");
         setValue(L.LABEL_STYLE_EXPORT_DOCX, "Word 文档");
+        setValue(L.LABEL_EXPORTS, "导出");
+        setValue(L.LABEL_EXPORT_STYLE_OF_FORMAT, "格式自带的外观");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -1669,6 +1671,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.HELP_STYLES, "样式用于改变故事和阅读器中各部分文本的外观。内置样式无法修改：请复制一个来创建自己的样式。默认样式用于尚未在故事的“更改文本样式”菜单中选择样式的书。");
         setValue(L.HELP_STYLE_VALUES, "任意 CSS 值（例如 1.1rem、#336699、var(--lumo-body-text-color)）。留空则保持应用程序的外观。");
         setValue(L.HELP_STYLE_CUSTOM_CSS, "添加在选项之后、样式范围内的 CSS。可以为各部分的文本编写规则（例如 \".chat-message-markdown p { text-indent: 1.5em !important; }\"），或编写应用于整个元素的声明。");
+        setValue(L.HELP_EXPORT_SETTINGS, "每种格式都会按此处选择的样式并使用你自己的模板导出，除非你在导出对话框中另行选择。导出用的样式在“样式”选项卡中创建（勾选“用于导出”）。模板留空则使用默认模板。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景设定与世界观。");
@@ -2051,6 +2054,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.DESC_COMMAND_STATISTICS_RANGE_PARAM, "日期范围：today、yesterday、last-7-days、last-30-days、this-month、all-time、单个日期（2026-03-14）或两个日期（2026-03-01..2026-03-14）");
         setValue(L.DESC_COMMAND_STATISTICS_SIDE_PARAM, "统计对象：all（默认）、me 或 agents");
         setValue(L.DESC_COMMAND_STATISTICS_BY_PARAM, "列表方式：day（默认）或 book");
+        setValue(L.DESC_TEMPLATE_EXPORT_AUTHOR, "书籍的作者（没有时为空）。");
     }
 
     @Override
