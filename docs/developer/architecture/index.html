@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846863386845">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846878596987">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846863386845" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846878596987" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846863386845" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846878596987" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846863386845" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846863386845" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846878596987" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846878596987" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -359,7 +359,7 @@ unloaded and the framework is stopped.</p>
 </li>
 <li>
 <p><code translate="no" v-pre>MarginaliaServlet</code> (<code translate="no" v-pre>@WebServlet(&quot;/*&quot;)</code>, a <code translate="no" v-pre>VaadinServlet</code>) serves the UI. <code translate="no" v-pre>AppShellConfig</code> configures the page:
-push enabled, dark Lumo theme, <code translate="no" v-pre>shared-styles.css</code>.</p>
+push enabled, dark Lumo theme, <code translate="no" v-pre>shared-styles.css</code>, the icons (<code translate="no" v-pre>icons/icon.svg</code> as the vector favicon, <code translate="no" v-pre>icons/icon.png</code> and the PWA icons).</p>
 </li>
 </ol>
 <h2 id="layers-and-packages">Layers and packages</h2>
@@ -956,6 +956,9 @@ use one particular extension (the name generator) the others find it among <code
 call it by reflection (<a href="../plugins/ipc/">Sharing data between extensions</a>).</p>
 </li>
 <li>
+<p><strong>Inherited settings.</strong> An extension registers a line, a text area or a choice with <code translate="no" v-pre>InheritedSettingRegistry</code> (<code translate="no" v-pre>InheritedSetting</code>); the <em>Prompts</em> tab of a book and the folder window show them with the other prompts and the values live in the <code translate="no" v-pre>attributes</code> of the book or folder (<code translate="no" v-pre>InheritedSettingValues</code>), resolved through the folders (<a href="../plugins/inherited-settings/">Inherited settings</a>).</p>
+</li>
+<li>
 <p><strong>Styles.</strong> An extension that implements <code translate="no" v-pre>ExtensionHasCss</code> gets its CSS put into every open page: <code translate="no" v-pre>CssRegistry</code>
 (owned by <code translate="no" v-pre>Main</code> and <code translate="no" v-pre>Viewer</code>) reads the loaded extensions when its page is attached and listens to the
 loaded/unloaded events of <code translate="no" v-pre>OsgiService</code> afterwards (<a href="../plugins/ui-extensions/#styles-of-a-plugin">Styles of a plugin</a>).</p>
@@ -1103,7 +1106,7 @@ refused, so an extension can&#x27;t replace English.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (801fe6625).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (232417cbc).</p></div>
             </footer>
         </div>
     </div>

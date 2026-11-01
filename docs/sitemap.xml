@@ -106,10 +106,10 @@
     <loc>https://enerccio.github.io/Marginalia/developer/project-structure/</loc>
   </url>
   <url>
-    <loc>https://enerccio.github.io/Marginalia/developer/domain-model/</loc>
+    <loc>https://enerccio.github.io/Marginalia/user/books/branches-and-story-tree/</loc>
   </url>
   <url>
-    <loc>https://enerccio.github.io/Marginalia/user/books/branches-and-story-tree/</loc>
+    <loc>https://enerccio.github.io/Marginalia/developer/domain-model/</loc>
   </url>
   <url>
     <loc>https://enerccio.github.io/Marginalia/developer/ui/</loc>
@@ -271,19 +271,22 @@
     <loc>https://enerccio.github.io/Marginalia/developer/plugins/extendable/</loc>
   </url>
   <url>
+    <loc>https://enerccio.github.io/Marginalia/developer/plugins/ui-extensions/</loc>
+  </url>
+  <url>
     <loc>https://enerccio.github.io/Marginalia/developer/plugins/overview/</loc>
   </url>
   <url>
     <loc>https://enerccio.github.io/Marginalia/developer/plugins/extended-attributes/</loc>
   </url>
   <url>
-    <loc>https://enerccio.github.io/Marginalia/developer/plugins/ui-extensions/</loc>
-  </url>
-  <url>
     <loc>https://enerccio.github.io/Marginalia/developer/commands/writing-commands/</loc>
   </url>
   <url>
     <loc>https://enerccio.github.io/Marginalia/developer/commands/command-bar/</loc>
+  </url>
+  <url>
+    <loc>https://enerccio.github.io/Marginalia/developer/plugins/inherited-settings/</loc>
   </url>
   <url>
     <loc>https://enerccio.github.io/Marginalia/developer/plugins/generation-events/</loc>
@@ -293,9 +296,6 @@
   </url>
   <url>
     <loc>https://enerccio.github.io/Marginalia/developer/plugins/example/</loc>
-  </url>
-  <url>
-    <loc>https://enerccio.github.io/Marginalia/developer/plugins/inherited-settings/</loc>
   </url>
   <url>
     <loc>https://enerccio.github.io/Marginalia/developer/plugins/ipc/</loc>

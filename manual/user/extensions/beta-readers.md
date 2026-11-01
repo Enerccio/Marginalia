@@ -47,6 +47,8 @@ throws them away.
 A book can have personas of its own: *Personas of this book* in the menu of the chats opens the same window with the personas that only this
 book offers. They are marked *(this book)* when you choose them for a chat.
 
+![The personas of a book](../../images/plugin-betareaders-book-personas.png)
+
 **Write with the model** in the window of a persona does the writing for you: describe the persona in a few words (*a reader who only cares
 about who did it and why*), press the button, and the model fills the **Name** and the **Description** in the style of the library. They are only
 fields: change them, or write again, and **Save** when they are right. The model that writes is the one of the chats (the one of the book for the
@@ -90,6 +92,8 @@ falls silent.*), or a description of what you do (*I put the manuscript on the t
 and the personas react to it as it happens, like to a message. Use the scene of the chat (see [below](#the-scene)) for where the conversation
 starts and this button for what happens after that. A scene message can be edited and deleted like your messages; it does not send parts of the
 story (the box *Include the latest parts* belongs to *Send*).
+
+![A scene in the history of a chat, and the reply to it](../../images/plugin-betareaders-scene.png)
 
 The personas of the group are told who is present at the end of your last message only (nothing about it is saved), so adding or removing a
 persona never changes the earlier history.

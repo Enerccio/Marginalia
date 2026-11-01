@@ -112,6 +112,10 @@ There is no formatter configuration in the repository; match the code around you
   `LocalizationBundleJP.java` and to the Chinese plugin's `LocalizationBundleZH.java`; a language without the key shows
   the English text), and
   use `loc.getValue(L.KEY)` (see [User interface](ui.md#text)).
+- **Plugin UI text** goes through the `PluginLocalizationBundle` of the plugin: the English text is a `public static final String` constant
+  of the bundle class, named after its words, never a literal at the call site (`T.localized(EXPORT_INSTRUCTIONS)`); the Japanese and Chinese
+  texts are `ja(...)` / `zh(...)` calls in `loadKeys()` that take the constant as the key (see
+  [Texts in several languages](plugins/ui-extensions.md#texts-in-several-languages)).
 - **Threads**: long work runs off the UI thread, and UI updates go through `ui.access(...)` (see
   [Background work and push](ui.md#background-work-and-push)).
 - **Extension points**: methods that extensions decorate are `@Extendable`, and each of them declares its signature

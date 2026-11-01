@@ -2,7 +2,7 @@
 //
 //   node llm/mock-llm.mjs [port]          default port 8098, base url for the AI: http://localhost:8098/v1
 //
-// Answers GET /v1/models and POST /v1/chat/completions (streaming SSE and plain JSON).
+// Answers GET /v1/models, POST /v1/chat/completions (streaming SSE and plain JSON) and POST /v1/images/generations (one fixed picture).
 // What it answers comes from llm/rules.mjs (first matching rule wins) unless a one-shot answer was queued:
 //
 //   POST /_queue   {"reply":"text","reasoning":"...","status":429,"message":"...","delayMs":0}   (one-shot, FIFO)
@@ -155,6 +155,13 @@ http.createServer(async (req, res) => {
       return sendJson(res, 200, { object: 'list', data: MODELS.map(id => ({ id, object: 'model', created: 0, owned_by: 'demo' })) });
     }
     if (req.method === 'POST' && p === '/chat/completions') return await chat(req, res, body);
+    // the OpenAI images API (Image Generator): always the same picture, dataset/generated-image.png (made by dataset/make-generated-image.py)
+    if (req.method === 'POST' && p === '/images/generations') {
+      log.push({ path: p, prompt: body.prompt, size: body.size, model: body.model });
+      await new Promise(r => setTimeout(r, Number(body.n) > 1 ? 0 : 1500));
+      const png = fs.readFileSync(path.join(here, '..', 'dataset', 'generated-image.png'));
+      return sendJson(res, 200, { created: Math.floor(Date.now() / 1000), data: [{ b64_json: png.toString('base64') }] });
+    }
     if (req.method === 'POST' && p === '/_queue') { queue.push(body); return sendJson(res, 200, { queued: queue.length }); }
     if (req.method === 'POST' && p === '/_mode') { mode = body.mode ?? null; return sendJson(res, 200, { mode }); }
     if (req.method === 'POST' && p === '/_reset') { queue = []; mode = null; log = []; return sendJson(res, 200, {}); }

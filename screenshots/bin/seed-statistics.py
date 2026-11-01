@@ -17,7 +17,7 @@ Usage: seed-statistics.py <marginalia.sqlite> [--today YYYY-MM-DD]
 """
 import argparse, datetime, gzip, json, random, sqlite3, uuid
 
-BOOK = '870177b2-ab5e-49fe-8afb-e54e71e653d3'
+BOOK = None                    # the uuid of the book is looked up by its name: every rebuild of the dataset makes a new one
 NAME = 'Harry Potter and Half Blood Prince - FDM'
 OWNER = 1                      # admin
 LIVE_DAYS = 200
@@ -36,6 +36,8 @@ def main():
     today = datetime.date.fromisoformat(args.today)
     rnd = random.Random(1606)
     db = sqlite3.connect(args.database)
+    global BOOK
+    BOOK = db.execute('select uuid from manuscripts where name = ? and is_deleted = 0', (NAME,)).fetchone()[0]
     words_now, tokens_now = db.execute('select sum(wordCount), sum(tokenCount) from messages where is_deleted = 0 and parentScript_id = 1').fetchone()
     taken = {r[0] for r in db.execute('select day from manuscript_statistics where bookUuid = ? and is_agent = 0', (BOOK,))}
 

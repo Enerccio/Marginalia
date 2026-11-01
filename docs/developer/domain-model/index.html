@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846863386845">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846878596987">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846863386845" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846878596987" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846863386845" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846878596987" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846863386845" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846863386845" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846878596987" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846878596987" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -647,7 +647,8 @@ joins on is a real column: relations, <code translate="no" v-pre>name</code>, <c
 | `lastOpened` | column | When the owner last opened the book; orders the book lists. |
 | `template`, `pov`, `tense`, `style`, `userPrompt`, `summaryPrompt`, `metaSummaryPrompt`, `redraftSystemPrompt`, `redraftPrompt`, `annotateSystemPrompt`, `annotatePrompt`, `impersonatePrompt` | JSON | The book's prompt overrides (*Prompts* tab); empty means inherited: the folders above the book, then the user's defaults from `UserSetting`, then `Defaults` (see [Folders](folders.md#resolving-a-setting)). |
 | `language` | JSON | Language of the story (`Language`; null is inherited from the folders, English at the end of the chain; `getLanguage()` still says English then and `getOwnLanguage()` null): the `lang` of the story views, which the browser uses for hyphenation and justification, and the language of the exports. |
-| `showBookStyles` | JSON | Story display option. |
+| `showBookStyles` | JSON | Legacy story display option (the Book style on or off). Read only while `partStyle` is not set, never written any more. |
+| `partStyle` | JSON | The id of the text style the author chose for this book (a built in style or one of the user, see [Text styles](ui.md#text-styles)); empty follows the default style of the user. |
 | `autoAnnotate`, `autoAnnotateInstructions`, `autoAnnotateModel`, `autoAnnotateProtocol`, `autoAnnotateAccept`, `autoAnnotateRedraft`, `autoAnnotateAcceptRedraft` | JSON | The automatic annotation of a generated part (Tools menu of the story, `AutoAnnotateDialog`; run by `AutoAnnotate`). The getters of the flags return `false` when unset. The model and the protocol are the **uuids** of an AI and a protocol, not ids (a restored backup can't point at somebody else's model: they are looked up among the ones the user can use, `AutoAnnotate.byUuid`, and an unknown or deleted one means the model of the book). |
 | `backupStrategy`, `backupStrategyValue`, `backupStrategyCurrentValue` | JSON | Per-book backup override and its progress counter. |">
 <div class="table-wrapper scrollbar overflow-hidden">
@@ -718,7 +719,12 @@ joins on is a real column: relations, <code translate="no" v-pre>name</code>, <c
 <tr>
 <td><code translate="no" v-pre>showBookStyles</code></td>
 <td>JSON</td>
-<td>Story display option.</td>
+<td>Legacy story display option (the Book style on or off). Read only while <code translate="no" v-pre>partStyle</code> is not set, never written any more.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>partStyle</code></td>
+<td>JSON</td>
+<td>The id of the text style the author chose for this book (a built in style or one of the user, see <a href="../ui/#text-styles">Text styles</a>); empty follows the default style of the user.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>autoAnnotate</code>, <code translate="no" v-pre>autoAnnotateInstructions</code>, <code translate="no" v-pre>autoAnnotateModel</code>, <code translate="no" v-pre>autoAnnotateProtocol</code>, <code translate="no" v-pre>autoAnnotateAccept</code>, <code translate="no" v-pre>autoAnnotateRedraft</code>, <code translate="no" v-pre>autoAnnotateAcceptRedraft</code></td>
@@ -1562,7 +1568,7 @@ values are extended attributes.</p>
 </div>
 </retype-table>
 <p><code translate="no" v-pre>SettingService.getOrCreate(UserSetting.class)</code> returns the current user&#x27;s settings, creating them on first use;
-<code translate="no" v-pre>getOrCreateApp(AppSettings.class)</code> the installation&#x27;s. Extensions keep their settings in the <code translate="no" v-pre>attributes</code> of
+<code translate="no" v-pre>getOrCreateApp(AppSettings.class)</code> the installation&#x27;s. A function that only reads uses <code translate="no" v-pre>findOrBlank(cls, user)</code> instead (a missing setting is a blank one that is not stored, so a read-only transaction does not write: creating the row there fails with <code translate="no" v-pre>SQLITE_BUSY</code> when another connection wrote in between; <code translate="no" v-pre>find</code> returns <code translate="no" v-pre>null</code>). Extensions keep their settings in the <code translate="no" v-pre>attributes</code> of
 <code translate="no" v-pre>UserSetting</code> (Reviewer and Side Query profiles do).</p>
 <p>The prompt used for a book is resolved in four levels: the book&#x27;s value (<code translate="no" v-pre>Manuscript.template</code>...), else the nearest
 <a href="../folders/#resolving-a-setting">folder</a> above it that sets one, else the user&#x27;s default (<code translate="no" v-pre>UserSetting.masterTemplate</code>...), else
@@ -2040,7 +2046,7 @@ define both beans in <code translate="no" v-pre>services-config.xml</code>.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (801fe6625).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (232417cbc).</p></div>
             </footer>
         </div>
     </div>

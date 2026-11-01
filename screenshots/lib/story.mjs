@@ -59,9 +59,12 @@ export async function readingStyle(page, on = true) {
     return /garamond|georgia|serif/i.test(getComputedStyle(p.querySelector('vaadin-markdown, p, div') ?? p).fontFamily);
   });
   if (isOn === on) return;
+  // the item is a sub menu of the styles now (Default (Normal), Book, Normal): the serif reading look is the Book style
   await clickCogs(page);
   await menuItem(page, 'Change Styles For Text').click();
   await idle(page, 500);
+  await page.getByRole('menuitem', { name: on ? 'Book' : 'Normal', exact: true }).first().click();
+  await idle(page, 600);
 }
 
 /** Drags the divider between the sidebar and the story to the right, so that all tabs of the sidebar fit. */

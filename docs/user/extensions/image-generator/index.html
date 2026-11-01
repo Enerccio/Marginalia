@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846863386845">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846878596987">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -24,6 +24,10 @@
     <meta property="og:url" content="https://enerccio.github.io/Marginalia/user/extensions/image-generator/">
     <meta property="og:title" content="Image Generator">
     <meta property="og:description" content="Makes an image for a part of the story. The model writes the image prompt from the part, you edit it, an image backend draws the picture, you reroll until">
+    <meta property="og:image" content="https://enerccio.github.io/Marginalia/images/plugin-imagegenerator-settings.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Image Generator">
     <meta property="og:site_name" content="Marginalia">
     <meta property="og:locale" content="en_US">
 
@@ -32,17 +36,19 @@
     <meta name="twitter:url" content="https://enerccio.github.io/Marginalia/user/extensions/image-generator/">
     <meta name="twitter:title" content="Image Generator">
     <meta name="twitter:description" content="Makes an image for a part of the story. The model writes the image prompt from the part, you edit it, an image backend draws the picture, you reroll until">
+    <meta name="twitter:image" content="https://enerccio.github.io/Marginalia/images/plugin-imagegenerator-settings.png">
+    <meta name="twitter:image:alt" content="Image Generator">
 
     <!-- Alternate Markdown -->
     <link rel="alternate" type="text/markdown" href="https://enerccio.github.io/Marginalia/user/extensions/image-generator.md">
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846863386845" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846878596987" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846863386845" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846878596987" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846863386845" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846878596987" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -232,11 +238,19 @@ spoken by stable-diffusion.cpp, LiteLLM and many hosted services).</p>
 </table>
 </div>
 </retype-table>
+<figure class="content-center">
+    <img src="../../../images/plugin-imagegenerator-settings.png" alt="A backend in the settings" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1612" height="900" />
+    <figcaption class="caption">A backend in the settings</figcaption>
+</figure>
 <p><strong>Test connection</strong> checks the address and the key.</p>
 <p>The panel also has the <strong>Style</strong> put in front of every prompt (the look of the book, for example <em>watercolor, soft light</em>) and the
 <strong>Instruction for the prompt writer</strong>, the text the model is given to write the prompt from a part. Empty or unchanged uses the
 built-in one.</p>
 <h2 id="making-an-image">Making an image</h2>
+<figure class="content-center">
+    <img src="../../../images/plugin-imagegenerator-menu.png" alt="Generate image in the menu of a part" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="290" height="600" />
+    <figcaption class="caption">Generate image in the menu of a part</figcaption>
+</figure>
 <ol>
 <li>
 <p>Choose <strong>Generate image</strong> in the menu of a part. The model of the window (the book&#x27;s by default, the last choice is remembered)
@@ -264,6 +278,14 @@ this window.</p>
 the window. <strong>Abort</strong> stops an image that is being made (ComfyUI is told to interrupt the job).</p>
 </li>
 </ol>
+<figure class="content-center">
+    <img src="../../../images/plugin-imagegenerator-prompt.png" alt="The window with the prompt written by the model" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="900" height="857" />
+    <figcaption class="caption">The window with the prompt written by the model</figcaption>
+</figure>
+<figure class="content-center">
+    <img src="../../../images/plugin-imagegenerator.png" alt="The image, with Accept, Discard and Reroll" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="900" height="857" />
+    <figcaption class="caption">The image, with Accept, Discard and Reroll</figcaption>
+</figure>
 <p>The open part shows the new image under its text at once.</p>
 <h2 id="one-gpu-for-the-model-and-the-images">One GPU for the model and the images</h2>
 <p>With one small GPU, the language model and the image model cannot be loaded together. The extension does not manage the memory;
@@ -323,7 +345,7 @@ both empty. A request that fails stops the image (before) or shows a warning (af
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (801fe6625).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (232417cbc).</p></div>
             </footer>
         </div>
     </div>

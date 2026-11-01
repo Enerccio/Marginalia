@@ -133,7 +133,7 @@ sequenceDiagram
    `MarginaliaExtension`. A JAR that fails is logged and skipped. When the root context closes, the extensions are
    unloaded and the framework is stopped.
 7. `MarginaliaServlet` (`@WebServlet("/*")`, a `VaadinServlet`) serves the UI. `AppShellConfig` configures the page:
-   push enabled, dark Lumo theme, `shared-styles.css`.
+   push enabled, dark Lumo theme, `shared-styles.css`, the icons (`icons/icon.svg` as the vector favicon, `icons/icon.png` and the PWA icons).
 
 ## Layers and packages
 
@@ -485,6 +485,7 @@ sequenceDiagram
   book or a story part under their bundle's symbolic name (removed when the extension is unloaded) and ask for it; to
   use one particular extension (the name generator) the others find it among `OsgiService.getLoadedExtensions()` and
   call it by reflection ([Sharing data between extensions](plugins/ipc.md)).
+- **Inherited settings.** An extension registers a line, a text area or a choice with `InheritedSettingRegistry` (`InheritedSetting`); the *Prompts* tab of a book and the folder window show them with the other prompts and the values live in the `attributes` of the book or folder (`InheritedSettingValues`), resolved through the folders ([Inherited settings](plugins/inherited-settings.md)).
 - **Styles.** An extension that implements `ExtensionHasCss` gets its CSS put into every open page: `CssRegistry`
   (owned by `Main` and `Viewer`) reads the loaded extensions when its page is attached and listens to the
   loaded/unloaded events of `OsgiService` afterwards ([Styles of a plugin](plugins/ui-extensions.md#styles-of-a-plugin)).

@@ -109,13 +109,15 @@ InheritedSettingValues.set(book, "betareaders.medium", "movie");  // a blank val
 manuscriptService.save(book);                                     // like any extended attribute, stored by the service's save
 ```
 
+The resolvers (`ManuscriptServiceImpl`) only read the user's settings with `SettingService.find`: a user who never saved settings has set nothing, and the row is not created inside a read-only transaction.
+
 The dialogs do this themselves; a plugin writes the values only when it sets them without a dialog (a command, an import).
 Changing a folder goes through `FolderService.update(folder, new Details(..., extensions))`, which refuses while an agent works on
 a book below it, like a change of a prompt.
 
 ## What the application does with them
 
-- **Book and phone dialog.** The *Prompts* tab gets the `ExtensionSettingsForm` below the prompts, autosaved on change like them.
+- **Book and phone dialog.** The *Prompts* tab gets the `ExtensionSettingsForm` below the prompts, autosaved on change like them. A text area of the form is a `TextAreaPopoverComponent`: its info icon shows the inherited text (`TemplateHints`) so the author can copy it into the field.
 - **Folder dialog.** The same form below the prompts; saved with the *Save* button, in the same call as the prompts.
 - **Backups.** The path of folders in a backup of a book carries the folders' values (`extensions` of each level), and a missing folder
   is made again with them. An export that writes what the book inherits writes the values of the nearest folder and the user level of

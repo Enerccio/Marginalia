@@ -202,6 +202,8 @@ The columns of `BaseEntity` / `OwnedEntity` / `ExtendableEntity` are always the 
 `is_deleted`, `modification`, `uuid`, `userId` (owner), `extendedContent` and `_fulltext`. Then list the class in
 `persistence.xml`. For joined inheritance (a subtype of `AI` or `Protocol`), the subtype table has only `id` plus its
 own columns.
+A subtype of `Setting` is single table (`@DiscriminatorValue`, the `settings` table): `StylesSetting` and `ExportSettings` are only
+listed in `persistence.xml` and keep everything in `extendedContent`, so they need no migration.
 
 ### Changing or removing a column
 

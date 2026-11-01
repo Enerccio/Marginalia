@@ -95,7 +95,8 @@ Rules:
 ### Settings
 
 - Per user: `settingService.getOrCreate(UserSetting.class)` returns the current user's settings; store under your
-  key, save with `settingService.save(userSetting)`. To add the settings to the *Settings* screen, see
+  key, save with `settingService.save(userSetting)`. To only read them (in a read-only transaction) use
+  `findOrBlank(UserSetting.class, user)`, which does not create the row. To add the settings to the *Settings* screen, see
   [Extending the UI → Settings panels](ui-extensions.md#settings-panels).
 - Whole installation: `AppSettings` the same way, only administrators should change it.
 

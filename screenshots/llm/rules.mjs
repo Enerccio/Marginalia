@@ -100,7 +100,15 @@ const betaPersonaRule = {
   reply: () => `Name: ${betaPersona.name}\nDescription: ${betaPersona.description}`,
 };
 
+// Image Generator: the prompt for an image, written from a part of the story
+const imagePromptRule = {
+  name: 'image-prompt',
+  when: ctx => ctx.text.includes('You write prompts for an image generation model'),
+  reply: 'watercolor, a foggy village street at dusk, a girl in a long green coat standing under a gas lamp, a boy with glasses and a red and gold scarf watching from the shadows, cobblestones, stone houses with lit windows, cold blue fog, warm lamplight, melancholy mood',
+};
+
 export default [
+  imagePromptRule,
   betaPersonaRule,
   betaRule,
   arcRule,

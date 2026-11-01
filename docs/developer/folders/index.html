@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846863386845">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846878596987">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846863386845" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846878596987" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846863386845" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846878596987" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846863386845" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846878596987" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -251,7 +251,7 @@ settings commands report the effective values) and the help assistant.</p>
 <retype-table copy-text="| Method | |
 |---|---|
 | `create`, `rename`, `move`, `delete(folder, hard)`, `deleteWithContent` | Delete moves the books and folders directly in the folder to its parent (a clash of names stops it before anything moves); `deleteWithContent` soft-deletes them too. |
-| `update(folder, Details)` | The folder dialog: name, description, language and the prompts of a `Map&lt;PromptField, String&gt;`. It writes to the **stored** folder (what the dialog does not set is kept, not the stale copy of the caller) and refuses a change of a setting while an agent works on a book below (`FolderBookLockedException`); the name and the description are free. |
+| `update(folder, Details)` | The folder dialog: name, description, language, the prompts of a `Map&lt;PromptField, String&gt;` and `extensions`, the values of the settings extensions added to the books (`InheritedSetting`, a `Map&lt;String, String&gt;` by key: a blank text is cleared, a key missing from the map is kept; the constructors without it pass `null`, an empty map). It writes to the **stored** folder (what the dialog does not set is kept, not the stale copy of the caller) and refuses a change of a setting (an extension setting too) while an agent works on a book below (`FolderBookLockedException`); the name and the description are free. |
 | `findChildren`, `findChild`, `search`, `resolveScope` | Lists. `search` takes the same `ManuscriptFilterValues` as the book search (`inFolder`, the name, the tags), sorters on `name`, `creation`, `modification`. `resolveScope` turns &quot;the folder, or everything below it&quot; into the ids the repositories filter by (`FolderScope` adds the clause to the books' query and to the folders'). |
 | `getAncestors`, `getPath`, `getPaths`, `findChain` | Paths are the names joined by `/` (`SEPARATOR`); `getPaths` builds all of them from the tree in memory, for the pickers and the *Folder* column. |
 | `describeContent`, `countBooksByFolder` | The numbers for the delete question and the list. The counts are of the folder and everything below it, and leave out the working copies of agents. |
@@ -271,7 +271,7 @@ settings commands report the effective values) and the help assistant.</p>
 </tr>
 <tr>
 <td><code translate="no" v-pre>update(folder, Details)</code></td>
-<td>The folder dialog: name, description, language and the prompts of a <code translate="no" v-pre>Map&lt;PromptField, String&gt;</code>. It writes to the <strong>stored</strong> folder (what the dialog does not set is kept, not the stale copy of the caller) and refuses a change of a setting while an agent works on a book below (<code translate="no" v-pre>FolderBookLockedException</code>); the name and the description are free.</td>
+<td>The folder dialog: name, description, language, the prompts of a <code translate="no" v-pre>Map&lt;PromptField, String&gt;</code> and <code translate="no" v-pre>extensions</code>, the values of the settings extensions added to the books (<code translate="no" v-pre>InheritedSetting</code>, a <code translate="no" v-pre>Map&lt;String, String&gt;</code> by key: a blank text is cleared, a key missing from the map is kept; the constructors without it pass <code translate="no" v-pre>null</code>, an empty map). It writes to the <strong>stored</strong> folder (what the dialog does not set is kept, not the stale copy of the caller) and refuses a change of a setting (an extension setting too) while an agent works on a book below (<code translate="no" v-pre>FolderBookLockedException</code>); the name and the description are free.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>findChildren</code>, <code translate="no" v-pre>findChild</code>, <code translate="no" v-pre>search</code>, <code translate="no" v-pre>resolveScope</code></td>
@@ -394,12 +394,12 @@ for a change that is yours alone.</p>
 <ul>
 <li>
 <p><strong>Backups.</strong> <code translate="no" v-pre>BackupServiceImpl.takeBackup</code> writes the optional key <code translate="no" v-pre>folder</code> (the folder&#x27;s uuid and the <code translate="no" v-pre>path</code> from the top, each
-with name, uuid, description, language and text settings) from <code translate="no" v-pre>findChain</code>; <code translate="no" v-pre>BackupFolders.resolve</code> finds the folder by uuid, else
+with name, uuid, description, language, text settings and, as <code translate="no" v-pre>extensions</code>, the values of the extension settings by key, kept whether the extension is loaded or not) from <code translate="no" v-pre>findChain</code>; <code translate="no" v-pre>BackupFolders.resolve</code> finds the folder by uuid, else
 by the name path (creating the missing levels with the saved settings), else returns null (the top level, also on any failure).
 <code translate="no" v-pre>createBackup</code>, which the agents&#x27; snapshots and <code translate="no" v-pre>cloneManuscript</code> share, is unchanged and writes no folder.
 <code translate="no" v-pre>exportBackup(backup, withImages, includeInherited, progress)</code> rewrites the stored file on its way out through
 <code translate="no" v-pre>BackupInheritance</code>: it drops <code translate="no" v-pre>folder</code> and, with the option, writes the values the book inherits (from the backup&#x27;s own folder
-path, then the user settings, never the built-in defaults) as the book&#x27;s own. The old three-argument overload exports with the
+path, then the user settings, never the built-in defaults) as the book&#x27;s own; the settings of extensions too (<code translate="no" v-pre>InheritedSettingRegistry</code>): a value the book does not set comes from the nearest folder that sets it, else from the user level of the extension (a registered setting, and only when the user settings are written), and the values the book sets itself go along, because they are stored in one object that replaces the book&#x27;s. The old three-argument overload exports with the
 option on.</p>
 </li>
 <li>
@@ -494,7 +494,7 @@ folder reaches the request the mock server receives), <code translate="no" v-pre
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (801fe6625).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (232417cbc).</p></div>
             </footer>
         </div>
     </div>

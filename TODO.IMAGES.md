@@ -11,6 +11,12 @@ Screenshots that show the photograph from Wikimedia Commons (*Harry Potter.jpg*,
 
 ## 1.6.0
 
+The Nov 1 screens come from `shoot-styles` (`settings-styles`, `settings-styles-css`, `settings-exports`, `story-style-menu`, `story-style-horror`, `story-part-menu`,
+`images-position`, `images-preview`, `viewer-style-menu`), `plugin-imagegenerator` (`plugin-imagegenerator-settings`, `-menu`, `-prompt`, and `plugin-imagegenerator`) and the Beta Readers
+chain step (`plugin-betareaders-scene`); every other picture of the manual was retaken for the grouped menus (sub menus of the settings menu and of the part menu), the chevron and the glyph
+icons of the tab dock, and the Styles / Exports tabs of the Settings. Not taken: the Image Generator with a ComfyUI backend, the *Print style* of the export dialog changed by hand, the
+*Reorder the icons of the minimized tabs* drag, the desktop installers.
+
 The writing statistics come from `shoot-statistics` (the dataset gets a year of history from `bin/seed-statistics.py` first): `statistics-book`,
 `statistics-time`, `statistics-calendar`, `statistics-global`, `statistics-global-calendar`, `phone-statistics`, `settings-daily-goal`;
 `settings-defaults` was retaken for the two goal fields.
@@ -68,4 +74,4 @@ retaken); retake them by hand when the screen they show changes.
 * A picture of the Lorebook tab of the story editor with *Include sub lorebooks* on (the dataset has no sub lorebooks; `shoot-books-extra` has a lorebook with two, but the book window is not opened there).
 * The Name provider and the Place provider have no screen of their own (their tools are in the *Tools* window, `tools-dialog`); a picture of the Place provider as a *Use this suite* section is not taken.
 * The login card shows the version and the commit under the button; `00-first-start` hides that line (`login.png` is the card of the empty installation).
-* The Images dialog of a part (`images-dialog`) has the 3x3 position picker, *Text flows around the image* and the width now, and the part menu has *Preview as in the viewer*; a picture of the dialog and one of the preview with a picture beside the text are not taken yet.
+* `images-position` and `images-preview` (`shoot-styles`) show the picture in the middle with the text in two columns. A picture at the *left* or *right* with *Text flows around the image* is not pictured: in the preview the text after it did not run beside it (it started below the caption), so there was nothing to show.

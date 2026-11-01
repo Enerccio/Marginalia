@@ -5,9 +5,9 @@ import {parts} from '../lib/story.mjs';
 const reviewMenu = async (page, item) => {
   const last = parts(page).last();
   await last.scrollIntoViewIfNeeded();
-  await last.locator('.chat-message-content > vaadin-horizontal-layout > vaadin-button.margin-left-auto').first().click();
+  await last.locator('.chat-message-content > vaadin-horizontal-layout > vaadin-horizontal-layout > vaadin-button.margin-left-auto').first().click();
   await idle(page, 400);
-  await page.getByRole('menuitem', { name: 'Review' }).first().hover();
+  await page.locator('[role=menuitem]').filter({ hasText: /^\s*Review\s*$/ }).first().click();      // a sub menu of the part menu (opens on click)
   await sleep(500);
   await page.getByRole('menuitem', { name: item, exact: false }).first().click();
 };

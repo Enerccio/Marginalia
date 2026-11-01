@@ -151,6 +151,8 @@ Select a style to edit it on the right; the buttons under the list:
 
 The [styling guide](books/styling-guide.md) goes through every option and has an example style to download.
 
+![The Styles tab, with the horror style of the styling guide selected](../images/settings-styles.png)
+
 For a style of your own the form on the right has a **Name**, the box **For exports (not offered for books)** and two tabs. A style is
 either for books or for exports: a style for exports is offered in the [export dialog](books/export.md#print-styles) (the application brings
 four, the looks of the HTML, EPUB, PDF and Word exports) and can not be the default style of the books, and a style for books is not offered
@@ -166,6 +168,8 @@ in the export dialog. The list marks them *(export)*.
   text with this style: `.chat-message-markdown p { text-indent: 1.5em !important; }` indents paragraphs, plain declarations
   (`font-size: 1.2rem;`) apply to the whole text. Below it, **Generated CSS** shows the stylesheet the options make (read only).
   The braces `{ }` must match, or the style is not saved.
+
+![The Custom CSS tab of a style](../images/settings-styles-css.png)
 
 Under the form the **Preview** shows a sample text in the style, and follows every change as you type.
 
@@ -191,6 +195,8 @@ What each file format is exported with: the tab has a section for every format t
 
 The tab is saved with the **Save** of the settings and **Discard Changes** throws its changes away, like the others. A template that is not valid
 is refused when you save. A style you make in the Styles tab can be chosen here after you save.
+
+![The Exports tab, with the HTML section opened](../images/settings-exports.png)
 
 ### Tags
 

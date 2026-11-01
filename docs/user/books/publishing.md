@@ -50,6 +50,8 @@ Only your own styles are offered, also in a published book of another user: what
 reach the reader. The choice is kept in a cookie of your browser (`marginalia_reader_style`), so it holds for every book you
 read there and the server does not store it; a style that is not yours (another user logged in in the same browser) is ignored.
 
+![The menu of the styles in the reader](../../images/viewer-style-menu.png)
+
 ![Reading a book](../../images/viewer-reading.png)
 
 What you read is the book as it is now: new parts appear the next time the page is opened.

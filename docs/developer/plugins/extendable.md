@@ -268,7 +268,7 @@ Methods the bundled plugins use, as examples:
 | Class | Method | Reached through | Used for |
 |---|---|---|---|
 | `ManuscriptStoryPart` | `createSidebarButton(msg, orderId, dbId)` | arguments; local `sidebarBtn`; field `sidebarList` | Change the sidebar entry of a part (Chapter Marker). |
-| `ManuscriptStoryPart` | `renderStoryContent()` | fields `leftBar` (a `TabDock`), `currentManuscript` | Add a tab next to the story outline (Side Query). Runs on every redraw of the story. |
+| `ManuscriptStoryPart` | `renderStoryContent()` | fields `leftBar` (a `TabDock`), `currentManuscript`, `lazyLoader` (a `StoryLazyLoader`) | Add a tab next to the story outline (Side Query). Runs on every redraw of the story. Arc Outline also reaches the loader to find the part the reader sees (`mostVisible`) and to scroll the story to a part (`scrollTo`); on the phone the field `layout` (an `AppLayout`, the desktop part has none) is the drawer that is closed first. |
 | `ManuscriptStoryPart` | `populateMenuBar(bar)` / `createCogsMenuItem(bar)` | argument `bar`; local `cogs` | Add items to the menu bar of the story editor / to its settings menu. For an item of the settings menu register a `StoryMenuItem` instead (see [UI extensions](ui-extensions.md#menu-items-of-the-story-editor)). |
 | `ManuscriptStoryPart` | `createCommandBox()` (from 1.4.0) | return value (a `Component`, the `CommandBar`) | Replace or wrap the command line (`CommandBar` with its `CommandResultView` popover), for example to put another `CommandResultTarget` on the bar. |
 | `SummariesDialog` | `populateMenuBar(bar)` | argument `bar` | Add tools to the (empty) menu bar of the summaries overview. Not used by a bundled plugin yet. |

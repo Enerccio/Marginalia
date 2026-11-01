@@ -23,6 +23,8 @@ spoken by stable-diffusion.cpp, LiteLLM and many hosted services).
 | Timeout | How long to wait for one image. |
 | Release after idle | See [One GPU](#one-gpu-for-the-model-and-the-images). |
 
+![A backend in the settings](../../images/plugin-imagegenerator-settings.png)
+
 **Test connection** checks the address and the key.
 
 The panel also has the **Style** put in front of every prompt (the look of the book, for example *watercolor, soft light*) and the
@@ -30,6 +32,8 @@ The panel also has the **Style** put in front of every prompt (the look of the b
 built-in one.
 
 ## Making an image
+
+![Generate image in the menu of a part](../../images/plugin-imagegenerator-menu.png)
 
 1. Choose **Generate image** in the menu of a part. The model of the window (the book's by default, the last choice is remembered)
    starts writing the prompt of the part; you can stop it with **Abort**, change the prompt, or press **Write the prompt with the
@@ -44,6 +48,10 @@ built-in one.
    this window.
 3. The image appears. **Reroll** makes another one with a new seed, **Discard** drops it, **Accept** adds it to the part and closes
    the window. **Abort** stops an image that is being made (ComfyUI is told to interrupt the job).
+
+![The window with the prompt written by the model](../../images/plugin-imagegenerator-prompt.png)
+
+![The image, with Accept, Discard and Reroll](../../images/plugin-imagegenerator.png)
 
 The open part shows the new image under its text at once.
 
