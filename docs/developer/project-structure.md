@@ -279,7 +279,6 @@ There is no hand-written frontend application - Vaadin generates it. The only so
 | File | |
 |---|---|
 | `styles/shared-styles.css` | Global CSS, imported by `AppShellConfig`: spacing helpers, utility classes, story text and Markdown wrapping, story tree. |
-| `styles/reading-mode-styles.css` | The book style of the reader and editor (`.manuscript-styles .chat-message-markdown`), imported separately by `AppShellConfig`. |
 | `chart-connector.js` | Draws Chart.js charts for the `ChartJs` widget (npm package `chart.js`, declared with `@NpmPackage` on `ChartJs`). |
 | `graph-connector.js` | Draws Cytoscape.js graphs for the `GraphView` widget (npm package `cytoscape`, declared with `@NpmPackage` on `GraphView`). |
 | `treant-connector.js` | Connects `TreantTree` to the treant.js library (npm packages `treant-js` and `raphael` are declared with `@NpmPackage` on `TreantTree`). |

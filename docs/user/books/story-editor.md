@@ -94,9 +94,10 @@ first. While a generation runs the other tabs are disabled and only the story st
 
 ### Minimizing tabs
 
-Every tab but the story has a small **–** button next to its name. It **minimizes** the tab: the tab leaves its panel (a panel
-whose tabs are all minimized disappears for the time being) and a round icon of it, a circle with one or two letters (**Ch** for
-the outline, **Lo** for the lorebook, **An** for the annotations, **SQ** for Side Query, and so on), shows up in a bar at the
+Every tab but the story has a small **⌄** (chevron) button next to its name. It **minimizes** the tab: the tab leaves its panel (a panel
+whose tabs are all minimized disappears for the time being) and a round icon of it, a colored circle with a drawing (a list for
+the outline, a book for the lorebook, a speech bubble for the annotations, a magnifier for Side Query, and so on; a tab of an
+extension that has no drawing gets one or two letters), shows up in a bar at the
 edge of the editor. Hover over the icon to see which tab it is. Nothing is closed, the tab keeps what it was showing. Click the
 icon and the tab comes back to the panel and the place among the tabs where it was, and is shown.
 
@@ -105,7 +106,8 @@ the editor, clockwise: left, top, right, bottom. The story can't be minimized, s
 
 ![Minimized tabs in the bar at the edge of the editor](../../images/story-minimized-tabs.png)
 
-Which tabs are minimized and where the bar is are saved with the book, together with the arrangement and the sizes.
+The icons are in the alphabetical order of the names of the tabs until you change it: drag an icon onto another one and it takes
+the place of that one. Which tabs are minimized, where the bar is and the order of the icons are saved with the book, together with the arrangement and the sizes.
 
 ### The default arrangement
 
@@ -398,15 +400,24 @@ instructions of the turn take room from the same budget. Without a model with a 
 
 ![Branch Tokens](../../images/branch-tokens.png)
 
-## Book styles
+## Text styles
 
-The settings menu (⚙) in the bottom bar has **Change Styles For Text**. It switches the text of the parts between the
-normal look of the application and a book-like reading style (the one the [viewer](publishing.md) uses). The setting
-is saved per book.
+The settings menu (⚙) in the bottom bar has **Change Styles For Text**, a menu with one entry per style, sorted by name.
+A style decides how the text of the parts looks: font, size, colors, alignment, headings... The application brings two
+styles that can not be changed: **Normal** (the look of the application) and **Book** (a book-like reading style, the one the
+[viewer](publishing.md) uses), and you can make your own in [Settings → Styles](../account.md#styles).
 
-In this style paragraphs are justified and long words are hyphenated automatically, using the dictionary of the
+- The first entry, **Default (...)**, follows your *default style* (the one marked in *Settings → Styles*, Normal when you
+  chose none). A new book has no style of its own and shows that.
+- Choosing another entry stores the style **in the book**, so it overrides the default for that book only; the ticked entry is
+  the one the book has now. **Default** takes the choice back.
+- A style you delete falls back to your default in the books that used it.
+
+In the **Book** style paragraphs are justified and long words are hyphenated automatically, using the dictionary of the
 book's **Language** (set on the [About tab](managing-books.md#the-about-tab)). Hyphenation is done by the browser;
 for a few rare languages it has no dictionary and the text is simply not hyphenated.
+
+Books that had the old *Change Styles For Text* switch on keep showing the Book style until you choose another entry.
 
 ## Highlighting generated text
 

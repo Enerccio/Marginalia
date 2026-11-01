@@ -125,8 +125,8 @@ public class StoryMenuRegistry implements InitializingBean {
     }
 
     private void registerToolsItems() {
-        application(StoryMenuItem.tools(StoryMenuKeys.CHANGE_STYLES, L.LABEL_CHANGE_STYLES, StoryEditor::toggleBookStyles)
-                .icon(Solid.PEN_FANCY::create));
+        application(StoryMenuItem.tools(StoryMenuKeys.CHANGE_STYLES, L.LABEL_CHANGE_STYLES, null)
+                .icon(Solid.PEN_FANCY::create).choices(StoryEditor::getPartStyleChoices));
         application(StoryMenuItem.tools(StoryMenuKeys.HIGHLIGHT_GENERATED, L.LABEL_HIGHLIGHT_GENERATED_TEXT,
                         part -> part.setShowGeneratedDiff(!part.isShowGeneratedDiff()))
                 .icon(Solid.HIGHLIGHTER::create).checkedWhen(StoryEditor::isShowGeneratedDiff).phone(false));

@@ -22,7 +22,7 @@ Some entities kept their early names. The UI and this manual use the names on th
 | `ManuscriptStatistic`, `ActivityInterval`, `ManuscriptSize` | `manuscript_statistics`, `activity_intervals`, `manuscript_sizes` | The writing statistics of a book per day: counts, time, size, see [Writing statistics](#writing-statistics-manuscriptstatistic-activityinterval-manuscriptsize) |
 | `Protocol`, `ChatCompletionProtocol` | `protocols`, `protocols_chatcompletion` | Protocol |
 | `Tag`, `TagRelation` | `tags`, `t2e` | Tag |
-| `Setting`, `AppSettings`, `UserSetting` | `settings` | Settings page, admin settings |
+| `Setting`, `AppSettings`, `UserSetting`, `StylesSetting` | `settings` | Settings page, admin settings; `StylesSetting` holds the text styles of a user (see [Text styles](ui.md#text-styles)) |
 | `User` | `users` | User |
 | `Permission` | `permissions` | What an administrator allowed a user to do, see [Permission](#permission-what-a-user-was-allowed) |
 | `Agent`, `AgentRun`, `AgentMessage` | `agents`, `agent_runs`, `agent_messages` | Agents, see [Agent and AgentRun](#agent-and-agentrun-agents) |

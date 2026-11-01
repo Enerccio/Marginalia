@@ -141,6 +141,37 @@ sets its own value on its *Prompts* tab keeps it. So:
 - set what is special to one book on its *Prompts* tab;
 - clear a book's field to bring it back to the default from *Settings*.
 
+### Styles
+
+The text styles of your books: how the text of the parts looks in the story and in the reader. The tab lists the **Normal**
+and **Book** styles, which the application brings and which can not be changed (they are marked *built in*), and your own.
+Select a style to edit it on the right; the buttons under the list:
+
+- **Duplicate** - makes a style of your own from the selected one (also from a built in one: this is how you start), named
+  *... (copy)*, which you can then rename and change;
+- **Delete** - deletes a style of yours; a built in style can not be deleted;
+- **Set as default** - makes the style the one the books use unless they [choose another](books/story-editor.md#text-styles) in the
+  story's settings menu. The default style is marked *default* in the list.
+
+For a style of your own the form on the right has a **Name** and two tabs:
+
+- **Options** - the font, the size, line height and letter spacing, the color, alignment, hyphenation and the space between
+  paragraphs of the text, the colors of italic and bold text, of quotes, of headings and of the scene break (`---`), the font and
+  alignment of headings and the symbol of the scene break. A box is any CSS value (`1.1rem`, `#336699`,
+  `var(--lumo-body-text-color)`); an empty box keeps the look of the application. The font boxes offer common font stacks, and
+  take your own.
+- **Custom CSS** - CSS of your own, added after the options and applied inside the style, so a rule you write is only for the
+  text with this style: `.chat-message-markdown p { text-indent: 1.5em !important; }` indents paragraphs, plain declarations
+  (`font-size: 1.2rem;`) apply to the whole text. Below it, **Generated CSS** shows the stylesheet the options make (read only).
+  The braces `{ }` must match, or the style is not saved.
+
+Under the form the **Preview** shows a sample text in the style, and follows every change as you type.
+
+Like the other tabs, the Styles tab is saved with the **Save** of the settings, and **Discard Changes** throws its changes
+away too: duplicating, editing, deleting and setting the default only change the working copy, and *Unsaved changes* (and
+the lock) appears as soon as you do any of them. A style with no name, or custom CSS whose braces do not match, is
+refused when you save.
+
 ### Tags
 
 A table of all your tags (the ones you give to books, lorebooks and lorebook entries) with the number of objects each

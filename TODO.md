@@ -461,9 +461,9 @@ Most are 🧩 plugin-sized; the ones that need a core hook say so.
       background of the generated-text `<mark>`; a block is only the hover / active state), coloured by type or source;
       overlapping ranges differ in colour or thickness. Resolved annotations leave the text and stay in the panel
       (a *show resolved* switch), orphaned and part-level ones have no range: the badge and the panel only. A click on an overlap lists every annotation that covers the
-      point. Optional: **notes in the left margin**, next to the text, switched like *Show book styles*
-      (`Manuscript.showBookStyles` adds `CssStyles.MARKDOWN_MANUSCRIPT_STYLES` to `mainLayout` in `applyBookStyles`):
-      a toggle in the story settings menu that picks a class; decide whether it is per book (like that flag) or per
+      point. Optional: **notes in the left margin**, next to the text, switched like the text style
+      (`Manuscript.partStyle` puts the `part-style-<id>` class on `mainLayout` in `applyBookStyles`, see item 74):
+      a toggle in the story settings menu that picks a class; decide whether it is per book (like the style) or per
       user (it is a reading preference, closer to the theme switch). The phone has no room for a margin: popover only.
       Both modes show the same `AnnotationView` component (text, source, status, resolve / edit / delete, *send to
       prompt*, *redraft with this*), which the side panel lists too. Notes: the marks are HTML inside the `Markdown`
@@ -530,8 +530,8 @@ Most are 🧩 plugin-sized; the ones that need a core hook say so.
       loader (`StoryLazyLoader`), the stay-at-bottom logic while streaming (`scrollToBottomIfAtBottom`), `watchEdge`,
       `rememberReaderPosition` and the scroll-to-part code assume a visible, measurable panel; test a generation that
       streams into a hidden story and the return to it. (2) The things attached to `mainLayout` move to the new root:
-      the shortcut events (`installShortcuts`, `fireShortcutEvents`), the `MARKDOWN_MANUSCRIPT_STYLES` class
-      (`applyBookStyles`) and the `lang` attribute (`applyLanguage`). (3) Plugins (`character-tracker`, `arc-outline`,
+      the shortcut events (`installShortcuts`, `fireShortcutEvents`), the `part-style-<id>` class
+      (`applyBookStyles`, `PartStyleApplier`) and the `lang` attribute (`applyLanguage`). (3) Plugins (`character-tracker`, `arc-outline`,
       ...) read the field `leftBar` by reflection and add their tabs to it: keep the field name (`@PublicAPI` does not
       cover field names) or rename it together with the plugins. (4) A minimum width for the story cell, so a splitter
       cannot squeeze it to nothing. (5) `@PublicAPI` of the changed `ManuscriptStoryPart` / `TabDock` methods
@@ -614,3 +614,25 @@ Most are 🧩 plugin-sized; the ones that need a core hook say so.
     Still unmeasured: `-Dtest.forks=2` or `0.25C` on a laptop (not needed with 1.8 GB), caching the encoding that
     `JavaTokkitStrategy` loads for every test (about 8% of the samples of one profile) and the cost of a context rebuilt
     by `@DirtiesContext` in a warm JVM.
+
+### Reading experience
+
+74. ✅ **Text styles (fonts and looks of the parts) you can edit.** Done (see the CHANGELOG, *Unreleased*): the book style is
+    code (`PartStyle`, `PartStyleOption`, built in `normal` and `book` in `PartStyleRegistry`), the styles and the default are
+    kept in `StylesSetting` (`PartStyleService`), the **Styles** tab of the settings (`PartStyleEditor`, saved and discarded
+    with the page) duplicates, deletes, sets the default and edits options and custom CSS with a live preview, and *Change
+    Styles For Text* is a menu of the styles that stores the choice in the book (`Manuscript.partStyle`). Left over:
+    - **A default per folder.** Folders already hand down language, template and prompts (`FolderService.findChain`); a
+      style id could travel the same way (book, folders, user default, Normal), with *Inherit* shown in the menu.
+    - **A published book carries the author's style.** The reader chooses among their own styles only (cookie
+      `marginalia_reader_style`, see the CHANGELOG), the author's choice is never seen. If the author's look should be
+      offered, it has to be a copy that the book publishes (not an id resolved through the author's setting), and the
+      PDF/HTML export could take its font and colors from the style.
+    - **More options.** First-line indent, drop caps, a paragraph gap vs. indent switch, a monospace dialogue font, the
+      width of the text column; a colour picker (the Vaadin one is a paid component, so a small own widget or the browser's
+      `<input type=color>`); a choice of fonts from the ones installed (or uploaded as a `Resource`, with `@font-face`).
+    - **Share styles.** Export and import a style as JSON (the stored form is already a small JSON), and styles registered
+      by extensions (`PartStyleRegistry.register`) such as a sepia or high-contrast set 🧩.
+    - **Summaries, annotations and the history use the style too.** Only the parts of the story and the reader do now
+      (`.chat-message-markdown` inside the element that carries the class); the summaries dialog and the history view show
+      the plain look.

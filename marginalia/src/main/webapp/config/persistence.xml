@@ -45,6 +45,7 @@
         <!-- settings -->
         <class>com.github.enerccio.marginalia.domain.model.impl.settings.AppSettings</class>
         <class>com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting</class>
+        <class>com.github.enerccio.marginalia.domain.model.impl.settings.StylesSetting</class>
 
         <exclude-unlisted-classes>true</exclude-unlisted-classes>
 

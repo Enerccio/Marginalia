@@ -6,6 +6,7 @@ import com.github.enerccio.marginalia.ui.dialogs.story.StoryCard;
 import com.github.enerccio.marginalia.ui.dialogs.story.StoryEditor;
 import com.vaadin.flow.component.icon.Icon;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.function.*;
 
@@ -35,7 +36,18 @@ public final class StoryMenuItem {
     private final Consumer<StoryEditor> toolsAction;
     private final BiConsumer<StoryEditor, StoryCard> cardAction;
 
+    /**
+     * One entry of the sub menu of an item whose entries are worked out each time its menu opens ({@link #choices}).
+     *
+     * @param text    what the entry says
+     * @param checked whether it is the current one (shown ticked)
+     * @param action  what choosing it does
+     */
+    public record Choice(String text, boolean checked, Runnable action) {
+    }
+
     private ContextLabel contextLabel;
+    private Function<StoryEditor, List<Choice>> choices;
     private Supplier<Icon> icon;
     private String actionId;
     private String defaultKey;
@@ -109,6 +121,15 @@ public final class StoryMenuItem {
      */
     public StoryMenuItem contextLabel(ContextLabel contextLabel) {
         this.contextLabel = contextLabel;
+        return this;
+    }
+
+    /**
+     * Makes the item hold a sub menu of entries the story editor works out each time the menu is refreshed (the styles of the user,
+     * which come and go), in the order given; the entries are check box items. The item has no action of its own.
+     */
+    public StoryMenuItem choices(Function<StoryEditor, List<Choice>> choices) {
+        this.choices = choices;
         return this;
     }
 
@@ -232,6 +253,18 @@ public final class StoryMenuItem {
 
     public boolean hasAction() {
         return toolsAction != null || cardAction != null;
+    }
+
+    public boolean hasChoices() {
+        return choices != null;
+    }
+
+    /**
+     * The entries of the sub menu of the item for the story editor, empty when it has none.
+     */
+    public List<Choice> getChoices(StoryEditor part) {
+        List<Choice> entries = choices == null ? null : choices.apply(part);
+        return entries == null ? List.of() : entries;
     }
 
     public boolean isCheckable() {

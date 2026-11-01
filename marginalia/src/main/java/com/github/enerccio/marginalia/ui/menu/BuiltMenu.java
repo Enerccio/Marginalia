@@ -7,6 +7,7 @@ import com.vaadin.flow.component.contextmenu.HasMenuItems;
 import com.vaadin.flow.component.contextmenu.MenuItem;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -23,6 +24,7 @@ public final class BuiltMenu {
     private final Map<String, StoryMenuItem> definitions = new LinkedHashMap<>();
     private final Map<String, MenuItem> items = new LinkedHashMap<>();
     private final Map<String, MenuItemContent> contents = new LinkedHashMap<>();
+    private final Map<String, List<String>> shownChoices = new LinkedHashMap<>();
     private MenuDefinition definition;
 
     BuiltMenu(MenuDefinition definition, HasMenuItems menu, Localization loc, StoryEditor part, Supplier<StoryCard> card) {
@@ -89,6 +91,31 @@ public final class BuiltMenu {
             if (item.isCheckable()) {
                 menuItem.setChecked(item.isChecked(part));
             }
+            if (item.hasChoices()) {
+                refreshChoices(item, menuItem);
+            }
+        }
+    }
+
+    // the sub menu is made again only when what it shows changed
+    private void refreshChoices(StoryMenuItem item, MenuItem menuItem) {
+        List<StoryMenuItem.Choice> choices = item.getChoices(part);
+        // the actions are new lambdas every time: what the user sees is the text and the tick
+        List<String> shown = choices.stream().map(choice -> choice.text() + "\u0000" + choice.checked()).toList();
+        if (shown.equals(shownChoices.get(item.getKey()))) {
+            return;
+        }
+        shownChoices.put(item.getKey(), shown);
+        menuItem.getSubMenu().removeAll();
+        for (StoryMenuItem.Choice choice : choices) {
+            MenuItem entry = menuItem.getSubMenu().addItem(choice.text(), event -> {
+                if (!item.isRetired()) {
+                    choice.action().run();
+                    refresh(definition);
+                }
+            });
+            entry.setCheckable(true);
+            entry.setChecked(choice.checked());
         }
     }
 

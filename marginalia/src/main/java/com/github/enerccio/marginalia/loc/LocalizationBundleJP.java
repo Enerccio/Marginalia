@@ -873,6 +873,41 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_DAILY_GOAL_MINUTES, "1日の目標：編集時間（分）");
         setValue(L.LABEL_LESS, "少");
         setValue(L.LABEL_MORE, "多");
+        setValue(L.LABEL_STYLES, "スタイル");
+        setValue(L.LABEL_STYLE_NORMAL, "通常");
+        setValue(L.LABEL_STYLE_BOOK, "書籍");
+        setValue(L.LABEL_STYLE_DEFAULT_ENTRY, "デフォルト（%s）");
+        setValue(L.LABEL_STYLE_FONT_FAMILY, "フォント");
+        setValue(L.LABEL_STYLE_FONT_SIZE, "フォントサイズ");
+        setValue(L.LABEL_STYLE_LINE_HEIGHT, "行の高さ");
+        setValue(L.LABEL_STYLE_LETTER_SPACING, "文字間隔");
+        setValue(L.LABEL_STYLE_TEXT_COLOR, "文字色");
+        setValue(L.LABEL_STYLE_TEXT_ALIGN, "配置");
+        setValue(L.LABEL_STYLE_HYPHENATION, "単語のハイフネーション");
+        setValue(L.LABEL_STYLE_PARAGRAPH_SPACING, "段落の間隔");
+        setValue(L.LABEL_STYLE_EMPHASIS_COLOR, "斜体の色");
+        setValue(L.LABEL_STYLE_STRONG_COLOR, "太字の色");
+        setValue(L.LABEL_STYLE_QUOTE_COLOR, "引用文の色");
+        setValue(L.LABEL_STYLE_QUOTE_BORDER_COLOR, "引用バーの色");
+        setValue(L.LABEL_STYLE_HEADING_FONT_FAMILY, "見出しのフォント");
+        setValue(L.LABEL_STYLE_HEADING_COLOR, "見出しの色");
+        setValue(L.LABEL_STYLE_HEADING_ALIGN, "見出しの配置");
+        setValue(L.LABEL_STYLE_HEADING_SMALL_CAPS, "見出しをスモールキャップにする");
+        setValue(L.LABEL_STYLE_SCENE_BREAK_TEXT, "場面転換の記号");
+        setValue(L.LABEL_STYLE_SCENE_BREAK_COLOR, "場面転換の色");
+        setValue(L.LABEL_STYLE_GROUP_INLINE, "強調");
+        setValue(L.LABEL_STYLE_GROUP_QUOTE, "引用");
+        setValue(L.LABEL_STYLE_GROUP_HEADINGS, "見出し");
+        setValue(L.LABEL_STYLE_GROUP_SCENE_BREAK, "場面転換");
+        setValue(L.LABEL_STYLE_OPTIONS, "オプション");
+        setValue(L.LABEL_STYLE_CUSTOM_CSS, "カスタム CSS");
+        setValue(L.LABEL_STYLE_GENERATED_CSS, "生成された CSS");
+        setValue(L.LABEL_STYLE_PREVIEW, "プレビュー");
+        setValue(L.LABEL_DUPLICATE, "複製");
+        setValue(L.LABEL_STYLE_SET_DEFAULT, "デフォルトにする");
+        setValue(L.LABEL_STYLE_COPY_NAME, "%s（コピー）");
+        setValue(L.LABEL_STYLE_DEFAULT_MARK, "デフォルト");
+        setValue(L.LABEL_STYLE_BUILTIN_MARK, "組み込み");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -1140,6 +1175,8 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.ERROR_FOLDER_TRANSFER_REFUSED, "この操作はできません。フォルダを自分自身やその下のフォルダに入れることはできず、フォルダ名は空いている必要があります。");
         setValue(L.ERROR_FOLDER_BOOK_LOCKED, "このフォルダ内の本「%2$s」はエージェント「%1$s」によってロックされています。先に実行を一時停止または停止してください。");
         setValue(L.ERROR_COMMAND_HISTORY_LIMIT_NEGATIVE, "バージョン数に負の数は指定できません。ブックの上限を解除するには省略してください。");
+        setValue(L.ERROR_STYLE_NAME_REQUIRED, "スタイルには名前が必要です。");
+        setValue(L.ERROR_STYLE_CSS_UNBALANCED, "カスタム CSS の波括弧 { } が対応していません。");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "フォームを保存できません。");
@@ -1505,6 +1542,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_STATISTICS_CALENDAR_LAST, "、最終作業 %s");
         setValue(L.MSG_GOAL_PROGRESS_WORDS, "今日：%s / %s 単語");
         setValue(L.MSG_GOAL_PROGRESS_MINUTES, "今日：編集 %s / %s 分");
+        setValue(L.MSG_STYLE_PREVIEW_SAMPLE, "# 第一章\n\n*雨*は**三日間**降り続き、港へ続く道は泥の川になっていた。「引き返すべきだ」とマラは言ったが、誰も動かなかった。\n\n> 古い地図は間違っている。水を信じろ。\n\n---\n\n朝は灰色にゆっくりと訪れた。彼女は岸壁の灯りを数え、`七つ`と呟いて、歩き出した。\n\n## 小さな見出し\n\nこの段落は、文章の折り返しや配置、そしてハイフネーションが有効な場合に単語がどう分割されるかを示すのに十分な長さがあります。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");
@@ -1604,6 +1642,9 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_VERSION_HISTORY_PERMISSION, "ユーザーの本の履歴がパートごとに保持する最大バージョン数。空欄：管理者による制限なし。この権限がないユーザーは 50 件です。付与されていない権限は履歴を残しません。");
         setValue(L.HELP_DAILY_GOAL, "統計カレンダーの目標（すべての本の合計）：1日に自分で書く単語数（生成分は含まない）と編集する分数。設定した目標をすべて達成した日が目標達成の連続日数に数えられます。空欄は目標なし。");
         setValue(L.HELP_ACTIVATION_RANGE, "エントリーは、この番号からこの番号までのパートを作成するターンでのみ使用されます（ストーリーのアウトラインの番号、両端を含み、最初のパートは1）。空欄は制限なし。スワイプや再生成は置き換えるパートとして数えます。ブックなしでプレビューするターンには番号がなく、範囲は確認されません。");
+        setValue(L.HELP_STYLES, "スタイルは、ストーリーとリーダーでのパートのテキストの見た目を変えます。組み込みのスタイルは変更できません。複製して独自のスタイルを作ってください。デフォルトのスタイルは、ストーリーの「テキストのスタイルを変更」メニューでスタイルを選んでいない本に使われます。");
+        setValue(L.HELP_STYLE_VALUES, "任意の CSS 値（例：1.1rem、#336699、var(--lumo-body-text-color)）。空欄の場合はアプリケーションの見た目のままです。");
+        setValue(L.HELP_STYLE_CUSTOM_CSS, "オプションの後ろ、スタイルの範囲内に追加される CSS です。パートのテキストに対するルール（例：\".chat-message-markdown p { text-indent: 1.5em !important; }\"）か、要素全体に適用される宣言を書きます。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景設定と世界観の文脈。");

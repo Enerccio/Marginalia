@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846835337216">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846843452879">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846835337216" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846843452879" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846835337216" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846843452879" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846835337216" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846843452879" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -219,6 +219,11 @@ server does not store it, so another browser starts at the top level. A folder t
 <p>The reading view shows the <a href="../branches-and-story-tree/">active branch</a> of the book from the first to the last part,
 in the book reading style (justified, with hyphenation for the book&#x27;s <a href="../managing-books/#the-about-tab">language</a>). Other branches, the turn instructions and the metadata are not shown. The arrow button in
 the top left corner returns to the list.</p>
+<p>The round button in the top right corner opens a menu of <strong>text styles</strong> to read in: the <em>Normal</em> and <em>Book</em> styles and
+the styles you made in <a href="../../account/#styles">Settings → Styles</a> (the ticked one is shown; the Book style until you choose).
+Only your own styles are offered, also in a published book of another user: what the author uses for writing does not
+reach the reader. The choice is kept in a cookie of your browser (<code translate="no" v-pre>marginalia_reader_style</code>), so it holds for every book you
+read there and the server does not store it; a style that is not yours (another user logged in in the same browser) is ignored.</p>
 <figure class="content-center">
     <img src="../../../images/viewer-reading.png" alt="Reading a book" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="402" height="874" />
     <figcaption class="caption">Reading a book</figcaption>
@@ -293,7 +298,7 @@ can&#x27;t be opened at all.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (d8691f3ec).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (7fe9f2d88).</p></div>
             </footer>
         </div>
     </div>

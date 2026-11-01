@@ -21,6 +21,7 @@ import com.github.enerccio.marginalia.ui.components.TagsView;
 import com.github.enerccio.marginalia.ui.dialogs.LorebookImportDialog;
 import com.github.enerccio.marginalia.ui.shortcuts.KeyBindings;
 import com.github.enerccio.marginalia.ui.shortcuts.KeyBindingsEditor;
+import com.github.enerccio.marginalia.ui.styles.PartStyleEditor;
 import com.github.enerccio.marginalia.ui.widgets.*;
 import com.github.enerccio.marginalia.ui.workspace.Workspace;
 import com.github.enerccio.marginalia.ui.workspace.WorkspaceComponent;
@@ -95,6 +96,9 @@ public class UserPart implements WorkspaceComponent {
     private AgentWebhookService agentWebhookService;
 
     @Autowired
+    private PartStyleService partStyleService;
+
+    @Autowired
     private User currentUser;
 
     private final Workspace workspace;
@@ -143,6 +147,9 @@ public class UserPart implements WorkspaceComponent {
 
     // Tab 4 Keyboard shortcuts
     private KeyBindingsEditor keyBindingsEditor;
+
+    // Styles: the editor saves and discards with the page
+    private PartStyleEditor stylesEditor;
 
     // Tab 5 Extensions
     private Accordion extensionSettings;
@@ -240,6 +247,8 @@ public class UserPart implements WorkspaceComponent {
 
         tabSheet.add(loc.getValue(L.LABEL_TEMPLATES), templatesFormLayout);
 
+        tabSheet.add(loc.getValue(L.LABEL_STYLES), createStylesTab());
+
         tagsView = new TagsView();
         tabSheet.add(loc.getValue(L.LABEL_TAGS), tagsView);
 
@@ -257,6 +266,34 @@ public class UserPart implements WorkspaceComponent {
         refresh();
 
         return mainLayout;
+    }
+
+    /**
+     * The text styles of the books: the editor of the styles. It keeps its changes in memory and tells this part (which locks the
+     * navigation); {@link #save} stores them and {@link #refresh} (the discard) reloads them. Its fields are not tracked by
+     * {@link #trackChanges}, which would also count the editor filling them.
+     */
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = Component.class),
+            locals = {@APILocals(name = "layout", type = VerticalLayout.class),
+                    @APILocals(name = "help", type = Span.class),
+                    @APILocals(name = "editor", type = PartStyleEditor.class)})
+    private Component createStylesTab() {
+        VerticalLayout layout = new VerticalLayout();
+        layout.setPadding(false);
+        layout.setSizeFull();
+        Span help = new Span(loc.getValue(L.HELP_STYLES));
+        help.addClassName(CssStyles.TEXT_SECONDARY);
+        PartStyleEditor editor = new PartStyleEditor(loc, partStyleService);
+        editor.setOnChange(() -> {
+            if (!loading) {
+                setChanged(true);
+            }
+        });
+        stylesEditor = editor;
+        layout.add(help, editor);
+        layout.setFlexGrow(1, editor);
+        return layout;
     }
 
     /**
@@ -639,6 +676,9 @@ public class UserPart implements WorkspaceComponent {
         loading = true;
         try {
             userSetting = settingService.getOrCreate(UserSetting.class);
+            if (stylesEditor != null) {
+                stylesEditor.reload();
+            }
 
             List<AI> allModels = aiService.findAllForUser();
             defaultModelCombo.setItems(allModels);
@@ -757,6 +797,10 @@ public class UserPart implements WorkspaceComponent {
             parameters = {@APIParameter(name = "component", type = Component.class)},
             locals = {@APILocals(name = "field", type = HasValue.class)})
     private void trackChanges(Component component) {
+        if (component instanceof PartStyleEditor) {
+            // reports its changes itself, see createStylesTab
+            return;
+        }
         if (component instanceof HasValue<?, ?> field && ComponentUtil.getData(component, CHANGE_TRACKED_KEY) == null) {
             ComponentUtil.setData(component, CHANGE_TRACKED_KEY, Boolean.TRUE);
             field.addValueChangeListener(e -> {
@@ -834,6 +878,10 @@ public class UserPart implements WorkspaceComponent {
             return;
         }
 
+        if (stylesEditor != null && !stylesEditor.validate()) {
+            return;
+        }
+
         String masterTemplate = masterTemplateField.getValue();
         String userPrompt = defaultUserPromptField.getValue();
         String summaryPrompt = defaultSummaryPromptField.getValue();
@@ -893,6 +941,9 @@ public class UserPart implements WorkspaceComponent {
             userSetting.setKeyBindings(KeyBindings.toStored(userSetting.getKeyBindings(), keyBindingsEditor.getValue()));
 
             settingService.save(userSetting);
+            if (stylesEditor != null) {
+                stylesEditor.save();
+            }
             // the open story tabs use the new keys from the next key press
             JavascriptLibrary.setShortcutKeys(UI.getCurrent().getPage(), KeyBindings.of(userSetting).toJson());
             setChanged(false);

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846835337216">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846843452879">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846835337216" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846843452879" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846835337216" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846843452879" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846835337216" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846843452879" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -452,6 +452,44 @@ sets its own value on its <em>Prompts</em> tab keeps it. So:</p>
 <li>set what is special to one book on its <em>Prompts</em> tab;</li>
 <li>clear a book&#x27;s field to bring it back to the default from <em>Settings</em>.</li>
 </ul>
+<h3 id="styles">Styles</h3>
+<p>The text styles of your books: how the text of the parts looks in the story and in the reader. The tab lists the <strong>Normal</strong>
+and <strong>Book</strong> styles, which the application brings and which can not be changed (they are marked <em>built in</em>), and your own.
+Select a style to edit it on the right; the buttons under the list:</p>
+<ul>
+<li>
+<p><strong>Duplicate</strong> - makes a style of your own from the selected one (also from a built in one: this is how you start), named
+<em>... (copy)</em>, which you can then rename and change;</p>
+</li>
+<li>
+<p><strong>Delete</strong> - deletes a style of yours; a built in style can not be deleted;</p>
+</li>
+<li>
+<p><strong>Set as default</strong> - makes the style the one the books use unless they <a href="../books/story-editor/#text-styles">choose another</a> in the
+story&#x27;s settings menu. The default style is marked <em>default</em> in the list.</p>
+</li>
+</ul>
+<p>For a style of your own the form on the right has a <strong>Name</strong> and two tabs:</p>
+<ul>
+<li>
+<p><strong>Options</strong> - the font, the size, line height and letter spacing, the color, alignment, hyphenation and the space between
+paragraphs of the text, the colors of italic and bold text, of quotes, of headings and of the scene break (<code translate="no" v-pre>---</code>), the font and
+alignment of headings and the symbol of the scene break. A box is any CSS value (<code translate="no" v-pre>1.1rem</code>, <code translate="no" class="whitespace-nowrap" v-pre>#336699<span class="color-preview-display ml-color-preview-margin-left border border-color-preview-border rounded-full h-color-preview-height w-color-preview-width" style="background-color:#336699;"></span></code>,
+<code translate="no" v-pre>var(--lumo-body-text-color)</code>); an empty box keeps the look of the application. The font boxes offer common font stacks, and
+take your own.</p>
+</li>
+<li>
+<p><strong>Custom CSS</strong> - CSS of your own, added after the options and applied inside the style, so a rule you write is only for the
+text with this style: <code translate="no" v-pre>.chat-message-markdown p { text-indent: 1.5em !important; }</code> indents paragraphs, plain declarations
+(<code translate="no" v-pre>font-size: 1.2rem;</code>) apply to the whole text. Below it, <strong>Generated CSS</strong> shows the stylesheet the options make (read only).
+The braces <code translate="no" v-pre>{ }</code> must match, or the style is not saved.</p>
+</li>
+</ul>
+<p>Under the form the <strong>Preview</strong> shows a sample text in the style, and follows every change as you type.</p>
+<p>Like the other tabs, the Styles tab is saved with the <strong>Save</strong> of the settings, and <strong>Discard Changes</strong> throws its changes
+away too: duplicating, editing, deleting and setting the default only change the working copy, and <em>Unsaved changes</em> (and
+the lock) appears as soon as you do any of them. A style with no name, or custom CSS whose braces do not match, is
+refused when you save.</p>
 <h3 id="tags">Tags</h3>
 <p>A table of all your tags (the ones you give to books, lorebooks and lorebook entries) with the number of objects each
 tag is related to. Click a column header to sort by it. Unlike the other tabs, it acts at once: it is not part of the
@@ -580,7 +618,7 @@ settings is installed.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (d8691f3ec).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (7fe9f2d88).</p></div>
             </footer>
         </div>
     </div>

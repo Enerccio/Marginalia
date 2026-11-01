@@ -49,6 +49,12 @@ The reading view shows the [active branch](branches-and-story-tree.md) of the bo
 in the book reading style (justified, with hyphenation for the book's [language](managing-books.md#the-about-tab)). Other branches, the turn instructions and the metadata are not shown. The arrow button in
 the top left corner returns to the list.
 
+The round button in the top right corner opens a menu of **text styles** to read in: the *Normal* and *Book* styles and
+the styles you made in [Settings → Styles](../account.md#styles) (the ticked one is shown; the Book style until you choose).
+Only your own styles are offered, also in a published book of another user: what the author uses for writing does not
+reach the reader. The choice is kept in a cookie of your browser (`marginalia_reader_style`), so it holds for every book you
+read there and the server does not store it; a style that is not yours (another user logged in in the same browser) is ignored.
+
 ![Reading a book](../../images/viewer-reading.png)
 
 What you read is the book as it is now: new parts appear the next time the page is opened.

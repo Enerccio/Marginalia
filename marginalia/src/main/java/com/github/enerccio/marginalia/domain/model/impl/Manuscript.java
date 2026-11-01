@@ -76,9 +76,21 @@ public class Manuscript extends ExtendableEntity {
     @Transient
     private String userPrompt;
 
+    /**
+     * Legacy: the book style (see {@code PartStyleRegistry.BOOK}) was turned on for the story. Read only when {@link #partStyle} is
+     * not set, never written any more.
+     */
     @ExtendedAttribute
     @Transient
     private Boolean showBookStyles;
+
+    /**
+     * The id of the text style (a built in one or one of the user, see {@code PartStyleService}) the author chose for this book from the
+     * menu of the story; null follows the default style of the user.
+     */
+    @ExtendedAttribute
+    @Transient
+    private String partStyle;
 
     @ExtendedAttribute
     @Transient
@@ -305,6 +317,14 @@ public class Manuscript extends ExtendableEntity {
 
     public void setShowBookStyles(Boolean showBookStyles) {
         this.showBookStyles = showBookStyles;
+    }
+
+    public String getPartStyle() {
+        return partStyle;
+    }
+
+    public void setPartStyle(String partStyle) {
+        this.partStyle = partStyle;
     }
 
     public String getMetaSummaryPrompt() {

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846835337216">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846843452879">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846835337216" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846843452879" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846835337216" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846843452879" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846835337216" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846835337216" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846843452879" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846843452879" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -639,7 +639,11 @@ change: the move button (<code translate="no" v-pre>setDockSide(side.next())</co
 Vaadin session in the tests) and one icon button per minimized tab (the image is <code translate="no" v-pre>TabDockIcons.dataUri(letters, id)</code>, an SVG circle
 as a data URI whose color comes from the id; the tooltip and the aria label are <code translate="no" v-pre>Restore: &lt;caption&gt;</code>). <code translate="no" v-pre>getLayout()</code> adds
 <code translate="no" v-pre>&quot;minimized&quot;:[&quot;id&quot;,...]</code> (only when there are some) and <code translate="no" v-pre>&quot;dock&quot;:&quot;top&quot;</code> (only when not left) to the layout, <code translate="no" v-pre>setLayout</code> reads
-them, so <code translate="no" v-pre>onLayoutChange</code> saves them with the book. <code translate="no" v-pre>add(id, caption, letters, content)</code> gives the letters of the icon, the
+them, so <code translate="no" v-pre>onLayoutChange</code> saves them with the book. The order of the icons is separate from <code translate="no" v-pre>minimized</code> (the order of minimizing): <code translate="no" v-pre>inBarOrder</code> sorts the minimized tabs by their
+place in the list <code translate="no" v-pre>barOrder</code> and puts the tabs that are not in it after them, alphabetically by caption (<code translate="no" v-pre>Collator</code>), so a layout
+without <code translate="no" v-pre>barOrder</code> shows the bar alphabetically. Every icon is a <code translate="no" v-pre>DragSource</code> and a <code translate="no" v-pre>DropTarget</code> (<code translate="no" v-pre>makeIconSortable</code>); <code translate="no" v-pre>dropIcon</code>
+puts the dragged icon at the place of the one it was dropped on and writes the result back into <code translate="no" v-pre>barOrder</code>, the tabs that are not in
+the bar keeping their slots. <code translate="no" v-pre>getLayout()</code> adds <code translate="no" v-pre>&quot;barOrder&quot;:[&quot;id&quot;,...]</code> once the user has reordered, <code translate="no" v-pre>setLayout</code> reads it. <code translate="no" v-pre>add(id, caption, letters, content)</code> gives the letters of the icon, the
 initials of the caption (<code translate="no" v-pre>TabDockIcons.letters</code>) are the default.</p>
 <p><strong>Mass delete.</strong> The settings menu item <code translate="no" v-pre>StoryMenuKeys.MASS_DELETE</code> (<code translate="no" v-pre>StoryEditor.toggleMassDelete</code> / <code translate="no" v-pre>isMassDelete</code>, a check box
 item, also on the phone) turns on the mass delete of <code translate="no" v-pre>StoryMassDelete</code> (<code translate="no" v-pre>ui.dialogs.story</code>, shared by the desktop and the phone
@@ -1300,11 +1304,51 @@ The search is kept while the tab is open and repeated on every <code translate="
 (<code translate="no" v-pre>ManuscriptDialog.save</code>) and calls <code translate="no" v-pre>ManuscriptDialog.showMessage(id)</code>. That tells <code translate="no" v-pre>ManuscriptStoryPart</code> which part to
 scroll to (<code translate="no" v-pre>scrollToMessageOnNextRender</code>) and selects the story tab; entering the tab renders the story, which scrolls to
 the part (and flashes it) instead of scrolling to the bottom; the window of parts is moved around it (<code translate="no" v-pre>StoryLazyLoader</code>).</p>
+<h3 id="text-styles">Text styles</h3>
+<p>The look of the parts of a book (font, colors, headings, scene break...) is data, not a stylesheet file. <code translate="no" v-pre>domain.styles.PartStyle</code>
+holds a name, the options of <code translate="no" v-pre>PartStyleOption</code> (an enum: key, label, group, kind) and a custom CSS block; <code translate="no" v-pre>toCss()</code> writes the
+stylesheet, scoped to <code translate="no" v-pre>.part-style-&lt;id&gt; .chat-message-markdown</code>, with the custom CSS last inside <code translate="no" v-pre>.part-style-&lt;id&gt; { ... }</code> (native CSS
+nesting). A style without options and CSS makes no stylesheet (the <em>Normal</em> look). Option values are stripped of <code translate="no" v-pre>{ } ; &lt; &gt;</code> so they
+can&#x27;t leave their declaration; the custom CSS is the author&#x27;s own and must only have balanced braces.</p>
+<ul>
+<li>
+<p><code translate="no" v-pre>PartStyleRegistry</code> (bean, like <code translate="no" v-pre>StoryMenuRegistry</code>) holds the built in styles: <code translate="no" v-pre>normal</code> and <code translate="no" v-pre>book</code> (the former
+<code translate="no" v-pre>reading-mode-styles.css</code>, now <code translate="no" v-pre>createBookStyle</code>), registered in <code translate="no" v-pre>afterPropertiesSet</code>; an extension calls <code translate="no" v-pre>register(owner, style)</code> and
+<code translate="no" v-pre>unregisterAll(owner)</code> in <code translate="no" v-pre>onExtensionLoad</code> / <code translate="no" v-pre>onExtensionUnload</code>. Built in styles can&#x27;t be saved or deleted.</p>
+</li>
+<li>
+<p><code translate="no" v-pre>StylesSetting</code> (a <code translate="no" v-pre>Setting</code> row per user, <code translate="no" v-pre>@DiscriminatorValue</code>, listed in <code translate="no" v-pre>persistence.xml</code>, no migration) keeps the styles of the
+user as JSON by id (<code translate="no" v-pre>styles</code>) and the <code translate="no" v-pre>defaultStyle</code> id. <code translate="no" v-pre>PartStyleService</code> (<code translate="no" v-pre>list</code>, <code translate="no" v-pre>find</code>, <code translate="no" v-pre>save</code>, <code translate="no" v-pre>duplicate</code>, <code translate="no" v-pre>delete</code>,
+<code translate="no" v-pre>setDefault</code>, <code translate="no" v-pre>findChosen</code>, <code translate="no" v-pre>resolve</code>) is the only way to it. A book resolves to its own choice (<code translate="no" v-pre>Manuscript.partStyle</code>, an extended
+attribute holding a style id), else the default of the user, else Normal; a book with the old <code translate="no" v-pre>showBookStyles</code> flag and no choice
+resolves to Book.</p>
+</li>
+<li>
+<p><code translate="no" v-pre>ui.styles.PartStyleApplier.apply(host, style)</code> writes the stylesheet into a <code translate="no" v-pre>&lt;style id=&quot;marginalia-part-style-&lt;id&gt;&quot;&gt;</code> of the page
+(<code translate="no" v-pre>JavascriptLibrary.setPageStyle</code>, every time, so an edited style shows at once) and puts the class on the element, taking the other
+<code translate="no" v-pre>part-style-*</code> classes off. The desktop and phone story tabs call it from <code translate="no" v-pre>applyBookStyles</code> (also in <code translate="no" v-pre>onTabEnter</code>, so edits in the
+settings show). The reader (<code translate="no" v-pre>Viewer</code>) has a <code translate="no" v-pre>ReaderStyleChooser</code> (a floating button with a <code translate="no" v-pre>ContextMenu</code>): it offers only the styles of the logged in
+user (<code translate="no" v-pre>PartStyleService.list()</code>, never the owner of a published book), keeps the choice in the cookie <code translate="no" v-pre>marginalia_reader_style</code> (through a
+<code translate="no" v-pre>ChoiceStore</code>, a map in the tests) and shows the Book style when there is none or the id is not among the user&#x27;s styles.</p>
+</li>
+<li>
+<p>The <em>Change Styles For Text</em> item of the settings menu is a <code translate="no" v-pre>StoryMenuItem.choices(...)</code> item: its sub menu is not registered but
+worked out from <code translate="no" v-pre>StoryEditor.getPartStyleChoices()</code> every time the menu is refreshed (<code translate="no" v-pre>BuiltMenu</code> makes the sub menu again only when
+the texts or ticks changed).</p>
+</li>
+<li>
+<p><code translate="no" v-pre>ui.styles.PartStyleEditor</code> is the <strong>Styles</strong> tab of <code translate="no" v-pre>UserPart</code>: a list, the form built from <code translate="no" v-pre>PartStyleOption</code>, the custom and
+generated CSS and a preview that applies a copy of the edited style under the id <code translate="no" v-pre>preview</code>. It edits a working copy in memory and reports
+every change through <code translate="no" v-pre>setOnChange</code> (<code translate="no" v-pre>UserPart</code> marks itself changed, which locks the navigation); <code translate="no" v-pre>UserPart.save</code> calls <code translate="no" v-pre>validate()</code> and
+then <code translate="no" v-pre>save()</code> (deletes, saves, <code translate="no" v-pre>setDefault</code>), <code translate="no" v-pre>UserPart.refresh</code> (the discard) calls <code translate="no" v-pre>reload()</code>. <code translate="no" v-pre>UserPart.trackChanges</code> skips it, since
+it would also count the editor filling its own fields.</p>
+</li>
+</ul>
 <h3 id="styles">Styles</h3>
 <p>Global styles are in <code translate="no" v-pre>src/main/frontend/styles/shared-styles.css</code> (imported by <code translate="no" v-pre>AppShellConfig</code>): spacing helpers,
 the loading indicator, the story text (<code translate="no" v-pre>.chat-message</code>), the story tree (<code translate="no" v-pre>.Treant</code>) and the utility classes
-(<code translate="no" v-pre>.text-secondary</code>, <code translate="no" v-pre>.hint-text</code>, <code translate="no" v-pre>.min-width-0</code>...). The book style of the reader and editor
-(<code translate="no" v-pre>.manuscript-styles .chat-message-markdown</code>) is in <code translate="no" v-pre>reading-mode-styles.css</code>, imported separately by <code translate="no" v-pre>AppShellConfig</code>. Components are
+(<code translate="no" v-pre>.text-secondary</code>, <code translate="no" v-pre>.hint-text</code>, <code translate="no" v-pre>.min-width-0</code>...). The look of the text of the parts is not in a stylesheet file: it comes from the
+text styles (<code translate="no" v-pre>PartStyle</code>, see <doc-anchor-trigger to="#text-styles">Text styles</doc-anchor-trigger>). Components are
 styled by adding these classes (<code translate="no" v-pre>addClassName(CssStyles.TEXT_SECONDARY)</code>), not with <code translate="no" v-pre>getStyle().set(...)</code>; keep that
 only for values computed at runtime (the combo box overlay width). A new class goes
 into the stylesheet and into <code translate="no" v-pre>CssStyles</code> together. All <code translate="no" v-pre>vaadin-markdown</code> elements wrap long lines (and break long words of
@@ -1635,7 +1679,7 @@ the buttons a dialog has in its bottom right corner). The server accepts their e
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (d8691f3ec).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.6.0 (7fe9f2d88).</p></div>
             </footer>
         </div>
     </div>

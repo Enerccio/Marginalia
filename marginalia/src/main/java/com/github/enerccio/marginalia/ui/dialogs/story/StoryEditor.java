@@ -1,6 +1,9 @@
 package com.github.enerccio.marginalia.ui.dialogs.story;
 
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
+import com.github.enerccio.marginalia.ui.menu.StoryMenuItem;
+
+import java.util.List;
 
 /**
  * What the items of the settings menu of the story (and the shortcuts of the menus) can do with the story tab. The desktop and the
@@ -16,9 +19,10 @@ public interface StoryEditor {
     Manuscript getCurrentManuscript();
 
     /**
-     * Turns the styles of the book (its fonts and colours) on or off for the story.
+     * The entries of the "Change styles" menu: the default style of the user and all their styles sorted by name, the one the book
+     * shows ticked; choosing one stores it in the book (the default entry removes the choice) and shows the story with it.
      */
-    void toggleBookStyles();
+    List<StoryMenuItem.Choice> getPartStyleChoices();
 
     /**
      * Opens the search and replace of the book.

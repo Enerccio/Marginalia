@@ -448,6 +448,10 @@ public class UIUtils {
 
     public static Cookie getCookie(String name) {
         Cookie[] cookies = VaadinService.getCurrentRequest().getCookies();
+        if (cookies == null) {
+            // the request carries no cookies at all
+            return null;
+        }
 
         for (Cookie cookie : cookies) {
             if (name.equals(cookie.getName())) {

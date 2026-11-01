@@ -881,6 +881,41 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_DAILY_GOAL_MINUTES, "每日目标：编辑分钟数");
         setValue(L.LABEL_LESS, "少");
         setValue(L.LABEL_MORE, "多");
+        setValue(L.LABEL_STYLES, "样式");
+        setValue(L.LABEL_STYLE_NORMAL, "常规");
+        setValue(L.LABEL_STYLE_BOOK, "书籍");
+        setValue(L.LABEL_STYLE_DEFAULT_ENTRY, "默认（%s）");
+        setValue(L.LABEL_STYLE_FONT_FAMILY, "字体");
+        setValue(L.LABEL_STYLE_FONT_SIZE, "字号");
+        setValue(L.LABEL_STYLE_LINE_HEIGHT, "行高");
+        setValue(L.LABEL_STYLE_LETTER_SPACING, "字间距");
+        setValue(L.LABEL_STYLE_TEXT_COLOR, "文字颜色");
+        setValue(L.LABEL_STYLE_TEXT_ALIGN, "对齐");
+        setValue(L.LABEL_STYLE_HYPHENATION, "单词断字");
+        setValue(L.LABEL_STYLE_PARAGRAPH_SPACING, "段落间距");
+        setValue(L.LABEL_STYLE_EMPHASIS_COLOR, "斜体颜色");
+        setValue(L.LABEL_STYLE_STRONG_COLOR, "粗体颜色");
+        setValue(L.LABEL_STYLE_QUOTE_COLOR, "引用文字颜色");
+        setValue(L.LABEL_STYLE_QUOTE_BORDER_COLOR, "引用条颜色");
+        setValue(L.LABEL_STYLE_HEADING_FONT_FAMILY, "标题字体");
+        setValue(L.LABEL_STYLE_HEADING_COLOR, "标题颜色");
+        setValue(L.LABEL_STYLE_HEADING_ALIGN, "标题对齐");
+        setValue(L.LABEL_STYLE_HEADING_SMALL_CAPS, "标题使用小型大写");
+        setValue(L.LABEL_STYLE_SCENE_BREAK_TEXT, "场景分隔符号");
+        setValue(L.LABEL_STYLE_SCENE_BREAK_COLOR, "场景分隔颜色");
+        setValue(L.LABEL_STYLE_GROUP_INLINE, "强调");
+        setValue(L.LABEL_STYLE_GROUP_QUOTE, "引用");
+        setValue(L.LABEL_STYLE_GROUP_HEADINGS, "标题");
+        setValue(L.LABEL_STYLE_GROUP_SCENE_BREAK, "场景分隔");
+        setValue(L.LABEL_STYLE_OPTIONS, "选项");
+        setValue(L.LABEL_STYLE_CUSTOM_CSS, "自定义 CSS");
+        setValue(L.LABEL_STYLE_GENERATED_CSS, "生成的 CSS");
+        setValue(L.LABEL_STYLE_PREVIEW, "预览");
+        setValue(L.LABEL_DUPLICATE, "复制");
+        setValue(L.LABEL_STYLE_SET_DEFAULT, "设为默认");
+        setValue(L.LABEL_STYLE_COPY_NAME, "%s（副本）");
+        setValue(L.LABEL_STYLE_DEFAULT_MARK, "默认");
+        setValue(L.LABEL_STYLE_BUILTIN_MARK, "内置");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -1148,6 +1183,8 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.ERROR_FOLDER_TRANSFER_REFUSED, "无法执行此操作：文件夹不能放入自身或其子文件夹，且文件夹名称必须未被占用。");
         setValue(L.ERROR_FOLDER_BOOK_LOCKED, "此文件夹中的书“%2$s”被代理“%1$s”锁定。请先暂停或停止其运行。");
         setValue(L.ERROR_COMMAND_HISTORY_LIMIT_NEGATIVE, "版本数不能为负数；省略则取消本书的限制。");
+        setValue(L.ERROR_STYLE_NAME_REQUIRED, "样式需要一个名称。");
+        setValue(L.ERROR_STYLE_CSS_UNBALANCED, "自定义 CSS 的花括号 { } 不匹配。");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "无法保存表单。");
@@ -1513,6 +1550,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_STATISTICS_CALENDAR_LAST, "，最后活动于 %s");
         setValue(L.MSG_GOAL_PROGRESS_WORDS, "今天：%s / %s 字");
         setValue(L.MSG_GOAL_PROGRESS_MINUTES, "今天：编辑 %s / %s 分钟");
+        setValue(L.MSG_STYLE_PREVIEW_SAMPLE, "# 第一章\n\n*雨*已经连下了**三天**，通往港口的路成了一条泥河。“我们该回头了，”玛拉说，但没有人动。\n\n> 旧地图是错的。相信水。\n\n---\n\n清晨灰蒙蒙地缓缓到来。她数着码头边的灯笼，`七盏`，然后迈步向前。\n\n## 较小的标题\n\n这一段足够长，可以展示文本如何换行、对齐，以及在开启断字时如何拆分单词。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");
@@ -1612,6 +1650,9 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.HELP_VERSION_HISTORY_PERMISSION, "用户书籍的历史为每个段落保留的最大版本数。留空：管理员不设限制。没有此权限的用户为 50；未授予的权限不保留历史。");
         setValue(L.HELP_DAILY_GOAL, "统计日历的目标（所有书籍合计）：每天亲手写的字数（不含生成的）和编辑的分钟数。达到所有已设目标的日子计入目标连续天数。留空表示没有目标。");
         setValue(L.HELP_ACTIVATION_RANGE, "条目仅用于创建从此编号到此编号的段落的回合（故事大纲中的编号，含两端，第一个段落为 1）。留空表示不限制。重新滑动或重新生成按其替换的段落计算。未选择书籍的预览回合没有编号，不检查范围。");
+        setValue(L.HELP_STYLES, "样式用于改变故事和阅读器中各部分文本的外观。内置样式无法修改：请复制一个来创建自己的样式。默认样式用于尚未在故事的“更改文本样式”菜单中选择样式的书。");
+        setValue(L.HELP_STYLE_VALUES, "任意 CSS 值（例如 1.1rem、#336699、var(--lumo-body-text-color)）。留空则保持应用程序的外观。");
+        setValue(L.HELP_STYLE_CUSTOM_CSS, "添加在选项之后、样式范围内的 CSS。可以为各部分的文本编写规则（例如 \".chat-message-markdown p { text-indent: 1.5em !important; }\"），或编写应用于整个元素的声明。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景设定与世界观。");

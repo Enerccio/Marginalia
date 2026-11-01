@@ -244,6 +244,34 @@ class StoryMenuRegistryTest extends MarginaliaTestBase {
     }
 
     @Test
+    void aSubMenuOfChoicesIsMadeAgainOnlyWhenWhatItShowsChanges() {
+        List<String> chosen = new ArrayList<>();
+        List<StoryMenuItem.Choice> shown = new ArrayList<>();
+        shown.add(new StoryMenuItem.Choice("Beta", false, () -> chosen.add("beta")));
+        shown.add(new StoryMenuItem.Choice("Alpha", true, () -> chosen.add("alpha")));
+        registry.register("test", StoryMenuItem.tools("test.styles", l -> "Styles", null).choices(story -> new ArrayList<>(shown)));
+        ContextMenu menu = new ContextMenu(new Button());
+        BuiltMenu built = registry.definition(MenuKind.TOOLS, false, null).build(menu, loc, editor(new AtomicReference<>(false), new ArrayList<>()), () -> null);
+
+        MenuItem parent = built.get("test.styles");
+        List<MenuItem> entries = parent.getSubMenu().getItems();
+        assertThat(entries).extracting(MenuItem::getText).containsExactly("Beta", "Alpha");
+        assertThat(entries).extracting(MenuItem::isChecked).containsExactly(false, true);
+
+        // the same entries (the actions are new lambdas each time) keep the Vaadin items
+        built.refresh();
+        assertThat(parent.getSubMenu().getItems()).containsExactlyElementsOf(entries);
+
+        ComponentUtil.fireEvent(entries.get(0), new ClickEvent<>(entries.get(0)));
+        assertThat(chosen).containsExactly("beta");
+
+        // a style that was added shows up the next time the menu is refreshed
+        shown.add(new StoryMenuItem.Choice("Gamma", false, () -> chosen.add("gamma")));
+        built.refresh();
+        assertThat(parent.getSubMenu().getItems()).extracting(MenuItem::getText).containsExactly("Beta", "Alpha", "Gamma");
+    }
+
+    @Test
     void anItemThatIsUnregisteredIsHiddenAndRunsNothingInTheMenusThatWereBuiltWithIt() {
         List<String> ran = new ArrayList<>();
         registry.register("test", StoryMenuItem.tools("test.tool", l -> "Tool", story -> ran.add("tool")));

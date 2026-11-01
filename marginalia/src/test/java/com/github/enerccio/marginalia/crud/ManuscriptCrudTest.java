@@ -84,6 +84,7 @@ class ManuscriptCrudTest extends ExtendableCrudContract<Manuscript> {
         manuscript.setUserPrompt("user prompt");
         manuscript.setSummaryPrompt("summary prompt");
         manuscript.setShowBookStyles(true);
+        manuscript.setPartStyle("book");
         manuscript.setBackupStrategy(BackupStrategy.AFTER_N_MESSAGES);
         manuscript.setBackupStrategyValue("10");
         manuscript.setBackupStrategyCurrentValue("3");
@@ -104,6 +105,7 @@ class ManuscriptCrudTest extends ExtendableCrudContract<Manuscript> {
         assertThat(loaded.getUserPrompt()).isEqualTo("user prompt");
         assertThat(loaded.getSummaryPrompt()).isEqualTo("summary prompt");
         assertThat(loaded.getShowBookStyles()).isTrue();
+        assertThat(loaded.getPartStyle()).isEqualTo("book");
         assertThat(loaded.getBackupStrategy()).isEqualTo(BackupStrategy.AFTER_N_MESSAGES);
         assertThat(loaded.getBackupStrategyValue()).isEqualTo("10");
         assertThat(loaded.getBackupStrategyCurrentValue()).isEqualTo("3");

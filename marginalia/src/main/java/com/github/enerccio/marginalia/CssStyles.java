@@ -6,8 +6,7 @@ package com.github.enerccio.marginalia;
  */
 public final class CssStyles {
 
-    // --- Classes with their own rules in shared-styles.css (manuscript-styles and chat-message-markdown: reading-mode-styles.css) ---
-    public static final String MARKDOWN_MANUSCRIPT_STYLES = "manuscript-styles";
+    // --- Classes with their own rules in shared-styles.css (the look of the text of the parts comes from the PartStyle classes, see PartStyleApplier) ---
     public static final String CHAT_MESSAGE = "chat-message";
     public static final String MASS_DELETE_BOX = "mass-delete-box";
     public static final String MARKED_FOR_DELETE = "marked-for-delete";
@@ -97,6 +96,7 @@ public final class CssStyles {
     public static final String LAZY_LOAD_INDICATOR = "lazy-load-indicator";
     public static final String READER_CONTENT = "reader-content";
     public static final String FLOATING_BACK_BUTTON = "floating-back-button";
+    public static final String FLOATING_STYLE_BUTTON = "floating-style-button";
 
     // --- Message images ---
     public static final String MESSAGE_IMAGES = "message-images";
@@ -251,6 +251,11 @@ public final class CssStyles {
 
     // --- Version footer (ui.components.BuildInfoFooter) ---
     public static final String BUILD_INFO_FOOTER = "build-info-footer";
+
+    // --- Editor of the text styles in the user settings (ui.styles.PartStyleEditor) ---
+    public static final String STYLE_EDITOR_LIST = "style-editor-list";
+    public static final String STYLE_EDITOR_PREVIEW = "style-editor-preview";
+    public static final String STYLE_EDITOR_CSS = "style-editor-css";
 
     private CssStyles() {
     }

@@ -18,6 +18,8 @@ import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.components.MessageImages;
 import com.github.enerccio.marginalia.ui.dialogs.story.ReaderLazyLoader;
 import com.github.enerccio.marginalia.ui.dialogs.story.StorySupport;
+import com.github.enerccio.marginalia.ui.styles.PartStyleApplier;
+import com.github.enerccio.marginalia.ui.styles.ReaderStyleChooser;
 import com.github.enerccio.marginalia.ui.widgets.FolderBookProvider;
 import com.github.enerccio.marginalia.ui.widgets.FolderBookRow;
 import com.github.enerccio.marginalia.ui.widgets.ScrollPanel;
@@ -85,6 +87,9 @@ public class Viewer extends LoginCheckRoute implements HasUrlParameter<String> {
 
     @Autowired
     private ApplicationPoint applicationPoint;
+
+    @Autowired
+    private PartStyleService partStyleService;
 
     @Autowired
     private OsgiService osgiService;
@@ -604,6 +609,7 @@ public class Viewer extends LoginCheckRoute implements HasUrlParameter<String> {
                     @APILocals(name = "errorSpan", type = Span.class),
                     @APILocals(name = "backButton", type = Button.class),
                     @APILocals(name = "container", type = VerticalLayout.class),
+                    @APILocals(name = "styleChooser", type = ReaderStyleChooser.class),
                     @APILocals(name = "scrollPanel", type = ScrollPanel.class),
                     @APILocals(name = "contentWrapper", type = VerticalLayout.class),
                     @APILocals(name = "branch", type = List.class),
@@ -636,8 +642,9 @@ public class Viewer extends LoginCheckRoute implements HasUrlParameter<String> {
         container.setSpacing(false);
         container.addClassName(CssStyles.POSITION_RELATIVE);
 
-        // Always apply reading style
-        container.addClassName(CssStyles.MARKDOWN_MANUSCRIPT_STYLES);
+        // the style is the reader's choice (their own styles only, kept in a cookie), the Book style until they choose
+        ReaderStyleChooser styleChooser = new ReaderStyleChooser(loc, partStyleService,
+                style -> PartStyleApplier.apply(container, style));
 
         // Simple floating back button optimized for phone/touch
         Button backButton = new Button(Solid.ARROW_LEFT.create(), event -> UI.getCurrent().navigate(Viewer.class));
@@ -682,7 +689,7 @@ public class Viewer extends LoginCheckRoute implements HasUrlParameter<String> {
         }
 
         scrollPanel.add(contentWrapper);
-        container.add(backButton, scrollPanel);
+        container.add(backButton, styleChooser, scrollPanel);
         container.setFlexGrow(1, scrollPanel);
 
         add(container);
