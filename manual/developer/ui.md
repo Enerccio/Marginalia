@@ -325,7 +325,11 @@ change: the move button (`setDockSide(side.next())`, one click goes clockwise; a
 Vaadin session in the tests) and one icon button per minimized tab (the image is `TabDockIcons.dataUri(letters, id)`, an SVG circle
 as a data URI whose color comes from the id; the tooltip and the aria label are `Restore: <caption>`). `getLayout()` adds
 `"minimized":["id",...]` (only when there are some) and `"dock":"top"` (only when not left) to the layout, `setLayout` reads
-them, so `onLayoutChange` saves them with the book. `add(id, caption, letters, content)` gives the letters of the icon, the
+them, so `onLayoutChange` saves them with the book. The order of the icons is separate from `minimized` (the order of minimizing): `inBarOrder` sorts the minimized tabs by their
+place in the list `barOrder` and puts the tabs that are not in it after them, alphabetically by caption (`Collator`), so a layout
+without `barOrder` shows the bar alphabetically. Every icon is a `DragSource` and a `DropTarget` (`makeIconSortable`); `dropIcon`
+puts the dragged icon at the place of the one it was dropped on and writes the result back into `barOrder`, the tabs that are not in
+the bar keeping their slots. `getLayout()` adds `"barOrder":["id",...]` once the user has reordered, `setLayout` reads it. `add(id, caption, letters, content)` gives the letters of the icon, the
 initials of the caption (`TabDockIcons.letters`) are the default.
 
 **Mass delete.** The settings menu item `StoryMenuKeys.MASS_DELETE` (`StoryEditor.toggleMassDelete` / `isMassDelete`, a check box

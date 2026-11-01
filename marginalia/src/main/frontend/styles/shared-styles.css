@@ -562,6 +562,19 @@ vaadin-markdown.agent-report td {
     padding: 0;
 }
 
+.tab-dock-bar-icon {
+    cursor: grab;
+}
+
+.tab-dock-bar-icon.v-dragged {
+    opacity: 0.5;
+}
+
+.tab-dock-bar-icon.v-drag-over-target {
+    background: var(--lumo-primary-color-10pct);
+    box-shadow: inset 0 0 0 2px var(--lumo-primary-color);
+}
+
 .tab-dock-bar-icon img {
     width: var(--lumo-icon-size-l);
     height: var(--lumo-icon-size-l);

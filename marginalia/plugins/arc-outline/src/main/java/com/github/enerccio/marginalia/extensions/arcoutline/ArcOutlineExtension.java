@@ -24,6 +24,7 @@ import com.github.enerccio.marginalia.ui.dialogs.story.StoryLazyLoader;
 import com.github.enerccio.marginalia.ui.main.ApplicationEntryPoint;
 import com.github.enerccio.marginalia.ui.main.Main;
 import com.github.enerccio.marginalia.ui.widgets.TabDock;
+import com.github.enerccio.marginalia.ui.widgets.TabDockIcon;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.ComponentUtil;
 import com.vaadin.flow.component.accordion.Accordion;
@@ -48,6 +49,10 @@ import static com.github.enerccio.marginalia.extensions.arcoutline.ArcOutlineLoc
  */
 @Configurable
 public class ArcOutlineExtension implements MarginaliaExtension, ExtensionHasCss {
+
+    /** The icon of the tab in the bar of the minimized tabs: a glyph on a 24 x 24 grid. */
+    private static final TabDockIcon ARCS_ICON = TabDockIcon.glyph(
+            "<path d='M3 19C6 9 9 5 12 5s6 4 9 14'/><circle cx='3' cy='19' r='1.2' fill='white'/><circle cx='12' cy='5' r='1.2' fill='white'/><circle cx='21' cy='19' r='1.2' fill='white'/>");
 
     private static final String USER_PART = "com.github.enerccio.marginalia.ui.workspace.parts.UserPart";
     private static final String VIEW_KEY = ArcOutlineData.KEY + ".view";
@@ -177,7 +182,7 @@ public class ArcOutlineExtension implements MarginaliaExtension, ExtensionHasCss
                             }
                         };
                         ArcOutlineView view = new ArcOutlineView(currentManuscript, service, target);
-                        leftBar.add("arc-outline", T.localized(ARCS), "Ar", view);
+                        leftBar.add("arc-outline", T.localized(ARCS), ARCS_ICON, view);
 
                         ComponentUtil.setData(leftBar, VIEW_KEY, view);
                         activeTabSheets.add(leftBar);

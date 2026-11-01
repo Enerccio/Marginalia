@@ -25,6 +25,7 @@ import com.vaadin.flow.component.tabs.TabSheet;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
+import java.text.Collator;
 import java.util.*;
 import java.util.function.Consumer;
 
@@ -48,7 +49,9 @@ import java.util.function.Consumer;
  * A tab of a detachable dock has a button that {@linkplain #minimize minimizes} it: the tab leaves its sheet but keeps its
  * place in the layout and its content (the component stays alive), and an icon of it shows up in a bar at one side of the dock
  * ({@linkplain #setDockSide the user moves the bar} to any of the four sides). Clicking the icon {@linkplain #restore restores}
- * the tab where it was. Which tabs are minimized and the side of the bar are a part of the {@linkplain #getLayout() layout}.
+ * the tab where it was. Which tabs are minimized, the side of the bar and the order of the icons are a part of the
+ * {@linkplain #getLayout() layout}: the user drags the icons to reorder them, until then they are in the alphabetical order
+ * of the captions of the tabs.
  * A tab can be made {@linkplain #setMinimizable not minimizable} (the story, so that something is always on the screen).
  * <p>
  * A general widget: it knows nothing of the story, whoever needs detachable tabs can use it (and keep the layout where it
@@ -66,6 +69,7 @@ public class TabDock extends Div implements Restorable {
     private static final String KEY_SELECTED = "selected";
     private static final String KEY_MINIMIZED = "minimized";
     private static final String KEY_DOCK = "dock";
+    private static final String KEY_BAR_ORDER = "barOrder";
 
     /**
      * The side of the dock where the bar with the icons of the minimized tabs is.
@@ -111,15 +115,15 @@ public class TabDock extends Div implements Restorable {
         private final String id;
         private final Component content;
         private final Tab tab;
-        // the letters of the icon in the bar of the minimized tabs, null for the ones of the caption
-        private final String letters;
+        // the icon in the bar of the minimized tabs, null for the initials of the caption
+        private final TabDockIcon icon;
         private DropTarget<Tab> drop;
         private Button minimizeButton;
 
-        private Entry(String id, String caption, String letters, Component content) {
+        private Entry(String id, String caption, TabDockIcon icon, Component content) {
             this.id = id;
             this.content = content;
-            this.letters = letters;
+            this.icon = icon;
             this.tab = new Tab(caption);
         }
     }
@@ -153,6 +157,11 @@ public class TabDock extends Div implements Restorable {
     private final List<Group> retired = new ArrayList<>();
     // the ids of the minimized tabs in the order they were minimized, tabs that are not (yet) in the dock too
     private final Set<String> minimized = new LinkedHashSet<>();
+    // the order the user gave the icons of the bar by dragging them, tabs that are not (yet) minimized or in the dock too;
+    // empty while the user has not reordered, then the icons are in the alphabetical order of the captions
+    private final List<String> barOrder = new ArrayList<>();
+    // the icon of the bar that is being dragged
+    private String draggedIcon;
     // the tabs that have no minimize button
     private final Set<String> fixed = new HashSet<>();
     private final Div body = new Div();
@@ -219,7 +228,7 @@ public class TabDock extends Div implements Restorable {
                     @APIParameter(name = "caption", type = String.class),
                     @APIParameter(name = "content", type = Component.class)})
     public Tab add(String id, String caption, Component content) {
-        return add(id, caption, null, content);
+        return add(id, caption, (TabDockIcon) null, content);
     }
 
     /**
@@ -237,16 +246,31 @@ public class TabDock extends Div implements Restorable {
             parameters = {@APIParameter(name = "id", type = String.class),
                     @APIParameter(name = "caption", type = String.class),
                     @APIParameter(name = "letters", type = String.class),
+                    @APIParameter(name = "content", type = Component.class)})
+    public Tab add(String id, String caption, String letters, Component content) {
+        return add(id, caption, letters == null ? null : TabDockIcon.letters(letters), content);
+    }
+
+    /**
+     * Adds the tab like {@link #add(String, String, String, Component)}, with an icon for the bar of the minimized tabs.
+     *
+     * @param icon a drawn glyph or letters, null for the initials of the caption
+     */
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = Tab.class),
+            parameters = {@APIParameter(name = "id", type = String.class),
+                    @APIParameter(name = "caption", type = String.class),
+                    @APIParameter(name = "icon", type = TabDockIcon.class),
                     @APIParameter(name = "content", type = Component.class)},
             locals = {@APILocals(name = "old", type = TabDock.Entry.class),
                     @APILocals(name = "entry", type = TabDock.Entry.class),
                     @APILocals(name = "group", type = TabDock.Group.class)})
-    public Tab add(String id, String caption, String letters, Component content) {
+    public Tab add(String id, String caption, TabDockIcon icon, Component content) {
         Entry old = entries.get(id);
         if (old != null) {
             remove(old.content);
         }
-        Entry entry = new Entry(id, caption, letters, content);
+        Entry entry = new Entry(id, caption, icon, content);
         if (detachable) {
             makeDraggable(entry);
             makeMinimizable(entry);
@@ -404,7 +428,8 @@ public class TabDock extends Div implements Restorable {
     /**
      * @return which tabs are together in which order: {@code {"columns":[{"groups":[{"tabs":["id", ...]}, ...]}, ...]}},
      * including the tabs that are not in the dock now; with {@code "minimized":["id", ...]} (the minimized tabs, they are in the
-     * sheets too, where they come back to) and {@code "dock":"right"} when there are minimized tabs or the bar is not at the left
+     * sheets too, where they come back to), {@code "dock":"right"} when the bar is not at the left and
+     * {@code "barOrder":["id", ...]} when the user has reordered the icons of the bar
      */
     @PublicAPI(from = "1.4.0",
             returns = @APIReturn(type = JsonObject.class),
@@ -416,6 +441,9 @@ public class TabDock extends Div implements Restorable {
         }
         if (dockSide != DockSide.LEFT) {
             layout.addProperty(KEY_DOCK, dockSide.key);
+        }
+        if (!barOrder.isEmpty()) {
+            layout.add(KEY_BAR_ORDER, RestorableState.array(new ArrayList<>(barOrder)));
         }
         return layout;
     }
@@ -437,7 +465,8 @@ public class TabDock extends Div implements Restorable {
                     @APILocals(name = "selected", type = Set.class),
                     @APILocals(name = "previous", type = List.class),
                     @APILocals(name = "wantedMinimized", type = List.class),
-                    @APILocals(name = "wantedSide", type = TabDock.DockSide.class)})
+                    @APILocals(name = "wantedSide", type = TabDock.DockSide.class),
+                    @APILocals(name = "wantedOrder", type = List.class)})
     public void setLayout(JsonObject layout) {
         if (!detachable) {
             return;
@@ -491,9 +520,18 @@ public class TabDock extends Div implements Restorable {
         }
         DockSide wantedSide = layout != null && layout.has(KEY_DOCK) && layout.get(KEY_DOCK).isJsonPrimitive()
                 ? DockSide.of(layout.get(KEY_DOCK).getAsString()) : DockSide.LEFT;
-        boolean sameBar = wantedMinimized.equals(new ArrayList<>(minimized)) && wantedSide == dockSide;
+        List<String> wantedOrder = new ArrayList<>();
+        for (String id : RestorableState.strings(layout, KEY_BAR_ORDER)) {
+            if (!id.isBlank() && !wantedOrder.contains(id)) {
+                wantedOrder.add(id);
+            }
+        }
+        boolean sameBar = wantedMinimized.equals(new ArrayList<>(minimized)) && wantedSide == dockSide
+                && wantedOrder.equals(barOrder);
         minimized.clear();
         minimized.addAll(wantedMinimized);
+        barOrder.clear();
+        barOrder.addAll(wantedOrder);
         dockSide = wantedSide;
         if (layoutOf(columns).equals(layoutOf(previous))) {
             // the same arrangement: keep the sheets as they are
@@ -744,7 +782,7 @@ public class TabDock extends Div implements Restorable {
             parameters = {@APIParameter(name = "entry", type = TabDock.Entry.class)},
             locals = {@APILocals(name = "button", type = Button.class)})
     private void makeMinimizable(Entry entry) {
-        Button button = new Button(Solid.MINUS.create());
+        Button button = new Button(Solid.CHEVRON_DOWN.create());
         button.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE, ButtonVariant.LUMO_SMALL);
         button.addClassName(CssStyles.TAB_DOCK_MINIMIZE);
         button.setTooltipText(loc.getValue(L.LABEL_MINIMIZE));
@@ -775,6 +813,7 @@ public class TabDock extends Div implements Restorable {
                 ids.add(id);
             }
         }
+        ids = inBarOrder(ids);
         if (ids.equals(shownBar) && dockSide == shownSide) {
             return;
         }
@@ -794,8 +833,9 @@ public class TabDock extends Div implements Restorable {
         bar.add(move);
         for (String id : ids) {
             Entry entry = entries.get(id);
-            Button icon = new Button(new Image(TabDockIcons.dataUri(
-                    entry.letters != null ? entry.letters : TabDockIcons.letters(entry.tab.getLabel()), id), entry.tab.getLabel()));
+            Button icon = new Button(new Image(
+                    entry.icon != null ? entry.icon.dataUri(entry.tab.getLabel(), id)
+                            : TabDockIcon.letters(null).dataUri(entry.tab.getLabel(), id), entry.tab.getLabel()));
             icon.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
             icon.addClassName(CssStyles.TAB_DOCK_BAR_ICON);
             // what hovering and screen readers get: what a click does, and to which tab
@@ -803,8 +843,93 @@ public class TabDock extends Div implements Restorable {
             icon.setTooltipText(description);
             icon.setAriaLabel(description);
             icon.addClickListener(event -> restore(id));
+            makeIconSortable(icon, id);
             bar.add(icon);
         }
+    }
+
+    /**
+     * The ids in the order of the bar: the order the user gave the icons, the icons the user has not placed (all of them as long
+     * as the user has not reordered) after them in the alphabetical order of the captions.
+     */
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = List.class),
+            parameters = {@APIParameter(name = "ids", type = List.class)},
+            locals = {@APILocals(name = "collator", type = Collator.class),
+                    @APILocals(name = "ordered", type = List.class)})
+    private List<String> inBarOrder(List<String> ids) {
+        Collator collator = Collator.getInstance();
+        List<String> ordered = new ArrayList<>(ids);
+        ordered.sort((one, other) -> {
+            int first = barOrder.indexOf(one);
+            int second = barOrder.indexOf(other);
+            if (first >= 0 && second >= 0) {
+                return Integer.compare(first, second);
+            }
+            if (first >= 0 || second >= 0) {
+                return first >= 0 ? -1 : 1;
+            }
+            int byCaption = collator.compare(entries.get(one).tab.getLabel(), entries.get(other).tab.getLabel());
+            return byCaption != 0 ? byCaption : one.compareTo(other);
+        });
+        return ordered;
+    }
+
+    /**
+     * An icon of the bar can be dragged onto another one, it takes the place of that one.
+     */
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "icon", type = Button.class),
+                    @APIParameter(name = "id", type = String.class)},
+            locals = {@APILocals(name = "source", type = DragSource.class),
+                    @APILocals(name = "target", type = DropTarget.class)})
+    private void makeIconSortable(Button icon, String id) {
+        DragSource<Button> source = DragSource.create(icon);
+        source.setEffectAllowed(EffectAllowed.MOVE);
+        source.addDragStartListener(event -> draggedIcon = id);
+        source.addDragEndListener(event -> draggedIcon = null);
+
+        DropTarget<Button> target = DropTarget.create(icon);
+        target.setDropEffect(DropEffect.MOVE);
+        target.addDropListener(event -> dropIcon(id));
+    }
+
+    /**
+     * Puts the dragged icon at the place of the icon it was dropped on (the others make room) and keeps the new order. The
+     * tabs that are not in the bar now keep their places in the stored order.
+     */
+    @PublicAPI(from = "1.6.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "targetId", type = String.class)},
+            locals = {@APILocals(name = "moved", type = String.class),
+                    @APILocals(name = "wanted", type = List.class),
+                    @APILocals(name = "layoutBefore", type = JsonObject.class),
+                    @APILocals(name = "full", type = List.class)})
+    private void dropIcon(String targetId) {
+        String moved = draggedIcon;
+        draggedIcon = null;
+        List<String> wanted = new ArrayList<>(shownBar);
+        int to = wanted.indexOf(targetId);
+        if (moved == null || moved.equals(targetId) || to < 0 || !wanted.remove(moved)) {
+            return;
+        }
+        JsonObject layoutBefore = getLayout();
+        wanted.add(to, moved);
+
+        // the stored order, with the icons of the bar that it does not hold yet after it
+        List<String> full = new ArrayList<>(barOrder);
+        shownBar.stream().filter(id -> !full.contains(id)).forEach(full::add);
+        // the icons of the bar fill the places they had in it, the others stay where they are
+        int next = 0;
+        for (int i = 0; i < full.size(); i++) {
+            if (shownBar.contains(full.get(i))) {
+                full.set(i, wanted.get(next++));
+            }
+        }
+        barOrder.clear();
+        barOrder.addAll(full);
+        layoutMoved(layoutBefore);
     }
 
     @PublicAPI(from = "1.6.0",

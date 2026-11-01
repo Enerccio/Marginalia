@@ -99,9 +99,10 @@ first. While a generation runs the other tabs are disabled and only the story st
 
 ### Minimizing tabs
 
-Every tab but the story has a small **–** button next to its name. It **minimizes** the tab: the tab leaves its panel (a panel
-whose tabs are all minimized disappears for the time being) and a round icon of it, a circle with one or two letters (**Ch** for
-the outline, **Lo** for the lorebook, **An** for the annotations, **SQ** for Side Query, and so on), shows up in a bar at the
+Every tab but the story has a small **⌄** (chevron) button next to its name. It **minimizes** the tab: the tab leaves its panel (a panel
+whose tabs are all minimized disappears for the time being) and a round icon of it, a colored circle with a drawing (a list for
+the outline, a book for the lorebook, a speech bubble for the annotations, a magnifier for Side Query, and so on; a tab of an
+extension that has no drawing gets one or two letters), shows up in a bar at the
 edge of the editor. Hover over the icon to see which tab it is. Nothing is closed, the tab keeps what it was showing. Click the
 icon and the tab comes back to the panel and the place among the tabs where it was, and is shown.
 
@@ -110,7 +111,8 @@ the editor, clockwise: left, top, right, bottom. The story can't be minimized, s
 
 ![Minimized tabs in the bar at the edge of the editor](../../images/story-minimized-tabs.png)
 
-Which tabs are minimized and where the bar is are saved with the book, together with the arrangement and the sizes.
+The icons are in the alphabetical order of the names of the tabs until you change it: drag an icon onto another one and it takes
+the place of that one. Which tabs are minimized, where the bar is and the order of the icons are saved with the book, together with the arrangement and the sizes.
 
 ### The default arrangement
 
