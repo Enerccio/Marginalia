@@ -21,6 +21,13 @@ class UiProblemsTest {
 
     private SessionPoint sessionPoint;
 
+    /**
+     * Vaadin keeps the current session and UI by weak references: without a strong reference of the test a garbage
+     * collection between "set" and "get" empties them ("No currently active UI found"), so the test holds them.
+     */
+    private VaadinSession session;
+    private com.vaadin.flow.component.UI ui;
+
     /** A session whose lock is "held": the test thread acts as the thread of the request. */
     private static final class HeldSession extends VaadinSession {
         HeldSession() {
@@ -36,12 +43,19 @@ class UiProblemsTest {
     @BeforeEach
     void setUp() {
         sessionPoint = new SessionPoint();
-        VaadinSession.setCurrent(new HeldSession());
+        holdSession();
     }
 
     @AfterEach
     void tearDown() {
         VaadinSession.setCurrent(null);
+        session = null;
+        ui = null;
+    }
+
+    private void holdSession() {
+        session = new HeldSession();
+        VaadinSession.setCurrent(session);
     }
 
     @Test
@@ -82,8 +96,9 @@ class UiProblemsTest {
     @Test
     void theNotificationsTheUserSeesAreRecorded() {
         // setting the UI replaces the session of the thread with the UI's own (none), so the session comes second
-        com.vaadin.flow.component.UI.setCurrent(new com.vaadin.flow.component.UI());
-        VaadinSession.setCurrent(new HeldSession());
+        ui = new com.vaadin.flow.component.UI();
+        com.vaadin.flow.component.UI.setCurrent(ui);
+        holdSession();
         UiProblems.attach(sessionPoint);
         try {
             Notification.warning("Validation failed, can't save");
@@ -102,7 +117,7 @@ class UiProblemsTest {
     void aLogThatIsNotAttachedToThisSessionIsNotWrittenTo() {
         SessionPoint other = new SessionPoint();
         UiProblems.attach(other);
-        VaadinSession.setCurrent(new HeldSession());
+        holdSession();
 
         UiProblems.error("a different session");
 
