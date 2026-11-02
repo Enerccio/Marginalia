@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846966024540">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846966617827">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846966024540" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846966617827" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846966024540" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846966617827" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846966024540" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.846966024540" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846966617827" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.846966617827" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -302,6 +302,10 @@ header that <code translate="no" v-pre>LorebookView.create()</code> builds:</p>
 int index = lorebookView.indexOf(header);
 lorebookView.addComponentAtIndex(Math.max(index, 0), panel);</code></pre>
 </doc-codeblock></div>
+<p><code translate="no" v-pre>PhoneLorebookView</code> (the phone twin, decorated by registering the same decorator for its class name) has no header row: its
+<code translate="no" v-pre>create()</code> has the locals <code translate="no" v-pre>controlsLayout</code>, <code translate="no" v-pre>enabledLayout</code> and <code translate="no" v-pre>entriesLayout</code>, and Lorebook VCS puts its panel after
+<code translate="no" v-pre>enabledLayout</code>. Both views have <code translate="no" v-pre>grid</code>, <code translate="no" v-pre>getCurrentLorebook()</code>, <code translate="no" v-pre>refresh()</code> and <code translate="no" v-pre>refreshEntries()</code> and are <code translate="no" v-pre>VerticalLayout</code>s, so a plugin
+that decorates both can hold them as <code translate="no" v-pre>VerticalLayout</code> and tell them apart with <code translate="no" v-pre>instanceof</code>.</p>
 <p>A component created once for a view must not hold on to things that change in it: <code translate="no" v-pre>LorebookView</code> stays the same
 when the user picks another lorebook, so a panel bound to the lorebook it was created with ends up acting on the
 wrong one. Look the current value up when it&#x27;s needed (<code translate="no" v-pre>lorebookView.getCurrentLorebook()</code>), or hook the
@@ -886,7 +890,7 @@ uninstalled for good, its data stays in the database (and in backups) - harmless
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (b94b9dcbe).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (93697b657).</p></div>
             </footer>
         </div>
     </div>
