@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846962716514">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846962971555">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846962716514" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846962971555" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846962716514" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846962971555" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846962716514" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.846962716514" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846962971555" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.846962971555" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -414,9 +414,9 @@ Registering a key again replaces the item. Instruction Exporter is the whole of 
 <code translate="no" v-pre>Localization.getCurrentLanguage()</code> for your own table), and the overloads with an <code translate="no" v-pre>L</code> key are for the application&#x27;s own items. The label is also the
 name of the action in the key bindings table, so make it say what the action does.</p>
 <p><code translate="no" v-pre>StoryEditor</code> is the story tab (the desktop or the phone one): <code translate="no" v-pre>getCurrentManuscript()</code> (the book it shows <strong>now</strong>, read it when the action runs, the tab loads other
-books into the same instance), <code translate="no" v-pre>openSearchReplaceDialog()</code>, <code translate="no" v-pre>openExportDialog()</code>, <code translate="no" v-pre>getPartStyleChoices()</code> (the entries of the <em>Change Styles For Text</em> menu)... <code translate="no" v-pre>StoryCard</code> is the card of the part the menu is of:
+books into the same instance), <code translate="no" v-pre>openSearchReplaceDialog()</code>, <code translate="no" v-pre>openExportDialog()</code>, <code translate="no" v-pre>openLoreUsageDialog()</code> (the lore usage report of the book), <code translate="no" v-pre>getPartStyleChoices()</code> (the entries of the <em>Change Styles For Text</em> menu)... <code translate="no" v-pre>StoryCard</code> is the card of the part the menu is of:
 <code translate="no" v-pre>getMessage()</code> (the <code translate="no" v-pre>ChatMessage</code>, the card replaces it with the saved copy, so read it each time), <code translate="no" v-pre>isEditing()</code>, <code translate="no" v-pre>isLast()</code>, and the actions of the part
-(<code translate="no" v-pre>toggleEdit()</code>, <code translate="no" v-pre>swipe()</code>, <code translate="no" v-pre>branch()</code>, <code translate="no" v-pre>annotatePart()</code>...). The callback runs on the UI thread of the user, in a request, as any click listener.</p>
+(<code translate="no" v-pre>toggleEdit()</code>, <code translate="no" v-pre>swipe()</code>, <code translate="no" v-pre>branch()</code>, <code translate="no" v-pre>annotatePart()</code>, <code translate="no" v-pre>showLoreUsage()</code>...). The callback runs on the UI thread of the user, in a request, as any click listener.</p>
 <p><strong>3. Describe when it shows.</strong> All of these are optional and are asked again each time the menu opens (and after an item of the settings menu ran):</p>
 <div id="menu-items-of-the-story-editor-code-2" class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-java"><code v-pre class="language-java">StoryMenuItem.card(&quot;myplugin.summarize&quot;, loc -&gt; &quot;Summarize with notes&quot;,
@@ -718,6 +718,11 @@ Vaadin session lock, so decorators can change components directly and services s
 application (<a href="../../ui/#background-work-and-push">Background work and push</a>): capture <code translate="no" v-pre>UI.getCurrent()</code> on the UI
 thread, change components only inside <code translate="no" v-pre>ui.access(...)</code>, push with <code translate="no" v-pre>UIPushGuard.push(ui)</code>, and wrap service calls that
 need the current user in the request scope.</p>
+<p>A <strong>generation listener</strong> runs on the worker thread of the generation, where there is no page to capture. To show the user
+something from there (a dialog the generation waits for), use <code translate="no" v-pre>GenerationControllerEvent.accessUI(action)</code>: it runs the action on
+the UI that started the generation, with <code translate="no" v-pre>ui.access</code> and a push done for you, and returns <code translate="no" v-pre>false</code> when the generation has no UI.
+The Prompt Inspector does this, see
+<a href="../#asking-the-user-in-the-middle-of-a-generation">Plugin development → Asking the user in the middle of a generation</a>.</p>
 <h3 id="calling-the-model">Calling the model</h3>
 <p><code translate="no" v-pre>InferenceServices.forAI(ai)</code> returns the client for a provider; <code translate="no" v-pre>stream(...)</code> sends a list of messages and calls back
 as the answer arrives, on another thread. Reviewer&#x27;s review dialog, shortened:</p>
@@ -881,7 +886,7 @@ uninstalled for good, its data stays in the database (and in backups) - harmless
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (30286cfcf).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (ba96d681f).</p></div>
             </footer>
         </div>
     </div>

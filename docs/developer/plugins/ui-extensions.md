@@ -236,9 +236,9 @@ Registering a key again replaces the item. Instruction Exporter is the whole of 
 name of the action in the key bindings table, so make it say what the action does.
 
 `StoryEditor` is the story tab (the desktop or the phone one): `getCurrentManuscript()` (the book it shows **now**, read it when the action runs, the tab loads other
-books into the same instance), `openSearchReplaceDialog()`, `openExportDialog()`, `getPartStyleChoices()` (the entries of the *Change Styles For Text* menu)... `StoryCard` is the card of the part the menu is of:
+books into the same instance), `openSearchReplaceDialog()`, `openExportDialog()`, `openLoreUsageDialog()` (the lore usage report of the book), `getPartStyleChoices()` (the entries of the *Change Styles For Text* menu)... `StoryCard` is the card of the part the menu is of:
 `getMessage()` (the `ChatMessage`, the card replaces it with the saved copy, so read it each time), `isEditing()`, `isLast()`, and the actions of the part
-(`toggleEdit()`, `swipe()`, `branch()`, `annotatePart()`...). The callback runs on the UI thread of the user, in a request, as any click listener.
+(`toggleEdit()`, `swipe()`, `branch()`, `annotatePart()`, `showLoreUsage()`...). The callback runs on the UI thread of the user, in a request, as any click listener.
 
 **3. Describe when it shows.** All of these are optional and are asked again each time the menu opens (and after an item of the settings menu ran):
 
@@ -530,6 +530,12 @@ Anything slow - calling the model, large imports - belongs on another thread, wi
 application ([Background work and push](../ui.md#background-work-and-push)): capture `UI.getCurrent()` on the UI
 thread, change components only inside `ui.access(...)`, push with `UIPushGuard.push(ui)`, and wrap service calls that
 need the current user in the request scope.
+
+A **generation listener** runs on the worker thread of the generation, where there is no page to capture. To show the user
+something from there (a dialog the generation waits for), use `GenerationControllerEvent.accessUI(action)`: it runs the action on
+the UI that started the generation, with `ui.access` and a push done for you, and returns `false` when the generation has no UI.
+The Prompt Inspector does this, see
+[Plugin development → Asking the user in the middle of a generation](index.md#asking-the-user-in-the-middle-of-a-generation).
 
 ### Calling the model
 
