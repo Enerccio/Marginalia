@@ -131,24 +131,19 @@ public final class ChatEdits {
     }
 
     /**
-     * Changes the scene of the chat; the history gets a line that says so, as it does for the medium. Nothing happens when the scene
-     * stays the same.
+     * Changes the scene of the chat: where and how the conversation takes place, in the system prompt from the next request on. The
+     * history gets no line and the model is not asked (what happens in the story from now on is sent as a scene message). Nothing
+     * happens when the scene stays the same.
      *
-     * @param scene          the scene the chat chooses; null or blank for the inherited one
-     * @param effectiveScene the scene the chat has after the change (the inherited one when {@code scene} is empty)
+     * @param scene the scene the chat chooses; null or blank for the inherited one
      * @return whether the scene was changed
      */
-    public static boolean changeScene(BetaChat chat, String scene, String effectiveScene) {
+    public static boolean changeScene(BetaChat chat, String scene) {
         String now = scene == null || scene.isBlank() ? null : scene.strip();
         if (java.util.Objects.equals(now, chat.getScene())) {
             return false;
         }
         chat.setScene(now);
-        if (!chat.getMessages().isEmpty()) {
-            BetaMessage line = BetaMessage.user(effectiveScene == null ? "" : effectiveScene);
-            line.setKind(MessageKind.SCENE);
-            chat.getMessages().add(line);
-        }
         return true;
     }
 

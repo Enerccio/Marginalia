@@ -270,7 +270,7 @@ await main(async ({ page }) => {
   await snapDialog(page, 'plugin-betareaders-chat-settings');
   await press(dialog(page), 'Save');
   await sleep(800);
-  expect(await page.getByText('The scene is now: A rainy bar after closing time.').count() === 1, 'the scene change is a line of the history');
+  expect(await page.getByText('The scene is now: A rainy bar after closing time.').count() === 0, 'the scene change leaves no line in the history');
   await say('One more thing: the ending?');
   // the reply is there when the last turn offers to be regenerated
   await sleep(500);
@@ -327,13 +327,10 @@ await main(async ({ page }) => {
   expect(await page.getByText('Parts 2-3 sent').count() === 1, 'parts 2-3 were sent');
   expect(await page.getByText('The personas have read: parts 2-3').count() === 1, 'the panel says what the personas have read');
   await snap(page, 'plugin-betareaders-spoiler');
-  await menu();
-  await menuItem(page, 'Chat settings').click();
-  await idle(page, 600);
-  await field(dialog(page), 'Personas read up to part').fill('5');
-  await field(dialog(page), 'Personas read up to part').dispatchEvent('change');
-  await press(dialog(page), 'Save');
-  await sleep(800);
+  // the last part is changed under the text box, no window needed (it is saved when the typing pauses)
+  await field(page, 'Last part').fill('5');
+  await field(page, 'Last part').dispatchEvent('change');
+  await sleep(1800);
   expect(await page.getByText('Include the latest parts (2 new)').count() === 1, 'a wider limit offers the two parts that were held back');
   await say('And now with the end?');
   await page.getByText('I would cut the weather', { exact: false }).nth(1).waitFor({ timeout: 30000 });

@@ -55,6 +55,7 @@ public class BetaReadersView extends VerticalLayout {
     private final Div content = new Div();
     private final HorizontalLayout bar;
     private BetaChat active;
+    private ChatPanel panel;
     private boolean refreshing;
 
     public BetaReadersView(Manuscript manuscript, BetaReadersService service) {
@@ -159,8 +160,18 @@ public class BetaReadersView extends VerticalLayout {
         bar.setEnabled(!busy);
     }
 
+    /**
+     * The story was drawn again (a part was added, edited or deleted, the branch changed): the open chat looks at what is new in it.
+     */
+    public void storyChanged() {
+        if (panel != null) {
+            panel.storyChanged();
+        }
+    }
+
     private void showPanel() {
         content.removeAll();
+        panel = null;
         if (active == null) {
             Div empty = new Div(T.localized(NO_CHATS_YET_START_ONE));
             empty.addClassName(BetaReadersStyles.HINT);
@@ -168,7 +179,8 @@ public class BetaReadersView extends VerticalLayout {
             return;
         }
         try {
-            content.add(new ChatPanel(manuscript, active, service, this::setBusy));
+            panel = new ChatPanel(manuscript, active, service, this::setBusy);
+            content.add(panel);
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
@@ -231,10 +243,10 @@ public class BetaReadersView extends VerticalLayout {
                     inherited(), form -> {
                         try {
                             form.applyExceptHistoryLines(chat);
-                            // the lines that say the medium or the scene changed are for the model: it reads what was said before as
-                            // said about the old one
+                            // the line that says the medium changed is for the model: it reads what was said before as said about
+                            // the old one. A new scene leaves no line and asks for nothing, a scene message does that
                             ChatEdits.changeMedium(chat, form.mediumId(), form.mediumName());
-                            ChatEdits.changeScene(chat, form.sceneText(), form.effectiveScene());
+                            ChatEdits.changeScene(chat, form.sceneText());
                             service.saveChat(manuscript, chat);
                             showPanel();
                         } catch (Exception e) {

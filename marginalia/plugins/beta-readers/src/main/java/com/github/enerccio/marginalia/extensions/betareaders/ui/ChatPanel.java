@@ -32,6 +32,7 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.Scroller;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.data.value.ValueChangeMode;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,7 +68,9 @@ public class ChatPanel extends VerticalLayout {
     private final Scroller scroller = new Scroller(messages);
     private final TextArea input = new TextArea();
     private final Checkbox includeParts = new Checkbox(T.localized(INCLUDE_THE_LATEST_PARTS));
-    private final Button checkParts = new Button(Solid.ROTATE.create());
+    /** The last part the personas may read and the first one they read: changed here as the story is read on, no need to open the settings. */
+    private final IntegerField lastPart = new IntegerField(T.localized(LAST_PART));
+    private final IntegerField firstPart = new IntegerField(T.localized(FIRST_PART));
     private final Button send = new Button();
     private final Button sendScene = new Button(Solid.CLAPPERBOARD.create());
     private final Span context = new Span();
@@ -80,6 +83,8 @@ public class ChatPanel extends VerticalLayout {
     private BetaMessageCard.Turn live;
     private CancellationToken running;
     private boolean generating;
+    /** How many parts the last look at the story found to include; the box is ticked again when this changes. */
+    private int lastAdded = -1;
 
     /**
      * @param onBusy told when a reply is being written (true) and when it is done (false), so the tabs can be locked meanwhile
@@ -89,6 +94,8 @@ public class ChatPanel extends VerticalLayout {
         this.chat = chat;
         this.service = service;
         this.onBusy = onBusy;
+        // the story changes in the request of the user, the panel looks at it then
+        attributes = ThreadCopyRequestAttributes.create();
 
         setSizeFull();
         setPadding(false);
@@ -223,11 +230,23 @@ public class ChatPanel extends VerticalLayout {
             }
         });
 
-        checkParts.addThemeName("tertiary");
-        checkParts.addThemeName("small");
-        checkParts.setTooltipText(T.localized(CHECK_FOR_NEW_PARTS));
-        checkParts.setAriaLabel(T.localized(CHECK_FOR_NEW_PARTS));
-        checkParts.addClickListener(_ -> refreshStatus(true));
+        for (IntegerField field : List.of(lastPart, firstPart)) {
+            field.setMin(1);
+            field.setStepButtonsVisible(true);
+            field.addThemeName("small");
+            field.addClassName(BetaReadersStyles.PART_FIELD);
+            field.setValueChangeMode(ValueChangeMode.LAZY);
+            field.setValueChangeTimeout(600);
+            field.addValueChangeListener(event -> {
+                if (event.isFromClient() && !generating) {
+                    partRangeChanged();
+                }
+            });
+        }
+        lastPart.setTooltipText(T.localized(PERSONAS_READ_UP_TO_PART) + ". " + T.localized(EMPTY_THE_WHOLE_STORY));
+        firstPart.setTooltipText(T.localized(START_FROM_PART) + ". " + T.localized(EMPTY_FROM_THE_FIRST_PART));
+        lastPart.setValue(chat.getSpoilerLimit() > 0 ? chat.getSpoilerLimit() : null);
+        firstPart.setValue(chat.getFromPart() > 0 ? chat.getFromPart() : null);
 
         send.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         send.addClickListener(_ -> {
@@ -243,9 +262,15 @@ public class ChatPanel extends VerticalLayout {
         sendScene.addClickListener(_ -> sendScene());
         showButton();
 
-        HorizontalLayout row = new HorizontalLayout(includeParts, checkParts, sendScene, send);
+        // the parts the next message brings and the parts the personas may read on the left, the buttons on the right
+        HorizontalLayout parts = new HorizontalLayout(includeParts, lastPart, firstPart);
+        parts.setAlignItems(Alignment.END);
+        parts.setWrap(true);
+        HorizontalLayout buttons = new HorizontalLayout(sendScene, send);
+        buttons.setAlignItems(Alignment.END);
+        HorizontalLayout row = new HorizontalLayout(parts, buttons);
         row.setWidthFull();
-        row.setAlignItems(Alignment.CENTER);
+        row.setAlignItems(Alignment.END);
         row.setWrap(true);
         row.setSpacing(false);
         row.setJustifyContentMode(JustifyContentMode.BETWEEN);
@@ -395,7 +420,8 @@ public class ChatPanel extends VerticalLayout {
         }
         input.setEnabled(!value);
         includeParts.setEnabled(!value);
-        checkParts.setEnabled(!value);
+        lastPart.setEnabled(!value);
+        firstPart.setEnabled(!value);
         sendScene.setEnabled(!value);
         showButton();
         onBusy.accept(value);
@@ -606,18 +632,61 @@ public class ChatPanel extends VerticalLayout {
      * @param check whether the box is ticked when there is something to bring
      */
     private void refreshStatus(boolean check) {
+        refreshStatus(check, false);
+    }
+
+    /**
+     * @param onlyIfChanged ticks the box (when {@code check}) only if the number of parts to include is not the one found the last time,
+     *                      so the choice of the user stands while nothing changed
+     */
+    private void refreshStatus(boolean check, boolean onlyIfChanged) {
         try {
             Status status = service.partsStatus(manuscript, chat);
             String sent = PartsTracker.read(chat);
             read.setText(sent.isEmpty() ? "" : T.localized(THE_PERSONAS_HAVE_READ_PARTS).formatted(sent));
             includeParts.setLabel(partsLabel(status));
-            if (check) {
+            if (check && (!onlyIfChanged || status.count() != lastAdded)) {
                 includeParts.setValue(status.pending());
             }
+            lastAdded = status.count();
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
         refreshContext();
+    }
+
+    /**
+     * The story was drawn again, which it is after every change of it: a part was added, edited or deleted, the branch changed. Looks at
+     * what is new in it, so there is nothing to press. (Called from the decorator of the story, in the request of the user.)
+     */
+    public void storyChanged() {
+        if (generating) {
+            // the end of the reply looks at the story
+            return;
+        }
+        try (InRequestScope _ = new InRequestScope(attributes)) {
+            refreshStatus(true, true);
+        }
+    }
+
+    /**
+     * The user changed the last or the first part the personas read.
+     */
+    private void partRangeChanged() {
+        int last = lastPart.getValue() == null || lastPart.getValue() < 1 ? 0 : lastPart.getValue();
+        int first = firstPart.getValue() == null || firstPart.getValue() < 1 ? 0 : firstPart.getValue();
+        if (first > 0 && last > 0 && first > last) {
+            Notification.warning(T.localized(THE_FIRST_PART_CANT_COME));
+            lastPart.setValue(chat.getSpoilerLimit() > 0 ? chat.getSpoilerLimit() : null);
+            firstPart.setValue(chat.getFromPart() > 0 ? chat.getFromPart() : null);
+            return;
+        }
+        chat.setSpoilerLimit(last);
+        chat.setFromPart(first);
+        store();
+        rebuildHeader();
+        // raising the limit makes parts new: the box is ticked for them
+        refreshStatus(true);
     }
 
     /**

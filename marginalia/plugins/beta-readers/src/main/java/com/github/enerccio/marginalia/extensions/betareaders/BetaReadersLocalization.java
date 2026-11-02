@@ -119,7 +119,6 @@ public class BetaReadersLocalization extends PluginLocalizationBundle {
     public static final String NARRATOR = "Narrator";
     public static final String PERSONAS_COUNT = "Personas (%d)";
     public static final String WRITE_TO_THE_BETA_READERS = "Write to the beta readers...";
-    public static final String CHECK_FOR_NEW_PARTS = "Check for new parts";
     public static final String INCLUDE_THE_LATEST_PARTS = "Include the latest parts";
     public static final String SEND = "Send";
     public static final String STOP = "Stop";
@@ -168,6 +167,10 @@ public class BetaReadersLocalization extends PluginLocalizationBundle {
     public static final String EMPTY_INHERITED_THE_MOST_MESSAGES = "Empty: inherited. The most messages the personas write in answer to one message of yours.";
     public static final String EMPTY_AUTOMATIC_THE_MOST_MESSAGES = "Empty: automatic (3 for one persona, about two for each persona of a group, at most 8). The most messages the personas write in answer to one message; a chat can set its own.";
     public static final String THE_MOST_MESSAGES_MUST_BE = "The most messages in a turn must be between 1 and %d.";
+    public static final String YOUR_NAME = "Your name";
+    public static final String EMPTY_NOT_NAMED = "Empty: not named. The personas call you by this name and your messages show it.";
+    public static final String LAST_PART = "Last part";
+    public static final String FIRST_PART = "First part";
 
     @Override
     protected void loadKeys() {
@@ -606,11 +609,6 @@ public class BetaReadersLocalization extends PluginLocalizationBundle {
         zh(WRITE_TO_THE_BETA_READERS,
                 "写给试读者……");
 
-        ja(CHECK_FOR_NEW_PARTS,
-                "新しいパートを確認");
-        zh(CHECK_FOR_NEW_PARTS,
-                "检查新的部分");
-
         ja(INCLUDE_THE_LATEST_PARTS,
                 "最新のパートを含める");
         zh(INCLUDE_THE_LATEST_PARTS,
@@ -850,5 +848,25 @@ public class BetaReadersLocalization extends PluginLocalizationBundle {
                 "1ターンの最大メッセージ数は1から%dの間でなければなりません。");
         zh(THE_MOST_MESSAGES_MUST_BE,
                 "每轮最多消息数必须在 1 到 %d 之间。");
+
+        ja(YOUR_NAME,
+                "あなたの名前");
+        zh(YOUR_NAME,
+                "你的名字");
+
+        ja(EMPTY_NOT_NAMED,
+                "空の場合: 名前なし。ペルソナはこの名前であなたを呼び、あなたのメッセージにも表示されます。");
+        zh(EMPTY_NOT_NAMED,
+                "留空：不设名字。读者角色会用这个名字称呼你，你的消息上也会显示它。");
+
+        ja(LAST_PART,
+                "最後のパート");
+        zh(LAST_PART,
+                "最后一个部分");
+
+        ja(FIRST_PART,
+                "最初のパート");
+        zh(FIRST_PART,
+                "第一个部分");
     }
 }

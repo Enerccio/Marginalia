@@ -109,8 +109,11 @@ made later replaces the parts it describes from the next message on.
 
 **Include the latest parts** is what gives the personas more of the story: it adds the parts they were not given yet (see
 [below](#how-much-of-the-story-the-personas-read)). Leave it off to just chat and give them the story later. The label of the box says how
-many parts it would add (*Include the story (5 parts)*, *Include the latest parts (2 new)*, *none new*), and the button next to it checks
-again after you wrote something. A message of yours says which parts it gave (*Parts 1-5 sent*).
+many parts it would add (*Include the story (5 parts)*, *Include the latest parts (2 new)*, *none new*). It follows the story by itself: when you add, edit or delete
+a part, or switch the branch, the number changes and the box is ticked when there is something new. A message of yours says which parts it gave (*Parts 1-5 sent*).
+
+**Last part** and **First part**, next to the box, are [how much of the story the personas read](#how-much-of-the-story-the-personas-read); change them there as you
+read on.
 
 Under the box are what the personas have read (*The personas have read: parts 1-5*) and the size of the context (*Context: 2,266 of 30,720
 tokens*): what the next message would send, that is the history, what you have typed and, when **Include the latest parts** is ticked, the parts it would add. It changes when you tick the box or pause while typing. The parts get at least half of the context; when the history does not fit beside them, the oldest messages (with the parts they gave) are left out of the request, not deleted, and a notice says how many.
@@ -147,13 +150,14 @@ The window of a new chat and **Chat settings** have the same options; every one 
 
 | Option | |
 |---|---|
-| Scene | Where and how the conversation takes place, a few sentences: *a rainy bar after closing time*, *a video call after the book club*. Without one, the chat is an online chat, see [below](#the-scene). Changing it in a running chat leaves a line in the history (*The scene is now: ...*). |
+| Your name | What the personas call you; your messages show it instead of *You*. Empty: not named. |
+| Scene | Where and how the conversation takes place, a few sentences: *a rainy bar after closing time*, *a video call after the book club*. Without one, the chat is an online chat, see [below](#the-scene). Changing it in a running chat changes the system prompt from the next request on and leaves no line in the history; use [a scene message](#sending-a-scene) for what happens from now on. |
 | Medium | What the text stands for: a book, a movie, a TV series, a manga or comic, an audio drama, a stage play, a game or visual novel. The personas react as the audience of that medium would. Changing it in a running chat leaves a line in the history (*From now on the text is read as: ...*). |
 | Model | The AI that answers. |
 | Protocol | The [protocol](../protocols.md) used with it. |
 | Reply format | How the model is asked to write: **Automatic** (JSON in a schema when the model can follow one, free text otherwise), **JSON** (always in a schema), **JSON without a schema** or **Free text**. See [the reasoning](#the-reasoning). |
-| Personas read up to part | The [spoiler limit](#how-much-of-the-story-the-personas-read). |
-| Start from part | The part where the story the personas get begins. |
+| Personas read up to part | The [spoiler limit](#how-much-of-the-story-the-personas-read). In the window of a new chat only; a chat that exists has it under the text box. |
+| Start from part | The part where the story the personas get begins. Same as above. |
 | Use the summaries of the story | See below. |
 | Most messages in a turn | The most messages the personas write in answer to one message of yours (1 to 50). Empty: your setting in *Settings → Extension Settings → Beta Readers*. A reply that has more is cut, and the model is told the limit. |
 
@@ -189,15 +193,15 @@ is added after the prompt.
 
 The parts are numbered from 1 as in the *Outline* tab of the story.
 
-- **Personas read up to part** is the spoiler limit: the personas never get a part after it, and the summaries are collected only from the
+- **Personas read up to part** (the field **Last part** under the text box) is the spoiler limit: the personas never get a part after it, and the summaries are collected only from the
   story up to it. Raise it when the story moves on, and the next message offers the parts that were held back as new ones. Lower it and the personas stop reading the later parts at once.
-- **Start from part** leaves the earlier parts out, not even as summaries. Use it to let the personas read only one chapter.
+- **Start from part** (**First part**) leaves the earlier parts out, not even as summaries. Use it to let the personas read only one chapter.
 - **Use the summaries of the story** (on by default) lets the story start with the summaries and then the parts after the newest of them,
   which keeps a long story small. Summaries apply only when the story starts at its beginning.
 
 A first part after the last one is refused.
 
-Changing these in **Chat settings** changes the story the personas read from the next message on; nothing is sent again, because the
+Changing these under the text box (they are saved as soon as you stop typing or click a step button) changes the story the personas read from the next message on; nothing is sent again, because the
 story is built for every message.
 
 ![A chat that reads parts 2 to 3 only](../../images/plugin-betareaders-spoiler.png)

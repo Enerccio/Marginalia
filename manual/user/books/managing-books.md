@@ -31,12 +31,13 @@ The row below the headers filters the list:
 The refresh button at the end of the filter row reloads the list.
 
 Each row has buttons: the star makes the book a [favorite](folders.md#favorites), the pen opens it, **Move to folder** puts it
-into a [folder](folders.md), the clone button makes a copy of it and the trash button deletes it. The header has **New folder**
-and **Organise** (the window to [move and copy](folders.md#organise) books and folders), and the **Mass changes** menu.
+into a [folder](folders.md), the clone button makes a copy of it and the trash button deletes it. The header has **New folder**,
+the **Manage** menu (**Organise**, the window to [move and copy](folders.md#organise) books and folders, **Tag books**,
+**Statistics** and the **Mass changes** sub menu) and the **Import** menu (**Import from archive**, **Import from SillyTavern**).
 
 ### Advanced search
 
-**Search** (next to **Tag books**; the magnifier in the header on a phone) opens a window that finds books by more than
+**Search** (in the header, next to **Manage**; the magnifier in the header on a phone) opens a window that finds books by more than
 the filter row can. Fill in what you want to check, leave the rest empty, and press **Search** (or Enter in a text field):
 
 | Field | Finds books... |
@@ -78,7 +79,7 @@ The clone is not published, even if the original is. The original is not changed
 
 ### Tagging many books at once
 
-**Tag books** (next to **Add Book**) opens a window that puts one tag on many books, or takes it off them, without opening
+**Tag books** (in the **Manage** menu of the header) opens a window that puts one tag on many books, or takes it off them, without opening
 each. Pick the **Tag** (or type a new one and press Enter) and the list shows every book with its tags; the books that have
 the picked tag come first and show it highlighted. Each row has a **+** button that applies the tag to that book and a
 **-** button that removes it. To do the same for several books, tick their check boxes (the box in the header ticks all)
@@ -90,7 +91,7 @@ grayed out: it is locked, so it can not be ticked or changed until the run is pa
 
 ### Changing the model and protocol of many books
 
-The **Mass changes** menu (next to **Tag books**) has the item **Mass Change Model/Protocol**. It opens a window that puts one
+The **Mass changes** sub menu of the **Manage** menu has the item **Mass Change Model/Protocol**. It opens a window that puts one
 **Model** and/or one **Protocol** on many books without opening each. Leave a box empty (it shows *Do not replace*) and that
 part of the books stays as it is: pick only a model to change the models and keep the protocols. The table lists the books of
 the current [folder](folders.md) by name with the model and protocol they have now; **Include subfolders** adds the books
@@ -138,16 +139,15 @@ from SillyTavern. It opens right away. It starts with your **Default Model** and
 (see [Account & settings](../account.md)), if you have set them; otherwise select them on the *About* tab before
 generating.
 
-To start a book from a folder of text files, use the **import** button (file icon, *Import from archive*) next to
-**Add Book**: upload a `.zip` of `.md` files and the new book, named after the archive, gets a part for each file, see
+To start a book from a folder of text files, use **Import → Import from archive** in the header of the list: upload a `.zip` of `.md` files and the new book, named after the archive, gets a part for each file, see
 [Importing text files](story-editor.md#importing-text-files).
 
 ![Importing a zip of text files as a new book](../../images/archive-upload.png)
 
 ### Importing from SillyTavern
 
-To continue a roleplay or story you started in [SillyTavern](https://github.com/SillyTavern/SillyTavern), use the
-**import** button with the speech bubbles (*Import from SillyTavern*) next to **Add Book**. In SillyTavern, export the chat
+To continue a roleplay or story you started in [SillyTavern](https://github.com/SillyTavern/SillyTavern), use
+**Import → Import from SillyTavern** in the header of the list. In SillyTavern, export the chat
 (*Manage chat files*, or take the `.jsonl` files from `data/<user>/chats/<character>/`), then:
 
 1. Upload **one or more** `.jsonl` chats. A file that is not a SillyTavern chat is refused, the others stay.

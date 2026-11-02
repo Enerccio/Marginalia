@@ -75,6 +75,8 @@ class PresenceDialogTest {
         chat.setScene("A rainy bar.");
         chat.setAi("ai-1");
         chat.setFormat(ReplyFormat.TEXT);
+        chat.setUserName("Petr");
+        chat.setSpoilerLimit(5);
         List<ChatOptionsForm> saved = new ArrayList<>();
         ChatSettingsDialog dialog = new ChatSettingsDialog(chat, List.of(new Medium("book", "Book", "p"), new Medium("manga", "Manga", "p")),
                 List.of(new Choice("ai-1", "Big"), new Choice("ai-2", "Small")), List.of(new Choice("pr-1", "Cold")),
@@ -86,11 +88,15 @@ class PresenceDialogTest {
         assertEquals("Big", dialog.options.ai.getValue().label());
         assertNull(dialog.options.protocol.getValue());
         assertEquals(ReplyFormat.TEXT, dialog.options.format.getValue());
-        assertNull(dialog.options.spoilerLimit.getValue());
+        assertEquals("Petr", dialog.options.userName.getValue());
         assertTrue(dialog.options.summaries.getValue());
+        // the first and the last part the personas read are in the panel of the chat, not here
+        assertFalse(dialog.options.spoilerLimit.isVisible());
+        assertFalse(dialog.options.fromPart.isVisible());
 
         dialog.options.spoilerLimit.setValue(8);
-        dialog.options.fromPart.setValue(2);
+        dialog.options.fromPart.setValue(9);
+        dialog.options.userName.setValue("  Pavel ");
         dialog.options.summaries.setValue(false);
         dialog.options.medium.clear();
         dialog.options.ai.setValue(new Choice("ai-2", "Small"));
@@ -109,10 +115,12 @@ class PresenceDialogTest {
         // applied to a chat that exists: everything but the medium (a change of that leaves a line in the history)
         saved.getFirst().applyExceptHistoryLines(chat);
         assertEquals("manga", chat.getMedium());
-        assertEquals("A rainy bar.", chat.getScene(), "the scene, like the medium, is changed with a line in the history");
+        assertEquals("A rainy bar.", chat.getScene(), "the scene is changed with its own call");
         assertEquals("ai-2", chat.getAi());
-        assertEquals(8, chat.getSpoilerLimit());
-        assertEquals(2, chat.getFromPart());
+        assertEquals("Pavel", chat.getUserName());
+        assertEquals(5, chat.getSpoilerLimit(), "the dialog leaves the part range to the panel");
+        assertEquals(0, chat.getFromPart());
         assertFalse(chat.isSummaries());
+        assertNull(saved.getFirst().problem(), "a first part after the last one does not matter while the fields are not used");
     }
 }

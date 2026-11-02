@@ -47,6 +47,21 @@ class PromptBuilderTest {
     }
 
     @Test
+    void theNameOfTheUserIsToldToTheModelInTheSystemMessageAndOnlyWhenThereIsOne() {
+        BetaChat chat = group(athena());
+        chat.getMessages().add(BetaMessage.user("Hi"));
+
+        String unnamed = PromptBuilder.build(chat, "P", JSON).messages().getFirst().getContent();
+        chat.setUserName(" Petr ");
+        String named = PromptBuilder.build(chat, "P", JSON).messages().getFirst().getContent();
+        String preview = PromptBuilder.build(chat.preview(BetaMessage.user("Next")), "P", JSON).messages().getFirst().getContent();
+
+        assertFalse(unnamed.contains("is called"));
+        assertTrue(named.contains("The author you are talking to is called Petr."));
+        assertEquals(named, preview, "the size of the context counts the name");
+    }
+
+    @Test
     void aPreviewHoldsTheMessageBeingWrittenAndLeavesTheChatAlone() {
         BetaChat chat = new BetaChat("Chat", ChatKind.GROUP);
         chat.addPersona(new Persona("Athena", "A reader."));

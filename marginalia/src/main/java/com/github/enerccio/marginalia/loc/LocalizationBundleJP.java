@@ -938,6 +938,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_IMAGE_POSITION, "パート内の位置");
         setValue(L.LABEL_IMAGE_WRAP, "テキストを画像の周りに回り込ませる");
         setValue(L.LABEL_IMAGE_WIDTH, "幅（テキスト幅の％）");
+        setValue(L.LABEL_MANAGE, "管理");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");

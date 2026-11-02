@@ -16,7 +16,7 @@ The numbers are only for you: every account sees its own books. The counting sta
 ## Opening the window
 
 - **One book:** the settings menu (the cogs under the story) has **Statistics**. The window counts that book.
-- **All books:** the list of books has a **Statistics** button in its header. The window adds all your books up and has two more
+- **All books:** the list of books has **Statistics** in its **Manage** menu. The window adds all your books up and has two more
   tabs, **Books** and **By book**.
 
 Both windows work the same way. On top you choose the **Period** (*Today*, *Yesterday*, *Last 7 days*, *Last 30 days*,

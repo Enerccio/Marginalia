@@ -112,3 +112,9 @@
     max-height: 14rem;
     overflow-y: auto;
 }
+
+/* The first and the last part the personas read, beside the checkbox under the box to write in */
+.beta-readers-part-field {
+    width: 7rem;
+    flex: none;
+}

@@ -44,6 +44,8 @@ public final class BetaReadersStyles {
     /** A line with a name at the start and buttons at the end. */
     public static final String HEADLINE = "beta-readers-headline";
     public static final String TEXT = "beta-readers-text";
+    /** A number field of the first or the last part the personas read, under the box to write in. */
+    public static final String PART_FIELD = "beta-readers-part-field";
 
     private static final String RESOURCE = "/betareaders.css";
 
