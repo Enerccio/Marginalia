@@ -24,8 +24,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 
 import static com.github.enerccio.marginalia.extensions.promptinspector.PromptInspectorLocalization.*;
 
@@ -133,55 +131,13 @@ public class PromptInspectorExtension implements MarginaliaExtension {
     /**
      * Shows the prompt in a dialog of the page that started the generation and goes on when the user answered: Send sends the
      * request, Cancel stops the generation before it. The generation is also released when it is stopped some other way (from
-     * another window), which must not leave it waiting.
+     * another window) and when the page goes away with the dialog open, which must not leave it waiting.
      *
      * @return whether the dialog is out, so that the chain goes on by the answer; false when nobody can be shown it (an agent or a
      * command started the generation, or the page is gone), then the generation goes on unasked
      */
     private boolean ask(GenerationControllerEvent event, EventChain chain, String prompt) {
-        AtomicBoolean answered = new AtomicBoolean();
-        AtomicReference<PromptInspectorDialog> dialog = new AtomicReference<>();
-        AtomicReference<Runnable> unsubscribe = new AtomicReference<>(() -> { });
-        Runnable proceed = () -> {
-            if (answered.compareAndSet(false, true)) {
-                unsubscribe.get().run();
-                chain.next();
-            }
-        };
-        unsubscribe.set(event.getCancellationToken().onCancel(() -> {
-            // stopped from elsewhere: the dialog has no use any more
-            event.accessUI(ui -> {
-                PromptInspectorDialog open = dialog.get();
-                if (open != null) {
-                    open.close();
-                }
-            });
-            proceed.run();
-        }));
-        // when the token is cancelled already the listener has run and the chain goes on, do not ask
-        if (answered.get()) {
-            return true;
-        }
-        boolean scheduled;
-        try {
-            scheduled = event.accessUI(ui -> {
-                PromptInspectorDialog inspector = new PromptInspectorDialog(prompt, proceed, () -> {
-                    // the cancellation goes on through the listener above; the generation then ends in its cleanup
-                    event.getCancellationToken().cancel();
-                    proceed.run();
-                });
-                dialog.set(inspector);
-                inspector.open();
-            });
-        } catch (RuntimeException e) {
-            log.warn("Could not show the prompt: {}", e.getMessage(), e);
-            scheduled = false;
-        }
-        if (!scheduled) {
-            unsubscribe.get().run();
-            return !answered.compareAndSet(false, true);
-        }
-        return true;
+        return GenerationQuestion.ask(event, chain, log, (send, cancel) -> new PromptInspectorDialog(prompt, send, cancel));
     }
 
     private static String format(List<LLMChatMessage> payload) {
