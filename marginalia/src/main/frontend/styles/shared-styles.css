@@ -590,6 +590,25 @@ vaadin-markdown.agent-report td {
     color: var(--lumo-secondary-text-color);
 }
 
+/* The line drawing in front of the caption of a part of the desktop workspace (ui.workspace.PartIcon): it takes the color of
+   the text, so it turns to the primary color with the selected tab */
+.workspace-part-icon {
+    display: inline-flex;
+    flex: 0 0 auto;
+    width: var(--lumo-icon-size-m);
+    height: var(--lumo-icon-size-m);
+}
+
+.workspace-part-icon svg {
+    width: 100%;
+    height: 100%;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
 /* What a splitter separates: a sheet with the strips for a new sheet, or a column */
 .tab-dock-cell {
     display: flex;

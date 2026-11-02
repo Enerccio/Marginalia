@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846936667734">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846949947296">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846936667734" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846949947296" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846936667734" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846949947296" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846936667734" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846949947296" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -1256,6 +1256,7 @@ in <code translate="no" v-pre>src/main/bundles/</code>, <code translate="no" v-p
 | Google Gemini | `extensions.googlegenai` | Activator and extension, `GoogleGenAiFactory` (the `ExtensionAIFactory`), the settings form, the inference service over the Google Gen AI SDK (embedded in the JAR) and helpers for the messages, the errors and the settings; has unit tests. |
 | Image Generator | `extensions.imagegenerator` | Model (`ImageSettings`, `BackendConfig` with its `HttpHook`s), service (`ImageBackend` with `ComfyUiBackend` and `OpenAiImagesBackend`, `WorkflowTemplate`, `ImageSession` that holds a backend between images, `HookRunner`, `UrlGuard`, `ImageGeneratorService`), the window (`ImageGeneratorDialog`), `ImageSettingsForm` (the panel of the extension settings) and `image-generator.css`; has unit tests with fake ComfyUI and OpenAI servers. |
 | Instruction Exporter | `extensions.instructionexporter` | Activator and extension only. |
+| Book Description Generator | `extensions.bookdescription` | Model (the settings, `OutputFormat`, the answer in a schema, the template data of the two prompts), service (`BookDescriptionService` with the notes pipeline, `StoryPlanner` for the pieces of a range and their division, `AnswerParser` for JSON or Markdown answers, `BookDescriptionInherited` for the two prompts a book and a folder inherit), UI (`BookDescriptionDialog`, the settings form). |
 | Lore Generator | `extensions.loregenerator` | Model (the prompts), service (lore selection, prompts), a dialog split into `SavePromptAsDialog`, `AttachmentPanel` and `GenerationPane`, a settings form, and `LegacyNameTools` (reads the name categories and hints saved before the tool dialog). |
 | Lorebook VCS | `extensions.lorebookvcs` | Model, service, two UI panels. |
 | Manga Generator | `extensions.mangagenerator` | Model (mangas, sections, the user's defaults), service (requests: story text, activated lore fitted to the context, previous script; streaming), the window (`MangaDialog`), a card per section, `MangaSettingsForm` (the panel of the extension settings), `TextEditDialog` and `manga.css`; has unit tests. |
@@ -1325,6 +1326,11 @@ in <code translate="no" v-pre>src/main/bundles/</code>, <code translate="no" v-p
 <td>Instruction Exporter</td>
 <td><code translate="no" v-pre>extensions.instructionexporter</code></td>
 <td>Activator and extension only.</td>
+</tr>
+<tr>
+<td>Book Description Generator</td>
+<td><code translate="no" v-pre>extensions.bookdescription</code></td>
+<td>Model (the settings, <code translate="no" v-pre>OutputFormat</code>, the answer in a schema, the template data of the two prompts), service (<code translate="no" v-pre>BookDescriptionService</code> with the notes pipeline, <code translate="no" v-pre>StoryPlanner</code> for the pieces of a range and their division, <code translate="no" v-pre>AnswerParser</code> for JSON or Markdown answers, <code translate="no" v-pre>BookDescriptionInherited</code> for the two prompts a book and a folder inherit), UI (<code translate="no" v-pre>BookDescriptionDialog</code>, the settings form).</td>
 </tr>
 <tr>
 <td>Lore Generator</td>
@@ -1567,7 +1573,7 @@ ignored by Git), see <a href="../packaging/#building-the-plugins-in-docker">Pack
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (4fe7369cc).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (a473348fc).</p></div>
             </footer>
         </div>
     </div>

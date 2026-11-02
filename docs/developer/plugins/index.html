@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846936667734">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846949947296">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846936667734" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846949947296" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846936667734" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846949947296" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846936667734" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846949947296" data-turbo-eval="false" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -297,6 +297,7 @@ ones that ask for classes, methods, arguments, locals or fields that don&#x27;t 
 | [Google Gemini](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/google-genai) | Google's Gemini models as an inference provider, over the Google Gen AI Java SDK. | Add a provider (`ExtensionAIFactory`), embed a library only the plugin needs, stream with cancellation, call functions. |
 | [Image Generator](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/image-generator) | Makes an image for a part of the story: the model writes the prompt, a backend (ComfyUI workflow, OpenAI-style images API) draws it, the user rerolls and accepts it. | Add an item to the menu of a part (`StoryMenuItem.card`), a settings panel on `UserPart`, a dialog that streams from the model and works in a thread of its own, store images with `ResourceService`, call HTTP servers around the work (hooks), keep a secret with `protectSecret`. |
 | [Instruction Exporter](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/instructionexporter) | Copies the instructions, scene settings and characters of the active branch to the clipboard, from the story settings menu. | Add an item to the settings menu of the story editor, read the story through a service, write to the clipboard. |
+| [Book Description Generator](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/book-description-generator) | Writes the name and the description of a book with the model from a range of its story, notes first when the range is longer than the context. | Add a button to the About tab of the book window (desktop and phone) and copy the result into its fields; register two [inherited settings](inherited-settings.md) (the prompts); run several requests in a row on a worker thread (`InRequestScope`) and read a JSON or Markdown answer; use the summaries of the story (`SummaryService.collectBlocks`). |
 | [Lore Generator](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/lore-generator) | Writes a lorebook entry with the model from the existing lore: a generation, then a compaction, optional attachments. | Add a column to a grid, open a dialog that streams from the model (with `LLMAttachment`s), keep prompts in the user settings, give the model the functions of another extension ([a direct call](ipc.md#calling-another-extension-directly)), let the user choose the model with `ModelProtocolPicker`. |
 | [Lorebook VCS](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/lorebookvcs) | Revision history of lorebook entries, export and import of the history. | Insert panels into a view, store data in a lorebook's attributes, replace a field of the view. |
 | [Manga Generator](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/manga-generator) | Adapts parts of the story into a manga script and image tags, in one large window opened from the story settings menu. | Add an item to the settings menu of the story editor that opens a dialog, activate lore for arbitrary text with `LorebookActivationService.evaluateAll`, fit it to the context with `TokenLimits`, stream several answers side by side, keep data in a book's attributes. |
@@ -366,6 +367,11 @@ ones that ask for classes, methods, arguments, locals or fields that don&#x27;t 
 <td><a href="https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/instructionexporter">Instruction Exporter</a></td>
 <td>Copies the instructions, scene settings and characters of the active branch to the clipboard, from the story settings menu.</td>
 <td>Add an item to the settings menu of the story editor, read the story through a service, write to the clipboard.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/book-description-generator">Book Description Generator</a></td>
+<td>Writes the name and the description of a book with the model from a range of its story, notes first when the range is longer than the context.</td>
+<td>Add a button to the About tab of the book window (desktop and phone) and copy the result into its fields; register two <a href="inherited-settings/">inherited settings</a> (the prompts); run several requests in a row on a worker thread (<code translate="no" v-pre>InRequestScope</code>) and read a JSON or Markdown answer; use the summaries of the story (<code translate="no" v-pre>SummaryService.collectBlocks</code>).</td>
 </tr>
 <tr>
 <td><a href="https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/lore-generator">Lore Generator</a></td>
@@ -471,7 +477,7 @@ ones that ask for classes, methods, arguments, locals or fields that don&#x27;t 
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (4fe7369cc).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (a473348fc).</p></div>
             </footer>
         </div>
     </div>

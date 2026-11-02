@@ -51,7 +51,7 @@ providers or settings - only books you choose to [publish](books/publishing.md).
 
 ## The workspace
 
-After logging in you see the workspace. The tabs on the left are the main areas of Marginalia:
+After logging in you see the workspace. The tabs on the left are the main areas of Marginalia, each marked with a small icon:
 
 ![The workspace](../images/workspace.png)
 

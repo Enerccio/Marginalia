@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846936667734">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846949947296">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846936667734" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846949947296" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846936667734" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846949947296" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846936667734" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846936667734" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846949947296" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846949947296" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -389,7 +389,7 @@ but follow the same pattern: construct with the entity, call <code translate="no
 <code translate="no" v-pre>isNavigationLocked</code>, <code translate="no" v-pre>getOnLogout</code>, <code translate="no" v-pre>setOnLogout</code>). <code translate="no" v-pre>Main</code>, the parts, <code translate="no" v-pre>ApplicationPoint</code> and <code translate="no" v-pre>SessionInformation</code>
 only depend on this interface. <code translate="no" v-pre>DesktopWorkspace</code> is the implementation (<code translate="no" v-pre>@Configurable</code>, <code translate="no" v-pre>@Extendable</code>): it builds an
 <code translate="no" v-pre>HTabSheet</code> (tabs on the left, a footer with <em>Admin</em>, the language selector, <em>Change Password</em>, <em>Logout</em>) and puts the red <code translate="no" v-pre>InvalidExtensionsWarning</code> bar (<code translate="no" v-pre>ui.components</code>; hidden while no installed extension is invalid, the administrator gets the names as its tooltip, other users a note to tell the administrator, from <code translate="no" v-pre>OsgiService.getInvalidExtensions()</code>) above it - the phone workspace has it in the navbar - and creates all tab components up
-front (the admin part is created, and refreshed, only when the user is an administrator, who has the <em>Admin</em> button: its panels refuse anybody else). Each tab is a <code translate="no" v-pre>WorkspaceComponent</code>:</p>
+front (the admin part is created, and refreshed, only when the user is an administrator, who has the <em>Admin</em> button: its panels refuse anybody else). The header of each tab starts with the line drawing of its part, the <code translate="no" v-pre>PartIcon</code> enum (<code translate="no" v-pre>ui.workspace</code>: SVG on a 24 x 24 grid, stroked in <code translate="no" v-pre>currentColor</code> by the <code translate="no" v-pre>workspace-part-icon</code> rule, so it follows the theme and the selected tab); a new part needs a constant there. Each tab is a <code translate="no" v-pre>WorkspaceComponent</code>:</p>
 <retype-table copy-text="| Method | Called |
 |---|---|
 | `create()` | Once, when the workspace is built. |
@@ -1454,6 +1454,7 @@ initializer, <code translate="no" v-pre>ThreadCopyRequestAttributes</code>) and 
 <retype-table copy-text="| Plugin | Class | Methods |
 |---|---|---|
 | Author's Note | `ManuscriptStoryPart` | `renderStoryContent` |
+| Book Description Generator | `ManuscriptInfoPart`, `PhoneManuscriptInfoPart`, `UserPart` | `create` (adds the button to the local `mainLayout`), `load` (the book of the tab); `refresh`, `save` |
 | Chapter Marker | `ManuscriptStoryPart`, `ManuscriptStoryPart$ChatMessageCard` | `createSidebarButton`; `autosaveAndSwapToMarkdown` |
 | Instruction Exporter | none | registers an item in the `StoryMenuRegistry` (settings menu) |
 | Lore Generator | `LorebookView`, `LorebookPart`, `UserPart` | `create` (adds a column to the `grid` field); `refresh` (the same for a workspace tab that was built before the extension was loaded); `refresh`, `save` |
@@ -1474,6 +1475,11 @@ initializer, <code translate="no" v-pre>ThreadCopyRequestAttributes</code>) and 
 <td>Author&#x27;s Note</td>
 <td><code translate="no" v-pre>ManuscriptStoryPart</code></td>
 <td><code translate="no" v-pre>renderStoryContent</code></td>
+</tr>
+<tr>
+<td>Book Description Generator</td>
+<td><code translate="no" v-pre>ManuscriptInfoPart</code>, <code translate="no" v-pre>PhoneManuscriptInfoPart</code>, <code translate="no" v-pre>UserPart</code></td>
+<td><code translate="no" v-pre>create</code> (adds the button to the local <code translate="no" v-pre>mainLayout</code>), <code translate="no" v-pre>load</code> (the book of the tab); <code translate="no" v-pre>refresh</code>, <code translate="no" v-pre>save</code></td>
 </tr>
 <tr>
 <td>Chapter Marker</td>
@@ -1712,7 +1718,7 @@ the buttons a dialog has in its bottom right corner). The server accepts their e
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (4fe7369cc).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (a473348fc).</p></div>
             </footer>
         </div>
     </div>

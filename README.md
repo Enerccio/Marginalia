@@ -146,6 +146,7 @@ built separately with Maven, or in Docker (see the plugins README):
 - [Arc Outline](marginalia/plugins/arc-outline/README.md) - the arcs of the book and their chapters in the story sidebar, written by the model if you want,
 - [Author's Note](marginalia/plugins/authorsnote/README.md) - a note to the model inserted into every generation,
 - [Beta Readers](marginalia/plugins/beta-readers/README.md) - personas you define and a chat about the book with them, alone or in a group,
+- [Book Description Generator](marginalia/plugins/book-description-generator/README.md) - the name and the description of a book written by the model from its story,
 - [Chapter Marker](marginalia/plugins/chaptermarker/README.md) - chapters in the story sidebar,
 - [Character Tracker](marginalia/plugins/character-tracker/README.md) - the characters of the book with their relationships and a map of them,
 - [Gemma 4 tools fix](marginalia/plugins/gemma4toolsfix/README.md) - function calling with Gemma 4 models whose API wants another role for tool results,

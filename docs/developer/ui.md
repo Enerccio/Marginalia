@@ -134,7 +134,7 @@ but follow the same pattern: construct with the entity, call `create()`, then `o
 `isNavigationLocked`, `getOnLogout`, `setOnLogout`). `Main`, the parts, `ApplicationPoint` and `SessionInformation`
 only depend on this interface. `DesktopWorkspace` is the implementation (`@Configurable`, `@Extendable`): it builds an
 `HTabSheet` (tabs on the left, a footer with *Admin*, the language selector, *Change Password*, *Logout*) and puts the red `InvalidExtensionsWarning` bar (`ui.components`; hidden while no installed extension is invalid, the administrator gets the names as its tooltip, other users a note to tell the administrator, from `OsgiService.getInvalidExtensions()`) above it - the phone workspace has it in the navbar - and creates all tab components up
-front (the admin part is created, and refreshed, only when the user is an administrator, who has the *Admin* button: its panels refuse anybody else). Each tab is a `WorkspaceComponent`:
+front (the admin part is created, and refreshed, only when the user is an administrator, who has the *Admin* button: its panels refuse anybody else). The header of each tab starts with the line drawing of its part, the `PartIcon` enum (`ui.workspace`: SVG on a 24 x 24 grid, stroked in `currentColor` by the `workspace-part-icon` rule, so it follows the theme and the selected tab); a new part needs a constant there. Each tab is a `WorkspaceComponent`:
 
 | Method | Called |
 |---|---|
@@ -799,6 +799,7 @@ The bundled plugins hook into these methods:
 | Plugin | Class | Methods |
 |---|---|---|
 | Author's Note | `ManuscriptStoryPart` | `renderStoryContent` |
+| Book Description Generator | `ManuscriptInfoPart`, `PhoneManuscriptInfoPart`, `UserPart` | `create` (adds the button to the local `mainLayout`), `load` (the book of the tab); `refresh`, `save` |
 | Chapter Marker | `ManuscriptStoryPart`, `ManuscriptStoryPart$ChatMessageCard` | `createSidebarButton`; `autosaveAndSwapToMarkdown` |
 | Instruction Exporter | none | registers an item in the `StoryMenuRegistry` (settings menu) |
 | Lore Generator | `LorebookView`, `LorebookPart`, `UserPart` | `create` (adds a column to the `grid` field); `refresh` (the same for a workspace tab that was built before the extension was loaded); `refresh`, `save` |

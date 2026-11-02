@@ -9,6 +9,7 @@ a restart.
 | [Arc Outline](arc-outline/README.md) | The arcs of the book and their chapters, each planned, current or finished, in the story sidebar; the model can write an arc from the lore. |
 | [Author's Note](authorsnote/README.md) | A per-book note inserted into the prompt of every generation, at a chosen depth and role. |
 | [Beta Readers](beta-readers/README.md) | Personas you define and a chat about the book with them, alone or in a group: replies that stream, the story sent as it changes, a spoiler limit. |
+| [Book Description Generator](book-description-generator/README.md) | Writes the name and the description of a book with the model from a range of its story (notes first when it is too long, optional summaries), from a button on the About tab. |
 | [Chapter Marker](chaptermarker/README.md) | Story parts starting a chapter (a Markdown `#` heading) are shown as chapters in the story sidebar. |
 | [Character Tracker](character-tracker/README.md) | The characters of the book with their relationships, and a map of the relationships, in the story sidebar. |
 | [Gemma 4 tools fix](gemma4toolsfix/README.md) | Sends the results of function calls to Gemma 4 models with the role `tool_responses`. |
@@ -48,7 +49,7 @@ mvn -N install                   # in the repository root: installs the parent P
 cd marginalia
 mvn install -DskipTests          # installs the application (and its classes JAR used by plugins)
 
-cd plugins/chaptermarker          # or anthropic, arc-outline, authorsnote, beta-readers, character-tracker, gemma4toolsfix, google-genai, image-generator, instructionexporter, lore-generator, lorebookvcs, manga-generator, name-generator, name-provider, place-provider, reviewer, sidequery, sillytavern-converter, chineselocalization
+cd plugins/chaptermarker          # or anthropic, arc-outline, authorsnote, beta-readers, book-description-generator, character-tracker, gemma4toolsfix, google-genai, image-generator, instructionexporter, lore-generator, lorebookvcs, manga-generator, name-generator, name-provider, place-provider, reviewer, sidequery, sillytavern-converter, chineselocalization
 mvn package                       # target/chaptermarker-1.4.0.jar
 ```
 

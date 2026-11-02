@@ -58,7 +58,7 @@
 
 ### Extensions
 
-- [Extensions](https://enerccio.github.io/Marginalia/user/extensions/index.md): Extensions add features to Marginalia without changing the application itself. Twenty extensions come with Marginalia:
+- [Extensions](https://enerccio.github.io/Marginalia/user/extensions/index.md): Extensions add features to Marginalia without changing the application itself. Twenty-one extensions come with Marginalia:
 - [Author's Note](https://enerccio.github.io/Marginalia/user/extensions/authors-note.md): A note to the model that is sent with every generation of the book: the tone you want right now, what the current chapter is about, a reminder the model keeps forgetting.
 - [Chinese localization](https://enerccio.github.io/Marginalia/user/extensions/chinese-localization.md): Adds Simplified Chinese (中文（简体）) to the languages of the user interface.
 - [Beta Readers](https://enerccio.github.io/Marginalia/user/extensions/beta-readers.md): Readers you invent, and a chat with them about your book. You describe a persona (a name, an icon and a few lines about how the person reads and what they
@@ -72,6 +72,7 @@
 - [Google Gemini](https://enerccio.github.io/Marginalia/user/extensions/google-genai.md): Adds Google's Gemini models as an inference provider, over Google's own API instead of an OpenAI-compatible one.
 - [Anthropic Claude](https://enerccio.github.io/Marginalia/user/extensions/anthropic.md): Adds Anthropic's Claude models as an inference provider, over Anthropic's own API instead of an OpenAI-compatible one.
 - [Lorebook VCS](https://enerccio.github.io/Marginalia/user/extensions/lorebook-vcs.md): Revision history for lorebook entries: keep earlier versions of your lore and switch between them - for example the state of the world before and after a war, or a character at different points of the story.
+- [Book Description Generator](https://enerccio.github.io/Marginalia/user/extensions/book-description-generator.md): Lets the model write the name and the description of a book from its story. You choose which part of the story it reads, and copy what it wrote into the book.
 - [Place provider](https://enerccio.github.io/Marginalia/user/extensions/place-provider.md): Gives the model real places of the Earth to look up instead of inventing them: cities, countries, seas and bays, rivers, lakes, islands, mountains, deserts, ports and airports, with their coordinates and the countries they are in.
 - [Lore Generator](https://enerccio.github.io/Marginalia/user/extensions/lore-generator.md): Lets the model write the content of a lorebook entry for you. It reads the lore you already have, so the new entry fits the world, and compacts the result into the short, dense form lore entries work best in.
 - [Name provider](https://enerccio.github.io/Marginalia/user/extensions/name-provider.md): Gives the model real names to pick from instead of inventing them: the most common forenames and surnames of many countries. Where the Name generator makes

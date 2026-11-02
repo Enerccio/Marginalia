@@ -6,7 +6,7 @@ icon: plug
 
 # Extensions
 
-Extensions add features to Marginalia without changing the application itself. Twenty extensions come with Marginalia:
+Extensions add features to Marginalia without changing the application itself. Twenty-one extensions come with Marginalia:
 
 | Extension | What it adds |
 |---|---|
@@ -14,6 +14,7 @@ Extensions add features to Marginalia without changing the application itself. T
 | [Anthropic Claude](anthropic.md) | Anthropic's Claude models as an inference provider, over Anthropic's own API, with the thinking summaries shown as reasoning. |
 | [Author's Note](authors-note.md) | A note to the model, inserted into every generation of the book. |
 | [Beta Readers](beta-readers.md) | Readers you invent (personas) and a chat with them about the book, alone or in a group. |
+| [Book Description Generator](book-description-generator.md) | Writes the name and the description of the book with the model from a range of its story, with the About tab's button. |
 | [Chapter Marker](chapter-marker.md) | Chapter titles in the story outline, from Markdown headings in the parts. |
 | [Character Tracker](character-tracker.md) | The characters of the book with their relationships, and a map of them. |
 | [Gemma 4 tools fix](gemma-4-tools-fix.md) | Makes function calling work with Gemma 4 models whose API wants another role for tool results. |
