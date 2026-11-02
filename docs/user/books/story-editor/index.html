@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846949947296">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846959049423">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846949947296" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846959049423" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846949947296" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846959049423" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846949947296" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846959049423" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -460,7 +460,7 @@ the story with instructions of their own.</p>
 <retype-table copy-text="| Sub menu | Items |
 |---|---|
 | **Appearance** | **Change Styles For Text**, **Highlight Generated Text** and **Annotations in the margin** (desktop only, the last two) |
-| **Analysis** | **Annotate a range of parts with AI**, **Automatic annotation**, **Branch Tokens**, **Statistics** |
+| **Analysis** | **Annotate a range of parts with AI**, **Automatic annotation**, **Branch Tokens**, **Lore Usage**, **Statistics** |
 | **Import &amp; export** | **Import from archive**, **Export story** (and the items of extensions that import or export, such as **Export instructions**) |
 | **Cleanup** | **Clear history of the book**, **Empty trash of the history**, **Mass delete** |
 | **Layout** (desktop only) | **Save layout as my default**, **Restore default layout** |">
@@ -479,7 +479,7 @@ the story with instructions of their own.</p>
 </tr>
 <tr>
 <td><strong>Analysis</strong></td>
-<td><strong>Annotate a range of parts with AI</strong>, <strong>Automatic annotation</strong>, <strong>Branch Tokens</strong>, <strong>Statistics</strong></td>
+<td><strong>Annotate a range of parts with AI</strong>, <strong>Automatic annotation</strong>, <strong>Branch Tokens</strong>, <strong>Lore Usage</strong>, <strong>Statistics</strong></td>
 </tr>
 <tr>
 <td><strong>Import &amp; export</strong></td>
@@ -502,7 +502,7 @@ the story with instructions of their own.</p>
 <h2 id="the-part-menu">The part menu</h2>
 <p>Every part has a menu (☰) in its top right corner. <strong>Edit</strong>, <strong>Discard Changes</strong>, <strong>Regenerate</strong>, <strong>Swipe</strong>, <strong>Redraft</strong>, <strong>History</strong> and <strong>Images</strong> are in the
 menu itself, <strong>Delete</strong> is its last item, and the rest is in four sub menus: <strong>Annotations</strong> (<em>Annotate part</em>, <em>Annotate with AI</em>), <strong>Summary</strong>
-(<em>Generate summary</em> / <em>View summary</em>, <em>Delete summary</em>), <strong>Inspect</strong> (<em>Show Prompt</em>, <em>Compare Prompt</em>, <em>Token Usage</em>) and <strong>Branch &amp; merge</strong> (<em>Branch Story</em>,
+(<em>Generate summary</em> / <em>View summary</em>, <em>Delete summary</em>), <strong>Inspect</strong> (<em>Show Prompt</em>, <em>Compare Prompt</em>, <em>Token Usage</em>, <em>Lore Usage</em>) and <strong>Branch &amp; merge</strong> (<em>Branch Story</em>,
 <em>Merge into previous part</em>). A sub menu with nothing in it for the part is not shown. The Reviewer adds its <strong>Review</strong> sub menu after <em>Summary</em>. The items:</p>
 <retype-table copy-text="| Item | |
 |---|---|
@@ -518,6 +518,7 @@ menu itself, <strong>Delete</strong> is its last item, and the rest is in four s
 | **Merge into previous part** | Adds the text of this part to the part before it, see [below](#merging-a-part-into-the-previous-one). Not on the first part. |
 | **Show Prompt** | Shows the exact prompt that was sent to the model for this part. |
 | **Token Usage** | Shows how the context of the model was used for this part: a chart of the sections of the prompt (instructions of the model, lore, summaries, story so far, your instructions, room kept for the response) and the size of each message sent to the model. If part of the story did not fit, it says how many parts were left out. Parts written before this was recorded have no chart. |
+| **Lore Usage** | Lists the [lorebook](../lorebooks/index.md) entries that went into the prompt of this part, with the tokens each one cost and what found it (the prompt, or the content of another entry when the lorebook scans deeper). Parts that were typed by hand, written before this was recorded, or written for a book without a lorebook say that nothing was recorded. For the whole book use **Lore Usage** in the settings menu (⚙), see [below](#which-lore-entries-were-used). |
 | **Images** | Attaches pictures to the part, see [Images](#images). |
 | **Generate summary** / **View summary** | Summarizes the story up to this part, or shows the summary, see [Summaries](summaries.md). |
 | **Delete summary** | Removes the summary of this part. For a [meta summary](summaries.md#meta-summaries) it asks whether to unwind it or delete it completely. |
@@ -578,6 +579,10 @@ menu itself, <strong>Delete</strong> is its last item, and the rest is in four s
 <tr>
 <td><strong>Token Usage</strong></td>
 <td>Shows how the context of the model was used for this part: a chart of the sections of the prompt (instructions of the model, lore, summaries, story so far, your instructions, room kept for the response) and the size of each message sent to the model. If part of the story did not fit, it says how many parts were left out. Parts written before this was recorded have no chart.</td>
+</tr>
+<tr>
+<td><strong>Lore Usage</strong></td>
+<td>Lists the <a href="../../lorebooks/">lorebook</a> entries that went into the prompt of this part, with the tokens each one cost and what found it (the prompt, or the content of another entry when the lorebook scans deeper). Parts that were typed by hand, written before this was recorded, or written for a book without a lorebook say that nothing was recorded. For the whole book use <strong>Lore Usage</strong> in the settings menu (⚙), see <doc-anchor-trigger to="#which-lore-entries-were-used">below</doc-anchor-trigger>.</td>
 </tr>
 <tr>
 <td><strong>Images</strong></td>
@@ -926,6 +931,29 @@ instructions of the turn take room from the same budget. Without a model with a 
     <img src="../../../images/branch-tokens.png" alt="Branch Tokens" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="750" height="641" />
     <figcaption class="caption">Branch Tokens</figcaption>
 </figure>
+<h2 id="which-lore-entries-were-used">Which lore entries were used</h2>
+<p><strong>Lore Usage</strong> in the settings menu (⚙, <strong>Analysis</strong>) tells which entries of the book&#x27;s lorebook the generations used and which never were,
+so a lorebook can be pruned by what it does and not by guessing. Every generation records which entries went into its prompt
+(and the tokens of each); the window adds that up over the parts:</p>
+<ul>
+<li>
+<p><strong>Parts</strong> chooses what is counted: the <strong>Active branch</strong>, or <strong>All branches</strong>, every branch and every swipe of the book.</p>
+</li>
+<li>
+<p><strong>From part</strong> and <strong>To part</strong> limit the range, numbered as in the outline (the first part of a branch is 1, in all branches the number is how
+deep the part is in the tree); leave them empty for the start and the end.</p>
+</li>
+<li>
+<p><strong>Show</strong> keeps the entries that were <strong>Never used</strong>, <strong>Sometimes used</strong> or <strong>Always used</strong> in the counted parts.</p>
+</li>
+</ul>
+<p>The table has one line for every entry of the lorebooks of the book, the most used first: its lorebook, whether it was never, sometimes or always
+used, in how many parts (of the parts that have a record, with the percent), the tokens it cost in all of them and per use, and the first and
+last part that used it. Click a header to sort. An entry that was used earlier but is not in the lorebooks of the book now (deleted, moved, or
+its lorebook is switched off or not the book&#x27;s any more) stays in the list marked <em>not in the lorebook now</em>; a deleted one has no name.</p>
+<p>Only the parts that have a record are counted: a part typed by hand, written before Marginalia kept this record, or written when the book had no
+lorebook has none, and the window says how many. <em>Always used</em> entries could be constant entries, <em>never used</em> ones are candidates for removal or
+for a better filter; <a href="../../lorebooks/entries/#preview-activation"><strong>Preview activation</strong></a> in the lorebook editor shows why an entry does not fire now.</p>
 <h2 id="text-styles">Text styles</h2>
 <p>The settings menu (⚙) in the bottom bar has <strong>Appearance → Change Styles For Text</strong>, a menu with one entry per style, sorted by name.
 For how to make a style, see the <a href="../styling-guide/">styling guide</a>.
@@ -1131,7 +1159,7 @@ tense, style and <a href="../summaries/">summaries</a>. The jailbreak prompt of 
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (a473348fc).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (508f2544a).</p></div>
             </footer>
         </div>
     </div>

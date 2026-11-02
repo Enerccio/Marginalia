@@ -109,6 +109,11 @@ public interface StoryCard {
 
     void showTokenUsage();
 
+    /**
+     * Shows the lorebook entries the prompt of the part used.
+     */
+    void showLoreUsage();
+
     void openImagesDialog();
 
     /**

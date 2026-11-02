@@ -197,7 +197,7 @@ The settings menu (⚙) in the bottom bar groups what acts on the whole story. *
 | Sub menu | Items |
 |---|---|
 | **Appearance** | **Change Styles For Text**, **Highlight Generated Text** and **Annotations in the margin** (desktop only, the last two) |
-| **Analysis** | **Annotate a range of parts with AI**, **Automatic annotation**, **Branch Tokens**, **Statistics** |
+| **Analysis** | **Annotate a range of parts with AI**, **Automatic annotation**, **Branch Tokens**, **Lore Usage**, **Statistics** |
 | **Import & export** | **Import from archive**, **Export story** (and the items of extensions that import or export, such as **Export instructions**) |
 | **Cleanup** | **Clear history of the book**, **Empty trash of the history**, **Mass delete** |
 | **Layout** (desktop only) | **Save layout as my default**, **Restore default layout** |
@@ -209,7 +209,7 @@ Items that [extensions](../extensions/index.md) bring are in the sub menu that f
 
 Every part has a menu (☰) in its top right corner. **Edit**, **Discard Changes**, **Regenerate**, **Swipe**, **Redraft**, **History** and **Images** are in the
 menu itself, **Delete** is its last item, and the rest is in four sub menus: **Annotations** (*Annotate part*, *Annotate with AI*), **Summary**
-(*Generate summary* / *View summary*, *Delete summary*), **Inspect** (*Show Prompt*, *Compare Prompt*, *Token Usage*) and **Branch & merge** (*Branch Story*,
+(*Generate summary* / *View summary*, *Delete summary*), **Inspect** (*Show Prompt*, *Compare Prompt*, *Token Usage*, *Lore Usage*) and **Branch & merge** (*Branch Story*,
 *Merge into previous part*). A sub menu with nothing in it for the part is not shown. The Reviewer adds its **Review** sub menu after *Summary*. The items:
 
 | Item | |
@@ -226,6 +226,7 @@ menu itself, **Delete** is its last item, and the rest is in four sub menus: **A
 | **Merge into previous part** | Adds the text of this part to the part before it, see [below](#merging-a-part-into-the-previous-one). Not on the first part. |
 | **Show Prompt** | Shows the exact prompt that was sent to the model for this part. |
 | **Token Usage** | Shows how the context of the model was used for this part: a chart of the sections of the prompt (instructions of the model, lore, summaries, story so far, your instructions, room kept for the response) and the size of each message sent to the model. If part of the story did not fit, it says how many parts were left out. Parts written before this was recorded have no chart. |
+| **Lore Usage** | Lists the [lorebook](../lorebooks/index.md) entries that went into the prompt of this part, with the tokens each one cost and what found it (the prompt, or the content of another entry when the lorebook scans deeper). Parts that were typed by hand, written before this was recorded, or written for a book without a lorebook say that nothing was recorded. For the whole book use **Lore Usage** in the settings menu (⚙), see [below](#which-lore-entries-were-used). |
 | **Images** | Attaches pictures to the part, see [Images](#images). |
 | **Generate summary** / **View summary** | Summarizes the story up to this part, or shows the summary, see [Summaries](summaries.md). |
 | **Delete summary** | Removes the summary of this part. For a [meta summary](summaries.md#meta-summaries) it asks whether to unwind it or delete it completely. |
@@ -449,6 +450,26 @@ the ones that no longer match are named, they are dropped when a part is generat
 instructions of the turn take room from the same budget. Without a model with a context size the table has no shares.
 
 ![Branch Tokens](../../images/branch-tokens.png)
+
+## Which lore entries were used
+
+**Lore Usage** in the settings menu (⚙, **Analysis**) tells which entries of the book's lorebook the generations used and which never were,
+so a lorebook can be pruned by what it does and not by guessing. Every generation records which entries went into its prompt
+(and the tokens of each); the window adds that up over the parts:
+
+- **Parts** chooses what is counted: the **Active branch**, or **All branches**, every branch and every swipe of the book.
+- **From part** and **To part** limit the range, numbered as in the outline (the first part of a branch is 1, in all branches the number is how
+  deep the part is in the tree); leave them empty for the start and the end.
+- **Show** keeps the entries that were **Never used**, **Sometimes used** or **Always used** in the counted parts.
+
+The table has one line for every entry of the lorebooks of the book, the most used first: its lorebook, whether it was never, sometimes or always
+used, in how many parts (of the parts that have a record, with the percent), the tokens it cost in all of them and per use, and the first and
+last part that used it. Click a header to sort. An entry that was used earlier but is not in the lorebooks of the book now (deleted, moved, or
+its lorebook is switched off or not the book's any more) stays in the list marked *not in the lorebook now*; a deleted one has no name.
+
+Only the parts that have a record are counted: a part typed by hand, written before Marginalia kept this record, or written when the book had no
+lorebook has none, and the window says how many. *Always used* entries could be constant entries, *never used* ones are candidates for removal or
+for a better filter; [**Preview activation**](../lorebooks/entries.md#preview-activation) in the lorebook editor shows why an entry does not fire now.
 
 ## Text styles
 

@@ -337,16 +337,19 @@ only `builtPromptTokens`; whoever needs the text asks `MessagePromptService`:
 | Method | |
 |---|---|
 | `getBuiltPrompt(part)`, `getBackgroundLore(part)` | The texts, `null` when the part has none (it was typed by the author, or made before prompts were kept). One query each; the summary, redraft, annotate and impersonate services read the lore this way, the story editor, `/show-prompt` and the reviewer the prompt. |
-| `store(part, prompt, lore)` | Replaces the prompt of the part; two empty texts remove it. Called by `GenerateNewMessageStep` after the part is saved (a regenerated part gets the new prompt; the old one is kept in the `ORIGINAL_PROMPT` property, which `CleanupStep` puts back with `ORIGINAL_MESSAGE` when no text arrived). |
+| `store(part, prompt, lore, loreUsage)` | Replaces the prompt of the part (`store(part, prompt, lore)` is the same with no usage); two empty texts and no usage remove it. Called by `GenerateNewMessageStep` after the part is saved (a regenerated part gets the new prompt; the old one is kept in the `ORIGINAL_PROMPT` property, which `CleanupStep` puts back with `ORIGINAL_MESSAGE` when no text arrived). |
+| `getLoreUsage(part)` | The lore entries the generation of the part used (`LoreUsage`), `null` when none was recorded. See below. |
 | `copy(from, to)` | Branching a part (`ChatMessageService.branch`) and creating a part in the book from a working copy of an agent (`AgentMergeService`) copy the prompt with it. `ChatMessage.copyOf` / `loadFrom` do not. |
 | `findAllFor(parts)` | The prompts of many parts in one query, for the backup. |
+
+**Lore usage.** `MessagePrompt` is an `ExtendableEntity` (V24) and has one extended attribute, `loreUsage`: the JSON of a `LoreUsage`, the lore entries the prompt used, each with its uuid, the tokens of its text and the pass of the scan depth that used it (0 = the prompt). `ProcessLorebookStep` builds it from the activated entries (tokens counted with the model of the book) and puts it into `PrePromptData.loreUsage`; `GenerateNewMessageStep` stores it with the prompt. Only the entries that were used are in it (the others are the entries of the lorebooks minus these). `null` means not recorded: the part was made before V24, or the book has no lorebook; an empty list means the lorebook used nothing. It lives here and not in the part so that loading a branch does not carry it; the lore usage report ([`LoreUsageService`](services.md)) reads it with `MessagePromptService.findLoreUsage`, a query for the `extendedContent` column only, without the texts.
 
 The texts are stored deflated (`byte[]` columns, the accessors of the entity take and give plain text). Deleting a part
 deletes its prompt with it (`softDeleteForParts`, `hardDeleteForParts`, `softDeleteForManuscript`, like the annotations),
 restoring the part from the trash brings it back, and a permanent delete takes it (`CleanupServiceImpl.OWNED_ON_DELETE`).
 
 **Backups.** A backup of a book still has the prompt in the `extendedContent` of the message (`builtPrompt`,
-`backgroundLore`), as it did before the row existed, so backups of all versions have the same format:
+`backgroundLore`, and `loreUsage` when there is one), as it did before the row existed, so backups of all versions have the same format:
 `ManuscriptServiceImpl.createBackup` puts the prompt back there and `restoreMessages` takes it out again and stores the row.
 The data was moved by `ExtendedContentMigration` (app version 6, see [Database](database.md#startup-migrate-then-validate)).
 

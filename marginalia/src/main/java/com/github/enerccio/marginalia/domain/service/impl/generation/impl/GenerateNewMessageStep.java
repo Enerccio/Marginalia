@@ -103,7 +103,8 @@ public class GenerateNewMessageStep extends GenerationStepBase {
             log.debug("ChatMessage created: {}", node.getId());
             // set right away, so cleanup removes (or restores) the part if anything below fails
             controller.setMessage(node);
-            messagePromptService.store(node, builtPrompt, controller.getPrePromptData().getBackgroundLore());
+            messagePromptService.store(node, builtPrompt, controller.getPrePromptData().getBackgroundLore(),
+                    controller.getPrePromptData().getLoreUsage());
 
             // the book is loaded again: only the global variables and the active leaf are written, not what the generation
             // started with (the user may have changed the settings or moved the book since)

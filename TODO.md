@@ -545,7 +545,7 @@ Most are 🧩 plugin-sized; the ones that need a core hook say so.
     story parts that fell out of context and have no summary) through an OpenAI-compatible `/embeddings` endpoint and
     activate by similarity next to the existing modes; show the score in the activation preview (20). Storage: a blob
     column or `sqlite-vec`; re-embed on change (hash of the content, like the meta summaries).
-57. **Lore usage report.** Per entry: how often it fired in this book, last activation, tokens it cost, and the entries
+57. ✅ **Lore usage report.** Done in 1.7.0: *Lore Usage* in the settings menu of the story (the report of the book over the active branch or all branches and a range of part numbers, with a status filter) and in the *Inspect* part menu (the entries of one part); the generation records the used entries with the prompt of the part (`MessagePrompt.loreUsage`, migration V24). Not done: a command for agents, a link from a row to the entry, why an entry that never fires does not (the activation preview answers that), the tokens of the instruction block. Original idea: Per entry: how often it fired in this book, last activation, tokens it cost, and the entries
     that never fire or always fire (dead weight). Needs the skip reasons from 24. Turns lorebook pruning from guesswork
     into a list.
 58. 🧩 **Lore suggestions from the story.** Scan the branch for proper nouns and recurring noun phrases with no entry and

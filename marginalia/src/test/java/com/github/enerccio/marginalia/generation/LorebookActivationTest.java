@@ -3,6 +3,7 @@ package com.github.enerccio.marginalia.generation;
 import com.github.enerccio.marginalia.domain.collections.ActivationContext;
 import com.github.enerccio.marginalia.domain.collections.FilteringMode;
 import com.github.enerccio.marginalia.domain.collections.InsertionMode;
+import com.github.enerccio.marginalia.domain.components.LoreUsage;
 import com.github.enerccio.marginalia.domain.components.TurnInput;
 import com.github.enerccio.marginalia.domain.model.BaseEntity;
 import com.github.enerccio.marginalia.domain.model.impl.*;
@@ -1376,5 +1377,54 @@ class LorebookActivationTest extends GenerationTestBase {
                 .isEqualTo(lore.activated()).containsExactly("late");
         assertThat(preview.stream().filter(v -> v.entry().getName().equals("early")).findFirst().orElseThrow().verdict().reason())
                 .isEqualTo(Reason.OUT_OF_RANGE);
+    }
+
+    // ------------------------------------------------------------------------------------------------------------
+    // lore usage: the entries a generation used are kept with the prompt of the part
+    // ------------------------------------------------------------------------------------------------------------
+
+    @Autowired
+    private MessagePromptService messagePromptService;
+
+    private LoreUsage usageOf(Manuscript manuscript, String instructions) throws Exception {
+        GenerationRun run = generate(manuscript, new TurnInput(null, null, null, instructions));
+        assertThat(run.await(TIMEOUT)).isEqualTo(GenerationRun.Outcome.COMPLETED);
+        assertThat(run.getErrors()).isEmpty();
+        return messagePromptService.getLoreUsage(run.getMessage());
+    }
+
+    @Test
+    void thePartRecordsTheEntriesThatWereUsedWithTheirTokensAndDepth() throws Exception {
+        Lorebook book = scanning(1);
+        LorebookEntry dragon = entry(book, "dragon", e -> {
+            e.setOrder(1);
+            e.setFiltering("dragon");
+            e.setPayload("The dragon sleeps in the castle.");
+        });
+        LorebookEntry castle = entry(book, "castle", e -> {
+            e.setOrder(2);
+            e.setFiltering("castle");
+            e.setPayload("The castle has a moat.");
+        });
+        entry(book, "moat", e -> {
+            e.setOrder(3);
+            e.setFiltering("moat");
+            e.setPayload("The moat is dry.");
+        });
+
+        LoreUsage usage = usageOf(book(book), "A dragon appears.");
+
+        assertThat(usage.getEntries()).extracting(LoreUsage.Used::entry, LoreUsage.Used::depth)
+                .containsExactly(tuple(dragon.getUuid(), 0), tuple(castle.getUuid(), 1));
+        assertThat(usage.getEntries()).extracting(LoreUsage.Used::tokens).allMatch(tokens -> tokens > 0);
+    }
+
+    @Test
+    void aLorebookThatUsedNothingIsARecordAndABookWithoutOneIsNot() throws Exception {
+        Lorebook book = lorebook("world");
+        entry(book, "dragon", e -> e.setFiltering("dragon"));
+
+        assertThat(usageOf(book(book), "Nothing here.").getEntries()).isEmpty();
+        assertThat(usageOf(book(null), "Nothing here.")).isNull();
     }
 }

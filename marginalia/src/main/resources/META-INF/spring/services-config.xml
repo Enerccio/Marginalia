@@ -153,6 +153,8 @@
 
     <bean class="com.github.enerccio.marginalia.domain.service.impl.LorebookActivationServiceImpl" />
 
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.LoreUsageServiceImpl" />
+
     <bean id="lorebookEntryRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaLorebookEntryRepository">
         <property name="entityManager" ref="em"/>
     </bean>

@@ -947,6 +947,15 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_IMAGE_WRAP, "文字环绕图片");
         setValue(L.LABEL_IMAGE_WIDTH, "宽度（占文字宽度的百分比）");
         setValue(L.LABEL_MANAGE, "管理");
+        setValue(L.LABEL_LORE_USAGE, "设定集使用情况");
+        setValue(L.LABEL_LORE_USAGE_UNKNOWN_ENTRY, "未知条目（已删除？）");
+        setValue(L.LABEL_LORE_USAGE_USED_IN, "使用的段落");
+        setValue(L.LABEL_LORE_USAGE_AVERAGE_TOKENS, "每次使用的 Token");
+        setValue(L.LABEL_LORE_USAGE_FIRST_PART, "第一段");
+        setValue(L.LABEL_LORE_USAGE_LAST_PART, "最后一段");
+        setValue(L.LABEL_LORE_USAGE_NOT_IN_LOREBOOK, "现在不在设定集中");
+        setValue(L.LABEL_LORE_USAGE_FOUND_IN, "触发来源");
+        setValue(L.LABEL_LORE_USAGE_IN_PROMPT, "提示词");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -1121,6 +1130,11 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.ENUM_IMAGE_ANCHOR_BOTTOM_LEFT, "左下");
         setValue(L.ENUM_IMAGE_ANCHOR_BOTTOM_CENTER, "下中");
         setValue(L.ENUM_IMAGE_ANCHOR_BOTTOM_RIGHT, "右下");
+        setValue(L.ENUM_LORE_USAGE_SCOPE_ACTIVE_BRANCH, "当前分支");
+        setValue(L.ENUM_LORE_USAGE_SCOPE_ALL_BRANCHES, "所有分支");
+        setValue(L.ENUM_LORE_USAGE_STATUS_NEVER, "从未使用");
+        setValue(L.ENUM_LORE_USAGE_STATUS_SOMETIMES, "有时使用");
+        setValue(L.ENUM_LORE_USAGE_STATUS_ALWAYS, "始终使用");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "内部服务器错误");
@@ -1596,6 +1610,15 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_STYLE_PREVIEW_SAMPLE, "# 第一章\n\n*雨*已经连下了**三天**，通往港口的路成了一条泥河。“我们该回头了，”玛拉说，但没有人动。\n\n> 旧地图是错的。相信水。\n\n---\n\n清晨灰蒙蒙地缓缓到来。她数着码头边的灯笼，`七盏`，然后迈步向前。\n\n## 较小的标题\n\n这一段足够长，可以展示文本如何换行、对齐，以及在开启断字时如何拆分单词。");
         setValue(L.MSG_STYLES_IMPORTED, "已导入 %d 个样式。保存设置以保留它们。");
         setValue(L.MSG_STYLE_IMPORT_IGNORED, "文件中有 %d 个选项此版本不认识，已忽略。");
+        setValue(L.MSG_LORE_USAGE_PART_NOT_RECORDED, "没有记录这一段使用的设定。它可能是手写的，是在 Marginalia 保存此记录之前生成的，或者这本书没有设定集。");
+        setValue(L.MSG_LORE_USAGE_PART_NOTHING, "设定集没有向这一段的提示词中放入任何条目。");
+        setValue(L.MSG_LORE_USAGE_PART_SUMMARY, "%d 个条目，%s 个 Token。");
+        setValue(L.MSG_LORE_USAGE_IN_ENTRIES, "其他条目的内容（第 %d 轮）");
+        setValue(L.MSG_LORE_USAGE_SUMMARY, "范围内有 %d 段，其中 %d 段记录了所使用的设定。");
+        setValue(L.MSG_LORE_USAGE_UNRECORDED, "%d 段没有记录：手写的、在 Marginalia 保存此记录之前生成的，或者当时这本书没有设定集。");
+        setValue(L.MSG_LORE_USAGE_NO_RECORDS, "此范围内没有任何一段记录了所使用的设定，因此无从统计。");
+        setValue(L.MSG_LORE_USAGE_NO_LOREBOOK, "这本书没有设定集。");
+        setValue(L.MSG_LORE_USAGE_HELP, "当某一段的提示词中包含某个条目的文本时，该条目即视为被这一段使用。比例以有记录的段落为基数。段落编号与故事大纲相同；“所有分支”会统计每个分支和每个重新生成的版本。从未使用的条目可以考虑清理或改进其触发条件，始终使用的条目可以改为常驻条目。现在不在设定集中的条目，是以前使用过、之后被删除或移动的。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");

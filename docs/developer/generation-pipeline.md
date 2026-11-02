@@ -267,7 +267,7 @@ Prepares the part that receives the answer:
 | `REGENERATE` | The existing part, cleared (`response` and `originalResponse` both). A full copy of it as it was (`ChatMessage.copyOf`, attributes deep copied) is kept in the `ORIGINAL_MESSAGE` property first, and its prompt row in `ORIGINAL_PROMPT`. |
 
 The part gets the `TurnInput`, the model and protocol names, the payload as JSON (stored as `MessagePrompt.builtPrompt`, shown by *Show
-Prompt*), the activated lore (`MessagePrompt.backgroundLore`) and the request time. The token breakdown gets the tokens of every message of the final
+Prompt*), the activated lore (`MessagePrompt.backgroundLore`) and the entries it came from (`MessagePrompt.loreUsage`, from `PrePromptData.loreUsage`) and the request time. The token breakdown gets the tokens of every message of the final
 payload (as listeners left it, counted with the provider's tokenizer) and is stored as the part's `tokenBreakdown`
 (shown by *Token Usage*, see [UI](ui.md)). Parts generated before it existed have none, `getTokenBreakdown()` is `null`
 for them. *Compare Prompt* (`PromptComparisonDialog`) compares the stored payload of a part with that of an earlier part of the branch or a swipe

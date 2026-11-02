@@ -416,6 +416,8 @@ public class StoryMenuRegistry implements InitializingBean {
                 .icon(Solid.ROBOT::create).checkedWhen(StoryEditor::isAutoAnnotate).path(StoryMenuKeys.GROUP_ANALYSIS));
         application(StoryMenuItem.tools(StoryMenuKeys.BRANCH_TOKENS, L.LABEL_BRANCH_TOKENS, StoryEditor::openBranchTokensDialog)
                 .icon(Solid.CHART_BAR::create).path(StoryMenuKeys.GROUP_ANALYSIS));
+        application(StoryMenuItem.tools(StoryMenuKeys.LORE_USAGE, L.LABEL_LORE_USAGE, StoryEditor::openLoreUsageDialog)
+                .icon(Solid.BOOK_OPEN::create).path(StoryMenuKeys.GROUP_ANALYSIS));
         application(StoryMenuItem.tools(StoryMenuKeys.STATISTICS, L.LABEL_STATISTICS, StoryEditor::openStatisticsDialog)
                 .icon(Solid.CHART_LINE::create).path(StoryMenuKeys.GROUP_ANALYSIS));
 
@@ -483,6 +485,8 @@ public class StoryMenuRegistry implements InitializingBean {
         application(StoryMenuItem.card(StoryMenuKeys.COMPARE_PROMPT, L.LABEL_COMPARE_PROMPT, (part, card) -> card.comparePrompt())
                 .path(StoryMenuKeys.GROUP_INSPECT));
         application(StoryMenuItem.card(StoryMenuKeys.TOKEN_USAGE, L.LABEL_TOKEN_USAGE, (part, card) -> card.showTokenUsage())
+                .path(StoryMenuKeys.GROUP_INSPECT));
+        application(StoryMenuItem.card(StoryMenuKeys.CARD_LORE_USAGE, L.LABEL_LORE_USAGE, (part, card) -> card.showLoreUsage())
                 .path(StoryMenuKeys.GROUP_INSPECT));
 
         group(APPLICATION, MenuKind.CARD, StoryMenuKeys.GROUP_BRANCH_MERGE, L.LABEL_BRANCH_AND_MERGE).separatorAfter();

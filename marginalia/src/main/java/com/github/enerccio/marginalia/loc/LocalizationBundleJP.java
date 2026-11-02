@@ -939,6 +939,15 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_IMAGE_WRAP, "テキストを画像の周りに回り込ませる");
         setValue(L.LABEL_IMAGE_WIDTH, "幅（テキスト幅の％）");
         setValue(L.LABEL_MANAGE, "管理");
+        setValue(L.LABEL_LORE_USAGE, "ロアの使用状況");
+        setValue(L.LABEL_LORE_USAGE_UNKNOWN_ENTRY, "不明なエントリ（削除済み？）");
+        setValue(L.LABEL_LORE_USAGE_USED_IN, "使用したパート");
+        setValue(L.LABEL_LORE_USAGE_AVERAGE_TOKENS, "1回あたりのトークン");
+        setValue(L.LABEL_LORE_USAGE_FIRST_PART, "最初のパート");
+        setValue(L.LABEL_LORE_USAGE_LAST_PART, "最後のパート");
+        setValue(L.LABEL_LORE_USAGE_NOT_IN_LOREBOOK, "現在ロアブックにありません");
+        setValue(L.LABEL_LORE_USAGE_FOUND_IN, "見つかった場所");
+        setValue(L.LABEL_LORE_USAGE_IN_PROMPT, "プロンプト");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -1113,6 +1122,11 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.ENUM_IMAGE_ANCHOR_BOTTOM_LEFT, "左下");
         setValue(L.ENUM_IMAGE_ANCHOR_BOTTOM_CENTER, "下中央");
         setValue(L.ENUM_IMAGE_ANCHOR_BOTTOM_RIGHT, "右下");
+        setValue(L.ENUM_LORE_USAGE_SCOPE_ACTIVE_BRANCH, "アクティブなブランチ");
+        setValue(L.ENUM_LORE_USAGE_SCOPE_ALL_BRANCHES, "すべてのブランチ");
+        setValue(L.ENUM_LORE_USAGE_STATUS_NEVER, "未使用");
+        setValue(L.ENUM_LORE_USAGE_STATUS_SOMETIMES, "時々使用");
+        setValue(L.ENUM_LORE_USAGE_STATUS_ALWAYS, "常に使用");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "内部サーバーエラー");
@@ -1588,6 +1602,15 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_STYLE_PREVIEW_SAMPLE, "# 第一章\n\n*雨*は**三日間**降り続き、港へ続く道は泥の川になっていた。「引き返すべきだ」とマラは言ったが、誰も動かなかった。\n\n> 古い地図は間違っている。水を信じろ。\n\n---\n\n朝は灰色にゆっくりと訪れた。彼女は岸壁の灯りを数え、`七つ`と呟いて、歩き出した。\n\n## 小さな見出し\n\nこの段落は、文章の折り返しや配置、そしてハイフネーションが有効な場合に単語がどう分割されるかを示すのに十分な長さがあります。");
         setValue(L.MSG_STYLES_IMPORTED, "%d 件のスタイルをインポートしました。保持するには設定を保存してください。");
         setValue(L.MSG_STYLE_IMPORT_IGNORED, "このバージョンでは不明なオプション %d 件を除外しました。");
+        setValue(L.MSG_LORE_USAGE_PART_NOT_RECORDED, "このパートのロアについての記録はありません。手書きで作られたか、Marginaliaがこの記録を保存する前に作られたか、本にロアブックがありません。");
+        setValue(L.MSG_LORE_USAGE_PART_NOTHING, "このパートのプロンプトにロアブックのエントリは入りませんでした。");
+        setValue(L.MSG_LORE_USAGE_PART_SUMMARY, "%d 件のエントリ、%s トークン。");
+        setValue(L.MSG_LORE_USAGE_IN_ENTRIES, "他のエントリの内容（パス %d）");
+        setValue(L.MSG_LORE_USAGE_SUMMARY, "範囲内のパートは %d 件、そのうち使用したロアの記録があるものは %d 件です。");
+        setValue(L.MSG_LORE_USAGE_UNRECORDED, "%d 件には記録がありません（手書き、Marginaliaがこの記録を保存する前に作成、または本にロアブックがなかった）。");
+        setValue(L.MSG_LORE_USAGE_NO_RECORDS, "この範囲のパートには使用したロアの記録がないため、集計するものがありません。");
+        setValue(L.MSG_LORE_USAGE_NO_LOREBOOK, "この本にはロアブックがありません。");
+        setValue(L.MSG_LORE_USAGE_HELP, "エントリは、そのパートを書いたプロンプトにテキストが入っていれば、そのパートで使用されたと数えます。割合は記録のあるパートに対するものです。パート番号はストーリーのアウトラインと同じです。「すべてのブランチ」はすべてのブランチとスワイプを数えます。一度も使われないエントリは整理するかフィルタを見直す候補で、常に使われるエントリは常時エントリにできます。現在ロアブックにないエントリは、以前使われた後で削除または移動されています。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");

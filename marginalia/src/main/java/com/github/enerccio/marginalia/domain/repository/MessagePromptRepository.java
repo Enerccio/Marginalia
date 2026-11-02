@@ -7,7 +7,13 @@ import com.github.enerccio.marginalia.domain.model.impl.MessagePrompt;
 import java.util.Collection;
 import java.util.List;
 
-public interface MessagePromptRepository extends OwnedRepository<MessagePrompt> {
+public interface MessagePromptRepository extends ExtendableRepository<MessagePrompt> {
+
+    /**
+     * The id of the part and the stored {@code extendedContent} of its prompt, for the parts that have a prompt; the texts of
+     * the prompt are not read.
+     */
+    List<Object[]> findExtendedContentByPartIds(Collection<Long> partIds) throws Exception;
 
     /**
      * The prompt of the part, null when it has none.

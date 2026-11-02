@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846949947296">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846959049423">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846949947296" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846959049423" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846949947296" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846959049423" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846949947296" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846949947296" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846959049423" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846959049423" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -896,7 +896,8 @@ only <code translate="no" v-pre>builtPromptTokens</code>; whoever needs the text
 <retype-table copy-text="| Method | |
 |---|---|
 | `getBuiltPrompt(part)`, `getBackgroundLore(part)` | The texts, `null` when the part has none (it was typed by the author, or made before prompts were kept). One query each; the summary, redraft, annotate and impersonate services read the lore this way, the story editor, `/show-prompt` and the reviewer the prompt. |
-| `store(part, prompt, lore)` | Replaces the prompt of the part; two empty texts remove it. Called by `GenerateNewMessageStep` after the part is saved (a regenerated part gets the new prompt; the old one is kept in the `ORIGINAL_PROMPT` property, which `CleanupStep` puts back with `ORIGINAL_MESSAGE` when no text arrived). |
+| `store(part, prompt, lore, loreUsage)` | Replaces the prompt of the part (`store(part, prompt, lore)` is the same with no usage); two empty texts and no usage remove it. Called by `GenerateNewMessageStep` after the part is saved (a regenerated part gets the new prompt; the old one is kept in the `ORIGINAL_PROMPT` property, which `CleanupStep` puts back with `ORIGINAL_MESSAGE` when no text arrived). |
+| `getLoreUsage(part)` | The lore entries the generation of the part used (`LoreUsage`), `null` when none was recorded. See below. |
 | `copy(from, to)` | Branching a part (`ChatMessageService.branch`) and creating a part in the book from a working copy of an agent (`AgentMergeService`) copy the prompt with it. `ChatMessage.copyOf` / `loadFrom` do not. |
 | `findAllFor(parts)` | The prompts of many parts in one query, for the backup. |">
 <div class="table-wrapper scrollbar overflow-hidden">
@@ -913,8 +914,12 @@ only <code translate="no" v-pre>builtPromptTokens</code>; whoever needs the text
 <td>The texts, <code translate="no" v-pre>null</code> when the part has none (it was typed by the author, or made before prompts were kept). One query each; the summary, redraft, annotate and impersonate services read the lore this way, the story editor, <code translate="no" v-pre>/show-prompt</code> and the reviewer the prompt.</td>
 </tr>
 <tr>
-<td><code translate="no" v-pre>store(part, prompt, lore)</code></td>
-<td>Replaces the prompt of the part; two empty texts remove it. Called by <code translate="no" v-pre>GenerateNewMessageStep</code> after the part is saved (a regenerated part gets the new prompt; the old one is kept in the <code translate="no" v-pre>ORIGINAL_PROMPT</code> property, which <code translate="no" v-pre>CleanupStep</code> puts back with <code translate="no" v-pre>ORIGINAL_MESSAGE</code> when no text arrived).</td>
+<td><code translate="no" v-pre>store(part, prompt, lore, loreUsage)</code></td>
+<td>Replaces the prompt of the part (<code translate="no" v-pre>store(part, prompt, lore)</code> is the same with no usage); two empty texts and no usage remove it. Called by <code translate="no" v-pre>GenerateNewMessageStep</code> after the part is saved (a regenerated part gets the new prompt; the old one is kept in the <code translate="no" v-pre>ORIGINAL_PROMPT</code> property, which <code translate="no" v-pre>CleanupStep</code> puts back with <code translate="no" v-pre>ORIGINAL_MESSAGE</code> when no text arrived).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>getLoreUsage(part)</code></td>
+<td>The lore entries the generation of the part used (<code translate="no" v-pre>LoreUsage</code>), <code translate="no" v-pre>null</code> when none was recorded. See below.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>copy(from, to)</code></td>
@@ -928,11 +933,12 @@ only <code translate="no" v-pre>builtPromptTokens</code>; whoever needs the text
 </table>
 </div>
 </retype-table>
+<p><strong>Lore usage.</strong> <code translate="no" v-pre>MessagePrompt</code> is an <code translate="no" v-pre>ExtendableEntity</code> (V24) and has one extended attribute, <code translate="no" v-pre>loreUsage</code>: the JSON of a <code translate="no" v-pre>LoreUsage</code>, the lore entries the prompt used, each with its uuid, the tokens of its text and the pass of the scan depth that used it (0 = the prompt). <code translate="no" v-pre>ProcessLorebookStep</code> builds it from the activated entries (tokens counted with the model of the book) and puts it into <code translate="no" v-pre>PrePromptData.loreUsage</code>; <code translate="no" v-pre>GenerateNewMessageStep</code> stores it with the prompt. Only the entries that were used are in it (the others are the entries of the lorebooks minus these). <code translate="no" v-pre>null</code> means not recorded: the part was made before V24, or the book has no lorebook; an empty list means the lorebook used nothing. It lives here and not in the part so that loading a branch does not carry it; the lore usage report (<a href="../services/"><code translate="no" v-pre>LoreUsageService</code></a>) reads it with <code translate="no" v-pre>MessagePromptService.findLoreUsage</code>, a query for the <code translate="no" v-pre>extendedContent</code> column only, without the texts.</p>
 <p>The texts are stored deflated (<code translate="no" v-pre>byte[]</code> columns, the accessors of the entity take and give plain text). Deleting a part
 deletes its prompt with it (<code translate="no" v-pre>softDeleteForParts</code>, <code translate="no" v-pre>hardDeleteForParts</code>, <code translate="no" v-pre>softDeleteForManuscript</code>, like the annotations),
 restoring the part from the trash brings it back, and a permanent delete takes it (<code translate="no" v-pre>CleanupServiceImpl.OWNED_ON_DELETE</code>).</p>
 <p><strong>Backups.</strong> A backup of a book still has the prompt in the <code translate="no" v-pre>extendedContent</code> of the message (<code translate="no" v-pre>builtPrompt</code>,
-<code translate="no" v-pre>backgroundLore</code>), as it did before the row existed, so backups of all versions have the same format:
+<code translate="no" v-pre>backgroundLore</code>, and <code translate="no" v-pre>loreUsage</code> when there is one), as it did before the row existed, so backups of all versions have the same format:
 <code translate="no" v-pre>ManuscriptServiceImpl.createBackup</code> puts the prompt back there and <code translate="no" v-pre>restoreMessages</code> takes it out again and stores the row.
 The data was moved by <code translate="no" v-pre>ExtendedContentMigration</code> (app version 6, see <a href="../database/#startup-migrate-then-validate">Database</a>).</p>
 <h3 id="summary"><code translate="no" v-pre>Summary</code></h3>
@@ -2046,7 +2052,7 @@ define both beans in <code translate="no" v-pre>services-config.xml</code>.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (a473348fc).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (508f2544a).</p></div>
             </footer>
         </div>
     </div>

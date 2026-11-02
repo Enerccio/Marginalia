@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846949947296">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846959049423">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846949947296" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846959049423" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846949947296" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846959049423" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846949947296" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846949947296" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846959049423" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846959049423" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -431,7 +431,8 @@ migration is written for one version step and ignores the others.</p>
 | V20 | `V20__message_prompts.sql` | New table `message_prompts` (`message_id` nullable like the other owned references, `builtPrompt` and `backgroundLore` as deflated `blob`s, the standard columns without extended content) with its `_SEQ` table and the indexes `(message_id, is_deleted)` and `(userId, is_deleted)`: the entity `MessagePrompt`. The rows are made from the extended content of the parts by `ExtendedContentMigration` (app version 6). See [`MessagePrompt`](domain-model.md#messageprompt). |
 | V21 | `V21__folders.sql` | New table `folders` (`name`, `parent_id` nullable, the standard columns and extended content: the description and the settings the books inherit) with its `_SEQ` table and the indexes `(parent_id, is_deleted)` and `(userId, is_deleted)`: the entity `Folder`; and `manuscripts.folder_id` (null is the top level) with the index `(folder_id, is_deleted)`. See [Folders](folders.md#the-data). |
 | V22 | `V22__message_revisions.sql` | New table `message_revisions` (`message_id` nullable like the other owned references, `source`, `is_agent`, `sourceDetail`, `label`, `wordCount`, `tokenCount`, the standard columns with `_fulltext` and extended content: the text and the reasoning of the version) with its `_SEQ` table and the indexes `(message_id, is_deleted, creation)` and `(userId, is_deleted)`: the entity `MessageRevision`, see [Version history](version-history.md). |
-| V23 | `V23__statistics.sql` | New tables `manuscript_statistics` (the counts per book, day and side: `bookUuid`, `bookName`, `folderPath`, `day` as ISO text, `is_agent`, the nine counters, `reconstructed`, `lastChange`; unique `(bookUuid, day, is_agent)`), `activity_intervals` (the time: `kind`, `is_agent`, `day`, `startTime`, `endTime`) and `manuscript_sizes` (the size of a book at the end of a day: `bookWords`, `bookTokens`, `branchWords`, `branchTokens`, `leafUuid`, `baseline`, `reconstructed`; unique `(bookUuid, day)`), each with its `_SEQ` table and an index `(userId, day)`; the entities `ManuscriptStatistic`, `ActivityInterval` and `ManuscriptSize`, see [Writing statistics](domain-model.md#writing-statistics-manuscriptstatistic-activityinterval-manuscriptsize). The book is a plain `bookUuid`, not a foreign key, on purpose: the rows outlive the book. |">
+| V23 | `V23__statistics.sql` | New tables `manuscript_statistics` (the counts per book, day and side: `bookUuid`, `bookName`, `folderPath`, `day` as ISO text, `is_agent`, the nine counters, `reconstructed`, `lastChange`; unique `(bookUuid, day, is_agent)`), `activity_intervals` (the time: `kind`, `is_agent`, `day`, `startTime`, `endTime`) and `manuscript_sizes` (the size of a book at the end of a day: `bookWords`, `bookTokens`, `branchWords`, `branchTokens`, `leafUuid`, `baseline`, `reconstructed`; unique `(bookUuid, day)`), each with its `_SEQ` table and an index `(userId, day)`; the entities `ManuscriptStatistic`, `ActivityInterval` and `ManuscriptSize`, see [Writing statistics](domain-model.md#writing-statistics-manuscriptstatistic-activityinterval-manuscriptsize). The book is a plain `bookUuid`, not a foreign key, on purpose: the rows outlive the book. |
+| V24 | `V24__message_prompt_extended.sql` | `message_prompts` gets the columns `extendedContent` and `_fulltext`: `MessagePrompt` is an `ExtendableEntity` now (the lore entries a generation used, `loreUsage`, are an extended attribute), see [`MessagePrompt`](domain-model.md#messageprompt). Existing rows stay as they are, with no content. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -556,6 +557,11 @@ migration is written for one version step and ignores the others.</p>
 <td>V23</td>
 <td><code translate="no" v-pre>V23__statistics.sql</code></td>
 <td>New tables <code translate="no" v-pre>manuscript_statistics</code> (the counts per book, day and side: <code translate="no" v-pre>bookUuid</code>, <code translate="no" v-pre>bookName</code>, <code translate="no" v-pre>folderPath</code>, <code translate="no" v-pre>day</code> as ISO text, <code translate="no" v-pre>is_agent</code>, the nine counters, <code translate="no" v-pre>reconstructed</code>, <code translate="no" v-pre>lastChange</code>; unique <code translate="no" v-pre>(bookUuid, day, is_agent)</code>), <code translate="no" v-pre>activity_intervals</code> (the time: <code translate="no" v-pre>kind</code>, <code translate="no" v-pre>is_agent</code>, <code translate="no" v-pre>day</code>, <code translate="no" v-pre>startTime</code>, <code translate="no" v-pre>endTime</code>) and <code translate="no" v-pre>manuscript_sizes</code> (the size of a book at the end of a day: <code translate="no" v-pre>bookWords</code>, <code translate="no" v-pre>bookTokens</code>, <code translate="no" v-pre>branchWords</code>, <code translate="no" v-pre>branchTokens</code>, <code translate="no" v-pre>leafUuid</code>, <code translate="no" v-pre>baseline</code>, <code translate="no" v-pre>reconstructed</code>; unique <code translate="no" v-pre>(bookUuid, day)</code>), each with its <code translate="no" v-pre>_SEQ</code> table and an index <code translate="no" v-pre>(userId, day)</code>; the entities <code translate="no" v-pre>ManuscriptStatistic</code>, <code translate="no" v-pre>ActivityInterval</code> and <code translate="no" v-pre>ManuscriptSize</code>, see <a href="../domain-model/#writing-statistics-manuscriptstatistic-activityinterval-manuscriptsize">Writing statistics</a>. The book is a plain <code translate="no" v-pre>bookUuid</code>, not a foreign key, on purpose: the rows outlive the book.</td>
+</tr>
+<tr>
+<td>V24</td>
+<td><code translate="no" v-pre>V24__message_prompt_extended.sql</code></td>
+<td><code translate="no" v-pre>message_prompts</code> gets the columns <code translate="no" v-pre>extendedContent</code> and <code translate="no" v-pre>_fulltext</code>: <code translate="no" v-pre>MessagePrompt</code> is an <code translate="no" v-pre>ExtendableEntity</code> now (the lore entries a generation used, <code translate="no" v-pre>loreUsage</code>, are an extended attribute), see <a href="../domain-model/#messageprompt"><code translate="no" v-pre>MessagePrompt</code></a>. Existing rows stay as they are, with no content.</td>
 </tr>
 </tbody>
 </table>
@@ -947,7 +953,7 @@ A backup restored on another installation loses them unless <code translate="no"
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (a473348fc).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (508f2544a).</p></div>
             </footer>
         </div>
     </div>

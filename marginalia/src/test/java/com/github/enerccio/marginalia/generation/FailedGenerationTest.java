@@ -1,9 +1,14 @@
 package com.github.enerccio.marginalia.generation;
 
+import com.github.enerccio.marginalia.domain.components.LoreUsage;
 import com.github.enerccio.marginalia.domain.components.TurnInput;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
+import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
+import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService;
+import com.github.enerccio.marginalia.domain.service.LorebookEntryService;
+import com.github.enerccio.marginalia.domain.service.LorebookService;
 import com.github.enerccio.marginalia.domain.service.MessagePromptService;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationRequest;
 import com.github.enerccio.marginalia.test.GenerationRun;
@@ -28,6 +33,12 @@ class FailedGenerationTest extends GenerationTestBase {
 
     @Autowired
     private MessagePromptService messagePromptService;
+
+    @Autowired
+    private LorebookService lorebookService;
+
+    @Autowired
+    private LorebookEntryService lorebookEntryService;
 
     private Manuscript manuscript;
 
@@ -168,5 +179,38 @@ class FailedGenerationTest extends GenerationTestBase {
         assertThat(run.await(TIMEOUT)).isNotNull();
         assertThat(story()).hasSize(2);
         assertThat(story().getLast()).startsWith("partial");
+    }
+
+    @Test
+    void failedRegenerateKeepsTheLoreUsageOfThePart() throws Exception {
+        Lorebook lorebook = new Lorebook();
+        lorebook.setName("world");
+        lorebook = lorebookService.save(lorebook);
+        LorebookEntry entry = new LorebookEntry();
+        entry.setLorebook(lorebook);
+        entry.setName("always");
+        entry.setPayload("Always there.");
+        entry = lorebookEntryService.save(entry);
+        Manuscript m = newManuscript();
+        m.setLorebook(lorebook);
+        manuscript = manuscriptService.save(m);
+        ChatMessage part = part("FIRST", "one");
+        assertThat(messagePromptService.getLoreUsage(part).getEntries()).extracting(LoreUsage.Used::entry)
+                .containsExactly(entry.getUuid());
+
+        // the lore of the entry changes, the failed attempt must not leave the usage of its own prompt behind
+        entry.setEnabled(false);
+        lorebookEntryService.save(entry);
+        llm.enqueue(MockLLMResponse.error(400, "context too long"));
+        GenerationRun run = run(GenerationRequest.regenerate(part), "one");
+
+        assertFailed(run);
+        assertThat(messagePromptService.getLoreUsage(part).getEntries()).extracting(LoreUsage.Used::entry)
+                .containsExactly(entry.getUuid());
+
+        // a successful one records what it used: nothing
+        llm.enqueue(MockLLMResponse.text("AGAIN"));
+        assertThat(run(GenerationRequest.regenerate(part), "one").await(TIMEOUT)).isEqualTo(GenerationRun.Outcome.COMPLETED);
+        assertThat(messagePromptService.getLoreUsage(part).getEntries()).isEmpty();
     }
 }

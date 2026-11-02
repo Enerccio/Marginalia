@@ -40,6 +40,11 @@ public interface StoryEditor {
     void openBranchTokensDialog();
 
     /**
+     * Shows which lorebook entries the generations of the book used and which never did.
+     */
+    void openLoreUsageDialog();
+
+    /**
      * Shows what was done to the book day by day: words, tokens, time and size.
      */
     void openStatisticsDialog();

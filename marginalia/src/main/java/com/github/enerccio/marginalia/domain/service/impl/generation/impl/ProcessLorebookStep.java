@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.domain.service.impl.generation.impl;
 
 import com.github.enerccio.marginalia.domain.collections.InsertionMode;
+import com.github.enerccio.marginalia.domain.components.LoreUsage;
 import com.github.enerccio.marginalia.domain.components.TurnInput;
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
@@ -73,11 +74,14 @@ public class ProcessLorebookStep extends GenerationStepBase {
                             controller.getProperties().put(GenerationProperties.LOREBOOK_TEMPLATE_DATA, templateData);
                             StringBuilder builder = new StringBuilder();
                             StringBuilder builderUserPrompt = new StringBuilder();
+                            // what each entry put into the prompt, kept with the prompt of the part (lore usage report)
+                            LoreUsage usage = new LoreUsage();
                             for (LorebookEntry entry : finalActivatedEntries) {
                                 String payload = activationService.renderPayload(entry, templateData);
                                 if (StringUtils.isBlank(payload)) {
                                     continue;
                                 }
+                                usage.add(entry.getUuid(), inferenceService.countTokens(payload), scan.depthOf(entry));
                                 if (entry.getInsertionMode() == InsertionMode.IN_LORE_BLOCK) {
                                     builder.append(payload);
                                     builder.append("\n\n");
@@ -89,6 +93,7 @@ public class ProcessLorebookStep extends GenerationStepBase {
                             String lorebookContent = builder.toString().trim();
                             String lorebookUserContent = builderUserPrompt.toString().trim();
                             log.debug("Final lorebook content: {}, {}", lorebookContent, lorebookUserContent);
+                            controller.getPrePromptData().setLoreUsage(usage);
                             controller.getPrePromptData().setBackgroundLore(lorebookContent);
                             controller.getPrePromptData().setBackgroundLoreTokens(inferenceService.countTokens(lorebookContent));
                             controller.getPrePromptData().setBackgroundUserLore(lorebookUserContent);
@@ -217,6 +222,18 @@ public class ProcessLorebookStep extends GenerationStepBase {
                 }
             }
             verdicts.add(record);
+        }
+
+        /**
+         * The pass of the scan depth that used the entry, 0 for the prompt (and for an entry that was not used).
+         */
+        int depthOf(LorebookEntry entry) {
+            for (LorebookEntryVerdict record : verdicts) {
+                if (record.entry() == entry) {
+                    return record.depth();
+                }
+            }
+            return 0;
         }
 
         Verdict verdictOf(LorebookEntry entry) {
