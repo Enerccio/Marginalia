@@ -19,10 +19,10 @@
     <loc>https://enerccio.github.io/Marginalia/developer/</loc>
   </url>
   <url>
-    <loc>https://enerccio.github.io/Marginalia/user/agents/</loc>
+    <loc>https://enerccio.github.io/Marginalia/user/protocols/</loc>
   </url>
   <url>
-    <loc>https://enerccio.github.io/Marginalia/user/protocols/</loc>
+    <loc>https://enerccio.github.io/Marginalia/user/agents/</loc>
   </url>
   <url>
     <loc>https://enerccio.github.io/Marginalia/user/books/</loc>
@@ -148,6 +148,9 @@
     <loc>https://enerccio.github.io/Marginalia/developer/database/</loc>
   </url>
   <url>
+    <loc>https://enerccio.github.io/Marginalia/user/lorebooks/lorebooks/</loc>
+  </url>
+  <url>
     <loc>https://enerccio.github.io/Marginalia/user/templates/macros/</loc>
   </url>
   <url>
@@ -158,9 +161,6 @@
   </url>
   <url>
     <loc>https://enerccio.github.io/Marginalia/user/books/styling-guide/</loc>
-  </url>
-  <url>
-    <loc>https://enerccio.github.io/Marginalia/user/lorebooks/lorebooks/</loc>
   </url>
   <url>
     <loc>https://enerccio.github.io/Marginalia/user/lorebooks/import-export/</loc>

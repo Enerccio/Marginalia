@@ -5,7 +5,7 @@
 Select the lorebook in the editor and click the **export** button (file icon, *Export Lorebook*). The browser downloads
 `<lorebook name>.json` with:
 
-- the lorebook and **all its sub lorebooks** (every level), with their names, enabled state and tags;
+- the lorebook and **all its sub lorebooks** (every level), with their names, description, enabled state and tags;
 - every entry with its content, note, order, filter, insertion mode, tags and negative tags.
 
 Use it to keep a copy, to share a world with other users, or to move it to another installation. The data that
@@ -57,6 +57,13 @@ Files from older Marginalia versions (a single lorebook without sub lorebooks) c
 Lorebooks also travel inside [book backups](../books/backups.md). Restoring or cloning a backup can link to lorebooks
 you already have instead of creating copies; see [Restoring a backup](../books/backups.md#restoring-a-backup).
 !!!
+
+## Importing a lorebook another user shares
+
+**Import from other user** in the import menu lists the lorebooks other users [share](lorebooks.md#sharing-a-lorebook) with
+their name, author and description; open a row to read the entries, click **Import** to get a private copy. Only the sub
+lorebooks the author shares are included. Unlike a file import, nothing has to be exported and sent: the author only
+checks **Share with other users**.
 
 ## Importing an archive of text files
 

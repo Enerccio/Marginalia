@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846962038910">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846962301905">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846962038910" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846962301905" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846962038910" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846962301905" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846962038910" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846962301905" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -175,7 +175,7 @@
 <p>Select the lorebook in the editor and click the <strong>export</strong> button (file icon, <em>Export Lorebook</em>). The browser downloads
 <code translate="no" v-pre>&lt;lorebook name&gt;.json</code> with:</p>
 <ul>
-<li>the lorebook and <strong>all its sub lorebooks</strong> (every level), with their names, enabled state and tags;</li>
+<li>the lorebook and <strong>all its sub lorebooks</strong> (every level), with their names, description, enabled state and tags;</li>
 <li>every entry with its content, note, order, filter, insertion mode, tags and negative tags.</li>
 </ul>
 <p>Use it to keep a copy, to share a world with other users, or to move it to another installation. The data that
@@ -301,6 +301,11 @@ you already have instead of creating copies; see <a href="../../books/backups/#r
         </div>
     </div>
 </div>
+<h2 id="importing-a-lorebook-another-user-shares">Importing a lorebook another user shares</h2>
+<p><strong>Import from other user</strong> in the import menu lists the lorebooks other users <a href="../lorebooks/#sharing-a-lorebook">share</a> with
+their name, author and description; open a row to read the entries, click <strong>Import</strong> to get a private copy. Only the sub
+lorebooks the author shares are included. Unlike a file import, nothing has to be exported and sent: the author only
+checks <strong>Share with other users</strong>.</p>
 <h2 id="importing-an-archive-of-text-files">Importing an archive of text files</h2>
 <ol>
 <li>Click the <strong>import</strong> button and choose <strong>Import from archive</strong>.</li>
@@ -473,7 +478,7 @@ which are better handled with <a href="../entries/#tags">tags</a>.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (7dc199652).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (6e60d8dd2).</p></div>
             </footer>
         </div>
     </div>

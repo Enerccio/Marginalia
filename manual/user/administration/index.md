@@ -10,7 +10,7 @@ Administrators manage the Marginalia installation: user accounts, database backu
 extensions. The first account, created on the [first start](../getting-started/first-start.md), is an administrator;
 it can make other users administrators too.
 
-Administrators are also normal users with their own books - they don't see other users' books, lorebooks or settings.
+Administrators are also normal users with their own books - they don't see other users' books, lorebooks or settings, only the lorebooks and protocols those users share with everybody.
 
 ## The Admin page
 

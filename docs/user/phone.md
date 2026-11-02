@@ -55,7 +55,7 @@ language of a book can be inherited from a folder here too, and the *Prompts* ta
 
 The phone shows a **reduced lorebook editor**. You can pick a lorebook, enable or disable it and its entries, and
 edit the **content** of an entry. Everything else is shown as text only: name, order, tags, filtering and insertion
-mode, negative tags and note. You cannot create, delete, import or export lorebooks, or add entries. Use the desktop
+mode, negative tags and note. You cannot create, delete, import or export lorebooks, share them, change their description or add entries. Use the desktop
 for that, see [Lorebooks](lorebooks/index.md).
 
 The same reduced editor is used in the *Lorebook* tab of a book. When the lorebook of the book has sub lorebooks, the box
@@ -74,7 +74,8 @@ The button next to the *Enabled* check box opens **Search and replace** for the 
   **Import Backup as New Book**. To bring a backup file back on the phone, create a book, use **Import Backup** in
   its [Backups tab](books/backups.md) and restore it there, or import it as a new book on the desktop.
 - **Protocols** and **Inference Providers** list each entry as text with the edit and delete buttons next to it. The
-  editing dialogs are the desktop ones.
+  editing dialogs are the desktop ones, so a protocol can be [shared](protocols.md#sharing-a-protocol) from the phone, and the
+  **Import from other user** button above the list imports a protocol that another user shares.
 - **Resources** is the desktop tab, not adapted to the phone.
 - **Trash** shows each deleted object as a card (name, type, when it was deleted). The explanation of the trash is
   behind the *i* button. Restoring works as described in [Trash](trash.md).

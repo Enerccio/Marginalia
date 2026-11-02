@@ -47,7 +47,8 @@ Everything in this picture can be adjusted, and the user guide is organized alon
 | **Agent**              | An LLM that works on one book on its own, through the commands, on a copy of the book; you review what it did and take it over or throw it away.                       | [Agents](agents.md)                                       |
 
 Everything you create belongs to your account. Other users of the same Marginalia don't see your books, lorebooks,
-providers or settings - only books you choose to [publish](books/publishing.md).
+providers or settings - only books you choose to [publish](books/publishing.md), and lorebooks and protocols you choose to
+[share](lorebooks/lorebooks.md#sharing-a-lorebook) (others can import a copy, [protocols](protocols.md#sharing-a-protocol) too).
 
 ## The workspace
 

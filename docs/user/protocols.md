@@ -4,7 +4,7 @@ A protocol is a set of generation settings: the sampling parameters (temperature
 optionally, its own context and reply limits. The [inference provider](inference-providers.md) says *which* model writes; the protocol says *how*.
 
 Protocols are separate from providers, so you can keep a few of them, such as a cautious one and a creative one, and
-switch a book between them without touching the connection. Like providers, protocols belong to your account.
+switch a book between them without touching the connection. Like providers, protocols belong to your account; you can [share](#sharing-a-protocol) one so that other users can import a copy.
 
 ![The Protocols tab](../images/protocols-list.png)
 
