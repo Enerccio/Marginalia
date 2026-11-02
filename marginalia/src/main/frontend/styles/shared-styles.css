@@ -1112,6 +1112,10 @@ vaadin-markdown.agent-report td {
 }
 
 /* Phone manuscript dialog */
+vaadin-dialog-overlay.manuscript-dialog::part(footer) {
+    padding: var(--lumo-space-xs) var(--lumo-space-m);
+}
+
 vaadin-dialog-overlay.phone-dialog {
     --vaadin-dialog-viewport-margin: 0px;
 }

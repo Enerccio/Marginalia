@@ -118,3 +118,12 @@
     width: 7rem;
     flex: none;
 }
+
+/* The panel sits in a narrow sidebar: little padding, little space between its parts */
+.beta-readers-compact {
+    padding: var(--lumo-space-xs) var(--lumo-space-s);
+}
+
+.beta-readers-gaps {
+    gap: var(--lumo-space-xs);
+}

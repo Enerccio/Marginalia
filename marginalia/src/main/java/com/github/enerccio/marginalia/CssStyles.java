@@ -183,6 +183,10 @@ public final class CssStyles {
     public static final String RESIZABLE_TEXT_AREA_ICON = "resizable-text-area-icon";
     public static final String RESIZABLE_TEXT_AREA_FIELD = "resizable-text-area-field";
 
+    // --- Manuscript dialog ---
+    /** The dialog of a manuscript: its footer (the Exit button) takes little room. */
+    public static final String MANUSCRIPT_DIALOG = "manuscript-dialog";
+
     // --- Phone manuscript dialog ---
     public static final String PHONE_DIALOG = "phone-dialog";
     public static final String PHONE_STORY_LAYOUT = "phone-story-layout";
