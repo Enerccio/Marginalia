@@ -70,7 +70,7 @@ ones that ask for classes, methods, arguments, locals or fields that don't exist
 
 ## The bundled plugins
 
-The twenty plugins in `marginalia/plugins/` are complete, working examples. Each is a separate Maven project.
+The twenty-two plugins in `marginalia/plugins/` are complete, working examples. Each is a separate Maven project.
 
 | Plugin | What it adds | Shows how to |
 |---|---|---|
@@ -83,7 +83,7 @@ The twenty plugins in `marginalia/plugins/` are complete, working examples. Each
 | [Gemma 4 tools fix](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/gemma4toolsfix) | Sends the results of function calls to Gemma 4 models with the role `tool_responses`. | Change how a service talks to the model without UI code: register an `InferenceServices.ToolRoleResolver` on load, remove it on unload. |
 | [Google Gemini](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/google-genai) | Google's Gemini models as an inference provider, over the Google Gen AI Java SDK. | Add a provider (`ExtensionAIFactory`), embed a library only the plugin needs, stream with cancellation, call functions. |
 | [Image Generator](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/image-generator) | Makes an image for a part of the story: the model writes the prompt, a backend (ComfyUI workflow, OpenAI-style images API) draws it, the user rerolls and accepts it. | Add an item to the menu of a part (`StoryMenuItem.card`), a settings panel on `UserPart`, a dialog that streams from the model and works in a thread of its own, store images with `ResourceService`, call HTTP servers around the work (hooks), keep a secret with `protectSecret`. |
-| [Prompt Inspector](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/prompt-inspector) | Shows the prompt of a generation and asks before it is sent to the model. | Add a check box item to the settings menu, keep a per-user switch in the attributes of the user settings, listen to `BEFORE_INFERENCE` and ask the user from the listener (`GenerationControllerEvent.askQuestion`). |
+| [Prompt Inspector](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/prompt-inspector) | Shows the prompt of a generation and asks before it is sent to the model. | Add a check box item to the settings menu, keep a per-user switch in the attributes of the user settings, listen to `BEFORE_INFERENCE` and ask the user from the listener: open a dialog on the user's page with `GenerationControllerEvent.accessUI` while the generation waits ([below](#asking-the-user-in-the-middle-of-a-generation)). |
 | [Instruction Exporter](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/instructionexporter) | Copies the instructions, scene settings and characters of the active branch to the clipboard, from the story settings menu. | Add an item to the settings menu of the story editor, read the story through a service, write to the clipboard. |
 | [Book Description Generator](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/book-description-generator) | Writes the name and the description of a book with the model from a range of its story, notes first when the range is longer than the context. | Add a button to the About tab of the book window (desktop and phone) and copy the result into its fields; register two [inherited settings](inherited-settings.md) (the prompts); run several requests in a row on a worker thread (`InRequestScope`) and read a JSON or Markdown answer; use the summaries of the story (`SummaryService.collectBlocks`). |
 | [Lore Generator](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/lore-generator) | Writes a lorebook entry with the model from the existing lore: a generation, then a compaction, optional attachments. | Add a column to a grid, open a dialog that streams from the model (with `LLMAttachment`s), keep prompts in the user settings, give the model the functions of another extension ([a direct call](ipc.md#calling-another-extension-directly)), let the user choose the model with `ModelProtocolPicker`. |
@@ -98,6 +98,98 @@ The twenty plugins in `marginalia/plugins/` are complete, working examples. Each
 | [Chinese localization](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/chineselocalization) | Simplified Chinese as a language of the user interface. | Add a language with `ExtensionHasLocalization` - no UI code at all. |
 
 Users install them as described in [Managing extensions](../../user/administration/extensions.md).
+
+## Asking the user in the middle of a generation
+
+A generation listener can stop the generation and show the user a dialog, and the generation goes on, or ends, by what the
+user answers. The bundled [Prompt Inspector](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/prompt-inspector)
+does exactly this: with its check box on, every generation of the user stops just before the request with a dialog that
+shows the messages about to be sent, and *Send* sends them while *Cancel* ends the generation. Three things make it work:
+
+* **The chain waits for you.** A listener gets `(event, chain)` and the generation does not go on until it calls
+  `chain.next()`. Nothing blocks a thread while it waits, so a listener can start something, return, and call `chain.next()`
+  later from wherever the answer arrives. It must call it exactly once.
+* **`event.accessUI(action)` runs the action on the user's page.** The generation runs on a worker thread; `accessUI` is
+  the way back to the UI that started it (`ui.access` and a push), and the `UI` it hands over is the one to open the dialog on.
+  It returns `false`, and never runs the action, when the generation has no UI (an agent or a command started it): then
+  nobody can be asked and the listener goes on at once.
+* **Stopping is cancelling the token.** `event.getCancellationToken().cancel()` and then `chain.next()`: the generation
+  jumps to its cleanup, the request is not sent and the part started for it is removed.
+
+Listeners are global (the generations of all users come through them), so the first thing the listener does is look
+whether *this* user wants to be asked - the Prompt Inspector keeps a boolean in the attributes of the user settings and
+reads it with `settingService.find(UserSetting.class, currentUser)`, which works on the generation's thread. The listener,
+trimmed:
+
+```java
+// onExtensionLoad / onExtensionUnload
+inferenceRegistration = storyGenerationService.addEventListener(Events.BEFORE_INFERENCE, this::inspect);
+inferenceRegistration.unregister();
+
+private void inspect(GenerationControllerEvent event, EventChain chain) {
+    boolean asked = false;
+    try {
+        if (event.getPayload() != null && isEnabled()) {          // this user switched it on
+            asked = ask(event, chain, format(event.getPayload()));
+        }
+    } catch (Exception e) {
+        log.warn("Failed to show the prompt: {}", e.getMessage(), e);   // generate without asking rather than fail
+    } finally {
+        if (!asked) {
+            chain.next();                                         // nobody was asked: go on
+        }
+    }
+}
+
+private boolean ask(GenerationControllerEvent event, EventChain chain, String prompt) {
+    AtomicBoolean answered = new AtomicBoolean();
+    // whatever answers first - Send, Cancel or a stop from elsewhere - lets the generation go on, once
+    Runnable proceed = () -> {
+        if (answered.compareAndSet(false, true)) {
+            chain.next();
+        }
+    };
+    // the generation was stopped from another window while the dialog is open: do not leave it waiting
+    Runnable unsubscribe = event.getCancellationToken().onCancel(proceed);
+    if (answered.get()) {
+        return true;                                              // it was cancelled already: the chain has gone on
+    }
+
+    boolean scheduled = event.accessUI(ui -> {                    // runs on the thread of the user's page
+        new PromptInspectorDialog(prompt,
+                proceed,                                          // Send: the request goes on
+                () -> {                                           // Cancel: stop before the request
+                    event.getCancellationToken().cancel();
+                    proceed.run();
+                }).open();
+    });
+    if (!scheduled) {                                             // an agent or a command: no page to ask
+        unsubscribe.run();
+        return false;
+    }
+    return true;                                                  // the dialog is out, the answer calls chain.next()
+}
+```
+
+The dialog is a plain Vaadin `Dialog` that is given two `Runnable`s. It is modal and does not close on *Esc* or a click
+outside, because the generation is waiting for the answer; each button closes it and runs its callback. (The plugin also
+closes the dialog when the generation is stopped from elsewhere, with another `event.accessUI` in the `onCancel`
+callback.)
+
+What to keep in mind when you write one:
+
+* **Always release the chain.** Every path out of the listener must end in exactly one `chain.next()`: the `finally`, the
+  answer, the cancellation. Guard it with an `AtomicBoolean` when several things can answer, and give a generation that
+  waits for ever a way out (`getCancellationToken().onCancel(...)` returns a `Runnable` that removes the listener again
+  when you no longer need it).
+* **The action and the dialog run on the thread of the UI, not in the request scope of the generation.** Keep them to
+  showing the dialog and reporting the answer; hand the work on through the chain and do it in the listener.
+* **Check that someone can see it.** `accessUI` returning `false` means no dialog was shown - do not wait. It throws
+  `UIDetachedException` when the user has closed the page: treat it like a failure and go on or cancel.
+* **Ask as late as you can.** `BEFORE_INFERENCE` is the last event before the request, so what the user sees is what
+  the model gets after every other extension has changed it.
+
+The other events and what they carry are in [Generation events](generation-events.md#other-things-listeners-can-do).
 
 ## Reading order
 
