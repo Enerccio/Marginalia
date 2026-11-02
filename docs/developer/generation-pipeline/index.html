@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846962465502">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846962524235">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846962465502" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846962524235" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846962465502" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846962524235" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846962465502" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846962465502" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846962524235" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846962524235" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -571,6 +571,7 @@ and <code translate="no" v-pre>listener.onNodeCreated(part)</code> lets the UI s
 part is only a placeholder that cleanup removes or restores.</p>
 <p>Events: <code translate="no" v-pre>BEFORE_GENERATE_NEW_MESSAGE</code>, <code translate="no" v-pre>AFTER_GENERATE_NEW_MESSAGE</code> (the part is available as <code translate="no" v-pre>getMessage()</code>).</p>
 <h3 id="7-inference---inferencestep">7. <code translate="no" v-pre>INFERENCE</code> - <code translate="no" v-pre>InferenceStep</code></h3>
+<p><code translate="no" v-pre>InferenceStep</code> fires <code translate="no" v-pre>BEFORE_INFERENCE</code> first and, when the listeners are done, looks at the <code translate="no" v-pre>CancellationToken</code>: a generation that was cancelled while they ran (one that asked the user through <code translate="no" v-pre>accessUI</code> and got <em>no</em>) jumps to <code translate="no" v-pre>CLEANUP</code>, no request is sent and the part started for it is removed, see <a href="../plugins/generation-events/">Generation events</a>. Otherwise:</p>
 <p>Counts the prompt tokens (when the prompt plus the response limit still exceeds the context, the UI gets
 <code translate="no" v-pre>GenerationListener.onWarning</code>; the request is sent anyway), then calls <code translate="no" v-pre>InferenceService.stream(payload, protocol, callback)</code> inside an <code translate="no" v-pre>InferenceSession</code> of the kind <code translate="no" v-pre>GENERATION</code> (a new part, a regeneration and a swipe share it, so the provider&#x27;s cache is that of the story; the service sends it as the header <code translate="no" v-pre>X-Session-ID</code>). For each chunk:</p>
 <ul>
@@ -1015,7 +1016,7 @@ wait for it to finish. See <a href="../testing/">Testing</a>.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (f52c8f6f9).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (ef83762d6).</p></div>
             </footer>
         </div>
     </div>

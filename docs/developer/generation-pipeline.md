@@ -280,6 +280,8 @@ Events: `BEFORE_GENERATE_NEW_MESSAGE`, `AFTER_GENERATE_NEW_MESSAGE` (the part is
 
 ### 7. `INFERENCE` - `InferenceStep`
 
+`InferenceStep` fires `BEFORE_INFERENCE` first and, when the listeners are done, looks at the `CancellationToken`: a generation that was cancelled while they ran (one that asked the user through `accessUI` and got *no*) jumps to `CLEANUP`, no request is sent and the part started for it is removed, see [Generation events](plugins/generation-events.md). Otherwise:
+
 Counts the prompt tokens (when the prompt plus the response limit still exceeds the context, the UI gets
 `GenerationListener.onWarning`; the request is sent anyway), then calls `InferenceService.stream(payload, protocol, callback)` inside an `InferenceSession` of the kind `GENERATION` (a new part, a regeneration and a swipe share it, so the provider's cache is that of the story; the service sends it as the header `X-Session-ID`). For each chunk:
 
