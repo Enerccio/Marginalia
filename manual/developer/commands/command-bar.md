@@ -10,7 +10,7 @@ covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/command/CommandHelp.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/command/CommandLine.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/ui/dialogs/manuscript/ManuscriptStoryPart.java
-verified: 1c8fb0529
+verified: 5ab9b7f9f
 ---
 
 # The command bar
