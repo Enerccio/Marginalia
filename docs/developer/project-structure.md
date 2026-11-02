@@ -389,7 +389,7 @@ See [Plugin development](plugins/index.md).
 | How lore is activated | `ProcessLorebookStep`, `LorebookServiceImpl` |
 | A macro | `domain/templates/TemplateData.java` (logic), `macros/Macros.java` (registry), `macros/MacroTranslator.java` (syntax) |
 | The story editor | `ui/dialogs/manuscript/ManuscriptStoryPart.java` |
-| Summaries and meta summaries | `SummaryServiceImpl` (chain, creation, unwinding), `ui/dialogs/manuscript/SummariesDialog.java`, `SummaryDialog.java` |
+| Summaries and meta summaries | `SummaryServiceImpl` (chain, creation, unwinding, export and import), `utils/SummaryTransfer.java` (the text file), `ui/dialogs/manuscript/SummariesDialog.java`, `SummariesImportDialog.java`, `SummaryDialog.java` |
 | The story tree operations | `ChatMessageServiceImpl` (branch, swipe, delete), `ManuscriptTreePart` (UI) |
 | Folders, or where a setting of a book comes from | [Folders](folders.md), `ManuscriptService.resolve`, `FolderServiceImpl`, `ui/dialogs/OrganiseDialog.java` |
 | An entity or the schema | the entity in `domain/model/impl/`, a new Flyway migration, `persistence.xml` - see [Database & migrations](database.md) |

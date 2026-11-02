@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846968298572">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846971055256">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846968298572" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846971055256" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846968298572" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846971055256" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846968298572" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846968298572" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846971055256" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846971055256" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -1011,6 +1011,10 @@ it has one - except for the head of the block, whose own summary is what the has
 the hash was made). A normal block has no other summaries in it, so its hash is that of the texts only.</p>
 </li>
 </ul>
+<p>The text of a summary in use can change without touching any hash (<code translate="no" v-pre>SummaryService.updateSummaryText</code>, the pencil of the overview and
+the import of an exported file, <code translate="no" v-pre>exportSummaries</code> / <code translate="no" v-pre>analyzeImport</code> / <code translate="no" v-pre>applyImport</code>): the hash of a block is made of the texts of its
+parts and of the summaries a meta summary stands in for, never of the text of the summary at its head. The summaries inside a meta
+summary are the ones that must not be edited.</p>
 <p>Deleting a meta summary (<code translate="no" v-pre>SummaryService.removeSummary(part, unwind)</code>) with <code translate="no" v-pre>unwind</code> restores the summary from
 <code translate="no" v-pre>replacedSummary</code>: it is deserialized into a new <code translate="no" v-pre>Summary</code>. Because that summary can be a meta summary with its own
 <code translate="no" v-pre>replacedSummary</code>, unwinding nests. A meta summary takes over the <code translate="no" v-pre>uuid</code> of the summary it replaces
@@ -2068,7 +2072,7 @@ define both beans in <code translate="no" v-pre>services-config.xml</code>.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (16f5cdf7a).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (480f250cb).</p></div>
             </footer>
         </div>
     </div>

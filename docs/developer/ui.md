@@ -440,6 +440,13 @@ hierarchy column), message id, order in the branch, content, tokens, a checkbox 
 delete buttons and the edit pencil exist only on the top level - the text of the merged summaries is part of the hash
 of their meta summary, so editing them one by one would invalidate it (the search and replace works them out again).
 
+The menu bar above the grid (`populateMenuBar(bar)`, also where extensions add items) has *Search and Replace*, *Export Summaries* and
+*Import Summaries*: the last two are added by `SummariesImportDialog.addMenuItems`, shared with `PhoneSummariesDialog`. The export is an
+`Anchor` with an `InputStreamDownloadHandler` over `SummaryService.exportSummaries`; the import dialog reads the uploaded file
+(`InMemoryUploadHandler`), calls `SummaryService.analyzeImport` (again when *Match by position* is toggled), lists the `ImportEntry`s with
+their status and writes with `applyImport` on *Import*, then runs the callback that loads the overview again. `PhoneSummariesDialog` puts
+the menu bar in a row of its own (next to the token count and the meta summary button it was squeezed to no width).
+
 - **Content** (`SummaryContent`): reasoning (a `Details` with `Markdown`, reasoning is mostly markdown), badges (*Meta summary*, *Replaced*) and the text as
   plain text (`white-space: pre-wrap`, summaries are not markdown and the model's single line breaks must show), in a scrolling `Div` of a fixed height, so all rows have the same height. The pencil is in a gutter next
   to the scroll area (not over the text); it swaps the text for a `TextArea` of the same size and the buttons for a

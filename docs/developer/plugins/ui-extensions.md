@@ -74,7 +74,7 @@ copies the text with `navigator.clipboard.writeText` (plugins keep their own scr
 ### Tools in the summaries overview
 
 `SummariesDialog` (the overview of the summaries, opened from the **Summaries** item) has a menu bar above its
-grid, with the item *Search and Replace* of the application in it. Decorate `populateMenuBar(bar)` on leave and add items to the argument `bar`. A new dialog (and menu bar) is
+grid, with the items *Search and Replace*, *Export Summaries* and *Import Summaries* of the application in it. Decorate `populateMenuBar(bar)` on leave and add items to the argument `bar`. A new dialog (and menu bar) is
 created every time the overview opens, so the decorator runs for each of them. The dialog's fields (`manuscript`,
 `treeGrid`) are reachable by reflection; to reload the grid after your tool changed the summaries, close and reopen
 the dialog, or call its private `refresh()` with `callReflectiveMethod`.
