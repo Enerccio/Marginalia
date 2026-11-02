@@ -398,6 +398,22 @@ vaadin-markdown.agent-report td {
     flex-shrink: 0;
 }
 
+/* a page of the phone workspace made of layouts, grids and fields (the Admin tabs): nothing is wider than the screen, a
+   layout that holds a wide child (a long file name, a field with a width in em) shrinks instead of widening the page */
+.phone-page vaadin-vertical-layout,
+.phone-page vaadin-horizontal-layout,
+.phone-page vaadin-details,
+.phone-page vaadin-grid {
+    min-width: 0;
+}
+
+.phone-page vaadin-text-field,
+.phone-page vaadin-integer-field,
+.phone-page vaadin-combo-box,
+.phone-page vaadin-text-area {
+    max-width: 100%;
+}
+
 .gap-s {
     gap: var(--lumo-space-s);
 }

@@ -8,8 +8,8 @@ Administrators are also normal users with their own books - they don't see other
 
 ## The Admin page
 
-Administrators have an **Admin** button at the bottom of the workspace. It is only in the normal layout: the
-[phone layout](../phone.md) (a window narrower than 768 pixels) has no Admin page, so open Marginalia in a wider window (and reload the page) for administration. It opens the admin page with these tabs:
+Administrators have an **Admin** button at the bottom of the workspace. In the [phone layout](../phone.md#administration) (a window
+narrower than 768 pixels) it is the tab **Admin** of the drawer. It opens the admin page with these tabs:
 
 | Tab | |
 |---|---|

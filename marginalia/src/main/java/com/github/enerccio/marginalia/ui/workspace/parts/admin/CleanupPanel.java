@@ -13,6 +13,7 @@ import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
+import com.github.enerccio.marginalia.ui.widgets.PhoneTrashGrid;
 import com.github.enerccio.marginalia.ui.widgets.TrashGrid;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Component;
@@ -40,11 +41,22 @@ public class CleanupPanel implements LLMInteract {
     @Autowired
     private CleanupService cleanupService;
 
+    // the phone layout: narrower columns, the phone trash list
+    private final boolean phone;
+
     private Grid<EntityStats> statsGrid;
     private Grid<BlockedEntity> blockedGrid;
     private Grid<ReferenceDescriptor> modelGrid;
     private Button runButton;
     private TrashGrid trashGrid;
+
+    public CleanupPanel() {
+        this(false);
+    }
+
+    public CleanupPanel(boolean phone) {
+        this.phone = phone;
+    }
 
     @PublicAPI(from = "1.1.0",
             returns = @APIReturn(type = Component.class),
@@ -65,6 +77,7 @@ public class CleanupPanel implements LLMInteract {
         HorizontalLayout toolbar = new HorizontalLayout();
         toolbar.setWidthFull();
         toolbar.setAlignItems(FlexComponent.Alignment.CENTER);
+        toolbar.addClassName(CssStyles.FLEX_WRAP);
 
         Button analyzeButton = new Button(loc.getValue(L.LABEL_ANALYZE), Solid.SEARCH.create(), e -> analyze());
 
@@ -82,15 +95,15 @@ public class CleanupPanel implements LLMInteract {
         statsGrid.addColumn(EntityStats::getSoftDeleted)
                 .setHeader(loc.getValue(L.LABEL_SOFT_DELETED))
                 .setFlexGrow(0)
-                .setWidth("140px");
+                .setWidth(phone ? "80px" : "140px");
         statsGrid.addColumn(EntityStats::getPurgeable)
                 .setHeader(loc.getValue(L.LABEL_PURGEABLE))
                 .setFlexGrow(0)
-                .setWidth("140px");
+                .setWidth(phone ? "80px" : "140px");
         statsGrid.addColumn(EntityStats::getBlocked)
                 .setHeader(loc.getValue(L.LABEL_BLOCKED))
                 .setFlexGrow(0)
-                .setWidth("140px");
+                .setWidth(phone ? "80px" : "140px");
 
         Span blockedTitle = new Span(loc.getValue(L.LABEL_BLOCKED_ENTITIES));
         blockedTitle.addClassName(CssStyles.TEXT_BOLD);
@@ -101,7 +114,7 @@ public class CleanupPanel implements LLMInteract {
         blockedGrid.addColumn(blocked -> blocked.getKey().type().getSimpleName())
                 .setHeader(loc.getValue(L.LABEL_ENTITY))
                 .setFlexGrow(0)
-                .setWidth("160px");
+                .setWidth(phone ? "90px" : "160px");
         blockedGrid.addColumn(BlockedEntity::getLabel)
                 .setHeader(loc.getValue(L.LABEL_NAME))
                 .setFlexGrow(1);
@@ -141,7 +154,7 @@ public class CleanupPanel implements LLMInteract {
             }
             try {
                 if (trashGrid == null) {
-                    trashGrid = new TrashGrid(true).create();
+                    trashGrid = (phone ? new PhoneTrashGrid(true) : new TrashGrid(true)).create();
                     trashGrid.setHeight("500px");
                     trashDetails.add(trashGrid);
                 } else {

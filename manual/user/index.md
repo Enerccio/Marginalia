@@ -77,8 +77,8 @@ After logging in you see the workspace. The tabs on the left are the main areas 
 At the bottom are **Change Password**, **Logout** and, for administrators, **Admin**. Extensions may add more tabs
 and buttons.
 
-On a narrow screen (under 768 pixels) you get a simpler [phone layout](phone.md) instead: the tabs are in a drawer, and
-there is no Admin page. The layout is chosen when the page loads: after turning a device or resizing the window,
+On a narrow screen (under 768 pixels) you get a simpler [phone layout](phone.md) instead: the tabs are in a drawer (Admin
+included) and the windows are one column. The layout is chosen when the page loads: after turning a device or resizing the window,
 reload the page to get the other one.
 
 ## Sections of this guide

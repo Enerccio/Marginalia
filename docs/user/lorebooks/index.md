@@ -1,8 +1,8 @@
 # Lorebooks
 
 !!!
-The [phone layout](../phone.md#lorebooks) can only select lorebooks, enable and disable them and their entries, and edit
-the content of an entry. Everything else on these pages needs the desktop layout.
+The [phone layout](../phone.md#lorebooks) has the same editor in one column: the buttons of the lorebooks are in a menu, the settings of the
+lorebook are in a section that opens and an entry opens into a form. Only a few things are left to the desktop, see the list there.
 !!!
 
 A lorebook holds what the model must know about your world: characters, places, history, rules, terminology. Each

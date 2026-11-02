@@ -6,9 +6,10 @@ icon: device-mobile
 
 # Using Marginalia on a phone
 
-Marginalia has a layout made for phones. You write, edit and regenerate parts, read and tweak lorebooks and manage your
-models from the phone browser, but the phone layout is **not a copy of the desktop one**: it is simpler, a few things
-are missing and not every extension works in it. This page lists the differences.
+Marginalia has a layout made for phones. You write, edit and regenerate parts, edit lorebooks, manage your models and
+(as an administrator) the installation from the phone browser. The phone layout is **not a copy of the desktop one**: the
+same things are laid out in one column, a few windows are simpler and not every extension works in it. This page lists
+the differences.
 
 For reading a book on a phone, there is also the [viewer](books/publishing.md), which is made for it.
 
@@ -34,7 +35,8 @@ to it. The tab you are on fills the whole screen and its name is shown in the to
 ![The phone workspace with the drawer open](../images/phone-workspace-drawer.png)
 
 The drawer has the same tabs as the desktop - *Books*, *Lorebooks*, *Settings*, *Protocols*, *Inference Providers*,
-*Agents* (only for users who may use [agents](agents.md#on-a-phone)), *Resources* and *Trash* - and the **Language** selector, **Change Password** and **Logout** at the bottom. Extensions may add buttons, but only
+*Agents* (only for users who may use [agents](agents.md#on-a-phone)), *Resources* and *Trash* - and, for an administrator,
+*Admin* (the button of the desktop is a tab here). At the bottom are the **Language** selector, **Change Password** and **Logout**. Extensions may add buttons, but only
 to the places they know on the phone, see [Extensions](#extensions).
 
 While the *Settings* tab has unsaved changes, the drawer is locked as on the desktop: save or discard first.
@@ -54,20 +56,40 @@ subfolders*. **Add Book** and the imports put the new book into the folder you a
 
 ![Folders on a phone](../images/phone-folders.png)
 
-A folder can't be made, renamed or deleted on the phone, and there is no *Organise* window or mass change; do that on a computer. The
+![The menu of the book list](../images/phone-books-menu.png)
+
+A folder is made with the **New folder** button of the header, and renamed, set up (description, tags, language, model and protocol
+for its books) or deleted from the **⋮** button of its row. The **⋮** button in the header has the windows that work on many books:
+**Organise** (the two panes of folders are one over the other on a phone, there is no keyboard hint), **Tag books**, **Tag folders** and
+the mass changes of [folders](books/folders.md) (model and protocol, language, rename). The
 language of a book can be inherited from a folder here too, and the *Prompts* tab shows where each value comes from.
 
 ### Lorebooks
 
-The phone shows a **reduced lorebook editor**. You can pick a lorebook, enable or disable it and its entries, and
-edit the **content** of an entry. Everything else is shown as text only: name, order, tags, filtering and insertion
-mode, negative tags and note. You cannot create, delete, import or export lorebooks, share them, change their description or add entries. Use the desktop
-for that, see [Lorebooks](lorebooks/index.md).
+The phone has the **whole lorebook editor** of the desktop, laid out in one column. The lorebook is picked in a box; the **⋮**
+button next to it opens the menu of the lorebook: **Add Lorebook**, **Clone**, **Delete**, **Import** (a lorebook file, a SillyTavern
+file, a zip archive of Markdown files, a lorebook another user shares), **Export** (the lorebook or the SillyTavern format),
+**Tag lorebooks** and **Edit description**. Under the *Enabled* check box, the token count and the buttons for
+**Search and replace** and the **activation preview**, the section **Settings** opens to the name, the sub lorebooks, the tags, the scan
+depth and *Share with other users* of the lorebook. See [Lorebooks](lorebooks/index.md).
 
-The same reduced editor is used in the *Lorebook* tab of a book. When the lorebook of the book has sub lorebooks, the box
-**Shown lorebook** under it switches the tab to any of them, and back, without changing the lorebook of the book.
+Below are **Add Entry** (and the **⋮** with the mass edit and the tags of many entries), the search box and the entries. An entry opens
+with its enabled box and name on a row; opened it has a form: name, order, tags, filtering mode and text, insertion mode, negative tags,
+the activation context and its range, *Prevent recursion*, the content, the note and **Delete entry**. Everything that is changed is saved
+at once, as on the desktop. What is not here: the check box *Only root lorebooks* and selecting many entries to delete at once (delete an entry
+from its own form, or use the trash of the desktop).
+
+The same editor is used in the *Lorebook* tab of a book. When the lorebook of the book has sub lorebooks, the box
+**Shown lorebook** under it switches the tab to any of them, and back, without changing the lorebook of the book. While an
+[agent](agents.md) works on a book that uses the lorebook, the lorebook is shown as text and nothing in it can be changed.
 
 ![A lorebook on a phone](../images/phone-lorebook.png)
+
+![The menu of the lorebook](../images/phone-lorebook-menu.png)
+
+![The settings of the lorebook](../images/phone-lorebook-settings.png)
+
+![An entry opened into its form, with the revisions of the Lorebook VCS above it](../images/phone-lorebook-entry.png)
 
 The button next to the *Enabled* check box opens **Search and replace** for the entries of the lorebook, see
 [Entries](lorebooks/entries.md#search-and-replace).
@@ -76,15 +98,16 @@ The button next to the *Enabled* check box opens **Search and replace** for the 
 
 ### Settings, protocols, providers, resources, trash
 
-- **Settings** are the same as on the desktop, only laid out in a narrow column. The one thing missing is
-  **Import Backup as New Book**. To bring a backup file back on the phone, create a book, use **Import Backup** in
-  its [Backups tab](books/backups.md) and restore it there, or import it as a new book on the desktop.
-- **Protocols** and **Inference Providers** list each entry as text with the edit and delete buttons next to it. The
+- **Settings** are the same as on the desktop, laid out in a narrow column; **Import Backup as New Book** is the button above *Discard Changes*.
+- **Protocols** and **Inference Providers** list each entry as text with the buttons next to it (below it, for providers, which have more of them). The
   editing dialogs are the desktop ones, so a protocol can be [shared](protocols.md#sharing-a-protocol) from the phone, and the
   **Import from other user** button above the list imports a protocol that another user shares.
-- **Resources** is the desktop tab, not adapted to the phone.
+- **Resources** shows each file as a card (a picture, the name, type, size, date, the object it belongs to and the buttons to download, replace and delete), with
+  a check box for *Delete selected*.
 - **Trash** shows each deleted object as a card (name, type, when it was deleted). The explanation of the trash is
-  behind the *i* button. Restoring works as described in [Trash](trash.md).
+  behind the *i* button; the buttons of the filters wrap to a second line. Restoring works as described in [Trash](trash.md).
+
+![The resources on a phone](../images/phone-resources.png)
 
 ![The inference providers on a phone, with the info button of a shared provider](../images/phone-providers.png)
 
@@ -129,21 +152,28 @@ The story tab is one column of parts. The differences from the [story editor](bo
 
 - The [summaries](books/summaries.md) overview keeps a fixed width and scrolls sideways.
 
+## Administration
+
+An administrator has the tab **Admin** in the drawer, with the same tabs as the [desktop page](administration/index.md) in a row you scroll sideways:
+*Users*, *Database Backups*, *Cleanup*, *Resource Files*, *Help assistant*, *Agents* and *Extensions*. The lists (users, backups, extensions) are
+cards with their buttons under the text, and the toolbars wrap onto a second line. Installing an extension (*Load Extension*) and uploading a database backup open the file chooser of the phone. Other users do not get the tab.
+
+![The users of the Admin tab on a phone](../images/phone-admin-users.png)
+
+![The database backups on a phone](../images/phone-admin-backups.png)
+
 ## What is missing
 
-| Missing on the phone | Where to do it |
+The phone does what the desktop does, with these differences:
+
+| Missing or different on the phone | Where to do it |
 |---|---|
-| **Admin**: users, database backups, cleanup, installing extensions | Desktop layout, logged in as an administrator. |
-| Creating, deleting, importing and exporting lorebooks, adding lorebook entries, changing the settings of an entry | Desktop layout, [Lorebooks](lorebooks/index.md). |
-| **Import Backup as New Book** in *Settings* | Desktop layout, or **Import Backup** in the *Backups* tab of a new book. |
+| The check box *Only root lorebooks* and the selection of many lorebook entries to delete at once | Desktop layout. |
+| The command bar, keyboard shortcuts, the diff view of a regenerated part and the notes in the margin | Desktop layout, they need a keyboard or a wide screen. |
+| Windows with a lot of columns or two panes (the [summaries](books/summaries.md) overview, the Beta Readers conversation, the Manga Generator) are small | They work: landscape is easier. |
 
 Everything not in this list works the same as on the desktop: generating, editing, regenerating, swiping and branching
-parts, summaries and meta summaries, book prompts, the branch tree, book backups, export, resources and the trash.
-
-!!!warning Administrators
-An administrator on a phone is a normal user: there is **no Admin button**. The administrator tasks have to be done in
-the desktop layout, that is in a window wider than 768 pixels (reload the page after widening it).
-!!!
+parts, summaries and meta summaries, book prompts, the branch tree, book backups, export, resources, the trash, lorebooks and the administration.
 
 ## Extensions
 
@@ -162,9 +192,10 @@ Marginalia:
 | [Instruction Exporter](extensions/instruction-exporter.md) | Works. **Export instructions** is in the settings menu of the story. |
 | [Manga Generator](extensions/manga-generator.md) | Works. **Manga Generator** is in the settings menu of the story; its window is large, so landscape is easier. |
 | [Reviewer](extensions/reviewer.md) | Works. Its items are in the menu of a part, its settings in *Settings → Extension Settings*. |
-| [Side Query](extensions/side-query.md) | **Not available.** The side chat is only added to the desktop story editor. |
-| [Lore Generator](extensions/lore-generator.md) | **Not available.** The generator button is only added to the desktop lorebook editor. |
-| [Lorebook VCS](extensions/lorebook-vcs.md) | **Not available.** The revision history is only added to the desktop lorebook editor. |
+| [Side Query](extensions/side-query.md) | Works. The Side Query tab is in the outline drawer. |
+| [Lore Generator](extensions/lore-generator.md) | Works. The wand button is in the row of every entry of the lorebook; its window shows the prompt above the result. |
+| [Lorebook VCS](extensions/lorebook-vcs.md) | Works. The panel of the lorebook is under its *Enabled* row, the revisions of an entry are at the top of its form. |
+| [Image Generator](extensions/image-generator.md) | Works. **Generate image** is in the menu of a part. |
 
 Extensions from other sources may behave differently or add nothing at all on the phone; they appear where their
 author made them work. If an extension seems to be missing, check it in the desktop layout. How an extension

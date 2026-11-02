@@ -23,6 +23,7 @@ import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.google.gson.JsonObject;
 import com.vaadin.flow.component.ModalityMode;
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.dialog.Dialog;
@@ -181,11 +182,23 @@ public class OrganiseDialog extends Dialog {
         Span hint = new Span(loc.getValue(L.HELP_ORGANISE));
         hint.addClassName(CssStyles.HINT_TEXT);
 
-        HorizontalLayout panes = new HorizontalLayout(left.layout, right.layout);
-        panes.setSizeFull();
-        panes.setPadding(false);
+        // a phone has no room for two panes side by side (nor a keyboard for the hint of the keys): one over the other
+        Component panes;
+        if (UIUtils.isPhone()) {
+            hint.setVisible(false);
+            VerticalLayout stacked = new VerticalLayout(left.layout, right.layout);
+            stacked.setSizeFull();
+            stacked.setPadding(false);
+            stacked.expand(left.layout, right.layout);
+            panes = stacked;
+        } else {
+            HorizontalLayout beside = new HorizontalLayout(left.layout, right.layout);
+            beside.setSizeFull();
+            beside.setPadding(false);
+            beside.expand(left.layout, right.layout);
+            panes = beside;
+        }
         panes.addClassName(CssStyles.MIN_HEIGHT_0);
-        panes.expand(left.layout, right.layout);
 
         VerticalLayout content = new VerticalLayout(hint, panes);
         content.setSizeFull();

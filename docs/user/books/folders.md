@@ -179,5 +179,5 @@ change the tags of its books, and they are not part of a [backup](backups.md).
 - **Agents.** An [agent](../agents.md#agents-and-folders) writes with the settings of the folders of its book.
 - **Help assistant.** If you allow it, the [assistant](../administration/help-assistant.md#your-books) can look up your
   books and folders.
-- **Phone.** The [phone layout](../phone.md#books) shows the same folders as cards.
+- **Phone.** The [phone layout](../phone.md#books) shows the same folders as cards and makes, renames, sets up and deletes them; Organise and the mass changes are in the **⋮** menu of its header.
 - **Viewer.** The [viewer](publishing.md#folders-in-the-list) lists the folders too and opens in the one you left.

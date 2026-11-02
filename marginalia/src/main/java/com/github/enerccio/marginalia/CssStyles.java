@@ -189,6 +189,10 @@ public final class CssStyles {
     /** The dialog of a manuscript: its footer (the Exit button) takes little room. */
     public static final String MANUSCRIPT_DIALOG = "manuscript-dialog";
 
+    // --- Phone workspace ---
+    /** A page of the phone workspace made of layouts, grids and fields: nothing in it is wider than the screen. */
+    public static final String PHONE_PAGE = "phone-page";
+
     // --- Phone manuscript dialog ---
     public static final String PHONE_DIALOG = "phone-dialog";
     public static final String PHONE_STORY_LAYOUT = "phone-story-layout";

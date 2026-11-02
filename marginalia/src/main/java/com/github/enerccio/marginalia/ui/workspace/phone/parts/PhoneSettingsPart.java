@@ -5,6 +5,8 @@ import com.github.enerccio.marginalia.domain.traits.APILocals;
 import com.github.enerccio.marginalia.domain.traits.APIReturn;
 import com.github.enerccio.marginalia.domain.traits.Extendable;
 import com.github.enerccio.marginalia.domain.traits.PublicAPI;
+import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.workspace.Workspace;
 import com.github.enerccio.marginalia.ui.workspace.parts.UserPart;
 import com.vaadin.flow.component.Component;
@@ -12,16 +14,20 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
 /**
  * The settings tab for phones. It is the desktop {@link UserPart} (so the extension settings panels, which decorate
  * {@code UserPart.refresh} and {@code UserPart.save}, work unchanged) with a header that fits a narrow screen: the
- * buttons are stacked below the title instead of sharing its row, and the book backup import is left out.
+ * buttons are stacked below the title instead of sharing its row.
  */
 @Configurable
 @Extendable
 public class PhoneSettingsPart extends UserPart {
+
+    @Autowired
+    private Localization loc;
 
     public PhoneSettingsPart(Workspace workspace) {
         super(workspace);
@@ -32,6 +38,7 @@ public class PhoneSettingsPart extends UserPart {
             locals = {@APILocals(name = "saveButton", type = Button.class),
                     @APILocals(name = "buttons", type = HorizontalLayout.class),
                     @APILocals(name = "titleSpan", type = Span.class),
+                    @APILocals(name = "importBackupAsNewButton", type = Button.class),
                     @APILocals(name = "headerLayout", type = VerticalLayout.class)})
     @Override
     protected Component createHeader() {
@@ -46,7 +53,11 @@ public class PhoneSettingsPart extends UserPart {
 
         Span titleSpan = createTitle();
 
-        VerticalLayout headerLayout = new VerticalLayout(titleSpan, unsavedChangesSpan, buttons);
+        // a backup file can be brought back as a new book from the phone too
+        Button importBackupAsNewButton = new Button(loc.getValue(L.LABEL_IMPORT_BACKUP_AS_NEW), event -> openImportBackupAsNewDialog());
+        importBackupAsNewButton.setWidthFull();
+
+        VerticalLayout headerLayout = new VerticalLayout(titleSpan, unsavedChangesSpan, importBackupAsNewButton, buttons);
         headerLayout.setWidthFull();
         headerLayout.setPadding(false);
         headerLayout.setSpacing(false);

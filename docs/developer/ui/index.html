@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846963496430">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846966024540">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846963496430" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846966024540" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846963496430" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846966024540" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846963496430" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846963496430" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846966024540" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846966024540" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -432,14 +432,22 @@ in its layout (extension settings panels included) and unlocks on <em>Save</em>,
 (<code translate="no" v-pre>ExtendedClientDetails.getBodyClientWidth()</code>). The choice is made once per login: resizing or rotating the device
 does not switch the workspace until the page is reloaded, and a tablet or a phone in landscape gets the desktop one. <code translate="no" v-pre>PhoneWorkspace</code> replaces
 the left-hand tab sheet with an <code translate="no" v-pre>AppLayout</code>: the parts are listed in a drawer (opened with the toggle in the top bar)
-whose footer holds the language selector, <em>Change Password</em> and <em>Logout</em>, and the active part fills the screen. <strong>There is no <em>Admin</em> button
-and no <code translate="no" v-pre>AdminPart</code></strong> on a phone: the administration (users, database backups, cleanup, extension install) is only
-reachable in the desktop layout. The services still check <code translate="no" v-pre>AdminGuard.requireAdmin()</code> themselves. The user manual
-describes this for users in <a href="../../user/phone/">Using Marginalia on a phone</a>. Only the book list, the lorebooks, the settings, the protocols, the models and the trash differ. <code translate="no" v-pre>PhoneManuscriptPart</code> renders the book list
+whose footer holds the language selector, <em>Change Password</em> and <em>Logout</em>, and the active part fills the screen. There is no <em>Admin</em> button, the
+administrator gets the <strong>Admin tab</strong> (<code translate="no" v-pre>PhoneWorkspace.addAdminTab</code>, only for a user whose <code translate="no" v-pre>isAdmin()</code> is true: the part is the desktop
+<code translate="no" v-pre>AdminPart</code> made with <code translate="no" v-pre>new AdminPart(workspace, true)</code>, whose users and extensions are one card for each entry (<code translate="no" v-pre>createUserCard</code>,
+<code translate="no" v-pre>createExtensionCard</code>), whose <code translate="no" v-pre>DatabaseBackupPanel</code>, <code translate="no" v-pre>CleanupPanel</code> and <code translate="no" v-pre>ResourceGarbagePanel</code> take the same <code translate="no" v-pre>phone</code> flag (cards for the backups, narrower
+columns, the phone trash grid, wrapping toolbars) and whose content has the class <code translate="no" v-pre>phone-page</code>: layouts and grids there shrink to the screen).
+The services still check <code translate="no" v-pre>AdminGuard.requireAdmin()</code> themselves. The user manual
+describes this for users in <a href="../../user/phone/">Using Marginalia on a phone</a>. The book list, the lorebooks, the settings, the protocols, the models, the resources and the trash differ (<code translate="no" v-pre>ResourcesPart(workspace, true)</code> has a card for each resource). <code translate="no" v-pre>PhoneManuscriptPart</code> renders the book list
 like the <code translate="no" v-pre>Viewer</code> (stacked filters, sort buttons, one column) with the controls of <code translate="no" v-pre>ManuscriptPart</code>; both share the
-<em>Add Book</em> flow in <code translate="no" v-pre>NewBookAction</code>. <code translate="no" v-pre>PhoneLorebookPart</code> hosts <code translate="no" v-pre>PhoneLorebookView</code>, a reduced <code translate="no" v-pre>LorebookView</code>: lorebooks can
-only be selected (no add, delete, import or export, no new entries) and only the enabled flags and the content of an
-entry are editable, every other setting of the lorebook and of an expanded entry is shown as text. <code translate="no" v-pre>PhoneTrashPart</code>
+<em>Add Book</em> flow in <code translate="no" v-pre>NewBookAction</code>. <code translate="no" v-pre>PhoneLorebookPart</code> hosts <code translate="no" v-pre>PhoneLorebookView</code>, the <code translate="no" v-pre>LorebookView</code> in one column with the same abilities (not the <em>Only root
+lorebooks</em> box and the selection of many entries): a <code translate="no" v-pre>ContextMenu</code> of the <strong>⋮</strong> button (add, clone, delete, import, export, tags, description;
+a pinned view has only export and description), a <code translate="no" v-pre>Details</code> with the settings of the lorebook (name, sub lorebooks, tags, scan depth, sharing),
+<strong>Add Entry</strong> and a menu of the mass edit and the entry tags, and an entry opens into the form of <code translate="no" v-pre>createEntryFields</code> plus the content and the note, with
+a <em>Delete entry</em> button. The lorebook that an agent locks (<code translate="no" v-pre>lockedBy</code>) is read only as before: no menus, no settings, the entry settings as text (the desktop
+<code translate="no" v-pre>LorebookView</code> shows a <code translate="no" v-pre>PhoneLorebookView(true)</code> for it). The plugins that decorate <code translate="no" v-pre>LorebookView.create</code> / <code translate="no" v-pre>createEntryDetailLayout</code> (Lorebook VCS, Lore Generator) decorate the phone view too.
+<code translate="no" v-pre>PhoneManuscriptPart</code> has the folder tools (the <code translate="no" v-pre>FolderActions</code> and <code translate="no" v-pre>FolderDialog</code> of the desktop, in the <strong>⋮</strong> of a folder row) and a <strong>⋮</strong> header menu of
+<em>Organise</em> (<code translate="no" v-pre>OrganiseDialog</code> puts its panes one over the other when <code translate="no" v-pre>UIUtils.isPhone()</code>), the tags and the mass changes. <code translate="no" v-pre>PhoneTrashPart</code>
 hosts <code translate="no" v-pre>PhoneTrashGrid</code> (see <doc-anchor-trigger to="#trash">Trash</doc-anchor-trigger>). <code translate="no" v-pre>PhoneProtocolPart</code> and <code translate="no" v-pre>PhoneAIPart</code> replace the type, name and
 action columns of their desktop lists with a text column (<em>Type:</em> and <em>Name:</em> on two lines) and a buttons column.
 <code translate="no" v-pre>PhoneSettingsPart</code> extends <code translate="no" v-pre>UserPart</code> (so the extension settings panels that decorate <code translate="no" v-pre>UserPart.refresh</code>/<code translate="no" v-pre>save</code> keep
@@ -1736,7 +1744,7 @@ the buttons a dialog has in its bottom right corner). The server accepts their e
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (e5cc9502d).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (b94b9dcbe).</p></div>
             </footer>
         </div>
     </div>

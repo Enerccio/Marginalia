@@ -97,14 +97,26 @@ public class PhoneAIPart implements WorkspaceComponent {
         grid.setSizeFull();
         // rows grow with their content, so a long name breaks into lines instead of running under the buttons
         grid.addThemeVariants(GridVariant.LUMO_WRAP_CELL_CONTENT);
-        grid.addComponentColumn(this::createText).setFlexGrow(1);
-        grid.addComponentColumn(this::createActions).setFlexGrow(0).setAutoWidth(true);
+        // the five buttons would take half of the width: they go under the text
+        grid.addComponentColumn(this::createCard).setFlexGrow(1);
 
         mainLayout.add(addModelButton, grid);
         mainLayout.setFlexGrow(1, grid);
 
         refreshGrid();
         return mainLayout;
+    }
+
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = Component.class),
+            parameters = {@APIParameter(name = "ai", type = AI.class)},
+            locals = {@APILocals(name = "card", type = VerticalLayout.class)})
+    private Component createCard(AI ai) {
+        VerticalLayout card = new VerticalLayout(createText(ai), createActions(ai));
+        card.setPadding(false);
+        card.setSpacing(false);
+        card.setWidthFull();
+        return card;
     }
 
     @PublicAPI(from = "1.1.0",

@@ -62,6 +62,7 @@ public class HelpAssistantPanel implements LLMInteract {
 
         aiCombo = new ComboBox<>(loc.getValue(L.LABEL_MODEL));
         aiCombo.setWidth("24em");
+        aiCombo.setMaxWidth("100%");
         aiCombo.setItemLabelGenerator(AI::getName);
         aiCombo.setClearButtonVisible(true);
 
@@ -105,6 +106,11 @@ public class HelpAssistantPanel implements LLMInteract {
         reset.setThemeName("tertiary");
         HorizontalLayout row = new HorizontalLayout(area, reset);
         row.setWidthFull();
+        if (com.github.enerccio.marginalia.utils.UIUtils.isPhone()) {
+            // the button goes under the text, the text gets the whole width
+            row.addClassName(CssStyles.FLEX_WRAP);
+            area.setMinWidth("100%");
+        }
         row.setAlignItems(com.vaadin.flow.component.orderedlayout.FlexComponent.Alignment.START);
         row.expand(area);
         return row;
