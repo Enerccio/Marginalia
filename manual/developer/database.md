@@ -263,11 +263,13 @@ development home whose database is at the current schema version. Treat the outp
 - an empty database migrates through all versions and the schema validates against `persistence.xml`,
 - migrating twice is a no-op,
 - a database at V1 with data upgrades to the latest version, keeping the data,
-- a pre-Flyway database (V1 schema, no history table) is baselined and upgraded.
+- a pre-Flyway database (V1 schema, no history table) is baselined and upgraded,
+- a database at V12 with `usages` rows goes through the `V13` table rebuild (rows, defaults, nullable `ai_id`, both indexes).
 
 New migrations are picked up automatically by the first two tests. When a migration converts data, add rows to
 `insertV1Data()` and assertions to `assertUpgradedData()`, like the existing ones for V2-V5 and V9 (the `description`
-of three manuscripts: only in the column, merged into other JSON keys, and in both). A Java migration (`Migration` bean)
+of three manuscripts: only in the column, merged into other JSON keys, and in both). A migration that rebuilds a table (create, copy, drop, rename) needs its own test that migrates to the version
+before it, inserts rows and checks them afterwards, like `upgradesV12UsagesThroughTheV13TableRebuild`. A Java migration (`Migration` bean)
 needs the Spring context: see `db/FulltextMigrationTest`. Run it with
 `mvn test -Dtest=FlywayMigrationTest`.
 
