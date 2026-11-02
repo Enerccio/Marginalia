@@ -100,9 +100,13 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
     private Button tagLorebooksButton;
     private Button tagEntriesButton;
     private Button exportLorebookButton;
+    private Button descriptionButton;
 
     private TextField lorebookNameField;
     private Checkbox lorebookEnabledCheckbox;
+    private Checkbox lorebookSharedCheckbox;
+    // one line under the header, the whole description is its tooltip
+    private Span lorebookDescriptionLine;
     private MultiSelectComboBox<Lorebook> subLorebooksCombo;
     private TagMultiComboBox tagMultiComboBox;
 
@@ -215,6 +219,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
         importMenu.addItem(loc.getValue(L.LABEL_IMPORT_FROM_SILLYTAVERN), event ->
                 openImportDialog(loc.getValue(L.LABEL_IMPORT_FROM_SILLYTAVERN), lorebookService::importFromSillytavern));
         importMenu.addItem(loc.getValue(L.LABEL_IMPORT_FROM_ARCHIVE), event -> openArchiveImportDialog());
+        importMenu.addItem(loc.getValue(L.LABEL_IMPORT_FROM_OTHER_USER), event -> openImportFromOtherUser());
 
         exportLorebookButton = new Button(Solid.FILE_EXPORT.create());
         exportLorebookButton.setTooltipText(loc.getValue(L.LABEL_EXPORT_LOREBOOK));
@@ -228,6 +233,9 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
         tagLorebooksButton = new Button(Solid.TAGS.create(), event -> openTagDialog(false));
         tagLorebooksButton.setTooltipText(loc.getValue(L.LABEL_TAG_LOREBOOKS));
         tagLorebooksButton.setVisible(!pinnedLorebook);
+
+        descriptionButton = new Button(Solid.ALIGN_LEFT.create(), event -> editDescription());
+        descriptionButton.setTooltipText(loc.getValue(L.LABEL_EDIT_DESCRIPTION));
 
         tagEntriesButton = new Button(Solid.TAGS.create(), event -> openTagDialog(true));
         tagEntriesButton.setTooltipText(loc.getValue(L.LABEL_TAG_ENTRIES));
@@ -260,7 +268,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
             }
         });
 
-        controlsLayout.add(lorebookCombo, rootOnlyCheckbox, addLorebookButton, cloneLorebookButton, deleteLorebookButton, importLorebookButton, exportLorebookButton, tagLorebooksButton);
+        controlsLayout.add(lorebookCombo, rootOnlyCheckbox, addLorebookButton, cloneLorebookButton, deleteLorebookButton, importLorebookButton, exportLorebookButton, tagLorebooksButton, descriptionButton);
         controlsLayout.setAlignItems(Alignment.END);
         // the buttons are many: in a narrow window (a book, a small screen) they go to the next line instead of off the edge
         controlsLayout.setWrap(true);
@@ -342,6 +350,14 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
             }
         });
 
+        lorebookSharedCheckbox = new Checkbox(loc.getValue(L.LABEL_SHARE_WITH_OTHER_USERS));
+        UIUtils.addTooltip(lorebookSharedCheckbox, loc.getValue(L.HELP_LOREBOOK_SHARED));
+        lorebookSharedCheckbox.addValueChangeListener(e -> {
+            if (currentLorebook != null && e.isFromClient()) {
+                changeShared(Boolean.TRUE.equals(e.getValue()));
+            }
+        });
+
         scanDepthField = new IntegerField(loc.getValue(L.LABEL_SCAN_DEPTH));
         scanDepthField.setMin(0);
         scanDepthField.setMax(LorebookActivationService.MAX_SCAN_DEPTH);
@@ -359,10 +375,14 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
             }
         });
 
-        lorebookHeaderLayout.add(lorebookNameField, subLorebooksCombo, tagMultiComboBox, scanDepthField, lorebookEnabledCheckbox);
+        lorebookHeaderLayout.add(lorebookNameField, subLorebooksCombo, tagMultiComboBox, scanDepthField, lorebookEnabledCheckbox, lorebookSharedCheckbox);
         lorebookHeaderLayout.setFlexGrow(1, lorebookNameField);
         lorebookHeaderLayout.setFlexGrow(1, subLorebooksCombo);
         lorebookHeaderLayout.setFlexGrow(1, tagMultiComboBox);
+
+        lorebookDescriptionLine = new Span();
+        lorebookDescriptionLine.addClassNames(CssStyles.CLIPPED_LINE, CssStyles.TEXT_SECONDARY);
+        lorebookDescriptionLine.setVisible(false);
 
         lorebookTokensSpan = createTokensSpan();
         allTokensSpan = createTokensSpan();
@@ -374,7 +394,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
 
         setupGrid();
 
-        add(controlsLayout, entriesRow, lorebookHeaderLayout, tokensRow, grid);
+        add(controlsLayout, entriesRow, lorebookHeaderLayout, lorebookDescriptionLine, tokensRow, grid);
         setFlexGrow(1, grid);
         controlsRow = controlsLayout;
 
@@ -482,6 +502,94 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
                                 }
                             }));
                 });
+    }
+
+    /**
+     * Shows what the lorebooks of the other users share, to import a copy of one of them.
+     */
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = void.class))
+    private void openImportFromOtherUser() {
+        SharedImportDialog.forLorebooks(loc, lorebookService, this::showImported).open();
+    }
+
+    /**
+     * Shares the lorebook or stops sharing it. Sharing a lorebook with sub lorebooks that are not shared asks first whether to
+     * share them too (others only get the sub lorebooks that are shared); the box stays unchecked until it is answered, and
+     * stays so when the question is cancelled.
+     */
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "shared", type = boolean.class)},
+            locals = {@APILocals(name = "unshared", type = List.class),
+                    @APILocals(name = "e", type = Exception.class)})
+    private void changeShared(boolean shared) {
+        try {
+            if (!shared) {
+                currentLorebook.setShared(false);
+                currentLorebook = lorebookService.save(currentLorebook);
+                return;
+            }
+            List<Lorebook> unshared = lorebookService.findUnsharedSubbooks(currentLorebook);
+            if (unshared.isEmpty()) {
+                shareLorebook(false);
+                return;
+            }
+            lorebookSharedCheckbox.setValue(false);
+            ConfirmDialog.show(String.format(loc.getValue(L.MSG_SHARE_SUB_LOREBOOKS), unshared.size()),
+                    () -> shareLorebook(true), () -> shareLorebook(false), true);
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+    }
+
+    /**
+     * Shares the lorebook, and the sub lorebooks that are not shared yet when asked.
+     */
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "withSubbooks", type = boolean.class)},
+            locals = {@APILocals(name = "e", type = Exception.class)})
+    private void shareLorebook(boolean withSubbooks) {
+        try {
+            currentLorebook = lorebookService.share(currentLorebook, withSubbooks);
+            lorebookSharedCheckbox.setValue(true);
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+    }
+
+    /**
+     * Asks for the description of the lorebook.
+     */
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = void.class))
+    private void editDescription() {
+        if (currentLorebook == null) {
+            return;
+        }
+        DescriptionDialog.show(loc, loc.getValue(L.LABEL_EDIT_DESCRIPTION), currentLorebook.getDescription(), text -> {
+            try {
+                currentLorebook.setDescription(StringUtils.trimToNull(text));
+                currentLorebook = lorebookService.save(currentLorebook);
+                showDescription();
+            } catch (Exception e) {
+                UIUtils.internalServerError(loc, e);
+            }
+        });
+    }
+
+    /**
+     * The description of the lorebook on one line under its header, hidden when it has none.
+     */
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "description", type = String.class)})
+    private void showDescription() {
+        String description = currentLorebook == null ? null : StringUtils.trimToNull(currentLorebook.getDescription());
+        lorebookDescriptionLine.setText(description == null ? "" : description);
+        lorebookDescriptionLine.getElement().setAttribute("title", description == null ? "" : description);
+        lorebookDescriptionLine.setVisible(description != null);
     }
 
     @PublicAPI(from = "1.4.0",
@@ -978,6 +1086,8 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
         boolean hasLorebook = currentLorebook != null;
         lorebookNameField.setEnabled(hasLorebook);
         lorebookEnabledCheckbox.setEnabled(hasLorebook);
+        lorebookSharedCheckbox.setEnabled(hasLorebook);
+        descriptionButton.setEnabled(hasLorebook);
         subLorebooksCombo.setEnabled(hasLorebook);
         addEntryButton.setEnabled(hasLorebook);
         searchReplaceButton.setEnabled(hasLorebook);
@@ -992,9 +1102,11 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
         tagMultiComboBox.setEnabled(hasLorebook);
         tagMultiComboBox.setForEntity(currentLorebook);
 
+        showDescription();
         if (hasLorebook) {
             lorebookNameField.setValue(StringUtils.defaultString(currentLorebook.getName()));
             lorebookEnabledCheckbox.setValue(currentLorebook.isEnabled());
+            lorebookSharedCheckbox.setValue(currentLorebook.isShared());
             scanDepthField.setValue(currentLorebook.getScanDepth());
 
             try {
@@ -1025,6 +1137,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
         } else {
             lorebookNameField.setValue("");
             lorebookEnabledCheckbox.setValue(false);
+            lorebookSharedCheckbox.setValue(false);
             scanDepthField.setValue(0);
             subLorebooksCombo.setValue(Collections.emptySet());
             // the grid keeps its own record of the opened details over setItems: close them, openEntries decides what opens again
@@ -1064,6 +1177,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
         addLorebookButton.setVisible(!pinnedLorebook);
         cloneLorebookButton.setVisible(!pinnedLorebook);
         importLorebookButton.setVisible(!pinnedLorebook);
+        descriptionButton.setVisible(!locked);
         deleteLorebookButton.setVisible(!locked && !pinnedLorebook);
         addEntryButton.setVisible(!locked);
         searchReplaceButton.setVisible(!locked);

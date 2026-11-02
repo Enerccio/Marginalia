@@ -57,6 +57,8 @@ public class ProtocolDialog extends Dialog implements LLMInteract {
     private Checkbox presencePenaltyEnabledCheckbox;
     private NumberField presencePenaltyField;
 
+    private Checkbox sharedCheckbox;
+
     public ProtocolDialog() {
         this(null);
     }
@@ -96,6 +98,7 @@ public class ProtocolDialog extends Dialog implements LLMInteract {
         formLayout.add(topPEnabledCheckbox, topPField);
         formLayout.add(frequencyPenaltyEnabledCheckbox, frequencyPenaltyField);
         formLayout.add(presencePenaltyEnabledCheckbox, presencePenaltyField);
+        formLayout.add(sharedCheckbox, 2);
 
         mainLayout.add(formLayout);
         add(mainLayout);
@@ -175,6 +178,9 @@ public class ProtocolDialog extends Dialog implements LLMInteract {
         presencePenaltyField.setWidthFull();
         presencePenaltyField.setEnabled(false);
         presencePenaltyEnabledCheckbox.addValueChangeListener(event -> presencePenaltyField.setEnabled(Boolean.TRUE.equals(event.getValue())));
+
+        sharedCheckbox = new Checkbox(loc.getValue(L.LABEL_SHARE_WITH_OTHER_USERS));
+        UIUtils.addTooltip(sharedCheckbox, loc.getValue(L.HELP_PROTOCOL_SHARED));
     }
 
     @PublicAPI(from = "1.1.0",
@@ -205,6 +211,8 @@ public class ProtocolDialog extends Dialog implements LLMInteract {
         presencePenaltyEnabledCheckbox.setValue(Boolean.TRUE.equals(protocol.getPresencePenaltyEnabled()));
         presencePenaltyField.setValue(protocol.getPresencePenalty());
         presencePenaltyField.setEnabled(Boolean.TRUE.equals(protocol.getPresencePenaltyEnabled()));
+
+        sharedCheckbox.setValue(protocol.isShared());
     }
 
     @PublicAPI(from = "1.1.0",
@@ -246,6 +254,8 @@ public class ProtocolDialog extends Dialog implements LLMInteract {
 
             protocol.setPresencePenaltyEnabled(presencePenaltyEnabledCheckbox.getValue());
             protocol.setPresencePenalty(presencePenaltyField.getValue());
+
+            protocol.setShared(Boolean.TRUE.equals(sharedCheckbox.getValue()));
 
             protocolService.save(protocol);
             close();

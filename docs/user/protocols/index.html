@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846959049423">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846962038910">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846959049423" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846962038910" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846959049423" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846962038910" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846959049423" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846962038910" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -183,6 +183,7 @@ switch a book between them without touching the connection. Like providers, prot
 <p>Open the <strong>Protocols</strong> tab and click <strong>Add Protocol</strong>. Existing protocols are edited with the pen button and deleted
 with the trash button. The clone button (two sheets) makes a copy of a protocol, with all its settings, under a name you
 confirm (the original&#x27;s with <em>(Copy)</em>), handy for trying other sampling settings without losing the ones that work.</p>
+<p><strong>Import from other user</strong> (above the list) shows the protocols other users <doc-anchor-trigger to="#sharing-a-protocol">share</doc-anchor-trigger> and imports a copy of one.</p>
 <figure class="content-center">
     <img src="../../images/protocol-dialog.png" alt="The protocol dialog" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="600" height="760" />
     <figcaption class="caption">The protocol dialog</figcaption>
@@ -196,7 +197,8 @@ confirm (the original&#x27;s with <em>(Copy)</em>), handy for trying other sampl
 | **Temperature** | Randomness of the text. Lower (around `0.7`) is more focused and predictable, higher (`1.0` and more) is more varied and surprising. |
 | **Top P** | Nucleus sampling: the model picks only from the most likely words whose probabilities add up to this value (`0`-`1`). `0.9`-`0.95` is a common choice. |
 | **Frequency Penalty** | Penalizes words by how often they already appeared, which reduces repetition. Usually `0`-`1`. |
-| **Presence Penalty** | Penalizes words that already appeared at all, which pushes the model to new topics. Usually `0`-`1`. |">
+| **Presence Penalty** | Penalizes words that already appeared at all, which pushes the model to new topics. Usually `0`-`1`. |
+| **Share with other users** | When checked, other users can look at the protocol and import a copy, see [below](#sharing-a-protocol). Off for a new protocol. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -238,12 +240,18 @@ confirm (the original&#x27;s with <em>(Copy)</em>), handy for trying other sampl
 <td><strong>Presence Penalty</strong></td>
 <td>Penalizes words that already appeared at all, which pushes the model to new topics. Usually <code translate="no" v-pre>0</code>-<code translate="no" v-pre>1</code>.</td>
 </tr>
+<tr>
+<td><strong>Share with other users</strong></td>
+<td>When checked, other users can look at the protocol and import a copy, see <doc-anchor-trigger to="#sharing-a-protocol">below</doc-anchor-trigger>. Off for a new protocol.</td>
+</tr>
 </tbody>
 </table>
 </div>
 </retype-table>
 <p>Every sampling parameter has an <strong>Enable</strong> checkbox. A parameter that is not enabled is not set by Marginalia, and the
 model uses its own default. Enable only what you want to change.</p>
+<h2 id="sharing-a-protocol">Sharing a protocol</h2>
+<p>Check <strong>Share with other users</strong> in the protocol dialog and every other user of this installation sees the protocol in <strong>Import from other user</strong> (the button next to <strong>Add Protocol</strong>), with its name and its author (your full name, or your login when you have none). They can open a row to see its settings and click <strong>Import</strong>, which makes a protocol of their own with the same settings and name. Sharing is reading only: nobody else can change, delete or use your protocol, and the copy is private and not connected to yours - what either of you changes afterwards does not reach the other. Uncheck it and the protocol is gone from their list; copies they already made stay theirs.</p>
 <h2 id="limits">Limits</h2>
 <p>The limits of the <a href="../inference-providers/#general-settings">inference provider</a> always apply. A protocol can lower
 them, each one separately, but never raise them above the provider&#x27;s:</p>
@@ -371,7 +379,7 @@ select it as <strong>Default Protocol</strong> in the <strong>Settings</strong> 
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (508f2544a).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (7dc199652).</p></div>
             </footer>
         </div>
     </div>

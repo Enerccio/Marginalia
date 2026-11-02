@@ -16,6 +16,9 @@ public abstract class Protocol extends ExtendableEntity {
     @Enumerated(value = EnumType.ORDINAL)
     private ProtocolType protocolType;
 
+    // other users see the protocol in "Import from other user" and can import a copy of it
+    private boolean shared = false;
+
     private Integer maxTokens;
     private Integer replyTokens;
 
@@ -57,6 +60,14 @@ public abstract class Protocol extends ExtendableEntity {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public boolean isShared() {
+        return shared;
+    }
+
+    public void setShared(boolean shared) {
+        this.shared = shared;
     }
 
     public Integer getMaxTokens() {

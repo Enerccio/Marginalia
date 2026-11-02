@@ -40,7 +40,7 @@ they are.
 
 `isValidTemplate(template, name)` only does steps 1-2, so it catches syntax errors. `isValidTemplate(template, name,
 dataClass)` also walks the compiled template (`Template.collect` of variables and sections, in all branches) and
-reports names that would end in *helperMissing* (see [Template data](#template-data)) in
+reports names that would end in *helperMissing* (see [Where templates are rendered](#where-templates-are-rendered): the data class of each template) in
 `ValidationResult.unknownNames()`. They are warnings, `isValid()` stays true; the UI shows them as the field's helper
 text (`TemplateHints.showWarnings`). Names relative to the current context (`this`, `.`, `../x`, `@index`) and
 parameters (`{{#if name}}`) are not checked.

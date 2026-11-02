@@ -956,6 +956,9 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_LORE_USAGE_NOT_IN_LOREBOOK, "现在不在设定集中");
         setValue(L.LABEL_LORE_USAGE_FOUND_IN, "触发来源");
         setValue(L.LABEL_LORE_USAGE_IN_PROMPT, "提示词");
+        setValue(L.LABEL_IMPORT_FROM_OTHER_USER, "从其他用户导入");
+        setValue(L.LABEL_SHARE_WITH_OTHER_USERS, "与其他用户共享");
+        setValue(L.LABEL_EDIT_DESCRIPTION, "编辑描述");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -1619,6 +1622,12 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_LORE_USAGE_NO_RECORDS, "此范围内没有任何一段记录了所使用的设定，因此无从统计。");
         setValue(L.MSG_LORE_USAGE_NO_LOREBOOK, "这本书没有设定集。");
         setValue(L.MSG_LORE_USAGE_HELP, "当某一段的提示词中包含某个条目的文本时，该条目即视为被这一段使用。比例以有记录的段落为基数。段落编号与故事大纲相同；“所有分支”会统计每个分支和每个重新生成的版本。从未使用的条目可以考虑清理或改进其触发条件，始终使用的条目可以改为常驻条目。现在不在设定集中的条目，是以前使用过、之后被删除或移动的。");
+        setValue(L.MSG_NO_SHARED_LOREBOOKS, "没有其他用户共享世界书。");
+        setValue(L.MSG_NO_SHARED_PROTOCOLS, "没有其他用户共享协议。");
+        setValue(L.MSG_IMPORT_FROM_OTHER_USER, "导入会生成属于你的副本，原件仍归作者所有。展开一行可查看其内容。");
+        setValue(L.MSG_IMPORTED_FROM_OTHER_USER, "已导入“%s”。");
+        setValue(L.MSG_NOT_SHARED_ANY_MORE, "作者已不再共享它。");
+        setValue(L.MSG_SHARE_SUB_LOREBOOKS, "此世界书有 %d 个子世界书尚未共享。其他用户只能获得已共享的子世界书。是否也共享它们？");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");
@@ -1723,6 +1732,8 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.HELP_STYLE_CUSTOM_CSS, "添加在选项之后、样式范围内的 CSS。可以为各部分的文本编写规则（例如 \".chat-message-markdown p { text-indent: 1.5em !important; }\"），或编写应用于整个元素的声明。");
         setValue(L.HELP_EXPORT_SETTINGS, "每种格式都会按此处选择的样式并使用你自己的模板导出，除非你在导出对话框中另行选择。导出用的样式在“样式”选项卡中创建（勾选“用于导出”）。模板留空则使用默认模板。");
         setValue(L.HELP_IMAGE_LAYOUT, "阅读视图和导出会按此放置图片。故事编辑器把图片列在文字之后；“按阅读视图预览”可查看效果。");
+        setValue(L.HELP_LOREBOOK_SHARED, "其他用户可以在“从其他用户导入”中看到此世界书及其已共享的子世界书，并导入一份副本。他们无法修改你的世界书。");
+        setValue(L.HELP_PROTOCOL_SHARED, "其他用户可以在“从其他用户导入”中看到此协议，并导入一份副本。他们无法修改你的协议。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景设定与世界观。");

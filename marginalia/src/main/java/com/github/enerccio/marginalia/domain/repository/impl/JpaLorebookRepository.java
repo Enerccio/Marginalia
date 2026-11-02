@@ -27,4 +27,28 @@ public class JpaLorebookRepository extends JpaExtendableRepository<Lorebook> imp
         }
         return books;
     }
+
+    private static final String SHARED = "SELECT l FROM Lorebook l WHERE l.deleted = false AND l.shared = true AND l.agentic = false"
+            + " AND l.owner.id <> :userId AND l.owner.deleted = false";
+
+    @Override
+    public List<Lorebook> findAllShared(User user) throws Exception {
+        List<Lorebook> books = getEntityManager().createQuery(SHARED, Lorebook.class)
+                .setParameter("userId", user.getId())
+                .getResultList();
+        for (Lorebook book : books) {
+            hydrate(book);
+        }
+        return books;
+    }
+
+    @Override
+    public Lorebook findShared(String uuid, User user) throws Exception {
+        List<Lorebook> books = getEntityManager().createQuery(SHARED + " AND l.uuid = :uuid", Lorebook.class)
+                .setParameter("userId", user.getId())
+                .setParameter("uuid", uuid)
+                .setMaxResults(1)
+                .getResultList();
+        return books.isEmpty() ? null : hydrate(books.getFirst());
+    }
 }

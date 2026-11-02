@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846959049423">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846962038910">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846959049423" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846962038910" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846959049423" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846962038910" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846959049423" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846959049423" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846962038910" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846962038910" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -1125,6 +1125,8 @@ uuids; the overload with a <code translate="no" v-pre>Collection&lt;UuidPair&gt;
 | `name`, `enabled` | Columns. A disabled lorebook contributes nothing. |
 | `agentic` | Column. The working copy of an agent; the lists of the UI use `LorebookService.findAllRegularForUser`, `findAllAgenticForUser` returns only these books, `findAllForUser` both kinds. |
 | `subbooks` | Other lorebooks included in this one (join table `lorebooks_lorebooks`). A lorebook can be a sub-lorebook of several lorebooks. |
+| `shared` | Column (`V25`, default `false`). Other users see the lorebook (with its sub lorebooks) in *Import from other user*: `LorebookService.findAllShared` (not the user's own, not deleted, not `agentic`, owner not deleted; `LorebookRepository.findAllShared` / `findShared`) and import a copy with `importShared`, which re-reads the lorebook by uuid and checks the flag (the object the caller passes is only an id), marshals the tree **without the sub lorebooks that are not shared** (and what is below them), gives every lorebook of it a new uuid and imports it with the decision `CREATE` for all. `findUnsharedSubbooks` lists the sub lorebooks (however deep) that are not shared, `share(lorebook, withSubbooks)` shares the lorebook and optionally them; the *Share* check box of `LorebookView` asks first when there are some. `LorebookPreview.setSubbookFilter` keeps the preview in *Import from other user* to the shared ones. The lorebook itself is never reachable for another user by `findForUser`; the copy is not shared. Not copied by clone, export, import or backups. |
+| `description` | JSON (`@ExtendedAttribute`). One line shown under the header of the editor (`LorebookView`), the text next to the name in *Import from other user*. Copied by clone, export (`marshalLorebooks`, only when not blank), import and `importShared`. |
 | `scanDepth` | JSON (`@ExtendedAttribute`). How many passes search the content of the entries that were used for the filters of the others, `0` = never (the default). Only the lorebook a book uses counts; `LorebookActivationService.scanDepth` clamps it to `MAX_SCAN_DEPTH`. Copied by clone, export and import. |
 | `cachedEntries` | Transient; filled by `LorebookService.fillEntries` for generation and the editor. |">
 <div class="table-wrapper scrollbar overflow-hidden">
@@ -1147,6 +1149,14 @@ uuids; the overload with a <code translate="no" v-pre>Collection&lt;UuidPair&gt;
 <tr>
 <td><code translate="no" v-pre>subbooks</code></td>
 <td>Other lorebooks included in this one (join table <code translate="no" v-pre>lorebooks_lorebooks</code>). A lorebook can be a sub-lorebook of several lorebooks.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>shared</code></td>
+<td>Column (<code translate="no" v-pre>V25</code>, default <code translate="no" v-pre>false</code>). Other users see the lorebook (with its sub lorebooks) in <em>Import from other user</em>: <code translate="no" v-pre>LorebookService.findAllShared</code> (not the user&#x27;s own, not deleted, not <code translate="no" v-pre>agentic</code>, owner not deleted; <code translate="no" v-pre>LorebookRepository.findAllShared</code> / <code translate="no" v-pre>findShared</code>) and import a copy with <code translate="no" v-pre>importShared</code>, which re-reads the lorebook by uuid and checks the flag (the object the caller passes is only an id), marshals the tree <strong>without the sub lorebooks that are not shared</strong> (and what is below them), gives every lorebook of it a new uuid and imports it with the decision <code translate="no" v-pre>CREATE</code> for all. <code translate="no" v-pre>findUnsharedSubbooks</code> lists the sub lorebooks (however deep) that are not shared, <code translate="no" v-pre>share(lorebook, withSubbooks)</code> shares the lorebook and optionally them; the <em>Share</em> check box of <code translate="no" v-pre>LorebookView</code> asks first when there are some. <code translate="no" v-pre>LorebookPreview.setSubbookFilter</code> keeps the preview in <em>Import from other user</em> to the shared ones. The lorebook itself is never reachable for another user by <code translate="no" v-pre>findForUser</code>; the copy is not shared. Not copied by clone, export, import or backups.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>description</code></td>
+<td>JSON (<code translate="no" v-pre>@ExtendedAttribute</code>). One line shown under the header of the editor (<code translate="no" v-pre>LorebookView</code>), the text next to the name in <em>Import from other user</em>. Copied by clone, export (<code translate="no" v-pre>marshalLorebooks</code>, only when not blank), import and <code translate="no" v-pre>importShared</code>.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>scanDepth</code></td>
@@ -1493,7 +1503,8 @@ the author&#x27;s and the agents&#x27; stretches together before the union), <co
 |---|---|---|
 | `name`, `protocolType` | columns | `ProtocolType.CHAT_COMPLETION`. |
 | `maxTokens`, `replyTokens` | columns | Optional limits lower than the provider's context and response limits; `null` = use the provider's, a larger value is capped to the provider's (`TokenLimits`). |
-| `temperature`, `topP`, `frequencyPenalty`, `presencePenalty` and their `...Enabled` flags | JSON | Sampling settings; a disabled setting is not sent. |">
+| `temperature`, `topP`, `frequencyPenalty`, `presencePenalty` and their `...Enabled` flags | JSON | Sampling settings; a disabled setting is not sent. |
+| `shared` | column (`V25`, default `false`) | Other users see the protocol in *Import from other user* (`ProtocolService.findAllShared`, `ProtocolRepository.findAllShared` / `findShared`: not the user's own, not deleted, owner not deleted) and import a copy with `importShared` (checks the flag on the stored protocol, like `cloneProtocol` copies the settings; the copy is private). Not copied by `cloneProtocol`. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -1518,6 +1529,11 @@ the author&#x27;s and the agents&#x27; stretches together before the union), <co
 <td><code translate="no" v-pre>temperature</code>, <code translate="no" v-pre>topP</code>, <code translate="no" v-pre>frequencyPenalty</code>, <code translate="no" v-pre>presencePenalty</code> and their <code translate="no" v-pre>...Enabled</code> flags</td>
 <td>JSON</td>
 <td>Sampling settings; a disabled setting is not sent.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>shared</code></td>
+<td>column (<code translate="no" v-pre>V25</code>, default <code translate="no" v-pre>false</code>)</td>
+<td>Other users see the protocol in <em>Import from other user</em> (<code translate="no" v-pre>ProtocolService.findAllShared</code>, <code translate="no" v-pre>ProtocolRepository.findAllShared</code> / <code translate="no" v-pre>findShared</code>: not the user&#x27;s own, not deleted, owner not deleted) and import a copy with <code translate="no" v-pre>importShared</code> (checks the flag on the stored protocol, like <code translate="no" v-pre>cloneProtocol</code> copies the settings; the copy is private). Not copied by <code translate="no" v-pre>cloneProtocol</code>.</td>
 </tr>
 </tbody>
 </table>
@@ -2052,7 +2068,7 @@ define both beans in <code translate="no" v-pre>services-config.xml</code>.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (508f2544a).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (7dc199652).</p></div>
             </footer>
         </div>
     </div>

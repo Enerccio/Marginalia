@@ -450,6 +450,8 @@ uuids; the overload with a `Collection<UuidPair>` also reports `ANNOTATION` pair
 | `name`, `enabled` | Columns. A disabled lorebook contributes nothing. |
 | `agentic` | Column. The working copy of an agent; the lists of the UI use `LorebookService.findAllRegularForUser`, `findAllAgenticForUser` returns only these books, `findAllForUser` both kinds. |
 | `subbooks` | Other lorebooks included in this one (join table `lorebooks_lorebooks`). A lorebook can be a sub-lorebook of several lorebooks. |
+| `shared` | Column (`V25`, default `false`). Other users see the lorebook (with its sub lorebooks) in *Import from other user*: `LorebookService.findAllShared` (not the user's own, not deleted, not `agentic`, owner not deleted; `LorebookRepository.findAllShared` / `findShared`) and import a copy with `importShared`, which re-reads the lorebook by uuid and checks the flag (the object the caller passes is only an id), marshals the tree **without the sub lorebooks that are not shared** (and what is below them), gives every lorebook of it a new uuid and imports it with the decision `CREATE` for all. `findUnsharedSubbooks` lists the sub lorebooks (however deep) that are not shared, `share(lorebook, withSubbooks)` shares the lorebook and optionally them; the *Share* check box of `LorebookView` asks first when there are some. `LorebookPreview.setSubbookFilter` keeps the preview in *Import from other user* to the shared ones. The lorebook itself is never reachable for another user by `findForUser`; the copy is not shared. Not copied by clone, export, import or backups. |
+| `description` | JSON (`@ExtendedAttribute`). One line shown under the header of the editor (`LorebookView`), the text next to the name in *Import from other user*. Copied by clone, export (`marshalLorebooks`, only when not blank), import and `importShared`. |
 | `scanDepth` | JSON (`@ExtendedAttribute`). How many passes search the content of the entries that were used for the filters of the others, `0` = never (the default). Only the lorebook a book uses counts; `LorebookActivationService.scanDepth` clamps it to `MAX_SCAN_DEPTH`. Copied by clone, export and import. |
 | `cachedEntries` | Transient; filled by `LorebookService.fillEntries` for generation and the editor. |
 
@@ -595,6 +597,7 @@ the author's and the agents' stretches together before the union), `timesByDay` 
 | `name`, `protocolType` | columns | `ProtocolType.CHAT_COMPLETION`. |
 | `maxTokens`, `replyTokens` | columns | Optional limits lower than the provider's context and response limits; `null` = use the provider's, a larger value is capped to the provider's (`TokenLimits`). |
 | `temperature`, `topP`, `frequencyPenalty`, `presencePenalty` and their `...Enabled` flags | JSON | Sampling settings; a disabled setting is not sent. |
+| `shared` | column (`V25`, default `false`) | Other users see the protocol in *Import from other user* (`ProtocolService.findAllShared`, `ProtocolRepository.findAllShared` / `findShared`: not the user's own, not deleted, owner not deleted) and import a copy with `importShared` (checks the flag on the stored protocol, like `cloneProtocol` copies the settings; the copy is private). Not copied by `cloneProtocol`. |
 
 !!!warning Enum columns
 `AI.aiType` and `Protocol.protocolType` are stored as **ordinals**: add new values only at the end of `AIType` and

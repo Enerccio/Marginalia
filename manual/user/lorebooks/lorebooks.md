@@ -8,7 +8,7 @@ order: 100
 ## The lorebook editor
 
 Open the **Lorebooks** tab. The editor shows one lorebook at a time; pick it in the **Lorebook** field at the top.
-Lorebooks belong to your account: other users don't see them.
+Lorebooks belong to your account: other users don't see them, unless you [share](#sharing-a-lorebook) one.
 
 The toolbar has two rows, which wrap onto more lines in a narrow window: the first for the lorebooks (**Lorebook** to **Tag lorebooks**), the second for the entries of the selected lorebook (**Add Entry** to **Refresh**).
 
@@ -17,11 +17,12 @@ The toolbar has two rows, which wrap onto more lines in a narrow window: the fir
 | **Lorebook** | Selects the lorebook to edit. |
 | **Only root lorebooks** | Lists only the lorebooks that are not a sub lorebook of another one (the selected lorebook stays in the list). |
 | **Add Lorebook** | Creates a new lorebook named *New Lorebook* and selects it. |
-| Clone (two sheets icon) | Makes a copy of the selected lorebook: asks for the name (the original's with *(Copy)*) and selects the copy. The copy has the same entries (with their settings, tags and negative tags), tags and data of extensions. Its sub lorebooks are not copied, the copy uses the same ones. The original is not changed. |
+| Clone (two sheets icon) | Makes a copy of the selected lorebook: asks for the name (the original's with *(Copy)*) and selects the copy. The copy has the same entries (with their settings, tags and negative tags), tags, description and data of extensions. Its sub lorebooks are not copied, the copy uses the same ones. The original is not changed. |
 | **Delete Lorebook** | Deletes the selected lorebook (after confirming). |
-| Import (file icon) | **Import Marginalia Lorebook**, **Import from SillyTavern** or **Import from archive** (a zip of `.md` files), see [Import & export](import-export.md). |
+| Import (file icon) | **Import Marginalia Lorebook**, **Import from SillyTavern**, **Import from archive** (a zip of `.md` files) or **Import from other user** (a lorebook another user [shares](#sharing-a-lorebook)), see [Import & export](import-export.md). |
 | Export (file icon) | Downloads the lorebook with its sub lorebooks, see [Import & export](import-export.md#exporting). |
-| Tags (tags icon, last of the first row) | **Tag lorebooks**: puts a tag on many lorebooks at once, see [below](#tagging-many-at-once). Not shown for a lorebook that is open in a book. |
+| Tags (tags icon) | **Tag lorebooks**: puts a tag on many lorebooks at once, see [below](#tagging-many-at-once). Not shown for a lorebook that is open in a book. |
+| Description (lines icon, last of the first row) | **Edit description**: opens a window to write what the lorebook is about, see [below](#description). |
 | **Add Entry** | Adds an entry to the lorebook, see [Entries & activation](entries.md). |
 | **Search and replace** | Changes a text in the name, text and comment of the entries of the lorebook, see [Search and replace](entries.md#search-and-replace). |
 | **Mass edit** | Opens all the entries of the lorebook and of its sub lorebooks in one table, see [Mass edit](#mass-edit). |
@@ -40,8 +41,25 @@ Below the toolbar are the settings of the selected lorebook:
 | **Tags** | Tags of the whole lorebook; they count as tags of each of its entries, see [Tags](entries.md#tags). |
 | **Scan depth** | `0` to `5`: how many times the content of the entries that were used is searched for the filters of the other entries, see [Entries brought in by other entries](entries.md#entries-brought-in-by-other-entries). Only the lorebook a book uses counts, not its sub lorebooks. |
 | **Enabled** | When unchecked, the lorebook contributes nothing - neither its entries nor those of its sub lorebooks. |
+| **Share with other users** | When checked, other users can look at the lorebook and import a copy, see [below](#sharing-a-lorebook). Off for a new lorebook. |
+
+Under the settings is the [description](#description) of the lorebook, when it has one.
 
 The rest of the editor is the list of [entries](entries.md). All changes are saved as you make them.
+
+### Description
+
+The description is a few words (or lines) about the lorebook: what world it is, what it is for, which book uses it. Click the lines icon in the first row of the toolbar, write it in the window and confirm; an empty text removes it. A lorebook that has a description shows it in one line under its settings, cut with an ellipsis where it does not fit; rest the mouse pointer on the line to read all of it. The description is copied with the lorebook (clone, export, import, backups) and is the text other users see next to its name when you share it.
+
+### Sharing a lorebook
+
+Check **Share with other users** and every other user of this installation sees the lorebook in **Import from other user** (the import button in the first row of the toolbar), with its name, its author (your full name, or your login when you have none) and its description. They can open a row to read the entries (and the entries of the sub lorebooks) and import a copy. Uncheck it and the lorebook is gone from their list; copies they already made stay theirs.
+
+* Sharing is reading only. Nobody else can change, delete or use your lorebook in a book; your lorebook stays yours and you see it as before.
+* An import makes **new lorebooks of the other user**: the lorebook and its **shared** sub lorebooks, however deep, with their entries, tags and description, linked the way yours are. The copies are private (not shared), whatever you do with your lorebook afterwards does not reach them, and what they change does not reach yours.
+* **Only sub lorebooks that are shared themselves are shown and copied.** A sub lorebook that is not shared is left out together with everything below it, also a shared lorebook below it. When you check **Share with other users** on a lorebook that has sub lorebooks that are not shared, a question asks whether to share them too: **Yes** shares the lorebook and all of them (however deep), **No** shares only the lorebook, **Cancel** shares nothing and leaves the box unchecked. A sub lorebook you add later is not shared until you share it.
+* Unchecking the box stops sharing that lorebook only; its sub lorebooks stay shared (and appear in the list of the others on their own) until you uncheck them too.
+* Deleted lorebooks, the working copies of agents and your own lorebooks are not listed, and nothing is listed for a user who has been deleted.
 
 Under the settings, the estimate of the tokens of the enabled entries of the lorebook is shown. The link **Count with subbooks** next to it adds up
 the tokens of the enabled entries of the lorebook and of all its sub lorebooks, however deep, and shows the total next to it. As when a

@@ -326,6 +326,16 @@ vaadin-markdown.agent-report td {
     color: var(--lumo-secondary-text-color);
 }
 
+/* one line that is cut with an ellipsis where it does not fit; the whole text goes to the title (tooltip) */
+.clipped-line {
+    display: block;
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 .white-space-normal {
     white-space: normal;
 }

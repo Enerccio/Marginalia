@@ -30,6 +30,7 @@ import org.springframework.beans.factory.annotation.Configurable;
 
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 /**
  * Read only preview of the lore of a story, for a quick look without leaving the story: the entries of its lorebook,
@@ -66,6 +67,8 @@ public class LorebookPreview extends VerticalLayout implements LLMInteract {
     private final Set<String> openEntries = new HashSet<>();
     private final Set<String> closedBooks = new HashSet<>();
     private Lorebook lastLorebook;
+    // which sub lorebooks are shown, all by default
+    private Predicate<Lorebook> subbookFilter = book -> true;
 
     /**
      * Builds the components (the injected services are there only after the constructor), call it once before
@@ -100,6 +103,17 @@ public class LorebookPreview extends VerticalLayout implements LLMInteract {
         add(includeSubbooks, noLorebook, grid);
         setFlexGrow(1, grid);
         return this;
+    }
+
+    /**
+     * Limits the sub lorebooks that are shown: one that is not accepted is left out with everything below it. For a lorebook
+     * that is not the user's, whose owner shares only some of its sub lorebooks.
+     */
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "subbookFilter", type = Predicate.class)})
+    public void setSubbookFilter(Predicate<Lorebook> subbookFilter) {
+        this.subbookFilter = subbookFilter == null ? book -> true : subbookFilter;
     }
 
     /**
@@ -211,7 +225,7 @@ public class LorebookPreview extends VerticalLayout implements LLMInteract {
                 continue;
             }
             books.add(book);
-            queue.addAll(lorebookService.getSubbooks(book));
+            lorebookService.getSubbooks(book).stream().filter(subbookFilter).forEach(queue::add);
         }
         return books;
     }
