@@ -400,6 +400,11 @@ the invalidation check and the overview all use it):
   it has one - except for the head of the block, whose own summary is what the hash checks (it didn't exist yet when
   the hash was made). A normal block has no other summaries in it, so its hash is that of the texts only.
 
+The text of a summary in use can change without touching any hash (`SummaryService.updateSummaryText`, the pencil of the overview and
+the import of an exported file, `exportSummaries` / `analyzeImport` / `applyImport`): the hash of a block is made of the texts of its
+parts and of the summaries a meta summary stands in for, never of the text of the summary at its head. The summaries inside a meta
+summary are the ones that must not be edited.
+
 Deleting a meta summary (`SummaryService.removeSummary(part, unwind)`) with `unwind` restores the summary from
 `replacedSummary`: it is deserialized into a new `Summary`. Because that summary can be a meta summary with its own
 `replacedSummary`, unwinding nests. A meta summary takes over the `uuid` of the summary it replaces
