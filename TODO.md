@@ -217,7 +217,7 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
     numbers (`AIService`, `AILimitService`, `UsageService`, migrations `V10`-`V12`). ✅ Since 1.7.0 lorebooks and protocols have a
     *Share with other users* flag (migration `V25`); other users read them in *Import from other user* (name, author, description,
     the entries or settings as text) and import a private copy (`LorebookService.importShared`, `ProtocolService.importShared`,
-    `SharedImportDialog`). Not done: the phone views (no check box, no import, no description line), sharing with chosen users
+    `SharedImportDialog`; protocols on the phone too). Not done: the phone lorebook view (no check box, no import, no description line), sharing with chosen users
     only, updating a copy when the original changes, an admin-managed "global" library, plus public read-only links for the Viewer
     (after fixing item 1).
 
