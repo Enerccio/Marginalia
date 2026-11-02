@@ -47,6 +47,11 @@ public final class BetaReadersStyles {
     /** A number field of the first or the last part the personas read, under the box to write in. */
     public static final String PART_FIELD = "beta-readers-part-field";
 
+    /** The padding of the header, the conversation and the box to write in: tighter than the shared compact padding. */
+    public static final String COMPACT = "beta-readers-compact";
+    /** The space between the children of a column or a row of the panel. */
+    public static final String GAPS = "beta-readers-gaps";
+
     private static final String RESOURCE = "/betareaders.css";
 
     private static volatile String css;

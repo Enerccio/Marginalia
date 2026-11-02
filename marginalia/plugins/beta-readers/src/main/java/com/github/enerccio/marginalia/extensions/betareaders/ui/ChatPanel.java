@@ -103,7 +103,8 @@ public class ChatPanel extends VerticalLayout {
         addClassNames(CssStyles.MIN_HEIGHT_0, CssStyles.OVERFLOW_HIDDEN);
 
         messages.setPadding(false);
-        messages.addClassName(CssStyles.PADDING_COMPACT);
+        messages.setSpacing(false);
+        messages.addClassNames(BetaReadersStyles.COMPACT, BetaReadersStyles.GAPS);
         messages.setAlignItems(Alignment.STRETCH);
         rebuildMessages();
         scroller.setSizeFull();
@@ -138,7 +139,8 @@ public class ChatPanel extends VerticalLayout {
 
         VerticalLayout personas = new VerticalLayout();
         personas.setPadding(false);
-        personas.addClassName(BetaReadersStyles.PERSONAS);
+        personas.setSpacing(false);
+        personas.addClassNames(BetaReadersStyles.PERSONAS, BetaReadersStyles.GAPS);
         int present = chat.present().size();
         for (ChatPersona member : chat.getPersonas()) {
             personas.add(row(member, present));
@@ -158,7 +160,7 @@ public class ChatPanel extends VerticalLayout {
         VerticalLayout header = new VerticalLayout(about, details);
         header.setPadding(false);
         header.setSpacing(false);
-        header.addClassNames(BetaReadersStyles.BAR, CssStyles.PADDING_COMPACT);
+        header.addClassNames(BetaReadersStyles.BAR, BetaReadersStyles.COMPACT);
         return header;
     }
 
@@ -266,6 +268,8 @@ public class ChatPanel extends VerticalLayout {
         HorizontalLayout parts = new HorizontalLayout(includeParts, lastPart, firstPart);
         parts.setAlignItems(Alignment.END);
         parts.setWrap(true);
+        parts.setSpacing(false);
+        parts.addClassName(BetaReadersStyles.GAPS);
         HorizontalLayout buttons = new HorizontalLayout(sendScene, send);
         buttons.setAlignItems(Alignment.END);
         HorizontalLayout row = new HorizontalLayout(parts, buttons);
@@ -281,7 +285,7 @@ public class ChatPanel extends VerticalLayout {
         VerticalLayout composer = new VerticalLayout(input, row, status);
         composer.setPadding(false);
         composer.setSpacing(false);
-        composer.addClassNames(BetaReadersStyles.TOP, CssStyles.PADDING_COMPACT);
+        composer.addClassNames(BetaReadersStyles.TOP, BetaReadersStyles.COMPACT, BetaReadersStyles.GAPS);
         return composer;
     }
 

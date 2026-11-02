@@ -95,6 +95,7 @@ public class ManuscriptDialog extends Dialog implements ManuscriptWindow {
         setCloseOnOutsideClick(false);
         setModality(ModalityMode.STRICT);
         addThemeVariants(DialogVariant.NO_PADDING);
+        addClassName(CssStyles.MANUSCRIPT_DIALOG);
 
         VerticalLayout mainLayout = new VerticalLayout();
         mainLayout.setSizeFull();
