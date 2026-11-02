@@ -266,6 +266,22 @@ class BetaReadersStoreTest {
     }
 
     @Test
+    void theNameOfTheUserComesBackAndAChatStoredBeforeHasNone() {
+        BookData data = new BookData();
+        BetaChat chat = new BetaChat("Chat", ChatKind.GROUP);
+        chat.setUserName(" Petr ");
+        data.getChats().add(chat);
+        JsonObject attributes = new JsonObject();
+
+        BetaReadersStore.writeBook(attributes, data);
+        BetaChat read = BetaReadersStore.readBook(attributes).getChats().getFirst();
+        JsonObject old = JsonParser.parseString("{\"" + BookData.KEY + "\": {\"chats\": [{\"title\": \"Old\"}]}}").getAsJsonObject();
+
+        assertEquals("Petr", read.getUserName());
+        assertEquals("", BetaReadersStore.readBook(old).getChats().getFirst().getUserName());
+    }
+
+    @Test
     void aChatStoredBeforeTheStoryOptionsReadsTheWholeStoryWithSummaries() {
         JsonObject attributes = JsonParser.parseString(
                 "{\"" + BookData.KEY + "\": {\"chats\": [{\"title\": \"Old\"}]}}").getAsJsonObject();

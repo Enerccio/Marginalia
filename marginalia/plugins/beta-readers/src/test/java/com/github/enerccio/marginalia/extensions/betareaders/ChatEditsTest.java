@@ -259,18 +259,16 @@ class ChatEditsTest {
     }
 
     @Test
-    void changingTheSceneLeavesALineInTheHistoryThatTheModelReads() {
+    void changingTheSceneChangesTheChatAndLeavesNoLineInTheHistory() {
         BetaChat chat = group();
         chat.getMessages().add(BetaMessage.user("Hi"));
         chat.getMessages().add(turn("Athena"));
 
-        assertTrue(ChatEdits.changeScene(chat, "  A rainy bar.  ", "A rainy bar."));
-        chat.getMessages().add(BetaMessage.user("Now?"));
+        assertTrue(ChatEdits.changeScene(chat, "  A rainy bar.  "));
 
         assertEquals("A rainy bar.", chat.getScene());
-        assertEquals(MessageKind.SCENE, chat.getMessages().get(2).getKind());
-        var messages = PromptBuilder.build(chat, "P", new Options(true, 0, 0, null)).messages();
-        assertTrue(messages.getLast().getContent().startsWith("[The scene is now: A rainy bar.]\n\nNow?"));
+        assertEquals(2, chat.getMessages().size(), "a new scene says nothing and asks for nothing, a scene message does");
+        assertEquals(MessageKind.ASSISTANT, chat.getMessages().getLast().getKind());
     }
 
     @Test
@@ -309,17 +307,31 @@ class ChatEditsTest {
     }
 
     @Test
-    void theSameSceneLeavesNoLineAndAnEmptyOneIsTheInheritedOne() {
+    void theSameSceneChangesNothingAndAnEmptyOneIsTheInheritedOne() {
         BetaChat chat = group();
-        assertTrue(ChatEdits.changeScene(chat, "A bar", "A bar"));
-        assertTrue(chat.getMessages().isEmpty(), "a chat without history needs no line");
+        assertTrue(ChatEdits.changeScene(chat, "A bar"));
         chat.getMessages().add(BetaMessage.user("Hi"));
 
-        assertFalse(ChatEdits.changeScene(chat, "A bar", "A bar"));
-        assertTrue(ChatEdits.changeScene(chat, " ", "An online chat"));
+        assertFalse(ChatEdits.changeScene(chat, "A bar"));
+        assertTrue(ChatEdits.changeScene(chat, " "));
 
         assertNull(chat.getScene());
-        assertEquals("An online chat", chat.getMessages().getLast().getText());
+        assertEquals(1, chat.getMessages().size());
+    }
+
+    @Test
+    void aSceneLineFromAnOlderVersionIsStillRead() {
+        BetaChat chat = group();
+        chat.getMessages().add(BetaMessage.user("Hi"));
+        chat.getMessages().add(turn("Athena"));
+        BetaMessage line = BetaMessage.user("A rainy bar.");
+        line.setKind(MessageKind.SCENE);
+        chat.getMessages().add(line);
+        chat.getMessages().add(BetaMessage.user("Now?"));
+
+        var messages = PromptBuilder.build(chat, "P", new Options(true, 0, 0, null)).messages();
+
+        assertTrue(messages.getLast().getContent().startsWith("[The scene is now: A rainy bar.]\n\nNow?"));
     }
 
     @Test

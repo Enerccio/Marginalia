@@ -31,6 +31,9 @@ public class BetaChat {
 
     private List<ChatPersona> personas = new ArrayList<>();
 
+    /** What the personas call the user and what their messages show instead of "You"; empty for none. */
+    private String userName = "";
+
     /** The scene of this chat; null: the inherited one. */
     private String scene;
     /** The id of the medium of this chat; null: the inherited one. */
@@ -59,6 +62,7 @@ public class BetaChat {
     public BetaChat preview(BetaMessage extra) {
         BetaChat view = new BetaChat(title, kind);
         view.format = format;
+        view.userName = userName;
         view.personas = personas;
         view.messages = new CopyOnWriteArrayList<>(messages);
         view.messages.add(extra);
@@ -178,6 +182,14 @@ public class BetaChat {
         this.personas = personas;
     }
 
+    public String getUserName() {
+        return userName;
+    }
+
+    public void setUserName(String userName) {
+        this.userName = userName == null ? "" : userName.strip();
+    }
+
     public String getScene() {
         return scene;
     }
@@ -233,6 +245,7 @@ public class BetaChat {
         kind = kind == null ? ChatKind.GROUP : kind;
         format = format == null ? ReplyFormat.AUTO : format;
         maxMessages = Math.max(0, maxMessages);
+        userName = userName == null ? "" : userName.strip();
         personas = personas == null ? new ArrayList<>() : personas;
         messages = messages == null ? new CopyOnWriteArrayList<>() : new CopyOnWriteArrayList<>(messages);
         messages.forEach(BetaMessage::normalize);

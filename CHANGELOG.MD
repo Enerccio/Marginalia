@@ -7,6 +7,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+- **Beta Readers: your name in a chat.** The new option **Your name** (the window of a new chat and *Chat settings*) names you in a chat: your messages show it instead of *You*, and the system prompt tells the model what the author is called, so the personas address you by it. Stored with the chat (`BetaChat.userName`); a chat without a name is as before. New texts in all languages.
+
+### Changed
+
+- **Beta Readers: the spoiler controls are under the text box.** *Last part* and *First part* (the spoiler limit and *Start from part*) are number fields with step buttons next to *Include the latest parts*, saved as soon as they are changed, and the box is ticked when the change makes parts new, so reading a manuscript on part by part is a click and *Ctrl+Enter*. They are no longer in *Chat settings* (the window of a new chat still has them).
+- **Beta Readers: no refresh button.** The panel looks at the story by itself: the plugin hooks `renderStoryContent` of the story (`ManuscriptStoryPart`, `PhoneManuscriptStoryPart`), which runs after every change of it, so a part that was added, edited or deleted, or another branch, updates the number of new parts at once (and ticks the box when the number changed). The button *Check for new parts* is gone.
+- **Beta Readers: a new scene leaves no line.** Changing the scene in *Chat settings* only changes the system prompt from the next request on; it no longer adds the line *The scene is now: ...* to the history. What happens in the story from now on is sent with *Send as scene*. Lines made by earlier versions are still shown and read.
+- **Shorter header of the book list.** The nine controls of the header of **Books** are four: **Search**, a **Manage** menu (*Organise*, *Tag books*, *Statistics* and, below a line, the *Mass changes* sub menu with its four items), an **Import** menu (*Import from archive*, *Import from SillyTavern*) and the buttons **New folder** and **Add book**; the header no longer wraps in a narrow panel. The phone list is unchanged. Plugin API (`ManuscriptPart.create`, `@PublicAPI` from 1.7.0): the locals `organiseButton`, `statisticsButton`, `importArchiveButton`, `importSillyTavernButton` and `massChangesBar` are gone, replaced by `manageBar`, `manageItem`, `importBar` and `importItem` (`massChangesItem` stays, now inside `manageItem`); the private field `tagBooksButton` is removed. New text `LABEL_MANAGE` (English, Japanese, Chinese).
+
+### Fixed
+
+- **Beta Readers: the reasoning of a reply that is being written can be opened.** The reply was redrawn every 100 ms and took the section of the reasoning with it, so the click that opened it was lost; the section is kept and only its text changes.
+
 ## [1.6.0] - 2026-11-01
 
 Everything below is new since 1.5.0. Migrations `V21`, `V22` and `V23` (and the application migrations 6 → 7, 7 → 8 and 8 → 9, which rebuild the version history and the statistics of existing books at the first start); plugins have to be rebuilt with the application.

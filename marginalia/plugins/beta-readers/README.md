@@ -39,9 +39,14 @@ note for the group) or **Send away** one; the history keeps a line for each. **U
 of a persona into the chat's copy. **Chat settings** changes the medium, model, protocol and reply format of a chat; a changed medium leaves a
 line in the history.
 
-**How much of the story the personas read** is set per chat (when it is started and in *Chat settings*): **Personas read up to part** (the spoiler
-limit), **Start from part** and **Use the summaries of the story** (the first message sends the summaries and then the parts after the newest
-of them, as far as they fit the context). A line under the text box says which parts the personas have read.
+**How much of the story the personas read** is set per chat: **Last part** (the spoiler limit) and **First part** are number fields under the text
+box, saved as they are changed (the window of a new chat has them too), and **Use the summaries of the story** is in the window of a new chat and in
+*Chat settings* (the first message sends the summaries and then the parts after the newest of them, as far as they fit the context). A line under
+the text box says which parts the personas have read. The box **Include the latest parts** follows the story by itself: the plugin decorates
+`renderStoryContent`, which runs after every change of the story, and the open chat counts the new parts again.
+
+**Your name** (an option of a chat) is what the personas call you and what your messages show instead of *You*. A new scene (an option of a chat)
+changes the system prompt only; the story moves on with **Send as scene**.
 
 ## How it works
 

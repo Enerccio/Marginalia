@@ -946,6 +946,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_IMAGE_POSITION, "在部分中的位置");
         setValue(L.LABEL_IMAGE_WRAP, "文字环绕图片");
         setValue(L.LABEL_IMAGE_WIDTH, "宽度（占文字宽度的百分比）");
+        setValue(L.LABEL_MANAGE, "管理");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");

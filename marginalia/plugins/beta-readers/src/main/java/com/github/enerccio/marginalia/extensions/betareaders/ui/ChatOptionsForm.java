@@ -11,6 +11,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.TextArea;
+import com.vaadin.flow.component.textfield.TextField;
 
 import java.util.List;
 
@@ -37,6 +38,7 @@ public class ChatOptionsForm extends VerticalLayout {
         }
     }
 
+    final TextField userName = new TextField(T.localized(YOUR_NAME));
     final ComboBox<Medium> medium = new ComboBox<>(T.localized(MEDIUM));
     final TextArea scene = new TextArea(T.localized(SCENE));
     final ComboBox<Choice> ai = new ComboBox<>(T.localized(MODEL));
@@ -48,10 +50,17 @@ public class ChatOptionsForm extends VerticalLayout {
     final Checkbox summaries = new Checkbox(T.localized(USE_THE_SUMMARIES));
 
     private final Inherited inherited;
+    /** Whether the form has the first and the last part the personas read (the chat panel has them under the box to write in). */
+    private boolean partRange = true;
 
     public ChatOptionsForm(List<Medium> mediums, List<Choice> ais, List<Choice> protocols, Inherited inherited) {
         this.inherited = inherited;
         setPadding(false);
+
+        userName.setWidthFull();
+        userName.setMaxLength(60);
+        userName.setClearButtonVisible(true);
+        userName.setHelperText(T.localized(EMPTY_NOT_NAMED));
 
         medium.setItems(mediums);
         medium.setItemLabelGenerator(Medium::getName);
@@ -96,7 +105,18 @@ public class ChatOptionsForm extends VerticalLayout {
                 : T.localized(AUTOMATIC)));
         maxMessages.setHelperText(T.localized(EMPTY_INHERITED_THE_MOST_MESSAGES));
 
-        add(spoilerLimit, fromPart, summaries, maxMessages, medium, scene, ai, protocol, format);
+        add(userName, spoilerLimit, fromPart, summaries, maxMessages, medium, scene, ai, protocol, format);
+    }
+
+    /**
+     * Leaves the first and the last part the personas read out of the form: a chat that exists has them in its panel, where they
+     * are changed as the story is read on, and the form neither shows nor changes them.
+     */
+    public ChatOptionsForm withoutPartRange() {
+        partRange = false;
+        spoilerLimit.setVisible(false);
+        fromPart.setVisible(false);
+        return this;
     }
 
     /**
@@ -109,7 +129,7 @@ public class ChatOptionsForm extends VerticalLayout {
         if (most != null && (most < 1 || most > BetaReadersDefaults.MAX_MESSAGES_LIMIT)) {
             return T.localized(THE_MOST_MESSAGES_MUST_BE).formatted(BetaReadersDefaults.MAX_MESSAGES_LIMIT);
         }
-        if (first != null && last != null && first > last) {
+        if (partRange && first != null && last != null && first > last) {
             return T.localized(THE_FIRST_PART_CANT_COME);
         }
         return null;
@@ -142,6 +162,7 @@ public class ChatOptionsForm extends VerticalLayout {
     public void load(BetaChat chat) {
         medium.setValue(medium.getListDataView().getItems().filter(item -> item.getId().equals(chat.getMedium())).findFirst().orElse(null));
         scene.setValue(chat.getScene() == null ? "" : chat.getScene());
+        userName.setValue(chat.getUserName());
         ai.setValue(ai.getListDataView().getItems().filter(item -> item.id().equals(chat.getAi())).findFirst().orElse(null));
         protocol.setValue(protocol.getListDataView().getItems().filter(item -> item.id().equals(chat.getProtocol())).findFirst().orElse(null));
         format.setValue(chat.getFormat());
@@ -165,11 +186,14 @@ public class ChatOptionsForm extends VerticalLayout {
      * Puts the choices into the chat but the medium and the scene.
      */
     public void applyExceptHistoryLines(BetaChat chat) {
+        chat.setUserName(userName.getValue());
         chat.setAi(aiId());
         chat.setProtocol(protocolId());
         chat.setFormat(replyFormat());
-        chat.setSpoilerLimit(spoilerLimit.getValue() == null ? 0 : spoilerLimit.getValue());
-        chat.setFromPart(fromPart.getValue() == null ? 0 : fromPart.getValue());
+        if (partRange) {
+            chat.setSpoilerLimit(spoilerLimit.getValue() == null ? 0 : spoilerLimit.getValue());
+            chat.setFromPart(fromPart.getValue() == null ? 0 : fromPart.getValue());
+        }
         chat.setSummaries(summaries.getValue());
         chat.setMaxMessages(maxMessages.getValue() == null ? 0 : maxMessages.getValue());
     }

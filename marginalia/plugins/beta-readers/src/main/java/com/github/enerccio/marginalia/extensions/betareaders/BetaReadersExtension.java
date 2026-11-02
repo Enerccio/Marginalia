@@ -83,7 +83,12 @@ public class BetaReadersExtension implements MarginaliaExtension, ExtensionHasCs
                 public void onMethodLeave(Object instrumented, ExtendableMethodContext context, Throwable throwing) throws Exception {
                     TabDock leftBar = context.getReflectiveFieldValue(instrumented, "leftBar", TabDock.class);
                     Manuscript book = context.getReflectiveFieldValue(instrumented, "currentManuscript", Manuscript.class);
-                    if (leftBar == null || book == null || ComponentUtil.getData(leftBar, VIEW_KEY) != null) {
+                    if (leftBar == null || book == null) {
+                        return;
+                    }
+                    if (ComponentUtil.getData(leftBar, VIEW_KEY) instanceof BetaReadersView existing) {
+                        // the story is drawn again after every change of it (a part added, edited or deleted, another branch)
+                        existing.storyChanged();
                         return;
                     }
                     BetaReadersView view = new BetaReadersView(book, service);

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846887766642">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846936667734">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846887766642" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846936667734" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846887766642" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846936667734" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846887766642" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846936667734" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -227,10 +227,11 @@ the list is sorted by all of them in order.</p>
 </ul>
 <p>The refresh button at the end of the filter row reloads the list.</p>
 <p>Each row has buttons: the star makes the book a <a href="../folders/#favorites">favorite</a>, the pen opens it, <strong>Move to folder</strong> puts it
-into a <a href="../folders/">folder</a>, the clone button makes a copy of it and the trash button deletes it. The header has <strong>New folder</strong>
-and <strong>Organise</strong> (the window to <a href="../folders/#organise">move and copy</a> books and folders), and the <strong>Mass changes</strong> menu.</p>
+into a <a href="../folders/">folder</a>, the clone button makes a copy of it and the trash button deletes it. The header has <strong>New folder</strong>,
+the <strong>Manage</strong> menu (<strong>Organise</strong>, the window to <a href="../folders/#organise">move and copy</a> books and folders, <strong>Tag books</strong>,
+<strong>Statistics</strong> and the <strong>Mass changes</strong> sub menu) and the <strong>Import</strong> menu (<strong>Import from archive</strong>, <strong>Import from SillyTavern</strong>).</p>
 <h3 id="advanced-search">Advanced search</h3>
-<p><strong>Search</strong> (next to <strong>Tag books</strong>; the magnifier in the header on a phone) opens a window that finds books by more than
+<p><strong>Search</strong> (in the header, next to <strong>Manage</strong>; the magnifier in the header on a phone) opens a window that finds books by more than
 the filter row can. Fill in what you want to check, leave the rest empty, and press <strong>Search</strong> (or Enter in a text field):</p>
 <retype-table copy-text="| Field | Finds books... |
 | ----- | -------------- |
@@ -320,7 +321,7 @@ are.</p>
 <p>The clone is not published, even if the original is. The original is not changed. It is put into the same
 <a href="../folders/">folder</a> as the original.</p>
 <h3 id="tagging-many-books-at-once">Tagging many books at once</h3>
-<p><strong>Tag books</strong> (next to <strong>Add Book</strong>) opens a window that puts one tag on many books, or takes it off them, without opening
+<p><strong>Tag books</strong> (in the <strong>Manage</strong> menu of the header) opens a window that puts one tag on many books, or takes it off them, without opening
 each. Pick the <strong>Tag</strong> (or type a new one and press Enter) and the list shows every book with its tags; the books that have
 the picked tag come first and show it highlighted. Each row has a <strong>+</strong> button that applies the tag to that book and a
 <strong>-</strong> button that removes it. To do the same for several books, tick their check boxes (the box in the header ticks all)
@@ -332,7 +333,7 @@ grayed out: it is locked, so it can not be ticked or changed until the run is pa
     <figcaption class="caption">Tagging books</figcaption>
 </figure>
 <h3 id="changing-the-model-and-protocol-of-many-books">Changing the model and protocol of many books</h3>
-<p>The <strong>Mass changes</strong> menu (next to <strong>Tag books</strong>) has the item <strong>Mass Change Model/Protocol</strong>. It opens a window that puts one
+<p>The <strong>Mass changes</strong> sub menu of the <strong>Manage</strong> menu has the item <strong>Mass Change Model/Protocol</strong>. It opens a window that puts one
 <strong>Model</strong> and/or one <strong>Protocol</strong> on many books without opening each. Leave a box empty (it shows <em>Do not replace</em>) and that
 part of the books stays as it is: pick only a model to change the models and keep the protocols. The table lists the books of
 the current <a href="../folders/">folder</a> by name with the model and protocol they have now; <strong>Include subfolders</strong> adds the books
@@ -407,16 +408,15 @@ changes.</p>
 from SillyTavern. It opens right away. It starts with your <strong>Default Model</strong> and <strong>Default Protocol</strong> from the <em>Settings</em> tab
 (see <a href="../../account/">Account &amp; settings</a>), if you have set them; otherwise select them on the <em>About</em> tab before
 generating.</p>
-<p>To start a book from a folder of text files, use the <strong>import</strong> button (file icon, <em>Import from archive</em>) next to
-<strong>Add Book</strong>: upload a <code translate="no" v-pre>.zip</code> of <code translate="no" v-pre>.md</code> files and the new book, named after the archive, gets a part for each file, see
+<p>To start a book from a folder of text files, use <strong>Import → Import from archive</strong> in the header of the list: upload a <code translate="no" v-pre>.zip</code> of <code translate="no" v-pre>.md</code> files and the new book, named after the archive, gets a part for each file, see
 <a href="../story-editor/#importing-text-files">Importing text files</a>.</p>
 <figure class="content-center">
     <img src="../../../images/archive-upload.png" alt="Importing a zip of text files as a new book" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="450" height="350" />
     <figcaption class="caption">Importing a zip of text files as a new book</figcaption>
 </figure>
 <h3 id="importing-from-sillytavern">Importing from SillyTavern</h3>
-<p>To continue a roleplay or story you started in <a href="https://github.com/SillyTavern/SillyTavern">SillyTavern</a>, use the
-<strong>import</strong> button with the speech bubbles (<em>Import from SillyTavern</em>) next to <strong>Add Book</strong>. In SillyTavern, export the chat
+<p>To continue a roleplay or story you started in <a href="https://github.com/SillyTavern/SillyTavern">SillyTavern</a>, use
+<strong>Import → Import from SillyTavern</strong> in the header of the list. In SillyTavern, export the chat
 (<em>Manage chat files</em>, or take the <code translate="no" v-pre>.jsonl</code> files from <code translate="no" v-pre>data/&lt;user&gt;/chats/&lt;character&gt;/</code>), then:</p>
 <ol>
 <li>
@@ -578,7 +578,7 @@ where they are.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (27259f2e8).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (4fe7369cc).</p></div>
             </footer>
         </div>
     </div>

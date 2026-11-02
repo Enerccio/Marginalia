@@ -938,6 +938,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_IMAGE_POSITION, "Position in the part");
         setValue(L.LABEL_IMAGE_WRAP, "Text flows around the image");
         setValue(L.LABEL_IMAGE_WIDTH, "Width (% of the text)");
+        setValue(L.LABEL_MANAGE, "Manage");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
