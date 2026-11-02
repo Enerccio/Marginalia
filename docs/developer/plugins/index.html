@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846962546787">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846962683821">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846962546787" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846962683821" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846962546787" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846962683821" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846962546787" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846962683821" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846962683821" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -284,7 +285,7 @@ ones that ask for classes, methods, arguments, locals or fields that don&#x27;t 
     </div>
 </div>
 <h2 id="the-bundled-plugins">The bundled plugins</h2>
-<p>The twenty plugins in <code translate="no" v-pre>marginalia/plugins/</code> are complete, working examples. Each is a separate Maven project.</p>
+<p>The twenty-two plugins in <code translate="no" v-pre>marginalia/plugins/</code> are complete, working examples. Each is a separate Maven project.</p>
 <retype-table copy-text="| Plugin | What it adds | Shows how to |
 |---|---|---|
 | [Anthropic Claude](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/anthropic) | Anthropic's Claude models as an inference provider, over the Anthropic Java SDK. | Add a provider (`ExtensionAIFactory`) the same way as the Google plugin, with thinking blocks that must travel with the calls and a stream that is cancelled by closing it. |
@@ -296,7 +297,7 @@ ones that ask for classes, methods, arguments, locals or fields that don&#x27;t 
 | [Gemma 4 tools fix](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/gemma4toolsfix) | Sends the results of function calls to Gemma 4 models with the role `tool_responses`. | Change how a service talks to the model without UI code: register an `InferenceServices.ToolRoleResolver` on load, remove it on unload. |
 | [Google Gemini](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/google-genai) | Google's Gemini models as an inference provider, over the Google Gen AI Java SDK. | Add a provider (`ExtensionAIFactory`), embed a library only the plugin needs, stream with cancellation, call functions. |
 | [Image Generator](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/image-generator) | Makes an image for a part of the story: the model writes the prompt, a backend (ComfyUI workflow, OpenAI-style images API) draws it, the user rerolls and accepts it. | Add an item to the menu of a part (`StoryMenuItem.card`), a settings panel on `UserPart`, a dialog that streams from the model and works in a thread of its own, store images with `ResourceService`, call HTTP servers around the work (hooks), keep a secret with `protectSecret`. |
-| [Prompt Inspector](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/prompt-inspector) | Shows the prompt of a generation and asks before it is sent to the model. | Add a check box item to the settings menu, keep a per-user switch in the attributes of the user settings, listen to `BEFORE_INFERENCE` and ask the user from the listener (`GenerationControllerEvent.askQuestion`). |
+| [Prompt Inspector](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/prompt-inspector) | Shows the prompt of a generation and asks before it is sent to the model. | Add a check box item to the settings menu, keep a per-user switch in the attributes of the user settings, listen to `BEFORE_INFERENCE` and ask the user from the listener: open a dialog on the user's page with `GenerationControllerEvent.accessUI` while the generation waits ([below](#asking-the-user-in-the-middle-of-a-generation)). |
 | [Instruction Exporter](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/instructionexporter) | Copies the instructions, scene settings and characters of the active branch to the clipboard, from the story settings menu. | Add an item to the settings menu of the story editor, read the story through a service, write to the clipboard. |
 | [Book Description Generator](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/book-description-generator) | Writes the name and the description of a book with the model from a range of its story, notes first when the range is longer than the context. | Add a button to the About tab of the book window (desktop and phone) and copy the result into its fields; register two [inherited settings](inherited-settings.md) (the prompts); run several requests in a row on a worker thread (`InRequestScope`) and read a JSON or Markdown answer; use the summaries of the story (`SummaryService.collectBlocks`). |
 | [Lore Generator](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/lore-generator) | Writes a lorebook entry with the model from the existing lore: a generation, then a compaction, optional attachments. | Add a column to a grid, open a dialog that streams from the model (with `LLMAttachment`s), keep prompts in the user settings, give the model the functions of another extension ([a direct call](ipc.md#calling-another-extension-directly)), let the user choose the model with `ModelProtocolPicker`. |
@@ -367,7 +368,7 @@ ones that ask for classes, methods, arguments, locals or fields that don&#x27;t 
 <tr>
 <td><a href="https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/prompt-inspector">Prompt Inspector</a></td>
 <td>Shows the prompt of a generation and asks before it is sent to the model.</td>
-<td>Add a check box item to the settings menu, keep a per-user switch in the attributes of the user settings, listen to <code translate="no" v-pre>BEFORE_INFERENCE</code> and ask the user from the listener (<code translate="no" v-pre>GenerationControllerEvent.askQuestion</code>).</td>
+<td>Add a check box item to the settings menu, keep a per-user switch in the attributes of the user settings, listen to <code translate="no" v-pre>BEFORE_INFERENCE</code> and ask the user from the listener: open a dialog on the user&#x27;s page with <code translate="no" v-pre>GenerationControllerEvent.accessUI</code> while the generation waits (<doc-anchor-trigger to="#asking-the-user-in-the-middle-of-a-generation">below</doc-anchor-trigger>).</td>
 </tr>
 <tr>
 <td><a href="https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/instructionexporter">Instruction Exporter</a></td>
@@ -434,6 +435,107 @@ ones that ask for classes, methods, arguments, locals or fields that don&#x27;t 
 </div>
 </retype-table>
 <p>Users install them as described in <a href="../../user/administration/extensions/">Managing extensions</a>.</p>
+<h2 id="asking-the-user-in-the-middle-of-a-generation">Asking the user in the middle of a generation</h2>
+<p>A generation listener can stop the generation and show the user a dialog, and the generation goes on, or ends, by what the
+user answers. The bundled <a href="https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/prompt-inspector">Prompt Inspector</a>
+does exactly this: with its check box on, every generation of the user stops just before the request with a dialog that
+shows the messages about to be sent, and <em>Send</em> sends them while <em>Cancel</em> ends the generation. Three things make it work:</p>
+<ul>
+<li>
+<p><strong>The chain waits for you.</strong> A listener gets <code translate="no" v-pre>(event, chain)</code> and the generation does not go on until it calls
+<code translate="no" v-pre>chain.next()</code>. Nothing blocks a thread while it waits, so a listener can start something, return, and call <code translate="no" v-pre>chain.next()</code>
+later from wherever the answer arrives. It must call it exactly once.</p>
+</li>
+<li>
+<p><strong><code translate="no" v-pre>event.accessUI(action)</code> runs the action on the user&#x27;s page.</strong> The generation runs on a worker thread; <code translate="no" v-pre>accessUI</code> is
+the way back to the UI that started it (<code translate="no" v-pre>ui.access</code> and a push), and the <code translate="no" v-pre>UI</code> it hands over is the one to open the dialog on.
+It returns <code translate="no" v-pre>false</code>, and never runs the action, when the generation has no UI (an agent or a command started it): then
+nobody can be asked and the listener goes on at once.</p>
+</li>
+<li>
+<p><strong>Stopping is cancelling the token.</strong> <code translate="no" v-pre>event.getCancellationToken().cancel()</code> and then <code translate="no" v-pre>chain.next()</code>: the generation
+jumps to its cleanup, the request is not sent and the part started for it is removed.</p>
+</li>
+</ul>
+<p>Listeners are global (the generations of all users come through them), so the first thing the listener does is look
+whether <em>this</em> user wants to be asked - the Prompt Inspector keeps a boolean in the attributes of the user settings and
+reads it with <code translate="no" v-pre>settingService.find(UserSetting.class, currentUser)</code>, which works on the generation&#x27;s thread. The listener,
+trimmed:</p>
+<div id="asking-the-user-in-the-middle-of-a-generation-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-java"><code v-pre class="language-java">// onExtensionLoad / onExtensionUnload
+inferenceRegistration = storyGenerationService.addEventListener(Events.BEFORE_INFERENCE, this::inspect);
+inferenceRegistration.unregister();
+
+private void inspect(GenerationControllerEvent event, EventChain chain) {
+    boolean asked = false;
+    try {
+        if (event.getPayload() != null &amp;&amp; isEnabled()) {          // this user switched it on
+            asked = ask(event, chain, format(event.getPayload()));
+        }
+    } catch (Exception e) {
+        log.warn(&quot;Failed to show the prompt: {}&quot;, e.getMessage(), e);   // generate without asking rather than fail
+    } finally {
+        if (!asked) {
+            chain.next();                                         // nobody was asked: go on
+        }
+    }
+}
+
+private boolean ask(GenerationControllerEvent event, EventChain chain, String prompt) {
+    AtomicBoolean answered = new AtomicBoolean();
+    // whatever answers first - Send, Cancel or a stop from elsewhere - lets the generation go on, once
+    Runnable proceed = () -&gt; {
+        if (answered.compareAndSet(false, true)) {
+            chain.next();
+        }
+    };
+    // the generation was stopped from another window while the dialog is open: do not leave it waiting
+    Runnable unsubscribe = event.getCancellationToken().onCancel(proceed);
+    if (answered.get()) {
+        return true;                                              // it was cancelled already: the chain has gone on
+    }
+
+    boolean scheduled = event.accessUI(ui -&gt; {                    // runs on the thread of the user's page
+        new PromptInspectorDialog(prompt,
+                proceed,                                          // Send: the request goes on
+                () -&gt; {                                           // Cancel: stop before the request
+                    event.getCancellationToken().cancel();
+                    proceed.run();
+                }).open();
+    });
+    if (!scheduled) {                                             // an agent or a command: no page to ask
+        unsubscribe.run();
+        return false;
+    }
+    return true;                                                  // the dialog is out, the answer calls chain.next()
+}</code></pre>
+</doc-codeblock></div>
+<p>The dialog is a plain Vaadin <code translate="no" v-pre>Dialog</code> that is given two <code translate="no" v-pre>Runnable</code>s. It is modal and does not close on <em>Esc</em> or a click
+outside, because the generation is waiting for the answer; each button closes it and runs its callback. (The plugin also
+closes the dialog when the generation is stopped from elsewhere, with another <code translate="no" v-pre>event.accessUI</code> in the <code translate="no" v-pre>onCancel</code>
+callback.)</p>
+<p>What to keep in mind when you write one:</p>
+<ul>
+<li>
+<p><strong>Always release the chain.</strong> Every path out of the listener must end in exactly one <code translate="no" v-pre>chain.next()</code>: the <code translate="no" v-pre>finally</code>, the
+answer, the cancellation. Guard it with an <code translate="no" v-pre>AtomicBoolean</code> when several things can answer, and give a generation that
+waits for ever a way out (<code translate="no" v-pre>getCancellationToken().onCancel(...)</code> returns a <code translate="no" v-pre>Runnable</code> that removes the listener again
+when you no longer need it).</p>
+</li>
+<li>
+<p><strong>The action and the dialog run on the thread of the UI, not in the request scope of the generation.</strong> Keep them to
+showing the dialog and reporting the answer; hand the work on through the chain and do it in the listener.</p>
+</li>
+<li>
+<p><strong>Check that someone can see it.</strong> <code translate="no" v-pre>accessUI</code> returning <code translate="no" v-pre>false</code> means no dialog was shown - do not wait. It throws
+<code translate="no" v-pre>UIDetachedException</code> when the user has closed the page: treat it like a failure and go on or cancel.</p>
+</li>
+<li>
+<p><strong>Ask as late as you can.</strong> <code translate="no" v-pre>BEFORE_INFERENCE</code> is the last event before the request, so what the user sees is what
+the model gets after every other extension has changed it.</p>
+</li>
+</ul>
+<p>The other events and what they carry are in <a href="generation-events/#other-things-listeners-can-do">Generation events</a>.</p>
 <h2 id="reading-order">Reading order</h2>
 <ol>
 <li><a href="overview/">Plugin basics</a> - project layout, the activator and the extension, building and loading.</li>
@@ -483,7 +585,7 @@ ones that ask for classes, methods, arguments, locals or fields that don&#x27;t 
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (5ab9b7f9f).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (c6626f1e4).</p></div>
             </footer>
         </div>
     </div>
@@ -512,6 +614,6 @@ ones that ask for classes, methods, arguments, locals or fields that don&#x27;t 
 
     <div id="retype-overlay-target"></div>
 
-        <script data-cfasync="false">window.__DOCS__ = { "title": "Plugin development", level: 2, icon: "file", hasPrism: false, hasInstagram: false, hasMermaid: true, hasMath: false, tocDepth: 23, "md": "/developer/plugins/index.md" }</script>
+        <script data-cfasync="false">window.__DOCS__ = { "title": "Plugin development", level: 2, icon: "file", hasPrism: true, hasInstagram: false, hasMermaid: true, hasMath: false, tocDepth: 23, "md": "/developer/plugins/index.md" }</script>
 </body>
 </html>

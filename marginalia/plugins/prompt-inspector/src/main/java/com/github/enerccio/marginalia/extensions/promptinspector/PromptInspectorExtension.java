@@ -31,7 +31,8 @@ import static com.github.enerccio.marginalia.extensions.promptinspector.PromptIn
 
 /**
  * Shows the prompt of a generation to the user before it is sent to the model, when the user switched that on in the
- * settings menu of the story. The question is the ask callback of the generation ({@code GenerationControllerEvent.askQuestion}).
+ * settings menu of the story. The dialog is opened on the page that started the generation with {@code GenerationControllerEvent.accessUI}, and the
+ * generation waits for the answer (see the plugin development page of the developer manual).
  */
 @Configurable
 public class PromptInspectorExtension implements MarginaliaExtension {
