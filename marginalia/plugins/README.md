@@ -22,6 +22,7 @@ a restart.
 | [Name generator](name-generator/README.md) | Functions for the model to list name categories (about 1270: names of the world, places, deities, drugs...) and generate names from Markov chains; used by the Lore Generator and Arc Outline. |
 | [Name provider](name-provider/README.md) | Functions for the model to list lists of real names (forenames and surnames of about 100 countries) and pick names from them, each as a pair of the romanized and the original name; used by the Lore Generator and Arc Outline. |
 | [Place provider](place-provider/README.md) | Functions and commands to look up real places (Natural Earth, about 18 000 notable ones): a search by name, type and country, the places around a point and the distance of two places. |
+| [Prompt Inspector](prompt-inspector/README.md) | "Inspect prompt before sending" in the story settings menu: shows the prompt of a generation and asks before it is sent to the model. |
 | [Reviewer](reviewer/README.md) | AI-written reviews of a story part, with configurable reviewer profiles. |
 | [Side Query](sidequery/README.md) | A chat panel next to the story for asking the model questions about the book, its lore and recent parts. |
 | [Converter](sillytavern-converter/README.md) | A tab next to the story with a SillyTavern chat to review and the turn details the model prepares from it, to put into the new turn form. |
@@ -49,7 +50,7 @@ mvn -N install                   # in the repository root: installs the parent P
 cd marginalia
 mvn install -DskipTests          # installs the application (and its classes JAR used by plugins)
 
-cd plugins/chaptermarker          # or anthropic, arc-outline, authorsnote, beta-readers, book-description-generator, character-tracker, gemma4toolsfix, google-genai, image-generator, instructionexporter, lore-generator, lorebookvcs, manga-generator, name-generator, name-provider, place-provider, reviewer, sidequery, sillytavern-converter, chineselocalization
+cd plugins/chaptermarker          # or anthropic, arc-outline, authorsnote, beta-readers, book-description-generator, character-tracker, gemma4toolsfix, google-genai, image-generator, instructionexporter, lore-generator, lorebookvcs, manga-generator, name-generator, name-provider, place-provider, prompt-inspector, reviewer, sidequery, sillytavern-converter, chineselocalization
 mvn package                       # target/chaptermarker-1.4.0.jar
 ```
 

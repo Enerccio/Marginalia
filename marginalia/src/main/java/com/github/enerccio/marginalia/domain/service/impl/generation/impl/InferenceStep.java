@@ -31,6 +31,11 @@ public class InferenceStep extends GenerationStepBase {
     @Override
     protected void onStep(GenerationController controller) throws Exception {
         controller.emitEvent(Events.BEFORE_INFERENCE, () -> {
+            if (controller.getCancellationToken().isCancelled()) {
+                // stopped while the listeners of the event ran (one asked the user and the answer was no): nothing is sent
+                controller.jumpTo(GenerationStepType.CLEANUP);
+                return;
+            }
             InferenceService inferenceService = inferenceServices.forAIOrThrow(controller.getAi());
 
             long promptTokens = inferenceService.countTokens(gson.toJson(controller.getPayload()));

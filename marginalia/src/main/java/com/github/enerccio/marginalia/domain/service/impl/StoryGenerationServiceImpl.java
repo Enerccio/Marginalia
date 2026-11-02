@@ -22,6 +22,7 @@ import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes.InRequestScope;
+import com.vaadin.flow.component.UI;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,6 +38,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Consumer;
 
 public class StoryGenerationServiceImpl implements StoryGenerationService, InitializingBean, DisposableBean {
     private static final Logger log = LoggerFactory.getLogger(StoryGenerationServiceImpl.class);
@@ -563,6 +565,11 @@ public class StoryGenerationServiceImpl implements StoryGenerationService, Initi
         @Override
         public Map<String, Object> getProperties() {
             return controller.getProperties();
+        }
+
+        @Override
+        public boolean accessUI(Consumer<UI> action) {
+            return controller.getUIListener().accessUI(action);
         }
 
         @Override
