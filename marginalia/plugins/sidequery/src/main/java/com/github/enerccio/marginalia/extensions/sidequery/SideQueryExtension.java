@@ -83,6 +83,12 @@ public class SideQueryExtension implements MarginaliaExtension, ExtensionHasCss 
                     "com.github.enerccio.marginalia.ui.dialogs.manuscript.ManuscriptStoryPart",
                     "renderStoryContent"
             );
+            // the drawer of the story in the phone dialog has the same left bar
+            extensionService.registerDecorator(
+                    storyPartDecorator,
+                    "com.github.enerccio.marginalia.ui.dialogs.phone.manuscript.PhoneManuscriptStoryPart",
+                    "renderStoryContent"
+            );
 
             // Inject extension settings panel into UserPart settings Accordion
             userPartDecorator = new ExtensionDecorator() {

@@ -34,6 +34,7 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.MultiSelectComboBox;
+import com.vaadin.flow.component.contextmenu.ContextMenu;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Span;
@@ -121,6 +122,8 @@ public class PhoneManuscriptPart implements ManuscriptSection {
                     @APILocals(name = "importArchiveButton", type = Button.class),
                     @APILocals(name = "importSillyTavernButton", type = Button.class),
                     @APILocals(name = "statisticsButton", type = Button.class),
+                    @APILocals(name = "newFolderButton", type = Button.class),
+                    @APILocals(name = "manageButton", type = Button.class),
                     @APILocals(name = "headerLayout", type = HorizontalLayout.class),
                     @APILocals(name = "navigationLayout", type = VerticalLayout.class),
                     @APILocals(name = "filtersLayout", type = VerticalLayout.class),
@@ -152,8 +155,16 @@ public class PhoneManuscriptPart implements ManuscriptSection {
         Button statisticsButton = new Button(Solid.CHART_LINE.create(), event -> openStatisticsDialog());
         statisticsButton.setTooltipText(loc.getValue(L.LABEL_STATISTICS));
 
-        HorizontalLayout headerLayout = new HorizontalLayout(addBookButton, searchButton, statisticsButton, importArchiveButton, importSillyTavernButton, refreshButton);
+        // folders are made here and the windows that work on many books are in a menu, as on the desktop
+        Button newFolderButton = new Button(Solid.FOLDER_PLUS.create(), event -> new FolderActions().create(currentFolder, _ -> refreshGrid()));
+        newFolderButton.setTooltipText(loc.getValue(L.LABEL_NEW_FOLDER));
+        Button manageButton = new Button(Solid.ELLIPSIS_V.create());
+        manageButton.setAriaLabel(loc.getValue(L.LABEL_MANAGE));
+        createManageMenu(manageButton);
+
+        HorizontalLayout headerLayout = new HorizontalLayout(addBookButton, newFolderButton, searchButton, statisticsButton, importArchiveButton, importSillyTavernButton, refreshButton, manageButton);
         headerLayout.setWidthFull();
+        headerLayout.addClassName(CssStyles.FLEX_WRAP);
         headerLayout.setAlignItems(FlexComponent.Alignment.CENTER);
         headerLayout.setFlexGrow(1, addBookButton);
 
@@ -403,7 +414,10 @@ public class PhoneManuscriptPart implements ManuscriptSection {
                     @APILocals(name = "booksSpan", type = Span.class),
                     @APILocals(name = "tagsText", type = String.class),
                     @APILocals(name = "tagsSpan", type = Span.class),
-                    @APILocals(name = "pathSpan", type = Span.class)})
+                    @APILocals(name = "pathSpan", type = Span.class),
+                    @APILocals(name = "toolsButton", type = Button.class),
+                    @APILocals(name = "tools", type = ContextMenu.class),
+                    @APILocals(name = "line", type = HorizontalLayout.class)})
     private Component createFolderItem(FolderBookRow row) {
         VerticalLayout textLayout = new VerticalLayout();
         textLayout.setPadding(false);
@@ -444,7 +458,27 @@ public class PhoneManuscriptPart implements ManuscriptSection {
                 openFolder(row.getFolder());
             }
         });
-        return textLayout;
+        if (!row.isFolder()) {
+            return textLayout;
+        }
+
+        // a folder is renamed, set up and deleted from its menu
+        Button toolsButton = new Button(Solid.ELLIPSIS_V.create());
+        toolsButton.setThemeName("tertiary");
+        toolsButton.addClassName(CssStyles.FLEX_SHRINK_0);
+        toolsButton.setAriaLabel(loc.getValue(L.LABEL_FOLDER_SETTINGS));
+        ContextMenu tools = new ContextMenu();
+        tools.setTarget(toolsButton);
+        tools.setOpenOnClick(true);
+        tools.addItem(loc.getValue(L.LABEL_RENAME), _ -> new FolderActions().rename(row.getFolder(), _ -> refreshGrid()));
+        tools.addItem(loc.getValue(L.LABEL_FOLDER_SETTINGS), _ -> new FolderDialog(row.getFolder(), _ -> refreshGrid()).show());
+        tools.addItem(loc.getValue(L.LABEL_DELETE_FOLDER), _ -> new FolderActions().delete(row.getFolder(), this::refreshGrid));
+        HorizontalLayout line = new HorizontalLayout(textLayout, toolsButton);
+        line.setWidthFull();
+        line.setPadding(false);
+        line.setAlignItems(FlexComponent.Alignment.START);
+        line.setFlexGrow(1, textLayout);
+        return line;
     }
 
     /**
@@ -595,6 +629,80 @@ public class PhoneManuscriptPart implements ManuscriptSection {
             if (!new AgentLockCheck().refuses(manuscript)) {
                 openManuscript(manuscript);
             }
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+    }
+
+
+    /**
+     * The menu of the windows that work on many books or folders: Organise, tags, the mass changes. The mass changes work on
+     * the books of the folder the list is on.
+     */
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "target", type = Button.class)},
+            locals = {@APILocals(name = "menu", type = ContextMenu.class)})
+    private void createManageMenu(Button target) {
+        ContextMenu menu = new ContextMenu();
+        menu.setTarget(target);
+        menu.setOpenOnClick(true);
+        menu.addItem(loc.getValue(L.LABEL_ORGANISE), _ -> openOrganiseDialog());
+        menu.addItem(loc.getValue(L.LABEL_TAG_BOOKS), _ -> openTagDialog(MultiTagDialog.Kind.BOOKS));
+        menu.addItem(loc.getValue(L.LABEL_TAG_FOLDERS), _ -> openTagDialog(MultiTagDialog.Kind.FOLDERS));
+        menu.addItem(loc.getValue(L.LABEL_MASS_CHANGE_MODEL_PROTOCOL), _ -> {
+            MassChangeModelProtocolDialog dialog = new MassChangeModelProtocolDialog(this::refreshGrid, currentFolder);
+            dialog.create();
+            dialog.open();
+        });
+        menu.addItem(loc.getValue(L.LABEL_MASS_CHANGE_LANGUAGE), _ -> {
+            MassChangeLanguageDialog dialog = new MassChangeLanguageDialog(this::refreshGrid, currentFolder);
+            dialog.create();
+            dialog.open();
+        });
+        menu.addItem(loc.getValue(L.LABEL_MASS_RENAME), _ -> {
+            MassRenameDialog dialog = new MassRenameDialog(this::refreshGrid, currentFolder);
+            dialog.create();
+            dialog.open();
+        });
+    }
+
+    /**
+     * Opens the dialog that puts a tag on many books, or on the folders of the current folder; the list shows the new tags
+     * when it is closed.
+     */
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "kind", type = MultiTagDialog.Kind.class)},
+            locals = {@APILocals(name = "dialog", type = MultiTagDialog.class)})
+    private void openTagDialog(MultiTagDialog.Kind kind) {
+        MultiTagDialog dialog = new MultiTagDialog(kind, this::refreshGrid, currentFolder);
+        dialog.create();
+        dialog.open();
+    }
+
+    /**
+     * Opens the Organise window (two panes of folders, to move, copy and delete): the left pane on the current folder, the
+     * right one on the folder above it. The list is read again when it is closed.
+     */
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "target", type = Folder.class),
+                    @APILocals(name = "dialog", type = OrganiseDialog.class),
+                    @APILocals(name = "e", type = Exception.class)})
+    private void openOrganiseDialog() {
+        try {
+            Folder target = currentFolder == null ? null : folderService.find(currentFolder.getId()).getParent();
+            OrganiseDialog dialog = new OrganiseDialog(currentFolder, target);
+            dialog.setOnShowInList(this::openFolder);
+            dialog.addOpenedChangeListener(event -> {
+                if (!event.isOpened()) {
+                    refreshGrid();
+                    notifyStateChanged();
+                }
+            });
+            dialog.create();
+            dialog.open();
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }

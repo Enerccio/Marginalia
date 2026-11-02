@@ -1040,10 +1040,11 @@ public class UserPart implements WorkspaceComponent {
                     @APILocals(name = "uploaded", type = AtomicReference.class),
                     @APILocals(name = "upload", type = Upload.class),
                     @APILocals(name = "cancelBtn", type = Button.class)})
-    private void openImportBackupAsNewDialog() {
+    protected void openImportBackupAsNewDialog() {
         Dialog dialog = new Dialog();
         dialog.setHeaderTitle(loc.getValue(L.LABEL_IMPORT_BACKUP_AS_NEW));
         dialog.setWidth("450px");
+        UIUtils.fitPhone(dialog, false);
 
         VerticalLayout layout = new VerticalLayout();
         layout.setPadding(true);

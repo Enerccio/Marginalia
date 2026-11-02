@@ -107,6 +107,7 @@ public class LoreGeneratorDialog extends Dialog {
         setHeaderTitle(T.localized(GENERATE_LORE_ENTRY_S).formatted(StringUtils.defaultString(entry.getName())));
         setWidth("90vw");
         setHeight("90vh");
+        UIUtils.fitPhone(this, true);
         // closing while the inference runs would leave it running without anyone to read it
         setCloseOnEsc(false);
         setCloseOnOutsideClick(false);
@@ -168,6 +169,7 @@ public class LoreGeneratorDialog extends Dialog {
         promptCombo.setAriaLabel(T.localized(GENERATION_PROMPT));
         promptCombo.setAllowCustomValue(false);
         promptCombo.setWidth("320px");
+        promptCombo.setMaxWidth("100%");
         promptCombo.addValueChangeListener(e -> {
             if (e.isFromClient() && e.getValue() != null) {
                 selectPrompt(e.getValue());
@@ -188,6 +190,8 @@ public class LoreGeneratorDialog extends Dialog {
         header.setWidthFull();
         header.setAlignItems(FlexComponent.Alignment.CENTER);
         header.setSpacing(true);
+        // a phone has no room for it all in one line
+        header.setWrap(true);
         header.setFlexGrow(1, promptCombo);
 
         // the text area keeps its place in the dialog and scrolls its own text, it does not grow with the prompt
@@ -219,6 +223,10 @@ public class LoreGeneratorDialog extends Dialog {
         SplitLayout panels = new SplitLayout(left, tabs);
         panels.setSizeFull();
         panels.setSplitterPosition(50);
+        if (UIUtils.isPhone()) {
+            // the prompt above the result, side by side they would be too narrow to read
+            panels.setOrientation(SplitLayout.Orientation.VERTICAL);
+        }
         panels.addClassName(CssStyles.MIN_HEIGHT_0);
 
         // starts with the default model of the user, can be changed for this generation

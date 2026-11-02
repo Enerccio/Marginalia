@@ -159,14 +159,22 @@ in its layout (extension settings panels included) and unlocks on *Save*, *Disca
 (`ExtendedClientDetails.getBodyClientWidth()`). The choice is made once per login: resizing or rotating the device
 does not switch the workspace until the page is reloaded, and a tablet or a phone in landscape gets the desktop one. `PhoneWorkspace` replaces
 the left-hand tab sheet with an `AppLayout`: the parts are listed in a drawer (opened with the toggle in the top bar)
-whose footer holds the language selector, *Change Password* and *Logout*, and the active part fills the screen. **There is no *Admin* button
-and no `AdminPart`** on a phone: the administration (users, database backups, cleanup, extension install) is only
-reachable in the desktop layout. The services still check `AdminGuard.requireAdmin()` themselves. The user manual
-describes this for users in [Using Marginalia on a phone](../user/phone.md). Only the book list, the lorebooks, the settings, the protocols, the models and the trash differ. `PhoneManuscriptPart` renders the book list
+whose footer holds the language selector, *Change Password* and *Logout*, and the active part fills the screen. There is no *Admin* button, the
+administrator gets the **Admin tab** (`PhoneWorkspace.addAdminTab`, only for a user whose `isAdmin()` is true: the part is the desktop
+`AdminPart` made with `new AdminPart(workspace, true)`, whose users and extensions are one card for each entry (`createUserCard`,
+`createExtensionCard`), whose `DatabaseBackupPanel`, `CleanupPanel` and `ResourceGarbagePanel` take the same `phone` flag (cards for the backups, narrower
+columns, the phone trash grid, wrapping toolbars) and whose content has the class `phone-page`: layouts and grids there shrink to the screen).
+The services still check `AdminGuard.requireAdmin()` themselves. The user manual
+describes this for users in [Using Marginalia on a phone](../user/phone.md). The book list, the lorebooks, the settings, the protocols, the models, the resources and the trash differ (`ResourcesPart(workspace, true)` has a card for each resource). `PhoneManuscriptPart` renders the book list
 like the `Viewer` (stacked filters, sort buttons, one column) with the controls of `ManuscriptPart`; both share the
-*Add Book* flow in `NewBookAction`. `PhoneLorebookPart` hosts `PhoneLorebookView`, a reduced `LorebookView`: lorebooks can
-only be selected (no add, delete, import or export, no new entries) and only the enabled flags and the content of an
-entry are editable, every other setting of the lorebook and of an expanded entry is shown as text. `PhoneTrashPart`
+*Add Book* flow in `NewBookAction`. `PhoneLorebookPart` hosts `PhoneLorebookView`, the `LorebookView` in one column with the same abilities (not the *Only root
+lorebooks* box and the selection of many entries): a `ContextMenu` of the **⋮** button (add, clone, delete, import, export, tags, description;
+a pinned view has only export and description), a `Details` with the settings of the lorebook (name, sub lorebooks, tags, scan depth, sharing),
+**Add Entry** and a menu of the mass edit and the entry tags, and an entry opens into the form of `createEntryFields` plus the content and the note, with
+a *Delete entry* button. The lorebook that an agent locks (`lockedBy`) is read only as before: no menus, no settings, the entry settings as text (the desktop
+`LorebookView` shows a `PhoneLorebookView(true)` for it). The plugins that decorate `LorebookView.create` / `createEntryDetailLayout` (Lorebook VCS, Lore Generator) decorate the phone view too.
+`PhoneManuscriptPart` has the folder tools (the `FolderActions` and `FolderDialog` of the desktop, in the **⋮** of a folder row) and a **⋮** header menu of
+*Organise* (`OrganiseDialog` puts its panes one over the other when `UIUtils.isPhone()`), the tags and the mass changes. `PhoneTrashPart`
 hosts `PhoneTrashGrid` (see [Trash](#trash)). `PhoneProtocolPart` and `PhoneAIPart` replace the type, name and
 action columns of their desktop lists with a text column (*Type:* and *Name:* on two lines) and a buttons column.
 `PhoneSettingsPart` extends `UserPart` (so the extension settings panels that decorate `UserPart.refresh`/`save` keep

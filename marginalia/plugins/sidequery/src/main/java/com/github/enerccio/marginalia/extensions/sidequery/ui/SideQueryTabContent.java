@@ -188,10 +188,13 @@ public class SideQueryTabContent extends VerticalLayout {
         storagePanel = new HorizontalLayout();
         storagePanel.setWidthFull();
         storagePanel.setAlignItems(Alignment.CENTER);
+        // the tab is narrow in the drawer of a phone
+        storagePanel.setWrap(true);
 
         savedQueriesCombo = new ComboBox<>();
         savedQueriesCombo.setPlaceholder(T.localized(SELECT_SAVED_QUERY));
         savedQueriesCombo.setWidthFull();
+        savedQueriesCombo.setMinWidth("10em");
         refreshSavedQueriesCombo();
 
         savedQueriesCombo.addValueChangeListener(e -> {
@@ -225,6 +228,7 @@ public class SideQueryTabContent extends VerticalLayout {
 
         HorizontalLayout btnRow = new HorizontalLayout();
         btnRow.setWidthFull();
+        btnRow.setWrap(true);
 
         sendBtn = new Button("SEND", e -> handleSend());
         sendBtn.setThemeName("primary");

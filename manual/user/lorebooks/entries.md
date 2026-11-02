@@ -29,7 +29,7 @@ lorebook, not at the sub lorebooks. The phone layout has the box above the list.
 The checkbox column at the left selects entries (the one in the header selects all that are shown, so a search and then
 the header box selects the matches). When something is selected, **Delete selected** appears in the toolbar with the number
 of the entries; it asks once and then moves them to the [trash](../trash.md). The phone layout does not delete many entries
-at once.
+at once (an entry has its own **Delete entry** button there).
 
 
 ## Search and replace
@@ -63,7 +63,7 @@ The ⌄ button opens the details:
 | **From message** | The entry is used only from the part with this number on, see [Limiting an entry to some parts](#limiting-an-entry-to-some-parts). Empty: from the start. |
 | **To message** | The entry is used only up to the part with this number. Empty: to the end. |
 | **Negative Tags (Exclusion)** | Tags that switch the entry off, see [Tags](#tags). |
-| **Do not search its content for other entries** | When ticked, the words in this entry's content never bring other entries in, see [Entries brought in by other entries](#entries-brought-in-by-other-entries). The phone layout shows it when it is ticked. |
+| **Do not search its content for other entries** | When ticked, the words in this entry's content never bring other entries in, see [Entries brought in by other entries](#entries-brought-in-by-other-entries). |
 | **Note** | Your notes. Not sent to the model. Entries imported from SillyTavern list the settings that couldn't be imported here. |
 
 Write the content as you want the model to read it - a short, factual description works best:

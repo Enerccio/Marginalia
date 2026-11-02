@@ -19,6 +19,7 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridMultiSelectionModel;
+import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
@@ -57,12 +58,19 @@ public class ResourcesPart implements WorkspaceComponent {
     private ResourceService resourceService;
 
     private final Workspace workspace;
+    // the phone layout: one card for each resource (picture, name, details, buttons) next to the check box
+    private final boolean phone;
     private Grid<Resource> grid;
     private Button deleteSelectedButton;
     private MessageImages thumbnails;
 
     public ResourcesPart(Workspace workspace) {
+        this(workspace, false);
+    }
+
+    public ResourcesPart(Workspace workspace, boolean phone) {
         this.workspace = workspace;
+        this.phone = phone;
     }
 
     @PublicAPI(from = "1.1.0",
@@ -91,6 +99,9 @@ public class ResourcesPart implements WorkspaceComponent {
         HorizontalLayout headerLayout = new HorizontalLayout();
         headerLayout.setWidthFull();
         headerLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+        if (phone) {
+            headerLayout.addClassName(CssStyles.FLEX_WRAP);
+        }
 
         Span titleSpan = new Span(loc.getValue(L.LABEL_RESOURCES));
         titleSpan.addClassName(CssStyles.SECTION_TITLE);
@@ -115,6 +126,14 @@ public class ResourcesPart implements WorkspaceComponent {
         // selection survives loading other pages of the lazy table
         grid.setItems(new CallbackDataProvider<Resource, Void>(this::fetch, query -> count(), Resource::getUuid));
         grid.addSelectionListener(event -> deleteSelectedButton.setEnabled(!event.getAllSelectedItems().isEmpty()));
+
+        if (phone) {
+            grid.addThemeVariants(GridVariant.LUMO_WRAP_CELL_CONTENT);
+            grid.addComponentColumn(this::cardOf).setFlexGrow(1);
+            mainLayout.add(headerLayout, grid);
+            mainLayout.setFlexGrow(1, grid);
+            return mainLayout;
+        }
 
         grid.addComponentColumn(resource -> resource.getMimeType() != null && resource.getMimeType().startsWith("image/")
                         ? thumbnails.figure(resource, "", "48px") : new Span())
@@ -141,6 +160,43 @@ public class ResourcesPart implements WorkspaceComponent {
         mainLayout.add(headerLayout, grid);
         mainLayout.setFlexGrow(1, grid);
         return mainLayout;
+    }
+
+    /**
+     * A resource on a phone: the picture (if it is one) and the name with the type, size and date below it, the object it
+     * belongs to, and the buttons in a row under them.
+     */
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = Component.class),
+            parameters = {@APIParameter(name = "resource", type = Resource.class)},
+            locals = {@APILocals(name = "name", type = Span.class),
+                    @APILocals(name = "details", type = Span.class),
+                    @APILocals(name = "texts", type = VerticalLayout.class),
+                    @APILocals(name = "top", type = HorizontalLayout.class),
+                    @APILocals(name = "card", type = VerticalLayout.class)})
+    private Component cardOf(Resource resource) {
+        Span name = new Span(StringUtils.defaultString(resource.getOriginalName()));
+        name.addClassNames(CssStyles.TEXT_SEMIBOLD, CssStyles.WRAP_ANYWHERE);
+        Span details = new Span(StringUtils.defaultString(resource.getMimeType()) + " · "
+                + FileUtils.byteCountToDisplaySize(resource.getSize()) + " · "
+                + loc.getDateHourFormat().format(resource.getCreation()));
+        details.addClassNames(CssStyles.TEXT_SECONDARY, CssStyles.WRAP_ANYWHERE);
+        VerticalLayout texts = new VerticalLayout(name, details, linkOf(resource));
+        texts.setPadding(false);
+        texts.setSpacing(false);
+        texts.addClassName(CssStyles.MIN_WIDTH_0);
+        HorizontalLayout top = new HorizontalLayout();
+        top.setWidthFull();
+        if (resource.getMimeType() != null && resource.getMimeType().startsWith("image/")) {
+            top.add(thumbnails.figure(resource, "", "48px"));
+        }
+        top.add(texts);
+        top.setFlexGrow(1, texts);
+        VerticalLayout card = new VerticalLayout(top, actionsOf(resource));
+        card.setPadding(false);
+        card.setSpacing(false);
+        card.setWidthFull();
+        return card;
     }
 
     @PublicAPI(from = "1.1.0",

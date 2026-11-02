@@ -3,6 +3,9 @@ package com.github.enerccio.marginalia.ui.components;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.collections.ActivationContext;
+import com.github.enerccio.marginalia.domain.model.BaseEntity;
+import com.github.enerccio.marginalia.domain.collections.FilteringMode;
+import com.github.enerccio.marginalia.domain.collections.InsertionMode;
 import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
@@ -15,44 +18,62 @@ import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.Restorable;
 import com.github.enerccio.marginalia.ui.RestorableState;
-import com.github.enerccio.marginalia.ui.dialogs.LorebookActivationPreviewDialog;
+import com.github.enerccio.marginalia.ui.dialogs.*;
 import com.github.enerccio.marginalia.ui.dialogs.search.LorebookSearchReplaceDialog;
-import com.github.enerccio.marginalia.ui.widgets.ResizableTextArea;
-import com.github.enerccio.marginalia.ui.widgets.TemplateHints;
-import com.github.enerccio.marginalia.ui.widgets.TextAreaPopoverComponent;
+import com.github.enerccio.marginalia.ui.widgets.*;
+import com.github.enerccio.marginalia.utils.MarkdownArchive;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.combobox.MultiSelectComboBox;
+import com.vaadin.flow.component.contextmenu.ContextMenu;
+import com.vaadin.flow.component.contextmenu.MenuItem;
+import com.vaadin.flow.component.details.Details;
+import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
+import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.provider.ListDataProvider;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
+import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.data.value.ValueChangeMode;
+import com.vaadin.flow.server.streams.DownloadResponse;
+import com.vaadin.flow.server.streams.InMemoryUploadHandler;
+import com.vaadin.flow.server.streams.InputStreamDownloadCallback;
+import com.vaadin.flow.server.streams.InputStreamDownloadHandler;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * Reduced {@link LorebookView} for phones. Lorebooks can only be selected (no creating, deleting, importing or
- * exporting) and entries cannot be added. The only things that can be changed are the enabled flag of the lorebook
- * and of its entries and the content of an entry; every other setting is shown as plain text.
+ * {@link LorebookView} for phones: the same things can be done, laid out in one column. The lorebook is chosen in a
+ * box, the buttons of the lorebooks (add, clone, delete, import, export, tags, description) are in a menu, its
+ * settings (name, sub lorebooks, tags, scan depth, sharing) are in a section that opens, and an entry opens into a
+ * form with all of its settings. Not here: the check box of root lorebooks only and the selection of many entries to
+ * delete (the entry has a delete button).
  * <p>
  * It is also the view of a lorebook that is locked by an agent (an agent works on a book that uses it): it then says so
- * and changes nothing, and the desktop {@link LorebookView} shows this view for such a lorebook.
+ * and changes nothing (the settings are shown as text, as before the phone could edit them), and the desktop
+ * {@link LorebookView} shows this view for such a lorebook.
  */
 @Configurable
 @Extendable
@@ -93,6 +114,22 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
     private Span lorebookTokensSpan;
     private Grid<LorebookEntry> grid;
 
+    // the lorebook menu and the settings of the lorebook, hidden while an agent locks it
+    private Button lorebookMenuButton;
+    private ContextMenu lorebookMenu;
+    private final List<MenuItem> lorebookMenuItems = new ArrayList<>();
+    private MenuItem deleteLorebookItem;
+    private MenuItem exportItem;
+    private Button addEntryButton;
+    private Button entriesMenuButton;
+    private Details settingsDetails;
+    private TextField lorebookNameField;
+    private MultiSelectComboBox<Lorebook> subLorebooksCombo;
+    private TagMultiComboBox tagMultiComboBox;
+    private IntegerField scanDepthField;
+    private Checkbox lorebookSharedCheckbox;
+    private Span lorebookDescriptionLine;
+
     private List<LorebookEntry> currentEntries = new ArrayList<>();
     private final Map<Long, Long> entryTokens = new HashMap<>();
 
@@ -123,7 +160,8 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
     @PublicAPI(from = "1.1.0",
             returns = @APIReturn(type = Component.class),
             locals = {@APILocals(name = "controlsLayout", type = HorizontalLayout.class),
-                    @APILocals(name = "enabledLayout", type = HorizontalLayout.class)})
+                    @APILocals(name = "enabledLayout", type = HorizontalLayout.class),
+                    @APILocals(name = "entriesLayout", type = HorizontalLayout.class)})
     public Component create() throws Exception {
         setSizeFull();
         setPadding(false);
@@ -150,11 +188,16 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
             }
         });
 
-        HorizontalLayout controlsLayout = new HorizontalLayout(lorebookCombo, refreshButton);
-        controlsLayout.setVisible(!pinnedLorebook);
+        lorebookMenuButton = new Button(Solid.ELLIPSIS_V.create());
+        lorebookMenuButton.setAriaLabel(loc.getValue(L.LABEL_LOREBOOKS));
+        createLorebookMenu();
+
+        HorizontalLayout controlsLayout = new HorizontalLayout(lorebookCombo, lorebookMenuButton, refreshButton);
         controlsLayout.setWidthFull();
         controlsLayout.setAlignItems(FlexComponent.Alignment.END);
         controlsLayout.setFlexGrow(1, lorebookCombo);
+        // a pinned lorebook has no box to choose from, it still has the menu (export, description) and the refresh
+        controlsLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
 
         lorebookEnabledCheckbox = new Checkbox(loc.getValue(L.LABEL_ENABLED));
         lorebookEnabledCheckbox.addValueChangeListener(e -> {
@@ -184,9 +227,24 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
         entrySearchField.setValueChangeMode(ValueChangeMode.LAZY);
         entrySearchField.addValueChangeListener(_ -> applyEntrySearch());
 
+        addEntryButton = new Button(loc.getValue(L.LABEL_ADD_ENTRY), Solid.PLUS_CIRCLE.create(), _ -> createNewEntry());
+        addEntryButton.setThemeName("primary");
+
+        entriesMenuButton = new Button(Solid.ELLIPSIS_V.create());
+        entriesMenuButton.setAriaLabel(loc.getValue(L.LABEL_ENTRIES));
+        createEntriesMenu();
+
         HorizontalLayout enabledLayout = new HorizontalLayout(lorebookEnabledCheckbox, lorebookTokensSpan, searchReplaceButton, previewActivationButton);
         enabledLayout.setWidthFull();
         enabledLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+        enabledLayout.addClassName(CssStyles.FLEX_WRAP);
+
+        HorizontalLayout entriesLayout = new HorizontalLayout(addEntryButton, entriesMenuButton);
+        entriesLayout.setWidthFull();
+        entriesLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+        entriesLayout.setFlexGrow(1, addEntryButton);
+
+        createSettings();
 
         lorebookInfoSpan = new Span();
         lorebookInfoSpan.addClassNames(CssStyles.HINT_TEXT, CssStyles.WHITE_SPACE_NORMAL, CssStyles.WRAP_ANYWHERE);
@@ -196,7 +254,7 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
         lockedSpan = new Span();
         lockedSpan.addClassNames(CssStyles.HINT_TEXT, CssStyles.WHITE_SPACE_NORMAL, CssStyles.WRAP_ANYWHERE);
         lockedSpan.setVisible(false);
-        add(lockedSpan, controlsLayout, enabledLayout, lorebookInfoSpan, entrySearchField, grid);
+        add(lockedSpan, controlsLayout, enabledLayout, settingsDetails, lorebookDescriptionLine, lorebookInfoSpan, entriesLayout, entrySearchField, grid);
         setFlexGrow(1, grid);
 
         refresh();
@@ -215,6 +273,610 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
         grid.addThemeVariants(GridVariant.LUMO_WRAP_CELL_CONTENT);
         grid.addComponentColumn(this::createEntryRow).setFlexGrow(1);
         grid.setItemDetailsRenderer(new ComponentRenderer<>(this::createEntryDetailLayout));
+    }
+
+
+    /**
+     * The menu of the lorebook button: add, clone, delete, import, export, tags and description. A pinned view (the
+     * lorebook of a book) has only the export and the description.
+     */
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "importItem", type = MenuItem.class)})
+    private void createLorebookMenu() {
+        lorebookMenu = new ContextMenu();
+        lorebookMenu.setTarget(lorebookMenuButton);
+        lorebookMenu.setOpenOnClick(true);
+
+        if (!pinnedLorebook) {
+            lorebookMenuItems.add(lorebookMenu.addItem(loc.getValue(L.LABEL_ADD_LOREBOOK), _ -> createNewLorebook()));
+            lorebookMenuItems.add(lorebookMenu.addItem(loc.getValue(L.LABEL_CLONE_LOREBOOK), _ -> cloneCurrentLorebook()));
+            deleteLorebookItem = lorebookMenu.addItem(loc.getValue(L.LABEL_DELETE_LOREBOOK), _ -> deleteCurrentLorebook());
+            lorebookMenuItems.add(deleteLorebookItem);
+
+            MenuItem importItem = lorebookMenu.addItem(loc.getValue(L.LABEL_IMPORT));
+            importItem.getSubMenu().addItem(loc.getValue(L.LABEL_IMPORT_LOREBOOK), _ ->
+                    openImportDialog(loc.getValue(L.LABEL_IMPORT_LOREBOOK), lorebookService::importLorebook));
+            importItem.getSubMenu().addItem(loc.getValue(L.LABEL_IMPORT_FROM_SILLYTAVERN), _ ->
+                    openImportDialog(loc.getValue(L.LABEL_IMPORT_FROM_SILLYTAVERN), lorebookService::importFromSillytavern));
+            importItem.getSubMenu().addItem(loc.getValue(L.LABEL_IMPORT_FROM_ARCHIVE), _ -> openArchiveImportDialog());
+            importItem.getSubMenu().addItem(loc.getValue(L.LABEL_IMPORT_FROM_OTHER_USER), _ ->
+                    SharedImportDialog.forLorebooks(loc, lorebookService, this::showImported).open());
+            lorebookMenuItems.add(importItem);
+        }
+
+        exportItem = lorebookMenu.addItem(loc.getValue(L.LABEL_EXPORT_LOREBOOK));
+        exportItem.getSubMenu().addItem(createExportLink(loc.getValue(L.LABEL_EXPORT_LOREBOOK), lorebookService::exportLorebook));
+        exportItem.getSubMenu().addItem(createExportLink(loc.getValue(L.LABEL_EXPORT_TO_SILLYTAVERN), lorebookService::exportToSillytavern));
+
+        if (!pinnedLorebook) {
+            lorebookMenuItems.add(lorebookMenu.addItem(loc.getValue(L.LABEL_TAG_LOREBOOKS), _ -> openTagDialog(false)));
+        }
+        lorebookMenuItems.add(lorebookMenu.addItem(loc.getValue(L.LABEL_EDIT_DESCRIPTION), _ -> editDescription()));
+    }
+
+    /**
+     * The menu of the entries: mass edit and tags of many entries.
+     */
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "menu", type = ContextMenu.class)})
+    private void createEntriesMenu() {
+        ContextMenu menu = new ContextMenu();
+        menu.setTarget(entriesMenuButton);
+        menu.setOpenOnClick(true);
+        menu.addItem(loc.getValue(L.LABEL_MASS_EDIT), _ -> openMassEditDialog());
+        menu.addItem(loc.getValue(L.LABEL_TAG_ENTRIES), _ -> openTagDialog(true));
+    }
+
+    /**
+     * The settings of the lorebook in a section that is closed at the start: the name, the sub lorebooks, the tags, the scan
+     * depth and sharing. While an agent locks the lorebook the section is hidden and the info line says what they are.
+     */
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "content", type = VerticalLayout.class)})
+    private void createSettings() {
+        lorebookNameField = new TextField(loc.getValue(L.LABEL_NAME));
+        lorebookNameField.setWidthFull();
+        lorebookNameField.addValueChangeListener(e -> {
+            if (currentLorebook != null && e.isFromClient()) {
+                try {
+                    if (StringUtils.isBlank(e.getValue())) {
+                        lorebookNameField.setInvalid(true);
+                        lorebookNameField.setErrorMessage(loc.getValue(L.ERROR_NAME_CANT_BE_EMPTY));
+                    } else {
+                        lorebookNameField.setInvalid(false);
+                        lorebookNameField.setErrorMessage("");
+                        currentLorebook.setName(e.getValue());
+                        lorebookService.save(currentLorebook);
+                        if (!pinnedLorebook) {
+                            loadLorebooks();
+                            lorebookCombo.setValue(currentLorebook);
+                        }
+                    }
+                } catch (Exception ex) {
+                    UIUtils.internalServerError(loc, ex);
+                }
+            }
+        });
+
+        subLorebooksCombo = new MultiSelectComboBox<>(loc.getValue(L.LABEL_SUB_LOREBOOKS));
+        subLorebooksCombo.setItemLabelGenerator(Lorebook::getName);
+        subLorebooksCombo.setWidthFull();
+        subLorebooksCombo.addValueChangeListener(e -> {
+            if (currentLorebook != null && e.isFromClient()) {
+                try {
+                    currentLorebook = lorebookService.setSubbooks(currentLorebook, e.getValue());
+                    updateLorebookInfo();
+                } catch (LorebookCycleException ex) {
+                    Notification.warning(loc.getValue(L.MSG_CYCLE_DETECTED));
+                    subLorebooksCombo.setValue(e.getOldValue() != null ? e.getOldValue() : Collections.emptySet());
+                } catch (Exception ex) {
+                    UIUtils.internalServerError(loc, ex);
+                }
+            }
+        });
+
+        tagMultiComboBox = new TagMultiComboBox(loc.getValue(L.LABEL_TAGS));
+        tagMultiComboBox.setWidthFull();
+
+        scanDepthField = new IntegerField(loc.getValue(L.LABEL_SCAN_DEPTH));
+        scanDepthField.setMin(0);
+        scanDepthField.setMax(LorebookActivationService.MAX_SCAN_DEPTH);
+        scanDepthField.setStepButtonsVisible(true);
+        scanDepthField.setWidthFull();
+        scanDepthField.setHelperText(loc.getValue(L.HELP_SCAN_DEPTH));
+        scanDepthField.addValueChangeListener(e -> {
+            if (currentLorebook != null && e.isFromClient() && e.getValue() != null) {
+                try {
+                    currentLorebook.setScanDepth(Math.max(0, Math.min(LorebookActivationService.MAX_SCAN_DEPTH, e.getValue())));
+                    currentLorebook = lorebookService.save(currentLorebook);
+                } catch (Exception ex) {
+                    UIUtils.internalServerError(loc, ex);
+                }
+            }
+        });
+
+        lorebookSharedCheckbox = new Checkbox(loc.getValue(L.LABEL_SHARE_WITH_OTHER_USERS));
+        lorebookSharedCheckbox.setHelperText(loc.getValue(L.HELP_LOREBOOK_SHARED));
+        lorebookSharedCheckbox.addValueChangeListener(e -> {
+            if (currentLorebook != null && e.isFromClient()) {
+                changeShared(Boolean.TRUE.equals(e.getValue()));
+            }
+        });
+
+        VerticalLayout content = new VerticalLayout(lorebookNameField, subLorebooksCombo, tagMultiComboBox, scanDepthField, lorebookSharedCheckbox);
+        content.setPadding(false);
+        content.setSpacing(false);
+        content.getThemeList().add("spacing-xs");
+        settingsDetails = new Details(loc.getValue(L.LABEL_SETTINGS), content);
+        settingsDetails.setWidthFull();
+
+        lorebookDescriptionLine = new Span();
+        lorebookDescriptionLine.addClassNames(CssStyles.TEXT_SECONDARY, CssStyles.WHITE_SPACE_NORMAL, CssStyles.WRAP_ANYWHERE);
+        lorebookDescriptionLine.setVisible(false);
+    }
+
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = String.class),
+            locals = {@APILocals(name = "name", type = String.class)})
+    private String getExportFileName() {
+        String name = currentLorebook != null ? StringUtils.defaultIfBlank(currentLorebook.getName(), "lorebook") : "lorebook";
+        return name.replaceAll("[\\\\/:*?\"<>|]", "_") + ".json";
+    }
+
+    @FunctionalInterface
+    private interface LorebookExporter {
+        String export(Lorebook lorebook) throws Exception;
+    }
+
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = Anchor.class),
+            parameters = {@APIParameter(name = "text", type = String.class),
+                    @APIParameter(name = "exporter", type = PhoneLorebookView.LorebookExporter.class)},
+            locals = {@APILocals(name = "link", type = Anchor.class)})
+    private Anchor createExportLink(String text, LorebookExporter exporter) {
+        Anchor link = new Anchor(new InputStreamDownloadHandler((InputStreamDownloadCallback) downloadEvent -> {
+            try {
+                byte[] data = exporter.export(currentLorebook).getBytes(StandardCharsets.UTF_8);
+                return new DownloadResponse(new ByteArrayInputStream(data),
+                        getExportFileName(), "application/json", data.length);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }), text);
+        link.getElement().setAttribute("download", true);
+        return link;
+    }
+
+    @FunctionalInterface
+    private interface LorebookImporter {
+        Lorebook importLorebook(String json, String name) throws Exception;
+    }
+
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "title", type = String.class),
+                    @APIParameter(name = "importer", type = PhoneLorebookView.LorebookImporter.class)},
+            locals = {@APILocals(name = "dialog", type = Dialog.class),
+                    @APILocals(name = "handler", type = InMemoryUploadHandler.class),
+                    @APILocals(name = "upload", type = Upload.class),
+                    @APILocals(name = "cancelButton", type = Button.class),
+                    @APILocals(name = "dialogLayout", type = VerticalLayout.class)})
+    private void openImportDialog(String title, LorebookImporter importer) {
+        Dialog dialog = new Dialog();
+        dialog.setHeaderTitle(title);
+        dialog.setWidth("450px");
+        UIUtils.fitPhone(dialog, false);
+
+        InMemoryUploadHandler handler = new InMemoryUploadHandler((metadata, data) -> {
+            try (InputStream inputStream = new ByteArrayInputStream(data)) {
+                String jsonContent = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+                String fileName = metadata.fileName();
+                if (fileName.endsWith(".json")) {
+                    fileName = fileName.substring(0, fileName.length() - 5);
+                }
+                Lorebook importedLorebook = importer.importLorebook(jsonContent, fileName);
+                dialog.close();
+                showImported(importedLorebook);
+            } catch (IllegalArgumentException | JsonParseException e) {
+                Notification.warning(loc.getValue(L.MSG_INVALID_LOREBOOK_FILE));
+            } catch (Exception e) {
+                UIUtils.internalServerError(loc, e);
+            }
+        });
+
+        Upload upload = new Upload(handler);
+        upload.setAcceptedMimeTypes("application/json");
+        Button cancelButton = new Button(loc.getValue(L.LABEL_CANCEL), _ -> dialog.close());
+        VerticalLayout dialogLayout = new VerticalLayout(upload);
+        dialogLayout.setPadding(true);
+
+        dialog.add(dialogLayout);
+        dialog.getFooter().add(cancelButton);
+        dialog.open();
+    }
+
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = void.class))
+    private void openArchiveImportDialog() {
+        ArchiveUploadDialog.show(loc.getValue(L.LABEL_IMPORT_FROM_ARCHIVE), loc.getValue(L.MSG_IMPORT_FROM_ARCHIVE),
+                (archive, fileName) -> {
+                    MarkdownArchive.Content content = MarkdownArchive.read(archive);
+                    ArchiveEntryNamesDialog.show(content, names ->
+                            new ArchiveImportRunner().importLorebook(content, fileName, names, imported -> {
+                                if (imported != null) {
+                                    showImported(imported);
+                                } else {
+                                    loadLorebooks();
+                                }
+                            }));
+                });
+    }
+
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "importedLorebook", type = Lorebook.class)})
+    private void showImported(Lorebook importedLorebook) {
+        this.currentLorebook = importedLorebook;
+        openEntries.clear();
+        if (!pinnedLorebook) {
+            loadLorebooks();
+        } else {
+            updateSelectedLorebook();
+        }
+        fireStateChanged();
+    }
+
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "shared", type = boolean.class)},
+            locals = {@APILocals(name = "unshared", type = List.class),
+                    @APILocals(name = "e", type = Exception.class)})
+    private void changeShared(boolean shared) {
+        try {
+            if (!shared) {
+                currentLorebook.setShared(false);
+                currentLorebook = lorebookService.save(currentLorebook);
+                return;
+            }
+            List<Lorebook> unshared = lorebookService.findUnsharedSubbooks(currentLorebook);
+            if (unshared.isEmpty()) {
+                shareLorebook(false);
+                return;
+            }
+            lorebookSharedCheckbox.setValue(false);
+            ConfirmDialog.show(String.format(loc.getValue(L.MSG_SHARE_SUB_LOREBOOKS), unshared.size()),
+                    () -> shareLorebook(true), () -> shareLorebook(false), true);
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+    }
+
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "withSubbooks", type = boolean.class)},
+            locals = {@APILocals(name = "e", type = Exception.class)})
+    private void shareLorebook(boolean withSubbooks) {
+        try {
+            currentLorebook = lorebookService.share(currentLorebook, withSubbooks);
+            lorebookSharedCheckbox.setValue(true);
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+    }
+
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = void.class))
+    private void editDescription() {
+        if (currentLorebook == null) {
+            return;
+        }
+        DescriptionDialog.show(loc, loc.getValue(L.LABEL_EDIT_DESCRIPTION), currentLorebook.getDescription(), text -> {
+            try {
+                currentLorebook.setDescription(StringUtils.trimToNull(text));
+                currentLorebook = lorebookService.save(currentLorebook);
+                showDescription();
+            } catch (Exception e) {
+                UIUtils.internalServerError(loc, e);
+            }
+        });
+    }
+
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "description", type = String.class)})
+    private void showDescription() {
+        String description = currentLorebook == null ? null : StringUtils.trimToNull(currentLorebook.getDescription());
+        lorebookDescriptionLine.setText(description == null ? "" : description);
+        lorebookDescriptionLine.setVisible(description != null && lockedBy == null);
+    }
+
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "newLorebook", type = Lorebook.class),
+                    @APILocals(name = "e", type = Exception.class)})
+    private void createNewLorebook() {
+        try {
+            Lorebook newLorebook = new Lorebook();
+            newLorebook.setName(loc.getValue(L.LABEL_NEW_LOREBOOK));
+            newLorebook.setEnabled(true);
+            currentLorebook = lorebookService.save(newLorebook);
+            openEntries.clear();
+            loadLorebooks();
+            fireStateChanged();
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+    }
+
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "source", type = Lorebook.class)})
+    private void cloneCurrentLorebook() {
+        if (currentLorebook == null) {
+            return;
+        }
+        Lorebook source = currentLorebook;
+        CloneNameDialog.show(loc, loc.getValue(L.LABEL_CLONE_LOREBOOK), source.getName(), name -> {
+            try {
+                currentLorebook = lorebookService.cloneLorebook(source, name);
+                openEntries.clear();
+                loadLorebooks();
+                fireStateChanged();
+            } catch (Exception e) {
+                UIUtils.internalServerError(loc, e);
+            }
+        });
+    }
+
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = void.class))
+    private void deleteCurrentLorebook() {
+        if (currentLorebook == null) {
+            return;
+        }
+        ConfirmDialog.show(loc.getValue(L.MSG_CONFIRM_DELETE), () -> {
+            try {
+                lorebookService.delete(currentLorebook, false);
+                currentLorebook = null;
+                openEntries.clear();
+                loadLorebooks();
+                fireStateChanged();
+            } catch (Exception e) {
+                UIUtils.internalServerError(loc, e);
+            }
+        });
+    }
+
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "entry", type = LorebookEntry.class),
+                    @APILocals(name = "e", type = Exception.class)})
+    private void createNewEntry() {
+        if (currentLorebook == null) {
+            return;
+        }
+        try {
+            LorebookEntry entry = new LorebookEntry();
+            entry.setLorebook(currentLorebook);
+            entry.setName(loc.getValue(L.LABEL_NEW_LOREBOOK_ENTRY));
+            entry.setEnabled(true);
+            entry.setOrder(100);
+            lorebookEntryService.save(entry);
+            refreshEntries();
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+    }
+
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "entry", type = LorebookEntry.class)})
+    private void deleteEntry(LorebookEntry entry) {
+        ConfirmDialog.show(loc.getValue(L.MSG_CONFIRM_DELETE), () -> {
+            try {
+                lorebookEntryService.delete(entry, false);
+                refreshEntries();
+            } catch (Exception ex) {
+                UIUtils.internalServerError(loc, ex);
+            }
+        });
+    }
+
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "entries", type = boolean.class)},
+            locals = {@APILocals(name = "dialog", type = MultiTagDialog.class)})
+    private void openTagDialog(boolean entries) {
+        if (entries && currentLorebook == null) {
+            return;
+        }
+        MultiTagDialog dialog = entries ? new MultiTagDialog(currentLorebook, this::refreshEntries)
+                : new MultiTagDialog(MultiTagDialog.Kind.LOREBOOKS, () -> tagMultiComboBox.setForEntity(currentLorebook));
+        dialog.create();
+        dialog.open();
+    }
+
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "dialog", type = LorebookMassEditDialog.class)})
+    private void openMassEditDialog() {
+        if (currentLorebook == null) {
+            return;
+        }
+        LorebookMassEditDialog dialog = new LorebookMassEditDialog(currentLorebook, this::refreshEntries);
+        dialog.create();
+        dialog.open();
+    }
+
+    /**
+     * The settings of an entry as fields (not while an agent locks the lorebook): the name, the order, the tags, how and
+     * where the entry is used and the note. The first three are added to the layout, the others (to go under the content)
+     * are returned. See {@link #createEntryDetailLayout}.
+     */
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = List.class),
+            parameters = {@APIParameter(name = "detailsLayout", type = VerticalLayout.class),
+                    @APIParameter(name = "entry", type = LorebookEntry.class)},
+            locals = {@APILocals(name = "nameField", type = TextField.class),
+                    @APILocals(name = "orderField", type = IntegerField.class),
+                    @APILocals(name = "tagCombo", type = TagMultiComboBox.class),
+                    @APILocals(name = "filteringModeCombo", type = ComboBox.class),
+                    @APILocals(name = "filteringField", type = TextField.class),
+                    @APILocals(name = "insertionModeCombo", type = ComboBox.class),
+                    @APILocals(name = "negativeTagCombo", type = TagMultiComboBox.class),
+                    @APILocals(name = "activationPartsField", type = IntegerField.class),
+                    @APILocals(name = "activationContextCombo", type = ComboBox.class),
+                    @APILocals(name = "fromMessageField", type = IntegerField.class),
+                    @APILocals(name = "toMessageField", type = IntegerField.class),
+                    @APILocals(name = "preventRecursionCheckbox", type = Checkbox.class),
+                    @APILocals(name = "commentField", type = TextArea.class),
+                    @APILocals(name = "deleteButton", type = Button.class)})
+    private List<Component> createEntryFields(VerticalLayout detailsLayout, LorebookEntry entry) {
+        TextField nameField = new TextField(loc.getValue(L.LABEL_ENTRY_NAME));
+        nameField.setWidthFull();
+        nameField.setValue(StringUtils.defaultString(entry.getName()));
+        nameField.addValueChangeListener(e -> {
+            if (e.isFromClient()) {
+                entry.setName(e.getValue());
+                saveEntry(entry);
+            }
+        });
+
+        IntegerField orderField = new IntegerField(loc.getValue(L.LABEL_ORDER));
+        orderField.setWidthFull();
+        orderField.setValue(entry.getOrder());
+        orderField.addValueChangeListener(e -> {
+            if (e.isFromClient() && e.getValue() != null) {
+                entry.setOrder(e.getValue());
+                saveEntry(entry);
+            }
+        });
+
+        TagMultiComboBox tagCombo = new TagMultiComboBox(loc.getValue(L.LABEL_TAGS));
+        tagCombo.setWidthFull();
+        tagCombo.setForEntity(entry);
+
+        ComboBox<FilteringMode> filteringModeCombo = new ComboBox<>(loc.getValue(L.LABEL_FILTERING_MODE));
+        filteringModeCombo.setItems(FilteringMode.values());
+        filteringModeCombo.setItemLabelGenerator(mode -> loc.getValue(loc.getFilteringMode(mode)));
+        filteringModeCombo.setValue(entry.getFilteringMode());
+        filteringModeCombo.setWidthFull();
+        filteringModeCombo.addValueChangeListener(e -> {
+            if (e.isFromClient()) {
+                entry.setFilteringMode(e.getValue());
+                saveEntry(entry);
+            }
+        });
+
+        TextField filteringField = new TextField(loc.getValue(L.LABEL_FILTERING));
+        filteringField.setWidthFull();
+        filteringField.setValue(StringUtils.defaultString(entry.getFiltering()));
+        filteringField.addValueChangeListener(e -> {
+            if (e.isFromClient()) {
+                entry.setFiltering(e.getValue());
+                saveEntry(entry);
+            }
+        });
+
+        ComboBox<InsertionMode> insertionModeCombo = new ComboBox<>(loc.getValue(L.LABEL_INSERTION_MODE));
+        insertionModeCombo.setItems(InsertionMode.values());
+        insertionModeCombo.setItemLabelGenerator(mode -> loc.getValue(loc.getInsertionMode(mode)));
+        insertionModeCombo.setValue(entry.getInsertionMode());
+        insertionModeCombo.setWidthFull();
+        insertionModeCombo.addValueChangeListener(e -> {
+            if (e.isFromClient()) {
+                entry.setInsertionMode(e.getValue());
+                saveEntry(entry);
+            }
+        });
+
+        TagMultiComboBox negativeTagCombo = new TagMultiComboBox(loc.getValue(L.LABEL_NEGATIVE_TAGS), true);
+        negativeTagCombo.setWidthFull();
+        negativeTagCombo.setForEntity(entry, true);
+
+        IntegerField activationPartsField = new IntegerField(loc.getValue(L.LABEL_PARTS));
+        activationPartsField.setWidthFull();
+        activationPartsField.setMin(1);
+        activationPartsField.setStepButtonsVisible(true);
+        activationPartsField.setValue(entry.getActivationParts());
+        activationPartsField.setVisible(entry.getActivationContext() == ActivationContext.INCLUDE_PARTS);
+        activationPartsField.setHelperText(loc.getValue(L.HELP_ACTIVATION_PARTS));
+        activationPartsField.addValueChangeListener(e -> {
+            if (e.isFromClient() && e.getValue() != null) {
+                entry.setActivationParts(e.getValue());
+                saveEntry(entry);
+            }
+        });
+
+        ComboBox<ActivationContext> activationContextCombo = new ComboBox<>(loc.getValue(L.LABEL_ACTIVATION_CONTEXT));
+        activationContextCombo.setItems(ActivationContext.values());
+        activationContextCombo.setItemLabelGenerator(context -> loc.getValue(loc.getActivationContext(context)));
+        activationContextCombo.setAllowCustomValue(false);
+        activationContextCombo.setValue(entry.getActivationContext());
+        activationContextCombo.setWidthFull();
+        activationContextCombo.addValueChangeListener(e -> {
+            if (e.isFromClient() && e.getValue() != null) {
+                entry.setActivationContext(e.getValue());
+                saveEntry(entry);
+                activationPartsField.setVisible(e.getValue() == ActivationContext.INCLUDE_PARTS);
+            }
+        });
+
+        IntegerField fromMessageField = new IntegerField(loc.getValue(L.LABEL_FROM_MESSAGE));
+        fromMessageField.setWidthFull();
+        fromMessageField.setMin(1);
+        fromMessageField.setStepButtonsVisible(true);
+        fromMessageField.setValue(entry.getFromMessage());
+        fromMessageField.setHelperText(loc.getValue(L.HELP_ACTIVATION_RANGE));
+        fromMessageField.addValueChangeListener(e -> {
+            if (e.isFromClient()) {
+                entry.setFromMessage(e.getValue());
+                saveEntry(entry);
+            }
+        });
+
+        IntegerField toMessageField = new IntegerField(loc.getValue(L.LABEL_TO_MESSAGE));
+        toMessageField.setWidthFull();
+        toMessageField.setMin(1);
+        toMessageField.setStepButtonsVisible(true);
+        toMessageField.setValue(entry.getToMessage());
+        toMessageField.addValueChangeListener(e -> {
+            if (e.isFromClient()) {
+                entry.setToMessage(e.getValue());
+                saveEntry(entry);
+            }
+        });
+
+        Checkbox preventRecursionCheckbox = new Checkbox(loc.getValue(L.LABEL_PREVENT_RECURSION), entry.isPreventRecursion());
+        preventRecursionCheckbox.setHelperText(loc.getValue(L.HELP_PREVENT_RECURSION));
+        preventRecursionCheckbox.addValueChangeListener(e -> {
+            if (e.isFromClient()) {
+                entry.setPreventRecursion(Boolean.TRUE.equals(e.getValue()));
+                saveEntry(entry);
+            }
+        });
+
+        TextArea commentField = new TextArea(loc.getValue(L.LABEL_NOTE));
+        commentField.setWidthFull();
+        ResizableTextArea.install(loc, commentField, "100px");
+        commentField.setValue(StringUtils.defaultString(entry.getComment()));
+        commentField.addValueChangeListener(e -> {
+            if (e.isFromClient()) {
+                entry.setComment(e.getValue());
+                saveEntry(entry);
+            }
+        });
+
+        Button deleteButton = new Button(loc.getValue(L.LABEL_DELETE_ENTRY), Solid.TRASH.create(), _ -> deleteEntry(entry));
+        deleteButton.setThemeName("error");
+
+        detailsLayout.add(nameField, orderField, tagCombo);
+        return List.of(filteringModeCombo, filteringField, insertionModeCombo, negativeTagCombo,
+                activationContextCombo, activationPartsField, fromMessageField, toMessageField, preventRecursionCheckbox,
+                commentField, deleteButton);
     }
 
     @PublicAPI(from = "1.1.0",
@@ -265,6 +927,7 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
             returns = @APIReturn(type = Component.class),
             parameters = {@APIParameter(name = "entry", type = LorebookEntry.class)},
             locals = {@APILocals(name = "detailsLayout", type = VerticalLayout.class),
+                    @APILocals(name = "belowContent", type = List.class),
                     @APILocals(name = "payloadField", type = TextAreaPopoverComponent.class),
                     @APILocals(name = "payloadTokensSpan", type = Span.class)})
     public Component createEntryDetailLayout(LorebookEntry entry) {
@@ -275,29 +938,35 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
         detailsLayout.getThemeList().add("spacing-xs");
         detailsLayout.addClassName(CssStyles.SUBTLE_BOX);
 
-        detailsLayout.add(infoSpan(L.LABEL_ENTRY_NAME, entry.getName()));
-        detailsLayout.add(infoSpan(L.LABEL_ORDER, String.valueOf(entry.getOrder())));
-        detailsLayout.add(infoSpan(L.LABEL_TAGS, tagsOf(entry, false)));
-        detailsLayout.add(infoSpan(L.LABEL_FILTERING_MODE,
-                entry.getFilteringMode() != null ? loc.getValue(loc.getFilteringMode(entry.getFilteringMode())) : null));
-        detailsLayout.add(infoSpan(L.LABEL_FILTERING, entry.getFiltering()));
-        detailsLayout.add(infoSpan(L.LABEL_INSERTION_MODE,
-                entry.getInsertionMode() != null ? loc.getValue(loc.getInsertionMode(entry.getInsertionMode())) : null));
-        detailsLayout.add(infoSpan(L.LABEL_NEGATIVE_TAGS, tagsOf(entry, true)));
-        if (entry.getActivationContext() == ActivationContext.INCLUDE_PARTS) {
-            detailsLayout.add(infoSpan(L.LABEL_ACTIVATION_CONTEXT,
-                    loc.getValue(loc.getActivationContext(entry.getActivationContext())) + " (" + entry.getActivationParts() + ")"));
+        List<Component> belowContent = List.of();
+        if (lockedBy == null) {
+            belowContent = createEntryFields(detailsLayout, entry);
+        } else {
+            detailsLayout.add(infoSpan(L.LABEL_ENTRY_NAME, entry.getName()));
+            detailsLayout.add(infoSpan(L.LABEL_ORDER, String.valueOf(entry.getOrder())));
+            detailsLayout.add(infoSpan(L.LABEL_TAGS, tagsOf(entry, false)));
+            detailsLayout.add(infoSpan(L.LABEL_FILTERING_MODE,
+                    entry.getFilteringMode() != null ? loc.getValue(loc.getFilteringMode(entry.getFilteringMode())) : null));
+            detailsLayout.add(infoSpan(L.LABEL_FILTERING, entry.getFiltering()));
+            detailsLayout.add(infoSpan(L.LABEL_INSERTION_MODE,
+                    entry.getInsertionMode() != null ? loc.getValue(loc.getInsertionMode(entry.getInsertionMode())) : null));
+            detailsLayout.add(infoSpan(L.LABEL_NEGATIVE_TAGS, tagsOf(entry, true)));
+            if (entry.getActivationContext() == ActivationContext.INCLUDE_PARTS) {
+                detailsLayout.add(infoSpan(L.LABEL_ACTIVATION_CONTEXT,
+                        loc.getValue(loc.getActivationContext(entry.getActivationContext())) + " (" + entry.getActivationParts() + ")"));
+            }
+            if (entry.getFromMessage() != null) {
+                detailsLayout.add(infoSpan(L.LABEL_FROM_MESSAGE, String.valueOf(entry.getFromMessage())));
+            }
+            if (entry.getToMessage() != null) {
+                detailsLayout.add(infoSpan(L.LABEL_TO_MESSAGE, String.valueOf(entry.getToMessage())));
+            }
+            if (entry.isPreventRecursion()) {
+                detailsLayout.add(infoSpan(L.LABEL_PREVENT_RECURSION, "✓"));
+            }
+            detailsLayout.add(infoSpan(L.LABEL_NOTE, entry.getComment()));
+
         }
-        if (entry.getFromMessage() != null) {
-            detailsLayout.add(infoSpan(L.LABEL_FROM_MESSAGE, String.valueOf(entry.getFromMessage())));
-        }
-        if (entry.getToMessage() != null) {
-            detailsLayout.add(infoSpan(L.LABEL_TO_MESSAGE, String.valueOf(entry.getToMessage())));
-        }
-        if (entry.isPreventRecursion()) {
-            detailsLayout.add(infoSpan(L.LABEL_PREVENT_RECURSION, "✓"));
-        }
-        detailsLayout.add(infoSpan(L.LABEL_NOTE, entry.getComment()));
 
         TextAreaPopoverComponent payloadField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_CONTENT));
         payloadField.setWidthFull();
@@ -322,6 +991,7 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
         });
 
         detailsLayout.add(payloadField, payloadTokensSpan);
+        belowContent.forEach(detailsLayout::add);
         return detailsLayout;
     }
 
@@ -562,11 +1232,74 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
         lockedSpan.setText(lockedBy == null ? "" : String.format(loc.getValue(L.MSG_AGENT_LOREBOOK_LOCKED), lockedBy));
     }
 
+
+    /**
+     * What can be done depends on the lorebook: nothing that changes it while an agent locks it (it can be exported and
+     * refreshed), the menu without a lorebook has only what makes or imports one.
+     */
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "hasLorebook", type = boolean.class)})
+    private void updateLockedControls(boolean hasLorebook) {
+        boolean editable = lockedBy == null;
+        lorebookMenuItems.forEach(item -> item.setVisible(editable));
+        if (deleteLorebookItem != null) {
+            deleteLorebookItem.setVisible(editable);
+        }
+        exportItem.setEnabled(hasLorebook);
+        addEntryButton.setVisible(editable);
+        addEntryButton.setEnabled(hasLorebook);
+        entriesMenuButton.setVisible(editable);
+        entriesMenuButton.setEnabled(hasLorebook);
+        settingsDetails.setVisible(editable);
+        settingsDetails.setEnabled(hasLorebook);
+        entrySearchField.setVisible(editable);
+        showDescription();
+    }
+
+    /**
+     * Puts the lorebook into the fields of its settings: the sub lorebooks can be any other lorebook of the user.
+     */
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "available", type = List.class),
+                    @APILocals(name = "subIds", type = Set.class),
+                    @APILocals(name = "e", type = Exception.class)})
+    private void fillSettings() {
+        if (currentLorebook == null) {
+            lorebookNameField.setValue("");
+            lorebookSharedCheckbox.setValue(false);
+            scanDepthField.setValue(0);
+            subLorebooksCombo.setValue(Collections.emptySet());
+            tagMultiComboBox.setForEntity(null);
+            showDescription();
+            return;
+        }
+        lorebookNameField.setValue(StringUtils.defaultString(currentLorebook.getName()));
+        lorebookSharedCheckbox.setValue(currentLorebook.isShared());
+        scanDepthField.setValue(currentLorebook.getScanDepth());
+        tagMultiComboBox.setForEntity(currentLorebook);
+        try {
+            List<Lorebook> available = lorebookService.findAllRegularForUser().stream()
+                    .filter(l -> l.getId() != null && !l.getId().equals(currentLorebook.getId()))
+                    .sorted(Comparator.comparing(Lorebook::getName))
+                    .collect(Collectors.toList());
+            subLorebooksCombo.setItems(available);
+            Set<Long> subIds = currentLorebook.getSubbooks() == null ? Set.of() : currentLorebook.getSubbooks().stream()
+                    .map(BaseEntity::getId).filter(Objects::nonNull).collect(Collectors.toSet());
+            subLorebooksCombo.setValue(available.stream().filter(l -> subIds.contains(l.getId())).collect(Collectors.toSet()));
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+        showDescription();
+    }
+
     @PublicAPI(from = "1.1.0",
             returns = @APIReturn(type = void.class))
     private void updateSelectedLorebook() {
         boolean hasLorebook = currentLorebook != null;
         updateLock();
+        updateLockedControls(hasLorebook);
         lorebookEnabledCheckbox.setEnabled(hasLorebook);
         lorebookEnabledCheckbox.setReadOnly(lockedBy != null);
         refreshButton.setEnabled(hasLorebook);
@@ -577,8 +1310,10 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
         if (hasLorebook) {
             lorebookEnabledCheckbox.setValue(currentLorebook.isEnabled());
             updateLorebookInfo();
+            fillSettings();
             refreshEntries();
         } else {
+            fillSettings();
             lorebookEnabledCheckbox.setValue(false);
             lorebookInfoSpan.setText("");
             // the grid keeps its own record of the opened details over setItems: close them, openEntries decides what opens again
@@ -620,7 +1355,8 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
             UIUtils.internalServerError(loc, e);
         }
         lorebookInfoSpan.setText(info.toString());
-        lorebookInfoSpan.setVisible(!info.isEmpty());
+        // the settings section has these while the lorebook can be changed
+        lorebookInfoSpan.setVisible(!info.isEmpty() && lockedBy != null);
     }
 
     @PublicAPI(from = "1.1.0",
