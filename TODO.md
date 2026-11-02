@@ -267,9 +267,12 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
     - ✅ Search and replace in the summaries (*Search and Replace*, `ManuscriptSearchReplaceDialog` with `summariesOnly`,
       `ManuscriptReplaceService.Options.summariesOnly`): the summaries only, also the ones inside a meta summary, the hashes
       of the meta summaries are worked out again (and, with *Revalidate all summaries*, those of every summary of the book).
-    - Not done 🧩: export and import of the summaries of a branch (e.g. to edit them in an external editor or move them to
-      another book). Editing a summary a meta summary stands in for would invalidate the meta summary (its text is part of
-      the hash); an import must update the hashes of the meta summaries it touches (as the replace does).
+    - ✅ Export and import of the summaries of a branch (*Export Summaries* downloads them as a Markdown file with a
+      `<!-- summary part="uuid" order="n" -->` line before each text, *Import Summaries* shows what would change and then
+      writes the texts; `SummaryService.exportSummaries` / `analyzeImport` / `applyImport`, `utils.SummaryTransfer`,
+      `SummariesImportDialog`). Parts are matched by uuid, optionally by position (a copy has other uuids). Only the
+      summaries in use are exported; the ones a meta summary stands in for are part of its hash and are never changed, so
+      no hash has to be worked out.
 
 ---
 

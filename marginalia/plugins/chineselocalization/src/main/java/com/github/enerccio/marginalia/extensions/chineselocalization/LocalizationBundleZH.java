@@ -959,6 +959,13 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_IMPORT_FROM_OTHER_USER, "从其他用户导入");
         setValue(L.LABEL_SHARE_WITH_OTHER_USERS, "与其他用户共享");
         setValue(L.LABEL_EDIT_DESCRIPTION, "编辑描述");
+        setValue(L.LABEL_EXPORT_SUMMARIES, "导出摘要");
+        setValue(L.LABEL_IMPORT_SUMMARIES, "导入摘要");
+        setValue(L.LABEL_MATCH_BY_POSITION, "按位置匹配");
+        setValue(L.LABEL_SUMMARY_WILL_CHANGE, "将被更改");
+        setValue(L.LABEL_SUMMARY_WILL_CHANGE_BY_POSITION, "将被更改（按位置）");
+        setValue(L.LABEL_SUMMARY_PART_NOT_FOUND, "未找到段落");
+        setValue(L.LABEL_SUMMARY_EMPTY_TEXT, "文本为空");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -1628,6 +1635,10 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_IMPORTED_FROM_OTHER_USER, "已导入“%s”。");
         setValue(L.MSG_NOT_SHARED_ANY_MORE, "作者已不再共享它。");
         setValue(L.MSG_SHARE_SUB_LOREBOOKS, "此世界书有 %d 个子世界书尚未共享。其他用户只能获得已共享的子世界书。是否也共享它们？");
+        setValue(L.MSG_INVALID_SUMMARIES_FILE, "该文件不是 Marginalia 导出的摘要文件。");
+        setValue(L.MSG_SUMMARIES_IMPORT_READY, "将更改 %d 条摘要（共 %d 条）。");
+        setValue(L.MSG_SUMMARIES_IMPORTED, "已更新 %d 条摘要。");
+        setValue(L.MSG_IMPORT_SUMMARIES, "请选择由“导出摘要”生成的文件（可以用文本编辑器修改）。文件中所指的当前分支的摘要将被替换；在点击“导入”之前不会有任何更改。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");
@@ -1734,6 +1745,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.HELP_IMAGE_LAYOUT, "阅读视图和导出会按此放置图片。故事编辑器把图片列在文字之后；“按阅读视图预览”可查看效果。");
         setValue(L.HELP_LOREBOOK_SHARED, "其他用户可以在“从其他用户导入”中看到此世界书及其已共享的子世界书，并导入一份副本。他们无法修改你的世界书。");
         setValue(L.HELP_PROTOCOL_SHARED, "其他用户可以在“从其他用户导入”中看到此协议，并导入一份副本。他们无法修改你的协议。");
+        setValue(L.HELP_MATCH_BY_POSITION, "摘要按段落的 ID 匹配。来自另一本书的文件（副本的 ID 不同）请勾选此项：段落不在当前分支中的摘要会放到相同位置的摘要上。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景设定与世界观。");

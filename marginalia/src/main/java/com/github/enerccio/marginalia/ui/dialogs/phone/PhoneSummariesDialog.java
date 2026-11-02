@@ -13,6 +13,7 @@ import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.dialogs.manuscript.SummaryDialog;
 import com.github.enerccio.marginalia.ui.dialogs.manuscript.SummaryRemoval;
+import com.github.enerccio.marginalia.ui.dialogs.manuscript.SummariesImportDialog;
 import com.github.enerccio.marginalia.ui.dialogs.search.ManuscriptSearchReplaceDialog;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.utils.UIUtils;
@@ -85,8 +86,9 @@ public class PhoneSummariesDialog extends Dialog implements LLMInteract {
 
         menuBar = new MenuBar();
         populateMenuBar(menuBar);
-        layout.add(createToolbar());
-        layout.add(createGrid());
+        // the menu bar has a row of its own: next to the tokens and the button it was squeezed to nothing on a phone
+        menuBar.setWidthFull();
+        layout.add(menuBar, createToolbar(), createGrid());
         layout.setFlexGrow(1, treeGrid);
         add(layout);
 
@@ -120,6 +122,7 @@ public class PhoneSummariesDialog extends Dialog implements LLMInteract {
             parameters = {@APIParameter(name = "bar", type = MenuBar.class)})
     private void populateMenuBar(MenuBar bar) {
         bar.addItem(loc.getValue(L.LABEL_SEARCH_AND_REPLACE), _ -> openSearchReplaceDialog());
+        SummariesImportDialog.addMenuItems(bar, manuscript, loc, summaryService, this::refresh);
     }
 
     /**
@@ -146,10 +149,10 @@ public class PhoneSummariesDialog extends Dialog implements LLMInteract {
         Button createMetaButton = new Button(loc.getValue(L.LABEL_CREATE_META_SUMMARY), Solid.LAYER_GROUP.create(), _ -> createMetaSummary());
         createMetaButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_SMALL);
 
-        HorizontalLayout toolbar = new HorizontalLayout(menuBar, tokensSpan, createMetaButton);
+        HorizontalLayout toolbar = new HorizontalLayout(tokensSpan, createMetaButton);
         toolbar.setWidthFull();
         toolbar.setAlignItems(FlexComponent.Alignment.CENTER);
-        toolbar.expand(menuBar);
+        toolbar.expand(tokensSpan);
         return toolbar;
     }
 

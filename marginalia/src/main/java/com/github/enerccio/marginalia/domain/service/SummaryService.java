@@ -78,6 +78,59 @@ public interface SummaryService extends ExtendableService<Summary, SummaryReposi
     Summary updateSummaryText(Manuscript manuscript, Summary summary, String text) throws Exception;
 
     /**
+     * The summaries generation uses on the active branch of the book, as a text file to edit and import again
+     * ({@link com.github.enerccio.marginalia.utils.SummaryTransfer}): the oldest first, meta summaries as one summary each.
+     * The summaries a meta summary stands in for are not in it, they are part of its hash and are never changed.
+     */
+    String exportSummaries(Manuscript manuscript) throws Exception;
+
+    /**
+     * Matches the summaries of an exported file to the summaries generation uses on the active branch of the book, changes
+     * nothing. A summary belongs to the part with the uuid it names; with {@code byPosition} one whose part is not in the
+     * branch (a file of another book, a copy has other uuids) goes to the summary on the part at the same position.
+     *
+     * @throws IllegalArgumentException when the text is not a file made by {@link #exportSummaries}
+     */
+    List<ImportEntry> analyzeImport(Manuscript manuscript, String text, boolean byPosition) throws Exception;
+
+    /**
+     * Writes the texts of the entries that are {@link ImportStatus#isChange() changes}, all or none.
+     *
+     * @return how many summaries were changed
+     * @throws ManuscriptLockedException when an agent works on the book
+     */
+    int applyImport(Manuscript manuscript, List<ImportEntry> entries) throws Exception;
+
+    /**
+     * What an import does to one summary.
+     */
+    enum ImportStatus {
+        /** The part of the summary was found and the text differs. */
+        CHANGED,
+        /** The part is not in the branch, the summary at the same position gets the text. */
+        CHANGED_BY_POSITION,
+        /** The text is the one the summary has. */
+        UNCHANGED,
+        /** No summary of the branch to put the text on (also when another entry of the file took it). */
+        NOT_FOUND,
+        /** The text of the file is empty, it would leave the part without a summary text. */
+        EMPTY;
+
+        public boolean isChange() {
+            return this == CHANGED || this == CHANGED_BY_POSITION;
+        }
+    }
+
+    /**
+     * @param part   uuid of the part in the file
+     * @param order  position of the part in the file
+     * @param text   the text of the file
+     * @param target the summary of the branch the text goes to, null when {@link ImportStatus#NOT_FOUND}
+     */
+    record ImportEntry(String part, int order, String text, ImportStatus status, SummaryNode target) {
+    }
+
+    /**
      * The summaries of the branch as {@link #collectBlocks} finds them, with the summaries a meta summary stands in for
      * (the one it replaced on its part and the ones further down the branch) as children, oldest first.
      *

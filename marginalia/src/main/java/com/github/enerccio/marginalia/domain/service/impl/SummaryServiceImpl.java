@@ -20,6 +20,7 @@ import com.github.enerccio.marginalia.domain.templates.TemplateVariables;
 import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes;
+import com.github.enerccio.marginalia.utils.SummaryTransfer;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes.InRequestScope;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -306,6 +307,84 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
         InferenceService inferenceService = inferenceServices.forAI(aiService.find(manuscript.getAi()));
         summary.setSummaryTokens(inferenceService == null ? inferenceTokensFallback(text) : inferenceService.countTokens(text));
         return save(summary);
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public String exportSummaries(Manuscript manuscript) throws Exception {
+        List<SummaryTransfer.Item> items = new ArrayList<>();
+        for (SummaryNode node : collectTree(manuscript)) {
+            items.add(new SummaryTransfer.Item(node.getMessage().getUuid(), node.getOrder(),
+                    node.getSummary().getSummaryType() == SummaryType.META_SUMMARY, node.getSummary().getSummary()));
+        }
+        return SummaryTransfer.write(items);
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public List<ImportEntry> analyzeImport(Manuscript manuscript, String text, boolean byPosition) throws Exception {
+        List<SummaryTransfer.Entry> entries = SummaryTransfer.read(text);
+        List<SummaryNode> nodes = collectTree(manuscript);
+        Map<String, SummaryNode> byPart = new HashMap<>();
+        Map<Integer, SummaryNode> byOrder = new HashMap<>();
+        for (SummaryNode node : nodes) {
+            byPart.put(node.getMessage().getUuid(), node);
+            byOrder.put(node.getOrder(), node);
+        }
+
+        // by part first, so that a position never takes the summary an entry names by its part
+        Set<SummaryNode> taken = Collections.newSetFromMap(new IdentityHashMap<>());
+        Map<SummaryTransfer.Entry, SummaryNode> targets = new IdentityHashMap<>();
+        for (SummaryTransfer.Entry entry : entries) {
+            SummaryNode node = entry.part() == null ? null : byPart.get(entry.part());
+            if (node != null && taken.add(node)) {
+                targets.put(entry, node);
+            }
+        }
+        Set<SummaryTransfer.Entry> positional = Collections.newSetFromMap(new IdentityHashMap<>());
+        if (byPosition) {
+            for (SummaryTransfer.Entry entry : entries) {
+                if (targets.containsKey(entry) || entry.part() != null && byPart.containsKey(entry.part())) {
+                    continue;
+                }
+                SummaryNode node = byOrder.get(entry.order());
+                if (node != null && taken.add(node)) {
+                    targets.put(entry, node);
+                    positional.add(entry);
+                }
+            }
+        }
+
+        List<ImportEntry> result = new ArrayList<>();
+        for (SummaryTransfer.Entry entry : entries) {
+            SummaryNode node = targets.get(entry);
+            ImportStatus status;
+            if (node == null) {
+                status = ImportStatus.NOT_FOUND;
+            } else if (StringUtils.isBlank(entry.text())) {
+                status = ImportStatus.EMPTY;
+            } else if (entry.text().equals(SummaryTransfer.normalize(StringUtils.defaultString(node.getSummary().getSummary())))) {
+                status = ImportStatus.UNCHANGED;
+            } else {
+                status = positional.contains(entry) ? ImportStatus.CHANGED_BY_POSITION : ImportStatus.CHANGED;
+            }
+            result.add(new ImportEntry(entry.part(), entry.order(), entry.text(), status, node));
+        }
+        return result;
+    }
+
+    @Override
+    @CommonTx
+    public int applyImport(Manuscript manuscript, List<ImportEntry> entries) throws Exception {
+        agentRunService.checkNotLocked(manuscript);
+        int changed = 0;
+        for (ImportEntry entry : entries) {
+            if (entry.status().isChange()) {
+                self.updateSummaryText(manuscript, entry.target().getSummary(), entry.text());
+                changed++;
+            }
+        }
+        return changed;
     }
 
     @Override

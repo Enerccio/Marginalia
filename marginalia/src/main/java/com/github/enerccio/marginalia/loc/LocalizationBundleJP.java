@@ -951,6 +951,13 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_IMPORT_FROM_OTHER_USER, "他のユーザーからインポート");
         setValue(L.LABEL_SHARE_WITH_OTHER_USERS, "他のユーザーと共有");
         setValue(L.LABEL_EDIT_DESCRIPTION, "説明を編集");
+        setValue(L.LABEL_EXPORT_SUMMARIES, "要約をエクスポート");
+        setValue(L.LABEL_IMPORT_SUMMARIES, "要約をインポート");
+        setValue(L.LABEL_MATCH_BY_POSITION, "位置で対応付ける");
+        setValue(L.LABEL_SUMMARY_WILL_CHANGE, "変更されます");
+        setValue(L.LABEL_SUMMARY_WILL_CHANGE_BY_POSITION, "変更されます（位置で対応）");
+        setValue(L.LABEL_SUMMARY_PART_NOT_FOUND, "パートが見つかりません");
+        setValue(L.LABEL_SUMMARY_EMPTY_TEXT, "テキストが空です");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -1620,6 +1627,10 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_IMPORTED_FROM_OTHER_USER, "「%s」をインポートしました。");
         setValue(L.MSG_NOT_SHARED_ANY_MORE, "作者はこれを共有しなくなりました。");
         setValue(L.MSG_SHARE_SUB_LOREBOOKS, "このロアブックのサブロアブック%d件は共有されていません。他のユーザーが取得できるのは共有されているサブロアブックだけです。それらも共有しますか？");
+        setValue(L.MSG_INVALID_SUMMARIES_FILE, "このファイルはMarginaliaの要約エクスポートではありません。");
+        setValue(L.MSG_SUMMARIES_IMPORT_READY, "%d 件の要約が変更されます（全 %d 件中）。");
+        setValue(L.MSG_SUMMARIES_IMPORTED, "%d 件の要約を更新しました。");
+        setValue(L.MSG_IMPORT_SUMMARIES, "「要約をエクスポート」で作成したファイル（テキストエディタで編集できます）を選択してください。ファイルが指すアクティブなブランチの要約が置き換えられます。「インポート」を押すまで何も変更されません。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");
@@ -1726,6 +1737,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_IMAGE_LAYOUT, "ビューアとエクスポートでは、画像はこのように配置されます。ストーリーエディタでは画像はテキストの後に一覧表示されます。「ビューアでのプレビュー」で結果を確認できます。");
         setValue(L.HELP_LOREBOOK_SHARED, "他のユーザーは、このロアブックを共有されているサブロアブックとともに「他のユーザーからインポート」で見て、コピーをインポートできます。あなたのものは変更できません。");
         setValue(L.HELP_PROTOCOL_SHARED, "他のユーザーは、このプロトコルを「他のユーザーからインポート」で見て、コピーをインポートできます。あなたのものは変更できません。");
+        setValue(L.HELP_MATCH_BY_POSITION, "要約はパートのIDで対応付けられます。別のブックのファイル（コピーはIDが異なります）の場合はこれをオンにしてください。このブランチにないパートの要約は、同じ位置の要約に入ります。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景設定と世界観の文脈。");
