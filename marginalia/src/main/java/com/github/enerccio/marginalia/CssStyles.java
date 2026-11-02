@@ -91,6 +91,8 @@ public final class CssStyles {
     public static final String TAB_DOCK_AT_RIGHT = "tab-dock-at-right";
     public static final String TAB_DOCK_AT_TOP = "tab-dock-at-top";
     public static final String TAB_DOCK_AT_BOTTOM = "tab-dock-at-bottom";
+    /** The icon in front of the caption of a part (tab) of the desktop workspace, see {@code PartIcon}. */
+    public static final String WORKSPACE_PART_ICON = "workspace-part-icon";
     public static final String STORY_SCROLL_PANEL = "story-scroll-panel";
     public static final String READER_SCROLL_PANEL = "reader-scroll-panel";
     public static final String LAZY_LOAD_INDICATOR = "lazy-load-indicator";

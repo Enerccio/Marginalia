@@ -161,7 +161,7 @@ public class DesktopWorkspace implements Workspace {
         manuscriptTabHeader.setAlignItems(Alignment.CENTER);
         manuscriptTabHeader.setSpacing(true);
         Span manuscriptNameSpan = new Span(loc.getValue(L.LABEL_BOOKS));
-        manuscriptTabHeader.add(manuscriptNameSpan);
+        manuscriptTabHeader.add(PartIcon.BOOKS.create(), manuscriptNameSpan);
 
         Tab manuscriptTab = tabs.add(manuscriptTabHeader, manuscriptPartComponent);
         tabToComponent.put(manuscriptTab, manuscriptPart);
@@ -170,7 +170,7 @@ public class DesktopWorkspace implements Workspace {
         lorebookTabHeader.setAlignItems(Alignment.CENTER);
         lorebookTabHeader.setSpacing(true);
         Span lorebookNameSpan = new Span(loc.getValue(L.LABEL_LOREBOOKS));
-        lorebookTabHeader.add(lorebookNameSpan);
+        lorebookTabHeader.add(PartIcon.LOREBOOKS.create(), lorebookNameSpan);
 
         Tab lorebookTab = tabs.add(lorebookTabHeader, lorebookPartComponent);
         tabToComponent.put(lorebookTab, lorebookPart);
@@ -179,7 +179,7 @@ public class DesktopWorkspace implements Workspace {
         userTabHeader.setAlignItems(Alignment.CENTER);
         userTabHeader.setSpacing(true);
         Span userNameSpan = new Span(loc.getValue(L.LABEL_SETTINGS));
-        userTabHeader.add(userNameSpan);
+        userTabHeader.add(PartIcon.SETTINGS.create(), userNameSpan);
 
         Tab userTab = tabs.add(userTabHeader, userPartComponent);
         tabToComponent.put(userTab, userPart);
@@ -188,7 +188,7 @@ public class DesktopWorkspace implements Workspace {
         protocolTabHeader.setAlignItems(Alignment.CENTER);
         protocolTabHeader.setSpacing(true);
         Span protocolNameSpan = new Span(loc.getValue(L.LABEL_PROTOCOLS));
-        protocolTabHeader.add(protocolNameSpan);
+        protocolTabHeader.add(PartIcon.PROTOCOLS.create(), protocolNameSpan);
 
         Tab protocolTab = tabs.add(protocolTabHeader, protocolPartComponent);
         tabToComponent.put(protocolTab, protocolPart);
@@ -197,7 +197,7 @@ public class DesktopWorkspace implements Workspace {
         aiTabHeader.setAlignItems(Alignment.CENTER);
         aiTabHeader.setSpacing(true);
         Span connNameSpan = new Span(loc.getValue(L.LABEL_MODELS));
-        aiTabHeader.add(connNameSpan);
+        aiTabHeader.add(PartIcon.MODELS.create(), connNameSpan);
 
         Tab aiTab = tabs.add(aiTabHeader, aiPartComponent);
         tabToComponent.put(aiTab, aiPart);
@@ -206,7 +206,7 @@ public class DesktopWorkspace implements Workspace {
             HorizontalLayout agentsTabHeader = new HorizontalLayout();
             agentsTabHeader.setAlignItems(Alignment.CENTER);
             agentsTabHeader.setSpacing(true);
-            agentsTabHeader.add(new Span(loc.getValue(L.LABEL_AGENTS)), agentPart.getAttentionBadge());
+            agentsTabHeader.add(PartIcon.AGENTS.create(), new Span(loc.getValue(L.LABEL_AGENTS)), agentPart.getAttentionBadge());
 
             Tab agentsTab = tabs.add(agentsTabHeader, agentPartComponent);
             tabToComponent.put(agentsTab, agentPart);
@@ -216,7 +216,7 @@ public class DesktopWorkspace implements Workspace {
         HorizontalLayout resourcesTabHeader = new HorizontalLayout();
         resourcesTabHeader.setAlignItems(Alignment.CENTER);
         resourcesTabHeader.setSpacing(true);
-        resourcesTabHeader.add(new Span(loc.getValue(L.LABEL_RESOURCES)));
+        resourcesTabHeader.add(PartIcon.RESOURCES.create(), new Span(loc.getValue(L.LABEL_RESOURCES)));
 
         Tab resourcesTab = tabs.add(resourcesTabHeader, resourcesPartComponent);
         tabToComponent.put(resourcesTab, resourcesPart);
@@ -224,7 +224,7 @@ public class DesktopWorkspace implements Workspace {
         HorizontalLayout trashTabHeader = new HorizontalLayout();
         trashTabHeader.setAlignItems(Alignment.CENTER);
         trashTabHeader.setSpacing(true);
-        trashTabHeader.add(new Span(loc.getValue(L.LABEL_TRASH)));
+        trashTabHeader.add(PartIcon.TRASH.create(), new Span(loc.getValue(L.LABEL_TRASH)));
 
         Tab trashTab = tabs.add(trashTabHeader, trashPartComponent);
         tabToComponent.put(trashTab, trashPart);
