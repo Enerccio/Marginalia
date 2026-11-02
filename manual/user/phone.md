@@ -130,6 +130,11 @@ The story tab is one column of parts. The differences from the [story editor](bo
 - The **Summaries** button and the settings menu (⚙, with *Change Styles For Text*, *Search and replace*, *Import from archive*, *Mass delete* and *Export story*) are in the top bar, not
   at the bottom.
 - The **+** button for a new part is at the bottom.
+- The **Summaries** window has its menu bar (*Search and replace*, *Export Summaries*, *Import Summaries*) in a row of its own;
+  on a narrow screen the items are behind the **⋯** button. [Importing summaries](books/summaries.md#export-and-import-of-the-summaries)
+  is the same window as on the desktop, in the width of the screen.
+
+![Import Summaries on a phone](../images/phone-summaries-import.png)
 - [Annotations](books/annotations.md): the **Annotations** tab is in the drawer next to the outline; a tap on an underlined passage
   opens its note; **Annotate part** and **Annotate with AI** are in the menu of the part, **Annotate selection** in the menu of a long press on the selected text.
 - **Search and replace** opens the same window as on the desktop, with the fields and buttons below each other:

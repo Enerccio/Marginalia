@@ -28,6 +28,8 @@ done
 on 13-db-backup
 run shoot-commands.mjs                           # /take-backup adds a backup to the book: a copy, discarded
 on 13-db-backup
+run shoot-summaries-transfer.mjs                  # exports the summaries and chooses the edited file in the import window, nothing is imported: a copy, discarded
+on 13-db-backup
 run shoot-search-replace.mjs                     # looks only, but leaves the workspace on the Lorebooks tab: a copy, discarded
 on 13-db-backup
 run shoot-help.mjs                               # chooses the model of the help assistant (installation wide), a permission for the administrator: a copy, discarded

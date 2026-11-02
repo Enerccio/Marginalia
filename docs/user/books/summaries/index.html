@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846966631304">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846968298572">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846966631304" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.846968298572" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846966631304" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846968298572" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846966631304" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846968298572" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -288,7 +288,7 @@ in the prompt.</p>
 </retype-table>
 <p>Summaries that are merged into a meta summary are shown under it, see <doc-anchor-trigger to="#meta-summaries">below</doc-anchor-trigger>. They have no
 <strong>Select</strong> box, no trash icon and no pencil: only the summaries that are in use can be changed.</p>
-<p>The menu bar above the grid has <strong>Search and Replace</strong> (see <doc-anchor-trigger to="#search-and-replace-in-the-summaries">below</doc-anchor-trigger>); <a href="../../extensions/">extensions</a> can add tools to it.</p>
+<p>The menu bar above the grid has <strong>Search and Replace</strong> (see <doc-anchor-trigger to="#search-and-replace-in-the-summaries">below</doc-anchor-trigger>), <strong>Export Summaries</strong> and <strong>Import Summaries</strong> (see <doc-anchor-trigger to="#export-and-import-of-the-summaries">Export and import</doc-anchor-trigger>); <a href="../../extensions/">extensions</a> can add tools to it.</p>
 <h3 id="editing-a-summary">Editing a summary</h3>
 <p>Click the pencil to the right of the content of a summary. The text turns into a text area of the same size. Click
 the green check to save the change, or the red trash icon to throw it away. The token count is counted again after
@@ -312,6 +312,64 @@ those meta summaries again and they stay valid. <strong>Revalidate all summaries
 the book, also for those the replace did not touch and for those that were outdated before, see
 <a href="../story-editor/#search-and-replace">the story search</a>. With it off, a meta summary on a branch that is not searched
 (<strong>Search in all branches</strong> off) would become outdated, and the window tells you how many and asks whether to go on.</p>
+<h3 id="export-and-import-of-the-summaries">Export and import of the summaries</h3>
+<p><strong>Export Summaries</strong> downloads the summaries in use on the active branch as one text file (<code translate="no" v-pre>&lt;book&gt;-summaries.md</code>), the oldest
+first, each under a line like <code translate="no" v-pre>&lt;!-- summary part=&quot;...&quot; order=&quot;3&quot; --&gt;</code>. Edit the texts in any editor, keep the header lines, and
+bring the file back with <strong>Import Summaries</strong>: choose the file, the table says what would happen to each summary, and nothing
+is written until you press <strong>Import</strong>.</p>
+<retype-table copy-text="| Status | |
+|---|---|
+| **Will change** | The part named by the header has a summary in use and its text differs. |
+| **Will change (by position)** | See below. |
+| **Unchanged** | The text is the one the summary has. |
+| **Part not found** | The branch has no summary in use for the header. |
+| **Empty text** | The text under the header is empty; an import never empties a summary. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Status</th>
+<th> </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Will change</strong></td>
+<td>The part named by the header has a summary in use and its text differs.</td>
+</tr>
+<tr>
+<td><strong>Will change (by position)</strong></td>
+<td>See below.</td>
+</tr>
+<tr>
+<td><strong>Unchanged</strong></td>
+<td>The text is the one the summary has.</td>
+</tr>
+<tr>
+<td><strong>Part not found</strong></td>
+<td>The branch has no summary in use for the header.</td>
+</tr>
+<tr>
+<td><strong>Empty text</strong></td>
+<td>The text under the header is empty; an import never empties a summary.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<figure class="content-center">
+    <img src="../../../images/summaries-import.png" alt="The import window with an edited file" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1600" height="792" />
+    <figcaption class="caption">The import window with an edited file</figcaption>
+</figure>
+<p>A header names the part by its id, so a file brings the summaries back to the book it came from. To move the summaries to
+another book (a copy has parts with other ids) tick <strong>Match by position</strong>: a summary whose part is not in this branch goes
+to the summary on the part at the same position (the <code translate="no" v-pre>order</code> of the header, the root is 1). Check the table first: a
+position only fits when the two stories have the same shape.</p>
+<p>The file holds the summaries generation uses, a meta summary is one of them. The summaries a meta summary stands in for are
+not in it and are never changed: their text is part of what makes the meta summary valid (see
+<doc-anchor-trigger to="#meta-summaries">Meta summaries</doc-anchor-trigger>), so a change of them would make it outdated. An import changes only the text and the token
+count of a summary, the same as the pencil does, so no summary becomes outdated by it. It is refused while an agent works on
+the book.</p>
 <h3 id="deleting-a-summary">Deleting a summary</h3>
 <p>The trash icon of a summary does the same as <strong>Delete summary</strong> in the part menu. For a meta summary it asks what to
 do, see <doc-anchor-trigger to="#unwinding-a-meta-summary">Unwinding a meta summary</doc-anchor-trigger>.</p>
@@ -532,7 +590,7 @@ stops with <em>Contextual limit not sufficient.</em> Then shorten them (a more c
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (2c90b7721).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (16f5cdf7a).</p></div>
             </footer>
         </div>
     </div>

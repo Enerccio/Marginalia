@@ -951,6 +951,13 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_IMPORT_FROM_OTHER_USER, "Import from other user");
         setValue(L.LABEL_SHARE_WITH_OTHER_USERS, "Share with other users");
         setValue(L.LABEL_EDIT_DESCRIPTION, "Edit description");
+        setValue(L.LABEL_EXPORT_SUMMARIES, "Export Summaries");
+        setValue(L.LABEL_IMPORT_SUMMARIES, "Import Summaries");
+        setValue(L.LABEL_MATCH_BY_POSITION, "Match by position");
+        setValue(L.LABEL_SUMMARY_WILL_CHANGE, "Will change");
+        setValue(L.LABEL_SUMMARY_WILL_CHANGE_BY_POSITION, "Will change (by position)");
+        setValue(L.LABEL_SUMMARY_PART_NOT_FOUND, "Part not found");
+        setValue(L.LABEL_SUMMARY_EMPTY_TEXT, "Empty text");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -1620,6 +1627,10 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_IMPORTED_FROM_OTHER_USER, "Imported \"%s\".");
         setValue(L.MSG_NOT_SHARED_ANY_MORE, "The author does not share it any more.");
         setValue(L.MSG_SHARE_SUB_LOREBOOKS, "%d sub lorebook(s) of this lorebook are not shared. Other users get only the sub lorebooks that are shared. Share them too?");
+        setValue(L.MSG_INVALID_SUMMARIES_FILE, "The file is not a summaries export of Marginalia.");
+        setValue(L.MSG_SUMMARIES_IMPORT_READY, "%d of %d summaries will change.");
+        setValue(L.MSG_SUMMARIES_IMPORTED, "%d summaries updated.");
+        setValue(L.MSG_IMPORT_SUMMARIES, "Choose a file made by Export Summaries (you can edit it in a text editor). The summaries of the active branch that the file names are replaced; nothing is changed until you press Import.");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");
@@ -1726,6 +1737,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_IMAGE_LAYOUT, "The viewer and the exports place the image like this. The story editor lists the images after the text; \"Preview as in the viewer\" shows the result.");
         setValue(L.HELP_LOREBOOK_SHARED, "Other users see this lorebook, with its shared sub lorebooks, in \"Import from other user\" and can import a copy of it. They cannot change yours.");
         setValue(L.HELP_PROTOCOL_SHARED, "Other users see this protocol in \"Import from other user\" and can import a copy of it. They cannot change yours.");
+        setValue(L.HELP_MATCH_BY_POSITION, "Summaries are matched to parts by the id of the part. Tick this for a file from another book (a copy has other ids): a summary whose part is not in this branch goes to the summary at the same position.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Background lore and world context.");

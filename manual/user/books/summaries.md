@@ -74,7 +74,7 @@ The dialog lists the summaries the next generation will send, oldest first, and 
 Summaries that are merged into a meta summary are shown under it, see [below](#meta-summaries). They have no
 **Select** box, no trash icon and no pencil: only the summaries that are in use can be changed.
 
-The menu bar above the grid has **Search and Replace** (see [below](#search-and-replace-in-the-summaries)); [extensions](../extensions/index.md) can add tools to it.
+The menu bar above the grid has **Search and Replace** (see [below](#search-and-replace-in-the-summaries)), **Export Summaries** and **Import Summaries** (see [Export and import](#export-and-import-of-the-summaries)); [extensions](../extensions/index.md) can add tools to it.
 
 ### Editing a summary
 
@@ -103,6 +103,34 @@ those meta summaries again and they stay valid. **Revalidate all summaries** (on
 the book, also for those the replace did not touch and for those that were outdated before, see
 [the story search](story-editor.md#search-and-replace). With it off, a meta summary on a branch that is not searched
 (**Search in all branches** off) would become outdated, and the window tells you how many and asks whether to go on.
+
+### Export and import of the summaries
+
+**Export Summaries** downloads the summaries in use on the active branch as one text file (`<book>-summaries.md`), the oldest
+first, each under a line like `<!-- summary part="..." order="3" -->`. Edit the texts in any editor, keep the header lines, and
+bring the file back with **Import Summaries**: choose the file, the table says what would happen to each summary, and nothing
+is written until you press **Import**.
+
+| Status | |
+|---|---|
+| **Will change** | The part named by the header has a summary in use and its text differs. |
+| **Will change (by position)** | See below. |
+| **Unchanged** | The text is the one the summary has. |
+| **Part not found** | The branch has no summary in use for the header. |
+| **Empty text** | The text under the header is empty; an import never empties a summary. |
+
+![The import window with an edited file](../../images/summaries-import.png)
+
+A header names the part by its id, so a file brings the summaries back to the book it came from. To move the summaries to
+another book (a copy has parts with other ids) tick **Match by position**: a summary whose part is not in this branch goes
+to the summary on the part at the same position (the `order` of the header, the root is 1). Check the table first: a
+position only fits when the two stories have the same shape.
+
+The file holds the summaries generation uses, a meta summary is one of them. The summaries a meta summary stands in for are
+not in it and are never changed: their text is part of what makes the meta summary valid (see
+[Meta summaries](#meta-summaries)), so a change of them would make it outdated. An import changes only the text and the token
+count of a summary, the same as the pencil does, so no summary becomes outdated by it. It is refused while an agent works on
+the book.
 
 ### Deleting a summary
 
