@@ -1,6 +1,9 @@
 package com.github.enerccio.marginalia.domain.service;
 
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
+import com.vaadin.flow.component.UI;
+
+import java.util.function.Consumer;
 
 public interface GenerationListener {
     /** Fired immediately after the initial ChatMessage tree node is persisted */
@@ -41,4 +44,16 @@ public interface GenerationListener {
 
     /** Display dialog */
     void askQuestion(String question, Runnable yes, Runnable no);
+
+    /**
+     * Runs the action bound to the UI that started the generation (locked with {@code ui.access}, pushed to the browser after
+     * it), for an extension that wants to show its own component to the user of the generation.
+     *
+     * @return whether the action was scheduled; false when the generation has no UI (an agent or a command started it), then
+     * nobody can be shown anything and the action never runs. The action runs later, on the thread of the UI.
+     * @throws com.vaadin.flow.component.UIDetachedException when the UI is gone
+     */
+    default boolean accessUI(Consumer<UI> action) {
+        return false;
+    }
 }

@@ -159,6 +159,7 @@ built separately with Maven, or in Docker (see the plugins README):
 - [Name generator](marginalia/plugins/name-generator/README.md) - functions for the model to get names (about 1200 categories) instead of inventing them,
 - [Name provider](marginalia/plugins/name-provider/README.md) - functions for the model to pick real names (forenames and surnames of about 100 countries) from lists,
 - [Place provider](marginalia/plugins/place-provider/README.md) - functions and commands to look up real places (about 18 000 notable ones), what is near a place and the distance of two,
+- [Prompt Inspector](marginalia/plugins/prompt-inspector/README.md) - see the prompt of a generation and confirm it before it is sent to the model,
 - [Reviewer](marginalia/plugins/reviewer/README.md) - AI reviews of story parts,
 - [Side Query](marginalia/plugins/sidequery/README.md) - ask the model about your book without changing it,
 - [Converter](marginalia/plugins/sillytavern-converter/README.md) - rewrite a SillyTavern chat as a story: the chat next to the story, turn details made of it by the model,

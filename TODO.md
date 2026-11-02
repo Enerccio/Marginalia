@@ -566,7 +566,9 @@ Most are 🧩 plugin-sized; the ones that need a core hook say so.
     identical prefix) and why: the active lore set changed, the context window slid, a summary or a note changed.
     ✅ Partly (1.6.0): *Compare Prompt* in the part menu (`PromptComparisonDialog`, `PromptComparison`) diffs the stored prompt of a
     part with an earlier part or a swipe, marks the first differing message and says why (system message, story shifted, edited
-    part, last message only). Open: the dry run (building the next payload without sending it), a word diff inside the message
+    part, last message only). ✅ Partly (1.7.0): the **Prompt Inspector** plugin shows the final payload of a generation and asks before it is
+    sent (*No* stops the generation, `GenerationControllerEvent.askQuestion`); it is not a dry run, the pipeline runs up to the request (a
+    part is started and removed again; no request to a model is made). Open: the dry run (building the next payload without sending it), a word diff inside the message
     (now both texts are shown from the first difference), naming which block of the system message changed (lore / summaries /
     notes; the system message is one text), a `/compare-prompts` command, and the model, tools and sampler (not in the stored prompt).
 62. ~~**Cache-friendly prompt ordering.**~~ Scratched, not planned. A prefix cache miss is inherent to lore chosen per
@@ -654,4 +656,7 @@ Most are 🧩 plugin-sized; the ones that need a core hook say so.
       Mass changes below a line), the *Import* menu (from archive, from SillyTavern), *New folder* and *Add book*. The phone list
       (`PhoneManuscriptPart`) keeps its icon buttons (it has no Organise or Mass changes).
     - **Screenshots.** `history-part-menu.png`, `history-menu.png` and `story-settings-menu.png` show the menus before the grouping.
-    - **A look in a browser.** The grouped menus, the lines, the nested *Change Styles For Text* and the *Manage* / *Import* menus of the book list are tested without a browser only.
+      Deliberately left for the pre-release screenshot update (the screenshots are retaken in one go before a release, then
+      `tools/retype_build.sh`).
+    - ✅ **A look in a browser.** The grouped menus, the lines, the nested *Change Styles For Text* and the *Manage* / *Import* menus of
+      the book list were checked in Chrome, Firefox and Safari.

@@ -17,6 +17,8 @@ import com.github.enerccio.marginalia.utils.UiProblems;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 
+import java.util.function.Consumer;
+
 /**
  * Shows a running generation in a story tab: creates and fills the card of the new part as the chunks arrive, and
  * redraws the story when the generation ends. The tab reacts to the end through {@link Callbacks}.
@@ -310,6 +312,18 @@ public class StoryGenerationListener<C extends Component & StoryCard> implements
             ConfirmDialog.show(question, yes, no);
             UIPushGuard.push(ui);
         });
+    }
+
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = boolean.class),
+            parameters = {@APIParameter(name = "action", type = Consumer.class)})
+    @Override
+    public boolean accessUI(Consumer<UI> action) {
+        ui.access(() -> {
+            action.accept(ui);
+            UIPushGuard.push(ui);
+        });
+        return true;
     }
 
 }
