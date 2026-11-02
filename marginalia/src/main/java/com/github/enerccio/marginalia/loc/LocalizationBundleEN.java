@@ -948,6 +948,9 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_LORE_USAGE_NOT_IN_LOREBOOK, "not in the lorebook now");
         setValue(L.LABEL_LORE_USAGE_FOUND_IN, "Found in");
         setValue(L.LABEL_LORE_USAGE_IN_PROMPT, "The prompt");
+        setValue(L.LABEL_IMPORT_FROM_OTHER_USER, "Import from other user");
+        setValue(L.LABEL_SHARE_WITH_OTHER_USERS, "Share with other users");
+        setValue(L.LABEL_EDIT_DESCRIPTION, "Edit description");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -1611,6 +1614,12 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_LORE_USAGE_NO_RECORDS, "No part in this range has a record of the lore it used, so there is nothing to count.");
         setValue(L.MSG_LORE_USAGE_NO_LOREBOOK, "The book has no lorebook.");
         setValue(L.MSG_LORE_USAGE_HELP, "An entry counts as used by a part when its text went into the prompt that wrote the part. The shares are of the parts that have a record. Parts are numbered as in the outline of the story; All branches counts every branch and every swipe. Entries that were never used are candidates for pruning or for a better filter, entries that were always used could be constant entries. An entry that is not in the lorebook now was used earlier and has been deleted or moved since.");
+        setValue(L.MSG_NO_SHARED_LOREBOOKS, "No other user shares a lorebook.");
+        setValue(L.MSG_NO_SHARED_PROTOCOLS, "No other user shares a protocol.");
+        setValue(L.MSG_IMPORT_FROM_OTHER_USER, "Importing makes a copy that is yours; the original stays with its author. Open a row to see what is in it.");
+        setValue(L.MSG_IMPORTED_FROM_OTHER_USER, "Imported \"%s\".");
+        setValue(L.MSG_NOT_SHARED_ANY_MORE, "The author does not share it any more.");
+        setValue(L.MSG_SHARE_SUB_LOREBOOKS, "%d sub lorebook(s) of this lorebook are not shared. Other users get only the sub lorebooks that are shared. Share them too?");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");
@@ -1715,6 +1724,8 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_STYLE_CUSTOM_CSS, "CSS added after the options, inside the scope of the style. Write rules for the text of the parts, for example \".chat-message-markdown p { text-indent: 1.5em !important; }\", or declarations that apply to the whole element.");
         setValue(L.HELP_EXPORT_SETTINGS, "Each format is exported in the style chosen here, and with your version of its templates, until you choose otherwise in the export dialog. Styles for exports are made in the Styles tab (tick \"For exports\"). Leave a template empty to use the default one.");
         setValue(L.HELP_IMAGE_LAYOUT, "The viewer and the exports place the image like this. The story editor lists the images after the text; \"Preview as in the viewer\" shows the result.");
+        setValue(L.HELP_LOREBOOK_SHARED, "Other users see this lorebook, with its shared sub lorebooks, in \"Import from other user\" and can import a copy of it. They cannot change yours.");
+        setValue(L.HELP_PROTOCOL_SHARED, "Other users see this protocol in \"Import from other user\" and can import a copy of it. They cannot change yours.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Background lore and world context.");

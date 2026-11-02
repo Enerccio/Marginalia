@@ -33,6 +33,14 @@ public class Lorebook extends ExtendableEntity {
     // the working copy of an agent, never listed with the books of the user
     private boolean agentic = false;
 
+    // other users see the lorebook (with its sub lorebooks) in "Import from other user" and can import a copy of it
+    private boolean shared = false;
+
+    // what the lorebook is about, one line under its name in the lorebook editor
+    @Transient
+    @ExtendedAttribute
+    private String description;
+
     // how many times the content of the entries that were used is searched for the filters of the others, 0 = never; read
     // from the lorebook the book uses (the root), not from its subbooks
     @Transient
@@ -45,6 +53,22 @@ public class Lorebook extends ExtendableEntity {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public boolean isShared() {
+        return shared;
+    }
+
+    public void setShared(boolean shared) {
+        this.shared = shared;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public boolean isAgentic() {

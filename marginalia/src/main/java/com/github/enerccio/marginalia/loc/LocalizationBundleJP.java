@@ -948,6 +948,9 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_LORE_USAGE_NOT_IN_LOREBOOK, "現在ロアブックにありません");
         setValue(L.LABEL_LORE_USAGE_FOUND_IN, "見つかった場所");
         setValue(L.LABEL_LORE_USAGE_IN_PROMPT, "プロンプト");
+        setValue(L.LABEL_IMPORT_FROM_OTHER_USER, "他のユーザーからインポート");
+        setValue(L.LABEL_SHARE_WITH_OTHER_USERS, "他のユーザーと共有");
+        setValue(L.LABEL_EDIT_DESCRIPTION, "説明を編集");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -1611,6 +1614,12 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_LORE_USAGE_NO_RECORDS, "この範囲のパートには使用したロアの記録がないため、集計するものがありません。");
         setValue(L.MSG_LORE_USAGE_NO_LOREBOOK, "この本にはロアブックがありません。");
         setValue(L.MSG_LORE_USAGE_HELP, "エントリは、そのパートを書いたプロンプトにテキストが入っていれば、そのパートで使用されたと数えます。割合は記録のあるパートに対するものです。パート番号はストーリーのアウトラインと同じです。「すべてのブランチ」はすべてのブランチとスワイプを数えます。一度も使われないエントリは整理するかフィルタを見直す候補で、常に使われるエントリは常時エントリにできます。現在ロアブックにないエントリは、以前使われた後で削除または移動されています。");
+        setValue(L.MSG_NO_SHARED_LOREBOOKS, "ロアブックを共有しているユーザーはいません。");
+        setValue(L.MSG_NO_SHARED_PROTOCOLS, "プロトコルを共有しているユーザーはいません。");
+        setValue(L.MSG_IMPORT_FROM_OTHER_USER, "インポートすると自分のコピーが作られ、元のものは作者のもとに残ります。行を開くと中身を確認できます。");
+        setValue(L.MSG_IMPORTED_FROM_OTHER_USER, "「%s」をインポートしました。");
+        setValue(L.MSG_NOT_SHARED_ANY_MORE, "作者はこれを共有しなくなりました。");
+        setValue(L.MSG_SHARE_SUB_LOREBOOKS, "このロアブックのサブロアブック%d件は共有されていません。他のユーザーが取得できるのは共有されているサブロアブックだけです。それらも共有しますか？");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");
@@ -1715,6 +1724,8 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_STYLE_CUSTOM_CSS, "オプションの後ろ、スタイルの範囲内に追加される CSS です。パートのテキストに対するルール（例：\".chat-message-markdown p { text-indent: 1.5em !important; }\"）か、要素全体に適用される宣言を書きます。");
         setValue(L.HELP_EXPORT_SETTINGS, "各形式は、エクスポートダイアログで別に選ばない限り、ここで選んだスタイルと自分用のテンプレートでエクスポートされます。エクスポート用のスタイルは「スタイル」タブで作成します（「エクスポート用」にチェック）。テンプレートを空にすると標準のものが使われます。");
         setValue(L.HELP_IMAGE_LAYOUT, "ビューアとエクスポートでは、画像はこのように配置されます。ストーリーエディタでは画像はテキストの後に一覧表示されます。「ビューアでのプレビュー」で結果を確認できます。");
+        setValue(L.HELP_LOREBOOK_SHARED, "他のユーザーは、このロアブックを共有されているサブロアブックとともに「他のユーザーからインポート」で見て、コピーをインポートできます。あなたのものは変更できません。");
+        setValue(L.HELP_PROTOCOL_SHARED, "他のユーザーは、このプロトコルを「他のユーザーからインポート」で見て、コピーをインポートできます。あなたのものは変更できません。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景設定と世界観の文脈。");

@@ -279,6 +279,7 @@ public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, Loreboo
         copy.setName(StringUtils.isBlank(name) ? original.getName() : name);
         copy.setEnabled(original.isEnabled());
         copy.setScanDepth(original.getScanDepth());
+        copy.setDescription(original.getDescription());
         if (original.getAttributes() != null) {
             copy.setAttributes(original.getAttributes().deepCopy());
         }
@@ -286,6 +287,80 @@ public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, Loreboo
         copy = save(copy);
         unmarshalContent(copy, content, null);
         return copy;
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public List<Lorebook> findAllShared() throws Exception {
+        return getRepository().findAllShared(currentUser);
+    }
+
+    @Override
+    @CommonTx
+    public Lorebook importShared(Lorebook source, String name) throws Exception {
+        // what the caller hands over is only a name for it, the sharing is checked on the stored lorebook
+        Lorebook original = source == null || StringUtils.isBlank(source.getUuid()) ? null
+                : getRepository().findShared(source.getUuid(), currentUser);
+        if (original == null) {
+            throw new IllegalArgumentException("The lorebook is not shared");
+        }
+
+        // the lorebooks of the other user can't be linked: the tree is copied, every lorebook of it with a new uuid (the copies
+        // must not be taken for the originals if they are exported and imported back), but only the sub lorebooks that are
+        // shared too: what the other user keeps to themselves is not read here
+        JsonArray lorebooks = marshalLorebooks(original, false, Lorebook::isShared);
+        Map<String, String> uuids = new HashMap<>();
+        for (JsonElement element : lorebooks) {
+            JsonObject bookObj = element.getAsJsonObject();
+            uuids.put(getString(bookObj, "uuid"), UUID.randomUUID().toString());
+        }
+        Map<String, LorebookDecision> decisions = new HashMap<>();
+        for (JsonElement element : lorebooks) {
+            JsonObject bookObj = element.getAsJsonObject();
+            bookObj.addProperty("uuid", uuids.get(getString(bookObj, "uuid")));
+            JsonArray subbooks = new JsonArray();
+            for (String subbook : extractStrings(bookObj, "subbooks")) {
+                subbooks.add(uuids.getOrDefault(subbook, subbook));
+            }
+            bookObj.add("subbooks", subbooks);
+            decisions.put(getString(bookObj, "uuid"), LorebookDecision.CREATE);
+        }
+
+        Lorebook copy = importLorebooks(lorebooks, decisions).get(uuids.get(original.getUuid()));
+        if (copy == null) {
+            throw new IllegalStateException("The lorebook was not copied");
+        }
+        if (StringUtils.isNotBlank(name) && !name.equals(copy.getName())) {
+            copy.setName(name);
+            copy = save(copy);
+        }
+        return copy;
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public List<Lorebook> findUnsharedSubbooks(Lorebook lorebook) throws Exception {
+        Lorebook root = own(lorebook);
+        return getLorebookTree(root).stream()
+                .filter(book -> !book.getId().equals(root.getId()) && !book.isShared())
+                .toList();
+    }
+
+    @Override
+    @CommonTx
+    public Lorebook share(Lorebook lorebook, boolean withSubbooks) throws Exception {
+        Lorebook root = own(lorebook);
+        if (root.isAgentic()) {
+            throw new IllegalArgumentException("A working copy of an agent can't be shared");
+        }
+        if (withSubbooks) {
+            for (Lorebook book : findUnsharedSubbooks(root)) {
+                book.setShared(true);
+                save(book);
+            }
+        }
+        root.setShared(true);
+        return save(root);
     }
 
     @Override
@@ -539,6 +614,14 @@ public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, Loreboo
     @Override
     @CommonTxReadOnly
     public JsonArray marshalLorebooks(Lorebook root, boolean entryUuids) throws Exception {
+        return marshalLorebooks(root, entryUuids, book -> true);
+    }
+
+    /**
+     * As {@link #marshalLorebooks(Lorebook, boolean)}, but a sub lorebook that {@code include} does not accept is left out with
+     * everything below it (and the reference to it).
+     */
+    private JsonArray marshalLorebooks(Lorebook root, boolean entryUuids, java.util.function.Predicate<Lorebook> include) throws Exception {
         JsonArray array = new JsonArray();
         Set<Long> visited = new HashSet<>();
         Deque<Lorebook> queue = new ArrayDeque<>();
@@ -551,12 +634,15 @@ public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, Loreboo
             if (!visited.add(book.getId())) {
                 continue;
             }
-            List<Lorebook> subbooks = getSubbooks(book);
+            List<Lorebook> subbooks = getSubbooks(book).stream().filter(include).toList();
             JsonObject bookObj = new JsonObject();
             bookObj.addProperty("uuid", book.getUuid());
             bookObj.addProperty("name", book.getName());
             bookObj.addProperty("enabled", book.isEnabled());
             bookObj.addProperty("scanDepth", book.getScanDepth());
+            if (StringUtils.isNotBlank(book.getDescription())) {
+                bookObj.addProperty("description", book.getDescription());
+            }
             addAttributes(bookObj, book);
             bookObj.add("tags", toJsonArray(tagRelationService.getTagsForObject(book)));
             JsonArray subbookRefs = new JsonArray();
@@ -727,6 +813,7 @@ public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, Loreboo
             if (bookObj.has("scanDepth") && bookObj.get("scanDepth").isJsonPrimitive()) {
                 lorebook.setScanDepth(bookObj.get("scanDepth").getAsInt());
             }
+            lorebook.setDescription(getString(bookObj, "description"));
             lorebook.setAgentic(agentic);
             lorebook.setAttributes(attributesOf(bookObj));
             // keep original uuid when free, so later restores link to this copy; a working copy is always new

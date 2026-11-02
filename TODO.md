@@ -214,9 +214,12 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
 
 22. **Sharing between users.** Everything is private except inference providers: ✅ since 1.2.0 an administrator can
     share a provider with all users (read-only for them, the key stays hidden), with per-user token limits and usage
-    numbers (`AIService`, `AILimitService`, `UsageService`, migrations `V10`-`V12`). Still open: read-only sharing of
-    lorebooks/protocols, or an admin-managed "global" library, plus public read-only links for the Viewer (after fixing
-    item 1).
+    numbers (`AIService`, `AILimitService`, `UsageService`, migrations `V10`-`V12`). ✅ Since 1.7.0 lorebooks and protocols have a
+    *Share with other users* flag (migration `V25`); other users read them in *Import from other user* (name, author, description,
+    the entries or settings as text) and import a private copy (`LorebookService.importShared`, `ProtocolService.importShared`,
+    `SharedImportDialog`). Not done: the phone views (no check box, no import, no description line), sharing with chosen users
+    only, updating a copy when the original changes, an admin-managed "global" library, plus public read-only links for the Viewer
+    (after fixing item 1).
 
 23. ✅ **Localization.** Per-user UI language: `Localization` (`LocalizationImpl`) holds one `LocalizationBundle`
     per `Language` and reads the language of the session from `SessionPoint`; it is set from `UserSetting.language`

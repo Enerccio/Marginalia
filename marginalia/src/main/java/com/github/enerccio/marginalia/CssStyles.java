@@ -33,6 +33,8 @@ public final class CssStyles {
     public static final String WHITE_SPACE_NORMAL = "white-space-normal";
     public static final String PRE_WRAP = "pre-wrap";
     public static final String WRAP_ANYWHERE = "wrap-anywhere";
+    /** One line, cut with an ellipsis; the whole text belongs in the tooltip. */
+    public static final String CLIPPED_LINE = "clipped-line";
 
     // --- Layout helpers ---
     public static final String FULL_WIDTH = "full-width";
