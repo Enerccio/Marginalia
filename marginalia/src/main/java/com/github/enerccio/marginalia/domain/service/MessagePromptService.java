@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.service;
 
+import com.github.enerccio.marginalia.domain.components.LoreUsage;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.MessagePrompt;
@@ -14,7 +15,7 @@ import java.util.Map;
  * kilobytes, so the part only has {@link ChatMessage#getBuiltPromptTokens()} and whoever needs the text asks here. A
  * part has at most one prompt, one without any text is not kept.
  */
-public interface MessagePromptService extends OwnedService<MessagePrompt, MessagePromptRepository> {
+public interface MessagePromptService extends ExtendableService<MessagePrompt, MessagePromptRepository> {
 
     /**
      * The prompt of the part, null when it has none (it was generated before prompts were kept, was typed by the
@@ -38,9 +39,29 @@ public interface MessagePromptService extends OwnedService<MessagePrompt, Messag
     String getBackgroundLore(ChatMessage part) throws Exception;
 
     /**
-     * Makes this the prompt of the part, replacing the one it had; a prompt of two empty texts removes it.
+     * The lore entries the generation of the part used, null when that was not recorded.
+     */
+    LoreUsage getLoreUsage(ChatMessage part) throws Exception;
+
+    /**
+     * The lore usage of many parts in one query that reads nothing but the small record, by the id of the part; the parts
+     * that have none recorded are not in the map.
+     */
+    Map<Long, LoreUsage> findLoreUsage(Collection<Long> partIds) throws Exception;
+
+    /**
+     * Makes this the prompt of the part, replacing the one it had (its lore usage is dropped); a prompt of two empty
+     * texts removes it.
      */
     void store(ChatMessage part, String builtPrompt, String backgroundLore) throws Exception;
+
+    /**
+     * Makes this the prompt of the part, replacing the one it had. A prompt of two empty texts and no lore usage removes
+     * it; the usage alone keeps it (a record that nothing was used is a record).
+     *
+     * @param loreUsage the lore entries the generation used, null when not recorded
+     */
+    void store(ChatMessage part, String builtPrompt, String backgroundLore, LoreUsage loreUsage) throws Exception;
 
     /**
      * Gives the part the prompt of the other one (what a copy of a part, a branch of it, has), or removes the one it had

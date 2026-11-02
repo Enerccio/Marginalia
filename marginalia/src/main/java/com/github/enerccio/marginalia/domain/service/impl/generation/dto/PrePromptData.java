@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.service.impl.generation.dto;
 
+import com.github.enerccio.marginalia.domain.components.LoreUsage;
 import com.github.enerccio.marginalia.domain.components.TurnInput;
 
 public class PrePromptData {
@@ -8,6 +9,11 @@ public class PrePromptData {
     private long jailbreakTokens;
     private String backgroundLore;
     private long backgroundLoreTokens;
+    /**
+     * The lore entries that went into {@link #backgroundLore} and the user prompt, stored with the prompt of the part;
+     * null when the book has no lorebook.
+     */
+    private LoreUsage loreUsage;
     private String backgroundUserLore;
     private long backgroundUserLoreTokens;
     private String generalTemplate;
@@ -42,6 +48,14 @@ public class PrePromptData {
 
     public void setBackgroundLore(String backgroundLore) {
         this.backgroundLore = backgroundLore;
+    }
+
+    public LoreUsage getLoreUsage() {
+        return loreUsage;
+    }
+
+    public void setLoreUsage(LoreUsage loreUsage) {
+        this.loreUsage = loreUsage;
     }
 
     public String getGeneralTemplate() {

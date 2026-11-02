@@ -26,6 +26,7 @@ public final class StoryMenuKeys {
     public static final String ANNOTATE_RANGE = "tools.annotateRange";
     public static final String AUTO_ANNOTATE = "tools.autoAnnotate";
     public static final String BRANCH_TOKENS = "tools.branchTokens";
+    public static final String LORE_USAGE = "tools.loreUsage";
     public static final String STATISTICS = "tools.statistics";
     public static final String EXPORT = "tools.export";
     public static final String CLEAR_BOOK_HISTORY = "tools.clearBookHistory";
@@ -48,6 +49,7 @@ public final class StoryMenuKeys {
     public static final String SHOW_PROMPT = "card.showPrompt";
     public static final String COMPARE_PROMPT = "card.comparePrompt";
     public static final String TOKEN_USAGE = "card.tokenUsage";
+    public static final String CARD_LORE_USAGE = "card.loreUsage";
     public static final String IMAGES = "card.images";
     public static final String IMAGE_PREVIEW = "card.imagePreview";
     public static final String SUMMARY = "card.summary";

@@ -10,7 +10,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
-public class JpaMessagePromptRepository extends JpaOwnedRepository<MessagePrompt> implements MessagePromptRepository {
+public class JpaMessagePromptRepository extends JpaExtendableRepository<MessagePrompt> implements MessagePromptRepository {
 
     @Override
     protected Class<MessagePrompt> getEntityClass() {
@@ -36,6 +36,19 @@ public class JpaMessagePromptRepository extends JpaOwnedRepository<MessagePrompt
                     .getResultList());
         }
         return prompts;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public List<Object[]> findExtendedContentByPartIds(Collection<Long> partIds) throws Exception {
+        List<Object[]> rows = new ArrayList<>();
+        for (List<Long> chunk : chunks(partIds)) {
+            rows.addAll(entityManager
+                    .createQuery("SELECT p.message.id, p.extendedContent FROM MessagePrompt p WHERE p.deleted = false AND p.message.id IN :ids")
+                    .setParameter("ids", chunk)
+                    .getResultList());
+        }
+        return rows;
     }
 
     @Override

@@ -939,6 +939,15 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_IMAGE_WRAP, "Text flows around the image");
         setValue(L.LABEL_IMAGE_WIDTH, "Width (% of the text)");
         setValue(L.LABEL_MANAGE, "Manage");
+        setValue(L.LABEL_LORE_USAGE, "Lore Usage");
+        setValue(L.LABEL_LORE_USAGE_UNKNOWN_ENTRY, "Unknown entry (deleted?)");
+        setValue(L.LABEL_LORE_USAGE_USED_IN, "Used in");
+        setValue(L.LABEL_LORE_USAGE_AVERAGE_TOKENS, "Tokens per use");
+        setValue(L.LABEL_LORE_USAGE_FIRST_PART, "First part");
+        setValue(L.LABEL_LORE_USAGE_LAST_PART, "Last part");
+        setValue(L.LABEL_LORE_USAGE_NOT_IN_LOREBOOK, "not in the lorebook now");
+        setValue(L.LABEL_LORE_USAGE_FOUND_IN, "Found in");
+        setValue(L.LABEL_LORE_USAGE_IN_PROMPT, "The prompt");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -1113,6 +1122,11 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.ENUM_IMAGE_ANCHOR_BOTTOM_LEFT, "Bottom left");
         setValue(L.ENUM_IMAGE_ANCHOR_BOTTOM_CENTER, "Bottom center");
         setValue(L.ENUM_IMAGE_ANCHOR_BOTTOM_RIGHT, "Bottom right");
+        setValue(L.ENUM_LORE_USAGE_SCOPE_ACTIVE_BRANCH, "Active branch");
+        setValue(L.ENUM_LORE_USAGE_SCOPE_ALL_BRANCHES, "All branches");
+        setValue(L.ENUM_LORE_USAGE_STATUS_NEVER, "Never used");
+        setValue(L.ENUM_LORE_USAGE_STATUS_SOMETIMES, "Sometimes used");
+        setValue(L.ENUM_LORE_USAGE_STATUS_ALWAYS, "Always used");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "Internal Server Error");
@@ -1588,6 +1602,15 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_STYLE_PREVIEW_SAMPLE, "# Chapter One\n\nThe *rain* had not stopped for **three days**, and the road to the harbor was a river of mud. \"We should turn back,\" Mara said, but nobody moved.\n\n> The old maps are wrong. Trust the water.\n\n---\n\nMorning came grey and slow. She counted the lanterns along the quay, `seven`, and began to walk.\n\n## A Smaller Heading\n\nThe lines of this paragraph are long enough to show how the text wraps, aligns and, if hyphenation is turned on, breaks a word like extraordinarily.");
         setValue(L.MSG_STYLES_IMPORTED, "Imported %d style(s). Save the settings to keep them.");
         setValue(L.MSG_STYLE_IMPORT_IGNORED, "%d option(s) of the file are not known to this version and were left out.");
+        setValue(L.MSG_LORE_USAGE_PART_NOT_RECORDED, "Nothing was recorded about the lore of this part. It was typed by hand, made before Marginalia kept this record, or its book has no lorebook.");
+        setValue(L.MSG_LORE_USAGE_PART_NOTHING, "The lorebook put no entry into the prompt of this part.");
+        setValue(L.MSG_LORE_USAGE_PART_SUMMARY, "%d entries, %s tokens.");
+        setValue(L.MSG_LORE_USAGE_IN_ENTRIES, "Content of other entries (pass %d)");
+        setValue(L.MSG_LORE_USAGE_SUMMARY, "%d parts in the range, %d with a record of the lore they used.");
+        setValue(L.MSG_LORE_USAGE_UNRECORDED, "%d have none: typed by hand, made before Marginalia kept this record, or the book had no lorebook.");
+        setValue(L.MSG_LORE_USAGE_NO_RECORDS, "No part in this range has a record of the lore it used, so there is nothing to count.");
+        setValue(L.MSG_LORE_USAGE_NO_LOREBOOK, "The book has no lorebook.");
+        setValue(L.MSG_LORE_USAGE_HELP, "An entry counts as used by a part when its text went into the prompt that wrote the part. The shares are of the parts that have a record. Parts are numbered as in the outline of the story; All branches counts every branch and every swipe. Entries that were never used are candidates for pruning or for a better filter, entries that were always used could be constant entries. An entry that is not in the lorebook now was used earlier and has been deleted or moved since.");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");

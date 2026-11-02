@@ -765,6 +765,24 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
     }
 
     /**
+     * Shows which lorebook entries the generations of the book used and which never did, over a branch or the whole tree.
+     */
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "dialog", type = BookLoreUsageDialog.class),
+                    @APILocals(name = "e", type = Exception.class)})
+    @Override
+    public void openLoreUsageDialog() {
+        try {
+            BookLoreUsageDialog dialog = new BookLoreUsageDialog(parent.refreshManuscript());
+            dialog.create();
+            dialog.open();
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+    }
+
+    /**
      * Shows what was done to the book day by day: words, tokens, time and size.
      */
     @PublicAPI(from = "1.6.0",
@@ -2179,6 +2197,21 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
             TokenUsageDialog dialog = new TokenUsageDialog(message.getTokenBreakdown());
             dialog.create();
             dialog.open();
+        }
+
+        @PublicAPI(from = "1.7.0",
+                returns = @APIReturn(type = void.class),
+                locals = {@APILocals(name = "dialog", type = LoreUsageDialog.class),
+                        @APILocals(name = "e", type = Exception.class)})
+        @Override
+        public void showLoreUsage() {
+            try {
+                LoreUsageDialog dialog = new LoreUsageDialog(message);
+                dialog.create();
+                dialog.open();
+            } catch (Exception e) {
+                UIUtils.internalServerError(loc, e);
+            }
         }
 
         @PublicAPI(from = "1.5.0",

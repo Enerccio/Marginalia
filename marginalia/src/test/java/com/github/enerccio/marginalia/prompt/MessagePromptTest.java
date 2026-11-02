@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.prompt;
 
 import com.github.enerccio.marginalia.bound.Migration.MigrationType;
 import com.github.enerccio.marginalia.bound.migration.ExtendedContentMigration;
+import com.github.enerccio.marginalia.domain.components.LoreUsage;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.MessagePrompt;
@@ -156,6 +157,76 @@ class MessagePromptTest extends MarginaliaTestBase {
 
         chatMessageService.hardDeleteForManuscript(manuscriptService.find(book.getId()));
         assertThat(messagePromptService.find(stored.getId())).isNull();
+    }
+
+    private static LoreUsage usage(String... entries) {
+        LoreUsage usage = new LoreUsage();
+        for (int i = 0; i < entries.length; i++) {
+            usage.add(entries[i], 10L * (i + 1), i);
+        }
+        return usage;
+    }
+
+    @Test
+    void theLoreUsageIsKeptWithThePromptAndAPlainStoreDropsIt() throws Exception {
+        assertThat(messagePromptService.getLoreUsage(first)).isNull();
+
+        messagePromptService.store(first, PROMPT, "lore", usage("a", "b"));
+
+        LoreUsage stored = messagePromptService.getLoreUsage(first);
+        assertThat(stored.getEntries()).extracting(LoreUsage.Used::entry, LoreUsage.Used::tokens, LoreUsage.Used::depth)
+                .containsExactly(org.assertj.core.api.Assertions.tuple("a", 10L, 0), org.assertj.core.api.Assertions.tuple("b", 20L, 1));
+        assertThat(stored.totalTokens()).isEqualTo(30);
+        // the texts are untouched by the attribute, and it is not in the extended content of the part
+        assertThat(messagePromptService.getBuiltPrompt(first)).isEqualTo(PROMPT);
+        assertThat(new String(chatMessageService.find(first.getId()).getExtendedContent(), StandardCharsets.UTF_8))
+                .doesNotContain("loreUsage");
+
+        messagePromptService.store(first, PROMPT, "lore");
+        assertThat(messagePromptService.getLoreUsage(first)).isNull();
+    }
+
+    @Test
+    void aRecordThatNothingWasUsedKeepsTheRowButNoUsageAtAllDoesNot() throws Exception {
+        messagePromptService.store(first, null, null, new LoreUsage());
+
+        assertThat(messagePromptService.findFor(first)).isNotNull();
+        assertThat(messagePromptService.getLoreUsage(first).getEntries()).isEmpty();
+
+        messagePromptService.store(first, null, null, null);
+        assertThat(messagePromptService.findFor(first)).isNull();
+    }
+
+    @Test
+    void aBranchHasTheLoreUsageOfThePart() throws Exception {
+        messagePromptService.store(first, PROMPT, "lore", usage("a"));
+
+        ChatMessage branch = chatMessageService.branch(book, chatMessageService.find(first.getId()));
+
+        assertThat(messagePromptService.getLoreUsage(branch).getEntries()).extracting(LoreUsage.Used::entry).containsExactly("a");
+    }
+
+    @Test
+    void aBackupCarriesTheLoreUsage() throws Exception {
+        messagePromptService.store(first, PROMPT, "lore", usage("a", "b"));
+        messagePromptService.store(second, PROMPT, "lore", new LoreUsage());
+
+        JsonObject backup = manuscriptService.createBackup(book);
+        for (var element : backup.getAsJsonArray("messages")) {
+            if (element.getAsJsonObject().get("uuid").getAsString().equals(first.getUuid())) {
+                assertThat(element.getAsJsonObject().getAsJsonObject("extendedContent").has(MessagePrompt.LORE_USAGE_KEY)).isTrue();
+            }
+        }
+
+        Manuscript restored = manuscriptService.cloneFromBackup(backup);
+        List<ChatMessage> parts = chatMessageService.getAllMessages(restored);
+        ChatMessage restoredFirst = parts.stream().filter(message -> "First.".equals(message.getResponse())).findFirst().orElseThrow();
+        ChatMessage restoredSecond = parts.stream().filter(message -> "Second.".equals(message.getResponse())).findFirst().orElseThrow();
+        assertThat(messagePromptService.getLoreUsage(restoredFirst).getEntries()).extracting(LoreUsage.Used::entry).containsExactly("a", "b");
+        assertThat(messagePromptService.getLoreUsage(restoredSecond).getEntries()).isEmpty();
+        // the key is taken out of the content of the part, like the prompt
+        assertThat(new String(chatMessageService.find(restoredFirst.getId()).getExtendedContent(), StandardCharsets.UTF_8))
+                .doesNotContain(MessagePrompt.LORE_USAGE_KEY);
     }
 
     @Test
