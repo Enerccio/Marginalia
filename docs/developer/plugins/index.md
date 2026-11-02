@@ -121,7 +121,8 @@ private void inspect(GenerationControllerEvent event, EventChain chain) {
     boolean asked = false;
     try {
         if (event.getPayload() != null && isEnabled()) {          // this user switched it on
-            asked = ask(event, chain, format(event.getPayload()));
+            asked = GenerationQuestion.ask(event, chain, log,
+                    (send, cancel) -> new PromptInspectorDialog(format(event.getPayload()), send, cancel));
         }
     } catch (Exception e) {
         log.warn("Failed to show the prompt: {}", e.getMessage(), e);   // generate without asking rather than fail
@@ -131,48 +132,75 @@ private void inspect(GenerationControllerEvent event, EventChain chain) {
         }
     }
 }
+```
 
-private boolean ask(GenerationControllerEvent event, EventChain chain, String prompt) {
+The asking is a class of its own, `GenerationQuestion`, so that it can be tested without a browser (a fake dialog and a fake
+page stand in for the real ones, `GenerationQuestionTest`). Trimmed, it is:
+
+```java
+static boolean ask(GenerationControllerEvent event, EventChain chain, Logger log, ViewFactory factory) {
     AtomicBoolean answered = new AtomicBoolean();
-    // whatever answers first - Send, Cancel or a stop from elsewhere - lets the generation go on, once
+    AtomicReference<View> view = new AtomicReference<>();
+    // whatever answers first - Send, Cancel, a stop from elsewhere, the page going away - lets the generation go on, once
     Runnable proceed = () -> {
         if (answered.compareAndSet(false, true)) {
             chain.next();
         }
     };
-    // the generation was stopped from another window while the dialog is open: do not leave it waiting
-    Runnable unsubscribe = event.getCancellationToken().onCancel(proceed);
+    Runnable stop = () -> {                                       // a refusal: stop before the request
+        event.getCancellationToken().cancel();
+        proceed.run();
+    };
+    // the generation was stopped from another window while the question is open: go on, then close it
+    Runnable unsubscribe = event.getCancellationToken().onCancel(() -> {
+        try { proceed.run(); } finally { closeQuietly(event, view, log); }
+    });
     if (answered.get()) {
         return true;                                              // it was cancelled already: the chain has gone on
     }
 
     boolean scheduled = event.accessUI(ui -> {                    // runs on the thread of the user's page
-        new PromptInspectorDialog(prompt,
-                proceed,                                          // Send: the request goes on
-                () -> {                                           // Cancel: stop before the request
-                    event.getCancellationToken().cancel();
-                    proceed.run();
-                }).open();
+        try {
+            View shown = factory.create(proceed, stop);           // Send -> proceed, Cancel -> stop
+            view.set(shown);
+            shown.whenDetached(() -> {                            // the page was closed or expired with the question open
+                if (!answered.get()) {
+                    stop.run();
+                }
+            });
+            shown.open();
+        } catch (RuntimeException e) {
+            log.warn("Could not show the question: {}", e.getMessage(), e);
+            proceed.run();                                        // go on unasked rather than wait for ever
+        }
     });
     if (!scheduled) {                                             // an agent or a command: no page to ask
         unsubscribe.run();
-        return false;
+        return answered.get();
     }
     return true;                                                  // the dialog is out, the answer calls chain.next()
 }
 ```
 
-The dialog is a plain Vaadin `Dialog` that is given two `Runnable`s. It is modal and does not close on *Esc* or a click
-outside, because the generation is waiting for the answer; each button closes it and runs its callback. (The plugin also
-closes the dialog when the generation is stopped from elsewhere, with another `event.accessUI` in the `onCancel`
-callback.)
+The dialog is a plain Vaadin `Dialog` that is given two `Runnable`s (and implements `View`, which adds `whenDetached`
+over `addDetachListener`). It is modal and does not close on *Esc* or a click outside, because the generation is waiting for the
+answer; each button runs its callback first and then closes, so that the closing, which detaches the dialog, finds the
+question answered.
 
 What to keep in mind when you write one:
 
 * **Always release the chain.** Every path out of the listener must end in exactly one `chain.next()`: the `finally`, the
-  answer, the cancellation. Guard it with an `AtomicBoolean` when several things can answer, and give a generation that
-  waits for ever a way out (`getCancellationToken().onCancel(...)` returns a `Runnable` that removes the listener again
-  when you no longer need it).
+  answer, the cancellation. Guard it with an `AtomicBoolean` when several things can answer.
+* **Give a question that nobody answers a way out.** While the question is open the generation is not a thread that
+  waits but a callback nobody has called yet, so there is nothing to interrupt: if the page is closed or expires with the
+  dialog open, no button is ever pressed and the generation would stay parked for ever (its placeholder part in the book,
+  its closures in memory). Treat the dialog going away unanswered as a refusal (a detach listener that cancels the token and
+  releases the chain), and release the chain when the token is cancelled some other way
+  (`getCancellationToken().onCancel(...)`, which also returns a `Runnable` that removes the listener again). The server
+  notices that a page is gone only after a while, so this is not instant.
+* **Nothing in the way out may throw.** `CancellationToken.cancel()` runs its listeners one after the other and a listener
+  that throws keeps the rest from running; `accessUI` throws `UIDetachedException` when the page is gone. Release the chain
+  first, then close the dialog, and catch what closing throws.
 * **The action and the dialog run on the thread of the UI, not in the request scope of the generation.** Keep them to
   showing the dialog and reporting the answer; hand the work on through the chain and do it in the listener.
 * **Check that someone can see it.** `accessUI` returning `false` means no dialog was shown - do not wait. It throws

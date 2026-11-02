@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846962979173">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846963481592">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846962979173" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.846963481592" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846962979173" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846963481592" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846962979173" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846962979173" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846963481592" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846963481592" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -470,7 +470,8 @@ private void inspect(GenerationControllerEvent event, EventChain chain) {
     boolean asked = false;
     try {
         if (event.getPayload() != null &amp;&amp; isEnabled()) {          // this user switched it on
-            asked = ask(event, chain, format(event.getPayload()));
+            asked = GenerationQuestion.ask(event, chain, log,
+                    (send, cancel) -&gt; new PromptInspectorDialog(format(event.getPayload()), send, cancel));
         }
     } catch (Exception e) {
         log.warn(&quot;Failed to show the prompt: {}&quot;, e.getMessage(), e);   // generate without asking rather than fail
@@ -479,48 +480,77 @@ private void inspect(GenerationControllerEvent event, EventChain chain) {
             chain.next();                                         // nobody was asked: go on
         }
     }
-}
-
-private boolean ask(GenerationControllerEvent event, EventChain chain, String prompt) {
+}</code></pre>
+</doc-codeblock></div>
+<p>The asking is a class of its own, <code translate="no" v-pre>GenerationQuestion</code>, so that it can be tested without a browser (a fake dialog and a fake
+page stand in for the real ones, <code translate="no" v-pre>GenerationQuestionTest</code>). Trimmed, it is:</p>
+<div id="asking-the-user-in-the-middle-of-a-generation-code-2" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-java"><code v-pre class="language-java">static boolean ask(GenerationControllerEvent event, EventChain chain, Logger log, ViewFactory factory) {
     AtomicBoolean answered = new AtomicBoolean();
-    // whatever answers first - Send, Cancel or a stop from elsewhere - lets the generation go on, once
+    AtomicReference&lt;View&gt; view = new AtomicReference&lt;&gt;();
+    // whatever answers first - Send, Cancel, a stop from elsewhere, the page going away - lets the generation go on, once
     Runnable proceed = () -&gt; {
         if (answered.compareAndSet(false, true)) {
             chain.next();
         }
     };
-    // the generation was stopped from another window while the dialog is open: do not leave it waiting
-    Runnable unsubscribe = event.getCancellationToken().onCancel(proceed);
+    Runnable stop = () -&gt; {                                       // a refusal: stop before the request
+        event.getCancellationToken().cancel();
+        proceed.run();
+    };
+    // the generation was stopped from another window while the question is open: go on, then close it
+    Runnable unsubscribe = event.getCancellationToken().onCancel(() -&gt; {
+        try { proceed.run(); } finally { closeQuietly(event, view, log); }
+    });
     if (answered.get()) {
         return true;                                              // it was cancelled already: the chain has gone on
     }
 
     boolean scheduled = event.accessUI(ui -&gt; {                    // runs on the thread of the user's page
-        new PromptInspectorDialog(prompt,
-                proceed,                                          // Send: the request goes on
-                () -&gt; {                                           // Cancel: stop before the request
-                    event.getCancellationToken().cancel();
-                    proceed.run();
-                }).open();
+        try {
+            View shown = factory.create(proceed, stop);           // Send -&gt; proceed, Cancel -&gt; stop
+            view.set(shown);
+            shown.whenDetached(() -&gt; {                            // the page was closed or expired with the question open
+                if (!answered.get()) {
+                    stop.run();
+                }
+            });
+            shown.open();
+        } catch (RuntimeException e) {
+            log.warn(&quot;Could not show the question: {}&quot;, e.getMessage(), e);
+            proceed.run();                                        // go on unasked rather than wait for ever
+        }
     });
     if (!scheduled) {                                             // an agent or a command: no page to ask
         unsubscribe.run();
-        return false;
+        return answered.get();
     }
     return true;                                                  // the dialog is out, the answer calls chain.next()
 }</code></pre>
 </doc-codeblock></div>
-<p>The dialog is a plain Vaadin <code translate="no" v-pre>Dialog</code> that is given two <code translate="no" v-pre>Runnable</code>s. It is modal and does not close on <em>Esc</em> or a click
-outside, because the generation is waiting for the answer; each button closes it and runs its callback. (The plugin also
-closes the dialog when the generation is stopped from elsewhere, with another <code translate="no" v-pre>event.accessUI</code> in the <code translate="no" v-pre>onCancel</code>
-callback.)</p>
+<p>The dialog is a plain Vaadin <code translate="no" v-pre>Dialog</code> that is given two <code translate="no" v-pre>Runnable</code>s (and implements <code translate="no" v-pre>View</code>, which adds <code translate="no" v-pre>whenDetached</code>
+over <code translate="no" v-pre>addDetachListener</code>). It is modal and does not close on <em>Esc</em> or a click outside, because the generation is waiting for the
+answer; each button runs its callback first and then closes, so that the closing, which detaches the dialog, finds the
+question answered.</p>
 <p>What to keep in mind when you write one:</p>
 <ul>
 <li>
 <p><strong>Always release the chain.</strong> Every path out of the listener must end in exactly one <code translate="no" v-pre>chain.next()</code>: the <code translate="no" v-pre>finally</code>, the
-answer, the cancellation. Guard it with an <code translate="no" v-pre>AtomicBoolean</code> when several things can answer, and give a generation that
-waits for ever a way out (<code translate="no" v-pre>getCancellationToken().onCancel(...)</code> returns a <code translate="no" v-pre>Runnable</code> that removes the listener again
-when you no longer need it).</p>
+answer, the cancellation. Guard it with an <code translate="no" v-pre>AtomicBoolean</code> when several things can answer.</p>
+</li>
+<li>
+<p><strong>Give a question that nobody answers a way out.</strong> While the question is open the generation is not a thread that
+waits but a callback nobody has called yet, so there is nothing to interrupt: if the page is closed or expires with the
+dialog open, no button is ever pressed and the generation would stay parked for ever (its placeholder part in the book,
+its closures in memory). Treat the dialog going away unanswered as a refusal (a detach listener that cancels the token and
+releases the chain), and release the chain when the token is cancelled some other way
+(<code translate="no" v-pre>getCancellationToken().onCancel(...)</code>, which also returns a <code translate="no" v-pre>Runnable</code> that removes the listener again). The server
+notices that a page is gone only after a while, so this is not instant.</p>
+</li>
+<li>
+<p><strong>Nothing in the way out may throw.</strong> <code translate="no" v-pre>CancellationToken.cancel()</code> runs its listeners one after the other and a listener
+that throws keeps the rest from running; <code translate="no" v-pre>accessUI</code> throws <code translate="no" v-pre>UIDetachedException</code> when the page is gone. Release the chain
+first, then close the dialog, and catch what closing throws.</p>
 </li>
 <li>
 <p><strong>The action and the dialog run on the thread of the UI, not in the request scope of the generation.</strong> Keep them to
@@ -585,7 +615,7 @@ the model gets after every other extension has changed it.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (41d52fdd2).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (a8d3f7a9f).</p></div>
             </footer>
         </div>
     </div>

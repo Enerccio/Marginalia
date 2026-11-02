@@ -21,10 +21,16 @@ Notes:
   the model before you answer; *Cancel* only removes the part that was started.
 - Only generations started from the story editor are held: an agent or a command has no page to show the prompt on, and its
   generations go on unasked.
-- The text can be selected and copied. If you close the page while the dialog is open the generation stays waiting until
-  you stop it.
+- The text can be selected and copied. If you close the page while the dialog is open, that is a *Cancel*: the generation is
+  stopped and nothing is sent, as soon as the server notices that the page is gone (that can take a while). *Stop* in
+  another window of the same book does the same at once.
 
 ## For developers
 
 The plugin listens to `Events.BEFORE_INFERENCE` and opens its dialog through `GenerationControllerEvent.accessUI`, the call that
 runs an action bound to the UI that started the generation (`ui.access` and a push). See [Generation events](../../../manual/developer/plugins/generation-events.md).
+
+`GenerationQuestion` is the part that can be reused: it asks through `accessUI`, releases the generation exactly once by
+whatever answers first (*Send*, *Cancel*, a stop from elsewhere, the dialog going away), and has tests with a fake dialog and
+page (`GenerationQuestionTest`; `mvn test` in this folder after `mvn install` of the application). The walkthrough is in
+[Plugin development](../../../manual/developer/plugins/index.md#asking-the-user-in-the-middle-of-a-generation).

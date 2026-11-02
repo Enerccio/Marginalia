@@ -29,5 +29,5 @@ end of their message.
   became invalid, the usual question about continuing without it comes before the prompt is shown. No request is made to
   the model before you answer.
 - Only generations started from the story editor are held. [Agents](../agents.md) and commands have no page to show the prompt on, and their generations go on unasked.
-- The dialog can be moved and resized, and the text selected and copied. It has to be answered: Esc and a click outside do not close it.
+- The dialog can be moved and resized, and the text selected and copied. It has to be answered: Esc and a click outside do not close it. If you close the page with the dialog open, that counts as *Cancel*: the generation is stopped and nothing is sent, as soon as the server notices that the page is gone (that can take a while).
 - Other users are not asked, and the switch is kept when the page is reloaded.
