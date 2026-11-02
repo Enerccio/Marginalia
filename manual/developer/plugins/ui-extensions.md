@@ -143,6 +143,11 @@ int index = lorebookView.indexOf(header);
 lorebookView.addComponentAtIndex(Math.max(index, 0), panel);
 ```
 
+`PhoneLorebookView` (the phone twin, decorated by registering the same decorator for its class name) has no header row: its
+`create()` has the locals `controlsLayout`, `enabledLayout` and `entriesLayout`, and Lorebook VCS puts its panel after
+`enabledLayout`. Both views have `grid`, `getCurrentLorebook()`, `refresh()` and `refreshEntries()` and are `VerticalLayout`s, so a plugin
+that decorates both can hold them as `VerticalLayout` and tell them apart with `instanceof`.
+
 A component created once for a view must not hold on to things that change in it: `LorebookView` stays the same
 when the user picks another lorebook, so a panel bound to the lorebook it was created with ends up acting on the
 wrong one. Look the current value up when it's needed (`lorebookView.getCurrentLorebook()`), or hook the
