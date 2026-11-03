@@ -2132,6 +2132,11 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.DESC_TEMPLATE_EXPORT_QUOTED_AUTHOR, "Author of the book, escaped for use inside double quotes (empty when there is none).");
         setValue(L.DESC_TEMPLATE_EXPORT_LANGUAGE, "ISO 639-1 code of the language of the book.");
         setValue(L.DESC_TEMPLATE_EXPORT_DATE, "Date of the export (YYYY-MM-DD).");
+        setValue(L.DESC_MACRO_COMMAND, "Runs a command that only reads and inserts its answer. Only commands marked for macros can be used, the answer is kept until the part is regenerated or swiped.");
+        setValue(L.DESC_MACRO_CLOSEST_MESSAGE, "The part of the story closest to the one being written; with a number the n-th closest (1 is the last part). Empty when there is no such part.");
+        setValue(L.DESC_MACRO_CLOSEST_SUMMARY, "The summary closest to the one being written; with a number the n-th closest (1 is the newest). Empty when there is no such summary.");
+        setValue(L.DESC_MACRO_CURRENT_MESSAGE, "The text of the part that Regenerate or a swipe replaces. Empty for a new part.");
+        setValue(L.DESC_MACRO_JOIN, "Joins the texts after the first argument with the first argument as the separator. Empty texts are left out. Use {{space}} or {{newline}} for a separator with spaces.");
 
     }
 

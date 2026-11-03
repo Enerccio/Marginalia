@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847017603580">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847023726671">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.847017603580" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.847023726671" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847017603580" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847023726671" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847017603580" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847023726671" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -331,7 +331,8 @@ dialog.</p>
 | `/list-character-relations [character]` | The relationships, or those of one character. Reads only. |
 | `/add-character-relation source target name [tagline [bidirectional]]` | Adds a relationship from `source` to `target` (*employs*), or with `bidirectional` `true` one in which they are equal (*friends*). |
 | `/update-character-relation relationship [name [tagline]]` | Changes the name or the tagline of a relationship. |
-| `/delete-character-relation relationship` | Deletes a relationship, after a confirmation. |">
+| `/delete-character-relation relationship` | Deletes a relationship, after a confirmation. |
+| `/character-tracker-map` | The characters and their relationships as the text the prompt gets. Reads only. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -377,10 +378,18 @@ dialog.</p>
 <td><code translate="no" v-pre>/delete-character-relation relationship</code></td>
 <td>Deletes a relationship, after a confirmation.</td>
 </tr>
+<tr>
+<td><code translate="no" v-pre>/character-tracker-map</code></td>
+<td>The characters and their relationships as the text the prompt gets. Reads only.</td>
+</tr>
 </tbody>
 </table>
 </div>
 </retype-table>
+<p><code translate="no" v-pre>character-tracker-map</code> is made for the <a href="../../templates/macros/#commands"><code translate="no" v-pre>{{command::character-tracker-map}}</code> macro</a>: put it into the
+master template, the user prompt or a lorebook entry to place the characters where you want them in the prompt, instead of (or
+besides) the automatic insertion of the Characters tab. It is always the current state of the characters, whether or not the
+insertion is switched on.</p>
 <p>Adding and changing is not destructive; only the <code translate="no" v-pre>delete</code> commands are, which an agent may be set to ask you about.</p>
 <h2 id="phone">Phone</h2>
 <p>The tab is in the drawer of the story, next to the outline, like the <a href="../authors-note/">Author&#x27;s Note</a>. The buttons for the
@@ -422,7 +431,7 @@ POV and present characters are in the new turn form of the phone too.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (056bd9eed).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (e1ae5a51d).</p></div>
             </footer>
         </div>
     </div>

@@ -48,8 +48,16 @@ With POV character *Alice* and present characters *Alice, Bob, Carol*:
 | `{{lastMessageId}}` | The position of the last part, counted from 0. |
 | `{{lastUserMessage}}` | The instructions of the last part. |
 | `{{summary}}` | The newest [summary](../books/summaries.md) of the active branch. |
+| `{{closest-message}}`, `{{closest-message::n}}` | The part closest to the one being written: the last one, or the *n*-th counted back from it (`::2` is the one before the last). Empty when there is no such part. Alias `{{closestMessage}}`. |
+| `{{closest-summary}}`, `{{closest-summary::n}}` | The same for the summaries of the branch: the newest one, or the *n*-th counted back. Alias `{{closestSummary}}`. |
+| `{{current-message}}` | The text of the part that *Regenerate* or a swipe replaces; empty for a new part. Alias `{{currentMessage}}`. |
 
 For the first part of a book they are empty. For *Regenerate*, "last part" is the one before the regenerated part.
+
+The number of `closest-message` and `closest-summary` can be a macro, so it can come from a variable:
+`{{setvar::back::3}}{{closest-message::{{getvar::back}}}}` is the third part from the end. A number that is not a positive whole
+number gives nothing. `closest-summary` counts the summaries of the parts of the branch, a [meta summary](../books/summaries.md)
+and the summaries it stands in for included; `{{summary}}` is the same as `{{closest-summary}}`.
 
 ## Date and time
 
@@ -173,6 +181,18 @@ Falsy are an empty value and `0`, `false`, `no`, `off` (any case). Everything el
 | `{{maxPrompt}}` | Context minus response: the room for the prompt. |
 | `{{lastGenerationType}}` | `normal` for a new part, `regenerate`, `swipe`, or `quiet` in summaries. |
 
+## Commands
+
+| Macro | Result |
+|---|---|
+| `{{command::name}}`, `{{command::name::argument::argument}}` | What a [command](../commands/index.md) answers, as text. Only a command that is made for macros can be used (it only reads; an extension says so, for example `{{command::character-tracker-map}}` of the [Character Tracker](../extensions/character-tracker.md)); any other name prints `Error`. A command that fails prints nothing. |
+
+The command runs when the generation reaches the macro (not at all when it is in a branch of an `{{if}}` that is not taken)
+for the book that is generated, and only in the prompts of a generation (the user prompt, the lorebook entries and the master
+template), elsewhere the macro prints nothing. The answer is kept with the part the new part continues from: the next
+generation from the same part, and the other templates of the same generation, use it instead of running the command again.
+**Regenerate** and **swipe** ask the command again, and so does every new part, since it continues from a new last part.
+
 ## Utility
 
 | Macro | Result |
@@ -181,6 +201,7 @@ Falsy are an empty value and `0`, `false`, `no`, `off` (any case). Everything el
 | `{{space}}`, `{{space::4}}` | One or more spaces. |
 | `{{trim}}` | Removes the line breaks around it. Useful after lines that only set variables. |
 | `{{noop}}` | Nothing. |
+| `{{join::separator::a::b::c}}` | The texts after the first one joined with the first one between them, any number of them (macros included): `{{join::-::{{user}}::{{scenario}}}}`. Empty texts are left out, so an optional macro leaves no stray separator. The spaces around a written argument are dropped, so for a separator with spaces use a macro: `{{join::{{space}}::a::b}}`, `{{join::{{newline}}::a::b}}`. |
 | `{{reverse::text}}` | The text reversed. |
 | `{{// comment}}` | A comment, removed. `{{//}}` ... `{{///}}` comments out everything between them, macros included. |
 | `\{\{user\}\}` | Prints `{{user}}` literally. |

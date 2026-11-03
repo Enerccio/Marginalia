@@ -382,7 +382,9 @@ what the macros read: the `TurnInput` fields, POV / tense / style, the book's na
 token limits, the generation type (`normal`, `regenerate`, `swipe`), the story so far (``...), the last
 instructions and time, the latest summary, and the variables - local ones loaded from the last part of the branch,
 global ones from the book. Because it is shared, a variable set in the user prompt is visible in lore entries and the
-master template. See [Templating & macros](templating.md).
+master template. It also holds the `CommandMacros` that run the `{{command::...}}` macros and keep their answers with the part
+the generation continues from, see [Macros that run commands](templating.md#macros-that-run-commands). See
+[Templating & macros](templating.md).
 
 ## Events for extensions
 

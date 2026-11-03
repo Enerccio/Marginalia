@@ -2140,6 +2140,11 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.DESC_TEMPLATE_EXPORT_QUOTED_AUTHOR, "书籍作者（已转义，可用于双引号内；没有时为空）。");
         setValue(L.DESC_TEMPLATE_EXPORT_LANGUAGE, "书籍语言的 ISO 639-1 代码。");
         setValue(L.DESC_TEMPLATE_EXPORT_DATE, "导出日期（YYYY-MM-DD）。");
+        setValue(L.DESC_MACRO_COMMAND, "运行只读命令并插入其结果。只能使用标记为可用于宏的命令，结果会保留到该段落被重新生成或切换为止。");
+        setValue(L.DESC_MACRO_CLOSEST_MESSAGE, "离正在撰写的段落最近的段落；带数字时为第 n 近的段落（1 为最后一段）。没有则为空。");
+        setValue(L.DESC_MACRO_CLOSEST_SUMMARY, "离正在撰写的段落最近的摘要；带数字时为第 n 近的摘要（1 为最新）。没有则为空。");
+        setValue(L.DESC_MACRO_CURRENT_MESSAGE, "重新生成或切换所要替换的段落文本。新段落为空。");
+        setValue(L.DESC_MACRO_JOIN, "以第一个参数为分隔符连接其后的文本，空文本会被忽略。带空格的分隔符请使用 {{space}} 或 {{newline}}。");
     }
 
     @Override

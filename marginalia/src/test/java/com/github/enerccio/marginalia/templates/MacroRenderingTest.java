@@ -487,6 +487,25 @@ class MacroRenderingTest extends TemplateTestBase {
         }
 
         @Test
+        void joinPutsTheSeparatorBetweenTheTexts() throws Exception {
+            assertThat(render("{{join::-::a::b::c}}")).isEqualTo("a-b-c");
+            assertThat(render("{{join::|::{{user}}::{{scenario}}}}")).isEqualTo("Alice|A rainy harbour at dusk");
+            assertThat(render("{{join::-::only}}|{{join::-}}")).isEqualTo("only|");
+        }
+
+        @Test
+        void joinSkipsEmptyTexts() throws Exception {
+            assertThat(render("{{join::,::{{getvar::missing}}::x::{{noop}}::y}}")).isEqualTo("x,y");
+        }
+
+        @Test
+        void joinSeparatorCanBeAMacro() throws Exception {
+            // the spaces around a written argument are dropped, a macro gives them back
+            assertThat(render("{{join::{{space}}::a::b}}|{{join::{{newline}}::a::b::c}}")).isEqualTo("a b|a\nb\nc");
+            assertThat(render("{{join::, ::a::b}}")).isEqualTo("a,b");
+        }
+
+        @Test
         void noopAndComments() throws Exception {
             assertThat(render("[{{noop}}][{{// invisible {{user}} }}]")).isEqualTo("[][]");
             assertThat(render("a{{//}}\nhidden {{setvar::x::1}}\n{{///}}b[{{getvar::x}}]")).isEqualTo("ab[]");

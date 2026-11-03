@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847017603580">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847023726671">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.847017603580" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.847023726671" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847017603580" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847023726671" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847017603580" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847023726671" data-turbo-eval="false" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -291,6 +291,29 @@ parameters (<code translate="no" v-pre>{{#if name}}</code>) are not checked.</p>
 </div>
 </retype-table>
 <p>The order of the [generation pipeline]</p>
+<h2 id="closest-parts-and-summaries">Closest parts and summaries</h2>
+<p><code translate="no" v-pre>closest-message::n</code>, <code translate="no" v-pre>closest-summary::n</code> and <code translate="no" v-pre>current-message</code> (<code translate="no" v-pre>TemplateData.closestMessage</code> / <code translate="no" v-pre>closestSummary</code> /
+<code translate="no" v-pre>currentMessage</code>) read the <code translate="no" v-pre>TemplateContext</code>: the story messages (the position counts back from the end), <code translate="no" v-pre>summaryLookup</code> (an
+<code translate="no" v-pre>IntFunction</code> set by <code translate="no" v-pre>GenerationStepBase.createTemplateContext</code>, it walks the branch from its end and reads the n-th summary only
+when a template asks, a long branch has many) and <code translate="no" v-pre>currentMessage</code> (the stored text of <code translate="no" v-pre>GenerationRequest.getNode()</code>, set for a
+regenerate and a swipe only). Their argument may be a macro: the translator turns the nested macro into a sub-expression
+before the helper is called.</p>
+<h2 id="macros-that-run-commands">Macros that run commands</h2>
+<p><code translate="no" v-pre>{{command::name::arg::arg}}</code> (<code translate="no" v-pre>Macros</code>, <code translate="no" v-pre>TemplateData.command</code>) runs a <a href="../commands/writing-commands/#commands-in-macros">command</a>
+that is declared <code translate="no" v-pre>readOnly</code> and <code translate="no" v-pre>availableInMacros</code>; the macro is static, so templates compiled (and cached) before an extension
+brought the command keep working. <code translate="no" v-pre>TemplateData.command</code> hands the call to the <code translate="no" v-pre>CommandMacroRunner</code> of the
+<code translate="no" v-pre>TemplateContext</code>; a render without one (the summaries, the exports) leaves the macro empty. A name that is not such a command
+renders as <code translate="no" v-pre>Error</code>, like a variable that does not exist.</p>
+<p>The generation sets a <code translate="no" v-pre>CommandMacros</code> (<code translate="no" v-pre>domain/service/impl/generation</code>) in <code translate="no" v-pre>GenerationStepBase.createTemplateContext</code>. It
+runs the command lazily, when the helper is reached, with <code translate="no" v-pre>CommandService.executePositional</code> in the scope
+<code translate="no" v-pre>CommandScopes.forManuscript(book)</code> and waits for the answer on the worker thread of the generation (120 seconds at most; a
+command that fails or runs out of time renders nothing and is not kept). The answers are kept in the attributes of the part the
+generation continues from (the last part of the branch before the new one, <code translate="no" v-pre>commandMacroCache</code>: an object with
+<code translate="no" v-pre>name</code>+arguments as the key), so the estimation render of the master template, the real one, the lorebook entries and a second
+generation from the same part run the command once. A regenerate and a swipe (<code translate="no" v-pre>GenerationRequestType</code>) do not read what is
+kept, and the first answer they get replaces everything kept before; the first part of a book has nothing to keep it with
+(the answers live for that generation only). Saving the answer is best effort, a failure is logged and the generation goes on.
+<code translate="no" v-pre>TemplateContext.fork</code> shares the runner, so a dry render does not run the commands twice.</p>
 
                 
                 <!-- Required only on API pages -->
@@ -328,7 +351,7 @@ parameters (<code translate="no" v-pre>{{#if name}}</code>) are not checked.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (056bd9eed).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (e1ae5a51d).</p></div>
             </footer>
         </div>
     </div>

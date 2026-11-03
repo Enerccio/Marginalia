@@ -119,6 +119,12 @@ dialog.
 | `/add-character-relation source target name [tagline [bidirectional]]` | Adds a relationship from `source` to `target` (*employs*), or with `bidirectional` `true` one in which they are equal (*friends*). |
 | `/update-character-relation relationship [name [tagline]]` | Changes the name or the tagline of a relationship. |
 | `/delete-character-relation relationship` | Deletes a relationship, after a confirmation. |
+| `/character-tracker-map` | The characters and their relationships as the text the prompt gets. Reads only. |
+
+`character-tracker-map` is made for the [`{{command::character-tracker-map}}` macro](../templates/macros.md#commands): put it into the
+master template, the user prompt or a lorebook entry to place the characters where you want them in the prompt, instead of (or
+besides) the automatic insertion of the Characters tab. It is always the current state of the characters, whether or not the
+insertion is switched on.
 
 Adding and changing is not destructive; only the `delete` commands are, which an agent may be set to ask you about.
 

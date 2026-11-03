@@ -108,6 +108,9 @@ public final class Macros {
         define("{{lastMessageId}}", 0, 0, L.DESC_MACRO_LAST_MESSAGE_ID, (d, _) -> d.lastMessageId(), "lastMessageId");
         define("{{lastUserMessage}}", 0, 0, L.DESC_MACRO_LAST_USER_MESSAGE, (d, _) -> d.lastUserMessage(), "lastUserMessage");
         define("{{summary}}", 0, 0, L.DESC_MACRO_SUMMARY, (d, _) -> d.summary(), "summary");
+        define("{{closest-message}} / {{closest-message::2}}", 0, 1, L.DESC_MACRO_CLOSEST_MESSAGE, (d, c) -> d.closestMessage(c.arg(0)), "closest-message", "closestMessage");
+        define("{{closest-summary}} / {{closest-summary::2}}", 0, 1, L.DESC_MACRO_CLOSEST_SUMMARY, (d, c) -> d.closestSummary(c.arg(0)), "closest-summary", "closestSummary");
+        define("{{current-message}}", 0, 0, L.DESC_MACRO_CURRENT_MESSAGE, (d, _) -> d.currentMessage(), "current-message", "currentMessage");
 
         // time & date
         define("{{time}} / {{time::UTC+2}}", 0, 1, L.DESC_MACRO_TIME, (d, c) -> d.time(c.arg(0)), "time");
@@ -142,6 +145,8 @@ public final class Macros {
         define("{{space}} / {{space::2}}", 0, 1, L.DESC_MACRO_SPACE, (d, c) -> d.space(c.arg(0)), "space");
         define("{{noop}}", 0, 0, L.DESC_MACRO_NOOP, (d, _) -> d.noop(), "noop");
         define("{{trim}}", 0, 0, L.DESC_MACRO_TRIM, (d, _) -> d.trim(), "trim");
+        define("{{command::name::argument}}", 1, -1, L.DESC_MACRO_COMMAND, (d, c) -> d.command(c.args()), "command");
+        define("{{join::, ::a::b::c}}", 1, -1, L.DESC_MACRO_JOIN, (d, c) -> d.join(c.args()), "join");
         define("{{reverse::text}}", 1, 1, L.DESC_MACRO_REVERSE, (d, c) -> d.reverse(c.arg(0)), "reverse");
 
         // syntax (handled by the translator, listed only for the UI)

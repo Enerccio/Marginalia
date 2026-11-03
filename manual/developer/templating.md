@@ -71,3 +71,30 @@ parameters (`{{#if name}}`) are not checked.
 | Title page and front matter of an export | `ExporterBase` (the title page of every format that has one, `DEFAULT_EXPORT_HEADER_TEMPLATE`, and the YAML block of *Markdown with front matter* and the Obsidian vault, `DEFAULT_EXPORT_FRONT_MATTER_TEMPLATE`; the text is the user's own from *Settings → Exports* or the default, see [Services](services.md)) | `ExportHeaderTemplateData` / `ExportFrontMatterTemplateData` | the title page: `title`, `author`; the front matter: `title`, `author`, `language` and `exportDate`. Not part of a generation: no context, no macros of the story |
 
 The order of the [generation pipeline]
+## Closest parts and summaries
+
+`closest-message::n`, `closest-summary::n` and `current-message` (`TemplateData.closestMessage` / `closestSummary` /
+`currentMessage`) read the `TemplateContext`: the story messages (the position counts back from the end), `summaryLookup` (an
+`IntFunction` set by `GenerationStepBase.createTemplateContext`, it walks the branch from its end and reads the n-th summary only
+when a template asks, a long branch has many) and `currentMessage` (the stored text of `GenerationRequest.getNode()`, set for a
+regenerate and a swipe only). Their argument may be a macro: the translator turns the nested macro into a sub-expression
+before the helper is called.
+
+## Macros that run commands
+
+`{{command::name::arg::arg}}` (`Macros`, `TemplateData.command`) runs a [command](commands/writing-commands.md#commands-in-macros)
+that is declared `readOnly` and `availableInMacros`; the macro is static, so templates compiled (and cached) before an extension
+brought the command keep working. `TemplateData.command` hands the call to the `CommandMacroRunner` of the
+`TemplateContext`; a render without one (the summaries, the exports) leaves the macro empty. A name that is not such a command
+renders as `Error`, like a variable that does not exist.
+
+The generation sets a `CommandMacros` (`domain/service/impl/generation`) in `GenerationStepBase.createTemplateContext`. It
+runs the command lazily, when the helper is reached, with `CommandService.executePositional` in the scope
+`CommandScopes.forManuscript(book)` and waits for the answer on the worker thread of the generation (120 seconds at most; a
+command that fails or runs out of time renders nothing and is not kept). The answers are kept in the attributes of the part the
+generation continues from (the last part of the branch before the new one, `commandMacroCache`: an object with
+`name`+arguments as the key), so the estimation render of the master template, the real one, the lorebook entries and a second
+generation from the same part run the command once. A regenerate and a swipe (`GenerationRequestType`) do not read what is
+kept, and the first answer they get replaces everything kept before; the first part of a book has nothing to keep it with
+(the answers live for that generation only). Saving the answer is best effort, a failure is logged and the generation goes on.
+`TemplateContext.fork` shares the runner, so a dry render does not run the commands twice.

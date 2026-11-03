@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847017603580">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847023726671">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.847017603580" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.847023726671" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847017603580" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847023726671" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847017603580" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.847017603580" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847023726671" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.847023726671" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -745,7 +745,9 @@ what the macros read: the <code translate="no" v-pre>TurnInput</code> fields, PO
 token limits, the generation type (<code translate="no" v-pre>normal</code>, <code translate="no" v-pre>regenerate</code>, <code translate="no" v-pre>swipe</code>), the story so far (&#x60;&#x60;...), the last
 instructions and time, the latest summary, and the variables - local ones loaded from the last part of the branch,
 global ones from the book. Because it is shared, a variable set in the user prompt is visible in lore entries and the
-master template. See <a href="../templating/">Templating &amp; macros</a>.</p>
+master template. It also holds the <code translate="no" v-pre>CommandMacros</code> that run the <code translate="no" v-pre>{{command::...}}</code> macros and keep their answers with the part
+the generation continues from, see <a href="../templating/#macros-that-run-commands">Macros that run commands</a>. See
+<a href="../templating/">Templating &amp; macros</a>.</p>
 <h2 id="events-for-extensions">Events for extensions</h2>
 <p>Extensions hook into generation by registering listeners:</p>
 <div id="events-for-extensions-code-1" class="codeblock-wrapper"><doc-codeblock>
@@ -1019,7 +1021,7 @@ wait for it to finish. See <a href="../testing/">Testing</a>.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (056bd9eed).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (e1ae5a51d).</p></div>
             </footer>
         </div>
     </div>
