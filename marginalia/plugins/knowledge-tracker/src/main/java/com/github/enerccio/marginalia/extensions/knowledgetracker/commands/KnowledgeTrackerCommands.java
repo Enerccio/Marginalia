@@ -2,28 +2,16 @@ package com.github.enerccio.marginalia.extensions.knowledgetracker.commands;
 
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.service.impl.commands.manuscript.read.ManuscriptReadSupport;
-import com.github.enerccio.marginalia.domain.traits.Command;
-import com.github.enerccio.marginalia.domain.traits.CommandDataSeverity;
-import com.github.enerccio.marginalia.domain.traits.CommandParameter;
-import com.github.enerccio.marginalia.domain.traits.CommandParameterSignature;
-import com.github.enerccio.marginalia.domain.traits.CommandReturn;
+import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.block.KnowledgeBlockBuilder;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.model.ItemKind;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.model.KnowledgeItem;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.model.KnowledgeState;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.model.MetPerson;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.model.TrackedCharacter;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.extract.Change;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.extract.ChangeApplier;
+import com.github.enerccio.marginalia.extensions.knowledgetracker.model.*;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.process.BranchProcessor.Report;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.service.ExtractionRuns;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.service.ExtractionService;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.service.ExtractionService.Proposal;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.service.StaleProposalException;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.scene.PresentCharacters;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.service.KnowledgeProcessService;
+import com.github.enerccio.marginalia.extensions.knowledgetracker.service.*;
+import com.github.enerccio.marginalia.extensions.knowledgetracker.service.ExtractionService.Proposal;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.service.KnowledgeProcessService.Status;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.service.KnowledgeStateService;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.apache.commons.lang3.StringUtils;
@@ -31,9 +19,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.List;
 import java.util.Locale;
 
-import static com.github.enerccio.marginalia.extensions.knowledgetracker.KnowledgeTrackerLocalization.DELETE_THE_TRACKED_CHARACTER_AND_ALL;
-import static com.github.enerccio.marginalia.extensions.knowledgetracker.KnowledgeTrackerLocalization.REPROCESS_FROM_PART;
-import static com.github.enerccio.marginalia.extensions.knowledgetracker.KnowledgeTrackerLocalization.T;
+import static com.github.enerccio.marginalia.extensions.knowledgetracker.KnowledgeTrackerLocalization.*;
 
 /**
  * The Knowledge Tracker as commands, for the command bar, for agents and for templates: {@code knowledge-status},
@@ -446,6 +432,8 @@ public class KnowledgeTrackerCommands extends ManuscriptReadSupport {
         }
         if (Boolean.TRUE.equals(ask) && proposal.asked() && !proposal.changes().isEmpty()) {
             runs.hold(book.manuscript, proposal);
+            // the open tab shows the same changes with a button to review them
+            service.changed(book.manuscript);
             answer(context, proposalRow(proposal));
             return;
         }

@@ -59,6 +59,13 @@ public class ReviewDialog extends Dialog {
             content.add(createGroup(group));
         }
 
+        if (!proposal.reasoning().isBlank()) {
+            // what the model thought before it answered: to judge a change, collapsed because it is long
+            Div thought = new Div(new Span(proposal.reasoning()));
+            thought.addClassName(KnowledgeTrackerStyles.REASONING);
+            content.add(new Details(T.localized(WHAT_THE_MODEL_THOUGHT), thought));
+        }
+
         Div hint = new Div(new Span(T.localized(UNCHECKED_ADDITIONS_ARE_KEPT)));
         hint.addClassName(KnowledgeTrackerStyles.COUNTS);
         content.add(hint);

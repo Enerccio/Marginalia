@@ -37,6 +37,7 @@ public final class KnowledgeTrackerStyles {
     public static final String PROGRESS = "knowledge-tracker-progress";
     public static final String PANEL = "knowledge-tracker-panel";
     public static final String STALE = "knowledge-tracker-stale";
+    public static final String REASONING = "knowledge-tracker-reasoning";
     public static final String SETTINGS = "knowledge-tracker-settings";
     public static final String SETTINGS_TITLE = "knowledge-tracker-settings-title";
 

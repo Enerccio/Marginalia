@@ -96,4 +96,85 @@ class StreamStopTest extends MarginaliaTestBase {
         assertThat(Duration.ofNanos(System.nanoTime() - stopped)).isLessThan(Duration.ofSeconds(4));
         assertThat(watch.chunks.get()).isEqualTo(1);
     }
+
+    /** Waits until the server holds the request: a stop before that ends the connect, and the server never sees it. */
+    private void awaitRequest() throws InterruptedException {
+        long deadline = System.nanoTime() + Duration.ofSeconds(10).toNanos();
+        while (llm.getCompletionRequests().isEmpty() && System.nanoTime() < deadline) {
+            Thread.sleep(20);
+        }
+        assertThat(llm.getCompletionRequests()).as("the request is on the wire").hasSize(1);
+        Thread.sleep(200);
+    }
+
+    @Test
+    void aStopDoesNotWaitForTheServerToAnswerAnInfer() throws Exception {
+        login();
+        CountDownLatch prompt = new CountDownLatch(1);
+        llm.enqueue(MockLLMResponse.text("never read").waitFor(prompt, Duration.ofSeconds(30)));
+        CompletableFuture<String> ended = new CompletableFuture<>();
+
+        try {
+            CancellationToken token = inferenceServices.forAI(createAI()).infer(PAYLOAD, null, null, null,
+                    new InferenceService.InferenceResultCallback() {
+                        public void onResult(String text, com.github.enerccio.marginalia.domain.service.structured.SchemaCheck check) {
+                            ended.complete("result");
+                        }
+
+                        public void onCancel() {
+                            ended.complete("cancel");
+                        }
+
+                        public void onError(Throwable exception) {
+                            ended.complete("error: " + exception);
+                        }
+                    });
+            awaitRequest();
+            assertThat(ended).isNotDone();
+
+            token.cancel();
+
+            assertThat(ended.get(5, TimeUnit.SECONDS)).isEqualTo("cancel");
+            Thread.sleep(1500);
+            assertThat(llm.getCompletionRequests()).hasSize(1);
+        } finally {
+            prompt.countDown();
+        }
+    }
+
+    @Test
+    void aStopDoesNotWaitForTheServerToAnswerARound() throws Exception {
+        login();
+        CountDownLatch prompt = new CountDownLatch(1);
+        llm.enqueue(MockLLMResponse.text("never read").waitFor(prompt, Duration.ofSeconds(30)));
+        CompletableFuture<String> ended = new CompletableFuture<>();
+
+        try {
+            CancellationToken token = inferenceServices.forAI(createAI()).round(PAYLOAD, null, null,
+                    new InferenceService.InferenceRoundCallback() {
+                        public void onRound(String text, List<com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMToolCall> calls,
+                                            InferenceService.RoundUsage usage) {
+                            ended.complete("round");
+                        }
+
+                        public void onCancel() {
+                            ended.complete("cancel");
+                        }
+
+                        public void onError(Throwable exception) {
+                            ended.complete("error: " + exception);
+                        }
+                    });
+            awaitRequest();
+            assertThat(ended).isNotDone();
+
+            token.cancel();
+
+            assertThat(ended.get(5, TimeUnit.SECONDS)).isEqualTo("cancel");
+            Thread.sleep(1500);
+            assertThat(llm.getCompletionRequests()).hasSize(1);
+        } finally {
+            prompt.countDown();
+        }
+    }
 }

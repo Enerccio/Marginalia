@@ -1,40 +1,26 @@
 package com.github.enerccio.marginalia.extensions.knowledgetracker.ui;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
-import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
-import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.model.BookSettings;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.model.ItemKind;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.model.KnowledgeItem;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
+import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.model.KnowledgeState;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.model.LoreMode;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.service.ExtractionRun;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.service.ExtractionRun.Phase;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.service.ExtractionRuns;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.service.ExtractionService;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.model.MetPerson;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.model.TrackedCharacter;
+import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
+import com.github.enerccio.marginalia.extensions.knowledgetracker.extract.ChangeApplier;
+import com.github.enerccio.marginalia.extensions.knowledgetracker.extract.ChangeLog;
+import com.github.enerccio.marginalia.extensions.knowledgetracker.model.*;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.process.BranchProcessor.Report;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.process.Part;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.extract.ChangeLog;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.model.ChangeLogEntry;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.process.RunEstimate;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.scene.SeparatorText;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.service.KnowledgeProcessService;
+import com.github.enerccio.marginalia.extensions.knowledgetracker.service.*;
+import com.github.enerccio.marginalia.extensions.knowledgetracker.service.ExtractionRun.Phase;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.service.KnowledgeProcessService.Status;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.service.KnowledgeStateService;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.utils.UIUtils;
-import com.vaadin.flow.component.AttachEvent;
-import com.vaadin.flow.component.ClickEvent;
-import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.ComponentEventListener;
-import com.vaadin.flow.component.DetachEvent;
+import com.vaadin.flow.component.*;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
@@ -42,7 +28,6 @@ import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.details.Details;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.component.orderedlayout.FlexComponent.Alignment;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.Scroller;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -54,12 +39,7 @@ import com.vaadin.flow.data.value.ValueChangeMode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static com.github.enerccio.marginalia.extensions.knowledgetracker.KnowledgeTrackerLocalization.*;
 
@@ -418,9 +398,17 @@ public class KnowledgeTrackerView extends VerticalLayout {
         process.setTooltipText(T.localized(READ_THE_PARTS_THAT_ARE_NOT_PROCESSED));
         ExtractionRun running = runs.running(manuscript);
         process.setEnabled(status.unread() > 0 && running == null);
-        panel.add(process);
+        Button next = new Button(T.localized(PROCESS_NEXT_PART), Solid.FORWARD_STEP.create(), _ -> processNext());
+        next.addThemeVariants(ButtonVariant.LUMO_SMALL);
+        next.setTooltipText(T.localized(READ_ONLY_THE_NEXT_PART_THAT_IS_NOT_PROCESSED));
+        next.setEnabled(status.unread() > 0 && running == null);
+        panel.add(new Div(process, next));
         if (running != null) {
             panel.add(createRunButton(running));
+        }
+        ExtractionService.Proposal held = runs.peekHeld(manuscript);
+        if (held != null) {
+            panel.add(createHeldButton(held));
         }
         panel.add(createStartSelect(branch));
 
@@ -433,6 +421,38 @@ public class KnowledgeTrackerView extends VerticalLayout {
             panel.add(log);
         }
         return panel;
+    }
+
+    /**
+     * What the command {@code knowledge-process} with {@code ask true} found and holds: the same review as a run of the tab has, so that
+     * the author who typed the command can look at it and apply it here.
+     */
+    private Button createHeldButton(ExtractionService.Proposal held) {
+        Button button = new Button(T.localized(CHANGES_FROM_A_COMMAND_TO_REVIEW).formatted(held.changes().changes().size()));
+        button.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_PRIMARY);
+        button.addClickListener(_ -> new ReviewDialog(1, held, () -> applyHeld(held), () -> discardHeld(held)).open());
+        return button;
+    }
+
+    private void applyHeld(ExtractionService.Proposal held) {
+        try {
+            runs.takeHeld(manuscript);
+            ChangeApplier.Result result = extractionService.commit(manuscript, held);
+            Notification.success(T.localized(DONE_PARTS_ADDED_RETRACTED).formatted(held.parts().size(), result.added(), result.retracted()));
+        } catch (StaleProposalException e) {
+            Notification.warning(T.localized(THE_STORY_CHANGED_RUN_THE_COMMAND_AGAIN));
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+        state = loadState();
+        refresh();
+    }
+
+    private void discardHeld(ExtractionService.Proposal held) {
+        if (runs.peekHeld(manuscript) == held) {
+            runs.takeHeld(manuscript);
+        }
+        refresh();
     }
 
     /** A run is going on: a button to show its panel, or, when its proposal waits, to review it. */
@@ -586,20 +606,30 @@ public class KnowledgeTrackerView extends VerticalLayout {
      * starts on a worker thread and the progress panel shows it; the story can be read and edited meanwhile.
      */
     private void processNow() {
+        process(0);
+    }
+
+    /** <b>Process the next part</b>: only the first part that is not processed yet, to try the settings or look at one step. */
+    private void processNext() {
+        process(1);
+    }
+
+    /** @param maxParts how many parts at most, 0 = all that are waiting */
+    private void process(int maxParts) {
         try {
             if (!state.getSettings().isExtractWithModel()) {
-                Report report = processService.process(manuscript, true, null, KnowledgeProcessService.NO_LIMIT);
+                Report report = processService.process(manuscript, true, null, maxParts > 0 ? maxParts : KnowledgeProcessService.NO_LIMIT);
                 Notification.success(report.processed() > 0 ? T.localized(PROCESSED_N_PARTS).formatted(report.processed())
                         : T.localized(NOTHING_NEW_TO_PROCESS));
             } else {
-                RunEstimate estimate = runs.running(manuscript) == null ? processService.estimate(manuscript) : null;
+                RunEstimate estimate = maxParts == 0 && runs.running(manuscript) == null ? processService.estimate(manuscript) : null;
                 if (estimate != null && estimate.isLong()) {
                     // a long series is many requests to the model: the user is told before it starts
                     ConfirmDialog.show(T.localized(READ_N_PARTS_IN_N_REQUESTS).formatted(estimate.parts(), estimate.runs(),
                             estimate.storyTokens()), this::startRunAndRefresh);
                     return;
                 }
-                startRun();
+                startRun(maxParts);
             }
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
@@ -611,7 +641,7 @@ public class KnowledgeTrackerView extends VerticalLayout {
 
     private void startRunAndRefresh() {
         try {
-            startRun();
+            startRun(0);
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
@@ -622,9 +652,13 @@ public class KnowledgeTrackerView extends VerticalLayout {
 
     /** Starts a run with the model (or shows the one that is going on) and its progress panel. */
     private void startRun() throws Exception {
+        startRun(0);
+    }
+
+    private void startRun(int maxParts) throws Exception {
         ExtractionRun run = runs.running(manuscript);
         if (run == null) {
-            run = runs.start(manuscript, null, null);
+            run = runs.start(manuscript, null, null, maxParts);
         }
         watch(run);
         showProgress(run);

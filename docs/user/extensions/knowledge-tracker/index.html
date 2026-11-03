@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847058621939">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847062049394">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.847058621939" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.847062049394" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847058621939" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847062049394" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847058621939" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847062049394" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -289,6 +289,9 @@ characters <strong>learned</strong> (see <doc-anchor-trigger to="#reading-what-t
 <p><strong>Process now</strong>: reads the parts that are not processed yet.</p>
 </li>
 <li>
+<p><strong>Process next part</strong>: reads only the first part that is not processed yet, one step at a time (with the model: one request for that part, whatever <em>Parts per run</em> says). Use it to try the settings or to look at what the model finds for a single part. The command <code translate="no" v-pre>knowledge-process</code> with <code translate="no" v-pre>parts</code> set to 1 does the same.</p>
+</li>
+<li>
 <p><strong>Start point</strong>: the part processing begins at (<em>Start of the book</em> by default). Parts before it are never read. Moving
 it back reads the parts from the new start again, moving it forward leaves what was read.</p>
 </li>
@@ -347,6 +350,9 @@ character:</p>
     <img src="../../../images/plugin-knowledgetracker-review.png" alt="Reviewing the changes" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="912" height="450" />
     <figcaption class="caption">Reviewing the changes</figcaption>
 </figure>
+<p>Under the table, <strong>What the model thought</strong> (closed at first) holds the reasoning of the model that came before its answer, when the model sends
+it: it shows why a change was proposed, or why one that you expected is missing, so you can judge the change before you apply it. A model that
+does not reason shows nothing there.</p>
 <retype-table copy-text="| | |
 |---|---|
 | The check box | Whether the change is applied. All are checked at first; each character has **Check all** / **Uncheck all**. |
@@ -501,8 +507,8 @@ so a second generation from the same part does not see a change you made in betw
 | `knowledge-status` | The settings and where processing stands. |
 | `list-tracked-characters`, `add-tracked-character`, `update-tracked-character`, `delete-tracked-character` | The tracked characters, addressed by name, alias or number. |
 | `list-knowledge`, `add-knowledge`, `retract-knowledge`, `restore-knowledge`, `delete-knowledge` | The items of a character, addressed by their number in `list-knowledge`. |
-| `knowledge-process` | Processes now (`parts`: at most that many). With the model on, `ask true` returns what the model found as numbered changes and holds them. |
-| `apply-knowledge-changes` | Applies the held changes, all of them or the numbers given. |
+| `knowledge-process` | Processes now (`parts`: at most that many). With the model on, `ask true` returns what the model found as numbered changes and holds them: nothing is changed yet. The open Knowledge tab shows a **changes found by a command** button that opens the usual review (Apply / Cancel); an agent applies them with `apply-knowledge-changes`. |
+| `apply-knowledge-changes` | Applies the held changes, all of them or the numbers given (the same as **Apply** in the review of the tab). |
 | `knowledge-reprocess` | Reprocess from a part (its handle or position); asks first. With the model on it only takes the state back, `knowledge-process` reads the parts again. |
 | `knowledge-set-start` | Sets the start point; without a part, the start of the book. |
 | `knowledge-tracker-block` | The block as text, for the macro. |">
@@ -529,11 +535,11 @@ so a second generation from the same part does not see a change you made in betw
 </tr>
 <tr>
 <td><code translate="no" v-pre>knowledge-process</code></td>
-<td>Processes now (<code translate="no" v-pre>parts</code>: at most that many). With the model on, <code translate="no" v-pre>ask true</code> returns what the model found as numbered changes and holds them.</td>
+<td>Processes now (<code translate="no" v-pre>parts</code>: at most that many). With the model on, <code translate="no" v-pre>ask true</code> returns what the model found as numbered changes and holds them: nothing is changed yet. The open Knowledge tab shows a <strong>changes found by a command</strong> button that opens the usual review (Apply / Cancel); an agent applies them with <code translate="no" v-pre>apply-knowledge-changes</code>.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>apply-knowledge-changes</code></td>
-<td>Applies the held changes, all of them or the numbers given.</td>
+<td>Applies the held changes, all of them or the numbers given (the same as <strong>Apply</strong> in the review of the tab).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>knowledge-reprocess</code></td>
@@ -591,7 +597,7 @@ so a second generation from the same part does not see a change you made in betw
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (8e016d0f0).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (57d4f624b).</p></div>
             </footer>
         </div>
     </div>

@@ -3,8 +3,10 @@ package com.github.enerccio.marginalia.generation;
 import com.github.enerccio.marginalia.domain.components.TurnInput;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
+import com.github.enerccio.marginalia.domain.service.CancellationToken;
 import com.github.enerccio.marginalia.domain.service.impl.generation.Events;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationProperties;
+import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationRequest;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.GenerationFailure;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.GenerationOutcome;
 import com.github.enerccio.marginalia.test.GenerationRun;
@@ -146,5 +148,38 @@ class GenerationEndEventsTest extends GenerationTestBase {
 
         assertThat(ended.outcome()).isEqualTo(GenerationOutcome.CANCELLED);
         assertThat(ended.message()).isNull();
+    }
+
+    @Test
+    void stoppedWhileTheServerReadsThePromptEndsAtOnce() throws Exception {
+        Manuscript manuscript = book();
+        EndWatcher watcher = watchEnd(manuscript);
+        CountDownLatch prompt = new CountDownLatch(1);
+        // the server holds everything, the headers too, as a model does while it reads a long prompt
+        llm.enqueue(MockLLMResponse.text("never read").waitFor(prompt, Duration.ofSeconds(30)));
+
+        try {
+            GenerationRun run = new GenerationRun();
+            CancellationToken token = storyGenerationService.generateNextTurn(manuscriptService.find(manuscript.getId()),
+                    new TurnInput(null, null, null, "write"), GenerationRequest.newMessage(), run);
+            long deadline = System.nanoTime() + TIMEOUT.toNanos();
+            while (llm.getCompletionRequests().isEmpty() && System.nanoTime() < deadline) {
+                Thread.sleep(20);
+            }
+            assertThat(llm.getCompletionRequests()).as("the request is on the wire").hasSize(1);
+            Thread.sleep(300);
+            assertThat(watcher.ended).isEmpty();
+
+            token.cancel();
+
+            // not after the prompt is read: the server is still holding the answer
+            assertThat(watcher.latch.await(5, TimeUnit.SECONDS)).as("ended within seconds of the stop").isTrue();
+            Ended ended = watcher.ended.getLast();
+            assertThat(ended.outcome()).isEqualTo(GenerationOutcome.CANCELLED);
+            assertThat(ended.message()).isNull();
+            assertThat(run.await(Duration.ofSeconds(5))).isEqualTo(GenerationRun.Outcome.CANCELLED);
+        } finally {
+            prompt.countDown();
+        }
     }
 }
