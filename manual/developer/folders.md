@@ -61,8 +61,8 @@ the same work (see [the story layout](ui.md)).
 A book's setting is the first non-blank of: **the book, the folders above it (nearest first), the `UserSetting`, the built-in
 default** (`Defaults`). The code is in three places:
 
-- `PromptField` (`domain/service`) is an enum of the twelve text settings (`MASTER_TEMPLATE`, `POV`, `TENSE`, `STYLE` and the
-  eight prompts). It holds the getters of each level (`ofBook`, `ofFolder`, `ofUser`), the setters (`setOfBook`, `setOfFolder`,
+- `PromptField` (`domain/service`) is an enum of the thirteen text settings (`MASTER_TEMPLATE`, `POV`, `TENSE`, `STYLE` and the
+  nine prompts, `ANNOTATE_INSTRUCTIONS` among them). It holds the getters of each level (`ofBook`, `ofFolder`, `ofUser`), the setters (`setOfBook`, `setOfFolder`,
   which store a blank as null) and the built-in `fallback()`. A new inheritable setting is a new constant here plus the field on
   `Manuscript` and `Folder`, and nothing else in the resolver.
 - `EffectiveSetting<T>(value, origin, folder)` is what the resolver returns: the value, where it is set (`Origin` is `BOOK`,
@@ -75,7 +75,7 @@ default** (`Defaults`). The code is in three places:
 
 `FolderService.findChain(folder)` reads the folder and its ancestors by id (folder first, stopping at a deleted one), with no
 current user, so a generation can resolve from a worker thread. The lookups are done when needed and nothing is copied into
-the book, so moving a book or editing a folder changes the next generation. A resolve of all twelve settings and the language
+the book, so moving a book or editing a folder changes the next generation. A resolve of all thirteen settings and the language
 costs about 1 ms with no folder and 3 ms through ten folders (measured on the test database), a generation does a handful of
 them before an LLM call, so there is **no cache**; add one per generation only if the chain gets much longer or the lookups end
 up in a loop over many books.
@@ -144,7 +144,7 @@ All the code is in `ui` (the classes are `@Configurable`, the windows `@Extendab
 | `FolderActions` | New, rename, delete and move to a folder, shared by both lists and Organise: it asks what the rules need and reports what the service refused. |
 | `FolderDialog` | The settings of a folder. Unlike the book's dialog it saves with a button (a change may be refused). |
 | `ExtensionSettingsForm` | The section below `PromptSettingsForm` in the same two places: the editors of the settings that extensions registered (`InheritedSettingRegistry`), one group per extension, with the same placeholder and origin line; empty (and left out) when nothing is registered. See [Inherited settings](plugins/inherited-settings.md). |
-| `PromptSettingsForm` | The editors of the twelve text settings, shared by the book's *Prompts* tab (desktop and phone) and the folder dialog. It takes the values and the folder the empty ones inherit from (`load`), gives the values back (`values`), shows the inherited value as the placeholder and the origin as the line under the field (`LABEL_INHERITED_FROM_FOLDER`, `_FROM_USER`, `_INHERITED_DEFAULT`) and reports a change only when every template is valid. |
+| `PromptSettingsForm` | The editors of the thirteen text settings, shared by the book's *Prompts* tab (desktop and phone) and the folder dialog. It takes the values and the folder the empty ones inherit from (`load`), gives the values back (`values`), shows the inherited value as the placeholder and the origin as the line under the field (`LABEL_INHERITED_FROM_FOLDER`, `_FROM_USER`, `_INHERITED_DEFAULT`) and reports a change only when every template is valid. |
 | `InheritedLanguageCombo` | The language box where empty means inherit; the same placeholder and origin line. |
 | `OrganiseDialog`, `FolderClashDialog` | The two-pane window (one pane over the other when `UIUtils.isPhone()`, and without the hint of the keys; the entries are marked with `MassDeleteBox`, the check box of the story's mass delete, whose one click event carries Shift for a range; the list reads itself again when the window closes) and the question of a name clash. The keys of the buttons are `ShortcutActions.ORGANISE_*` actions, registered in `ShortcutRegistry` and caught in the browser by `JavascriptLibrary.fireOrganiseKeys`; the navigation keys are fixed. |
 | `MassChangeModelProtocolDialog`, `MassChangeLanguageDialog`, `MassRenameDialog`, `MultiTagDialog` | Take a list of books (or a folder, `MultiTagDialog.Kind.FOLDERS`). |
