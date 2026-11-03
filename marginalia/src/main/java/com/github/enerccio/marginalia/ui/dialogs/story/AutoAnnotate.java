@@ -6,6 +6,11 @@ import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.AIService;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.ProtocolService;
+import com.github.enerccio.marginalia.domain.traits.APILocals;
+import com.github.enerccio.marginalia.domain.traits.APIParameter;
+import com.github.enerccio.marginalia.domain.traits.APIReturn;
+import com.github.enerccio.marginalia.domain.traits.Extendable;
+import com.github.enerccio.marginalia.domain.traits.PublicAPI;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -20,6 +25,7 @@ import java.util.List;
  * if it is set, and starts at once to address them ({@link RedraftDialog#openAuto}). Each window closes by itself when its result is
  * taken without asking, otherwise it waits for the author. Closing a window ends the run: what would follow is dropped.
  */
+@Extendable
 @Configurable(preConstruction = true)
 public class AutoAnnotate {
 
@@ -57,12 +63,22 @@ public class AutoAnnotate {
     /**
      * Starts the run for a part that was just generated, when the book is set to annotate them and the part has a text.
      */
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "generated", type = ChatMessage.class)},
+            locals = {@APILocals(name = "part", type = ChatMessage.class),
+                    @APILocals(name = "auto", type = AnnotateDialog.Auto.class)})
     public void run(ChatMessage generated) throws Exception {
-        if (!isEnabled(manuscript) || generated == null) {
+        if (generated == null) {
+            return;
+        }
+        if (!isEnabled(manuscript)) {
+            finished(generated);
             return;
         }
         ChatMessage part = chatMessageService.find(generated);
         if (part == null || StringUtils.isBlank(part.getResponse())) {
+            finished(generated);
             return;
         }
         boolean accept = manuscript.getAutoAnnotateAccept();
@@ -74,15 +90,42 @@ public class AutoAnnotate {
             onChanged.run();
             if (redraft) {
                 redraft(part);
+            } else {
+                finished(part);
             }
         });
     }
 
+    /**
+     * Called when nothing more will happen to a generated part by itself: right away when the book does not annotate its parts, else
+     * when the notes were added and, if the book redrafts, the redraft was applied. It is not called when the author closes a window of
+     * the run (the part is then in the author's hands). A hook for extensions that read the
+     * finished text of the new part ({@code registerDecorator}, after the method).
+     *
+     * @param part the generated part, as it is stored now
+     */
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "part", type = ChatMessage.class)})
+    public void finished(ChatMessage part) {
+    }
+
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "part", type = ChatMessage.class)},
+            locals = {@APILocals(name = "e", type = Exception.class)})
     private void redraft(ChatMessage part) {
         try {
             // the text of the part as it is now, the notes are given to the model by the dialog
             RedraftDialog.openAuto(manuscript, chatMessageService.find(part), manuscript.getAutoAnnotateAcceptRedraft(),
-                    _ -> onChanged.run());
+                    _ -> {
+                        onChanged.run();
+                        try {
+                            finished(chatMessageService.find(part));
+                        } catch (Exception e) {
+                            UIUtils.internalServerError(loc, e);
+                        }
+                    });
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
