@@ -119,7 +119,9 @@ public class ReflectUtils {
         Class<?> p = clazz;
         while (p != null) {
             for (Field field : p.getDeclaredFields()) {
-                field.setAccessible(true);
+                if (!field.trySetAccessible()) {
+                    continue;
+                }
                 fields.put(field.getName(), field);
             }
             p = p.getSuperclass();
@@ -216,7 +218,10 @@ public class ReflectUtils {
         Class<?> p = clazz;
         while (p != null) {
             for (Method method : p.getDeclaredMethods()) {
-                method.setAccessible(true);
+                // JDK classes up the hierarchy (Object.finalize...) can not be opened; they are never wanted, skip them
+                if (!method.trySetAccessible()) {
+                    continue;
+                }
                 methods.put(Pair.of(method.getName(), List.of(method.getParameterTypes())), method);
             }
             p = p.getSuperclass();

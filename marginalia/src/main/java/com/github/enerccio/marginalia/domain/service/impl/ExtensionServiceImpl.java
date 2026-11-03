@@ -296,7 +296,7 @@ public class ExtensionServiceImpl implements ExtensionService {
                         "Required methodName '%s' was not found in %s. " +
                                 "The core UI code may have been refactored or renamed.",
                         methodName, targetInstance.getClass().getSimpleName()
-                ));
+                ), t);
             }
         }
 

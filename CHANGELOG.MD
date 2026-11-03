@@ -30,6 +30,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+- **Extensions could not call a private method of a window ("Required methodName 'autosave' was not found in ManuscriptInfoPart").** `ReflectUtils` opened every method (and field) up the class hierarchy, and the JDK refuses that for `Object.finalize`, so `callReflectiveMethod` / `getReflectiveFieldValue` failed on a class that has no other superclass and the error claimed the method did not exist. The JDK members are skipped now and the real cause is kept in the error. It showed as *Can't copy to the book* in the Book Description Generator.
 - **A generation stopped before the request is not sent.** A generation cancelled while the listeners of `BEFORE_INFERENCE` ran (an extension that asked the user and got *no*) went on and sent the request anyway; it now ends in its cleanup, and the empty part is removed.
 - **Beta Readers: the reasoning of a reply that is being written can be opened.** The reply was redrawn every 100 ms and took the section of the reasoning with it, so the click that opened it was lost; the section is kept and only its text changes.
 
