@@ -1,29 +1,8 @@
 package com.github.enerccio.marginalia.extensions.knowledgetracker.service;
 
-import com.github.enerccio.marginalia.domain.model.impl.AI;
-import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
-import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
-import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
-import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
-import com.github.enerccio.marginalia.domain.model.impl.Protocol;
-import com.github.enerccio.marginalia.domain.model.impl.Summary;
-import com.github.enerccio.marginalia.domain.model.impl.Tag;
+import com.github.enerccio.marginalia.domain.model.impl.*;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
-import com.github.enerccio.marginalia.domain.service.AIService;
-import com.github.enerccio.marginalia.domain.service.CancellationToken;
-import com.github.enerccio.marginalia.domain.service.ChatMessageService;
-import com.github.enerccio.marginalia.domain.service.InferenceService;
-import com.github.enerccio.marginalia.domain.service.InferenceServices;
-import com.github.enerccio.marginalia.domain.service.InferenceSession;
-import com.github.enerccio.marginalia.domain.service.LorebookActivationService;
-import com.github.enerccio.marginalia.domain.service.LorebookEntryService;
-import com.github.enerccio.marginalia.domain.service.LorebookService;
-import com.github.enerccio.marginalia.domain.service.ManuscriptService;
-import com.github.enerccio.marginalia.domain.service.ProtocolService;
-import com.github.enerccio.marginalia.domain.service.SettingService;
-import com.github.enerccio.marginalia.domain.service.SummaryService;
-import com.github.enerccio.marginalia.domain.service.TagRelationService;
-import com.github.enerccio.marginalia.domain.service.UsageContext;
+import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LorebookEntryVerdict;
@@ -31,12 +10,7 @@ import com.github.enerccio.marginalia.domain.templates.LorebookTemplateData;
 import com.github.enerccio.marginalia.domain.templates.TemplateContext;
 import com.github.enerccio.marginalia.domain.templates.TemplateVariables;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.block.KnowledgeBlockBuilder;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.extract.ChangeApplier;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.extract.ChangeSet;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.extract.ChangeSetBuilder;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.extract.ExtractionAnswer;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.extract.ExtractionPrompt;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.extract.RunCommit;
+import com.github.enerccio.marginalia.extensions.knowledgetracker.extract.*;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.model.BookSettings;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.model.KnowledgeState;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.model.LoreMode;
@@ -46,13 +20,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Queue;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -125,8 +93,13 @@ public class ExtractionService {
      * @param note    what the user should know about the run: the lorebook did not fit, parts were left for the next run
      * @param raw     what the model answered, for the log
      * @param pending how many settled parts were not read by this run because it was limited
+     * @param reasoning what the model thought before it answered, when the provider sends it; empty when it does not
      */
-    public record Proposal(List<Part> parts, ChangeSet changes, boolean asked, String note, String raw, int pending) {
+    public record Proposal(List<Part> parts, ChangeSet changes, boolean asked, String note, String raw, int pending, String reasoning) {
+
+        public Proposal(List<Part> parts, ChangeSet changes, boolean asked, String note, String raw, int pending) {
+            this(parts, changes, asked, note, raw, pending, "");
+        }
 
         public boolean isEmpty() {
             return parts.isEmpty();
@@ -217,7 +190,8 @@ public class ExtractionService {
         String lore = lore(manuscript, settings.getLoreMode(), run, budget - tokens(service, request), service, note);
         request = ExtractionPrompt.build(state, lore, run, separators);
 
-        String raw = ask(model, manuscript, request);
+        Answered answered = ask(model, manuscript, request);
+        String raw = answered.text();
         ExtractionAnswer answer;
         try {
             answer = com.github.enerccio.marginalia.domain.service.structured.StructuredOutputs.parse(raw, ExtractionAnswer.class);
@@ -225,7 +199,7 @@ public class ExtractionService {
             throw new IllegalStateException("The model did not answer in the expected form: " + e.getMessage(), e);
         }
         ChangeSet changes = ChangeSetBuilder.build(state, request, answer);
-        return new Proposal(List.copyOf(run), changes, true, note.toString().strip(), raw, left);
+        return new Proposal(List.copyOf(run), changes, true, note.toString().strip(), raw, left, answered.reasoning());
     }
 
     /**
@@ -268,17 +242,34 @@ public class ExtractionService {
         return Math.max(1000, context - answer - MARGIN_TOKENS);
     }
 
-    private String ask(ModelSelection model, Manuscript book, ExtractionPrompt.Request request) throws Exception {
+    /** What the model sent: the answer and, when the provider reports it, what it thought first. */
+    private record Answered(String text, String reasoning) {
+    }
+
+    /**
+     * Asks the model and waits for the whole answer. The request is streamed so that the reasoning of the model, which a plain
+     * {@code infer} drops, can be kept for the review.
+     */
+    private Answered ask(ModelSelection model, Manuscript book, ExtractionPrompt.Request request) throws Exception {
         List<LLMChatMessage> payload = List.of(LLMChatMessage.of(LLMRole.SYSTEM, request.system()),
                 LLMChatMessage.of(LLMRole.USER, request.user()));
-        CompletableFuture<String> answer = new CompletableFuture<>();
+        CompletableFuture<Answered> answer = new CompletableFuture<>();
+        StringBuilder text = new StringBuilder();
+        StringBuilder reasoning = new StringBuilder();
         CancellationToken token;
         try (InferenceSession _ = InferenceSession.open("knowledge-tracker"); UsageContext _ = UsageContext.open(book)) {
-            token = inferenceServices.forAIOrThrow(model.ai()).infer(payload, model.protocol(),
-                    new InferenceService.InferenceResultCallback() {
+            token = inferenceServices.forAIOrThrow(model.ai()).stream(payload, model.protocol(),
+                    new InferenceService.InferenceAsyncCallback() {
                         @Override
-                        public void onResult(String text, com.github.enerccio.marginalia.domain.service.structured.SchemaCheck check) {
-                            answer.complete(text);
+                        public void onChunk(InferenceService.InferenceAsyncController controller,
+                                            InferenceService.ChunkType chunkType, String chunk) throws Exception {
+                            (chunkType == InferenceService.ChunkType.REASONING ? reasoning : text).append(chunk);
+                            controller.continueInference();
+                        }
+
+                        @Override
+                        public void onCompletion() {
+                            answer.complete(new Answered(text.toString(), reasoning.toString().strip()));
                         }
 
                         @Override

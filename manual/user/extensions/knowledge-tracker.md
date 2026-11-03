@@ -80,6 +80,7 @@ characters **learned** (see [Reading what the characters learn](#reading-what-th
 The panel at the top of the tab shows where it stands and has:
 
 - **Process now**: reads the parts that are not processed yet.
+- **Process next part**: reads only the first part that is not processed yet, one step at a time (with the model: one request for that part, whatever *Parts per run* says). Use it to try the settings or to look at what the model finds for a single part. The command `knowledge-process` with `parts` set to 1 does the same.
 - **Start point**: the part processing begins at (*Start of the book* by default). Parts before it are never read. Moving
   it back reads the parts from the new start again, moving it forward leaves what was read.
 - **Processed parts**: the latest parts that were read. A part whose text **changed since it was processed** (you edited or
@@ -131,6 +132,10 @@ of the tab (*3 changes to review*). **The review never opens by itself.** It is 
 character:
 
 ![Reviewing the changes](../../images/plugin-knowledgetracker-review.png)
+
+Under the table, **What the model thought** (closed at first) holds the reasoning of the model that came before its answer, when the model sends
+it: it shows why a change was proposed, or why one that you expected is missing, so you can judge the change before you apply it. A model that
+does not reason shows nothing there.
 
 | | |
 |---|---|
@@ -199,8 +204,8 @@ For the [command line](../commands/index.md) and for agents:
 | `knowledge-status` | The settings and where processing stands. |
 | `list-tracked-characters`, `add-tracked-character`, `update-tracked-character`, `delete-tracked-character` | The tracked characters, addressed by name, alias or number. |
 | `list-knowledge`, `add-knowledge`, `retract-knowledge`, `restore-knowledge`, `delete-knowledge` | The items of a character, addressed by their number in `list-knowledge`. |
-| `knowledge-process` | Processes now (`parts`: at most that many). With the model on, `ask true` returns what the model found as numbered changes and holds them. |
-| `apply-knowledge-changes` | Applies the held changes, all of them or the numbers given. |
+| `knowledge-process` | Processes now (`parts`: at most that many). With the model on, `ask true` returns what the model found as numbered changes and holds them: nothing is changed yet. The open Knowledge tab shows a **changes found by a command** button that opens the usual review (Apply / Cancel); an agent applies them with `apply-knowledge-changes`. |
+| `apply-knowledge-changes` | Applies the held changes, all of them or the numbers given (the same as **Apply** in the review of the tab). |
 | `knowledge-reprocess` | Reprocess from a part (its handle or position); asks first. With the model on it only takes the state back, `knowledge-process` reads the parts again. |
 | `knowledge-set-start` | Sets the start point; without a part, the start of the book. |
 | `knowledge-tracker-block` | The block as text, for the macro. |

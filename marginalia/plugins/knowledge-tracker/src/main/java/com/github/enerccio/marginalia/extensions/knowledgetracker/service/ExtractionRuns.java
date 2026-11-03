@@ -43,13 +43,20 @@ public final class ExtractionRuns {
      * @param excludeFrom a part that is being replaced (a regenerate), it and the later ones are left alone; may be {@code null}
      * @throws IllegalStateException when the book has a run going on already
      */
-    public synchronized ExtractionRun start(Manuscript manuscript, Boolean guided, String excludeFrom) throws Exception {
+    public ExtractionRun start(Manuscript manuscript, Boolean guided, String excludeFrom) throws Exception {
+        return start(manuscript, guided, excludeFrom, 0);
+    }
+
+    /**
+     * @param maxParts the series reads at most this many parts, 0 = all that are waiting (the next part only: 1)
+     */
+    public synchronized ExtractionRun start(Manuscript manuscript, Boolean guided, String excludeFrom, int maxParts) throws Exception {
         if (running(manuscript) != null) {
             throw new IllegalStateException("The book is being processed already");
         }
         BookSettings settings = stateService.load(manuscript).getSettings();
         ExtractionRun run = new ExtractionRun(manuscript, extraction, processService, stateService,
-                guided != null ? guided : settings.isAskBeforeApplying(), excludeFrom);
+                guided != null ? guided : settings.isAskBeforeApplying(), excludeFrom, maxParts);
         runs.put(manuscript.getUuid(), run);
         run.start();
         return run;

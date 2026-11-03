@@ -183,7 +183,8 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
         // as soon as the model answers, so it must not start before the commit makes the row visible to it
         Runnable start = () -> {
             try (InferenceSession _ = InferenceSession.open(InferenceSession.SUMMARY); UsageContext _ = UsageContext.open(manuscript)) {
-                inferenceService.stream(payload, protocol, inferenceCallback);
+                // a stop reaches the request also while the server still reads the prompt
+                cancellationToken.onCancel(inferenceService.stream(payload, protocol, inferenceCallback)::cancel);
             } catch (Exception e) {
                 log.error("Failed to start the summary inference", e);
                 try {

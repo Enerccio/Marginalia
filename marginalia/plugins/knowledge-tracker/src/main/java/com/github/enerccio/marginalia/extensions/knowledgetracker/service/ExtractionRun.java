@@ -64,6 +64,8 @@ public final class ExtractionRun {
     private volatile RequestAttributes attributes;
     private final boolean guided;
     private final String excludeFrom;
+    /** The series ends after this many parts, 0 = no limit (all the parts that are waiting). */
+    private final int maxParts;
     private final List<Consumer<Status>> listeners = new CopyOnWriteArrayList<>();
     private final List<String> lines = new ArrayList<>();
     private final CompletableFuture<Void> finished = new CompletableFuture<>();
@@ -78,15 +80,17 @@ public final class ExtractionRun {
      *
      * @param guided      whether the proposals wait for the user (false: they are applied at once)
      * @param excludeFrom a part that is being replaced, it and the later ones are left alone; may be {@code null}
+     * @param maxParts    the series reads at most this many parts, 0 = all that are waiting
      */
     ExtractionRun(Manuscript manuscript, ExtractionService extraction, KnowledgeProcessService processService,
-                  KnowledgeStateService stateService, boolean guided, String excludeFrom) {
+                  KnowledgeStateService stateService, boolean guided, String excludeFrom, int maxParts) {
         this.manuscript = manuscript;
         this.extraction = extraction;
         this.processService = processService;
         this.stateService = stateService;
         this.guided = guided;
         this.excludeFrom = excludeFrom;
+        this.maxParts = Math.max(0, maxParts);
         this.attributes = ThreadCopyRequestAttributes.create();
         this.status = new Status(Phase.PREPARING, 0, 0, 0, 0, null, "", List.of());
     }
@@ -169,7 +173,7 @@ public final class ExtractionRun {
     /** No model: only who has met whom is noted, which costs nothing. */
     private void readWithoutModel() throws Exception {
         publish(Phase.APPLYING, 1, null, "");
-        Report report = processService.process(manuscript, true, excludeFrom, KnowledgeProcessService.NO_LIMIT);
+        Report report = processService.process(manuscript, true, excludeFrom, maxParts > 0 ? maxParts : KnowledgeProcessService.NO_LIMIT);
         status = new Status(Phase.DONE, 1, report.processed(), 0, 0, null, "", List.copyOf(lines));
         notifyListeners();
     }
@@ -184,7 +188,8 @@ public final class ExtractionRun {
         while (!cancelled) {
             run++;
             publish(Phase.ASKING, run, null, "", partsRead, added, retracted);
-            Proposal proposal = extraction.propose(manuscript, settings.getPartsPerRun(), true, excludeFrom);
+            int perRun = maxParts > 0 ? Math.min(settings.getPartsPerRun(), maxParts - partsRead) : settings.getPartsPerRun();
+            Proposal proposal = extraction.propose(manuscript, perRun, true, excludeFrom);
             if (proposal.isEmpty()) {
                 break;
             }
@@ -216,7 +221,7 @@ public final class ExtractionRun {
                     + result.retracted() + " retracted" + (result.rejected() > 0 ? ", " + result.rejected() + " rejected (kept as old knowledge)" : "")
                     + (proposal.changes().dropped().isEmpty() ? "" : ", " + proposal.changes().dropped().size() + " unusable answers dropped")
                     + (proposal.note().isBlank() ? "" : " - " + proposal.note()));
-            if (proposal.pending() == 0) {
+            if (proposal.pending() == 0 || (maxParts > 0 && partsRead >= maxParts)) {
                 break;
             }
         }

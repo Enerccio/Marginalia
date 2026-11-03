@@ -149,7 +149,8 @@ public class ImpersonateServiceImpl implements ImpersonateService {
         };
 
         try (InferenceSession _ = InferenceSession.open(InferenceSession.IMPERSONATE); UsageContext _ = UsageContext.open(book)) {
-            inferenceService.stream(payload, protocol, inferenceCallback);
+            // a stop reaches the request also while the server still reads the prompt
+            cancellationToken.onCancel(inferenceService.stream(payload, protocol, inferenceCallback)::cancel);
         } catch (Exception e) {
             log.error("Failed to start the impersonate inference", e);
             inferenceCallback.onError(e);

@@ -238,3 +238,13 @@
     width: 22em;
     max-width: 80vw;
 }
+
+/* The reasoning of the model in the review: plain text, long, scrolls instead of making the dialog taller */
+.knowledge-tracker-reasoning {
+    max-height: 16em;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    color: var(--lumo-secondary-text-color);
+    font-size: var(--lumo-font-size-s);
+}

@@ -63,6 +63,11 @@ public class KnowledgeTrackerLocalization extends PluginLocalizationBundle {
     public static final String PROCESSED_UP_TO_PART = "Processed up to part %d of %d";
     public static final String NOTHING_IS_PROCESSED_YET = "Nothing is processed yet (%d parts)";
     public static final String PROCESS_NOW = "Process now";
+    public static final String WHAT_THE_MODEL_THOUGHT = "What the model thought";
+    public static final String CHANGES_FROM_A_COMMAND_TO_REVIEW = "%d changes found by a command, review them";
+    public static final String THE_STORY_CHANGED_RUN_THE_COMMAND_AGAIN = "The story changed while the changes were waiting; run the command again";
+    public static final String PROCESS_NEXT_PART = "Process next part";
+    public static final String READ_ONLY_THE_NEXT_PART_THAT_IS_NOT_PROCESSED = "Read only the first part that is not processed yet, for one step at a time";
     public static final String READ_N_PARTS_IN_N_REQUESTS = "Read %d parts with the model in %d requests? The story text alone is about %d tokens, the instructions, the lorebook and the knowledge of the characters are sent with every request on top of it. You can cancel the series at any time; what was applied stays.";
     public static final String READ_THE_PARTS_THAT_ARE_NOT_PROCESSED = "Read the parts that are not processed yet and note who has met whom";
     public static final String START_POINT = "Start point";
@@ -300,6 +305,16 @@ public class KnowledgeTrackerLocalization extends PluginLocalizationBundle {
         zh(APPLIED_AUTOMATICALLY, "自动应用的更改 (%d)");
         ja(THE_ITEM_HAS_BEEN_CHANGED_SINCE, "項目はその後変更されたため、そのままにしました");
         zh(THE_ITEM_HAS_BEEN_CHANGED_SINCE, "该项此后已被更改，未做任何改动");
+        ja(PROCESS_NEXT_PART, "次のパートを処理");
+        zh(PROCESS_NEXT_PART, "处理下一部分");
+        ja(READ_ONLY_THE_NEXT_PART_THAT_IS_NOT_PROCESSED, "まだ処理されていない最初のパートだけを読みます。一度に一歩ずつ進めたいときに使います");
+        zh(READ_ONLY_THE_NEXT_PART_THAT_IS_NOT_PROCESSED, "只读取第一个尚未处理的部分，便于一步一步来");
+        ja(CHANGES_FROM_A_COMMAND_TO_REVIEW, "コマンドが見つけた変更 %d 件を確認する");
+        zh(CHANGES_FROM_A_COMMAND_TO_REVIEW, "命令找到了 %d 项更改，请查看");
+        ja(THE_STORY_CHANGED_RUN_THE_COMMAND_AGAIN, "変更の待機中に物語が変わりました。コマンドをもう一度実行してください");
+        zh(THE_STORY_CHANGED_RUN_THE_COMMAND_AGAIN, "等待期间故事已更改，请重新运行命令");
+        ja(WHAT_THE_MODEL_THOUGHT, "モデルの考え");
+        zh(WHAT_THE_MODEL_THOUGHT, "模型的思考");
         ja(READ_THE_PARTS_THAT_ARE_NOT_PROCESSED, "まだ処理されていないパートを読み、誰が誰に会ったかを記録します");
         zh(READ_THE_PARTS_THAT_ARE_NOT_PROCESSED, "读取尚未处理的部分，并记录谁见过谁");
 

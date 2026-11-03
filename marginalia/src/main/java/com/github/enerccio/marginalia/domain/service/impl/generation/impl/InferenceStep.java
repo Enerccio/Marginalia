@@ -4,13 +4,10 @@ import com.github.enerccio.marginalia.Constants;
 import com.github.enerccio.marginalia.domain.components.TokenLimits;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
-import com.github.enerccio.marginalia.domain.service.InferenceErrors;
-import com.github.enerccio.marginalia.domain.service.InferenceService;
+import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.InferenceService.ChunkType;
 import com.github.enerccio.marginalia.domain.service.InferenceService.InferenceAsyncCallback;
 import com.github.enerccio.marginalia.domain.service.InferenceService.InferenceAsyncController;
-import com.github.enerccio.marginalia.domain.service.InferenceSession;
-import com.github.enerccio.marginalia.domain.service.UsageContext;
 import com.github.enerccio.marginalia.domain.service.impl.generation.*;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationController.State;
 import com.github.enerccio.marginalia.loc.L;
@@ -167,7 +164,10 @@ public class InferenceStep extends GenerationStepBase {
             // a new part, a regenerated one and a swipe are the same kind of work for the provider's cache
             try (InferenceSession _ = InferenceSession.open(InferenceSession.GENERATION);
                  UsageContext _ = UsageContext.open(controller.getManuscript())) {
-                inferenceService.stream(controller.getPayload(), controller.getProtocol(), callback);
+                CancellationToken inferred = inferenceService.stream(controller.getPayload(), controller.getProtocol(), callback);
+                // the stop of the user cancels the token of the generation: it has to reach the request, which is waiting for the
+                // server to read the prompt (nothing arrives, so nothing polls isDead); at once if it was stopped meanwhile
+                controller.getCancellationToken().onCancel(inferred::cancel);
             }
         });
     }

@@ -222,7 +222,9 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
                 noFunctionCalls, true, null).build();
 
         AsyncRunnableWrapper wrapper = new AsyncRunnableWrapper(configuration);
-        CompletableFuture.runAsync(() -> {
+        // a virtual thread: it waits for the server for as long as the model reads the prompt and thinks, and a stop interrupts that
+        // wait (a platform thread is not interruptible in a socket read)
+        Thread.ofVirtual().name("inference-round").start(() -> {
             try {
                 wrapper.run(() -> {
                     if (callback.isDead() || token.isCancelled()) {
@@ -239,6 +241,7 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
                     RoundStatsCollector stats = new RoundStatsCollector();
                     // only the time of the request counts, not what the caller does with the answer
                     ActivityTracker.Registration generating = metered ? activityTracker.generate(book) : ActivityTracker.NONE;
+                    Runnable endWait = interruptOnCancel(token);
                     try (StreamResponse<ChatCompletionChunk> stream = client.chat().completions().createStreaming(params)) {
                         Iterator<ChatCompletionChunk> chunks = stream.stream().iterator();
                         while (chunks.hasNext()) {
@@ -272,12 +275,17 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
                             }
                         }
                     } catch (RuntimeException e) {
+                        if (token.isCancelled()) {
+                            // the stop interrupted the read: the rest must not run with the flag set
+                            Thread.interrupted();
+                        }
                         if (!received.isEmpty()) {
                             // it answered before it failed, so that was billed; a failure before any text is not counted
                             recordUsage(attributes, conversation, null, received.toString(), metered, book);
                         }
                         throw e;
                     } finally {
+                        endWait.run();
                         generating.close();
                     }
                     TokenUsage counted = recordUsage(attributes, conversation, stopped ? null : reported,
@@ -291,6 +299,16 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
                     }
                 });
             } catch (Throwable e) {
+                if (token.isCancelled()) {
+                    // the read failed because the stop interrupted it: not a failure
+                    Thread.interrupted();
+                    try {
+                        callback.onCancel();
+                    } catch (Exception ex) {
+                        log.error("Error during callback.onCancel", ex);
+                    }
+                    return;
+                }
                 log.error("Failed to ask for a round: {}", e.getMessage(), e);
                 try {
                     callback.onError(translate(e));
@@ -314,7 +332,8 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
                 functionsOffered ? request.functions() : null, finalRound, false, schema).build();
 
         AsyncRunnableWrapper wrapper = new AsyncRunnableWrapper(configuration);
-        CompletableFuture.runAsync(() -> {
+        // a virtual thread, see round: the call returns only when the whole answer is written, a stop must not wait for that
+        Thread.ofVirtual().name("inference-infer").start(() -> {
             try {
                 wrapper.run(() -> {
                     if (outcome.dead().getAsBoolean() || request.cancellationToken().isCancelled()) {
@@ -322,8 +341,11 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
                         return;
                     }
                     ChatCompletion completion;
+                    Runnable endWait = interruptOnCancel(request.cancellationToken());
                     try (ActivityTracker.Registration generating = generating(request)) {
                         completion = request.client().chat().completions().create(params);
+                    } finally {
+                        endWait.run();
                     }
                     ChatCompletionMessage message = completion.choices().stream().findFirst()
                             .map(ChatCompletion.Choice::message).orElse(null);
@@ -353,6 +375,16 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
                     }
                 });
             } catch (Throwable e) {
+                if (request.cancellationToken().isCancelled()) {
+                    // the call failed because the stop interrupted it: not a failure
+                    Thread.interrupted();
+                    try {
+                        callback.onCancel();
+                    } catch (Exception ex) {
+                        log.error("Error during callback.onCancel", ex);
+                    }
+                    return;
+                }
                 log.error("Failed to infer: {}", e.getMessage(), e);
                 try {
                     callback.onError(translate(e));
@@ -456,6 +488,23 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
                 }
             }
         });
+    }
+
+    /**
+     * Has a stop interrupt the calling thread, which has to be a virtual one (the interrupt ends a read of a socket there and the
+     * connection is dropped, so the server is told). Used around a call that waits for the server.
+     *
+     * @return ends it: the interrupt must not reach the work that follows the call, and clears one that already came
+     */
+    private static Runnable interruptOnCancel(CancellationToken token) {
+        Thread waiting = Thread.currentThread();
+        Runnable unregister = token.onCancel(waiting::interrupt);
+        return () -> {
+            unregister.run();
+            if (token.isCancelled()) {
+                Thread.interrupted();
+            }
+        };
     }
 
     /**
