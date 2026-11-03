@@ -963,6 +963,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_SAVE_AND_REVALIDATE_SUMMARIES, "Save and revalidate summaries");
         setValue(L.LABEL_REVALIDATE, "Revalidate");
         setValue(L.LABEL_OUTDATED, "Outdated");
+        setValue(L.LABEL_SET_FOR_THE_BOOK, "Set for the book");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -1745,6 +1746,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_LOREBOOK_SHARED, "Other users see this lorebook, with its shared sub lorebooks, in \"Import from other user\" and can import a copy of it. They cannot change yours.");
         setValue(L.HELP_PROTOCOL_SHARED, "Other users see this protocol in \"Import from other user\" and can import a copy of it. They cannot change yours.");
         setValue(L.HELP_MATCH_BY_POSITION, "Summaries are matched to parts by the id of the part. Tick this for a file from another book (a copy has other ids): a summary whose part is not in this branch goes to the summary at the same position.");
+        setValue(L.HELP_ANNOTATE_INSTRUCTIONS, "What the model looks for when it annotates a part, for example: flag continuity errors, weak dialogue. Empty is the default task of the annotate prompt. The Annotate with AI window starts with this text.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Background lore and world context.");

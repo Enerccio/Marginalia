@@ -105,6 +105,7 @@ public class PromptSettingsForm {
             case REDRAFT_PROMPT -> L.LABEL_REDRAFT_PROMPT;
             case ANNOTATE_SYSTEM_PROMPT -> L.LABEL_ANNOTATE_SYSTEM_PROMPT;
             case ANNOTATE_PROMPT -> L.LABEL_ANNOTATE_PROMPT;
+            case ANNOTATE_INSTRUCTIONS -> L.LABEL_ANNOTATE_INSTRUCTIONS;
             case IMPERSONATE_PROMPT -> L.LABEL_IMPERSONATE_PROMPT;
         };
     }
@@ -116,6 +117,7 @@ public class PromptSettingsForm {
         return switch (field) {
             case REDRAFT_SYSTEM_PROMPT, ANNOTATE_SYSTEM_PROMPT -> L.HELP_PART_SYSTEM_PROMPT;
             case REDRAFT_PROMPT, ANNOTATE_PROMPT -> L.HELP_PART_LAST_PROMPT;
+            case ANNOTATE_INSTRUCTIONS -> L.HELP_ANNOTATE_INSTRUCTIONS;
             default -> null;
         };
     }

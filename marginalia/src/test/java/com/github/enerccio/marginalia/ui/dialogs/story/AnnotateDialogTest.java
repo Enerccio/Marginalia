@@ -11,7 +11,9 @@ import com.github.enerccio.marginalia.domain.service.AnnotationService;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.test.MarginaliaTestBase;
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.button.Button;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -70,6 +72,42 @@ class AnnotateDialogTest extends MarginaliaTestBase {
         assertThat(dialog.modeField().getValue()).isEqualTo(Mode.AUTO);
         assertThat(dialog.addButton().isEnabled()).isFalse();
         assertThat(dialog.runButton().getText()).isEqualTo("Annotate");
+    }
+
+    @Test
+    void whatToLookForShowsWhatTheBookInheritsAndWhereFromItComes() throws Exception {
+        AnnotateDialog plain = AnnotateDialog.create(book, part, () -> {
+        });
+        // nothing is set: the example of the prompt, nothing said about where it is from
+        assertThat(plain.instructionsField().getPlaceholder()).startsWith("For example");
+        assertThat(plain.instructionsField().getHelperText()).isNull();
+        assertThat(plain.instructionsField().getValue()).isEmpty();
+
+        Manuscript loaded = manuscriptService.find(book.getId());
+        loaded.setAnnotateInstructions("flag continuity errors");
+        book = manuscriptService.save(loaded);
+
+        AnnotateDialog own = AnnotateDialog.create(book, part, () -> {
+        });
+        // the text is the placeholder, not the value: an empty field means "use it", the author can still replace it
+        assertThat(own.instructionsField().getPlaceholder()).isEqualTo("flag continuity errors");
+        assertThat(own.instructionsField().getHelperText()).isEqualTo("Set for the book");
+        assertThat(own.instructionsField().getValue()).isEmpty();
+
+        // the info icon of the field copies what is inherited into it, to be edited for this run
+        Button fill = findButton(own.instructionsField().getPopover());
+        assertThat(fill).isNotNull();
+        fill.click();
+        assertThat(own.instructionsField().getValue()).isEqualTo("flag continuity errors");
+        own.instructionsField().setValue("flag continuity errors, and weak dialogue");
+        assertThat(own.instructionsField().getValue()).isEqualTo("flag continuity errors, and weak dialogue");
+    }
+
+    private static Button findButton(Component root) {
+        if (root instanceof Button button) {
+            return button;
+        }
+        return root.getChildren().map(AnnotateDialogTest::findButton).filter(java.util.Objects::nonNull).findFirst().orElse(null);
     }
 
     @Test

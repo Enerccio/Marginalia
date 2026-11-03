@@ -610,6 +610,7 @@ public class FolderServiceImpl extends ExtendableServiceImpl<Folder, FolderRepos
         copy.setRedraftPrompt(source.getRedraftPrompt());
         copy.setAnnotateSystemPrompt(source.getAnnotateSystemPrompt());
         copy.setAnnotatePrompt(source.getAnnotatePrompt());
+        copy.setAnnotateInstructions(source.getAnnotateInstructions());
         copy.setImpersonatePrompt(source.getImpersonatePrompt());
         copy.setHistoryMaxVersions(source.getHistoryMaxVersions());
         copy = self.save(copy);

@@ -164,6 +164,7 @@ class SettingsInheritanceTest extends MarginaliaTestBase {
             folder.setRedraftPrompt("r");
             folder.setAnnotateSystemPrompt("as");
             folder.setAnnotatePrompt("a");
+            folder.setAnnotateInstructions("ai");
             folder.setImpersonatePrompt("i");
         });
         Manuscript nested = book(expanse);
@@ -179,6 +180,7 @@ class SettingsInheritanceTest extends MarginaliaTestBase {
         assertThat(manuscriptService.getRedraftPrompt(nested)).isEqualTo("r");
         assertThat(manuscriptService.getAnnotateSystemPrompt(nested)).isEqualTo("as");
         assertThat(manuscriptService.getAnnotatePrompt(nested)).isEqualTo("a");
+        assertThat(manuscriptService.getAnnotateInstructions(nested)).isEqualTo("ai");
         assertThat(manuscriptService.getImpersonatePrompt(nested)).isEqualTo("i");
         for (PromptField field : PromptField.values()) {
             assertThat(manuscriptService.resolve(nested, field).origin()).as(field.name()).isEqualTo(Origin.FOLDER);

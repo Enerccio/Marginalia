@@ -377,6 +377,35 @@ class AnnotateServiceTest extends GenerationTestBase {
     }
 
     @Test
+    void whatToLookForIsInheritedFromTheBookTheFolderAndTheUser() throws Exception {
+        UserSetting setting = settingService.getOrCreate(UserSetting.class);
+        setting.setDefaultAnnotateInstructions("USER LOOKS FOR pacing");
+        settingService.save(setting);
+        llm.enqueue(MockLLMResponse.text("{\"findings\": []}"), MockLLMResponse.text("{\"findings\": []}"),
+                MockLLMResponse.text("{\"findings\": []}"));
+
+        try {
+            // nothing is asked, the setting of the user is what the model is told
+            done(request(null, Mode.STRUCTURED));
+            assertThat(llm.lastCompletionRequest().getPromptText()).contains("USER LOOKS FOR pacing");
+
+            // the book sets its own
+            Manuscript loaded = manuscriptService.find(manuscript.getId());
+            loaded.setAnnotateInstructions("BOOK LOOKS FOR names");
+            manuscript = manuscriptService.save(loaded);
+            done(request(null, Mode.STRUCTURED));
+            assertThat(llm.lastCompletionRequest().getPromptText()).contains("BOOK LOOKS FOR names").doesNotContain("USER LOOKS FOR");
+
+            // what the run asks for comes first
+            done(request("RUN LOOKS FOR dialogue", Mode.STRUCTURED));
+            assertThat(llm.lastCompletionRequest().getPromptText()).contains("RUN LOOKS FOR dialogue").doesNotContain("BOOK LOOKS FOR");
+        } finally {
+            setting.setDefaultAnnotateInstructions(null);
+            settingService.save(setting);
+        }
+    }
+
+    @Test
     void aPromptCanBeGivenForOneRun() throws Exception {
         llm.enqueue(MockLLMResponse.text("{\"findings\": []}"));
 

@@ -971,6 +971,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_SAVE_AND_REVALIDATE_SUMMARIES, "保存并重新验证摘要");
         setValue(L.LABEL_REVALIDATE, "重新验证");
         setValue(L.LABEL_OUTDATED, "已过期");
+        setValue(L.LABEL_SET_FOR_THE_BOOK, "已为本书设置");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -1753,6 +1754,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.HELP_LOREBOOK_SHARED, "其他用户可以在“从其他用户导入”中看到此世界书及其已共享的子世界书，并导入一份副本。他们无法修改你的世界书。");
         setValue(L.HELP_PROTOCOL_SHARED, "其他用户可以在“从其他用户导入”中看到此协议，并导入一份副本。他们无法修改你的协议。");
         setValue(L.HELP_MATCH_BY_POSITION, "摘要按段落的 ID 匹配。来自另一本书的文件（副本的 ID 不同）请勾选此项：段落不在当前分支中的摘要会放到相同位置的摘要上。");
+        setValue(L.HELP_ANNOTATE_INSTRUCTIONS, "模型为段落添加注释时要查找的内容，例如：指出连贯性错误、薄弱的对话。留空则使用注释提示词的默认任务。“用 AI 添加注释”窗口以此文本开头。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景设定与世界观。");
