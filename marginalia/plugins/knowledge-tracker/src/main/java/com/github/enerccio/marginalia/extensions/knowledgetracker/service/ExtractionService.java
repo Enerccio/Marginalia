@@ -94,11 +94,17 @@ public class ExtractionService {
      * @param raw     what the model answered, for the log
      * @param pending how many settled parts were not read by this run because it was limited
      * @param reasoning what the model thought before it answered, when the provider sends it; empty when it does not
+     * @param tidy    a proposal of the tidy pass (it has no parts and moves no cursor)
      */
-    public record Proposal(List<Part> parts, ChangeSet changes, boolean asked, String note, String raw, int pending, String reasoning) {
+    public record Proposal(List<Part> parts, ChangeSet changes, boolean asked, String note, String raw, int pending, String reasoning,
+                           boolean tidy) {
 
         public Proposal(List<Part> parts, ChangeSet changes, boolean asked, String note, String raw, int pending) {
-            this(parts, changes, asked, note, raw, pending, "");
+            this(parts, changes, asked, note, raw, pending, "", false);
+        }
+
+        public Proposal(List<Part> parts, ChangeSet changes, boolean asked, String note, String raw, int pending, String reasoning) {
+            this(parts, changes, asked, note, raw, pending, reasoning, false);
         }
 
         public boolean isEmpty() {
@@ -223,6 +229,63 @@ public class ExtractionService {
             if (result == null) {
                 throw new StaleProposalException("The story changed while the changes were being reviewed");
             }
+            stateService.save(manuscript, state);
+            stateService.changed(manuscript);
+            return result;
+        }
+    }
+
+    /**
+     * The tidy pass: asks the model which of the items it learned (and the user did not lock) to drop or merge, with the last processed
+     * parts for context. Blocks until the answer is there. Nothing is stored; without anything to tidy the proposal is empty and the
+     * model is not asked.
+     */
+    public Proposal proposeTidy(Manuscript manuscript) throws Exception {
+        KnowledgeState state = stateService.load(manuscript);
+        BookSettings settings = state.getSettings();
+        List<Part> branch = processService.branch(manuscript);
+        BranchProcessor.align(state, branch);
+        int cursor = BranchProcessor.cursorPosition(state, branch);
+        List<Part> recent = new ArrayList<>(branch.subList(Math.max(0, cursor - settings.getTidyContextParts()), Math.min(cursor, branch.size())));
+
+        ExtractionPrompt.Request request = TidyPrompt.build(state, recent, settings.getTidyMinItems());
+        if (request.isEmpty()) {
+            return new Proposal(List.of(), new ChangeSet(List.of(), List.of()), false, "", "", 0, "", true);
+        }
+        ModelSelection model = resolveModel(manuscript, settings);
+        if (model == null) {
+            throw new IllegalStateException("There is no model for the tidy pass: the book has none and neither have your defaults");
+        }
+        InferenceService service = inferenceServices.forAIOrThrow(model.ai());
+        long budget = promptBudget(model.ai());
+        StringBuilder note = new StringBuilder();
+        // the context goes first when the request does not fit; the items are what is asked about
+        while (!recent.isEmpty() && tokens(service, request) > budget) {
+            recent.removeFirst();
+            request = TidyPrompt.build(state, recent, settings.getTidyMinItems());
+            note.setLength(0);
+            note.append("Only the last ").append(recent.size()).append(" part(s) fit as context.");
+        }
+
+        Answered answered = ask(model, manuscript, request);
+        TidyAnswer answer;
+        try {
+            answer = com.github.enerccio.marginalia.domain.service.structured.StructuredOutputs.parse(answered.text(), TidyAnswer.class);
+        } catch (Exception e) {
+            throw new IllegalStateException("The model did not answer in the expected form: " + e.getMessage(), e);
+        }
+        ChangeSet changes = TidyChangeSetBuilder.build(state, request.numbering(), answer);
+        return new Proposal(List.of(), changes, true, note.toString(), answered.text(), 0, answered.reasoning(), true);
+    }
+
+    /**
+     * Applies the reviewed changes of the tidy pass. The cursor does not move. A change whose item is not there any more (or was locked
+     * or edited since) is skipped.
+     */
+    public ChangeApplier.Result commitTidy(Manuscript manuscript, Proposal proposal, boolean logged) throws Exception {
+        synchronized (processService.lockOf(manuscript)) {
+            KnowledgeState state = stateService.load(manuscript);
+            ChangeApplier.Result result = ChangeApplier.apply(state, proposal.changes(), logged, System.currentTimeMillis());
             stateService.save(manuscript, state);
             stateService.changed(manuscript);
             return result;

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847062049394">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847064704129">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.847062049394" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.847064704129" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847062049394" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847064704129" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847062049394" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847064704129" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -207,6 +207,7 @@ among the <em>present characters</em> of the part being written. Nothing is gues
 | **Knows** (green) / **Does not know** (red) | One short sentence about anything: a person, a place, a secret, an event (*Peter knows about the plot against the duke*, *Fiora does not know that Thomas is her father*). Write what a character does **not** know explicitly, that is what the model respects. |
 | **Add knowledge** | Adds an item, active at once. Keep it to **one thought**: an item that says two things (*does not know who Thomas is, has never met him*) is retracted as soon as one of them stops being true. The **edit** button changes the text and the kind. |
 | **Retract** (the circle with a slash) | The item is not true any more (*has not met Thomas* after they meet). It is not deleted: it becomes *old knowledge* and is no longer sent to the model. |
+| **Lock** (the padlock, on items the model learned) | The [tidy pass](#tidying-the-knowledge) never sees a locked item: use it for what must stay, a betrayal, a secret. The story can still contradict a locked item (a character who loses their memory): the reading of the story retracts it as usual. |
 | **Delete** | Removes an item for good, after a question. Retract keeps it, so use it when in doubt. |
 | **Has met** | The people the character has met, noted by [processing](#processing). |
 | **Old knowledge (n)** | Collapsed by default. Each old item can be **copied**, **edited**, **restored** (it is active again, from now on) or deleted. |">
@@ -230,6 +231,10 @@ among the <em>present characters</em> of the part being written. Nothing is gues
 <tr>
 <td><strong>Retract</strong> (the circle with a slash)</td>
 <td>The item is not true any more (<em>has not met Thomas</em> after they meet). It is not deleted: it becomes <em>old knowledge</em> and is no longer sent to the model.</td>
+</tr>
+<tr>
+<td><strong>Lock</strong> (the padlock, on items the model learned)</td>
+<td>The <doc-anchor-trigger to="#tidying-the-knowledge">tidy pass</doc-anchor-trigger> never sees a locked item: use it for what must stay, a betrayal, a secret. The story can still contradict a locked item (a character who loses their memory): the reading of the story retracts it as usual.</td>
 </tr>
 <tr>
 <td><strong>Delete</strong></td>
@@ -412,6 +417,28 @@ you choose below, with the usual cost and privacy of that service.</p>
         </div>
     </div>
 </div>
+<h2 id="tidying-the-knowledge">Tidying the knowledge</h2>
+<p>The model writes down what each character learns, and over a long story the list grows, with more small things than you want
+to send to the model on every request. <strong>Tidy knowledge</strong> (next to <strong>Process now</strong>, needs the model setting) asks the model to
+read what a character knows again, with the last processed parts of the story for context, and to</p>
+<ul>
+<li>
+<p><strong>drop</strong> an item that is not worth keeping: trivia, a detail of a scene that everybody in it saw (the story holds it), something
+that later events overtook, something that says the same as another item;</p>
+</li>
+<li>
+<p><strong>merge</strong> several items about the same thing into one that keeps every fact.</p>
+</li>
+</ul>
+<p>A dropped or merged item is not deleted: it becomes <em>Old knowledge</em> and can be restored. The changes are reviewed, like the ones of
+a reading (<strong>Ask before applying</strong> decides), or applied at once and written to the log with a <strong>Revert</strong> button.</p>
+<p>What the pass may touch is only what the model learned and you did not <strong>lock</strong>. The initial items, the ones you added or edited
+by hand, the locked ones and the old ones are never changed (the first two kinds and the locked ones are shown to the model so that
+it can see what an item would duplicate). A secret that no part has mentioned for a long time is no reason to drop it, and the
+prompt says so; when the model is in doubt it keeps the item. A character with fewer than <strong>Tidy: from this many items</strong> (8) items
+that the model learned is not tidied, and <strong>Tidy: parts of context</strong> (10) is how many of the last processed parts it reads.</p>
+<p>The same from the command bar: <code translate="no" v-pre>knowledge-tidy</code> (<code translate="no" v-pre>ask true</code> to get the changes as a list; the open tab then shows the review
+button), and <code translate="no" v-pre>lock-knowledge</code> / <code translate="no" v-pre>unlock-knowledge</code> with the character and the number of the item.</p>
 <h2 id="settings">Settings</h2>
 <p>The gear next to <em>Track a character</em>:</p>
 <retype-table copy-text="| Setting | |
@@ -424,6 +451,8 @@ you choose below, with the usual cost and privacy of that service.</p>
 | **Read what the characters learn with the model** | Processing asks the model what each tracked character learned and proposes it. Off (the default): processing only notes who has met whom, which costs nothing. |
 | **Ask before applying** | On (the default): every proposal is shown for review. Off: it is applied at once and logged. |
 | **Parts per run** | How many parts one request reads. Larger is cheaper but gives a longer answer and a harder review. |
+| **Tidy: parts of context** | How many of the last processed parts the tidy pass reads (10). |
+| **Tidy: from this many items** | A character with fewer items that the model learned (and that are not locked) is not tidied (8). |
 | **Lorebook for the model** | *Entries the parts activate* (the default: the entries a generation would use for these parts), *The whole lorebook* (every entry; when it does not fit the context, the activated ones are sent and the note says so) or *No lorebook*. |
 | **Model / Protocol for the extraction** | Empty: the model of the book. A cheaper model is enough for this, and on a server that holds one prompt cache a separate model keeps it from being replaced. |
 | **Separators of this book** | How the present characters field is split into names, one per line (a new line is `\n`). A word such as `and` splits between spaces, so *Jack and Jill* stays one name until you add it. |
@@ -470,6 +499,14 @@ you choose below, with the usual cost and privacy of that service.</p>
 <td>How many parts one request reads. Larger is cheaper but gives a longer answer and a harder review.</td>
 </tr>
 <tr>
+<td><strong>Tidy: parts of context</strong></td>
+<td>How many of the last processed parts the tidy pass reads (10).</td>
+</tr>
+<tr>
+<td><strong>Tidy: from this many items</strong></td>
+<td>A character with fewer items that the model learned (and that are not locked) is not tidied (8).</td>
+</tr>
+<tr>
 <td><strong>Lorebook for the model</strong></td>
 <td><em>Entries the parts activate</em> (the default: the entries a generation would use for these parts), <em>The whole lorebook</em> (every entry; when it does not fit the context, the activated ones are sent and the note says so) or <em>No lorebook</em>.</td>
 </tr>
@@ -509,6 +546,8 @@ so a second generation from the same part does not see a change you made in betw
 | `list-knowledge`, `add-knowledge`, `retract-knowledge`, `restore-knowledge`, `delete-knowledge` | The items of a character, addressed by their number in `list-knowledge`. |
 | `knowledge-process` | Processes now (`parts`: at most that many). With the model on, `ask true` returns what the model found as numbered changes and holds them: nothing is changed yet. The open Knowledge tab shows a **changes found by a command** button that opens the usual review (Apply / Cancel); an agent applies them with `apply-knowledge-changes`. |
 | `apply-knowledge-changes` | Applies the held changes, all of them or the numbers given (the same as **Apply** in the review of the tab). |
+| `knowledge-tidy` | The tidy pass. With `ask true` it returns the changes as a numbered list and holds them (the tab shows a button to review them; `apply-knowledge-changes` applies them). |
+| `lock-knowledge`, `unlock-knowledge` | Lock an item (character, item number) so that the tidy pass leaves it alone, or unlock it. |
 | `knowledge-reprocess` | Reprocess from a part (its handle or position); asks first. With the model on it only takes the state back, `knowledge-process` reads the parts again. |
 | `knowledge-set-start` | Sets the start point; without a part, the start of the book. |
 | `knowledge-tracker-block` | The block as text, for the macro. |">
@@ -540,6 +579,14 @@ so a second generation from the same part does not see a change you made in betw
 <tr>
 <td><code translate="no" v-pre>apply-knowledge-changes</code></td>
 <td>Applies the held changes, all of them or the numbers given (the same as <strong>Apply</strong> in the review of the tab).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>knowledge-tidy</code></td>
+<td>The tidy pass. With <code translate="no" v-pre>ask true</code> it returns the changes as a numbered list and holds them (the tab shows a button to review them; <code translate="no" v-pre>apply-knowledge-changes</code> applies them).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>lock-knowledge</code>, <code translate="no" v-pre>unlock-knowledge</code></td>
+<td>Lock an item (character, item number) so that the tidy pass leaves it alone, or unlock it.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>knowledge-reprocess</code></td>
@@ -597,7 +644,7 @@ so a second generation from the same part does not see a change you made in betw
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (57d4f624b).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (ea3aef8b0).</p></div>
             </footer>
         </div>
     </div>

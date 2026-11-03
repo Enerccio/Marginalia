@@ -23,6 +23,8 @@ public class KnowledgeItem {
      * leaves alone).
      */
     private String retractedAt;
+    /** Locked: the tidy pass never sees it. The story can still contradict it (it is retracted then), nothing else changes it. */
+    private boolean locked;
 
     public KnowledgeItem() {
     }
@@ -71,6 +73,14 @@ public class KnowledgeItem {
     public void retract(String messageUuid) {
         oldReason = OldReason.RETRACTED;
         retractedAt = messageUuid;
+    }
+
+    /**
+     * Makes the item old because the tidy pass dropped it or merged it into another one. A reprocess leaves it as it is.
+     */
+    public void tidy() {
+        oldReason = OldReason.TIDIED;
+        retractedAt = null;
     }
 
     /**
@@ -138,5 +148,21 @@ public class KnowledgeItem {
 
     public String getRetractedAt() {
         return retractedAt;
+    }
+
+    public boolean isLocked() {
+        return locked;
+    }
+
+    public void setLocked(boolean locked) {
+        this.locked = locked;
+    }
+
+    /**
+     * Whether the tidy pass may drop or merge it: an active item the model learned, that the user did not lock. What the user wrote
+     * (the initial state, items added or edited by hand) is never touched.
+     */
+    public boolean isTidyCandidate() {
+        return isActive() && origin == ItemOrigin.LEARNED && !locked;
     }
 }

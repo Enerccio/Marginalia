@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847062049394">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847064704129">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.847062049394" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.847064704129" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847062049394" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847064704129" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847062049394" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.847062049394" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847064704129" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.847064704129" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -947,7 +947,9 @@ generation key it by this, generations run at the same time.</p>
 <li>
 <p><strong>Stop</strong> in the UI calls <code translate="no" v-pre>CancellationToken.cancel()</code>. Every step, continuation and chunk checks the token and jumps
 to <code translate="no" v-pre>CLEANUP</code>, which keeps what was generated so far (<code translate="no" v-pre>PARTIAL_SUCCESS</code>) - or, when nothing arrived yet, removes
-the new part or restores the regenerated one, like after an error. Only <code translate="no" v-pre>CLEANUP</code> reports the end to the listener.</p>
+the new part or restores the regenerated one, like after an error. Only <code translate="no" v-pre>CLEANUP</code> reports the end to the listener. The stop also
+reaches the request: <code translate="no" v-pre>InferenceStep</code> hands the token of the generation the one of the request (<code translate="no" v-pre>cancellationToken.onCancel(stream(...)::cancel)</code>),
+so a stop works while the server still reads a long prompt and nothing arrives to poll (<code translate="no" v-pre>GenerationEndEventsTest</code>, <code translate="no" v-pre>StreamStopTest</code>).</p>
 </li>
 <li>
 <p><strong>Errors</strong> - an exception in a step or continuation, a failed request - are reported with
@@ -1021,7 +1023,7 @@ wait for it to finish. See <a href="../testing/">Testing</a>.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (57d4f624b).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (ea3aef8b0).</p></div>
             </footer>
         </div>
     </div>

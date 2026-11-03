@@ -84,8 +84,8 @@ public final class ChangeLog {
         if (entry.getType() == ChangeLogEntry.Type.ADDED) {
             return item.isActive() ? Outcome.REVERTED : Outcome.ALREADY_HANDLED;
         }
-        boolean asTheRunLeftIt = !item.isActive() && item.getOldReason() == OldReason.RETRACTED
-                && Objects.equals(item.getRetractedAt(), entry.getMessageUuid());
+        boolean asTheRunLeftIt = !item.isActive() && (item.getOldReason() == OldReason.TIDIED
+                || item.getOldReason() == OldReason.RETRACTED && Objects.equals(item.getRetractedAt(), entry.getMessageUuid()));
         return asTheRunLeftIt ? Outcome.REVERTED : Outcome.ALREADY_HANDLED;
     }
 }

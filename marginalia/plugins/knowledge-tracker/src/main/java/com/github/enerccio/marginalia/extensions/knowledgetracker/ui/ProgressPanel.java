@@ -90,7 +90,9 @@ public class ProgressPanel extends Dialog {
             case ASKING -> T.localized(ASKING_THE_MODEL_RUN).formatted(status.run());
             case REVIEW -> T.localized(WAITING_FOR_YOUR_REVIEW).formatted(status.proposal() == null ? 0 : status.proposal().changes().changes().size());
             case APPLYING -> T.localized(APPLYING_THE_CHANGES);
-            case DONE -> T.localized(DONE_PARTS_ADDED_RETRACTED).formatted(status.partsRead(), status.added(), status.retracted());
+            case DONE -> run.isTidy() ? (status.added() + status.retracted() == 0 ? T.localized(NOTHING_TO_TIDY)
+                    : T.localized(TIDY_DONE).formatted(status.retracted(), status.added()))
+                    : T.localized(DONE_PARTS_ADDED_RETRACTED).formatted(status.partsRead(), status.added(), status.retracted());
             case FAILED -> T.localized(IT_FAILED).formatted(status.message());
             case CANCELLED -> T.localized(STOPPED_PARTS_ADDED_RETRACTED).formatted(status.partsRead(), status.added(), status.retracted());
         });

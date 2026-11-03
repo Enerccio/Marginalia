@@ -50,13 +50,27 @@ public final class ExtractionRuns {
     /**
      * @param maxParts the series reads at most this many parts, 0 = all that are waiting (the next part only: 1)
      */
-    public synchronized ExtractionRun start(Manuscript manuscript, Boolean guided, String excludeFrom, int maxParts) throws Exception {
+    public ExtractionRun start(Manuscript manuscript, Boolean guided, String excludeFrom, int maxParts) throws Exception {
+        return start(manuscript, guided, excludeFrom, maxParts, false);
+    }
+
+    /**
+     * Starts the tidy pass (one request, no cursor) on a worker thread; call it on the thread of the user's request.
+     *
+     * @param guided whether the proposal is reviewed by the user; {@code null} = the setting of the book
+     * @throws IllegalStateException when the book has a run going on already
+     */
+    public ExtractionRun startTidy(Manuscript manuscript, Boolean guided) throws Exception {
+        return start(manuscript, guided, null, 0, true);
+    }
+
+    private synchronized ExtractionRun start(Manuscript manuscript, Boolean guided, String excludeFrom, int maxParts, boolean tidy) throws Exception {
         if (running(manuscript) != null) {
             throw new IllegalStateException("The book is being processed already");
         }
         BookSettings settings = stateService.load(manuscript).getSettings();
         ExtractionRun run = new ExtractionRun(manuscript, extraction, processService, stateService,
-                guided != null ? guided : settings.isAskBeforeApplying(), excludeFrom, maxParts);
+                guided != null ? guided : settings.isAskBeforeApplying(), excludeFrom, maxParts, tidy);
         runs.put(manuscript.getUuid(), run);
         run.start();
         return run;

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847062049394">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847064704129">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.847062049394" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.847064704129" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847062049394" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847064704129" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847062049394" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.847062049394" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847064704129" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.847064704129" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -300,7 +300,7 @@ ones that ask for classes, methods, arguments, locals or fields that don&#x27;t 
 | [Prompt Inspector](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/prompt-inspector) | Shows the prompt of a generation and asks before it is sent to the model. | Add a check box item to the settings menu, keep a per-user switch in the attributes of the user settings, listen to `BEFORE_INFERENCE` and ask the user from the listener: open a dialog on the user's page with `GenerationControllerEvent.accessUI` while the generation waits ([below](#asking-the-user-in-the-middle-of-a-generation)). |
 | [Instruction Exporter](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/instructionexporter) | Copies the instructions, scene settings and characters of the active branch to the clipboard, from the story settings menu. | Add an item to the settings menu of the story editor, read the story through a service, write to the clipboard. |
 | [Book Description Generator](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/book-description-generator) | Writes the name and the description of a book with the model from a range of its story, notes first when the range is longer than the context. | Add a button to the About tab of the book window (desktop and phone) and copy the result into its fields; register two [inherited settings](inherited-settings.md) (the prompts); run several requests in a row on a worker thread (`InRequestScope`) and read a JSON or Markdown answer; use the summaries of the story (`SummaryService.collectBlocks`). |
-| [Knowledge Tracker](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/knowledge-tracker) | Tracks what chosen characters know and do not know and puts it into the prompt; follows the active branch with a cursor. | Add a sidebar tab, insert a message into the payload (`BEFORE_PREPARE_CONTENT` reserves the tokens, `AFTER_PREPARE_PAYLOAD` inserts), listen to `AFTER_CLEANUP` for a regenerate, a read-only command for the `{{command::...}}` macro (`availableInMacros`), commands that ask the user (`async = true`), keep state in a book's attributes and settings in the user settings, a pure logic layer with plain unit tests. |
+| [Knowledge Tracker](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/knowledge-tracker) | Tracks what chosen characters know and do not know and puts it into the prompt; follows the active branch with a cursor. | Add a sidebar tab, insert a message into the payload (`BEFORE_PREPARE_CONTENT` reserves the tokens, `AFTER_PREPARE_PAYLOAD` inserts), listen to `AFTER_CLEANUP` for a regenerate, a read-only command for the `{{command::...}}` macro (`availableInMacros`), commands that ask the user (`async = true`), keep state in a book's attributes and settings in the user settings, stream a request to read the model's reasoning (`InferenceService.stream`, `infer` drops it), decorate the new `AutoAnnotate.finished` hook, a pure logic layer with plain unit tests.
 | [Lore Generator](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/lore-generator) | Writes a lorebook entry with the model from the existing lore: a generation, then a compaction, optional attachments. | Add a column to a grid, open a dialog that streams from the model (with `LLMAttachment`s), keep prompts in the user settings, give the model the functions of another extension ([a direct call](ipc.md#calling-another-extension-directly)), let the user choose the model with `ModelProtocolPicker`. |
 | [Lorebook VCS](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/lorebookvcs) | Revision history of lorebook entries, export and import of the history. | Insert panels into a view, store data in a lorebook's attributes, replace a field of the view. |
 | [Manga Generator](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/manga-generator) | Adapts parts of the story into a manga script and image tags, in one large window opened from the story settings menu. | Add an item to the settings menu of the story editor that opens a dialog, activate lore for arbitrary text with `LorebookActivationService.evaluateAll`, fit it to the context with `TokenLimits`, stream several answers side by side, keep data in a book's attributes. |
@@ -384,7 +384,7 @@ ones that ask for classes, methods, arguments, locals or fields that don&#x27;t 
 <tr>
 <td><a href="https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/knowledge-tracker">Knowledge Tracker</a></td>
 <td>Tracks what chosen characters know and do not know and puts it into the prompt; follows the active branch with a cursor.</td>
-<td>Add a sidebar tab, insert a message into the payload (<code translate="no" v-pre>BEFORE_PREPARE_CONTENT</code> reserves the tokens, <code translate="no" v-pre>AFTER_PREPARE_PAYLOAD</code> inserts), listen to <code translate="no" v-pre>AFTER_CLEANUP</code> for a regenerate, a read-only command for the <code translate="no" v-pre>{{command::...}}</code> macro (<code translate="no" v-pre>availableInMacros</code>), commands that ask the user (<code translate="no" v-pre>async = true</code>), keep state in a book&#x27;s attributes and settings in the user settings, a pure logic layer with plain unit tests.</td>
+<td>Add a sidebar tab, insert a message into the payload (<code translate="no" v-pre>BEFORE_PREPARE_CONTENT</code> reserves the tokens, <code translate="no" v-pre>AFTER_PREPARE_PAYLOAD</code> inserts), listen to <code translate="no" v-pre>AFTER_CLEANUP</code> for a regenerate, a read-only command for the <code translate="no" v-pre>{{command::...}}</code> macro (<code translate="no" v-pre>availableInMacros</code>), commands that ask the user (<code translate="no" v-pre>async = true</code>), keep state in a book&#x27;s attributes and settings in the user settings, stream a request to read the model&#x27;s reasoning (<code translate="no" v-pre>InferenceService.stream</code>, <code translate="no" v-pre>infer</code> drops it), decorate the new <code translate="no" v-pre>AutoAnnotate.finished</code> hook, a pure logic layer with plain unit tests.</td>
 </tr>
 <tr>
 <td><a href="https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/lore-generator">Lore Generator</a></td>
@@ -621,7 +621,7 @@ the model gets after every other extension has changed it.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (57d4f624b).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (ea3aef8b0).</p></div>
             </footer>
         </div>
     </div>

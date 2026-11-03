@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847062049394">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847064704129">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.847062049394" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.847064704129" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847062049394" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847064704129" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847062049394" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.847062049394" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847064704129" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.847064704129" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -732,7 +732,7 @@ inferenceService.stream(payload, protocol, functions, callback);</code></pre>
 </div>
 </retype-table>
 <p><code translate="no" v-pre>OpenAICompatibleInferenceService</code> offers the functions as <code translate="no" v-pre>tools</code>, collects the calls from the stream (they arrive in
-pieces), and when the answer ends with calls it runs them as a chain of futures: one after the other, each started on a worker thread (with the request attributes of the caller), the next only after the previous one answered through its continuation, and nothing blocks while a function waits. When the last has answered the next request is sent. Cancelling the token (or a dead callback) fails the pending call and ends the request with <code translate="no" v-pre>onCancel</code>. <code translate="no" v-pre>onFunctionCall</code> is called on the thread the function answered on.
+pieces), and when the answer ends with calls it runs them as a chain of futures: one after the other, each started on a worker thread (with the request attributes of the caller), the next only after the previous one answered through its continuation, and nothing blocks while a function waits. When the last has answered the next request is sent. Cancelling the token (or a dead callback) fails the pending call and ends the request with <code translate="no" v-pre>onCancel</code>. <code translate="no" v-pre>onFunctionCall</code> is called on the thread the function answered on. <code translate="no" v-pre>round</code> and <code translate="no" v-pre>infer</code> wait for the server on a virtual thread (not a pool thread) that a stop interrupts (<code translate="no" v-pre>interruptOnCancel</code>: the read of the socket ends, the connection is dropped and the server is told), and every caller of <code translate="no" v-pre>stream</code> (the generation, <code translate="no" v-pre>SummaryService</code>, <code translate="no" v-pre>RedraftService</code>, <code translate="no" v-pre>ImpersonateService</code>) gives the request to the token it was started with (<code translate="no" v-pre>token.onCancel(stream(...)::cancel)</code>), so a stop does not wait for the model to read its prompt.
 appends an assistant message with the calls (<code translate="no" v-pre>LLMChatMessage.ofToolCalls</code>, <code translate="no" v-pre>LLMToolCall</code>) and a <code translate="no" v-pre>LLMRole.TOOL</code> message
 per result (<code translate="no" v-pre>ofToolResult</code>) to its own copy of the payload and sends the request again. The callback sees one stream of
 chunks and one completion (the text before a call and the answer after it are both <code translate="no" v-pre>RESPONSE</code> chunks), and
@@ -1121,7 +1121,7 @@ call. See
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (57d4f624b).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (ea3aef8b0).</p></div>
             </footer>
         </div>
     </div>

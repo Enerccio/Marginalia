@@ -66,6 +66,8 @@ public final class ExtractionRun {
     private final String excludeFrom;
     /** The series ends after this many parts, 0 = no limit (all the parts that are waiting). */
     private final int maxParts;
+    /** The run is the tidy pass: one request about the items, no cursor. */
+    private final boolean tidy;
     private final List<Consumer<Status>> listeners = new CopyOnWriteArrayList<>();
     private final List<String> lines = new ArrayList<>();
     private final CompletableFuture<Void> finished = new CompletableFuture<>();
@@ -81,9 +83,10 @@ public final class ExtractionRun {
      * @param guided      whether the proposals wait for the user (false: they are applied at once)
      * @param excludeFrom a part that is being replaced, it and the later ones are left alone; may be {@code null}
      * @param maxParts    the series reads at most this many parts, 0 = all that are waiting
+     * @param tidy        the run is the tidy pass instead of reading parts
      */
     ExtractionRun(Manuscript manuscript, ExtractionService extraction, KnowledgeProcessService processService,
-                  KnowledgeStateService stateService, boolean guided, String excludeFrom, int maxParts) {
+                  KnowledgeStateService stateService, boolean guided, String excludeFrom, int maxParts, boolean tidy) {
         this.manuscript = manuscript;
         this.extraction = extraction;
         this.processService = processService;
@@ -91,12 +94,18 @@ public final class ExtractionRun {
         this.guided = guided;
         this.excludeFrom = excludeFrom;
         this.maxParts = Math.max(0, maxParts);
+        this.tidy = tidy;
         this.attributes = ThreadCopyRequestAttributes.create();
         this.status = new Status(Phase.PREPARING, 0, 0, 0, 0, null, "", List.of());
     }
 
     public Status getStatus() {
         return status;
+    }
+
+    /** Whether the run is the tidy pass. */
+    public boolean isTidy() {
+        return tidy;
     }
 
     public boolean isGuided() {
@@ -151,7 +160,9 @@ public final class ExtractionRun {
     private void work() {
         try (InRequestScope _ = new InRequestScope(attributes)) {
             BookSettings settings = stateService.load(manuscript).getSettings();
-            if (!settings.isExtractWithModel()) {
+            if (tidy) {
+                tidyWithModel();
+            } else if (!settings.isExtractWithModel()) {
                 readWithoutModel();
             } else {
                 readWithModel(settings);
@@ -226,6 +237,44 @@ public final class ExtractionRun {
             }
         }
         status = new Status(cancelled ? Phase.CANCELLED : Phase.DONE, run, partsRead, added, retracted, null, "", List.copyOf(lines));
+        notifyListeners();
+    }
+
+    /** The tidy pass: one request about the items; the changes are reviewed (guided) or applied and logged. */
+    private void tidyWithModel() throws Exception {
+        status = new Status(Phase.PREPARING, 0, 0, 0, 0, null, "", List.of());
+        notifyListeners();
+        publish(Phase.ASKING, 1, null, "");
+        Proposal proposal = extraction.proposeTidy(manuscript);
+        if (proposal.changes().isEmpty()) {
+            lines.add(proposal.asked() ? "Tidy: nothing to drop or merge" : "Tidy: nothing to tidy (no character has enough items that the model learned)");
+            status = new Status(Phase.DONE, 1, 0, 0, 0, null, "Tidy: nothing to do", List.copyOf(lines));
+            notifyListeners();
+            return;
+        }
+        if (guided) {
+            decision = new CompletableFuture<>();
+            publish(Phase.REVIEW, 1, proposal, proposal.note());
+            boolean go;
+            try {
+                go = decision.get();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new CancellationException();
+            } finally {
+                decision = null;
+            }
+            if (!go) {
+                throw new CancellationException();
+            }
+            RequestContextHolder.setRequestAttributes(attributes);
+        }
+        publish(Phase.APPLYING, 1, null, proposal.note());
+        ChangeApplier.Result result = extraction.commitTidy(manuscript, proposal, !guided);
+        lines.add("Tidy: " + result.retracted() + " item(s) became old knowledge, " + result.added() + " merged item(s) added"
+                + (proposal.changes().dropped().isEmpty() ? "" : ", " + proposal.changes().dropped().size() + " unusable answers dropped"));
+        status = new Status(Phase.DONE, 1, 0, result.added(), result.retracted(), null, "Tidy: " + result.retracted() + " old, " + result.added() + " merged",
+                List.copyOf(lines));
         notifyListeners();
     }
 

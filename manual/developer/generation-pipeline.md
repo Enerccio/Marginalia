@@ -478,7 +478,9 @@ generation key it by this, generations run at the same time.
 
 - **Stop** in the UI calls `CancellationToken.cancel()`. Every step, continuation and chunk checks the token and jumps
   to `CLEANUP`, which keeps what was generated so far (`PARTIAL_SUCCESS`) - or, when nothing arrived yet, removes
-  the new part or restores the regenerated one, like after an error. Only `CLEANUP` reports the end to the listener.
+  the new part or restores the regenerated one, like after an error. Only `CLEANUP` reports the end to the listener. The stop also
+  reaches the request: `InferenceStep` hands the token of the generation the one of the request (`cancellationToken.onCancel(stream(...)::cancel)`),
+  so a stop works while the server still reads a long prompt and nothing arrives to poll (`GenerationEndEventsTest`, `StreamStopTest`).
 - **Errors** - an exception in a step or continuation, a failed request - are reported with
   `GenerationListener.onError` and also end in `CLEANUP`. Validation problems (no provider, context too small) use
   `onSimpleError` with a localized message; failures answered by the provider (wrong key, context too long...) use `onInferenceError`,

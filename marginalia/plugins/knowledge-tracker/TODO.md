@@ -364,6 +364,25 @@ read parts 2-5 (part 1 was never read): at part 5 (Harry says he has seen the ma
 and added what she learned; nothing was added for parts where she was not present or learned nothing. Result: 2 active, 1 old,
 both changes in the log.
 
+**Growth of the list, the relevance rule and the tidy pass** (2026-11-04). The user saw the review fill with trivia (*the elevator
+stalled* for both characters, *she used nya comments*): the extraction prompt said to report everything a character gains, and the
+model's own check of its rules found nothing wrong. Rule 7 (only what could matter later: secrets, identities, revealed feelings,
+plans, promises, discoveries, what another character does not know; not events all present saw, small talk, mood, setting details;
+at most 3 per character, usually 0 or 1) was probed on a scene with one important fact (the user's real model, 4 samples each): the
+old prompt gave 4.8 additions per run (Peter above 2 additions in 2 of 4), the new one 1.0, the important fact (she is leaving) was
+learned 4/4 in both, no shared event added. Second, the **tidy pass** (`TidyPrompt`, `TidyAnswer`, `TidyChangeSetBuilder`,
+`ExtractionService.proposeTidy` / `commitTidy`, a run mode of `ExtractionRun`, the button *Tidy knowledge*, `knowledge-tidy`): one
+request per tidy with the items the model learned and the user did not lock (numbered), the others shown for comparison only, and the
+last N processed parts for context; the answer drops items or merges items into one (earliest source message, so a reprocess takes it
+back); reviewed or logged with a revert. A tidied item is *old knowledge* (`OldReason.TIDIED`), never deleted. **Decisions:** only
+`LEARNED` items are candidates (what the user wrote is never touched); the **lock** (`KnowledgeItem.locked`) keeps an item away from the
+tidy only, the story can still contradict it (memory loss) while a betrayal stays; no hindsight rule ("not mentioned for N parts") because
+a secret must outlive the recent parts; it is a pass the user starts (a button and a command), not part of every run. Regression of rule 7 (same model, 3 samples): the name and job, the letter, the memo plot, the private moments and the
+whisper cases all came out as before (the known over-retraction case is unchanged). Tidy through the application with the real model
+on seven items (the promise, the Aurors, three trivia, a duplicate, the fog): it dropped the five trivia / duplicate ones with a
+reason each and kept the promise and the Aurors (74 s). Not done: tidying
+automatically every K parts, a cap on the number of items in the block.
+
 Left from this list: the **generation waiting for the review** (a guided run is started from the tab; before a prompt the
 plugin reads with the model only when **Ask before applying** is off, else it only notes who has met whom), the
 panel's position as a per-viewer convenience, and the phone layout.

@@ -34,7 +34,7 @@ public class ReviewDialog extends Dialog {
      * @param onCancel called after Cancel
      */
     public ReviewDialog(int run, Proposal proposal, Runnable onApply, Runnable onCancel) {
-        setHeaderTitle(T.localized(REVIEW_THE_CHANGES_RUN).formatted(run));
+        setHeaderTitle(proposal.tidy() ? T.localized(REVIEW_THE_TIDY) : T.localized(REVIEW_THE_CHANGES_RUN).formatted(run));
         setWidth("900px");
         setMaxWidth("96vw");
         setMaxHeight("92vh");
@@ -66,7 +66,7 @@ public class ReviewDialog extends Dialog {
             content.add(new Details(T.localized(WHAT_THE_MODEL_THOUGHT), thought));
         }
 
-        Div hint = new Div(new Span(T.localized(UNCHECKED_ADDITIONS_ARE_KEPT)));
+        Div hint = new Div(new Span(proposal.tidy() ? T.localized(AN_UNCHECKED_TIDY_CHANGE_LEAVES_THE_ITEMS) : T.localized(UNCHECKED_ADDITIONS_ARE_KEPT)));
         hint.addClassName(KnowledgeTrackerStyles.COUNTS);
         content.add(hint);
         if (!proposal.changes().dropped().isEmpty()) {
@@ -154,7 +154,8 @@ public class ReviewDialog extends Dialog {
             old.addClassName(KnowledgeTrackerStyles.OLD_ITEM);
             body.add(old);
         }
-        Div evidence = new Div(new Span(T.localized(IN_PART_N_QUOTE).formatted(change.getMessageNumber(), change.getEvidence())));
+        Div evidence = new Div(new Span(change.isTidy() ? T.localized(WHY).formatted(change.getEvidence())
+                : T.localized(IN_PART_N_QUOTE).formatted(change.getMessageNumber(), change.getEvidence())));
         evidence.addClassName(KnowledgeTrackerStyles.COUNTS);
         body.add(evidence);
         if (!change.isEvidenceFound()) {
