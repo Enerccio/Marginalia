@@ -305,7 +305,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
                 }
             }
             case ShortcutActions.STORY_SAVE_EDIT -> cards.values().stream().filter(ChatMessageCard::isEditing)
-                    .forEach(ChatMessageCard::autosaveAndSwapToMarkdown);
+                    .forEach(ChatMessageCard::saveEdit);
             case ShortcutActions.STORY_COMMAND_BAR -> {
                 leftBar.select(STORY_TAB);
                 commandBar.focusInput();
@@ -826,7 +826,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
             return;
         }
         try {
-            long tokens = summaryService.collectTree(currentManuscript).stream().mapToLong(SummaryNode::getTokens).sum();
+            long tokens = summaryService.collectTree(currentManuscript).stream().filter(SummaryNode::isValid).mapToLong(SummaryNode::getTokens).sum();
             UIUtils.addTooltip(summariesMenuItem, loc.getValue(L.LABEL_SUMMARIES) + "\n"
                     + String.format(loc.getValue(L.MSG_ACTIVE_SUMMARIES_TOKENS), tokens));
         } catch (Exception e) {
@@ -1458,6 +1458,8 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
         private MessageImages messageImages;
         private TextArea responseTextArea;
         private boolean editing = false;
+        // set by the dialog about outdated summaries: the save marks the summaries the edit made outdated as valid
+        private boolean revalidateSummariesOnSave = false;
 
         private CardAnnotations cardAnnotations;
         // the text is being generated again: the passages of the annotations are not in it yet
@@ -1969,7 +1971,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
         @Override
         public void toggleEdit() {
             if (editing) {
-                autosaveAndSwapToMarkdown();
+                saveEdit();
             } else {
                 editing = true;
                 // created only while a part is edited: a text area measures its height in the browser as soon as it
@@ -2016,6 +2018,33 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
             editing = false;
         }
 
+        /**
+         * Saves the edit the author made. When the new text would make summaries outdated the author is asked first: back to
+         * the editor, save anyway, or save and revalidate the summaries.
+         */
+        @PublicAPI(from = "1.7.0",
+                returns = @APIReturn(type = void.class),
+                locals = {@APILocals(name = "e", type = Exception.class)})
+        @Override
+        public void saveEdit() {
+            if (!editing) {
+                return;
+            }
+            try {
+                int outdated = support.outdatedSummaries(currentManuscript, message, responseTextArea.getValue()).size();
+                if (outdated == 0) {
+                    autosaveAndSwapToMarkdown();
+                    return;
+                }
+                OutdatedSummariesDialog.open(outdated, this::autosaveAndSwapToMarkdown, () -> {
+                    revalidateSummariesOnSave = true;
+                    autosaveAndSwapToMarkdown();
+                });
+            } catch (Exception e) {
+                UIUtils.internalServerError(loc, e);
+            }
+        }
+
         @PublicAPI(from = "1.1.0",
                 returns = @APIReturn(type = void.class),
                 locals = {@APILocals(name = "newResponse", type = String.class),
@@ -2024,7 +2053,9 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
             if (editing) {
                 try {
                     String newResponse = responseTextArea.getValue();
-                    message = support.saveEditedResponse(currentManuscript, message, newResponse);
+                    boolean revalidate = revalidateSummariesOnSave;
+                    revalidateSummariesOnSave = false;
+                    message = support.saveEditedResponse(currentManuscript, message, newResponse, revalidate);
                     // the passages of the annotations moved with the edit
                     annotationsChanged();
                     renderResponse();

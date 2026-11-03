@@ -22,6 +22,12 @@ public interface StoryCard {
 
     void autosaveAndSwapToMarkdown();
 
+    /**
+     * Saves the edit like {@link #autosaveAndSwapToMarkdown()}, after asking the author what to do when the new text would
+     * make summaries outdated. For the save the author asked for; the automatic saves never ask.
+     */
+    void saveEdit();
+
     void updateReasoning(String reasoningText);
 
     void updateResponse(String responseText);

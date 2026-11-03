@@ -107,9 +107,10 @@ need much more, because the reasoning counts too.
 **Requests fail when reasoning is enabled.**
 The API doesn't support `reasoning_effort`. Turn off *Enable Reasoning* on the provider.
 
-**"Invalidated summaries for messages with IDs ... Continue generation without those summaries?"**
-A part covered by a summary was edited or deleted. Answer *Yes* to continue without the outdated summaries, then
-generate new ones. See [When summaries become outdated](books/summaries.md#when-summaries-become-outdated).
+**"The summaries of the messages with IDs ... are outdated ... Continue generation and delete them?"**
+A part covered by a summary was edited or deleted. Answer *Yes* to delete the outdated summaries and continue, then
+generate new ones. Answer *No* to stop and keep them: they are marked in the Summaries overview, where you can revalidate
+the ones that still say the right thing. See [When summaries become outdated](books/summaries.md#when-summaries-become-outdated).
 
 **The prompt contains the word "Error".**
 A template uses a variable or macro that doesn't exist, often a typo like `instruction` instead of `instructions`.

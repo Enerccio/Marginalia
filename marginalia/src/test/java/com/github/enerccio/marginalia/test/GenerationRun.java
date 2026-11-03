@@ -23,7 +23,21 @@ public class GenerationRun implements GenerationListener {
     private final List<Throwable> errors = new CopyOnWriteArrayList<>();
     private final List<String> simpleErrors = new CopyOnWriteArrayList<>();
     private final List<String> warnings = new CopyOnWriteArrayList<>();
+    private final List<String> questions = new CopyOnWriteArrayList<>();
+    private volatile boolean answer = true;
     private volatile ChatMessage message;
+
+    /**
+     * What the author answers to the questions of the generation, yes at first.
+     */
+    public GenerationRun answering(boolean yes) {
+        this.answer = yes;
+        return this;
+    }
+
+    public List<String> getQuestions() {
+        return List.copyOf(questions);
+    }
 
     @Override
     public void onNodeCreated(ChatMessage message) {
@@ -73,7 +87,8 @@ public class GenerationRun implements GenerationListener {
 
     @Override
     public void askQuestion(String question, Runnable yes, Runnable no) {
-        yes.run();
+        questions.add(question);
+        (answer ? yes : no).run();
     }
 
     public Outcome await(Duration timeout) throws Exception {

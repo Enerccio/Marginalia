@@ -966,6 +966,11 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_SUMMARY_WILL_CHANGE_BY_POSITION, "将被更改（按位置）");
         setValue(L.LABEL_SUMMARY_PART_NOT_FOUND, "未找到段落");
         setValue(L.LABEL_SUMMARY_EMPTY_TEXT, "文本为空");
+        setValue(L.LABEL_BACK_TO_EDIT, "返回编辑");
+        setValue(L.LABEL_SAVE_ANYWAY, "仍然保存");
+        setValue(L.LABEL_SAVE_AND_REVALIDATE_SUMMARIES, "保存并重新验证摘要");
+        setValue(L.LABEL_REVALIDATE, "重新验证");
+        setValue(L.LABEL_OUTDATED, "已过期");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -1265,7 +1270,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_NO_ACTIVE_BRANCH, "没有活动的故事分支。请添加一条消息以开始。");
         setValue(L.MSG_SELECT_MESSAGE_METADATA, "请选择一条消息以查看元数据。");
         setValue(L.MSG_INTERRUPTED, "后端的生成已被中断。");
-        setValue(L.MSG_SUMMARY_FAILURE, "ID 为 [%s] 的消息的摘要已失效。是否在没有这些摘要的情况下继续生成？");
+        setValue(L.MSG_SUMMARY_FAILURE, "ID 为 [%s] 的消息的摘要已过期（写成摘要之后故事被修改过）。\n\n是否继续生成并删除这些摘要？选择“否”将停止生成并保留它们，可在摘要总览中重新验证。");
         setValue(L.MSG_EXTENSION_INSTALLED_SUCCESS, "扩展已加载。");
         setValue(L.MSG_EXTENSION_UNINSTALLED_SUCCESS, "扩展已卸载。");
         setValue(L.MSG_CONFIRM_UNLOAD_EXTENSION, "将卸载扩展“%s”，并从扩展文件夹中删除其 JAR。是否继续？");
@@ -1639,6 +1644,8 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_SUMMARIES_IMPORT_READY, "将更改 %d 条摘要（共 %d 条）。");
         setValue(L.MSG_SUMMARIES_IMPORTED, "已更新 %d 条摘要。");
         setValue(L.MSG_IMPORT_SUMMARIES, "请选择由“导出摘要”生成的文件（可以用文本编辑器修改）。文件中所指的当前分支的摘要将被替换；在点击“导入”之前不会有任何更改。");
+        setValue(L.MSG_SAVE_OUTDATED_SUMMARIES, "保存此更改会使 %d 条摘要过期：它们是根据该部分的旧文本写成的，生成时不会使用过期的摘要。\n\n返回编辑、仍然保存，还是保存并将摘要标记为仍然有效？");
+        setValue(L.MSG_SUMMARIES_REVALIDATED, "已重新验证 %d 条摘要。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");

@@ -958,6 +958,11 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_SUMMARY_WILL_CHANGE_BY_POSITION, "Will change (by position)");
         setValue(L.LABEL_SUMMARY_PART_NOT_FOUND, "Part not found");
         setValue(L.LABEL_SUMMARY_EMPTY_TEXT, "Empty text");
+        setValue(L.LABEL_BACK_TO_EDIT, "Back to editing");
+        setValue(L.LABEL_SAVE_ANYWAY, "Save anyway");
+        setValue(L.LABEL_SAVE_AND_REVALIDATE_SUMMARIES, "Save and revalidate summaries");
+        setValue(L.LABEL_REVALIDATE, "Revalidate");
+        setValue(L.LABEL_OUTDATED, "Outdated");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -1257,7 +1262,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_NO_ACTIVE_BRANCH, "No active story branch. Add a message to begin.");
         setValue(L.MSG_SELECT_MESSAGE_METADATA, "Select a message to view metadata.");
         setValue(L.MSG_INTERRUPTED, "Generation interrupted on the backend.");
-        setValue(L.MSG_SUMMARY_FAILURE, "Invalidated summaries for messages with IDs: [%s]. Continue generation without those summaries?");
+        setValue(L.MSG_SUMMARY_FAILURE, "The summaries of the messages with IDs: [%s] are outdated (the story changed after they were written).\n\nContinue generation and delete them? Choose No to stop and keep them: you can revalidate them in the Summaries overview.");
         setValue(L.MSG_EXTENSION_INSTALLED_SUCCESS, "Extension loaded successfully.");
         setValue(L.MSG_EXTENSION_UNINSTALLED_SUCCESS, "Extension unloaded successfully.");
         setValue(L.MSG_CONFIRM_UNLOAD_EXTENSION, "Extension \"%s\" will be unloaded and its JAR deleted from the extensions folder. Continue?");
@@ -1631,6 +1636,8 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_SUMMARIES_IMPORT_READY, "%d of %d summaries will change.");
         setValue(L.MSG_SUMMARIES_IMPORTED, "%d summaries updated.");
         setValue(L.MSG_IMPORT_SUMMARIES, "Choose a file made by Export Summaries (you can edit it in a text editor). The summaries of the active branch that the file names are replaced; nothing is changed until you press Import.");
+        setValue(L.MSG_SAVE_OUTDATED_SUMMARIES, "Saving this change makes %d summaries outdated: they were written for the old text of the part, and generation does not use outdated summaries.\n\nGo back to editing, save anyway, or save and mark the summaries as still valid?");
+        setValue(L.MSG_SUMMARIES_REVALIDATED, "%d summaries revalidated.");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");

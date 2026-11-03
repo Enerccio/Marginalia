@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846971070832">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847017603580">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846971070832" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.847017603580" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846971070832" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847017603580" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846971070832" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847017603580" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -485,10 +485,18 @@ names, items, agreements or unresolved plot threads, and without adding anything
 <h2 id="when-summaries-become-outdated">When summaries become outdated</h2>
 <p>A summary is only valid for the exact text it was made from. When you <a href="../story-editor/#editing-the-text">edit</a> or
 <a href="../story-editor/#deleting-a-part">delete</a> a part covered by a summary, the summary no longer matches.</p>
-<p>Marginalia checks this when it generates the next part. Outdated summaries are removed and you are asked
-<em>Invalidated summaries for messages with IDs: [...]. Continue generation without those summaries?</em> Answer <strong>Yes</strong> to
-generate without them, or <strong>No</strong> to stop and generate new summaries first. Either way the outdated summaries are gone;
-the parts they covered are sent in full again (as far as they fit) until you summarize them again.</p>
+<p>Outdated summaries are not sent to the model. Marginalia checks this when it generates the next part and asks
+<em>The summaries of the messages with IDs: [...] are outdated ... Continue generation and delete them?</em> Answer <strong>Yes</strong> to
+delete them and generate; the parts they covered are sent in full again (as far as they fit) until you summarize them
+again. Answer <strong>No</strong> to stop: nothing is deleted, and you can deal with the summaries first.</p>
+<p>In the <doc-anchor-trigger to="#the-summaries-overview">Summaries overview</doc-anchor-trigger> an outdated summary has a <strong>red background</strong> and an <strong>Outdated</strong>
+label, and its tokens are not counted in the sum at the top. If it still says the right thing (you fixed a typo, say), press
+the <strong>check</strong> button of its row to <strong>revalidate</strong> it, or choose <strong>Revalidate all summaries</strong> in the menu bar to revalidate
+all the outdated ones at once. Otherwise delete it, or generate it again. A meta summary is checked like any summary; the
+summaries it merged are part of it and are never outdated by themselves. Revalidating is refused while an agent works on
+the book.</p>
+<p>When you save the <a href="../story-editor/#editing-the-text">edit of a part</a> that would make summaries outdated, Marginalia warns
+you first and lets you go back to editing, save anyway, or save and revalidate the summaries.</p>
 <p>A <a href="../story-editor/#search-and-replace">search and replace</a> in the story keeps the summaries it covers valid and warns about
 the ones that become outdated. The <doc-anchor-trigger to="#search-and-replace-in-the-summaries">search and replace of the summaries</doc-anchor-trigger> keeps the meta
 summaries valid.</p>
@@ -590,7 +598,7 @@ stops with <em>Contextual limit not sufficient.</em> Then shorten them (a more c
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (43ed5cb4a).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (056bd9eed).</p></div>
             </footer>
         </div>
     </div>

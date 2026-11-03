@@ -265,7 +265,12 @@ Generated text is yours to change. Choose **Edit** in the part menu, change the 
 parts are sent to the model as you edited them.
 
 Editing a part that a [summary](summaries.md) covers makes that summary outdated; Marginalia notices it at the next
-generation and drops the summary.
+generation and drops the summary. So that this doesn't happen by surprise, **Save** checks the new text first: when it
+would make summaries outdated, a window says how many and offers **Back to editing** (nothing is saved, the editor stays
+open with your text), **Save anyway** (the summaries become outdated) and **Save and revalidate summaries** (the text is
+saved and the summaries stay valid, for a change that doesn't alter what they say, like a typo). The check is made for
+**Save** (the menu, the shortcut and the editor button); the automatic saves, for example when you start a generation
+with the editor open, don't ask.
 
 ## Keyboard shortcuts
 

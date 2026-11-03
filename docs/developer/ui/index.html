@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846971070832">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847017603580">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846971070832" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.847017603580" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846971070832" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847017603580" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846971070832" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846971070832" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847017603580" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.847017603580" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -720,7 +720,7 @@ their layout and the methods extensions decorate (<code translate="no" v-pre>ren
 | `StoryGenerationListener` | The `GenerationListener` of a story tab: creates and fills the cards while a generation streams, redraws the story at its end. The tab reacts through `Callbacks`. |
 | `NewTurnForm`, `TurnDetailsForm`, `MessageMetrics` | The fields of the *New Turn Instructions* popover, the turn details of a part, the metadata lines of a part. `NewTurnForm.setOnImpersonate` shows the *Draft Instructions* button (the story parts set it to open the `ImpersonateDialog`), `setInstructions`, `setPovCharacter` and `setPresentCharacters` put a text into the field as if typed (the Character Tracker plugin gives the two character fields a picker button). |
 | `ImpersonateDialog` (`ui.dialogs.story`) | The window of the *Draft Instructions* button of the new turn form (desktop and phone) and of extensions that know the plan of the story: `ImpersonateDialog.open(book, turn, outline, onUse)`. The guidance (starts as the typed instructions), the read only `outline`, `ImpersonateService.impersonate` streamed into a text field the author may change; `onUse` gets the text. Nothing is stored. |
-| `StoryBackup`, `StorySupport` | The automatic backup after N parts / minutes, the limit of parts to load (`partsLimit`) and the saving of an edited part. The story does not remember a scroll position: it always opens at the bottom. |">
+| `StoryBackup`, `StorySupport` | The automatic backup after N parts / minutes, the limit of parts to load (`partsLimit`) and the saving of an edited part (`saveEditedResponse`, with `revalidateSummaries` it also revalidates the summaries the edit made outdated; `outdatedSummaries` asks `ChatMessageService.outdatedByEdit` what a save would outdate). The *Save* of a card (`StoryCard.saveEdit`: the menu, the shortcut) calls `outdatedSummaries` first and, when summaries would become outdated, opens `OutdatedSummariesDialog` (back to editing / save anyway / save and revalidate); the choices end in `autosaveAndSwapToMarkdown`, which stays the plain save (the automatic saves of `StoryCards` and `StoryLazyLoader` never ask, and the decorators of plugins on it fire only when the text is really saved; the revalidate choice sets the card's `revalidateSummariesOnSave` for it). The story does not remember a scroll position: it always opens at the bottom. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -776,7 +776,7 @@ their layout and the methods extensions decorate (<code translate="no" v-pre>ren
 </tr>
 <tr>
 <td><code translate="no" v-pre>StoryBackup</code>, <code translate="no" v-pre>StorySupport</code></td>
-<td>The automatic backup after N parts / minutes, the limit of parts to load (<code translate="no" v-pre>partsLimit</code>) and the saving of an edited part. The story does not remember a scroll position: it always opens at the bottom.</td>
+<td>The automatic backup after N parts / minutes, the limit of parts to load (<code translate="no" v-pre>partsLimit</code>) and the saving of an edited part (<code translate="no" v-pre>saveEditedResponse</code>, with <code translate="no" v-pre>revalidateSummaries</code> it also revalidates the summaries the edit made outdated; <code translate="no" v-pre>outdatedSummaries</code> asks <code translate="no" v-pre>ChatMessageService.outdatedByEdit</code> what a save would outdate). The <em>Save</em> of a card (<code translate="no" v-pre>StoryCard.saveEdit</code>: the menu, the shortcut) calls <code translate="no" v-pre>outdatedSummaries</code> first and, when summaries would become outdated, opens <code translate="no" v-pre>OutdatedSummariesDialog</code> (back to editing / save anyway / save and revalidate); the choices end in <code translate="no" v-pre>autosaveAndSwapToMarkdown</code>, which stays the plain save (the automatic saves of <code translate="no" v-pre>StoryCards</code> and <code translate="no" v-pre>StoryLazyLoader</code> never ask, and the decorators of plugins on it fire only when the text is really saved; the revalidate choice sets the card&#x27;s <code translate="no" v-pre>revalidateSummariesOnSave</code> for it). The story does not remember a scroll position: it always opens at the bottom.</td>
 </tr>
 </tbody>
 </table>
@@ -1750,7 +1750,7 @@ the buttons a dialog has in its bottom right corner). The server accepts their e
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (43ed5cb4a).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (056bd9eed).</p></div>
             </footer>
         </div>
     </div>

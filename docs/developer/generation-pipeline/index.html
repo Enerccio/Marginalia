@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846971070832">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847017603580">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846971070832" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.847017603580" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846971070832" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847017603580" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846971070832" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846971070832" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847017603580" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.847017603580" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -475,8 +475,11 @@ every evaluated entry, used or not, with its reason), <code translate="no" v-pre
 <p><strong>Summaries.</strong> The branch from the root to the active leaf is read, and the summaries on it are collected (oldest
 first) into <code translate="no" v-pre>SUMMARIES</code> with <code translate="no" v-pre>SummaryService.collectBlocks</code>: a meta summary replaces the summaries it merged, which are
 skipped, see <a href="../domain-model/#the-summary-chain">the summary chain</a>. Each summary stores a hash of the story it covers;
-when that was changed since, the summary is removed (a meta summary is unwound to the summary it replaced, which is
-checked in turn) and the user is asked whether to continue without it (<code translate="no" v-pre>listener.askQuestion</code>). The newest part
+when that was changed since, the summary is outdated. The step first only looks for them (<code translate="no" v-pre>findOutdatedSummaries</code>, read
+only) and, when there are any, asks the user whether to continue and delete them (<code translate="no" v-pre>listener.askQuestion</code>, <code translate="no" v-pre>MSG_SUMMARY_FAILURE</code>
+names the parts). On <em>Yes</em> <code translate="no" v-pre>gatherSummaries</code> removes them (a meta summary is unwound to the summary it replaced, which is
+checked in turn) and the step goes on; on <em>No</em> the generation ends in <code translate="no" v-pre>CLEANUP</code> with the summaries untouched, they stay
+outdated in the summaries overview where the author can revalidate them. The newest part
 with a summary is the <strong>stop part</strong>: it and everything before it is represented by the summaries.</p>
 <p><strong>Token budget.</strong> With <code translate="no" v-pre>TokenLimits</code>:</p>
 <div id="4-prepare_content---preparecontentstep-code-1" class="codeblock-wrapper"><doc-codeblock>
@@ -952,7 +955,7 @@ which does the same unless the listener overrides it.</p>
 </li>
 <li>
 <p><strong>Questions</strong> - <code translate="no" v-pre>listener.askQuestion(text, yes, no)</code> lets a step ask the user and continue in one of two
-continuations (<code translate="no" v-pre>controller.wrapCallback(...)</code>); used for invalidated summaries.</p>
+continuations (<code translate="no" v-pre>controller.wrapCallback(...)</code>); used for outdated summaries.</p>
 </li>
 </ul>
 <h2 id="changing-the-pipeline">Changing the pipeline</h2>
@@ -1016,7 +1019,7 @@ wait for it to finish. See <a href="../testing/">Testing</a>.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (43ed5cb4a).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (056bd9eed).</p></div>
             </footer>
         </div>
     </div>

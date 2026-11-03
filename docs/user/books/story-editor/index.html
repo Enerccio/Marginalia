@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846971070832">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847017603580">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.846971070832" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.847017603580" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.846971070832" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847017603580" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.846971070832" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847017603580" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -668,7 +668,12 @@ written from. For the last part they can be changed (changes are saved right awa
 <p>Generated text is yours to change. Choose <strong>Edit</strong> in the part menu, change the text, and choose <strong>Save</strong>. Edited
 parts are sent to the model as you edited them.</p>
 <p>Editing a part that a <a href="../summaries/">summary</a> covers makes that summary outdated; Marginalia notices it at the next
-generation and drops the summary.</p>
+generation and drops the summary. So that this doesn&#x27;t happen by surprise, <strong>Save</strong> checks the new text first: when it
+would make summaries outdated, a window says how many and offers <strong>Back to editing</strong> (nothing is saved, the editor stays
+open with your text), <strong>Save anyway</strong> (the summaries become outdated) and <strong>Save and revalidate summaries</strong> (the text is
+saved and the summaries stay valid, for a change that doesn&#x27;t alter what they say, like a typo). The check is made for
+<strong>Save</strong> (the menu, the shortcut and the editor button); the automatic saves, for example when you start a generation
+with the editor open, don&#x27;t ask.</p>
 <h2 id="keyboard-shortcuts">Keyboard shortcuts</h2>
 <p>On a computer (the <a href="../../phone/">phone layout</a> has none) the writing loop works with the keyboard:</p>
 <retype-table copy-text="| Key | |
@@ -1159,7 +1164,7 @@ tense, style and <a href="../summaries/">summaries</a>. The jailbreak prompt of 
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (43ed5cb4a).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (056bd9eed).</p></div>
             </footer>
         </div>
     </div>

@@ -112,6 +112,36 @@ class PartEditServicesTest extends GenerationTestBase {
     }
 
     @Test
+    void outdatedByEditSaysWhatTheSaveWouldOutdateAndSavesNothing() throws Exception {
+        List<SummaryBlock> preview = chatMessageService.outdatedByEdit(manuscript, story.get(3), "John smiled at the sea");
+
+        assertThat(preview).extracting(block -> block.head().getId()).containsExactly(story.get(4).getId());
+        assertThat(stored(story.get(3)).getResponse()).isEqualTo("John smiled");
+        assertThat(stored(story.get(3)).isEdited()).isFalse();
+        assertThat(summaryService.collectBlocks(chatMessageService.getBranchFromLeaf(stored(story.getLast())).reversed()))
+                .allMatch(SummaryBlock::isValid);
+
+        // the same text, a part nobody covers and a summary that is outdated already make nothing outdated
+        assertThat(chatMessageService.outdatedByEdit(manuscript, story.get(3), "John smiled")).isEmpty();
+        assertThat(chatMessageService.outdatedByEdit(manuscript, m4b, "John frowned a lot")).isEmpty();
+        chatMessageService.updateResponse(manuscript, story.get(4), "John left the sea");
+        assertThat(chatMessageService.outdatedByEdit(manuscript, story.get(3), "John smiled at the sea")).isEmpty();
+    }
+
+    @Test
+    void theBlocksOfTheSaveCheckRevalidateTheSummariesAfterTheSave() throws Exception {
+        String text = "Anna met Jon";
+        List<SummaryBlock> preview = chatMessageService.outdatedByEdit(manuscript, story.get(0), text);
+        assertThat(preview).extracting(block -> block.head().getId()).containsExactly(story.get(2).getId());
+
+        chatMessageService.updateResponse(manuscript, story.get(0), text);
+        summaryService.revalidate(manuscript, preview);
+
+        assertThat(summaryService.collectBlocks(chatMessageService.getBranchFromLeaf(stored(story.getLast())).reversed()))
+                .allMatch(SummaryBlock::isValid);
+    }
+
+    @Test
     void anEditOfThePartNobodyCoversOutdatesNothing() throws Exception {
         PartEdit edit = chatMessageService.updateResponse(manuscript, m4b, "John frowned a lot");
 

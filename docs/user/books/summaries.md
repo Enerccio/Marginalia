@@ -205,10 +205,20 @@ names, items, agreements or unresolved plot threads, and without adding anything
 A summary is only valid for the exact text it was made from. When you [edit](story-editor.md#editing-the-text) or
 [delete](story-editor.md#deleting-a-part) a part covered by a summary, the summary no longer matches.
 
-Marginalia checks this when it generates the next part. Outdated summaries are removed and you are asked
-*Invalidated summaries for messages with IDs: [...]. Continue generation without those summaries?* Answer **Yes** to
-generate without them, or **No** to stop and generate new summaries first. Either way the outdated summaries are gone;
-the parts they covered are sent in full again (as far as they fit) until you summarize them again.
+Outdated summaries are not sent to the model. Marginalia checks this when it generates the next part and asks
+*The summaries of the messages with IDs: [...] are outdated ... Continue generation and delete them?* Answer **Yes** to
+delete them and generate; the parts they covered are sent in full again (as far as they fit) until you summarize them
+again. Answer **No** to stop: nothing is deleted, and you can deal with the summaries first.
+
+In the [Summaries overview](#the-summaries-overview) an outdated summary has a **red background** and an **Outdated**
+label, and its tokens are not counted in the sum at the top. If it still says the right thing (you fixed a typo, say), press
+the **check** button of its row to **revalidate** it, or choose **Revalidate all summaries** in the menu bar to revalidate
+all the outdated ones at once. Otherwise delete it, or generate it again. A meta summary is checked like any summary; the
+summaries it merged are part of it and are never outdated by themselves. Revalidating is refused while an agent works on
+the book.
+
+When you save the [edit of a part](story-editor.md#editing-the-text) that would make summaries outdated, Marginalia warns
+you first and lets you go back to editing, save anyway, or save and revalidate the summaries.
 
 A [search and replace](story-editor.md#search-and-replace) in the story keeps the summaries it covers valid and warns about
 the ones that become outdated. The [search and replace of the summaries](#search-and-replace-in-the-summaries) keeps the meta

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.846971070832">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847017603580">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.846971070832" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.847017603580" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.846971070832" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847017603580" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.846971070832" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.846971070832" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847017603580" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.847017603580" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -268,9 +268,10 @@ The response limit was reached. Raise <em>Max Response Tokens</em> (or the proto
 need much more, because the reasoning counts too.</p>
 <p><strong>Requests fail when reasoning is enabled.</strong>
 The API doesn&#x27;t support <code translate="no" v-pre>reasoning_effort</code>. Turn off <em>Enable Reasoning</em> on the provider.</p>
-<p><strong>&quot;Invalidated summaries for messages with IDs ... Continue generation without those summaries?&quot;</strong>
-A part covered by a summary was edited or deleted. Answer <em>Yes</em> to continue without the outdated summaries, then
-generate new ones. See <a href="../books/summaries/#when-summaries-become-outdated">When summaries become outdated</a>.</p>
+<p><strong>&quot;The summaries of the messages with IDs ... are outdated ... Continue generation and delete them?&quot;</strong>
+A part covered by a summary was edited or deleted. Answer <em>Yes</em> to delete the outdated summaries and continue, then
+generate new ones. Answer <em>No</em> to stop and keep them: they are marked in the Summaries overview, where you can revalidate
+the ones that still say the right thing. See <a href="../books/summaries/#when-summaries-become-outdated">When summaries become outdated</a>.</p>
 <p><strong>The prompt contains the word &quot;Error&quot;.</strong>
 A template uses a variable or macro that doesn&#x27;t exist, often a typo like <code translate="no" v-pre>instruction</code> instead of <code translate="no" v-pre>instructions</code>.
 The template field lists such names under it. See <a href="../templates/templates/#typos">Typos</a>.</p>
@@ -380,7 +381,7 @@ Yes to both: the button with the sun / moon next to the language selector switch
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (43ed5cb4a).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (056bd9eed).</p></div>
             </footer>
         </div>
     </div>

@@ -190,8 +190,11 @@ Decides which part of the story goes into the prompt and renders the system prom
 **Summaries.** The branch from the root to the active leaf is read, and the summaries on it are collected (oldest
 first) into `SUMMARIES` with `SummaryService.collectBlocks`: a meta summary replaces the summaries it merged, which are
 skipped, see [the summary chain](domain-model.md#the-summary-chain). Each summary stores a hash of the story it covers;
-when that was changed since, the summary is removed (a meta summary is unwound to the summary it replaced, which is
-checked in turn) and the user is asked whether to continue without it (`listener.askQuestion`). The newest part
+when that was changed since, the summary is outdated. The step first only looks for them (`findOutdatedSummaries`, read
+only) and, when there are any, asks the user whether to continue and delete them (`listener.askQuestion`, `MSG_SUMMARY_FAILURE`
+names the parts). On *Yes* `gatherSummaries` removes them (a meta summary is unwound to the summary it replaced, which is
+checked in turn) and the step goes on; on *No* the generation ends in `CLEANUP` with the summaries untouched, they stay
+outdated in the summaries overview where the author can revalidate them. The newest part
 with a summary is the **stop part**: it and everything before it is represented by the summaries.
 
 **Token budget.** With `TokenLimits`:
@@ -468,7 +471,7 @@ generation key it by this, generations run at the same time.
   `onSimpleError` with a localized message; failures answered by the provider (wrong key, context too long...) use `onInferenceError`,
   which does the same unless the listener overrides it.
 - **Questions** - `listener.askQuestion(text, yes, no)` lets a step ask the user and continue in one of two
-  continuations (`controller.wrapCallback(...)`); used for invalidated summaries.
+  continuations (`controller.wrapCallback(...)`); used for outdated summaries.
 
 ## Changing the pipeline
 
