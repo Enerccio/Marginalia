@@ -1,7 +1,7 @@
 ---
 label: Generation events
 order: 65
-verified: 5ab9b7f9f
+verified: 8b2dab62a
 covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/generation
   - marginalia/plugins/authorsnote

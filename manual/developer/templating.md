@@ -1,7 +1,7 @@
 ---
 label: Templating & macros
 order: 920
-verified: 1c8fb0529
+verified: 8b2dab62a
 covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/templates
   - marginalia/src/main/java/com/github/enerccio/marginalia/Defaults.java
