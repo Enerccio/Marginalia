@@ -271,7 +271,7 @@ joins on is a real column: relations, `name`, `enabled`, `ordinal`, `published`,
 | `published` | column | Readable by everyone at `/view/<uuid>`. |
 | `agentic` | column | The working copy of an agent. The lists of the UI leave these books out (`ManuscriptService.findAllRegularForUser`, `searchRegularManuscripts`); `findAllAgenticForUser` and `searchAgenticManuscripts` return only them, `findAllForUser` and `searchManuscripts` both kinds. |
 | `lastOpened` | column | When the owner last opened the book; orders the book lists. |
-| `template`, `pov`, `tense`, `style`, `userPrompt`, `summaryPrompt`, `metaSummaryPrompt`, `redraftSystemPrompt`, `redraftPrompt`, `annotateSystemPrompt`, `annotatePrompt`, `impersonatePrompt` | JSON | The book's prompt overrides (*Prompts* tab); empty means inherited: the folders above the book, then the user's defaults from `UserSetting`, then `Defaults` (see [Folders](folders.md#resolving-a-setting)). |
+| `template`, `pov`, `tense`, `style`, `userPrompt`, `summaryPrompt`, `metaSummaryPrompt`, `redraftSystemPrompt`, `redraftPrompt`, `annotateSystemPrompt`, `annotatePrompt`, `annotateInstructions`, `impersonatePrompt` | JSON | The book's prompt overrides (*Prompts* tab); empty means inherited: the folders above the book, then the user's defaults from `UserSetting`, then `Defaults` (see [Folders](folders.md#resolving-a-setting)). |
 | `language` | JSON | Language of the story (`Language`; null is inherited from the folders, English at the end of the chain; `getLanguage()` still says English then and `getOwnLanguage()` null): the `lang` of the story views, which the browser uses for hyphenation and justification, and the language of the exports. |
 | `showBookStyles` | JSON | Legacy story display option (the Book style on or off). Read only while `partStyle` is not set, never written any more. |
 | `partStyle` | JSON | The id of the text style the author chose for this book (a built in style or one of the user, see [Text styles](ui.md#text-styles)); empty follows the default style of the user. |
@@ -282,7 +282,7 @@ Tags of a book are `TagRelation`s (see [Tags](#tags)).
 
 ### `Folder`
 
-A group of books, nested through `parent` (a column, `OWNED_BY` for the cleanup), with a `name` (column), a `description` and the same twelve text settings and the language as a book, all extended attributes where null means inherit; tags like a book. Described in [Folders](folders.md). Migration V21.
+A group of books, nested through `parent` (a column, `OWNED_BY` for the cleanup), with a `name` (column), a `description` and the same thirteen text settings and the language as a book, all extended attributes where null means inherit; tags like a book. Described in [Folders](folders.md). Migration V21.
 
 ### `ChatMessage` (part) and the story tree
 
@@ -325,6 +325,11 @@ Siblings are ordered by `creation`. The branch from the root to a leaf is read w
 
 Template variables are stored when a part is generated (`GenerateNewMessageStep`): local ones (`setvar`), which
 follow the branch, in the new part's `attributes`, global ones (`setglobalvar`) in the book's `attributes`.
+
+The answers of `{{command::...}}` macros are kept in the `attributes` of the part a generation continues from, under
+`commandMacroCache` (an object: the name and arguments of the call are the key), so that every render of a generation, and a
+later generation from the same part, read the answer instead of running the command again; a regenerate or a swipe drops them
+(see [Templating & macros](templating.md#macros-that-run-commands)).
 
 ### `MessagePrompt`
 
@@ -618,7 +623,7 @@ values are extended attributes.
 | Class | Owner | Contains |
 |---|---|---|
 | `AppSettings` | none (one per installation) | Data versions (`dbVersion`, `appVersion`), the database backup schedule (`backupScheduleEnabled`, `backupSchedule`, `backupKeep`, `lastScheduledBackup`, `backupScheduleChanged`), the help assistant (`helpAiUuid`, `helpAdminData` (may it read the data of the Admin page for an administrator), and the prompts `helpPromptAdmin` / `helpPromptUser`, null = the default; the uuid, not the id; written only by `HelpAssistantService.saveSettings`). The switches `userAisAllowed` and `helpEnabled` and the settings `helpApplyLimits` and `helpInteractions` are replaced by the permissions `CREATE_AI` and `HELPER` with the attributes `helperApplyLimits` and `helperInteractions` (V15 / app version 5); the fields stay, deprecated, only for `PermissionsMigration`. |
-| `UserSetting` | each user | Default model and protocol (ids, `@CleanupReference(WEAK)`), default prompts (`masterTemplate`, `defaultPov`, `defaultTense`, `defaultStyle`, `defaultUserPrompt`, `defaultSummaryPrompt`, `defaultMetaSummaryPrompt`, `defaultRedraftSystemPrompt`, `defaultRedraftPrompt`, `defaultAnnotateSystemPrompt`, `defaultAnnotatePrompt`, `defaultImpersonatePrompt`), default book backup strategy, how many parts the story and the viewer load at a time (`storyPartsLimit`, empty loads all), the code of the language of the UI (`language`, see [Localization](architecture.md#localization)), where the user left the workspace (`workspaceState`, a JSON object written by the workspace autosave, see [User interface](ui.md#remembering-where-the-user-was)), the favorite books (`favoriteBooks`, uuids), the default arrangement of the story tabs (`defaultStoryLayout`) and whether the help assistant may look at the books (`helpAssistantBooks`, false by default). |
+| `UserSetting` | each user | Default model and protocol (ids, `@CleanupReference(WEAK)`), default prompts (`masterTemplate`, `defaultPov`, `defaultTense`, `defaultStyle`, `defaultUserPrompt`, `defaultSummaryPrompt`, `defaultMetaSummaryPrompt`, `defaultRedraftSystemPrompt`, `defaultRedraftPrompt`, `defaultAnnotateSystemPrompt`, `defaultAnnotatePrompt`, `defaultAnnotateInstructions`, `defaultImpersonatePrompt`), default book backup strategy, how many parts the story and the viewer load at a time (`storyPartsLimit`, empty loads all), the code of the language of the UI (`language`, see [Localization](architecture.md#localization)), where the user left the workspace (`workspaceState`, a JSON object written by the workspace autosave, see [User interface](ui.md#remembering-where-the-user-was)), the favorite books (`favoriteBooks`, uuids), the default arrangement of the story tabs (`defaultStoryLayout`) and whether the help assistant may look at the books (`helpAssistantBooks`, false by default). |
 
 `SettingService.getOrCreate(UserSetting.class)` returns the current user's settings, creating them on first use;
 `getOrCreateApp(AppSettings.class)` the installation's. A function that only reads uses `findOrBlank(cls, user)` instead (a missing setting is a blank one that is not stored, so a read-only transaction does not write: creating the row there fails with `SQLITE_BUSY` when another connection wrote in between; `find` returns `null`). Extensions keep their settings in the `attributes` of

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847023726671">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847058027131">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.847023726671" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.847058027131" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847023726671" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847058027131" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847023726671" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847058027131" data-turbo-eval="false" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -314,6 +314,10 @@ generation from the same part run the command once. A regenerate and a swipe (<c
 kept, and the first answer they get replaces everything kept before; the first part of a book has nothing to keep it with
 (the answers live for that generation only). Saving the answer is best effort, a failure is logged and the generation goes on.
 <code translate="no" v-pre>TemplateContext.fork</code> shares the runner, so a dry render does not run the commands twice.</p>
+<h2 id="joining-texts">Joining texts</h2>
+<p><code translate="no" v-pre>{{join::separator::a::b::c}}</code> (<code translate="no" v-pre>Macros</code>, <code translate="no" v-pre>TemplateData.join</code>) puts the separator between the texts that follow it, any number of
+them (macros included, they are evaluated first like every argument). Empty texts are left out, so an optional macro such as
+<code translate="no" v-pre>{{getvar::missing}}</code> leaves no stray separator; a single text gives itself, a separator alone gives nothing.</p>
 
                 
                 <!-- Required only on API pages -->
@@ -351,7 +355,7 @@ kept, and the first answer they get replaces everything kept before; the first p
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (e1ae5a51d).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (d0bef2c68).</p></div>
             </footer>
         </div>
     </div>

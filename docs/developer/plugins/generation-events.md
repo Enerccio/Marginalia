@@ -13,7 +13,7 @@ inserts a per-book note into the prompt of every generation.
 
 ## Author's Note
 
-The plugin has three parts:
+The plugin has these parts:
 
 | Part | Class | Mechanism |
 |---|---|---|
@@ -21,6 +21,7 @@ The plugin has three parts:
 | An *Author's Note* tab next to the story outline | `AuthorsNoteView`, added on leave of `ManuscriptStoryPart.renderStoryContent` | [@Extendable hooks](extendable.md), [A tab next to the story](ui-extensions.md#a-tab-next-to-the-story) |
 | Reserving room for the note in the context | a listener on `Events.BEFORE_PREPARE_CONTENT` | generation events (this page) |
 | Inserting the note into the prompt | a listener on `Events.AFTER_PREPARE_PAYLOAD` | generation events (this page) |
+| The note as a macro | `AuthorsNoteCommands` (the read only command `authors-note`, `availableInMacros`), registered with `CommandService.registerCommands` when the extension loads and unregistered when it unloads | [Commands in macros](../commands/writing-commands.md#commands-in-macros) |
 
 The data is a plain class serialized with Gson:
 

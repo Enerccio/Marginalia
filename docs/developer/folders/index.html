@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847023726671">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847058027131">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.847023726671" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.847058027131" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847023726671" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847058027131" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847023726671" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847058027131" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -220,8 +220,8 @@ the same work (see <a href="../ui/">the story layout</a>).</p>
 default</strong> (<code translate="no" v-pre>Defaults</code>). The code is in three places:</p>
 <ul>
 <li>
-<p><code translate="no" v-pre>PromptField</code> (<code translate="no" v-pre>domain/service</code>) is an enum of the twelve text settings (<code translate="no" v-pre>MASTER_TEMPLATE</code>, <code translate="no" v-pre>POV</code>, <code translate="no" v-pre>TENSE</code>, <code translate="no" v-pre>STYLE</code> and the
-eight prompts). It holds the getters of each level (<code translate="no" v-pre>ofBook</code>, <code translate="no" v-pre>ofFolder</code>, <code translate="no" v-pre>ofUser</code>), the setters (<code translate="no" v-pre>setOfBook</code>, <code translate="no" v-pre>setOfFolder</code>,
+<p><code translate="no" v-pre>PromptField</code> (<code translate="no" v-pre>domain/service</code>) is an enum of the thirteen text settings (<code translate="no" v-pre>MASTER_TEMPLATE</code>, <code translate="no" v-pre>POV</code>, <code translate="no" v-pre>TENSE</code>, <code translate="no" v-pre>STYLE</code> and the
+nine prompts, <code translate="no" v-pre>ANNOTATE_INSTRUCTIONS</code> among them). It holds the getters of each level (<code translate="no" v-pre>ofBook</code>, <code translate="no" v-pre>ofFolder</code>, <code translate="no" v-pre>ofUser</code>), the setters (<code translate="no" v-pre>setOfBook</code>, <code translate="no" v-pre>setOfFolder</code>,
 which store a blank as null) and the built-in <code translate="no" v-pre>fallback()</code>. A new inheritable setting is a new constant here plus the field on
 <code translate="no" v-pre>Manuscript</code> and <code translate="no" v-pre>Folder</code>, and nothing else in the resolver.</p>
 </li>
@@ -239,7 +239,7 @@ is still the book&#x27;s own or English, and <code translate="no" v-pre>Manuscri
 </ul>
 <p><code translate="no" v-pre>FolderService.findChain(folder)</code> reads the folder and its ancestors by id (folder first, stopping at a deleted one), with no
 current user, so a generation can resolve from a worker thread. The lookups are done when needed and nothing is copied into
-the book, so moving a book or editing a folder changes the next generation. A resolve of all twelve settings and the language
+the book, so moving a book or editing a folder changes the next generation. A resolve of all thirteen settings and the language
 costs about 1 ms with no folder and 3 ms through ten folders (measured on the test database), a generation does a handful of
 them before an LLM call, so there is <strong>no cache</strong>; add one per generation only if the chain gets much longer or the lookups end
 up in a loop over many books.</p>
@@ -331,7 +331,7 @@ for a change that is yours alone.</p>
 | `FolderActions` | New, rename, delete and move to a folder, shared by both lists and Organise: it asks what the rules need and reports what the service refused. |
 | `FolderDialog` | The settings of a folder. Unlike the book's dialog it saves with a button (a change may be refused). |
 | `ExtensionSettingsForm` | The section below `PromptSettingsForm` in the same two places: the editors of the settings that extensions registered (`InheritedSettingRegistry`), one group per extension, with the same placeholder and origin line; empty (and left out) when nothing is registered. See [Inherited settings](plugins/inherited-settings.md). |
-| `PromptSettingsForm` | The editors of the twelve text settings, shared by the book's *Prompts* tab (desktop and phone) and the folder dialog. It takes the values and the folder the empty ones inherit from (`load`), gives the values back (`values`), shows the inherited value as the placeholder and the origin as the line under the field (`LABEL_INHERITED_FROM_FOLDER`, `_FROM_USER`, `_INHERITED_DEFAULT`) and reports a change only when every template is valid. |
+| `PromptSettingsForm` | The editors of the thirteen text settings, shared by the book's *Prompts* tab (desktop and phone) and the folder dialog. It takes the values and the folder the empty ones inherit from (`load`), gives the values back (`values`), shows the inherited value as the placeholder and the origin as the line under the field (`LABEL_INHERITED_FROM_FOLDER`, `_FROM_USER`, `_INHERITED_DEFAULT`) and reports a change only when every template is valid. |
 | `InheritedLanguageCombo` | The language box where empty means inherit; the same placeholder and origin line. |
 | `OrganiseDialog`, `FolderClashDialog` | The two-pane window (one pane over the other when `UIUtils.isPhone()`, and without the hint of the keys; the entries are marked with `MassDeleteBox`, the check box of the story's mass delete, whose one click event carries Shift for a range; the list reads itself again when the window closes) and the question of a name clash. The keys of the buttons are `ShortcutActions.ORGANISE_*` actions, registered in `ShortcutRegistry` and caught in the browser by `JavascriptLibrary.fireOrganiseKeys`; the navigation keys are fixed. |
 | `MassChangeModelProtocolDialog`, `MassChangeLanguageDialog`, `MassRenameDialog`, `MultiTagDialog` | Take a list of books (or a folder, `MultiTagDialog.Kind.FOLDERS`). |
@@ -367,7 +367,7 @@ for a change that is yours alone.</p>
 </tr>
 <tr>
 <td><code translate="no" v-pre>PromptSettingsForm</code></td>
-<td>The editors of the twelve text settings, shared by the book&#x27;s <em>Prompts</em> tab (desktop and phone) and the folder dialog. It takes the values and the folder the empty ones inherit from (<code translate="no" v-pre>load</code>), gives the values back (<code translate="no" v-pre>values</code>), shows the inherited value as the placeholder and the origin as the line under the field (<code translate="no" v-pre>LABEL_INHERITED_FROM_FOLDER</code>, <code translate="no" v-pre>_FROM_USER</code>, <code translate="no" v-pre>_INHERITED_DEFAULT</code>) and reports a change only when every template is valid.</td>
+<td>The editors of the thirteen text settings, shared by the book&#x27;s <em>Prompts</em> tab (desktop and phone) and the folder dialog. It takes the values and the folder the empty ones inherit from (<code translate="no" v-pre>load</code>), gives the values back (<code translate="no" v-pre>values</code>), shows the inherited value as the placeholder and the origin as the line under the field (<code translate="no" v-pre>LABEL_INHERITED_FROM_FOLDER</code>, <code translate="no" v-pre>_FROM_USER</code>, <code translate="no" v-pre>_INHERITED_DEFAULT</code>) and reports a change only when every template is valid.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>InheritedLanguageCombo</code></td>
@@ -494,7 +494,7 @@ folder reaches the request the mock server receives), <code translate="no" v-pre
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (e1ae5a51d).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (d0bef2c68).</p></div>
             </footer>
         </div>
     </div>

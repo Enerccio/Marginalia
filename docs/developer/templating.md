@@ -87,3 +87,9 @@ generation from the same part run the command once. A regenerate and a swipe (`G
 kept, and the first answer they get replaces everything kept before; the first part of a book has nothing to keep it with
 (the answers live for that generation only). Saving the answer is best effort, a failure is logged and the generation goes on.
 `TemplateContext.fork` shares the runner, so a dry render does not run the commands twice.
+
+## Joining texts
+
+`{{join::separator::a::b::c}}` (`Macros`, `TemplateData.join`) puts the separator between the texts that follow it, any number of
+them (macros included, they are evaluated first like every argument). Empty texts are left out, so an optional macro such as
+`{{getvar::missing}}` leaves no stray separator; a single text gives itself, a separator alone gives nothing.

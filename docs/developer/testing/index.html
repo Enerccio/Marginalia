@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847023726671">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847058027131">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.847023726671" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.847058027131" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847023726671" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847058027131" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847023726671" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.847023726671" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847058027131" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.847058027131" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -337,6 +337,7 @@ fake is the model server.</p>
 | `summary` (new) | `SummaryTransferTest`, `SummaryImportExportTest` | The text file of the exported summaries (written and read back, blank lines around a text, CRLF, a header without a part, a file that is not an export) and the export and import through `SummaryService`: the order, an untouched export changing nothing, an edited text, a copy of the book matched by position only when asked, a part without a summary, an empty text. |
 | `annotation`, `utils` (new) | `AnnotationServiceTest`, `AnnotationGenerationTest`, `AnnotateServiceTest`, `TextAlignmentTest`, `QuoteFinderTest`, `TextMarkupTest`, `AnnotationCleanupTest`, `AnnotationCrudTest` | Annotations: creating and listing, the passages moving with an edit (before, inside, at the edges, deleted and typed back, a typo, a replaced text found by the quote), merge, branch, delete and restore, the backup round trip, the notes marked for the prompt reaching the master template, a regenerated part; the model annotating against the mock LLM in every mode (a retry, an unreadable answer, two stages, quotes not found); the three text utilities. |
 | `crud`, `generation`, `backup`, `domain`, `ui` (folders, 1.6.0) | `FolderCrudTest`, `FolderServiceTest`, `FolderTransferTest`, `FolderListTest`, `FolderSettingsTest`, `SettingsInheritanceTest`, `ModificationTest`, `FolderSettingsGenerationTest`, `BackupFoldersTest`, `BackupExportInheritanceTest`, `AgentFoldersTest`, `HelpAssistantBooksTest`, `FolderDialogTest`, `OrganiseDialogTest`, `OrganiseDialogFlowTest`, `BookPromptSettingsTest`, `MassChangeModelProtocolDialogTest`, `MassChangeLanguageDialogTest`, `ManuscriptPartFoldersTest`, `PhoneManuscriptPartFoldersTest`, `BookLabelsTest`, `StoryMassDeleteTest`, `TabDockIconsTest` | The folders, see [Folders](folders.md#tests): the entity and the service rules (names, cycles, delete, the lock of an agent's book), copy and move with name clashes, the settings of the folders resolved for a book and reaching the prompt of a generation, the modification time of books and folders, the folder in a backup and the inherited settings in an export, the working copy of an agent, the books tools of the help assistant, and the windows (settings, Organise with its keys, the lists on the desktop and the phone). The mass delete of parts and the icons of the minimized tabs are here too. |
+| `generation`, `utils` (macros, 1.7.0) | `ClosestMacroTest`, `CommandMacroTest`, `ReflectUtilsTest` | `ClosestMacroTest`: `{{closest-message::n}}`, `{{closest-summary::n}}` and `` count the parts and summaries back from the part being written (a position that is not there is empty, the argument can be a macro, a regenerate and a swipe have the part they replace as the current one, a new part has none). `CommandMacroTest`: `{{command::name::argument}}` runs a read only command made for macros (its answer is in the prompt, it runs once per generation whatever the number of renders, other arguments are other calls, a command in an untaken branch is not run, an `async` one is waited for, one not made for macros is not run, a failing one renders empty and is not kept); the answer is kept with the part the generation continues from (a later generation from the part reads it, a regenerate or a swipe runs it again, a refresh drops the answers of calls that were not made); `availableInMacros` without `readOnly` is refused when the commands are registered. `ReflectUtilsTest`: a private method or field is found in a class whose hierarchy ends in JDK classes (`Object`'s methods cannot be opened: the lookup used to fail and an extension was told the method did not exist). |
 | `cleanup` | `CleanupServiceTest`, `TrashServiceTest`, `SoftDeleteCascadeTest`, `PermanentDeleteTest`, `AgentCleanupTest` | Purging soft-deleted data (also an AI with usage rows), owned data, strong and weak references; the trash: own objects only, administrator sees all, restore refused while a deleted parent is not restored with it, extended content; `SoftDeleteCascadeTest`: a soft delete takes the owned objects with it and a restore brings them back (the purge tests there log in as administrator); `PermanentDeleteTest`: deleting parts and entries for good, children moved to the parent, active leaf, blocked deletes roll back. |
 | `instruct` | `ExtendableMethodVisitorTest`, `RuntimeInstrumentationTest`, `ExtensionVerifierTest`, `PublicAPISignatureTest` | The bytecode instrumentation of `@Extendable` methods and the runtime agent; the verification of extensions against the application; the `@PublicAPI` declarations of the `@Extendable` classes. |">
 <div class="table-wrapper scrollbar overflow-hidden">
@@ -528,6 +529,11 @@ fake is the model server.</p>
 <td><code translate="no" v-pre>crud</code>, <code translate="no" v-pre>generation</code>, <code translate="no" v-pre>backup</code>, <code translate="no" v-pre>domain</code>, <code translate="no" v-pre>ui</code> (folders, 1.6.0)</td>
 <td><code translate="no" v-pre>FolderCrudTest</code>, <code translate="no" v-pre>FolderServiceTest</code>, <code translate="no" v-pre>FolderTransferTest</code>, <code translate="no" v-pre>FolderListTest</code>, <code translate="no" v-pre>FolderSettingsTest</code>, <code translate="no" v-pre>SettingsInheritanceTest</code>, <code translate="no" v-pre>ModificationTest</code>, <code translate="no" v-pre>FolderSettingsGenerationTest</code>, <code translate="no" v-pre>BackupFoldersTest</code>, <code translate="no" v-pre>BackupExportInheritanceTest</code>, <code translate="no" v-pre>AgentFoldersTest</code>, <code translate="no" v-pre>HelpAssistantBooksTest</code>, <code translate="no" v-pre>FolderDialogTest</code>, <code translate="no" v-pre>OrganiseDialogTest</code>, <code translate="no" v-pre>OrganiseDialogFlowTest</code>, <code translate="no" v-pre>BookPromptSettingsTest</code>, <code translate="no" v-pre>MassChangeModelProtocolDialogTest</code>, <code translate="no" v-pre>MassChangeLanguageDialogTest</code>, <code translate="no" v-pre>ManuscriptPartFoldersTest</code>, <code translate="no" v-pre>PhoneManuscriptPartFoldersTest</code>, <code translate="no" v-pre>BookLabelsTest</code>, <code translate="no" v-pre>StoryMassDeleteTest</code>, <code translate="no" v-pre>TabDockIconsTest</code></td>
 <td>The folders, see <a href="../folders/#tests">Folders</a>: the entity and the service rules (names, cycles, delete, the lock of an agent&#x27;s book), copy and move with name clashes, the settings of the folders resolved for a book and reaching the prompt of a generation, the modification time of books and folders, the folder in a backup and the inherited settings in an export, the working copy of an agent, the books tools of the help assistant, and the windows (settings, Organise with its keys, the lists on the desktop and the phone). The mass delete of parts and the icons of the minimized tabs are here too.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>generation</code>, <code translate="no" v-pre>utils</code> (macros, 1.7.0)</td>
+<td><code translate="no" v-pre>ClosestMacroTest</code>, <code translate="no" v-pre>CommandMacroTest</code>, <code translate="no" v-pre>ReflectUtilsTest</code></td>
+<td><code translate="no" v-pre>ClosestMacroTest</code>: <code translate="no" v-pre>{{closest-message::n}}</code>, <code translate="no" v-pre>{{closest-summary::n}}</code> and &#x60;&#x60; count the parts and summaries back from the part being written (a position that is not there is empty, the argument can be a macro, a regenerate and a swipe have the part they replace as the current one, a new part has none). <code translate="no" v-pre>CommandMacroTest</code>: <code translate="no" v-pre>{{command::name::argument}}</code> runs a read only command made for macros (its answer is in the prompt, it runs once per generation whatever the number of renders, other arguments are other calls, a command in an untaken branch is not run, an <code translate="no" v-pre>async</code> one is waited for, one not made for macros is not run, a failing one renders empty and is not kept); the answer is kept with the part the generation continues from (a later generation from the part reads it, a regenerate or a swipe runs it again, a refresh drops the answers of calls that were not made); <code translate="no" v-pre>availableInMacros</code> without <code translate="no" v-pre>readOnly</code> is refused when the commands are registered. <code translate="no" v-pre>ReflectUtilsTest</code>: a private method or field is found in a class whose hierarchy ends in JDK classes (<code translate="no" v-pre>Object</code>&#x27;s methods cannot be opened: the lookup used to fail and an extension was told the method did not exist).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>cleanup</code></td>
@@ -722,7 +728,7 @@ or deleting <code translate="no" v-pre>target/test-home</code> removes them.</p>
 |---|---|
 | `ai`, `protocol` | The saved provider and protocol. |
 | `newManuscript()` | An unsaved book with `ai`, `protocol` and minimal templates: user prompt ``, master template ``. Save it with `manuscriptService.save(...)`. |
-| `generate(manuscript, instructions)`, `generate(manuscript, turnInput)` | Generates a new part and waits up to 30 s for the end. Returns a `GenerationRun`. |
+| `generate(manuscript, instructions)`, `generate(manuscript, turnInput)` | Generates a new part and waits up to 30 s for the end. Returns a `GenerationRun`. A third argument `answer` (`boolean`) is what the author answers to the questions of the generation (outdated summaries: *No* stops). |
 | `onEvent(event, manuscript, action)` | Runs `action` when this book's generation reaches a pipeline `Events` value; removed after the test. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -743,7 +749,7 @@ or deleting <code translate="no" v-pre>target/test-home</code> removes them.</p>
 </tr>
 <tr>
 <td><code translate="no" v-pre>generate(manuscript, instructions)</code>, <code translate="no" v-pre>generate(manuscript, turnInput)</code></td>
-<td>Generates a new part and waits up to 30 s for the end. Returns a <code translate="no" v-pre>GenerationRun</code>.</td>
+<td>Generates a new part and waits up to 30 s for the end. Returns a <code translate="no" v-pre>GenerationRun</code>. A third argument <code translate="no" v-pre>answer</code> (<code translate="no" v-pre>boolean</code>) is what the author answers to the questions of the generation (outdated summaries: <em>No</em> stops).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>onEvent(event, manuscript, action)</code></td>
@@ -756,7 +762,7 @@ or deleting <code translate="no" v-pre>target/test-home</code> removes them.</p>
 <p><code translate="no" v-pre>test/GenerationRun</code> is the <code translate="no" v-pre>GenerationListener</code> that stands in for the story editor. It records the streamed
 response and reasoning, errors (<code translate="no" v-pre>getErrors()</code>) and simple errors (<code translate="no" v-pre>getSimpleErrors()</code>, the messages the UI shows in a
 notification), warnings (<code translate="no" v-pre>getWarnings()</code>), the created part (<code translate="no" v-pre>getMessage()</code>), and the outcome (<code translate="no" v-pre>COMPLETED</code> or <code translate="no" v-pre>CANCELLED</code>). Questions the
-pipeline asks the user (<code translate="no" v-pre>askQuestion</code>) are answered <em>yes</em>.</p>
+pipeline asks the user (<code translate="no" v-pre>askQuestion</code>) are answered <em>yes</em> unless the test says otherwise (<code translate="no" v-pre>answering(false)</code>, or the <code translate="no" v-pre>generate(manuscript, instructions, answer)</code> overloads of <code translate="no" v-pre>GenerationTestBase</code>); they are recorded in <code translate="no" v-pre>getQuestions()</code>.</p>
 <div id="generationtestbase-code-1" class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-java"><code v-pre class="language-java">class MyGenerationTest extends GenerationTestBase {
 
@@ -1077,7 +1083,7 @@ all migrations and validates the schema against the entities).</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (e1ae5a51d).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (d0bef2c68).</p></div>
             </footer>
         </div>
     </div>

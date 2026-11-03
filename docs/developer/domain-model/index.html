@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847023726671">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847058027131">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.847023726671" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.847058027131" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847023726671" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847058027131" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847023726671" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.847023726671" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847058027131" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.847058027131" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -645,7 +645,7 @@ joins on is a real column: relations, <code translate="no" v-pre>name</code>, <c
 | `published` | column | Readable by everyone at `/view/&lt;uuid&gt;`. |
 | `agentic` | column | The working copy of an agent. The lists of the UI leave these books out (`ManuscriptService.findAllRegularForUser`, `searchRegularManuscripts`); `findAllAgenticForUser` and `searchAgenticManuscripts` return only them, `findAllForUser` and `searchManuscripts` both kinds. |
 | `lastOpened` | column | When the owner last opened the book; orders the book lists. |
-| `template`, `pov`, `tense`, `style`, `userPrompt`, `summaryPrompt`, `metaSummaryPrompt`, `redraftSystemPrompt`, `redraftPrompt`, `annotateSystemPrompt`, `annotatePrompt`, `impersonatePrompt` | JSON | The book's prompt overrides (*Prompts* tab); empty means inherited: the folders above the book, then the user's defaults from `UserSetting`, then `Defaults` (see [Folders](folders.md#resolving-a-setting)). |
+| `template`, `pov`, `tense`, `style`, `userPrompt`, `summaryPrompt`, `metaSummaryPrompt`, `redraftSystemPrompt`, `redraftPrompt`, `annotateSystemPrompt`, `annotatePrompt`, `annotateInstructions`, `impersonatePrompt` | JSON | The book's prompt overrides (*Prompts* tab); empty means inherited: the folders above the book, then the user's defaults from `UserSetting`, then `Defaults` (see [Folders](folders.md#resolving-a-setting)). |
 | `language` | JSON | Language of the story (`Language`; null is inherited from the folders, English at the end of the chain; `getLanguage()` still says English then and `getOwnLanguage()` null): the `lang` of the story views, which the browser uses for hyphenation and justification, and the language of the exports. |
 | `showBookStyles` | JSON | Legacy story display option (the Book style on or off). Read only while `partStyle` is not set, never written any more. |
 | `partStyle` | JSON | The id of the text style the author chose for this book (a built in style or one of the user, see [Text styles](ui.md#text-styles)); empty follows the default style of the user. |
@@ -707,7 +707,7 @@ joins on is a real column: relations, <code translate="no" v-pre>name</code>, <c
 <td>When the owner last opened the book; orders the book lists.</td>
 </tr>
 <tr>
-<td><code translate="no" v-pre>template</code>, <code translate="no" v-pre>pov</code>, <code translate="no" v-pre>tense</code>, <code translate="no" v-pre>style</code>, <code translate="no" v-pre>userPrompt</code>, <code translate="no" v-pre>summaryPrompt</code>, <code translate="no" v-pre>metaSummaryPrompt</code>, <code translate="no" v-pre>redraftSystemPrompt</code>, <code translate="no" v-pre>redraftPrompt</code>, <code translate="no" v-pre>annotateSystemPrompt</code>, <code translate="no" v-pre>annotatePrompt</code>, <code translate="no" v-pre>impersonatePrompt</code></td>
+<td><code translate="no" v-pre>template</code>, <code translate="no" v-pre>pov</code>, <code translate="no" v-pre>tense</code>, <code translate="no" v-pre>style</code>, <code translate="no" v-pre>userPrompt</code>, <code translate="no" v-pre>summaryPrompt</code>, <code translate="no" v-pre>metaSummaryPrompt</code>, <code translate="no" v-pre>redraftSystemPrompt</code>, <code translate="no" v-pre>redraftPrompt</code>, <code translate="no" v-pre>annotateSystemPrompt</code>, <code translate="no" v-pre>annotatePrompt</code>, <code translate="no" v-pre>annotateInstructions</code>, <code translate="no" v-pre>impersonatePrompt</code></td>
 <td>JSON</td>
 <td>The book&#x27;s prompt overrides (<em>Prompts</em> tab); empty means inherited: the folders above the book, then the user&#x27;s defaults from <code translate="no" v-pre>UserSetting</code>, then <code translate="no" v-pre>Defaults</code> (see <a href="../folders/#resolving-a-setting">Folders</a>).</td>
 </tr>
@@ -742,7 +742,7 @@ joins on is a real column: relations, <code translate="no" v-pre>name</code>, <c
 </retype-table>
 <p>Tags of a book are <code translate="no" v-pre>TagRelation</code>s (see <doc-anchor-trigger to="#tags">Tags</doc-anchor-trigger>).</p>
 <h3 id="folder"><code translate="no" v-pre>Folder</code></h3>
-<p>A group of books, nested through <code translate="no" v-pre>parent</code> (a column, <code translate="no" v-pre>OWNED_BY</code> for the cleanup), with a <code translate="no" v-pre>name</code> (column), a <code translate="no" v-pre>description</code> and the same twelve text settings and the language as a book, all extended attributes where null means inherit; tags like a book. Described in <a href="../folders/">Folders</a>. Migration V21.</p>
+<p>A group of books, nested through <code translate="no" v-pre>parent</code> (a column, <code translate="no" v-pre>OWNED_BY</code> for the cleanup), with a <code translate="no" v-pre>name</code> (column), a <code translate="no" v-pre>description</code> and the same thirteen text settings and the language as a book, all extended attributes where null means inherit; tags like a book. Described in <a href="../folders/">Folders</a>. Migration V21.</p>
 <h3 id="chatmessage-part-and-the-story-tree"><code translate="no" v-pre>ChatMessage</code> (part) and the story tree</h3>
 <p>The story is a <strong>tree</strong> of parts. Each part points to its <code translate="no" v-pre>parent</code> (<code translate="no" v-pre>null</code> for the first part) and to its book
 (<code translate="no" v-pre>parentScript</code>). The book&#x27;s <code translate="no" v-pre>activeLeaf</code> selects one path from the root - the branch the user sees.</p>
@@ -887,6 +887,10 @@ joins on is a real column: relations, <code translate="no" v-pre>name</code>, <c
 </retype-table>
 <p>Template variables are stored when a part is generated (<code translate="no" v-pre>GenerateNewMessageStep</code>): local ones (<code translate="no" v-pre>setvar</code>), which
 follow the branch, in the new part&#x27;s <code translate="no" v-pre>attributes</code>, global ones (<code translate="no" v-pre>setglobalvar</code>) in the book&#x27;s <code translate="no" v-pre>attributes</code>.</p>
+<p>The answers of <code translate="no" v-pre>{{command::...}}</code> macros are kept in the <code translate="no" v-pre>attributes</code> of the part a generation continues from, under
+<code translate="no" v-pre>commandMacroCache</code> (an object: the name and arguments of the call are the key), so that every render of a generation, and a
+later generation from the same part, read the answer instead of running the command again; a regenerate or a swipe drops them
+(see <a href="../templating/#macros-that-run-commands">Templating &amp; macros</a>).</p>
 <h3 id="messageprompt"><code translate="no" v-pre>MessagePrompt</code></h3>
 <p>What a part was written from: the built prompt (the payload sent to the model as JSON, 100-200 KB for a long story)
 and the lore that was in it. It is a row of its own (<code translate="no" v-pre>message_prompts</code>, one per part at most, owned by the user of the
@@ -1568,7 +1572,7 @@ values are extended attributes.</p>
 <retype-table copy-text="| Class | Owner | Contains |
 |---|---|---|
 | `AppSettings` | none (one per installation) | Data versions (`dbVersion`, `appVersion`), the database backup schedule (`backupScheduleEnabled`, `backupSchedule`, `backupKeep`, `lastScheduledBackup`, `backupScheduleChanged`), the help assistant (`helpAiUuid`, `helpAdminData` (may it read the data of the Admin page for an administrator), and the prompts `helpPromptAdmin` / `helpPromptUser`, null = the default; the uuid, not the id; written only by `HelpAssistantService.saveSettings`). The switches `userAisAllowed` and `helpEnabled` and the settings `helpApplyLimits` and `helpInteractions` are replaced by the permissions `CREATE_AI` and `HELPER` with the attributes `helperApplyLimits` and `helperInteractions` (V15 / app version 5); the fields stay, deprecated, only for `PermissionsMigration`. |
-| `UserSetting` | each user | Default model and protocol (ids, `@CleanupReference(WEAK)`), default prompts (`masterTemplate`, `defaultPov`, `defaultTense`, `defaultStyle`, `defaultUserPrompt`, `defaultSummaryPrompt`, `defaultMetaSummaryPrompt`, `defaultRedraftSystemPrompt`, `defaultRedraftPrompt`, `defaultAnnotateSystemPrompt`, `defaultAnnotatePrompt`, `defaultImpersonatePrompt`), default book backup strategy, how many parts the story and the viewer load at a time (`storyPartsLimit`, empty loads all), the code of the language of the UI (`language`, see [Localization](architecture.md#localization)), where the user left the workspace (`workspaceState`, a JSON object written by the workspace autosave, see [User interface](ui.md#remembering-where-the-user-was)), the favorite books (`favoriteBooks`, uuids), the default arrangement of the story tabs (`defaultStoryLayout`) and whether the help assistant may look at the books (`helpAssistantBooks`, false by default). |">
+| `UserSetting` | each user | Default model and protocol (ids, `@CleanupReference(WEAK)`), default prompts (`masterTemplate`, `defaultPov`, `defaultTense`, `defaultStyle`, `defaultUserPrompt`, `defaultSummaryPrompt`, `defaultMetaSummaryPrompt`, `defaultRedraftSystemPrompt`, `defaultRedraftPrompt`, `defaultAnnotateSystemPrompt`, `defaultAnnotatePrompt`, `defaultAnnotateInstructions`, `defaultImpersonatePrompt`), default book backup strategy, how many parts the story and the viewer load at a time (`storyPartsLimit`, empty loads all), the code of the language of the UI (`language`, see [Localization](architecture.md#localization)), where the user left the workspace (`workspaceState`, a JSON object written by the workspace autosave, see [User interface](ui.md#remembering-where-the-user-was)), the favorite books (`favoriteBooks`, uuids), the default arrangement of the story tabs (`defaultStoryLayout`) and whether the help assistant may look at the books (`helpAssistantBooks`, false by default). |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -1587,7 +1591,7 @@ values are extended attributes.</p>
 <tr>
 <td><code translate="no" v-pre>UserSetting</code></td>
 <td>each user</td>
-<td>Default model and protocol (ids, <code translate="no" v-pre>@CleanupReference(WEAK)</code>), default prompts (<code translate="no" v-pre>masterTemplate</code>, <code translate="no" v-pre>defaultPov</code>, <code translate="no" v-pre>defaultTense</code>, <code translate="no" v-pre>defaultStyle</code>, <code translate="no" v-pre>defaultUserPrompt</code>, <code translate="no" v-pre>defaultSummaryPrompt</code>, <code translate="no" v-pre>defaultMetaSummaryPrompt</code>, <code translate="no" v-pre>defaultRedraftSystemPrompt</code>, <code translate="no" v-pre>defaultRedraftPrompt</code>, <code translate="no" v-pre>defaultAnnotateSystemPrompt</code>, <code translate="no" v-pre>defaultAnnotatePrompt</code>, <code translate="no" v-pre>defaultImpersonatePrompt</code>), default book backup strategy, how many parts the story and the viewer load at a time (<code translate="no" v-pre>storyPartsLimit</code>, empty loads all), the code of the language of the UI (<code translate="no" v-pre>language</code>, see <a href="../architecture/#localization">Localization</a>), where the user left the workspace (<code translate="no" v-pre>workspaceState</code>, a JSON object written by the workspace autosave, see <a href="../ui/#remembering-where-the-user-was">User interface</a>), the favorite books (<code translate="no" v-pre>favoriteBooks</code>, uuids), the default arrangement of the story tabs (<code translate="no" v-pre>defaultStoryLayout</code>) and whether the help assistant may look at the books (<code translate="no" v-pre>helpAssistantBooks</code>, false by default).</td>
+<td>Default model and protocol (ids, <code translate="no" v-pre>@CleanupReference(WEAK)</code>), default prompts (<code translate="no" v-pre>masterTemplate</code>, <code translate="no" v-pre>defaultPov</code>, <code translate="no" v-pre>defaultTense</code>, <code translate="no" v-pre>defaultStyle</code>, <code translate="no" v-pre>defaultUserPrompt</code>, <code translate="no" v-pre>defaultSummaryPrompt</code>, <code translate="no" v-pre>defaultMetaSummaryPrompt</code>, <code translate="no" v-pre>defaultRedraftSystemPrompt</code>, <code translate="no" v-pre>defaultRedraftPrompt</code>, <code translate="no" v-pre>defaultAnnotateSystemPrompt</code>, <code translate="no" v-pre>defaultAnnotatePrompt</code>, <code translate="no" v-pre>defaultAnnotateInstructions</code>, <code translate="no" v-pre>defaultImpersonatePrompt</code>), default book backup strategy, how many parts the story and the viewer load at a time (<code translate="no" v-pre>storyPartsLimit</code>, empty loads all), the code of the language of the UI (<code translate="no" v-pre>language</code>, see <a href="../architecture/#localization">Localization</a>), where the user left the workspace (<code translate="no" v-pre>workspaceState</code>, a JSON object written by the workspace autosave, see <a href="../ui/#remembering-where-the-user-was">User interface</a>), the favorite books (<code translate="no" v-pre>favoriteBooks</code>, uuids), the default arrangement of the story tabs (<code translate="no" v-pre>defaultStoryLayout</code>) and whether the help assistant may look at the books (<code translate="no" v-pre>helpAssistantBooks</code>, false by default).</td>
 </tr>
 </tbody>
 </table>
@@ -2072,7 +2076,7 @@ define both beans in <code translate="no" v-pre>services-config.xml</code>.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (e1ae5a51d).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (d0bef2c68).</p></div>
             </footer>
         </div>
     </div>

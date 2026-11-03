@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847023726671">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847058027131">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.847023726671" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.847058027131" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847023726671" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847058027131" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847023726671" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847058027131" data-turbo-eval="false" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -183,7 +183,7 @@ in the <a href="../../user/commands/">user guide</a>.</p>
 | **Suite**           | Any object whose class has methods annotated with `@Command`. Registering the object registers all of them.                                                                                |
 | **Command method**  | `public void name(CommandContext context)`: the only parameter is the context, nothing is returned from the method itself.                                                                  |
 | **Command**         | A name (`commandName`: letters, digits, `_`, `-`, `.`) with a `humanName` for the user, a `description`, an `llmDescription` for agents (each as an `L` key or, for extensions, a plain `...Text`, see [Texts](writing-commands.md#texts)), a `signature`, a return declaration, `async`, the `dataSeverity` and `availableForAgent` (`false` keeps the command from agents, see [Available for agents](writing-commands.md#available-for-agents)).   |
-| **Form** (overload) | Methods of a suite that share a `commandName` are forms of one command. They must have the same `humanName` and `dataSeverity` and each its own `signature`. One `CommandDefinition` exists per form.          |
+| **Form** (overload) | Methods of a suite that share a `commandName` are forms of one command. They must have the same `humanName`, `dataSeverity` and `availableInMacros` and each its own `signature`. One `CommandDefinition` exists per form.          |
 | **Signature**       | `@CommandParameterSignature(@CommandParameter(name, type, description), ...)`: the arguments of one form. An empty signature is a form without arguments; `any = true` is &quot;any arguments&quot;.    |
 | **Context**         | `CommandContext`: the arguments (`get`, `getPositional`), the answer (`setReturn`, `fail`), the two lines of status (`setStatus`, `setSubStatus`) and `isTerminated()`. It belongs to one run. |
 | **Run**             | One call, which returns a `CommandRun` (a `CompletableFuture&lt;Object&gt;`) that completes with the value given to `setReturn` and holds the status the command reports.                       |">
@@ -210,7 +210,7 @@ in the <a href="../../user/commands/">user guide</a>.</p>
 </tr>
 <tr>
 <td><strong>Form</strong> (overload)</td>
-<td>Methods of a suite that share a <code translate="no" v-pre>commandName</code> are forms of one command. They must have the same <code translate="no" v-pre>humanName</code> and <code translate="no" v-pre>dataSeverity</code> and each its own <code translate="no" v-pre>signature</code>. One <code translate="no" v-pre>CommandDefinition</code> exists per form.</td>
+<td>Methods of a suite that share a <code translate="no" v-pre>commandName</code> are forms of one command. They must have the same <code translate="no" v-pre>humanName</code>, <code translate="no" v-pre>dataSeverity</code> and <code translate="no" v-pre>availableInMacros</code> and each its own <code translate="no" v-pre>signature</code>. One <code translate="no" v-pre>CommandDefinition</code> exists per form.</td>
 </tr>
 <tr>
 <td><strong>Signature</strong></td>
@@ -707,7 +707,7 @@ change nothing).</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (e1ae5a51d).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (d0bef2c68).</p></div>
             </footer>
         </div>
     </div>

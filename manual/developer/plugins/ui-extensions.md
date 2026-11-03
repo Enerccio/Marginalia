@@ -84,12 +84,12 @@ copies the text with `navigator.clipboard.writeText` (plugins keep their own scr
 ### Tools in the summaries overview
 
 `SummariesDialog` (the overview of the summaries, opened from the **Summaries** item) has a menu bar above its
-grid, with the items *Search and Replace*, *Export Summaries* and *Import Summaries* of the application in it. Decorate `populateMenuBar(bar)` on leave and add items to the argument `bar`. A new dialog (and menu bar) is
+grid, with the items *Search and Replace*, *Export Summaries*, *Import Summaries* and *Revalidate all summaries* (from 1.7.0) of the application in it; a summary that no longer describes the story has another background and a *Revalidate* button in its row. Decorate `populateMenuBar(bar)` on leave and add items to the argument `bar`. A new dialog (and menu bar) is
 created every time the overview opens, so the decorator runs for each of them. The dialog's fields (`manuscript`,
 `treeGrid`) are reachable by reflection; to reload the grid after your tool changed the summaries, close and reopen
 the dialog, or call its private `refresh()` with `callReflectiveMethod`.
 
-Changes to summaries should go through `SummaryService` (`updateSummaryText`, `removeSummary`, `createMetaSummary`):
+Changes to summaries should go through `SummaryService` (`updateSummaryText`, `removeSummary`, `createMetaSummary`, `revalidateActiveBranch`):
 it keeps the token counts, the hashes of the summaries and the meta summaries that merged them consistent. In
 particular, don't edit the text of a summary a meta summary stands in for (shown under it in the overview) - its text
 is part of the hash of the meta summary and it would be dropped as outdated.

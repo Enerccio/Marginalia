@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847023726671">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847058027131">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.847023726671" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.847058027131" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847023726671" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847058027131" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847023726671" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.847023726671" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847058027131" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.847058027131" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -176,13 +176,14 @@ to use them on the bundled
 <a href="https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/authorsnote">Author&#x27;s Note</a> plugin, which
 inserts a per-book note into the prompt of every generation.</p>
 <h2 id="authors-note">Author&#x27;s Note</h2>
-<p>The plugin has three parts:</p>
+<p>The plugin has these parts:</p>
 <retype-table copy-text="| Part | Class | Mechanism |
 |---|---|---|
 | The note, stored with the book | `AuthorsNoteData` in `Manuscript.attributes`, under the package name | [Extended attributes](extended-attributes.md) |
 | An *Author's Note* tab next to the story outline | `AuthorsNoteView`, added on leave of `ManuscriptStoryPart.renderStoryContent` | [@Extendable hooks](extendable.md), [A tab next to the story](ui-extensions.md#a-tab-next-to-the-story) |
 | Reserving room for the note in the context | a listener on `Events.BEFORE_PREPARE_CONTENT` | generation events (this page) |
-| Inserting the note into the prompt | a listener on `Events.AFTER_PREPARE_PAYLOAD` | generation events (this page) |">
+| Inserting the note into the prompt | a listener on `Events.AFTER_PREPARE_PAYLOAD` | generation events (this page) |
+| The note as a macro | `AuthorsNoteCommands` (the read only command `authors-note`, `availableInMacros`), registered with `CommandService.registerCommands` when the extension loads and unregistered when it unloads | [Commands in macros](../commands/writing-commands.md#commands-in-macros) |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -212,6 +213,11 @@ inserts a per-book note into the prompt of every generation.</p>
 <td>Inserting the note into the prompt</td>
 <td>a listener on <code translate="no" v-pre>Events.AFTER_PREPARE_PAYLOAD</code></td>
 <td>generation events (this page)</td>
+</tr>
+<tr>
+<td>The note as a macro</td>
+<td><code translate="no" v-pre>AuthorsNoteCommands</code> (the read only command <code translate="no" v-pre>authors-note</code>, <code translate="no" v-pre>availableInMacros</code>), registered with <code translate="no" v-pre>CommandService.registerCommands</code> when the extension loads and unregistered when it unloads</td>
+<td><a href="../../commands/writing-commands/#commands-in-macros">Commands in macros</a></td>
 </tr>
 </tbody>
 </table>
@@ -566,7 +572,7 @@ to keep the note after it.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (e1ae5a51d).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (d0bef2c68).</p></div>
             </footer>
         </div>
     </div>

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847023726671">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847058027131">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.847023726671" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.847058027131" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847023726671" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847058027131" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847023726671" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847058027131" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -364,7 +364,7 @@ all of them; each plugin is also a Maven project that is built on its own. See <
 | `ui.dialogs.search` | The search and replace windows: `SearchReplaceDialog` (the part both share) with `ManuscriptSearchReplaceDialog` (story) and `LorebookSearchReplaceDialog` (entries), see [Books and the story](services.md#books-and-the-story). |
 | `ui.dialogs` | Entity dialogs (`AIDialog`, `ProtocolDialog`, `LorebookDialog`, `UserDialog`), the limits of a shared AI (`AILimitsDialog`, `AILimitEditDialog`; `AILimitInfoDialog` is the user's own view), `UsageDialog` (every user's usage), `ManuscriptDialog` (the book window), `LorebookImportDialog` (resolving lorebooks during restores), `PromptDialog` (shows the prompt a part was generated from), `ExtensionLogDialog` (the log of an extension, opened from the Admin page), `UsageDialog` (what every user used of every AI, opened by administrators from the Inference Providers tab) and generic dialogs: `ConfirmDialog`, `TextInputDialog`, `ListSelectDialog`, `ErrorDialog`, `ProgressBarDialog`. `ExportDialog` exports the story of a book. `ManuscriptCloneDialog` (clone a book), `ArchiveUploadDialog` / `ArchiveEntryNamesDialog` / `ArchiveImportRunner` (import of `.md` archives), `MultiTagDialog` (a tag on many books, lorebooks or entries), `MassChangeModelProtocolDialog` (a model and a protocol on many books), `MassChangeLanguageDialog`, `MassRenameDialog` (a language on many books), `LorebookMassEditDialog` (all entries of a lorebook in one table), `SharedImportDialog` (*Import from other user*: what other users share, to import a copy), `DescriptionDialog` (the description of a lorebook), `LoreUsageDialog` / `BookLoreUsageDialog` (the lore usage of a part and of a book), `LorebookActivationPreviewDialog` (which entries a text would use and why), `CommandProgressDialog` (the Stop window of a running command). Threading helpers `ThreadAccessDialog` and `UIPushGuard`. |
 | `ui.dialogs.statistics` | The content of the four statistics windows (`StatisticsDialog`, `GlobalStatisticsDialog` and the phone twins in `ui.dialogs` / `ui.dialogs.phone`): `StatisticsView` (the period, the totals and the tabs), `StatisticCharts` (the Chart.js configurations), `ActivityCalendarView` and `ActivityCalendarGrid` (the calendar of the days worked on, its layout is pure). See [User interface](ui.md). |
-| `ui.dialogs.story` | What the desktop and the phone story tab share: `StoryHost` (implemented by both book dialogs), `StoryEditor` (the interface of the story tab, desktop and phone, that the menu callbacks get), `StoryCard` / `StoryCards`, `StoryDockLayout` (the layouts of the desktop dock), `StoryBranchSearch` (the search of the branch), `StoryAnnotations` / `CardAnnotations` / `AnnotationsPanel` / `AnnotationView` / `AnnotationDialog` / `AnnotateDialog` (the notes), `RedraftDialog`, `ImpersonateDialog` (draft the instructions), `PartMergeDialog`, `StoryGenerationListener`, `NewTurnForm`, `TurnDetailsForm`, `MessageMetrics`, `StoryBackup`, `StorySupport`, `StoryActivity` (the time the book is open and edited, for the statistics), and the lazy loading of long stories: `LazyBranch`, `StoryLazyLoader`, `ReaderLazyLoader`. |
+| `ui.dialogs.story` | What the desktop and the phone story tab share: `StoryHost` (implemented by both book dialogs), `StoryEditor` (the interface of the story tab, desktop and phone, that the menu callbacks get), `StoryCard` / `StoryCards`, `StoryDockLayout` (the layouts of the desktop dock), `StoryBranchSearch` (the search of the branch), `StoryAnnotations` / `CardAnnotations` / `AnnotationsPanel` / `AnnotationView` / `AnnotationDialog` / `AnnotateDialog` (the notes), `RedraftDialog`, `ImpersonateDialog` (draft the instructions), `PartMergeDialog`, `OutdatedSummariesDialog` (the question when an edit makes summaries outdated), `AutoAnnotate` (the automatic annotation and redraft of a generated part), `StoryGenerationListener`, `NewTurnForm`, `TurnDetailsForm`, `MessageMetrics`, `StoryBackup`, `StorySupport`, `StoryActivity` (the time the book is open and edited, for the statistics), and the lazy loading of long stories: `LazyBranch`, `StoryLazyLoader`, `ReaderLazyLoader`. |
 | `ui.dialogs.manuscript` | The tabs of the book window, each a `ManuscriptDialogPart`: `ManuscriptStoryPart` (story editor - the largest UI class), `ManuscriptTreePart`, `ManuscriptInfoPart` (About), `ManuscriptPromptPart`, `ManuscriptLorebookPart`, `ManuscriptBackupPart`; and the summary dialogs: `SummariesDialog` (overview of the summaries of the branch, opened from the story editor), `SummaryDialog` (one summary or meta summary, generating or viewing) and `SummaryRemoval` (asking before a summary is removed); and `ImagesDialog` (add, caption and remove the images of a part, opened from its card). |
 | `ui.components` | Larger reusable components: `TagsView` (the Tags tab of the settings: tags with their usage, rename, merge, delete), `LorebookView` (the lorebook editor, used in the Lorebooks tab and in books), `PhoneLorebookView` (its phone version in one column), `LorebookPreview` (the read only Lorebook tab of the desktop story editor), `InvalidExtensionsWarning` (the red bar of the workspace about invalid extensions), `TreantTree` (story tree drawn with treant.js), `MessageImages` (the images of a part under its text - in the story editor, the Viewer, the image dialog and the Resources tab preview; the files are read when the browser asks for them), `ThreadCopyRequestAttributes` (carries the session to worker threads). `HelpAssistantWidget` (the robot button and chat panel `Main` adds after the workspace; it answers the model's requests to read and move through the page on the page's thread)., `BuildInfoFooter` (the version text in the corner), `CommandBar` (the command line, see [Commands](commands/index.md)). |
 | `ui.widgets` | Small widgets: `ChartJs` (a Chart.js chart drawn from a JSON configuration, see [UI](ui.md)), `GraphView` (a Cytoscape.js graph, see [Custom components](custom-components.md)), `HTabSheet` (tab sheet with the tabs on the left and room for custom content, used by the workspace), `TabDock` (columns of tab sheets whose tabs can be dragged apart and together, the left bar of the story editor), `BackendTableProvider*` / `BackendTableItem` (lazy grids backed by a repository query), `TagMultiComboBox`, `LazyContextMenu` (a context menu filled when it opens), `LazyLoadIndicator`, `WordDiffView` (the word by word differences of the review), `TrashGrid` (restoring deleted objects and deleting parts and entries for good, used by `TrashPart` and `CleanupPanel`), `PhoneTrashGrid` (its phone layout, used by `PhoneTrashPart`), `TemplateHints` (hint popovers of prompt fields), `TextAreaPopoverComponent` / `TextFieldPopOverComponent`, `HtmlText`, `ScrollPanel`, `ModelProtocolPicker` (a model and a protocol to choose from, for dialogs that run the model with a choice of their own), `ToolSelectionButton` (choosing the tools the model may use, with `ui.dialogs.ToolSelectionDialog`), `ResizableTextArea` (`install(loc, area, fixedHeight)` adds a corner icon that switches a text area between a fixed height and growing with its content; used by the prompt, description and lorebook fields), `Notification`, `PermissiveLoginOverlay` (allows empty passwords). |">
@@ -435,7 +435,7 @@ all of them; each plugin is also a Maven project that is built on its own. See <
 </tr>
 <tr>
 <td><code translate="no" v-pre>ui.dialogs.story</code></td>
-<td>What the desktop and the phone story tab share: <code translate="no" v-pre>StoryHost</code> (implemented by both book dialogs), <code translate="no" v-pre>StoryEditor</code> (the interface of the story tab, desktop and phone, that the menu callbacks get), <code translate="no" v-pre>StoryCard</code> / <code translate="no" v-pre>StoryCards</code>, <code translate="no" v-pre>StoryDockLayout</code> (the layouts of the desktop dock), <code translate="no" v-pre>StoryBranchSearch</code> (the search of the branch), <code translate="no" v-pre>StoryAnnotations</code> / <code translate="no" v-pre>CardAnnotations</code> / <code translate="no" v-pre>AnnotationsPanel</code> / <code translate="no" v-pre>AnnotationView</code> / <code translate="no" v-pre>AnnotationDialog</code> / <code translate="no" v-pre>AnnotateDialog</code> (the notes), <code translate="no" v-pre>RedraftDialog</code>, <code translate="no" v-pre>ImpersonateDialog</code> (draft the instructions), <code translate="no" v-pre>PartMergeDialog</code>, <code translate="no" v-pre>StoryGenerationListener</code>, <code translate="no" v-pre>NewTurnForm</code>, <code translate="no" v-pre>TurnDetailsForm</code>, <code translate="no" v-pre>MessageMetrics</code>, <code translate="no" v-pre>StoryBackup</code>, <code translate="no" v-pre>StorySupport</code>, <code translate="no" v-pre>StoryActivity</code> (the time the book is open and edited, for the statistics), and the lazy loading of long stories: <code translate="no" v-pre>LazyBranch</code>, <code translate="no" v-pre>StoryLazyLoader</code>, <code translate="no" v-pre>ReaderLazyLoader</code>.</td>
+<td>What the desktop and the phone story tab share: <code translate="no" v-pre>StoryHost</code> (implemented by both book dialogs), <code translate="no" v-pre>StoryEditor</code> (the interface of the story tab, desktop and phone, that the menu callbacks get), <code translate="no" v-pre>StoryCard</code> / <code translate="no" v-pre>StoryCards</code>, <code translate="no" v-pre>StoryDockLayout</code> (the layouts of the desktop dock), <code translate="no" v-pre>StoryBranchSearch</code> (the search of the branch), <code translate="no" v-pre>StoryAnnotations</code> / <code translate="no" v-pre>CardAnnotations</code> / <code translate="no" v-pre>AnnotationsPanel</code> / <code translate="no" v-pre>AnnotationView</code> / <code translate="no" v-pre>AnnotationDialog</code> / <code translate="no" v-pre>AnnotateDialog</code> (the notes), <code translate="no" v-pre>RedraftDialog</code>, <code translate="no" v-pre>ImpersonateDialog</code> (draft the instructions), <code translate="no" v-pre>PartMergeDialog</code>, <code translate="no" v-pre>OutdatedSummariesDialog</code> (the question when an edit makes summaries outdated), <code translate="no" v-pre>AutoAnnotate</code> (the automatic annotation and redraft of a generated part), <code translate="no" v-pre>StoryGenerationListener</code>, <code translate="no" v-pre>NewTurnForm</code>, <code translate="no" v-pre>TurnDetailsForm</code>, <code translate="no" v-pre>MessageMetrics</code>, <code translate="no" v-pre>StoryBackup</code>, <code translate="no" v-pre>StorySupport</code>, <code translate="no" v-pre>StoryActivity</code> (the time the book is open and edited, for the statistics), and the lazy loading of long stories: <code translate="no" v-pre>LazyBranch</code>, <code translate="no" v-pre>StoryLazyLoader</code>, <code translate="no" v-pre>ReaderLazyLoader</code>.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>ui.dialogs.manuscript</code></td>
@@ -638,7 +638,7 @@ no state besides their fields.</p>
 | `TagService`, `TagRelationService`, `SettingService`, `ResourceService` | Tags, settings, files. |
 | `AILimitService` | The per-user limits of a shared AI: the owning administrator sets them, `check` refuses a request of a user who is over their limit (called by `OpenAICompatibleInferenceService.stream`), `getStatus` is for the user's own view. |
 | `UsageService` | Tokens a user used with an AI, counted by `OpenAICompatibleInferenceService` (`Usage`, one per AI and user); `findAllUsages()` lists everybody's for administrators. |
-| `StoryGenerationService` | The generation engine (`StoryGenerationServiceImpl.GenerationEngine`). |
+| `StoryGenerationService` | The generation engine (`StoryGenerationServiceImpl.GenerationEngine`). `impl/generation/CommandMacros` runs the `{{command::...}}` macros of a generation and keeps their answers with the part (see [Templating &amp; macros](templating.md#macros-that-run-commands)). |
 | `InferenceServices`, `InferenceService`, `InferenceSession`, `InferenceException`, `InferenceErrors` | Choosing and calling the model API; the kind of work a request belongs to (header `X-Session-ID`); classified failures and their localized texts. |
 | `FunctionRegistry` | The Java interfaces the model can call as functions, compiled once (see [Function calls](services.md#function-calls)). |
 | `TokenizerService` | Token counting. |
@@ -705,7 +705,7 @@ no state besides their fields.</p>
 </tr>
 <tr>
 <td><code translate="no" v-pre>StoryGenerationService</code></td>
-<td>The generation engine (<code translate="no" v-pre>StoryGenerationServiceImpl.GenerationEngine</code>).</td>
+<td>The generation engine (<code translate="no" v-pre>StoryGenerationServiceImpl.GenerationEngine</code>). <code translate="no" v-pre>impl/generation/CommandMacros</code> runs the <code translate="no" v-pre>{{command::...}}</code> macros of a generation and keeps their answers with the part (see <a href="../templating/#macros-that-run-commands">Templating &amp; macros</a>).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>InferenceServices</code>, <code translate="no" v-pre>InferenceService</code>, <code translate="no" v-pre>InferenceSession</code>, <code translate="no" v-pre>InferenceException</code>, <code translate="no" v-pre>InferenceErrors</code></td>
@@ -848,7 +848,8 @@ callbacks of a generation) and <code translate="no" v-pre>search/</code> (<code 
 | `TemplateVariables` | Storage of `setvar` / `getvar` variables (local per branch, global per book). |
 | `MomentFormat` | moment.js date formats → `DateTimeFormatter` for ``. |
 | `macros/MacroTranslator` | Rewrites SillyTavern macro syntax into Handlebars. |
-| `macros/MacroHelpers`, `macros/Macros` | Handlebars helpers for the macros; registry of supported and ignored macros. |">
+| `macros/MacroHelpers`, `macros/Macros` | Handlebars helpers for the macros; registry of supported and ignored macros. |
+| `CommandMacroRunner` | What the `{{command::...}}` macro calls to run a command (set in the `TemplateContext` by the generation, implemented by `CommandMacros`). |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -889,6 +890,10 @@ callbacks of a generation) and <code translate="no" v-pre>search/</code> (<code 
 <tr>
 <td><code translate="no" v-pre>macros/MacroHelpers</code>, <code translate="no" v-pre>macros/Macros</code></td>
 <td>Handlebars helpers for the macros; registry of supported and ignored macros.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>CommandMacroRunner</code></td>
+<td>What the <code translate="no" v-pre>{{command::...}}</code> macro calls to run a command (set in the <code translate="no" v-pre>TemplateContext</code> by the generation, implemented by <code translate="no" v-pre>CommandMacros</code>).</td>
 </tr>
 </tbody>
 </table>
@@ -1169,7 +1174,7 @@ in <code translate="no" v-pre>src/main/bundles/</code>, <code translate="no" v-p
 | `test` | Test infrastructure: `MarginaliaTestBase` (Spring context, temp data folder, login helpers), `GenerationTestBase` / `GenerationRun` (running real generations), `InferenceCollector`, `ExpectedLog`, `TestContextPostProcessor`, `TestUserService` (cheap password hashing). |
 | `test.llm` | `MockLLMServer` - a fake OpenAI-compatible server with programmable scenarios. |
 | `crud` | CRUD tests for every entity, built on `OwnedCrudContract` / `ExtendableCrudContract`. |
-| `generation` | Generation requests and lorebook activation. |
+| `generation` | Generation requests and lorebook activation; the macros of the story (`ClosestMacroTest`: `closest-message`, `closest-summary`, `current-message`; `CommandMacroTest`: `{{command::...}}` and the kept answers). |
 | `templates`, `domain.templates` | Template rendering, macros, default templates. |
 | `backup`, `cleanup`, `lorebook`, `db` | Book and database backups, cleanup planner, lorebook import/export, Flyway migrations. |
 | `instruct` | Bytecode instrumentation (with fixture classes in `instruct.fixture`), the extension verifier and the check that every method of an `@Extendable` class declares its `@PublicAPI` (`PublicAPISignatureTest`). |
@@ -1201,7 +1206,7 @@ in <code translate="no" v-pre>src/main/bundles/</code>, <code translate="no" v-p
 </tr>
 <tr>
 <td><code translate="no" v-pre>generation</code></td>
-<td>Generation requests and lorebook activation.</td>
+<td>Generation requests and lorebook activation; the macros of the story (<code translate="no" v-pre>ClosestMacroTest</code>: <code translate="no" v-pre>closest-message</code>, <code translate="no" v-pre>closest-summary</code>, <code translate="no" v-pre>current-message</code>; <code translate="no" v-pre>CommandMacroTest</code>: <code translate="no" v-pre>{{command::...}}</code> and the kept answers).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>templates</code>, <code translate="no" v-pre>domain.templates</code></td>
@@ -1258,7 +1263,7 @@ in <code translate="no" v-pre>src/main/bundles/</code>, <code translate="no" v-p
 |---|---|---|
 | Anthropic Claude | `extensions.anthropic` | Activator and extension, `AnthropicFactory` (the `ExtensionAIFactory`), the settings form, the inference service over the Anthropic Java SDK (embedded in the JAR) and helpers for the messages, the errors and the settings; has unit tests and a test against a fake Messages API. |
 | Arc Outline | `extensions.arcoutline` | Model (arcs, chapters, the in-memory `ArcOutline`, settings, the schema of a generated arc and `GeneratedMappedStoryArc` for the import of a story, whose chapters say the message they begin in; `OutlineNode.part` links an arc or chapter to a part of the active branch), service (outline, prompt building, `mapPart`), a sidebar tab, dialogs (arc, the generators of arcs and chapters on a common `GeneratorDialog`, `StoryImportDialog`), a settings form, `LegacyNameTools` (reads the name categories saved before the tool dialog) and `arcoutline.css`. |
-| Author's Note | `extensions.authorsnote` | Model, service, a sidebar panel and a generation listener. |
+| Author's Note | `extensions.authorsnote` | Model, service, a sidebar panel, a generation listener and a macro command (`authors-note`). |
 | Beta Readers | `extensions.betareaders` | Model (`BetaChat` with its `BetaMessage`s and `ChatPersona`s, the `Persona` library and the `Medium`s, the settings and the data a book keeps, the kinds of a message: said, scene, presence), service (`BetaReadersService` with the store, `ChatRunner` that asks the model, `PromptBuilder` for the system prompt and the story it sends, `PartsTracker` for what the personas have read, `ReplyReader` / `BetaSchemas` / `TextFormat` for the answer in a schema or as text, `PersonaWriter`, `BetaReadersInherited` for the settings a book and a folder inherit), UI (the tab `BetaReadersView`, `ChatPanel` and its message cards, the dialogs of a new chat, of its settings, of the persona and medium libraries and of who is present). |
 | Chapter Marker | `extensions.chaptermarking` | Activator and extension only - the smallest example. |
 | Character Tracker | `extensions.charactertracker` | Model (characters, relationships, the in-memory `CharacterBook`), service, a sidebar tab, dialogs (character, import from the lorebook, relationship map on `GraphView`) and `charactertracker.css`. |
@@ -1266,6 +1271,7 @@ in <code translate="no" v-pre>src/main/bundles/</code>, <code translate="no" v-p
 | Google Gemini | `extensions.googlegenai` | Activator and extension, `GoogleGenAiFactory` (the `ExtensionAIFactory`), the settings form, the inference service over the Google Gen AI SDK (embedded in the JAR) and helpers for the messages, the errors and the settings; has unit tests. |
 | Image Generator | `extensions.imagegenerator` | Model (`ImageSettings`, `BackendConfig` with its `HttpHook`s), service (`ImageBackend` with `ComfyUiBackend` and `OpenAiImagesBackend`, `WorkflowTemplate`, `ImageSession` that holds a backend between images, `HookRunner`, `UrlGuard`, `ImageGeneratorService`), the window (`ImageGeneratorDialog`), `ImageSettingsForm` (the panel of the extension settings) and `image-generator.css`; has unit tests with fake ComfyUI and OpenAI servers. |
 | Instruction Exporter | `extensions.instructionexporter` | Activator and extension only. |
+| Knowledge Tracker | `extensions.knowledgetracker` | Model (`KnowledgeState` in the book's attributes: tracked characters, items, people met, the cursor and the processed list), `scene` (`PresentCharacters`, the lenient reading of the present characters field, and `SeparatorText`), `block` (`KnowledgeBlockBuilder` and `PayloadInsertion`), `process` (`BranchProcessor`, the cursor and the &quot;has met&quot; pass over the active branch; pure, no Spring), `extract` (the request to the model and its numbering, the checking of the answer into a change set, applying reviewed changes, `RunCommit`; pure, no Spring), services (state, prompt, processing, `ExtractionService` that asks the model, `ExtractionRun` / `ExtractionRuns`, one worker-thread run per book), a non-modal draggable progress panel and the review dialog, `KnowledgeTrackerCommands` (including a macro command and commands that ask, which are `async`), a sidebar tab and two dialogs. The extension also listens to `BEFORE_PREPARE_CONTENT`, `AFTER_PREPARE_PAYLOAD` and `AFTER_CLEANUP`. |
 | Prompt Inspector | `extensions.promptinspector` | Activator, extension (the menu item, the `BEFORE_INFERENCE` listener), the dialog, `GenerationQuestion` (asks through `accessUI` and releases the generation exactly once; tested with a fake view) and localization. |
 | Book Description Generator | `extensions.bookdescription` | Model (the settings, `OutputFormat`, the answer in a schema, the template data of the two prompts), service (`BookDescriptionService` with the notes pipeline, `StoryPlanner` for the pieces of a range and their division, `AnswerParser` for JSON or Markdown answers, `BookDescriptionInherited` for the two prompts a book and a folder inherit), UI (`BookDescriptionDialog`, the settings form). |
 | Lore Generator | `extensions.loregenerator` | Model (the prompts), service (lore selection, prompts), a dialog split into `SavePromptAsDialog`, `AttachmentPanel` and `GenerationPane`, a settings form, and `LegacyNameTools` (reads the name categories and hints saved before the tool dialog). |
@@ -1301,7 +1307,7 @@ in <code translate="no" v-pre>src/main/bundles/</code>, <code translate="no" v-p
 <tr>
 <td>Author&#x27;s Note</td>
 <td><code translate="no" v-pre>extensions.authorsnote</code></td>
-<td>Model, service, a sidebar panel and a generation listener.</td>
+<td>Model, service, a sidebar panel, a generation listener and a macro command (<code translate="no" v-pre>authors-note</code>).</td>
 </tr>
 <tr>
 <td>Beta Readers</td>
@@ -1337,6 +1343,11 @@ in <code translate="no" v-pre>src/main/bundles/</code>, <code translate="no" v-p
 <td>Instruction Exporter</td>
 <td><code translate="no" v-pre>extensions.instructionexporter</code></td>
 <td>Activator and extension only.</td>
+</tr>
+<tr>
+<td>Knowledge Tracker</td>
+<td><code translate="no" v-pre>extensions.knowledgetracker</code></td>
+<td>Model (<code translate="no" v-pre>KnowledgeState</code> in the book&#x27;s attributes: tracked characters, items, people met, the cursor and the processed list), <code translate="no" v-pre>scene</code> (<code translate="no" v-pre>PresentCharacters</code>, the lenient reading of the present characters field, and <code translate="no" v-pre>SeparatorText</code>), <code translate="no" v-pre>block</code> (<code translate="no" v-pre>KnowledgeBlockBuilder</code> and <code translate="no" v-pre>PayloadInsertion</code>), <code translate="no" v-pre>process</code> (<code translate="no" v-pre>BranchProcessor</code>, the cursor and the &quot;has met&quot; pass over the active branch; pure, no Spring), <code translate="no" v-pre>extract</code> (the request to the model and its numbering, the checking of the answer into a change set, applying reviewed changes, <code translate="no" v-pre>RunCommit</code>; pure, no Spring), services (state, prompt, processing, <code translate="no" v-pre>ExtractionService</code> that asks the model, <code translate="no" v-pre>ExtractionRun</code> / <code translate="no" v-pre>ExtractionRuns</code>, one worker-thread run per book), a non-modal draggable progress panel and the review dialog, <code translate="no" v-pre>KnowledgeTrackerCommands</code> (including a macro command and commands that ask, which are <code translate="no" v-pre>async</code>), a sidebar tab and two dialogs. The extension also listens to <code translate="no" v-pre>BEFORE_PREPARE_CONTENT</code>, <code translate="no" v-pre>AFTER_PREPARE_PAYLOAD</code> and <code translate="no" v-pre>AFTER_CLEANUP</code>.</td>
 </tr>
 <tr>
 <td>Prompt Inspector</td>
@@ -1589,7 +1600,7 @@ ignored by Git), see <a href="../packaging/#building-the-plugins-in-docker">Pack
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (e1ae5a51d).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (d0bef2c68).</p></div>
             </footer>
         </div>
     </div>
