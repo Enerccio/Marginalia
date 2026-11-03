@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.domain.service;
 
 import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
+import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.command.CommandScope;
 
 /**
@@ -21,5 +22,13 @@ public interface CommandScopes {
      * @throws IllegalArgumentException when the run does not exist
      */
     CommandScope forRun(AgentRun run);
+
+    /**
+     * The scope of a template that runs a command (the {@code command} macro): the given book, as it is stored at the
+     * moment, whoever has it open. Nobody is asked anything: a question is answered with no.
+     *
+     * @throws IllegalArgumentException when the book does not exist
+     */
+    CommandScope forManuscript(Manuscript manuscript);
 
 }

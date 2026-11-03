@@ -208,6 +208,48 @@ public abstract class TemplateData {
         return Objects.toString(templateContext.getLatestSummary(), "");
     }
 
+    /**
+     * {{closest-message}}, {{closest-message::n}} - the n-th closest part of the story to the one being written, 1 (the
+     * default) is the last part. Empty when the story has not that many parts or n is not a position.
+     */
+    public String closestMessage(String n) {
+        List<String> messages = templateContext.getStoryMessages();
+        int position = position(n);
+        return position < 1 || position > messages.size() ? "" : Objects.toString(messages.get(messages.size() - position), "");
+    }
+
+    /**
+     * {{closest-summary}}, {{closest-summary::n}} - the n-th closest summary of the branch, 1 (the default) is the newest.
+     */
+    public String closestSummary(String n) {
+        int position = position(n);
+        if (position < 1 || templateContext.getSummaryLookup() == null) {
+            return "";
+        }
+        return Objects.toString(templateContext.getSummaryLookup().apply(position), "");
+    }
+
+    /**
+     * {{current-message}} - the text of the part that a regenerate or a swipe replaces; empty for a new part.
+     */
+    public String currentMessage() {
+        return Objects.toString(templateContext.getCurrentMessage(), "");
+    }
+
+    /**
+     * @return the position given as a macro argument, 1 when there is none, 0 when it is not a number
+     */
+    private static int position(String n) {
+        if (n == null || n.isBlank()) {
+            return 1;
+        }
+        try {
+            return Integer.parseInt(n.trim());
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+
     // ------------------------------------------------------------------------------------------------------------
     // Time & date
     // ------------------------------------------------------------------------------------------------------------
@@ -661,6 +703,29 @@ public abstract class TemplateData {
 
     public String trim() {
         return TRIM_MARKER;
+    }
+
+    /**
+     * {{command::name::argument}} - what the command answers, see {@link CommandMacroRunner}. Empty when the template is
+     * rendered without a book to run it in, and "Error" when no command was named.
+     */
+    public String command(List<String> args) {
+        if (args == null || args.isEmpty() || args.getFirst() == null || args.getFirst().isBlank()) {
+            return "Error";
+        }
+        CommandMacroRunner runner = templateContext.getCommandRunner();
+        return runner == null ? "" : runner.run(args.getFirst().strip(), args.subList(1, args.size()));
+    }
+
+    /**
+     * {{join::separator::a::b::c}} - the arguments after the first one, joined with the first one; empty ones are left out.
+     */
+    public String join(List<String> args) {
+        if (args == null || args.isEmpty()) {
+            return "";
+        }
+        String separator = Objects.toString(args.getFirst(), "");
+        return args.stream().skip(1).filter(part -> part != null && !part.isEmpty()).collect(java.util.stream.Collectors.joining(separator));
     }
 
     public String reverse(String text) {

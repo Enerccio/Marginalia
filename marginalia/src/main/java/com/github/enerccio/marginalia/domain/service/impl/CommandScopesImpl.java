@@ -60,8 +60,16 @@ public class CommandScopesImpl implements CommandScopes {
         return new RunScope(run);
     }
 
+    @Override
+    public CommandScope forManuscript(Manuscript manuscript) {
+        if (manuscript == null || manuscript.getId() == null) {
+            throw new IllegalArgumentException("The book does not exist");
+        }
+        return new FixedBookScope(manuscript);
+    }
+
     /**
-     * What both scopes do the same way: find the lorebooks of the book and keep to them.
+     * What the scopes do the same way: find the lorebooks of the book and keep to them.
      */
     private abstract class BookScope implements CommandScope {
 
@@ -163,6 +171,34 @@ public class CommandScopesImpl implements CommandScopes {
         @Override
         public boolean confirm(CommandContext context, String question) throws InterruptedException {
             return CommandUtils.confirm(context, question);
+        }
+    }
+
+    /**
+     * A template: one given book, nobody to ask.
+     */
+    private final class FixedBookScope extends BookScope {
+
+        private final Manuscript manuscript;
+
+        FixedBookScope(Manuscript manuscript) {
+            this.manuscript = manuscript;
+        }
+
+        @Override
+        Manuscript book() throws Exception {
+            Manuscript current = manuscriptService.find(manuscript.getId());
+            return current == null || current.isDeleted() ? null : current;
+        }
+
+        @Override
+        public AgentRun getRun() {
+            return null;
+        }
+
+        @Override
+        public boolean confirm(CommandContext context, String question) {
+            return false;
         }
     }
 

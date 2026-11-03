@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Random;
+import java.util.function.IntFunction;
 
 /**
  * Environment that macros are evaluated against (who is the POV character, which model is used, what the story looks
@@ -41,6 +42,15 @@ public class TemplateContext {
     private String lastInstructions;
     private Date lastMessageTime;
     private String latestSummary;
+    /**
+     * The n-th closest summary of the branch (1 is the closest, the one of {@link #latestSummary}), empty when there is
+     * none; looked up when a template asks, a long branch has many. {@code null} when the render has no branch.
+     */
+    private IntFunction<String> summaryLookup;
+    /**
+     * Text of the part a regenerate or a swipe replaces, {@code null} for a new part.
+     */
+    private String currentMessage;
 
     /**
      * Seed used for stable {{pick}} results - usually the manuscript id.
@@ -50,6 +60,11 @@ public class TemplateContext {
     private TemplateVariables variables = new TemplateVariables();
     private Clock clock = Clock.systemDefaultZone();
     private Random random = new Random();
+
+    /**
+     * Runs {{command::name}}, {@code null} when the render has no book to run commands in.
+     */
+    private CommandMacroRunner commandRunner;
 
     /**
      * Copy of this context with copied variables - use it for "dry" renders (token estimation) whose side effects
@@ -74,10 +89,14 @@ public class TemplateContext {
         copy.lastInstructions = lastInstructions;
         copy.lastMessageTime = lastMessageTime;
         copy.latestSummary = latestSummary;
+        copy.summaryLookup = summaryLookup;
+        copy.currentMessage = currentMessage;
         copy.pickSeed = pickSeed;
         copy.variables = variables.copy();
         copy.clock = clock;
         copy.random = random;
+        // shared on purpose: the answers it keeps are the same for the estimation render and the real one
+        copy.commandRunner = commandRunner;
         return copy;
     }
 
@@ -244,6 +263,22 @@ public class TemplateContext {
         this.latestSummary = latestSummary;
     }
 
+    public IntFunction<String> getSummaryLookup() {
+        return summaryLookup;
+    }
+
+    public void setSummaryLookup(IntFunction<String> summaryLookup) {
+        this.summaryLookup = summaryLookup;
+    }
+
+    public String getCurrentMessage() {
+        return currentMessage;
+    }
+
+    public void setCurrentMessage(String currentMessage) {
+        this.currentMessage = currentMessage;
+    }
+
     public String getPickSeed() {
         return pickSeed;
     }
@@ -266,6 +301,14 @@ public class TemplateContext {
 
     public void setClock(Clock clock) {
         this.clock = clock;
+    }
+
+    public CommandMacroRunner getCommandRunner() {
+        return commandRunner;
+    }
+
+    public void setCommandRunner(CommandMacroRunner commandRunner) {
+        this.commandRunner = commandRunner;
     }
 
     public Random getRandom() {

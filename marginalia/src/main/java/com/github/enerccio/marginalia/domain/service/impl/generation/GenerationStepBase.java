@@ -37,6 +37,12 @@ public abstract class GenerationStepBase implements GenerationStep {
     protected TemplateService templateService;
 
     @Autowired
+    protected CommandService commandService;
+
+    @Autowired
+    protected CommandScopes commandScopes;
+
+    @Autowired
     protected InferenceServices inferenceServices;
 
     @Autowired
@@ -150,6 +156,7 @@ public abstract class GenerationStepBase implements GenerationStep {
         });
 
         // story so far, the same branch PrepareContentStep uses
+        ChatMessage anchor = null;
         ChatMessage activeMessage = chatMessageService.find(manuscript.getActiveLeaf());
         if (activeMessage != null) {
             List<ChatMessage> branch = new ArrayList<>(chatMessageService.getBranchFromLeaf(activeMessage));
@@ -168,11 +175,33 @@ public abstract class GenerationStepBase implements GenerationStep {
 
             if (!branch.isEmpty()) {
                 ChatMessage last = branch.getLast();
+                anchor = last;
                 context.setLastInstructions(last.getInstructions());
                 context.setLastMessageTime(last.getRequest());
                 // local variables follow the story branch
                 context.getVariables().loadFrom(TemplateVariables.Scope.LOCAL, last.getAttributes());
             }
+
+            // closest-summary::n: looked up when a template asks, the branch can have many summaries
+            List<ChatMessage> summarized = List.copyOf(branch);
+            context.setSummaryLookup(position -> {
+                int seen = 0;
+                for (ChatMessage message : summarized.reversed()) {
+                    if (message.getSummary() == null) {
+                        continue;
+                    }
+                    if (++seen == position) {
+                        try {
+                            Summary summary = summaryService.find(message.getSummary());
+                            return summary == null ? "" : summary.getSummary();
+                        } catch (Exception e) {
+                            log.warn("Can't read the summary of a part for closest-summary: {}", e.getMessage(), e);
+                            return "";
+                        }
+                    }
+                }
+                return "";
+            });
 
             for (ChatMessage message : branch.reversed()) {
                 if (message.getSummary() != null) {
@@ -186,6 +215,16 @@ public abstract class GenerationStepBase implements GenerationStep {
         }
 
         context.getVariables().loadFrom(TemplateVariables.Scope.GLOBAL, manuscript.getAttributes());
+        // current-message: the part a regenerate or a swipe replaces
+        ChatMessage replaced = controller.getRequest().getNode();
+        if (replaced != null) {
+            ChatMessage stored = chatMessageService.find(replaced.getId());
+            context.setCurrentMessage((stored != null ? stored : replaced).getResponse());
+        }
+        // {{command::...}}: the answers are kept with the part this one continues from, a regenerate and a swipe ask again
+        GenerationRequestType requestType = controller.getRequest().getRequestType();
+        context.setCommandRunner(new CommandMacros(commandService, commandScopes, chatMessageService, manuscript, anchor,
+                requestType == GenerationRequestType.REGENERATE || requestType == GenerationRequestType.SWIPE));
         log.debug("Template context created, variables: {}", context.getVariables());
         return context;
     }

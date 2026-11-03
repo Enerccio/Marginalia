@@ -2132,6 +2132,11 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.DESC_TEMPLATE_EXPORT_QUOTED_AUTHOR, "本の著者（二重引用符内で使えるようエスケープ済み。いない場合は空）。");
         setValue(L.DESC_TEMPLATE_EXPORT_LANGUAGE, "本の言語のISO 639-1コード。");
         setValue(L.DESC_TEMPLATE_EXPORT_DATE, "エクスポート日（YYYY-MM-DD）。");
+        setValue(L.DESC_MACRO_COMMAND, "読み取り専用のコマンドを実行し、その結果を挿入します。マクロ用に指定されたコマンドのみ使用でき、結果はパートを再生成またはスワイプするまで保持されます。");
+        setValue(L.DESC_MACRO_CLOSEST_MESSAGE, "執筆中のパートに最も近いパート。数値を指定するとn番目に近いパート（1が最後のパート）。該当がなければ空です。");
+        setValue(L.DESC_MACRO_CLOSEST_SUMMARY, "執筆中のパートに最も近い要約。数値を指定するとn番目に近い要約（1が最新）。該当がなければ空です。");
+        setValue(L.DESC_MACRO_CURRENT_MESSAGE, "再生成またはスワイプで置き換えられるパートのテキスト。新しいパートでは空です。");
+        setValue(L.DESC_MACRO_JOIN, "最初の引数を区切りとして、2番目以降のテキストを連結します。空のテキストは除外されます。空白を含む区切りには {{space}} や {{newline}} を使用してください。");
     }
 
     @Override
