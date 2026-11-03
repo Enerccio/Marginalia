@@ -958,6 +958,11 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_SUMMARY_WILL_CHANGE_BY_POSITION, "変更されます（位置で対応）");
         setValue(L.LABEL_SUMMARY_PART_NOT_FOUND, "パートが見つかりません");
         setValue(L.LABEL_SUMMARY_EMPTY_TEXT, "テキストが空です");
+        setValue(L.LABEL_BACK_TO_EDIT, "編集に戻る");
+        setValue(L.LABEL_SAVE_ANYWAY, "そのまま保存");
+        setValue(L.LABEL_SAVE_AND_REVALIDATE_SUMMARIES, "保存して要約を再検証");
+        setValue(L.LABEL_REVALIDATE, "再検証");
+        setValue(L.LABEL_OUTDATED, "古い");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -1257,7 +1262,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_NO_ACTIVE_BRANCH, "有効なストーリーのブランチがありません。メッセージを追加して始めてください。");
         setValue(L.MSG_SELECT_MESSAGE_METADATA, "メタデータを表示するメッセージを選択してください。");
         setValue(L.MSG_INTERRUPTED, "バックエンドで生成が中断されました。");
-        setValue(L.MSG_SUMMARY_FAILURE, "ID [%s] のメッセージの要約が無効になりました。これらの要約なしで生成を続けますか？");
+        setValue(L.MSG_SUMMARY_FAILURE, "ID [%s] のメッセージの要約は古くなっています（要約の作成後にストーリーが変更されました）。\n\n生成を続けて、これらを削除しますか？「いいえ」を選ぶと生成を中止し、要約は残ります。要約の一覧で再検証できます。");
         setValue(L.MSG_EXTENSION_INSTALLED_SUCCESS, "拡張機能を読み込みました。");
         setValue(L.MSG_EXTENSION_UNINSTALLED_SUCCESS, "拡張機能をアンロードしました。");
         setValue(L.MSG_CONFIRM_UNLOAD_EXTENSION, "拡張機能「%s」をアンロードし、その JAR を拡張機能フォルダから削除します。続行しますか？");
@@ -1631,6 +1636,8 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_SUMMARIES_IMPORT_READY, "%d 件の要約が変更されます（全 %d 件中）。");
         setValue(L.MSG_SUMMARIES_IMPORTED, "%d 件の要約を更新しました。");
         setValue(L.MSG_IMPORT_SUMMARIES, "「要約をエクスポート」で作成したファイル（テキストエディタで編集できます）を選択してください。ファイルが指すアクティブなブランチの要約が置き換えられます。「インポート」を押すまで何も変更されません。");
+        setValue(L.MSG_SAVE_OUTDATED_SUMMARIES, "この変更を保存すると %d 件の要約が古くなります。これらはパートの元の文章に基づいており、古い要約は生成に使われません。\n\n編集に戻る、そのまま保存する、または保存して要約を有効のままにしますか？");
+        setValue(L.MSG_SUMMARIES_REVALIDATED, "%d 件の要約を再検証しました。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");

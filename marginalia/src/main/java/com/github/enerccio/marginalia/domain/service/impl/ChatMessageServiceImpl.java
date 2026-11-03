@@ -698,14 +698,49 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
 
         ChatMessage saved = storeResponse(book, stored, newText, tokens, origin);
 
+        return new PartEdit(saved, newlyOutdated(summaryService.collectBlocks(newestFirst), outdatedBefore));
+    }
+
+    @Override
+    public List<SummaryBlock> outdatedByEdit(Manuscript manuscript, ChatMessage message, String text) throws Exception {
+        return inTx(true, () -> {
+            Manuscript book = ownBook(manuscript);
+            ChatMessage stored = ownPart(book, message);
+            ChatMessage leaf = findLeafFor(book, stored);
+            if (leaf == null) {
+                return List.of();
+            }
+            List<ChatMessage> newestFirst = new ArrayList<>(getBranchFromLeaf(leaf).reversed());
+            String newText = text == null ? "" : text;
+            SummaryService.BlockTexts edited = new SummaryService.BlockTexts() {
+                @Override
+                public String response(ChatMessage branchPart) {
+                    return branchPart.getId().equals(stored.getId()) ? newText : branchPart.getResponse();
+                }
+
+                @Override
+                public String summary(Summary summary) {
+                    return summary.getSummary();
+                }
+            };
+            return newlyOutdated(summaryService.collectBlocks(newestFirst, edited), outdatedHeads(newestFirst));
+        });
+    }
+
+    /**
+     * @param blocks         the blocks of the branch, newest first
+     * @param outdatedBefore heads of the summaries that were outdated already, they are not made so by the edit
+     * @return the outdated blocks that were not, oldest first
+     */
+    private static List<SummaryBlock> newlyOutdated(List<SummaryBlock> blocks, Set<Long> outdatedBefore) {
         List<SummaryBlock> outdated = new ArrayList<>();
-        for (SummaryBlock block : summaryService.collectBlocks(newestFirst)) {
+        for (SummaryBlock block : blocks) {
             if (!block.isValid() && !outdatedBefore.contains(block.head().getId())) {
                 outdated.add(block);
             }
         }
         Collections.reverse(outdated);
-        return new PartEdit(saved, outdated);
+        return outdated;
     }
 
     @Override

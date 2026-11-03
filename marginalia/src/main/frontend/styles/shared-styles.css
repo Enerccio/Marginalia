@@ -1107,6 +1107,11 @@ vaadin-markdown.agent-report td {
     padding-right: 40px;
 }
 
+/* Summaries overview (ui.dialogs.manuscript.SummariesDialog): a summary that no longer describes the story */
+vaadin-grid::part(summary-outdated) {
+    background-color: var(--lumo-error-color-10pct);
+}
+
 .summary-actions {
     position: absolute;
     top: 0;

@@ -152,6 +152,8 @@ public final class CssStyles {
     public static final String ANNOTATION_LIT = "annotation-lit";
     public static final String SUMMARY_CONTENT = "summary-content";
     public static final String SUMMARY_ACTIONS = "summary-actions";
+    /** Row of the summaries overview of a summary that no longer describes the story. */
+    public static final String SUMMARY_OUTDATED = "summary-outdated";
 
     // --- graph ---
     public static final String GRAPH_VIEW = "graph-view";

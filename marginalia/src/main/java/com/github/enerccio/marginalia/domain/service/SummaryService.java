@@ -62,6 +62,15 @@ public interface SummaryService extends ExtendableService<Summary, SummaryReposi
     List<SummaryBlock> revalidate(Manuscript manuscript, List<ChatMessage> newestFirst, ChatMessage only) throws Exception;
 
     /**
+     * {@link #revalidate(Manuscript, List, ChatMessage)} on the active branch of the book, for the summaries overview.
+     *
+     * @param only the part whose summary is revalidated, all the outdated summaries of the branch when null
+     * @return the summaries that were outdated and are valid now, oldest first, empty when the book has no story
+     * @throws ManuscriptLockedException when an agent works on the book
+     */
+    List<SummaryBlock> revalidateActiveBranch(Manuscript manuscript, ChatMessage only) throws Exception;
+
+    /**
      * Says that the given summaries still describe the story: stores the hash of their block as it was collected (so they must
      * come from {@link #collectBlocks} after the change of the story, like the outdated summaries of
      * {@link ChatMessageService.PartEdit}).
@@ -153,6 +162,12 @@ public interface SummaryService extends ExtendableService<Summary, SummaryReposi
      * @return blocks newest first, messages newer than the first summary are not in any block
      */
     List<SummaryBlock> collectBlocks(List<ChatMessage> newestFirst) throws Exception;
+
+    /**
+     * As {@link #collectBlocks(List)} with the hashes the blocks would have if the story had the texts of {@code texts}: tells
+     * which summaries a change of the story would make outdated before the change is made.
+     */
+    List<SummaryBlock> collectBlocks(List<ChatMessage> newestFirst, BlockTexts texts) throws Exception;
 
     /**
      * The first block of a branch that is given from the message with the summary down to the root, with the hash the

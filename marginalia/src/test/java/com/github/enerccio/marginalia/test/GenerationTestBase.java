@@ -111,7 +111,14 @@ public abstract class GenerationTestBase extends MarginaliaTestBase {
     }
 
     protected GenerationRun generate(Manuscript manuscript, TurnInput input) throws Exception {
-        GenerationRun run = new GenerationRun();
+        return generate(manuscript, input, true);
+    }
+
+    /**
+     * @param answer what the author answers to the questions of the generation
+     */
+    protected GenerationRun generate(Manuscript manuscript, TurnInput input, boolean answer) throws Exception {
+        GenerationRun run = new GenerationRun().answering(answer);
         storyGenerationService.generateNextTurn(manuscriptService.find(manuscript.getId()), input,
                 GenerationRequest.newMessage(), run);
         run.await(TIMEOUT);
@@ -120,5 +127,9 @@ public abstract class GenerationTestBase extends MarginaliaTestBase {
 
     protected GenerationRun generate(Manuscript manuscript, String instructions) throws Exception {
         return generate(manuscript, new TurnInput(null, null, null, instructions));
+    }
+
+    protected GenerationRun generate(Manuscript manuscript, String instructions, boolean answer) throws Exception {
+        return generate(manuscript, new TurnInput(null, null, null, instructions), answer);
     }
 }

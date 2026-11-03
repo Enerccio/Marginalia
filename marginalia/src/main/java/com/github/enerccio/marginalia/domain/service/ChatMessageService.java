@@ -175,6 +175,14 @@ public interface ChatMessageService extends ExtendableService<ChatMessage, ChatM
     PartEdit updateResponse(Manuscript manuscript, ChatMessage message, String text, RevisionOrigin origin) throws Exception;
 
     /**
+     * The summaries that saving {@code text} as the text of the part would make outdated, without saving anything: what
+     * {@link PartEdit#outdated()} of {@link #updateResponse(Manuscript, ChatMessage, String)} would hold, oldest first. The blocks
+     * have the hash of the story with the new text, so they can be given to {@link SummaryService#revalidate(Manuscript, java.util.Collection)}
+     * after the text is saved.
+     */
+    List<SummaryBlock> outdatedByEdit(Manuscript manuscript, ChatMessage message, String text) throws Exception;
+
+    /**
      * Whether a summary describes the text of the part, so that an edit of the part can make it outdated: the part has a summary
      * itself, or a newer part of its branch has one that goes down to it.
      *

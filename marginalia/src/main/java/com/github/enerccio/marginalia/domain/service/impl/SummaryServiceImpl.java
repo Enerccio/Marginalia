@@ -20,8 +20,8 @@ import com.github.enerccio.marginalia.domain.templates.TemplateVariables;
 import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes;
-import com.github.enerccio.marginalia.utils.SummaryTransfer;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes.InRequestScope;
+import com.github.enerccio.marginalia.utils.SummaryTransfer;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -407,6 +407,15 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
 
     @Override
     @CommonTx
+    public List<SummaryBlock> revalidateActiveBranch(Manuscript manuscript, ChatMessage only) throws Exception {
+        if (manuscript == null || manuscript.getActiveLeaf() == null) {
+            return List.of();
+        }
+        return revalidate(manuscript, chatMessageService.getBranchFromLeaf(manuscript.getActiveLeaf()).reversed(), only);
+    }
+
+    @Override
+    @CommonTx
     public void revalidate(Manuscript manuscript, Collection<SummaryBlock> blocks) throws Exception {
         agentRunService.checkNotLocked(manuscript);
         for (SummaryBlock block : blocks) {
@@ -425,7 +434,7 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
     public List<SummaryNode> collectTree(List<ChatMessage> newestFirst) throws Exception {
         List<SummaryNode> nodes = new ArrayList<>();
         for (SummaryBlock block : collectBlocks(newestFirst)) {
-            nodes.add(createNode(newestFirst, newestFirst.indexOf(block.head()), block.summary(), false));
+            nodes.add(createNode(newestFirst, newestFirst.indexOf(block.head()), block.summary(), false, block.isValid()));
         }
         return nodes.reversed();
     }
@@ -439,10 +448,10 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
         return collectTree(chatMessageService.getBranchFromLeaf(manuscript.getActiveLeaf()).reversed());
     }
 
-    private SummaryNode createNode(List<ChatMessage> newestFirst, int index, Summary summary, boolean replaced) throws Exception {
+    private SummaryNode createNode(List<ChatMessage> newestFirst, int index, Summary summary, boolean replaced, boolean valid) throws Exception {
         List<SummaryNode> children = summary.getSummaryType() == SummaryType.META_SUMMARY
                 ? createChildren(newestFirst, index, summary) : List.of();
-        return new SummaryNode(newestFirst.get(index), newestFirst.size() - index, summary, replaced, children);
+        return new SummaryNode(newestFirst.get(index), newestFirst.size() - index, summary, replaced, valid, children);
     }
 
     /**
@@ -457,7 +466,7 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
             Summary replaced = new Summary();
             replaced.setExtendedContent(meta.getReplacedSummary().getBytes(StandardCharsets.UTF_8));
             extendableListener.deserialize(replaced);
-            children.add(createNode(newestFirst, index, replaced, true));
+            children.add(createNode(newestFirst, index, replaced, true, true));
             ignoring = replaced.getSummaryType() == SummaryType.META_SUMMARY;
             nextUuid = replaced.getNextSummaryUuid();
         }
@@ -472,7 +481,7 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
                 break;
             }
             if (!ignoring || Objects.equals(summary.getUuid(), nextUuid)) {
-                children.add(createNode(newestFirst, i, summary, false));
+                children.add(createNode(newestFirst, i, summary, false, true));
                 ignoring = summary.getSummaryType() == SummaryType.META_SUMMARY;
                 nextUuid = summary.getNextSummaryUuid();
             }
@@ -484,6 +493,12 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
     @CommonTxReadOnly
     public List<SummaryBlock> collectBlocks(List<ChatMessage> newestFirst) throws Exception {
         return walkBlocks(newestFirst.iterator(), BlockTexts.CURRENT, false);
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public List<SummaryBlock> collectBlocks(List<ChatMessage> newestFirst, BlockTexts texts) throws Exception {
+        return walkBlocks(newestFirst.iterator(), texts, false);
     }
 
     @Override
