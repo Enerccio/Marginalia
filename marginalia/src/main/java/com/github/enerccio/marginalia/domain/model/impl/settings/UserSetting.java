@@ -85,6 +85,13 @@ public class UserSetting extends Setting {
     @Transient
     private String defaultAnnotatePrompt;
 
+    /**
+     * What the model looks for when it annotates, for the books and folders that set nothing.
+     */
+    @ExtendedAttribute
+    @Transient
+    private String defaultAnnotateInstructions;
+
     @ExtendedAttribute
     @Transient
     private String defaultImpersonatePrompt;
@@ -386,6 +393,14 @@ public class UserSetting extends Setting {
 
     public void setDefaultAnnotatePrompt(String defaultAnnotatePrompt) {
         this.defaultAnnotatePrompt = defaultAnnotatePrompt;
+    }
+
+    public String getDefaultAnnotateInstructions() {
+        return defaultAnnotateInstructions;
+    }
+
+    public void setDefaultAnnotateInstructions(String defaultAnnotateInstructions) {
+        this.defaultAnnotateInstructions = defaultAnnotateInstructions;
     }
 
     public String getDefaultImpersonatePrompt() {

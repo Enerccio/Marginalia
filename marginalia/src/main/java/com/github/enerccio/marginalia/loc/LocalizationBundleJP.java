@@ -963,6 +963,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_SAVE_AND_REVALIDATE_SUMMARIES, "保存して要約を再検証");
         setValue(L.LABEL_REVALIDATE, "再検証");
         setValue(L.LABEL_OUTDATED, "古い");
+        setValue(L.LABEL_SET_FOR_THE_BOOK, "このブックに設定済み");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -1745,6 +1746,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_LOREBOOK_SHARED, "他のユーザーは、このロアブックを共有されているサブロアブックとともに「他のユーザーからインポート」で見て、コピーをインポートできます。あなたのものは変更できません。");
         setValue(L.HELP_PROTOCOL_SHARED, "他のユーザーは、このプロトコルを「他のユーザーからインポート」で見て、コピーをインポートできます。あなたのものは変更できません。");
         setValue(L.HELP_MATCH_BY_POSITION, "要約はパートのIDで対応付けられます。別のブックのファイル（コピーはIDが異なります）の場合はこれをオンにしてください。このブランチにないパートの要約は、同じ位置の要約に入ります。");
+        setValue(L.HELP_ANNOTATE_INSTRUCTIONS, "AI が注釈を付けるときに確認する点です。例: 設定の矛盾、弱い会話を指摘する。空の場合は注釈プロンプトの既定のタスクになります。「AI で注釈を付ける」ウィンドウはこの内容で始まります。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景設定と世界観の文脈。");

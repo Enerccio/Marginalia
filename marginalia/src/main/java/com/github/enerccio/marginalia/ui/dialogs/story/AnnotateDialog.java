@@ -5,19 +5,16 @@ import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
-import com.github.enerccio.marginalia.domain.service.AnnotateService;
+import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.AnnotateService.Mode;
 import com.github.enerccio.marginalia.domain.service.AnnotateService.Proposal;
-import com.github.enerccio.marginalia.domain.service.CancellationToken;
-import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationOptions;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes.InRequestScope;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
-import com.github.enerccio.marginalia.ui.widgets.ModelProtocolPicker;
-import com.github.enerccio.marginalia.ui.widgets.Notification;
+import com.github.enerccio.marginalia.ui.widgets.*;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.ModalityMode;
 import com.vaadin.flow.component.UI;
@@ -64,6 +61,9 @@ public class AnnotateDialog extends Dialog {
     @Autowired
     private ChatMessageService chatMessageService;
 
+    @Autowired
+    private ManuscriptService manuscriptService;
+
     private final Manuscript manuscript;
     /**
      * The part the dialog annotates, null for the dialog of a range.
@@ -79,7 +79,7 @@ public class AnnotateDialog extends Dialog {
     private final ComboBox<Integer> toPart = new ComboBox<>();
     private final VerticalLayout batchRange;
     private final Span batchProgress = new Span();
-    private final TextArea instructions = new TextArea();
+    private final TextAreaPopoverComponent instructions = new TextAreaPopoverComponent();
     private final ComboBox<Mode> mode = new ComboBox<>();
     private final ModelProtocolPicker model = new ModelProtocolPicker();
     private final ModelProtocolPicker extractModel = new ModelProtocolPicker();
@@ -217,7 +217,7 @@ public class AnnotateDialog extends Dialog {
         batchProgress.setVisible(false);
 
         instructions.setLabel(loc.getValue(L.LABEL_ANNOTATE_INSTRUCTIONS));
-        instructions.setPlaceholder(loc.getValue(L.MSG_ANNOTATE_PLACEHOLDER));
+        showInherited(instructions, manuscript, manuscriptService, loc);
         instructions.setWidthFull();
         instructions.setMinRows(2);
         instructions.setMaxRows(6);
@@ -298,6 +298,32 @@ public class AnnotateDialog extends Dialog {
                 cancellationToken.cancel();
             }
         });
+    }
+
+    /**
+     * What to look for when the field is left empty is what the book inherits (its own setting, the folders' and the user's, see
+     * {@link PromptField#ANNOTATE_INSTRUCTIONS}): the field shows it as its placeholder and says where it comes from, and the info
+     * icon of the field has a button that copies it into the field, to edit it for this run (as the fields of the prompts do).
+     * Without any the placeholder is an example and the prompt does its default task.
+     */
+    static void showInherited(TextAreaPopoverComponent field, Manuscript manuscript, ManuscriptService manuscriptService, Localization loc) {
+        String placeholder = loc.getValue(L.MSG_ANNOTATE_PLACEHOLDER);
+        String helper = null;
+        String inheritedText = null;
+        try {
+            EffectiveSetting<String> inherited = manuscriptService.resolve(manuscript, PromptField.ANNOTATE_INSTRUCTIONS);
+            if (StringUtils.isNotBlank(inherited.value())) {
+                placeholder = inherited.value();
+                inheritedText = inherited.value();
+                helper = inherited.origin() == EffectiveSetting.Origin.BOOK ? loc.getValue(L.LABEL_SET_FOR_THE_BOOK)
+                        : PromptSettingsForm.origin(loc, inherited);
+            }
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+        field.setPlaceholder(placeholder);
+        field.setHelperText(helper);
+        field.setPopoverContent(TemplateHints.create(loc, field, field.getPopover(), null, inheritedText));
     }
 
     private String label(Mode value) {
@@ -673,7 +699,7 @@ public class AnnotateDialog extends Dialog {
         return mode;
     }
 
-    TextArea instructionsField() {
+    TextAreaPopoverComponent instructionsField() {
         return instructions;
     }
 

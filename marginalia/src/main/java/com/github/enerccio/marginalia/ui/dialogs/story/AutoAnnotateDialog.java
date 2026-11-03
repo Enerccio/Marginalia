@@ -9,6 +9,7 @@ import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.ModelProtocolPicker;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
+import com.github.enerccio.marginalia.ui.widgets.TextAreaPopoverComponent;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.ModalityMode;
 import com.vaadin.flow.component.button.Button;
@@ -17,7 +18,6 @@ import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.textfield.TextArea;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
@@ -47,7 +47,7 @@ public class AutoAnnotateDialog extends Dialog {
     private final Runnable onSaved;
 
     private final ModelProtocolPicker model = new ModelProtocolPicker();
-    private final TextArea instructions = new TextArea();
+    private final TextAreaPopoverComponent instructions = new TextAreaPopoverComponent();
     private final Checkbox enabled = new Checkbox();
     private final Checkbox accept = new Checkbox();
     private final Checkbox redraft = new Checkbox();
@@ -91,7 +91,7 @@ public class AutoAnnotateDialog extends Dialog {
         modelHint.addClassName(CssStyles.HINT_TEXT);
 
         instructions.setLabel(loc.getValue(L.LABEL_ANNOTATE_INSTRUCTIONS));
-        instructions.setPlaceholder(loc.getValue(L.MSG_ANNOTATE_PLACEHOLDER));
+        AnnotateDialog.showInherited(instructions, manuscript, manuscriptService, loc);
         instructions.setValue(StringUtils.defaultString(manuscript.getAutoAnnotateInstructions()));
         instructions.setWidthFull();
         instructions.setMinRows(2);
@@ -174,7 +174,7 @@ public class AutoAnnotateDialog extends Dialog {
         return acceptRedraft;
     }
 
-    TextArea instructionsField() {
+    TextAreaPopoverComponent instructionsField() {
         return instructions;
     }
 

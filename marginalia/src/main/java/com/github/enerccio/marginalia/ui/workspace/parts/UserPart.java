@@ -145,6 +145,7 @@ public class UserPart implements WorkspaceComponent {
     private TextAreaPopoverComponent defaultAnnotateSystemPromptField;
     private TextAreaPopoverComponent defaultAnnotatePromptField;
     private TextAreaPopoverComponent defaultImpersonatePromptField;
+    private TextArea defaultAnnotateInstructionsField;
     private TextAreaPopoverComponent defaultAgentPromptField;
     private TextArea defaultAgentInstructionsField;
     private TextAreaPopoverComponent defaultAgentCompactionPromptField;
@@ -243,6 +244,8 @@ public class UserPart implements WorkspaceComponent {
         templatesFormLayout.setColspan(defaultAnnotateSystemPromptField, 2);
         templatesFormLayout.add(defaultAnnotatePromptField);
         templatesFormLayout.setColspan(defaultAnnotatePromptField, 2);
+        templatesFormLayout.add(defaultAnnotateInstructionsField);
+        templatesFormLayout.setColspan(defaultAnnotateInstructionsField, 2);
         templatesFormLayout.add(defaultImpersonatePromptField);
         templatesFormLayout.setColspan(defaultImpersonatePromptField, 2);
 
@@ -550,6 +553,12 @@ public class UserPart implements WorkspaceComponent {
         defaultAnnotatePromptField.setPopoverContent(createTemplateHintPopoverContent(
                 defaultAnnotatePromptField, defaultAnnotatePromptField.getPopover(), AnnotateTemplateData.class, Defaults.DEFAULT_ANNOTATE_PROMPT));
 
+        defaultAnnotateInstructionsField = new TextArea(loc.getValue(L.LABEL_ANNOTATE_INSTRUCTIONS));
+        defaultAnnotateInstructionsField.setWidthFull();
+        defaultAnnotateInstructionsField.setHelperText(loc.getValue(L.HELP_ANNOTATE_INSTRUCTIONS));
+        defaultAnnotateInstructionsField.setPlaceholder(loc.getValue(L.MSG_ANNOTATE_PLACEHOLDER));
+        ResizableTextArea.install(loc, defaultAnnotateInstructionsField, "100px");
+
         defaultImpersonatePromptField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_IMPERSONATE_PROMPT));
         defaultImpersonatePromptField.setWidthFull();
         ResizableTextArea.install(loc, defaultImpersonatePromptField, "160px");
@@ -784,6 +793,7 @@ public class UserPart implements WorkspaceComponent {
             defaultRedraftPromptField.setValue(StringUtils.defaultString(userSetting.getDefaultRedraftPrompt()));
             defaultAnnotateSystemPromptField.setValue(StringUtils.defaultString(userSetting.getDefaultAnnotateSystemPrompt()));
             defaultAnnotatePromptField.setValue(StringUtils.defaultString(userSetting.getDefaultAnnotatePrompt()));
+            defaultAnnotateInstructionsField.setValue(StringUtils.defaultString(userSetting.getDefaultAnnotateInstructions()));
             defaultImpersonatePromptField.setValue(StringUtils.defaultString(userSetting.getDefaultImpersonatePrompt()));
             defaultAgentPromptField.setValue(StringUtils.defaultString(userSetting.getDefaultAgentPrompt()));
             defaultAgentInstructionsField.setValue(StringUtils.defaultString(userSetting.getDefaultAgentInstructions()));
@@ -888,6 +898,7 @@ public class UserPart implements WorkspaceComponent {
                     @APILocals(name = "redraftPrompt", type = String.class),
                     @APILocals(name = "annotateSystemPrompt", type = String.class),
                     @APILocals(name = "annotatePrompt", type = String.class),
+                    @APILocals(name = "annotateInstructions", type = String.class),
                     @APILocals(name = "impersonatePrompt", type = String.class),
                     @APILocals(name = "defaultPov", type = String.class),
                     @APILocals(name = "defaultTense", type = String.class),
@@ -934,6 +945,7 @@ public class UserPart implements WorkspaceComponent {
         String redraftPrompt = defaultRedraftPromptField.getValue();
         String annotateSystemPrompt = defaultAnnotateSystemPromptField.getValue();
         String annotatePrompt = defaultAnnotatePromptField.getValue();
+        String annotateInstructions = defaultAnnotateInstructionsField.getValue();
         String impersonatePrompt = defaultImpersonatePromptField.getValue();
 
         String defaultPov = defaultPovField.getValue();
@@ -973,6 +985,7 @@ public class UserPart implements WorkspaceComponent {
             userSetting.setDefaultRedraftPrompt(redraftPrompt);
             userSetting.setDefaultAnnotateSystemPrompt(annotateSystemPrompt);
             userSetting.setDefaultAnnotatePrompt(annotatePrompt);
+            userSetting.setDefaultAnnotateInstructions(annotateInstructions);
             userSetting.setDefaultImpersonatePrompt(impersonatePrompt);
             saveWebhook(userSetting);
             if (defaultAgentPromptField.isVisible()) {

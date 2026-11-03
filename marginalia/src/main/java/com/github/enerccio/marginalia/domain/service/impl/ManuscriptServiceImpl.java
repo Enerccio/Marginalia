@@ -497,6 +497,11 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
     }
 
     @Override
+    public String getAnnotateInstructions(Manuscript manuscript) throws Exception {
+        return resolve(manuscript, PromptField.ANNOTATE_INSTRUCTIONS).value();
+    }
+
+    @Override
     public String getImpersonatePrompt(Manuscript manuscript) throws Exception {
         return resolve(manuscript, PromptField.IMPERSONATE_PROMPT).value();
     }

@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.extensions.authorsnote;
 
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
+import com.github.enerccio.marginalia.domain.service.CommandService;
 import com.github.enerccio.marginalia.domain.service.ExtensionService;
 import com.github.enerccio.marginalia.domain.service.ExtensionService.ExtendableMethodContext;
 import com.github.enerccio.marginalia.domain.service.ExtensionService.ExtensionDecorator;
@@ -11,6 +12,7 @@ import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationC
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationControllerEvent.EventChain;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationControllerEvent.Registration;
 import com.github.enerccio.marginalia.extensions.MarginaliaExtension;
+import com.github.enerccio.marginalia.extensions.authorsnote.commands.AuthorsNoteCommands;
 import com.github.enerccio.marginalia.extensions.authorsnote.model.AuthorsNoteData;
 import com.github.enerccio.marginalia.extensions.authorsnote.service.AuthorsNoteService;
 import com.github.enerccio.marginalia.extensions.authorsnote.ui.AuthorsNoteView;
@@ -45,7 +47,13 @@ public class AuthorsNoteExtension implements MarginaliaExtension {
     @Autowired
     private StoryGenerationService storyGenerationService;
 
+    @Autowired
+    private CommandService commandService;
+
     private final AuthorsNoteService authorsNoteService = new AuthorsNoteService();
+
+    /** Kept to unregister it, the service takes the object. */
+    private AuthorsNoteCommands commands;
 
     private ExtensionDecorator storyPartDecorator;
     private Registration reserveRegistration;
@@ -92,6 +100,10 @@ public class AuthorsNoteExtension implements MarginaliaExtension {
                     "com.github.enerccio.marginalia.ui.dialogs.phone.manuscript.PhoneManuscriptStoryPart",
                     "renderStoryContent"
             );
+
+            // the note as the {{command::authors-note}} macro, to place it in a template by hand
+            commands = new AuthorsNoteCommands(authorsNoteService);
+            commandService.registerCommands(commands);
 
             // the context budget is computed in PREPARE_CONTENT - reserve room for the note before it
             reserveRegistration = storyGenerationService.addEventListener(Events.BEFORE_PREPARE_CONTENT,
@@ -142,6 +154,10 @@ public class AuthorsNoteExtension implements MarginaliaExtension {
 
     @Override
     public void onExtensionUnload(Bundle b, OsgiService osgiService, ExtensionService extensionService) {
+        if (commands != null) {
+            commandService.unregisterCommands(commands);
+            commands = null;
+        }
         if (storyPartDecorator != null) {
             extensionService.unregisterDecorator(storyPartDecorator);
         }

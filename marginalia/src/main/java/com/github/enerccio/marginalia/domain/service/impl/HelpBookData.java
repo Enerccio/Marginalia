@@ -182,6 +182,7 @@ final class HelpBookData implements BookDataSource {
             case REDRAFT_PROMPT -> "Redraft prompt";
             case ANNOTATE_SYSTEM_PROMPT -> "Annotate system prompt";
             case ANNOTATE_PROMPT -> "Annotate prompt";
+            case ANNOTATE_INSTRUCTIONS -> "Annotate instructions (what to look for)";
             case IMPERSONATE_PROMPT -> "Impersonate prompt";
         };
     }

@@ -33,6 +33,8 @@ public enum PromptField {
             UserSetting::getDefaultAnnotateSystemPrompt, Defaults.DEFAULT_ANNOTATE_SYSTEM_PROMPT),
     ANNOTATE_PROMPT(Manuscript::getAnnotatePrompt, Folder::getAnnotatePrompt, UserSetting::getDefaultAnnotatePrompt,
             Defaults.DEFAULT_ANNOTATE_PROMPT),
+    ANNOTATE_INSTRUCTIONS(Manuscript::getAnnotateInstructions, Folder::getAnnotateInstructions,
+            UserSetting::getDefaultAnnotateInstructions, ""),
     IMPERSONATE_PROMPT(Manuscript::getImpersonatePrompt, Folder::getImpersonatePrompt,
             UserSetting::getDefaultImpersonatePrompt, Defaults.DEFAULT_IMPERSONATE_PROMPT);
 
@@ -87,6 +89,7 @@ public enum PromptField {
             case REDRAFT_PROMPT -> manuscript.setRedraftPrompt(text);
             case ANNOTATE_SYSTEM_PROMPT -> manuscript.setAnnotateSystemPrompt(text);
             case ANNOTATE_PROMPT -> manuscript.setAnnotatePrompt(text);
+            case ANNOTATE_INSTRUCTIONS -> manuscript.setAnnotateInstructions(text);
             case IMPERSONATE_PROMPT -> manuscript.setImpersonatePrompt(text);
         }
     }
@@ -108,6 +111,7 @@ public enum PromptField {
             case REDRAFT_PROMPT -> folder.setRedraftPrompt(text);
             case ANNOTATE_SYSTEM_PROMPT -> folder.setAnnotateSystemPrompt(text);
             case ANNOTATE_PROMPT -> folder.setAnnotatePrompt(text);
+            case ANNOTATE_INSTRUCTIONS -> folder.setAnnotateInstructions(text);
             case IMPERSONATE_PROMPT -> folder.setImpersonatePrompt(text);
         }
     }

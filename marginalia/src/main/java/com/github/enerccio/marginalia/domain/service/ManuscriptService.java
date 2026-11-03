@@ -201,6 +201,12 @@ public interface ManuscriptService extends ExtendableService<Manuscript, Manuscr
     String getAnnotatePrompt(Manuscript manuscript) throws Exception;
 
     /**
+     * What the model looks for when it annotates a part and the run is not told: the one of the book, else the nearest folder
+     * above it that sets one, else the one of the user, else nothing (blank: the default task of the annotate prompt).
+     */
+    String getAnnotateInstructions(Manuscript manuscript) throws Exception;
+
+    /**
      * The prompt that lets a model draft the instructions of the next turn: the one of the book, else the one of the user, else
      * the built in one.
      */

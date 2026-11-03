@@ -188,7 +188,7 @@ public class AnnotateServiceImpl implements AnnotateService {
             case DELIMITED -> DELIMITED_FORMAT;
             default -> STRUCTURED_FORMAT;
         };
-        List<LLMChatMessage> payload = createPayload(book, stored, StringUtils.trimToEmpty(asked.instructions()), asked.prompt(), format,
+        List<LLMChatMessage> payload = createPayload(book, stored, instructionsOf(book, asked), asked.prompt(), format,
                 ai, protocol, inference);
 
         Run run = new Run(stored.getResponse(), callback);
@@ -659,6 +659,15 @@ public class AnnotateServiceImpl implements AnnotateService {
     }
 
     // ---- the prompt
+
+    /**
+     * What to look for: what the run asks for, else what the book inherits (its own, its folders', the user's), blank for the
+     * default task of the prompt.
+     */
+    private String instructionsOf(Manuscript book, Request asked) throws Exception {
+        String own = StringUtils.trimToEmpty(asked.instructions());
+        return own.isEmpty() ? StringUtils.trimToEmpty(manuscriptService.getAnnotateInstructions(book)) : own;
+    }
 
     private List<LLMChatMessage> createPayload(Manuscript book, ChatMessage part, String instructions, String prompt, String outputFormat,
                                                AI ai, Protocol protocol, InferenceService inferenceService) throws Exception {
