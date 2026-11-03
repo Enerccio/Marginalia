@@ -315,8 +315,9 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
     The story twins share their helpers in `ui.dialogs.story` (generation listener, cards registry, new turn form,
     backup...); the other twins (tree, info, prompt, backup, lorebook parts) still duplicate the desktop classes: move
     shared code out when either is touched next.
-33. **Theming** — ✅ light/dark toggle per user (`ThemeSwitch` next to the language selector, `UserSetting.themeMode`, Vaadin
-    `Page.setColorScheme`). Still open: editor font/size settings; open pages of the user's other sessions change on reload only.
+33. ✅ **Theming** — light/dark toggle per user (`ThemeSwitch` next to the language selector, `UserSetting.themeMode`, Vaadin
+    `Page.setColorScheme`). Font and size of the text are settings of the text styles (74, the *Styles* tab of the settings).
+    Open pages of the user's other sessions change on reload only.
 34. **Import from other tools** — NovelAI/KoboldAI stories still to do. 🧩
     - ✅ SillyTavern chats → book (*Import from SillyTavern* in the book list, `SillyTavernImportService`, `utils.SillyTavernChats`):
       several `.jsonl` files are joined into one tree by their common beginning (branches, checkpoints), swipes become sibling
