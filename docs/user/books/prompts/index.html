@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847023726671">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847058621939">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.847023726671" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.847058621939" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847023726671" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847058621939" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847023726671" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.847023726671" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847058621939" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.847058621939" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -233,6 +233,7 @@ point for your own version. The template fields also list the <strong>Available 
 | **Redraft Prompt** | redrafts | The last message of a redraft, the request itself: the lore the part was written with, the story after the part, the part and the instructions. A template. |
 | **Annotate System Prompt** | annotating | The system message of a request for a model to [annotate](annotations.md#letting-a-model-annotate) a part. A template. |
 | **Annotate Prompt** | annotating | The last message of the request to annotate. A template. |
+| **Annotate Instructions** (*What to look for*) | annotating | What the model looks for when it annotates (*flag continuity errors*, *weak dialogue*), the text of `{{annotateInstructions}}` of the annotate prompt. Plain text. Set it here, in a folder or in *Settings → Templates*, and the *Annotate with AI* window starts with it. |
 | **Impersonate Prompt** | drafting instructions | The request for a model to [draft the instructions](story-editor.md#drafting-the-instructions) of the next turn in your place. A template. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -298,6 +299,11 @@ point for your own version. The template fields also list the <strong>Available 
 <td><strong>Annotate Prompt</strong></td>
 <td>annotating</td>
 <td>The last message of the request to annotate. A template.</td>
+</tr>
+<tr>
+<td><strong>Annotate Instructions</strong> (<em>What to look for</em>)</td>
+<td>annotating</td>
+<td>What the model looks for when it annotates (<em>flag continuity errors</em>, <em>weak dialogue</em>), the text of <code translate="no" v-pre>{{annotateInstructions}}</code> of the annotate prompt. Plain text. Set it here, in a folder or in <em>Settings → Templates</em>, and the <em>Annotate with AI</em> window starts with it.</td>
 </tr>
 <tr>
 <td><strong>Impersonate Prompt</strong></td>
@@ -415,6 +421,11 @@ repeating the notes the part already has. The prompt has the variable <code tran
 described (JSON, text blocks or a free review, it depends on the answer format you choose); keep it in a prompt of your own, or the
 model is not told how to answer. Both annotate prompts follow the rule of all prompts: the book&#x27;s field, else the one in
 <em>Settings → Templates</em>, else the built-in one.</p>
+<p><strong>What to look for</strong> (<em>Annotate Instructions</em>) follows the same rule, so you can set it once: in <em>Settings → Templates</em> for all your
+books, in a folder for the books in it, or in the <em>Prompts</em> tab for one book. The <em>Annotate with AI</em> window shows what applies as the
+grey text of its field and says where it comes from; leave the field empty to use it, type something to replace it for that
+run, or click the info icon of the field and <strong>Fill default</strong> to copy what applies into the field and edit it for that run. Nothing set anywhere is the default task of the prompt. The same goes for the automatic annotation and the
+<code translate="no" v-pre>/generate-annotation</code> command.</p>
 <h2 id="impersonate-prompt">Impersonate prompt</h2>
 <p>When a model <a href="../story-editor/#drafting-the-instructions">drafts the instructions</a> of the next turn it gets one request, sent as the only
 message like the redraft. The built-in default asks the model to write what you would type into <em>Instructions</em>: a plot
@@ -492,7 +503,7 @@ text off.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (e1ae5a51d).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (8e016d0f0).</p></div>
             </footer>
         </div>
     </div>

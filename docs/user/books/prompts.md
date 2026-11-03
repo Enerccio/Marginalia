@@ -59,6 +59,7 @@ point for your own version. The template fields also list the **Available Templa
 | **Redraft Prompt** | redrafts | The last message of a redraft, the request itself: the lore the part was written with, the story after the part, the part and the instructions. A template. |
 | **Annotate System Prompt** | annotating | The system message of a request for a model to [annotate](annotations.md#letting-a-model-annotate) a part. A template. |
 | **Annotate Prompt** | annotating | The last message of the request to annotate. A template. |
+| **Annotate Instructions** (*What to look for*) | annotating | What the model looks for when it annotates (*flag continuity errors*, *weak dialogue*), the text of `{{annotateInstructions}}` of the annotate prompt. Plain text. Set it here, in a folder or in *Settings → Templates*, and the *Annotate with AI* window starts with it. |
 | **Impersonate Prompt** | drafting instructions | The request for a model to [draft the instructions](story-editor.md#drafting-the-instructions) of the next turn in your place. A template. |
 
 *Point of View*, *Tense* and *Style* are inserted into the master template as they are; macros don't work in them.
@@ -145,6 +146,12 @@ repeating the notes the part already has. The prompt has the variable `{{outputF
 described (JSON, text blocks or a free review, it depends on the answer format you choose); keep it in a prompt of your own, or the
 model is not told how to answer. Both annotate prompts follow the rule of all prompts: the book's field, else the one in
 *Settings → Templates*, else the built-in one.
+
+**What to look for** (*Annotate Instructions*) follows the same rule, so you can set it once: in *Settings → Templates* for all your
+books, in a folder for the books in it, or in the *Prompts* tab for one book. The *Annotate with AI* window shows what applies as the
+grey text of its field and says where it comes from; leave the field empty to use it, type something to replace it for that
+run, or click the info icon of the field and **Fill default** to copy what applies into the field and edit it for that run. Nothing set anywhere is the default task of the prompt. The same goes for the automatic annotation and the
+`/generate-annotation` command.
 
 ## Impersonate prompt
 

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847023726671">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847058621939">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.847023726671" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.847058621939" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847023726671" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847058621939" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847023726671" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847058621939" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -338,7 +338,8 @@ the merged part. A <strong>branch</strong> of a part copies its notes. Notes are
 exports of a backup.</p>
 <h2 id="letting-a-model-annotate">Letting a model annotate</h2>
 <p><strong>Annotate with AI</strong> in the menu of a part asks a model to review it. You say what to look for (<em>flag continuity errors</em>,
-<em>weak dialogue</em>, <em>contradicts the lore</em>; empty uses the task of the prompt), choose the model, and <strong>Annotate</strong>.</p>
+<em>weak dialogue</em>, <em>contradicts the lore</em>; empty uses what the book, its folder or your settings
+<a href="../prompts/#annotate-prompt">set once</a>, else the task of the prompt), choose the model, and <strong>Annotate</strong>.</p>
 <p>The model reads the part like the <a href="../story-editor/#redrafting-a-part">redraft</a> does: the part, the story before it (older
 story as <a href="../summaries/">summaries</a>), as much of the story after it as fits, the lore and the style of the book, and the
 notes the part already has so it does not repeat them. It never gives positions: it <strong>quotes</strong> the passage, and Marginalia
@@ -396,7 +397,7 @@ book review each part right after it was generated, and optionally redraft it. T
 <retype-table copy-text="| Option | |
 |---|---|
 | **Model**, **Protocol** | The model that reviews. Empty is the model of the book (not the **Default model for annotating** of your settings, which the window you open yourself starts with). |
-| **What to look for** | The instructions, as in **Annotate with AI**. Empty uses the task of the prompt. |
+| **What to look for** | The instructions, as in **Annotate with AI**. Empty uses what the book inherits (see [Annotate prompt](prompts.md#annotate-prompt)), else the task of the prompt. |
 | **Annotate every generated part automatically** | Turns it on. After a part was generated (a new part, a swipe or a regeneration; not one that was stopped or failed) the annotation window opens and **starts at once**. |
 | **Add the annotations without asking** | When the model is done, the notes it found are added and the window closes. Without it the window stays open with the proposals, as when you start it yourself. |
 | **Then redraft the part to address the annotations** | Only with the one above. After the notes were added the [redraft](story-editor.md#redrafting-a-part) window opens and starts at once, with **Deal with the open annotations of the part** checked and no instructions of its own. It writes with the model of the book and does not offer to revalidate summaries: the part is new, no summary describes it. |
@@ -416,7 +417,7 @@ book review each part right after it was generated, and optionally redraft it. T
 </tr>
 <tr>
 <td><strong>What to look for</strong></td>
-<td>The instructions, as in <strong>Annotate with AI</strong>. Empty uses the task of the prompt.</td>
+<td>The instructions, as in <strong>Annotate with AI</strong>. Empty uses what the book inherits (see <a href="../prompts/#annotate-prompt">Annotate prompt</a>), else the task of the prompt.</td>
 </tr>
 <tr>
 <td><strong>Annotate every generated part automatically</strong></td>
@@ -526,7 +527,7 @@ both changed is a conflict like any other.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (e1ae5a51d).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (8e016d0f0).</p></div>
             </footer>
         </div>
     </div>

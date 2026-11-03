@@ -92,7 +92,8 @@ exports of a backup.
 ## Letting a model annotate
 
 **Annotate with AI** in the menu of a part asks a model to review it. You say what to look for (*flag continuity errors*,
-*weak dialogue*, *contradicts the lore*; empty uses the task of the prompt), choose the model, and **Annotate**.
+*weak dialogue*, *contradicts the lore*; empty uses what the book, its folder or your settings
+[set once](prompts.md#annotate-prompt), else the task of the prompt), choose the model, and **Annotate**.
 
 The model reads the part like the [redraft](story-editor.md#redrafting-a-part) does: the part, the story before it (older
 story as [summaries](summaries.md)), as much of the story after it as fits, the lore and the style of the book, and the
@@ -133,7 +134,7 @@ book review each part right after it was generated, and optionally redraft it. T
 | Option | |
 |---|---|
 | **Model**, **Protocol** | The model that reviews. Empty is the model of the book (not the **Default model for annotating** of your settings, which the window you open yourself starts with). |
-| **What to look for** | The instructions, as in **Annotate with AI**. Empty uses the task of the prompt. |
+| **What to look for** | The instructions, as in **Annotate with AI**. Empty uses what the book inherits (see [Annotate prompt](prompts.md#annotate-prompt)), else the task of the prompt. |
 | **Annotate every generated part automatically** | Turns it on. After a part was generated (a new part, a swipe or a regeneration; not one that was stopped or failed) the annotation window opens and **starts at once**. |
 | **Add the annotations without asking** | When the model is done, the notes it found are added and the window closes. Without it the window stays open with the proposals, as when you start it yourself. |
 | **Then redraft the part to address the annotations** | Only with the one above. After the notes were added the [redraft](story-editor.md#redrafting-a-part) window opens and starts at once, with **Deal with the open annotations of the part** checked and no instructions of its own. It writes with the model of the book and does not offer to revalidate summaries: the part is new, no summary describes it. |

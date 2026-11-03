@@ -16,6 +16,7 @@ Extensions add features to Marginalia without changing the application itself. T
 | [Image Generator](image-generator.md) | Makes an image for a part of the story: the model writes the prompt, ComfyUI or an OpenAI-style images API draws it, you reroll and accept it. |
 | [Prompt Inspector](prompt-inspector.md) | Shows the prompt of a generation and asks before it is sent to the model; switched on and off in the settings menu of the story. |
 | [Instruction Exporter](instruction-exporter.md) | Copies the instructions, scene settings and characters of the story to the clipboard. |
+| [Knowledge Tracker](knowledge-tracker.md) | What each tracked character knows and does not know, put into the prompt so the model stops giving characters knowledge they cannot have. |
 | [Lore Generator](lore-generator.md) | Writes the content of a lorebook entry with the model, from the lore you already have. |
 | [Lorebook VCS](lorebook-vcs.md) | Revision history for lorebook entries. |
 | [Manga Generator](manga-generator.md) | Turns parts of the story into a manga script of pages and panels, and into image generation tags. |
