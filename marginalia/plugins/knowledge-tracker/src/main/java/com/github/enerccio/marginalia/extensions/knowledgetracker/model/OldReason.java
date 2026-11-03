@@ -7,5 +7,7 @@ public enum OldReason {
     /** The story (or the user) contradicted it. */
     RETRACTED,
     /** An addition that the user declined in the review. */
-    REJECTED
+    REJECTED,
+    /** The tidy pass dropped it (trivia, superseded, a duplicate) or merged it into another item. */
+    TIDIED
 }

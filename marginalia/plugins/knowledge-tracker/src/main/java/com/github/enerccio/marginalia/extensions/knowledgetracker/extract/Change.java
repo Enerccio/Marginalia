@@ -31,6 +31,8 @@ public class Change {
     private final int messageNumber;
     /** Whether the change is applied; a rejected addition is kept as old knowledge, a rejected retraction changes nothing. */
     private boolean apply = true;
+    /** Made by the tidy pass: a retract drops the item for good reason, an add is the merge of items; the evidence is the reason. */
+    private boolean tidy;
 
     Change(Type type, String characterId, String characterName, String itemId, String itemText, ItemKind kind, String text,
            String evidence, boolean evidenceFound, String messageUuid, int messageNumber) {
@@ -101,6 +103,15 @@ public class Change {
 
     public int getMessageNumber() {
         return messageNumber;
+    }
+
+    public boolean isTidy() {
+        return tidy;
+    }
+
+    Change tidy() {
+        this.tidy = true;
+        return this;
     }
 
     public boolean isApply() {

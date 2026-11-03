@@ -49,6 +49,9 @@ public class KnowledgeTrackerCommands extends ManuscriptReadSupport {
     public static final String REPROCESS = "knowledge-reprocess";
     public static final String SET_START = "knowledge-set-start";
     public static final String APPLY_CHANGES = "apply-knowledge-changes";
+    public static final String TIDY = "knowledge-tidy";
+    public static final String LOCK_KNOWLEDGE = "lock-knowledge";
+    public static final String UNLOCK_KNOWLEDGE = "unlock-knowledge";
 
     private static final String STATUS_TEXT = "The settings of the Knowledge Tracker, the tracked characters and where the processing stands. Reads only.";
     private static final String LIST_CHARACTERS_TEXT = "Lists the tracked characters with the number of things each knows. Reads only.";
@@ -104,6 +107,16 @@ public class KnowledgeTrackerCommands extends ManuscriptReadSupport {
     private static final String SET_START_TEXT = "Sets the part where processing begins.";
     private static final String SET_START_LLM = "Sets the start point of the processing: the part (its handle, or its position, the first part is 1) the plugin begins at; "
             + "the parts before it are never processed. Without a part it is the start of the book. Moving it back makes the parts from the new start unread again.";
+
+    private static final String TIDY_TEXT = "Asks the model which of the learned items to drop or merge; locked items and what you wrote are not touched.";
+    private static final String TIDY_LLM = "The tidy pass: the model reads the items it learned for each tracked character (not the locked ones, not the ones written by "
+            + "hand), with the last processed parts for context, and drops what is not worth keeping (trivia, events everybody saw, overtaken, duplicates) or merges "
+            + "items about the same thing. The dropped items become old knowledge and can be restored. Pass ask true to get the changes as a numbered list instead; "
+            + "apply-knowledge-changes then applies the ones you choose. Needs the model reading setting on.";
+    private static final String LOCK_TEXT = "Locks an item so that the tidy pass leaves it alone.";
+    private static final String LOCK_LLM = "Locks an item (a betrayal, a secret): the tidy pass never sees it. The story can still contradict it, then it is retracted as usual. Returns the character's items.";
+    private static final String UNLOCK_TEXT = "Lets the tidy pass see the item again.";
+    private static final String UNLOCK_LLM = "Unlocks an item, so that the tidy pass may drop or merge it. Returns the character's items.";
 
     private static final String PARAM_PART = "The part: its handle, or its position on the active branch (the first part is 1)";
     private static final String PARAM_PARTS = "How many parts to read at most; all of them when it is left out";
@@ -440,6 +453,79 @@ public class KnowledgeTrackerCommands extends ManuscriptReadSupport {
         answer(context, commitRow(proposal, extraction.commit(book.manuscript, proposal)));
     }
 
+    @Command(commandName = TIDY, linkedCommand = STATUS, humanNameText = "Tidy the knowledge", async = true,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, descriptionText = TIDY_TEXT, llmDescriptionText = TIDY_LLM,
+            signature = @CommandParameterSignature,
+            returns = @CommandReturn(name = "result", type = String.class, descriptionText = "JSON: what was dropped and merged"))
+    public void tidy(CommandContext context) throws Exception {
+        runTidy(context);
+    }
+
+    @Command(commandName = TIDY, linkedCommand = STATUS, humanNameText = "Tidy the knowledge", async = true,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, descriptionText = TIDY_TEXT, llmDescriptionText = TIDY_LLM,
+            signature = @CommandParameterSignature({
+                    @CommandParameter(name = "ask", type = Boolean.class, optional = true, descriptionText = PARAM_ASK)}),
+            returns = @CommandReturn(name = "result", type = String.class, descriptionText = "JSON: what was dropped and merged, or the changes found"))
+    public void tidyAsk(CommandContext context) throws Exception {
+        runTidy(context);
+    }
+
+    private void runTidy(CommandContext context) throws Exception {
+        Book book = new Book(context);
+        KnowledgeState state = service.load(book.manuscript);
+        if (!state.getSettings().isExtractWithModel()) {
+            throw new IllegalArgumentException("The tidy pass needs the model: turn on reading what the characters learn with the model");
+        }
+        Proposal proposal = extraction.proposeTidy(book.manuscript);
+        if (proposal.changes().isEmpty()) {
+            JsonObject row = new JsonObject();
+            row.addProperty("tidied", 0);
+            row.addProperty("note", proposal.asked() ? "nothing to drop or merge" : "nothing to tidy: no character has enough items that the model learned");
+            answer(context, row);
+            return;
+        }
+        if (Boolean.TRUE.equals(context.get("ask", Boolean.class))) {
+            runs.hold(book.manuscript, proposal);
+            service.changed(book.manuscript);
+            answer(context, proposalRow(proposal));
+            return;
+        }
+        ChangeApplier.Result result = extraction.commitTidy(book.manuscript, proposal, true);
+        JsonObject row = new JsonObject();
+        row.addProperty("becameOld", result.retracted());
+        row.addProperty("merged", result.added());
+        answer(context, row);
+    }
+
+    @Command(commandName = LOCK_KNOWLEDGE, linkedCommand = LIST_KNOWLEDGE, humanNameText = "Lock knowledge",
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, descriptionText = LOCK_TEXT, llmDescriptionText = LOCK_LLM,
+            signature = @CommandParameterSignature({
+                    @CommandParameter(name = "character", type = String.class, descriptionText = PARAM_CHARACTER),
+                    @CommandParameter(name = "item", type = Integer.class, descriptionText = PARAM_ITEM)}),
+            returns = @CommandReturn(name = "result", type = String.class, descriptionText = RESULT_ITEMS))
+    public void lockKnowledge(CommandContext context) throws Exception {
+        setLocked(context, true);
+    }
+
+    @Command(commandName = UNLOCK_KNOWLEDGE, linkedCommand = LIST_KNOWLEDGE, humanNameText = "Unlock knowledge",
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, descriptionText = UNLOCK_TEXT, llmDescriptionText = UNLOCK_LLM,
+            signature = @CommandParameterSignature({
+                    @CommandParameter(name = "character", type = String.class, descriptionText = PARAM_CHARACTER),
+                    @CommandParameter(name = "item", type = Integer.class, descriptionText = PARAM_ITEM)}),
+            returns = @CommandReturn(name = "result", type = String.class, descriptionText = RESULT_ITEMS))
+    public void unlockKnowledge(CommandContext context) throws Exception {
+        setLocked(context, false);
+    }
+
+    private void setLocked(CommandContext context, boolean locked) throws Exception {
+        Book book = new Book(context);
+        KnowledgeState state = service.load(book.manuscript);
+        TrackedCharacter character = character(state, context.get("character", String.class));
+        item(character, context.get("item", Integer.class)).setLocked(locked);
+        store(book, state);
+        answer(context, itemsRow(character));
+    }
+
     @Command(commandName = APPLY_CHANGES, linkedCommand = PROCESS, humanNameText = "Apply the changes", async = true,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, descriptionText = APPLY_TEXT, llmDescriptionText = APPLY_LLM,
             signature = @CommandParameterSignature,
@@ -477,7 +563,8 @@ public class KnowledgeTrackerCommands extends ManuscriptReadSupport {
             }
         }
         try {
-            answer(context, commitRow(proposal, extraction.commit(book.manuscript, proposal)));
+            answer(context, proposal.tidy() ? tidyRow(extraction.commitTidy(book.manuscript, proposal, false))
+                    : commitRow(proposal, extraction.commit(book.manuscript, proposal)));
         } catch (StaleProposalException e) {
             throw new IllegalArgumentException(e.getMessage() + "; call knowledge-process again");
         }
@@ -577,6 +664,13 @@ public class KnowledgeTrackerCommands extends ManuscriptReadSupport {
         return row;
     }
 
+    private static JsonObject tidyRow(ChangeApplier.Result result) {
+        JsonObject row = new JsonObject();
+        row.addProperty("becameOld", result.retracted());
+        row.addProperty("merged", result.added());
+        return row;
+    }
+
     private static JsonObject commitRow(Proposal proposal, ChangeApplier.Result result) {
         JsonObject row = new JsonObject();
         row.addProperty("partsRead", proposal.parts().size());
@@ -630,6 +724,7 @@ public class KnowledgeTrackerCommands extends ManuscriptReadSupport {
                 row.addProperty("oldBecause", item.getOldReason().name().toLowerCase(Locale.ROOT));
             }
             row.addProperty("origin", item.getOrigin().name().toLowerCase(Locale.ROOT));
+            row.addProperty("locked", item.isLocked());
             items.add(row);
         }
         result.add("items", items);

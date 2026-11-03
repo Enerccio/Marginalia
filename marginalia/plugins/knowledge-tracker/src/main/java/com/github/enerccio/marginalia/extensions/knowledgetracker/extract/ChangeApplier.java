@@ -46,12 +46,21 @@ public final class ChangeApplier {
             }
             if (change.getType() == Change.Type.RETRACT) {
                 KnowledgeItem item = change.isApply() ? character.findItem(change.getItemId()) : null;
-                if (item != null && item.isActive()) {
-                    item.retract(change.getMessageUuid());
+                // the tidy pass never touches an item that was locked, edited or written by hand since it asked
+                if (item != null && item.isActive() && (!change.isTidy() || item.isTidyCandidate())) {
+                    if (change.isTidy()) {
+                        item.tidy();
+                    } else {
+                        item.retract(change.getMessageUuid());
+                    }
                     retracted++;
                     entries.add(new ChangeLogEntry(now, ChangeLogEntry.Type.RETRACTED, character.getId(), character.getName(),
-                            item.getId(), item.getText(), item.getKind(), change.getMessageUuid(), change.getEvidence()));
+                            item.getId(), item.getText(), item.getKind(), change.isTidy() ? null : change.getMessageUuid(), change.getEvidence()));
                 }
+                continue;
+            }
+            if (change.isTidy() && !change.isApply()) {
+                // a merge that was unchecked: nothing is kept, the items it would have replaced stay (or are decided one by one)
                 continue;
             }
             String text = change.getText() == null ? "" : change.getText().strip();

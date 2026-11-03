@@ -271,6 +271,18 @@ public class KnowledgeTrackerView extends VerticalLayout {
         parts.setStepButtonsVisible(true);
         parts.setValue(settings.getPartsPerRun());
         parts.setWidthFull();
+        IntegerField tidyParts = new IntegerField(T.localized(TIDY_PARTS_OF_CONTEXT));
+        tidyParts.setMin(1);
+        tidyParts.setStepButtonsVisible(true);
+        tidyParts.setValue(settings.getTidyContextParts());
+        tidyParts.setHelperText(T.localized(THE_LAST_PROCESSED_PARTS_THE_TIDY_PASS_READS));
+        tidyParts.setWidthFull();
+        IntegerField tidyMin = new IntegerField(T.localized(TIDY_FROM_N_ITEMS));
+        tidyMin.setMin(2);
+        tidyMin.setStepButtonsVisible(true);
+        tidyMin.setValue(settings.getTidyMinItems());
+        tidyMin.setHelperText(T.localized(A_CHARACTER_WITH_FEWER_ITEMS_IS_NOT_TIDIED));
+        tidyMin.setWidthFull();
         Select<LoreMode> lore = new Select<>();
         lore.setLabel(T.localized(LOREBOOK_FOR_THE_MODEL));
         lore.setItems(LoreMode.RESOLVE, LoreMode.WHOLE, LoreMode.NONE);
@@ -302,6 +314,8 @@ public class KnowledgeTrackerView extends VerticalLayout {
             boolean on = extract.getValue();
             ask.setEnabled(on);
             parts.setEnabled(on);
+            tidyParts.setEnabled(on);
+            tidyMin.setEnabled(on);
             lore.setEnabled(on);
             model.setEnabled(on);
             protocol.setEnabled(on);
@@ -321,6 +335,18 @@ public class KnowledgeTrackerView extends VerticalLayout {
                 saveState();
             }
         });
+        tidyParts.addValueChangeListener(e -> {
+            if (e.getValue() != null && e.getValue() >= 1) {
+                state.getSettings().setTidyContextParts(e.getValue());
+                saveState();
+            }
+        });
+        tidyMin.addValueChangeListener(e -> {
+            if (e.getValue() != null && e.getValue() >= 2) {
+                state.getSettings().setTidyMinItems(e.getValue());
+                saveState();
+            }
+        });
         lore.addValueChangeListener(e -> {
             if (e.getValue() != null) {
                 state.getSettings().setLoreMode(e.getValue());
@@ -337,7 +363,7 @@ public class KnowledgeTrackerView extends VerticalLayout {
         });
         enable.run();
 
-        VerticalLayout box = new VerticalLayout(extract, ask, parts, lore, model, protocol);
+        VerticalLayout box = new VerticalLayout(extract, ask, parts, tidyParts, tidyMin, lore, model, protocol);
         box.setPadding(false);
         box.setSpacing(false);
         return box;
@@ -398,11 +424,15 @@ public class KnowledgeTrackerView extends VerticalLayout {
         process.setTooltipText(T.localized(READ_THE_PARTS_THAT_ARE_NOT_PROCESSED));
         ExtractionRun running = runs.running(manuscript);
         process.setEnabled(status.unread() > 0 && running == null);
+        Button tidyButton = new Button(T.localized(TIDY_KNOWLEDGE), Solid.BROOM.create(), _ -> tidy());
+        tidyButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
+        tidyButton.setTooltipText(T.localized(DROP_OR_MERGE_ITEMS_THAT_ARE_NOT_WORTH_KEEPING));
+        tidyButton.setEnabled(running == null && state.getSettings().isExtractWithModel());
         Button next = new Button(T.localized(PROCESS_NEXT_PART), Solid.FORWARD_STEP.create(), _ -> processNext());
         next.addThemeVariants(ButtonVariant.LUMO_SMALL);
         next.setTooltipText(T.localized(READ_ONLY_THE_NEXT_PART_THAT_IS_NOT_PROCESSED));
         next.setEnabled(status.unread() > 0 && running == null);
-        panel.add(new Div(process, next));
+        panel.add(new Div(process, next, tidyButton));
         if (running != null) {
             panel.add(createRunButton(running));
         }
@@ -437,8 +467,13 @@ public class KnowledgeTrackerView extends VerticalLayout {
     private void applyHeld(ExtractionService.Proposal held) {
         try {
             runs.takeHeld(manuscript);
-            ChangeApplier.Result result = extractionService.commit(manuscript, held);
-            Notification.success(T.localized(DONE_PARTS_ADDED_RETRACTED).formatted(held.parts().size(), result.added(), result.retracted()));
+            if (held.tidy()) {
+                ChangeApplier.Result result = extractionService.commitTidy(manuscript, held, false);
+                Notification.success(T.localized(TIDY_DONE).formatted(result.retracted(), result.added()));
+            } else {
+                ChangeApplier.Result result = extractionService.commit(manuscript, held);
+                Notification.success(T.localized(DONE_PARTS_ADDED_RETRACTED).formatted(held.parts().size(), result.added(), result.retracted()));
+            }
         } catch (StaleProposalException e) {
             Notification.warning(T.localized(THE_STORY_CHANGED_RUN_THE_COMMAND_AGAIN));
         } catch (Exception e) {
@@ -631,6 +666,23 @@ public class KnowledgeTrackerView extends VerticalLayout {
                 }
                 startRun(maxParts);
             }
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+        state = loadState();
+        showSettingsState();
+        refresh();
+    }
+
+    /** <b>Tidy knowledge</b>: the model drops or merges what is not worth keeping; reviewed or logged like any run. */
+    private void tidy() {
+        try {
+            ExtractionRun run = runs.running(manuscript);
+            if (run == null) {
+                run = runs.startTidy(manuscript, null);
+            }
+            watch(run);
+            showProgress(run);
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
@@ -864,6 +916,18 @@ public class KnowledgeTrackerView extends VerticalLayout {
         actions.addClassName(KnowledgeTrackerStyles.ACTIONS);
         if (old) {
             actions.add(iconButton(Solid.COPY, T.localized(COPY), _ -> copy(item)));
+        } else if (item.getOrigin() == ItemOrigin.LEARNED) {
+            // the tidy pass never sees a locked item (the story can still contradict it); what the user wrote is never tidied anyway
+            boolean locked = item.isLocked();
+            Button lock = iconButton(locked ? Solid.LOCK : Solid.LOCK_OPEN,
+                    locked ? T.localized(LOCKED_THE_TIDY_PASS_LEAVES_IT_ALONE) : T.localized(LOCK_IT_SO_THAT_THE_TIDY_PASS_LEAVES_IT_ALONE), _ -> {
+                        item.setLocked(!item.isLocked());
+                        persist();
+                    });
+            if (locked) {
+                lock.addClassName(KnowledgeTrackerStyles.LOCKED);
+            }
+            actions.add(lock);
         }
         actions.add(iconButton(Solid.PEN, T.localized(EDIT_ITEM), _ -> openItemDialog(character, item)));
         if (old) {

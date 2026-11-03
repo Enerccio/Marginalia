@@ -31,6 +31,7 @@ Open a character with the arrow on its card to see what it knows:
 | **Knows** (green) / **Does not know** (red) | One short sentence about anything: a person, a place, a secret, an event (*Peter knows about the plot against the duke*, *Fiora does not know that Thomas is her father*). Write what a character does **not** know explicitly, that is what the model respects. |
 | **Add knowledge** | Adds an item, active at once. Keep it to **one thought**: an item that says two things (*does not know who Thomas is, has never met him*) is retracted as soon as one of them stops being true. The **edit** button changes the text and the kind. |
 | **Retract** (the circle with a slash) | The item is not true any more (*has not met Thomas* after they meet). It is not deleted: it becomes *old knowledge* and is no longer sent to the model. |
+| **Lock** (the padlock, on items the model learned) | The [tidy pass](#tidying-the-knowledge) never sees a locked item: use it for what must stay, a betrayal, a secret. The story can still contradict a locked item (a character who loses their memory): the reading of the story retracts it as usual. |
 | **Delete** | Removes an item for good, after a question. Retract keeps it, so use it when in doubt. |
 | **Has met** | The people the character has met, noted by [processing](#processing). |
 | **Old knowledge (n)** | Collapsed by default. Each old item can be **copied**, **edited**, **restored** (it is active again, from now on) or deleted. |
@@ -161,6 +162,28 @@ perceive, but check what is proposed, especially for characters that are in a lo
 you choose below, with the usual cost and privacy of that service.
 !!!
 
+## Tidying the knowledge
+
+The model writes down what each character learns, and over a long story the list grows, with more small things than you want
+to send to the model on every request. **Tidy knowledge** (next to **Process now**, needs the model setting) asks the model to
+read what a character knows again, with the last processed parts of the story for context, and to
+
+- **drop** an item that is not worth keeping: trivia, a detail of a scene that everybody in it saw (the story holds it), something
+  that later events overtook, something that says the same as another item;
+- **merge** several items about the same thing into one that keeps every fact.
+
+A dropped or merged item is not deleted: it becomes *Old knowledge* and can be restored. The changes are reviewed, like the ones of
+a reading (**Ask before applying** decides), or applied at once and written to the log with a **Revert** button.
+
+What the pass may touch is only what the model learned and you did not **lock**. The initial items, the ones you added or edited
+by hand, the locked ones and the old ones are never changed (the first two kinds and the locked ones are shown to the model so that
+it can see what an item would duplicate). A secret that no part has mentioned for a long time is no reason to drop it, and the
+prompt says so; when the model is in doubt it keeps the item. A character with fewer than **Tidy: from this many items** (8) items
+that the model learned is not tidied, and **Tidy: parts of context** (10) is how many of the last processed parts it reads.
+
+The same from the command bar: `knowledge-tidy` (`ask true` to get the changes as a list; the open tab then shows the review
+button), and `lock-knowledge` / `unlock-knowledge` with the character and the number of the item.
+
 ## Settings
 
 The gear next to *Track a character*:
@@ -175,6 +198,8 @@ The gear next to *Track a character*:
 | **Read what the characters learn with the model** | Processing asks the model what each tracked character learned and proposes it. Off (the default): processing only notes who has met whom, which costs nothing. |
 | **Ask before applying** | On (the default): every proposal is shown for review. Off: it is applied at once and logged. |
 | **Parts per run** | How many parts one request reads. Larger is cheaper but gives a longer answer and a harder review. |
+| **Tidy: parts of context** | How many of the last processed parts the tidy pass reads (10). |
+| **Tidy: from this many items** | A character with fewer items that the model learned (and that are not locked) is not tidied (8). |
 | **Lorebook for the model** | *Entries the parts activate* (the default: the entries a generation would use for these parts), *The whole lorebook* (every entry; when it does not fit the context, the activated ones are sent and the note says so) or *No lorebook*. |
 | **Model / Protocol for the extraction** | Empty: the model of the book. A cheaper model is enough for this, and on a server that holds one prompt cache a separate model keeps it from being replaced. |
 | **Separators of this book** | How the present characters field is split into names, one per line (a new line is `\n`). A word such as `and` splits between spaces, so *Jack and Jill* stays one name until you add it. |
@@ -206,6 +231,8 @@ For the [command line](../commands/index.md) and for agents:
 | `list-knowledge`, `add-knowledge`, `retract-knowledge`, `restore-knowledge`, `delete-knowledge` | The items of a character, addressed by their number in `list-knowledge`. |
 | `knowledge-process` | Processes now (`parts`: at most that many). With the model on, `ask true` returns what the model found as numbered changes and holds them: nothing is changed yet. The open Knowledge tab shows a **changes found by a command** button that opens the usual review (Apply / Cancel); an agent applies them with `apply-knowledge-changes`. |
 | `apply-knowledge-changes` | Applies the held changes, all of them or the numbers given (the same as **Apply** in the review of the tab). |
+| `knowledge-tidy` | The tidy pass. With `ask true` it returns the changes as a numbered list and holds them (the tab shows a button to review them; `apply-knowledge-changes` applies them). |
+| `lock-knowledge`, `unlock-knowledge` | Lock an item (character, item number) so that the tidy pass leaves it alone, or unlock it. |
 | `knowledge-reprocess` | Reprocess from a part (its handle or position); asks first. With the model on it only takes the state back, `knowledge-process` reads the parts again. |
 | `knowledge-set-start` | Sets the start point; without a part, the start of the book. |
 | `knowledge-tracker-block` | The block as text, for the macro. |

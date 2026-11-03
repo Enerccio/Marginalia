@@ -31,6 +31,10 @@ public class BookSettings {
     private int partsPerRun = 1;
     /** Whether the changes the model proposes are shown for review (guided) or applied at once and only logged. */
     private boolean askBeforeApplying = true;
+    /** The tidy pass reads this many of the last processed parts for context. */
+    private int tidyContextParts = 10;
+    /** A character with fewer items that the tidy pass may touch is left alone. */
+    private int tidyMinItems = 8;
     private LoreMode loreMode = LoreMode.RESOLVE;
     /** The model for the extraction (uuid), {@code null} = the book's model. */
     private String aiUuid;
@@ -85,6 +89,22 @@ public class BookSettings {
 
     public void setPartsPerRun(int partsPerRun) {
         this.partsPerRun = Math.max(1, partsPerRun);
+    }
+
+    public int getTidyContextParts() {
+        return Math.max(1, tidyContextParts == 0 ? 10 : tidyContextParts);
+    }
+
+    public void setTidyContextParts(int tidyContextParts) {
+        this.tidyContextParts = Math.max(1, tidyContextParts);
+    }
+
+    public int getTidyMinItems() {
+        return Math.max(2, tidyMinItems == 0 ? 8 : tidyMinItems);
+    }
+
+    public void setTidyMinItems(int tidyMinItems) {
+        this.tidyMinItems = Math.max(2, tidyMinItems);
     }
 
     public boolean isAskBeforeApplying() {

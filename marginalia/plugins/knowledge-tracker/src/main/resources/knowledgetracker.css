@@ -239,6 +239,11 @@
     max-width: 80vw;
 }
 
+/* A locked item: the tidy pass leaves it alone */
+.knowledge-tracker-locked {
+    color: var(--lumo-primary-text-color);
+}
+
 /* The reasoning of the model in the review: plain text, long, scrolls instead of making the dialog taller */
 .knowledge-tracker-reasoning {
     max-height: 16em;
