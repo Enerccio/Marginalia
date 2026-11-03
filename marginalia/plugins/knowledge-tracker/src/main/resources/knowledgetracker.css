@@ -1,0 +1,240 @@
+/* Styles of the Knowledge Tracker plugin only. Put into the page by the application while the extension is loaded
+   (KnowledgeTrackerExtension.getCss). */
+
+/* One tracked character in the sidebar: a header with the name and the buttons, the items below it */
+.knowledge-tracker-card {
+    box-sizing: border-box;
+    width: 100%;
+    border-radius: var(--lumo-border-radius-m);
+    background-color: var(--lumo-contrast-5pct);
+    padding: var(--lumo-space-xs) var(--lumo-space-s);
+    /* the items look at the width of the card, not of the window: a narrow sidebar and the phone drawer are the same case */
+    container-type: inline-size;
+}
+
+.knowledge-tracker-card-header {
+    display: flex;
+    align-items: center;
+    gap: var(--lumo-space-xs);
+}
+
+.knowledge-tracker-card-header vaadin-button {
+    margin: 0;
+}
+
+.knowledge-tracker-card-title {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.knowledge-tracker-name {
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.knowledge-tracker-aliases,
+.knowledge-tracker-counts,
+.knowledge-tracker-met,
+.knowledge-tracker-empty {
+    color: var(--lumo-secondary-text-color);
+    font-size: var(--lumo-font-size-s);
+}
+
+.knowledge-tracker-aliases {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.knowledge-tracker-actions {
+    display: flex;
+    flex: none;
+}
+
+.knowledge-tracker-body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--lumo-space-xs);
+    padding: var(--lumo-space-xs) 0 var(--lumo-space-s) 0;
+}
+
+/* One item: what kind, the text, the buttons */
+.knowledge-tracker-body > vaadin-button {
+    align-self: flex-start;
+}
+
+.knowledge-tracker-item {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--lumo-space-xs);
+}
+
+.knowledge-tracker-item vaadin-button {
+    margin: 0;
+}
+
+.knowledge-tracker-item-text {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.knowledge-tracker-kind {
+    /* the same width for both kinds, so the texts of the items start at the same place */
+    flex: none;
+    min-width: 8.5em;
+    box-sizing: border-box;
+    text-align: center;
+    white-space: nowrap;
+    border-radius: var(--lumo-border-radius-s);
+    padding: 0 var(--lumo-space-xs);
+    font-size: var(--lumo-font-size-xs);
+    font-weight: 600;
+    color: var(--lumo-success-text-color);
+    background-color: var(--lumo-success-color-10pct);
+}
+
+.knowledge-tracker-kind-not {
+    color: var(--lumo-error-text-color);
+    background-color: var(--lumo-error-color-10pct);
+}
+
+/* A narrow card (the phone drawer, a sidebar that was not widened): the kind and the buttons share the first line, the text
+   has the full width below them instead of a column one word wide */
+@container (max-width: 30em) {
+    .knowledge-tracker-item:has(.knowledge-tracker-kind) {
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .knowledge-tracker-kind {
+        min-width: 0;
+    }
+
+    /* only the rows of knowledge items (they have a kind); the rows of the lists of parts and changes stay on one line */
+    .knowledge-tracker-item:has(.knowledge-tracker-kind) > .knowledge-tracker-item-text {
+        order: 3;
+        flex: 1 1 100%;
+    }
+
+    .knowledge-tracker-item > .knowledge-tracker-actions {
+        margin-left: auto;
+    }
+}
+
+/* Old knowledge: kept and shown, never sent to the model */
+.knowledge-tracker-old {
+    opacity: 0.65;
+}
+
+.knowledge-tracker-old-item {
+    text-decoration: line-through;
+}
+
+.knowledge-tracker-settings {
+    display: flex;
+    flex-direction: column;
+    gap: var(--lumo-space-s);
+    width: 22em;
+    max-width: 80vw;
+    /* the list of settings is longer than a phone screen */
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.knowledge-tracker-settings-title {
+    font-weight: 600;
+    margin-top: var(--lumo-space-s);
+}
+
+/* The processing panel at the top of the tab */
+.knowledge-tracker-panel {
+    display: flex;
+    flex-direction: column;
+    gap: var(--lumo-space-xs);
+    margin-bottom: var(--lumo-space-s);
+}
+
+.knowledge-tracker-stale {
+    flex: none;
+    color: var(--lumo-error-text-color);
+    font-size: var(--lumo-font-size-xs);
+    white-space: nowrap;
+}
+
+/* The list in the scroller: room at the sides, little above */
+.knowledge-tracker-list {
+    padding: 0 var(--lumo-space-m) var(--lumo-space-m) var(--lumo-space-m);
+}
+
+/* The review of the changes the model proposed: a group per character, a row per change */
+.knowledge-tracker-review {
+    display: flex;
+    flex-direction: column;
+    gap: var(--lumo-space-s);
+}
+
+.knowledge-tracker-review-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--lumo-space-xs);
+    padding: var(--lumo-space-xs) var(--lumo-space-s);
+    border-radius: var(--lumo-border-radius-m);
+    background-color: var(--lumo-contrast-5pct);
+}
+
+.knowledge-tracker-review-row {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--lumo-space-s);
+}
+
+.knowledge-tracker-review-body {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.knowledge-tracker-review-kind {
+    flex: none;
+    width: 7em;
+}
+
+/* The review on a phone (the dialog is as wide as the screen): the tick and the kind share a line, the text and its quote use the
+   whole width below them, the check boxes of the group wrap */
+.knowledge-tracker-review-body {
+    overflow-wrap: anywhere;
+}
+
+@media (max-width: 640px) {
+    .knowledge-tracker-review-row {
+        flex-wrap: wrap;
+    }
+
+    .knowledge-tracker-review-body {
+        order: 3;
+        flex: 1 1 100%;
+    }
+
+    .knowledge-tracker-review-row > vaadin-text-field {
+        flex: 1 1 10em;
+        min-width: 0;
+    }
+
+    .knowledge-tracker-review-group .knowledge-tracker-card-header {
+        flex-wrap: wrap;
+    }
+}
+
+/* The progress panel: small, it floats over the page without blocking it */
+.knowledge-tracker-progress {
+    display: flex;
+    flex-direction: column;
+    gap: var(--lumo-space-s);
+    width: 22em;
+    max-width: 80vw;
+}

@@ -32,7 +32,7 @@ The plugin tracks **only the characters the user creates in it**, never everythi
   listed and cannot know their name, job or looks:
 
       Fiora knows: Mara (courier, her friend's sister); the Guild owes her money.
-      Fiora has never met or heard of anyone else in this story and does not know anything about them.
+      Fiora has never met or heard of anyone else in this story and knows nothing else of its secrets, plans or events.
 
   The plugin never has to know Thomas: he is excluded by not being on Fiora's list.
 - **The initial state is the main tool.** The user writes it as free-text items, knows or does not know, and an item may
@@ -111,11 +111,13 @@ messages (until a reprocess). The same table is used for a catch-up over many me
 - **Ask or not: a checkbox of the auto mode, "Ask before applying"** (per book, and overridable for one run).
   Checked = **guided**: every run ends in the dialog. Unchecked = **purely automatic**: the changes are applied at once
   and only recorded in a log (the same table, read-only, with a "revert" per row). Guided is the default.
-- **When it appears:** not as a pop-up in the middle of reading. The tab shows a badge "N changes to review"; the dialog
-  opens from it, or by itself when the next generation needs the state (processing is just in time, see
-  [Finality of the run](#finality-of-the-run)): the generation waits in the listener until the dialog is closed (a
-  listener may call `chain.next()` later from another thread) and then goes on with the applied state. Cancel in that
-  dialog lets the generation continue with the state as it was.
+- **When it appears: never by itself.** The dialog is never a pop-up in the middle of reading or writing; the user
+  opens it with a button of the [progress panel](#the-progress-panel) (and from the "N changes to review" badge of the
+  tab). When the next generation needs the state (processing is just in time, see
+  [Finality of the run](#finality-of-the-run)), the generation waits in the listener (a listener may call
+  `chain.next()` later from another thread) with the panel showing "Waiting for your review" and the button; it goes
+  on with the applied state when the dialog is applied, or with the state as it was when it is cancelled (or the panel
+  is dismissed, which counts as Cancel).
 - **No browser, no dialog:** a generation without a user interface (an agent, a command, a headless run) auto-applies,
   or skips processing; the commands `knowledge-process` / `knowledge-reprocess` give the changes back as JSON for an
   agent to apply with `apply-knowledge-changes`.
@@ -129,15 +131,15 @@ Processing happens in **runs**. A run takes the next **N settled parts** after t
 [Finality of the run](#finality-of-the-run)) and handles them together in one request (split only when they do not fit
 the context of the model), so the model sees a short stretch of the story at once and the review has one table per run.
 
-- **N is configurable**: a default in the settings of the auto mode (small, e.g. 1-3, for keeping up with the story as
-  it is written; larger for a catch-up) and **per run**: "Process next N parts" in the tab, the `parts` argument of
+- **N is configurable**: a default in the settings of the auto mode (default 1 for keeping up with the story as
+  it is written, no upper limit; larger for a catch-up) and **per run**: "Process next N parts" in the tab, the `parts` argument of
   `knowledge-process` / `knowledge-reprocess`, and the same value for the runs started by a reprocess.
 - A catch-up is a series of runs of N parts until the cursor reaches the last settled part. **Guided**: one dialog per
   run (the next run starts when it is applied; Cancel stops the series). **Automatic**: the runs follow each other
   without asking and the log is shown at the end.
 - A bigger N is cheaper (fewer requests) but gives a longer answer and worse review; the tab shows the estimate (parts,
   tokens, requests) before a long series starts.
-- Progress and cancel for a series; one series per book at a time.
+- Progress and cancel for a series in the [progress panel](#the-progress-panel); one series per book at a time.
 
 ## Present characters
 
@@ -165,6 +167,27 @@ fields are therefore parsed leniently (one parser, a pure function with its own 
   The POV field is not read on its own: the author lists the POV character among the present ones anyway, and not
   reading it keeps one rule. A character that is not present is not listed at all, not even as "does not know".
 - An entry that matches no tracked character is just a name met by the tracked ones (see "people met").
+
+### The progress panel
+
+While the plugin works (a run, a series, a reprocess) it shows a **non-modal progress panel**, so the user can keep
+reading the story, editing a part or writing the next one while the model works:
+
+- **Not modal, movable:** a small floating panel (no overlay, no focus trap, nothing behind it is blocked) that the user
+  can **drag** to another place and collapse to a title bar; its position is a per-viewer convenience. Closing it does
+  not stop the work (the work goes on in the background; the badge on the tab still shows the state); a **Cancel**
+  button stops it.
+- **Content:** what is happening (reading the lorebook, asking the model, parsing), the run it is on ("run 3 of 12",
+  the parts), the elapsed time and the estimate of the tokens; for a series also the changes found so far. Errors of
+  the model (an unparseable answer, a refused request) are shown here with a retry, never as a pop-up.
+- **When it is done**, the panel turns into the result: "N changes found" and a **Review changes** button (no changes:
+  "Nothing new" and it closes by itself after a moment). **The review dialog opens only when the user presses that
+  button**, never automatically; guided and automatic mode both end in the panel, the automatic one with the log
+  ("N changes applied", a link to the log) instead of the button.
+- A guided series stops at each run until its review is applied or cancelled, then the panel continues with the next
+  run.
+- Without a browser (an agent, a command, a headless run) there is no panel, see below.
+- The phone UI gets the same as a bar at the bottom, expandable (no dragging there).
 
 ## How it works (auto mode)
 
@@ -199,8 +222,11 @@ user can steer it:
     entry: the block lands wherever the macro is. The command (`availableInMacros`, reads only) takes the **character
     list as its argument**, the raw text of the field, parsed by the same rules, for example
     `{{command::knowledge-tracker-block::{{presentCharacters}}}}`; so a template can pass any list (a different scene
-    field, a hand-written `Mara; Fiora`). Without the argument it uses the present characters of the turn being
-    generated, if the command can see it. Like the note, the macro prints the block whether or not **Insert into
+    field, a hand-written `Mara; Fiora`). The argument is required (a command does not see the turn being
+    generated). A literal `::` in a hand-written list would split it into several arguments and fail the call: use
+    another separator there. The answer of a macro command is kept with the part the new part continues from, keyed by
+    the command and its arguments, so a second generation from the same part (not a regenerate or a swipe, which ask
+    again) does not see a state edit made between the two. Like the note, the macro prints the block whether or not **Insert into
     prompt** is on, so switch that off when the macro is used, or the model gets it twice; depth and role do not
     apply to the macro. An empty result (nobody tracked is present) prints nothing.
 - **Commands** (command bar and agents; agents can drive the plugin by calling these by hand): see
@@ -277,53 +303,95 @@ finished" (an `@Extendable` method with `@PublicAPI` or an event); also useful t
 
 One processing run per book at a time (serialize); a generation waits for it, it does not start another.
 
-## Milestone 1 - state, cursor, "has not met" (no LLM)
+## Milestone 1 - state, cursor, "has not met" (no LLM): done
 
-- [ ] State model in `Manuscript.attributes` (Gson, like `AuthorsNoteData`): tracked characters (name, aliases, initial
-      state), start point, cursor, facts (character, text, knows / does not know, source message uuid or none for
-      manual ones), "has met" pairs, auto-mode flag, processed list (info), injection settings.
-- [ ] Tracked characters: list, add / edit / delete dialog (name, aliases, initial state as free-text knows / does not
-      know items, each with an optional *about* name), in the story sidebar tab.
-- [ ] State per item (active / old, with the message that made it old), manual retract / restore, the Old knowledge
-      list per character with copy, edit, restore and delete; see [Old knowledge](#old-knowledge). (Retraction by the
-      model is Milestone 2; until then a story where tracked characters meet people needs hand edits.)
-- [ ] Optional pass without a model (the "has met" names only): tracked character A has met B when both were present (POV or present characters) in a
-      part; B is any name, tracked or not. Read POV / present characters of each message from the cursor on. Writes into
-      the same state.
-- [ ] Name matching of the POV / present fields against the tracked names and aliases, see
-      [Present characters](#present-characters).
-- [ ] Rewind: reprocess from a message, the branch change rewind and the drop on a regenerate; see
-      [Edited, redrafted and regenerated parts](#edited-redrafted-and-regenerated-parts).
-- [ ] "Changed since processed" hint on the processed list (hash of the text), with **Reprocess from here**; no
-      automatic reprocess for an edit or a redraft.
-- [ ] Block builder: closed-world block for the tracked characters among the POV and the present characters: initial
-      state + learned facts + the people met (names), then "knows nothing else, has never met or heard of anyone not
-      listed" (collapse long lists, cap the length; wording tested against the models in use).
-- [ ] Insertion in the payload with depth, role, in-prompt toggle; token reservation; count with the generation's model.
-- [ ] Commands, see below. Macro through `knowledge-tracker-block` with the character list as the argument (the arguments
-      arrive as a list split on `::`; the command joins all of them with a newline, so a `::` in the list is harmless;
-      a nested `{{presentCharacters}}` is a property lookup evaluated as an argument of the command before it runs, read in
-      `MacroTranslator.argExpr`/`subExpr`; not run yet, add a test in the style of `CommandMacroTest` that proves it).
-- [ ] Settings of the book (see [Settings of the book](#settings-of-the-book)), saved in the state; the tab shows
-      them, the toggle for the automatic processing among them.
-- [ ] Story sidebar tab: auto mode on/off, start point, cursor and processed list, who has met whom, "reprocess from
-      here" on a message, progress while processing.
-- [ ] Localization class (`KnowledgeTrackerLocalization extends PluginLocalizationBundle`, ja and zh), user manual page
-      in `manual/user/extensions`, CHANGELOG entry.
+Done and checked in the running application (the Knowledge tab, the commands through the command line, a restart of the
+application), with unit tests for the logic (`model`, `scene`, `block`, `process`) and a manual page
+(`manual/user/extensions/knowledge-tracker.md`):
+
+- [x] State in `Manuscript.attributes` (`KnowledgeState`): settings, tracked characters (name, aliases), items (knows /
+      does not know; active or old; origin initial, manual or learned; source message), people met, start point,
+      cursor, the processed list with the hash of each text.
+- [x] The Knowledge tab: tracked characters, items, retract / restore / edit / delete / copy, the Old knowledge list,
+      settings (in prompt, depth, role, closed world line, auto processing, separators of the book and of the user).
+- [x] The lenient reading of the present characters field (`PresentCharacters`), separators per book and per user.
+- [x] The block (`KnowledgeBlockBuilder`) with the closed world line; insertion into the payload with depth, role and
+      reserved tokens; the `knowledge-tracker-block` macro.
+- [x] Processing (`BranchProcessor`): the cursor kept in line with the active branch (swipe, other branch, deleted
+      part), the start point, the settled-parts rule, the "has met" pass, reprocess from a part, parts whose text
+      changed since they were read; a regenerate takes back the state of the replaced part (`AFTER_CLEANUP`);
+      automatic processing just before the prompt (`BEFORE_PREPARE_CONTENT`).
+- [x] Commands: status, tracked characters, knowledge, process, reprocess, set start, block. A command that asks the user
+      must be `async = true` (it waits on a worker thread; synchronous it blocks the UI thread that would show the
+      question).
+- [x] Localization (English, Japanese, Chinese), user manual, CHANGELOG entry.
+
+Not done from the first plan (not needed for Milestone 1, left for later): a unit test of the macro with the nested
+`{{presentCharacters}}` argument (it works in the application: the block command answered with the right text for a list
+passed by hand, but a template with the nested macro was not run), collapsing long lists in the block and a cap on its
+length, the optional *about* name on an item (only if the model does not retract reliably), per-book processed list
+paging in the tab (it shows the latest 30), the phone layout of the tab (not looked at).
 
 ## Milestone 2 - LLM extraction (what was learned, hearsay)
 
-- [ ] Retraction and additions by the model in one answer per tracked character: the active items numbered in the
+**Status:** the first version is built and was run through the real application with a fake model that gave a queued
+answer (the Process now button, the non-modal progress panel, the review dialog, Apply, the stored result; the agent
+commands) and the prompt was tested against a real model (see [To validate](#to-validate-with-real-models-before-milestone-2-is-built-on-top)).
+What is in: `extract` (`ExtractionAnswer`, `ExtractionPrompt`, `ChangeSetBuilder`, `ChangeApplier`, `RunCommit`; pure, 18
+tests), `ExtractionService` (model, context fitting, lorebook modes, propose / commit), `ExtractionRun` / `ExtractionRuns`
+(a run on a worker thread, one per book), the progress panel and the review dialog, the settings, `knowledge-process` with
+`ask`, `apply-knowledge-changes`. A bug found by running it, kept as a test: the cursor has to move *before* the changes are
+applied, else its first step takes them back (`RunCommit`).
+
+The **estimate before a long series** is in (`RunEstimate`, `KnowledgeProcessService.estimate`): *Process now* asks for a
+confirmation with the parts, requests and story tokens when it would need more than 3 requests.
+
+The **log of automatic runs with a revert per row** is in (`ChangeLog`, `ChangeLogEntry`, the *Applied automatically* section
+of the tab; the last 200 changes; an item the user changed since is not touched).
+
+**Run through the application with the real model** (2026-11-03, the user's `gemma-4-31b-it-MM`, the small Draconia story of the
+screenshot data): *Process now* over 5 parts took 86 s and proposed two additions with correct quotes from part 5 (review, apply,
+log). A generation with **Ask before applying** off took 3 s (it did not wait) and the part it produced was read by the model at its
+end (`AutoAnnotate.finished`, a minute later: *Added to Draconia (Part 6)*). Found and fixed by this run: a review that waited
+while the browser session ended could not be applied (*Scope 'session' is not active*): the worker now continues in the session of
+the request that applies the review. Not tried: the hook with the automatic annotation and redraft switched on (the same
+`finished` method ends that chain).
+
+**Backfill from starting information** (2026-11-03, the same model and story): Draconia with two initial items (*Knows: Crabbe and
+Goyle are her bodyguards*, *Does not know: Harry has been watching her or knows where she goes at night*), start point at part 2,
+one part per run, applied at once. *Process now* asked for confirmation first (*4 parts in 4 requests*), the series took 119 s and
+read parts 2-5 (part 1 was never read): at part 5 (Harry says he has seen the map) the model retracted the *does not know* item
+and added what she learned; nothing was added for parts where she was not present or learned nothing. Result: 2 active, 1 old,
+both changes in the log.
+
+Left from this list: the **generation waiting for the review** (a guided run is started from the tab; before a prompt the
+plugin reads with the model only when **Ask before applying** is off, else it only notes who has met whom), the
+panel's position as a per-viewer convenience, and the phone layout.
+
+- [x] Retraction and additions by the model in one answer per tracked character: the active items numbered in the
       request, the numbers to retract and the facts learned in the answer (JSON), each with its source message.
-- [ ] Processing step per batch of settled messages: the messages + POV + present characters + the list of tracked
+- [x] Processing step per batch of settled messages: the messages + POV + present characters + the list of tracked
       characters with their current knowledge in (the model may report only on tracked characters), JSON facts out ("Mara learned: Tomas is a smuggler, told by Ilse"), each with its source
       message. Updates the state instead of regenerating it.
-- [ ] **Extraction prompt content:** one request per run holds, in this order: the instructions (retract / add rules,
+- [x] **Extraction prompt content:** one request per run holds, in this order: the instructions (retract / add rules,
       JSON format), the **lorebook**, the tracked characters with their numbered active items, and the **messages** of
       the run (text + POV + present characters + number of each). The lorebook is there so the model knows who and what
       the names are (aliases, relations) and does not mistake an unnamed "the courier" for a stranger; it is *world*
       knowledge, and the instructions say that it is **not** what the characters know: a fact is added to a character
       only if the messages show that character perceiving it.
+      - **Extract only what the messages teach, and omit what the character already has.** The instructions say, in
+        these words or close: report only knowledge that the character *gains in these messages* (saw, heard, read,
+        was told, worked out), and **leave out**
+        - **global knowledge** that a member of that world has anyway (who the king is for John, who is a subject of
+          the kingdom; common customs, geography of their home, the language), and
+        - **what follows from the character itself** as the lorebook describes it (Lizzy is a succubus, so she knows
+          she has a tail and what her kind can do; a character's own history, trade, family, abilities),
+        - and anything the tracked state already holds (no duplicates; an item that says the same is not added again).
+        Lorebook, tracked characters' initial state and the earlier items are there so the model can tell *new* from
+        *already known*; an addition that only restates them is dropped. When in doubt whether the character
+        already knew it, nothing is added. A fact that is new to this character *because it was told it* ("the king
+        is dead", Peter reads the memo) is added, even if the lorebook has it: the lorebook is what is true, the
+        item is that this character now knows it.
       - **Lorebook: resolve or whole** (a setting of the book, **default: resolve**). *Resolve* = only the entries that
         the parts of the run activate, as a generation would (the union over the parts of the run; filters, keys and
         sub lorebooks like `ImageGeneratorService.activatedLore`: `LorebookActivationService.collectLorebooks` /
@@ -335,19 +403,19 @@ One processing run per book at a time (serialize); a generation waits for it, it
         are counted and reported, as the image generator does.
       - The token count of the lorebook goes into the estimate before a long series and into the split of a run that
         does not fit the context of the model (fewer parts per request, the lorebook is kept).
-- [ ] Choose the model for the extraction (a cheaper one; a separate model matters on a single-slot local server, it
+- [x] Choose the model for the extraction (a cheaper one; a separate model matters on a single-slot local server, it
       evicts the prompt cache otherwise).
-- [ ] Review dialog: the table of changes per tracked character (apply checkbox, retract / add, editable text,
+- [~] Review dialog: the table of changes per tracked character (apply checkbox, retract / add, editable text,
       evidence with the message), Apply / Cancel, the badge on the tab, review vs auto-apply setting with a read-only
       log and per-row revert; see [The review dialog](#the-review-dialog).
-- [ ] The generation waits for the dialog when it needs the processed state; Cancel lets it go on with the old state;
+- [~] The generation waits for the dialog when it needs the processed state; Cancel lets it go on with the old state;
       no user interface = auto-apply or skip.
-- [ ] Runs: N parts per run as a setting of the auto mode and per run (tab, `parts` argument), series of runs for a
+- [~] Runs: N parts per run as a setting of the auto mode and per run (tab, `parts` argument), series of runs for a
       catch-up, estimate before a long series, progress and cancel; see [Runs and parts per run](#runs-and-parts-per-run).
-- [ ] "Ask before applying" checkbox (guided / automatic), per book and for one run.
-- [ ] List of what each character knows, editable: delete / edit a learned fact, add one by hand (manual facts and the
+- [x] "Ask before applying" checkbox (guided / automatic), per book and for one run.
+- [x] List of what each character knows, editable: delete / edit a learned fact, add one by hand (manual facts and the
       initial state have no source message and survive a reprocess). Review before a batch is applied: see the review dialog.
-- [ ] Private moments (thought, whisper, eavesdropping): the model decides who actually perceived it; the present
+- [x] Private moments (thought, whisper, eavesdropping): the model decides who actually perceived it; the present
       characters are only the prior.
 
 ## Commands
@@ -355,46 +423,123 @@ One processing run per book at a time (serialize); a generation waits for it, it
 For the command bar and for agents (registered with `commandService.registerCommands`, like
 `CharacterTrackerCommands`):
 
-- [ ] `knowledge-status` - auto mode, start point, cursor, number of unprocessed settled messages, hints for changed
-      messages. Reads only.
-- [ ] `knowledge-process` - process the settled messages after the cursor now (`parts`: how many per run; `ask`:
-      override of the checkbox, for an agent false returns or applies the changes).
-- [ ] `apply-knowledge-changes` - apply a set of changes returned by `knowledge-process` (for agents).
-- [ ] `knowledge-reprocess` (`parts`, `ask` as above) - from a given message (addressed the way the other message commands address a message,
-      see `ManuscriptReadSupport`); `DESTRUCTIVE`-ish: it drops facts, so it asks the user.
-- [ ] `knowledge-set-start` - set the start point.
-- [ ] `list-tracked-characters`, `add-tracked-character`, `update-tracked-character`, `delete-tracked-character`
-      (name, aliases, initial state; addressed by name, like the character-tracker commands).
-- [ ] `list-knowledge` / `get-knowledge` (per character), `add-knowledge`, `delete-knowledge`.
-- [ ] `knowledge-tracker-block` (argument: the character list, optional) - the block as text, for
+- [x] `knowledge-status` - the settings and the state in short (the cursor, start point and the hints for changed
+      messages come with the processing).
+- [x] `knowledge-process` - process the settled messages after the cursor now (`parts`: how many per run; `ask`:
+      override of the checkbox: `ask` true returns the numbered changes and holds them, `apply-knowledge-changes` applies the ones it is given). Async.
+- [x] `apply-knowledge-changes` - apply a set of changes returned by `knowledge-process` (for agents). Milestone 2.
+- [x] `knowledge-reprocess` (`parts`, `ask` as above) - from a given message (addressed the way the other message commands address a message,
+      see `ManuscriptReadSupport`); `DESTRUCTIVE`-ish: it drops facts, so it asks the user. Needs the rewind wiring.
+- [x] `knowledge-set-start` - set the start point (message addressing as above).
+- [x] `list-tracked-characters`, `add-tracked-character`, `update-tracked-character`, `delete-tracked-character`
+      (name, aliases; addressed by name, alias or number, a name or alias already used by another is refused).
+- [x] `list-knowledge` (per character: items by number, old ones marked, people met), `add-knowledge`,
+      `retract-knowledge`, `restore-knowledge`, `delete-knowledge`. (One list command instead of list + get.)
+- [x] `knowledge-tracker-block` (argument: the character list, required) - the block as text, for
       `{{command::knowledge-tracker-block::<characters>}}`; marked for macros.
 
-## Open questions
+## Decisions (the former open questions)
 
-- Default N for keeping up with the story (1 part? a few?) and the upper limit; and should a run never cross a point
-  where the active branch is not settled? (It does not by the finality rule.)
+- **Parts per run:** default **1**, **no upper limit** (only the context of the model: a run that does not fit is
+  split). A run never crosses an unsettled part (the finality rule already guarantees it).
+- **Rewind:** dropping facts by their source message is the rewind; the processed list stays info only. The alternative
+  (wipe and reprocess from the start point) is only what **Reprocess from the start point** does on request.
+- **Branches:** one state per book, no state per branch. A branch change rewinds to the last message both branches share.
+- **Regenerate:** the block for the prompt of a regenerate is built from the state up to the part *before* the
+  regenerated one (the state of the part itself is excluded). A requirement of the block builder with its own test, not
+  a question.
+- **Introduced in:** no such field. A tracked character is tracked from the start point; one that has not appeared has
+  nothing to learn, and the extraction ignores it. The initial state says what it knows when it enters.
+- **Name picker:** offers the POV / present names seen in the book **and** the cast of character-tracker when it is
+  installed. Looked up at runtime, no hard dependency (the plugin works without it, the picker only has fewer names).
+- **A retracted item leaves no trace in the block;** the learned fact ("Fiora met Thomas, he is a smuggler") is enough.
+- **Knowledge is per character, about anything.** An item is always *a character's* knowledge, but its subject is free:
+  a person, a place, a secret, a plan, an event ("Peter knows about the plot to kill the duke", learned by reading a
+  memo). The extraction adds such items too (what the character perceived, with the memo / message as the evidence).
+  The closed-world line covers the **story-specific** knowledge of every kind (people, places, secrets, plans, events),
+  not the general knowledge of the world (a character knows what a horse is, the street it lives on, unless the
+  initial state says otherwise): "Peter knows nothing else about the people, places, secrets and events of this
+  story." Its wording is tested (see below).
+- **One level of knowing:** an item is text and nothing more. A rumour is written as a rumour ("Fiora heard that Thomas
+  is a smuggler"); there is no knows / believes flag.
+- **Partial text of a stopped generation is extracted** (it is the story as it stands).
+- **Latency of just-in-time processing with automatic annotation on:** accepted for the first version, with progress in
+  the generation status. The core signal "auto-annotation chain finished" is asked for only if it proves too slow (see
+  [Finality of the run](#finality-of-the-run)).
 
-- Is dropping facts by their source message acceptable as the rewind, given that the processed list is info only? (The
-  source tag on a fact is needed for it; the alternative is to wipe the whole state and reprocess from the start point.)
-- Rewind on a branch change drops the facts of the other branch; keep a state per branch instead (heavier)?
-- A regenerate drops the state of the part only after the new text exists. Between the start of the regenerate and its
-  end the old state is still injected for the prompt of the regenerate itself (which is right: the state before the part
-  is what that prompt needs; the state *of* the part has to be excluded from it). Check that the block for a
-  regenerate is built from the state up to the part before the regenerated one.
-- Does a tracked character start at the message where it is introduced (nothing is known before it, so the
-  processor skips earlier messages for it), or is it tracked from the start point like everyone? Probably an optional
-  "introduced in message" next to the initial state.
-- Offer to import the names from character-tracker (if installed) when creating tracked characters, or leave it out?
-- The closed-world sentence is what stops the omniscience; does the model respect it for characters that are in the
-  lorebook / story text but not on the list? To be tested with real models (the user reports that models usually
-  respect an explicit "doesn't know X"; the general form is untested).
-- Will the model retract reliably ("has not met Thomas" after they meet) and not over-retract or over-add? Needs a set
-  of test scenes with the models in use; if it does not work well enough, add the presence shortcut (optional *about*
-  name on an item).
-- Does a retracted item leave a trace in the block ("Fiora has met Thomas") or is the learned fact enough? Probably the
-  learned fact only.
-- Knowledge that is not about a person (a place, a secret, an event): the same closed-world rule for everything, or
-  only for people? Only people is the original problem and a shorter block.
-- Hearsay and rumours vs. certain knowledge: one level ("knows") or two ("believes" / "knows")?
-- Latency of processing just in time with automatic annotation on: acceptable, or ask for the core signal?
-- Extract from a **partial** text of a stopped generation? (Current idea: yes, it is the story as it stands.)
+## To validate with real models (before Milestone 2 is built on top)
+
+These are tests, not design questions. Write a small set of test scenes and run them with the models in use.
+
+**Results so far** (2026-11-03, the user's `gemma-4-31b-it-MM` behind llama-server, reasoning on by default, about 1000
+tokens per answer; 3 to 4 samples per case, so these are signs, not rates; one model, one scene each):
+
+- [x] **Closed-world sentence works.** Scene: Thomas, a stranger who is secretly Fiora's father, comes into the bakery;
+      the lore gives his job and says nothing about whether they met. *No block:* 3 to 4 of 4 samples leak (Fiora
+      "recognized him immediately", greets him as "Master Wren", the narration calls him "the royal tax assessor" in her
+      point of view, she asks whether he is here for "the morning taxes"). *With a block* (explicit "has never met
+      Thomas" items; or only the closed-world line with **no** Thomas items; or that without the "is currently with"
+      line): 0 of 12 leak his name or job before he introduces himself. So the safety net alone is enough, and the
+      "is currently with" line is harmless (no difference between E and F). The wording of the block stays as it is.
+- [x] **Scope of the closed-world line is fine.** A walk through her own town with the line kept "the familiar scents of
+      the town" (3 of 3); she is not a stranger in Ashby. No need to narrow the line.
+- [~] **Extraction prototype works** (the prompt below; 15 requests, about 600 tokens, about 30 s each; every answer was
+      valid JSON): *meeting* retracted "has never met Thomas" 3 of 3, added his name, job and looks, never the father
+      item and never retracted the "does not know he is her father" item; *memo*: Peter learns the plot 3 of 3, Anna
+      (who did not look up) nothing 3 of 3; *private muttering with the tracked character absent*: nothing for her
+      3 of 3; *ordinary knowledge*: John (who saw the royal carriage) nothing, Lizzy never "has a tail", the Friday
+      closing and the hired hall added 6 of 6. One false addition: "the crowd is feeling nervous hunger" (Lizzy's own
+      empathy, rule 2) in 1 of 3 **with** the lore; none without it.
+- [x] **Rates for the extraction prompt** (second round, same model, 6 samples per scene, 48 requests, scored by script;
+      every answer was valid JSON; about 790 tokens and 39 s per run of one part): *meeting* 6/6 (retracts "has never met",
+      adds name and job, no father leak, keeps the father item); *private muttering, tracked character absent* 6/6 nothing;
+      *memo* 6/6 (Peter learns the plot, Anna nothing); *letter, whisper, sleeper, absent character* (5 tracked) 6/6 on all
+      five checks (Fiora learns the letter and not the whisper, Mara hears the whisper, the sleeper and the absent one learn
+      nothing).
+- [~] **Over-retraction found, not fixed by the prompt:** in the scene where Fiora is only *told* who Thomas is, the model
+      retracted the item "does not know who Thomas Wren is: she has never met or seen him" 6/6. Defensible (half of it is
+      contradicted) but it throws away the half that stays true. A rule was added to the prompt (*an item that says more than
+      one thing is retracted only when the messages contradict all of it*, now in `ExtractionPrompt`): 5/6 still retract, so
+      it is noise, not a fix; the meeting scene (6/6) and the five-character scene (6/6 on all five checks) are unchanged.
+      What helps is **one thought per item** (said in the manual) and the review: a retraction is shown and can be unchecked.
+      Not tried: a separate pass that asks only about retractions, or a presence shortcut.
+- [~] **Lorebook in the extraction** (resolve / whole / none), same scene, 6 samples each: the lorebook did **not** help the
+      omission rule and made one thing worse: "the crowd feels nervous hunger" (the empathy of a succubus, which the lore
+      describes, perceived in the scene) was added 2/6 with the resolved lore, 3/6 with the whole lorebook, 0/6 without. No
+      mode leaked a world secret (the king's illness, the landlord's smuggling): 18/18. All three added the Friday closing 18/18
+      and no one learned "the king is Alaric". So: the default stays *resolve* (the lore is there for names, aliases and
+      relations, which this scene did not test), *whole* is not worse on secrets, *none* is the cheapest and was the cleanest.
+      Left: a scene where the names need the lore (an alias, a title, "the courier").
+- [ ] More of the same before relying on it: 8+ samples, a second model, an over-retraction scene (two characters of
+      the same name, a scene where they only hear of each other), a long scene with several tracked characters, and the
+      real request size (a full lorebook and 3 to 10 parts).
+
+**The tested extraction prompt** (system message; the user message holds `[World]` (the lore, when sent),
+`[Tracked characters]` with the numbered active items and whether each is present, and `[Messages]` numbered `#1`,
+`#2` ... each with its POV and present characters). Keep it as the starting point of Milestone 2:
+
+```
+You keep track of what the characters of a story know. You get the world (lorebook, when given), the TRACKED characters
+with the numbered items of what each knows or does not know now, and the new story MESSAGES (numbered). Report, for each
+tracked character, only what changed in these messages.
+
+Rules:
+1. add: knowledge the character GAINS in these messages: what it saw, heard, read, was told or worked out itself. Not
+   what the reader knows, not what only the narrator says, not what other characters know.
+2. Do NOT add global knowledge that a member of that world has anyway (who the king is for a subject of the kingdom,
+   common customs, the language, the geography of their own home), and nothing that follows from the character itself as
+   the world text describes it (its species, body, abilities, history, family, trade).
+3. Do NOT add anything the items of the character already say.
+4. retract: the number of an item that the messages clearly contradict (for example "has never met X" after they meet).
+   Only when the text shows the contradiction. An item saying a character does not know Y is retracted only if the
+   character learns Y in these messages.
+5. Never infer. When in doubt, report nothing. A character that is not present, or does not see or hear an event
+   (private thoughts, whispers, a closed letter), learns nothing from it.
+6. Every change needs an evidence quote copied from the messages and the number of the message.
+
+Answer with JSON only, no other text: {"characters":[{"name":"...","retract":[{"item":N,"evidence":"...","message":N}],
+"add":[{"kind":"knows|does-not-know","text":"...","evidence":"...","message":N}]}]}. A character with no changes has
+empty lists.
+```
+
+Still open from the list above: the 8+ samples, the lorebook modes and the harder scenes (the last item of the results).

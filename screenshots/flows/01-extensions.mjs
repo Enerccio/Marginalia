@@ -4,7 +4,7 @@ import path from 'node:path';
 import {idle, launch, login, repo, snap} from '../lib/shot.mjs';
 
 const plugins = ['authorsnote', 'chaptermarker', 'character-tracker', 'chineselocalization', 'gemma4toolsfix',
-  'instructionexporter', 'lore-generator', 'lorebookvcs', 'manga-generator', 'name-generator', 'name-provider', 'place-provider', 'reviewer', 'sidequery', 'sillytavern-converter'];
+  'instructionexporter', 'knowledge-tracker', 'lore-generator', 'lorebookvcs', 'manga-generator', 'name-generator', 'name-provider', 'place-provider', 'reviewer', 'sidequery', 'sillytavern-converter'];
 
 const { browser, page } = await launch();
 await login(page);
