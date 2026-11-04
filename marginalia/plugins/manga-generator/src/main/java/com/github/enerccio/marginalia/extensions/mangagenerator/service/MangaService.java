@@ -10,6 +10,7 @@ import com.github.enerccio.marginalia.domain.service.impl.generation.dto.Loreboo
 import com.github.enerccio.marginalia.domain.templates.LorebookTemplateData;
 import com.github.enerccio.marginalia.domain.templates.TemplateContext;
 import com.github.enerccio.marginalia.domain.templates.TemplateVariables;
+import com.github.enerccio.marginalia.extensions.PartTextRegistry;
 import com.github.enerccio.marginalia.extensions.mangagenerator.model.Manga;
 import com.github.enerccio.marginalia.extensions.mangagenerator.model.MangaData;
 import com.github.enerccio.marginalia.extensions.mangagenerator.model.MangaSection;
@@ -50,6 +51,9 @@ public class MangaService {
 
     @Autowired
     private ChatMessageService chatMessageService;
+
+    @Autowired
+    private PartTextRegistry partTexts;
 
     @Autowired
     private LorebookService lorebookService;
@@ -222,9 +226,16 @@ public class MangaService {
      * The text of parts {@code from} to {@code to} (from 1, cut to the story), each under its number; parts with no text are left out.
      */
     static String partsText(List<ChatMessage> branch, int from, int to) {
+        return partsText(branch, from, to, ChatMessage::getResponse);
+    }
+
+    /**
+     * As {@link #partsText(List, int, int)}, the text of a part taken with {@code reader} (the text a model reads).
+     */
+    static String partsText(List<ChatMessage> branch, int from, int to, java.util.function.Function<ChatMessage, String> reader) {
         StringBuilder text = new StringBuilder();
         for (int i = Math.max(1, from); i <= Math.min(branch.size(), to); i++) {
-            String response = branch.get(i - 1).getResponse();
+            String response = reader.apply(branch.get(i - 1));
             if (StringUtils.isNotBlank(response)) {
                 text.append("[Part ").append(i).append("]\n").append(response.strip()).append("\n\n");
             }
@@ -242,7 +253,7 @@ public class MangaService {
     public Request buildScriptRequest(Manuscript manuscript, Manga manga, MangaSection section, MangaSection previous) throws Exception {
         MangaSettings settings = getSettings();
         List<ChatMessage> branch = branch(manuscript);
-        String source = partsText(branch, section.getContextStart(), section.getContextEnd());
+        String source = partsText(branch, section.getContextStart(), section.getContextEnd(), partTexts::forModel);
         if (source.isEmpty()) {
             throw new IllegalStateException(T.localized(THE_STORY_HAS_NO_TEXT));
         }
@@ -272,7 +283,7 @@ public class MangaService {
             throw new IllegalStateException(T.localized(GENERATE_OR_WRITE_THE_SCRIPT));
         }
         List<ChatMessage> branch = branch(manuscript);
-        String source = partsText(branch, section.getContextStart(), section.getContextEnd());
+        String source = partsText(branch, section.getContextStart(), section.getContextEnd(), partTexts::forModel);
 
         String userPrompt = compile(StringUtils.defaultIfBlank(
                         StringUtils.defaultIfBlank(section.getTagsPromptOverride(), manga.getTagsPromptOverride()), Defaults.DEFAULT_TAGS_PROMPT),
@@ -444,8 +455,9 @@ public class MangaService {
 
         List<String> story = new ArrayList<>();
         for (ChatMessage message : branch) {
-            if (StringUtils.isNotBlank(message.getResponse())) {
-                story.add(message.getResponse());
+            String text = partTexts.forModel(message);
+            if (StringUtils.isNotBlank(text)) {
+                story.add(text);
             }
         }
         context.setStoryMessages(story);

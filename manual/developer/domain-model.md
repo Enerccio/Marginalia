@@ -27,7 +27,8 @@ Some entities kept their early names. The UI and this manual use the names on th
 | `Manuscript` | `manuscripts` | Book |
 | `ChatMessage` | `messages` | Part (of the story) |
 | `Summary` | `summaries` | Summary |
-| `Annotation` | `annotations` | Annotation (a note on a passage of a part) |
+| `Annotation` | `annotations` | Annotation (a note on a passage of a part); a subclass of `AnchoredPassage`, the same table holds the passages of the extensions |
+| `AnchoredPassage` | `annotations` | A passage of a part (range and quote) with a kind of an extension; see [`AnchoredPassage`](#anchoredpassage) |
 | `MessagePrompt` | `message_prompts` | Prompt of a part (*Show Prompt*) |
 | `MessageRevision` | `message_revisions` | A version of the text of a part (*History*), see [Version history](version-history.md) |
 | `Lorebook`, `LorebookEntry` | `lorebooks`, `entries` | Lorebook, entry |
@@ -417,17 +418,35 @@ Deleting a meta summary (`SummaryService.removeSummary(part, unwind)`) with `unw
 valid. Restoring a backup creates all summaries with new `uuid`s, so `ManuscriptServiceImpl.restoreMessages` rewrites
 the `nextSummaryUuid` of the restored meta summaries (also inside `replacedSummary`) to the new ones.
 
+### `AnchoredPassage`
+
+A passage of a part: the range of offsets and what finds it again (`quote`, `contextBefore`, `contextAfter`, below), and nothing else. It
+is the base of `Annotation` (migration V26: `SINGLE_TABLE`, table `annotations`, discriminator column `kind`: `EDITORIAL` for an `Annotation`,
+`PASSAGE` for an `AnchoredPassage`; `status` and `source` are nullable because a passage has none). A **passage of an extension** is a row
+of the base class itself: the column `passageKind` (the id of the `PassageKind` the extension registered, indexed) says whose it is, the extension keeps
+its data in `getAttributes()` (nothing to migrate) and makes and finds its passages with `PassageService` (`create`, `createFromQuote`,
+`listForPart`, `listForManuscript`, `reattach`, `remove`, `save`). A Java subclass is not possible for an extension (`persistence.xml` is the core's).
+`part` is `@CleanupReference(OWNED_BY)`; the root of the hierarchy is `AnchoredPassage`, so the cleanup and the trash name it (`EntityKey(AnchoredPassage.class, id)`).
+
+The anchoring is the same for every kind: `PassageService` does `shift` (an edit of the author), `relocate` (a part generated again),
+`moveToPrevious` (a merge), `copyForBranch` (`AnchoredPassage.copy()`, with the extended data), the soft and hard deletes and the backup (`kind` and
+`passageKind` are in the marshalled object; a backup without `kind` is an editorial note). `AnnotationService` has the same methods and calls
+`PassageService`. A passage that lost its text is `orphan()`ed (`Annotation` through its status, another kind through the extended attribute
+`orphaned`) and found again by its quote (`unorphan()`). The queries of the notes (`AnnotationRepository`) only return `Annotation`s, so **a passage is never
+in the badge, the annotations tab or the margin**; `PassageKinds` is the registry of the kinds (see [Anchored passages](plugins/anchored-passages.md)).
+
 ### `Annotation`
 
 A note of the author, a model, an agent or an extension about a passage of a part (see [Annotations](../user/books/annotations.md)).
 A real table (`annotations`, migration V19: the story view, the panel and the cleanup ask by part and status), the rest is
-extended content. `part` is `@CleanupReference(OWNED_BY)`: the part takes its annotations to the trash and the purge; the
+extended content; since V26 the table is shared with [`AnchoredPassage`](#anchoredpassage), which `Annotation` extends. `part` is
+`@CleanupReference(OWNED_BY)`: the part takes its annotations to the trash and the purge; the
 column `part_id` is also mapped as `partId` (read only), so code without a session (the commands, the UI lists) can tell the
 part without loading the lazy proxy.
 
 | Field | |
 |---|---|
-| `part`, `partId` | The part. Moved by a merge (`AnnotationService.moveToPrevious`) and copied by a branch (`copyForBranch`). |
+| `part`, `partId` | The part (of `AnchoredPassage`). Moved by a merge (`AnnotationService.moveToPrevious`) and copied by a branch (`copyForBranch`). |
 | `status` | `AnnotationStatus`: `OPEN`, `RESOLVED`, `DISMISSED`, `ORPHANED`. Only `OPEN` is marked in the text (`isMarked`); `ORPHANED` is set by the text (the author can not choose it, `setStatus` refuses it). |
 | `source` | `AnnotationSource`: `AUTHOR`, `AI`, `AGENT`, `PLUGIN`. |
 | `start`, `end` | Columns `startOffset`, `endOffset`: the passage as offsets in the **source** text of the part (`ChatMessage.response`, markdown included), `end` exclusive. Both null: a note about the whole part (`hasRange()` is false), also an orphaned one. |

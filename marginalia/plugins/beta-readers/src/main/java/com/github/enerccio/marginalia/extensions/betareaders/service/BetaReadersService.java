@@ -8,6 +8,7 @@ import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.extensions.InheritedSetting.Choice;
+import com.github.enerccio.marginalia.extensions.PartTextRegistry;
 import com.github.enerccio.marginalia.extensions.betareaders.model.*;
 import com.github.enerccio.marginalia.extensions.betareaders.service.BetaReadersStore.Available;
 import com.github.enerccio.marginalia.extensions.betareaders.service.PartsTracker.StoryPart;
@@ -50,6 +51,9 @@ public class BetaReadersService {
 
     @Autowired
     private ChatMessageService chatMessageService;
+
+    @Autowired
+    private PartTextRegistry partTexts;
 
     @Autowired
     private SummaryService summaryService;
@@ -185,7 +189,7 @@ public class BetaReadersService {
 
         List<StoryPart> parts = new ArrayList<>();
         for (int i = 0; i < branch.size(); i++) {
-            parts.add(new StoryPart(String.valueOf(branch.get(i).getId()), i + 1, branch.get(i).getResponse()));
+            parts.add(new StoryPart(String.valueOf(branch.get(i).getId()), i + 1, partTexts.forModel(branch.get(i))));
         }
         if (!withSummaries) {
             return new Story(parts, Summaries.NONE);

@@ -9,6 +9,7 @@ import com.github.enerccio.marginalia.domain.service.impl.generation.dto.Loreboo
 import com.github.enerccio.marginalia.domain.templates.LorebookTemplateData;
 import com.github.enerccio.marginalia.domain.templates.TemplateContext;
 import com.github.enerccio.marginalia.domain.templates.TemplateVariables;
+import com.github.enerccio.marginalia.extensions.PartTextRegistry;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.block.KnowledgeBlockBuilder;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.extract.*;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.model.BookSettings;
@@ -50,6 +51,9 @@ public class ExtractionService {
     private ManuscriptService manuscriptService;
     @Autowired
     private ChatMessageService chatMessageService;
+
+    @Autowired
+    private PartTextRegistry partTexts;
     @Autowired
     private LorebookService lorebookService;
     @Autowired
@@ -475,7 +479,7 @@ public class ExtractionService {
         StringBuilder matched = new StringBuilder();
         // the parts of the run are the ones after the cursor: the last ones of upToRun; matching on all of the run is enough
         for (ChatMessage message : upToRun.subList(Math.max(0, upToRun.size() - 10), upToRun.size())) {
-            for (String piece : new String[]{message.getResponse(), message.getInstructions(), message.getSceneSetting(),
+            for (String piece : new String[]{partTexts.forModel(message), message.getInstructions(), message.getSceneSetting(),
                     message.getPovCharacter(), message.getPresentCharacters()}) {
                 if (StringUtils.isNotBlank(piece)) {
                     matched.append(piece.strip()).append('\n');
@@ -532,8 +536,9 @@ public class ExtractionService {
         context.setGenerationType("quiet");
         List<String> story = new ArrayList<>();
         for (ChatMessage message : branch) {
-            if (StringUtils.isNotBlank(message.getResponse())) {
-                story.add(message.getResponse());
+            String text = partTexts.forModel(message);
+            if (StringUtils.isNotBlank(text)) {
+                story.add(text);
             }
         }
         context.setStoryMessages(story);

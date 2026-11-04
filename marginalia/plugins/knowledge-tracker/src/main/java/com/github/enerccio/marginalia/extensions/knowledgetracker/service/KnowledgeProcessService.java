@@ -4,6 +4,7 @@ import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
+import com.github.enerccio.marginalia.extensions.PartTextRegistry;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.block.KnowledgeBlockBuilder;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.extract.ChangeLog;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.model.KnowledgeState;
@@ -31,6 +32,9 @@ public class KnowledgeProcessService {
 
     @Autowired
     private ChatMessageService chatMessageService;
+
+    @Autowired
+    private PartTextRegistry partTexts;
 
     @Autowired
     private ManuscriptService manuscriptService;
@@ -62,8 +66,9 @@ public class KnowledgeProcessService {
         ChatMessage leaf = (current != null ? current : manuscript).getActiveLeaf();
         List<Part> parts = new ArrayList<>();
         if (leaf != null) {
+            // the text as the model reads it: it is what the extraction quotes and what the hash of a processed part is made of
             for (ChatMessage message : chatMessageService.getBranchFromLeaf(leaf)) {
-                parts.add(new Part(message.getUuid(), message.getPovCharacter(), message.getPresentCharacters(), message.getResponse()));
+                parts.add(new Part(message.getUuid(), message.getPovCharacter(), message.getPresentCharacters(), partTexts.forModel(message)));
             }
         }
         return parts;

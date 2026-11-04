@@ -13,6 +13,7 @@ import com.github.enerccio.marginalia.domain.service.tool.ToolRequest;
 import com.github.enerccio.marginalia.domain.service.tool.ToolSelection;
 import com.github.enerccio.marginalia.domain.service.tool.ToolSet;
 import com.github.enerccio.marginalia.domain.templates.LorebookTemplateData;
+import com.github.enerccio.marginalia.extensions.PartTextRegistry;
 import com.github.enerccio.marginalia.extensions.arcoutline.model.*;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -69,6 +70,9 @@ public class ArcOutlineService {
 
     @Autowired
     private ChatMessageService chatMessageService;
+
+    @Autowired
+    private PartTextRegistry partTexts;
 
     @Autowired
     private TokenizerService tokenizerService;
@@ -575,7 +579,7 @@ public class ArcOutlineService {
         int order = 0;
         for (ChatMessage message : chatMessageService.getBranchFromLeaf(leaf)) {
             order++;
-            String text = message.getResponse();
+            String text = partTexts.forModel(message);
             if (StringUtils.isNotBlank(text)) {
                 long tokens = message.getTokenCount() > 0 ? message.getTokenCount() : countTokens(text);
                 messages.add(new StoryMessage(messages.size() + 1, order, text, tokens));

@@ -119,6 +119,34 @@ class FlywayMigrationTest {
     }
 
     @Test
+    void upgradesV25AnnotationsThroughTheV26TableRebuild() {
+        flyway("25").migrate();
+        // before V26 every annotation is an editorial note with a status and a source, both NOT NULL
+        jdbc.update("INSERT INTO annotations (id, creation, is_deleted, modification, uuid, extendedContent, userId, part_id, "
+                + "status, source, startOffset, endOffset) VALUES (1, '2026-01-01 10:00:00', false, '2026-01-02 10:00:00', 'a-1', "
+                + "x'7b7d', 7, 3, 'OPEN', 'AI', 4, 9)");
+        jdbc.update("INSERT INTO annotations (id, is_deleted, uuid, status, source) VALUES (2, true, 'a-2', 'ORPHANED', 'AUTHOR')");
+        assertThatThrownBy(() -> jdbc.update("INSERT INTO annotations (id, is_deleted, uuid) VALUES (3, false, 'a-3')"))
+                .isInstanceOf(DataAccessException.class);
+
+        flyway(null).migrate();
+
+        assertThat(flyway(null).info().pending()).isEmpty();
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM annotations", Integer.class)).isEqualTo(2);
+        assertThat(jdbc.queryForMap("SELECT * FROM annotations WHERE id = 1"))
+                .containsEntry("uuid", "a-1").containsEntry("kind", "EDITORIAL").containsEntry("status", "OPEN")
+                .containsEntry("source", "AI").containsEntry("startOffset", 4).containsEntry("endOffset", 9)
+                .containsEntry("part_id", 3).containsEntry("userId", 7).containsEntry("passageKind", null);
+        assertThat(jdbc.queryForMap("SELECT * FROM annotations WHERE id = 2"))
+                .containsEntry("kind", "EDITORIAL").containsEntry("status", "ORPHANED");
+        // a passage of an extension's kind has neither
+        jdbc.update("INSERT INTO annotations (id, is_deleted, uuid, kind, passageKind) VALUES (3, false, 'a-3', 'PASSAGE', 'x')");
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM sqlite_master WHERE type = 'index' AND name IN "
+                + "('ix_annotations_part', 'ix_annotations_user', 'ix_annotations_kind')", Integer.class)).isEqualTo(3);
+        assertThatCode(() -> validateSchema(dataSource)).doesNotThrowAnyException();
+    }
+
+    @Test
     void upgradesV12UsagesThroughTheV13TableRebuild() {
         flyway("12").migrate();
         // V11 made usages.ai_id NOT NULL, V12 added the period columns

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847092184917">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847116442035">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.847092184917" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.847116442035" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847092184917" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847116442035" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847092184917" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.847092184917" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847116442035" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.847116442035" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -177,7 +177,8 @@ delete, extended attributes and cleanup. Entities are in <code translate="no" v-
 | `Manuscript` | `manuscripts` | Book |
 | `ChatMessage` | `messages` | Part (of the story) |
 | `Summary` | `summaries` | Summary |
-| `Annotation` | `annotations` | Annotation (a note on a passage of a part) |
+| `Annotation` | `annotations` | Annotation (a note on a passage of a part); a subclass of `AnchoredPassage`, the same table holds the passages of the extensions |
+| `AnchoredPassage` | `annotations` | A passage of a part (range and quote) with a kind of an extension; see [`AnchoredPassage`](#anchoredpassage) |
 | `MessagePrompt` | `message_prompts` | Prompt of a part (*Show Prompt*) |
 | `MessageRevision` | `message_revisions` | A version of the text of a part (*History*), see [Version history](version-history.md) |
 | `Lorebook`, `LorebookEntry` | `lorebooks`, `entries` | Lorebook, entry |
@@ -220,7 +221,12 @@ delete, extended attributes and cleanup. Entities are in <code translate="no" v-
 <tr>
 <td><code translate="no" v-pre>Annotation</code></td>
 <td><code translate="no" v-pre>annotations</code></td>
-<td>Annotation (a note on a passage of a part)</td>
+<td>Annotation (a note on a passage of a part); a subclass of <code translate="no" v-pre>AnchoredPassage</code>, the same table holds the passages of the extensions</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>AnchoredPassage</code></td>
+<td><code translate="no" v-pre>annotations</code></td>
+<td>A passage of a part (range and quote) with a kind of an extension; see <doc-anchor-trigger to="#anchoredpassage"><code translate="no" v-pre>AnchoredPassage</code></doc-anchor-trigger></td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>MessagePrompt</code></td>
@@ -1025,15 +1031,30 @@ summary are the ones that must not be edited.</p>
 (<code translate="no" v-pre>attachMetaSummary</code>), and the restored summary gets it back, so the <code translate="no" v-pre>nextSummaryUuid</code> of other meta summaries stays
 valid. Restoring a backup creates all summaries with new <code translate="no" v-pre>uuid</code>s, so <code translate="no" v-pre>ManuscriptServiceImpl.restoreMessages</code> rewrites
 the <code translate="no" v-pre>nextSummaryUuid</code> of the restored meta summaries (also inside <code translate="no" v-pre>replacedSummary</code>) to the new ones.</p>
+<h3 id="anchoredpassage"><code translate="no" v-pre>AnchoredPassage</code></h3>
+<p>A passage of a part: the range of offsets and what finds it again (<code translate="no" v-pre>quote</code>, <code translate="no" v-pre>contextBefore</code>, <code translate="no" v-pre>contextAfter</code>, below), and nothing else. It
+is the base of <code translate="no" v-pre>Annotation</code> (migration V26: <code translate="no" v-pre>SINGLE_TABLE</code>, table <code translate="no" v-pre>annotations</code>, discriminator column <code translate="no" v-pre>kind</code>: <code translate="no" v-pre>EDITORIAL</code> for an <code translate="no" v-pre>Annotation</code>,
+<code translate="no" v-pre>PASSAGE</code> for an <code translate="no" v-pre>AnchoredPassage</code>; <code translate="no" v-pre>status</code> and <code translate="no" v-pre>source</code> are nullable because a passage has none). A <strong>passage of an extension</strong> is a row
+of the base class itself: the column <code translate="no" v-pre>passageKind</code> (the id of the <code translate="no" v-pre>PassageKind</code> the extension registered, indexed) says whose it is, the extension keeps
+its data in <code translate="no" v-pre>getAttributes()</code> (nothing to migrate) and makes and finds its passages with <code translate="no" v-pre>PassageService</code> (<code translate="no" v-pre>create</code>, <code translate="no" v-pre>createFromQuote</code>,
+<code translate="no" v-pre>listForPart</code>, <code translate="no" v-pre>listForManuscript</code>, <code translate="no" v-pre>reattach</code>, <code translate="no" v-pre>remove</code>, <code translate="no" v-pre>save</code>). A Java subclass is not possible for an extension (<code translate="no" v-pre>persistence.xml</code> is the core&#x27;s).
+<code translate="no" v-pre>part</code> is <code translate="no" v-pre>@CleanupReference(OWNED_BY)</code>; the root of the hierarchy is <code translate="no" v-pre>AnchoredPassage</code>, so the cleanup and the trash name it (<code translate="no" v-pre>EntityKey(AnchoredPassage.class, id)</code>).</p>
+<p>The anchoring is the same for every kind: <code translate="no" v-pre>PassageService</code> does <code translate="no" v-pre>shift</code> (an edit of the author), <code translate="no" v-pre>relocate</code> (a part generated again),
+<code translate="no" v-pre>moveToPrevious</code> (a merge), <code translate="no" v-pre>copyForBranch</code> (<code translate="no" v-pre>AnchoredPassage.copy()</code>, with the extended data), the soft and hard deletes and the backup (<code translate="no" v-pre>kind</code> and
+<code translate="no" v-pre>passageKind</code> are in the marshalled object; a backup without <code translate="no" v-pre>kind</code> is an editorial note). <code translate="no" v-pre>AnnotationService</code> has the same methods and calls
+<code translate="no" v-pre>PassageService</code>. A passage that lost its text is <code translate="no" v-pre>orphan()</code>ed (<code translate="no" v-pre>Annotation</code> through its status, another kind through the extended attribute
+<code translate="no" v-pre>orphaned</code>) and found again by its quote (<code translate="no" v-pre>unorphan()</code>). The queries of the notes (<code translate="no" v-pre>AnnotationRepository</code>) only return <code translate="no" v-pre>Annotation</code>s, so <strong>a passage is never
+in the badge, the annotations tab or the margin</strong>; <code translate="no" v-pre>PassageKinds</code> is the registry of the kinds (see <a href="../plugins/anchored-passages/">Anchored passages</a>).</p>
 <h3 id="annotation"><code translate="no" v-pre>Annotation</code></h3>
 <p>A note of the author, a model, an agent or an extension about a passage of a part (see <a href="../../user/books/annotations/">Annotations</a>).
 A real table (<code translate="no" v-pre>annotations</code>, migration V19: the story view, the panel and the cleanup ask by part and status), the rest is
-extended content. <code translate="no" v-pre>part</code> is <code translate="no" v-pre>@CleanupReference(OWNED_BY)</code>: the part takes its annotations to the trash and the purge; the
+extended content; since V26 the table is shared with <doc-anchor-trigger to="#anchoredpassage"><code translate="no" v-pre>AnchoredPassage</code></doc-anchor-trigger>, which <code translate="no" v-pre>Annotation</code> extends. <code translate="no" v-pre>part</code> is
+<code translate="no" v-pre>@CleanupReference(OWNED_BY)</code>: the part takes its annotations to the trash and the purge; the
 column <code translate="no" v-pre>part_id</code> is also mapped as <code translate="no" v-pre>partId</code> (read only), so code without a session (the commands, the UI lists) can tell the
 part without loading the lazy proxy.</p>
 <retype-table copy-text="| Field | |
 |---|---|
-| `part`, `partId` | The part. Moved by a merge (`AnnotationService.moveToPrevious`) and copied by a branch (`copyForBranch`). |
+| `part`, `partId` | The part (of `AnchoredPassage`). Moved by a merge (`AnnotationService.moveToPrevious`) and copied by a branch (`copyForBranch`). |
 | `status` | `AnnotationStatus`: `OPEN`, `RESOLVED`, `DISMISSED`, `ORPHANED`. Only `OPEN` is marked in the text (`isMarked`); `ORPHANED` is set by the text (the author can not choose it, `setStatus` refuses it). |
 | `source` | `AnnotationSource`: `AUTHOR`, `AI`, `AGENT`, `PLUGIN`. |
 | `start`, `end` | Columns `startOffset`, `endOffset`: the passage as offsets in the **source** text of the part (`ChatMessage.response`, markdown included), `end` exclusive. Both null: a note about the whole part (`hasRange()` is false), also an orphaned one. |
@@ -1053,7 +1074,7 @@ part without loading the lazy proxy.</p>
 <tbody>
 <tr>
 <td><code translate="no" v-pre>part</code>, <code translate="no" v-pre>partId</code></td>
-<td>The part. Moved by a merge (<code translate="no" v-pre>AnnotationService.moveToPrevious</code>) and copied by a branch (<code translate="no" v-pre>copyForBranch</code>).</td>
+<td>The part (of <code translate="no" v-pre>AnchoredPassage</code>). Moved by a merge (<code translate="no" v-pre>AnnotationService.moveToPrevious</code>) and copied by a branch (<code translate="no" v-pre>copyForBranch</code>).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>status</code></td>
@@ -2076,7 +2097,7 @@ define both beans in <code translate="no" v-pre>services-config.xml</code>.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (30598eaee).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (2aa4f1584).</p></div>
             </footer>
         </div>
     </div>

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847092184917">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847116442035">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.847092184917" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.847116442035" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847092184917" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847116442035" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847092184917" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.847092184917" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847116442035" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.847116442035" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -433,7 +433,8 @@ migration is written for one version step and ignores the others.</p>
 | V22 | `V22__message_revisions.sql` | New table `message_revisions` (`message_id` nullable like the other owned references, `source`, `is_agent`, `sourceDetail`, `label`, `wordCount`, `tokenCount`, the standard columns with `_fulltext` and extended content: the text and the reasoning of the version) with its `_SEQ` table and the indexes `(message_id, is_deleted, creation)` and `(userId, is_deleted)`: the entity `MessageRevision`, see [Version history](version-history.md). |
 | V23 | `V23__statistics.sql` | New tables `manuscript_statistics` (the counts per book, day and side: `bookUuid`, `bookName`, `folderPath`, `day` as ISO text, `is_agent`, the nine counters, `reconstructed`, `lastChange`; unique `(bookUuid, day, is_agent)`), `activity_intervals` (the time: `kind`, `is_agent`, `day`, `startTime`, `endTime`) and `manuscript_sizes` (the size of a book at the end of a day: `bookWords`, `bookTokens`, `branchWords`, `branchTokens`, `leafUuid`, `baseline`, `reconstructed`; unique `(bookUuid, day)`), each with its `_SEQ` table and an index `(userId, day)`; the entities `ManuscriptStatistic`, `ActivityInterval` and `ManuscriptSize`, see [Writing statistics](domain-model.md#writing-statistics-manuscriptstatistic-activityinterval-manuscriptsize). The book is a plain `bookUuid`, not a foreign key, on purpose: the rows outlive the book. |
 | V24 | `V24__message_prompt_extended.sql` | `message_prompts` gets the columns `extendedContent` and `_fulltext`: `MessagePrompt` is an `ExtendableEntity` now (the lore entries a generation used, `loreUsage`, are an extended attribute), see [`MessagePrompt`](domain-model.md#messageprompt). Existing rows stay as they are, with no content. |
-| V25 | `V25__lorebook_protocol_sharing.sql` | `lorebooks` and `protocols` get `shared boolean not null default false` and an index on `(shared, is_deleted)`: other users find a shared lorebook or protocol in *Import from other user* and import a copy, see [`Lorebook`](domain-model.md#lorebook) and [`Protocol`](domain-model.md#protocol--chatcompletionprotocol). Nothing is shared until its owner says so. |">
+| V25 | `V25__lorebook_protocol_sharing.sql` | `lorebooks` and `protocols` get `shared boolean not null default false` and an index on `(shared, is_deleted)`: other users find a shared lorebook or protocol in *Import from other user* and import a copy, see [`Lorebook`](domain-model.md#lorebook) and [`Protocol`](domain-model.md#protocol--chatcompletionprotocol). Nothing is shared until its owner says so. |
+| V26 | `V26__anchored_passages.sql` | `annotations` is rebuilt (SQLite cannot drop `NOT NULL`): `kind` (discriminator, existing rows `EDITORIAL`) and `passageKind` are added, `status` and `source` allow `NULL`, the two indexes are made again and `ix_annotations_kind (passageKind, part_id, is_deleted)` is new. `Annotation` extends the new `AnchoredPassage`, see [`AnchoredPassage`](domain-model.md#anchoredpassage). Data stays as it is. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -568,6 +569,11 @@ migration is written for one version step and ignores the others.</p>
 <td>V25</td>
 <td><code translate="no" v-pre>V25__lorebook_protocol_sharing.sql</code></td>
 <td><code translate="no" v-pre>lorebooks</code> and <code translate="no" v-pre>protocols</code> get <code translate="no" v-pre>shared boolean not null default false</code> and an index on <code translate="no" v-pre>(shared, is_deleted)</code>: other users find a shared lorebook or protocol in <em>Import from other user</em> and import a copy, see <a href="../domain-model/#lorebook"><code translate="no" v-pre>Lorebook</code></a> and <a href="../domain-model/#protocol--chatcompletionprotocol"><code translate="no" v-pre>Protocol</code></a>. Nothing is shared until its owner says so.</td>
+</tr>
+<tr>
+<td>V26</td>
+<td><code translate="no" v-pre>V26__anchored_passages.sql</code></td>
+<td><code translate="no" v-pre>annotations</code> is rebuilt (SQLite cannot drop <code translate="no" v-pre>NOT NULL</code>): <code translate="no" v-pre>kind</code> (discriminator, existing rows <code translate="no" v-pre>EDITORIAL</code>) and <code translate="no" v-pre>passageKind</code> are added, <code translate="no" v-pre>status</code> and <code translate="no" v-pre>source</code> allow <code translate="no" v-pre>NULL</code>, the two indexes are made again and <code translate="no" v-pre>ix_annotations_kind (passageKind, part_id, is_deleted)</code> is new. <code translate="no" v-pre>Annotation</code> extends the new <code translate="no" v-pre>AnchoredPassage</code>, see <a href="../domain-model/#anchoredpassage"><code translate="no" v-pre>AnchoredPassage</code></a>. Data stays as it is.</td>
 </tr>
 </tbody>
 </table>
@@ -959,7 +965,7 @@ A backup restored on another installation loses them unless <code translate="no"
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (30598eaee).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (2aa4f1584).</p></div>
             </footer>
         </div>
     </div>

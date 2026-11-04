@@ -9,6 +9,7 @@ import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
+import com.github.enerccio.marginalia.extensions.PartTextRegistry;
 import com.github.enerccio.marginalia.extensions.reviewer.model.*;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.utils.UIUtils;
@@ -47,6 +48,9 @@ public class ReviewerService {
 
     @Autowired
     private ChatMessageService chatMessageService;
+
+    @Autowired
+    private PartTextRegistry partTexts;
 
     @Autowired
     private MessagePromptService messagePromptService;
@@ -278,7 +282,7 @@ public class ReviewerService {
                 if (stopMessage != null && stopMessage.getId().equals(msg.getId())) {
                     break;
                 }
-                String response = msg.getResponse();
+                String response = partTexts.forModel(msg);
                 if (StringUtils.isBlank(response)) continue;
 
                 long msgTokens = msg.getTokenCount() > 0
@@ -304,7 +308,7 @@ public class ReviewerService {
                 payload.add(LLMChatMessage.of(LLMRole.SYSTEM, "Summaries of the story so far:\n" + summaryText));
             }
             for (ChatMessage msg : selectedMessages) {
-                payload.add(LLMChatMessage.of(LLMRole.ASSISTANT, msg.getResponse()));
+                payload.add(LLMChatMessage.of(LLMRole.ASSISTANT, partTexts.forModel(msg)));
             }
             payload.add(LLMChatMessage.of(LLMRole.USER, reviewPrompt));
 
@@ -326,7 +330,7 @@ public class ReviewerService {
             }
 
             payload.add(LLMChatMessage.of(LLMRole.USER, "[ Generate more story ]"));
-            payload.add(LLMChatMessage.of(LLMRole.ASSISTANT, targetMessage.getResponse()));
+            payload.add(LLMChatMessage.of(LLMRole.ASSISTANT, partTexts.forModel(targetMessage)));
             payload.add(LLMChatMessage.of(LLMRole.USER, reviewPrompt));
         }
 

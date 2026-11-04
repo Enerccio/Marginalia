@@ -179,10 +179,9 @@ public class CardAnnotations {
      */
     public void show(String ids) {
         Set<String> wanted = ids == null ? null : Set.of(ids.split(","));
-        if (wanted != null && marginMode) {
-            // the note is in the margin already
-            JavascriptLibrary.flashMarginNote(margin.getElement(), ids.split(",")[0]);
-            return;
+        if (wanted != null) {
+            // a mark of a passage of an extension's kind is the kind's to handle
+            wanted.forEach(uuid -> annotations.clickPassage(message.get().getId(), uuid, anchor));
         }
         List<Annotation> shown = new ArrayList<>();
         for (Annotation annotation : annotations.of(message.get().getId())) {
@@ -191,6 +190,11 @@ public class CardAnnotations {
             }
         }
         if (shown.isEmpty()) {
+            return;
+        }
+        if (wanted != null && marginMode) {
+            // the note is in the margin already
+            JavascriptLibrary.flashMarginNote(margin.getElement(), ids.split(",")[0]);
             return;
         }
         VerticalLayout content = new VerticalLayout();

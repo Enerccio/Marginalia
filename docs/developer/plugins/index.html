@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847092184917">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847116442035">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.847092184917" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.847116442035" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847092184917" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847116442035" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847092184917" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.847092184917" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847116442035" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.847116442035" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -201,6 +201,8 @@ gets general mechanisms and the whole application to use them on:</p>
 | **`@Extendable` hooks** | Code that runs before and after *any* method of an instrumented UI class, with access to its arguments, local variables and fields, and the possibility to replace the return value. | [@Extendable hooks](extendable.md) |
 | **Extended attributes** | A JSON object on every data entity where a plugin keeps its data - saved with the entity, included in backups, no schema change. | [Extended attributes](extended-attributes.md) |
 | **Inherited settings** | A setting of the plugin that books and folders inherit like the prompts: a field in the *Prompts* tab and the folder dialog, `ManuscriptService.resolveExtension` for the value (`InheritedSettingRegistry`). | [Inherited settings](inherited-settings.md) |
+| **The text a model reads** | Give the model another form of the story than the one that is stored (a translation, a redaction): a transformer in the `PartTextRegistry`, the offset map of `ModelText`, `ChatMessageService.replaceText` to store the other form. | [The text a model reads](part-text.md) |
+| **Anchored passages** | Attach your own data to a passage of a part that follows the text (edits, regenerate, merge, branch, backups): `PassageService`, a `PassageKind` in `PassageKinds` with the mark, the click and the flags for the viewer and the exports. | [Anchored passages](anchored-passages.md) |
 | **Other extensions** | Offer text about a book or a story part to other extensions or ask them for it (`IPCService`), offer a suite of tools for the model with a human name, items and commands (`ToolService`), or call one particular extension by reflection, without importing its classes. | [Sharing data between extensions](ipc.md) |
 | **Inference providers** | A model API of the plugin's own: its settings form in the AI dialog and the inference service of its AIs (`ExtensionAIFactory`). | [Inference providers from a plugin](ai-providers.md) |
 | **Generation events** | Listeners that read and change the prompt, the lore, the summaries and the streamed answer while a story part is generated. | [Generation events](generation-events.md), [Generation pipeline](../generation-pipeline.md#events-for-extensions) |
@@ -234,6 +236,16 @@ gets general mechanisms and the whole application to use them on:</p>
 <td><strong>Inherited settings</strong></td>
 <td>A setting of the plugin that books and folders inherit like the prompts: a field in the <em>Prompts</em> tab and the folder dialog, <code translate="no" v-pre>ManuscriptService.resolveExtension</code> for the value (<code translate="no" v-pre>InheritedSettingRegistry</code>).</td>
 <td><a href="inherited-settings/">Inherited settings</a></td>
+</tr>
+<tr>
+<td><strong>The text a model reads</strong></td>
+<td>Give the model another form of the story than the one that is stored (a translation, a redaction): a transformer in the <code translate="no" v-pre>PartTextRegistry</code>, the offset map of <code translate="no" v-pre>ModelText</code>, <code translate="no" v-pre>ChatMessageService.replaceText</code> to store the other form.</td>
+<td><a href="part-text/">The text a model reads</a></td>
+</tr>
+<tr>
+<td><strong>Anchored passages</strong></td>
+<td>Attach your own data to a passage of a part that follows the text (edits, regenerate, merge, branch, backups): <code translate="no" v-pre>PassageService</code>, a <code translate="no" v-pre>PassageKind</code> in <code translate="no" v-pre>PassageKinds</code> with the mark, the click and the flags for the viewer and the exports.</td>
+<td><a href="anchored-passages/">Anchored passages</a></td>
 </tr>
 <tr>
 <td><strong>Other extensions</strong></td>
@@ -621,7 +633,7 @@ the model gets after every other extension has changed it.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (30598eaee).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (2aa4f1584).</p></div>
             </footer>
         </div>
     </div>

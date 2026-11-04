@@ -193,6 +193,7 @@ public class LocalizationImpl implements Localization, InitializingBean {
         domainObjects.put(ChatMessage.class, L.ENUM_DOMAIN_MESSAGE);
         domainObjects.put(Summary.class, L.LABEL_SUMMARY);
         domainObjects.put(Annotation.class, L.ENUM_DOMAIN_ANNOTATION);
+        domainObjects.put(AnchoredPassage.class, L.ENUM_DOMAIN_ANNOTATION);
         domainObjects.put(MessageRevision.class, L.ENUM_DOMAIN_MESSAGE_REVISION);
         domainObjects.put(AI.class, L.LABEL_MODEL);
         domainObjects.put(Protocol.class, L.ENUM_DOMAIN_PROTOCOL);

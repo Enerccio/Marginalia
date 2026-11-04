@@ -26,26 +26,4 @@ public interface AnnotationRepository extends ExtendableRepository<Annotation> {
      */
     List<Annotation> findAllByManuscript(Manuscript manuscript) throws Exception;
 
-    /**
-     * Soft deletes the annotations of all parts of the manuscript with one update (they are not loaded and no listener
-     * runs, their extended content stays as it is).
-     *
-     * @return number of the deleted annotations
-     */
-    int softDeleteByManuscript(Manuscript manuscript) throws Exception;
-
-    /**
-     * Soft deletes the annotations of the parts with the ids, see {@link #softDeleteByManuscript}.
-     *
-     * @return number of the deleted annotations
-     */
-    int softDeleteByPartIds(Collection<Long> partIds) throws Exception;
-
-    /**
-     * Removes the annotations of the parts with the ids from the database, deleted ones too.
-     *
-     * @return number of the removed annotations
-     */
-    int hardDeleteByPartIds(Collection<Long> partIds) throws Exception;
-
 }
