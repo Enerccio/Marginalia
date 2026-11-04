@@ -8,6 +8,7 @@ import com.github.enerccio.marginalia.domain.service.SummaryService;
 import com.github.enerccio.marginalia.domain.service.SummaryService.SummaryBlock;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
+import com.github.enerccio.marginalia.extensions.PartTextRegistry;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -105,31 +106,34 @@ final class StoryAround {
      * @param after  the parts after it, oldest first
      * @param room   the tokens the story around the part may take
      */
-    static Around collect(SummaryService summaryService, InferenceService inferenceService, List<ChatMessage> before,
-                          List<ChatMessage> after, long room) throws Exception {
-        return collect(summaryService, inferenceService, before, after, room, false);
+    static Around collect(SummaryService summaryService, InferenceService inferenceService, PartTextRegistry texts,
+                          List<ChatMessage> before, List<ChatMessage> after, long room) throws Exception {
+        return collect(summaryService, inferenceService, texts, before, after, room, false);
     }
 
     /**
      * @param chain whether the story before the part is sent as messages ({@link #messages}) and not in the text: each of its parts
      *              then takes the tokens of a message besides its own
      */
-    static Around collect(SummaryService summaryService, InferenceService inferenceService, List<ChatMessage> before,
-                          List<ChatMessage> after, long room, boolean chain) throws Exception {
+    static Around collect(SummaryService summaryService, InferenceService inferenceService, PartTextRegistry texts,
+                          List<ChatMessage> before, List<ChatMessage> after, long room, boolean chain) throws Exception {
         long overhead = chain ? MESSAGE_OVERHEAD : 2;
         // the story after the part is only a hint of where it leads, so it gets a share of the room
         long followingRoom = room / FOLLOWING_SHARE;
         List<String> following = new ArrayList<>();
         long followingTokens = 0;
-        for (ChatMessage next : after) {
+        // the story is given as the model reads it (an extension may keep it in another form), the parts of a side in one go
+        List<String> afterTexts = texts.forModel(after);
+        for (int i = 0; i < after.size(); i++) {
+            ChatMessage next = after.get(i);
             if (StringUtils.isBlank(next.getResponse())) {
                 continue;
             }
-            long tokens = tokensOf(inferenceService, next) + 2;
+            long tokens = tokensOf(inferenceService, next, afterTexts.get(i)) + 2;
             if (followingTokens + tokens > followingRoom) {
                 break;
             }
-            following.add(next.getResponse());
+            following.add(afterTexts.get(i));
             followingTokens += tokens;
         }
 
@@ -137,6 +141,7 @@ final class StoryAround {
         // before the part must not start elsewhere each time a part is added after it
         long previousRoom = room - (following.isEmpty() ? 0 : followingRoom);
         List<ChatMessage> newestFirst = new ArrayList<>(before.reversed());
+        List<String> earlierTexts = texts.forModel(newestFirst);
         List<SummaryBlock> blocks = summaryService.collectBlocks(newestFirst);
         // summaries that do not describe the story anymore are not told to the model, the story is used as it is instead
         boolean summarized = !blocks.isEmpty() && blocks.stream().allMatch(SummaryBlock::isValid);
@@ -161,18 +166,19 @@ final class StoryAround {
         long previousTokens = summaryTokens;
         long partsTokens = 0;
         ChatMessage stop = summarized ? blocks.getFirst().head() : null;
-        for (ChatMessage earlier : newestFirst) {
+        for (int i = 0; i < newestFirst.size(); i++) {
+            ChatMessage earlier = newestFirst.get(i);
             if (stop != null && Objects.equals(stop.getId(), earlier.getId())) {
                 break;
             }
             if (StringUtils.isBlank(earlier.getResponse())) {
                 continue;
             }
-            long tokens = tokensOf(inferenceService, earlier) + overhead;
+            long tokens = tokensOf(inferenceService, earlier, earlierTexts.get(i)) + overhead;
             if (previousTokens + tokens > previousRoom) {
                 break;
             }
-            previous.add(earlier.getResponse());
+            previous.add(earlierTexts.get(i));
             previousTokens += tokens;
             partsTokens += tokens;
         }
@@ -199,8 +205,11 @@ final class StoryAround {
         return List.of();
     }
 
-    static long tokensOf(InferenceService inferenceService, ChatMessage message) throws Exception {
-        return message.getTokenCount() > 0 ? message.getTokenCount() : inferenceService.countTokens(message.getResponse());
+    /**
+     * @param text what the model reads of the part, the tokens are those of this text
+     */
+    static long tokensOf(InferenceService inferenceService, ChatMessage message, String text) throws Exception {
+        return message.getTokenCount() > 0 ? message.getTokenCount() : inferenceService.countTokens(text);
     }
 
 }

@@ -964,6 +964,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_REVALIDATE, "Revalidate");
         setValue(L.LABEL_OUTDATED, "Outdated");
         setValue(L.LABEL_SET_FOR_THE_BOOK, "Set for the book");
+        setValue(L.LABEL_TRANSLATION, "Translation");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");

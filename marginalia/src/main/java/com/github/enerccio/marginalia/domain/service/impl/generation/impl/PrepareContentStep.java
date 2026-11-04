@@ -91,6 +91,12 @@ public class PrepareContentStep extends GenerationStepBase {
                         List<ChatMessage> chain = finalFromRoot;
                         Collections.reverse(chain);
                         Iterator<ChatMessage> iterator = chain.iterator();
+                        // what the model reads of each part (an extension may keep the story in another form), all at once
+                        Map<Long, String> readByModel = new HashMap<>();
+                        List<String> modelTexts = partTextRegistry.forModel(chain);
+                        for (int i = 0; i < chain.size(); i++) {
+                            readByModel.put(chain.get(i).getId(), modelTexts.get(i));
+                        }
 
                         long tokens = baseTokens + reservedTokens;
                         List<String> storyText = new ArrayList<>();
@@ -112,7 +118,8 @@ public class PrepareContentStep extends GenerationStepBase {
                                 if (stopMessage.fastGet().getId().equals(message.getId()))
                                     break;
                             }
-                            if (StringUtils.isNotBlank(message.getResponse())) {
+                            String modelText = readByModel.getOrDefault(message.getId(), message.getResponse());
+                            if (StringUtils.isNotBlank(modelText)) {
                                 if (tokens + message.getTokenCount() + 100 > limit - 256) {
                                     outOfRoom = true;
                                     // the message that did not fit is cut as well
@@ -133,7 +140,7 @@ public class PrepareContentStep extends GenerationStepBase {
                                     storyNotes.add(notes);
                                     tokens += noteTokens;
                                 }
-                                storyText.add(message.getResponse());
+                                storyText.add(modelText);
                                 historyTokens += message.getTokenCount();
                                 tokens += message.getTokenCount() + 100; /* Buffer for dummy messages */
                             }

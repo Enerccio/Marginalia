@@ -686,6 +686,26 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
         return inTx(false, () -> updateResponse(manuscript, message, text, tokens, origin));
     }
 
+    @Override
+    public ChatMessage replaceText(Manuscript manuscript, ChatMessage message, String text, String modelText, String generatedText,
+                                   RevisionOrigin origin) throws Exception {
+        long tokens = counted(manuscript, modelText != null ? modelText : text);
+        return inTx(false, () -> {
+            Manuscript book = ownBook(manuscript);
+            ChatMessage stored = ownPart(book, message);
+            // the summaries of the branch the part is on that are outdated already stay outdated
+            ChatMessage leaf = findLeafFor(book, stored);
+            List<ChatMessage> newestFirst = leaf == null ? List.of() : new ArrayList<>(getBranchFromLeaf(leaf).reversed());
+            Set<Long> outdatedBefore = outdatedHeads(newestFirst);
+
+            ChatMessage saved = storeResponse(book, stored, text == null ? "" : text, tokens, origin, false, generatedText);
+
+            // what the text says is the same, so the summaries that described the story before still do
+            summaryService.revalidate(book, newlyOutdated(summaryService.collectBlocks(newestFirst), outdatedBefore));
+            return saved;
+        });
+    }
+
     private PartEdit updateResponse(Manuscript manuscript, ChatMessage message, String text, long tokens, RevisionOrigin origin) throws Exception {
         Manuscript book = ownBook(manuscript);
         ChatMessage stored = ownPart(book, message);
@@ -777,6 +797,15 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
     }
 
     private ChatMessage storeResponse(Manuscript manuscript, ChatMessage message, String text, long tokens, RevisionOrigin origin) throws Exception {
+        return storeResponse(manuscript, message, text, tokens, origin, true, null);
+    }
+
+    /**
+     * @param markEdited whether the part is flagged as edited by the author
+     * @param generated  the new text of the model's generation ({@code originalResponse}), null leaves it as it is
+     */
+    private ChatMessage storeResponse(Manuscript manuscript, ChatMessage message, String text, long tokens, RevisionOrigin origin,
+                                      boolean markEdited, String generated) throws Exception {
         Manuscript book = ownBook(manuscript);
         ChatMessage stored = ownPart(book, message);
         String newText = text == null ? "" : text;
@@ -788,7 +817,12 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
         stored.setResponse(newText);
         stored.setTokenCount(tokens);
         stored.setWordCount(countWords(newText));
-        stored.setEdited(true);
+        if (markEdited) {
+            stored.setEdited(true);
+        }
+        if (generated != null) {
+            stored.setOriginalResponse(generated);
+        }
         ChatMessage saved = save(stored);
         if (origin.isRecorded()) {
             messageRevisionService.record(saved, origin.data(saved));

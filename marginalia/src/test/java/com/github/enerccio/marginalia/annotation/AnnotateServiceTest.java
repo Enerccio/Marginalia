@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.annotation;
 
 import com.github.enerccio.marginalia.domain.collections.AnnotationSource;
 import com.github.enerccio.marginalia.domain.collections.AnnotationStatus;
+import com.github.enerccio.marginalia.domain.components.ModelText.Substitution;
 import com.github.enerccio.marginalia.domain.model.impl.Annotation;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
@@ -16,11 +17,13 @@ import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.SettingService;
 import com.github.enerccio.marginalia.domain.service.impl.AnnotateServiceImpl;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationOptions;
+import com.github.enerccio.marginalia.extensions.PartTextRegistry;
 import com.github.enerccio.marginalia.test.GenerationTestBase;
 import com.github.enerccio.marginalia.test.llm.MockLLMRequest;
 import com.github.enerccio.marginalia.test.llm.MockLLMResponse;
 import com.github.enerccio.marginalia.test.llm.MockLLMScenario;
 import com.github.enerccio.marginalia.test.llm.MockLLMServer;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,6 +54,9 @@ class AnnotateServiceTest extends GenerationTestBase {
     private AnnotateService annotateService;
 
     @Autowired
+    private PartTextRegistry partTextRegistry;
+
+    @Autowired
     private SettingService settingService;
 
     @Autowired
@@ -62,6 +68,14 @@ class AnnotateServiceTest extends GenerationTestBase {
     private Manuscript manuscript;
     private ChatMessage before;
     private ChatMessage part;
+
+    private static final String PART_TEXT_OWNER = "annotate-service-test";
+
+    /** The registry is one bean for every test of the JVM: whatever a test registers is taken away. */
+    @AfterEach
+    void unregisterTransformers() {
+        partTextRegistry.unregisterAll(PART_TEXT_OWNER);
+    }
 
     @BeforeEach
     void createStory() throws Exception {
@@ -678,6 +692,58 @@ class AnnotateServiceTest extends GenerationTestBase {
         assertThat(second.hasRange()).isFalse();
         assertThat(second.isNotLocated()).isTrue();
         assertThat(second.getText()).isEqualTo("Contradicts the lore");
+    }
+
+    // ------------------------------------------------------------------------------------------------ a story kept in another form
+
+    private static final String STORED_SPEECH = "Da ek se za skag.";
+    private static final String ENGLISH_SPEECH = "I see the enemy.";
+
+    /** The part holds speech in a made-up language; the "extension" gives the model the English it was made from. */
+    private ChatMessage translatedPart() throws Exception {
+        chatMessageService.updateResponse(manuscript, part, "Anna met John at the bar. \"" + STORED_SPEECH + "\" Then she left.");
+        partTextRegistry.register(PART_TEXT_OWNER, new PartTextRegistry.Transformer() {
+            @Override
+            public List<Substitution> substitutions(ChatMessage message) {
+                int at = message.getResponse().indexOf(STORED_SPEECH);
+                return at < 0 ? List.of() : List.of(new Substitution(at, at + STORED_SPEECH.length(), ENGLISH_SPEECH));
+            }
+        });
+        return chatMessageService.find(part.getId());
+    }
+
+    @Test
+    void theModelIsShownWhatItReadsAndItsQuoteIsFoundInTheStoredPassage() throws Exception {
+        ChatMessage stored = translatedPart();
+        llm.enqueue(MockLLMResponse.text("{\"findings\": [{\"quote\": \"" + ENGLISH_SPEECH + "\", \"note\": \"An odd thing to say\"}]}"));
+
+        Done result = done(new Request("", null, GenerationOptions.defaults(), Mode.STRUCTURED, null, null));
+
+        // the model read the English, not the made-up language
+        assertThat(llm.lastCompletionRequest().getPromptText()).contains(ENGLISH_SPEECH).doesNotContain(STORED_SPEECH);
+        // its quote is tied to the passage of the stored text that the English stands for, which the author sees
+        assertThat(result.proposals()).hasSize(1);
+        Proposal proposal = result.proposals().getFirst();
+        assertThat(proposal.located()).isTrue();
+        assertThat(stored.getResponse().substring(proposal.start(), proposal.end())).isEqualTo(STORED_SPEECH);
+
+        // and accepting it makes a note on that passage, not a note about the whole part
+        List<Annotation> made = annotateService.accept(manuscript, stored, result.proposals(), "mock-model");
+        Annotation note = annotationService.find(made.getFirst().getId());
+        assertThat(note.hasRange()).isTrue();
+        assertThat(note.isNotLocated()).isFalse();
+        assertThat(stored.getResponse().substring(note.getStart(), note.getEnd())).isEqualTo(STORED_SPEECH);
+    }
+
+    @Test
+    void aQuoteOutsideTheTranslatedPassageIsFoundAsBefore() throws Exception {
+        ChatMessage stored = translatedPart();
+        Proposal proposal = new Proposal("Then she left.", "Abrupt", null, null, null);
+
+        List<Annotation> made = annotateService.accept(manuscript, stored, List.of(proposal), "mock-model");
+
+        Annotation note = annotationService.find(made.getFirst().getId());
+        assertThat(stored.getResponse().substring(note.getStart(), note.getEnd())).isEqualTo("Then she left.");
     }
 
     // ------------------------------------------------------------------------------------------------ the model

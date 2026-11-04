@@ -10,6 +10,7 @@ import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.PrePromptData;
 import com.github.enerccio.marginalia.domain.templates.TemplateContext;
 import com.github.enerccio.marginalia.domain.templates.TemplateVariables;
+import com.github.enerccio.marginalia.extensions.PartTextRegistry;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes.InRequestScope;
@@ -71,6 +72,10 @@ public abstract class GenerationStepBase implements GenerationStep {
 
     @Autowired
     protected MessageRevisionService messageRevisionService;
+
+    /** The text of a part as the model reads it (an extension may keep the story in another form than the model should read). */
+    @Autowired
+    protected PartTextRegistry partTextRegistry;
 
     protected abstract void onStep(GenerationController controller) throws Exception;
 
@@ -166,9 +171,10 @@ public abstract class GenerationStepBase implements GenerationStep {
             }
 
             List<String> story = new ArrayList<>();
-            for (ChatMessage message : branch) {
-                if (message.getResponse() != null && !message.getResponse().isBlank()) {
-                    story.add(message.getResponse());
+            List<String> readByModel = partTextRegistry.forModel(branch);
+            for (String text : readByModel) {
+                if (text != null && !text.isBlank()) {
+                    story.add(text);
                 }
             }
             context.setStoryMessages(story);
@@ -219,7 +225,7 @@ public abstract class GenerationStepBase implements GenerationStep {
         ChatMessage replaced = controller.getRequest().getNode();
         if (replaced != null) {
             ChatMessage stored = chatMessageService.find(replaced.getId());
-            context.setCurrentMessage((stored != null ? stored : replaced).getResponse());
+            context.setCurrentMessage(partTextRegistry.forModel(stored != null ? stored : replaced));
         }
         // {{command::...}}: the answers are kept with the part this one continues from, a regenerate and a swipe ask again
         GenerationRequestType requestType = controller.getRequest().getRequestType();

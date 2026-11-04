@@ -294,6 +294,9 @@
 
     <bean class="com.github.enerccio.marginalia.extensions.InheritedSettingRegistry" />
 
+    <!-- where the code that gives the story to a model asks for the text of a part, and where an extension says how to turn it back -->
+    <bean class="com.github.enerccio.marginalia.extensions.PartTextRegistry" />
+
     <bean class="com.github.enerccio.marginalia.domain.service.impl.OsgiServiceImpl" />
 
     <bean class="com.github.enerccio.marginalia.domain.service.impl.ExtensionServiceImpl" />

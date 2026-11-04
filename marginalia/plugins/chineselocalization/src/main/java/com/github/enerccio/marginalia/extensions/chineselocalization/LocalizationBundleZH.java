@@ -972,6 +972,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_REVALIDATE, "重新验证");
         setValue(L.LABEL_OUTDATED, "已过期");
         setValue(L.LABEL_SET_FOR_THE_BOOK, "已为本书设置");
+        setValue(L.LABEL_TRANSLATION, "翻译");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");

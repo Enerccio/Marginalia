@@ -1,0 +1,3 @@
+{"type":"object","additionalProperties":false,"required":["translations","newWords"],"properties":{
+"translations":{"type":"array","items":{"type":"object","additionalProperties":false,"required":["quote","speaker","language","text","choice"],"properties":{"quote":{"type":"string"},"speaker":{"type":"string"},"language":{"type":"string"},"text":{"type":"string"},"choice":{"type":"string"}}}},
+"newWords":{"type":"array","items":{"type":"object","additionalProperties":false,"required":["word","gloss","category","rationale"],"properties":{"word":{"type":"string"},"gloss":{"type":"string"},"category":{"type":"string"},"rationale":{"type":"string"}}}}}}

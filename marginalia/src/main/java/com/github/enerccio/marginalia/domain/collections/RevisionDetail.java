@@ -32,7 +32,12 @@ public enum RevisionDetail {
     /**
      * Imported from a SillyTavern chat.
      */
-    SILLYTAVERN_IMPORT;
+    SILLYTAVERN_IMPORT,
+    /**
+     * The text was put into another language by an extension: what it says is the same
+     * ({@code ChatMessageService#replaceText}).
+     */
+    TRANSLATION;
 
     // a model or an extension is not called like this
     private static final String PREFIX = "#";

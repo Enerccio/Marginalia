@@ -19,6 +19,7 @@ import com.github.enerccio.marginalia.domain.templates.TemplateContext;
 import com.github.enerccio.marginalia.domain.templates.TemplateVariables;
 import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
+import com.github.enerccio.marginalia.extensions.PartTextRegistry;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes.InRequestScope;
 import com.github.enerccio.marginalia.utils.SummaryTransfer;
@@ -51,6 +52,9 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
 
     @Autowired
     private ChatMessageService chatMessageService;
+
+    @Autowired
+    private PartTextRegistry partTextRegistry;
 
     @Autowired
     private InferenceServices inferenceServices;
@@ -570,7 +574,7 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
         // room for the response is reserved, the prompt gets the rest of the context
         int maxTokens = TokenLimits.promptTokens(ai, protocol);
         SummaryTemplateData template = new SummaryTemplateData();
-        TemplateContext templateContext = createTemplateContext(manuscript, from, ai, protocol, tree);
+        TemplateContext templateContext = createTemplateContext(manuscript, partTextRegistry, from, ai, protocol, tree);
         // estimation render must not change variables or the real render would apply them twice
         template.setTemplateContext(templateContext.fork());
 
@@ -608,7 +612,8 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
         MessageDigest digest = MessageDigest.getInstance("SHA512");
         messagesToSummarize.stream().map(ChatMessage::getResponse).map(s -> s.getBytes(StandardCharsets.UTF_8)).forEach(digest::update);
         newSummary.setSummaryMessageHash(HexFormat.of().formatHex(digest.digest()));
-        template.setText(messagesToSummarize.reversed().stream().map(ChatMessage::getResponse).collect(Collectors.joining("\n\n")));
+        // the summarizer reads the story as a model reads it; the hash above is made of the story as it is stored
+        template.setText(String.join("\n\n", partTextRegistry.forModel(messagesToSummarize.reversed())));
         template.setTemplateContext(templateContext);
         String fullPrompt = jailbreak + templateService.processTemplate(systemPrompt, "summaryPrompt", template);
         tokens = inferenceService.countTokens(fullPrompt);
@@ -667,7 +672,7 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
         // room for the response is reserved, the prompt gets the rest of the context
         int maxTokens = TokenLimits.promptTokens(ai, protocol);
         MetaSummaryTemplateData template = new MetaSummaryTemplateData();
-        TemplateContext templateContext = createTemplateContext(manuscript, from, ai, protocol, tree);
+        TemplateContext templateContext = createTemplateContext(manuscript, partTextRegistry, from, ai, protocol, tree);
         // estimation render must not change variables or the real render would apply them twice
         template.setTemplateContext(templateContext.fork());
 
@@ -721,7 +726,8 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
      *
      * @param newestFirst branch from {@code from} back to the root
      */
-    static TemplateContext createTemplateContext(Manuscript manuscript, ChatMessage from, AI ai, Protocol protocol, List<ChatMessage> newestFirst) {
+    static TemplateContext createTemplateContext(Manuscript manuscript, PartTextRegistry texts, ChatMessage from, AI ai, Protocol protocol,
+                                                 List<ChatMessage> newestFirst) {
         TemplateContext context = new TemplateContext();
         context.setPovCharacter(from.getPovCharacter());
         context.setPresentCharacters(from.getPresentCharacters());
@@ -742,8 +748,7 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
             context.setMaxResponseTokens(responseTokens);
         }
         context.setGenerationType("quiet");
-        context.setStoryMessages(newestFirst.reversed().stream()
-                .map(ChatMessage::getResponse)
+        context.setStoryMessages(texts.forModel(newestFirst.reversed()).stream()
                 .filter(StringUtils::isNotBlank)
                 .collect(Collectors.toCollection(ArrayList::new)));
         context.getVariables().loadFrom(TemplateVariables.Scope.LOCAL, from.getAttributes());

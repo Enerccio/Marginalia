@@ -154,9 +154,10 @@ public class RedraftDialog extends Dialog {
                           boolean automatic, boolean applyAutomatically) {
         this.manuscript = manuscript;
         this.part = part;
-        this.passage = passage;
+        // a selection inside a passage that an extension keeps in another form is redrafted, and replaced, as a whole
+        this.passage = passage == null ? null : redraftService.widen(part, passage);
         this.partText = StringUtils.defaultString(part.getResponse());
-        this.selected = passage == null ? partText : partText.substring(passage.start(), passage.end());
+        this.selected = this.passage == null ? partText : partText.substring(this.passage.start(), this.passage.end());
         this.onApplied = onApplied;
         this.automatic = automatic;
         this.applyAutomatically = applyAutomatically;

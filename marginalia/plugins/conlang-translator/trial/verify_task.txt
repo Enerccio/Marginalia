@@ -1,0 +1,14 @@
+You check translations of a story's direct speech into a constructed language. You get the language (its rules and lexicon), the PART of the story, and TRANSLATIONS that someone else made, with the new words they reported. Check every translation against the language and the story and find the mistakes. Do not translate again, except to suggest a fix.
+
+For every translation that has a language other than "none", give one entry, in the same order, with the same "quote":
+- "gloss": the translation read word by word in English, taking every word at the meaning the lexicon gives it and nothing else (the reported new words at their reported meaning). Write "?" for a word that is in neither. Do not guess what the translator meant.
+- "backTranslation": the natural English that a reader of the language would understand from the gloss, only from the gloss.
+- "meaning": "same", "close" or "different" compared with the quote. Numbers, who does what to whom, the gender of people, tense, negation, mood and tone all count.
+- "ruleViolations": the rules of the language that the translation breaks (name the rule), empty when none.
+- "problems": other problems: a word that is not in the lexicon and was not reported, a word used for a meaning it does not have, a wrong number, the wrong gender for a person of the story, a wrong tone. Empty when none.
+- "fix": a corrected translation when there are problems, else an empty string.
+
+Answer with one JSON object only, no other text:
+{"checks":[{"quote":"...","gloss":"...","backTranslation":"...","meaning":"same|close|different","ruleViolations":["..."],"problems":["..."],"fix":"..."}]}
+
+=== THE LANGUAGE: VRAKHT ===

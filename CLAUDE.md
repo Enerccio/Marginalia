@@ -30,7 +30,7 @@ Use a separate `-Duser.home` for dev runs: data lives in `~/.marginalia` (also t
 
 `pom.xml` in the repo root is the parent POM of the app and all plugins: it holds the version (children inherit it; bump with `mvn versions:set -DnewVersion=X -DgenerateBackupPoms=false` in the root) and aggregates them, so `mvn package` there builds everything. Building a plugin on its own needs `mvn -N install` in the root once, besides the app's `mvn install`.
 
-Plugins (`marginalia/plugins/*`: anthropic, arc-outline, authorsnote, beta-readers, book-description-generator, chaptermarker, character-tracker, chineselocalization, gemma4toolsfix, google-genai, image-generator, instructionexporter, knowledge-tracker, lore-generator, lorebookvcs, manga-generator, name-generator, name-provider, place-provider, prompt-inspector, reviewer, sidequery, sillytavern-converter; the list is in the `<modules>` of the root `pom.xml`) are separate Maven projects (OSGi bundles): after `mvn install` of the app, run `mvn package` in the plugin dir, then load the JAR in Admin → Extensions. They must be built from the same source tree as the app.
+Plugins (`marginalia/plugins/*`: anthropic, arc-outline, authorsnote, beta-readers, book-description-generator, chaptermarker, character-tracker, chineselocalization, conlang-translator, gemma4toolsfix, google-genai, image-generator, instructionexporter, knowledge-tracker, lore-generator, lorebookvcs, manga-generator, name-generator, name-provider, place-provider, prompt-inspector, reviewer, sidequery, sillytavern-converter; the list is in the `<modules>` of the root `pom.xml`) are separate Maven projects (OSGi bundles): after `mvn install` of the app, run `mvn package` in the plugin dir, then load the JAR in Admin → Extensions. They must be built from the same source tree as the app.
 
 The IDE (IntelliJ with the Ajc compiler) compiles into the same `target/` as Maven, and a class compiled by the other one is overwritten (or left unwoven: `@Configurable` fields `null`). When it is open, or to keep a run apart from it, build elsewhere: `-Dbuild.dir=/tmp/marginalia-build` moves the classes, the test home (`<build.dir>/test-home`) and the WAR. Use the same folder for the whole sequence (`mvn install` of the app and the plugins read from the local repository, not from it); `rm -rf` it for a clean build. Do not run two Maven builds on the same folder.
 
@@ -70,6 +70,24 @@ The full suite has about 3,000 tests and takes about 1.5 minutes on an Apple M4 
 - When a heavy thing is done, stop it: `screenshots/bin/stop-app.sh` and `stop-llm.sh` after the screenshots, no background Maven or `node --watch` left behind (`ps -axo pid,rss,etime,command | sort -k2 -nr | head`). Before a heavy step check that memory is free (`vm_stat`: "Pages free" times 16 KB; a few hundred MB free means wait or stop something). Background tasks started with `run_in_background` count too.
 - Run the classes you touched, not the whole suite (see above). Do not start more forks (`-Dtest.forks`) than the default.
 - After a Maven `install` or `package` (plain javac output in `target/`), `mvn test` may skip the AspectJ compile of classes that did not change and leave them unwoven: `@Configurable` fields are then `null` (for example `SearchReplaceCommandsTest`, whose anonymous subclasses are test classes). `touch` the failing test's source, or build the plugins with `mvn clean package -pl <plugin folders>`; do not chase it as a code bug.
+
+## Trying a prompt on the local model (reasoning model: give it a big output budget)
+
+To test a prompt on a real model (as the Knowledge Tracker's were, results go into the plugin's `TODO.md`), use the AI that is set up in the dev database `~/.marginalia/marginalia.sqlite` through `tools/LocalLlm.java` (single file, JDK and the `sqlite3` program only; no Maven, no build). It reads the AI (base URI, model id, API key) read-only, decrypts the key in memory with `~/.marginalia/secret.key` (the algorithm of `Configuration.decrypt`) and sends one chat completion:
+
+```sh
+java tools/LocalLlm.java --list                                   # the AIs of the database (never prints the key)
+java tools/LocalLlm.java --system-file sys.txt --user-file scene.txt --samples 3 > answers.txt
+echo "text" | java tools/LocalLlm.java --reasoning                # stdin is the user message; --reasoning shows the thinking (stderr)
+```
+
+Other options: `--ai NAME`, `--home DIR`, `--max-tokens N`, `--temperature T`, `--json-schema FILE` (structured output, as the application asks for), `--raw` (the whole JSON answer), `--timeout-minutes N`. The answer goes to stdout, the line `finish=... prompt=... completion=...` and the warnings to stderr.
+
+- **The model thinks, and the thinking counts against `max_tokens`.** The tool defaults to **16000**; ask for more (32000 or more) for a long answer, and never copy `maxCompletionTokens` of the AI in the database (8000, the application's own limit). `finish=length` with an empty answer (the tool prints `EMPTY ANSWER`) or a cut-off one means the budget was too small, not that the prompt is bad: raise it and run again before judging a prompt.
+- **One request at a time.** The server has one slot (samples run one after another, never parallel); a request takes 30 to 90 seconds, the first one after a pause longer. Run a long set in the background and wait for the notification, do not poll.
+- Samples are few and the model is one model: say "3 of 3 samples", not rates, and write down the model, the number of samples and the token numbers with the results.
+- **Never print, log or commit the API key**, and do not put the decrypted key into a file or a command line. Story text from the dev database goes only to this AI (the user's own server), nowhere else.
+- The AI and its model id are the user's (the model may change); read them with `--list`, do not write them into code, docs or results as a fact about the application. A machine without an AI in `~/.marginalia/marginalia.sqlite` cannot use the tool: ask the user instead of inventing a key or a server.
 
 ## Other
 
