@@ -180,4 +180,107 @@ class ConlangStoreTest {
 
         assertThrows(IllegalArgumentException.class, () -> ConlangStore.importDocument(newer));
     }
+
+    // ---- the settings screen: defaults, copies and the merge of what it shows with what is stored
+
+    private static Language named(String name) {
+        Language language = new Language(name);
+        language.addEntry(LexiconEntry.ofAuthor(name.toLowerCase() + "-word", "thing"));
+        return language;
+    }
+
+    private static List<String> names(List<Language> languages) {
+        return languages.stream().map(Language::getName).toList();
+    }
+
+    @Test
+    void theDefaultsOfTheUserRoundTripAndAreBlankWhenMissing() {
+        JsonObject attributes = new JsonObject();
+        assertNull(ConlangStore.readDefaults(attributes).getLanguageId());
+        assertFalse(ConlangStore.readDefaults(null).isAuto());
+
+        UserDefaults defaults = new UserDefaults();
+        defaults.setLanguageId("lang-1");
+        defaults.setAuto(true);
+        defaults.setAiUuid("ai-1");
+        ConlangStore.writeDefaults(attributes, defaults);
+
+        UserDefaults read = ConlangStore.readDefaults(attributes);
+        assertEquals("lang-1", read.getLanguageId());
+        assertTrue(read.isAuto());
+        assertEquals("ai-1", read.getAiUuid());
+        assertNull(read.getProtocolUuid());
+    }
+
+    @Test
+    void aCopyKeepsTheIdentityAndSharesNothing() {
+        Language original = vrakht();
+        Language copy = ConlangStore.copy(original);
+
+        assertEquals(original.getId(), copy.getId());
+        assertEquals(original.getLexicon().size(), copy.getLexicon().size());
+        copy.getLexicon().get(0).setWord("changed");
+        copy.getRules().clear();
+        assertNotEquals("changed", original.getLexicon().get(0).getWord());
+        assertFalse(original.getRules().isEmpty());
+    }
+
+    @Test
+    void aLanguageTheUserDidNotTouchIsTakenFromTheLibraryAsItIsNow() {
+        Language a = named("A");
+        Language b = named("B");
+        List<Language> loaded = List.of(ConlangStore.copy(a), ConlangStore.copy(b));
+        // a run added a word to A while the screen was open
+        Language storedA = ConlangStore.copy(a);
+        storedA.addEntry(LexiconEntry.ofModel("fresh", "new thing", "", Origin.model("p", "m", 1L)));
+
+        List<Language> merged = ConlangStore.merge(List.of(storedA, ConlangStore.copy(b)), loaded,
+                java.util.Set.of(a.getId(), b.getId()), java.util.Set.of());
+
+        assertEquals(List.of("A", "B"), names(merged));
+        assertEquals(2, merged.get(0).getLexicon().size(), "the word the run added is kept");
+    }
+
+    @Test
+    void aLanguageTheUserEditedIsTheScreensAndTheOrderIsTheScreens() {
+        Language a = named("A");
+        Language b = named("B");
+        Language editedB = ConlangStore.copy(b);
+        editedB.setName("B edited");
+
+        List<Language> merged = ConlangStore.merge(List.of(ConlangStore.copy(a), ConlangStore.copy(b)), List.of(editedB, ConlangStore.copy(a)),
+                java.util.Set.of(a.getId(), b.getId()), java.util.Set.of(b.getId()));
+
+        assertEquals(List.of("B edited", "A"), names(merged));
+    }
+
+    @Test
+    void aLanguageTheScreenDeletedIsGoneAndOneAnotherSessionAddedStays() {
+        Language a = named("A");
+        Language b = named("B");
+        Language addedElsewhere = named("Elsewhere");
+
+        List<Language> merged = ConlangStore.merge(List.of(ConlangStore.copy(a), ConlangStore.copy(b), addedElsewhere), List.of(ConlangStore.copy(a)),
+                java.util.Set.of(a.getId(), b.getId()), java.util.Set.of());
+
+        assertEquals(List.of("A", "Elsewhere"), names(merged));
+    }
+
+    @Test
+    void aLanguageTheScreenAddedIsKeptAndOneDeletedElsewhereStaysGoneUnlessEdited() {
+        Language a = named("A");
+        Language fresh = named("Fresh");
+        Language gone = named("Gone");
+
+        // Fresh is new on the screen; Gone was loaded, untouched, and is not stored any more (deleted in another session)
+        List<Language> merged = ConlangStore.merge(List.of(ConlangStore.copy(a)), List.of(ConlangStore.copy(a), fresh, ConlangStore.copy(gone)),
+                java.util.Set.of(a.getId(), gone.getId()), java.util.Set.of());
+
+        assertEquals(List.of("A", "Fresh"), names(merged));
+
+        // the user edited it on the screen meanwhile: that edit is kept
+        List<Language> keptEdit = ConlangStore.merge(List.of(ConlangStore.copy(a)), List.of(ConlangStore.copy(a), ConlangStore.copy(gone)),
+                java.util.Set.of(a.getId(), gone.getId()), java.util.Set.of(gone.getId()));
+        assertEquals(List.of("A", "Gone"), names(keptEdit));
+    }
 }

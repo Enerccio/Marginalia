@@ -5,3 +5,46 @@ mark.conlang-passage {
     border-bottom: 1px dotted var(--lumo-primary-color-50pct);
     cursor: help;
 }
+
+/* the line under a field of the settings that says what the field is for */
+.conlang-hint {
+    color: var(--lumo-secondary-text-color);
+    font-size: var(--lumo-font-size-s);
+}
+
+/* a word of the language: the form the story writes */
+.conlang-word {
+    font-weight: 600;
+}
+
+/* a part of an editor that takes the height that is left and scrolls inside */
+.conlang-fill {
+    flex: 1 1 0;
+    min-height: 0;
+    min-width: 0;
+}
+
+/* the status of a word of the lexicon */
+.conlang-badge {
+    display: inline-block;
+    padding: 0 var(--lumo-space-s);
+    border-radius: var(--lumo-border-radius-m);
+    font-size: var(--lumo-font-size-xs);
+    background: var(--lumo-contrast-10pct);
+    color: var(--lumo-body-text-color);
+}
+
+.conlang-badge[data-status='NEW'] {
+    background: var(--lumo-primary-color-10pct);
+    color: var(--lumo-primary-text-color);
+}
+
+.conlang-badge[data-status='LOCKED'] {
+    background: var(--lumo-success-color-10pct);
+    color: var(--lumo-success-text-color);
+}
+
+.conlang-badge[data-status='RETIRED'] {
+    text-decoration: line-through;
+    color: var(--lumo-secondary-text-color);
+}

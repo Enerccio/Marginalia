@@ -14,6 +14,15 @@ public final class ConlangStyles {
     /** The mark over a translated speech. */
     public static final String PASSAGE = "conlang-passage";
 
+    /** The line under a field that says what the field is for. */
+    public static final String HINT = "conlang-hint";
+    /** A word of the language in a list: the form as the story writes it. */
+    public static final String WORD = "conlang-word";
+    /** The part of an editor that grows and keeps its own scroll. */
+    public static final String FILL = "conlang-fill";
+    /** The label of a status in the lexicon. */
+    public static final String BADGE = "conlang-badge";
+
     private static final String RESOURCE = "/conlangtranslator.css";
 
     private static volatile String css;

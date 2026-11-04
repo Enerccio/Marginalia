@@ -946,6 +946,21 @@ fake model answering from its queue; Playwright through the real UI.
   answered the wrong requests. Call it as `llm('/_reset', {})`.
 - **Not checked / left:** the click on a mark (step 9), the phone story, the repair run for the words nobody reported (`needsRepair` is only reported), a part with several speakers' tone prefixes, concurrent runs.
 
+## Step 6 check in the real app (2026-11-04)
+
+Screenshot environment, plugin copied in, no seeded data: everything below was done through the UI.
+- The panel opens in *Extension Settings*; a new language gets its name, rules, two categories, a register, two words (one with a sense and a rationale) and a speaker; *Save* of the editor
+  then *Save* of the Settings screen; after a reload the library, the word count and the chosen default language are there. The workspace shows *Unsaved changes* while a language is edited and
+  not saved, as for any field.
+- *Duplicate* (`Vrakht 2`, the words come along), *Export* (the document has the lexicon and no links), *Import* of that document (named `Vrakht 2 2`: a name that is taken gets a number), a
+  bad document is refused and the window stays, *Delete* with the question.
+- The book dialog (Prompts) and the folder dialog show the four fields under *Extension Settings*; the language field shows the one inherited from the user, and a part translated through
+  the menu used that inherited language (nothing was set on the book). The lookup in the story finds `drak` by its meaning `war`.
+- Layouts looked at in the screenshots (1920 wide and 900 x 700): the panel, each tab, the word window (it scrolls inside, the buttons stay), the maximized editor, the lookup. Found and fixed:
+  the icon of the search field was huge (a Font Awesome icon in a prefix slot: use the Vaadin icon), the meaning column repeated the word, the counts of the category tab did not follow the
+  words added in the lexicon tab, the checkbox of the defaults sat beside a helper text.
+- A thing that looks like a bug and is not: after *Import* the new language is selected, a click on its row selects it away (Vaadin's toggle), so a script that clicks first finds *Delete* disabled.
+
 ## Step 2 findings (2026-11-04, from reading the core)
 
 **Who reads the text of a part** (`getResponse()` and `::getResponse`, 30 files of the core outside `ui`, 14 in `ui`, 2 exporters, 12 plugin files):
@@ -1078,10 +1093,17 @@ reads it* accessor; the commands are thin wrappers added at step 13, with the te
    the session of the user) when the book has `auto` on, and the story is loaded again when it is done; **a regenerate removes the passages** of the part (`AFTER_CLEANUP`, only when it produced
    a text). A language and the settings of a book (`BookSettings`: language, auto, model, protocol, context parts, lexicon limit) are read from the library and the book's attributes; **there is no
    UI for them yet** (step 6), the menu action says "The book has no language" until they exist. The model of the request is the settings', else the book's, else the user's default.
-6. **Languages in the settings**: the library panel in *Settings → Extension Settings* (list, new, copy, delete, export / import) and the
-   **language editor** dialog (rules sections, categories, the lexicon with filter *new*, edit, lock, retire, the rationale,
-   *Replace in the story* (search and replace with a preview), *Retranslate*, the speakers lists); the inherited **choice** of the language
-   in the book and folder dialogs; *Duplicate* a language (no book-local ones); then the thin story side (the lookup and the *Translate this* box).
+6. **Languages in the settings** (done 2026-11-04 except the parts listed under *Not in this step*; checked in the real app, see *Step 6 check* below): the panel *Conlang Translator* in
+   *Settings → Extension Settings* (`LanguageSettingsForm`: the list with New, Edit, Duplicate, Export, Import, Delete, and the user level of what books inherit), the **language editor**
+   (`LanguageEditorDialog`: tabs Overview, Rules, Categories, Registers, Lexicon, Speakers; a copy until *Save*, resizable and draggable, a button maximizes it; the lexicon tab has a
+   search, the filters by category and status, edit, accept, *Accept all new*, lock, retire, delete; the word window has the senses, the other forms of the concept, the rationale), the
+   **inherited choices** in the book and folder dialogs (`ConlangInherited`: the language, translate by itself, the model, the protocol; the user level is `UserDefaults` in the panel, the
+   book's `contextParts` and `maxLexiconChars` stay in the book's own attributes with their defaults and have no field yet), and the thin story side: **Look up a word** in the tools menu of
+   the story (`LookupDialog`, read-only, search by word or meaning). The Settings screen stores the library when it is saved (`LanguageLibrary.put` + `ConlangStore.merge`): **a language the
+   user did not touch is taken from the library as it is then**, so the words a run added while the screen was open are not lost (tested); a language edited on the screen is the screen's.
+   *Duplicate* is the only way to a language for one book (no book-local languages, decided). **Not in this step:** *Replace in the story* and *Retranslate* in the editor and the *Translate
+   this* box (they need the en masse machinery of step 11 and the hand translation of the *Translating by hand* section), the badge of the *new* words on the story side, the fields for the
+   number of earlier parts and the lexicon size limit, the preview of a bigger lexicon (a language of thousands of words was not tried in the grid).
 7. **The change set and the diff** (`LanguageDiff`, the review window, `apply` with the conflict check; Duplicate then Compare, Import against an
    existing language), unit tests for the merge cases (conflicts, deletes, senses, order, identity) (the change set is also what step 14 reviews).
 8. **Conlang designer**: the proposal window and the actions inside the editor first (*Generate words* for a category, *Add a section* to
