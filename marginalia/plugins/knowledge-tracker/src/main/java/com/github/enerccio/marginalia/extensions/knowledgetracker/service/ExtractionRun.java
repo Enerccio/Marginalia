@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.extensions.knowledgetracker.service;
 
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.extract.ChangeApplier;
+import com.github.enerccio.marginalia.extensions.knowledgetracker.extract.TidyTrigger;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.model.BookSettings;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.process.BranchProcessor.Report;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.service.ExtractionService.Proposal;
@@ -70,6 +71,33 @@ public final class ExtractionRun {
     private final boolean tidy;
     private final List<Consumer<Status>> listeners = new CopyOnWriteArrayList<>();
     private final List<String> lines = new ArrayList<>();
+    private final List<Thought> thoughts = new CopyOnWriteArrayList<>();
+    /** What the model writes now, shown while the request goes on; reset at every request. */
+    private final StringBuilder liveReasoning = new StringBuilder();
+    private final StringBuilder liveAnswer = new StringBuilder();
+    private volatile long lastLiveNotify;
+    private final ExtractionService.Live live = new ExtractionService.Live() {
+        @Override
+        public void started() {
+            synchronized (liveReasoning) {
+                liveReasoning.setLength(0);
+                liveAnswer.setLength(0);
+            }
+        }
+
+        @Override
+        public void chunk(boolean reasoning, String piece) {
+            synchronized (liveReasoning) {
+                (reasoning ? liveReasoning : liveAnswer).append(piece);
+            }
+            // the panel is told a few times a second, not for every word
+            long now = System.currentTimeMillis();
+            if (now - lastLiveNotify >= 300) {
+                lastLiveNotify = now;
+                notifyListeners();
+            }
+        }
+    };
     private final CompletableFuture<Void> finished = new CompletableFuture<>();
 
     private volatile Status status;
@@ -106,6 +134,41 @@ public final class ExtractionRun {
     /** Whether the run is the tidy pass. */
     public boolean isTidy() {
         return tidy;
+    }
+
+    /**
+     * What the model thought and answered in one request of the run, so that it can be read also when it proposed nothing (then no
+     * review opens).
+     *
+     * @param run       the number of the request in the run, from 1
+     * @param tidy      whether it was a tidy request
+     * @param reasoning what the model thought first, empty when the provider sends none
+     * @param answer    what the model answered (JSON)
+     * @param changes   how many changes it proposed after they were checked
+     */
+    public record Thought(int run, boolean tidy, String reasoning, String answer, int changes) {
+    }
+
+    /** The reasoning and the answer of every request of the run, oldest first (the last 30). */
+    public List<Thought> getThoughts() {
+        return List.copyOf(thoughts);
+    }
+
+    private void remember(int run, boolean tidyRequest, Proposal proposal) {
+        if (!proposal.asked()) {
+            return;
+        }
+        thoughts.add(new Thought(run, tidyRequest, proposal.reasoning(), proposal.raw(), proposal.changes().changes().size()));
+        while (thoughts.size() > 30) {
+            thoughts.removeFirst();
+        }
+    }
+
+    /** What the model has written so far in the request that goes on: {@code [reasoning, answer]}, empty strings when none. */
+    public String[] getLive() {
+        synchronized (liveReasoning) {
+            return new String[]{liveReasoning.toString(), liveAnswer.toString()};
+        }
     }
 
     public boolean isGuided() {
@@ -200,7 +263,8 @@ public final class ExtractionRun {
             run++;
             publish(Phase.ASKING, run, null, "", partsRead, added, retracted);
             int perRun = maxParts > 0 ? Math.min(settings.getPartsPerRun(), maxParts - partsRead) : settings.getPartsPerRun();
-            Proposal proposal = extraction.propose(manuscript, perRun, true, excludeFrom);
+            Proposal proposal = extraction.propose(manuscript, perRun, true, excludeFrom, live);
+            remember(run, false, proposal);
             if (proposal.isEmpty()) {
                 break;
             }
@@ -236,8 +300,41 @@ public final class ExtractionRun {
                 break;
             }
         }
+        if (!cancelled) {
+            tidyIfDue();
+        }
         status = new Status(cancelled ? Phase.CANCELLED : Phase.DONE, run, partsRead, added, retracted, null, "", List.copyOf(lines));
         notifyListeners();
+    }
+
+    /**
+     * The automatic tidy at the end of a run that applied its changes without asking, when enough parts were read since the last one
+     * ({@link TidyTrigger}). What it finds is applied and logged; a failure only goes into the log of the run, the reading is done.
+     */
+    private void tidyIfDue() {
+        try {
+            if (!TidyTrigger.due(stateService.load(manuscript), guided)) {
+                return;
+            }
+            publish(Phase.ASKING, status.run(), null, "");
+            Proposal proposal = extraction.proposeTidy(manuscript, live);
+            remember(status.run(), true, proposal);
+            if (proposal.changes().isEmpty()) {
+                extraction.markTidied(manuscript);
+                lines.add("Tidy: nothing to drop or merge");
+                return;
+            }
+            ChangeApplier.Result result = extraction.commitTidy(manuscript, proposal, true);
+            lines.add("Tidy: " + result.retracted() + " item(s) became old knowledge, " + result.added() + " merged item(s) added");
+        } catch (CancellationException e) {
+            throw e;
+        } catch (Exception e) {
+            if (cancelled) {
+                throw new CancellationException();
+            }
+            log.warn("The automatic tidy failed: {}", e.getMessage(), e);
+            lines.add("Tidy failed: " + e.getMessage());
+        }
     }
 
     /** The tidy pass: one request about the items; the changes are reviewed (guided) or applied and logged. */
@@ -245,7 +342,8 @@ public final class ExtractionRun {
         status = new Status(Phase.PREPARING, 0, 0, 0, 0, null, "", List.of());
         notifyListeners();
         publish(Phase.ASKING, 1, null, "");
-        Proposal proposal = extraction.proposeTidy(manuscript);
+        Proposal proposal = extraction.proposeTidy(manuscript, live);
+        remember(1, true, proposal);
         if (proposal.changes().isEmpty()) {
             lines.add(proposal.asked() ? "Tidy: nothing to drop or merge" : "Tidy: nothing to tidy (no character has enough items that the model learned)");
             status = new Status(Phase.DONE, 1, 0, 0, 0, null, "Tidy: nothing to do", List.copyOf(lines));

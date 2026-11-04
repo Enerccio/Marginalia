@@ -20,6 +20,8 @@ public class KnowledgeState {
     private String cursor;
     /** The parts that were processed, in the order they were, with the hash of their text; information for the user. */
     private List<ProcessedPart> processed = new ArrayList<>();
+    /** How many parts the model read since the last tidy (or since the start); the automatic tidy is due when it reaches the setting. */
+    private int partsSinceTidy;
     /** What automatic runs applied without asking, oldest first; see {@code ChangeLog}. */
     private List<ChangeLogEntry> changeLog = new ArrayList<>();
 
@@ -81,6 +83,20 @@ public class KnowledgeState {
             processed = new ArrayList<>();
         }
         return processed;
+    }
+
+    public int getPartsSinceTidy() {
+        return partsSinceTidy;
+    }
+
+    /** The model read {@code parts} more parts. */
+    public void partsRead(int parts) {
+        partsSinceTidy += Math.max(0, parts);
+    }
+
+    /** A tidy was done or tried (even when it found nothing): the count starts again. */
+    public void tidied() {
+        partsSinceTidy = 0;
     }
 
     public List<ChangeLogEntry> getChangeLog() {

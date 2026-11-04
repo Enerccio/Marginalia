@@ -37,6 +37,7 @@ public final class RunCommit {
         }
         int end = indexOf(branch, run.getLast().uuid()) + 1;
         BranchProcessor.process(state, branch, end, separators, now, run.size());
+        state.partsRead(run.size());
         return ChangeApplier.apply(state, changes, logged, now);
     }
 
