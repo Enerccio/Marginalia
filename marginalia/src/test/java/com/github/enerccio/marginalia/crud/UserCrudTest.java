@@ -311,6 +311,20 @@ class UserCrudTest extends MarginaliaTestBase {
     }
 
     @Test
+    void administratorClearsSavedLogins() throws Exception {
+        loginAdmin();
+        User user = userService.find(createUser().getId());
+        userService.addPersistedLoginInfo(user, userService.generateNewPersistentInfo(user));
+        userService.addPersistedLoginInfo(user, userService.generateNewPersistentInfo(user));
+        userService.save(user);
+        assertThat(userService.getPersistedLoginInfo(userService.find(user.getId()))).hasSize(2);
+
+        userService.clearSavedLogins(user);
+
+        assertThat(userService.getPersistedLoginInfo(userService.find(user.getId()))).isEmpty();
+    }
+
+    @Test
     void onlyAdministratorsDeleteClearOrUnlockUsers() throws Exception {
         User target = createUser();
         login();
@@ -318,6 +332,7 @@ class UserCrudTest extends MarginaliaTestBase {
         assertThatThrownBy(() -> userService.deleteUser(target)).isInstanceOf(SecurityException.class);
         assertThatThrownBy(() -> userService.clearPassword(target)).isInstanceOf(SecurityException.class);
         assertThatThrownBy(() -> userService.unlock(target)).isInstanceOf(SecurityException.class);
+        assertThatThrownBy(() -> userService.clearSavedLogins(target)).isInstanceOf(SecurityException.class);
         assertThat(userService.find(target.getId()).isDeleted()).isFalse();
 
         currentUser.setId(null);

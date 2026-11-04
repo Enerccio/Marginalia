@@ -108,6 +108,12 @@ public class PassageServiceImpl extends ExtendableServiceImpl<AnchoredPassage, P
     }
 
     @Override
+    @CommonTxReadOnly
+    public List<AnchoredPassage> listForParts(Collection<Long> partIds, String kind) throws Exception {
+        return partIds == null || partIds.isEmpty() ? List.of() : getRepository().findKindByPartIds(kind, partIds);
+    }
+
+    @Override
     @CommonTx
     public AnchoredPassage reattach(Manuscript manuscript, AnchoredPassage passage, Integer start, Integer end) throws Exception {
         AnchoredPassage stored = ownPassage(ownBook(manuscript), passage);

@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.extensions.conlangtranslator.store;
 
+import com.github.enerccio.marginalia.extensions.conlangtranslator.model.BookSettings;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.model.Language;
 import com.google.gson.*;
 
@@ -84,6 +85,25 @@ public final class ConlangStore {
             writeLibrary(attributes, languages);
         }
         return removed;
+    }
+
+    /**
+     * What a book stores, never null (the defaults for a book that has nothing, or has something unreadable).
+     */
+    public static BookSettings readBook(JsonObject attributes) {
+        if (attributes == null || !attributes.has(BookSettings.KEY) || !attributes.get(BookSettings.KEY).isJsonObject()) {
+            return new BookSettings();
+        }
+        try {
+            BookSettings settings = GSON.fromJson(attributes.get(BookSettings.KEY), BookSettings.class);
+            return settings == null ? new BookSettings() : settings;
+        } catch (JsonParseException e) {
+            return new BookSettings();
+        }
+    }
+
+    public static void writeBook(JsonObject attributes, BookSettings settings) {
+        attributes.add(BookSettings.KEY, GSON.toJsonTree(settings));
     }
 
     /**

@@ -24,6 +24,8 @@ public interface UserService extends BaseService<User, UserRepository> {
     User changePassword(User user, String password) throws Exception;
     User clearPassword(User user) throws Exception;
     User unlock(User user) throws Exception;
+    /** Forgets every saved (remember-me) login of the user, so each of their browsers has to log in again; an administrator's action. */
+    User clearSavedLogins(User user) throws Exception;
     PersistedLoginInfo authenticateFromCookie(User user, String cookieIdentifier, String cookieSecret) throws Exception;
 
     void deletePersistedLoginInfo(User user, PersistedLoginInfo persistedLoginInfo) throws Exception;

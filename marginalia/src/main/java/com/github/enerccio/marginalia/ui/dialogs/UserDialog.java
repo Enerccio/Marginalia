@@ -50,6 +50,7 @@ public class UserDialog extends Dialog implements LLMInteract {
     private PasswordField passwordRepeatField;
     private Checkbox clearPasswordCheckbox;
     private Checkbox unlockCheckbox;
+    private Checkbox clearSavedLoginsCheckbox;
     private Checkbox isAdminCheckbox;
     private final boolean openedFromUser;
 
@@ -121,6 +122,11 @@ public class UserDialog extends Dialog implements LLMInteract {
         unlockCheckbox.setVisible(!openedFromUser && !firstTime && user.getId() != null
                 && (user.getFailedLogins() > 0 || user.getLockedUntil() > 0));
 
+        // offered only while the account has saved logins on record
+        clearSavedLoginsCheckbox = new Checkbox(loc.getValue(L.LABEL_CLEAR_SAVED_LOGINS));
+        clearSavedLoginsCheckbox.setVisible(!openedFromUser && !firstTime && user.getId() != null
+                && StringUtils.isNotBlank(user.getSavedLogins()));
+
         isAdminCheckbox = new Checkbox(loc.getValue(L.LABEL_ADMINISTRATOR));
 
         if (firstTime) {
@@ -139,7 +145,7 @@ public class UserDialog extends Dialog implements LLMInteract {
         if (openedFromUser)
             formLayout.add(loginField, fullNameField, currentPassword, passwordField, passwordRepeatField, isAdminCheckbox);
         else
-            formLayout.add(loginField, fullNameField, passwordField, passwordRepeatField, clearPasswordCheckbox, unlockCheckbox, isAdminCheckbox);
+            formLayout.add(loginField, fullNameField, passwordField, passwordRepeatField, clearPasswordCheckbox, unlockCheckbox, clearSavedLoginsCheckbox, isAdminCheckbox);
         add(formLayout);
 
         Button saveButton = new Button(loc.getValue(L.LABEL_OK), event -> save());
@@ -229,6 +235,11 @@ public class UserDialog extends Dialog implements LLMInteract {
 
                     if (unlockCheckbox.getValue()) {
                         userService.unlock(user);
+                    }
+
+                    // clearPassword and changePassword drop the saved logins already
+                    if (clearSavedLoginsCheckbox.getValue() && !clearPassword && StringUtils.isBlank(password)) {
+                        userService.clearSavedLogins(user);
                     }
 
                     close();

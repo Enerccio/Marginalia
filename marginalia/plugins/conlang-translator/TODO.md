@@ -908,6 +908,44 @@ sorry, please, yes). 8 requests: a1 x2, a2 x1, a3 x3, a4 x2. **One model, a few 
 - A **language check for "no word outside the palette"** needs the structured palette; the optional structured phonology of the designer gets its
   first use case.
 
+## Real-model trial 3: the wording of step 4 (2026-11-04)
+
+Same model (`gemma-4-31b-it-MM`), thinking on, `max_tokens` 24000. The **system message is made by `TranslationPrompt`** (the new instructions: several entries for one quotation allowed, `understood`, `register`,
+`kind`, `variantOf`, "do not stretch a word") with `vrakht.md` as **one rule section** and an empty lexicon (the file mixes grammar and lexicon; the import of a language is the designer's, step 8), so this
+tries the wording and the fields, **not the grouped lexicon**. The user messages are the old ones of `trial/s1..s3.txt` (their own CHARACTERS list: the notes of the language, gender and voice, were not
+exercised). Four requests: s1, s2, s3 and s2 with the strict `json_schema`. **A few samples of one model: signs, not rates.** Scored with `score.py` (the checks of the first trial).
+- **Valid JSON 4 of 4 and every `quote` verbatim in the part (24 of 24)**; the schema run is as good as the free ones. 208 to 242 seconds a request (prompt 6.8k tokens, 3.9k to 4.5k tokens of output, 8k to 12k
+  characters of reasoning), as before: the new fields cost nothing noticeable.
+- **The splitting is now allowed and used:** s1 gave 7 entries for 5 quotations (the two-sentence ones split), s2 7 for 6; every entry has its own `quote` found in the part, none overlaps, so
+  `AnswerChecker` takes them all.
+- **Who speaks right again:** the captive and the commander's "common tongue" lines `none` with an empty text (4 of 4 in both s2 runs), the others Vrakht.
+- **`understood` works:** in both s2 runs the merchant's question to a woman who does not know Vrakht came back `understood: false` and no other entry did.
+- **`register` was used for what Vrakht has instead of registers:** the language has none defined (the field says "see REGISTERS"), and the model put the **attitude prefix** in it (`Gna`, `Droh`, `hoh`, `Fall`)
+  rather than leaving it empty: a sign that the register of a language with tone prefixes (Vrakht) wants them as registers, which the designer's *Review* can propose. An unknown register name must not break
+  anything: the plugin keeps it as text (`Span.register`).
+- **"Three dozen" came out `karg dutz` (24 + 12), right** (s1); `gild-man` for a woman again in the free s2 run, **`gild-frou` in the schema run** (1 of 2): the gender needs the notes of the speakers (the new
+  CHARACTERS list) and the thinking translator, as found before; not tried here.
+- **New words:** all reported, with a rationale; `kind` filled (`compound` / `root`), `variantOf` empty. **`vakt` was reported as a new word "to wait"** although `vakt` (guard, wall) is in the file: the model
+  used the "do not stretch" rule and invented a sense; `AnswerChecker` adds it as a homophone, which is the design (the author sees it in the *new* list), and the stretch is visible there.
+- **Still there (checks that are the language's own, not done):** a speech that starts with a tone prefix and no mood particle (`Gna Da ...` is fine, `Fall Da`, `Droh Bef` too: the first word is a prefix, the
+  mood comes after), `Den Bef ...` (a linker first, s3). The first-token check of the first trial flags them; `AnswerChecker` has no such check on purpose.
+
+## Step 5 check in the real app (2026-11-04)
+
+The screenshot environment (`13-db-backup`, the V23 database migrated), the plugin JAR copied in, a language and the book's settings written into the data folder with a small script (no UI yet), the
+fake model answering from its queue; Playwright through the real UI.
+- **Translate the speech** on part 2: the card shows the Vrakht ("Frag ek es hold-gild lok mun, nu Da rota-hab?"), the narration, the quotation marks and the speech "in the common tongue" stay;
+  the part is **not flagged edited**, its tokens stay 315 (the English count), the history has a version `AUTOMATIC / TRANSLATION`; two passages (`kind PASSAGE`, `conlang-translator.speech`) with
+  the source, the speaker, the hash; `rota` is in the lexicon, **new**, origin model, with its rationale and the category `Things`; after a reload the story has two `mark.conlang-passage`.
+- **The model reads English:** *Annotate with AI* on that part sent "How touching. Does the Boy Who Lived..." and neither `hold-gild` nor `Frag ek` (through `StoryAround` and the registry).
+- **Automatic:** with `auto` on, a generated part was translated by itself right after the generation and the story showed it (and its mark) without a reload; a **regenerate** gave the new English
+  text and soft deleted the passage.
+- **A bug the check found:** the story was loaded again in `ui.access`, a thread with no session, and the services failed with `ScopeNotActiveException` ("Scope 'session' is not active"). The callback of
+  `TranslationRuns` now runs in the captured request scope.
+- **A gotcha of the fake model:** `llm('/_reset')` of `lib/shot.mjs` sends a GET without a body and is answered "unsupported GET /_reset": the queue was never cleared, and the stale replies of the earlier runs
+  answered the wrong requests. Call it as `llm('/_reset', {})`.
+- **Not checked / left:** the click on a mark (step 9), the phone story, the repair run for the words nobody reported (`needsRepair` is only reported), a part with several speakers' tone prefixes, concurrent runs.
+
 ## Step 2 findings (2026-11-04, from reading the core)
 
 **Who reads the text of a part** (`getResponse()` and `::getResponse`, 30 files of the core outside `ui`, 14 in `ui`, 2 exporters, 12 plugin files):
@@ -1014,10 +1052,32 @@ reads it* accessor; the commands are thin wrappers added at step 13, with the te
    is an inherited setting (step 6). Decisions made here: the variants are a list of ids on each entry (the group is the closure, so a link works from either side); whether a hyphen is a
    part of a word is **an option of the language** (`hyphenStructural`, off by default): off, forms are compared without hyphens (Vrakht writes the same compound with and without
    them), on, a hyphen is part of the form. It applies to the lookup by form and to the repeats; the checker of step 4 reads the same option.
-4. **The request and the reverse**: the reverse (`toModel`) first, with its tests (edited passage, overlapping, markdown); then the request: prompt, JSON schema, the answer reader and checker (`quote` found, languages known, overlaps), pure
-   logic with plain unit tests, as the KT's `ExtractionPrompt` / `ChangeSetBuilder`; try it on a real model and write the
-   results here.
-5. **The hook**: finality, background run after a part, regenerate drops the spans; a menu action.
+4. **The request and the reverse** (done 2026-11-04, package `translate`, 47 more unit tests; the real-model trial of the new wording is *Real-model trial 3* above):
+   - `Reverse.toModel(stored, passages)` turns the translated passages back into their source and returns a `ModelText` (so the core's map works: a quote of the model, a selection
+     of the author). A passage is the speech without its quotation marks, so the marks, the markdown and the narration are never touched. An **edited** passage (the hash of its text
+     does not match) stays as it is and is reported, one that overlaps an earlier one, has no source or is not in the text is ignored and reported; adjoining passages are both turned back.
+     The step 5 registration turns the `AnchoredPassage`s of the kind into `Located` and calls it.
+   - `TranslationPrompt.build(language, part, scene, maxLexiconChars)`: the **system message is the same for every part** of a book (instructions, rules of the audience *model*,
+     registers, lexicon: tested), the **user message** has the characters of the notes who are in the part (speaks / does not know, gender, voice), the earlier parts, the point of
+     view, the present characters and the part. `LexiconText` writes the lexicon under its category headings, **one line for the forms of a concept**
+     (`breast: mela (formal), melis (soft), lelya (vulgar)`), no retired words, and cuts a lexicon that is too big down to the always-send categories, the categories of the words the
+     part needs (a word of a gloss is in the part) and the categories of the new and locked words.
+   - `TranslationAnswer.parse` reads the answer leniently (a code fence, text around it); `TranslationSchema.JSON` is the strict schema (a test keeps it equal to the records). New
+     fields against the first trial: `understood`, `register`, and for a word `kind` and `variantOf`.
+   - `AnswerChecker.check(part, answer, language)`: the quote must be found (`QuoteFinder`), the language the book's or `none`, no overlap whatever the order, text for `none` ignored,
+     an empty text dropped; **the lexicon check** (`LexiconCheck`: the lexicon, compounds of known parts, the affixes of the language, the reported words with affixes, the names of the
+     part, the hyphen option) flags the words nobody reported (`needsRepair()`); new words are reported, **never dropped for being new**, one that is in the lexicon with the same meaning is
+     left out, a homophone is added, one without a rationale is added and flagged. **Not done:** the language's own checks (a mood particle first, `za` after a role particle: a later
+     feature, the language needs a list of checks), the number check, and the vowel drop before an affix (`silvis`: prose in the rules; the check calls it unknown, the trial's `vaelissaren`).
+5. **The hook** (done 2026-11-04, checked in the real app, see *Step 5 check* below): the extension registers the passage kind (`ConlangPassageKind`, the dotted mark `mark.conlang-passage`) and
+   a `PartTextRegistry` transformer (`ConlangTransformer`, the passages of a whole branch with one query through `PassageService.listForParts`, new in the core); the part menu has **Translate the
+   speech**; `TranslationService.translate` is the whole pipeline (the part as the model reads it, `TranslationPrompt`, one streamed request, `AnswerChecker`, `TranslationPlan`, **one edit**
+   through `ChatMessageService.replaceText` (version `TRANSLATION`, not flagged as the author's, tokens stay the English ones, `originalResponse` follows when the part was unedited, summaries rehashed),
+   a passage per speech with its `Span`, the new words into the lexicon of the library, new); the old passages go with the text they stood in, **the ones the author edited stay**; nothing is written
+   when the model finds nothing (so a part is never left with conlang and no source). **Finality** as the Knowledge Tracker: the `AutoAnnotate.finished` decorator starts a worker (virtual thread with
+   the session of the user) when the book has `auto` on, and the story is loaded again when it is done; **a regenerate removes the passages** of the part (`AFTER_CLEANUP`, only when it produced
+   a text). A language and the settings of a book (`BookSettings`: language, auto, model, protocol, context parts, lexicon limit) are read from the library and the book's attributes; **there is no
+   UI for them yet** (step 6), the menu action says "The book has no language" until they exist. The model of the request is the settings', else the book's, else the user's default.
 6. **Languages in the settings**: the library panel in *Settings → Extension Settings* (list, new, copy, delete, export / import) and the
    **language editor** dialog (rules sections, categories, the lexicon with filter *new*, edit, lock, retire, the rationale,
    *Replace in the story* (search and replace with a preview), *Retranslate*, the speakers lists); the inherited **choice** of the language

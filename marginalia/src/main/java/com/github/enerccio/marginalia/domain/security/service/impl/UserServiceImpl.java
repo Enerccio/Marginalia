@@ -283,6 +283,18 @@ public class UserServiceImpl extends BaseServiceImpl<User, UserRepository> imple
     }
 
     /**
+     * Removes all saved (remember-me) logins of the user. Sessions that are open now stay, only the cookies that
+     * would start a new session are worthless afterwards.
+     */
+    @Override
+    @CommonTx
+    public User clearSavedLogins(User user) throws Exception {
+        adminGuard.requireAdmin();
+        user.setSavedLogins(null);
+        return save(user);
+    }
+
+    /**
      * Checks a remember-me cookie. The secret is hashed once and compared against every saved login with
      * {@link MessageDigest#isEqual}, without leaving the loop on a match, so timing does not reveal whether the
      * identifier exists or how much of the secret was right.

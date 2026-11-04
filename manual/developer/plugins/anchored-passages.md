@@ -32,6 +32,8 @@ passages.save(passage);
   extensions); `reattach`, `remove`.
 - The range is `getStart()` / `getEnd()` of the **stored** text of the part, which is also what the author edits; the text a model reads may be
   another one, see [The text a model reads](part-text.md) (`ModelText` maps the ranges).
+- `listForParts(partIds, kind)` reads the passages of many parts with one query and no manuscript, for code that holds the parts already (the text a model
+  reads: a story of hundreds of parts must not cost a query per part).
 - A passage whose text is gone is `isOrphaned()` with no range; it is found again if the text comes back.
 - Passages are **not** annotations: the badge of the part, the annotations tab and the margin list only the editorial notes, and the commands of
   the annotations see only those. Nothing to resolve or dismiss.
