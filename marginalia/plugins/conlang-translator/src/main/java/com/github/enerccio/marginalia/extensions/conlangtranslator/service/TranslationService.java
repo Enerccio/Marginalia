@@ -167,6 +167,48 @@ public class TranslationService {
     }
 
     /**
+     * @param reverted speeches that are English again
+     * @param kept     speeches the author edited, which stay as they are
+     */
+    public record Reverted(int reverted, int kept) {
+    }
+
+    /**
+     * Puts the English back into the part: every translated speech the author did not edit is its source again and its passage is gone. The
+     * history keeps the conlang version. A part with no translated speech is not touched.
+     */
+    public Reverted revert(Manuscript manuscript, ChatMessage part) throws Exception {
+        Manuscript book = manuscriptService.find(manuscript);
+        ChatMessage current = chatMessageService.find(part);
+        if (book == null || current == null) {
+            throw new IllegalArgumentException("The part does not exist");
+        }
+        Reverse.Result read = readOf(current);
+        if (read.substitutions().isEmpty()) {
+            return new Reverted(0, read.edited().size());
+        }
+        Object lock = locks.computeIfAbsent(book.getUuid(), uuid -> new Object());
+        synchronized (lock) {
+            ChatMessage fresh = chatMessageService.find(part);
+            if (!StringUtils.defaultString(fresh.getResponse()).equals(StringUtils.defaultString(current.getResponse()))) {
+                throw new IllegalStateException("The part was changed while it was being reverted");
+            }
+            String english = read.text();
+            for (AnchoredPassage old : passages.passagesOf(fresh)) {
+                var located = PassageAccess.locate(old);
+                boolean editedByAuthor = located != null && read.edited().stream().anyMatch(e -> e.start() == located.start() && e.end() == located.end());
+                if (located != null && !editedByAuthor) {
+                    passageService.remove(book, old);
+                }
+            }
+            boolean untouched = fresh.getOriginalResponse() != null && fresh.getOriginalResponse().equals(fresh.getResponse());
+            chatMessageService.replaceText(book, fresh, english, english, untouched ? english : null,
+                    RevisionOrigin.automatic(RevisionDetail.TRANSLATION, false));
+        }
+        return new Reverted(read.substitutions().size(), read.edited().size());
+    }
+
+    /**
      * The part as a model reads it, with the passages that were edited by the author (they are left as they are).
      */
     private Reverse.Result readOf(ChatMessage part) throws Exception {

@@ -340,6 +340,8 @@ puts the dragged icon at the place of the one it was dropped on and writes the r
 the bar keeping their slots. `getLayout()` adds `"barOrder":["id",...]` once the user has reordered, `setLayout` reads it. `add(id, caption, letters, content)` gives the letters of the icon, the
 initials of the caption (`TabDockIcons.letters`) are the default.
 
+**Redrawing the story.** `StoryEditor.reloadStory()` (public since 1.7.0, a private method of `ManuscriptStoryPart` and `PhoneManuscriptStoryPart` before) loads the story again from the database: the mass delete uses it, and so does an extension that changed the text of parts behind the editor's back (the Conlang Translator after a range run).
+
 **Mass delete.** The settings menu item `StoryMenuKeys.MASS_DELETE` (`StoryEditor.toggleMassDelete` / `isMassDelete`, a check box
 item, also on the phone) turns on the mass delete of `StoryMassDelete` (`ui.dialogs.story`, shared by the desktop and the phone
 story tab, one instance per tab). The tab adds its bar (`getBar`, hidden while off) between the story and the bottom controls, and
