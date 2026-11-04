@@ -2,10 +2,12 @@ package com.github.enerccio.marginalia.extensions.conlangtranslator.store;
 
 import com.github.enerccio.marginalia.extensions.conlangtranslator.model.BookSettings;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.model.Language;
+import com.github.enerccio.marginalia.extensions.conlangtranslator.model.UserDefaults;
 import com.google.gson.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Reads and writes the library of languages in the attributes of the user's settings, and exports and imports a language as a document. It
@@ -104,6 +106,64 @@ public final class ConlangStore {
 
     public static void writeBook(JsonObject attributes, BookSettings settings) {
         attributes.add(BookSettings.KEY, GSON.toJsonTree(settings));
+    }
+
+    /**
+     * What the user level of the inherited settings holds, never null.
+     */
+    public static UserDefaults readDefaults(JsonObject attributes) {
+        if (attributes == null || !attributes.has(UserDefaults.KEY) || !attributes.get(UserDefaults.KEY).isJsonObject()) {
+            return new UserDefaults();
+        }
+        try {
+            UserDefaults defaults = GSON.fromJson(attributes.get(UserDefaults.KEY), UserDefaults.class);
+            return defaults == null ? new UserDefaults() : defaults;
+        } catch (JsonParseException e) {
+            return new UserDefaults();
+        }
+    }
+
+    public static void writeDefaults(JsonObject attributes, UserDefaults defaults) {
+        attributes.add(UserDefaults.KEY, GSON.toJsonTree(defaults));
+    }
+
+    /**
+     * An independent copy with the same identity: what an editor works on until the user saves.
+     */
+    public static Language copy(Language language) {
+        return GSON.fromJson(GSON.toJsonTree(language), Language.class);
+    }
+
+    /**
+     * The library the settings screen stores. A run of the translator adds words to the stored library while the screen is open, so the
+     * screen must not write back what it loaded: a language it did not touch is taken from the library as it is now.
+     *
+     * @param stored the library as it is now
+     * @param shown  the languages the screen shows, in its order, with its edits
+     * @param loaded the ids of the library when the screen loaded it
+     * @param edited the ids of the languages the user changed on the screen
+     * @return the shown order; a language the user changed or added is the screen's, any other the stored one; a language that was
+     * loaded and is not shown any more is gone; a language that was untouched and is not stored any more is gone (another session deleted it); a language that is stored and was not loaded (another session added it) is kept at the end
+     */
+    public static List<Language> merge(List<Language> stored, List<Language> shown, Set<String> loaded, Set<String> edited) {
+        List<Language> result = new ArrayList<>();
+        for (Language language : shown) {
+            Language current = stored.stream().filter(other -> other.getId().equals(language.getId())).findFirst().orElse(null);
+            boolean touched = edited.contains(language.getId()) || !loaded.contains(language.getId());
+            if (touched) {
+                result.add(language);
+            } else if (current != null) {
+                result.add(current);
+            }
+            // else: untouched on the screen and not stored any more, another session deleted it
+        }
+        for (Language language : stored) {
+            boolean known = loaded.contains(language.getId()) || shown.stream().anyMatch(other -> other.getId().equals(language.getId()));
+            if (!known) {
+                result.add(language);
+            }
+        }
+        return result;
     }
 
     /**

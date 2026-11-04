@@ -100,13 +100,20 @@ public class TranslationService {
      */
     public BookSettings settings(Manuscript manuscript) throws Exception {
         Manuscript current = manuscriptService.find(manuscript);
-        return ConlangStore.readBook((current != null ? current : manuscript).getAttributes());
+        return resolve(current != null ? current : manuscript);
     }
 
-    public void saveSettings(Manuscript manuscript, BookSettings settings) throws Exception {
-        Manuscript stored = manuscriptService.find(manuscript);
-        ConlangStore.writeBook(stored.getAttributes(), settings);
-        manuscriptService.save(stored);
+    /**
+     * What applies to the book: the language, the automatic run, the model and the protocol are the inherited settings (the book's own, else a
+     * folder's, else the user's), the number of earlier parts and the size limit of the lexicon are the book's own.
+     */
+    BookSettings resolve(Manuscript book) throws Exception {
+        BookSettings settings = ConlangStore.readBook(book.getAttributes());
+        settings.setLanguageId(StringUtils.trimToNull(manuscriptService.resolveExtension(book, ConlangInherited.LANGUAGE).value()));
+        settings.setAuto(ConlangInherited.YES.equals(manuscriptService.resolveExtension(book, ConlangInherited.AUTO).value()));
+        settings.setAiUuid(StringUtils.trimToNull(manuscriptService.resolveExtension(book, ConlangInherited.AI).value()));
+        settings.setProtocolUuid(StringUtils.trimToNull(manuscriptService.resolveExtension(book, ConlangInherited.PROTOCOL).value()));
+        return settings;
     }
 
     /**
@@ -126,7 +133,7 @@ public class TranslationService {
         if (book == null || current == null) {
             throw new IllegalArgumentException("The part does not exist");
         }
-        BookSettings settings = ConlangStore.readBook(book.getAttributes());
+        BookSettings settings = resolve(book);
         Language language = languageOf(settings);
         if (language == null) {
             return Outcome.of(Status.NO_LANGUAGE, settings.getLanguageId() == null ? "The book has no language." : "The language of the book is not in your library.");

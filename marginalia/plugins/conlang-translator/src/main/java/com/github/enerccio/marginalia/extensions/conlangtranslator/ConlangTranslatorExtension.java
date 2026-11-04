@@ -4,6 +4,7 @@ import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.domain.model.impl.AnchoredPassage;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
+import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.ExtensionService.ExtendableMethodContext;
 import com.github.enerccio.marginalia.domain.service.ExtensionService.ExtensionDecorator;
@@ -12,26 +13,36 @@ import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationC
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationControllerEvent.Registration;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.GenerationOutcome;
 import com.github.enerccio.marginalia.extensions.ExtensionHasCss;
+import com.github.enerccio.marginalia.extensions.InheritedSettingRegistry;
 import com.github.enerccio.marginalia.extensions.MarginaliaExtension;
 import com.github.enerccio.marginalia.extensions.PartTextRegistry;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.model.BookSettings;
+import com.github.enerccio.marginalia.extensions.conlangtranslator.model.Language;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.model.Span;
-import com.github.enerccio.marginalia.extensions.conlangtranslator.service.PassageAccess;
-import com.github.enerccio.marginalia.extensions.conlangtranslator.service.TranslationRuns;
-import com.github.enerccio.marginalia.extensions.conlangtranslator.service.TranslationService;
+import com.github.enerccio.marginalia.extensions.conlangtranslator.service.*;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.service.TranslationService.Outcome;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.text.ConlangPassageKind;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.text.ConlangTransformer;
+import com.github.enerccio.marginalia.extensions.conlangtranslator.ui.LanguageSettingsForm;
+import com.github.enerccio.marginalia.extensions.conlangtranslator.ui.LookupDialog;
 import com.github.enerccio.marginalia.ui.dialogs.story.StoryCard;
 import com.github.enerccio.marginalia.ui.main.ApplicationEntryPoint;
 import com.github.enerccio.marginalia.ui.main.Main;
 import com.github.enerccio.marginalia.ui.menu.StoryMenuItem;
 import com.github.enerccio.marginalia.ui.menu.StoryMenuRegistry;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
+import com.github.enerccio.marginalia.utils.UIUtils;
+import com.vaadin.flow.component.ComponentUtil;
+import com.vaadin.flow.component.accordion.Accordion;
+import com.vaadin.flow.component.accordion.AccordionPanel;
 import org.osgi.framework.Bundle;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
+
+import java.util.Collections;
+import java.util.Set;
+import java.util.WeakHashMap;
 
 import static com.github.enerccio.marginalia.extensions.conlangtranslator.ConlangTranslatorLocalization.*;
 
@@ -48,6 +59,8 @@ import static com.github.enerccio.marginalia.extensions.conlangtranslator.Conlan
 public class ConlangTranslatorExtension implements MarginaliaExtension, ExtensionHasCss {
 
     private static final String MENU_ITEM_KEY = "conlangtranslator.translate";
+    private static final String LOOKUP_ITEM_KEY = "conlangtranslator.lookup";
+    private static final String SETTINGS_PANEL_KEY = "com.github.enerccio.marginalia.extensions.conlangtranslator.settingsPanel";
 
     /** The logger of this extension, its lines go to the extension log (Admin → Extensions → Log). */
     private Logger log;
@@ -67,6 +80,10 @@ public class ConlangTranslatorExtension implements MarginaliaExtension, Extensio
     @Autowired
     private PassageService passageService;
 
+    @Autowired
+    private InheritedSettingRegistry inheritedSettingRegistry;
+
+    private final LanguageLibrary library = new LanguageLibrary();
     private final TranslationService translationService = new TranslationService();
     private final PassageAccess passageAccess = new PassageAccess();
     private final ConlangPassageKind kind = new ConlangPassageKind();
@@ -75,6 +92,9 @@ public class ConlangTranslatorExtension implements MarginaliaExtension, Extensio
     private TranslationRuns runs;
     private ExtensionDecorator partFinishedDecorator;
     private Registration cleanupRegistration;
+    private ExtensionDecorator userPartDecorator;
+    private ExtensionDecorator userPartSaveDecorator;
+    private final Set<Accordion> activeAccordions = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
     private String owner;
 
     @Override
@@ -86,9 +106,17 @@ public class ConlangTranslatorExtension implements MarginaliaExtension, Extensio
             passageKinds.register(kind);
             partTexts.register(owner, transformer);
 
+            // what books and folders choose: their dialogs get the fields, the user level is the panel in the Settings screen
+            ConlangInherited.register(inheritedSettingRegistry, owner, library::defaultsOrBlank, library::languageChoices,
+                    library::aiChoices, library::protocolChoices);
+            registerSettingsPanel(extensionService);
+
             menuRegistry.register(owner, StoryMenuItem.card(MENU_ITEM_KEY, l -> T.localized(TRANSLATE_THE_SPEECH),
                             (story, card) -> translateByHand(story.getCurrentManuscript(), card))
                     .icon(Solid.LANGUAGE::create));
+            menuRegistry.register(owner, StoryMenuItem.tools(LOOKUP_ITEM_KEY, l -> T.localized(LOOK_UP_A_WORD),
+                            story -> lookUp(story.getCurrentManuscript()))
+                    .icon(Solid.BOOK::create));
 
             // a generated part is final once the automatic annotation and redraft (if the book has them) are done
             partFinishedDecorator = new ExtensionDecorator() {
@@ -112,6 +140,80 @@ public class ConlangTranslatorExtension implements MarginaliaExtension, Extensio
             log.info("Conlang Translator loaded");
         } catch (Exception e) {
             throw new IllegalStateException("Failed to load the Conlang Translator extension", e);
+        }
+    }
+
+    /**
+     * The panel in <i>Settings → Extension Settings</i>: filled when the Settings screen is refreshed and stored when it is saved.
+     */
+    private void registerSettingsPanel(ExtensionService extensionService) throws Exception {
+        userPartDecorator = new ExtensionDecorator() {
+            @Override
+            public void onMethodEnter(Object instrumented, ExtendableMethodContext context) {
+            }
+
+            @Override
+            public void onMethodLeave(Object instrumented, ExtendableMethodContext context, Throwable throwing) throws Exception {
+                Accordion extensionSettings = context.getReflectiveFieldValue(instrumented, "extensionSettings", Accordion.class);
+                if (extensionSettings == null) {
+                    return;
+                }
+                AccordionPanel panel = (AccordionPanel) ComponentUtil.getData(extensionSettings, SETTINGS_PANEL_KEY);
+                if (panel != null) {
+                    panel.getContent().findFirst().ifPresent(content -> {
+                        if (content instanceof LanguageSettingsForm form) {
+                            form.refresh();
+                        }
+                    });
+                } else {
+                    panel = extensionSettings.add(T.localized(CONLANG_TRANSLATOR), new LanguageSettingsForm(library));
+                    ComponentUtil.setData(extensionSettings, SETTINGS_PANEL_KEY, panel);
+                    activeAccordions.add(extensionSettings);
+                }
+            }
+        };
+        extensionService.registerDecorator(userPartDecorator, "com.github.enerccio.marginalia.ui.workspace.parts.UserPart", "refresh");
+
+        userPartSaveDecorator = new ExtensionDecorator() {
+            @Override
+            public void onMethodEnter(Object instrumented, ExtendableMethodContext context) throws Exception {
+                UserSetting userSetting = context.getReflectiveFieldValue(instrumented, "userSetting", UserSetting.class);
+                Accordion extensionSettings = context.getReflectiveFieldValue(instrumented, "extensionSettings", Accordion.class);
+                if (extensionSettings == null || userSetting == null) {
+                    return;
+                }
+                AccordionPanel panel = (AccordionPanel) ComponentUtil.getData(extensionSettings, SETTINGS_PANEL_KEY);
+                if (panel != null) {
+                    // the body of save() stores the user settings, with the library in them
+                    LanguageSettingsForm form = panel.getContent().filter(LanguageSettingsForm.class::isInstance)
+                            .map(LanguageSettingsForm.class::cast).findFirst().orElse(null);
+                    if (form != null) {
+                        form.save(userSetting);
+                    }
+                }
+            }
+
+            @Override
+            public void onMethodLeave(Object instrumented, ExtendableMethodContext context, Throwable throwing) {
+            }
+        };
+        extensionService.registerDecorator(userPartSaveDecorator, "com.github.enerccio.marginalia.ui.workspace.parts.UserPart", "save");
+    }
+
+    /**
+     * The words of the language of the book, read-only: the author looks a word up while writing.
+     */
+    private void lookUp(Manuscript manuscript) {
+        try {
+            Language language = manuscript == null ? null : translationService.languageOf(translationService.settings(manuscript));
+            if (language == null) {
+                Notification.error(T.localized(THE_BOOK_HAS_NO_LANGUAGE));
+                return;
+            }
+            new LookupDialog(language).open();
+        } catch (Exception e) {
+            log.warn("Failed to open the lexicon of the book: {}", e.getMessage(), e);
+            Notification.error(String.format(T.localized(THE_LANGUAGES_CAN_NOT_BE_LOADED), e.getMessage()));
         }
     }
 
@@ -220,6 +322,7 @@ public class ConlangTranslatorExtension implements MarginaliaExtension, Extensio
     public void onExtensionUnload(Bundle b, OsgiService parentService, ExtensionService extensionService) {
         passageKinds.unregister(kind);
         partTexts.unregisterAll(owner);
+        inheritedSettingRegistry.unregisterAll(owner);
         menuRegistry.unregisterAll(owner);
         if (partFinishedDecorator != null) {
             extensionService.unregisterDecorator(partFinishedDecorator);
@@ -228,6 +331,27 @@ public class ConlangTranslatorExtension implements MarginaliaExtension, Extensio
         if (cleanupRegistration != null) {
             cleanupRegistration.unregister();
             cleanupRegistration = null;
+        }
+        if (userPartDecorator != null) {
+            extensionService.unregisterDecorator(userPartDecorator);
+            userPartDecorator = null;
+        }
+        if (userPartSaveDecorator != null) {
+            extensionService.unregisterDecorator(userPartSaveDecorator);
+            userPartSaveDecorator = null;
+        }
+        // the accordions belong to the UIs of all users: remove the panel in each one's own session
+        synchronized (activeAccordions) {
+            for (Accordion accordion : activeAccordions) {
+                UIUtils.accessComponent(accordion, () -> {
+                    AccordionPanel panel = (AccordionPanel) ComponentUtil.getData(accordion, SETTINGS_PANEL_KEY);
+                    if (panel != null) {
+                        accordion.remove(panel);
+                        ComponentUtil.setData(accordion, SETTINGS_PANEL_KEY, null);
+                    }
+                });
+            }
+            activeAccordions.clear();
         }
         log.info("Conlang Translator unloaded");
     }
