@@ -100,6 +100,7 @@ public class ConlangTranslatorExtension implements MarginaliaExtension, Extensio
     @Override
     public void onExtensionLoad(Bundle bundle, OsgiService parentService, ExtensionService extensionService) {
         log = parentService.createLogger(bundle);
+        com.github.enerccio.marginalia.extensions.conlangtranslator.service.PluginLog.set(log);
         owner = bundle.getSymbolicName();
         runs = new TranslationRuns(translationService, log);
         try {

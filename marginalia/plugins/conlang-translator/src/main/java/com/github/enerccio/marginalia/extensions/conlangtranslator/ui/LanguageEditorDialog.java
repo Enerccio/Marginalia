@@ -10,10 +10,13 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.menubar.MenuBar;
+import com.vaadin.flow.component.menubar.MenuBarVariant;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.radiobutton.RadioButtonGroup;
 import com.vaadin.flow.component.tabs.TabSheet;
@@ -51,6 +54,8 @@ public class LanguageEditorDialog extends Dialog {
     private LexiconTab lexicon;
     private CategoriesList categoriesList;
     private RegistersList registersList;
+    private RulesList rulesList;
+    private final MenuBar designer = new MenuBar();
     private boolean maximized;
 
     /**
@@ -80,7 +85,7 @@ public class LanguageEditorDialog extends Dialog {
         maximize.setTooltipText(T.localized(MAXIMIZE));
         maximize.setAriaLabel(T.localized(MAXIMIZE));
         maximize.addClickListener(_ -> toggleMaximized());
-        getHeader().add(maximize);
+        getHeader().add(designerMenu(), maximize);
 
         TabSheet tabs = new TabSheet();
         tabs.setSizeFull();
@@ -107,6 +112,42 @@ public class LanguageEditorDialog extends Dialog {
         Button save = new Button(T.localized(SAVE), _ -> save());
         save.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         getFooter().add(cancel, save);
+    }
+
+    // ---- the designer
+
+    private MenuBar designerMenu() {
+        designer.addThemeVariants(MenuBarVariant.LUMO_TERTIARY);
+        MenuItem root = designer.addItem(T.localized(DESIGN_WITH_AI));
+        root.getSubMenu().addItem(T.localized(GENERATE_WORDS), _ -> design(DesignerDialog.Action.WORDS));
+        root.getSubMenu().addItem(T.localized(ADD_A_SECTION_WITH_AI), _ -> design(DesignerDialog.Action.SECTION));
+        root.getSubMenu().addItem(T.localized(REWRITE_A_SECTION), _ -> design(DesignerDialog.Action.REWRITE));
+        root.getSubMenu().addItem(T.localized(REVIEW_THE_LANGUAGE), _ -> design(DesignerDialog.Action.REVIEW));
+        root.getSubMenu().addItem(T.localized(ASK_THE_DESIGNER), _ -> ask());
+        return designer;
+    }
+
+    /** Opens an action of the designer; what is selected on the tab (a category, a section) is what the action is about. */
+    private void design(DesignerDialog.Action action) {
+        String about = null;
+        if (action == DesignerDialog.Action.WORDS && categoriesList.selected() != null) {
+            about = categoriesList.selected().getName();
+        } else if (action == DesignerDialog.Action.REWRITE && rulesList.selected() != null) {
+            about = rulesList.selected().getTitle();
+        }
+        new DesignerDialog(action, language, about, this::afterDesigner).open();
+    }
+
+    private void ask() {
+        new AskDialog(language, this::afterDesigner).open();
+    }
+
+    /** The designer wrote into the language: every tab shows it. */
+    private void afterDesigner() {
+        rulesList.refresh();
+        categoriesList.refresh();
+        registersList.refresh();
+        lexicon.refresh();
     }
 
     private void toggleMaximized() {
@@ -173,8 +214,8 @@ public class LanguageEditorDialog extends Dialog {
     }
 
     private Component rules() {
-        VerticalLayout layout = tab(new Span(T.localized(THE_RULES_ARE_TEXT_THE_PLUGIN)), new RulesList(language.getRules()));
-        return layout;
+        rulesList = new RulesList(language.getRules());
+        return tab(new Span(T.localized(THE_RULES_ARE_TEXT_THE_PLUGIN)), rulesList);
     }
 
     private Component categories() {
@@ -214,6 +255,8 @@ public class LanguageEditorDialog extends Dialog {
         RulesList(List<RuleSection> sections) {
             super(sections, () -> {
             });
+            Button rewrite = new Button(T.localized(REWRITE_WITH_AI), Solid.WAND_MAGIC_SPARKLES.create(), _ -> design(DesignerDialog.Action.REWRITE));
+            addToolbarButton(rewrite);
             build();
         }
 
@@ -272,6 +315,8 @@ public class LanguageEditorDialog extends Dialog {
             super(language.getCategories(), () -> {
             });
             this.owner = language;
+            Button generate = new Button(T.localized(GENERATE_WORDS), Solid.WAND_MAGIC_SPARKLES.create(), _ -> design(DesignerDialog.Action.WORDS));
+            addToolbarButton(generate);
             build();
         }
 

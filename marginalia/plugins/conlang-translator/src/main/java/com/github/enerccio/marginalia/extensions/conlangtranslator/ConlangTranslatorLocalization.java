@@ -167,6 +167,126 @@ public class ConlangTranslatorLocalization extends PluginLocalizationBundle {
     public static final String LOOK_UP_A_WORD = "Look up a word";
     public static final String WORDS_OF_S = "Words of %s";
     public static final String D_WORDS_D_NEW = "%d words, %d new";
+    public static final String SELECT_ALL = "Select all";
+    public static final String SELECT_NONE = "Select none";
+    public static final String SELECT_WITHOUT_CONFLICTS = "Select without conflicts";
+    public static final String EVERYTHING = "Everything";
+    public static final String TARGET_LANGUAGE = "Language";
+    public static final String TARGET_RULE = "Rule section";
+    public static final String TARGET_CATEGORY = "Category";
+    public static final String TARGET_REGISTER = "Register";
+    public static final String TARGET_CHARACTER = "Character";
+    public static final String TARGET_WORD = "Word";
+    public static final String KIND_ADD = "Add";
+    public static final String KIND_CHANGE = "Change";
+    public static final String KIND_DELETE = "Delete";
+    public static final String KIND_MOVE = "Move";
+    public static final String CHANGE = "Change";
+    public static final String ABOUT = "About";
+    public static final String FIELDS = "Fields";
+    public static final String CONFLICT_TEXT = "Conflict";
+    public static final String D_CHANGES_D_IN_CONFLICT = "%d change(s), %d in conflict";
+    public static final String APPLY_D_PICKED = "Apply %d picked";
+    public static final String SELECT_A_CHANGE_TO_SEE_ITS_FIELDS = "Select a change to see its fields.";
+    public static final String NEEDS_THE_CHANGE_OF_ANOTHER_THING = "This change needs another change (a new category or register that it uses): picking one picks the other.";
+    public static final String THE_THING_IS_DELETED = "Picking this deletes it here.";
+    public static final String THE_THING_IS_MOVED = "Picking this moves it to the place it has in the other language.";
+    public static final String BOTH_CHANGED_THIS = "both changed it";
+    public static final String NOTHING = "Nothing";
+    public static final String HERE_NOW = "Here, now";
+    public static final String IN_THE_OTHER_LANGUAGE = "In the other language";
+    public static final String WILL_BE_WRITTEN = "Will be written";
+    public static final String KEEP_MINE = "Keep mine";
+    public static final String TAKE_THEIRS = "Take theirs";
+    public static final String SOME_FIELDS_CHANGED_ON_BOTH_SIDES = "Some fields were changed on both sides";
+    public static final String CHANGED_HERE_DELETED_THERE_TEXT = "Changed here, deleted in the other language";
+    public static final String DELETED_HERE_CHANGED_THERE_TEXT = "Deleted here, changed in the other language: picking it brings it back";
+    public static final String THE_SAME_WORD_IS_HERE = "The same word with a shared meaning is here already";
+    public static final String MOVED_ON_BOTH_SIDES = "Moved on both sides";
+    public static final String WHO_SPEAKS_IT = "Who speaks it";
+    public static final String COMPARE = "Compare";
+    public static final String BRING_CHANGES_FROM = "Bring the changes from";
+    public static final String COMPARE_S = "Compare %s with another language";
+    public static final String NO_OTHER_LANGUAGE = "There is no other language to compare with.";
+    public static final String THE_LANGUAGES_ARE_THE_SAME = "The two languages are the same.";
+    public static final String BRING_THE_CHANGES_OF_S_INTO_S = "Bring the changes of %s into %s";
+    public static final String APPLIED_D_CHANGES = "Applied %d change(s)";
+    public static final String SKIPPED_D_CHANGED_MEANWHILE = "%d change(s) were skipped: the language is not what the review saw";
+    public static final String SKIPPED_D_NEED_ANOTHER = "%d change(s) were skipped: what they need was not picked";
+    public static final String A_LANGUAGE_NAMED_S_EXISTS = "A language named %s is in your library already. Review its differences and take over what you want, or import this one as a new language?";
+    public static final String REVIEW_THE_DIFFERENCES = "Review the differences";
+    public static final String IMPORT_AS_NEW = "Import as new";
+    public static final String ACCEPTED_IN_THE_RULES = "Accepted: the section is in the rules.";
+    public static final String ADD_A_SECTION_WITH_AI = "Add a section with AI...";
+    public static final String ADD_THE_BASIC_CATEGORIES = "Add the basic categories";
+    public static final String ASK_ABOUT_THE_LANGUAGE = "Ask about the language, or ask for a change...";
+    public static final String ASK_THE_DESIGNER = "Ask the designer...";
+    public static final String A_NAME_THAT_IS_NOT_A_CATEGORY_MAKES_ONE = "A name that is not a category yet makes a new one.";
+    public static final String BACK = "Back";
+    public static final String BRIEF = "Brief";
+    public static final String CHOOSE_A_SECTION = "Choose a section";
+    public static final String CONSTRAINTS_AND_WHAT_TO_AVOID = "Constraints and what to avoid";
+    public static final String DESIGN_A_LANGUAGE = "Design a language";
+    public static final String DESIGN_WITH_AI = "Design with AI";
+    public static final String DISCARD_THE_NEW_LANGUAGE = "Discard the new language and what was made so far?";
+    public static final String EDIT_THE_PROPOSAL_YOURSELF = "Edit the text yourself, or write a note above and propose again to refine it.";
+    public static final String EMPTY_THE_FIRST_PROPOSAL_FROM_THE_BRIEF = "Empty: the first proposal comes from the brief. With a proposal below, the note says what to change.";
+    public static final String EMPTY_THE_MODEL_OF_THE_TRANSLATION = "Empty: the model of the translation, else your default model.";
+    public static final String EMPTY_THE_PROTOCOL_OF_THE_TRANSLATION = "Empty: the protocol of the translation, else your default protocol.";
+    public static final String FINISH = "Finish";
+    public static final String FIX = "Fix";
+    public static final String GENERATE_WORDS = "Generate words...";
+    public static final String HARSH_LIKE_OLD_NORSE = "For example: harsh, like Old Norse; sing-song, Polynesian-like.";
+    public static final String HOW_MANY_WORDS = "How many words";
+    public static final String INSPIRATIONS = "Inspirations";
+    public static final String IN_THE_LANGUAGE = "In the language";
+    public static final String LEFT_OUT_OF_THE_PROPOSAL = "Left out of the proposal:";
+    public static final String MODEL_OF_THE_DESIGNER = "Model of the designer";
+    public static final String NEW_WORDS_OF_THE_SAMPLES = "New words of the samples";
+    public static final String NEXT = "Next";
+    public static final String NOTHING_FOUND = "Nothing to report.";
+    public static final String NO_SOUNDS_AN_ENGLISH_READER_CANNOT_SAY = "For example: no sounds an English reader cannot say, short words, how the language should look on the page.";
+    public static final String PROBLEM = "Problem";
+    public static final String PROPOSE = "Propose";
+    public static final String PROTOCOL_OF_THE_DESIGNER = "Protocol of the designer";
+    public static final String REVIEW_OF_S = "Review of %s";
+    public static final String REVIEW_THE_LANGUAGE = "Review the language";
+    public static final String REVIEW_THE_PROPOSED_CHANGES = "Review the proposed changes";
+    public static final String REWRITE_A_SECTION = "Rewrite a section...";
+    public static final String REWRITE_WITH_AI = "Rewrite with AI...";
+    public static final String SAY_WHAT_YOU_WANT = "Say what you want first.";
+    public static final String SECTION = "Section";
+    public static final String SEED_LEXICON = "Seed lexicon";
+    public static final String SEND = "Send";
+    public static final String SENTENCE = "Sentence";
+    public static final String SENTENCES_ONE_PER_LINE = "Sentences, one per line";
+    public static final String SEVERITY = "Severity";
+    public static final String STAGE_GRAMMAR = "Grammar";
+    public static final String STAGE_SOUNDS = "Sounds";
+    public static final String STAGE_WORD_FORMATION = "Word formation";
+    public static final String STAGE_WRITING = "Writing";
+    public static final String STEP_D_OF_D_S = "Step %d of %d: %s";
+    public static final String STOP_WAITING = "Stop waiting";
+    public static final String TELL_THE_DESIGNER_WHAT_YOU_WANT = "Tell the designer what you want";
+    public static final String TEST = "Test";
+    public static final String THE_DESIGNER_FAILED = "The designer failed: %s";
+    public static final String THE_DESIGNER_IS_REVIEWING = "The designer is reviewing the language...";
+    public static final String THE_DESIGNER_IS_THINKING = "The designer is thinking...";
+    public static final String THE_DESIGNER_IS_WORKING = "The designer is working, this can take a minute or more...";
+    public static final String THE_DESIGNER_PROPOSES_NOTHING = "The designer proposes nothing to write.";
+    public static final String THE_DESIGNER_PROPOSES_THE_SECTION = "The designer proposes the section \"%s\" of the rules from the brief and what is accepted so far.";
+    public static final String THE_DESIGNER_TRANSLATES_SAMPLES = "The designer translates your sentences with the language as it is, so you can read it and see what looks wrong. Words the language lacks are proposed as new words.";
+    public static final String THE_PEOPLE_THEIR_WORLD = "The people who speak it, their world and their culture.";
+    public static final String THE_SECTION_IS_EMPTY = "The section is empty";
+    public static final String THE_SEED_LEXICON_IS_MADE_BY_CATEGORY = "The first words are made category by category, and each batch is reviewed before it is written. Start with the basic categories, then the names of your book.";
+    public static final String TRANSLATE_THE_SENTENCES = "Translate the sentences";
+    public static final String WHAT_DO_YOU_WANT = "What do you want?";
+    public static final String WHAT_THE_LANGUAGE_IS_FOR = "What the language is for";
+    public static final String WHAT_THE_WORDS_ARE_FOR = "What the words are for (optional)";
+    public static final String THE_DESIGNER_INVENTS_WORDS = "The designer invents new words by the rules of the language and the lexicon it has. You review them before anything is written.";
+    public static final String THE_DESIGNER_WRITES_A_SECTION = "The designer writes a new section of the rules for what the rules miss (a numbering system, colors, politeness...) and the words it needs. You review them before anything is written.";
+    public static final String THE_DESIGNER_REWRITES = "The designer rewrites a section as you ask. You see what changed before it is written.";
+    public static final String THE_DESIGNER_REVIEWS = "The designer reads the rules and the lexicon and lists contradictions, gaps, and words that break the sound system. Nothing is changed.";
 
     @Override
     protected void loadKeys() {
@@ -643,5 +763,365 @@ public class ConlangTranslatorLocalization extends PluginLocalizationBundle {
 
         ja(D_WORDS_D_NEW, "%d 語、新規 %d");
         zh(D_WORDS_D_NEW, "%d 个词,新增 %d");
+
+        ja(SELECT_ALL, "すべて選択");
+        zh(SELECT_ALL, "全选");
+
+        ja(SELECT_NONE, "選択解除");
+        zh(SELECT_NONE, "全不选");
+
+        ja(SELECT_WITHOUT_CONFLICTS, "競合のないものを選択");
+        zh(SELECT_WITHOUT_CONFLICTS, "选择无冲突项");
+
+        ja(EVERYTHING, "すべて");
+        zh(EVERYTHING, "全部");
+
+        ja(TARGET_LANGUAGE, "言語");
+        zh(TARGET_LANGUAGE, "语言");
+
+        ja(TARGET_RULE, "規則セクション");
+        zh(TARGET_RULE, "规则小节");
+
+        ja(TARGET_CATEGORY, "カテゴリ");
+        zh(TARGET_CATEGORY, "类别");
+
+        ja(TARGET_REGISTER, "語域");
+        zh(TARGET_REGISTER, "语域");
+
+        ja(TARGET_CHARACTER, "人物");
+        zh(TARGET_CHARACTER, "角色");
+
+        ja(TARGET_WORD, "単語");
+        zh(TARGET_WORD, "词");
+
+        ja(KIND_ADD, "追加");
+        zh(KIND_ADD, "新增");
+
+        ja(KIND_CHANGE, "変更");
+        zh(KIND_CHANGE, "修改");
+
+        ja(KIND_DELETE, "削除");
+        zh(KIND_DELETE, "删除");
+
+        ja(KIND_MOVE, "移動");
+        zh(KIND_MOVE, "移动");
+
+        ja(CHANGE, "変更");
+        zh(CHANGE, "变更");
+
+        ja(ABOUT, "対象");
+        zh(ABOUT, "对象");
+
+        ja(FIELDS, "項目");
+        zh(FIELDS, "字段");
+
+        ja(CONFLICT_TEXT, "競合");
+        zh(CONFLICT_TEXT, "冲突");
+
+        ja(D_CHANGES_D_IN_CONFLICT, "変更 %d 件、競合 %d 件");
+        zh(D_CHANGES_D_IN_CONFLICT, "%d 项变更,%d 项冲突");
+
+        ja(APPLY_D_PICKED, "選択した %d 件を適用");
+        zh(APPLY_D_PICKED, "应用所选的 %d 项");
+
+        ja(SELECT_A_CHANGE_TO_SEE_ITS_FIELDS, "変更を選択すると項目が表示されます。");
+        zh(SELECT_A_CHANGE_TO_SEE_ITS_FIELDS, "选择一项变更以查看其字段。");
+
+        ja(NEEDS_THE_CHANGE_OF_ANOTHER_THING, "この変更は別の変更(使用する新しいカテゴリや語域)を必要とします。片方を選ぶともう片方も選ばれます。");
+        zh(NEEDS_THE_CHANGE_OF_ANOTHER_THING, "此变更需要另一项变更(它使用的新类别或语域):选择其一会同时选择另一项。");
+
+        ja(THE_THING_IS_DELETED, "これを選ぶと、こちらからも削除されます。");
+        zh(THE_THING_IS_DELETED, "选择此项会在这里删除它。");
+
+        ja(THE_THING_IS_MOVED, "これを選ぶと、もう一方の言語での位置に移動します。");
+        zh(THE_THING_IS_MOVED, "选择此项会把它移到在另一种语言中的位置。");
+
+        ja(BOTH_CHANGED_THIS, "両方が変更");
+        zh(BOTH_CHANGED_THIS, "双方都修改了");
+
+        ja(NOTHING, "なし");
+        zh(NOTHING, "无");
+
+        ja(HERE_NOW, "こちら(現在)");
+        zh(HERE_NOW, "这里(当前)");
+
+        ja(IN_THE_OTHER_LANGUAGE, "もう一方の言語");
+        zh(IN_THE_OTHER_LANGUAGE, "另一种语言中");
+
+        ja(WILL_BE_WRITTEN, "書き込まれる内容");
+        zh(WILL_BE_WRITTEN, "将写入的内容");
+
+        ja(KEEP_MINE, "こちらを残す");
+        zh(KEEP_MINE, "保留我的");
+
+        ja(TAKE_THEIRS, "相手を採用");
+        zh(TAKE_THEIRS, "采用对方的");
+
+        ja(SOME_FIELDS_CHANGED_ON_BOTH_SIDES, "一部の項目が両側で変更されています");
+        zh(SOME_FIELDS_CHANGED_ON_BOTH_SIDES, "部分字段在双方都被修改");
+
+        ja(CHANGED_HERE_DELETED_THERE_TEXT, "こちらで変更、もう一方で削除");
+        zh(CHANGED_HERE_DELETED_THERE_TEXT, "这里修改了,另一种语言中删除了");
+
+        ja(DELETED_HERE_CHANGED_THERE_TEXT, "こちらで削除、もう一方で変更。選ぶと復元されます");
+        zh(DELETED_HERE_CHANGED_THERE_TEXT, "这里删除了,另一种语言中修改了:选择它会恢复");
+
+        ja(THE_SAME_WORD_IS_HERE, "同じ語形で共通の意味を持つ単語が既にあります");
+        zh(THE_SAME_WORD_IS_HERE, "这里已有形式相同且词义相通的词");
+
+        ja(MOVED_ON_BOTH_SIDES, "両側で移動されています");
+        zh(MOVED_ON_BOTH_SIDES, "双方都移动了");
+
+        ja(WHO_SPEAKS_IT, "話者");
+        zh(WHO_SPEAKS_IT, "谁说这种语言");
+
+        ja(COMPARE, "比較");
+        zh(COMPARE, "比较");
+
+        ja(BRING_CHANGES_FROM, "変更の取り込み元");
+        zh(BRING_CHANGES_FROM, "从以下语言带入变更");
+
+        ja(COMPARE_S, "%s を別の言語と比較");
+        zh(COMPARE_S, "将 %s 与另一种语言比较");
+
+        ja(NO_OTHER_LANGUAGE, "比較できる他の言語がありません。");
+        zh(NO_OTHER_LANGUAGE, "没有可比较的其他语言。");
+
+        ja(THE_LANGUAGES_ARE_THE_SAME, "2つの言語は同じです。");
+        zh(THE_LANGUAGES_ARE_THE_SAME, "两种语言相同。");
+
+        ja(BRING_THE_CHANGES_OF_S_INTO_S, "%s の変更を %s に取り込む");
+        zh(BRING_THE_CHANGES_OF_S_INTO_S, "把 %s 的变更带入 %s");
+
+        ja(APPLIED_D_CHANGES, "変更を %d 件適用しました");
+        zh(APPLIED_D_CHANGES, "已应用 %d 项变更");
+
+        ja(SKIPPED_D_CHANGED_MEANWHILE, "%d 件の変更はスキップされました。言語がレビュー時と異なります");
+        zh(SKIPPED_D_CHANGED_MEANWHILE, "已跳过 %d 项变更:语言与审阅时不同");
+
+        ja(SKIPPED_D_NEED_ANOTHER, "%d 件の変更はスキップされました。必要な変更が選ばれていません");
+        zh(SKIPPED_D_NEED_ANOTHER, "已跳过 %d 项变更:它们所需的变更未被选择");
+
+        ja(A_LANGUAGE_NAMED_S_EXISTS, "%s という言語は既にライブラリにあります。差分を確認して必要なものだけ取り込みますか?それとも新しい言語としてインポートしますか?");
+        zh(A_LANGUAGE_NAMED_S_EXISTS, "你的库中已有名为 %s 的语言。要审阅差异并采纳需要的部分,还是作为新语言导入?");
+
+        ja(REVIEW_THE_DIFFERENCES, "差分を確認");
+        zh(REVIEW_THE_DIFFERENCES, "审阅差异");
+
+        ja(IMPORT_AS_NEW, "新規としてインポート");
+        zh(IMPORT_AS_NEW, "作为新语言导入");
+
+        ja(ACCEPTED_IN_THE_RULES, "承認しました。セクションが規則に追加されました。");
+        zh(ACCEPTED_IN_THE_RULES, "已接受:该小节已加入规则。");
+
+        ja(ADD_A_SECTION_WITH_AI, "AI でセクションを追加...");
+        zh(ADD_A_SECTION_WITH_AI, "用 AI 添加小节...");
+
+        ja(ADD_THE_BASIC_CATEGORIES, "基本カテゴリを追加");
+        zh(ADD_THE_BASIC_CATEGORIES, "添加基本类别");
+
+        ja(ASK_ABOUT_THE_LANGUAGE, "言語について質問する、または変更を依頼...");
+        zh(ASK_ABOUT_THE_LANGUAGE, "询问这门语言,或请求修改...");
+
+        ja(ASK_THE_DESIGNER, "デザイナーに質問...");
+        zh(ASK_THE_DESIGNER, "询问设计器...");
+
+        ja(A_NAME_THAT_IS_NOT_A_CATEGORY_MAKES_ONE, "まだ存在しない名前を入力すると新しいカテゴリが作られます。");
+        zh(A_NAME_THAT_IS_NOT_A_CATEGORY_MAKES_ONE, "输入尚不存在的名称会新建类别。");
+
+        ja(BACK, "戻る");
+        zh(BACK, "上一步");
+
+        ja(BRIEF, "概要書き");
+        zh(BRIEF, "简述");
+
+        ja(CHOOSE_A_SECTION, "セクションを選択してください");
+        zh(CHOOSE_A_SECTION, "请选择小节");
+
+        ja(CONSTRAINTS_AND_WHAT_TO_AVOID, "制約と避けたいこと");
+        zh(CONSTRAINTS_AND_WHAT_TO_AVOID, "限制与要避免的内容");
+
+        ja(DESIGN_A_LANGUAGE, "言語をデザイン");
+        zh(DESIGN_A_LANGUAGE, "设计语言");
+
+        ja(DESIGN_WITH_AI, "AI でデザイン");
+        zh(DESIGN_WITH_AI, "用 AI 设计");
+
+        ja(DISCARD_THE_NEW_LANGUAGE, "新しい言語とここまでの作業を破棄しますか?");
+        zh(DISCARD_THE_NEW_LANGUAGE, "放弃新语言及目前的成果?");
+
+        ja(EDIT_THE_PROPOSAL_YOURSELF, "テキストを自分で編集するか、上にメモを書いて再提案させて練り直せます。");
+        zh(EDIT_THE_PROPOSAL_YOURSELF, "可自行编辑文本,或在上方写备注后再次提议以改进。");
+
+        ja(EMPTY_THE_FIRST_PROPOSAL_FROM_THE_BRIEF, "空欄の場合: 最初の提案は概要書きから作られます。下に提案がある場合、メモは変更点を伝えます。");
+        zh(EMPTY_THE_FIRST_PROPOSAL_FROM_THE_BRIEF, "留空:首次提议来自简述。下方已有提议时,备注说明要改什么。");
+
+        ja(EMPTY_THE_MODEL_OF_THE_TRANSLATION, "空欄の場合: 翻訳用のモデル、なければ既定のモデル。");
+        zh(EMPTY_THE_MODEL_OF_THE_TRANSLATION, "留空:使用翻译所用的模型,否则使用你的默认模型。");
+
+        ja(EMPTY_THE_PROTOCOL_OF_THE_TRANSLATION, "空欄の場合: 翻訳用のプロトコル、なければ既定のプロトコル。");
+        zh(EMPTY_THE_PROTOCOL_OF_THE_TRANSLATION, "留空:使用翻译所用的协议,否则使用你的默认协议。");
+
+        ja(FINISH, "完了");
+        zh(FINISH, "完成");
+
+        ja(FIX, "修正案");
+        zh(FIX, "修复建议");
+
+        ja(GENERATE_WORDS, "単語を生成...");
+        zh(GENERATE_WORDS, "生成词汇...");
+
+        ja(HARSH_LIKE_OLD_NORSE, "例: 古ノルド語のように荒々しい、ポリネシア語のように歌うような。");
+        zh(HARSH_LIKE_OLD_NORSE, "例如:像古诺尔斯语一样粗犷;像波利尼西亚语一样如歌。");
+
+        ja(HOW_MANY_WORDS, "単語数");
+        zh(HOW_MANY_WORDS, "词数");
+
+        ja(INSPIRATIONS, "着想元");
+        zh(INSPIRATIONS, "灵感来源");
+
+        ja(IN_THE_LANGUAGE, "言語での表記");
+        zh(IN_THE_LANGUAGE, "该语言中的写法");
+
+        ja(LEFT_OUT_OF_THE_PROPOSAL, "提案から除外されたもの:");
+        zh(LEFT_OUT_OF_THE_PROPOSAL, "未纳入提议的内容:");
+
+        ja(MODEL_OF_THE_DESIGNER, "デザイナーに使うモデル");
+        zh(MODEL_OF_THE_DESIGNER, "设计器所用的模型");
+
+        ja(NEW_WORDS_OF_THE_SAMPLES, "サンプルの新しい単語");
+        zh(NEW_WORDS_OF_THE_SAMPLES, "示例中的新词");
+
+        ja(NEXT, "次へ");
+        zh(NEXT, "下一步");
+
+        ja(NOTHING_FOUND, "報告することはありません。");
+        zh(NOTHING_FOUND, "没有要报告的内容。");
+
+        ja(NO_SOUNDS_AN_ENGLISH_READER_CANNOT_SAY, "例: 英語の読者が発音できない音は使わない、短い単語、紙面での見た目。");
+        zh(NO_SOUNDS_AN_ENGLISH_READER_CANNOT_SAY, "例如:不使用英语读者无法发出的音、词要短、语言在页面上应有的样子。");
+
+        ja(PROBLEM, "問題点");
+        zh(PROBLEM, "问题");
+
+        ja(PROPOSE, "提案");
+        zh(PROPOSE, "提议");
+
+        ja(PROTOCOL_OF_THE_DESIGNER, "デザイナーに使うプロトコル");
+        zh(PROTOCOL_OF_THE_DESIGNER, "设计器所用的协议");
+
+        ja(REVIEW_OF_S, "%s のレビュー");
+        zh(REVIEW_OF_S, "%s 的审阅");
+
+        ja(REVIEW_THE_LANGUAGE, "言語をレビュー");
+        zh(REVIEW_THE_LANGUAGE, "审阅语言");
+
+        ja(REVIEW_THE_PROPOSED_CHANGES, "提案された変更を確認");
+        zh(REVIEW_THE_PROPOSED_CHANGES, "审阅提议的变更");
+
+        ja(REWRITE_A_SECTION, "セクションを書き直す...");
+        zh(REWRITE_A_SECTION, "重写小节...");
+
+        ja(REWRITE_WITH_AI, "AI で書き直す...");
+        zh(REWRITE_WITH_AI, "用 AI 重写...");
+
+        ja(SAY_WHAT_YOU_WANT, "まず希望を書いてください。");
+        zh(SAY_WHAT_YOU_WANT, "请先说明你想要什么。");
+
+        ja(SECTION, "セクション");
+        zh(SECTION, "小节");
+
+        ja(SEED_LEXICON, "基礎語彙");
+        zh(SEED_LEXICON, "基础词汇");
+
+        ja(SEND, "送信");
+        zh(SEND, "发送");
+
+        ja(SENTENCE, "文");
+        zh(SENTENCE, "句子");
+
+        ja(SENTENCES_ONE_PER_LINE, "文(1行に1文)");
+        zh(SENTENCES_ONE_PER_LINE, "句子(每行一句)");
+
+        ja(SEVERITY, "重大度");
+        zh(SEVERITY, "严重程度");
+
+        ja(STAGE_GRAMMAR, "文法");
+        zh(STAGE_GRAMMAR, "语法");
+
+        ja(STAGE_SOUNDS, "音");
+        zh(STAGE_SOUNDS, "语音");
+
+        ja(STAGE_WORD_FORMATION, "語形成");
+        zh(STAGE_WORD_FORMATION, "构词");
+
+        ja(STAGE_WRITING, "表記");
+        zh(STAGE_WRITING, "文字");
+
+        ja(STEP_D_OF_D_S, "ステップ %d / %d: %s");
+        zh(STEP_D_OF_D_S, "第 %d 步,共 %d 步:%s");
+
+        ja(STOP_WAITING, "待機をやめる");
+        zh(STOP_WAITING, "不再等待");
+
+        ja(TELL_THE_DESIGNER_WHAT_YOU_WANT, "デザイナーへの要望");
+        zh(TELL_THE_DESIGNER_WHAT_YOU_WANT, "告诉设计器你想要什么");
+
+        ja(TEST, "テスト");
+        zh(TEST, "测试");
+
+        ja(THE_DESIGNER_FAILED, "デザイナーが失敗しました: %s");
+        zh(THE_DESIGNER_FAILED, "设计器失败:%s");
+
+        ja(THE_DESIGNER_IS_REVIEWING, "デザイナーが言語をレビュー中...");
+        zh(THE_DESIGNER_IS_REVIEWING, "设计器正在审阅语言...");
+
+        ja(THE_DESIGNER_IS_THINKING, "デザイナーが考え中...");
+        zh(THE_DESIGNER_IS_THINKING, "设计器正在思考...");
+
+        ja(THE_DESIGNER_IS_WORKING, "デザイナーが作業中です。1分以上かかることがあります...");
+        zh(THE_DESIGNER_IS_WORKING, "设计器正在工作,可能需要一分钟或更久...");
+
+        ja(THE_DESIGNER_PROPOSES_NOTHING, "デザイナーは書き込む提案をしていません。");
+        zh(THE_DESIGNER_PROPOSES_NOTHING, "设计器没有提出可写入的内容。");
+
+        ja(THE_DESIGNER_PROPOSES_THE_SECTION, "デザイナーが概要書きとここまでの承認内容から、規則のセクション「%s」を提案します。");
+        zh(THE_DESIGNER_PROPOSES_THE_SECTION, "设计器根据简述和目前已接受的内容提议规则的“%s”小节。");
+
+        ja(THE_DESIGNER_TRANSLATES_SAMPLES, "デザイナーが現在の言語であなたの文を翻訳します。読んでおかしな点を確認できます。足りない単語は新しい単語として提案されます。");
+        zh(THE_DESIGNER_TRANSLATES_SAMPLES, "设计器用当前的语言翻译你的句子,方便你阅读并发现不对劲之处。语言缺少的词会作为新词提议。");
+
+        ja(THE_PEOPLE_THEIR_WORLD, "話す人々、その世界と文化。");
+        zh(THE_PEOPLE_THEIR_WORLD, "说这种语言的人、他们的世界和文化。");
+
+        ja(THE_SECTION_IS_EMPTY, "セクションが空です");
+        zh(THE_SECTION_IS_EMPTY, "小节为空");
+
+        ja(THE_SEED_LEXICON_IS_MADE_BY_CATEGORY, "最初の単語はカテゴリごとに作られ、書き込む前に毎回確認します。まず基本カテゴリ、その後に本の固有名詞を作りましょう。");
+        zh(THE_SEED_LEXICON_IS_MADE_BY_CATEGORY, "最初的词按类别生成,每一批写入前都要审阅。先从基本类别开始,再做你书中的名称。");
+
+        ja(TRANSLATE_THE_SENTENCES, "文を翻訳");
+        zh(TRANSLATE_THE_SENTENCES, "翻译句子");
+
+        ja(WHAT_DO_YOU_WANT, "何をしたいですか?");
+        zh(WHAT_DO_YOU_WANT, "你想要什么?");
+
+        ja(WHAT_THE_LANGUAGE_IS_FOR, "この言語の目的");
+        zh(WHAT_THE_LANGUAGE_IS_FOR, "这门语言的用途");
+
+        ja(WHAT_THE_WORDS_ARE_FOR, "単語の用途(任意)");
+        zh(WHAT_THE_WORDS_ARE_FOR, "词的用途(可选)");
+
+        ja(THE_DESIGNER_INVENTS_WORDS, "デザイナーが言語の規則と既存の語彙に従って新しい単語を作ります。何かが書き込まれる前に確認できます。");
+        zh(THE_DESIGNER_INVENTS_WORDS, "设计器按语言的规则和现有词汇创造新词。写入之前你可以审阅。");
+
+        ja(THE_DESIGNER_WRITES_A_SECTION, "デザイナーが規則に欠けているもの(数の体系、色、敬語など)の新しいセクションと必要な単語を書きます。書き込む前に確認できます。");
+        zh(THE_DESIGNER_WRITES_A_SECTION, "设计器为规则中缺少的内容(计数系统、颜色、敬语等)撰写新小节及所需词汇。写入之前你可以审阅。");
+
+        ja(THE_DESIGNER_REWRITES, "デザイナーが依頼どおりにセクションを書き直します。書き込む前に変更点を確認できます。");
+        zh(THE_DESIGNER_REWRITES, "设计器按你的要求重写小节。写入之前你可以看到改动。");
+
+        ja(THE_DESIGNER_REVIEWS, "デザイナーが規則と語彙を読み、矛盾・不足・音体系に反する単語を一覧にします。何も変更されません。");
+        zh(THE_DESIGNER_REVIEWS, "设计器阅读规则和词汇,列出矛盾、缺漏和违反语音系统的词。不会修改任何内容。");
     }
 }

@@ -68,6 +68,11 @@ public abstract class ListEditor<T> extends VerticalLayout {
         return items;
     }
 
+    /** The item that is selected, null for none. */
+    public T selected() {
+        return grid.getSelectedItems().stream().findFirst().orElse(null);
+    }
+
     protected Grid<T> grid() {
         return grid;
     }

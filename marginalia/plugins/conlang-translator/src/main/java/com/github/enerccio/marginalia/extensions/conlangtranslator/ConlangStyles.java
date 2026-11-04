@@ -20,8 +20,24 @@ public final class ConlangStyles {
     public static final String WORD = "conlang-word";
     /** The part of an editor that grows and keeps its own scroll. */
     public static final String FILL = "conlang-fill";
+    /** A box that scrolls its content. */
+    public static final String SCROLL = "conlang-scroll";
     /** The label of a status in the lexicon. */
     public static final String BADGE = "conlang-badge";
+
+    /** A field of a change in the review: its name, what was and what is offered, what will be written. */
+    public static final String DIFF_FIELD = "conlang-diff-field";
+    /** The columns (here, there) of a field of a change. */
+    public static final String DIFF_COLUMNS = "conlang-diff-columns";
+    /** The text of a value in the review: its line breaks stay. */
+    public static final String DIFF_TEXT = "conlang-diff-text";
+    /** A conflict. */
+    public static final String CONFLICT = "conlang-conflict";
+
+    /** A message of the author in the conversation with the designer. */
+    public static final String CHAT_AUTHOR = "conlang-chat-author";
+    /** A message of the designer. */
+    public static final String CHAT_DESIGNER = "conlang-chat-designer";
 
     private static final String RESOURCE = "/conlangtranslator.css";
 

@@ -5,8 +5,6 @@ import com.github.enerccio.marginalia.domain.components.RevisionOrigin;
 import com.github.enerccio.marginalia.domain.model.impl.*;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.service.*;
-import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
-import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
 import com.github.enerccio.marginalia.extensions.PartTextRegistry;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.model.BookSettings;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.model.Language;
@@ -21,10 +19,7 @@ import org.springframework.beans.factory.annotation.Configurable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
 
 /**
  * Translates the direct speech of a part into the language of the book: asks the model (one request for a part), checks the answer, writes the
@@ -86,6 +81,7 @@ public class TranslationService {
     private ProtocolService protocolService;
 
     private final PassageAccess passages = new PassageAccess();
+    private final ModelClient modelClient = new ModelClient();
     private final Map<String, Object> locks = new ConcurrentHashMap<>();
 
     /**
@@ -242,7 +238,7 @@ public class TranslationService {
     // --- the model ---
 
     /** The model and the protocol of a request. */
-    record ModelSelection(AI ai, Protocol protocol) {
+    public record ModelSelection(AI ai, Protocol protocol) {
     }
 
     /**
@@ -270,49 +266,6 @@ public class TranslationService {
      * Asks the model and waits for the whole answer.
      */
     private String ask(ModelSelection model, Manuscript book, TranslationPrompt.Request request) throws Exception {
-        List<LLMChatMessage> payload = List.of(LLMChatMessage.of(LLMRole.SYSTEM, request.system()), LLMChatMessage.of(LLMRole.USER, request.user()));
-        CompletableFuture<String> answer = new CompletableFuture<>();
-        StringBuilder text = new StringBuilder();
-        CancellationToken token;
-        try (InferenceSession _ = InferenceSession.open("conlang-translator"); UsageContext _ = UsageContext.open(book)) {
-            token = inferenceServices.forAIOrThrow(model.ai()).stream(payload, model.protocol(), new InferenceService.InferenceAsyncCallback() {
-                @Override
-                public void onChunk(InferenceService.InferenceAsyncController controller, InferenceService.ChunkType chunkType, String chunk) throws Exception {
-                    if (chunkType != InferenceService.ChunkType.REASONING) {
-                        text.append(chunk);
-                    }
-                    controller.continueInference();
-                }
-
-                @Override
-                public void onCompletion() {
-                    answer.complete(text.toString());
-                }
-
-                @Override
-                public void onCancel() {
-                    answer.cancel(false);
-                }
-
-                @Override
-                public void onError(Throwable exception) {
-                    answer.completeExceptionally(exception);
-                }
-
-                @Override
-                public boolean isDead() {
-                    return answer.isDone();
-                }
-            });
-        }
-        try {
-            return answer.get();
-        } catch (InterruptedException e) {
-            token.cancel();
-            Thread.currentThread().interrupt();
-            throw new CancellationException("The request was stopped");
-        } catch (ExecutionException e) {
-            throw e.getCause() instanceof Exception cause ? cause : e;
-        }
+        return modelClient.ask(model, book, request.system(), request.user());
     }
 }
