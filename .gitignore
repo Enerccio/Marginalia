@@ -31,3 +31,5 @@ retype.manifest
 /screenshots/final/
 /screenshots/dataset/build/
 /screenshots/assets/*.jpg
+/marginalia/vite.config.ts
+/marginalia/vite.generated.ts

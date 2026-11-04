@@ -1004,7 +1004,16 @@ reads it* accessor; the commands are thin wrappers added at step 13, with the te
      valid summaries**, always (decided: summaries are made from the source, hashed on the stored text, and a translation never changes the meaning); how a
      selection to redraft maps onto the source.
    - A changelog entry and a developer doc line for every change.
-3. **Model**: (after the core step) `Conlang`, `Rules`, `LexiconEntry` (rationale, origin, status), `Speakers`, `Span` (over an `Annotation` or own); storage and round trip; unit tests.
+3. **Model** (done 2026-11-04, package `model` and `store`; 29 unit tests): `Language` (rule sections with an `Audience`, categories with *always send*, registers, the lexicon,
+   speakers, the links to the example book and lorebook; lookup, `repeats()` (the same form *and* a shared meaning: a homophone is never listed), `variantGroup`, the deletes that
+   clean the links, `duplicate` (keeps the links), `forExport` / `forImport` (no links, a new id, a newer format is refused)), `LexiconEntry` (senses, kind, rationale, rule, `Origin`,
+   `EntryStatus` NEW / ACCEPTED / LOCKED / RETIRED, register, variants; `editedByAuthor()` makes a model's word the author's), `Speakers` + `CharacterNote` (mode, gender, voice, `speaks(name)` by
+   name or alias), `Span` (the data of a passage of the kind `conlang-translator.speech`: language, source, speaker, `understood`, register, a hash of the conlang text to tell an edit, model, time;
+   written into the `attributes` of the `AnchoredPassage`). `ConlangStore` keeps the library in the attributes of the user settings (a language that can not be read does not take the library with it)
+   and exports / imports a language as a JSON document. **Not in this step:** the plugin does not use any of it yet (the registration of the passage kind is step 5), and the book's choice of a language
+   is an inherited setting (step 6). Decisions made here: the variants are a list of ids on each entry (the group is the closure, so a link works from either side); whether a hyphen is a
+   part of a word is **an option of the language** (`hyphenStructural`, off by default): off, forms are compared without hyphens (Vrakht writes the same compound with and without
+   them), on, a hyphen is part of the form. It applies to the lookup by form and to the repeats; the checker of step 4 reads the same option.
 4. **The request and the reverse**: the reverse (`toModel`) first, with its tests (edited passage, overlapping, markdown); then the request: prompt, JSON schema, the answer reader and checker (`quote` found, languages known, overlaps), pure
    logic with plain unit tests, as the KT's `ExtractionPrompt` / `ChangeSetBuilder`; try it on a real model and write the
    results here.
