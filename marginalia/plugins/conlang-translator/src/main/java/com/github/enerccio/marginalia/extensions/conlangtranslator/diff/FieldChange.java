@@ -1,8 +1,7 @@
 package com.github.enerccio.marginalia.extensions.conlangtranslator.diff;
 
 /**
- * What one field of a {@link Change} was, becomes and is. A text field holds its text; a list field (the senses of a word, its other forms, the
- * names a character is called) holds its elements joined by new lines.
+ * What one field of a {@link Change} was, becomes and is. A text field holds its text; a list field (the senses of a word, its other forms) holds its elements joined by new lines.
  * <p>
  * {@code value} is what applying writes: the other language's value when the field is not in conflict, <b>our own</b> when it is (the review
  * lets the user take the other one, or write one). {@code now} is what the field held when the change set was made; applying skips a change

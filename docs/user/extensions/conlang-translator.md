@@ -43,14 +43,14 @@ A language is edited in **Settings → Extension Settings → Conlang Translator
 | **Export**, **Import** | A language as a document (JSON): the rules and the lexicon, without the links to a book. An import of a language whose name you already have offers the review of the differences or a new language. |
 | **Delete** | After a question. |
 
-Below the list are the choices that books and folders **inherit** from you: the language, whether a part is translated by itself,
-the model and protocol of the translation and of the designer. A book or folder can set its own, see [Choosing the language of a
+At the top are the **model and protocol of the designer**. Below the list are the choices that books and folders **inherit** from you: the language, whether a part is translated by itself,
+and the model and protocol of the translation. A book or folder can set its own, see [Choosing the language of a
 book](#choosing-the-language-of-a-book). **Save** the Settings screen to keep your changes (the words that a translation added meanwhile
 are not lost: a language you did not touch is read again when the screen is saved).
 
 ### The editor
 
-The editor is a window with six tabs; it works on a copy until **Save**, can be resized, dragged and maximized.
+The editor is a window with five tabs; it works on a copy until **Save**, can be resized, dragged and maximized.
 
 | Tab | |
 |---|---|
@@ -59,7 +59,6 @@ The editor is a window with six tabs; it works on a copy until **Save**, can be 
 | **Categories** | Groups of words (*People & Social*, *Nature*, *Particles*...). The lexicon is shown and sent to the model under these headings. A category that is **always sent** (particles, pronouns, numbers) goes into every request even when the lexicon is too big to send whole. |
 | **Registers** | The styles of speech (*formal*, *soft*, *vulgar*, *archaic*...) with a note. A concept may have a form for each register; the model chooses by who speaks and to whom. |
 | **Lexicon** | The words, see below. |
-| **Speakers** | Who speaks the language, see below. |
 
 ![The rules of a language](../../images/plugin-conlang-rules.png)
 
@@ -84,13 +83,6 @@ A word the model needs but the lexicon lacks is **never dropped for being new**:
 way, and it waits as *New*. A translation that uses words that are not in the lexicon and that the model did **not** report is flagged, because
 nobody can tell whether the word is a mistake.
 
-### Speakers
-
-By default **everybody speaks the language except the listed characters** (or, the other way round, only the listed ones). This is only the default: the
-text overrides it ("she said in the common tongue", "the guard could not understand a word") and the model decides for every speech. For each character
-you may note the **gender** (a language that marks gender gets it wrong when the part only says "her") and the **voice** ("formal, clipped, coarse"), which
-the model matches to the registers of the language.
-
 ### The designer
 
 The **Design with AI** menu of the editor asks the model for help, always with the language **as it is** (its rules, registers, categories, lexicon and the example lorebook), and
@@ -114,7 +106,7 @@ sentences). Each step is a section that the model proposes and you edit, refine 
 ### Comparing and merging
 
 **Compare** (and the import of a language you already have) opens a window with the differences between two languages, each a line with a check box: what was added,
-changed, deleted or moved among the language's fields, rules, categories, registers, characters and words. A change that both sides made differently is a **conflict**:
+changed, deleted or moved among the language's fields, rules, categories, registers and words. A change that both sides made differently is a **conflict**:
 your value is kept until you choose theirs or write your own. What you pick is written into the language on the screen, and stored when you save the Settings screen. The
 same window shows what the designer proposes.
 
@@ -134,6 +126,33 @@ above, then the settings of your user.
 | **Model of the translation**, **Protocol of the translation** | Empty: the model and protocol of the book, else your defaults. |
 | **Readers of the published book see** | What the [viewer](#the-viewer) shows. |
 
+## The Conlang tab of the book
+
+The story window has a **Conlang** tab (in the same dock as the chapters and the lorebook; drag it where you like) for the language of *this* book. It has three tabs
+of its own, and **Refresh** reads the language again after you changed it in the window of the book.
+
+### Words
+
+The lexicon of the book's language, with the search, the filters and the actions of the [editor](#the-lexicon): look a word up while you write, edit it, accept the words the
+model invented, lock or retire one. The change is stored in your library at once (the words a translation added meanwhile are not lost).
+
+### Speakers
+
+Who speaks the language **in this book**. The speakers belong to the book, not to the language: the same language is spoken by other people in another story, so a language
+you duplicate, export or compare carries no characters.
+
+By default **everybody speaks the language except the listed characters** (or, the other way round, only the listed ones). This is only the default: the
+text overrides it ("she said in the common tongue", "the guard could not understand a word") and the model decides for every speech. For each character
+you may note the **gender** (a language that marks gender gets it wrong when the part only says "her") and the **voice** ("formal, clipped, coarse"), which
+the model matches to the registers of the language. Changes are stored in the book at once.
+
+### Quick translate
+
+Write a text in English (a phrase, a name, a line you have not written yet), optionally who says it and to whom, and press **Translate**: the model translates it into the
+language of the book with the rules, the registers and the lexicon, and the notes of the characters named in the text. Nothing is written into the story. The result is the
+translation, a note on the choices, and the **words the translation needed** that the lexicon lacked, each with its meaning and why; select the ones you want and **Import the selected words**:
+they go into the lexicon as *new*, the same as the words of a translated part. Words in the translation that are neither in the lexicon nor reported are listed as a warning.
+
 ## Translating
 
 - **By hand:** the menu of a part has **Translate the speech**. A part that is translated already is translated again **from its English**, so this is also how you retranslate a
@@ -147,7 +166,6 @@ above, then the settings of your user.
   parts again* (after the rules or the lexicon changed), or *Put the English back*, after a question. The window says how many parts the range holds and how many the choice
   works on, shows *Part n of m*, and a **Stop** that takes effect after the part that is being done (a request to the model that has begun cannot be taken back). A part that fails is
   counted and the run goes on; a missing language or model ends it. The story is drawn again when the run is over. A part you edit while it runs makes that one part fail, not the run.
-- **Look up a word:** the tools menu of the story has a read-only list of the words of the book's language, searched by word or meaning, to use while you write.
 
 A translation is stored like any change of the text: the history of the part gets a version, the part is **not marked as edited**, and the English is kept. **A speech you changed by hand
 is left as it is** when the part is translated again or put back to English, because it holds your words.

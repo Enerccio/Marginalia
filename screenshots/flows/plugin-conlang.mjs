@@ -3,22 +3,22 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import {
-    bookTab,
-    closeDialog,
-    CONTENT,
-    dialog,
-    goto,
-    idle,
-    login,
-    main,
-    menuItem,
-    openBook,
-    openTab,
-    press,
-    section,
-    sleep,
-    snap,
-    snapDialog,
+  bookTab,
+  closeDialog,
+  CONTENT,
+  dialog,
+  goto,
+  idle,
+  login,
+  main,
+  menuItem,
+  openBook,
+  openTab,
+  press,
+  section,
+  sleep,
+  snap,
+  snapDialog,
 } from '../lib/shot.mjs';
 import {openStoryMenu} from '../lib/story.mjs';
 
@@ -44,9 +44,6 @@ await main(async ({ page }) => {
     await dialog(page).getByRole('tab', { name: 'Lexicon', exact: true }).click();
     await sleep(1000);
     await snapDialog(page, 'plugin-conlang-lexicon', -1);
-    await dialog(page).getByRole('tab', { name: 'Speakers', exact: true }).click();
-    await sleep(800);
-    await snapDialog(page, 'plugin-conlang-speakers', -1);
     await closeDialog(page);
   });
 

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847142598189">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847144297489">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.847142598189" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.847144297489" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847142598189" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847144297489" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847142598189" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847144297489" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -287,20 +287,19 @@ what you change in it by hand stays, and a part you edit is never overwritten be
 </table>
 </div>
 </retype-table>
-<p>Below the list are the choices that books and folders <strong>inherit</strong> from you: the language, whether a part is translated by itself,
-the model and protocol of the translation and of the designer. A book or folder can set its own, see <doc-anchor-trigger to="#choosing-the-language-of-a-book">Choosing the language of a
+<p>At the top are the <strong>model and protocol of the designer</strong>. Below the list are the choices that books and folders <strong>inherit</strong> from you: the language, whether a part is translated by itself,
+and the model and protocol of the translation. A book or folder can set its own, see <doc-anchor-trigger to="#choosing-the-language-of-a-book">Choosing the language of a
 book</doc-anchor-trigger>. <strong>Save</strong> the Settings screen to keep your changes (the words that a translation added meanwhile
 are not lost: a language you did not touch is read again when the screen is saved).</p>
 <h3 id="the-editor">The editor</h3>
-<p>The editor is a window with six tabs; it works on a copy until <strong>Save</strong>, can be resized, dragged and maximized.</p>
+<p>The editor is a window with five tabs; it works on a copy until <strong>Save</strong>, can be resized, dragged and maximized.</p>
 <retype-table copy-text="| Tab | |
 |---|---|
 | **Overview** | The name, a description for you, the option **A hyphen is a part of a word** (off: `thal-orun` and `thalorun` are the same word; on, the hyphen belongs to the form), and the **example book** and **example lorebook** the designer reads. |
 | **Rules** | The rules in **sections** (sounds and spelling, grammar, word formation...). Each section says **who reads it**: *the translator* (sent in every request), *only the designer* (the history of the language, notes for making words) or *nobody* (your own notes). The plugin does not parse the rules: they are text for the model. |
 | **Categories** | Groups of words (*People &amp; Social*, *Nature*, *Particles*...). The lexicon is shown and sent to the model under these headings. A category that is **always sent** (particles, pronouns, numbers) goes into every request even when the lexicon is too big to send whole. |
 | **Registers** | The styles of speech (*formal*, *soft*, *vulgar*, *archaic*...) with a note. A concept may have a form for each register; the model chooses by who speaks and to whom. |
-| **Lexicon** | The words, see below. |
-| **Speakers** | Who speaks the language, see below. |">
+| **Lexicon** | The words, see below. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -329,10 +328,6 @@ are not lost: a language you did not touch is read again when the screen is save
 <tr>
 <td><strong>Lexicon</strong></td>
 <td>The words, see below.</td>
-</tr>
-<tr>
-<td><strong>Speakers</strong></td>
-<td>Who speaks the language, see below.</td>
 </tr>
 </tbody>
 </table>
@@ -373,11 +368,6 @@ so that the next invention follows the same logic;</p>
 <p>A word the model needs but the lexicon lacks is <strong>never dropped for being new</strong>: it is added at once, so the next part says the same thing the same
 way, and it waits as <em>New</em>. A translation that uses words that are not in the lexicon and that the model did <strong>not</strong> report is flagged, because
 nobody can tell whether the word is a mistake.</p>
-<h3 id="speakers">Speakers</h3>
-<p>By default <strong>everybody speaks the language except the listed characters</strong> (or, the other way round, only the listed ones). This is only the default: the
-text overrides it (&quot;she said in the common tongue&quot;, &quot;the guard could not understand a word&quot;) and the model decides for every speech. For each character
-you may note the <strong>gender</strong> (a language that marks gender gets it wrong when the part only says &quot;her&quot;) and the <strong>voice</strong> (&quot;formal, clipped, coarse&quot;), which
-the model matches to the registers of the language.</p>
 <h3 id="the-designer">The designer</h3>
 <p>The <strong>Design with AI</strong> menu of the editor asks the model for help, always with the language <strong>as it is</strong> (its rules, registers, categories, lexicon and the example lorebook), and
 always as a <strong>proposal</strong>: nothing is written before you review it.</p>
@@ -433,7 +423,7 @@ sentences). Each step is a section that the model proposes and you edit, refine 
 </figure>
 <h3 id="comparing-and-merging">Comparing and merging</h3>
 <p><strong>Compare</strong> (and the import of a language you already have) opens a window with the differences between two languages, each a line with a check box: what was added,
-changed, deleted or moved among the language&#x27;s fields, rules, categories, registers, characters and words. A change that both sides made differently is a <strong>conflict</strong>:
+changed, deleted or moved among the language&#x27;s fields, rules, categories, registers and words. A change that both sides made differently is a <strong>conflict</strong>:
 your value is kept until you choose theirs or write your own. What you pick is written into the language on the screen, and stored when you save the Settings screen. The
 same window shows what the designer proposes.</p>
 <figure class="content-center">
@@ -482,6 +472,24 @@ above, then the settings of your user.</p>
 </table>
 </div>
 </retype-table>
+<h2 id="the-conlang-tab-of-the-book">The Conlang tab of the book</h2>
+<p>The story window has a <strong>Conlang</strong> tab (in the same dock as the chapters and the lorebook; drag it where you like) for the language of <em>this</em> book. It has three tabs
+of its own, and <strong>Refresh</strong> reads the language again after you changed it in the window of the book.</p>
+<h3 id="words">Words</h3>
+<p>The lexicon of the book&#x27;s language, with the search, the filters and the actions of the <doc-anchor-trigger to="#the-lexicon">editor</doc-anchor-trigger>: look a word up while you write, edit it, accept the words the
+model invented, lock or retire one. The change is stored in your library at once (the words a translation added meanwhile are not lost).</p>
+<h3 id="speakers">Speakers</h3>
+<p>Who speaks the language <strong>in this book</strong>. The speakers belong to the book, not to the language: the same language is spoken by other people in another story, so a language
+you duplicate, export or compare carries no characters.</p>
+<p>By default <strong>everybody speaks the language except the listed characters</strong> (or, the other way round, only the listed ones). This is only the default: the
+text overrides it (&quot;she said in the common tongue&quot;, &quot;the guard could not understand a word&quot;) and the model decides for every speech. For each character
+you may note the <strong>gender</strong> (a language that marks gender gets it wrong when the part only says &quot;her&quot;) and the <strong>voice</strong> (&quot;formal, clipped, coarse&quot;), which
+the model matches to the registers of the language. Changes are stored in the book at once.</p>
+<h3 id="quick-translate">Quick translate</h3>
+<p>Write a text in English (a phrase, a name, a line you have not written yet), optionally who says it and to whom, and press <strong>Translate</strong>: the model translates it into the
+language of the book with the rules, the registers and the lexicon, and the notes of the characters named in the text. Nothing is written into the story. The result is the
+translation, a note on the choices, and the <strong>words the translation needed</strong> that the lexicon lacked, each with its meaning and why; select the ones you want and <strong>Import the selected words</strong>:
+they go into the lexicon as <em>new</em>, the same as the words of a translated part. Words in the translation that are neither in the lexicon nor reported are listed as a warning.</p>
 <h2 id="translating">Translating</h2>
 <ul>
 <li>
@@ -498,9 +506,6 @@ part after the rules or the lexicon changed.</p>
 parts again</em> (after the rules or the lexicon changed), or <em>Put the English back</em>, after a question. The window says how many parts the range holds and how many the choice
 works on, shows <em>Part n of m</em>, and a <strong>Stop</strong> that takes effect after the part that is being done (a request to the model that has begun cannot be taken back). A part that fails is
 counted and the run goes on; a missing language or model ends it. The story is drawn again when the run is over. A part you edit while it runs makes that one part fail, not the run.</p>
-</li>
-<li>
-<p><strong>Look up a word:</strong> the tools menu of the story has a read-only list of the words of the book&#x27;s language, searched by word or meaning, to use while you write.</p>
 </li>
 </ul>
 <p>A translation is stored like any change of the text: the history of the part gets a version, the part is <strong>not marked as edited</strong>, and the English is kept. <strong>A speech you changed by hand
@@ -675,7 +680,7 @@ compounds and affixes) and reports the rest; it does not check your grammar. Try
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (6036c1ae2).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (9dc40bb74).</p></div>
             </footer>
         </div>
     </div>

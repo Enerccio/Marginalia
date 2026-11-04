@@ -39,11 +39,6 @@ class ConlangStoreTest {
         invented.setCategory(war.getId());
         invented.getVariants().add(drak.getId());
         language.addEntry(invented);
-        CharacterNote mara = new CharacterNote("Mara");
-        mara.setGender("a woman");
-        mara.setListed(true);
-        language.getSpeakers().getCharacters().add(mara);
-        language.getSpeakers().setMode(SpeakersMode.ONLY);
         language.setHyphenStructural(true);
         language.setExampleBook("book-uuid");
         language.setExampleLorebook("lore-uuid");
@@ -79,9 +74,6 @@ class ConlangStoreTest {
         assertEquals("iron + lineage", invented.getRationale());
         assertEquals("Rule 3", invented.getRule());
         assertEquals(List.of(drak.getId()), invented.getVariants());
-        assertEquals(SpeakersMode.ONLY, read.getSpeakers().getMode());
-        assertTrue(read.getSpeakers().speaks("mara"));
-        assertEquals("a woman", read.getSpeakers().find("Mara").getGender());
         assertTrue(read.isHyphenStructural());
         assertEquals("book-uuid", read.getExampleBook());
         assertEquals("lore-uuid", read.getExampleLorebook());
@@ -164,7 +156,6 @@ class ConlangStoreTest {
         assertEquals("Vrakht", imported.getName());
         assertEquals(2, imported.getLexicon().size());
         assertEquals("iron + lineage", imported.getLexicon().get(1).getRationale());
-        assertEquals("a woman", imported.getSpeakers().find("Mara").getGender());
     }
 
     @Test
@@ -282,5 +273,39 @@ class ConlangStoreTest {
         List<Language> keptEdit = ConlangStore.merge(List.of(ConlangStore.copy(a)), List.of(ConlangStore.copy(a), ConlangStore.copy(gone)),
                 java.util.Set.of(a.getId(), gone.getId()), java.util.Set.of(gone.getId()));
         assertEquals(List.of("A", "Gone"), names(keptEdit));
+    }
+
+    @Test
+    void theSpeakersAreStoredInTheBookNotInTheLanguage() {
+        BookSettings settings = new BookSettings();
+        CharacterNote mara = new CharacterNote("Mara");
+        mara.setGender("a woman");
+        mara.setListed(true);
+        settings.getSpeakers().getCharacters().add(mara);
+        settings.getSpeakers().setMode(SpeakersMode.ONLY);
+        JsonObject attributes = new JsonObject();
+
+        ConlangStore.writeBook(attributes, settings);
+        BookSettings read = ConlangStore.readBook(attributes);
+
+        assertEquals(SpeakersMode.ONLY, read.getSpeakers().getMode());
+        assertTrue(read.getSpeakers().speaks("mara"));
+        assertEquals("a woman", read.getSpeakers().find("Mara").getGender());
+        assertTrue(ConlangStore.readBook(new JsonObject()).getSpeakers().getCharacters().isEmpty());
+    }
+
+    @Test
+    void aLanguageDocumentNeitherCarriesSpeakersNorFailsOnOldOnesThatDo() {
+        Language language = named("Vrakht");
+        int words = language.getLexicon().size();
+
+        assertFalse(ConlangStore.export(language).contains("speakers"));
+
+        String old = ConlangStore.export(language).replaceFirst("\\{", "{\"speakers\": {\"mode\": \"ONLY\", \"characters\": [{\"name\": \"Mara\"}]},");
+        Language imported = ConlangStore.importDocument(old);
+
+        assertEquals("Vrakht", imported.getName());
+        assertEquals(words, imported.getLexicon().size());
+        assertFalse(ConlangStore.export(imported).contains("Mara"));
     }
 }

@@ -16,7 +16,10 @@ import com.github.enerccio.marginalia.extensions.ExtensionHasCss;
 import com.github.enerccio.marginalia.extensions.InheritedSettingRegistry;
 import com.github.enerccio.marginalia.extensions.MarginaliaExtension;
 import com.github.enerccio.marginalia.extensions.PartTextRegistry;
-import com.github.enerccio.marginalia.extensions.conlangtranslator.model.*;
+import com.github.enerccio.marginalia.extensions.conlangtranslator.model.BookSettings;
+import com.github.enerccio.marginalia.extensions.conlangtranslator.model.ExportMode;
+import com.github.enerccio.marginalia.extensions.conlangtranslator.model.ReaderMode;
+import com.github.enerccio.marginalia.extensions.conlangtranslator.model.Span;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.service.*;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.service.TranslationService.Outcome;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.text.ConlangPassageKind;
@@ -33,6 +36,8 @@ import com.github.enerccio.marginalia.ui.main.Viewer;
 import com.github.enerccio.marginalia.ui.menu.StoryMenuItem;
 import com.github.enerccio.marginalia.ui.menu.StoryMenuRegistry;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
+import com.github.enerccio.marginalia.ui.widgets.TabDock;
+import com.github.enerccio.marginalia.ui.widgets.TabDockIcon;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ComponentUtil;
@@ -61,8 +66,9 @@ import static com.github.enerccio.marginalia.extensions.conlangtranslator.Conlan
 public class ConlangTranslatorExtension implements MarginaliaExtension, ExtensionHasCss {
 
     private static final String MENU_ITEM_KEY = "conlangtranslator.translate";
-    private static final String LOOKUP_ITEM_KEY = "conlangtranslator.lookup";
     private static final String RANGE_ITEM_KEY = "conlangtranslator.range";
+    private static final String BOOK_TAB_ID = "conlang-translator";
+    private static final String BOOK_VIEW_KEY = "com.github.enerccio.marginalia.extensions.conlangtranslator.bookView";
     private static final String SETTINGS_PANEL_KEY = "com.github.enerccio.marginalia.extensions.conlangtranslator.settingsPanel";
 
     /** The logger of this extension, its lines go to the extension log (Admin → Extensions → Log). */
@@ -94,6 +100,7 @@ public class ConlangTranslatorExtension implements MarginaliaExtension, Extensio
 
     private final LanguageLibrary library = new LanguageLibrary();
     private final TranslationService translationService = new TranslationService();
+    private final BookConlang bookConlang = new BookConlang(translationService);
     private final PassageAccess passageAccess = new PassageAccess();
     private final ConlangPassageKind kind = new ConlangPassageKind();
     private final ConlangTransformer transformer = new ConlangTransformer(passageAccess);
@@ -105,12 +112,14 @@ public class ConlangTranslatorExtension implements MarginaliaExtension, Extensio
     private ExtensionDecorator userPartDecorator;
     private ExtensionDecorator userPartSaveDecorator;
     private ExtensionDecorator viewerDecorator;
+    private ExtensionDecorator storyPartDecorator;
     private ExtensionDecorator exportFieldsDecorator;
     private ExtensionDecorator exportDecorator;
     // the field of each export dialog that is open
     private final Map<Object, Select<ExportMode>> exportChoices = Collections.synchronizedMap(new WeakHashMap<>());
     // the reader mode of the book a viewer shows, found once per viewer
     private final Map<Object, ReaderMode> readerModes = Collections.synchronizedMap(new WeakHashMap<>());
+    private final Set<TabDock> activeTabDocks = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
     private final Set<Accordion> activeAccordions = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
     private String owner;
 
@@ -133,12 +142,10 @@ public class ConlangTranslatorExtension implements MarginaliaExtension, Extensio
             menuRegistry.register(owner, StoryMenuItem.card(MENU_ITEM_KEY, l -> T.localized(TRANSLATE_THE_SPEECH),
                             (story, card) -> translateByHand(story.getCurrentManuscript(), card))
                     .icon(Solid.LANGUAGE::create));
-            menuRegistry.register(owner, StoryMenuItem.tools(LOOKUP_ITEM_KEY, l -> T.localized(LOOK_UP_A_WORD),
-                            story -> lookUp(story.getCurrentManuscript()))
-                    .icon(Solid.BOOK::create));
             menuRegistry.register(owner, StoryMenuItem.tools(RANGE_ITEM_KEY, l -> T.localized(TRANSLATE_PARTS), this::openRange)
                     .icon(Solid.LAYER_GROUP::create));
 
+            registerBookTab(extensionService);
             registerViewer(extensionService);
             registerExport(extensionService);
 
@@ -165,6 +172,35 @@ public class ConlangTranslatorExtension implements MarginaliaExtension, Extensio
         } catch (Exception e) {
             throw new IllegalStateException("Failed to load the Conlang Translator extension", e);
         }
+    }
+
+    /**
+     * The <b>Conlang</b> tab of the story (the left dock, the drawer on a phone): the words of the book's language, who speaks it in this book
+     * and the quick translation. It is added once per story part and reads the language when it is built.
+     */
+    private void registerBookTab(ExtensionService extensionService) throws Exception {
+        storyPartDecorator = new ExtensionDecorator() {
+            @Override
+            public void onMethodEnter(Object instrumented, ExtendableMethodContext context) {
+            }
+
+            @Override
+            public void onMethodLeave(Object instrumented, ExtendableMethodContext context, Throwable throwing) throws Exception {
+                TabDock leftBar = context.getReflectiveFieldValue(instrumented, "leftBar", TabDock.class);
+                Manuscript currentManuscript = context.getReflectiveFieldValue(instrumented, "currentManuscript", Manuscript.class);
+                if (leftBar == null || currentManuscript == null || ComponentUtil.getData(leftBar, BOOK_VIEW_KEY) != null) {
+                    return;
+                }
+                ConlangBookView view = new ConlangBookView(currentManuscript, bookConlang);
+                leftBar.add(BOOK_TAB_ID, T.localized(CONLANG), TabDockIcon.letters("CL"), view);
+                ComponentUtil.setData(leftBar, BOOK_VIEW_KEY, view);
+                activeTabDocks.add(leftBar);
+            }
+        };
+        extensionService.registerDecorator(storyPartDecorator,
+                "com.github.enerccio.marginalia.ui.dialogs.manuscript.ManuscriptStoryPart", "renderStoryContent");
+        extensionService.registerDecorator(storyPartDecorator,
+                "com.github.enerccio.marginalia.ui.dialogs.phone.manuscript.PhoneManuscriptStoryPart", "renderStoryContent");
     }
 
     /**
@@ -335,23 +371,6 @@ public class ConlangTranslatorExtension implements MarginaliaExtension, Extensio
     }
 
     /**
-     * The words of the language of the book, read-only: the author looks a word up while writing.
-     */
-    private void lookUp(Manuscript manuscript) {
-        try {
-            Language language = manuscript == null ? null : translationService.languageOf(translationService.settings(manuscript));
-            if (language == null) {
-                Notification.error(T.localized(THE_BOOK_HAS_NO_LANGUAGE));
-                return;
-            }
-            new LookupDialog(language).open();
-        } catch (Exception e) {
-            log.warn("Failed to open the lexicon of the book: {}", e.getMessage(), e);
-            Notification.error(String.format(T.localized(THE_LANGUAGES_CAN_NOT_BE_LOADED), e.getMessage()));
-        }
-    }
-
-    /**
      * The dialog of the actions on a range of the parts of the active branch: the parts that have text, counted from 1, each with whether it
      * has a translated speech.
      */
@@ -507,6 +526,23 @@ public class ConlangTranslatorExtension implements MarginaliaExtension, Extensio
         if (userPartDecorator != null) {
             extensionService.unregisterDecorator(userPartDecorator);
             userPartDecorator = null;
+        }
+        if (storyPartDecorator != null) {
+            extensionService.unregisterDecorator(storyPartDecorator);
+            storyPartDecorator = null;
+        }
+        // the tab docks belong to the UIs of all users: remove the tab in each one's own session
+        synchronized (activeTabDocks) {
+            for (TabDock dock : activeTabDocks) {
+                UIUtils.accessComponent(dock, () -> {
+                    Component view = (Component) ComponentUtil.getData(dock, BOOK_VIEW_KEY);
+                    if (view != null) {
+                        dock.remove(view);
+                        ComponentUtil.setData(dock, BOOK_VIEW_KEY, null);
+                    }
+                });
+            }
+            activeTabDocks.clear();
         }
         if (viewerDecorator != null) {
             extensionService.unregisterDecorator(viewerDecorator);

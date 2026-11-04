@@ -25,7 +25,6 @@ public class Language {
     private List<Category> categories = new ArrayList<>();
     private List<Register> registers = new ArrayList<>();
     private List<LexiconEntry> lexicon = new ArrayList<>();
-    private Speakers speakers = new Speakers();
     /**
      * Whether a hyphen is a part of a word of the language (it marks a boundary or joins a morpheme and the form differs without it). Off
      * (the default): hyphens are ignored when forms are compared, so a compound written with or without them is the same word.
@@ -193,7 +192,7 @@ public class Language {
     // ---- copies
 
     /**
-     * An independent copy under another name, with its own id: the rules, categories, registers, lexicon, speakers and the links to the
+     * An independent copy under another name, with its own id: the rules, categories, registers, lexicon and the links to the
      * example book and lorebook (a copy inside the user's own library keeps them). The ids inside stay, they only mean something inside
      * the language.
      */
@@ -205,7 +204,7 @@ public class Language {
     }
 
     /**
-     * The language as it is shared with another user or installation: the rules, categories, registers, lexicon and speakers, without the
+     * The language as it is shared with another user or installation: the rules, categories, registers and lexicon, without the
      * links to the example book and lorebook (their uuids mean nothing elsewhere).
      */
     public Language forExport() {
@@ -287,17 +286,6 @@ public class Language {
             lexicon = new ArrayList<>();
         }
         return lexicon;
-    }
-
-    public Speakers getSpeakers() {
-        if (speakers == null) {
-            speakers = new Speakers();
-        }
-        return speakers;
-    }
-
-    public void setSpeakers(Speakers speakers) {
-        this.speakers = speakers;
     }
 
     public boolean isHyphenStructural() {

@@ -145,7 +145,7 @@ public class TranslationService {
             return Outcome.of(Status.NO_MODEL, "There is no model for the translation: the book has none and neither have your defaults.");
         }
 
-        TranslationPrompt.Request request = TranslationPrompt.build(language, source, scene(book, current, settings), settings.getMaxLexiconChars());
+        TranslationPrompt.Request request = TranslationPrompt.build(language, settings.getSpeakers(), source, scene(book, current, settings), settings.getMaxLexiconChars());
         String raw = ask(model, book, request);
         TranslationAnswer answer = TranslationAnswer.parse(raw);
         if (answer == null) {

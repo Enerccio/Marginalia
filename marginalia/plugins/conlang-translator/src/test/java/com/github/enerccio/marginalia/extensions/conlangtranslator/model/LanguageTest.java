@@ -226,7 +226,6 @@ class LanguageTest {
         assertTrue(empty.getLexicon().isEmpty());
         assertTrue(empty.getCategories().isEmpty());
         assertTrue(empty.getRegisters().isEmpty());
-        assertEquals(SpeakersMode.EVERYONE_EXCEPT, empty.getSpeakers().getMode());
         assertEquals("", empty.getName());
     }
 
