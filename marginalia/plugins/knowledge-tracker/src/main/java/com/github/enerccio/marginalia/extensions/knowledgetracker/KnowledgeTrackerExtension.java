@@ -158,6 +158,8 @@ public class KnowledgeTrackerExtension implements MarginaliaExtension, Extension
             if (manuscript == null) {
                 return;
             }
+            // the open tabs of the book show how many parts wait: they read the branch again, a new part is one more
+            stateService.changed(manuscript);
             BookSettings settings = stateService.load(manuscript).getSettings();
             if (settings.isAutoProcess() && settings.isExtractWithModel() && !settings.isAskBeforeApplying()) {
                 runs.start(manuscript, false, null);

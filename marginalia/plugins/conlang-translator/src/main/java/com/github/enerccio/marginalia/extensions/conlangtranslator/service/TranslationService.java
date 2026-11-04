@@ -88,6 +88,7 @@ public class TranslationService {
     private static final int AROUND = 400;
 
     private final PassageAccess passages = new PassageAccess();
+    private final LanguageAccess languages = new LanguageAccess();
     private final ModelClient modelClient = new ModelClient();
     private final Map<String, Object> locks = new ConcurrentHashMap<>();
 
@@ -128,6 +129,14 @@ public class TranslationService {
     }
 
     /**
+     * The language of the library the book names, as the book sees it: the working copy of an agent run reads its own version of a language
+     * it changed ({@link LanguageAccess}). Null when it names none or the language is gone.
+     */
+    public Language languageOf(Manuscript book, BookSettings settings) throws Exception {
+        return languages.find(book, settings.getLanguageId());
+    }
+
+    /**
      * Translates the speech of the part.
      */
     public Outcome translate(Manuscript manuscript, ChatMessage part) throws Exception {
@@ -137,7 +146,7 @@ public class TranslationService {
             throw new IllegalArgumentException("The part does not exist");
         }
         BookSettings settings = resolve(book);
-        Language language = languageOf(settings);
+        Language language = languageOf(book, settings);
         if (language == null) {
             return Outcome.of(Status.NO_LANGUAGE, settings.getLanguageId() == null ? "The book has no language." : "The language of the book is not in your library.");
         }
@@ -273,20 +282,18 @@ public class TranslationService {
             span.write(passage.getAttributes());
             passageService.save(passage);
         }
-        addNewWords(language, checked.words(), fresh.getUuid(), modelName, now);
+        addNewWords(book, language, checked.words(), fresh.getUuid(), modelName, now);
     }
 
-    /** Adds the words the model invented to the lexicon of the library, new. */
-    private void addNewWords(Language language, List<AnswerChecker.Word> words, String partUuid, String modelName, long now) throws Exception {
+    /** Adds the words the model invented to the lexicon of the library (of the run's copy of the language in an agent run), new. */
+    private void addNewWords(Manuscript book, Language language, List<AnswerChecker.Word> words, String partUuid, String modelName, long now) throws Exception {
         if (words.isEmpty()) {
             return;
         }
-        UserSetting user = settingService.getOrCreate(UserSetting.class);
-        Language stored = ConlangStore.find(user.getAttributes(), language.getId());
-        if (stored != null) {
-            NewWords.addTo(stored, words, Origin.model(partUuid, modelName, now));
-            ConlangStore.save(user.getAttributes(), stored);
-            settingService.save(user);
+        try {
+            languages.update(book, language.getId(), stored -> NewWords.addTo(stored, words, Origin.model(partUuid, modelName, now)));
+        } catch (IllegalArgumentException e) {
+            // the language was deleted while the model worked: there is no lexicon to add to
         }
     }
 
@@ -314,7 +321,7 @@ public class TranslationService {
             return Outcome.of(Status.EMPTY, "Nothing is selected.");
         }
         BookSettings settings = resolve(book);
-        Language language = languageOf(settings);
+        Language language = languageOf(book, settings);
         if (language == null) {
             return Outcome.of(Status.NO_LANGUAGE, "The book has no language.");
         }
@@ -369,7 +376,7 @@ public class TranslationService {
             span.setTime(now);
             span.write(passage.getAttributes());
             passageService.save(passage);
-            addNewWords(language, checked.words(), saved.getUuid(), model.ai().getName(), now);
+            addNewWords(book, language, checked.words(), saved.getUuid(), model.ai().getName(), now);
         }
         return new Outcome(Status.TRANSLATED, 1, checked.words().size(), 0, unknown,
                 unknown > 0 ? "The translation uses words that are not in the lexicon and were not reported." : "");

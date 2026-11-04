@@ -138,6 +138,26 @@ class KnowledgeStateTest {
     }
 
     @Test
+    void metPeopleCanBeEditedAndKeepTheirRecordWhenNamedAgain() {
+        TrackedCharacter fiora = fiora();
+        fiora.addMet("Mara", "m1");
+        fiora.addMet("Thomas", "m2");
+        fiora.addMet("female clerk", "m3");
+
+        fiora.setMetNames(List.of("thomas", "Queen", "Fiora", "Queen", " "));
+
+        assertEquals(List.of("Thomas", "Queen"), fiora.getMet().stream().map(MetPerson::getName).toList());
+        assertEquals("m2", fiora.getMet().getFirst().getSourceMessage());
+        // written by the user: a reprocessing does not take it back
+        assertNull(fiora.getMet().get(1).getSourceMessage());
+        fiora.rewind(Set.of("m1", "m2", "m3")::contains);
+        assertEquals(List.of("Queen"), fiora.getMet().stream().map(MetPerson::getName).toList());
+
+        fiora.setMetNames(List.of());
+        assertTrue(fiora.getMet().isEmpty());
+    }
+
+    @Test
     void stateSurvivesItsStoredForm() {
         KnowledgeState state = new KnowledgeState();
         state.setCursor("m7");

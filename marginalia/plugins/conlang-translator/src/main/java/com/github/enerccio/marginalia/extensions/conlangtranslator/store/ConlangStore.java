@@ -2,12 +2,11 @@ package com.github.enerccio.marginalia.extensions.conlangtranslator.store;
 
 import com.github.enerccio.marginalia.extensions.conlangtranslator.model.BookSettings;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.model.Language;
+import com.github.enerccio.marginalia.extensions.conlangtranslator.model.RunLanguage;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.model.UserDefaults;
 import com.google.gson.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Reads and writes the library of languages in the attributes of the user's settings, and exports and imports a language as a document. It
@@ -106,6 +105,41 @@ public final class ConlangStore {
 
     public static void writeBook(JsonObject attributes, BookSettings settings) {
         attributes.add(BookSettings.KEY, GSON.toJsonTree(settings));
+    }
+
+    /**
+     * The languages a run changed, by the id of the language, in the order the run first changed them; never null. An entry that cannot be read is
+     * left out.
+     */
+    public static Map<String, RunLanguage> readRun(JsonObject attributes) {
+        Map<String, RunLanguage> languages = new LinkedHashMap<>();
+        if (attributes == null || !attributes.has(RunLanguage.KEY) || !attributes.get(RunLanguage.KEY).isJsonObject()) {
+            return languages;
+        }
+        for (Map.Entry<String, JsonElement> entry : attributes.getAsJsonObject(RunLanguage.KEY).entrySet()) {
+            try {
+                RunLanguage language = GSON.fromJson(entry.getValue(), RunLanguage.class);
+                if (language != null && language.getOurs() != null) {
+                    languages.put(entry.getKey(), language);
+                }
+            } catch (JsonParseException e) {
+                // an entry that is not readable must not take the others with it
+            }
+        }
+        return languages;
+    }
+
+    /**
+     * Stores the languages of a run; none removes the attribute.
+     */
+    public static void writeRun(JsonObject attributes, Map<String, RunLanguage> languages) {
+        if (languages.isEmpty()) {
+            attributes.remove(RunLanguage.KEY);
+            return;
+        }
+        JsonObject object = new JsonObject();
+        languages.forEach((id, language) -> object.add(id, GSON.toJsonTree(language)));
+        attributes.add(RunLanguage.KEY, object);
     }
 
     /**

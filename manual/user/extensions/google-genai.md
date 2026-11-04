@@ -1,6 +1,6 @@
 ---
 label: Google Gemini
-order: 93
+order: 14
 ---
 
 # Google Gemini

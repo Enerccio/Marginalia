@@ -74,6 +74,27 @@ public class TrackedCharacter {
     }
 
     /**
+     * Sets the people this character has met to {@code names}, in that order: a name that is recorded already keeps its
+     * record (and the message it was seen in), a new one is the user's own (no message, so a reprocessing keeps it), the
+     * ones not named are forgotten. A name that is empty, this character's own or repeated is skipped.
+     */
+    public void setMetNames(List<String> names) {
+        List<MetPerson> before = getMet();
+        List<MetPerson> kept = new ArrayList<>();
+        for (String name : names) {
+            String normalized = PresentCharacters.normalize(name);
+            if (normalized.isEmpty() || isCalled(name)
+                    || kept.stream().anyMatch(k -> PresentCharacters.normalize(k.getName()).equals(normalized))) {
+                continue;
+            }
+            MetPerson known = before.stream()
+                    .filter(k -> PresentCharacters.normalize(k.getName()).equals(normalized)).findFirst().orElse(null);
+            kept.add(known != null ? known : new MetPerson(name.strip(), null));
+        }
+        this.met = kept;
+    }
+
+    /**
      * Takes back what came from the messages that {@code dropped} accepts (the message being reprocessed and the later
      * ones, or messages of another branch): learned items and rejected additions go, an item that one of these messages
      * retracted is active again, the meetings seen in them are forgotten. Initial and manual items, and the retractions

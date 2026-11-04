@@ -177,7 +177,12 @@ public class KnowledgeTrackerView extends VerticalLayout {
         popover.add(createSettings());
         showSettingsState();
 
-        HorizontalLayout buttons = new HorizontalLayout(add, settingsButton);
+        Button reload = new Button(Solid.ARROWS_ROTATE.create(), _ -> changeRefresh.run());
+        reload.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_ICON);
+        reload.setAriaLabel(T.localized(REFRESH));
+        reload.setTooltipText(T.localized(REFRESH));
+
+        HorizontalLayout buttons = new HorizontalLayout(add, reload, settingsButton);
         buttons.setAlignItems(Alignment.CENTER);
         buttons.setPadding(true);
         buttons.setSpacing(false);

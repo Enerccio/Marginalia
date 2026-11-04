@@ -1,6 +1,6 @@
 ---
 label: Name generator
-order: 84
+order: 7
 ---
 
 # Name generator

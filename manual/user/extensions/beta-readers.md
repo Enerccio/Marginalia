@@ -1,6 +1,6 @@
 ---
 label: Beta Readers
-order: 107
+order: 22
 ---
 
 # Beta Readers

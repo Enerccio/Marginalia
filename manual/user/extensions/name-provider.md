@@ -1,6 +1,6 @@
 ---
 label: Name provider
-order: 85
+order: 6
 ---
 
 # Name provider

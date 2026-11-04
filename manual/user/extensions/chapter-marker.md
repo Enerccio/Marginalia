@@ -1,6 +1,6 @@
 ---
 label: Chapter Marker
-order: 100
+order: 20
 ---
 
 # Chapter Marker

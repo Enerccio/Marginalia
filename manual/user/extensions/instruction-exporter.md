@@ -1,6 +1,6 @@
 ---
 label: Instruction Exporter
-order: 95
+order: 12
 ---
 
 # Instruction Exporter

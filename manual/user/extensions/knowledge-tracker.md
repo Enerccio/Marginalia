@@ -1,6 +1,6 @@
 ---
 label: Knowledge Tracker
-order: 111
+order: 11
 ---
 
 # Knowledge Tracker
@@ -34,7 +34,7 @@ Open a character with the arrow on its card to see what it knows:
 | **Retract** (the circle with a slash) | The item is not true any more (*has not met Thomas* after they meet). It is not deleted: it becomes *old knowledge* and is no longer sent to the model. |
 | **Lock** (the padlock, on items the model learned) | The [tidy pass](#tidying-the-knowledge) never sees a locked item: use it for what must stay, a betrayal, a secret. The story can still contradict a locked item (a character who loses their memory): the reading of the story retracts it as usual. |
 | **Delete** | Removes an item for good, after a question. Retract keeps it, so use it when in doubt. |
-| **Has met** | The people the character has met, noted by [processing](#processing). |
+| **Has met** | The people the character has met, noted by [processing](#processing). Processing can note a name that is not a person (a note in the present characters field): open **Edit** and change the **Has met** list, one name after another separated by commas. The names you write stay when the story is read again; one you remove comes back only if the part it was seen in is read again. |
 | **Old knowledge (n)** | Collapsed by default. Each old item can be **copied**, **edited**, **restored** (it is active again, from now on) or deleted. |
 
 ## What goes into the prompt
@@ -79,7 +79,9 @@ characters **learned** (see [Reading what the characters learn](#reading-what-th
 
 ![The processing panel](../../images/plugin-knowledgetracker-processing.png)
 
-The panel at the top of the tab shows where it stands and has:
+The panel at the top of the tab shows where it stands. It reloads by itself when a new part is final (after the automatic
+annotation and redraft, if the book has them); if you add, edit or delete parts some other way, press the **Refresh** button
+(the arrows next to the gear) to read the story again. It has:
 
 - **Process now**: reads the parts that are not processed yet.
 - **Process next part**: reads only the first part that is not processed yet, one step at a time (with the model: one request for that part, whatever *Parts per run* says). Use it to try the settings or to look at what the model finds for a single part. The command `knowledge-process` with `parts` set to 1 does the same.

@@ -36,7 +36,7 @@ public class BookConlang {
     }
 
     /** One writer of the library at a time: a run of the translator adds words to the same languages. */
-    private static final Object LIBRARY = new Object();
+    private static final Object LIBRARY = LanguageAccess.LIBRARY;
 
     @Autowired
     private ManuscriptService manuscriptService;
@@ -45,6 +45,7 @@ public class BookConlang {
 
     private final TranslationService translation;
     private final ModelClient modelClient = new ModelClient();
+    private final LanguageAccess languages = new LanguageAccess();
 
     public BookConlang(TranslationService translation) {
         this.translation = translation;
@@ -54,7 +55,7 @@ public class BookConlang {
      * The language the book names (an independent copy), null when it names none or the language is gone.
      */
     public Language languageOf(Manuscript book) throws Exception {
-        return translation.languageOf(translation.settings(book));
+        return translation.languageOf(book, translation.settings(book));
     }
 
     // ---- the speakers
@@ -114,6 +115,39 @@ public class BookConlang {
         }
     }
 
+    // ---- what an agent run left
+
+    /**
+     * The languages an agent run changed that the book still holds, by the id of the language: the run's version and the version it started from.
+     * The user takes them over into the library (or drops them); never null.
+     */
+    public java.util.Map<String, RunLanguage> runChanges(Manuscript book) throws Exception {
+        return languages.run(book);
+    }
+
+    /**
+     * What taking the run's version of the language over would change in the library, null when the library does not have the language (it is
+     * added whole).
+     */
+    public com.github.enerccio.marginalia.extensions.conlangtranslator.diff.ChangeSet runChangeSet(Manuscript book, String languageId) throws Exception {
+        return languages.changes(book, languageId);
+    }
+
+    /**
+     * Writes the picked changes into the library and drops the run's version from the book.
+     */
+    public com.github.enerccio.marginalia.extensions.conlangtranslator.diff.LanguageDiff.Result takeOverRunChanges(
+            Manuscript book, String languageId, com.github.enerccio.marginalia.extensions.conlangtranslator.diff.ChangeSet picked) throws Exception {
+        return languages.takeOver(book, languageId, picked);
+    }
+
+    /**
+     * Drops the run's version of the language from the book; the library is not touched.
+     */
+    public void discardRunChanges(Manuscript book, String languageId) throws Exception {
+        languages.forget(book, languageId);
+    }
+
     // ---- the quick translation
 
     /**
@@ -130,7 +164,7 @@ public class BookConlang {
             return Quick.failed(Status.EMPTY);
         }
         BookSettings settings = translation.resolve(book);
-        Language language = translation.languageOf(settings);
+        Language language = translation.languageOf(book, settings);
         if (language == null) {
             return Quick.failed(Status.NO_LANGUAGE);
         }
@@ -160,20 +194,14 @@ public class BookConlang {
         if (current == null || words.isEmpty()) {
             return 0;
         }
-        synchronized (LIBRARY) {
-            UserSetting user = settingService.getOrCreate(UserSetting.class);
-            Language stored = ConlangStore.find(user.getAttributes(), current.getId());
-            if (stored == null) {
-                return 0;
-            }
+        int[] added = {0};
+        languages.update(book, current.getId(), stored -> {
             List<Word> fresh = AnswerChecker.checkNewWords(words.stream().map(Word::word).toList(), stored).words();
-            if (fresh.isEmpty()) {
-                return 0;
+            if (!fresh.isEmpty()) {
+                NewWords.addTo(stored, fresh, Origin.model(null, modelName, System.currentTimeMillis()));
+                added[0] = fresh.size();
             }
-            NewWords.addTo(stored, fresh, Origin.model(null, modelName, System.currentTimeMillis()));
-            ConlangStore.save(user.getAttributes(), stored);
-            settingService.save(user);
-            return fresh.size();
-        }
+        });
+        return added[0];
     }
 }

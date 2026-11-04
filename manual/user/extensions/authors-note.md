@@ -1,6 +1,6 @@
 ---
 label: Author's Note
-order: 110
+order: 23
 ---
 
 # Author's Note

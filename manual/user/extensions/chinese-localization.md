@@ -1,6 +1,6 @@
 ---
 label: Chinese localization
-order: 110
+order: 18
 ---
 
 # Chinese localization

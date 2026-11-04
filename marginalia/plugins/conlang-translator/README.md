@@ -12,4 +12,4 @@ Build (the same source tree as the application): `mvn install -DskipTests` in `m
 
 Packages: `model` (language, lexicon, spans), `store` (the library in the user settings, the settings of a book), `translate` (the request, the answer, the checks, the reverse),
 `text` (the transformer for the models, the viewer's and the export's text), `diff` (the change set of two languages), `designer` (the model's proposals), `service`
-(translation, range runs, designer, library), `ui` (screens). The logic is pure and tested without a UI; `screenshots/bin/shoot-conlang.sh` takes the pictures of the manual.
+(translation, range runs, designer, library), `commands` (the `conlang-*` commands, thin wrappers of the services), `ui` (screens). The logic is pure and tested without a UI; `screenshots/bin/shoot-conlang.sh` takes the pictures of the manual.

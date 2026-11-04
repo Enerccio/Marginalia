@@ -1,6 +1,6 @@
 ---
 label: Side Query
-order: 70
+order: 2
 ---
 
 # Side Query

@@ -1,6 +1,6 @@
 ---
 label: Anthropic Claude
-order: 92
+order: 25
 ---
 
 # Anthropic Claude

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847147423527">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847150822503">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.847147423527" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.847150822503" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847147423527" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847150822503" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847147423527" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847150822503" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -205,8 +205,7 @@ has to understand your language to carry on the story. A click on a translated s
         </div>
         <div class="pr-5 ml-3 w-full">
             <h5>Work in progress</h5>
-<p>The extension works for a person using the screens described here. It is <strong>not</strong> available to agents yet (no commands, and an
-agent that works on a copy of a book does not know about the languages), and the phone has only part of it, see
+<p>The extension works for a person using the screens described here and, through <doc-anchor-trigger to="#commands">commands</doc-anchor-trigger>, for an agent. The phone has only part of it, see
 <doc-anchor-trigger to="#limits">Limits</doc-anchor-trigger>.</p>
         </div>
     </div>
@@ -623,6 +622,124 @@ decide what a reader sees):</p>
 </retype-table>
 <p>The footnotes are the <a href="../../books/export/#footnotes">footnotes of the export</a>: linked notes in HTML and EPUB, endnotes after each part in plain text, Word and PDF. A speech you edited after it
 was translated stays as it is and has no footnote. The stored text of the book is never changed by an export.</p>
+<h2 id="commands">Commands</h2>
+<p>Everything the screens do is also a command, for the <a href="../../commands/">command line</a> and for <a href="../../agents/">agents</a>: an agent can make a language, grow it, translate a book and check the result without
+a person at the dialogs. A language is addressed by its <strong>name</strong> (the case does not matter) or its id; a rules section by its title or its number in <code translate="no" v-pre>conlang-list-rules</code>; a category by its name or number; a word by its
+form (the id of <code translate="no" v-pre>conlang-list-words</code> only to tell homophones apart); a part as in the other commands of the application, by its handle or its position on the active branch (the first part is 1). The command line takes every
+argument of a command; an agent may leave out the optional ones.</p>
+<retype-table copy-text="| Command | |
+|---|---|
+| `conlang-list`, `conlang-get`, `conlang-create`, `conlang-duplicate`, `conlang-update`, `conlang-delete`, `conlang-export`, `conlang-import`, `conlang-set-references` | The library. `conlang-delete` asks, and is not available to an agent. |
+| `conlang-set-book-language` | The language of the open book (the **Language of the speech** field of its *Extension Settings*). |
+| `conlang-list-rules`, `conlang-get-rules`, `conlang-add-rules`, `conlang-update-rules`, `conlang-delete-rules`, `conlang-move-rules` | The sections of the rules. |
+| `conlang-list-categories`, `conlang-add-category`, `conlang-update-category`, `conlang-move-category`, `conlang-delete-category` | The categories of the words. |
+| `conlang-list-registers`, `conlang-add-register`, `conlang-update-register`, `conlang-delete-register` | The registers. |
+| `conlang-list-words` | The lexicon, paged, with filters: category, state (*new*, accepted, locked, retired) and a text. |
+| `conlang-get-word`, `conlang-add-word`, `conlang-update-word`, `conlang-delete-word` | A word. A word an agent adds or changes is the model's and **new**; a locked word cannot be changed or deleted. |
+| `conlang-lock-word`, `conlang-unlock-word`, `conlang-retire-word`, `conlang-restore-word`, `conlang-accept-words` | The state of the words. |
+| `conlang-check-lexicon` | Repeated meanings, words without a category, compounds with parts that are not in the lexicon, and the homophones (for information). No model. |
+| `conlang-status` | The language of the book and which parts are translated. |
+| `conlang-translate-part`, `conlang-translate-range`, `conlang-translate-sentence`, `conlang-translate-text`, `conlang-revert-to-source` | Translating: one part, a range (`mode` *new* or *again*), one sentence of a part, a text that is only returned, and the English back. A range asks the user for *again*; so does the English back. |
+| `conlang-check-translation`, `conlang-get-source`, `conlang-list-passages` | Reading: the words of a translated speech that the lexicon does not have, the text of a part as the models read it (the English), and the translated speeches of a part with their English. |
+| `conlang-speakers`, `conlang-set-speakers-mode`, `conlang-set-speaker`, `conlang-remove-speaker` | Who speaks the language in the open book. |
+| `conlang-design-words`, `conlang-design-rules`, `conlang-rewrite-rules`, `conlang-design-stage`, `conlang-ask-designer`, `conlang-try-sentences` | The designer. With `ask true` a command returns the proposal as a numbered list of changes and holds it; nothing is changed. |
+| `conlang-review` | The designer's review of the language: findings only. |
+| `conlang-apply-changes` | Applies the held changes, all of them or the numbers given (the same as **Apply** in the review). |
+| `conlang-pending-changes`, `conlang-take-pending-changes`, `conlang-discard-pending-changes` | What an agent run left in the book, see [below](#agent-runs). |
+| `conlang-lexicon`, `conlang-rules` | The lexicon and the rules a translation request sends, as text, for the `{{command::conlang-lexicon::&lt;language&gt;}}` and `{{command::conlang-rules::&lt;language&gt;}}` [macros](../templates/macros.md#commands). |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Command</th>
+<th> </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>conlang-list</code>, <code translate="no" v-pre>conlang-get</code>, <code translate="no" v-pre>conlang-create</code>, <code translate="no" v-pre>conlang-duplicate</code>, <code translate="no" v-pre>conlang-update</code>, <code translate="no" v-pre>conlang-delete</code>, <code translate="no" v-pre>conlang-export</code>, <code translate="no" v-pre>conlang-import</code>, <code translate="no" v-pre>conlang-set-references</code></td>
+<td>The library. <code translate="no" v-pre>conlang-delete</code> asks, and is not available to an agent.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>conlang-set-book-language</code></td>
+<td>The language of the open book (the <strong>Language of the speech</strong> field of its <em>Extension Settings</em>).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>conlang-list-rules</code>, <code translate="no" v-pre>conlang-get-rules</code>, <code translate="no" v-pre>conlang-add-rules</code>, <code translate="no" v-pre>conlang-update-rules</code>, <code translate="no" v-pre>conlang-delete-rules</code>, <code translate="no" v-pre>conlang-move-rules</code></td>
+<td>The sections of the rules.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>conlang-list-categories</code>, <code translate="no" v-pre>conlang-add-category</code>, <code translate="no" v-pre>conlang-update-category</code>, <code translate="no" v-pre>conlang-move-category</code>, <code translate="no" v-pre>conlang-delete-category</code></td>
+<td>The categories of the words.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>conlang-list-registers</code>, <code translate="no" v-pre>conlang-add-register</code>, <code translate="no" v-pre>conlang-update-register</code>, <code translate="no" v-pre>conlang-delete-register</code></td>
+<td>The registers.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>conlang-list-words</code></td>
+<td>The lexicon, paged, with filters: category, state (<em>new</em>, accepted, locked, retired) and a text.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>conlang-get-word</code>, <code translate="no" v-pre>conlang-add-word</code>, <code translate="no" v-pre>conlang-update-word</code>, <code translate="no" v-pre>conlang-delete-word</code></td>
+<td>A word. A word an agent adds or changes is the model&#x27;s and <strong>new</strong>; a locked word cannot be changed or deleted.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>conlang-lock-word</code>, <code translate="no" v-pre>conlang-unlock-word</code>, <code translate="no" v-pre>conlang-retire-word</code>, <code translate="no" v-pre>conlang-restore-word</code>, <code translate="no" v-pre>conlang-accept-words</code></td>
+<td>The state of the words.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>conlang-check-lexicon</code></td>
+<td>Repeated meanings, words without a category, compounds with parts that are not in the lexicon, and the homophones (for information). No model.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>conlang-status</code></td>
+<td>The language of the book and which parts are translated.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>conlang-translate-part</code>, <code translate="no" v-pre>conlang-translate-range</code>, <code translate="no" v-pre>conlang-translate-sentence</code>, <code translate="no" v-pre>conlang-translate-text</code>, <code translate="no" v-pre>conlang-revert-to-source</code></td>
+<td>Translating: one part, a range (<code translate="no" v-pre>mode</code> <em>new</em> or <em>again</em>), one sentence of a part, a text that is only returned, and the English back. A range asks the user for <em>again</em>; so does the English back.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>conlang-check-translation</code>, <code translate="no" v-pre>conlang-get-source</code>, <code translate="no" v-pre>conlang-list-passages</code></td>
+<td>Reading: the words of a translated speech that the lexicon does not have, the text of a part as the models read it (the English), and the translated speeches of a part with their English.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>conlang-speakers</code>, <code translate="no" v-pre>conlang-set-speakers-mode</code>, <code translate="no" v-pre>conlang-set-speaker</code>, <code translate="no" v-pre>conlang-remove-speaker</code></td>
+<td>Who speaks the language in the open book.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>conlang-design-words</code>, <code translate="no" v-pre>conlang-design-rules</code>, <code translate="no" v-pre>conlang-rewrite-rules</code>, <code translate="no" v-pre>conlang-design-stage</code>, <code translate="no" v-pre>conlang-ask-designer</code>, <code translate="no" v-pre>conlang-try-sentences</code></td>
+<td>The designer. With <code translate="no" v-pre>ask true</code> a command returns the proposal as a numbered list of changes and holds it; nothing is changed.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>conlang-review</code></td>
+<td>The designer&#x27;s review of the language: findings only.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>conlang-apply-changes</code></td>
+<td>Applies the held changes, all of them or the numbers given (the same as <strong>Apply</strong> in the review).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>conlang-pending-changes</code>, <code translate="no" v-pre>conlang-take-pending-changes</code>, <code translate="no" v-pre>conlang-discard-pending-changes</code></td>
+<td>What an agent run left in the book, see <doc-anchor-trigger to="#agent-runs">below</doc-anchor-trigger>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>conlang-lexicon</code>, <code translate="no" v-pre>conlang-rules</code></td>
+<td>The lexicon and the rules a translation request sends, as text, for the <code translate="no" v-pre>{{command::conlang-lexicon::&lt;language&gt;}}</code> and <code translate="no" v-pre>{{command::conlang-rules::&lt;language&gt;}}</code> <a href="../../templates/macros/#commands">macros</a>.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<h3 id="agent-runs">Agent runs</h3>
+<p>An agent works on a <strong>copy of the book</strong>, and the languages are not part of the book, so an agent cannot change your library behind your back. The first time a run <strong>changes</strong> a language (a word, a rule, or the words
+a translation invents), that language is copied into the copy of the book, together with the version it was copied from; from then on the run reads and writes its own copy. A run that only reads, or only translates with the
+words it has, never copies anything. The copy goes wherever the copy of the book goes: the checkpoints and their restore, the review of the run, and its delete.</p>
+<p>When you <strong>apply</strong> the result of the run, the language lands in the book, <strong>not in your library</strong>. The <strong>Conlang</strong> tab of the book then shows <em>An agent run changed the language ...</em> with <strong>Review</strong> and <strong>Drop</strong>.
+Review compares three versions, the language when the run copied it, the run&#x27;s version and your library as it is now, so what you changed in the library meanwhile is kept, and what both of you changed is a conflict for you
+to decide. The same from commands: <code translate="no" v-pre>conlang-pending-changes</code> lists the changes as numbers and <code translate="no" v-pre>conlang-take-pending-changes</code> takes them (it asks you). A language the run made is added whole after you confirm.</p>
+<p>The run reads the library until it first changes a language, and its own copy afterwards: what you change in a language while the run works is not seen by the run, but is not lost either.</p>
 <h2 id="limits">Limits</h2>
 <ul>
 <li>
@@ -634,19 +751,16 @@ compounds and affixes) and reports the rest; it does not check your grammar. Try
 <strong>Duplicate</strong> is how to keep a language apart.</p>
 </li>
 <li>
-<p><strong>Retranslating asks the model again for every part of the range.</strong> There is no way yet to keep the translations whose English did not change.</p>
+<p><strong>An agent&#x27;s language changes wait in the book.</strong> They are taken into the library by you, after the run is applied; a language is not locked while a run works.</p>
 </li>
 <li>
-<p><strong>No agents.</strong> There are no commands for the extension and an agent run on a copy of a book does not copy or lock a language.</p>
+<p><strong>Commands do not replace a word in the story</strong> and a retranslation cannot keep the translations whose English did not change (every part of the range is asked again).</p>
 </li>
 <li>
 <p><strong>A phone</strong> has the panel, the editor, the review and the wizard, but the lexicon grid scrolls sideways; the tap on a speech in the viewer works; the story side (the menu of a part, the range window, the click in the story) was not tried there.</p>
 </li>
 <li>
 <p><strong>Footnotes of Word and PDF</strong> are endnotes after the part, not notes at the foot of the page.</p>
-</li>
-<li>
-<p>The <strong>Japanese and Chinese texts</strong> of the extension were written by a model and not read by a native speaker.</p>
 </li>
 </ul>
 
@@ -658,20 +772,20 @@ compounds and affixes) and reports the rest; it does not check your grammar. Try
             
                 <nav id="retype-nextprev" class="print:hidden flex mt-14">
                     <div class="w-1/2">
-                        <a class="px-5 py-4 h-full flex items-center break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-l-lg transition-colors duration-150 relative hover:z-5" href="../../../user/extensions/">
+                        <a class="px-5 py-4 h-full flex items-center break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-l-lg transition-colors duration-150 relative hover:z-5" href="../../../user/extensions/chinese-localization/">
                             <svg xmlns="http://www.w3.org/2000/svg" class="mr-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19 11H7.41l5.29-5.29a.996.996 0 10-1.41-1.41l-7 7a1 1 0 000 1.42l7 7a1.024 1.024 0 001.42-.01.996.996 0 000-1.41L7.41 13H19c.55 0 1-.45 1-1s-.45-1-1-1z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
                             <span>
                                 <span class="block text-xs font-normal text-base-text-muted">Previous</span>
-                                <span class="block mt-1">Extensions</span>
+                                <span class="block mt-1">Chinese localization</span>
                             </span>
                         </a>
                     </div>
             
                     <div class="w-1/2">
-                        <a class="px-5 py-4 -mx-px h-full flex items-center justify-end break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-r-lg transition-colors duration-150 relative hover:z-5" href="../../../user/extensions/knowledge-tracker/">
+                        <a class="px-5 py-4 -mx-px h-full flex items-center justify-end break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-r-lg transition-colors duration-150 relative hover:z-5" href="../../../user/extensions/sillytavern-converter/">
                             <span>
                                 <span class="block text-xs font-normal text-right text-base-text-muted">Next</span>
-                                <span class="block mt-1">Knowledge Tracker</span>
+                                <span class="block mt-1">Converter</span>
                             </span>
                             <svg xmlns="http://www.w3.org/2000/svg" class="ml-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19.92 12.38a1 1 0 00-.22-1.09l-7-7a.996.996 0 10-1.41 1.41l5.3 5.3H5c-.55 0-1 .45-1 1s.45 1 1 1h11.59l-5.29 5.29a.996.996 0 000 1.41c.19.2.44.3.7.3s.51-.1.71-.29l7-7c.09-.09.16-.21.21-.33z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
                         </a>
@@ -686,7 +800,7 @@ compounds and affixes) and reports the rest; it does not check your grammar. Try
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (245dd3bdf).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (a6ce4d29e).</p></div>
             </footer>
         </div>
     </div>

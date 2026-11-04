@@ -46,6 +46,9 @@ public class KnowledgeTrackerLocalization extends PluginLocalizationBundle {
     public static final String OLD_KNOWLEDGE = "Old knowledge (%d)";
     public static final String HAS_MET = "Has met: %s";
     public static final String SETTINGS = "Settings";
+    public static final String REFRESH = "Refresh";
+    public static final String MET_PEOPLE = "Has met";
+    public static final String PEOPLE_THE_CHARACTER_HAS_MET = "People the character has met, separated by commas. Processing adds the ones it sees in the story; the ones you remove come back only if the story is read again.";
     public static final String IN_PROMPT = "In prompt";
     public static final String INSERT_WHAT_THE_PRESENT_CHARACTERS_KNOW = "Insert what the tracked characters of the scene know into the prompt of every generation";
     public static final String DEPTH = "Depth";
@@ -262,6 +265,15 @@ public class KnowledgeTrackerLocalization extends PluginLocalizationBundle {
 
         ja(SETTINGS, "設定");
         zh(SETTINGS, "设置");
+
+        ja(REFRESH, "更新");
+        zh(REFRESH, "刷新");
+
+        ja(MET_PEOPLE, "会ったことがある人");
+        zh(MET_PEOPLE, "见过的人");
+
+        ja(PEOPLE_THE_CHARACTER_HAS_MET, "キャラクターが会ったことのある人をコンマで区切って入力します。処理はストーリーで見つけた人を追加します。削除した人は、ストーリーを再度読み込んだ場合にのみ戻ります。");
+        zh(PEOPLE_THE_CHARACTER_HAS_MET, "角色见过的人，用逗号分隔。处理时会加入故事中出现的人；删除的人只有在重新读取故事时才会再出现。");
 
         ja(IN_PROMPT, "プロンプトに入れる");
         zh(IN_PROMPT, "加入提示词");

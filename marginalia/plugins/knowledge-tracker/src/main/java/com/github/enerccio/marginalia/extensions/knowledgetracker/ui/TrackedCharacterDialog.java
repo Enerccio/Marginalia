@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.extensions.knowledgetracker.ui;
 
 import com.github.enerccio.marginalia.extensions.knowledgetracker.model.KnowledgeState;
+import com.github.enerccio.marginalia.extensions.knowledgetracker.model.MetPerson;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.model.TrackedCharacter;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.scene.PresentCharacters;
 import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
@@ -8,15 +9,17 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.github.enerccio.marginalia.extensions.knowledgetracker.KnowledgeTrackerLocalization.*;
 
 /**
- * Starts tracking a character or edits one: the name and the other names it is written as.
+ * Starts tracking a character or edits one: the name, the other names it is written as and the people it has met.
  */
 public class TrackedCharacterDialog extends Dialog {
 
@@ -27,6 +30,7 @@ public class TrackedCharacterDialog extends Dialog {
 
     private final TextField name = new TextField(T.localized(NAME));
     private final TextField aliases = new TextField(T.localized(ALIASES));
+    private final TextArea met = new TextArea(T.localized(MET_PEOPLE));
 
     /**
      * @param existing the character to edit, {@code null} to track a new one
@@ -51,7 +55,12 @@ public class TrackedCharacterDialog extends Dialog {
         aliases.setHelperText(T.localized(OTHER_NAMES_THE_CHARACTER_IS_WRITTEN));
         aliases.setValue(String.join(", ", character.getAliases()));
 
-        VerticalLayout content = new VerticalLayout(name, aliases);
+        met.setWidthFull();
+        met.setMinHeight("80px");
+        met.setHelperText(T.localized(PEOPLE_THE_CHARACTER_HAS_MET));
+        met.setValue(character.getMet().stream().map(MetPerson::getName).collect(Collectors.joining(", ")));
+
+        VerticalLayout content = new VerticalLayout(name, aliases, met);
         content.setPadding(false);
         add(content);
 
@@ -76,6 +85,7 @@ public class TrackedCharacterDialog extends Dialog {
         }
         character.setName(newName);
         character.setAliases(newAliases);
+        character.setMetNames(PresentCharacters.parse(met.getValue(), null));
         if (isNew) {
             state.getCharacters().add(character);
         }
