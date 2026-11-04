@@ -22,6 +22,7 @@
     <module>marginalia/plugins/chaptermarker</module>
     <module>marginalia/plugins/character-tracker</module>
     <module>marginalia/plugins/chineselocalization</module>
+    <module>marginalia/plugins/conlang-translator</module>
     <module>marginalia/plugins/image-generator</module>
     <module>marginalia/plugins/instructionexporter</module>
     <module>marginalia/plugins/gemma4toolsfix</module>

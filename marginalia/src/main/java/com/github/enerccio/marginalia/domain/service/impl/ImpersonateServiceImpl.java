@@ -15,6 +15,7 @@ import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole
 import com.github.enerccio.marginalia.domain.templates.ImpersonateTemplateData;
 import com.github.enerccio.marginalia.domain.templates.TemplateContext;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
+import com.github.enerccio.marginalia.extensions.PartTextRegistry;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes.InRequestScope;
 import org.apache.commons.lang3.StringUtils;
@@ -50,6 +51,9 @@ public class ImpersonateServiceImpl implements ImpersonateService {
 
     @Autowired
     private ChatMessageService chatMessageService;
+
+    @Autowired
+    private PartTextRegistry partTextRegistry;
 
     @Autowired
     private MessagePromptService messagePromptService;
@@ -187,7 +191,7 @@ public class ImpersonateServiceImpl implements ImpersonateService {
         data.setPreviousStory("");
 
         TemplateContext context = last == null ? bookContext(book)
-                : SummaryServiceImpl.createTemplateContext(book, last, ai, protocol, new ArrayList<>(branch.reversed()));
+                : SummaryServiceImpl.createTemplateContext(book, partTextRegistry, last, ai, protocol, new ArrayList<>(branch.reversed()));
         // estimation render must not change variables or the real render would apply them twice
         data.setTemplateContext(context.fork());
 
@@ -201,7 +205,7 @@ public class ImpersonateServiceImpl implements ImpersonateService {
             throw new ContextInsufficient(base, maxTokens);
         }
 
-        StoryAround.Around around = StoryAround.collect(summaryService, inferenceService, branch, List.of(), room);
+        StoryAround.Around around = StoryAround.collect(summaryService, inferenceService, partTextRegistry, branch, List.of(), room);
         data.setSummaries(around.summaries());
         data.setPreviousStory(around.previous());
         data.setTemplateContext(context);

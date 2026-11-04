@@ -7,6 +7,7 @@ import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LorebookEntryVerdict;
 import com.github.enerccio.marginalia.domain.templates.LorebookTemplateData;
+import com.github.enerccio.marginalia.extensions.PartTextRegistry;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 import org.slf4j.Logger;
@@ -29,6 +30,9 @@ public class LorebookActivationServiceImpl implements LorebookActivationService 
 
     @Autowired
     private ChatMessageService chatMessageService;
+
+    @Autowired
+    private PartTextRegistry partTextRegistry;
 
     @Autowired
     private TemplateService templateService;
@@ -160,16 +164,17 @@ public class LorebookActivationServiceImpl implements LorebookActivationService 
         if (excludeLeaf && !branch.isEmpty()) {
             branch.removeLast();
         }
-        List<String> parts = new ArrayList<>();
+        List<ChatMessage> picked = new ArrayList<>();
         for (ChatMessage message : branch.reversed()) {
             if (StringUtils.isNotBlank(message.getResponse())) {
-                parts.add(message.getResponse());
-                if (parts.size() == count) {
+                picked.add(message);
+                if (picked.size() == count) {
                     break;
                 }
             }
         }
-        return parts.reversed();
+        // the scan reads what the model reads (an extension may keep the story in another form)
+        return partTextRegistry.forModel(picked).reversed();
     }
 
     @Override

@@ -175,6 +175,30 @@ public interface ChatMessageService extends ExtendableService<ChatMessage, ChatM
     PartEdit updateResponse(Manuscript manuscript, ChatMessage message, String text, RevisionOrigin origin) throws Exception;
 
     /**
+     * Stores a text that says what the stored one says in other words: a translation that an extension made. The way of
+     * {@link #updateResponse(Manuscript, ChatMessage, String, RevisionOrigin)}, with these differences, because nothing was said
+     * that was not said before:
+     * <ul>
+     *     <li>the part is <b>not flagged as edited</b> (it is not what the author changed);</li>
+     *     <li>its tokens are those of {@code modelText}, what a model reads of the new text (the context is made of what a model is
+     *     sent), not of the stored text;</li>
+     *     <li>{@code generatedText} becomes the text the model generated ({@code originalResponse}), so what the author changed is
+     *     still found by comparing the two; null leaves it as it is;</li>
+     *     <li>the summaries that described the story before still do, so their hash is worked out again; the ones that were
+     *     outdated already stay so.</li>
+     * </ul>
+     * The history gets a version, as for any edit; give it {@code RevisionOrigin.automatic(RevisionDetail.TRANSLATION, false)}
+     * or an origin of the extension. The passages of the annotations move with the text.
+     *
+     * @param modelText     what a model reads of the new text, null reads the text itself
+     * @param generatedText the text as the model generated it with the same change, null for none
+     * @return the saved part
+     * @throws IllegalArgumentException when the part is not a part of the manuscript, or the manuscript is not the user's
+     */
+    ChatMessage replaceText(Manuscript manuscript, ChatMessage message, String text, String modelText, String generatedText,
+                            RevisionOrigin origin) throws Exception;
+
+    /**
      * The summaries that saving {@code text} as the text of the part would make outdated, without saving anything: what
      * {@link PartEdit#outdated()} of {@link #updateResponse(Manuscript, ChatMessage, String)} would hold, oldest first. The blocks
      * have the hash of the story with the new text, so they can be given to {@link SummaryService#revalidate(Manuscript, java.util.Collection)}

@@ -964,6 +964,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_REVALIDATE, "再検証");
         setValue(L.LABEL_OUTDATED, "古い");
         setValue(L.LABEL_SET_FOR_THE_BOOK, "このブックに設定済み");
+        setValue(L.LABEL_TRANSLATION, "翻訳");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");

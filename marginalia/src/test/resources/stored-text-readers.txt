@@ -1,0 +1,70 @@
+# Files of the application that read the text of a part as it is STORED (ChatMessage.getResponse() or ChatMessage::getResponse).
+#
+# An extension may keep the story in another form than a model should read it (the Conlang Translator stores the speech in a constructed
+# language and gives the model the English it was made from). Everything that gives the text of a part to a MODEL must take it from
+# PartTextRegistry (forModel / modelText), and everything that works on the text as it is stored (the editor, the history, the offsets of the
+# annotations, the hash of a summary, the search and replace, the export, the backups) keeps getResponse().
+#
+# StoredTextReadersTest fails for a file that reads the stored text and is not in this list, and for a file in this list that does not. When
+# you add a reader: does it send the text to a model? Then use PartTextRegistry. Only then add the file here, under the right heading.
+
+# --- the accessor itself
+com/github/enerccio/marginalia/domain/components/ModelText.java
+com/github/enerccio/marginalia/extensions/PartTextRegistry.java
+
+# --- decides, validates or counts on the stored text; what the model reads comes from PartTextRegistry
+com/github/enerccio/marginalia/domain/service/impl/generation/impl/PrepareContentStep.java
+com/github/enerccio/marginalia/domain/service/impl/generation/impl/InferenceStep.java
+com/github/enerccio/marginalia/domain/service/impl/LorebookActivationServiceImpl.java
+com/github/enerccio/marginalia/domain/service/impl/StoryAround.java
+com/github/enerccio/marginalia/domain/service/impl/AnnotateServiceImpl.java
+com/github/enerccio/marginalia/domain/service/impl/RedraftServiceImpl.java
+com/github/enerccio/marginalia/domain/service/impl/SummaryServiceImpl.java
+
+# --- the stored text and its offsets: the editor, the revisions, the annotations, the hashes, the search and replace
+com/github/enerccio/marginalia/domain/service/impl/ChatMessageServiceImpl.java
+com/github/enerccio/marginalia/domain/service/impl/MessageRevisionServiceImpl.java
+com/github/enerccio/marginalia/domain/service/impl/AnnotationServiceImpl.java
+com/github/enerccio/marginalia/domain/service/impl/ManuscriptReplaceServiceImpl.java
+com/github/enerccio/marginalia/domain/service/SummaryService.java
+com/github/enerccio/marginalia/domain/components/AnnotationTexts.java
+com/github/enerccio/marginalia/domain/components/RevisionData.java
+com/github/enerccio/marginalia/domain/components/RevisionOrigin.java
+com/github/enerccio/marginalia/domain/repository/impl/JpaChatMessageRepository.java
+com/github/enerccio/marginalia/bound/migration/OriginalResponseMigration.java
+com/github/enerccio/marginalia/bound/migration/PartRevisionMigration.java
+
+# --- the work of an agent on a copy of the book, and the read and write commands of an agent: they work on the stored text together (an
+# --- agent reads a part and then replaces words in it). The agent gets the text a model reads when the commands of the Conlang Translator
+# --- are made (step 13 of its TODO)
+com/github/enerccio/marginalia/domain/service/impl/AgentCopyServiceImpl.java
+com/github/enerccio/marginalia/domain/service/impl/AgentMergeServiceImpl.java
+com/github/enerccio/marginalia/domain/service/impl/commands/manuscript/read/ComparePartsCommand.java
+com/github/enerccio/marginalia/domain/service/impl/commands/manuscript/read/CountTokensCommand.java
+com/github/enerccio/marginalia/domain/service/impl/commands/manuscript/read/GetPartCommand.java
+com/github/enerccio/marginalia/domain/service/impl/commands/manuscript/read/ListBranchesCommand.java
+com/github/enerccio/marginalia/domain/service/impl/commands/manuscript/read/ListPartsCommand.java
+com/github/enerccio/marginalia/domain/service/impl/commands/manuscript/read/ListSwipesCommand.java
+com/github/enerccio/marginalia/domain/service/impl/commands/manuscript/write/AnnotationWriteCommands.java
+com/github/enerccio/marginalia/domain/service/impl/commands/manuscript/write/ManuscriptWriteSupport.java
+com/github/enerccio/marginalia/domain/service/impl/commands/manuscript/write/RedraftCommands.java
+
+# --- the export (an exporter hook comes with the Conlang Translator's export step)
+com/github/enerccio/marginalia/export/ExporterBase.java
+com/github/enerccio/marginalia/export/SillyTavernExporter.java
+com/github/enerccio/marginalia/ui/dialogs/ExportDialog.java
+
+# --- the screens that show or edit the stored text (the cards, the history, the viewer, the search, the dialogs of annotate and redraft)
+com/github/enerccio/marginalia/ui/components/ThreadCopyRequestAttributes.java
+com/github/enerccio/marginalia/ui/dialogs/manuscript/ManuscriptStoryPart.java
+com/github/enerccio/marginalia/ui/dialogs/phone/manuscript/PhoneManuscriptStoryPart.java
+com/github/enerccio/marginalia/ui/dialogs/PromptComparisonDialog.java
+com/github/enerccio/marginalia/ui/dialogs/story/AnnotateDialog.java
+com/github/enerccio/marginalia/ui/dialogs/story/AutoAnnotate.java
+com/github/enerccio/marginalia/ui/dialogs/story/CardAnnotations.java
+com/github/enerccio/marginalia/ui/dialogs/story/PartHistoryDialog.java
+com/github/enerccio/marginalia/ui/dialogs/story/RedraftDialog.java
+com/github/enerccio/marginalia/ui/dialogs/story/StoryBranchSearch.java
+com/github/enerccio/marginalia/ui/dialogs/story/StoryGenerationListener.java
+com/github/enerccio/marginalia/ui/main/Viewer.java
+com/github/enerccio/marginalia/ui/menu/StoryMenuRegistry.java

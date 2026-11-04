@@ -68,6 +68,16 @@ public interface RedraftService {
                               boolean withAnnotations, Passage passage, Callback callback) throws Exception;
 
     /**
+     * The passage grown to cover whole the passages of the text that an extension keeps in another form than the model reads
+     * (see {@code PartTextRegistry}): a selection that starts or ends inside such a passage cannot be redrafted by halves, the
+     * model is shown the passage as it reads it and its answer replaces the whole of it. The same passage when nothing is replaced.
+     *
+     * @param part    the part the passage is selected in, as it is stored
+     * @param passage the selected text as offsets in the stored text; null gives null
+     */
+    Passage widen(ChatMessage part, Passage passage);
+
+    /**
      * A passage of the text of a part, as offsets in it.
      *
      * @param start the first character of the passage
