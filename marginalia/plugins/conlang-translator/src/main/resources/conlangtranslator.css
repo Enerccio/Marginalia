@@ -1,0 +1,7 @@
+/* the speech of a character that was translated into a constructed language: marked in the story, the English source is behind it */
+mark.conlang-passage {
+    background: transparent;
+    color: inherit;
+    border-bottom: 1px dotted var(--lumo-primary-color-50pct);
+    cursor: help;
+}

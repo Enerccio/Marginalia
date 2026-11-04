@@ -58,6 +58,15 @@ public interface PassageService extends ExtendableService<AnchoredPassage, Passa
     List<AnchoredPassage> listForManuscript(Manuscript manuscript, String kind) throws Exception;
 
     /**
+     * The passages of the kind of the parts the caller holds, for reading text (the text a model reads, the display): one query for any
+     * number of parts, no manuscript needed, the order of {@link #listForPart}. The parts are the ones the caller loaded, which is where the
+     * ownership was checked; ids that match nothing give nothing.
+     *
+     * @param kind {@link PassageKind#id()}, null for the passages of all the extensions' kinds
+     */
+    List<AnchoredPassage> listForParts(Collection<Long> partIds, String kind) throws Exception;
+
+    /**
      * Attaches the passage to another place of its part (an orphaned passage is in the text again), or to the part as a whole
      * when the range is null.
      *

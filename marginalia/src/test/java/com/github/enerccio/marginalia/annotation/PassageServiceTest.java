@@ -13,6 +13,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -115,6 +117,22 @@ class PassageServiceTest extends MarginaliaTestBase {
         assertThat(passageService.listForPart(book, part, KIND)).extracting(AnchoredPassage::getId).containsExactly(passage.getId());
         assertThat(passageService.listForManuscript(book, null)).extracting(AnchoredPassage::getId).containsExactly(passage.getId());
         assertThat(passageService.listForManuscript(book, "another-kind")).isEmpty();
+    }
+
+    @Test
+    void thePassagesOfSeveralPartsAreReadInOneCall() throws Exception {
+        AnchoredPassage first = passage("Then she left.");
+        ChatMessage branch = chatMessageService.branch(book, part);
+        passageService.create(book, part, "another-kind", 0, 4);
+
+        List<AnchoredPassage> read = passageService.listForParts(List.of(part.getId(), branch.getId()), KIND);
+
+        assertThat(read).hasSize(2);
+        assertThat(read).extracting(AnchoredPassage::getPartId).containsExactlyInAnyOrder(part.getId(), branch.getId());
+        assertThat(read).extracting(AnchoredPassage::getId).contains(first.getId());
+        assertThat(passageService.listForParts(List.of(part.getId()), null)).hasSize(2);
+        assertThat(passageService.listForParts(List.of(), KIND)).isEmpty();
+        assertThat(passageService.listForParts(null, KIND)).isEmpty();
     }
 
     @Test
