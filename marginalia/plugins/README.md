@@ -12,7 +12,7 @@ a restart.
 | [Book Description Generator](book-description-generator/README.md) | Writes the name and the description of a book with the model from a range of its story (notes first when it is too long, optional summaries), from a button on the About tab. |
 | [Chapter Marker](chaptermarker/README.md) | Story parts starting a chapter (a Markdown `#` heading) are shown as chapters in the story sidebar. |
 | [Character Tracker](character-tracker/README.md) | The characters of the book with their relationships, and a map of the relationships, in the story sidebar. |
-| [Conlang Translator](conlang-translator/README.md) | Stub. Will translate the direct speech of the characters who speak a constructed language into it, with the original a click away for the reader. |
+| [Conlang Translator](conlang-translator/README.md) | The speech of the characters in a constructed language (rules and a lexicon, edited with the model's help), the English kept as the source every model reads; a click shows it in the story and in the viewer, the exports can print it as footnotes. |
 | [Gemma 4 tools fix](gemma4toolsfix/README.md) | Sends the results of function calls to Gemma 4 models with the role `tool_responses`. |
 | [Google Gemini](google-genai/README.md) | Google's Gemini models as an inference provider (type *Extension*), over the Google Gen AI Java SDK: thinking summaries as reasoning, safety filters, exact usage. |
 | [Image Generator](image-generator/README.md) | "Generate image" in the menu of a part: the model writes the prompt, ComfyUI or an OpenAI-style images API makes the picture, you reroll and accept it as an image of the part. Hooks free the GPU memory around it. |
