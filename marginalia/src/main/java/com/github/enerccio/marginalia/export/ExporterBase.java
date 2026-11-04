@@ -15,6 +15,10 @@ import com.github.enerccio.marginalia.domain.templates.ExportFrontMatterTemplate
 import com.github.enerccio.marginalia.domain.templates.ExportHeaderTemplateData;
 import com.github.enerccio.marginalia.ui.dialogs.ProgressBarDialog;
 import org.apache.commons.lang3.StringUtils;
+import org.commonmark.Extension;
+import org.commonmark.ext.footnotes.FootnoteDefinition;
+import org.commonmark.ext.footnotes.FootnoteReference;
+import org.commonmark.ext.footnotes.FootnotesExtension;
 import org.commonmark.node.*;
 import org.commonmark.parser.Parser;
 import org.commonmark.renderer.html.HtmlRenderer;
@@ -38,8 +42,10 @@ import java.util.regex.Pattern;
  */
 @Configurable(preConstruction = true)
 public abstract class ExporterBase implements Exporter {
-    private static final Parser PARSER = Parser.builder().build();
-    private static final HtmlRenderer HTML = HtmlRenderer.builder().escapeHtml(true).sanitizeUrls(true).build();
+    // footnotes: [^1] in the text and [^1]: the note, parsed for every format (see the block walker for the formats that have no own notes)
+    private static final List<Extension> EXTENSIONS = List.of(FootnotesExtension.create());
+    private static final Parser PARSER = Parser.builder().extensions(EXTENSIONS).build();
+    private static final HtmlRenderer HTML = HtmlRenderer.builder().extensions(EXTENSIONS).escapeHtml(true).sanitizeUrls(true).build();
     // the first heading of a message is its chapter title, the same rule the Chapter Marker plugin uses in the sidebar
     private static final Pattern HEADER_PATTERN = Pattern.compile("(?m)^\\s*#+\\s*(.+)$");
 
@@ -435,7 +441,25 @@ public abstract class ExporterBase implements Exporter {
      * @return XHTML compatible HTML of the markdown, raw HTML in the markdown is escaped
      */
     protected static String toHtml(String markdown) {
-        return HTML.render(parse(markdown));
+        return wellFormed(HTML.render(parse(markdown)));
+    }
+
+    // the footnote markup has attributes without a value (data-footnotes), which XHTML (the EPUB) does not allow
+    private static final Pattern BARE_ATTRIBUTE = Pattern.compile("(?<=\\s)(data-footnote[a-z-]*)(?=[\\s>])");
+
+    /**
+     * @return the HTML with the attributes that have no value written as {@code name=""}, which is the same in HTML and valid in XHTML; only
+     * the footnote markup of the renderer has such attributes (the text is escaped, so no tag is made of it)
+     */
+    protected static String wellFormed(String html) {
+        return BARE_ATTRIBUTE.matcher(html).replaceAll("$1=\"\"");
+    }
+
+    /**
+     * @return the HTML of the markdown in the HTML renderer of the exporter, which must have the footnotes extension ({@link #EXTENSIONS})
+     */
+    protected static List<Extension> extensions() {
+        return EXTENSIONS;
     }
 
     protected static String escapeXml(String text) {
@@ -493,6 +517,8 @@ public abstract class ExporterBase implements Exporter {
                 case FencedCodeBlock c -> sink.code(context, c.getLiteral());
                 case IndentedCodeBlock c -> sink.code(context, c.getLiteral());
                 case ThematicBreak _ -> sink.rule();
+                // a note is a block at the end of its part, an item of a list whose marker is its label: an endnote
+                case FootnoteDefinition d -> walk(d, new BlockContext(context.quoteDepth(), context.listDepth() + 1, "[" + d.getLabel() + "]"), sink);
                 case HtmlBlock b -> sink.paragraph(context, List.of(new Run(b.getLiteral().trim(), false, false, false, false)));
                 default -> walk(node, context, sink);
             }
@@ -522,6 +548,7 @@ public abstract class ExporterBase implements Exporter {
                 case HtmlInline h -> result.add(new Run(h.getLiteral(), bold, italic, code, false));
                 case SoftLineBreak _ -> result.add(new Run(" ", bold, italic, code, false));
                 case HardLineBreak _ -> result.add(Run.LINE_BREAK);
+                case FootnoteReference r -> result.add(new Run("[" + r.getLabel() + "]", bold, italic, code, false));
                 case Emphasis e -> collectRuns(e, bold, true, code, result);
                 case StrongEmphasis s -> collectRuns(s, true, italic, code, result);
                 default -> collectRuns(node, bold, italic, code, result);

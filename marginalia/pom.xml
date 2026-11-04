@@ -261,6 +261,12 @@
       <artifactId>commonmark</artifactId>
       <version>0.28.0</version>
     </dependency>
+    <!-- footnotes ([^1] and [^1]: text) in the exported text: the notes of the Conlang Translator, and the ones an author writes -->
+    <dependency>
+      <groupId>org.commonmark</groupId>
+      <artifactId>commonmark-ext-footnotes</artifactId>
+      <version>0.28.0</version>
+    </dependency>
 
     <!-- image attachments: the JDK can't read WebP, uploads of it are converted to PNG (pure Java, read only) -->
     <dependency>

@@ -4,6 +4,8 @@ import com.github.enerccio.marginalia.domain.model.impl.AnchoredPassage;
 import com.github.enerccio.marginalia.domain.service.PassageKind;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.ConlangStyles;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.model.Span;
+import com.github.enerccio.marginalia.extensions.conlangtranslator.ui.SourcePopover;
+import com.vaadin.flow.component.Component;
 
 /**
  * The kind of the passages of the translated speech: marked in the story with a dotted line. The click that shows the English source
@@ -19,6 +21,11 @@ public final class ConlangPassageKind implements PassageKind {
     @Override
     public String markClass(AnchoredPassage passage) {
         return ConlangStyles.PASSAGE;
+    }
+
+    @Override
+    public void onClick(AnchoredPassage passage, Component anchor) {
+        SourcePopover.open(passage, anchor);
     }
 
     @Override

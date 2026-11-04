@@ -16,33 +16,37 @@ import com.github.enerccio.marginalia.extensions.ExtensionHasCss;
 import com.github.enerccio.marginalia.extensions.InheritedSettingRegistry;
 import com.github.enerccio.marginalia.extensions.MarginaliaExtension;
 import com.github.enerccio.marginalia.extensions.PartTextRegistry;
-import com.github.enerccio.marginalia.extensions.conlangtranslator.model.BookSettings;
-import com.github.enerccio.marginalia.extensions.conlangtranslator.model.Language;
-import com.github.enerccio.marginalia.extensions.conlangtranslator.model.Span;
+import com.github.enerccio.marginalia.extensions.conlangtranslator.model.*;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.service.*;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.service.TranslationService.Outcome;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.text.ConlangPassageKind;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.text.ConlangTransformer;
+import com.github.enerccio.marginalia.extensions.conlangtranslator.text.ExportText;
+import com.github.enerccio.marginalia.extensions.conlangtranslator.translate.Reverse.Located;
+import com.github.enerccio.marginalia.extensions.conlangtranslator.ui.ExportChoice;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.ui.LanguageSettingsForm;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.ui.LookupDialog;
+import com.github.enerccio.marginalia.extensions.conlangtranslator.ui.ReaderView;
+import com.github.enerccio.marginalia.ui.components.PartView;
 import com.github.enerccio.marginalia.ui.dialogs.story.StoryCard;
 import com.github.enerccio.marginalia.ui.main.ApplicationEntryPoint;
 import com.github.enerccio.marginalia.ui.main.Main;
+import com.github.enerccio.marginalia.ui.main.Viewer;
 import com.github.enerccio.marginalia.ui.menu.StoryMenuItem;
 import com.github.enerccio.marginalia.ui.menu.StoryMenuRegistry;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.utils.UIUtils;
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ComponentUtil;
 import com.vaadin.flow.component.accordion.Accordion;
 import com.vaadin.flow.component.accordion.AccordionPanel;
+import com.vaadin.flow.component.select.Select;
 import org.osgi.framework.Bundle;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
-import java.util.Collections;
-import java.util.Set;
-import java.util.WeakHashMap;
+import java.util.*;
 
 import static com.github.enerccio.marginalia.extensions.conlangtranslator.ConlangTranslatorLocalization.*;
 
@@ -81,6 +85,9 @@ public class ConlangTranslatorExtension implements MarginaliaExtension, Extensio
     private PassageService passageService;
 
     @Autowired
+    private ManuscriptService manuscriptService;
+
+    @Autowired
     private InheritedSettingRegistry inheritedSettingRegistry;
 
     private final LanguageLibrary library = new LanguageLibrary();
@@ -94,6 +101,13 @@ public class ConlangTranslatorExtension implements MarginaliaExtension, Extensio
     private Registration cleanupRegistration;
     private ExtensionDecorator userPartDecorator;
     private ExtensionDecorator userPartSaveDecorator;
+    private ExtensionDecorator viewerDecorator;
+    private ExtensionDecorator exportFieldsDecorator;
+    private ExtensionDecorator exportDecorator;
+    // the field of each export dialog that is open
+    private final Map<Object, Select<ExportMode>> exportChoices = Collections.synchronizedMap(new WeakHashMap<>());
+    // the reader mode of the book a viewer shows, found once per viewer
+    private final Map<Object, ReaderMode> readerModes = Collections.synchronizedMap(new WeakHashMap<>());
     private final Set<Accordion> activeAccordions = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
     private String owner;
 
@@ -119,6 +133,9 @@ public class ConlangTranslatorExtension implements MarginaliaExtension, Extensio
                             story -> lookUp(story.getCurrentManuscript()))
                     .icon(Solid.BOOK::create));
 
+            registerViewer(extensionService);
+            registerExport(extensionService);
+
             // a generated part is final once the automatic annotation and redraft (if the book has them) are done
             partFinishedDecorator = new ExtensionDecorator() {
                 @Override
@@ -142,6 +159,116 @@ public class ConlangTranslatorExtension implements MarginaliaExtension, Extensio
         } catch (Exception e) {
             throw new IllegalStateException("Failed to load the Conlang Translator extension", e);
         }
+    }
+
+    /**
+     * The published book: the parts the viewer builds show the translated speech the way the book asks for (<i>conlang with a click</i>, <i>conlang
+     * only</i>, <i>English only</i>). The reader is not the author, so nothing of the author's own settings is read.
+     */
+    private void registerViewer(ExtensionService extensionService) throws Exception {
+        viewerDecorator = new ExtensionDecorator() {
+            @Override
+            public void onMethodEnter(Object instrumented, ExtendableMethodContext context) {
+            }
+
+            @Override
+            public void onMethodLeave(Object instrumented, ExtendableMethodContext context, Throwable throwing) throws Exception {
+                if (throwing != null || !context.hasReturn()) {
+                    return;
+                }
+                ChatMessage part = context.getMethodArgument("msg", ChatMessage.class);
+                Component built = context.getCurrentReturn(Component.class);
+                if (part == null || part.getId() == null || !(built instanceof PartView view)) {
+                    return;
+                }
+                List<AnchoredPassage> passages = passageService.listForParts(List.of(part.getId()), Span.KIND);
+                if (!passages.isEmpty()) {
+                    ReaderView.apply(view, part, readerMode(instrumented, context), passages);
+                }
+            }
+        };
+        extensionService.registerDecorator(viewerDecorator, "com.github.enerccio.marginalia.ui.main.Viewer", "createPart");
+    }
+
+    /**
+     * The export dialog: a field for what the export holds for the translated speech (only for a book that has some), and the parts the exporter
+     * gets are changed accordingly. The exporters are not touched: they get another text.
+     */
+    private void registerExport(ExtensionService extensionService) throws Exception {
+        exportFieldsDecorator = new ExtensionDecorator() {
+            @Override
+            public void onMethodEnter(Object instrumented, ExtendableMethodContext context) {
+            }
+
+            @Override
+            public void onMethodLeave(Object instrumented, ExtendableMethodContext context, Throwable throwing) throws Exception {
+                if (throwing != null || !context.hasReturn()) {
+                    return;
+                }
+                Manuscript book = context.getReflectiveFieldValue(instrumented, "manuscript", Manuscript.class);
+                if (book == null || passageService.listForManuscript(book, Span.KIND).isEmpty()) {
+                    return;
+                }
+                Select<ExportMode> choice = ExportChoice.field();
+                exportChoices.put(instrumented, choice);
+                context.getCurrentReturn(List.class).add(choice);
+            }
+        };
+        extensionService.registerDecorator(exportFieldsDecorator, "com.github.enerccio.marginalia.ui.dialogs.ExportDialog", "createExtensionFields");
+
+        exportDecorator = new ExtensionDecorator() {
+            @Override
+            public void onMethodEnter(Object instrumented, ExtendableMethodContext context) throws Exception {
+                Select<ExportMode> choice = exportChoices.get(instrumented);
+                ExportMode mode = choice == null || choice.getValue() == null ? ExportMode.CONLANG : choice.getValue();
+                if (mode == ExportMode.CONLANG) {
+                    return;
+                }
+                List<ChatMessage> parts = context.getMethodArgument("messages", List.class);
+                context.registerMethodArgument("messages", exportParts(mode, parts), List.class);
+            }
+
+            @Override
+            public void onMethodLeave(Object instrumented, ExtendableMethodContext context, Throwable throwing) {
+            }
+        };
+        extensionService.registerDecorator(exportDecorator, "com.github.enerccio.marginalia.ui.dialogs.ExportDialog", "export");
+    }
+
+    /**
+     * Copies of the parts with the text the export gets, in the order of the parts; the stored parts are not touched.
+     */
+    private List<ChatMessage> exportParts(ExportMode mode, List<ChatMessage> parts) throws Exception {
+        Map<Long, List<Located>> passages = passageAccess.of(parts);
+        List<ChatMessage> exported = new ArrayList<>();
+        int number = 1;
+        for (ChatMessage part : parts) {
+            ExportText.Rendered rendered = ExportText.render(mode, part.getResponse(), passages.get(part.getId()), number);
+            number = rendered.next();
+            ChatMessage copy = ChatMessage.copyOf(part);
+            copy.setResponse(rendered.text());
+            exported.add(copy);
+        }
+        return exported;
+    }
+
+    /**
+     * How the book of the viewer shows the speech: its own choice, else the one of a folder, else the click. The book is found as the viewer
+     * found it, so a book the reader may not see has no mode (the default).
+     */
+    private ReaderMode readerMode(Object viewer, ExtendableMethodContext context) throws Exception {
+        ReaderMode known = readerModes.get(viewer);
+        if (known != null) {
+            return known;
+        }
+        ReaderMode mode = ReaderMode.CLICK;
+        String uuid = context.getReflectiveFieldValue(viewer, "manuscriptParam", String.class);
+        Manuscript book = uuid == null ? null : manuscriptService.findViewable(uuid);
+        if (book != null) {
+            mode = ReaderMode.of(manuscriptService.resolveExtension(book, ConlangInherited.READER).value());
+        }
+        readerModes.put(viewer, mode);
+        return mode;
     }
 
     /**
@@ -315,8 +442,7 @@ public class ConlangTranslatorExtension implements MarginaliaExtension, Extensio
 
     @Override
     public String getCss(ApplicationEntryPoint entryPoint) {
-        // the story is read in the workspace; the viewer gets its own display later
-        return entryPoint instanceof Main ? ConlangStyles.css() : null;
+        return entryPoint instanceof Main || entryPoint instanceof Viewer ? ConlangStyles.css() : null;
     }
 
     @Override
@@ -337,6 +463,20 @@ public class ConlangTranslatorExtension implements MarginaliaExtension, Extensio
             extensionService.unregisterDecorator(userPartDecorator);
             userPartDecorator = null;
         }
+        if (viewerDecorator != null) {
+            extensionService.unregisterDecorator(viewerDecorator);
+            viewerDecorator = null;
+        }
+        readerModes.clear();
+        if (exportFieldsDecorator != null) {
+            extensionService.unregisterDecorator(exportFieldsDecorator);
+            exportFieldsDecorator = null;
+        }
+        if (exportDecorator != null) {
+            extensionService.unregisterDecorator(exportDecorator);
+            exportDecorator = null;
+        }
+        exportChoices.clear();
         if (userPartSaveDecorator != null) {
             extensionService.unregisterDecorator(userPartSaveDecorator);
             userPartSaveDecorator = null;
