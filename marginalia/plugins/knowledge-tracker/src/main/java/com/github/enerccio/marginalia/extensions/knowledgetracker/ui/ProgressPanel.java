@@ -28,9 +28,9 @@ public class ProgressPanel extends Dialog {
 
     private final ExtractionRun run;
     /** At most one update waits at a time: the run reports faster than the page can show, and the newest status is read when it runs. */
-    private final Runnable statusUpdate = UiAccess.coalesced(this, () -> show(run.getStatus()));
-    private final Runnable liveUpdate = UiAccess.coalesced(this, this::showLive);
-    private final Consumer<Status> listener = _ -> statusUpdate.run();
+    private final Runnable statusUpdate;
+    private final Runnable liveUpdate;
+    private final Consumer<Status> listener;
     /** What the page shows of the thoughts and the log, to rebuild them only when they changed. */
     private ExtractionRun.Thought shownLastThought;
     private int shownThoughts = -1;
@@ -57,6 +57,9 @@ public class ProgressPanel extends Dialog {
 
     public ProgressPanel(ExtractionRun run) {
         this.run = run;
+        this.statusUpdate = UiAccess.coalesced(this, () -> show(run.getStatus()));
+        this.liveUpdate = UiAccess.coalesced(this, this::showLive);
+        this.listener = _ -> statusUpdate.run();
         setHeaderTitle(T.localized(PROCESSING_THE_STORY));
         // not modal: no overlay, the page stays usable; draggable by the title
         setModal(false);
