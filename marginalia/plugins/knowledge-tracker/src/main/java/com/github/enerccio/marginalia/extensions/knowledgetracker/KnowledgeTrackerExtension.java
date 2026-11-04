@@ -8,29 +8,21 @@ import com.github.enerccio.marginalia.domain.service.ExtensionService.Extendable
 import com.github.enerccio.marginalia.domain.service.ExtensionService.ExtensionDecorator;
 import com.github.enerccio.marginalia.domain.service.OsgiService;
 import com.github.enerccio.marginalia.domain.service.StoryGenerationService;
-import com.github.enerccio.marginalia.domain.service.impl.generation.Events;
-import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationControllerEvent;
-import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationProperties;
-import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationRequest;
-import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationRequestType;
-import com.github.enerccio.marginalia.domain.service.impl.generation.dto.GenerationOutcome;
+import com.github.enerccio.marginalia.domain.service.impl.generation.*;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationControllerEvent.EventChain;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationControllerEvent.Registration;
+import com.github.enerccio.marginalia.domain.service.impl.generation.dto.GenerationOutcome;
 import com.github.enerccio.marginalia.extensions.ExtensionHasCss;
 import com.github.enerccio.marginalia.extensions.MarginaliaExtension;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.block.PayloadInsertion;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.commands.KnowledgeTrackerCommands;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.model.KnowledgeState;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.model.BookSettings;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.service.ExtractionRun;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.service.ExtractionRuns;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.service.ExtractionService;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.service.KnowledgeProcessService;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.service.KnowledgePromptService;
+import com.github.enerccio.marginalia.extensions.knowledgetracker.model.KnowledgeState;
+import com.github.enerccio.marginalia.extensions.knowledgetracker.service.*;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.service.KnowledgePromptService.Prepared;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.service.KnowledgeStateService;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.ui.KnowledgeTrackerStyles;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.ui.KnowledgeTrackerView;
+import com.github.enerccio.marginalia.ui.dialogs.story.StoryEditor;
 import com.github.enerccio.marginalia.ui.main.ApplicationEntryPoint;
 import com.github.enerccio.marginalia.ui.main.Main;
 import com.github.enerccio.marginalia.ui.widgets.TabDock;
@@ -111,7 +103,8 @@ public class KnowledgeTrackerExtension implements MarginaliaExtension, Extension
                         if (ComponentUtil.getData(leftBar, VIEW_KEY) != null) {
                             return;
                         }
-                        KnowledgeTrackerView view = new KnowledgeTrackerView(currentManuscript, stateService, processService, extractionService, runs);
+                        StoryEditor story = instrumented instanceof StoryEditor editor ? editor : null;
+                        KnowledgeTrackerView view = new KnowledgeTrackerView(currentManuscript, story, stateService, processService, extractionService, runs);
                         leftBar.add("knowledge-tracker", T.localized(KNOWLEDGE), KNOWLEDGE_ICON, view);
                         ComponentUtil.setData(leftBar, VIEW_KEY, view);
                         activeTabSheets.add(leftBar);

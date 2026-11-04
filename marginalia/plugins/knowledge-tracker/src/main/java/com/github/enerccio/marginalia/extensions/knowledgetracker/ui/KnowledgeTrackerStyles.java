@@ -26,6 +26,8 @@ public final class KnowledgeTrackerStyles {
     public static final String KIND_NOT = "knowledge-tracker-kind-not";
     public static final String OLD = "knowledge-tracker-old";
     public static final String OLD_ITEM = "knowledge-tracker-old-item";
+    public static final String SOURCE = "knowledge-tracker-source";
+    public static final String SOURCE_LINK = "knowledge-tracker-source-link";
     public static final String MET = "knowledge-tracker-met";
     public static final String EMPTY = "knowledge-tracker-empty";
     public static final String LIST = "knowledge-tracker-list";

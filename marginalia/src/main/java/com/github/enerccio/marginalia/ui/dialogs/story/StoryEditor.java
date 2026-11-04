@@ -56,6 +56,12 @@ public interface StoryEditor {
     void reloadStory();
 
     /**
+     * Shows the story (on the phone: closes the drawer) and scrolls to the part and flashes it. The part has to be on the active branch,
+     * nothing happens otherwise. For the tabs of extensions that point at a part ({@code messageId} is the database id of the part).
+     */
+    void scrollToMessage(Long messageId);
+
+    /**
      * Opens the dialog that lets a model annotate a range of the parts of the story, the story is shown again when annotations were added.
      */
     void openAnnotateRangeDialog();

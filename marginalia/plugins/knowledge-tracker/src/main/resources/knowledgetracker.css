@@ -133,6 +133,23 @@
     text-decoration: line-through;
 }
 
+/* The number of the part an item was learned in: tiny, after the text; a click scrolls the story to the part */
+.knowledge-tracker-source {
+    margin-left: var(--lumo-space-xs);
+    color: var(--lumo-secondary-text-color);
+    font-size: var(--lumo-font-size-xxs);
+    white-space: nowrap;
+}
+
+.knowledge-tracker-source-link {
+    cursor: pointer;
+    color: var(--lumo-primary-text-color);
+}
+
+.knowledge-tracker-source-link:hover {
+    text-decoration: underline;
+}
+
 .knowledge-tracker-settings {
     display: flex;
     flex-direction: column;

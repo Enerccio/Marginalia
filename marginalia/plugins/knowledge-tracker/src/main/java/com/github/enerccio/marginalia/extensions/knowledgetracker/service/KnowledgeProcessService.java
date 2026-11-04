@@ -68,7 +68,8 @@ public class KnowledgeProcessService {
         if (leaf != null) {
             // the text as the model reads it: it is what the extraction quotes and what the hash of a processed part is made of
             for (ChatMessage message : chatMessageService.getBranchFromLeaf(leaf)) {
-                parts.add(new Part(message.getUuid(), message.getPovCharacter(), message.getPresentCharacters(), partTexts.forModel(message)));
+                parts.add(new Part(message.getUuid(), message.getPovCharacter(), message.getPresentCharacters(), partTexts.forModel(message),
+                        message.getId()));
             }
         }
         return parts;
