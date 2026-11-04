@@ -158,6 +158,10 @@ they go into the lexicon as *new*, the same as the words of a translated part. W
 - **By hand:** the menu of a part has **Translate the speech**. A part that is translated already is translated again **from its English**, so this is also how you retranslate a
   part after the rules or the lexicon changed.
 - **By itself:** with **Translate a new part by itself**, a generated part is translated as soon as it is final. A *regenerate* of a part gives it new English and removes the old translation.
+- **A sentence you wrote:** select it in the text of a part, right click and choose **Translate the selection**. The model translates the selected text
+  (spaces and a pair of quotation marks around it are left out) with the language, the notes of the characters and the story around it; the text is replaced by the translation and
+  the English is kept as the source of the speech, so a click on it shows the English like on any translated speech. The words the model had to invent are added to the lexicon as
+  *new*, as for a translated part. A selection that holds a translated speech is refused (put the English back first), and so is one made in a part that changed meanwhile.
 - **A range:** **Translate parts** in the tools menu of the story opens a window that stays open beside the story.
 
   ![Translate parts](../../images/plugin-conlang-range.png)

@@ -91,7 +91,7 @@ public final class RangeRuns {
             case TRANSLATED -> PartResult.done(outcome.translated(), outcome.newWords(), 0);
             case NOTHING_TO_TRANSLATE, EMPTY -> PartResult.nothing();
             case NO_LANGUAGE, NO_MODEL -> PartResult.abort(outcome.note());
-            case BAD_ANSWER -> PartResult.failed(outcome.note());
+            case BAD_ANSWER, OVERLAPS, CHANGED -> PartResult.failed(outcome.note());
         };
     }
 

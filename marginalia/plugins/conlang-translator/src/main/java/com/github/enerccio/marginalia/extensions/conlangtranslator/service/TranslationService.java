@@ -45,7 +45,11 @@ public class TranslationService {
         /** The part has no text. */
         EMPTY,
         /** The model did not answer in the expected form; nothing was changed. */
-        BAD_ANSWER
+        BAD_ANSWER,
+        /** The selection holds a translated speech already (or part of one); nothing was changed. */
+        OVERLAPS,
+        /** The part was changed since the selection was made; nothing was changed. */
+        CHANGED
     }
 
     /**
@@ -79,6 +83,9 @@ public class TranslationService {
     private AIService aiService;
     @Autowired
     private ProtocolService protocolService;
+
+    /** How much of the story before and after a selected sentence the model reads (characters). */
+    private static final int AROUND = 400;
 
     private final PassageAccess passages = new PassageAccess();
     private final ModelClient modelClient = new ModelClient();
@@ -266,15 +273,106 @@ public class TranslationService {
             span.write(passage.getAttributes());
             passageService.save(passage);
         }
-        if (!checked.words().isEmpty()) {
-            UserSetting user = settingService.getOrCreate(UserSetting.class);
-            Language stored = ConlangStore.find(user.getAttributes(), language.getId());
-            if (stored != null) {
-                NewWords.addTo(stored, checked.words(), Origin.model(fresh.getUuid(), modelName, now));
-                ConlangStore.save(user.getAttributes(), stored);
-                settingService.save(user);
-            }
+        addNewWords(language, checked.words(), fresh.getUuid(), modelName, now);
+    }
+
+    /** Adds the words the model invented to the lexicon of the library, new. */
+    private void addNewWords(Language language, List<AnswerChecker.Word> words, String partUuid, String modelName, long now) throws Exception {
+        if (words.isEmpty()) {
+            return;
         }
+        UserSetting user = settingService.getOrCreate(UserSetting.class);
+        Language stored = ConlangStore.find(user.getAttributes(), language.getId());
+        if (stored != null) {
+            NewWords.addTo(stored, words, Origin.model(partUuid, modelName, now));
+            ConlangStore.save(user.getAttributes(), stored);
+            settingService.save(user);
+        }
+    }
+
+    /**
+     * Translates one sentence the author selected (typically one he wrote himself) into the language: the model translates it, the
+     * sentence is replaced by the translation in the text of the part, and a passage keeps the English it was, like the speeches of a translated
+     * part. The words the model had to invent are added to the lexicon as new. A selection that holds a translated speech is refused.
+     *
+     * @param expected the text of the part the range is in; the part must still have it
+     * @param start    first character of the selection in {@code expected}
+     * @param end      end of the selection (exclusive)
+     */
+    public Outcome translateSelection(Manuscript manuscript, ChatMessage part, String expected, int start, int end) throws Exception {
+        Manuscript book = manuscriptService.find(manuscript);
+        ChatMessage current = chatMessageService.find(part);
+        if (book == null || current == null) {
+            throw new IllegalArgumentException("The part does not exist");
+        }
+        String text = StringUtils.defaultString(expected);
+        if (!text.equals(StringUtils.defaultString(current.getResponse()))) {
+            return Outcome.of(Status.CHANGED, "The part was changed after the selection was made.");
+        }
+        int[] range = SelectionRange.trim(text, start, end);
+        if (range[1] <= range[0]) {
+            return Outcome.of(Status.EMPTY, "Nothing is selected.");
+        }
+        BookSettings settings = resolve(book);
+        Language language = languageOf(settings);
+        if (language == null) {
+            return Outcome.of(Status.NO_LANGUAGE, "The book has no language.");
+        }
+        ModelSelection model = resolveModel(book, settings);
+        if (model == null) {
+            return Outcome.of(Status.NO_MODEL, "There is no model for the translation.");
+        }
+        Reverse.Result read = readOf(current);
+        boolean overlaps = passages.of(List.of(current)).getOrDefault(current.getId(), List.of()).stream()
+                .anyMatch(located -> range[0] < located.end() && range[1] > located.start());
+        if (overlaps) {
+            return Outcome.of(Status.OVERLAPS, "The selection holds a translated speech.");
+        }
+        String english = text.substring(range[0], range[1]);
+        StringBuilder who = new StringBuilder();
+        if (StringUtils.isNotBlank(current.getPovCharacter())) {
+            who.append("Point of view: ").append(current.getPovCharacter().strip()).append(". ");
+        }
+        if (StringUtils.isNotBlank(current.getPresentCharacters())) {
+            who.append("Characters present: ").append(current.getPresentCharacters().strip()).append('.');
+        }
+        String around = text.substring(Math.max(0, range[0] - AROUND), range[0]) + "[[" + english + "]]"
+                + text.substring(range[1], Math.min(text.length(), range[1] + AROUND));
+        TranslationPrompt.Request request = QuickTranslation.build(language, settings.getSpeakers(), english, who.toString().strip(), around,
+                settings.getMaxLexiconChars());
+        QuickTranslation.Answer answer = QuickTranslation.parse(ask(model, book, request));
+        if (answer == null) {
+            return Outcome.of(Status.BAD_ANSWER, "The model did not answer in the expected form.");
+        }
+        AnswerChecker.Checked checked = AnswerChecker.checkNewWords(answer.newWords(), language);
+        String conlang = answer.text();
+        List<String> reported = checked.words().stream().map(word -> word.word().word()).toList();
+        int unknown = new LexiconCheck(language, reported, text).unknown(conlang).isEmpty() ? 0 : 1;
+        Object lock = locks.computeIfAbsent(book.getUuid(), uuid -> new Object());
+        synchronized (lock) {
+            ChatMessage fresh = chatMessageService.find(part);
+            if (!text.equals(StringUtils.defaultString(fresh.getResponse()))) {
+                return Outcome.of(Status.CHANGED, "The part was changed while it was being translated.");
+            }
+            String stored = text.substring(0, range[0]) + conlang + text.substring(range[1]);
+            boolean untouched = fresh.getOriginalResponse() != null && fresh.getOriginalResponse().equals(fresh.getResponse());
+            // what a model reads is the same text as before: the English of the sentence stays in the passage
+            ChatMessage saved = chatMessageService.replaceText(book, fresh, stored, read.text(), untouched ? stored : null,
+                    RevisionOrigin.automatic(RevisionDetail.TRANSLATION, false));
+            long now = System.currentTimeMillis();
+            AnchoredPassage passage = passageService.create(book, saved, Span.KIND, range[0], range[0] + conlang.length());
+            Span span = new Span(language.getId(), english, conlang);
+            span.setSpeaker("");
+            span.setUnderstood(true);
+            span.setRegister("");
+            span.setModel(model.ai().getName());
+            span.setTime(now);
+            span.write(passage.getAttributes());
+            passageService.save(passage);
+            addNewWords(language, checked.words(), saved.getUuid(), model.ai().getName(), now);
+        }
+        return new Outcome(Status.TRANSLATED, 1, checked.words().size(), 0, unknown,
+                unknown > 0 ? "The translation uses words that are not in the lexicon and were not reported." : "");
     }
 
     // --- the model ---

@@ -66,6 +66,7 @@ import static com.github.enerccio.marginalia.extensions.conlangtranslator.Conlan
 public class ConlangTranslatorExtension implements MarginaliaExtension, ExtensionHasCss {
 
     private static final String MENU_ITEM_KEY = "conlangtranslator.translate";
+    private static final String SELECTION_ITEM_KEY = "conlangtranslator.selection";
     private static final String RANGE_ITEM_KEY = "conlangtranslator.range";
     private static final String BOOK_TAB_ID = "conlang-translator";
     private static final String BOOK_VIEW_KEY = "com.github.enerccio.marginalia.extensions.conlangtranslator.bookView";
@@ -141,6 +142,10 @@ public class ConlangTranslatorExtension implements MarginaliaExtension, Extensio
 
             menuRegistry.register(owner, StoryMenuItem.card(MENU_ITEM_KEY, l -> T.localized(TRANSLATE_THE_SPEECH),
                             (story, card) -> translateByHand(story.getCurrentManuscript(), card))
+                    .icon(Solid.LANGUAGE::create));
+            // the right click on a selected sentence (the menu of the text): the author's own sentence in the language
+            menuRegistry.register(owner, StoryMenuItem.text(SELECTION_ITEM_KEY, l -> T.localized(TRANSLATE_THE_SELECTION),
+                            (story, card) -> translateSelection(story.getCurrentManuscript(), card))
                     .icon(Solid.LANGUAGE::create));
             menuRegistry.register(owner, StoryMenuItem.tools(RANGE_ITEM_KEY, l -> T.localized(TRANSLATE_PARTS), this::openRange)
                     .icon(Solid.LAYER_GROUP::create));
@@ -434,6 +439,33 @@ public class ConlangTranslatorExtension implements MarginaliaExtension, Extensio
     }
 
     /**
+     * The item of the menu of the text: translates the sentence the author selected on a worker thread, and shows the part again.
+     */
+    private void translateSelection(Manuscript manuscript, StoryCard card) {
+        if (manuscript == null || card == null || card.getMessage() == null) {
+            return;
+        }
+        card.withSelection(range -> {
+            ChatMessage part = card.getMessage();
+            String expected = part.getResponse();
+            Notification.success(T.localized(TRANSLATING_THE_SELECTION));
+            boolean started = runs.startSelection(manuscript, part, expected, range[0], range[1], (outcome, failure) -> {
+                report(outcome, failure);
+                if (outcome != null && outcome.status() == TranslationService.Status.TRANSLATED) {
+                    try {
+                        card.updateResponse(translationService.find(part).getResponse());
+                    } catch (Exception e) {
+                        log.warn("Failed to show the translated part: {}", e.getMessage(), e);
+                    }
+                }
+            });
+            if (!started) {
+                Notification.error(T.localized(THE_PART_IS_BEING_TRANSLATED));
+            }
+        });
+    }
+
+    /**
      * The new part is final: when the book translates by itself, a run starts on a worker thread, and the story is loaded again when it is
      * over. Otherwise nothing happens. A failure never reaches the story.
      */
@@ -474,6 +506,8 @@ public class ConlangTranslatorExtension implements MarginaliaExtension, Extensio
             case NO_MODEL -> Notification.error(T.localized(THE_BOOK_HAS_NO_MODEL));
             case EMPTY -> Notification.error(T.localized(THE_PART_HAS_NO_TEXT));
             case BAD_ANSWER -> Notification.error(T.localized(THE_MODEL_ANSWERED_WRONG));
+            case OVERLAPS -> Notification.error(T.localized(THE_SELECTION_HOLDS_A_TRANSLATED_SPEECH));
+            case CHANGED -> Notification.error(T.localized(THE_PART_WAS_CHANGED_MEANWHILE));
         }
     }
 

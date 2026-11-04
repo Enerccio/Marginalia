@@ -262,7 +262,7 @@ public class CardAnnotations {
      * which are found in the markdown source of the part. Tells the author when nothing is selected, or the selection is not in the
      * text.
      */
-    void withSelection(Consumer<int[]> action) {
+    public void withSelection(Consumer<int[]> action) {
         TextArea editing = editor.get();
         if (editing != null) {
             JavascriptLibrary.getTextAreaSelection(editing.getElement()).then(String.class, value -> {

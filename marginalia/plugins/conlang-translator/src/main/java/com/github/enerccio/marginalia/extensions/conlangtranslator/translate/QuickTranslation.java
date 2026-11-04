@@ -53,14 +53,28 @@ public final class QuickTranslation {
      * @param maxLexiconChars the size above which the lexicon is cut down
      */
     public static TranslationPrompt.Request build(Language language, Speakers speakers, String text, String context, int maxLexiconChars) {
+        return build(language, speakers, text, context, null, maxLexiconChars);
+    }
+
+    /**
+     * The request for a sentence of the story.
+     *
+     * @param around the story around the sentence (for who speaks to whom; it is not translated); may be empty
+     */
+    public static TranslationPrompt.Request build(Language language, Speakers speakers, String text, String context, String around,
+                                                  int maxLexiconChars) {
         String system = String.format(INSTRUCTIONS, language.getName()) + "\n\n" + TranslationPrompt.languageBlock(language, text, maxLexiconChars);
         StringBuilder user = new StringBuilder();
-        String characters = TranslationPrompt.characters(language, speakers, TranslationPrompt.Scene.none(), text + "\n" + (context == null ? "" : context));
+        String characters = TranslationPrompt.characters(language, speakers, TranslationPrompt.Scene.none(),
+                text + "\n" + (context == null ? "" : context) + "\n" + (around == null ? "" : around));
         if (!characters.isEmpty()) {
             user.append("CHARACTERS:\n").append(characters).append('\n');
         }
         if (context != null && !context.isBlank()) {
             user.append("CONTEXT (who says it, to whom, where): ").append(context.strip()).append("\n\n");
+        }
+        if (around != null && !around.isBlank()) {
+            user.append("THE STORY AROUND IT (for who speaks to whom; a text in [[double square brackets]] is the TEXT; do not translate this):\n").append(around.strip()).append("\n\n");
         }
         user.append("TEXT:\n").append(text == null ? "" : text.strip()).append('\n');
         return new TranslationPrompt.Request(system, user.toString());
