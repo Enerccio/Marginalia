@@ -18,6 +18,7 @@ import com.github.enerccio.marginalia.ui.styles.PartStyleApplier;
 import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.utils.UIUtils;
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ModalityMode;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
@@ -136,6 +137,7 @@ public class ExportDialog extends Dialog implements LLMInteract {
         FormLayout form = new FormLayout();
         form.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 1));
         form.add(format, styleChoice, fileName, bookTitle, author, from, to, includeHeaders);
+        createExtensionFields().forEach(form::add);
         form.getChildren().forEach(c -> c.getElement().getClassList().add(CssStyles.FULL_WIDTH));
         add(form);
 
@@ -143,6 +145,18 @@ public class ExportDialog extends Dialog implements LLMInteract {
         export.setThemeName("primary");
         export.setEnabled(!exporters.isEmpty());
         getFooter().add(new Button(loc.getValue(L.LABEL_CANCEL), event -> close()), export);
+    }
+
+    /**
+     * The fields an extension adds to the dialog, after the title page check box (empty here: a decorator of this method adds components to
+     * the list it returns, and reads them when it decorates {@code export} to change what is exported).
+     */
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = List.class),
+            locals = {@APILocals(name = "fields", type = List.class)})
+    private List<Component> createExtensionFields() {
+        List<Component> fields = new ArrayList<>();
+        return fields;
     }
 
     /**

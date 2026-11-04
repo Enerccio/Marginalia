@@ -107,3 +107,22 @@ mark.conlang-passage {
         grid-template-columns: 1fr;
     }
 }
+
+/* the English source behind a translated speech */
+.conlang-source-box {
+    max-width: min(28em, 80vw);
+}
+
+.conlang-source-text {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+/* a part of a published book with clickable speech: the popover is placed against it */
+.conlang-reader-part {
+    position: relative;
+}
+
+.conlang-reader-part mark.conlang-passage {
+    cursor: pointer;
+}

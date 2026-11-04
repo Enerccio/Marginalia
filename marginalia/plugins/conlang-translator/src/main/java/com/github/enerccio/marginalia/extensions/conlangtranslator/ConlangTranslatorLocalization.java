@@ -286,6 +286,18 @@ public class ConlangTranslatorLocalization extends PluginLocalizationBundle {
     public static final String THE_DESIGNER_INVENTS_WORDS = "The designer invents new words by the rules of the language and the lexicon it has. You review them before anything is written.";
     public static final String THE_DESIGNER_WRITES_A_SECTION = "The designer writes a new section of the rules for what the rules miss (a numbering system, colors, politeness...) and the words it needs. You review them before anything is written.";
     public static final String THE_DESIGNER_REWRITES = "The designer rewrites a section as you ask. You see what changed before it is written.";
+    public static final String READERS_SEE = "Readers of the published book see";
+    public static final String CONLANG_WITH_THE_ENGLISH_ON_CLICK = "The conlang, the English on a click";
+    public static final String CONLANG_ONLY = "The conlang only";
+    public static final String ENGLISH_ONLY = "The English only";
+    public static final String WHAT_THE_READERS_OF_THE_PUBLISHED_BOOK_SEE = "How the speech that was translated is shown in the viewer. With the conlang only, the English is never sent to the reader. Your own views are not affected.";
+    public static final String TRANSLATED_SPEECH = "Translated speech";
+    public static final String THE_CONLANG_AS_IT_IS = "The conlang, as it is";
+    public static final String THE_CONLANG_THE_ENGLISH_IN_FOOTNOTES = "The conlang, the English in footnotes";
+    public static final String THE_ENGLISH_THE_CONLANG_IN_FOOTNOTES = "The English, the conlang in footnotes";
+    public static final String SAID_BY_S = "Said by %s";
+    public static final String NOT_UNDERSTOOD = "(not understood by the listener)";
+    public static final String EDITED_AFTER_TRANSLATION = "The text was edited after the translation; this may not be what it says now.";
     public static final String THE_DESIGNER_REVIEWS = "The designer reads the rules and the lexicon and lists contradictions, gaps, and words that break the sound system. Nothing is changed.";
 
     @Override
@@ -1123,5 +1135,41 @@ public class ConlangTranslatorLocalization extends PluginLocalizationBundle {
 
         ja(THE_DESIGNER_REVIEWS, "デザイナーが規則と語彙を読み、矛盾・不足・音体系に反する単語を一覧にします。何も変更されません。");
         zh(THE_DESIGNER_REVIEWS, "设计器阅读规则和词汇,列出矛盾、缺漏和违反语音系统的词。不会修改任何内容。");
+
+        ja(SAID_BY_S, "話者:%s");
+        zh(SAID_BY_S, "说话者:%s");
+
+        ja(NOT_UNDERSTOOD, "(聞き手には理解できない)");
+        zh(NOT_UNDERSTOOD, "(听者听不懂)");
+
+        ja(EDITED_AFTER_TRANSLATION, "翻訳後にテキストが編集されました。現在の内容と一致しない可能性があります。");
+        zh(EDITED_AFTER_TRANSLATION, "翻译之后文本被编辑过,这里的原文可能与现在的内容不符。");
+
+        ja(READERS_SEE, "公開された本の読者に見えるもの");
+        zh(READERS_SEE, "已发布图书的读者看到的内容");
+
+        ja(CONLANG_WITH_THE_ENGLISH_ON_CLICK, "人工言語。クリックすると英語");
+        zh(CONLANG_WITH_THE_ENGLISH_ON_CLICK, "构造语言,点击显示英文");
+
+        ja(CONLANG_ONLY, "人工言語のみ");
+        zh(CONLANG_ONLY, "仅构造语言");
+
+        ja(ENGLISH_ONLY, "英語のみ");
+        zh(ENGLISH_ONLY, "仅英文");
+
+        ja(WHAT_THE_READERS_OF_THE_PUBLISHED_BOOK_SEE, "翻訳された台詞をビューアでどう表示するか。人工言語のみの場合、英語は読者に送信されません。ご自身の画面には影響しません。");
+        zh(WHAT_THE_READERS_OF_THE_PUBLISHED_BOOK_SEE, "翻译后的对白在阅读器中的显示方式。选择仅构造语言时,英文不会发送给读者。不影响你自己的视图。");
+
+        ja(TRANSLATED_SPEECH, "翻訳された台詞");
+        zh(TRANSLATED_SPEECH, "翻译后的对白");
+
+        ja(THE_CONLANG_AS_IT_IS, "人工言語のまま");
+        zh(THE_CONLANG_AS_IT_IS, "保持构造语言原样");
+
+        ja(THE_CONLANG_THE_ENGLISH_IN_FOOTNOTES, "人工言語。英語は脚注");
+        zh(THE_CONLANG_THE_ENGLISH_IN_FOOTNOTES, "构造语言,英文放脚注");
+
+        ja(THE_ENGLISH_THE_CONLANG_IN_FOOTNOTES, "英語。人工言語は脚注");
+        zh(THE_ENGLISH_THE_CONLANG_IN_FOOTNOTES, "英文,构造语言放脚注");
     }
 }

@@ -3,6 +3,7 @@ package com.github.enerccio.marginalia.extensions.conlangtranslator.service;
 import com.github.enerccio.marginalia.extensions.InheritedSetting;
 import com.github.enerccio.marginalia.extensions.InheritedSetting.Choice;
 import com.github.enerccio.marginalia.extensions.InheritedSettingRegistry;
+import com.github.enerccio.marginalia.extensions.conlangtranslator.model.ReaderMode;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.model.UserDefaults;
 
 import java.util.List;
@@ -20,6 +21,7 @@ public final class ConlangInherited {
     public static final String AUTO = "conlangtranslator.auto";
     public static final String AI = "conlangtranslator.ai";
     public static final String PROTOCOL = "conlangtranslator.protocol";
+    public static final String READER = "conlangtranslator.reader";
 
     /** The ids of the two choices of {@link #AUTO}. */
     public static final String YES = "yes";
@@ -54,5 +56,14 @@ public final class ConlangInherited {
                 .group(() -> T.localized(CONLANG_TRANSLATOR))
                 .help(() -> T.localized(EMPTY_THE_PROTOCOL_OF_THE_BOOK))
                 .userValue(() -> defaults.get().getProtocolUuid()));
+        // no user level and no fallback but the default mode: the reader of a published book is not the author, whose defaults must not
+        // decide what the reader sees
+        registry.register(owner, InheritedSetting.choice(READER, () -> T.localized(READERS_SEE), () -> List.of(
+                        new Choice(ReaderMode.CLICK.id(), T.localized(CONLANG_WITH_THE_ENGLISH_ON_CLICK)),
+                        new Choice(ReaderMode.CONLANG.id(), T.localized(CONLANG_ONLY)),
+                        new Choice(ReaderMode.SOURCE.id(), T.localized(ENGLISH_ONLY))))
+                .group(() -> T.localized(CONLANG_TRANSLATOR))
+                .help(() -> T.localized(WHAT_THE_READERS_OF_THE_PUBLISHED_BOOK_SEE))
+                .fallback(() -> ReaderMode.CLICK.id()));
     }
 }
