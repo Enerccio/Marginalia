@@ -148,6 +148,7 @@ public class KnowledgeTrackerLocalization extends PluginLocalizationBundle {
     public static final String MODEL_FOR_THE_EXTRACTION = "Model for the extraction";
     public static final String PROTOCOL_FOR_THE_EXTRACTION = "Protocol for the extraction";
     public static final String THE_MODEL_OF_THE_BOOK = "The model of the book";
+    public static final String SHOW_PART_IN_THE_STORY = "Show part %d in the story";
 
     @Override
     protected void loadKeys() {
@@ -533,5 +534,8 @@ public class KnowledgeTrackerLocalization extends PluginLocalizationBundle {
 
         ja(THE_MODEL_OF_THE_BOOK, "本のモデル");
         zh(THE_MODEL_OF_THE_BOOK, "本书的模型");
+
+        ja(SHOW_PART_IN_THE_STORY, "パート %d をストーリーで表示");
+        zh(SHOW_PART_IN_THE_STORY, "在故事中显示第 %d 部分");
     }
 }

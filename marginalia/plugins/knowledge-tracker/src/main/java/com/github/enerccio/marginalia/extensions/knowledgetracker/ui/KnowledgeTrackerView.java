@@ -18,6 +18,7 @@ import com.github.enerccio.marginalia.extensions.knowledgetracker.service.Knowle
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
+import com.github.enerccio.marginalia.ui.dialogs.story.StoryEditor;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.*;
@@ -59,7 +60,12 @@ public class KnowledgeTrackerView extends VerticalLayout {
     private final ExtractionService extractionService;
     private final ExtractionRuns runs;
     private final Manuscript manuscript;
+    /** The story tab this one belongs to, to scroll it to a part; {@code null} when there is none. */
+    private final StoryEditor story;
     private KnowledgeState state;
+    /** The parts of the active branch by uuid, as the last refresh read them (the number of a part is its position in the branch). */
+    private final Map<String, Integer> positions = new HashMap<>();
+    private final Map<String, Long> messageIds = new HashMap<>();
 
     /** Ids of the characters that are shown open and of those whose old knowledge is open; kept over a refresh. */
     private final Set<String> open = new HashSet<>();
@@ -103,9 +109,10 @@ public class KnowledgeTrackerView extends VerticalLayout {
     /** How many of the processed parts the list shows, the latest first. */
     private static final int SHOWN_PROCESSED = 30;
 
-    public KnowledgeTrackerView(Manuscript manuscript, KnowledgeStateService service, KnowledgeProcessService processService,
-                                ExtractionService extractionService, ExtractionRuns runs) {
+    public KnowledgeTrackerView(Manuscript manuscript, StoryEditor story, KnowledgeStateService service,
+                                KnowledgeProcessService processService, ExtractionService extractionService, ExtractionRuns runs) {
         this.manuscript = manuscript;
+        this.story = story;
         this.service = service;
         this.processService = processService;
         this.extractionService = extractionService;
@@ -435,12 +442,20 @@ public class KnowledgeTrackerView extends VerticalLayout {
 
         List<Part> branch;
         Status status;
+        positions.clear();
+        messageIds.clear();
         try {
             branch = processService.branch(manuscript);
             status = processService.status(manuscript);
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
             return panel;
+        }
+        for (int i = 0; i < branch.size(); i++) {
+            positions.put(branch.get(i).uuid(), i + 1);
+            if (branch.get(i).id() != null) {
+                messageIds.put(branch.get(i).uuid(), branch.get(i).id());
+            }
         }
         String line = branch.isEmpty() ? T.localized(THE_BOOK_HAS_NO_PARTS_YET)
                 : status.cursor() > 0 ? T.localized(PROCESSED_UP_TO_PART).formatted(status.cursor(), status.parts())
@@ -895,7 +910,8 @@ public class KnowledgeTrackerView extends VerticalLayout {
         Div body = new Div();
         body.addClassName(KnowledgeTrackerStyles.BODY);
 
-        List<KnowledgeItem> active = character.activeItems();
+        // the newest knowledge on top: the items are stored in the order they were added
+        List<KnowledgeItem> active = newestFirst(character.activeItems());
         if (active.isEmpty()) {
             Div none = new Div(new Span(T.localized(NOTHING_IS_KNOWN_YET)));
             none.addClassName(KnowledgeTrackerStyles.EMPTY);
@@ -916,7 +932,7 @@ public class KnowledgeTrackerView extends VerticalLayout {
             body.add(met);
         }
 
-        List<KnowledgeItem> old = character.oldItems();
+        List<KnowledgeItem> old = newestFirst(character.oldItems());
         if (!old.isEmpty()) {
             VerticalLayout oldItems = new VerticalLayout();
             oldItems.setPadding(false);
@@ -946,10 +962,15 @@ public class KnowledgeTrackerView extends VerticalLayout {
             kind.addClassName(KnowledgeTrackerStyles.KIND_NOT);
         }
 
-        Div text = new Div(new Span(item.getText()));
-        text.addClassName(KnowledgeTrackerStyles.ITEM_TEXT);
+        Span words = new Span(item.getText());
         if (old) {
-            text.addClassName(KnowledgeTrackerStyles.OLD_ITEM);
+            words.addClassName(KnowledgeTrackerStyles.OLD_ITEM);
+        }
+        Div text = new Div(words);
+        text.addClassName(KnowledgeTrackerStyles.ITEM_TEXT);
+        Component source = createSourceLink(item);
+        if (source != null) {
+            text.add(source);
         }
 
         Div actions = new Div();
@@ -989,6 +1010,36 @@ public class KnowledgeTrackerView extends VerticalLayout {
         Div row = new Div(kind, text, actions);
         row.addClassName(KnowledgeTrackerStyles.ITEM);
         return row;
+    }
+
+    private static List<KnowledgeItem> newestFirst(List<KnowledgeItem> items) {
+        List<KnowledgeItem> reversed = new ArrayList<>(items);
+        Collections.reverse(reversed);
+        return reversed;
+    }
+
+    /**
+     * The small number of the part the item was learned in, which scrolls the story to that part. Nothing for an item that was written
+     * by hand, and for one whose part is not on the active branch any more (another branch, or the part was deleted): the story can
+     * only show the parts of the active branch.
+     */
+    private Component createSourceLink(KnowledgeItem item) {
+        Integer position = item.getSourceMessage() == null ? null : positions.get(item.getSourceMessage());
+        Long id = item.getSourceMessage() == null ? null : messageIds.get(item.getSourceMessage());
+        if (position == null) {
+            return null;
+        }
+        Span link = new Span("#" + position);
+        link.addClassName(KnowledgeTrackerStyles.SOURCE);
+        if (story != null && id != null) {
+            link.addClassName(KnowledgeTrackerStyles.SOURCE_LINK);
+            link.getElement().setAttribute("title", T.localized(SHOW_PART_IN_THE_STORY).formatted(position));
+            link.getElement().setAttribute("role", "link");
+            link.getElement().setAttribute("tabindex", "0");
+            link.addClickListener(_ -> story.scrollToMessage(id));
+            link.getElement().addEventListener("keydown", _ -> story.scrollToMessage(id)).setFilter("event.key === 'Enter'");
+        }
+        return link;
     }
 
     private void openItemDialog(TrackedCharacter character, KnowledgeItem existing) {

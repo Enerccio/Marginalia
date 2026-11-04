@@ -412,6 +412,20 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
     }
 
     /**
+     * Closes the drawer and scrolls to the part and flashes it, nothing happens when the part is not on the branch.
+     */
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "messageId", type = Long.class)})
+    @Override
+    public void scrollToMessage(Long messageId) {
+        if (messageId != null) {
+            layout.setDrawerOpened(false);
+            lazyLoader.scrollTo(messageId);
+        }
+    }
+
+    /**
      * Opens the annotation by a model of a range of the parts of the story ({@link AnnotateDialog#openRange}); the story is shown
      * again when annotations were added.
      */

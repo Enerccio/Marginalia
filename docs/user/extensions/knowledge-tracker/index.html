@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847136829139">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847142598189">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.847136829139" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.847142598189" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847136829139" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847142598189" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847136829139" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847142598189" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -205,6 +205,7 @@ among the <em>present characters</em> of the part being written. Nothing is gues
 <retype-table copy-text="| | |
 |---|---|
 | **Knows** (green) / **Does not know** (red) | One short sentence about anything: a person, a place, a secret, an event (*Peter knows about the plot against the duke*, *Fiora does not know that Thomas is her father*). Write what a character does **not** know explicitly, that is what the model respects. |
+| The order and **#12** | The newest knowledge is on top (old knowledge too). An item the model learned ends with the small number of the part it was learned in (**#12**): a click scrolls the story to that part and flashes it (on a phone it closes the drawer first). Items you wrote have no number, and neither has one whose part is not on the active branch (another branch, or the part was deleted). |
 | **Add knowledge** | Adds an item, active at once. Keep it to **one thought**: an item that says two things (*does not know who Thomas is, has never met him*) is retracted as soon as one of them stops being true. The **edit** button changes the text and the kind. |
 | **Retract** (the circle with a slash) | The item is not true any more (*has not met Thomas* after they meet). It is not deleted: it becomes *old knowledge* and is no longer sent to the model. |
 | **Lock** (the padlock, on items the model learned) | The [tidy pass](#tidying-the-knowledge) never sees a locked item: use it for what must stay, a betrayal, a secret. The story can still contradict a locked item (a character who loses their memory): the reading of the story retracts it as usual. |
@@ -223,6 +224,10 @@ among the <em>present characters</em> of the part being written. Nothing is gues
 <tr>
 <td><strong>Knows</strong> (green) / <strong>Does not know</strong> (red)</td>
 <td>One short sentence about anything: a person, a place, a secret, an event (<em>Peter knows about the plot against the duke</em>, <em>Fiora does not know that Thomas is her father</em>). Write what a character does <strong>not</strong> know explicitly, that is what the model respects.</td>
+</tr>
+<tr>
+<td>The order and <strong>#12</strong></td>
+<td>The newest knowledge is on top (old knowledge too). An item the model learned ends with the small number of the part it was learned in (<strong>#12</strong>): a click scrolls the story to that part and flashes it (on a phone it closes the drawer first). Items you wrote have no number, and neither has one whose part is not on the active branch (another branch, or the part was deleted).</td>
 </tr>
 <tr>
 <td><strong>Add knowledge</strong></td>
@@ -657,7 +662,7 @@ so a second generation from the same part does not see a change you made in betw
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (a43418c0c).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (6036c1ae2).</p></div>
             </footer>
         </div>
     </div>

@@ -241,7 +241,7 @@ Registering a key again replaces the item. Instruction Exporter is the whole of 
 name of the action in the key bindings table, so make it say what the action does.
 
 `StoryEditor` is the story tab (the desktop or the phone one): `getCurrentManuscript()` (the book it shows **now**, read it when the action runs, the tab loads other
-books into the same instance), `openSearchReplaceDialog()`, `openExportDialog()`, `openLoreUsageDialog()` (the lore usage report of the book), `getPartStyleChoices()` (the entries of the *Change Styles For Text* menu)... `StoryCard` is the card of the part the menu is of:
+books into the same instance), `openSearchReplaceDialog()`, `openExportDialog()`, `openLoreUsageDialog()` (the lore usage report of the book), `getPartStyleChoices()` (the entries of the *Change Styles For Text* menu), `scrollToMessage(Long)` (shows the story, on a phone closes the drawer, scrolls to the part with that database id and flashes it; the part has to be on the active branch)... `StoryCard` is the card of the part the menu is of:
 `getMessage()` (the `ChatMessage`, the card replaces it with the saved copy, so read it each time), `isEditing()`, `isLast()`, and the actions of the part
 (`toggleEdit()`, `swipe()`, `branch()`, `annotatePart()`, `showLoreUsage()`...). The callback runs on the UI thread of the user, in a request, as any click listener.
 

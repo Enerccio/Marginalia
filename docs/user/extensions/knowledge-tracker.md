@@ -24,6 +24,7 @@ Open a character with the arrow on its card to see what it knows:
 | | |
 |---|---|
 | **Knows** (green) / **Does not know** (red) | One short sentence about anything: a person, a place, a secret, an event (*Peter knows about the plot against the duke*, *Fiora does not know that Thomas is her father*). Write what a character does **not** know explicitly, that is what the model respects. |
+| The order and **#12** | The newest knowledge is on top (old knowledge too). An item the model learned ends with the small number of the part it was learned in (**#12**): a click scrolls the story to that part and flashes it (on a phone it closes the drawer first). Items you wrote have no number, and neither has one whose part is not on the active branch (another branch, or the part was deleted). |
 | **Add knowledge** | Adds an item, active at once. Keep it to **one thought**: an item that says two things (*does not know who Thomas is, has never met him*) is retracted as soon as one of them stops being true. The **edit** button changes the text and the kind. |
 | **Retract** (the circle with a slash) | The item is not true any more (*has not met Thomas* after they meet). It is not deleted: it becomes *old knowledge* and is no longer sent to the model. |
 | **Lock** (the padlock, on items the model learned) | The [tidy pass](#tidying-the-knowledge) never sees a locked item: use it for what must stay, a betrayal, a secret. The story can still contradict a locked item (a character who loses their memory): the reading of the story retracts it as usual. |
