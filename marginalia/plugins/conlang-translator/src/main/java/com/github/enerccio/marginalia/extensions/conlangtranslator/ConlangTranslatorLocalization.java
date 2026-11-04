@@ -329,6 +329,10 @@ public class ConlangTranslatorLocalization extends PluginLocalizationBundle {
     public static final String IMPORT_THE_SELECTED_WORDS = "Import the selected words";
     public static final String IMPORTED_D_WORDS_AS_NEW = "Imported %d word(s) as new";
     public static final String WORDS_IN_NEITHER_THE_LEXICON_NOR_THE_NEW_WORDS = "Words that are in neither the lexicon nor the new words: %s";
+    public static final String TRANSLATE_THE_SELECTION = "Translate the selection";
+    public static final String TRANSLATING_THE_SELECTION = "Translating the selected text...";
+    public static final String THE_SELECTION_HOLDS_A_TRANSLATED_SPEECH = "The selection holds a translated speech; put the English back first";
+    public static final String THE_PART_WAS_CHANGED_MEANWHILE = "The part was changed meanwhile; select the text again";
 
     @Override
     protected void loadKeys() {
@@ -1291,5 +1295,17 @@ public class ConlangTranslatorLocalization extends PluginLocalizationBundle {
 
         ja(WORDS_IN_NEITHER_THE_LEXICON_NOR_THE_NEW_WORDS, "語彙にも新語にもない単語: %s");
         zh(WORDS_IN_NEITHER_THE_LEXICON_NOR_THE_NEW_WORDS, "既不在词汇表也不在新词中的词:%s");
+
+        ja(TRANSLATE_THE_SELECTION, "選択範囲を翻訳");
+        zh(TRANSLATE_THE_SELECTION, "翻译所选内容");
+
+        ja(TRANSLATING_THE_SELECTION, "選択したテキストを翻訳中...");
+        zh(TRANSLATING_THE_SELECTION, "正在翻译所选文本...");
+
+        ja(THE_SELECTION_HOLDS_A_TRANSLATED_SPEECH, "選択範囲に翻訳済みの台詞があります。先に英語に戻してください");
+        zh(THE_SELECTION_HOLDS_A_TRANSLATED_SPEECH, "所选内容包含已翻译的对白,请先恢复为英文");
+
+        ja(THE_PART_WAS_CHANGED_MEANWHILE, "その間にパートが変更されました。もう一度選択してください");
+        zh(THE_PART_WAS_CHANGED_MEANWHILE, "该段在此期间已被修改,请重新选择文本");
     }
 }

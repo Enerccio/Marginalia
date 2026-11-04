@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.springframework.web.context.request.RequestAttributes;
 
 import java.util.Set;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 
@@ -45,6 +46,17 @@ public final class TranslationRuns {
      * @return false when the part is being translated already (nothing is started)
      */
     public boolean start(Manuscript manuscript, ChatMessage part, BiConsumer<Outcome, Throwable> done) {
+        return run(part, () -> service.translate(manuscript, part), done);
+    }
+
+    /**
+     * Translates the sentence selected in the part, see {@link TranslationService#translateSelection}; the rules of {@link #start} apply.
+     */
+    public boolean startSelection(Manuscript manuscript, ChatMessage part, String expected, int from, int to, BiConsumer<Outcome, Throwable> done) {
+        return run(part, () -> service.translateSelection(manuscript, part, expected, from, to), done);
+    }
+
+    private boolean run(ChatMessage part, Callable<Outcome> job, BiConsumer<Outcome, Throwable> done) {
         if (!running.add(part.getUuid())) {
             return false;
         }
@@ -54,7 +66,7 @@ public final class TranslationRuns {
             Outcome outcome = null;
             Throwable failure = null;
             try (InRequestScope _ = new InRequestScope(attributes)) {
-                outcome = service.translate(manuscript, part);
+                outcome = job.call();
             } catch (Throwable e) {
                 failure = e;
                 log.warn("Failed to translate a part: {}", e.getMessage(), e);

@@ -58,6 +58,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
 import java.util.*;
+import java.util.function.Consumer;
 
 /**
  * The story tab of the {@link PhoneManuscriptDialog}. One column: the parts of the story fill the screen and the
@@ -1480,6 +1481,17 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
         @Override
         public void redraftSelection() {
             cardAnnotations.redraftSelection();
+        }
+
+        /**
+         * Gives the action the range of the text the author selected, see {@link CardAnnotations#withSelection}.
+         */
+        @PublicAPI(from = "1.7.0",
+                returns = @APIReturn(type = void.class),
+                parameters = {@APIParameter(name = "action", type = Consumer.class)})
+        @Override
+        public void withSelection(Consumer<int[]> action) {
+            cardAnnotations.withSelection(action);
         }
 
         @PublicAPI(from = "1.5.0",
