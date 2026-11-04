@@ -52,6 +52,10 @@ another version of the story, switch to that branch first.
 The text of the parts is Markdown. Emphasis, headings, quotes, lists, code blocks and scene breaks (`---`) are kept in
 every format that can show them. Raw HTML in the text is shown as text, never run.
 
+## Footnotes
+
+A footnote is written in the text of a part as `[^1]` where the mark stands and `[^1]: the note` on a line of its own (the label can be any word). Every format has them: **Markdown** keeps the syntax, **HTML**, **EPUB** and **HTML for Archive of Our Own** put a small raised number that links to the notes under the text of the part (AO3 gets the plain markup its editor keeps), **plain text**, **Word** and **PDF** write the mark as `[1]` and the notes as lines that start with `[1]` after the text of the part, which is how an endnote looks. Real footnotes at the bottom of the page of a Word document or a PDF are not made yet. Extensions can use them, too: the Conlang Translator extension writes the English of each speech as a footnote.
+
 ## Images
 
 [Images](story-editor.md#images) of the parts are placed where their position says (after the text unless you chose another

@@ -295,6 +295,24 @@ public class ConlangTranslatorLocalization extends PluginLocalizationBundle {
     public static final String THE_CONLANG_AS_IT_IS = "The conlang, as it is";
     public static final String THE_CONLANG_THE_ENGLISH_IN_FOOTNOTES = "The conlang, the English in footnotes";
     public static final String THE_ENGLISH_THE_CONLANG_IN_FOOTNOTES = "The English, the conlang in footnotes";
+    public static final String TRANSLATE_PARTS = "Translate parts";
+    public static final String FROM_PART = "From part";
+    public static final String TO_PART = "To part";
+    public static final String START = "Start";
+    public static final String STOP = "Stop";
+    public static final String TRANSLATE_THE_PARTS_THAT_ARE_NOT_TRANSLATED = "Translate the parts that are not translated";
+    public static final String TRANSLATE_THE_TRANSLATED_PARTS_AGAIN = "Translate the translated parts again";
+    public static final String PUT_THE_ENGLISH_BACK = "Put the English back";
+    public static final String PARTS_IN_THE_RANGE_D_TO_DO_D = "%d part(s) in the range, %d to do";
+    public static final String NOTHING_TO_DO_IN_THE_RANGE = "Nothing to do in the range";
+    public static final String PUT_THE_ENGLISH_BACK_INTO_D_PARTS = "Put the English back into %d part(s)? The conlang stays in the history of each part, and speeches you edited stay as they are.";
+    public static final String A_RANGE_IS_BEING_TRANSLATED_ALREADY = "A range of this book is being processed already";
+    public static final String STOPPING_AFTER_THIS_PART = "Stopping after this part...";
+    public static final String PART_D_OF_D = "Part %d of %d";
+    public static final String D_PARTS_CHANGED_D_SPEECHES_D_NEW_WORDS = "%d part(s) changed, %d speech(es), %d new word(s).";
+    public static final String D_EDITED_SPEECHES_STAY = "%d edited speech(es) stay as they are.";
+    public static final String D_PARTS_FAILED_S = "%d part(s) failed: %s";
+    public static final String STOPPED_AFTER_D_OF_D_PARTS = "Stopped after %d of %d part(s).";
     public static final String SAID_BY_S = "Said by %s";
     public static final String NOT_UNDERSTOOD = "(not understood by the listener)";
     public static final String EDITED_AFTER_TRANSLATION = "The text was edited after the translation; this may not be what it says now.";
@@ -1171,5 +1189,59 @@ public class ConlangTranslatorLocalization extends PluginLocalizationBundle {
 
         ja(THE_ENGLISH_THE_CONLANG_IN_FOOTNOTES, "英語。人工言語は脚注");
         zh(THE_ENGLISH_THE_CONLANG_IN_FOOTNOTES, "英文,构造语言放脚注");
+
+        ja(TRANSLATE_PARTS, "パートを翻訳");
+        zh(TRANSLATE_PARTS, "翻译段落");
+
+        ja(FROM_PART, "開始パート");
+        zh(FROM_PART, "起始段落");
+
+        ja(TO_PART, "終了パート");
+        zh(TO_PART, "结束段落");
+
+        ja(START, "開始");
+        zh(START, "开始");
+
+        ja(STOP, "停止");
+        zh(STOP, "停止");
+
+        ja(TRANSLATE_THE_PARTS_THAT_ARE_NOT_TRANSLATED, "未翻訳のパートを翻訳");
+        zh(TRANSLATE_THE_PARTS_THAT_ARE_NOT_TRANSLATED, "翻译尚未翻译的段落");
+
+        ja(TRANSLATE_THE_TRANSLATED_PARTS_AGAIN, "翻訳済みのパートを再翻訳");
+        zh(TRANSLATE_THE_TRANSLATED_PARTS_AGAIN, "重新翻译已翻译的段落");
+
+        ja(PUT_THE_ENGLISH_BACK, "英語に戻す");
+        zh(PUT_THE_ENGLISH_BACK, "恢复为英文");
+
+        ja(PARTS_IN_THE_RANGE_D_TO_DO_D, "範囲内のパート:%d、対象:%d");
+        zh(PARTS_IN_THE_RANGE_D_TO_DO_D, "范围内 %d 段,待处理 %d 段");
+
+        ja(NOTHING_TO_DO_IN_THE_RANGE, "範囲内に対象がありません");
+        zh(NOTHING_TO_DO_IN_THE_RANGE, "范围内没有需要处理的段落");
+
+        ja(PUT_THE_ENGLISH_BACK_INTO_D_PARTS, "%d個のパートを英語に戻しますか?人工言語は各パートの履歴に残り、編集した台詞はそのままです。");
+        zh(PUT_THE_ENGLISH_BACK_INTO_D_PARTS, "要将 %d 段恢复为英文吗?构造语言保留在每段的历史中,你编辑过的对白保持不变。");
+
+        ja(A_RANGE_IS_BEING_TRANSLATED_ALREADY, "この本の範囲を処理中です");
+        zh(A_RANGE_IS_BEING_TRANSLATED_ALREADY, "本书已有一个范围正在处理");
+
+        ja(STOPPING_AFTER_THIS_PART, "このパートの後に停止します...");
+        zh(STOPPING_AFTER_THIS_PART, "处理完这一段后停止...");
+
+        ja(PART_D_OF_D, "パート %d / %d");
+        zh(PART_D_OF_D, "第 %d / %d 段");
+
+        ja(D_PARTS_CHANGED_D_SPEECHES_D_NEW_WORDS, "%d個のパートを変更、台詞%d件、新語%d個。");
+        zh(D_PARTS_CHANGED_D_SPEECHES_D_NEW_WORDS, "已修改 %d 段,%d 句对白,%d 个新词。");
+
+        ja(D_EDITED_SPEECHES_STAY, "編集された台詞%d件はそのままです。");
+        zh(D_EDITED_SPEECHES_STAY, "%d 句编辑过的对白保持不变。");
+
+        ja(D_PARTS_FAILED_S, "%d個のパートが失敗しました:%s");
+        zh(D_PARTS_FAILED_S, "%d 段失败:%s");
+
+        ja(STOPPED_AFTER_D_OF_D_PARTS, "%d / %d個のパートの後に停止しました。");
+        zh(STOPPED_AFTER_D_OF_D_PARTS, "在 %d / %d 段后停止。");
     }
 }

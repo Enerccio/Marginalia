@@ -23,12 +23,10 @@ import com.github.enerccio.marginalia.extensions.conlangtranslator.text.ConlangP
 import com.github.enerccio.marginalia.extensions.conlangtranslator.text.ConlangTransformer;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.text.ExportText;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.translate.Reverse.Located;
-import com.github.enerccio.marginalia.extensions.conlangtranslator.ui.ExportChoice;
-import com.github.enerccio.marginalia.extensions.conlangtranslator.ui.LanguageSettingsForm;
-import com.github.enerccio.marginalia.extensions.conlangtranslator.ui.LookupDialog;
-import com.github.enerccio.marginalia.extensions.conlangtranslator.ui.ReaderView;
+import com.github.enerccio.marginalia.extensions.conlangtranslator.ui.*;
 import com.github.enerccio.marginalia.ui.components.PartView;
 import com.github.enerccio.marginalia.ui.dialogs.story.StoryCard;
+import com.github.enerccio.marginalia.ui.dialogs.story.StoryEditor;
 import com.github.enerccio.marginalia.ui.main.ApplicationEntryPoint;
 import com.github.enerccio.marginalia.ui.main.Main;
 import com.github.enerccio.marginalia.ui.main.Viewer;
@@ -64,6 +62,7 @@ public class ConlangTranslatorExtension implements MarginaliaExtension, Extensio
 
     private static final String MENU_ITEM_KEY = "conlangtranslator.translate";
     private static final String LOOKUP_ITEM_KEY = "conlangtranslator.lookup";
+    private static final String RANGE_ITEM_KEY = "conlangtranslator.range";
     private static final String SETTINGS_PANEL_KEY = "com.github.enerccio.marginalia.extensions.conlangtranslator.settingsPanel";
 
     /** The logger of this extension, its lines go to the extension log (Admin → Extensions → Log). */
@@ -88,6 +87,9 @@ public class ConlangTranslatorExtension implements MarginaliaExtension, Extensio
     private ManuscriptService manuscriptService;
 
     @Autowired
+    private ChatMessageService chatMessageService;
+
+    @Autowired
     private InheritedSettingRegistry inheritedSettingRegistry;
 
     private final LanguageLibrary library = new LanguageLibrary();
@@ -97,6 +99,7 @@ public class ConlangTranslatorExtension implements MarginaliaExtension, Extensio
     private final ConlangTransformer transformer = new ConlangTransformer(passageAccess);
 
     private TranslationRuns runs;
+    private RangeRuns rangeRuns;
     private ExtensionDecorator partFinishedDecorator;
     private Registration cleanupRegistration;
     private ExtensionDecorator userPartDecorator;
@@ -117,6 +120,7 @@ public class ConlangTranslatorExtension implements MarginaliaExtension, Extensio
         com.github.enerccio.marginalia.extensions.conlangtranslator.service.PluginLog.set(log);
         owner = bundle.getSymbolicName();
         runs = new TranslationRuns(translationService, log);
+        rangeRuns = new RangeRuns(translationService, log);
         try {
             passageKinds.register(kind);
             partTexts.register(owner, transformer);
@@ -132,6 +136,8 @@ public class ConlangTranslatorExtension implements MarginaliaExtension, Extensio
             menuRegistry.register(owner, StoryMenuItem.tools(LOOKUP_ITEM_KEY, l -> T.localized(LOOK_UP_A_WORD),
                             story -> lookUp(story.getCurrentManuscript()))
                     .icon(Solid.BOOK::create));
+            menuRegistry.register(owner, StoryMenuItem.tools(RANGE_ITEM_KEY, l -> T.localized(TRANSLATE_PARTS), this::openRange)
+                    .icon(Solid.LAYER_GROUP::create));
 
             registerViewer(extensionService);
             registerExport(extensionService);
@@ -342,6 +348,45 @@ public class ConlangTranslatorExtension implements MarginaliaExtension, Extensio
         } catch (Exception e) {
             log.warn("Failed to open the lexicon of the book: {}", e.getMessage(), e);
             Notification.error(String.format(T.localized(THE_LANGUAGES_CAN_NOT_BE_LOADED), e.getMessage()));
+        }
+    }
+
+    /**
+     * The dialog of the actions on a range of the parts of the active branch: the parts that have text, counted from 1, each with whether it
+     * has a translated speech.
+     */
+    private void openRange(StoryEditor story) {
+        try {
+            Manuscript book = story.getCurrentManuscript() == null ? null : manuscriptService.find(story.getCurrentManuscript());
+            if (book == null || translationService.languageOf(translationService.settings(book)) == null) {
+                Notification.error(T.localized(THE_BOOK_HAS_NO_LANGUAGE));
+                return;
+            }
+            new RangeDialog(book, () -> rangeParts(book), rangeRuns, story::reloadStory).open();
+        } catch (Exception e) {
+            log.warn("Failed to open the range dialog: {}", e.getMessage(), e);
+            Notification.error(String.format(T.localized(THE_LANGUAGES_CAN_NOT_BE_LOADED), e.getMessage()));
+        }
+    }
+
+    /**
+     * The parts of the active branch that have text, counted from 1, each with whether it has a translated speech, as they are stored now.
+     */
+    private List<RangeLoop.RangePart> rangeParts(Manuscript bookToRead) {
+        try {
+            Manuscript book = manuscriptService.find(bookToRead);
+            List<ChatMessage> branch = book == null || book.getActiveLeaf() == null ? List.of()
+                    : chatMessageService.getBranchFromLeaf(book.getActiveLeaf()).stream()
+                    .filter(part -> part.getResponse() != null && !part.getResponse().isBlank()).toList();
+            Map<Long, List<Located>> translated = passageAccess.of(branch);
+            List<RangeLoop.RangePart> parts = new ArrayList<>();
+            for (int i = 0; i < branch.size(); i++) {
+                ChatMessage part = branch.get(i);
+                parts.add(new RangeLoop.RangePart(i + 1, part, translated.containsKey(part.getId())));
+            }
+            return parts;
+        } catch (Exception e) {
+            throw new IllegalStateException(e.getMessage(), e);
         }
     }
 

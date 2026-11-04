@@ -688,7 +688,8 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
     @PublicAPI(from = "1.6.0",
             returns = @APIReturn(type = void.class),
             locals = {@APILocals(name = "e", type = Exception.class)})
-    private void reloadStory() {
+    @Override
+    public void reloadStory() {
         try {
             load(parent.refreshManuscript());
         } catch (Exception e) {

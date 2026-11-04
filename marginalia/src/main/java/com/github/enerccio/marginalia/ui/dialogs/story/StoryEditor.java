@@ -50,6 +50,12 @@ public interface StoryEditor {
     void openStatisticsDialog();
 
     /**
+     * Draws the story again from the database: for what changed the text of parts behind the editor's back (an extension that translated a
+     * range, a command).
+     */
+    void reloadStory();
+
+    /**
      * Opens the dialog that lets a model annotate a range of the parts of the story, the story is shown again when annotations were added.
      */
     void openAnnotateRangeDialog();
