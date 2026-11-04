@@ -32,6 +32,12 @@ public class ProgressPanel extends Dialog {
     private final ProgressBar bar = new ProgressBar();
     private final VerticalLayout log = new VerticalLayout();
     private final Details logDetails = new Details(T.localized(LOG), log);
+    private final VerticalLayout thoughtRows = new VerticalLayout();
+    private final Details thoughtDetails = new Details(T.localized(WHAT_THE_MODEL_THOUGHT), thoughtRows);
+    private final Div liveReasoning = new Div();
+    private final Div liveAnswer = new Div();
+    private final Details liveDetails = new Details(T.localized(THE_MODEL_IS_WRITING), new VerticalLayout(liveReasoning, liveAnswer));
+    private final VerticalLayout content = new VerticalLayout();
     private final Button cancel = new Button(T.localized(CANCEL));
     private final Button review = new Button(T.localized(REVIEW_CHANGES));
     private final Button close = new Button(T.localized(CLOSE));
@@ -53,7 +59,14 @@ public class ProgressPanel extends Dialog {
         log.setPadding(false);
         log.setSpacing(false);
         logDetails.setVisible(false);
-        VerticalLayout content = new VerticalLayout(message, bar, logDetails);
+        thoughtRows.setPadding(false);
+        thoughtRows.setSpacing(false);
+        thoughtDetails.setVisible(false);
+        liveReasoning.addClassName(KnowledgeTrackerStyles.REASONING);
+        liveAnswer.addClassName(KnowledgeTrackerStyles.REASONING);
+        liveDetails.setOpened(true);
+        liveDetails.setVisible(false);
+        content.add(message, bar, liveDetails, logDetails, thoughtDetails);
         content.setPadding(false);
         content.addClassName(KnowledgeTrackerStyles.PROGRESS);
         add(content);
@@ -103,6 +116,34 @@ public class ProgressPanel extends Dialog {
             log.add(row);
         });
         logDetails.setVisible(!status.log().isEmpty());
+
+        // what the model thought and answered, one block per request: readable also when it proposed nothing and no review opens
+        thoughtRows.removeAll();
+        for (ExtractionRun.Thought thought : run.getThoughts()) {
+            Div title = new Div(new Span(T.localized(thought.tidy() ? TIDY_REQUEST_N_CHANGES : REQUEST_N_CHANGES)
+                    .formatted(thought.run(), thought.changes())));
+            title.addClassName(KnowledgeTrackerStyles.NAME);
+            Div reasoning = new Div(new Span(thought.reasoning().isBlank() ? T.localized(THE_MODEL_SENT_NO_REASONING) : thought.reasoning()));
+            reasoning.addClassName(KnowledgeTrackerStyles.REASONING);
+            Div answer = new Div(new Span(thought.answer() == null ? "" : thought.answer().strip()));
+            answer.addClassName(KnowledgeTrackerStyles.REASONING);
+            thoughtRows.add(title, reasoning, new Details(T.localized(WHAT_THE_MODEL_ANSWERED), answer));
+        }
+        thoughtDetails.setVisible(thoughtRows.getComponentCount() > 0);
+
+        // what the model writes while it writes it: only while a request goes on
+        String[] live = run.getLive();
+        boolean writing = phase == Phase.ASKING && !(live[0].isEmpty() && live[1].isEmpty());
+        liveDetails.setVisible(writing);
+        content.setWidth(writing ? "36em" : null);
+        if (writing) {
+            liveReasoning.setText(live[0]);
+            liveAnswer.setText(live[1]);
+            liveAnswer.setVisible(!live[1].isEmpty());
+            // the newest words are the ones to see: the boxes keep scrolled to the end
+            liveReasoning.getElement().executeJs("this.scrollTop = this.scrollHeight");
+            liveAnswer.getElement().executeJs("this.scrollTop = this.scrollHeight");
+        }
     }
 
     /** Opens the review of the proposal that waits; the user pressed the button. */

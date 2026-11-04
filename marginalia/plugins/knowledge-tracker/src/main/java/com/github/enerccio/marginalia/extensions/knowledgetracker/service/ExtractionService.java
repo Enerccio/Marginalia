@@ -148,6 +148,25 @@ public class ExtractionService {
      * @return a proposal without parts when nothing is waiting
      */
     public Proposal propose(Manuscript manuscript, int maxParts, boolean lastSettled, String excludeFrom) throws Exception {
+        return propose(manuscript, maxParts, lastSettled, excludeFrom, null);
+    }
+
+    /** What arrives from the model while it writes, to be shown at once. */
+    public interface Live {
+
+        /**
+         * @param reasoning whether the piece is reasoning (else the answer)
+         * @param piece     the text, as it arrives
+         */
+        void chunk(boolean reasoning, String piece);
+
+        /** A new request starts: what was shown belongs to the one before. */
+        default void started() {
+        }
+    }
+
+    /** As above; {@code live} (may be {@code null}) is told what the model writes while it writes it. */
+    public Proposal propose(Manuscript manuscript, int maxParts, boolean lastSettled, String excludeFrom, Live live) throws Exception {
         KnowledgeState state = stateService.load(manuscript);
         BookSettings settings = state.getSettings();
         List<Part> branch = processService.branch(manuscript);
@@ -196,7 +215,7 @@ public class ExtractionService {
         String lore = lore(manuscript, settings.getLoreMode(), run, budget - tokens(service, request), service, note);
         request = ExtractionPrompt.build(state, lore, run, separators);
 
-        Answered answered = ask(model, manuscript, request);
+        Answered answered = ask(model, manuscript, request, live);
         String raw = answered.text();
         ExtractionAnswer answer;
         try {
@@ -241,6 +260,11 @@ public class ExtractionService {
      * model is not asked.
      */
     public Proposal proposeTidy(Manuscript manuscript) throws Exception {
+        return proposeTidy(manuscript, null);
+    }
+
+    /** As above; {@code live} (may be {@code null}) is told what the model writes while it writes it. */
+    public Proposal proposeTidy(Manuscript manuscript, Live live) throws Exception {
         KnowledgeState state = stateService.load(manuscript);
         BookSettings settings = state.getSettings();
         List<Part> branch = processService.branch(manuscript);
@@ -267,7 +291,7 @@ public class ExtractionService {
             note.append("Only the last ").append(recent.size()).append(" part(s) fit as context.");
         }
 
-        Answered answered = ask(model, manuscript, request);
+        Answered answered = ask(model, manuscript, request, live);
         TidyAnswer answer;
         try {
             answer = com.github.enerccio.marginalia.domain.service.structured.StructuredOutputs.parse(answered.text(), TidyAnswer.class);
@@ -278,6 +302,15 @@ public class ExtractionService {
         return new Proposal(List.of(), changes, true, note.toString(), answered.text(), 0, answered.reasoning(), true);
     }
 
+    /** A tidy found nothing to change: the parts are counted from here for the automatic tidy. */
+    public void markTidied(Manuscript manuscript) throws Exception {
+        synchronized (processService.lockOf(manuscript)) {
+            KnowledgeState state = stateService.load(manuscript);
+            state.tidied();
+            stateService.save(manuscript, state);
+        }
+    }
+
     /**
      * Applies the reviewed changes of the tidy pass. The cursor does not move. A change whose item is not there any more (or was locked
      * or edited since) is skipped.
@@ -285,6 +318,7 @@ public class ExtractionService {
     public ChangeApplier.Result commitTidy(Manuscript manuscript, Proposal proposal, boolean logged) throws Exception {
         synchronized (processService.lockOf(manuscript)) {
             KnowledgeState state = stateService.load(manuscript);
+            state.tidied();
             ChangeApplier.Result result = ChangeApplier.apply(state, proposal.changes(), logged, System.currentTimeMillis());
             stateService.save(manuscript, state);
             stateService.changed(manuscript);
@@ -313,20 +347,31 @@ public class ExtractionService {
      * Asks the model and waits for the whole answer. The request is streamed so that the reasoning of the model, which a plain
      * {@code infer} drops, can be kept for the review.
      */
-    private Answered ask(ModelSelection model, Manuscript book, ExtractionPrompt.Request request) throws Exception {
+    private Answered ask(ModelSelection model, Manuscript book, ExtractionPrompt.Request request, Live live) throws Exception {
         List<LLMChatMessage> payload = List.of(LLMChatMessage.of(LLMRole.SYSTEM, request.system()),
                 LLMChatMessage.of(LLMRole.USER, request.user()));
         CompletableFuture<Answered> answer = new CompletableFuture<>();
         StringBuilder text = new StringBuilder();
         StringBuilder reasoning = new StringBuilder();
         CancellationToken token;
+        if (live != null) {
+            live.started();
+        }
         try (InferenceSession _ = InferenceSession.open("knowledge-tracker"); UsageContext _ = UsageContext.open(book)) {
             token = inferenceServices.forAIOrThrow(model.ai()).stream(payload, model.protocol(),
                     new InferenceService.InferenceAsyncCallback() {
                         @Override
                         public void onChunk(InferenceService.InferenceAsyncController controller,
                                             InferenceService.ChunkType chunkType, String chunk) throws Exception {
-                            (chunkType == InferenceService.ChunkType.REASONING ? reasoning : text).append(chunk);
+                            boolean thinking = chunkType == InferenceService.ChunkType.REASONING;
+                            (thinking ? reasoning : text).append(chunk);
+                            if (live != null) {
+                                try {
+                                    live.chunk(thinking, chunk);
+                                } catch (RuntimeException e) {
+                                    // showing it must never fail the request
+                                }
+                            }
                             controller.continueInference();
                         }
 

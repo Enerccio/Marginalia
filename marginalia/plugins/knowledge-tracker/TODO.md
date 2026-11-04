@@ -380,8 +380,12 @@ tidy only, the story can still contradict it (memory loss) while a betrayal stay
 a secret must outlive the recent parts; it is a pass the user starts (a button and a command), not part of every run. Regression of rule 7 (same model, 3 samples): the name and job, the letter, the memo plot, the private moments and the
 whisper cases all came out as before (the known over-retraction case is unchanged). Tidy through the application with the real model
 on seven items (the promise, the Aurors, three trivia, a duplicate, the fog): it dropped the five trivia / duplicate ones with a
-reason each and kept the promise and the Aurors (74 s). Not done: tidying
-automatically every K parts, a cap on the number of items in the block.
+reason each and kept the promise and the Aurors (74 s). **Automatic tidy** (`TidyTrigger`, `KnowledgeState.partsSinceTidy`, `ExtractionRun.tidyIfDue`): at the end of a run that is not guided,
+when the setting is on and K parts were read since the last tidy (a tidy, even an empty one, starts the count again); applied and
+logged; a guided run never starts one. **The model's writing is streamed** to the progress panel (`ExtractionService.Live`,
+throttled to 3 updates a second) and every request's reasoning and answer is kept in the run (`Thought`) so that it can be read also
+when nothing was proposed (*Last run* button). Checked with the real model (live text grows while it thinks) and the fake one
+(reading adds 3, the tidy that follows retracts 1). Not done: a cap on the number of items in the block.
 
 Left from this list: the **generation waiting for the review** (a guided run is started from the tab; before a prompt the
 plugin reads with the model only when **Ask before applying** is off, else it only notes who has met whom), the

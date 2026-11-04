@@ -277,6 +277,13 @@ public class KnowledgeTrackerView extends VerticalLayout {
         tidyParts.setValue(settings.getTidyContextParts());
         tidyParts.setHelperText(T.localized(THE_LAST_PROCESSED_PARTS_THE_TIDY_PASS_READS));
         tidyParts.setWidthFull();
+        Checkbox autoTidy = new Checkbox(T.localized(TIDY_AUTOMATICALLY), settings.isAutoTidy());
+        autoTidy.setTooltipText(T.localized(AT_THE_END_OF_A_RUN_THAT_APPLIES_ITS_CHANGES));
+        IntegerField tidyEvery = new IntegerField(T.localized(TIDY_AFTER_N_PARTS));
+        tidyEvery.setMin(1);
+        tidyEvery.setStepButtonsVisible(true);
+        tidyEvery.setValue(settings.getTidyEveryParts());
+        tidyEvery.setWidthFull();
         IntegerField tidyMin = new IntegerField(T.localized(TIDY_FROM_N_ITEMS));
         tidyMin.setMin(2);
         tidyMin.setStepButtonsVisible(true);
@@ -316,6 +323,8 @@ public class KnowledgeTrackerView extends VerticalLayout {
             parts.setEnabled(on);
             tidyParts.setEnabled(on);
             tidyMin.setEnabled(on);
+            autoTidy.setEnabled(on);
+            tidyEvery.setEnabled(on && autoTidy.getValue());
             lore.setEnabled(on);
             model.setEnabled(on);
             protocol.setEnabled(on);
@@ -341,6 +350,17 @@ public class KnowledgeTrackerView extends VerticalLayout {
                 saveState();
             }
         });
+        autoTidy.addValueChangeListener(e -> {
+            state.getSettings().setAutoTidy(e.getValue());
+            tidyEvery.setEnabled(extract.getValue() && e.getValue());
+            saveState();
+        });
+        tidyEvery.addValueChangeListener(e -> {
+            if (e.getValue() != null && e.getValue() >= 1) {
+                state.getSettings().setTidyEveryParts(e.getValue());
+                saveState();
+            }
+        });
         tidyMin.addValueChangeListener(e -> {
             if (e.getValue() != null && e.getValue() >= 2) {
                 state.getSettings().setTidyMinItems(e.getValue());
@@ -363,7 +383,7 @@ public class KnowledgeTrackerView extends VerticalLayout {
         });
         enable.run();
 
-        VerticalLayout box = new VerticalLayout(extract, ask, parts, tidyParts, tidyMin, lore, model, protocol);
+        VerticalLayout box = new VerticalLayout(extract, ask, parts, autoTidy, tidyEvery, tidyParts, tidyMin, lore, model, protocol);
         box.setPadding(false);
         box.setSpacing(false);
         return box;
@@ -435,6 +455,13 @@ public class KnowledgeTrackerView extends VerticalLayout {
         panel.add(new Div(process, next, tidyButton));
         if (running != null) {
             panel.add(createRunButton(running));
+        }
+        ExtractionRun last = runs.latest(manuscript);
+        if (last != null && last.getStatus().phase().isFinished() && !last.getThoughts().isEmpty()) {
+            // the reasoning of the last run, also when it proposed nothing and no review ever opened
+            Button lastRun = new Button(T.localized(LAST_RUN_WHAT_THE_MODEL_THOUGHT), Solid.LIGHTBULB.create(), _ -> showProgress(last));
+            lastRun.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_TERTIARY);
+            panel.add(lastRun);
         }
         ExtractionService.Proposal held = runs.peekHeld(manuscript);
         if (held != null) {

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847064704129">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847092184917">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.847064704129" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.847092184917" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847064704129" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847092184917" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847064704129" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847092184917" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -348,6 +348,10 @@ editing the story, and you can <strong>drag</strong> it by its title. Closing it
     <img src="../../../images/plugin-knowledgetracker-progress.png" alt="The progress panel" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="690" height="780" />
     <figcaption class="caption">The progress panel</figcaption>
 </figure>
+<p>While the model answers, the panel shows <strong>What the model is writing</strong> as it comes: its reasoning first and then the answer, so a
+long wait on a slow model is not a blank bar. When the request is over the same text stays under <strong>What the model thought</strong> (a
+block for every request of the run, with what it answered), also when it proposed <strong>nothing</strong> and no review opens: the tab keeps a
+button <strong>Last run: what the model thought</strong> that opens the panel again, so you can see why nothing was added.</p>
 <p>When the model has answered, the panel says so and shows <strong>Review changes</strong>; the same button is in the processing panel
 of the tab (<em>3 changes to review</em>). <strong>The review never opens by itself.</strong> It is a table of the changes, grouped by
 character:</p>
@@ -437,6 +441,10 @@ by hand, the locked ones and the old ones are never changed (the first two kinds
 it can see what an item would duplicate). A secret that no part has mentioned for a long time is no reason to drop it, and the
 prompt says so; when the model is in doubt it keeps the item. A character with fewer than <strong>Tidy: from this many items</strong> (8) items
 that the model learned is not tidied, and <strong>Tidy: parts of context</strong> (10) is how many of the last processed parts it reads.</p>
+<p><strong>Tidy automatically</strong> (a setting, off by default) runs the tidy by itself at the end of a run whose changes are applied without
+asking (<strong>Ask before applying</strong> off, so the automatic reading of the new parts too), once the model has read <strong>Tidy after this many
+parts</strong> (10) parts since the last tidy. What it changes is applied and written to the log with a <strong>Revert</strong> button, and the run&#x27;s log
+says so. A run you review never starts a tidy by itself, and a character with too few items is skipped without asking the model.</p>
 <p>The same from the command bar: <code translate="no" v-pre>knowledge-tidy</code> (<code translate="no" v-pre>ask true</code> to get the changes as a list; the open tab then shows the review
 button), and <code translate="no" v-pre>lock-knowledge</code> / <code translate="no" v-pre>unlock-knowledge</code> with the character and the number of the item.</p>
 <h2 id="settings">Settings</h2>
@@ -451,6 +459,7 @@ button), and <code translate="no" v-pre>lock-knowledge</code> / <code translate=
 | **Read what the characters learn with the model** | Processing asks the model what each tracked character learned and proposes it. Off (the default): processing only notes who has met whom, which costs nothing. |
 | **Ask before applying** | On (the default): every proposal is shown for review. Off: it is applied at once and logged. |
 | **Parts per run** | How many parts one request reads. Larger is cheaper but gives a longer answer and a harder review. |
+| **Tidy automatically**, **Tidy after this many parts** | The tidy pass runs by itself at the end of a run that applies its changes without asking, every this many parts (10). Off by default. |
 | **Tidy: parts of context** | How many of the last processed parts the tidy pass reads (10). |
 | **Tidy: from this many items** | A character with fewer items that the model learned (and that are not locked) is not tidied (8). |
 | **Lorebook for the model** | *Entries the parts activate* (the default: the entries a generation would use for these parts), *The whole lorebook* (every entry; when it does not fit the context, the activated ones are sent and the note says so) or *No lorebook*. |
@@ -497,6 +506,10 @@ button), and <code translate="no" v-pre>lock-knowledge</code> / <code translate=
 <tr>
 <td><strong>Parts per run</strong></td>
 <td>How many parts one request reads. Larger is cheaper but gives a longer answer and a harder review.</td>
+</tr>
+<tr>
+<td><strong>Tidy automatically</strong>, <strong>Tidy after this many parts</strong></td>
+<td>The tidy pass runs by itself at the end of a run that applies its changes without asking, every this many parts (10). Off by default.</td>
 </tr>
 <tr>
 <td><strong>Tidy: parts of context</strong></td>
@@ -644,7 +657,7 @@ so a second generation from the same part does not see a change you made in betw
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (ea3aef8b0).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (30598eaee).</p></div>
             </footer>
         </div>
     </div>

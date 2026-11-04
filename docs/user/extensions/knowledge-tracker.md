@@ -123,6 +123,11 @@ editing the story, and you can **drag** it by its title. Closing it hides it, th
 
 ![The progress panel](../../images/plugin-knowledgetracker-progress.png)
 
+While the model answers, the panel shows **What the model is writing** as it comes: its reasoning first and then the answer, so a
+long wait on a slow model is not a blank bar. When the request is over the same text stays under **What the model thought** (a
+block for every request of the run, with what it answered), also when it proposed **nothing** and no review opens: the tab keeps a
+button **Last run: what the model thought** that opens the panel again, so you can see why nothing was added.
+
 When the model has answered, the panel says so and shows **Review changes**; the same button is in the processing panel
 of the tab (*3 changes to review*). **The review never opens by itself.** It is a table of the changes, grouped by
 character:
@@ -176,6 +181,11 @@ it can see what an item would duplicate). A secret that no part has mentioned fo
 prompt says so; when the model is in doubt it keeps the item. A character with fewer than **Tidy: from this many items** (8) items
 that the model learned is not tidied, and **Tidy: parts of context** (10) is how many of the last processed parts it reads.
 
+**Tidy automatically** (a setting, off by default) runs the tidy by itself at the end of a run whose changes are applied without
+asking (**Ask before applying** off, so the automatic reading of the new parts too), once the model has read **Tidy after this many
+parts** (10) parts since the last tidy. What it changes is applied and written to the log with a **Revert** button, and the run's log
+says so. A run you review never starts a tidy by itself, and a character with too few items is skipped without asking the model.
+
 The same from the command bar: `knowledge-tidy` (`ask true` to get the changes as a list; the open tab then shows the review
 button), and `lock-knowledge` / `unlock-knowledge` with the character and the number of the item.
 
@@ -193,6 +203,7 @@ The gear next to *Track a character*:
 | **Read what the characters learn with the model** | Processing asks the model what each tracked character learned and proposes it. Off (the default): processing only notes who has met whom, which costs nothing. |
 | **Ask before applying** | On (the default): every proposal is shown for review. Off: it is applied at once and logged. |
 | **Parts per run** | How many parts one request reads. Larger is cheaper but gives a longer answer and a harder review. |
+| **Tidy automatically**, **Tidy after this many parts** | The tidy pass runs by itself at the end of a run that applies its changes without asking, every this many parts (10). Off by default. |
 | **Tidy: parts of context** | How many of the last processed parts the tidy pass reads (10). |
 | **Tidy: from this many items** | A character with fewer items that the model learned (and that are not locked) is not tidied (8). |
 | **Lorebook for the model** | *Entries the parts activate* (the default: the entries a generation would use for these parts), *The whole lorebook* (every entry; when it does not fit the context, the activated ones are sent and the note says so) or *No lorebook*. |

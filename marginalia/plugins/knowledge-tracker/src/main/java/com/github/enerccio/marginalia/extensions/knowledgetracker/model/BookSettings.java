@@ -33,6 +33,9 @@ public class BookSettings {
     private boolean askBeforeApplying = true;
     /** The tidy pass reads this many of the last processed parts for context. */
     private int tidyContextParts = 10;
+    /** The tidy pass runs by itself at the end of a run that applies its changes without asking, every {@link #tidyEveryParts} parts. */
+    private boolean autoTidy = false;
+    private int tidyEveryParts = 10;
     /** A character with fewer items that the tidy pass may touch is left alone. */
     private int tidyMinItems = 8;
     private LoreMode loreMode = LoreMode.RESOLVE;
@@ -89,6 +92,22 @@ public class BookSettings {
 
     public void setPartsPerRun(int partsPerRun) {
         this.partsPerRun = Math.max(1, partsPerRun);
+    }
+
+    public boolean isAutoTidy() {
+        return autoTidy;
+    }
+
+    public void setAutoTidy(boolean autoTidy) {
+        this.autoTidy = autoTidy;
+    }
+
+    public int getTidyEveryParts() {
+        return Math.max(1, tidyEveryParts == 0 ? 10 : tidyEveryParts);
+    }
+
+    public void setTidyEveryParts(int tidyEveryParts) {
+        this.tidyEveryParts = Math.max(1, tidyEveryParts);
     }
 
     public int getTidyContextParts() {
