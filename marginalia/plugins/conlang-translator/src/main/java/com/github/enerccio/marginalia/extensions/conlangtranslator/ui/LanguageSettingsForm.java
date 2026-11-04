@@ -139,12 +139,15 @@ public class LanguageSettingsForm extends VerticalLayout {
         designerProtocolCombo.setItemLabelGenerator(Protocol::getName);
         designerProtocolCombo.setClearButtonVisible(true);
         designerProtocolCombo.setHelperText(T.localized(EMPTY_THE_PROTOCOL_OF_THE_TRANSLATION));
-        FormLayout defaults = new FormLayout(languageCombo, aiCombo, protocolCombo, designerAiCombo, designerProtocolCombo, auto);
+        FormLayout designerModel = new FormLayout(designerAiCombo, designerProtocolCombo);
+        designerModel.setWidthFull();
+        designerModel.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 1), new FormLayout.ResponsiveStep("36rem", 2));
+        FormLayout defaults = new FormLayout(languageCombo, aiCombo, protocolCombo, auto);
         defaults.setColspan(auto, 2);
         defaults.setWidthFull();
         defaults.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 1), new FormLayout.ResponsiveStep("36rem", 2));
 
-        add(intro, summary, buttons, grid, defaultsHint, defaults);
+        add(designerModel, intro, summary, buttons, grid, defaultsHint, defaults);
     }
 
     /**

@@ -18,13 +18,11 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.menubar.MenuBarVariant;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.radiobutton.RadioButtonGroup;
 import com.vaadin.flow.component.tabs.TabSheet;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -32,7 +30,7 @@ import java.util.function.Predicate;
 import static com.github.enerccio.marginalia.extensions.conlangtranslator.ConlangTranslatorLocalization.*;
 
 /**
- * The window in which a language is edited: the name and the options, the rules, the categories and registers, the lexicon and who speaks it.
+ * The window in which a language is edited: the name and the options, the rules, the categories and registers, and the lexicon.
  * It works on a copy: nothing the library holds changes until <i>Save</i>, which gives the edited copy to the caller.
  */
 public class LanguageEditorDialog extends Dialog {
@@ -48,7 +46,6 @@ public class LanguageEditorDialog extends Dialog {
     private final Checkbox hyphen = new Checkbox(T.localized(A_HYPHEN_IS_PART_OF_A_WORD));
     private final ComboBox<Choice> exampleBook = new ComboBox<>(T.localized(EXAMPLE_BOOK));
     private final ComboBox<Choice> exampleLorebook = new ComboBox<>(T.localized(EXAMPLE_LOREBOOK));
-    private final RadioButtonGroup<SpeakersMode> mode = new RadioButtonGroup<>();
     private final Button maximize = new Button(Solid.EXPAND.create());
 
     private LexiconTab lexicon;
@@ -96,7 +93,6 @@ public class LanguageEditorDialog extends Dialog {
         lexicon = new LexiconTab(this.language, () -> {
         });
         tabs.add(T.localized(LEXICON), lexicon);
-        tabs.add(T.localized(SPEAKERS), speakers());
         tabs.addSelectedChangeListener(_ -> {
             // the counts of the words and the choices of the lexicon follow what the other tabs changed
             categoriesList.refresh();
@@ -173,7 +169,6 @@ public class LanguageEditorDialog extends Dialog {
         language.setHyphenStructural(hyphen.getValue());
         language.setExampleBook(exampleBook.getValue() == null ? null : exampleBook.getValue().id());
         language.setExampleLorebook(exampleLorebook.getValue() == null ? null : exampleLorebook.getValue().id());
-        language.getSpeakers().setMode(mode.getValue() == null ? SpeakersMode.EVERYONE_EXCEPT : mode.getValue());
         close();
         onSave.accept(language);
     }
@@ -226,14 +221,6 @@ public class LanguageEditorDialog extends Dialog {
     private Component registers() {
         registersList = new RegistersList(language);
         return tab(new Span(T.localized(THE_MODEL_CHOOSES_THE_FORM)), registersList);
-    }
-
-    private Component speakers() {
-        mode.setItems(SpeakersMode.values());
-        mode.setItemLabelGenerator(value -> value == SpeakersMode.EVERYONE_EXCEPT ? T.localized(EVERYBODY_SPEAKS_IT_EXCEPT) : T.localized(ONLY_THE_LISTED_SPEAK_IT));
-        mode.setValue(language.getSpeakers().getMode());
-        VerticalLayout layout = tab(new Span(T.localized(ONLY_THE_DEFAULT_THE_TEXT_OF_THE_PART)), mode, new CharactersList(language.getSpeakers().getCharacters()));
-        return layout;
     }
 
     /** A tab: a hint line on top, the rest takes the height. */
@@ -416,71 +403,6 @@ public class LanguageEditorDialog extends Dialog {
         @Override
         protected String labelOf(Register register) {
             return register.getName();
-        }
-    }
-
-    private final class CharactersList extends ListEditor<CharacterNote> {
-
-        CharactersList(List<CharacterNote> characters) {
-            super(characters, () -> {
-            });
-            build();
-        }
-
-        @Override
-        protected void addColumns(Grid<CharacterNote> grid) {
-            grid.addColumn(CharacterNote::getName).setHeader(T.localized(NAME)).setFlexGrow(1);
-            grid.addColumn(note -> String.join(", ", note.getAliases())).setHeader(T.localized(ALSO_CALLED)).setFlexGrow(1);
-            grid.addColumn(CharacterNote::getGender).setHeader(T.localized(GENDER)).setFlexGrow(0).setAutoWidth(true);
-            grid.addColumn(CharacterNote::getVoice).setHeader(T.localized(VOICE)).setFlexGrow(3);
-            grid.addColumn(note -> note.isListed() ? T.localized(YES_TEXT) : "").setHeader(T.localized(LISTED)).setFlexGrow(0).setAutoWidth(true);
-        }
-
-        @Override
-        protected CharacterNote create() {
-            return new CharacterNote();
-        }
-
-        @Override
-        protected void edit(CharacterNote note, boolean isNew, Runnable done) {
-            TextField title = new TextField(T.localized(NAME));
-            title.setWidthFull();
-            title.setValue(note.getName());
-            TextField aliases = new TextField(T.localized(ALSO_CALLED));
-            aliases.setWidthFull();
-            aliases.setHelperText(T.localized(SEPARATED_BY_COMMAS));
-            aliases.setValue(String.join(", ", note.getAliases()));
-            TextField gender = new TextField(T.localized(GENDER));
-            gender.setWidthFull();
-            gender.setValue(note.getGender());
-            TextArea voice = new TextArea(T.localized(VOICE));
-            voice.setWidthFull();
-            voice.setHelperText(T.localized(HOW_THE_CHARACTER_SPEAKS_IT));
-            voice.setValue(note.getVoice());
-            Checkbox listed = new Checkbox(T.localized(LISTED_IN_THE_RULE_ABOVE));
-            listed.setValue(note.isListed());
-            new EditDialog(isNew ? T.localized(NEW_CHARACTER) : T.localized(EDIT_CHARACTER), new VerticalLayout(title, aliases, gender, voice, listed), () -> {
-                if (StringUtils.isBlank(title.getValue())) {
-                    return T.localized(THE_NAME_IS_EMPTY);
-                }
-                note.setName(title.getValue().strip());
-                List<String> parsed = new ArrayList<>();
-                for (String alias : aliases.getValue().split(",")) {
-                    if (!alias.isBlank()) {
-                        parsed.add(alias.strip());
-                    }
-                }
-                note.setAliases(parsed);
-                note.setGender(gender.getValue().strip());
-                note.setVoice(voice.getValue().strip());
-                note.setListed(listed.getValue());
-                return null;
-            }, done).open();
-        }
-
-        @Override
-        protected String labelOf(CharacterNote note) {
-            return note.getName();
         }
     }
 

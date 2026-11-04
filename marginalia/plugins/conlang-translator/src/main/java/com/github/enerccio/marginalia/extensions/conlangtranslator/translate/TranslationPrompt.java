@@ -62,18 +62,27 @@ public final class TranslationPrompt {
 
     /**
      * @param language the language the book uses
+     * @param speakers who speaks it in this book
      * @param partText the part as the model reads it (the source)
      * @param scene    what is known of the part besides its text
      * @param maxLexiconChars the size above which the lexicon is cut down, see {@link LexiconText#select}
      */
-    public static Request build(Language language, String partText, Scene scene, int maxLexiconChars) {
-        return new Request(system(language, partText, maxLexiconChars), user(language, partText, scene));
+    public static Request build(Language language, Speakers speakers, String partText, Scene scene, int maxLexiconChars) {
+        return new Request(system(language, speakers, partText, maxLexiconChars), user(language, speakers, partText, scene));
     }
 
-    static String system(Language language, String partText, int maxLexiconChars) {
+    static String system(Language language, Speakers speakers, String partText, int maxLexiconChars) {
+        return String.format(INSTRUCTIONS, language.getName(), speakersRule(language, speakers)) + "\n\n" + languageBlock(language, partText, maxLexiconChars);
+    }
+
+    /**
+     * What the model is told of the language: the description, the rules for the translator, the registers and the lexicon (cut down to what
+     * {@code text} needs when it is too big). The same for every request of a book, so a server that caches the prompt reads it once.
+     */
+    public static String languageBlock(Language language, String text, int maxLexiconChars) {
         String name = language.getName();
-        StringBuilder system = new StringBuilder(String.format(INSTRUCTIONS, name, speakersRule(language)));
-        system.append("\n\n=== THE LANGUAGE: ").append(name.toUpperCase()).append(" ===\n");
+        StringBuilder system = new StringBuilder();
+        system.append("=== THE LANGUAGE: ").append(name.toUpperCase()).append(" ===\n");
         if (!language.getDescription().isBlank()) {
             system.append(language.getDescription().strip()).append("\n\n");
         }
@@ -96,12 +105,11 @@ public final class TranslationPrompt {
                 system.append('\n');
             }
         }
-        system.append("\n=== LEXICON ===\n").append(LexiconText.select(language, partText, maxLexiconChars)).append('\n');
+        system.append("\n=== LEXICON ===\n").append(LexiconText.select(language, text, maxLexiconChars)).append('\n');
         return system.toString();
     }
 
-    private static String speakersRule(Language language) {
-        Speakers speakers = language.getSpeakers();
+    private static String speakersRule(Language language, Speakers speakers) {
         String name = language.getName();
         if (speakers.getMode() == SpeakersMode.ONLY) {
             return "only the characters the CHARACTERS list marks as speaking " + name + " speak it.";
@@ -109,9 +117,9 @@ public final class TranslationPrompt {
         return "a character speaks " + name + " unless the CHARACTERS list says they do not know it.";
     }
 
-    static String user(Language language, String partText, Scene scene) {
+    static String user(Language language, Speakers speakers, String partText, Scene scene) {
         StringBuilder user = new StringBuilder();
-        String characters = characters(language, scene, partText);
+        String characters = characters(language, speakers, scene, partText);
         if (!characters.isEmpty()) {
             user.append("CHARACTERS:\n").append(characters).append('\n');
         }
@@ -131,13 +139,13 @@ public final class TranslationPrompt {
 
     /**
      * The characters of the notes that matter to the part: the ones called in the text, in the point of view or among the present ones. A
-     * language with no notes has no list, and a character that is not in it is just a speaker of the default.
+     * book with no notes has no list, and a character that is not in it is just a speaker of the default.
      */
-    private static String characters(Language language, Scene scene, String partText) {
+    public static String characters(Language language, Speakers speakers, Scene scene, String partText) {
         StringBuilder text = new StringBuilder();
         String haystack = ((partText == null ? "" : partText) + "\n" + (scene == null ? "" : scene.pov() + "\n" + scene.present())).toLowerCase();
-        boolean only = language.getSpeakers().getMode() == SpeakersMode.ONLY;
-        for (CharacterNote note : language.getSpeakers().getCharacters()) {
+        boolean only = speakers.getMode() == SpeakersMode.ONLY;
+        for (CharacterNote note : speakers.getCharacters()) {
             boolean named = haystack.contains(note.getName().strip().toLowerCase())
                     || note.getAliases().stream().anyMatch(alias -> !alias.isBlank() && haystack.contains(alias.strip().toLowerCase()));
             if (!named || note.getName().isBlank()) {

@@ -18,6 +18,8 @@ public class BookSettings {
     private int contextParts = 2;
     /** The size above which the lexicon is cut down in the request (characters); 0 never cuts. */
     private int maxLexiconChars = 60000;
+    /** Who speaks the language in this book, and what the translator knows of the characters. Per book: the same language is spoken by other people in another story. */
+    private Speakers speakers = new Speakers();
 
     public String getLanguageId() {
         return languageId == null || languageId.isBlank() ? null : languageId;
@@ -65,5 +67,16 @@ public class BookSettings {
 
     public void setMaxLexiconChars(int maxLexiconChars) {
         this.maxLexiconChars = maxLexiconChars;
+    }
+
+    public Speakers getSpeakers() {
+        if (speakers == null) {
+            speakers = new Speakers();
+        }
+        return speakers;
+    }
+
+    public void setSpeakers(Speakers speakers) {
+        this.speakers = speakers;
     }
 }

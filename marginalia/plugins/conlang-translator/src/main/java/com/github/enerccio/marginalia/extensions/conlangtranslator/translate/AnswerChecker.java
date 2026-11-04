@@ -155,6 +155,16 @@ public final class AnswerChecker {
         return new Checked(items, kept, leftOut);
     }
 
+    /**
+     * Checks only the words an answer reports (a quick translation has no speeches): the same rules as for a translated part.
+     */
+    public static Checked checkNewWords(List<NewWord> words, Language language) {
+        List<Word> kept = new ArrayList<>();
+        List<Word> leftOut = new ArrayList<>();
+        checkWords(words == null ? List.of() : words, language, kept, leftOut);
+        return new Checked(List.of(), kept, leftOut);
+    }
+
     private static void checkWords(List<NewWord> words, Language language, List<Word> kept, List<Word> leftOut) {
         for (NewWord word : words) {
             if (word.word() == null || word.word().isBlank() || word.gloss() == null || word.gloss().isBlank()) {

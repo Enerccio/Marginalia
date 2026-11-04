@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.extensions.conlangtranslator.translate;
 
 import com.github.enerccio.marginalia.extensions.conlangtranslator.model.CharacterNote;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.model.Language;
+import com.github.enerccio.marginalia.extensions.conlangtranslator.model.Speakers;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.model.SpeakersMode;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.translate.TranslationPrompt.Request;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.translate.TranslationPrompt.Scene;
@@ -22,7 +23,7 @@ class TranslationPromptTest {
     void theSystemMessageHasTheInstructionsTheRulesTheRegistersAndTheLexicon() {
         Language language = TestLanguages.vrakht();
 
-        Request request = TranslationPrompt.build(language, PART, Scene.none(), 0);
+        Request request = TranslationPrompt.build(language, new Speakers(), PART, Scene.none(), 0);
 
         String system = request.system();
         assertTrue(system.contains("translate the direct speech of a story into a constructed language"));
@@ -39,7 +40,7 @@ class TranslationPromptTest {
 
     @Test
     void theRegistersAreInTheSystemMessage() {
-        String system = TranslationPrompt.build(TestLanguages.aethel(), PART, Scene.none(), 0).system();
+        String system = TranslationPrompt.build(TestLanguages.aethel(), new Speakers(), PART, Scene.none(), 0).system();
 
         assertTrue(system.contains("=== REGISTERS ===\nformal - healers and nobles\nsoft - lovers\nvulgar - soldiers\n"), system);
         assertTrue(system.contains("breast: mela (formal), melis (soft), lelya (vulgar)"));
@@ -49,8 +50,8 @@ class TranslationPromptTest {
     void theSystemMessageDoesNotDependOnThePartWhileTheLexiconIsSentWhole() {
         Language language = TestLanguages.vrakht();
 
-        String one = TranslationPrompt.build(language, PART, Scene.none(), 0).system();
-        String two = TranslationPrompt.build(language, "A different part with no speech.", new Scene("Brog", "Brog, Mara", List.of("Before.")), 0).system();
+        String one = TranslationPrompt.build(language, new Speakers(), PART, Scene.none(), 0).system();
+        String two = TranslationPrompt.build(language, new Speakers(), "A different part with no speech.", new Scene("Brog", "Brog, Mara", List.of("Before.")), 0).system();
 
         assertEquals(one, two, "what is the same for every part is the same text, so the server's cache reads it once");
     }
@@ -58,10 +59,10 @@ class TranslationPromptTest {
     @Test
     void aWordAddedToTheLexiconChangesTheSystemMessageOnlyFromItsPlaceOn() {
         Language language = TestLanguages.vrakht();
-        String before = TranslationPrompt.build(language, PART, Scene.none(), 0).system();
+        String before = TranslationPrompt.build(language, new Speakers(), PART, Scene.none(), 0).system();
 
         TestLanguages.word(language, language.getCategories().get(2), "eiz-blod", "veteran");
-        String after = TranslationPrompt.build(language, PART, Scene.none(), 0).system();
+        String after = TranslationPrompt.build(language, new Speakers(), PART, Scene.none(), 0).system();
 
         assertTrue(after.startsWith(before.stripTrailing()), "everything that was there is untouched: the new word is at the end of its category");
         assertTrue(after.contains("eiz-blod - veteran"));
@@ -78,9 +79,10 @@ class TranslationPromptTest {
         brog.setListed(true);
         CharacterNote absent = new CharacterNote("Nobody In This Part");
         absent.setVoice("never mentioned");
-        language.getSpeakers().getCharacters().addAll(List.of(mara, brog, absent));
+        Speakers speakers = new Speakers();
+        speakers.getCharacters().addAll(List.of(mara, brog, absent));
 
-        String user = TranslationPrompt.build(language, PART, new Scene("Mara", "Mara, Brog", List.of("Earlier, Brog arrived.")), 0).user();
+        String user = TranslationPrompt.build(language, speakers, PART, new Scene("Mara", "Mara, Brog", List.of("Earlier, Brog arrived.")), 0).user();
 
         assertTrue(user.contains("CHARACTERS:\n- Mara: speaks Vrakht; a woman; voice: formal court speech\n"), user);
         assertTrue(user.contains("- Brog (also the guard): does NOT know Vrakht\n"), user);
@@ -93,13 +95,14 @@ class TranslationPromptTest {
     @Test
     void inTheOtherModeTheListedCharactersAreTheOnesWhoSpeak() {
         Language language = TestLanguages.vrakht();
-        language.getSpeakers().setMode(SpeakersMode.ONLY);
+        Speakers speakers = new Speakers();
+        speakers.setMode(SpeakersMode.ONLY);
         CharacterNote mara = new CharacterNote("Mara");
         mara.setListed(true);
         CharacterNote brog = new CharacterNote("Brog");
-        language.getSpeakers().getCharacters().addAll(List.of(mara, brog));
+        speakers.getCharacters().addAll(List.of(mara, brog));
 
-        Request request = TranslationPrompt.build(language, PART, Scene.none(), 0);
+        Request request = TranslationPrompt.build(language, speakers, PART, Scene.none(), 0);
 
         assertTrue(request.system().contains("only the characters the CHARACTERS list marks as speaking Vrakht speak it."));
         assertTrue(request.user().contains("- Mara: speaks Vrakht\n"));
@@ -108,7 +111,7 @@ class TranslationPromptTest {
 
     @Test
     void aPartWithNoNotesHasNoCharactersListAndNoEmptySections() {
-        String user = TranslationPrompt.build(TestLanguages.vrakht(), PART, Scene.none(), 0).user();
+        String user = TranslationPrompt.build(TestLanguages.vrakht(), new Speakers(), PART, Scene.none(), 0).user();
 
         assertEquals("\nPART:\n" + PART + "\n", user);
     }
@@ -116,10 +119,10 @@ class TranslationPromptTest {
     @Test
     void aHyphenThatIsStructuralIsSaidInTheRequest() {
         Language language = TestLanguages.vrakht();
-        assertFalse(TranslationPrompt.build(language, PART, Scene.none(), 0).system().contains("A hyphen is a part of a word"));
+        assertFalse(TranslationPrompt.build(language, new Speakers(), PART, Scene.none(), 0).system().contains("A hyphen is a part of a word"));
 
         language.setHyphenStructural(true);
 
-        assertTrue(TranslationPrompt.build(language, PART, Scene.none(), 0).system().contains("A hyphen is a part of a word of this language"));
+        assertTrue(TranslationPrompt.build(language, new Speakers(), PART, Scene.none(), 0).system().contains("A hyphen is a part of a word of this language"));
     }
 }

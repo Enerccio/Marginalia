@@ -95,7 +95,6 @@ final class Items {
             case RULE -> RULES;
             case CATEGORY -> CATEGORIES;
             case REGISTER -> REGISTERS;
-            case CHARACTER -> CHARACTERS;
             case WORD -> WORDS;
         };
     }
@@ -136,7 +135,6 @@ final class Items {
             // the name is not here: it is what the library knows the language by, a comparison never renames
             map.put("description", item.getDescription());
             map.put("hyphenStructural", String.valueOf(item.isHyphenStructural()));
-            map.put("speakersMode", item.getSpeakers().getMode().name());
             return map;
         }
 
@@ -145,7 +143,6 @@ final class Items {
             switch (field) {
                 case "description" -> item.setDescription(value);
                 case "hyphenStructural" -> item.setHyphenStructural(Boolean.parseBoolean(value));
-                case "speakersMode" -> item.getSpeakers().setMode(parse(SpeakersMode.class, value, SpeakersMode.EVERYONE_EXCEPT));
                 default -> throw new IllegalArgumentException(field);
             }
         }
@@ -305,63 +302,6 @@ final class Items {
         @Override
         Class<Register> type() {
             return Register.class;
-        }
-    };
-
-    // ---- the speakers
-
-    static final Access<CharacterNote> CHARACTERS = new Access<>(Target.CHARACTER) {
-        @Override
-        List<CharacterNote> items(Language language) {
-            return language.getSpeakers().getCharacters();
-        }
-
-        @Override
-        String id(CharacterNote item) {
-            return item.getId();
-        }
-
-        @Override
-        String label(CharacterNote item) {
-            return item.getName();
-        }
-
-        @Override
-        Map<String, String> text(CharacterNote item) {
-            Map<String, String> map = new LinkedHashMap<>();
-            map.put("name", item.getName());
-            map.put("gender", item.getGender());
-            map.put("voice", item.getVoice());
-            map.put("listed", String.valueOf(item.isListed()));
-            return map;
-        }
-
-        @Override
-        void setText(CharacterNote item, String field, String value) {
-            switch (field) {
-                case "name" -> item.setName(value);
-                case "gender" -> item.setGender(value);
-                case "voice" -> item.setVoice(value);
-                case "listed" -> item.setListed(Boolean.parseBoolean(value));
-                default -> throw new IllegalArgumentException(field);
-            }
-        }
-
-        @Override
-        Map<String, List<String>> lists(CharacterNote item) {
-            return Map.of("aliases", new ArrayList<>(item.getAliases()));
-        }
-
-        @Override
-        void setList(CharacterNote item, String field, List<String> values) {
-            if ("aliases".equals(field)) {
-                item.setAliases(new ArrayList<>(values));
-            }
-        }
-
-        @Override
-        Class<CharacterNote> type() {
-            return CharacterNote.class;
         }
     };
 

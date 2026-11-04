@@ -5,7 +5,6 @@ import com.github.enerccio.marginalia.extensions.conlangtranslator.diff.*;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.model.Audience;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.model.EntryKind;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.model.EntryStatus;
-import com.github.enerccio.marginalia.extensions.conlangtranslator.model.SpeakersMode;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
@@ -70,7 +69,7 @@ public class ChangeReviewDialog extends Dialog {
         Button none = new Button(T.localized(SELECT_NONE), _ -> pick(Mode.NONE));
         Button clean = new Button(T.localized(SELECT_WITHOUT_CONFLICTS), _ -> pick(Mode.CLEAN));
         ComboBox<String> only = new ComboBox<>();
-        only.setItems(ALL, Target.WORD.name(), Target.RULE.name(), Target.CATEGORY.name(), Target.REGISTER.name(), Target.CHARACTER.name(), Target.LANGUAGE.name());
+        only.setItems(ALL, Target.WORD.name(), Target.RULE.name(), Target.CATEGORY.name(), Target.REGISTER.name(), Target.LANGUAGE.name());
         only.setItemLabelGenerator(value -> value.equals(ALL) ? T.localized(EVERYTHING) : T.localized(targetLabel(Target.valueOf(value))));
         only.setValue(ALL);
         only.setAllowCustomValue(false);
@@ -308,7 +307,6 @@ public class ChangeReviewDialog extends Dialog {
             case RULE -> TARGET_RULE;
             case CATEGORY -> TARGET_CATEGORY;
             case REGISTER -> TARGET_REGISTER;
-            case CHARACTER -> TARGET_CHARACTER;
             case WORD -> TARGET_WORD;
         };
     }
@@ -328,16 +326,11 @@ public class ChangeReviewDialog extends Dialog {
             case "name" -> NAME;
             case "description" -> DESCRIPTION;
             case "hyphenStructural" -> A_HYPHEN_IS_PART_OF_A_WORD;
-            case "speakersMode" -> WHO_SPEAKS_IT;
             case "title" -> TITLE;
             case "audience" -> READ_BY;
             case "text" -> TEXT;
             case "note" -> NOTE;
             case "alwaysSend" -> ALWAYS_SENT;
-            case "gender" -> GENDER;
-            case "voice" -> VOICE;
-            case "listed" -> LISTED;
-            case "aliases" -> ALSO_CALLED;
             case "word" -> WORD;
             case "script" -> IN_THE_SCRIPT;
             case "category" -> CATEGORY;
@@ -360,9 +353,7 @@ public class ChangeReviewDialog extends Dialog {
                 case "kind" -> T.localized(EntryDialog.kindLabel(EntryKind.valueOf(raw)));
                 case "status" -> T.localized(EntryDialog.statusLabel(EntryStatus.valueOf(raw)));
                 case "audience" -> T.localized(LanguageEditorDialog.audienceLabel(Audience.valueOf(raw)));
-                case "speakersMode" -> SpeakersMode.valueOf(raw) == SpeakersMode.EVERYONE_EXCEPT ? T.localized(EVERYBODY_SPEAKS_IT_EXCEPT)
-                        : T.localized(ONLY_THE_LISTED_SPEAK_IT);
-                case "hyphenStructural", "alwaysSend", "listed" -> Boolean.parseBoolean(raw) ? T.localized(YES_TEXT) : T.localized(NO_TEXT);
+                case "hyphenStructural", "alwaysSend" -> Boolean.parseBoolean(raw) ? T.localized(YES_TEXT) : T.localized(NO_TEXT);
                 default -> raw;
             };
         } catch (IllegalArgumentException e) {

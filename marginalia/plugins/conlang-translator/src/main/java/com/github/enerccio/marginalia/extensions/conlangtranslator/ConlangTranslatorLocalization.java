@@ -164,8 +164,6 @@ public class ConlangTranslatorLocalization extends PluginLocalizationBundle {
     public static final String THE_WORD_IS_EMPTY = "The word is empty";
     public static final String A_WORD_NEEDS_A_MEANING = "A word needs at least one meaning";
     public static final String THE_MEANING_IS_EMPTY = "The meaning is empty";
-    public static final String LOOK_UP_A_WORD = "Look up a word";
-    public static final String WORDS_OF_S = "Words of %s";
     public static final String D_WORDS_D_NEW = "%d words, %d new";
     public static final String SELECT_ALL = "Select all";
     public static final String SELECT_NONE = "Select none";
@@ -175,7 +173,6 @@ public class ConlangTranslatorLocalization extends PluginLocalizationBundle {
     public static final String TARGET_RULE = "Rule section";
     public static final String TARGET_CATEGORY = "Category";
     public static final String TARGET_REGISTER = "Register";
-    public static final String TARGET_CHARACTER = "Character";
     public static final String TARGET_WORD = "Word";
     public static final String KIND_ADD = "Add";
     public static final String KIND_CHANGE = "Change";
@@ -203,7 +200,6 @@ public class ConlangTranslatorLocalization extends PluginLocalizationBundle {
     public static final String DELETED_HERE_CHANGED_THERE_TEXT = "Deleted here, changed in the other language: picking it brings it back";
     public static final String THE_SAME_WORD_IS_HERE = "The same word with a shared meaning is here already";
     public static final String MOVED_ON_BOTH_SIDES = "Moved on both sides";
-    public static final String WHO_SPEAKS_IT = "Who speaks it";
     public static final String COMPARE = "Compare";
     public static final String BRING_CHANGES_FROM = "Bring the changes from";
     public static final String COMPARE_S = "Compare %s with another language";
@@ -317,6 +313,22 @@ public class ConlangTranslatorLocalization extends PluginLocalizationBundle {
     public static final String NOT_UNDERSTOOD = "(not understood by the listener)";
     public static final String EDITED_AFTER_TRANSLATION = "The text was edited after the translation; this may not be what it says now.";
     public static final String THE_DESIGNER_REVIEWS = "The designer reads the rules and the lexicon and lists contradictions, gaps, and words that break the sound system. Nothing is changed.";
+    public static final String CONLANG = "Conlang";
+    public static final String QUICK_TRANSLATE = "Quick translate";
+    public static final String REFRESH = "Refresh";
+    public static final String TEXT_TO_TRANSLATE = "Text to translate (English)";
+    public static final String WHO_SAYS_IT_TO_WHOM = "Who says it, to whom (optional)";
+    public static final String THE_NOTES_OF_THE_SPEAKERS_ARE_USED = "A character named in the text or here is described to the model with the notes of the Speakers tab.";
+    public static final String THE_TEXT_IS_TRANSLATED_NOTHING_IS_WRITTEN = "The text is translated into the language of the book. Nothing is written into the story; you use the translation, and import the new words you want into the lexicon.";
+    public static final String TRANSLATE = "Translate";
+    public static final String TRANSLATION = "Translation";
+    public static final String COPY = "Copy";
+    public static final String COPIED = "Copied";
+    public static final String THERE_IS_NO_TEXT_TO_TRANSLATE = "There is no text to translate";
+    public static final String THE_WORDS_THE_TRANSLATION_NEEDED = "Words the translation needed and the lexicon lacked";
+    public static final String IMPORT_THE_SELECTED_WORDS = "Import the selected words";
+    public static final String IMPORTED_D_WORDS_AS_NEW = "Imported %d word(s) as new";
+    public static final String WORDS_IN_NEITHER_THE_LEXICON_NOR_THE_NEW_WORDS = "Words that are in neither the lexicon nor the new words: %s";
 
     @Override
     protected void loadKeys() {
@@ -785,12 +797,6 @@ public class ConlangTranslatorLocalization extends PluginLocalizationBundle {
         ja(THE_MEANING_IS_EMPTY, "意味が空です");
         zh(THE_MEANING_IS_EMPTY, "词义为空");
 
-        ja(LOOK_UP_A_WORD, "単語を調べる");
-        zh(LOOK_UP_A_WORD, "查词");
-
-        ja(WORDS_OF_S, "%s の単語");
-        zh(WORDS_OF_S, "%s 的词汇");
-
         ja(D_WORDS_D_NEW, "%d 語、新規 %d");
         zh(D_WORDS_D_NEW, "%d 个词,新增 %d");
 
@@ -817,9 +823,6 @@ public class ConlangTranslatorLocalization extends PluginLocalizationBundle {
 
         ja(TARGET_REGISTER, "語域");
         zh(TARGET_REGISTER, "语域");
-
-        ja(TARGET_CHARACTER, "人物");
-        zh(TARGET_CHARACTER, "角色");
 
         ja(TARGET_WORD, "単語");
         zh(TARGET_WORD, "词");
@@ -901,9 +904,6 @@ public class ConlangTranslatorLocalization extends PluginLocalizationBundle {
 
         ja(MOVED_ON_BOTH_SIDES, "両側で移動されています");
         zh(MOVED_ON_BOTH_SIDES, "双方都移动了");
-
-        ja(WHO_SPEAKS_IT, "話者");
-        zh(WHO_SPEAKS_IT, "谁说这种语言");
 
         ja(COMPARE, "比較");
         zh(COMPARE, "比较");
@@ -1243,5 +1243,53 @@ public class ConlangTranslatorLocalization extends PluginLocalizationBundle {
 
         ja(STOPPED_AFTER_D_OF_D_PARTS, "%d / %d個のパートの後に停止しました。");
         zh(STOPPED_AFTER_D_OF_D_PARTS, "在 %d / %d 段后停止。");
+
+        ja(CONLANG, "コンラング");
+        zh(CONLANG, "人造语");
+
+        ja(QUICK_TRANSLATE, "クイック翻訳");
+        zh(QUICK_TRANSLATE, "快速翻译");
+
+        ja(REFRESH, "再読み込み");
+        zh(REFRESH, "刷新");
+
+        ja(TEXT_TO_TRANSLATE, "翻訳するテキスト(英語)");
+        zh(TEXT_TO_TRANSLATE, "要翻译的文本(英文)");
+
+        ja(WHO_SAYS_IT_TO_WHOM, "誰が誰に言うか(任意)");
+        zh(WHO_SAYS_IT_TO_WHOM, "谁对谁说(可选)");
+
+        ja(THE_NOTES_OF_THE_SPEAKERS_ARE_USED, "テキストまたはここに名前がある人物は、「話者」タブのメモとともにモデルに伝えられます。");
+        zh(THE_NOTES_OF_THE_SPEAKERS_ARE_USED, "文本或此处提到的角色,会连同“说话者”标签中的备注一起告诉模型。");
+
+        ja(THE_TEXT_IS_TRANSLATED_NOTHING_IS_WRITTEN, "テキストは本の言語に翻訳されます。物語には何も書き込まれません。翻訳を使い、必要な新語を語彙に取り込めます。");
+        zh(THE_TEXT_IS_TRANSLATED_NOTHING_IS_WRITTEN, "文本会被翻译成本书的语言。不会写入故事;你自行使用译文,并可把需要的新词导入词汇表。");
+
+        ja(TRANSLATE, "翻訳");
+        zh(TRANSLATE, "翻译");
+
+        ja(TRANSLATION, "翻訳結果");
+        zh(TRANSLATION, "译文");
+
+        ja(COPY, "コピー");
+        zh(COPY, "复制");
+
+        ja(COPIED, "コピーしました");
+        zh(COPIED, "已复制");
+
+        ja(THERE_IS_NO_TEXT_TO_TRANSLATE, "翻訳するテキストがありません");
+        zh(THERE_IS_NO_TEXT_TO_TRANSLATE, "没有要翻译的文本");
+
+        ja(THE_WORDS_THE_TRANSLATION_NEEDED, "翻訳に必要で語彙になかった単語");
+        zh(THE_WORDS_THE_TRANSLATION_NEEDED, "译文需要而词汇表中没有的词");
+
+        ja(IMPORT_THE_SELECTED_WORDS, "選択した単語を取り込む");
+        zh(IMPORT_THE_SELECTED_WORDS, "导入所选的词");
+
+        ja(IMPORTED_D_WORDS_AS_NEW, "%d個の単語を新規として取り込みました");
+        zh(IMPORTED_D_WORDS_AS_NEW, "已将 %d 个词作为新词导入");
+
+        ja(WORDS_IN_NEITHER_THE_LEXICON_NOR_THE_NEW_WORDS, "語彙にも新語にもない単語: %s");
+        zh(WORDS_IN_NEITHER_THE_LEXICON_NOR_THE_NEW_WORDS, "既不在词汇表也不在新词中的词:%s");
     }
 }

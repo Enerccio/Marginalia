@@ -273,20 +273,6 @@ class LanguageDiffTest {
         assertEquals("verb", word(current, "rota").getSenses().getFirst().getPartOfSpeech());
     }
 
-    @Test
-    void theAliasesOfACharacterAreAListToo() {
-        Language base = base();
-        CharacterNote ron = new CharacterNote("Ron");
-        base.getSpeakers().getCharacters().add(ron);
-        Language incoming = copy(base);
-        incoming.getSpeakers().getCharacters().getFirst().getAliases().add("Weasley");
-        Language current = copy(base);
-
-        ChangeSet set = LanguageDiff.diff(base, incoming, current);
-        LanguageDiff.apply(current, set);
-        assertTrue(current.getSpeakers().getCharacters().getFirst().isCalled("Weasley"));
-    }
-
     // ---- the order
 
     @Test
@@ -379,21 +365,19 @@ class LanguageDiffTest {
     }
 
     @Test
-    void theNameTheDescriptionAndTheOptionsOfTheLanguageAreChangesOfTheLanguage() {
+    void theDescriptionAndTheOptionsOfTheLanguageAreChangesOfTheLanguage() {
         Language base = base();
         Language incoming = copy(base);
         incoming.setDescription("A tongue of legions");
         incoming.setHyphenStructural(true);
-        incoming.getSpeakers().setMode(SpeakersMode.ONLY);
         Language current = copy(base);
 
         ChangeSet set = LanguageDiff.diff(base, incoming, current);
         Change change = change(set, Target.LANGUAGE, Change.Kind.CHANGE);
-        assertEquals(3, change.fields().size());
+        assertEquals(2, change.fields().size());
         LanguageDiff.apply(current, set);
         assertEquals("A tongue of legions", current.getDescription());
         assertTrue(current.isHyphenStructural());
-        assertEquals(SpeakersMode.ONLY, current.getSpeakers().getMode());
         assertEquals("Vrakht", current.getName());
     }
 
