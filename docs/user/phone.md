@@ -187,6 +187,7 @@ Marginalia:
 | [Book Description Generator](extensions/book-description-generator.md) | Works. The button is at the end of the About tab; the dialog shows the options above the result. |
 | [Chapter Marker](extensions/chapter-marker.md) | Works. Chapter titles are in the outline drawer. |
 | [Character Tracker](extensions/character-tracker.md) | Works. The Characters tab is in the outline drawer. |
+| [Conlang Translator](extensions/conlang-translator.md) | Partly. The panel in *Settings → Extension Settings*, the editor, the review and the wizard work (the lexicon grid scrolls sideways), and so does the tap on a translated speech in the viewer; the story side (**Translate the speech**, **Translate parts**, the click in the story) was not tried on a phone, see [Limits](extensions/conlang-translator.md#limits). |
 | [Converter](extensions/sillytavern-converter.md) | Works. The Converter tab is in the outline drawer; the range of the chat is chosen with two taps, see [On a phone](extensions/sillytavern-converter.md#on-a-phone). |
 | [Instruction Exporter](extensions/instruction-exporter.md) | Works. **Export instructions** is in the settings menu of the story. |
 | [Manga Generator](extensions/manga-generator.md) | Works. **Manga Generator** is in the settings menu of the story; its window is large, so landscape is easier. |

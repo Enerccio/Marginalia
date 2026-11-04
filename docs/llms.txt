@@ -58,7 +58,8 @@
 
 ### Extensions
 
-- [Extensions](https://enerccio.github.io/Marginalia/user/extensions/index.md): Extensions add features to Marginalia without changing the application itself. Twenty-one extensions come with Marginalia:
+- [Extensions](https://enerccio.github.io/Marginalia/user/extensions/index.md): Extensions add features to Marginalia without changing the application itself. Twenty-two extensions come with Marginalia:
+- [Conlang Translator](https://enerccio.github.io/Marginalia/user/extensions/conlang-translator.md): Lets the characters of your story speak a constructed language. You describe the language (its rules and its words) and the model writes the direct speech of the characters who speak it in that language, while the story keeps the English behind it.
 - [Knowledge Tracker](https://enerccio.github.io/Marginalia/user/extensions/knowledge-tracker.md): Keeps track of what the characters of your story know, and what they do not know, and puts it into the prompt. A model tends to let a character know things
 - [Author's Note](https://enerccio.github.io/Marginalia/user/extensions/authors-note.md): A note to the model that is sent with every generation of the book: the tone you want right now, what the current chapter is about, a reminder the model keeps forgetting.
 - [Chinese localization](https://enerccio.github.io/Marginalia/user/extensions/chinese-localization.md): Adds Simplified Chinese (中文（简体）) to the languages of the user interface.

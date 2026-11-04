@@ -6,7 +6,7 @@ icon: plug
 
 # Extensions
 
-Extensions add features to Marginalia without changing the application itself. Twenty-one extensions come with Marginalia:
+Extensions add features to Marginalia without changing the application itself. Twenty-two extensions come with Marginalia:
 
 | Extension | What it adds |
 |---|---|
@@ -17,6 +17,7 @@ Extensions add features to Marginalia without changing the application itself. T
 | [Book Description Generator](book-description-generator.md) | Writes the name and the description of the book with the model from a range of its story, with the About tab's button. |
 | [Chapter Marker](chapter-marker.md) | Chapter titles in the story outline, from Markdown headings in the parts. |
 | [Character Tracker](character-tracker.md) | The characters of the book with their relationships, and a map of them. |
+| [Conlang Translator](conlang-translator.md) | The speech of your characters in a constructed language you describe, with the English kept behind it for the models and a click for the reader. |
 | [Gemma 4 tools fix](gemma-4-tools-fix.md) | Makes function calling work with Gemma 4 models whose API wants another role for tool results. |
 | [Google Gemini](google-genai.md) | Google's Gemini models as an inference provider, over Google's own API, with the thinking summaries shown as reasoning. |
 | [Image Generator](image-generator.md) | Makes an image for a part of the story: the model writes the prompt, ComfyUI or an OpenAI-style images API draws it, you reroll and accept it. |
@@ -49,7 +50,7 @@ Extensions hook into the user interface of one Marginalia version. An extension 
 working or break parts of the application. Use the extensions that come with your version of Marginalia.
 !!!
 
-The twenty extensions above are part of the Marginalia source code (`marginalia/plugins`) and are built separately;
+The extensions above are part of the Marginalia source code (`marginalia/plugins`) and are built separately;
 see the [plugins README](https://github.com/Enerccio/Marginalia/blob/master/marginalia/plugins/README.md).
 
 ## Extensions on a phone
