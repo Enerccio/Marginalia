@@ -1,10 +1,10 @@
 #!/bin/bash
-# Starts the production WAR in Jetty (maven plugin) with the screenshot data folder. Logs: screenshots/.run/app.log
+# SHOT_MVN_ARGS: more Maven arguments (e.g. -Dbuild.dir=/some/folder when the WAR was built there). Starts the production WAR in Jetty (maven plugin) with the screenshot data folder. Logs: screenshots/.run/app.log
 . "$(dirname "$0")/env.sh"
 mkdir -p "$SHOT_ROOT/.run" "$SHOT_HOME"
 cd "$REPO_ROOT/marginalia"
 export MAVEN_OPTS="-XX:+EnableDynamicAgentLoading -Djdk.attach.allowAttachSelf=true -Duser.home=$SHOT_HOME -Dmaven.repo.local=$HOME/.m2/repository -Duser.language=en -Duser.country=US"
-nohup mvn -s "$HOME/.m2/settings.xml" -DskipTests jetty:run-war -Djetty.http.port=$SHOT_PORT > "$SHOT_ROOT/.run/app.log" 2>&1 &
+nohup mvn -s "$HOME/.m2/settings.xml" -DskipTests jetty:run-war -Djetty.http.port=$SHOT_PORT $SHOT_MVN_ARGS > "$SHOT_ROOT/.run/app.log" 2>&1 &
 echo $! > "$SHOT_ROOT/.run/app.pid"
 echo "started pid $(cat "$SHOT_ROOT/.run/app.pid"), waiting for $SHOT_URL"
 for i in $(seq 1 120); do

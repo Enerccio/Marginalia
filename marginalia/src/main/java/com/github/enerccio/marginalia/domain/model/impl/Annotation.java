@@ -2,9 +2,6 @@ package com.github.enerccio.marginalia.domain.model.impl;
 
 import com.github.enerccio.marginalia.domain.collections.AnnotationSource;
 import com.github.enerccio.marginalia.domain.collections.AnnotationStatus;
-import com.github.enerccio.marginalia.domain.model.ExtendableEntity;
-import com.github.enerccio.marginalia.domain.traits.CleanupReference;
-import com.github.enerccio.marginalia.domain.traits.CleanupReference.Policy;
 import com.github.enerccio.marginalia.domain.traits.ExtendedAttribute;
 import jakarta.persistence.*;
 
@@ -13,46 +10,21 @@ import jakarta.persistence.*;
  * findings of a model, an agent or an extension. Not a part of the story: it is never in a prompt unless
  * {@link #isSendToPrompt() asked to}.
  * <p>
- * The passage is a range of offsets in the source text ({@link ChatMessage#getResponse()}), the text itself carries no
- * marker. The offsets are kept in line with the text by the {@code AnnotationService} on every change of the text
- * ({@code AnnotationAnchors}). An annotation without a range ({@link #hasRange()}) is about the part as a whole, or lost its
- * passage ({@link AnnotationStatus#ORPHANED}). Overlapping annotations are separate rows.
+ * The passage is the {@link AnchoredPassage} this extends (a range of offsets in the source text, kept in line with the text
+ * on every change of it); the rest here is what makes it an editorial note. An annotation without a range ({@link #hasRange()})
+ * is about the part as a whole, or lost its passage ({@link AnnotationStatus#ORPHANED}). Overlapping annotations are separate rows.
  */
 @Entity
-@Table(name = "annotations")
-public class Annotation extends ExtendableEntity {
-
-    // a soft deleted part takes its annotations with it
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "part_id")
-    @CleanupReference(Policy.OWNED_BY)
-    private ChatMessage part;
-
-    /**
-     * The id of {@link #part} for the code that has no session to load it with.
-     */
-    @Column(name = "part_id", insertable = false, updatable = false)
-    private Long partId;
+@DiscriminatorValue(AnchoredPassage.EDITORIAL)
+public class Annotation extends AnchoredPassage {
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 16)
+    @Column(length = 16)
     private AnnotationStatus status = AnnotationStatus.OPEN;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 16)
+    @Column(length = 16)
     private AnnotationSource source = AnnotationSource.AUTHOR;
-
-    /**
-     * First character of the passage, null for an annotation of the part as a whole.
-     */
-    @Column(name = "startOffset")
-    private Integer start;
-
-    /**
-     * End of the passage (exclusive), null for an annotation of the part as a whole.
-     */
-    @Column(name = "endOffset")
-    private Integer end;
 
     /**
      * The note.
@@ -60,22 +32,6 @@ public class Annotation extends ExtendableEntity {
     @ExtendedAttribute
     @Transient
     private String text;
-
-    /**
-     * The passage as it was when the range was last set, and some text around it: what finds the passage again when the
-     * offsets mean nothing (the text was replaced as a whole, the annotation is attached to another text).
-     */
-    @ExtendedAttribute
-    @Transient
-    private String quote;
-
-    @ExtendedAttribute
-    @Transient
-    private String contextBefore;
-
-    @ExtendedAttribute
-    @Transient
-    private String contextAfter;
 
     /**
      * What kind of a note it is (a free word: "continuity", "style"), the colour of the mark follows it; null is the default.
@@ -98,28 +54,6 @@ public class Annotation extends ExtendableEntity {
     @Transient
     private Boolean sendToPrompt;
 
-    /**
-     * Made from a quote that was not found in the text: the annotation is about the part as a whole.
-     */
-    @ExtendedAttribute
-    @Transient
-    private Boolean notLocated;
-
-    public ChatMessage getPart() {
-        return part;
-    }
-
-    public void setPart(ChatMessage part) {
-        this.part = part;
-    }
-
-    /**
-     * @return the id of the part; null for an annotation that is not saved yet
-     */
-    public Long getPartId() {
-        return part != null && part.getId() != null ? part.getId() : partId;
-    }
-
     public AnnotationStatus getStatus() {
         return status;
     }
@@ -136,64 +70,12 @@ public class Annotation extends ExtendableEntity {
         this.source = source;
     }
 
-    public Integer getStart() {
-        return start;
-    }
-
-    public void setStart(Integer start) {
-        this.start = start;
-    }
-
-    public Integer getEnd() {
-        return end;
-    }
-
-    public void setEnd(Integer end) {
-        this.end = end;
-    }
-
-    /**
-     * @return true when the annotation is about a passage of the text and not about the part as a whole
-     */
-    public boolean hasRange() {
-        return start != null && end != null && end > start;
-    }
-
-    public void setRange(Integer start, Integer end) {
-        this.start = start;
-        this.end = end;
-    }
-
     public String getText() {
         return text;
     }
 
     public void setText(String text) {
         this.text = text;
-    }
-
-    public String getQuote() {
-        return quote;
-    }
-
-    public void setQuote(String quote) {
-        this.quote = quote;
-    }
-
-    public String getContextBefore() {
-        return contextBefore;
-    }
-
-    public void setContextBefore(String contextBefore) {
-        this.contextBefore = contextBefore;
-    }
-
-    public String getContextAfter() {
-        return contextAfter;
-    }
-
-    public void setContextAfter(String contextAfter) {
-        this.contextAfter = contextAfter;
     }
 
     public String getType() {
@@ -220,11 +102,48 @@ public class Annotation extends ExtendableEntity {
         this.sendToPrompt = sendToPrompt ? Boolean.TRUE : null;
     }
 
-    public boolean isNotLocated() {
-        return Boolean.TRUE.equals(notLocated);
+    @Override
+    public String discriminator() {
+        return EDITORIAL;
     }
 
-    public void setNotLocated(boolean notLocated) {
-        this.notLocated = notLocated ? Boolean.TRUE : null;
+    @Override
+    public boolean isOrphaned() {
+        return status == AnnotationStatus.ORPHANED;
+    }
+
+    /**
+     * The passage is gone: an open annotation is orphaned, one the author closed stays closed, none keeps the range.
+     */
+    @Override
+    public void orphan() {
+        setRange(null, null);
+        if (status == AnnotationStatus.OPEN) {
+            status = AnnotationStatus.ORPHANED;
+        }
+    }
+
+    @Override
+    public void unorphan() {
+        if (status == AnnotationStatus.ORPHANED) {
+            status = AnnotationStatus.OPEN;
+        }
+    }
+
+    @Override
+    protected AnchoredPassage newInstance() {
+        return new Annotation();
+    }
+
+    @Override
+    protected void copyInto(AnchoredPassage copy) {
+        super.copyInto(copy);
+        Annotation annotation = (Annotation) copy;
+        annotation.status = status;
+        annotation.source = source;
+        annotation.text = text;
+        annotation.type = type;
+        annotation.label = label;
+        annotation.sendToPrompt = sendToPrompt;
     }
 }

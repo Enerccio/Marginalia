@@ -11,6 +11,7 @@ import com.github.enerccio.marginalia.domain.service.impl.generation.dto.Loreboo
 import com.github.enerccio.marginalia.domain.templates.LorebookTemplateData;
 import com.github.enerccio.marginalia.domain.templates.TemplateContext;
 import com.github.enerccio.marginalia.domain.templates.TemplateVariables;
+import com.github.enerccio.marginalia.extensions.PartTextRegistry;
 import com.github.enerccio.marginalia.extensions.imagegenerator.model.BackendConfig;
 import com.github.enerccio.marginalia.extensions.imagegenerator.model.ImageSettings;
 import com.google.gson.Gson;
@@ -49,6 +50,9 @@ public class ImageGeneratorService {
 
     @Autowired
     private ChatMessageService chatMessageService;
+
+    @Autowired
+    private PartTextRegistry partTexts;
 
     @Autowired
     private ManuscriptService manuscriptService;
@@ -163,7 +167,7 @@ public class ImageGeneratorService {
      */
     public PromptRequest buildPromptRequest(ImageSettings settings, Manuscript manuscript, ChatMessage message, AI ai, Protocol protocol,
                                             boolean withLore, String details) throws Exception {
-        String scene = sceneText(message);
+        String scene = sceneText(message, partTexts.forModel(message));
         Lore lore = new Lore("", 0, 0);
         if (withLore) {
             InferenceService service = inferenceServices.forAIOrThrow(ai);
@@ -177,18 +181,23 @@ public class ImageGeneratorService {
                 }
                 budget = Math.max(0, limit - fixed);
             }
-            lore = buildLore(manuscript, message, matchedText(message, details), budget, service);
+            lore = buildLore(manuscript, message, matchedText(message, details, partTexts.forModel(message)), budget, service);
         }
         return new PromptRequest(compose(settings.getPromptInstruction(), lore.text(), scene, details), lore.used(), lore.skipped());
     }
 
     /** The scene of the part as the prompt writer reads it. */
     static String sceneText(ChatMessage message) {
+        return sceneText(message, message.getResponse());
+    }
+
+    /** As {@link #sceneText(ChatMessage)}, with the text of the part as a model reads it. */
+    static String sceneText(ChatMessage message, String text) {
         StringBuilder scene = new StringBuilder();
         append(scene, "Scene setting", message.getSceneSetting());
         append(scene, "Point of view", message.getPovCharacter());
         append(scene, "Characters present", message.getPresentCharacters());
-        append(scene, "Text", message.getResponse());
+        append(scene, "Text", text);
         return scene.toString().strip();
     }
 
@@ -197,8 +206,13 @@ public class ImageGeneratorService {
      * view and characters present, and the details of the user.
      */
     static String matchedText(ChatMessage message, String details) {
+        return matchedText(message, details, message.getResponse());
+    }
+
+    /** As {@link #matchedText(ChatMessage, String)}, with the text of the part as a model reads it. */
+    static String matchedText(ChatMessage message, String details, String partText) {
         StringBuilder text = new StringBuilder();
-        for (String piece : new String[]{message.getResponse(), message.getInstructions(), message.getSceneSetting(),
+        for (String piece : new String[]{partText, message.getInstructions(), message.getSceneSetting(),
                 message.getPovCharacter(), message.getPresentCharacters(), details}) {
             if (StringUtils.isNotBlank(piece)) {
                 text.append(piece.strip()).append('\n');
@@ -302,8 +316,9 @@ public class ImageGeneratorService {
 
         List<String> story = new ArrayList<>();
         for (ChatMessage message : branch) {
-            if (StringUtils.isNotBlank(message.getResponse())) {
-                story.add(message.getResponse());
+            String text = partTexts.forModel(message);
+            if (StringUtils.isNotBlank(text)) {
+                story.add(text);
             }
         }
         context.setStoryMessages(story);

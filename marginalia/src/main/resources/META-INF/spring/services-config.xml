@@ -175,6 +175,16 @@
         <property name="entityManager" ref="em"/>
     </bean>
 
+    <bean id="passageRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaPassageRepository">
+        <property name="entityManager" ref="em"/>
+    </bean>
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.PassageServiceImpl">
+        <property name="repository" ref="passageRepository" />
+    </bean>
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.PassageKindsImpl" />
+
     <bean class="com.github.enerccio.marginalia.domain.service.impl.AnnotationServiceImpl">
         <property name="repository" ref="annotationRepository" />
     </bean>

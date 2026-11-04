@@ -72,8 +72,25 @@ public class KnowledgeTrackerView extends VerticalLayout {
     /** The progress panel of the run that is shown, and the listener that keeps this view in line with that run. */
     private ProgressPanel progressPanel;
     private ExtractionRun watched;
-    private final java.util.function.Consumer<ExtractionRun.Status> runListener = status -> UiAccess.run(this, () -> {
+    /** At most one reload of the tab waits at a time, however fast the run reports. */
+    private final Runnable runRefresh = UiAccess.coalesced(this, () -> {
         state = loadState();
+        refresh();
+    });
+    /**
+     * The tab shows the state, which a run changes only when it applies something (the {@code onChange} below tells) and the buttons
+     * that depend on whether a run goes on: so it is rebuilt when the run waits for a review or ends, not at every phase. A rebuild reads
+     * the whole branch of the story and the whole state, which is slow in a long book.
+     */
+    private final java.util.function.Consumer<ExtractionRun.Status> runListener = status -> {
+        if (status.phase().isFinished() || status.phase() == ExtractionRun.Phase.REVIEW) {
+            runRefresh.run();
+        }
+    };
+    /** A command or a run stored the state: one reload however many commits come in a row. */
+    private final Runnable changeRefresh = UiAccess.coalesced(this, () -> {
+        state = loadState();
+        showSettingsState();
         refresh();
     });
     /** Removes the listener that reads the state again when a command changes it, set while the view is attached. */
@@ -105,11 +122,7 @@ public class KnowledgeTrackerView extends VerticalLayout {
     protected void onAttach(AttachEvent attachEvent) {
         super.onAttach(attachEvent);
         // a command (the command bar, an agent) stores the state behind the back of the view, which keeps it in memory
-        changeRegistration = service.onChange(manuscript, () -> UIUtils.accessComponent(this, () -> {
-            state = loadState();
-            showSettingsState();
-            refresh();
-        }));
+        changeRegistration = service.onChange(manuscript, changeRefresh);
         ExtractionRun running = runs.running(manuscript);
         if (running != null) {
             watch(running);

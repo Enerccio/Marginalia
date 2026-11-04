@@ -24,7 +24,7 @@ com/github/enerccio/marginalia/domain/service/impl/SummaryServiceImpl.java
 # --- the stored text and its offsets: the editor, the revisions, the annotations, the hashes, the search and replace
 com/github/enerccio/marginalia/domain/service/impl/ChatMessageServiceImpl.java
 com/github/enerccio/marginalia/domain/service/impl/MessageRevisionServiceImpl.java
-com/github/enerccio/marginalia/domain/service/impl/AnnotationServiceImpl.java
+com/github/enerccio/marginalia/domain/service/impl/PassageServiceImpl.java
 com/github/enerccio/marginalia/domain/service/impl/ManuscriptReplaceServiceImpl.java
 com/github/enerccio/marginalia/domain/service/SummaryService.java
 com/github/enerccio/marginalia/domain/components/AnnotationTexts.java

@@ -961,8 +961,26 @@ registry; 2d the plugin callers. Each part has unit tests, and the application b
 - Tests: 238 in the classes touched, all pass (`ModelTextTest`, `PartTextRegistryTest`, `StoredTextReadersTest`, `PartTextGenerationTest`, `ReplaceTextTest`,
   `AnnotateServiceTest` with two new tests, and the existing tests of redraft, impersonate, the lorebook, summaries, tokens, history, `PublicAPISignatureTest`,
   `BundleCompletenessTest`). Docs: `manual/developer/plugins/part-text.md` (to be stamped after the commit), `CHANGELOG.MD`.
-- **Left in step 2:** 2c the annotation base class, V26 and the kind registry; 2d the plugin callers (arc-outline, beta-readers, book-description-generator,
-  image-generator, knowledge-tracker, manga-generator, reviewer, sidequery) switched to the registry.
+- **2c done** (2026-11-04, the annotation base class): `AnchoredPassage` (the anchoring: part, range, quote, context, `orphan()` / `unorphan()`, `copy()`)
+  is the base of `Annotation`, SINGLE_TABLE on `annotations`, discriminator `kind` (`EDITORIAL` / `PASSAGE`) and a column `passageKind`; V26 rebuilds the table
+  (`status` / `source` nullable, tested on a V25 database in `FlywayMigrationTest`). **A plugin's kind is the string `passageKind`, not a Java class**
+  (a discriminator value must name a class; `"not null"` cannot be inserted). `PassageService` (create / createFromQuote / list / reattach / remove and the anchoring for
+  every kind: shift, relocate, moveToPrevious, copyForBranch, deletes, backup with `kind` / `passageKind`); `AnnotationService` delegates its anchoring to it. The
+  kind registry is `PassageKinds` / `PassageKind` (`markClass`, `markAttributes`, `onClick`, `shownInViewer`, `shownInExports`); `StoryAnnotations` draws the marks of
+  the registered kinds in the cards (desktop, phone, redraft dialog) and `CardAnnotations` routes the click. **Scope that was cut from the plan:** the flags
+  "counted in the badge / tab / margin" are not in the registry: those lists read `Annotation`s only, so a passage is never in them (a kind that wants a list makes its own).
+  The trash and the cleanup name the root class (`EntityKey(AnchoredPassage.class, id)`). Docs: `manual/developer/plugins/anchored-passages.md`, changelog.
+  Tests: `PassageServiceTest`, `StoryAnnotationsTest`, `AnnotationCleanupTest` (key), the migration test.
+- **2d done** (2026-11-04): the plugin callers that send the story to a model take it from `PartTextRegistry.forModel` (reviewer, manga-generator, image-generator,
+  arc-outline, sidequery, knowledge-tracker `ExtractionService` and `KnowledgeProcessService` (the text of a `Part`, so the quotes of the answer and the hash of a
+  processed part are on what the model read), beta-readers, book-description-generator); chaptermarker, the Image Generator dialog, the converter and the Knowledge
+  Tracker's "changed text" comparison stay on the stored text. Plugin tests pass (arc-outline, beta-readers, book-description-generator, image-generator,
+  manga-generator, reviewer, sidequery).
+- **Checked in the browser** (the screenshot environment, 2026-11-04): the `13-db-backup` data folder (database at V23) migrates to V26 at start (a copy is saved
+  first, rows `EDITORIAL`, the three indexes), `shoot-features` takes the annotation pictures (dialog, mark, popover, margin, tab, annotate with the model, redraft,
+  merge) with no exception in the log, and Side Query on `16-authorsnote` sends the story through the registry. Not checked in a browser: a mark of a plugin's kind (no
+  plugin registers one yet; `StoryAnnotationsTest` covers the marks and the click).
+- **Left:** the viewer click and the export hook wait for steps 9 and 10. Next is step 3, the model.
 
 ## Plan (tentative, one commit each, the plugin builds and loads after every step)
 

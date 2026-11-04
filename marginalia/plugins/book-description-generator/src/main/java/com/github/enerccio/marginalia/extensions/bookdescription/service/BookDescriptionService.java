@@ -11,6 +11,7 @@ import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChat
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
 import com.github.enerccio.marginalia.domain.service.structured.SchemaCheck;
 import com.github.enerccio.marginalia.domain.service.structured.StructuredOutputs;
+import com.github.enerccio.marginalia.extensions.PartTextRegistry;
 import com.github.enerccio.marginalia.extensions.bookdescription.model.*;
 import com.github.enerccio.marginalia.extensions.bookdescription.service.StoryPlanner.BranchEntry;
 import com.github.enerccio.marginalia.extensions.bookdescription.service.StoryPlanner.Piece;
@@ -94,6 +95,9 @@ public class BookDescriptionService {
 
     @Autowired
     private ChatMessageService chatMessageService;
+
+    @Autowired
+    private PartTextRegistry partTexts;
 
     @Autowired
     private SummaryService summaryService;
@@ -228,7 +232,7 @@ public class BookDescriptionService {
         int previousHead = 0;
         for (ChatMessage message : branch) {
             order++;
-            String text = message.getResponse();
+            String text = partTexts.forModel(message);
             int number = 0;
             long tokens = 0;
             if (StringUtils.isNotBlank(text)) {

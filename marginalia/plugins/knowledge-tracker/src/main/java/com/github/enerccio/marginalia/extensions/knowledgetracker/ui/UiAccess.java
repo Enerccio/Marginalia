@@ -22,6 +22,39 @@ final class UiAccess {
         component.getUI().ifPresent(ui -> run(ui, change));
     }
 
+    /**
+     * A trigger for {@code change} that never queues more than one run: while one is waiting for the session (or running), the
+     * calls are dropped, the waiting run reads the latest state itself. A worker that reports faster than the page can show would
+     * otherwise fill the queue of the session and the page would never answer again.
+     */
+    static Runnable coalesced(Component component, Runnable change) {
+        java.util.concurrent.atomic.AtomicBoolean queued = new java.util.concurrent.atomic.AtomicBoolean();
+        return () -> {
+            if (!queued.compareAndSet(false, true)) {
+                return;
+            }
+            UI ui = component.getUI().orElse(null);
+            if (ui == null) {
+                queued.set(false);
+                return;
+            }
+            try {
+                ui.access(() -> {
+                    queued.set(false);
+                    try {
+                        change.run();
+                    } catch (RuntimeException e) {
+                        log.error(e.getMessage(), e);
+                    }
+                    UIPushGuard.push(ui);
+                });
+            } catch (UIDetachedException e) {
+                queued.set(false);
+                log.debug("The page is gone, the change is skipped");
+            }
+        };
+    }
+
     static void run(UI ui, Runnable change) {
         try {
             ui.access(() -> {

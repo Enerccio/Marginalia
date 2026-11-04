@@ -14,6 +14,7 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.progressbar.ProgressBar;
 
+import java.util.List;
 import java.util.function.Consumer;
 
 import static com.github.enerccio.marginalia.extensions.knowledgetracker.KnowledgeTrackerLocalization.*;
@@ -26,7 +27,19 @@ import static com.github.enerccio.marginalia.extensions.knowledgetracker.Knowled
 public class ProgressPanel extends Dialog {
 
     private final ExtractionRun run;
-    private final Consumer<Status> listener = status -> UiAccess.run(this, () -> show(status));
+    /** At most one update waits at a time: the run reports faster than the page can show, and the newest status is read when it runs. */
+    private final Runnable statusUpdate = UiAccess.coalesced(this, () -> show(run.getStatus()));
+    private final Runnable liveUpdate = UiAccess.coalesced(this, this::showLive);
+    private final Consumer<Status> listener = _ -> statusUpdate.run();
+    /** What the page shows of the thoughts and the log, to rebuild them only when they changed. */
+    private ExtractionRun.Thought shownLastThought;
+    private int shownThoughts = -1;
+    private int shownLog = -1;
+    /** The live boxes show the end of what the model writes: a long reasoning would be sent whole to the browser every time. */
+    private static final int LIVE_CHARS = 6000;
+    /** The page shows the latest thoughts only, each cut to its end: all of them, whole, make the browser slow down after a few runs. */
+    private static final int SHOWN_THOUGHTS = 8;
+    private static final int THOUGHT_CHARS = 12000;
 
     private final Span message = new Span();
     private final ProgressBar bar = new ProgressBar();
@@ -83,12 +96,14 @@ public class ProgressPanel extends Dialog {
     protected void onAttach(AttachEvent attachEvent) {
         super.onAttach(attachEvent);
         run.addListener(listener);
+        run.addLiveListener(liveUpdate);
         show(run.getStatus());
     }
 
     @Override
     protected void onDetach(DetachEvent detachEvent) {
         run.removeListener(listener);
+        run.removeLiveListener(liveUpdate);
         super.onDetach(detachEvent);
     }
 
@@ -109,41 +124,63 @@ public class ProgressPanel extends Dialog {
             case FAILED -> T.localized(IT_FAILED).formatted(status.message());
             case CANCELLED -> T.localized(STOPPED_PARTS_ADDED_RETRACTED).formatted(status.partsRead(), status.added(), status.retracted());
         });
-        log.removeAll();
-        status.log().forEach(line -> {
-            Div row = new Div(new Span(line));
-            row.addClassName(KnowledgeTrackerStyles.COUNTS);
-            log.add(row);
-        });
+        if (shownLog != status.log().size()) {
+            shownLog = status.log().size();
+            log.removeAll();
+            status.log().forEach(line -> {
+                Div row = new Div(new Span(line));
+                row.addClassName(KnowledgeTrackerStyles.COUNTS);
+                log.add(row);
+            });
+        }
         logDetails.setVisible(!status.log().isEmpty());
 
         // what the model thought and answered, one block per request: readable also when it proposed nothing and no review opens
-        thoughtRows.removeAll();
-        for (ExtractionRun.Thought thought : run.getThoughts()) {
+        List<ExtractionRun.Thought> thoughts = run.getThoughts();
+        // the run keeps only the last 30, so the newest one tells whether the list changed, not only its size
+        ExtractionRun.Thought newest = thoughts.isEmpty() ? null : thoughts.getLast();
+        if (shownThoughts != thoughts.size() || shownLastThought != newest) {
+          shownThoughts = thoughts.size();
+          shownLastThought = newest;
+          thoughtRows.removeAll();
+          for (ExtractionRun.Thought thought : thoughts.subList(Math.max(0, thoughts.size() - SHOWN_THOUGHTS), thoughts.size())) {
             Div title = new Div(new Span(T.localized(thought.tidy() ? TIDY_REQUEST_N_CHANGES : REQUEST_N_CHANGES)
                     .formatted(thought.run(), thought.changes())));
             title.addClassName(KnowledgeTrackerStyles.NAME);
-            Div reasoning = new Div(new Span(thought.reasoning().isBlank() ? T.localized(THE_MODEL_SENT_NO_REASONING) : thought.reasoning()));
+            Div reasoning = new Div(new Span(thought.reasoning().isBlank() ? T.localized(THE_MODEL_SENT_NO_REASONING) : cut(thought.reasoning(), THOUGHT_CHARS)));
             reasoning.addClassName(KnowledgeTrackerStyles.REASONING);
-            Div answer = new Div(new Span(thought.answer() == null ? "" : thought.answer().strip()));
+            Div answer = new Div(new Span(thought.answer() == null ? "" : cut(thought.answer().strip(), THOUGHT_CHARS)));
             answer.addClassName(KnowledgeTrackerStyles.REASONING);
             thoughtRows.add(title, reasoning, new Details(T.localized(WHAT_THE_MODEL_ANSWERED), answer));
+          }
         }
         thoughtDetails.setVisible(thoughtRows.getComponentCount() > 0);
 
-        // what the model writes while it writes it: only while a request goes on
+        showLive();
+    }
+
+    /** What the model writes while it writes it: only while a request goes on. Cheap, called a few times a second. */
+    private void showLive() {
         String[] live = run.getLive();
-        boolean writing = phase == Phase.ASKING && !(live[0].isEmpty() && live[1].isEmpty());
+        boolean writing = run.getStatus().phase() == Phase.ASKING && !(live[0].isEmpty() && live[1].isEmpty());
         liveDetails.setVisible(writing);
         content.setWidth(writing ? "36em" : null);
         if (writing) {
-            liveReasoning.setText(live[0]);
-            liveAnswer.setText(live[1]);
+            liveReasoning.setText(tail(live[0]));
+            liveAnswer.setText(tail(live[1]));
             liveAnswer.setVisible(!live[1].isEmpty());
             // the newest words are the ones to see: the boxes keep scrolled to the end
             liveReasoning.getElement().executeJs("this.scrollTop = this.scrollHeight");
             liveAnswer.getElement().executeJs("this.scrollTop = this.scrollHeight");
         }
+    }
+
+    private static String tail(String text) {
+        return cut(text, LIVE_CHARS);
+    }
+
+    private static String cut(String text, int max) {
+        return text.length() > max ? "…" + text.substring(text.length() - max) : text;
     }
 
     /** Opens the review of the proposal that waits; the user pressed the button. */

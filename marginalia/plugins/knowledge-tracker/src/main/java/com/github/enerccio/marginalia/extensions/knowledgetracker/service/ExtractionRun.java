@@ -70,6 +70,8 @@ public final class ExtractionRun {
     /** The run is the tidy pass: one request about the items, no cursor. */
     private final boolean tidy;
     private final List<Consumer<Status>> listeners = new CopyOnWriteArrayList<>();
+    /** Told that the live text changed (not a change of the status): it must stay cheap for the listener. */
+    private final List<Runnable> liveListeners = new CopyOnWriteArrayList<>();
     private final List<String> lines = new ArrayList<>();
     private final List<Thought> thoughts = new CopyOnWriteArrayList<>();
     /** What the model writes now, shown while the request goes on; reset at every request. */
@@ -90,11 +92,12 @@ public final class ExtractionRun {
             synchronized (liveReasoning) {
                 (reasoning ? liveReasoning : liveAnswer).append(piece);
             }
-            // the panel is told a few times a second, not for every word
+            // the panel is told about once a second, not for every word; only the live text changed, so the status
+            // listeners (which rebuild whole views) are not called
             long now = System.currentTimeMillis();
-            if (now - lastLiveNotify >= 300) {
+            if (now - lastLiveNotify >= 1000) {
                 lastLiveNotify = now;
-                notifyListeners();
+                notifyLiveListeners();
             }
         }
     };
@@ -182,6 +185,15 @@ public final class ExtractionRun {
 
     public void removeListener(Consumer<Status> listener) {
         listeners.remove(listener);
+    }
+
+    /** Called (from the worker thread, a few times a second) while the model writes, see {@link #getLive()}. */
+    public void addLiveListener(Runnable listener) {
+        liveListeners.add(listener);
+    }
+
+    public void removeLiveListener(Runnable listener) {
+        liveListeners.remove(listener);
     }
 
     void start() {
@@ -383,6 +395,16 @@ public final class ExtractionRun {
     private void publish(Phase phase, int run, Proposal proposal, String message, int partsRead, int added, int retracted) {
         status = new Status(phase, run, partsRead, added, retracted, proposal, message, List.copyOf(lines));
         notifyListeners();
+    }
+
+    private void notifyLiveListeners() {
+        for (Runnable listener : liveListeners) {
+            try {
+                listener.run();
+            } catch (RuntimeException e) {
+                log.debug("A live listener of a run failed: {}", e.getMessage());
+            }
+        }
     }
 
     private void notifyListeners() {

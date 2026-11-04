@@ -3,12 +3,11 @@ package com.github.enerccio.marginalia.ui.dialogs.story;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.collections.AnnotationSource;
 import com.github.enerccio.marginalia.domain.collections.AnnotationStatus;
+import com.github.enerccio.marginalia.domain.model.impl.AnchoredPassage;
 import com.github.enerccio.marginalia.domain.model.impl.Annotation;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
-import com.github.enerccio.marginalia.domain.service.AnnotationService;
-import com.github.enerccio.marginalia.domain.service.ChatMessageService;
-import com.github.enerccio.marginalia.domain.service.ManuscriptService;
+import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.test.MarginaliaTestBase;
 import com.github.enerccio.marginalia.utils.TextMarkup;
 import com.vaadin.flow.component.UI;
@@ -33,6 +32,12 @@ class StoryAnnotationsTest extends MarginaliaTestBase {
 
     @Autowired
     private AnnotationService annotationService;
+
+    @Autowired
+    private PassageService passageService;
+
+    @Autowired
+    private PassageKinds passageKinds;
 
     @Autowired
     private ChatMessageService chatMessageService;
@@ -197,5 +202,55 @@ class StoryAnnotationsTest extends MarginaliaTestBase {
         assertThat(source.substring(range[0], range[1])).contains("John").contains("bar");
         assertThat(StoryAnnotations.locate(source, "A dragon landed on the church roof", null, null)).isNull();
         assertThat(StoryAnnotations.locate(source, "talked", "They ", ".")).containsExactly(source.indexOf("talked"), source.indexOf("talked") + 6);
+    }
+
+    @Test
+    void thePassagesOfARegisteredKindAreMarkedByTheKindAndAClickIsItsToHandle() throws Exception {
+        List<String> clicked = new ArrayList<>();
+        PassageKind kind = new PassageKind() {
+            @Override
+            public String id() {
+                return "test-marks";
+            }
+
+            @Override
+            public String markClass(AnchoredPassage passage) {
+                return "test-mark";
+            }
+
+            @Override
+            public String markAttributes(AnchoredPassage passage) {
+                return " data-test=\"1\"";
+            }
+
+            @Override
+            public void onClick(AnchoredPassage passage, com.vaadin.flow.component.Component anchor) {
+                clicked.add(passage.getUuid());
+            }
+        };
+        AnchoredPassage passage = passageService.create(book, part, "test-marks", start("Then she left."), start("Then she left.") + 14);
+        passageService.create(book, part, "unregistered", 0, 4);
+        make("They talked for hours.", "Weak scene", AnnotationSource.AUTHOR);
+
+        // the kind is not registered (the extension is not loaded): its passages are not there
+        assertThat(annotations.marks(part, TEXT)).hasSize(1);
+        passageKinds.register(kind);
+        try {
+            annotations.invalidate();
+            List<TextMarkup.Mark> marks = annotations.marks(part, TEXT);
+            assertThat(marks).hasSize(2);
+            TextMarkup.Mark mark = marks.stream().filter(m -> m.cssClass().contains("test-mark")).findFirst().orElseThrow();
+            assertThat(mark.start()).isEqualTo(start("Then she left."));
+            assertThat(mark.attributes()).contains("data-test=\"1\"").contains(StoryAnnotations.MARK_ATTRIBUTE + "=\"" + passage.getUuid() + "\"");
+            assertThat(annotations.passagesOf(part.getId())).extracting(AnchoredPassage::getUuid).containsExactly(passage.getUuid());
+
+            annotations.clickPassage(part.getId(), passage.getUuid(), new com.vaadin.flow.component.html.Div());
+            annotations.clickPassage(part.getId(), "nothing", new com.vaadin.flow.component.html.Div());
+            assertThat(clicked).containsExactly(passage.getUuid());
+            // the notes are the notes: the passages are not among them
+            assertThat(annotations.all()).hasSize(1);
+        } finally {
+            passageKinds.unregister(kind);
+        }
     }
 }

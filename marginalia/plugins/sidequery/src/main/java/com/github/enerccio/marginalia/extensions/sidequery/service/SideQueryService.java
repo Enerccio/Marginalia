@@ -8,6 +8,7 @@ import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole
 import com.github.enerccio.marginalia.domain.templates.LorebookTemplateData;
 import com.github.enerccio.marginalia.domain.templates.TemplateContext;
 import com.github.enerccio.marginalia.domain.templates.TemplateVariables;
+import com.github.enerccio.marginalia.extensions.PartTextRegistry;
 import com.github.enerccio.marginalia.extensions.sidequery.SideQueryLog;
 import com.github.enerccio.marginalia.extensions.sidequery.model.*;
 import com.github.enerccio.marginalia.loc.Localization;
@@ -45,6 +46,9 @@ public class SideQueryService {
 
     @Autowired
     private ChatMessageService chatMessageService;
+
+    @Autowired
+    private PartTextRegistry partTexts;
 
     @Autowired
     private LorebookService lorebookService;
@@ -264,9 +268,10 @@ public class SideQueryService {
                 StringBuilder logBuilder = new StringBuilder("Chat History Context:\n");
                 for (int i = from; i <= to; i++) {
                     ChatMessage msg = branch.get(i - 1);
-                    if (StringUtils.isNotBlank(msg.getResponse())) {
+                    String partText = partTexts.forModel(msg);
+                    if (StringUtils.isNotBlank(partText)) {
                         logBuilder.append("Message #").append(i).append(":\n")
-                                .append(msg.getResponse()).append("\n\n");
+                                .append(partText).append("\n\n");
                         // what the extensions the user chose know about the part, next to its text
                         for (Source source : messageSources) {
                             String data = messageData(source, msg);
@@ -444,8 +449,9 @@ public class SideQueryService {
 
         List<String> story = new ArrayList<>();
         for (ChatMessage message : branch) {
-            if (StringUtils.isNotBlank(message.getResponse())) {
-                story.add(message.getResponse());
+            String text = partTexts.forModel(message);
+            if (StringUtils.isNotBlank(text)) {
+                story.add(text);
             }
         }
         context.setStoryMessages(story);
