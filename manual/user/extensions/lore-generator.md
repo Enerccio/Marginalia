@@ -1,6 +1,6 @@
 ---
 label: Lore Generator
-order: 85
+order: 10
 ---
 
 # Lore Generator

@@ -1097,7 +1097,7 @@ registry; 2d the plugin callers. Each part has unit tests, and the application b
 
 Build before every step: `mvn install -DskipTests` in `marginalia/`, then `mvn -o -q package` in this folder.
 
-**The first version has no commands and no agent support (decided):** steps 1-12 are the whole plugin for a person using the UI, testable by hand and
+**The first version had no commands and no agent support (decided):** steps 1-12 were the whole plugin for a person using the UI, testable by hand and
 with unit tests. **Commands for agents and the agent runs (duplicate, lock, difference) are the last features** (steps 13 and 14). What is kept from the
 start is only the shape that makes them cheap later: **one service per area that the UI calls** (no logic in a dialog), and the *text as the model
 reads it* accessor; the commands are thin wrappers added at step 13, with the test that lists the service operations and their commands.
@@ -1214,10 +1214,28 @@ reads it* accessor; the commands are thin wrappers added at step 13, with the te
 12. **Docs** (done 2026-11-04): the user manual page `manual/user/extensions/conlang-translator.md` (the idea, languages and the editor, the designer, the review, a book's choices, translating, the story, the viewer, the export, the limits) with 11 pictures, the rows of the extension index, the phone table, the developer plugin index and the plugins README, the plugin README (no longer a stub),
     the changelog (one entry, rewritten as the plugin grows, the API lines under *Changed*). **Screenshots are a flow now:** `screenshots/bin/shoot-conlang.sh` (the language *Orrelian* in `dataset/conlang-orrelian.json`, a changed copy for the review, `bin/seed-conlang.py`, `flows/plugin-conlang.mjs`), see `SCREENSHOTS.md`.
     **Localization:** `ConlangTranslatorLocalizationTest` checks that every text has its ja and zh entry, with the same values, and that no translation is left for a gone text; they pass, the translations are the model's and **not read by a native speaker**. **Not done:** the flow does not yet cover the translating itself (the part menu, a run with the fake model: the checks of steps 5 and 11 are in the notes only), nor the phone.
-13. **Commands for agents** (*Commands for agents*): the thin commands over the services, the macros, `ask true` and `conlang-apply-changes`, the test that every service
-   operation has its command, the manual's command list. Commands that work in the scope of a run wait for step 14.
-14. **Agent runs**: the hooks (designed here, with the *Questions for step 2 / open* of that section), the lazy duplicate and the lock, the language section in the review, checkpoints,
-   sync, discard, cleanup, the language commands in the scope of a run; tried with a real agent run on a copy of a book with Vrakht.
+13. **Commands for agents** (done 2026-11-05, 25 new unit tests in all; **not tried in the real app, see *Step 13 / 14 check*** below): package `commands`, five suites registered by the extension, 68 commands, all `conlang-` (the table of *Commands for agents* is the plan,
+    this is what exists): `LibraryCommands` (languages, `conlang-set-book-language`, rules, categories, registers), `LexiconCommands` (words, states, `conlang-accept-words`, `conlang-check-lexicon`), `TranslationCommands` (`conlang-status`, translate part / range / sentence / text,
+    `conlang-revert-to-source`, `conlang-check-translation`, `conlang-get-source`, `conlang-list-passages`, the speakers, the macros `conlang-lexicon` and `conlang-rules`), `DesignerCommands` (design words / rules / stage, rewrite, ask, review, try sentences, `ask true` + `conlang-apply-changes`
+    through `HeldProposals`, and the three commands for what a run left). `ConlangCommandSupport` (a `ManuscriptReadSupport`) finds a language by name or id, a section by title or number, a category by name or number, a word by its form (the id only for homophones). A word an agent adds or
+    changes is the model's and *new*, one the author types at the command bar is the author's; a locked word is not changed or deleted. `CommandsTest` registers every suite in a plain `CommandServiceImpl` (the core checks the annotations), checks the conventions (prefix, texts, macros read only,
+    the commands that ask or call a model are `async`) and has the table **operation of a service -> its command** that fails for a new public method of a service that is neither a command nor listed as ui-only. **Left out:** `conlang-replace-word` (the *Replace in the story* of step 11 does not exist
+    as a service), `ask true` for the translating commands (a translation is undone by `conlang-revert-to-source` and the history of the part), `conlang-edit-source`, `conlang-word-alternatives` / `conlang-word-senses` (the word window's buttons are the designer's `conlang-design-words` and `ask`), and a ladder of
+    overloads: an optional parameter is `optional = true` in one form, so an agent may leave it out and the command bar needs every argument.
+14. **Agent runs** (done 2026-11-05 in a **simpler way than designed**, see *Agent runs* above and *Step 13 / 14 check*): **no hook of the core was added.** The design (the lazy duplicate, the lock, `ExtensionHasAgentRuns`-style events, an extra section in the merge) is replaced by what the core
+    already does for the data of a plugin in a book: `LanguageAccess` is the one place that reads and writes a language; inside an agent run (`Manuscript.isAgentic`) the first change of a language puts a copy of it and the version it came from into the attributes of the **working copy**
+    (`RunLanguage`, key `...runLanguages`, an object keyed by the language id), and the run reads and writes that copy from then on. The copy goes with everything the core does to the copy of a book: the checkpoints and their restore (`snapshotAgenticCopy`), the delete of the copy (so no
+    cleanup of a left duplicate is needed), and the review, where `attributes_<key>` is a JSON field of the book that the core merges three ways (`JsonMerge`, words matched by their `id`). Applying the run puts the key into the book's attributes; the **Conlang tab** of the book then shows *An agent run
+    changed the language X* with **Review** (a `ChangeReviewDialog` over `LanguageDiff.diff(base, run's, library now)`, so the user's changes to the library meanwhile are kept and what both changed is a conflict) and **Drop**; `conlang-pending-changes` / `conlang-take-pending-changes` /
+    `conlang-discard-pending-changes` do the same for an agent that is not in a run. `TranslationService` and `BookConlang` read and write through `LanguageAccess`, so the words a translation invents in a run go to the run's copy.
+    **What this does not do, against the design:** the language is **not locked** while a run works (the user and other books can change the library; the three-way take-over keeps both), the run does not see the library's changes made after its first write (a **sync on resume** for the language is not done),
+    the original book's review shows the language as one JSON field (editable as text) and not as a list of words in the core's window, and the warning *"3 parts use words you did not take"* is not made. These are the follow-ups if the review of a long run turns out to be hard to read.
+
+## Step 13 / 14 check (2026-11-05)
+
+Done: the plugin builds, 192 unit tests pass (`CommandsTest`, `RunLanguageStoreTest` and the 167 before). **Not tried in the real app and not with a real agent run** (the check of the other steps was done in the screenshot environment): that the commands answer as written, that a run's first write puts the copy
+into the working copy and that the review of the core lists the `attributes_...runLanguages` field of the book and applies it, that the banner of the Conlang tab shows after the apply, the phone. The assumptions that were read in the code and not run: the working copy keeps the `attributes` of the book
+(`createAgenticCopy` via the backup JSON), `ManuscriptService.update` works on an agentic book, the agent's threads have the session of the user (`SettingService.getOrCreate(UserSetting.class)` in a command), the key with dots in its name is a valid `attributes_` field.
 
 ## Later / ideas
 

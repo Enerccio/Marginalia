@@ -14,6 +14,13 @@ public class ConlangTranslatorLocalization extends PluginLocalizationBundle {
     public static final String TRANSLATED_SPEECHES = "Translated %d speech(es), %d new word(s) in the lexicon";
     public static final String SOME_WORDS_NOT_IN_THE_LEXICON = "%d translation(s) use words that are not in the lexicon and were not reported";
     public static final String NO_SPEECH_IN_THE_LANGUAGE = "No speech of the part is spoken in the language";
+    public static final String AN_AGENT_RUN_CHANGED_THE_LANGUAGE_S = "An agent run changed the language %s. The changes are not in your library yet.";
+    public static final String AN_AGENT_RUN_MADE_THE_LANGUAGE_S = "An agent run made the language %s. It is not in your library yet.";
+    public static final String REVIEW_THE_RUN = "Review";
+    public static final String ADD_THE_LANGUAGE_S_TO_YOUR_LIBRARY = "Add the language %s to your library?";
+    public static final String CHANGES_OF_THE_RUN_TO_S = "Changes of the agent run to %s";
+    public static final String DROP_THE_CHANGES_OF_THE_RUN_TO_S = "Drop the changes of the agent run to %s? They are not taken into your library.";
+    public static final String DROP = "Drop";
     public static final String THE_BOOK_HAS_NO_LANGUAGE = "The book has no language to translate into";
     public static final String THE_BOOK_HAS_NO_MODEL = "There is no model for the translation: the book has none and neither have your defaults";
     public static final String THE_PART_HAS_NO_TEXT = "The part has no text";
@@ -351,6 +358,20 @@ public class ConlangTranslatorLocalization extends PluginLocalizationBundle {
         ja(NO_SPEECH_IN_THE_LANGUAGE, "このパートにこの言語の台詞はありません");
         zh(NO_SPEECH_IN_THE_LANGUAGE, "本段没有使用该语言的对白");
 
+        ja(AN_AGENT_RUN_CHANGED_THE_LANGUAGE_S, "エージェントの実行が言語「%s」を変更しました。変更はまだライブラリに入っていません。");
+        zh(AN_AGENT_RUN_CHANGED_THE_LANGUAGE_S, "智能体运行修改了语言“%s”。这些修改尚未进入你的语言库。");
+        ja(AN_AGENT_RUN_MADE_THE_LANGUAGE_S, "エージェントの実行が言語「%s」を作成しました。まだライブラリにはありません。");
+        zh(AN_AGENT_RUN_MADE_THE_LANGUAGE_S, "智能体运行创建了语言“%s”。它尚未进入你的语言库。");
+        ja(REVIEW_THE_RUN, "確認");
+        zh(REVIEW_THE_RUN, "审阅");
+        ja(ADD_THE_LANGUAGE_S_TO_YOUR_LIBRARY, "言語「%s」をライブラリに追加しますか?");
+        zh(ADD_THE_LANGUAGE_S_TO_YOUR_LIBRARY, "将语言“%s”添加到你的语言库吗?");
+        ja(CHANGES_OF_THE_RUN_TO_S, "エージェントの実行による「%s」への変更");
+        zh(CHANGES_OF_THE_RUN_TO_S, "智能体运行对“%s”的修改");
+        ja(DROP_THE_CHANGES_OF_THE_RUN_TO_S, "エージェントの実行による「%s」への変更を破棄しますか? ライブラリには取り込まれません。");
+        zh(DROP_THE_CHANGES_OF_THE_RUN_TO_S, "放弃智能体运行对“%s”的修改吗?它们不会进入你的语言库。");
+        ja(DROP, "破棄");
+        zh(DROP, "放弃");
         ja(THE_BOOK_HAS_NO_LANGUAGE, "この本には翻訳先の言語がありません");
         zh(THE_BOOK_HAS_NO_LANGUAGE, "这本书没有可翻译成的语言");
 

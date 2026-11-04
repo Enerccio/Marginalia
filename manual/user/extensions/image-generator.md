@@ -1,6 +1,6 @@
 ---
 label: Image Generator
-order: 97
+order: 13
 ---
 
 # Image Generator

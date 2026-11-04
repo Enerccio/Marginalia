@@ -61,8 +61,9 @@ public class KnowledgeTrackerCommands extends ManuscriptReadSupport {
     private static final String ADD_CHARACTER_LLM = "Starts tracking what a character knows and does not know and returns it. Only tracked characters are "
             + "described to the model. Aliases are other names the character is written as in the present characters field, separated by commas. "
             + "Add what it knows with add-knowledge.";
-    private static final String UPDATE_CHARACTER_TEXT = "Changes the name or the aliases of a tracked character.";
-    private static final String UPDATE_CHARACTER_LLM = "Changes a tracked character. Pass only the fields to change; empty aliases remove them all. Returns the character.";
+    private static final String UPDATE_CHARACTER_TEXT = "Changes the name, the aliases or the people met of a tracked character.";
+    private static final String UPDATE_CHARACTER_LLM = "Changes a tracked character. Pass only the fields to change; empty aliases remove them all; met replaces the list "
+            + "of the people the character has met (empty = none). Returns the character.";
     private static final String DELETE_CHARACTER_TEXT = "Stops tracking a character and forgets everything it knows.";
     private static final String DELETE_CHARACTER_LLM = "Removes a tracked character with all its items. Destructive.";
     private static final String LIST_KNOWLEDGE_TEXT = "Lists what a tracked character knows and does not know. Reads only.";
@@ -122,6 +123,7 @@ public class KnowledgeTrackerCommands extends ManuscriptReadSupport {
     private static final String PARAM_PARTS = "How many parts to read at most; all of them when it is left out";
     private static final String PARAM_CHARACTER = "Name or alias of the tracked character (the case does not matter), or its number in list-tracked-characters";
     private static final String PARAM_NAME = "The name";
+    private static final String PARAM_MET = "The people the character has met, separated by commas; replaces the whole list, empty = nobody";
     private static final String PARAM_ALIASES = "Other names of the character, separated by commas; empty = none";
     private static final String PARAM_ITEM = "Number of the item in list-knowledge of the character, the first is 1";
     private static final String PARAM_TEXT = "What the character knows or does not know, one short sentence";
@@ -260,14 +262,27 @@ public class KnowledgeTrackerCommands extends ManuscriptReadSupport {
         runUpdateCharacter(context);
     }
 
+    @Command(commandName = UPDATE_CHARACTER, linkedCommand = LIST_CHARACTERS, humanNameText = "Update tracked character",
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, descriptionText = UPDATE_CHARACTER_TEXT, llmDescriptionText = UPDATE_CHARACTER_LLM,
+            signature = @CommandParameterSignature({
+                    @CommandParameter(name = "character", type = String.class, descriptionText = PARAM_CHARACTER),
+                    @CommandParameter(name = "name", type = String.class, optional = true, descriptionText = PARAM_NAME),
+                    @CommandParameter(name = "aliases", type = String.class, optional = true, descriptionText = PARAM_ALIASES),
+                    @CommandParameter(name = "met", type = String.class, optional = true, descriptionText = PARAM_MET)}),
+            returns = @CommandReturn(name = "result", type = String.class, descriptionText = RESULT_CHARACTER))
+    public void updateCharacterMet(CommandContext context) throws Exception {
+        runUpdateCharacter(context);
+    }
+
     private void runUpdateCharacter(CommandContext context) throws Exception {
         Book book = new Book(context);
         KnowledgeState state = service.load(book.manuscript);
         TrackedCharacter character = character(state, context.get("character", String.class));
         String name = context.get("name", String.class);
         String aliasText = context.get("aliases", String.class);
-        if (name == null && aliasText == null) {
-            throw new IllegalArgumentException("Nothing to change: pass the name or the aliases");
+        String metText = context.get("met", String.class);
+        if (name == null && aliasText == null && metText == null) {
+            throw new IllegalArgumentException("Nothing to change: pass the name, the aliases or the people met");
         }
         String newName = name != null ? requiredName(name) : character.getName();
         List<String> newAliases = aliasText != null ? aliases(aliasText) : character.getAliases();
@@ -277,6 +292,9 @@ public class KnowledgeTrackerCommands extends ManuscriptReadSupport {
         }
         character.setName(newName);
         character.setAliases(newAliases);
+        if (metText != null) {
+            character.setMetNames(aliases(metText));
+        }
         store(book, state);
         answer(context, characterRow(character, state.getCharacters().indexOf(character) + 1));
     }

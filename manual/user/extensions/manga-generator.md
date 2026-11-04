@@ -1,6 +1,6 @@
 ---
 label: Manga Generator
-order: 96
+order: 8
 ---
 
 # Manga Generator

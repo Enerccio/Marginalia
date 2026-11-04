@@ -1,6 +1,6 @@
 ---
 label: Prompt Inspector
-order: 94
+order: 4
 ---
 
 # Prompt Inspector

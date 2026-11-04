@@ -1,6 +1,6 @@
 ---
 label: Conlang Translator
-order: 112
+order: 17
 ---
 
 # Conlang Translator
@@ -15,8 +15,7 @@ has to understand your language to carry on the story. A click on a translated s
 !!!
 
 !!!warning Work in progress
-The extension works for a person using the screens described here. It is **not** available to agents yet (no commands, and an
-agent that works on a copy of a book does not know about the languages), and the phone has only part of it, see
+The extension works for a person using the screens described here and, through [commands](#commands), for an agent. The phone has only part of it, see
 [Limits](#limits).
 !!!
 
@@ -224,14 +223,53 @@ When the book has translated speech, the [export](../books/export.md) dialog has
 The footnotes are the [footnotes of the export](../books/export.md#footnotes): linked notes in HTML and EPUB, endnotes after each part in plain text, Word and PDF. A speech you edited after it
 was translated stays as it is and has no footnote. The stored text of the book is never changed by an export.
 
+## Commands
+
+Everything the screens do is also a command, for the [command line](../commands/index.md) and for [agents](../agents.md): an agent can make a language, grow it, translate a book and check the result without
+a person at the dialogs. A language is addressed by its **name** (the case does not matter) or its id; a rules section by its title or its number in `conlang-list-rules`; a category by its name or number; a word by its
+form (the id of `conlang-list-words` only to tell homophones apart); a part as in the other commands of the application, by its handle or its position on the active branch (the first part is 1). The command line takes every
+argument of a command; an agent may leave out the optional ones.
+
+| Command | |
+|---|---|
+| `conlang-list`, `conlang-get`, `conlang-create`, `conlang-duplicate`, `conlang-update`, `conlang-delete`, `conlang-export`, `conlang-import`, `conlang-set-references` | The library. `conlang-delete` asks, and is not available to an agent. |
+| `conlang-set-book-language` | The language of the open book (the **Language of the speech** field of its *Extension Settings*). |
+| `conlang-list-rules`, `conlang-get-rules`, `conlang-add-rules`, `conlang-update-rules`, `conlang-delete-rules`, `conlang-move-rules` | The sections of the rules. |
+| `conlang-list-categories`, `conlang-add-category`, `conlang-update-category`, `conlang-move-category`, `conlang-delete-category` | The categories of the words. |
+| `conlang-list-registers`, `conlang-add-register`, `conlang-update-register`, `conlang-delete-register` | The registers. |
+| `conlang-list-words` | The lexicon, paged, with filters: category, state (*new*, accepted, locked, retired) and a text. |
+| `conlang-get-word`, `conlang-add-word`, `conlang-update-word`, `conlang-delete-word` | A word. A word an agent adds or changes is the model's and **new**; a locked word cannot be changed or deleted. |
+| `conlang-lock-word`, `conlang-unlock-word`, `conlang-retire-word`, `conlang-restore-word`, `conlang-accept-words` | The state of the words. |
+| `conlang-check-lexicon` | Repeated meanings, words without a category, compounds with parts that are not in the lexicon, and the homophones (for information). No model. |
+| `conlang-status` | The language of the book and which parts are translated. |
+| `conlang-translate-part`, `conlang-translate-range`, `conlang-translate-sentence`, `conlang-translate-text`, `conlang-revert-to-source` | Translating: one part, a range (`mode` *new* or *again*), one sentence of a part, a text that is only returned, and the English back. A range asks the user for *again*; so does the English back. |
+| `conlang-check-translation`, `conlang-get-source`, `conlang-list-passages` | Reading: the words of a translated speech that the lexicon does not have, the text of a part as the models read it (the English), and the translated speeches of a part with their English. |
+| `conlang-speakers`, `conlang-set-speakers-mode`, `conlang-set-speaker`, `conlang-remove-speaker` | Who speaks the language in the open book. |
+| `conlang-design-words`, `conlang-design-rules`, `conlang-rewrite-rules`, `conlang-design-stage`, `conlang-ask-designer`, `conlang-try-sentences` | The designer. With `ask true` a command returns the proposal as a numbered list of changes and holds it; nothing is changed. |
+| `conlang-review` | The designer's review of the language: findings only. |
+| `conlang-apply-changes` | Applies the held changes, all of them or the numbers given (the same as **Apply** in the review). |
+| `conlang-pending-changes`, `conlang-take-pending-changes`, `conlang-discard-pending-changes` | What an agent run left in the book, see [below](#agent-runs). |
+| `conlang-lexicon`, `conlang-rules` | The lexicon and the rules a translation request sends, as text, for the {%{`{{command::conlang-lexicon::<language>}}`}%} and {%{`{{command::conlang-rules::<language>}}`}%} [macros](../templates/macros.md#commands). |
+
+### Agent runs
+
+An agent works on a **copy of the book**, and the languages are not part of the book, so an agent cannot change your library behind your back. The first time a run **changes** a language (a word, a rule, or the words
+a translation invents), that language is copied into the copy of the book, together with the version it was copied from; from then on the run reads and writes its own copy. A run that only reads, or only translates with the
+words it has, never copies anything. The copy goes wherever the copy of the book goes: the checkpoints and their restore, the review of the run, and its delete.
+
+When you **apply** the result of the run, the language lands in the book, **not in your library**. The **Conlang** tab of the book then shows *An agent run changed the language ...* with **Review** and **Drop**.
+Review compares three versions, the language when the run copied it, the run's version and your library as it is now, so what you changed in the library meanwhile is kept, and what both of you changed is a conflict for you
+to decide. The same from commands: `conlang-pending-changes` lists the changes as numbers and `conlang-take-pending-changes` takes them (it asks you). A language the run made is added whole after you confirm.
+
+The run reads the library until it first changes a language, and its own copy afterwards: what you change in a language while the run works is not seen by the run, but is not lost either.
+
 ## Limits
 
 - **The quality is the model's.** The extension checks what it can for free (that the quoted speech is in the part, the language, the words against the lexicon and its rules for
   compounds and affixes) and reports the rest; it does not check your grammar. Try a language on a few parts before a long run, and use **Review the language** of the designer when a mistake repeats.
 - **A language is shared by the books that use it.** A word you change, or a word a translation adds, changes it for every book of the series. That is meant (one world), and
   **Duplicate** is how to keep a language apart.
-- **Retranslating asks the model again for every part of the range.** There is no way yet to keep the translations whose English did not change.
-- **No agents.** There are no commands for the extension and an agent run on a copy of a book does not copy or lock a language.
+- **An agent's language changes wait in the book.** They are taken into the library by you, after the run is applied; a language is not locked while a run works.
+- **Commands do not replace a word in the story** and a retranslation cannot keep the translations whose English did not change (every part of the range is asked again).
 - **A phone** has the panel, the editor, the review and the wizard, but the lexicon grid scrolls sideways; the tap on a speech in the viewer works; the story side (the menu of a part, the range window, the click in the story) was not tried there.
 - **Footnotes of Word and PDF** are endnotes after the part, not notes at the foot of the page.
-- The **Japanese and Chinese texts** of the extension were written by a model and not read by a native speaker.

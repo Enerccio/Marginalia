@@ -1,6 +1,6 @@
 ---
 label: Character Tracker
-order: 105
+order: 19
 ---
 
 # Character Tracker

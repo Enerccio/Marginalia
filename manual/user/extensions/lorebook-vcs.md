@@ -1,6 +1,6 @@
 ---
 label: Lorebook VCS
-order: 90
+order: 9
 ---
 
 # Lorebook VCS

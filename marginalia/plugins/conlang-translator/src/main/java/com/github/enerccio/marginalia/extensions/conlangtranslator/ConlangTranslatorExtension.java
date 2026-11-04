@@ -16,6 +16,10 @@ import com.github.enerccio.marginalia.extensions.ExtensionHasCss;
 import com.github.enerccio.marginalia.extensions.InheritedSettingRegistry;
 import com.github.enerccio.marginalia.extensions.MarginaliaExtension;
 import com.github.enerccio.marginalia.extensions.PartTextRegistry;
+import com.github.enerccio.marginalia.extensions.conlangtranslator.commands.DesignerCommands;
+import com.github.enerccio.marginalia.extensions.conlangtranslator.commands.LexiconCommands;
+import com.github.enerccio.marginalia.extensions.conlangtranslator.commands.LibraryCommands;
+import com.github.enerccio.marginalia.extensions.conlangtranslator.commands.TranslationCommands;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.model.BookSettings;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.model.ExportMode;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.model.ReaderMode;
@@ -99,12 +103,18 @@ public class ConlangTranslatorExtension implements MarginaliaExtension, Extensio
     @Autowired
     private InheritedSettingRegistry inheritedSettingRegistry;
 
+    @Autowired
+    private CommandService commandService;
+
     private final LanguageLibrary library = new LanguageLibrary();
     private final TranslationService translationService = new TranslationService();
     private final BookConlang bookConlang = new BookConlang(translationService);
     private final PassageAccess passageAccess = new PassageAccess();
     private final ConlangPassageKind kind = new ConlangPassageKind();
     private final ConlangTransformer transformer = new ConlangTransformer(passageAccess);
+
+    private final DesignerService designerService = new DesignerService();
+    private final List<Object> commandSuites = new ArrayList<>();
 
     private TranslationRuns runs;
     private RangeRuns rangeRuns;
@@ -150,6 +160,7 @@ public class ConlangTranslatorExtension implements MarginaliaExtension, Extensio
             menuRegistry.register(owner, StoryMenuItem.tools(RANGE_ITEM_KEY, l -> T.localized(TRANSLATE_PARTS), this::openRange)
                     .icon(Solid.LAYER_GROUP::create));
 
+            registerCommands();
             registerBookTab(extensionService);
             registerViewer(extensionService);
             registerExport(extensionService);
@@ -176,6 +187,20 @@ public class ConlangTranslatorExtension implements MarginaliaExtension, Extensio
             log.info("Conlang Translator loaded");
         } catch (Exception e) {
             throw new IllegalStateException("Failed to load the Conlang Translator extension", e);
+        }
+    }
+
+    /**
+     * The commands: everything the dialogs do, for the command bar, for agents and for templates. One suite per area; they call the services the
+     * dialogs call.
+     */
+    private void registerCommands() throws Exception {
+        commandSuites.add(new LibraryCommands());
+        commandSuites.add(new LexiconCommands());
+        commandSuites.add(new TranslationCommands(translationService, bookConlang));
+        commandSuites.add(new DesignerCommands(designerService));
+        for (Object suite : commandSuites) {
+            commandService.registerCommands(suite);
         }
     }
 
@@ -545,6 +570,10 @@ public class ConlangTranslatorExtension implements MarginaliaExtension, Extensio
 
     @Override
     public void onExtensionUnload(Bundle b, OsgiService parentService, ExtensionService extensionService) {
+        for (Object suite : commandSuites) {
+            commandService.unregisterCommands(suite);
+        }
+        commandSuites.clear();
         passageKinds.unregister(kind);
         partTexts.unregisterAll(owner);
         inheritedSettingRegistry.unregisterAll(owner);
