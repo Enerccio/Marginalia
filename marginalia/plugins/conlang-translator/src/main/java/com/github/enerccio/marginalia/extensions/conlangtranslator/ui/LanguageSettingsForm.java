@@ -5,6 +5,8 @@ import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.extensions.InheritedSetting.Choice;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.ConlangStyles;
+import com.github.enerccio.marginalia.extensions.conlangtranslator.diff.ChangeSet;
+import com.github.enerccio.marginalia.extensions.conlangtranslator.diff.LanguageDiff;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.model.Language;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.model.UserDefaults;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.service.LanguageLibrary;
@@ -58,6 +60,8 @@ public class LanguageSettingsForm extends VerticalLayout {
     private final Checkbox auto = new Checkbox(T.localized(TRANSLATE_BY_ITSELF));
     private final ComboBox<AI> aiCombo = new ComboBox<>(T.localized(MODEL_OF_THE_TRANSLATION));
     private final ComboBox<Protocol> protocolCombo = new ComboBox<>(T.localized(PROTOCOL_OF_THE_TRANSLATION));
+    private final ComboBox<AI> designerAiCombo = new ComboBox<>(T.localized(MODEL_OF_THE_DESIGNER));
+    private final ComboBox<Protocol> designerProtocolCombo = new ComboBox<>(T.localized(PROTOCOL_OF_THE_DESIGNER));
 
     private final List<Language> shown = new ArrayList<>();
     private final Set<String> loaded = new HashSet<>();
@@ -68,6 +72,7 @@ public class LanguageSettingsForm extends VerticalLayout {
     private Button duplicateButton;
     private Button deleteButton;
     private Button exportButton;
+    private Button compareButton;
 
     public LanguageSettingsForm(LanguageLibrary library) {
         this.library = library;
@@ -104,7 +109,9 @@ public class LanguageSettingsForm extends VerticalLayout {
         deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
         exportButton = new Button(T.localized(EXPORT), Solid.FILE_EXPORT.create(), _ -> selected(this::export));
         Button importButton = new Button(T.localized(IMPORT), Solid.FILE_IMPORT.create(), _ -> importLanguage());
-        HorizontalLayout buttons = new HorizontalLayout(add, editButton, duplicateButton, exportButton, importButton, deleteButton);
+        compareButton = new Button(T.localized(COMPARE), Solid.CODE_COMPARE.create(), _ -> selected(this::compare));
+        Button design = new Button(T.localized(DESIGN_A_LANGUAGE), Solid.WAND_MAGIC_SPARKLES.create(), _ -> design());
+        HorizontalLayout buttons = new HorizontalLayout(add, design, editButton, duplicateButton, compareButton, exportButton, importButton, deleteButton);
         buttons.setWidthFull();
         buttons.setWrap(true);
 
@@ -124,7 +131,15 @@ public class LanguageSettingsForm extends VerticalLayout {
         protocolCombo.setHelperText(T.localized(EMPTY_THE_PROTOCOL_OF_THE_BOOK));
         auto.setTooltipText(T.localized(A_NEW_PART_IS_TRANSLATED));
 
-        FormLayout defaults = new FormLayout(languageCombo, aiCombo, protocolCombo, auto);
+        designerAiCombo.setWidthFull();
+        designerAiCombo.setItemLabelGenerator(AI::getName);
+        designerAiCombo.setClearButtonVisible(true);
+        designerAiCombo.setHelperText(T.localized(EMPTY_THE_MODEL_OF_THE_TRANSLATION));
+        designerProtocolCombo.setWidthFull();
+        designerProtocolCombo.setItemLabelGenerator(Protocol::getName);
+        designerProtocolCombo.setClearButtonVisible(true);
+        designerProtocolCombo.setHelperText(T.localized(EMPTY_THE_PROTOCOL_OF_THE_TRANSLATION));
+        FormLayout defaults = new FormLayout(languageCombo, aiCombo, protocolCombo, designerAiCombo, designerProtocolCombo, auto);
         defaults.setColspan(auto, 2);
         defaults.setWidthFull();
         defaults.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 1), new FormLayout.ResponsiveStep("36rem", 2));
@@ -151,6 +166,10 @@ public class LanguageSettingsForm extends VerticalLayout {
             aiCombo.setValue(ais.stream().filter(ai -> ai.getUuid().equals(defaults.getAiUuid())).findFirst().orElse(null));
             protocolCombo.setItems(protocols);
             protocolCombo.setValue(protocols.stream().filter(protocol -> protocol.getUuid().equals(defaults.getProtocolUuid())).findFirst().orElse(null));
+            designerAiCombo.setItems(ais);
+            designerAiCombo.setValue(ais.stream().filter(ai -> ai.getUuid().equals(defaults.getDesignerAiUuid())).findFirst().orElse(null));
+            designerProtocolCombo.setItems(protocols);
+            designerProtocolCombo.setValue(protocols.stream().filter(protocol -> protocol.getUuid().equals(defaults.getDesignerProtocolUuid())).findFirst().orElse(null));
             auto.setValue(defaults.isAuto());
             showLibrary(defaults.getLanguageId());
         } catch (Exception e) {
@@ -177,6 +196,25 @@ public class LanguageSettingsForm extends VerticalLayout {
     private void add() {
         Language language = new Language();
         open(language, true);
+    }
+
+    /** Makes a new language with the designer, in stages. */
+    private void design() {
+        List<Choice> books;
+        List<Choice> lorebooks;
+        try {
+            books = library.bookChoices();
+            lorebooks = library.lorebookChoices();
+        } catch (Exception e) {
+            books = List.of();
+            lorebooks = List.of();
+        }
+        new DesignerWizard(name -> nameTaken(null, name), lorebooks, books, made -> {
+            shown.add(made);
+            edited.add(made.getId());
+            libraryChanged();
+            grid.select(made);
+        }).open();
     }
 
     private void edit(Language language) {
@@ -284,18 +322,14 @@ public class LanguageSettingsForm extends VerticalLayout {
         Button run = new Button(T.localized(IMPORT), _ -> {
             try {
                 Language language = ConlangStore.importDocument(text.getValue());
-                String name = StringUtils.defaultIfBlank(language.getName(), T.localized(IMPORTED_LANGUAGE));
-                String candidate = name;
-                int number = 2;
-                while (nameTaken(null, candidate)) {
-                    candidate = name + " " + number++;
-                }
-                language.setName(candidate);
-                shown.add(language);
-                edited.add(language.getId());
-                libraryChanged();
-                grid.select(language);
                 dialog.close();
+                Language same = shown.stream().filter(other -> other.getName().strip().equalsIgnoreCase(language.getName().strip())).findFirst().orElse(null);
+                if (same == null) {
+                    addImported(language);
+                } else {
+                    ConfirmDialog.show(T.localized(A_LANGUAGE_NAMED_S_EXISTS).formatted(same.getName()), T.localized(REVIEW_THE_DIFFERENCES),
+                            T.localized(IMPORT_AS_NEW), () -> review(same, language), () -> addImported(language), true);
+                }
             } catch (IllegalArgumentException e) {
                 Notification.error(e.getMessage());
             }
@@ -304,6 +338,77 @@ public class LanguageSettingsForm extends VerticalLayout {
         dialog.add(new VerticalLayout(upload, text));
         dialog.getFooter().add(new Button(T.localized(CANCEL), _ -> dialog.close()), run);
         dialog.open();
+    }
+
+    private void addImported(Language language) {
+        String name = StringUtils.defaultIfBlank(language.getName(), T.localized(IMPORTED_LANGUAGE));
+        String candidate = name;
+        int number = 2;
+        while (nameTaken(null, candidate)) {
+            candidate = name + " " + number++;
+        }
+        language.setName(candidate);
+        shown.add(language);
+        edited.add(language.getId());
+        libraryChanged();
+        grid.select(language);
+    }
+
+    /** Asks which other language to take changes from, then reviews them. */
+    private void compare(Language language) {
+        List<Language> others = shown.stream().filter(other -> other != language).toList();
+        if (others.isEmpty()) {
+            Notification.warning(T.localized(NO_OTHER_LANGUAGE));
+            return;
+        }
+        Dialog dialog = new Dialog();
+        dialog.setHeaderTitle(T.localized(COMPARE_S).formatted(language.getName()));
+        dialog.setWidth("520px");
+        dialog.setMaxWidth("96vw");
+        ComboBox<Language> from = new ComboBox<>(T.localized(BRING_CHANGES_FROM));
+        from.setWidthFull();
+        from.setItems(others);
+        from.setItemLabelGenerator(Language::getName);
+        from.setValue(others.getFirst());
+        dialog.add(new VerticalLayout(from));
+        Button next = new Button(T.localized(REVIEW_THE_DIFFERENCES), _ -> {
+            if (from.getValue() != null) {
+                dialog.close();
+                review(language, from.getValue());
+            }
+        });
+        next.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        dialog.getFooter().add(new Button(T.localized(CANCEL), _ -> dialog.close()), next);
+        dialog.open();
+    }
+
+    /**
+     * Shows the differences of {@code other} against {@code language}; what the user picks is written into a copy of {@code language}, which
+     * replaces it on the screen (stored when the Settings screen is saved). There is no base, so what only the other one lacks is a delete that
+     * is not picked by default.
+     */
+    private void review(Language language, Language other) {
+        ChangeSet set = LanguageDiff.compare(language, other);
+        if (set.isEmpty()) {
+            Notification.warning(T.localized(THE_LANGUAGES_ARE_THE_SAME));
+            return;
+        }
+        set.pickAdditions();
+        new ChangeReviewDialog(T.localized(BRING_THE_CHANGES_OF_S_INTO_S).formatted(other.getName(), language.getName()), set, picked -> {
+            Language target = ConlangStore.copy(language);
+            LanguageDiff.Result result = LanguageDiff.apply(target, picked);
+            shown.replaceAll(existing -> existing.getId().equals(target.getId()) ? target : existing);
+            edited.add(target.getId());
+            libraryChanged();
+            grid.select(target);
+            Notification.success(T.localized(APPLIED_D_CHANGES).formatted(result.applied().size()));
+            if (!result.stale().isEmpty()) {
+                Notification.warning(T.localized(SKIPPED_D_CHANGED_MEANWHILE).formatted(result.stale().size()));
+            }
+            if (!result.unmet().isEmpty()) {
+                Notification.warning(T.localized(SKIPPED_D_NEED_ANOTHER).formatted(result.unmet().size()));
+            }
+        }).open();
     }
 
     private void selected(java.util.function.Consumer<Language> action) {
@@ -316,6 +421,7 @@ public class LanguageSettingsForm extends VerticalLayout {
         duplicateButton.setEnabled(any);
         deleteButton.setEnabled(any);
         exportButton.setEnabled(any);
+        compareButton.setEnabled(any && shown.size() > 1);
     }
 
     /**
@@ -330,6 +436,10 @@ public class LanguageSettingsForm extends VerticalLayout {
         defaults.setAiUuid(ai == null ? null : ai.getUuid());
         Protocol protocol = protocolCombo.getValue();
         defaults.setProtocolUuid(protocol == null ? null : protocol.getUuid());
+        AI designerAi = designerAiCombo.getValue();
+        defaults.setDesignerAiUuid(designerAi == null ? null : designerAi.getUuid());
+        Protocol designerProtocol = designerProtocolCombo.getValue();
+        defaults.setDesignerProtocolUuid(designerProtocol == null ? null : designerProtocol.getUuid());
         library.put(shown, loaded, edited, defaults, into);
     }
 }

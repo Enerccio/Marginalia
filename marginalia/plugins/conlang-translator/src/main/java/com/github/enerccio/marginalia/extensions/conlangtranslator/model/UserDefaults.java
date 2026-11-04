@@ -12,6 +12,9 @@ public class UserDefaults {
     private boolean auto;
     private String aiUuid;
     private String protocolUuid;
+    /** The model and the protocol of the designer; empty: the ones of the translation, else the defaults of the user. */
+    private String designerAiUuid;
+    private String designerProtocolUuid;
 
     public String getLanguageId() {
         return languageId == null || languageId.isBlank() ? null : languageId;
@@ -43,5 +46,21 @@ public class UserDefaults {
 
     public void setProtocolUuid(String protocolUuid) {
         this.protocolUuid = protocolUuid;
+    }
+
+    public String getDesignerAiUuid() {
+        return designerAiUuid == null || designerAiUuid.isBlank() ? null : designerAiUuid;
+    }
+
+    public void setDesignerAiUuid(String designerAiUuid) {
+        this.designerAiUuid = designerAiUuid;
+    }
+
+    public String getDesignerProtocolUuid() {
+        return designerProtocolUuid == null || designerProtocolUuid.isBlank() ? null : designerProtocolUuid;
+    }
+
+    public void setDesignerProtocolUuid(String designerProtocolUuid) {
+        this.designerProtocolUuid = designerProtocolUuid;
     }
 }

@@ -48,3 +48,62 @@ mark.conlang-passage {
     text-decoration: line-through;
     color: var(--lumo-secondary-text-color);
 }
+
+/* the review of the differences between two languages: one box per field of the selected change */
+.conlang-diff-field {
+    border: 1px solid var(--lumo-contrast-10pct);
+    border-radius: var(--lumo-border-radius-m);
+    padding: var(--lumo-space-s) var(--lumo-space-m);
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.conlang-diff-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--lumo-space-m);
+    width: 100%;
+}
+
+.conlang-diff-text {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    font-size: var(--lumo-font-size-s);
+    min-height: 1.2em;
+}
+
+.conlang-conflict {
+    color: var(--lumo-error-text-color);
+}
+
+.conlang-scroll {
+    overflow: auto;
+    min-height: 0;
+}
+
+/* the conversation with the designer */
+.conlang-chat-author,
+.conlang-chat-designer {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    padding: var(--lumo-space-s) var(--lumo-space-m);
+    border-radius: var(--lumo-border-radius-l);
+    max-width: 90%;
+}
+
+.conlang-chat-author {
+    align-self: flex-end;
+    background: var(--lumo-primary-color-10pct);
+}
+
+.conlang-chat-designer {
+    align-self: flex-start;
+    background: var(--lumo-contrast-10pct);
+}
+
+/* a phone: the two values of a field of a change one above the other */
+@media (max-width: 768px) {
+    .conlang-diff-columns {
+        grid-template-columns: 1fr;
+    }
+}

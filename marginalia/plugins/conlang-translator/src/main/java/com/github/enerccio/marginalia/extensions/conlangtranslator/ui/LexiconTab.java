@@ -7,6 +7,7 @@ import com.github.enerccio.marginalia.extensions.conlangtranslator.model.EntrySt
 import com.github.enerccio.marginalia.extensions.conlangtranslator.model.Language;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.model.LexiconEntry;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
+import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -64,7 +65,7 @@ public class LexiconTab extends VerticalLayout {
         search.setPrefixComponent(VaadinIcon.SEARCH.create());
         search.setValueChangeMode(ValueChangeMode.LAZY);
         search.addValueChangeListener(_ -> applyFilter());
-        search.setWidth("18rem");
+        search.setWidth(UIUtils.isPhone() ? "100%" : "18rem");
         category.setPlaceholder(T.localized(ALL_CATEGORIES));
         category.setClearButtonVisible(true);
         category.setItemLabelGenerator(Category::getName);
@@ -76,20 +77,26 @@ public class LexiconTab extends VerticalLayout {
         status.addValueChangeListener(_ -> applyFilter());
         count.addClassName(ConlangStyles.HINT);
 
+        if (UIUtils.isPhone()) {
+            category.setWidth("48%");
+            status.setWidth("48%");
+        }
         HorizontalLayout filters = new HorizontalLayout(search, category, status, count);
         filters.setWidthFull();
         filters.setWrap(true);
         filters.setAlignItems(Alignment.CENTER);
 
-        Button add = new Button(T.localized(ADD), Solid.PLUS.create(), _ -> add());
+        // on a phone the buttons are their icons (the name is the tooltip): the list needs the height
+        boolean phone = UIUtils.isPhone();
+        Button add = tool(T.localized(ADD), Solid.PLUS, phone, () -> add());
         add.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        editButton = new Button(T.localized(EDIT), Solid.PEN.create(), _ -> selected(this::edit));
-        acceptButton = new Button(T.localized(ACCEPT), Solid.CHECK.create(), _ -> selected(entry -> setStatus(entry, EntryStatus.ACCEPTED)));
-        lockButton = new Button(T.localized(LOCK), Solid.LOCK.create(), _ -> selected(this::toggleLock));
-        retireButton = new Button(T.localized(RETIRE), Solid.BAN.create(), _ -> selected(this::toggleRetired));
-        deleteButton = new Button(T.localized(DELETE), Solid.TRASH.create(), _ -> selected(this::delete));
+        editButton = tool(T.localized(EDIT), Solid.PEN, phone, () -> selected(this::edit));
+        acceptButton = tool(T.localized(ACCEPT), Solid.CHECK, phone, () -> selected(entry -> setStatus(entry, EntryStatus.ACCEPTED)));
+        lockButton = tool(T.localized(LOCK), Solid.LOCK, phone, () -> selected(this::toggleLock));
+        retireButton = tool(T.localized(RETIRE), Solid.BAN, phone, () -> selected(this::toggleRetired));
+        deleteButton = tool(T.localized(DELETE), Solid.TRASH, phone, () -> selected(this::delete));
         deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
-        Button acceptAll = new Button(T.localized(ACCEPT_ALL_NEW), Solid.CHECK_DOUBLE.create(), _ -> acceptAllNew());
+        Button acceptAll = tool(T.localized(ACCEPT_ALL_NEW), Solid.CHECK_DOUBLE, phone, this::acceptAllNew);
         HorizontalLayout actions = new HorizontalLayout(add, editButton, acceptButton, lockButton, retireButton, deleteButton, acceptAll);
         actions.setWidthFull();
         actions.setWrap(true);
@@ -217,10 +224,30 @@ public class LexiconTab extends VerticalLayout {
         editButton.setEnabled(any);
         acceptButton.setEnabled(any && entry.getStatus() == EntryStatus.NEW);
         lockButton.setEnabled(any);
-        lockButton.setText(any && entry.isLocked() ? T.localized(UNLOCK) : T.localized(LOCK));
+        retext(lockButton, any && entry.isLocked() ? T.localized(UNLOCK) : T.localized(LOCK));
         retireButton.setEnabled(any);
-        retireButton.setText(any && entry.getStatus() == EntryStatus.RETIRED ? T.localized(RESTORE) : T.localized(RETIRE));
+        retext(retireButton, any && entry.getStatus() == EntryStatus.RETIRED ? T.localized(RESTORE) : T.localized(RETIRE));
         deleteButton.setEnabled(any);
+    }
+
+    /** A button of the row of actions: icon and name, on a phone the icon with the name as its tooltip. */
+    private static Button tool(String name, Solid icon, boolean iconOnly, Runnable action) {
+        Button button = iconOnly ? new Button(icon.create(), _ -> action.run()) : new Button(name, icon.create(), _ -> action.run());
+        if (iconOnly) {
+            button.setTooltipText(name);
+            button.setAriaLabel(name);
+        }
+        return button;
+    }
+
+    /** A new name of a button made by {@link #tool}: its text, or its tooltip when it has no text. */
+    private static void retext(Button button, String name) {
+        if (button.getText().isEmpty()) {
+            button.setTooltipText(name);
+            button.setAriaLabel(name);
+        } else {
+            button.setText(name);
+        }
     }
 
     /** The component, for the tab sheet. */

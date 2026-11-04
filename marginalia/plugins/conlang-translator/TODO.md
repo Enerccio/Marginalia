@@ -930,6 +930,16 @@ exercised). Four requests: s1, s2, s3 and s2 with the strict `json_schema`. **A 
 - **Still there (checks that are the language's own, not done):** a speech that starts with a tone prefix and no mood particle (`Gna Da ...` is fine, `Fall Da`, `Droh Bef` too: the first word is a prefix, the
   mood comes after), `Den Bef ...` (a linker first, s3). The first-token check of the first trial flags them; `AnswerChecker` has no such check on purpose.
 
+## Real-model trial 4: the designer (2026-11-04)
+
+Local model (see `tools/LocalLlm.java --list`; the AI is the user's, not a fact of the application), one sample per request, 30000 tokens of budget, the requests written by `DesignerPrompts` for the test Vrakht (the whole `vrakht.md` as one rules section and 17 words) in `trial/design/` (`DesignGen.java` writes the requests, `run.sh` sends them; the requests and answers are not committed).
+- **All eight answers were the JSON object** (in a code fence; the lenient reader takes it), 8 of 8 parsed. Time and size: *words* 134 s (prompt 6565, completion 2308), *section* 204 s, *review* 166 s, *ask* 104 s, *samples* 113 s, *stage sounds* 75 s, *stage grammar* 99 s; **rewrite 439 s** (prompt 12435, completion 7560): the model gives back the **whole section**, and the test section is the 17856 characters of the file. A rewrite of a section of a normal size is small; one big section is slow and expensive, which is a reason to keep the sections of a language short (noted in the editor's hint? not yet).
+- **Words** (8 for *Things*, note "kitchen of a siege camp"): sensible, in the style (`kurt` cleaver, `sal-stein` salt, `brand-ort` hearth), but the rationale of a new root was **"New root"** in 5 of 8: the prompt now asks for the sounds chosen and why, or the roots and the rule (**not tried again**).
+- **Section** (a numbering system, base 12): the model **replaced** the file's base-24 section (its `replaces` named a title that is not a section of the language, because the file is one section, so the builder made a new section) and gave 15 digit words that look German (`ein`, `drei`): the note asked for something that contradicts the rules and the model chose silently; *message* said so.
+- **Review**: found real contradictions in the file's final lexicon block (`es` = "is" against the zero-copula rule, `ek`/`ja` as "you"/"I" against the pronoun section) and the missing rule for the positions; 5 findings with a section and a fix each. The most useful action.
+- **Ask**: "which words are missing for *my brother died at the gate*": answered from the lexicon (`ek-`, `man-sib`, `lok`), no invention. **Samples**: three sentences translated with the grammar and two new words proposed (`lin`, `dag-stigg`) that the proposal then flags as new.
+- **Stages** (a new language *Skarn* from a brief): sounds and grammar each one section that follows the brief (SOV, cases, `kh`, stress on the first syllable) but **short** (443 and 581 characters): the prompt now asks for 200 to 500 words with examples (**not tried again**). The sound section used `q` although the brief said nothing English readers cannot say; the author edits.
+
 ## Step 5 check in the real app (2026-11-04)
 
 The screenshot environment (`13-db-backup`, the V23 database migrated), the plugin JAR copied in, a language and the book's settings written into the data folder with a small script (no UI yet), the
@@ -960,6 +970,15 @@ Screenshot environment, plugin copied in, no seeded data: everything below was d
   the icon of the search field was huge (a Font Awesome icon in a prefix slot: use the Vaadin icon), the meaning column repeated the word, the counts of the category tab did not follow the
   words added in the lexicon tab, the checkbox of the defaults sat beside a helper text.
 - A thing that looks like a bug and is not: after *Import* the new language is selected, a click on its row selects it away (Vaadin's toggle), so a script that clicks first finds *Delete* disabled.
+
+## Step 7 check in the real app (2026-11-04)
+
+Screenshot environment, everything through the UI. A language was duplicated, the copy got a new word, a changed rationale, a changed rules section and a deleted word; *Compare* of the original
+with the copy listed four changes (the delete not picked), *Apply 3 picked* wrote them and the library showed three words. An *Import* of a document of the same name whose words had other ids
+asked *Review the differences / Import as new*, flagged the two words that were here already (*The same word with a shared meaning is here already*) as conflicts, *Select without conflicts*
+picked only the new word, and applying it gave three words. Found and fixed: a comparison offered the **name** of the copy as a change (it renamed the original to `Vrakht 2`; the name is not
+compared now), *Select without conflicts* picked the deletes of the old words while their replacements stayed unpicked (a comparison with no base never picks a delete now), the *About*
+column was cut, and an add showed three boxes per field (an add is now one editable box per field, a kind or a status is read-only and in words).
 
 ## Step 2 findings (2026-11-04, from reading the core)
 
@@ -1104,12 +1123,33 @@ reads it* accessor; the commands are thin wrappers added at step 13, with the te
    *Duplicate* is the only way to a language for one book (no book-local languages, decided). **Not in this step:** *Replace in the story* and *Retranslate* in the editor and the *Translate
    this* box (they need the en masse machinery of step 11 and the hand translation of the *Translating by hand* section), the badge of the *new* words on the story side, the fields for the
    number of earlier parts and the lexicon size limit, the preview of a bigger lexicon (a language of thousands of words was not tried in the grid).
-7. **The change set and the diff** (`LanguageDiff`, the review window, `apply` with the conflict check; Duplicate then Compare, Import against an
-   existing language), unit tests for the merge cases (conflicts, deletes, senses, order, identity) (the change set is also what step 14 reviews).
-8. **Conlang designer**: the proposal window and the actions inside the editor first (*Generate words* for a category, *Add a section* to
-   the rules, *Review*), then the stages for a new language (brief, sounds, writing, grammar, word formation, seed lexicon, test) with
-   the chat inside a stage; tried on a real model
-   with the test conlang and the results written here (no agent commands yet). Needs the request machinery of step 4 and the languages UI of step 6.
+7. **The change set and the diff** (done 2026-11-04, package `diff`, 31 unit tests, checked in the real app, see *Step 7 check* below): `LanguageDiff.diff(base, incoming, current)` is a **three-way** merge that
+   makes a `ChangeSet` of `Change`s (ADD, CHANGE, DELETE, MOVE of the language's own fields, a rules section, a category, a register, a character, a word) with `FieldChange`s (before, after, now,
+   the `value` that applying writes); `LanguageDiff.compare(current, other)` is the same with the base = the current language (a copy, an import, no history); `LanguageDiff.apply(current, set)`
+   writes the picked changes. Decisions: things are the same **by id** (a copy keeps the ids), a **word that is new but already here under another id** (the same form and a shared meaning) is
+   a conflict found by the word itself (a homophone with another meaning is not); a field both changed **differently** is a conflict that **keeps our value** until the user takes theirs or
+   writes one; a change in conflict as a whole (changed here and deleted there, deleted here and changed there, a moved section on both sides, the same word) is **not picked by default**;
+   senses, the other forms of a word and the aliases of a character are lists merged **as sets** (a sense is the same by its meaning); the order of sections, categories and registers is a MOVE
+   (what is not in the longest common run of two orders moved); a new word that uses a new category or register **depends** on its add (`ChangeSet.pick` takes it along, an apply that finds
+   it unpicked skips the word and reports it); `apply` is **stale-safe** (a field that is not what the set saw, or an add whose thing appeared meanwhile, is skipped and reported), does adds,
+   changes and moves in the order of `Target` (a category before its words) and deletes last, and a delete goes through the language's own (a deleted category leaves its words without one).
+   **The name of the language is not compared** (it is what the library knows it by). A comparison with no base never picks a delete by default (`pickAdditions`, also what *Select without
+   conflicts* does there). The window is `ChangeReviewDialog` (a list with a check box per change, the filter by kind of thing, *Select all / none / without conflicts*, and for the selected
+   change its fields here / in the other language / what will be written, with *Keep mine* and *Take theirs* on a conflict and the text editable for the fields that are text). It is reached from
+   the library panel by **Compare** (bring the changes of another language into the selected one: duplicate, experiment, compare, merge back) and by **Import** of a language whose name is in the
+   library (*Review the differences* or *Import as new*). What the user takes is written into a copy that replaces the language on the screen, stored when the Settings screen is saved.
+   **Not in this step:** a stored base for a copy (*Duplicate then Compare* is two-way: what the original changed since the copy shows as a change to undo, the user does not pick it), the
+   dependency of a word on the words it links to, the diff of the order of the lexicon, a text merge of a rules section edited on both sides (a conflict of a field is choose-a-side or write
+   the text), a preview of a review of thousands of words (the list is a virtualized grid, not tried that large).
+
+8. **Conlang designer** (done 2026-11-04, packages `designer` (pure, 10 unit tests) and `service` / `ui`; tried on a real model, see *Real-model trial 4* below; checked in the real app on desktop and on a phone):
+   - **The request machinery:** `ModelClient` (the one streamed request, shared with the translator), `AsyncRuns` (a job on a worker thread of the session, the result on the page), `DesignerService` (the model of the designer: its own setting, else the translation's, else the user's default; the lorebook of the language as text; `propose`, `answer`, `proposal`),
+     `DesignerPrompts` (one system message per action with the language as it is: the rules, registers, categories, lexicon and the lorebook; the answer is one JSON object, `DesignerAnswer`, read leniently).
+   - **A proposal is a change set:** `ProposalBuilder` puts the answer into a copy of the language (a section is new or the rewrite of the one of its title; a word needs a form and a meaning and one the language has with a shared meaning is left out and said so; new words are origin *model*, status *new*) and the proposal is `LanguageDiff.compare` of the two, reviewed in the step 7 window (`ChangeReviewDialog`, now with a note for what the model said and what was left out) and applied into the copy the editor works on.
+   - **In the editor:** a menu *Design with AI* (*Generate words...* for a category with a count and a note, *Add a section with AI...* and the words it needs, *Rewrite a section...*, *Review the language* (findings as cards), *Ask the designer...* (a conversation; an answer with words or sections has *Review the proposed changes*)), also as buttons on the category and rules tabs. **A new language:** *Design a language* in the library: the wizard (brief, sounds, writing, grammar, word formation, seed lexicon by category with *Add the basic categories*, test with sentences), each stage a section that the model proposes and the author edits, refines with a note and accepts; back and skip work; the language exists only in the window until *Finish*.
+   - **The phone:** the Settings screen on a phone is the same `UserPart`, so the panel and every window are the same classes; found on a phone and fixed: the review grid shows the name and a conflict mark only (the rest is in the details, whose two columns stack), the lexicon actions are icons, the findings are cards instead of a table that did not fit.
+   **Not in this step:** the designer's **lorebook narrowing** (all entries of the example lorebook up to 20000 characters, no picking), the **sentences from the example book** (the test takes the author's), *More senses / Alternatives / Explain / Check against the phonology* on a word, the structured phonology and the word generator (decided optional, later), the **warning that a language is shared by other books** before an accept, the designer's own **prompt templates** (the prompts are in code), a way to **stop** a request on the server (*Stop waiting* only drops the answer), the vowel and register actions *Add a vulgar variant*, *Import a description*.
+
 9. **Display**: the click-to-reveal in the part card, the manuscript dialog, the viewer and the phone; the reader switch.
 10. **Exports**: the footnote options, per format.
 11. **En masse actions** (translate a range, revert a range to the source: buttons of the UI, not agent commands), available only while the plugin is installed.
