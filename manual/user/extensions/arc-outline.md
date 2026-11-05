@@ -192,7 +192,7 @@ changes an arc or a chapter takes only the fields you give it; an empty text cle
 | `/delete-outline-chapter arc chapter` | Deletes a chapter, after a confirmation. |
 | `/generate-arc [specification [save]]` | Asks the model for a new arc, as *Generate an arc* does. |
 | `/generate-outline-chapters arc [specification [count [context [save]]]]` | Asks the model for the chapters of an arc, as the wand of the arc does. `count` is an exact number of chapters, `context` is `EVERYTHING` (the default), `ARCS_ONLY` or `ARCS_AND_FINISHED`, as the choice *What the model knows of the story*. |
-| `/import-arc-from-story [from [to [count [state [save]]]]]` | Asks the model to summarize the messages `from` to `to` of the active branch (numbered among the messages with text, as in *Import from story*) as an arc with chapters. `state` (default `FINISHED`) is the state of the saved arc and its chapters. |
+| `/import-arc-from-story [from [to [count [state [save [mapParts]]]]]]` | Asks the model to summarize the messages `from` to `to` of the active branch (numbered among the messages with text, as in *Import from story*) as an arc with chapters. `state` (default `FINISHED`) is the state of the saved arc and its chapters. With `mapParts` `true` every chapter is linked to the message it begins in (its *Linked part*, as the check box *Map parts* of the dialog does), and the answer has the part of each chapter. |
 
 The three generating commands use the same prompts as the dialogs (your *Extension Settings → Arc Outline*, or the
 defaults), the model and protocol of the book (your default model when the book has none) and no tools: a caller that

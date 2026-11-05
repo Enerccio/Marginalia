@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847178226162">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847213954694">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.847178226162" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.847213954694" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847178226162" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847213954694" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847178226162" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847213954694" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -288,7 +288,7 @@ in the prompt.</p>
 </retype-table>
 <p>Summaries that are merged into a meta summary are shown under it, see <doc-anchor-trigger to="#meta-summaries">below</doc-anchor-trigger>. They have no
 <strong>Select</strong> box, no trash icon and no pencil: only the summaries that are in use can be changed.</p>
-<p>The menu bar above the grid has <strong>Search and Replace</strong> (see <doc-anchor-trigger to="#search-and-replace-in-the-summaries">below</doc-anchor-trigger>), <strong>Export Summaries</strong> and <strong>Import Summaries</strong> (see <doc-anchor-trigger to="#export-and-import-of-the-summaries">Export and import</doc-anchor-trigger>); <a href="../../extensions/">extensions</a> can add tools to it.</p>
+<p>The menu bar above the grid has <strong>Search and Replace</strong> (see <doc-anchor-trigger to="#search-and-replace-in-the-summaries">below</doc-anchor-trigger>), <strong>Resummarize all summaries</strong> (see <doc-anchor-trigger to="#resummarize-all-summaries">below</doc-anchor-trigger>), <strong>Export Summaries</strong> and <strong>Import Summaries</strong> (see <doc-anchor-trigger to="#export-and-import-of-the-summaries">Export and import</doc-anchor-trigger>); <a href="../../extensions/">extensions</a> can add tools to it.</p>
 <h3 id="editing-a-summary">Editing a summary</h3>
 <p>Click the pencil to the right of the content of a summary. The text turns into a text area of the same size. Click
 the green check to save the change, or the red trash icon to throw it away. The token count is counted again after
@@ -312,6 +312,30 @@ those meta summaries again and they stay valid. <strong>Revalidate all summaries
 the book, also for those the replace did not touch and for those that were outdated before, see
 <a href="../story-editor/#search-and-replace">the story search</a>. With it off, a meta summary on a branch that is not searched
 (<strong>Search in all branches</strong> off) would become outdated, and the window tells you how many and asks whether to go on.</p>
+<h3 id="resummarize-all-summaries">Resummarize all summaries</h3>
+<p>After you change the summary prompt (or the meta summary prompt) the summaries you already have still follow the old one.
+<strong>Resummarize all summaries</strong> writes all of them again with the book&#x27;s model, so that they all look the same. It asks first
+and says how many summaries it is going to write: one request each.</p>
+<ul>
+<li>
+<p>It starts with the <strong>oldest</strong> summary and goes on to the newest.</p>
+</li>
+<li>
+<p>A <strong>meta summary</strong> is written after the summaries it stands in for (the ones shown under it, the inner meta summaries
+before the outer), from their <strong>new</strong> texts, so a meta summary is never made of old text.</p>
+</li>
+<li>
+<p>Every summary keeps its place on its part. The check value of each one is worked out again from the story as it is now, so a
+summary that was <strong>outdated</strong> is valid afterwards (the model read the current text of the parts).</p>
+</li>
+<li>
+<p>The window shows the number of the summary being written and the text as it comes in. The new texts are stored only when
+the <strong>last</strong> one is done: if you press <strong>Stop</strong>, or a request fails (the prompt does not fit into the context, the model
+answers nothing), every summary stays as it was.</p>
+</li>
+</ul>
+<p>The summaries of other branches are not changed. Make sure the model is not busy and that the book is not worked on by an
+agent. The edits you made to the texts by hand are replaced, export the summaries first if you want to keep them.</p>
 <h3 id="export-and-import-of-the-summaries">Export and import of the summaries</h3>
 <p><strong>Export Summaries</strong> downloads the summaries in use on the active branch as one text file (<code translate="no" v-pre>&lt;book&gt;-summaries.md</code>), the oldest
 first, each under a line like <code translate="no" v-pre>&lt;!-- summary part=&quot;...&quot; order=&quot;3&quot; --&gt;</code>. Edit the texts in any editor, keep the header lines, and
@@ -536,9 +560,12 @@ default from <em>Settings → Templates</em>). It gets two variables:</p>
 </table>
 </div>
 </retype-table>
-<p>The built-in prompt asks for a detailed, chronological ledger of events - every beat, action and change of state -
-rather than a short retelling, because the summary is meant for the model, not for a reader. Replace it if you prefer
-shorter summaries or a different format.</p>
+<p>The built-in prompt asks for a compact event ledger, grouped by place: under a <code translate="no" v-pre>[LOCATION / SCENE: Name]</code> header,
+one event per line as <em>who does what -&gt; what follows from it</em> (the intent only when the text shows it), without
+titles, numbers or ids for the events and without the atmosphere. It is meant for the model, not for a reader, and
+it is about a quarter of the size of the text it replaces. The meta summary prompt expects the same format and merges neighbouring lines into causal chains. Replace it
+if you prefer a different format or length; a summary made before the prompt changed keeps its old form until you
+make it again.</p>
 <h2 id="tips">Tips</h2>
 <ul>
 <li>
@@ -598,7 +625,7 @@ stops with <em>Contextual limit not sufficient.</em> Then shorten them (a more c
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (a6155ceed).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (78db4ecac).</p></div>
             </footer>
         </div>
     </div>

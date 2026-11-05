@@ -74,7 +74,7 @@ The dialog lists the summaries the next generation will send, oldest first, and 
 Summaries that are merged into a meta summary are shown under it, see [below](#meta-summaries). They have no
 **Select** box, no trash icon and no pencil: only the summaries that are in use can be changed.
 
-The menu bar above the grid has **Search and Replace** (see [below](#search-and-replace-in-the-summaries)), **Export Summaries** and **Import Summaries** (see [Export and import](#export-and-import-of-the-summaries)); [extensions](../extensions/index.md) can add tools to it.
+The menu bar above the grid has **Search and Replace** (see [below](#search-and-replace-in-the-summaries)), **Resummarize all summaries** (see [below](#resummarize-all-summaries)), **Export Summaries** and **Import Summaries** (see [Export and import](#export-and-import-of-the-summaries)); [extensions](../extensions/index.md) can add tools to it.
 
 ### Editing a summary
 
@@ -103,6 +103,24 @@ those meta summaries again and they stay valid. **Revalidate all summaries** (on
 the book, also for those the replace did not touch and for those that were outdated before, see
 [the story search](story-editor.md#search-and-replace). With it off, a meta summary on a branch that is not searched
 (**Search in all branches** off) would become outdated, and the window tells you how many and asks whether to go on.
+
+### Resummarize all summaries
+
+After you change the summary prompt (or the meta summary prompt) the summaries you already have still follow the old one.
+**Resummarize all summaries** writes all of them again with the book's model, so that they all look the same. It asks first
+and says how many summaries it is going to write: one request each.
+
+- It starts with the **oldest** summary and goes on to the newest.
+- A **meta summary** is written after the summaries it stands in for (the ones shown under it, the inner meta summaries
+  before the outer), from their **new** texts, so a meta summary is never made of old text.
+- Every summary keeps its place on its part. The check value of each one is worked out again from the story as it is now, so a
+  summary that was **outdated** is valid afterwards (the model read the current text of the parts).
+- The window shows the number of the summary being written and the text as it comes in. The new texts are stored only when
+  the **last** one is done: if you press **Stop**, or a request fails (the prompt does not fit into the context, the model
+  answers nothing), every summary stays as it was.
+
+The summaries of other branches are not changed. Make sure the model is not busy and that the book is not worked on by an
+agent. The edits you made to the texts by hand are replaced, export the summaries first if you want to keep them.
 
 ### Export and import of the summaries
 
@@ -249,9 +267,12 @@ default from *Settings → Templates*). It gets two variables:
 | `{%{{{text}}}%}` | The text of the parts to summarize, oldest first. |
 | `{%{{{backgroundLore}}}%}` | The lorebook entries that were active when the summarized part was written. |
 
-The built-in prompt asks for a detailed, chronological ledger of events - every beat, action and change of state -
-rather than a short retelling, because the summary is meant for the model, not for a reader. Replace it if you prefer
-shorter summaries or a different format.
+The built-in prompt asks for a compact event ledger, grouped by place: under a `[LOCATION / SCENE: Name]` header,
+one event per line as *who does what -> what follows from it* (the intent only when the text shows it), without
+titles, numbers or ids for the events and without the atmosphere. It is meant for the model, not for a reader, and
+it is about a quarter of the size of the text it replaces. The meta summary prompt expects the same format and merges neighbouring lines into causal chains. Replace it
+if you prefer a different format or length; a summary made before the prompt changed keeps its old form until you
+make it again.
 
 ## Tips
 

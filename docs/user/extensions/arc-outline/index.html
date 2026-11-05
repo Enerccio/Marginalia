@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847178226162">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847213954694">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.847178226162" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.847213954694" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847178226162" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847213954694" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847178226162" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847213954694" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -518,7 +518,7 @@ changes an arc or a chapter takes only the fields you give it; an empty text cle
 | `/delete-outline-chapter arc chapter` | Deletes a chapter, after a confirmation. |
 | `/generate-arc [specification [save]]` | Asks the model for a new arc, as *Generate an arc* does. |
 | `/generate-outline-chapters arc [specification [count [context [save]]]]` | Asks the model for the chapters of an arc, as the wand of the arc does. `count` is an exact number of chapters, `context` is `EVERYTHING` (the default), `ARCS_ONLY` or `ARCS_AND_FINISHED`, as the choice *What the model knows of the story*. |
-| `/import-arc-from-story [from [to [count [state [save]]]]]` | Asks the model to summarize the messages `from` to `to` of the active branch (numbered among the messages with text, as in *Import from story*) as an arc with chapters. `state` (default `FINISHED`) is the state of the saved arc and its chapters. |">
+| `/import-arc-from-story [from [to [count [state [save [mapParts]]]]]]` | Asks the model to summarize the messages `from` to `to` of the active branch (numbered among the messages with text, as in *Import from story*) as an arc with chapters. `state` (default `FINISHED`) is the state of the saved arc and its chapters. With `mapParts` `true` every chapter is linked to the message it begins in (its *Linked part*, as the check box *Map parts* of the dialog does), and the answer has the part of each chapter. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -573,8 +573,8 @@ changes an arc or a chapter takes only the fields you give it; an empty text cle
 <td>Asks the model for the chapters of an arc, as the wand of the arc does. <code translate="no" v-pre>count</code> is an exact number of chapters, <code translate="no" v-pre>context</code> is <code translate="no" v-pre>EVERYTHING</code> (the default), <code translate="no" v-pre>ARCS_ONLY</code> or <code translate="no" v-pre>ARCS_AND_FINISHED</code>, as the choice <em>What the model knows of the story</em>.</td>
 </tr>
 <tr>
-<td><code translate="no" v-pre>/import-arc-from-story [from [to [count [state [save]]]]]</code></td>
-<td>Asks the model to summarize the messages <code translate="no" v-pre>from</code> to <code translate="no" v-pre>to</code> of the active branch (numbered among the messages with text, as in <em>Import from story</em>) as an arc with chapters. <code translate="no" v-pre>state</code> (default <code translate="no" v-pre>FINISHED</code>) is the state of the saved arc and its chapters.</td>
+<td><code translate="no" v-pre>/import-arc-from-story [from [to [count [state [save [mapParts]]]]]]</code></td>
+<td>Asks the model to summarize the messages <code translate="no" v-pre>from</code> to <code translate="no" v-pre>to</code> of the active branch (numbered among the messages with text, as in <em>Import from story</em>) as an arc with chapters. <code translate="no" v-pre>state</code> (default <code translate="no" v-pre>FINISHED</code>) is the state of the saved arc and its chapters. With <code translate="no" v-pre>mapParts</code> <code translate="no" v-pre>true</code> every chapter is linked to the message it begins in (its <em>Linked part</em>, as the check box <em>Map parts</em> of the dialog does), and the answer has the part of each chapter.</td>
 </tr>
 </tbody>
 </table>
@@ -625,7 +625,7 @@ chapters at the end of the arc) and the answer has their numbers. A story that i
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (a6155ceed).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (78db4ecac).</p></div>
             </footer>
         </div>
     </div>

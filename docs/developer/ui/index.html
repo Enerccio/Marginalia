@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847178226162">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847213954694">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.847178226162" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.847213954694" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847178226162" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847213954694" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847178226162" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.847178226162" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847213954694" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.847213954694" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -838,8 +838,8 @@ hierarchy column), message id, order in the branch, content, tokens, a checkbox 
 delete buttons and the edit pencil exist only on the top level - the text of the merged summaries is part of the hash
 of their meta summary, so editing them one by one would invalidate it (the search and replace works them out again).
 A summary that no longer describes the story (<code translate="no" v-pre>SummaryNode.isValid()</code> false: the hash of the block it stands for changed) has the grid part name <code translate="no" v-pre>CssStyles.SUMMARY_OUTDATED</code> (another background) and, on the top level, a <strong>Revalidate</strong> button (<code translate="no" v-pre>createRevalidateButton</code>); the menu bar has <strong>Revalidate all summaries</strong>. Both call <code translate="no" v-pre>revalidate(part or null)</code>, which is <code translate="no" v-pre>SummaryService.revalidateActiveBranch</code>: the hash of the story is stored again, the author says the summary still fits. The valid ones only are summed in the token total of the story tab. <code translate="no" v-pre>PhoneSummariesDialog</code> has the same.</p>
-<p>The menu bar above the grid (<code translate="no" v-pre>populateMenuBar(bar)</code>, also where extensions add items) has <em>Search and Replace</em>, <em>Export Summaries</em> and
-<em>Import Summaries</em>: the last two are added by <code translate="no" v-pre>SummariesImportDialog.addMenuItems</code>, shared with <code translate="no" v-pre>PhoneSummariesDialog</code>. The export is an
+<p>The menu bar above the grid (<code translate="no" v-pre>populateMenuBar(bar)</code>, also where extensions add items) has <em>Search and Replace</em>, <em>Revalidate all summaries</em>, <em>Resummarize all summaries</em>, <em>Export Summaries</em> and
+<em>Import Summaries</em>: <em>Resummarize</em> is added by <code translate="no" v-pre>ResummarizeDialog.addMenuItem</code> (a confirmation with the number of summaries, then a modal progress dialog with Stop; not <code translate="no" v-pre>@Extendable</code>), the last two by <code translate="no" v-pre>SummariesImportDialog.addMenuItems</code>, both shared with <code translate="no" v-pre>PhoneSummariesDialog</code>. The export is an
 <code translate="no" v-pre>Anchor</code> with an <code translate="no" v-pre>InputStreamDownloadHandler</code> over <code translate="no" v-pre>SummaryService.exportSummaries</code>; the import dialog reads the uploaded file
 (<code translate="no" v-pre>InMemoryUploadHandler</code>), calls <code translate="no" v-pre>SummaryService.analyzeImport</code> (again when <em>Match by position</em> is toggled), lists the <code translate="no" v-pre>ImportEntry</code>s with
 their status and writes with <code translate="no" v-pre>applyImport</code> on <em>Import</em>, then runs the callback that loads the overview again. <code translate="no" v-pre>PhoneSummariesDialog</code> puts
@@ -1752,7 +1752,7 @@ the buttons a dialog has in its bottom right corner). The server accepts their e
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (a6155ceed).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (78db4ecac).</p></div>
             </footer>
         </div>
     </div>
