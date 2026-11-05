@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.domain.repository.impl;
 
 import com.github.enerccio.marginalia.domain.model.BaseEntity;
 import com.github.enerccio.marginalia.domain.repository.BaseRepository;
+import com.github.enerccio.marginalia.utils.AppClock;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 
@@ -84,10 +85,10 @@ public abstract class JpaBaseRepository<T extends BaseEntity> implements BaseRep
             entity.setUuid(UUID.randomUUID().toString());
         }
         if (entity.getCreation() == null) {
-            entity.setCreation(new Date());
+            entity.setCreation(AppClock.now());
         }
         if (touch || entity.getModification() == null) {
-            entity.setModification(new Date());
+            entity.setModification(AppClock.now());
         }
 
         if (entity.getId() == null) {

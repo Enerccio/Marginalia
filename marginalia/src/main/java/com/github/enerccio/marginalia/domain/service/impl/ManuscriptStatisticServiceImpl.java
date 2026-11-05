@@ -11,6 +11,7 @@ import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
+import com.github.enerccio.marginalia.utils.AppClock;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,7 +66,7 @@ public class ManuscriptStatisticServiceImpl extends OwnedServiceImpl<ManuscriptS
     /**
      * The clock that tells the day, the one of the server's zone; a test sets its own.
      */
-    private Clock clock = Clock.systemDefaultZone();
+    private Clock clock = AppClock.INSTANCE;
 
     @Override
     @CommonTx

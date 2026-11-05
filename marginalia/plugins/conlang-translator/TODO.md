@@ -1299,6 +1299,17 @@ An epic fantasy has a tongue for the elves, another for the dwarves, a third for
   who does not know Sylvari react to what was said. A block like the Knowledge Tracker's ("Mara does not understand Sylvari;
   she does not know what was said") for the speech with `understood: false`, or telling the Knowledge Tracker.
 - **Learning a language.** A character who picks it up (the lexicon words they know) and the translation showing partly.
+  The dataset story ("Unregistered", `../../../TODO.DATASET.MD`) is exactly this case: two characters who learn Vrakht over the book while the Lyrshara
+  speak Aethel-Vael around them. Its Knowledge Tracker pass would track "understands Vrakht: basic / follows most", the words a character has been
+  taught (tone prefixes, army words, market words) and who knows the secrets, and the next part's prompt would carry it.
+- **Cooperation between plugins and the conlangs (idea, 2026-11-05).** Other plugins can use the language as data. First case: the **Name generator**
+  (Markov chains, `../name-generator`) trained on the *roots of a language's own lexicon* gives names that sound like that language (tried with a
+  throw-away script on Vrakht, 221 roots, and Aethel-Vael, 243: Aethel-Vael came out good - Saellen, Aelmoria, Kaelthal - Vrakht rougher because of the
+  small corpus; real compounds of roots are better for places and titles, and can be checked against the glossary). Possible shape: a conlang
+  becomes a category of the name generator (built from the lexicon when the language is saved, or on demand, no committed table), with options for
+  length and for "compound of two roots"; the names are offered to the designer as new entries (kind: name, `origin` generated) so they join the
+  lexicon and the *names kept in the source* rule. Same for other plugins: the Place Provider / Name Provider, the Lore Generator (a lorebook entry
+  in the language's names), the Knowledge Tracker (what a character has learned of the language), the Arc Outline.
 - **Word-level view:** hover a conlang word for its gloss (the model gives an interlinear gloss per speech).
 - **Consistency check** of an existing translation against the lexicon (the same meaning, the same word); a report of the words
   used that are not in the lexicon.

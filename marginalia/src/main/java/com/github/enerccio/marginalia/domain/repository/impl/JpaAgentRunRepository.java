@@ -6,6 +6,7 @@ import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.repository.AgentRunRepository;
 import com.github.enerccio.marginalia.domain.security.model.User;
+import com.github.enerccio.marginalia.utils.AppClock;
 import jakarta.persistence.Query;
 
 import java.util.Collection;
@@ -154,7 +155,7 @@ public class JpaAgentRunRepository extends JpaExtendableRepository<AgentRun> imp
                         + "WHERE r.id = :id AND r.deleted = false")
                 .setParameter("prefill", prefillTokens)
                 .setParameter("generated", generatedTokens)
-                .setParameter("now", new Date())
+                .setParameter("now", AppClock.now())
                 .setParameter("id", runId)
                 .executeUpdate();
     }
@@ -164,7 +165,7 @@ public class JpaAgentRunRepository extends JpaExtendableRepository<AgentRun> imp
         return entityManager
                 .createQuery("UPDATE AgentRun r SET r.workingCopy = :copy, r.modification = :now WHERE r.id = :id")
                 .setParameter("copy", workingCopy)
-                .setParameter("now", new Date())
+                .setParameter("now", AppClock.now())
                 .setParameter("id", runId)
                 .executeUpdate();
     }
@@ -181,7 +182,7 @@ public class JpaAgentRunRepository extends JpaExtendableRepository<AgentRun> imp
                 .setParameter("reason", reason)
                 .setParameter("finishedAt", finishedAt)
                 .setParameter("attention", to.needsAttention(reason))
-                .setParameter("now", new Date())
+                .setParameter("now", AppClock.now())
                 .setParameter("id", runId);
         if (from != null) {
             query.setParameter("from", from);

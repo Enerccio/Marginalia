@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.templates;
 
+import com.github.enerccio.marginalia.utils.AppClock;
 import java.time.Clock;
 import java.util.ArrayList;
 import java.util.Date;
@@ -58,7 +59,7 @@ public class TemplateContext {
     private String pickSeed = "";
 
     private TemplateVariables variables = new TemplateVariables();
-    private Clock clock = Clock.systemDefaultZone();
+    private Clock clock = AppClock.INSTANCE;
     private Random random = new Random();
 
     /**

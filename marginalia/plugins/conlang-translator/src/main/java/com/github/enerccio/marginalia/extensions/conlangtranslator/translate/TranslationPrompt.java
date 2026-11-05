@@ -23,7 +23,7 @@ public final class TranslationPrompt {
             For EVERY piece of direct speech in the PART (the words the characters say aloud, inside quotation marks) give one entry, in the order they appear:
             - "quote": the speech copied exactly from the PART, character for character, without the quotation marks. A quotation that has several sentences may be one entry or one entry for each sentence; the quotes of the entries never overlap.
             - "speaker": who says it.
-            - "language": "%1$s" when the speech is spoken in it, or "none" when it is spoken in ordinary English (the common language of the story).
+            - "language": "%1$s" when the speech is spoken in it, or "none" when it is spoken in ordinary English (the common language of the story) or in any other language than %1$s, real or invented (Japanese, Czech, another constructed language): speech that the PART gives to another language is "none" for this request, never %1$s.
             - "text": the speech in %1$s, written strictly by the rules of the language; empty when the language is "none".
             - "understood": false when the people who hear it cannot understand it, otherwise true.
             - "register": the register of the words you chose (see REGISTERS), empty for the neutral one.
