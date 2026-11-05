@@ -4,6 +4,7 @@ import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
+import com.github.enerccio.marginalia.extensions.ExportTextRegistry;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.ExporterService.ExportLoreEntry;
@@ -56,6 +57,9 @@ public class ExportDialog extends Dialog implements LLMInteract {
 
     @Autowired
     private ExporterService exporterService;
+
+    @Autowired
+    private ExportTextRegistry exportTexts;
 
     @Autowired
     private ChatMessageService chatMessageService;
@@ -299,9 +303,30 @@ public class ExportDialog extends Dialog implements LLMInteract {
                 Notification.warning(loc.getValue(L.MSG_EXPORT_NOTHING));
                 return;
             }
-            export(exporter, options, file, all.subList(first - 1, toIndex));
+            export(exporter, options, file, applyExportTexts(all.subList(first - 1, toIndex)));
         });
         collecting.open();
+    }
+
+    /**
+     * The parts as the exporters get them: what the extensions registered in the {@link ExportTextRegistry} changed in the text (a passage
+     * replaced, with a footnote), all of them at once on the stored text. The stored parts are not changed.
+     */
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = List.class),
+            parameters = {@APIParameter(name = "messages", type = List.class)})
+    private List<ChatMessage> applyExportTexts(List<ChatMessage> messages) {
+        return exportTexts.apply(messages, new ExportTextRegistry.Session() {
+            @Override
+            public Object source() {
+                return ExportDialog.this;
+            }
+
+            @Override
+            public Manuscript manuscript() {
+                return manuscript;
+            }
+        });
     }
 
     @PublicAPI(from = "1.1.0",

@@ -1,12 +1,13 @@
 package com.github.enerccio.marginalia.extensions.conlangtranslator.ui;
 
+import com.github.enerccio.marginalia.extensions.translatorcommon.ui.CommonStyles;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.ConlangStyles;
-import com.github.enerccio.marginalia.extensions.conlangtranslator.service.RangeLoop;
-import com.github.enerccio.marginalia.extensions.conlangtranslator.service.RangeLoop.Mode;
-import com.github.enerccio.marginalia.extensions.conlangtranslator.service.RangeLoop.RangePart;
-import com.github.enerccio.marginalia.extensions.conlangtranslator.service.RangeLoop.Summary;
-import com.github.enerccio.marginalia.extensions.conlangtranslator.service.RangeRuns;
+import com.github.enerccio.marginalia.extensions.translatorcommon.service.RangeLoop;
+import com.github.enerccio.marginalia.extensions.translatorcommon.service.RangeLoop.Mode;
+import com.github.enerccio.marginalia.extensions.translatorcommon.service.RangeLoop.RangePart;
+import com.github.enerccio.marginalia.extensions.translatorcommon.service.RangeLoop.Summary;
+import com.github.enerccio.marginalia.extensions.translatorcommon.service.RangeRuns;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.vaadin.flow.component.button.Button;
@@ -85,7 +86,7 @@ public class RangeDialog extends Dialog {
 
         count.addClassName(ConlangStyles.HINT);
         status.addClassName(ConlangStyles.HINT);
-        status.addClassName(ConlangStyles.SOURCE_TEXT);
+        status.addClassName(CommonStyles.SOURCE_TEXT);
         progress.setVisible(false);
         progress.setWidthFull();
         stop.setEnabled(false);

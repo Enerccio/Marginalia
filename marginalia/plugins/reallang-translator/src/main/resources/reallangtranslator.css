@@ -1,0 +1,7 @@
+/* the speech of a character that was translated into a real language: marked in the story, the English source is behind it */
+mark.reallang-passage {
+    background: transparent;
+    color: inherit;
+    border-bottom: 1px dotted var(--lumo-success-color-50pct);
+    cursor: help;
+}

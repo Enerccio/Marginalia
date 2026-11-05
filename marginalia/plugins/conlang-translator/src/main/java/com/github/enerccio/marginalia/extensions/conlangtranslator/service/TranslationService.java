@@ -1,5 +1,12 @@
 package com.github.enerccio.marginalia.extensions.conlangtranslator.service;
 
+import com.github.enerccio.marginalia.extensions.translatorcommon.service.ModelSelection;
+import com.github.enerccio.marginalia.extensions.conlangtranslator.text.ConlangKind;
+import com.github.enerccio.marginalia.extensions.translatorcommon.service.PassageAccess;
+import com.github.enerccio.marginalia.extensions.translatorcommon.service.ModelClient;
+import com.github.enerccio.marginalia.extensions.translatorcommon.translate.TranslationPlan;
+import com.github.enerccio.marginalia.extensions.translatorcommon.translate.SelectionRange;
+import com.github.enerccio.marginalia.extensions.translatorcommon.translate.Reverse;
 import com.github.enerccio.marginalia.domain.collections.RevisionDetail;
 import com.github.enerccio.marginalia.domain.components.RevisionOrigin;
 import com.github.enerccio.marginalia.domain.model.impl.*;
@@ -9,7 +16,7 @@ import com.github.enerccio.marginalia.extensions.PartTextRegistry;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.model.BookSettings;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.model.Language;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.model.Origin;
-import com.github.enerccio.marginalia.extensions.conlangtranslator.model.Span;
+import com.github.enerccio.marginalia.extensions.translatorcommon.model.Span;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.store.ConlangStore;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.translate.*;
 import org.apache.commons.lang3.StringUtils;
@@ -87,9 +94,9 @@ public class TranslationService {
     /** How much of the story before and after a selected sentence the model reads (characters). */
     private static final int AROUND = 400;
 
-    private final PassageAccess passages = new PassageAccess();
+    private final PassageAccess passages = new PassageAccess(ConlangKind.ID);
     private final LanguageAccess languages = new LanguageAccess();
-    private final ModelClient modelClient = new ModelClient();
+    private final ModelClient modelClient = new ModelClient("conlang-translator");
     private final Map<String, Object> locks = new ConcurrentHashMap<>();
 
     /**
@@ -168,7 +175,7 @@ public class TranslationService {
             return Outcome.of(Status.BAD_ANSWER, "The model did not answer in the expected form.");
         }
         AnswerChecker.Checked checked = AnswerChecker.check(source, answer, language);
-        TranslationPlan plan = TranslationPlan.make(source, checked.accepted());
+        TranslationPlan plan = TranslationPlan.make(source, checked.accepted().stream().map(item -> new TranslationPlan.Accepted(item.speech(), item.start(), item.end())).toList());
         int dropped = (int) checked.speeches().stream().filter(item -> !item.accepted()).count();
         if (plan.isEmpty()) {
             return new Outcome(Status.NOTHING_TO_TRANSLATE, 0, 0, dropped, 0, "");
@@ -228,7 +235,7 @@ public class TranslationService {
      * The part as a model reads it, with the passages that were edited by the author (they are left as they are).
      */
     private Reverse.Result readOf(ChatMessage part) throws Exception {
-        List<com.github.enerccio.marginalia.extensions.conlangtranslator.translate.Reverse.Located> located = passages.of(List.of(part))
+        List<com.github.enerccio.marginalia.extensions.translatorcommon.translate.Reverse.Located> located = passages.of(List.of(part))
                 .getOrDefault(part.getId(), List.of());
         return Reverse.toModel(part.getResponse(), located);
     }
@@ -272,8 +279,8 @@ public class TranslationService {
         long now = System.currentTimeMillis();
         String modelName = model.ai().getName();
         for (TranslationPlan.Planned planned : plan.passages()) {
-            AnchoredPassage passage = passageService.create(book, fresh, Span.KIND, planned.start(), planned.end());
-            Span span = new Span(language.getId(), planned.english(), planned.conlang());
+            AnchoredPassage passage = passageService.create(book, fresh, ConlangKind.ID, planned.start(), planned.end());
+            Span span = new Span(language.getId(), planned.english(), planned.translated());
             span.setSpeaker(StringUtils.defaultString(planned.speech().speaker()));
             span.setUnderstood(planned.speech().isUnderstood());
             span.setRegister(StringUtils.defaultString(planned.speech().register()));
@@ -367,7 +374,7 @@ public class TranslationService {
             ChatMessage saved = chatMessageService.replaceText(book, fresh, stored, read.text(), untouched ? stored : null,
                     RevisionOrigin.automatic(RevisionDetail.TRANSLATION, false));
             long now = System.currentTimeMillis();
-            AnchoredPassage passage = passageService.create(book, saved, Span.KIND, range[0], range[0] + conlang.length());
+            AnchoredPassage passage = passageService.create(book, saved, ConlangKind.ID, range[0], range[0] + conlang.length());
             Span span = new Span(language.getId(), english, conlang);
             span.setSpeaker("");
             span.setUnderstood(true);
@@ -383,10 +390,6 @@ public class TranslationService {
     }
 
     // --- the model ---
-
-    /** The model and the protocol of a request. */
-    public record ModelSelection(AI ai, Protocol protocol) {
-    }
 
     /**
      * The model and the protocol of the book's settings of this plugin, else the book's, else the defaults of the user; null when there is none.

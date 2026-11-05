@@ -14,7 +14,7 @@ covers:
 
 The text of a part is `ChatMessage.getResponse()`. An extension may want to **store the story in one form and give the model another**:
 the Conlang Translator keeps the speech of the characters in a constructed language and lets the model read the English it was made from;
-a redaction plugin could hide names. `PartTextRegistry` is the one place where that is said.
+a redaction plugin could hide names. `PartTextRegistry` is the one place where that is said. What the *export* holds is its own registry, [The text of an export](export-text.md).
 
 ## Who asks
 

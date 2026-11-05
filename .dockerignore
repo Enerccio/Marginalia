@@ -4,3 +4,4 @@ marginalia/target/
 /marginalia/node_modules/
 /marginalia/plugins/*/target/
 /marginalia/plugins/build/
+/marginalia/libs/*/target/

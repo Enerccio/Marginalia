@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.extensions.conlangtranslator.model;
 
+import com.github.enerccio.marginalia.extensions.translatorcommon.model.Speakers;
 /**
  * What the plugin keeps in the attributes of a book: which language the book is translated into and how. Stored under {@link #KEY}.
  */

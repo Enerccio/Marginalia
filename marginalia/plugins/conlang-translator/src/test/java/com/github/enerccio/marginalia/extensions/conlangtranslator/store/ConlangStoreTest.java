@@ -1,5 +1,7 @@
 package com.github.enerccio.marginalia.extensions.conlangtranslator.store;
 
+import com.github.enerccio.marginalia.extensions.translatorcommon.model.CharacterNote;
+import com.github.enerccio.marginalia.extensions.translatorcommon.model.SpeakersMode;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.model.*;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;

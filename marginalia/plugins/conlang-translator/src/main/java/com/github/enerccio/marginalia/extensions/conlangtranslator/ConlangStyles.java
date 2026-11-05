@@ -14,15 +14,7 @@ public final class ConlangStyles {
     /** The mark over a translated speech. */
     public static final String PASSAGE = "conlang-passage";
 
-    /** The popover with the English source of a speech. */
-    public static final String SOURCE_POPOVER = "conlang-source-popover";
-    /** The content of that popover. */
-    public static final String SOURCE_BOX = "conlang-source-box";
-    /** The English text in it. */
-    public static final String SOURCE_TEXT = "conlang-source-text";
 
-    /** The part of a published book that holds clickable speech: the popover is placed against it. */
-    public static final String READER_PART = "conlang-reader-part";
 
     /** The line under a field that says what the field is for. */
     public static final String HINT = "conlang-hint";

@@ -1,9 +1,9 @@
 package com.github.enerccio.marginalia.extensions.conlangtranslator.translate;
 
-import com.github.enerccio.marginalia.extensions.conlangtranslator.model.CharacterNote;
+import com.github.enerccio.marginalia.extensions.translatorcommon.model.CharacterNote;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.model.Language;
-import com.github.enerccio.marginalia.extensions.conlangtranslator.model.Speakers;
-import com.github.enerccio.marginalia.extensions.conlangtranslator.model.SpeakersMode;
+import com.github.enerccio.marginalia.extensions.translatorcommon.model.Speakers;
+import com.github.enerccio.marginalia.extensions.translatorcommon.model.SpeakersMode;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.translate.TranslationPrompt.Request;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.translate.TranslationPrompt.Scene;
 import org.junit.jupiter.api.Test;

@@ -1,0 +1,27 @@
+/* what the translator plugins share: the English source behind a translated speech, the reader's part, the small texts of the screens */
+.translator-hint {
+    color: var(--lumo-secondary-text-color);
+    font-size: var(--lumo-font-size-s);
+}
+
+.translator-conflict {
+    color: var(--lumo-error-text-color);
+}
+
+.translator-source-box {
+    max-width: min(28em, 80vw);
+}
+
+.translator-source-text {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+/* a part of a published book with clickable speech: the popover is placed against it */
+.translator-reader-part {
+    position: relative;
+}
+
+.translator-reader-part mark[data-translated-passage] {
+    cursor: pointer;
+}

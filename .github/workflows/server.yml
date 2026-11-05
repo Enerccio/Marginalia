@@ -71,6 +71,16 @@ jobs:
         working-directory: marginalia
         run: mvn -DskipTests install
 
+      - name: Build and install the libraries
+        # what plugins share (marginalia/libs); a plugin embeds the library, so it must be in the local repository first
+        working-directory: marginalia/libs
+        run: |
+          for pom in */pom.xml; do
+            echo "::group::$pom"
+            mvn -f "$pom" -DskipTests install
+            echo "::endgroup::"
+          done
+
       - name: Build the plugins
         working-directory: marginalia/plugins
         run: |

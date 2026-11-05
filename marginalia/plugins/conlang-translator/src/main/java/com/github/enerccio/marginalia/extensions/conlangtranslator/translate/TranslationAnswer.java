@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.extensions.conlangtranslator.translate;
 
+import com.github.enerccio.marginalia.extensions.translatorcommon.translate.Speech;
 import com.google.gson.Gson;
 import com.google.gson.JsonParseException;
 
@@ -18,28 +19,6 @@ public record TranslationAnswer(List<Speech> translations, List<NewWord> newWord
 
     private static final Gson GSON = new Gson();
     private static final Pattern FENCE = Pattern.compile("^```(?:json)?\\s*|\\s*```$");
-
-    /**
-     * One direct speech of the part.
-     *
-     * @param quote      the speech copied from the part, without the quotation marks
-     * @param speaker    who says it
-     * @param language   the name of the language it is spoken in, or {@code none} for the language of the story
-     * @param text       the speech in the language; empty for {@code none}
-     * @param choice     one sentence on the main choices of the translation; for the author, never used
-     * @param understood false when the listener does not understand it; null is read as true
-     * @param register   the register the model chose, empty for the neutral one
-     */
-    public record Speech(String quote, String speaker, String language, String text, String choice, Boolean understood, String register) {
-
-        public boolean isNone() {
-            return language == null || language.isBlank() || language.strip().equalsIgnoreCase("none");
-        }
-
-        public boolean isUnderstood() {
-            return understood == null || understood;
-        }
-    }
 
     /**
      * A word the speech needed and the lexicon lacked.

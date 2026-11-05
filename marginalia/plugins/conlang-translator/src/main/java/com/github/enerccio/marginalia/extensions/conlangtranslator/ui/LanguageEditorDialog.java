@@ -1,5 +1,7 @@
 package com.github.enerccio.marginalia.extensions.conlangtranslator.ui;
 
+import com.github.enerccio.marginalia.extensions.translatorcommon.ui.EditDialog;
+import com.github.enerccio.marginalia.extensions.translatorcommon.ui.ListEditor;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.extensions.InheritedSetting.Choice;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.ConlangStyles;

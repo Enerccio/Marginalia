@@ -1,5 +1,12 @@
 package com.github.enerccio.marginalia.extensions.conlangtranslator;
 
+import com.github.enerccio.marginalia.extensions.translatorcommon.ui.CommonStyles;
+import com.github.enerccio.marginalia.extensions.translatorcommon.ui.ExportChoice;
+import com.github.enerccio.marginalia.extensions.translatorcommon.ui.ReaderView;
+import com.github.enerccio.marginalia.extensions.translatorcommon.service.RangeRuns;
+import com.github.enerccio.marginalia.extensions.translatorcommon.service.PluginLog;
+import com.github.enerccio.marginalia.extensions.translatorcommon.service.PassageAccess;
+import com.github.enerccio.marginalia.extensions.translatorcommon.service.RangeLoop;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.domain.model.impl.AnchoredPassage;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
@@ -15,21 +22,23 @@ import com.github.enerccio.marginalia.domain.service.impl.generation.dto.Generat
 import com.github.enerccio.marginalia.extensions.ExtensionHasCss;
 import com.github.enerccio.marginalia.extensions.InheritedSettingRegistry;
 import com.github.enerccio.marginalia.extensions.MarginaliaExtension;
+import com.github.enerccio.marginalia.extensions.ExportTextRegistry;
 import com.github.enerccio.marginalia.extensions.PartTextRegistry;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.commands.DesignerCommands;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.commands.LexiconCommands;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.commands.LibraryCommands;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.commands.TranslationCommands;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.model.BookSettings;
-import com.github.enerccio.marginalia.extensions.conlangtranslator.model.ExportMode;
-import com.github.enerccio.marginalia.extensions.conlangtranslator.model.ReaderMode;
-import com.github.enerccio.marginalia.extensions.conlangtranslator.model.Span;
+import com.github.enerccio.marginalia.extensions.translatorcommon.model.ExportMode;
+import com.github.enerccio.marginalia.extensions.translatorcommon.model.ReaderMode;
+import com.github.enerccio.marginalia.extensions.translatorcommon.model.Span;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.service.*;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.service.TranslationService.Outcome;
-import com.github.enerccio.marginalia.extensions.conlangtranslator.text.ConlangPassageKind;
-import com.github.enerccio.marginalia.extensions.conlangtranslator.text.ConlangTransformer;
-import com.github.enerccio.marginalia.extensions.conlangtranslator.text.ExportText;
-import com.github.enerccio.marginalia.extensions.conlangtranslator.translate.Reverse.Located;
+import com.github.enerccio.marginalia.extensions.conlangtranslator.text.ConlangKind;
+import com.github.enerccio.marginalia.extensions.translatorcommon.text.SpeechPassageKind;
+import com.github.enerccio.marginalia.extensions.translatorcommon.text.SpeechTransformer;
+import com.github.enerccio.marginalia.extensions.translatorcommon.text.SpeechExportContributor;
+import com.github.enerccio.marginalia.extensions.translatorcommon.translate.Reverse.Located;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.ui.*;
 import com.github.enerccio.marginalia.ui.components.PartView;
 import com.github.enerccio.marginalia.ui.dialogs.story.StoryCard;
@@ -86,6 +95,9 @@ public class ConlangTranslatorExtension implements MarginaliaExtension, Extensio
     private PartTextRegistry partTexts;
 
     @Autowired
+    private ExportTextRegistry exportTexts;
+
+    @Autowired
     private StoryMenuRegistry menuRegistry;
 
     @Autowired
@@ -109,9 +121,9 @@ public class ConlangTranslatorExtension implements MarginaliaExtension, Extensio
     private final LanguageLibrary library = new LanguageLibrary();
     private final TranslationService translationService = new TranslationService();
     private final BookConlang bookConlang = new BookConlang(translationService);
-    private final PassageAccess passageAccess = new PassageAccess();
-    private final ConlangPassageKind kind = new ConlangPassageKind();
-    private final ConlangTransformer transformer = new ConlangTransformer(passageAccess);
+    private final PassageAccess passageAccess = new PassageAccess(ConlangKind.ID);
+    private final SpeechPassageKind kind = new SpeechPassageKind(ConlangKind.ID, ConlangStyles.PASSAGE);
+    private final SpeechTransformer transformer = new SpeechTransformer(passageAccess);
 
     private final DesignerService designerService = new DesignerService();
     private final List<Object> commandSuites = new ArrayList<>();
@@ -125,7 +137,6 @@ public class ConlangTranslatorExtension implements MarginaliaExtension, Extensio
     private ExtensionDecorator viewerDecorator;
     private ExtensionDecorator storyPartDecorator;
     private ExtensionDecorator exportFieldsDecorator;
-    private ExtensionDecorator exportDecorator;
     // the field of each export dialog that is open
     private final Map<Object, Select<ExportMode>> exportChoices = Collections.synchronizedMap(new WeakHashMap<>());
     // the reader mode of the book a viewer shows, found once per viewer
@@ -137,10 +148,10 @@ public class ConlangTranslatorExtension implements MarginaliaExtension, Extensio
     @Override
     public void onExtensionLoad(Bundle bundle, OsgiService parentService, ExtensionService extensionService) {
         log = parentService.createLogger(bundle);
-        com.github.enerccio.marginalia.extensions.conlangtranslator.service.PluginLog.set(log);
+        com.github.enerccio.marginalia.extensions.translatorcommon.service.PluginLog.set(log);
         owner = bundle.getSymbolicName();
         runs = new TranslationRuns(translationService, log);
-        rangeRuns = new RangeRuns(translationService, log);
+        rangeRuns = new RangeRuns(this::rangeWork, "conlang-translator-range", log);
         try {
             passageKinds.register(kind);
             partTexts.register(owner, transformer);
@@ -222,7 +233,7 @@ public class ConlangTranslatorExtension implements MarginaliaExtension, Extensio
                     return;
                 }
                 ConlangBookView view = new ConlangBookView(currentManuscript, bookConlang);
-                leftBar.add(BOOK_TAB_ID, T.localized(CONLANG), TabDockIcon.letters("CL"), view);
+                leftBar.add(BOOK_TAB_ID, T.localized(CONLANG), ConlangIcon.TAB, view);
                 ComponentUtil.setData(leftBar, BOOK_VIEW_KEY, view);
                 activeTabDocks.add(leftBar);
             }
@@ -253,9 +264,9 @@ public class ConlangTranslatorExtension implements MarginaliaExtension, Extensio
                 if (part == null || part.getId() == null || !(built instanceof PartView view)) {
                     return;
                 }
-                List<AnchoredPassage> passages = passageService.listForParts(List.of(part.getId()), Span.KIND);
+                List<AnchoredPassage> passages = passageService.listForParts(List.of(part.getId()), ConlangKind.ID);
                 if (!passages.isEmpty()) {
-                    ReaderView.apply(view, part, readerMode(instrumented, context), passages);
+                    ReaderView.apply(view, part, readerMode(instrumented, context), passages, ConlangStyles.PASSAGE);
                 }
             }
         };
@@ -278,50 +289,47 @@ public class ConlangTranslatorExtension implements MarginaliaExtension, Extensio
                     return;
                 }
                 Manuscript book = context.getReflectiveFieldValue(instrumented, "manuscript", Manuscript.class);
-                if (book == null || passageService.listForManuscript(book, Span.KIND).isEmpty()) {
+                if (book == null || passageService.listForManuscript(book, ConlangKind.ID).isEmpty()) {
                     return;
                 }
-                Select<ExportMode> choice = ExportChoice.field();
+                Select<ExportMode> choice = ExportChoice.field(T.localized(TRANSLATED_SPEECH), ConlangTranslatorExtension::exportLabel);
                 exportChoices.put(instrumented, choice);
                 context.getCurrentReturn(List.class).add(choice);
             }
         };
         extensionService.registerDecorator(exportFieldsDecorator, "com.github.enerccio.marginalia.ui.dialogs.ExportDialog", "createExtensionFields");
 
-        exportDecorator = new ExtensionDecorator() {
-            @Override
-            public void onMethodEnter(Object instrumented, ExtendableMethodContext context) throws Exception {
-                Select<ExportMode> choice = exportChoices.get(instrumented);
-                ExportMode mode = choice == null || choice.getValue() == null ? ExportMode.CONLANG : choice.getValue();
-                if (mode == ExportMode.CONLANG) {
-                    return;
-                }
-                List<ChatMessage> parts = context.getMethodArgument("messages", List.class);
-                context.registerMethodArgument("messages", exportParts(mode, parts), List.class);
-            }
+        // what the export changes in the text of the parts is the core's registry's to put together (all plugins at once, on the stored text)
+        exportTexts.register(owner, new SpeechExportContributor(passageAccess, session -> {
+            Select<ExportMode> choice = exportChoices.get(session.source());
+            return choice == null ? null : choice.getValue();
+        }));
+    }
 
-            @Override
-            public void onMethodLeave(Object instrumented, ExtendableMethodContext context, Throwable throwing) {
-            }
+    private static String exportLabel(ExportMode mode) {
+        return switch (mode) {
+            case TRANSLATED -> T.localized(THE_CONLANG_AS_IT_IS);
+            case SOURCE -> T.localized(ENGLISH_ONLY);
+            case TRANSLATED_NOTES -> T.localized(THE_CONLANG_THE_ENGLISH_IN_FOOTNOTES);
+            case SOURCE_NOTES -> T.localized(THE_ENGLISH_THE_CONLANG_IN_FOOTNOTES);
         };
-        extensionService.registerDecorator(exportDecorator, "com.github.enerccio.marginalia.ui.dialogs.ExportDialog", "export");
     }
 
     /**
-     * Copies of the parts with the text the export gets, in the order of the parts; the stored parts are not touched.
+     * What a range run does to one part: translates it, or puts the English back.
      */
-    private List<ChatMessage> exportParts(ExportMode mode, List<ChatMessage> parts) throws Exception {
-        Map<Long, List<Located>> passages = passageAccess.of(parts);
-        List<ChatMessage> exported = new ArrayList<>();
-        int number = 1;
-        for (ChatMessage part : parts) {
-            ExportText.Rendered rendered = ExportText.render(mode, part.getResponse(), passages.get(part.getId()), number);
-            number = rendered.next();
-            ChatMessage copy = ChatMessage.copyOf(part);
-            copy.setResponse(rendered.text());
-            exported.add(copy);
+    private RangeLoop.PartResult rangeWork(Manuscript book, RangeLoop.Mode mode, ChatMessage part) throws Exception {
+        if (mode == RangeLoop.Mode.REVERT) {
+            TranslationService.Reverted reverted = translationService.revert(book, part);
+            return reverted.reverted() == 0 ? RangeLoop.PartResult.nothing() : RangeLoop.PartResult.done(reverted.reverted(), 0, reverted.kept());
         }
-        return exported;
+        Outcome outcome = translationService.translate(book, part);
+        return switch (outcome.status()) {
+            case TRANSLATED -> RangeLoop.PartResult.done(outcome.translated(), outcome.newWords(), 0);
+            case NOTHING_TO_TRANSLATE, EMPTY -> RangeLoop.PartResult.nothing();
+            case NO_LANGUAGE, NO_MODEL -> RangeLoop.PartResult.abort(outcome.note());
+            case BAD_ANSWER, OVERLAPS, CHANGED -> RangeLoop.PartResult.failed(outcome.note());
+        };
     }
 
     /**
@@ -541,7 +549,7 @@ public class ConlangTranslatorExtension implements MarginaliaExtension, Extensio
             GenerationRequest request = event.getRequest();
             if (request != null && request.getRequestType() == GenerationRequestType.REGENERATE && request.getNode() != null
                     && event.getManuscript() != null && producedNewText(event)) {
-                for (AnchoredPassage passage : passageService.listForParts(java.util.List.of(request.getNode().getId()), Span.KIND)) {
+                for (AnchoredPassage passage : passageService.listForParts(java.util.List.of(request.getNode().getId()), ConlangKind.ID)) {
                     passageService.remove(event.getManuscript(), passage);
                 }
             }
@@ -565,7 +573,7 @@ public class ConlangTranslatorExtension implements MarginaliaExtension, Extensio
 
     @Override
     public String getCss(ApplicationEntryPoint entryPoint) {
-        return entryPoint instanceof Main || entryPoint instanceof Viewer ? ConlangStyles.css() : null;
+        return entryPoint instanceof Main || entryPoint instanceof Viewer ? CommonStyles.css() + "\n" + ConlangStyles.css() : null;
     }
 
     @Override
@@ -616,10 +624,7 @@ public class ConlangTranslatorExtension implements MarginaliaExtension, Extensio
             extensionService.unregisterDecorator(exportFieldsDecorator);
             exportFieldsDecorator = null;
         }
-        if (exportDecorator != null) {
-            extensionService.unregisterDecorator(exportDecorator);
-            exportDecorator = null;
-        }
+        exportTexts.unregisterAll(owner);
         exportChoices.clear();
         if (userPartSaveDecorator != null) {
             extensionService.unregisterDecorator(userPartSaveDecorator);

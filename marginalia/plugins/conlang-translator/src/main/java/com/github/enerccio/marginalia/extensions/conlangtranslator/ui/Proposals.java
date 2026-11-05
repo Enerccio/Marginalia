@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.extensions.conlangtranslator.ui;
 
+import com.github.enerccio.marginalia.extensions.translatorcommon.ui.EditDialog;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.designer.Proposal;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.diff.LanguageDiff;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.model.Language;
