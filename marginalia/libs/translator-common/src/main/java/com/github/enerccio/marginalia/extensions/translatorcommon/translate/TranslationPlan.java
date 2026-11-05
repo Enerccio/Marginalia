@@ -1,6 +1,8 @@
 package com.github.enerccio.marginalia.extensions.translatorcommon.translate;
 
 
+import com.github.enerccio.marginalia.extensions.translatorcommon.model.Span;
+
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -23,8 +25,14 @@ public record TranslationPlan(String source, String stored, List<Planned> passag
      * @param translated the translation, as it is written into the text
      * @param english the speech as the part had it: the source of the passage
      * @param speech  what the model answered for it
+     * @param carried the data of the passage when the speech was translated by an earlier run (another language of the book) and stays as it
+     *                is: the passage is made again with it; null for a speech this run translated
      */
-    public record Planned(int start, int end, String translated, String english, Speech speech) {
+    public record Planned(int start, int end, String translated, String english, Speech speech, Span carried) {
+
+        public Planned(int start, int end, String translated, String english, Speech speech) {
+            this(start, end, translated, english, speech, null);
+        }
     }
 
     /**
@@ -33,8 +41,14 @@ public record TranslationPlan(String source, String stored, List<Planned> passag
      * @param speech what the model answered for it
      * @param start  first character of the quote in the source
      * @param end    end of the quote (exclusive)
+     * @param carried the data of the passage of an earlier translation that stays as it is (a speech of another language of the book: its
+     *                text is {@code speech.text()}); null for a speech this run translated
      */
-    public record Accepted(Speech speech, int start, int end) {
+    public record Accepted(Speech speech, int start, int end, Span carried) {
+
+        public Accepted(Speech speech, int start, int end) {
+            this(speech, start, end, null);
+        }
     }
 
     /**
@@ -59,7 +73,7 @@ public record TranslationPlan(String source, String stored, List<Planned> passag
             stored.append(text, copied, item.start());
             int start = stored.length();
             stored.append(translated);
-            passages.add(new Planned(start, stored.length(), translated, text.substring(item.start(), item.end()), item.speech()));
+            passages.add(new Planned(start, stored.length(), translated, text.substring(item.start(), item.end()), item.speech(), item.carried()));
             copied = item.end();
         }
         stored.append(text.substring(copied));
@@ -71,5 +85,12 @@ public record TranslationPlan(String source, String stored, List<Planned> passag
      */
     public boolean isEmpty() {
         return passages.isEmpty();
+    }
+
+    /**
+     * How many speeches this run translated (not the ones that stay from an earlier run).
+     */
+    public int translatedCount() {
+        return (int) passages.stream().filter(planned -> planned.carried() == null).count();
     }
 }

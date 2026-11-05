@@ -1,10 +1,10 @@
 package com.github.enerccio.marginalia.extensions.conlangtranslator.commands;
 
-import com.github.enerccio.marginalia.extensions.translatorcommon.service.RangeRuns;
 import com.github.enerccio.marginalia.domain.service.command.CommandDefinition;
 import com.github.enerccio.marginalia.domain.service.impl.CommandServiceImpl;
 import com.github.enerccio.marginalia.domain.traits.CommandDataSeverity;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.service.*;
+import com.github.enerccio.marginalia.extensions.translatorcommon.service.RangeRuns;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -121,11 +121,17 @@ class CommandsTest {
             Map.entry("TranslationService.find", "internal"),
             Map.entry("TranslationService.settings", "conlang-status"),
             Map.entry("TranslationService.languageOf", "conlang-status"),
+            Map.entry("TranslationService.languagesOf", "conlang-status"),
             Map.entry("TranslationService.translate", "conlang-translate-part"),
             Map.entry("TranslationService.revert", "conlang-revert-to-source"),
             Map.entry("TranslationService.translateSelection", "conlang-translate-sentence"),
             // BookConlang
             Map.entry("BookConlang.languageOf", "conlang-status"),
+            Map.entry("BookConlang.languages", "conlang-status"),
+            Map.entry("BookConlang.libraryLanguages", "conlang-list"),
+            Map.entry("BookConlang.primaryLanguageId", "conlang-status"),
+            Map.entry("BookConlang.otherLanguages", "conlang-add-book-language"),
+            Map.entry("BookConlang.saveOtherLanguages", "conlang-add-book-language"),
             Map.entry("BookConlang.speakers", "conlang-speakers"),
             Map.entry("BookConlang.saveSpeakers", "conlang-set-speaker"),
             Map.entry("BookConlang.saveWords", "conlang-update-word"),

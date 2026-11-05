@@ -58,6 +58,14 @@ public class TranslatorCommonLocalization extends PluginLocalizationBundle {
     public static final String TRANSLATE_THE_TRANSLATED_PARTS_AGAIN = "Translate the translated parts again";
     public static final String WHAT_DO_YOU_WANT = "What do you want?";
     public static final String CLOSE = "Close";
+    public static final String ALL_LANGUAGES = "All languages";
+    public static final String ANOTHER_LANGUAGE = "Another language";
+    public static final String A_LANGUAGE_THAT_IS_GONE = "(a language that is not in your library any more)";
+    public static final String LANGUAGE = "Language";
+    public static final String REMOVE = "Remove";
+    public static final String THE_BOOK_IS_TRANSLATED_INTO_THE_OTHER_LANGUAGES_TOO = "The book is translated into these languages besides the one it names. Each has its own speakers. A request is for one language: a part with speech in two languages takes two requests, one after the other.";
+    public static final String TRANSLATE = "Translate";
+    public static final String WHICH_LANGUAGE = "Which language?";
 
     @Override
     protected void loadKeys() {
@@ -203,5 +211,29 @@ public class TranslatorCommonLocalization extends PluginLocalizationBundle {
 
         ja(CLOSE, "閉じる");
         zh(CLOSE, "关闭");
+
+        ja(ALL_LANGUAGES, "すべての言語");
+        zh(ALL_LANGUAGES, "所有语言");
+
+        ja(ANOTHER_LANGUAGE, "別の言語");
+        zh(ANOTHER_LANGUAGE, "另一种语言");
+
+        ja(A_LANGUAGE_THAT_IS_GONE, "(ライブラリにない言語)");
+        zh(A_LANGUAGE_THAT_IS_GONE, "(已不在你的语言库中)");
+
+        ja(LANGUAGE, "言語");
+        zh(LANGUAGE, "语言");
+
+        ja(REMOVE, "削除");
+        zh(REMOVE, "移除");
+
+        ja(THE_BOOK_IS_TRANSLATED_INTO_THE_OTHER_LANGUAGES_TOO, "この本は、最初に指定した言語のほかに、これらの言語にも翻訳されます。各言語にはそれぞれの話者がいます。リクエストは1言語ごとです。2つの言語の台詞があるパートは、順に2回リクエストします。");
+        zh(THE_BOOK_IS_TRANSLATED_INTO_THE_OTHER_LANGUAGES_TOO, "除书中指定的第一种语言外,本书还会翻译成这些语言。每种语言有各自的说话者。一次请求针对一种语言:同时含有两种语言对白的段落需要依次请求两次。");
+
+        ja(TRANSLATE, "翻訳");
+        zh(TRANSLATE, "翻译");
+
+        ja(WHICH_LANGUAGE, "どの言語ですか?");
+        zh(WHICH_LANGUAGE, "哪种语言?");
     }
 }

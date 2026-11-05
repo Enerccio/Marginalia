@@ -16,7 +16,11 @@ The plan, the decisions and why it is a plugin of its own (modularity: an instal
 5. **The prompt and the checks** (`TranslationPrompt`, `TranslationAnswer`, `AnswerChecker`, `ScriptCheck`, `QuickTranslation`): quote, language, overlap, script; the translation of a part, a
    selection and a text (`TranslationService`), the menus, the automatic run, the range window, the Real language tab (speakers, quick translate).
 6. **Commands** `reallang-*` (`ReallangCommands`), a test that every operation of a service has one; the manual page.
-7. 52 unit tests (script check, prompt, answer, checker, store, presets, commands, texts).
+7. **Several languages in one book (2026-11-05):** the book names a language first (the inherited setting) and has a list of other languages (`BookSettings.otherLanguages`, each a `BookLanguage` with its own
+   speakers); one pass per language (`TranslationService.translate(book, part, languageId)`), the speeches of the other languages carried through the write (`TranslationWriter.carried`), the
+   languages whose speakers are not in the part skipped (`Speakers.mayBeInvolved`), a language choice in the menus (`LanguageChoiceDialog`), the range window and the commands (`language`,
+   `reallang-add-book-language`, `-remove-book-language`), a *Speakers* tab for each language and the *Languages* tab. Not run on the real model yet.
+8. 57 unit tests (script check, prompt, answer, checker, store, presets, book settings, commands, texts).
 
 ## Real-model trial 1 (2026-11-05)
 
@@ -38,9 +42,9 @@ kanji, 1 of 1 in romaji, 1 of 1 in kana only** (completion 2755 to 4202 tokens, 
 - **The screens and the app:** nothing of the plugin was run in the real app: the settings panel, the editor, the tab, the range window, the viewer and the export of a real book, a phone.
 
 ## Next
-- **Relationship fields on the notes of the characters** (age, rank, closeness) instead of free text in the voice, and a **language per character** (the book's language is the default), so that one
-  book can have Japanese and Korean speakers; the request lists the languages of the speakers of the part and the model says which language each speech is in (`Span.language` is there already).
-  One pass per language, the menus offer the languages (see *Several languages in one book* in the Conlang Translator's TODO).
+- **Relationship fields on the notes of the characters** (age, rank, closeness) instead of free text in the voice.
+- **Several languages: try it on the real model** (a part with Japanese and Korean speakers: two requests, the second leaves the first's speeches alone; the overlap drops when both languages claim a
+  speaker). A character who speaks two languages in one scene is left to the text of the part. The menus ask with a dialog (a choice of languages), not an entry for each language.
 - **A second pass** as an action on a part or a range (not a stage of every translation: it doubles the requests of a slow model): the model rewrites each speech for naturalness, given the voice and
   the relationship; optionally a back-translation check that flags drift.
 - **Furigana** (ruby) in HTML and EPUB; the reading is a line in the popover only.

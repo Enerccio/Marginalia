@@ -11,10 +11,8 @@ import com.github.enerccio.marginalia.extensions.reallangtranslator.ReallangKind
 import com.github.enerccio.marginalia.extensions.reallangtranslator.model.BookSettings;
 import com.github.enerccio.marginalia.extensions.reallangtranslator.model.RealLanguage;
 import com.github.enerccio.marginalia.extensions.reallangtranslator.store.RealStore;
-import com.github.enerccio.marginalia.extensions.reallangtranslator.translate.AnswerChecker;
-import com.github.enerccio.marginalia.extensions.reallangtranslator.translate.QuickTranslation;
-import com.github.enerccio.marginalia.extensions.reallangtranslator.translate.TranslationAnswer;
-import com.github.enerccio.marginalia.extensions.reallangtranslator.translate.TranslationPrompt;
+import com.github.enerccio.marginalia.extensions.reallangtranslator.translate.*;
+import com.github.enerccio.marginalia.extensions.translatorcommon.model.Speakers;
 import com.github.enerccio.marginalia.extensions.translatorcommon.service.ModelClient;
 import com.github.enerccio.marginalia.extensions.translatorcommon.service.ModelSelection;
 import com.github.enerccio.marginalia.extensions.translatorcommon.service.TranslationWriter;
@@ -138,47 +136,150 @@ public class TranslationService {
     }
 
     /**
-     * Translates the speech of the part.
+     * The languages of the library of the user.
+     */
+    public List<RealLanguage> library() throws Exception {
+        return RealStore.readLibrary(settingService.getOrCreate(UserSetting.class).getAttributes());
+    }
+
+    /**
+     * A language of the book with the speakers it has in this book.
+     */
+    public record BookLang(RealLanguage language, Speakers speakers) {
+    }
+
+    /**
+     * The languages of the book that are in the library: the one it names first, then the others. A language that is gone from the library is left out.
+     */
+    public List<BookLang> languagesOf(BookSettings settings) throws Exception {
+        UserSetting user = settingService.getOrCreate(UserSetting.class);
+        List<BookLang> languages = new ArrayList<>();
+        for (String id : settings.languageIds()) {
+            RealLanguage language = RealStore.find(user.getAttributes(), id);
+            if (language != null) {
+                languages.add(new BookLang(language, settings.speakersOf(id)));
+            }
+        }
+        return languages;
+    }
+
+    /**
+     * The language of the book with this id; the first one for null.
+     *
+     * @throws IllegalArgumentException when the book does not have the language
+     */
+    private BookLang pick(List<BookLang> languages, String languageId) {
+        if (languageId == null) {
+            return languages.getFirst();
+        }
+        return languages.stream().filter(item -> item.language().getId().equals(languageId)).findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("The book does not have that language"));
+    }
+
+    /**
+     * Translates the speech of the part into every language of the book.
      */
     public Outcome translate(Manuscript manuscript, ChatMessage part) throws Exception {
+        return translate(manuscript, part, null);
+    }
+
+    /**
+     * Translates the speech of the part. A request is for one language, so a book with several languages takes one request for each, one after the
+     * other: the next one reads the part as the model reads it, with the English of the speeches the first one translated, and leaves them translated.
+     * With no language given every language of the book whose speakers may be in the part is asked for (the point of view and the characters present
+     * decide; a part that names none asks for all of them).
+     *
+     * @param languageId the language to translate into (its id in the library), null for all of the book's
+     * @throws IllegalArgumentException when the book does not have the language
+     */
+    public Outcome translate(Manuscript manuscript, ChatMessage part, String languageId) throws Exception {
         Manuscript book = manuscriptService.find(manuscript);
         ChatMessage current = chatMessageService.find(part);
         if (book == null || current == null) {
             throw new IllegalArgumentException("The part does not exist");
         }
         BookSettings settings = resolve(book);
-        RealLanguage language = languageOf(settings);
-        if (language == null) {
+        List<BookLang> languages = languagesOf(settings);
+        if (languages.isEmpty()) {
             return Outcome.of(Status.NO_LANGUAGE, settings.getLanguageId() == null ? "The book has no language." : "The language of the book is not in your library.");
         }
-        // the text the model reads: a part that is translated already is translated again from its English
-        Reverse.Result read = writer.readOf(current);
-        String source = read.text();
-        if (StringUtils.isBlank(source)) {
+        if (languageId != null) {
+            languages = List.of(pick(languages, languageId));
+        } else if (languages.size() > 1) {
+            List<String> names = Speakers.namesOf(current.getPovCharacter(), current.getPresentCharacters());
+            languages = languages.stream().filter(item -> item.speakers().mayBeInvolved(names)).toList();
+            if (languages.isEmpty()) {
+                return new Outcome(Status.NOTHING_TO_TRANSLATE, 0, 0, 0, "");
+            }
+        }
+        if (StringUtils.isBlank(writer.readOf(current).text())) {
             return Outcome.of(Status.EMPTY, "The part has no text.");
         }
         ModelSelection model = resolveModel(book, settings);
         if (model == null) {
             return Outcome.of(Status.NO_MODEL, "There is no model for the translation: the book has none and neither have your defaults.");
         }
+        if (languages.size() == 1) {
+            return pass(book, current, settings, languages.getFirst(), model);
+        }
+        int translated = 0;
+        int dropped = 0;
+        int wrong = 0;
+        Outcome failure = null;
+        for (BookLang language : languages) {
+            // the part as the pass before it left it
+            Outcome outcome = pass(book, chatMessageService.find(part), settings, language, model);
+            translated += outcome.translated();
+            dropped += outcome.dropped();
+            wrong += outcome.wrongScript();
+            if (outcome.status() != Status.TRANSLATED && outcome.status() != Status.NOTHING_TO_TRANSLATE && failure == null) {
+                failure = new Outcome(outcome.status(), 0, 0, 0, language.language().getName() + ": " + outcome.note());
+            }
+        }
+        if (translated > 0) {
+            String note = wrong > 0 ? wrong + " translation(s) are not in the script the language asks for." : "";
+            if (failure != null) {
+                note = (note + " " + failure.note()).strip();
+            }
+            return new Outcome(Status.TRANSLATED, translated, dropped, wrong, note);
+        }
+        return failure != null ? failure : new Outcome(Status.NOTHING_TO_TRANSLATE, 0, dropped, 0, "");
+    }
 
-        TranslationPrompt.Request request = TranslationPrompt.build(language, settings.getSpeakers(), source, scene(book, current, settings));
+    /**
+     * One request for one language of the book, and the write of its speeches.
+     */
+    private Outcome pass(Manuscript book, ChatMessage current, BookSettings settings, BookLang bookLang, ModelSelection model) throws Exception {
+        RealLanguage language = bookLang.language();
+        // the text the model reads: a part that is translated already is translated again from its English (the other languages too)
+        Reverse.Result read = writer.readOf(current);
+        String source = read.text();
+        if (StringUtils.isBlank(source)) {
+            return Outcome.of(Status.EMPTY, "The part has no text.");
+        }
+        // the speeches of the other languages stay translated, and nothing of this answer may land on them
+        List<TranslationPlan.Accepted> carried = writer.carried(current, read, language.getId());
+
+        TranslationPrompt.Request request = TranslationPrompt.build(language, bookLang.speakers(), source, scene(book, current, settings));
         TranslationAnswer answer = TranslationAnswer.parse(modelClient.ask(model, book, request.system(), request.user()));
         if (answer == null) {
             return Outcome.of(Status.BAD_ANSWER, "The model did not answer in the expected form.");
         }
         AnswerChecker.Checked checked = AnswerChecker.check(source, answer, language);
-        TranslationPlan plan = TranslationPlan.make(source, checked.accepted().stream().map(item -> new TranslationPlan.Accepted(item.speech(), item.start(), item.end())).toList());
-        int dropped = (int) checked.speeches().stream().filter(item -> !item.accepted()).count();
-        if (plan.isEmpty()) {
+        List<AnswerChecker.Item> usable = checked.accepted().stream().filter(item -> !TranslationWriter.overlapsAny(carried, item.start(), item.end())).toList();
+        List<TranslationPlan.Accepted> accepted = new ArrayList<>(usable.stream().map(item -> new TranslationPlan.Accepted(item.speech(), item.start(), item.end())).toList());
+        accepted.addAll(carried);
+        TranslationPlan plan = TranslationPlan.make(source, accepted);
+        int dropped = (int) checked.speeches().stream().filter(item -> !item.accepted()).count() + (checked.accepted().size() - usable.size());
+        if (plan.translatedCount() == 0) {
             return new Outcome(Status.NOTHING_TO_TRANSLATE, 0, dropped, 0, "");
         }
         Map<Speech, String> readings = new IdentityHashMap<>();
-        checked.accepted().forEach(item -> readings.put(item.speech(), StringUtils.defaultString(item.entry().reading()).strip()));
+        usable.forEach(item -> readings.put(item.speech(), StringUtils.defaultString(item.entry().reading()).strip()));
         writer.write(book, current, plan, read, language.getId(), model.ai().getName(),
                 (span, planned) -> span.setReading(readings.getOrDefault(planned.speech(), "")));
-        int wrong = checked.wrongScript();
-        return new Outcome(Status.TRANSLATED, plan.passages().size(), dropped, wrong,
+        int wrong = (int) usable.stream().filter(item -> item.script() != null).count();
+        return new Outcome(Status.TRANSLATED, plan.translatedCount(), dropped, wrong,
                 wrong > 0 ? wrong + " translation(s) are not in the script the language asks for." : "");
     }
 
@@ -187,12 +288,22 @@ public class TranslationService {
      * keeps the translated version. A part with no translated speech is not touched.
      */
     public TranslationWriter.Reverted revert(Manuscript manuscript, ChatMessage part) throws Exception {
+        return revert(manuscript, part, null);
+    }
+
+    /**
+     * Puts the English back for the speeches of one language of the book, the speeches of the other languages stay translated.
+     *
+     * @param languageId the language (its id), null for all of them
+     */
+    public TranslationWriter.Reverted revert(Manuscript manuscript, ChatMessage part, String languageId) throws Exception {
         Manuscript book = manuscriptService.find(manuscript);
         ChatMessage current = chatMessageService.find(part);
         if (book == null || current == null) {
             throw new IllegalArgumentException("The part does not exist");
         }
-        return writer.revert(book, current, writer.readOf(current));
+        Reverse.Result read = writer.readOf(current);
+        return languageId == null ? writer.revert(book, current, read) : writer.revert(book, current, read, languageId);
     }
 
     private TranslationPrompt.Scene scene(Manuscript book, ChatMessage part, BookSettings settings) throws Exception {
@@ -222,6 +333,16 @@ public class TranslationService {
      * @param end      end of the selection (exclusive)
      */
     public Outcome translateSelection(Manuscript manuscript, ChatMessage part, String expected, int start, int end) throws Exception {
+        return translateSelection(manuscript, part, expected, start, end, null);
+    }
+
+    /**
+     * Translates the selected sentence into one language of the book.
+     *
+     * @param languageId the language (its id), null for the first one of the book
+     * @throws IllegalArgumentException when the book does not have the language
+     */
+    public Outcome translateSelection(Manuscript manuscript, ChatMessage part, String expected, int start, int end, String languageId) throws Exception {
         Manuscript book = manuscriptService.find(manuscript);
         ChatMessage current = chatMessageService.find(part);
         if (book == null || current == null) {
@@ -236,10 +357,12 @@ public class TranslationService {
             return Outcome.of(Status.EMPTY, "Nothing is selected.");
         }
         BookSettings settings = resolve(book);
-        RealLanguage language = languageOf(settings);
-        if (language == null) {
+        List<BookLang> languages = languagesOf(settings);
+        if (languages.isEmpty()) {
             return Outcome.of(Status.NO_LANGUAGE, "The book has no language.");
         }
+        BookLang chosen = pick(languages, languageId);
+        RealLanguage language = chosen.language();
         ModelSelection model = resolveModel(book, settings);
         if (model == null) {
             return Outcome.of(Status.NO_MODEL, "There is no model for the translation.");
@@ -258,7 +381,7 @@ public class TranslationService {
         }
         String around = text.substring(Math.max(0, range[0] - AROUND), range[0]) + "[[" + english + "]]"
                 + text.substring(range[1], Math.min(text.length(), range[1] + AROUND));
-        TranslationPrompt.Request request = QuickTranslation.build(language, settings.getSpeakers(), english, who.toString().strip(), around);
+        TranslationPrompt.Request request = QuickTranslation.build(language, chosen.speakers(), english, who.toString().strip(), around);
         QuickTranslation.Answer answer = QuickTranslation.parse(modelClient.ask(model, book, request.system(), request.user()));
         if (answer == null) {
             return Outcome.of(Status.BAD_ANSWER, "The model did not answer in the expected form.");
@@ -268,7 +391,7 @@ public class TranslationService {
         if (saved == null) {
             return Outcome.of(Status.CHANGED, "The part was changed while it was being translated.");
         }
-        int wrong = com.github.enerccio.marginalia.extensions.reallangtranslator.translate.ScriptCheck.problem(language.getScript(), answer.text()) == null ? 0 : 1;
+        int wrong = ScriptCheck.problem(language.getScript(), answer.text()) == null ? 0 : 1;
         return new Outcome(Status.TRANSLATED, 1, 0, wrong, wrong > 0 ? "The translation is not in the script the language asks for." : "");
     }
 
@@ -278,6 +401,16 @@ public class TranslationService {
      * @param context who says it, to whom, in what situation; may be empty
      */
     public Quick quickTranslate(Manuscript manuscript, String text, String context) throws Exception {
+        return quickTranslate(manuscript, text, context, null);
+    }
+
+    /**
+     * Translates a text into one language of the book; nothing is written.
+     *
+     * @param languageId the language (its id), null for the first one of the book
+     * @throws IllegalArgumentException when the book does not have the language
+     */
+    public Quick quickTranslate(Manuscript manuscript, String text, String context, String languageId) throws Exception {
         Manuscript book = manuscriptService.find(manuscript);
         if (book == null) {
             throw new IllegalArgumentException("The book does not exist");
@@ -286,20 +419,22 @@ public class TranslationService {
             return Quick.failed(Status.EMPTY);
         }
         BookSettings settings = resolve(book);
-        RealLanguage language = languageOf(settings);
-        if (language == null) {
+        List<BookLang> languages = languagesOf(settings);
+        if (languages.isEmpty()) {
             return Quick.failed(Status.NO_LANGUAGE);
         }
+        BookLang chosen = pick(languages, languageId);
+        RealLanguage language = chosen.language();
         ModelSelection model = resolveModel(book, settings);
         if (model == null) {
             return Quick.failed(Status.NO_MODEL);
         }
-        TranslationPrompt.Request request = QuickTranslation.build(language, settings.getSpeakers(), text, context);
+        TranslationPrompt.Request request = QuickTranslation.build(language, chosen.speakers(), text, context);
         QuickTranslation.Answer answer = QuickTranslation.parse(modelClient.ask(model, book, request.system(), request.user()));
         if (answer == null) {
             return Quick.failed(Status.BAD_ANSWER);
         }
-        boolean wrong = com.github.enerccio.marginalia.extensions.reallangtranslator.translate.ScriptCheck.problem(language.getScript(), answer.text()) != null;
+        boolean wrong = ScriptCheck.problem(language.getScript(), answer.text()) != null;
         return new Quick(Status.TRANSLATED, answer.text(), answer.reading(), answer.choice(), model.ai().getName(), wrong);
     }
 

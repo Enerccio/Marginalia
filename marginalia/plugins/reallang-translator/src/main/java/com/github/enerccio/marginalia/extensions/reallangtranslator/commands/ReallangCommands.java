@@ -19,10 +19,7 @@ import com.github.enerccio.marginalia.extensions.reallangtranslator.service.Lang
 import com.github.enerccio.marginalia.extensions.reallangtranslator.service.RealInherited;
 import com.github.enerccio.marginalia.extensions.reallangtranslator.service.TranslationService;
 import com.github.enerccio.marginalia.extensions.reallangtranslator.service.TranslationService.Outcome;
-import com.github.enerccio.marginalia.extensions.translatorcommon.model.CharacterNote;
-import com.github.enerccio.marginalia.extensions.translatorcommon.model.Span;
-import com.github.enerccio.marginalia.extensions.translatorcommon.model.Speakers;
-import com.github.enerccio.marginalia.extensions.translatorcommon.model.SpeakersMode;
+import com.github.enerccio.marginalia.extensions.translatorcommon.model.*;
 import com.github.enerccio.marginalia.extensions.translatorcommon.service.PassageAccess;
 import com.github.enerccio.marginalia.extensions.translatorcommon.service.RangeLoop;
 import com.github.enerccio.marginalia.extensions.translatorcommon.service.RangeLoop.Mode;
@@ -57,6 +54,8 @@ public class ReallangCommands extends ManuscriptReadSupport {
     public static final String UPDATE = "reallang-update";
     public static final String DELETE = "reallang-delete";
     public static final String SET_BOOK_LANGUAGE = "reallang-set-book-language";
+    public static final String ADD_BOOK_LANGUAGE = "reallang-add-book-language";
+    public static final String REMOVE_BOOK_LANGUAGE = "reallang-remove-book-language";
     public static final String STATUS = "reallang-status";
     public static final String TRANSLATE_PART = "reallang-translate-part";
     public static final String TRANSLATE_RANGE = "reallang-translate-range";
@@ -72,6 +71,8 @@ public class ReallangCommands extends ManuscriptReadSupport {
 
     private static final String PARAM_PART = "The part: its handle, or its position on the active branch (the first part is 1)";
     private static final String PARAM_LANGUAGE = "The language: its name (the case does not matter) or its id, see reallang-list";
+    private static final String PARAM_BOOK_LANGUAGE = "One of the languages of the book: its name or its id (reallang-status lists them); all of them when left out";
+    private static final String PARAM_BOOK_LANGUAGE_FIRST = "One of the languages of the book: its name or its id (reallang-status lists them); the first language of the book when left out";
     private static final String RESULT_JSON = "JSON: the result";
 
     /** The longest text a command returns whole (characters). */
@@ -220,6 +221,91 @@ public class ReallangCommands extends ManuscriptReadSupport {
         answer(context, row);
     }
 
+    @Command(commandName = ADD_BOOK_LANGUAGE, linkedCommand = SET_BOOK_LANGUAGE, humanNameText = "Add a real language to the book", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            descriptionText = "Adds another language the open book is translated into, besides the one it names.",
+            llmDescriptionText = "Adds a language of the library to the book besides the language it names (reallang-set-book-language), for a story where some characters speak another real language. "
+                    + "Each language has its own speakers (reallang-speakers with 'language'); a part is translated with one request for each language. Returns the languages of the book.",
+            signature = @CommandParameterSignature({@CommandParameter(name = "language", type = String.class, descriptionText = PARAM_LANGUAGE)}),
+            returns = @CommandReturn(name = "result", type = String.class, descriptionText = RESULT_JSON))
+    public void addBookLanguage(CommandContext context) throws Exception {
+        Book book = new Book(context);
+        RealLanguage language = library.resolve(context.get("language", String.class));
+        if (language.getId().equals(bookReal.primaryLanguageId(book.manuscript))) {
+            throw new IllegalArgumentException(language.getName() + " is the language the book names already");
+        }
+        List<BookLanguage> others = bookReal.otherLanguages(book.manuscript);
+        if (others.stream().noneMatch(item -> language.getId().equals(item.getLanguageId()))) {
+            others.add(new BookLanguage(language.getId()));
+            bookReal.saveOtherLanguages(book.manuscript, others);
+        }
+        answer(context, languagesRow(book.manuscript));
+    }
+
+    @Command(commandName = REMOVE_BOOK_LANGUAGE, linkedCommand = ADD_BOOK_LANGUAGE, humanNameText = "Remove a real language from the book", async = true, dataSeverity = CommandDataSeverity.DESTRUCTIVE,
+            descriptionText = "Takes one of the other languages out of the book.",
+            llmDescriptionText = "Removes one of the other languages of the book (not the one the book names: that is reallang-set-book-language) and its speakers. The translated speeches already in the story stay, "
+                    + "put them back with reallang-revert-to-source first. Destructive, asks the user. Returns the languages of the book.",
+            signature = @CommandParameterSignature({@CommandParameter(name = "language", type = String.class, descriptionText = PARAM_LANGUAGE)}),
+            returns = @CommandReturn(name = "result", type = String.class, descriptionText = RESULT_JSON))
+    public void removeBookLanguage(CommandContext context) throws Exception {
+        Book book = new Book(context);
+        RealLanguage language = library.resolve(context.get("language", String.class));
+        List<BookLanguage> others = bookReal.otherLanguages(book.manuscript);
+        BookLanguage found = others.stream().filter(item -> language.getId().equals(item.getLanguageId())).findFirst().orElse(null);
+        if (found == null) {
+            throw new IllegalArgumentException(language.getName() + " is not one of the other languages of the book");
+        }
+        if (!context.confirm("Take " + language.getName() + " and its speakers out of the book?")) {
+            if (!context.isTerminated()) {
+                context.setReturn("Nothing was removed");
+            }
+            return;
+        }
+        others.remove(found);
+        bookReal.saveOtherLanguages(book.manuscript, others);
+        context.setReturn(GSON.toJson(languagesRow(book.manuscript)));
+    }
+
+    /** The languages of the book: the first and the others. */
+    private JsonObject languagesRow(Manuscript book) throws Exception {
+        JsonObject row = new JsonObject();
+        JsonArray languages = new JsonArray();
+        for (LanguageRef item : bookReal.languages(book)) {
+            languages.add(item.name());
+        }
+        row.add("languages", languages);
+        return row;
+    }
+
+    /**
+     * The language the command is for: the id of the one of the book that the parameter names, null when it is left out.
+     *
+     * @throws IllegalArgumentException when the book does not have the language
+     */
+    private String bookLanguage(Book book, CommandContext context) throws Exception {
+        String reference = context.get("language", String.class);
+        if (StringUtils.isBlank(reference)) {
+            return null;
+        }
+        RealLanguage language = library.resolve(reference);
+        if (bookReal.languages(book.manuscript).stream().noneMatch(item -> item.id().equals(language.getId()))) {
+            throw new IllegalArgumentException("The book does not have " + language.getName() + " (reallang-add-book-language adds it)");
+        }
+        return language.getId();
+    }
+
+    /** The language of a command about the speakers: the one given, else the first language of the book. */
+    private String speakersLanguage(Book book, CommandContext context) throws Exception {
+        String id = bookLanguage(book, context);
+        if (id == null) {
+            id = bookReal.primaryLanguageId(book.manuscript);
+        }
+        if (id == null) {
+            throw new IllegalStateException("The book has no language (reallang-set-book-language)");
+        }
+        return id;
+    }
+
     // ---- the state
 
     @Command(commandName = STATUS, linkedCommand = TRANSLATE_PART, humanNameText = "Real language status", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
@@ -234,6 +320,11 @@ public class ReallangCommands extends ManuscriptReadSupport {
         RealLanguage language = translation.languageOf(settings);
         JsonObject result = new JsonObject();
         result.addProperty("language", language == null ? "none" : language.getName());
+        JsonArray bookLanguages = new JsonArray();
+        for (LanguageRef item : bookReal.languages(book.manuscript)) {
+            bookLanguages.add(item.name());
+        }
+        result.add("languages", bookLanguages);
         result.addProperty("translateByItself", settings.isAuto());
         List<ChatMessage> branch = textParts(book);
         Map<Long, List<Reverse.Located>> located = passages.of(branch);
@@ -269,13 +360,15 @@ public class ReallangCommands extends ManuscriptReadSupport {
             llmDescriptionText = "Asks the translating model to translate the direct speech of the part into the language of the book and writes the translations into the part (the quotation marks and the narration stay). "
                     + "Each translated speech keeps its English as its source, which the model reads back everywhere; the history of the part gets a version. A part that is translated already is translated again from its English. "
                     + "Returns what came of it: speeches written, speeches that could not be used, and translations that are not in the script the language asks for (wrongScript). Needs a language on the book "
-                    + "(reallang-set-book-language) and a model.",
-            signature = @CommandParameterSignature({@CommandParameter(name = "part", type = String.class, descriptionText = PARAM_PART)}),
+                    + "(reallang-set-book-language) and a model. A book with more than one language (reallang-add-book-language) takes one request for each, one after the other; 'language' limits it to one.",
+            signature = @CommandParameterSignature({
+                    @CommandParameter(name = "part", type = String.class, descriptionText = PARAM_PART),
+                    @CommandParameter(name = "language", type = String.class, optional = true, descriptionText = PARAM_BOOK_LANGUAGE)}),
             returns = @CommandReturn(name = "result", type = String.class, descriptionText = "JSON: what came of it"))
     public void translatePart(CommandContext context) throws Exception {
         Book book = new Book(context);
         Book.Located located = book.locate(context.get("part", String.class), null);
-        Outcome outcome = translation.translate(book.manuscript, located.message());
+        Outcome outcome = translation.translate(book.manuscript, located.message(), bookLanguage(book, context));
         JsonObject result = new JsonObject();
         result.addProperty("part", located.position());
         result.addProperty("status", outcome.status().name().toLowerCase(Locale.ROOT).replace('_', '-'));
@@ -296,7 +389,8 @@ public class ReallangCommands extends ManuscriptReadSupport {
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "from", type = String.class, optional = true, descriptionText = "The first part: its handle or position; the first part of the story when left out"),
                     @CommandParameter(name = "to", type = String.class, optional = true, descriptionText = "The last part: its handle or position; the last part of the branch when left out"),
-                    @CommandParameter(name = "mode", type = String.class, optional = true, allowed = {"new", "again"}, defaultValue = "new", descriptionText = "new = the parts not translated yet, again = translate the translated parts again")}),
+                    @CommandParameter(name = "mode", type = String.class, optional = true, allowed = {"new", "again"}, defaultValue = "new", descriptionText = "new = the parts not translated yet, again = translate the translated parts again"),
+                    @CommandParameter(name = "language", type = String.class, optional = true, descriptionText = PARAM_BOOK_LANGUAGE)}),
             returns = @CommandReturn(name = "result", type = String.class, descriptionText = "JSON: the summary"))
     public void translateRange(CommandContext context) throws Exception {
         Book book = new Book(context);
@@ -306,7 +400,8 @@ public class ReallangCommands extends ManuscriptReadSupport {
             case "again", "retranslate" -> Mode.RETRANSLATE;
             default -> throw new IllegalArgumentException("The mode is new or again, not " + modeText);
         };
-        List<RangePart> parts = selectRange(book, context.get("from", String.class), context.get("to", String.class), mode);
+        String languageId = bookLanguage(book, context);
+        List<RangePart> parts = selectRange(book, context.get("from", String.class), context.get("to", String.class), mode, languageId);
         if (parts.isEmpty()) {
             context.setReturn("{\"planned\":0,\"hint\":\"Nothing to do in the range\"}");
             return;
@@ -317,7 +412,7 @@ public class ReallangCommands extends ManuscriptReadSupport {
             }
             return;
         }
-        run(context, book, mode, parts);
+        run(context, book, mode, languageId, parts);
     }
 
     @Command(commandName = REVERT, linkedCommand = STATUS, humanNameText = "Put the English back", async = true, dataSeverity = CommandDataSeverity.DESTRUCTIVE,
@@ -326,11 +421,13 @@ public class ReallangCommands extends ManuscriptReadSupport {
                     + "the history keeps the translated version. Speeches the author edited stay as they are. Asks the user. Returns the summary.",
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "from", type = String.class, optional = true, descriptionText = "The first part: its handle or position; the first part of the story when left out"),
-                    @CommandParameter(name = "to", type = String.class, optional = true, descriptionText = "The last part: its handle or position; only 'from' when left out")}),
+                    @CommandParameter(name = "to", type = String.class, optional = true, descriptionText = "The last part: its handle or position; only 'from' when left out"),
+                    @CommandParameter(name = "language", type = String.class, optional = true, descriptionText = PARAM_BOOK_LANGUAGE)}),
             returns = @CommandReturn(name = "result", type = String.class, descriptionText = "JSON: the summary"))
     public void revert(CommandContext context) throws Exception {
         Book book = new Book(context);
-        List<RangePart> parts = selectRange(book, context.get("from", String.class), context.get("to", String.class), Mode.REVERT);
+        String languageId = bookLanguage(book, context);
+        List<RangePart> parts = selectRange(book, context.get("from", String.class), context.get("to", String.class), Mode.REVERT, languageId);
         if (parts.isEmpty()) {
             context.setReturn("{\"planned\":0,\"hint\":\"No translated part in the range\"}");
             return;
@@ -341,10 +438,10 @@ public class ReallangCommands extends ManuscriptReadSupport {
             }
             return;
         }
-        run(context, book, Mode.REVERT, parts);
+        run(context, book, Mode.REVERT, languageId, parts);
     }
 
-    private void run(CommandContext context, Book book, Mode mode, List<RangePart> parts) {
+    private void run(CommandContext context, Book book, Mode mode, String languageId, List<RangePart> parts) {
         AtomicBoolean stop = new AtomicBoolean();
         int[] done = {0};
         Summary summary = RangeLoop.run(parts, part -> {
@@ -353,7 +450,7 @@ public class ReallangCommands extends ManuscriptReadSupport {
                 return PartResult.nothing();
             }
             context.setStatus("Part " + (done[0] + 1) + " of " + parts.size());
-            PartResult result = apply(book.manuscript, mode, part);
+            PartResult result = apply(book.manuscript, mode, part, languageId);
             done[0]++;
             return result;
         }, stop, null);
@@ -374,12 +471,12 @@ public class ReallangCommands extends ManuscriptReadSupport {
         }
     }
 
-    private PartResult apply(Manuscript book, Mode mode, ChatMessage part) throws Exception {
+    private PartResult apply(Manuscript book, Mode mode, ChatMessage part, String languageId) throws Exception {
         if (mode == Mode.REVERT) {
-            TranslationWriter.Reverted reverted = translation.revert(book, part);
+            TranslationWriter.Reverted reverted = translation.revert(book, part, languageId);
             return reverted.reverted() == 0 ? PartResult.nothing() : PartResult.done(reverted.reverted(), 0, reverted.kept());
         }
-        Outcome outcome = translation.translate(book, part);
+        Outcome outcome = translation.translate(book, part, languageId);
         return switch (outcome.status()) {
             case TRANSLATED -> PartResult.done(outcome.translated(), 0, 0);
             case NOTHING_TO_TRANSLATE, EMPTY -> PartResult.nothing();
@@ -394,12 +491,13 @@ public class ReallangCommands extends ManuscriptReadSupport {
                     + "a note on the model's choices. Nothing is written into the story. context says who speaks to whom in what situation.",
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "text", type = String.class, descriptionText = "The English text"),
-                    @CommandParameter(name = "context", type = String.class, optional = true, descriptionText = "Who says it, to whom, in what situation")}),
+                    @CommandParameter(name = "context", type = String.class, optional = true, descriptionText = "Who says it, to whom, in what situation"),
+                    @CommandParameter(name = "language", type = String.class, optional = true, descriptionText = PARAM_BOOK_LANGUAGE_FIRST)}),
             returns = @CommandReturn(name = "result", type = String.class, descriptionText = "JSON: the translation"))
     public void translateText(CommandContext context) throws Exception {
         Book book = new Book(context);
         TranslationService.Quick quick = bookReal.quickTranslate(book.manuscript, required(context.get("text", String.class), "the text"),
-                StringUtils.defaultString(context.get("context", String.class)));
+                StringUtils.defaultString(context.get("context", String.class)), bookLanguage(book, context));
         JsonObject result = new JsonObject();
         result.addProperty("status", quick.status().name().toLowerCase(Locale.ROOT).replace('_', '-'));
         if (quick.status() == TranslationService.Status.TRANSLATED) {
@@ -421,7 +519,8 @@ public class ReallangCommands extends ManuscriptReadSupport {
                     + "its English is kept as the source. The sentence must occur exactly once in the part and must not hold an already translated speech. Returns what came of it.",
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "part", type = String.class, descriptionText = PARAM_PART),
-                    @CommandParameter(name = "sentence", type = String.class, descriptionText = "The sentence, exactly as the part has it")}),
+                    @CommandParameter(name = "sentence", type = String.class, descriptionText = "The sentence, exactly as the part has it"),
+                    @CommandParameter(name = "language", type = String.class, optional = true, descriptionText = PARAM_BOOK_LANGUAGE_FIRST)}),
             returns = @CommandReturn(name = "result", type = String.class, descriptionText = "JSON: what came of it"))
     public void translateSentence(CommandContext context) throws Exception {
         Book book = new Book(context);
@@ -436,7 +535,7 @@ public class ReallangCommands extends ManuscriptReadSupport {
         if (text.indexOf(sentence, start + 1) >= 0) {
             throw new IllegalArgumentException("The sentence occurs more than once in the part; quote more of it");
         }
-        Outcome outcome = translation.translateSelection(book.manuscript, part, text, start, start + sentence.length());
+        Outcome outcome = translation.translateSelection(book.manuscript, part, text, start, start + sentence.length(), bookLanguage(book, context));
         JsonObject result = new JsonObject();
         result.addProperty("part", located.position());
         result.addProperty("status", outcome.status().name().toLowerCase(Locale.ROOT).replace('_', '-'));
@@ -453,27 +552,31 @@ public class ReallangCommands extends ManuscriptReadSupport {
             descriptionText = "Who speaks the language in this book. Reads only.",
             llmDescriptionText = "Returns who speaks the language of the book: the mode (everyone-except = everybody speaks it but the listed characters, only = only the listed ones speak it) and the characters "
                     + "with their aliases, gender, voice and whether they are listed. This is the default; the text of a part overrides it. Reads only.",
-            signature = @CommandParameterSignature,
+            signature = @CommandParameterSignature({@CommandParameter(name = "language", type = String.class, optional = true, descriptionText = PARAM_BOOK_LANGUAGE_FIRST)}),
             returns = @CommandReturn(name = "result", type = String.class, descriptionText = "JSON: the speakers"))
     public void speakers(CommandContext context) throws Exception {
-        answer(context, speakersRow(bookReal.speakers(new Book(context).manuscript)));
+        Book book = new Book(context);
+        answer(context, speakersRow(bookReal.speakers(book.manuscript, speakersLanguage(book, context))));
     }
 
     @Command(commandName = SET_SPEAKERS_MODE, linkedCommand = SPEAKERS, humanNameText = "Set who speaks the real language", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             descriptionText = "Chooses whether everybody speaks the language except the listed characters, or only the listed ones.",
             llmDescriptionText = "Sets the mode of the speakers of the book: everyone-except (everybody speaks the language but the listed characters) or only (only the listed characters speak it). Returns the speakers.",
-            signature = @CommandParameterSignature({@CommandParameter(name = "mode", type = String.class, allowed = {"everyone-except", "only"}, descriptionText = "everyone-except or only")}),
+            signature = @CommandParameterSignature({
+                    @CommandParameter(name = "mode", type = String.class, allowed = {"everyone-except", "only"}, descriptionText = "everyone-except or only"),
+                    @CommandParameter(name = "language", type = String.class, optional = true, descriptionText = PARAM_BOOK_LANGUAGE_FIRST)}),
             returns = @CommandReturn(name = "result", type = String.class, descriptionText = "JSON: the speakers"))
     public void setSpeakersMode(CommandContext context) throws Exception {
         Book book = new Book(context);
         String mode = required(context.get("mode", String.class), "the mode").toLowerCase(Locale.ROOT);
-        Speakers speakers = bookReal.speakers(book.manuscript);
+        String languageId = speakersLanguage(book, context);
+        Speakers speakers = bookReal.speakers(book.manuscript, languageId);
         speakers.setMode(switch (mode) {
             case "everyone-except", "everyone_except" -> SpeakersMode.EVERYONE_EXCEPT;
             case "only" -> SpeakersMode.ONLY;
             default -> throw new IllegalArgumentException("The mode is everyone-except or only, not " + mode);
         });
-        bookReal.saveSpeakers(book.manuscript, speakers);
+        bookReal.saveSpeakers(book.manuscript, languageId, speakers);
         answer(context, speakersRow(speakers));
     }
 
@@ -486,12 +589,14 @@ public class ReallangCommands extends ManuscriptReadSupport {
                     @CommandParameter(name = "listed", type = Boolean.class, optional = true, descriptionText = "Whether the character is on the list of the mode"),
                     @CommandParameter(name = "aliases", type = String.class, optional = true, descriptionText = "Other names, separated by commas; empty removes them"),
                     @CommandParameter(name = "gender", type = String.class, optional = true, descriptionText = "The gender, free text"),
-                    @CommandParameter(name = "voice", type = String.class, optional = true, descriptionText = "How the character speaks")}),
+                    @CommandParameter(name = "voice", type = String.class, optional = true, descriptionText = "How the character speaks"),
+                    @CommandParameter(name = "language", type = String.class, optional = true, descriptionText = PARAM_BOOK_LANGUAGE_FIRST)}),
             returns = @CommandReturn(name = "result", type = String.class, descriptionText = "JSON: the speakers"))
     public void setSpeaker(CommandContext context) throws Exception {
         Book book = new Book(context);
         String name = required(context.get("name", String.class), "the name of the character");
-        Speakers speakers = bookReal.speakers(book.manuscript);
+        String languageId = speakersLanguage(book, context);
+        Speakers speakers = bookReal.speakers(book.manuscript, languageId);
         CharacterNote note = speakers.find(name);
         if (note == null) {
             note = new CharacterNote(name);
@@ -513,19 +618,22 @@ public class ReallangCommands extends ManuscriptReadSupport {
         if (voice != null) {
             note.setVoice(voice.strip());
         }
-        bookReal.saveSpeakers(book.manuscript, speakers);
+        bookReal.saveSpeakers(book.manuscript, languageId, speakers);
         answer(context, speakersRow(speakers));
     }
 
     @Command(commandName = REMOVE_SPEAKER, linkedCommand = SPEAKERS, humanNameText = "Remove a character of the real language speakers", async = true, dataSeverity = CommandDataSeverity.DESTRUCTIVE,
             descriptionText = "Removes a character from the notes of the speakers.",
             llmDescriptionText = "Removes the character (and its note) from the speakers. Destructive, asks the user. Returns the speakers.",
-            signature = @CommandParameterSignature({@CommandParameter(name = "name", type = String.class, descriptionText = "The name or an alias of the character")}),
+            signature = @CommandParameterSignature({
+                    @CommandParameter(name = "name", type = String.class, descriptionText = "The name or an alias of the character"),
+                    @CommandParameter(name = "language", type = String.class, optional = true, descriptionText = PARAM_BOOK_LANGUAGE_FIRST)}),
             returns = @CommandReturn(name = "result", type = String.class, descriptionText = "JSON: the speakers"))
     public void removeSpeaker(CommandContext context) throws Exception {
         Book book = new Book(context);
         String name = required(context.get("name", String.class), "the name of the character");
-        Speakers speakers = bookReal.speakers(book.manuscript);
+        String languageId = speakersLanguage(book, context);
+        Speakers speakers = bookReal.speakers(book.manuscript, languageId);
         CharacterNote note = speakers.find(name);
         if (note == null) {
             throw new IllegalArgumentException("There is no character " + name + " in the speakers");
@@ -537,7 +645,7 @@ public class ReallangCommands extends ManuscriptReadSupport {
             return;
         }
         speakers.getCharacters().remove(note);
-        bookReal.saveSpeakers(book.manuscript, speakers);
+        bookReal.saveSpeakers(book.manuscript, languageId, speakers);
         context.setReturn(GSON.toJson(speakersRow(speakers)));
     }
 
@@ -705,7 +813,7 @@ public class ReallangCommands extends ManuscriptReadSupport {
      * The parts from..to of the active branch (their positions are the ones of the other commands), those the mode works on. A single part when only
      * 'from' is given.
      */
-    private List<RangePart> selectRange(Book book, String from, String to, Mode mode) throws Exception {
+    private List<RangePart> selectRange(Book book, String from, String to, Mode mode, String languageId) throws Exception {
         List<ChatMessage> path = book.path((Integer) null);
         int first = StringUtils.isBlank(from) ? 1 : book.locate(from, null).position();
         int last = StringUtils.isBlank(to) ? (StringUtils.isBlank(from) ? path.size() : first) : book.locate(to, null).position();
@@ -716,9 +824,11 @@ public class ReallangCommands extends ManuscriptReadSupport {
         Map<Long, List<Reverse.Located>> translated = passages.of(branch);
         List<RangePart> all = new ArrayList<>();
         for (ChatMessage part : branch) {
-            all.add(new RangePart(path.indexOf(part) + 1, part, translated.containsKey(part.getId())));
+            Set<String> languages = new HashSet<>();
+            translated.getOrDefault(part.getId(), List.of()).forEach(located -> languages.add(located.span().getLanguage()));
+            all.add(new RangePart(path.indexOf(part) + 1, part, translated.containsKey(part.getId()), languages));
         }
-        return RangeLoop.select(mode, all, first, last);
+        return RangeLoop.select(mode, all, first, last, languageId);
     }
 
     private static String slice(String text, int start, int end) {

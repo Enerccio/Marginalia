@@ -9,11 +9,13 @@ import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.PassageService;
 import com.github.enerccio.marginalia.extensions.translatorcommon.model.Span;
 import com.github.enerccio.marginalia.extensions.translatorcommon.translate.Reverse;
+import com.github.enerccio.marginalia.extensions.translatorcommon.translate.Speech;
 import com.github.enerccio.marginalia.extensions.translatorcommon.translate.TranslationPlan;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -96,19 +98,66 @@ public class TranslationWriter {
             long now = System.currentTimeMillis();
             for (TranslationPlan.Planned planned : plan.passages()) {
                 AnchoredPassage passage = passageService.create(book, fresh, kindId, planned.start(), planned.end());
-                Span span = new Span(languageId, planned.english(), planned.translated());
-                span.setSpeaker(StringUtils.defaultString(planned.speech().speaker()));
-                span.setUnderstood(planned.speech().isUnderstood());
-                span.setRegister(StringUtils.defaultString(planned.speech().register()));
-                span.setModel(modelName);
-                span.setTime(now);
-                if (extra != null) {
-                    extra.accept(span, planned);
+                Span span;
+                if (planned.carried() != null) {
+                    // a speech of another language of the book, translated by an earlier run: it stays as it was
+                    span = planned.carried();
+                } else {
+                    span = new Span(languageId, planned.english(), planned.translated());
+                    span.setSpeaker(StringUtils.defaultString(planned.speech().speaker()));
+                    span.setUnderstood(planned.speech().isUnderstood());
+                    span.setRegister(StringUtils.defaultString(planned.speech().register()));
+                    span.setModel(modelName);
+                    span.setTime(now);
+                    if (extra != null) {
+                        extra.accept(span, planned);
+                    }
                 }
                 span.write(passage.getAttributes());
                 passageService.save(passage);
             }
         }
+    }
+
+    /**
+     * The speeches of the part that a run for {@code languageId} leaves as they are: the translated speeches of the other languages of the book that
+     * the author did not edit, as the entries of a {@link TranslationPlan} (their place in the text the model reads, the text they hold now, their
+     * data). A plan made from these and the new speeches keeps the other languages when the part is written again.
+     *
+     * @param read       the part as the model read it (all languages turned back into the English)
+     * @param languageId the language the run is for; the speeches of this language (and the ones without a language) are not carried
+     */
+    public List<TranslationPlan.Accepted> carried(ChatMessage part, Reverse.Result read, String languageId) throws Exception {
+        return carried(StringUtils.defaultString(part.getResponse()), passages.of(List.of(part)).getOrDefault(part.getId(), List.of()), read, languageId);
+    }
+
+    /**
+     * {@link #carried(ChatMessage, Reverse.Result, String)} for a stored text and its passages, nothing read from the store.
+     */
+    public static List<TranslationPlan.Accepted> carried(String stored, List<Reverse.Located> located, Reverse.Result read, String languageId) {
+        List<TranslationPlan.Accepted> carried = new ArrayList<>();
+        for (Reverse.Located passage : located) {
+            boolean substituted = read.substitutions().stream().anyMatch(s -> s.start() == passage.start() && s.end() == passage.end());
+            if (!substituted || StringUtils.equals(passage.span().getLanguage(), languageId)) {
+                continue;
+            }
+            int[] model = read.model().modelRange(passage.start(), passage.end());
+            if (model[1] <= model[0]) {
+                continue;
+            }
+            Span span = passage.span();
+            Speech speech = new Speech(span.getSource(), span.getSpeaker(), span.getLanguage(), stored.substring(passage.start(), passage.end()), "",
+                    span.isUnderstood(), span.getRegister());
+            carried.add(new TranslationPlan.Accepted(speech, model[0], model[1], span));
+        }
+        return carried;
+    }
+
+    /**
+     * Whether a range of the text the model reads touches a speech that stays (see {@link #carried}); an answer for such a range is dropped.
+     */
+    public static boolean overlapsAny(List<TranslationPlan.Accepted> carried, int start, int end) {
+        return carried.stream().anyMatch(item -> start < item.end() && end > item.start());
     }
 
     /**
@@ -176,6 +225,24 @@ public class TranslationWriter {
                     RevisionOrigin.automatic(RevisionDetail.TRANSLATION, false));
         }
         return new Reverted(read.substitutions().size(), read.edited().size());
+    }
+
+    /**
+     * Puts the source back for the speeches of one language of the book; the speeches of the other languages stay translated. The history keeps the
+     * translated version. A part with no translated speech in the language is not touched.
+     *
+     * @param read       the part as the model reads it now ({@link #readOf})
+     * @param languageId the language to put back
+     */
+    public Reverted revert(Manuscript book, ChatMessage part, Reverse.Result read, String languageId) throws Exception {
+        List<TranslationPlan.Accepted> carried = carried(part, read, languageId);
+        int mine = read.substitutions().size() - carried.size();
+        if (mine <= 0) {
+            return new Reverted(0, read.edited().size());
+        }
+        TranslationPlan plan = TranslationPlan.make(read.text(), carried);
+        write(book, part, plan, read, languageId, null, null);
+        return new Reverted(mine, read.edited().size());
     }
 
     /**

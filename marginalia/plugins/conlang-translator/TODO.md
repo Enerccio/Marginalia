@@ -1259,25 +1259,30 @@ orc with a shouting bubble for the invented language, a person with a kanji in a
 What a natural language is: a `Language` with a short rules section (the script, how politeness and honorifics are handled, how names are written) and **no lexicon**; the request sends no lexicon and asks for no new words. Steps:
 1. **The language of the new plugin** is a rules section (the script, how politeness and honorifics are handled, how names are written) with presets (Japanese: script kana+kanji / kana / romaji, honorifics kept or translated), kept in the user settings like the library of the conlang plugin, under its own key.
 2. **The prompt for it** (`natural` package): translate for this speaker and listener in the register their relationship asks for; the checks that need a lexicon (`LexiconCheck`, new words) do not run, the quote check stays, and a **script check** replaces them (kana or kanji where it was asked for, romaji only otherwise).
-3. **Several real languages in one book:** a language per character (a field of its note, the book's language is the default), the request lists the languages of the speakers of the part, the model says which language each speech is in (`Span.language` is there already). Relationship fields on the note (age, rank, closeness) for politeness.
+3. **Several real languages in one book (done, see below):** a language per character (a field of its note, the book's language is the default), the request lists the languages of the speakers of the part, the model says which language each speech is in (`Span.language` is there already). Relationship fields on the note (age, rank, closeness) for politeness.
 4. **A second pass** as an action on a part or a range (not a stage of every translation: it doubles the requests of a slow model): the model rewrites each speech for naturalness, given the voice and the relationship; optionally a back-translation check that flags drift.
 5. **A reading line** on the passage (`Span.reading`, the romaji of kana or kanji text) in the popover above the English. Furigana (ruby) only in HTML and EPUB, left out of the first version.
 6. **Commands and agent runs:** `reallang-*` commands for everything the screens do; the run copy of a language is the one of `LanguageAccess` (it moves into the library of step 2 if it is generic enough).
 Quality has no lexicon as a safety net: the second pass, the back-translation and the author are the checks.
 
-### Several languages in one book (conlangs too)
+### Several languages in one book (conlangs too) - done (2026-11-05)
 
-There is no reason to allow only one language per book: an epic fantasy has a tongue for the elves, another for the dwarves, a third for the orcs. This is **valid for the conlang plugin as well** (a niche, but real), not only for real languages. Today a book names one language
-(`BookSettings.languageId`) and has one set of speakers. What it takes:
-- **The book names several languages**, each with **its own speakers** (who speaks it in this book; the speakers are per book and per language now, one list for the one language). A character may speak more than one language.
-- **One pass per language.** Each language is asked separately for a part: its rules and lexicon only, and only the speeches of its speakers (a request with two lexicons would be too large and the rules of the two would mix). With two languages a part takes two passes, three take three; the passes
-  run one after the other, because the second reads the part as the model reads it, with the English of the first one's speeches (the transformer gives that for every passage of every kind). A part that has speech in only one language costs one request: the speakers decide which languages are asked for.
-- **The passages say which language they are** (`Span.language` is there already), so the popover, the footnotes (the language can be named in the note) and a retranslation of one language leave the others alone; *put the English back* can be for one language or all.
-- **The range dialog, the automatic run and the commands** take the language (all of the book's by default); the run of the range shows the pass (*Part 3 of 40, Elvish*).
-- **The menus offer the languages.** The menu of a part (*Translate the speech*) and the right click on a selected sentence (*Translate the selection*) have one entry per language of the book when it has more than one (and *All languages* for the part), the tools menu item *Translate parts*
-  has the language in its dialog; a book with one language shows the entries as they are now. The **selection route** (one sentence, by hand, into the language you choose) is the slowest and the most granular: the way to translate a line the translator did not find as speech, to fix one speech
-  of one language, or to edit by hand, and it must work for each language on its own (the passage keeps the language it was made for, the overlap check is per passage whatever the language).
-- **In the same plugin this is plain** (one list of passes). Between the conlang plugin and the real-language plugin it is the coexistence of the export registry above; two languages of one plugin need nothing from the core.
+An epic fantasy has a tongue for the elves, another for the dwarves, a third for the orcs; the plugin and the Real Language Translator (same library) do it the same way. What was built:
+- **The book names several languages**, each with **its own speakers**: the first is the inherited setting (`BookSettings.languageId` with `speakers`), the others are `BookSettings.otherLanguages`
+  (`BookLanguage`: the id and its `Speakers`). A language added in the **Languages** tab starts in the mode *only the listed* with nobody listed, so two languages do not both claim everybody; the
+  first language needs its exceptions listed by the author.
+- **One pass per language** (`TranslationService.translate(book, part, languageId)`; null: all languages whose speakers may be in the part, `Speakers.mayBeInvolved`). Each is asked separately: its
+  rules and lexicon only, only its speakers' speeches. The passes run one after the other; a pass reads the part as the model reads it (the English of **all** languages) and keeps the
+  speeches of the other languages translated: `TranslationWriter.carried` makes them entries of the plan, a speech of the answer that lands on one of them is dropped, and the write makes their passages again with their own `Span`.
+- **The passages say which language they are** (`Span.language`): a retranslation of one language and a revert of one (`TranslationWriter.revert(book, part, read, languageId)`) leave the others alone;
+  *put the English back* is for one language or all.
+- **The range dialog, the automatic run and the commands** take the language (all of the book's by default; `RangeLoop.select` counts "translated in that language").
+  Not done: the run of the range does not say the pass (*Part 3 of 40, Elvish*); each part is all of its languages.
+- **The menus ask with a dialog** (`LanguageChoiceDialog`) when the book has more than one language: the part menu (a language or *All languages*) and the right click on a selection (one language);
+  *Translate parts* has a field. Not one menu entry for each language: the menu registry's items are static and a book's languages come and go. The selection route works for each language on its own.
+- **The Conlang tab** has a field for the language the *Words*, *Speakers* and *Quick translate* tabs are about, and the *Languages* tab (`BookLanguagesPanel`). Commands: `language` on the
+  translating and speakers commands, `conlang-add-book-language`, `conlang-remove-book-language`.
+- **Not tried on the real model**, and the footnotes of an export do not name the language yet (the popover and the footnote say who spoke, not in which language).
 
 ## Later / ideas
 

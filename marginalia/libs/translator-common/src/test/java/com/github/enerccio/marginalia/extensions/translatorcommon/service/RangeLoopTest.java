@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -42,6 +43,31 @@ class RangeLoopTest {
     void retranslatingAndRevertingTakeTheTranslatedParts() {
         assertEquals(List.of(2, 4), numbers(RangeLoop.select(Mode.RETRANSLATE, story(), 1, 5)));
         assertEquals(List.of(2, 4), numbers(RangeLoop.select(Mode.REVERT, story(), 1, 5)));
+    }
+
+    /** Parts 1 to 4: 1 has no translation, 2 is in Elvish, 3 in Dwarvish, 4 in both. */
+    private static List<RangePart> twoLanguages() {
+        List<Set<String>> languages = List.of(Set.of(), Set.of("elf"), Set.of("dwarf"), Set.of("elf", "dwarf"));
+        List<RangePart> parts = new ArrayList<>();
+        for (int i = 0; i < languages.size(); i++) {
+            ChatMessage message = new ChatMessage();
+            message.setResponse("part " + (i + 1));
+            parts.add(new RangePart(i + 1, message, !languages.get(i).isEmpty(), languages.get(i)));
+        }
+        return parts;
+    }
+
+    @Test
+    void aLanguageCountsOnlyTheTranslationsInIt() {
+        assertEquals(List.of(1, 3), numbers(RangeLoop.select(Mode.TRANSLATE_NEW, twoLanguages(), 1, 4, "elf")));
+        assertEquals(List.of(2, 4), numbers(RangeLoop.select(Mode.RETRANSLATE, twoLanguages(), 1, 4, "elf")));
+        assertEquals(List.of(3, 4), numbers(RangeLoop.select(Mode.REVERT, twoLanguages(), 1, 4, "dwarf")));
+    }
+
+    @Test
+    void allLanguagesCountAnyTranslation() {
+        assertEquals(List.of(1), numbers(RangeLoop.select(Mode.TRANSLATE_NEW, twoLanguages(), 1, 4, null)));
+        assertEquals(List.of(2, 3, 4), numbers(RangeLoop.select(Mode.REVERT, twoLanguages(), 1, 4, null)));
     }
 
     @Test

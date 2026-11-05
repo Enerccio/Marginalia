@@ -20,16 +20,14 @@ import com.github.enerccio.marginalia.extensions.reallangtranslator.service.Tran
 import com.github.enerccio.marginalia.extensions.reallangtranslator.ui.LanguageSettingsForm;
 import com.github.enerccio.marginalia.extensions.reallangtranslator.ui.ReallangBookView;
 import com.github.enerccio.marginalia.extensions.translatorcommon.model.ExportMode;
+import com.github.enerccio.marginalia.extensions.translatorcommon.model.LanguageRef;
 import com.github.enerccio.marginalia.extensions.translatorcommon.model.ReaderMode;
 import com.github.enerccio.marginalia.extensions.translatorcommon.service.*;
 import com.github.enerccio.marginalia.extensions.translatorcommon.text.SpeechExportContributor;
 import com.github.enerccio.marginalia.extensions.translatorcommon.text.SpeechPassageKind;
 import com.github.enerccio.marginalia.extensions.translatorcommon.text.SpeechTransformer;
 import com.github.enerccio.marginalia.extensions.translatorcommon.translate.Reverse.Located;
-import com.github.enerccio.marginalia.extensions.translatorcommon.ui.CommonStyles;
-import com.github.enerccio.marginalia.extensions.translatorcommon.ui.ExportChoice;
-import com.github.enerccio.marginalia.extensions.translatorcommon.ui.RangeDialog;
-import com.github.enerccio.marginalia.extensions.translatorcommon.ui.ReaderView;
+import com.github.enerccio.marginalia.extensions.translatorcommon.ui.*;
 import com.github.enerccio.marginalia.ui.components.PartView;
 import com.github.enerccio.marginalia.ui.dialogs.story.StoryCard;
 import com.github.enerccio.marginalia.ui.dialogs.story.StoryEditor;
@@ -296,12 +294,12 @@ public class ReallangTranslatorExtension implements MarginaliaExtension, Extensi
     /**
      * What a range run does to one part: translates it, or puts the English back.
      */
-    private RangeLoop.PartResult rangeWork(Manuscript book, RangeLoop.Mode mode, ChatMessage part) throws Exception {
+    private RangeLoop.PartResult rangeWork(Manuscript book, RangeLoop.Mode mode, ChatMessage part, String languageId) throws Exception {
         if (mode == RangeLoop.Mode.REVERT) {
-            TranslationWriter.Reverted reverted = translationService.revert(book, part);
+            TranslationWriter.Reverted reverted = translationService.revert(book, part, languageId);
             return reverted.reverted() == 0 ? RangeLoop.PartResult.nothing() : RangeLoop.PartResult.done(reverted.reverted(), 0, reverted.kept());
         }
-        Outcome outcome = translationService.translate(book, part);
+        Outcome outcome = translationService.translate(book, part, languageId);
         return switch (outcome.status()) {
             case TRANSLATED -> RangeLoop.PartResult.done(outcome.translated(), 0, 0);
             case NOTHING_TO_TRANSLATE, EMPTY -> RangeLoop.PartResult.nothing();
@@ -397,7 +395,7 @@ public class ReallangTranslatorExtension implements MarginaliaExtension, Extensi
                 Notification.error(T.localized(THE_BOOK_HAS_NO_LANGUAGE));
                 return;
             }
-            new RangeDialog(book, () -> rangeParts(book), rangeRuns, story::reloadStory).open();
+            new RangeDialog(book, bookReal.languages(book), () -> rangeParts(book), rangeRuns, story::reloadStory).open();
         } catch (Exception e) {
             log.warn("Failed to open the range dialog: {}", e.getMessage(), e);
             Notification.error(String.format(T.localized(THE_LANGUAGES_CAN_NOT_BE_LOADED), e.getMessage()));
@@ -417,7 +415,9 @@ public class ReallangTranslatorExtension implements MarginaliaExtension, Extensi
             List<RangeLoop.RangePart> parts = new ArrayList<>();
             for (int i = 0; i < branch.size(); i++) {
                 ChatMessage part = branch.get(i);
-                parts.add(new RangeLoop.RangePart(i + 1, part, translated.containsKey(part.getId())));
+                Set<String> languages = new HashSet<>();
+                translated.getOrDefault(part.getId(), List.of()).forEach(located -> languages.add(located.span().getLanguage()));
+                parts.add(new RangeLoop.RangePart(i + 1, part, translated.containsKey(part.getId()), languages));
             }
             return parts;
         } catch (Exception e) {
@@ -432,9 +432,20 @@ public class ReallangTranslatorExtension implements MarginaliaExtension, Extensi
         if (manuscript == null || card == null || card.getMessage() == null) {
             return;
         }
+        List<LanguageRef> languages = languagesOf(manuscript);
+        // a book with several languages asks which one (or all of them)
+        if (languages.isEmpty()) {
+            // the translation tells what is missing
+            translatePart(manuscript, card, null);
+            return;
+        }
+        LanguageChoiceDialog.ask(languages, true, languageId -> translatePart(manuscript, card, languageId));
+    }
+
+    private void translatePart(Manuscript manuscript, StoryCard card, String languageId) {
         ChatMessage part = card.getMessage();
         Notification.success(T.localized(TRANSLATING_THE_SPEECH));
-        boolean started = runs.start(manuscript, part, (outcome, failure) -> {
+        boolean started = runs.start(manuscript, part, languageId, (outcome, failure) -> {
             report(outcome, failure);
             if (outcome != null && outcome.status() == TranslationService.Status.TRANSLATED) {
                 try {
@@ -449,6 +460,16 @@ public class ReallangTranslatorExtension implements MarginaliaExtension, Extensi
         }
     }
 
+    /** The languages of the book that are in the library; none when they can't be read. */
+    private List<LanguageRef> languagesOf(Manuscript manuscript) {
+        try {
+            return bookReal.languages(manuscript);
+        } catch (Exception e) {
+            log.warn("Failed to read the languages of the book: {}", e.getMessage(), e);
+            return List.of();
+        }
+    }
+
     /**
      * The item of the menu of the text: translates the sentence the author selected on a worker thread, and shows the part again.
      */
@@ -456,11 +477,16 @@ public class ReallangTranslatorExtension implements MarginaliaExtension, Extensi
         if (manuscript == null || card == null || card.getMessage() == null) {
             return;
         }
-        card.withSelection(range -> {
+        List<LanguageRef> languages = languagesOf(manuscript);
+        if (languages.isEmpty()) {
+            Notification.error(T.localized(THE_BOOK_HAS_NO_LANGUAGE));
+            return;
+        }
+        card.withSelection(range -> LanguageChoiceDialog.ask(languages, false, languageId -> {
             ChatMessage part = card.getMessage();
             String expected = part.getResponse();
             Notification.success(T.localized(TRANSLATING_THE_SELECTION));
-            boolean started = runs.startSelection(manuscript, part, expected, range[0], range[1], (outcome, failure) -> {
+            boolean started = runs.startSelection(manuscript, part, expected, range[0], range[1], languageId, (outcome, failure) -> {
                 report(outcome, failure);
                 if (outcome != null && outcome.status() == TranslationService.Status.TRANSLATED) {
                     try {
@@ -473,7 +499,7 @@ public class ReallangTranslatorExtension implements MarginaliaExtension, Extensi
             if (!started) {
                 Notification.error(T.localized(THE_PART_IS_BEING_TRANSLATED));
             }
-        });
+        }));
     }
 
     /**

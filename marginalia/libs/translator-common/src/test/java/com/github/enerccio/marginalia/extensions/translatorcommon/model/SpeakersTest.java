@@ -56,4 +56,51 @@ class SpeakersTest {
         assertNull(speakers.find(null));
         assertNull(speakers.find(" "));
     }
+
+    @Test
+    void theNamesOfAPartAreItsPointOfViewAndTheCharactersPresent() {
+        assertEquals(java.util.List.of("Mara", "Brog", "the cook", "Ana"), Speakers.namesOf("Mara", "Brog, the cook;\nAna"));
+        assertTrue(Speakers.namesOf(null, " ").isEmpty());
+    }
+
+    @Test
+    void aPartWithNoNamedCharactersMayHoldAnyLanguageThatHasSpeakers() {
+        Speakers speakers = new Speakers();
+        speakers.setMode(SpeakersMode.ONLY);
+        speakers.getCharacters().add(listed("Mara"));
+
+        assertTrue(speakers.mayBeInvolved(java.util.List.of()));
+        assertTrue(speakers.mayBeInvolved(null));
+        assertTrue(new Speakers().mayBeInvolved(null));
+    }
+
+    @Test
+    void aLanguageAddedToABookHasNoSpeakersUntilTheyAreListed() {
+        BookLanguage added = new BookLanguage("dwarf");
+
+        assertEquals(SpeakersMode.ONLY, added.getSpeakers().getMode());
+        assertFalse(added.getSpeakers().mayBeInvolved(java.util.List.of("Brog")));
+        assertFalse(added.getSpeakers().mayBeInvolved(null));
+    }
+
+    @Test
+    void aLanguageOfTheListedOnlyIsAskedForWhenOneOfThemIsInThePart() {
+        Speakers speakers = new Speakers();
+        speakers.setMode(SpeakersMode.ONLY);
+        speakers.getCharacters().add(listed("Mara", "the Captain"));
+
+        assertTrue(speakers.mayBeInvolved(java.util.List.of("Brog", "the captain")));
+        assertFalse(speakers.mayBeInvolved(java.util.List.of("Brog", "The cook")));
+    }
+
+    @Test
+    void aLanguageOfEverybodyExceptIsSkippedOnlyWhenEveryoneInThePartIsExcluded() {
+        Speakers speakers = new Speakers();
+        speakers.getCharacters().add(listed("Mara"));
+        speakers.getCharacters().add(listed("Brog"));
+
+        assertFalse(speakers.mayBeInvolved(java.util.List.of("Mara", "Brog")));
+        assertTrue(speakers.mayBeInvolved(java.util.List.of("Mara", "the cook")));
+    }
+
 }

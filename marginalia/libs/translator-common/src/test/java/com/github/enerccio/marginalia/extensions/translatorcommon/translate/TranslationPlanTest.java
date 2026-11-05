@@ -86,4 +86,37 @@ class TranslationPlanTest {
         assertEquals("\"Frag drak?Bef drak!\" he said.", plan.stored());
         assertEquals(plan.passages().get(0).end(), plan.passages().get(1).start());
     }
+
+    @Test
+    void aSpeechOfAnotherLanguageStaysAsItWasAndIsNotCounted() {
+        Span carried = new Span("Dwarvish", "Good morning,", "Guten Tak,");
+        carried.setSpeaker("the cook");
+        Speech old = new Speech("Good morning,", "the cook", "Dwarvish", "Guten Tak,", "", null, "");
+        int start = SOURCE.indexOf("Good morning,");
+        Speech fresh = speech("I see the enemy,", "Vrakht", "Da ja-se vek,");
+        int freshStart = SOURCE.indexOf("I see the enemy,");
+
+        TranslationPlan plan = TranslationPlan.make(SOURCE, List.of(
+                new TranslationPlan.Accepted(old, start, start + "Good morning,".length(), carried),
+                new TranslationPlan.Accepted(fresh, freshStart, freshStart + "I see the enemy,".length())));
+
+        assertEquals("Mara drew her sword. \"Da ja-se vek,\" she said. \"Is it war?\" shouted Brog. \"Guten Tak,\" said the cook.", plan.stored());
+        assertEquals(2, plan.passages().size());
+        assertEquals(1, plan.translatedCount());
+        TranslationPlan.Planned kept = plan.passages().stream().filter(p -> p.carried() != null).findFirst().orElseThrow();
+        assertEquals(carried, kept.carried());
+        assertEquals("Guten Tak,", plan.stored().substring(kept.start(), kept.end()));
+        assertEquals("Good morning,", kept.english());
+    }
+
+    @Test
+    void aPlanOfCarriedSpeechesOnlyTranslatesNothing() {
+        Span carried = new Span("Dwarvish", "Good morning,", "Guten Tak,");
+        int start = SOURCE.indexOf("Good morning,");
+        TranslationPlan plan = TranslationPlan.make(SOURCE, List.of(new TranslationPlan.Accepted(
+                new Speech("Good morning,", "the cook", "Dwarvish", "Guten Tak,", "", null, ""), start, start + "Good morning,".length(), carried)));
+
+        assertEquals(0, plan.translatedCount());
+        assertEquals(1, plan.passages().size());
+    }
 }

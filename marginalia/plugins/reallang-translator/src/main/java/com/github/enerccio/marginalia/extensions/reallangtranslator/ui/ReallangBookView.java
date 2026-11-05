@@ -2,9 +2,11 @@ package com.github.enerccio.marginalia.extensions.reallangtranslator.ui;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
-import com.github.enerccio.marginalia.extensions.reallangtranslator.model.RealLanguage;
 import com.github.enerccio.marginalia.extensions.reallangtranslator.service.BookReal;
+import com.github.enerccio.marginalia.extensions.translatorcommon.model.BookLanguage;
+import com.github.enerccio.marginalia.extensions.translatorcommon.model.LanguageRef;
 import com.github.enerccio.marginalia.extensions.translatorcommon.model.Speakers;
+import com.github.enerccio.marginalia.extensions.translatorcommon.ui.BookLanguagesPanel;
 import com.github.enerccio.marginalia.extensions.translatorcommon.ui.CommonStyles;
 import com.github.enerccio.marginalia.extensions.translatorcommon.ui.SpeakersEditor;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
@@ -14,6 +16,8 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.TabSheet;
+
+import java.util.List;
 
 import static com.github.enerccio.marginalia.extensions.reallangtranslator.ReallangTranslatorLocalization.*;
 
@@ -53,35 +57,59 @@ public class ReallangBookView extends VerticalLayout {
     }
 
     /**
-     * Reads the language and the speakers of the book again and builds the tabs.
+     * Reads the languages and the speakers of the book again and builds the tabs: the speakers of each language, the other languages of the book and
+     * the quick translation.
      */
     public final void refresh() {
         body.removeAll();
         try {
-            RealLanguage language = service.languageOf(book);
-            if (language == null) {
+            List<LanguageRef> languages = service.languages(book);
+            if (languages.isEmpty()) {
                 title.setText(T.localized(REAL_LANGUAGE));
                 Span none = new Span(T.localized(THE_BOOK_HAS_NO_LANGUAGE));
                 none.addClassName(CommonStyles.HINT);
                 body.add(none);
                 return;
             }
-            title.setText(T.localized(LANGUAGE_S).formatted(language.getName()));
+            title.setText(languages.size() == 1 ? T.localized(LANGUAGE_S).formatted(languages.getFirst().name())
+                    : T.localized(LANGUAGES_S).formatted(String.join(", ", languages.stream().map(LanguageRef::name).toList())));
             TabSheet tabs = new TabSheet();
             tabs.setSizeFull();
-            tabs.add(T.localized(SPEAKERS), speakers());
-            tabs.add(T.localized(QUICK_TRANSLATE), new QuickTranslatePanel(book, service));
+            for (LanguageRef language : languages) {
+                tabs.add(languages.size() == 1 ? T.localized(SPEAKERS) : T.localized(SPEAKERS_S).formatted(language.name()), speakers(language.id()));
+            }
+            tabs.add(T.localized(LANGUAGES), otherLanguages());
+            tabs.add(T.localized(QUICK_TRANSLATE), new QuickTranslatePanel(book, service, languages));
             body.add(tabs);
         } catch (Exception e) {
             Notification.error(String.format(T.localized(THE_LANGUAGES_CAN_NOT_BE_LOADED), e.getMessage()));
         }
     }
 
-    private SpeakersEditor speakers() throws Exception {
-        Speakers speakers = service.speakers(book);
+    private SpeakersEditor speakers(String languageId) throws Exception {
+        Speakers speakers = service.speakers(book, languageId);
         return new SpeakersEditor(speakers, () -> {
             try {
-                service.saveSpeakers(book, speakers);
+                service.saveSpeakers(book, languageId, speakers);
+            } catch (Exception e) {
+                Notification.error(String.format(T.localized(THE_LANGUAGES_CAN_NOT_BE_LOADED), e.getMessage()));
+            }
+        });
+    }
+
+    /** The languages of the book besides the one it names: add and remove; the tabs are built again after a change. */
+    private BookLanguagesPanel otherLanguages() throws Exception {
+        List<BookLanguage> others = service.otherLanguages(book);
+        return new BookLanguagesPanel(others, () -> {
+            try {
+                return service.libraryLanguages();
+            } catch (Exception e) {
+                throw new IllegalStateException(e.getMessage(), e);
+            }
+        }, service.primaryLanguageId(book), () -> {
+            try {
+                service.saveOtherLanguages(book, others);
+                refresh();
             } catch (Exception e) {
                 Notification.error(String.format(T.localized(THE_LANGUAGES_CAN_NOT_BE_LOADED), e.getMessage()));
             }

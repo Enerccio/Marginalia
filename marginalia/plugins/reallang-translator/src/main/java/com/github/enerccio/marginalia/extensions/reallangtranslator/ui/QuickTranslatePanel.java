@@ -4,6 +4,7 @@ import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.extensions.reallangtranslator.service.BookReal;
 import com.github.enerccio.marginalia.extensions.reallangtranslator.service.TranslationService.Quick;
+import com.github.enerccio.marginalia.extensions.translatorcommon.model.LanguageRef;
 import com.github.enerccio.marginalia.extensions.translatorcommon.service.AsyncRuns;
 import com.github.enerccio.marginalia.extensions.translatorcommon.service.PluginLog;
 import com.github.enerccio.marginalia.extensions.translatorcommon.ui.CommonStyles;
@@ -15,8 +16,11 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.progressbar.ProgressBar;
+import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
+
+import java.util.List;
 
 import static com.github.enerccio.marginalia.extensions.reallangtranslator.ReallangTranslatorLocalization.*;
 
@@ -29,6 +33,7 @@ public class QuickTranslatePanel extends VerticalLayout {
     private final Manuscript book;
     private final BookReal service;
 
+    private final Select<LanguageRef> language = new Select<>();
     private final TextArea input = new TextArea(T.localized(TEXT_TO_TRANSLATE));
     private final TextField context = new TextField(T.localized(WHO_SAYS_IT_TO_WHOM));
     private final Button translate = new Button(T.localized(TRANSLATE), Solid.LANGUAGE.create(), _ -> translate());
@@ -39,13 +44,23 @@ public class QuickTranslatePanel extends VerticalLayout {
     private final Span choice = new Span();
     private final Span warning = new Span();
 
-    public QuickTranslatePanel(Manuscript book, BookReal service) {
+    /**
+     * @param languages the languages of the book; with more than one the author chooses which one the text goes into
+     */
+    public QuickTranslatePanel(Manuscript book, BookReal service, List<LanguageRef> languages) {
         this.book = book;
         this.service = service;
         setPadding(false);
         setSizeFull();
         setMinWidth("0");
 
+        language.setLabel(T.localized(LANGUAGE));
+        language.setItems(languages);
+        language.setItemLabelGenerator(LanguageRef::name);
+        if (!languages.isEmpty()) {
+            language.setValue(languages.getFirst());
+        }
+        language.setVisible(languages.size() > 1);
         Span hint = new Span(T.localized(THE_TEXT_IS_TRANSLATED_NOTHING_IS_WRITTEN));
         hint.addClassName(CommonStyles.HINT);
         input.setWidthFull();
@@ -66,7 +81,7 @@ public class QuickTranslatePanel extends VerticalLayout {
         choice.addClassName(CommonStyles.HINT);
         warning.addClassName(CommonStyles.CONFLICT);
 
-        add(hint, input, context, new HorizontalLayout(translate), busy, output, reading, new HorizontalLayout(copy), choice, warning);
+        add(hint, language, input, context, new HorizontalLayout(translate), busy, output, reading, new HorizontalLayout(copy), choice, warning);
         showResult(null);
     }
 
@@ -77,10 +92,11 @@ public class QuickTranslatePanel extends VerticalLayout {
             return;
         }
         String who = context.getValue();
+        String languageId = language.getValue() == null ? null : language.getValue().id();
         translate.setEnabled(false);
         busy.setVisible(true);
         showResult(null);
-        AsyncRuns.start("reallang-quick", PluginLog.get(), () -> service.quickTranslate(book, text, who), (result, failure) -> {
+        AsyncRuns.start("reallang-quick", PluginLog.get(), () -> service.quickTranslate(book, text, who, languageId), (result, failure) -> {
             translate.setEnabled(true);
             busy.setVisible(false);
             if (failure != null) {

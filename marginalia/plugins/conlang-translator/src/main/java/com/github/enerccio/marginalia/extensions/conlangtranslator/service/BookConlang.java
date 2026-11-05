@@ -1,17 +1,19 @@
 package com.github.enerccio.marginalia.extensions.conlangtranslator.service;
 
-import com.github.enerccio.marginalia.extensions.translatorcommon.service.ModelClient;
-import com.github.enerccio.marginalia.extensions.translatorcommon.model.Speakers;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.domain.service.SettingService;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.model.*;
-import com.github.enerccio.marginalia.extensions.translatorcommon.service.ModelSelection;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.service.TranslationService.Status;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.store.ConlangStore;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.translate.*;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.translate.AnswerChecker.Word;
+import com.github.enerccio.marginalia.extensions.translatorcommon.model.BookLanguage;
+import com.github.enerccio.marginalia.extensions.translatorcommon.model.LanguageRef;
+import com.github.enerccio.marginalia.extensions.translatorcommon.model.Speakers;
+import com.github.enerccio.marginalia.extensions.translatorcommon.service.ModelClient;
+import com.github.enerccio.marginalia.extensions.translatorcommon.service.ModelSelection;
 import com.google.gson.JsonObject;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,7 +62,105 @@ public class BookConlang {
         return translation.languageOf(book, translation.settings(book));
     }
 
+    /**
+     * A language of the book (an independent copy): the one with this id, the first one for null; null when the book does not have it.
+     *
+     * @param languageId the language (its id)
+     */
+    public Language languageOf(Manuscript book, String languageId) throws Exception {
+        if (languageId == null) {
+            return languageOf(book);
+        }
+        return translation.languagesOf(book, translation.settings(book)).stream().map(TranslationService.BookLang::language)
+                .filter(language -> language.getId().equals(languageId)).findFirst().orElse(null);
+    }
+
+    /**
+     * The languages of the book that are in the library, the one it names first: for the menus and the choice of a language.
+     */
+    public List<LanguageRef> languages(Manuscript book) throws Exception {
+        return translation.languagesOf(book, translation.settings(book)).stream()
+                .map(item -> new LanguageRef(item.language().getId(), item.language().getName())).toList();
+    }
+
+    /**
+     * The languages of the library of the user (as the book sees them), for adding one to the book.
+     */
+    public List<LanguageRef> libraryLanguages(Manuscript book) throws Exception {
+        return languages.list(book).stream().map(language -> new LanguageRef(language.getId(), language.getName())).toList();
+    }
+
+    /**
+     * The id of the language the book names first (its own, a folder's or the user's), null for none.
+     */
+    public String primaryLanguageId(Manuscript book) throws Exception {
+        return translation.settings(book).getLanguageId();
+    }
+
+    /**
+     * The other languages of the book (besides the one it names), each with its speakers, as they are stored now.
+     */
+    public List<BookLanguage> otherLanguages(Manuscript book) throws Exception {
+        return translation.settings(book).getOtherLanguages();
+    }
+
+    /**
+     * Stores the other languages of the book; the rest of the settings of the book is left as it is.
+     */
+    public void saveOtherLanguages(Manuscript book, List<BookLanguage> others) throws Exception {
+        manuscriptService.update(book, current -> {
+            JsonObject attributes = ensure(current);
+            BookSettings settings = ConlangStore.readBook(attributes);
+            settings.setOtherLanguages(new java.util.ArrayList<>(others));
+            ConlangStore.writeBook(attributes, settings);
+        });
+    }
+
+    private static JsonObject ensure(Manuscript book) {
+        JsonObject attributes = book.getAttributes();
+        if (attributes == null) {
+            attributes = new JsonObject();
+            book.setAttributes(attributes);
+        }
+        return attributes;
+    }
+
     // ---- the speakers
+
+    /**
+     * The speakers of a language of the book as they are stored now, never null.
+     *
+     * @param languageId the language (its id)
+     * @throws IllegalArgumentException when the book does not have the language
+     */
+    public Speakers speakers(Manuscript book, String languageId) throws Exception {
+        Speakers speakers = translation.settings(book).speakersOf(languageId);
+        if (speakers == null) {
+            throw new IllegalArgumentException("The book does not have that language");
+        }
+        return speakers;
+    }
+
+    /**
+     * Stores the speakers of a language of the book; the rest of the settings of the book is left as it is.
+     *
+     * @throws IllegalArgumentException when the book does not have the language
+     */
+    public void saveSpeakers(Manuscript book, String languageId, Speakers speakers) throws Exception {
+        String primary = translation.settings(book).getLanguageId();
+        if (languageId == null || languageId.equals(primary)) {
+            saveSpeakers(book, speakers);
+            return;
+        }
+        manuscriptService.update(book, current -> {
+            JsonObject attributes = ensure(current);
+            BookSettings settings = ConlangStore.readBook(attributes);
+            BookLanguage other = settings.getOtherLanguages().stream().filter(item -> languageId.equals(item.getLanguageId())).findFirst()
+                    .orElseThrow(() -> new IllegalArgumentException("The book does not have that language"));
+            other.setSpeakers(speakers);
+            ConlangStore.writeBook(attributes, settings);
+        });
+    }
 
     /**
      * The speakers of the book as they are stored now, never null.
@@ -158,6 +258,16 @@ public class BookConlang {
      * @param context who says it, to whom, in what situation; may be empty
      */
     public Quick quickTranslate(Manuscript manuscript, String text, String context) throws Exception {
+        return quickTranslate(manuscript, text, context, null);
+    }
+
+    /**
+     * Translates a text into one language of the book. Nothing is written.
+     *
+     * @param languageId the language (its id), null for the first one of the book
+     * @throws IllegalArgumentException when the book does not have the language
+     */
+    public Quick quickTranslate(Manuscript manuscript, String text, String context, String languageId) throws Exception {
         Manuscript book = manuscriptService.find(manuscript);
         if (book == null) {
             throw new IllegalArgumentException("The book does not exist");
@@ -166,15 +276,17 @@ public class BookConlang {
             return Quick.failed(Status.EMPTY);
         }
         BookSettings settings = translation.resolve(book);
-        Language language = translation.languageOf(book, settings);
-        if (language == null) {
+        List<TranslationService.BookLang> found = translation.languagesOf(book, settings);
+        if (found.isEmpty()) {
             return Quick.failed(Status.NO_LANGUAGE);
         }
+        TranslationService.BookLang chosen = translation.pick(found, languageId);
+        Language language = chosen.language();
         ModelSelection model = translation.resolveModel(book, settings);
         if (model == null) {
             return Quick.failed(Status.NO_MODEL);
         }
-        TranslationPrompt.Request request = QuickTranslation.build(language, settings.getSpeakers(), text, context, settings.getMaxLexiconChars());
+        TranslationPrompt.Request request = QuickTranslation.build(language, chosen.speakers(), text, context, settings.getMaxLexiconChars());
         QuickTranslation.Answer answer = QuickTranslation.parse(modelClient.ask(model, book, request.system(), request.user()));
         if (answer == null) {
             return Quick.failed(Status.BAD_ANSWER);
@@ -192,7 +304,16 @@ public class BookConlang {
      * @return how many words were added
      */
     public int importWords(Manuscript book, List<Word> words, String modelName) throws Exception {
-        Language current = languageOf(book);
+        return importWords(book, words, modelName, null);
+    }
+
+    /**
+     * Adds the words of a quick translation to the lexicon of one language of the book, see {@link #importWords(Manuscript, List, String)}.
+     *
+     * @param languageId the language (its id), null for the first one of the book
+     */
+    public int importWords(Manuscript book, List<Word> words, String modelName, String languageId) throws Exception {
+        Language current = languageOf(book, languageId);
         if (current == null || words.isEmpty()) {
             return 0;
         }

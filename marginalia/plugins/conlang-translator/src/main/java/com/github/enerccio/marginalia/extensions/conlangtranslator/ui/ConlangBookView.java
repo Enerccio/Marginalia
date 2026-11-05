@@ -1,6 +1,5 @@
 package com.github.enerccio.marginalia.extensions.conlangtranslator.ui;
 
-import com.github.enerccio.marginalia.extensions.translatorcommon.ui.SpeakersEditor;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.ConlangStyles;
@@ -8,8 +7,12 @@ import com.github.enerccio.marginalia.extensions.conlangtranslator.diff.ChangeSe
 import com.github.enerccio.marginalia.extensions.conlangtranslator.diff.LanguageDiff;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.model.Language;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.model.RunLanguage;
-import com.github.enerccio.marginalia.extensions.translatorcommon.model.Speakers;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.service.BookConlang;
+import com.github.enerccio.marginalia.extensions.translatorcommon.model.BookLanguage;
+import com.github.enerccio.marginalia.extensions.translatorcommon.model.LanguageRef;
+import com.github.enerccio.marginalia.extensions.translatorcommon.model.Speakers;
+import com.github.enerccio.marginalia.extensions.translatorcommon.ui.BookLanguagesPanel;
+import com.github.enerccio.marginalia.extensions.translatorcommon.ui.SpeakersEditor;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.vaadin.flow.component.Component;
@@ -18,9 +21,11 @@ import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.tabs.TabSheet;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -29,7 +34,8 @@ import static com.github.enerccio.marginalia.extensions.conlangtranslator.Conlan
 /**
  * The tab of the story for the conlang of the book: the words of its language (the author looks them up and edits them while writing), who
  * speaks the language in this book, and the quick translation of a text. The language is the one the book names (its own, a folder's or the
- * user's); <i>Refresh</i> reads it again after it was changed in the window of the book.
+ * user's); <i>Refresh</i> reads it again after it was changed in the window of the book. A book with more than one language has a field to choose
+ * which of them the words, the speakers and the quick translation are about, and a tab to add or take away the other languages.
  */
 public class ConlangBookView extends VerticalLayout {
 
@@ -38,6 +44,9 @@ public class ConlangBookView extends VerticalLayout {
     private final Span title = new Span();
     private final VerticalLayout body = new VerticalLayout();
 
+    private final Select<LanguageRef> picker = new Select<>();
+    private boolean picking;
+    private String selectedId;
     private Language language;
     private LexiconTab lexicon;
     private final Set<String> knownWords = new HashSet<>();
@@ -54,7 +63,15 @@ public class ConlangBookView extends VerticalLayout {
         refresh.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         refresh.setTooltipText(T.localized(REFRESH));
         refresh.setAriaLabel(T.localized(REFRESH));
-        HorizontalLayout header = new HorizontalLayout(title, refresh);
+        picker.setItemLabelGenerator(LanguageRef::name);
+        picker.setVisible(false);
+        picker.addValueChangeListener(event -> {
+            if (!picking && event.getValue() != null && !event.getValue().id().equals(selectedId)) {
+                selectedId = event.getValue().id();
+                refresh();
+            }
+        });
+        HorizontalLayout header = new HorizontalLayout(title, picker, refresh);
         header.setWidthFull();
         header.setAlignItems(Alignment.CENTER);
         header.expand(title);
@@ -74,15 +91,26 @@ public class ConlangBookView extends VerticalLayout {
         lexicon = null;
         try {
             body.add(runChanges());
-            language = service.languageOf(book);
-            if (language == null) {
+            List<LanguageRef> languages = service.languages(book);
+            if (languages.isEmpty()) {
+                picker.setVisible(false);
                 title.setText(T.localized(CONLANG));
                 Span none = new Span(T.localized(THE_BOOK_HAS_NO_LANGUAGE));
                 none.addClassName(ConlangStyles.HINT);
                 body.add(none);
+                language = null;
                 return;
             }
-            title.setText(T.localized(LANGUAGE_S).formatted(language.getName()));
+            if (languages.stream().noneMatch(item -> item.id().equals(selectedId))) {
+                selectedId = languages.getFirst().id();
+            }
+            picking = true;
+            picker.setItems(languages);
+            picker.setValue(languages.stream().filter(item -> item.id().equals(selectedId)).findFirst().orElse(languages.getFirst()));
+            picking = false;
+            picker.setVisible(languages.size() > 1);
+            language = service.languageOf(book, selectedId);
+            title.setText(languages.size() > 1 ? "" : T.localized(LANGUAGE_S).formatted(language.getName()));
             knownWords.clear();
             language.getLexicon().forEach(entry -> knownWords.add(entry.getId()));
 
@@ -91,7 +119,8 @@ public class ConlangBookView extends VerticalLayout {
             lexicon = new LexiconTab(language, this::saveWords);
             tabs.add(T.localized(WORDS), lexicon);
             tabs.add(T.localized(SPEAKERS), speakers());
-            tabs.add(T.localized(QUICK_TRANSLATE), new QuickTranslatePanel(book, service, this::reloadWords));
+            tabs.add(T.localized(LANGUAGES), otherLanguages());
+            tabs.add(T.localized(QUICK_TRANSLATE), new QuickTranslatePanel(book, service, selectedId, this::reloadWords));
             tabs.addSelectedChangeListener(_ -> {
                 if (lexicon != null) {
                     lexicon.refresh();
@@ -168,10 +197,30 @@ public class ConlangBookView extends VerticalLayout {
     }
 
     private Component speakers() throws Exception {
-        Speakers speakers = service.speakers(book);
+        String languageId = selectedId;
+        Speakers speakers = service.speakers(book, languageId);
         return new SpeakersEditor(speakers, () -> {
             try {
-                service.saveSpeakers(book, speakers);
+                service.saveSpeakers(book, languageId, speakers);
+            } catch (Exception e) {
+                Notification.error(String.format(T.localized(THE_LANGUAGES_CAN_NOT_BE_LOADED), e.getMessage()));
+            }
+        });
+    }
+
+    /** The languages of the book besides the one it names: add and remove; the tabs are built again after a change. */
+    private Component otherLanguages() throws Exception {
+        List<BookLanguage> others = service.otherLanguages(book);
+        return new BookLanguagesPanel(others, () -> {
+            try {
+                return service.libraryLanguages(book);
+            } catch (Exception e) {
+                throw new IllegalStateException(e.getMessage(), e);
+            }
+        }, service.primaryLanguageId(book), () -> {
+            try {
+                service.saveOtherLanguages(book, others);
+                refresh();
             } catch (Exception e) {
                 Notification.error(String.format(T.localized(THE_LANGUAGES_CAN_NOT_BE_LOADED), e.getMessage()));
             }
@@ -190,7 +239,7 @@ public class ConlangBookView extends VerticalLayout {
     /** Words were added to the library from outside the list (the quick translation): the list shows the stored words, the tab stays. */
     private void reloadWords() {
         try {
-            Language stored = service.languageOf(book);
+            Language stored = service.languageOf(book, selectedId);
             if (stored == null || language == null || lexicon == null) {
                 return;
             }
