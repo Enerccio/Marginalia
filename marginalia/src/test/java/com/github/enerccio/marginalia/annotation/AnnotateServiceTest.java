@@ -17,6 +17,7 @@ import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.SettingService;
 import com.github.enerccio.marginalia.domain.service.impl.AnnotateServiceImpl;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationOptions;
+import com.github.enerccio.marginalia.extensions.AnnotationFactsRegistry;
 import com.github.enerccio.marginalia.extensions.PartTextRegistry;
 import com.github.enerccio.marginalia.test.GenerationTestBase;
 import com.github.enerccio.marginalia.test.llm.MockLLMRequest;
@@ -57,6 +58,9 @@ class AnnotateServiceTest extends GenerationTestBase {
     private PartTextRegistry partTextRegistry;
 
     @Autowired
+    private AnnotationFactsRegistry annotationFacts;
+
+    @Autowired
     private SettingService settingService;
 
     @Autowired
@@ -75,6 +79,7 @@ class AnnotateServiceTest extends GenerationTestBase {
     @AfterEach
     void unregisterTransformers() {
         partTextRegistry.unregisterAll(PART_TEXT_OWNER);
+        annotationFacts.unregisterAll(PART_TEXT_OWNER);
     }
 
     @BeforeEach
@@ -183,6 +188,50 @@ class AnnotateServiceTest extends GenerationTestBase {
         assertThat(first.located()).isTrue();
         assertThat(TEXT.substring(first.start(), first.end())).isEqualTo("They talked for hours.");
         assertThat(result.proposals().get(1).type()).isNull();
+    }
+
+    // ------------------------------------------------------------------------------------------------ facts of extensions
+
+    @Test
+    void theFactsOfAnExtensionAreGivenToTheModelWithTheBranchUpToThePart() throws Exception {
+        List<List<String>> asked = new java.util.concurrent.CopyOnWriteArrayList<>();
+        annotationFacts.register(PART_TEXT_OWNER, (book, target, branch) -> {
+            asked.add(branch.stream().map(ChatMessage::getResponse).toList());
+            return List.of(new AnnotationFactsRegistry.Section("What Anna knows:", "Anna has never met John."));
+        });
+        llm.enqueue(MockLLMResponse.text("{\"findings\": []}"));
+
+        done(request("flag continuity errors", Mode.STRUCTURED));
+
+        String prompt = llm.lastCompletionRequest().getPromptText();
+        assertThat(prompt).contains("ESTABLISHED FACTS START").contains("What Anna knows:\nAnna has never met John.")
+                .contains("ESTABLISHED FACTS END").contains("Established facts");
+        // the provider is told the part and everything before it, the part last
+        assertThat(asked).containsExactly(List.of("Anna sailed to the harbour.", TEXT));
+    }
+
+    @Test
+    void withoutFactsThePromptHasNoFactsBlock() throws Exception {
+        annotationFacts.register(PART_TEXT_OWNER, (book, target, branch) -> List.of());
+        llm.enqueue(MockLLMResponse.text("{\"findings\": []}"));
+
+        done(request("flag continuity errors", Mode.STRUCTURED));
+
+        assertThat(llm.lastCompletionRequest().getPromptText()).doesNotContain("ESTABLISHED FACTS").doesNotContain("Established facts");
+    }
+
+    @Test
+    void aProviderThatFailsDoesNotBreakTheAnnotation() throws Exception {
+        annotationFacts.register(PART_TEXT_OWNER, (book, target, branch) -> {
+            throw new IllegalStateException("broken extension");
+        });
+        annotationFacts.register(PART_TEXT_OWNER, (book, target, branch) ->
+                List.of(new AnnotationFactsRegistry.Section(null, "The harbour is closed.")));
+        llm.enqueue(MockLLMResponse.text("{\"findings\": []}"));
+
+        done(request("flag continuity errors", Mode.STRUCTURED));
+
+        assertThat(llm.lastCompletionRequest().getPromptText()).contains("The harbour is closed.");
     }
 
     @Test

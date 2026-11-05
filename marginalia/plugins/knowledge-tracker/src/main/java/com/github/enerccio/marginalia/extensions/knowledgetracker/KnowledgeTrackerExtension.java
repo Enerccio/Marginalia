@@ -12,10 +12,12 @@ import com.github.enerccio.marginalia.domain.service.impl.generation.*;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationControllerEvent.EventChain;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationControllerEvent.Registration;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.GenerationOutcome;
+import com.github.enerccio.marginalia.extensions.AnnotationFactsRegistry;
 import com.github.enerccio.marginalia.extensions.ExtensionHasCss;
 import com.github.enerccio.marginalia.extensions.MarginaliaExtension;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.block.PayloadInsertion;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.commands.KnowledgeTrackerCommands;
+import com.github.enerccio.marginalia.extensions.knowledgetracker.facts.KnowledgeFactsProvider;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.model.BookSettings;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.model.KnowledgeState;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.service.*;
@@ -69,6 +71,9 @@ public class KnowledgeTrackerExtension implements MarginaliaExtension, Extension
     @Autowired
     private CommandService commandService;
 
+    @Autowired
+    private AnnotationFactsRegistry annotationFacts;
+
     private final KnowledgeStateService stateService = new KnowledgeStateService();
     private final KnowledgePromptService promptService = new KnowledgePromptService(stateService);
     private final KnowledgeProcessService processService = new KnowledgeProcessService(stateService);
@@ -77,6 +82,8 @@ public class KnowledgeTrackerExtension implements MarginaliaExtension, Extension
 
     /** Kept to unregister it, the service takes the object. */
     private KnowledgeTrackerCommands commands;
+
+    private KnowledgeFactsProvider factsProvider;
 
     private ExtensionDecorator storyPartDecorator;
     private ExtensionDecorator partFinishedDecorator;
@@ -132,6 +139,10 @@ public class KnowledgeTrackerExtension implements MarginaliaExtension, Extension
             };
             extensionService.registerDecorator(partFinishedDecorator,
                     "com.github.enerccio.marginalia.ui.dialogs.story.AutoAnnotate", "finished");
+
+            // what the characters know at a part, for the model that reviews it (Annotate with AI)
+            factsProvider = new KnowledgeFactsProvider(stateService);
+            annotationFacts.register(bundle.getSymbolicName(), factsProvider);
 
             commands = new KnowledgeTrackerCommands(stateService, processService, extractionService, runs);
             commandService.registerCommands(commands);
@@ -275,6 +286,8 @@ public class KnowledgeTrackerExtension implements MarginaliaExtension, Extension
 
     @Override
     public void onExtensionUnload(Bundle b, OsgiService parentService, ExtensionService extensionService) {
+        annotationFacts.unregisterAll(b.getSymbolicName());
+        factsProvider = null;
         if (commands != null) {
             commandService.unregisterCommands(commands);
             commands = null;

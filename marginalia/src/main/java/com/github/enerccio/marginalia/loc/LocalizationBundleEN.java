@@ -2147,6 +2147,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.DESC_MACRO_CLOSEST_SUMMARY, "The summary closest to the one being written; with a number the n-th closest (1 is the newest). Empty when there is no such summary.");
         setValue(L.DESC_MACRO_CURRENT_MESSAGE, "The text of the part that Regenerate or a swipe replaces. Empty for a new part.");
         setValue(L.DESC_MACRO_JOIN, "Joins the texts after the first argument with the first argument as the separator. Empty texts are left out. Use {{space}} or {{newline}} for a separator with spaces.");
+        setValue(L.DESC_TEMPLATE_FACTS, "The facts that extensions know about the story at the part, for example what each character knows (empty when no extension gives any). Check the part against them: a contradiction is a continuity error.");
 
     }
 

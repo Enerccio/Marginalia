@@ -205,6 +205,8 @@ Review one part of the ongoing narrative "MANUSCRIPT CHRONICLE" as its editor an
 2. **Notes for the author**: Say what is wrong or weak and, when you can, how to fix it, in a sentence or two. Do not rewrite the passage.
 3. **Continuity**: The story before the part is established fact, the story after it relies on the part. Use the lore and the story around the part to find contradictions.
 4. **Only real findings**: No praise and no filler. A part with nothing to flag gets no notes. Do not repeat what the author already noted (see EXISTING NOTES).
+{{#facts}}5. **Established facts**: The ESTABLISHED FACTS are what the author's records say is true at the point of the part, for example what each character knows and does not know. A passage in which a character says, thinks or does what their facts say they cannot know (a person they have never met, a secret they were never told), or that contradicts a fact, is a continuity error: quote that passage and name the fact in the note. A fact that is not listed is not a fact: do not flag what the records are silent about, and do not flag a character for knowing what the part itself shows them learning.
+{{/facts}}
 
 ### NARRATION
 {{#narrativePov}}Narrative Voice: {{.}}{{/narrativePov}}
@@ -228,7 +230,11 @@ Review one part of the ongoing narrative "MANUSCRIPT CHRONICLE" as its editor an
 {{.}}
 === BACKGROUND LORE END ===
 
-{{/backgroundLore}}{{#followingStory}}=== STORY AFTER THE PART START ===
+{{/backgroundLore}}{{#facts}}=== ESTABLISHED FACTS START ===
+{{.}}
+=== ESTABLISHED FACTS END ===
+
+{{/facts}}{{#followingStory}}=== STORY AFTER THE PART START ===
 {{.}}
 === STORY AFTER THE PART END ===
 

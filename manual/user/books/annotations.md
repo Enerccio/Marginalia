@@ -128,6 +128,12 @@ Every part is a request to the model, so a long range costs as many requests (an
 
 ![Annotating a range of parts: the proposals are listed under the number of their part](../../images/annotate-ai-batch.png)
 
+**Facts from extensions.** An [extension](../extensions/index.md) that knows more about the story than its text says can give that to the
+reviewer, which then marks the passages that contradict it as continuity errors. The [Knowledge Tracker](../extensions/knowledge-tracker.md#annotating-with-what-the-characters-know)
+does: it tells the model what each tracked character of the part knew when the part begins, so a character who uses a name they never
+heard is noted. The facts are in the built-in [annotate prompt](prompts.md#annotate-prompt) (a prompt of your own has to use
+`{%{{{facts}}}%}`); with no such extension the prompt is as it was.
+
 If an answer can't be read, Marginalia asks once more; if it still can't be read, the model's answer is shown so the work
 is not lost. The prompt is the [annotate prompt](prompts.md#annotate-prompt).
 
@@ -139,7 +145,7 @@ book review each part right after it was generated, and optionally redraft it. T
 | Option | |
 |---|---|
 | **Model**, **Protocol** | The model that reviews. Empty is the model of the book (not the **Default model for annotating** of your settings, which the window you open yourself starts with). |
-| **What to look for** | The instructions, as in **Annotate with AI**. Empty uses what the book inherits (see [Annotate prompt](prompts.md#annotate-prompt)), else the task of the prompt. |
+| **What to look for** | The instructions, as in **Annotate with AI**. Empty uses what the book inherits (see [Annotate prompt](prompts.md#annotate-prompt)), else the task of the prompt; when you start with it empty, the field then shows the text that was used. |
 | **Annotate every generated part automatically** | Turns it on. After a part was generated (a new part, a swipe or a regeneration; not one that was stopped or failed) the annotation window opens and **starts at once**. |
 | **Add the annotations without asking** | When the model is done, the notes it found are added and the window closes. Without it the window stays open with the proposals, as when you start it yourself. |
 | **Then redraft the part to address the annotations** | Only with the one above. After the notes were added the [redraft](story-editor.md#redrafting-a-part) window opens and starts at once, with **Deal with the open annotations of the part** checked and no instructions of its own. It writes with the model of the book and does not offer to revalidate summaries: the part is new, no summary describes it. |

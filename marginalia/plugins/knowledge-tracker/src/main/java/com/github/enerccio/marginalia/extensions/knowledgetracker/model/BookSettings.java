@@ -18,6 +18,11 @@ public class BookSettings {
     /** The "knows nothing else" line of the block. */
     private boolean closedWorld = true;
     /**
+     * Whether the annotation of a part is given what the tracked characters knew at that part, to find the ones who act on what they cannot
+     * know. Costs tokens only for the parts that have tracked characters.
+     */
+    private boolean factsForAnnotation = true;
+    /**
      * Whether the parts written since the last time are processed by themselves, just before the prompt of the next
      * generation is built. Off: nothing runs by itself (the state that exists is still inserted).
      */
@@ -177,6 +182,14 @@ public class BookSettings {
 
     public void setClosedWorld(boolean closedWorld) {
         this.closedWorld = closedWorld;
+    }
+
+    public boolean isFactsForAnnotation() {
+        return factsForAnnotation;
+    }
+
+    public void setFactsForAnnotation(boolean factsForAnnotation) {
+        this.factsForAnnotation = factsForAnnotation;
     }
 
     public List<String> getSeparators() {

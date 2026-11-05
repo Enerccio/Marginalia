@@ -1,32 +1,14 @@
 package com.github.enerccio.marginalia.workset;
 
-import com.github.enerccio.marginalia.domain.collections.ProtocolType;
 import com.github.enerccio.marginalia.domain.collections.AnnotationStatus;
+import com.github.enerccio.marginalia.domain.collections.ProtocolType;
 import com.github.enerccio.marginalia.domain.collections.RevisionSource;
 import com.github.enerccio.marginalia.domain.components.RevisionOrigin;
 import com.github.enerccio.marginalia.domain.components.TurnInput;
-import com.github.enerccio.marginalia.domain.model.impl.Annotation;
-import com.github.enerccio.marginalia.domain.service.AnnotateService;
-import com.github.enerccio.marginalia.domain.service.AnnotationService;
-import com.github.enerccio.marginalia.domain.service.RedraftService;
-import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationOptions;
-import com.github.enerccio.marginalia.domain.model.impl.ChatCompletionProtocol;
-import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
-import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
-import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
-import com.github.enerccio.marginalia.domain.model.impl.MessagePrompt;
-import com.github.enerccio.marginalia.domain.model.impl.OpenAICompatible;
-import com.github.enerccio.marginalia.domain.model.impl.Protocol;
+import com.github.enerccio.marginalia.domain.model.impl.*;
 import com.github.enerccio.marginalia.domain.security.model.User;
-import com.github.enerccio.marginalia.domain.service.ChatMessageService;
-import com.github.enerccio.marginalia.domain.service.CommandScopes;
-import com.github.enerccio.marginalia.domain.service.CommandService;
-import com.github.enerccio.marginalia.domain.service.ExtensionService;
-import com.github.enerccio.marginalia.domain.service.LorebookService;
-import com.github.enerccio.marginalia.domain.service.ManuscriptService;
-import com.github.enerccio.marginalia.domain.service.MessagePromptService;
-import com.github.enerccio.marginalia.domain.service.ProtocolService;
-import com.github.enerccio.marginalia.domain.service.StoryGenerationService;
+import com.github.enerccio.marginalia.domain.service.*;
+import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationOptions;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationRequest;
 import com.github.enerccio.marginalia.test.GenerationRun;
 import com.github.enerccio.marginalia.test.MarginaliaTestBase;
@@ -36,7 +18,6 @@ import com.github.enerccio.marginalia.test.llm.MockLLMResponse;
 import com.github.enerccio.marginalia.utils.AppClock;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonObject;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -49,12 +30,7 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -142,7 +118,7 @@ class WorksetBuilder extends MarginaliaTestBase {
     private TranslationPass translation;
     private KnowledgePass knowledge;
     private BlockEnd blockEnd;
-    private int summaryBudget;
+    private long summaryBudget;
     private Set<String> translateAll = Set.of();
     /** The parts up to this position are translated into every language, whatever their beats say (a smoke test of all four languages). */
     private int translateAllUntil = 1;
@@ -187,7 +163,6 @@ class WorksetBuilder extends MarginaliaTestBase {
                 .map(String::strip).filter(name -> !name.isEmpty()).toList();
         int blockSize = Integer.getInteger("workset.blockSize", 25);
         int summaryMinWords = Integer.getInteger("workset.summary.minWords", 800);
-        summaryBudget = Integer.getInteger("workset.summaryBudget", 0);
 
         Files.createDirectories(dir);
         Skeleton skeleton = Skeleton.load(skeletonDir.resolve("beats.json"));
@@ -300,7 +275,11 @@ class WorksetBuilder extends MarginaliaTestBase {
             if (plugins == null || !plugins.isLoaded("arcoutline")) {
                 throw new IllegalStateException("workset.steps has blockend, but the arcoutline plugin is not loaded (workset.plugins=" + wantedPlugins + ")");
             }
-            blockEnd = new BlockEnd(new TranslationPass(commandService, commandScopes), manuscriptService, chatMessageService, summaryMinWords, Integer.getInteger("workset.chapters"), Integer.getInteger("workset.chapterWords", 3000), summaryBudget, Integer.getInteger("workset.summaryEvery", 1));
+            // the summaries may take this share of the context the book's AI has left after the reply; meta summaries are made only above it (0 = never)
+            double contextShare = Double.parseDouble(System.getProperty("workset.contextShare", "0.5"));
+            summaryBudget = (long) (contextShare * (ai.getMaxContext() - ai.getMaxCompletionTokens()));
+            System.out.println("[workset] summaries may take " + summaryBudget + " tokens before meta summaries are made (" + contextShare + " of the usable context)");
+            blockEnd = new BlockEnd(new TranslationPass(commandService, commandScopes), manuscriptService, chatMessageService, summaryMinWords, Integer.getInteger("workset.chapters"), Integer.getInteger("workset.chapterWords", 3000), summaryBudget, Integer.getInteger("workset.summaryEvery", 1), Integer.getInteger("workset.metaPairsPerBlock", 1));
         }
 
         // ---- the parts
@@ -448,28 +427,11 @@ class WorksetBuilder extends MarginaliaTestBase {
             return;
         }
         if (state.blocksDone.contains(done / blockSize)) {
-            // the block is closed; the meta summaries can still be asked for later (a budget set after the block was closed)
-            if (summaryBudget > 0 && !state.metaDone.contains(done / blockSize)) {
-                clock.set(skeleton.beats.get(done - 1).at(start).plus(Duration.ofHours(26)).atZone(java.time.ZoneOffset.UTC).withHour(12).withMinute(0).toInstant());
-                String label = "block " + (done / blockSize);
-                String report = blockEnd.meta(manuscriptService.find(bookId), bookId, label, (name, type) -> {
-                    current = name;
-                    kind = type;
-                    bridgeError = null;
-                    lastLine = null;
-                });
-                audit(label, "Meta summaries", report);
-                state.metaDone.add(done / blockSize);
-                state.save();
-            }
             return;
         }
         clock.set(skeleton.beats.get(done - 1).at(start).plus(Duration.ofHours(24)).atZone(java.time.ZoneOffset.UTC).withHour(10).withMinute(0).toInstant());
         blockEnd(bookId, done / blockSize, done - blockSize + 1, done);
         state.blocksDone.add(done / blockSize);
-        if (summaryBudget > 0) {
-            state.metaDone.add(done / blockSize);
-        }
         state.save();
     }
 

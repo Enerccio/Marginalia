@@ -2155,6 +2155,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.DESC_MACRO_CLOSEST_SUMMARY, "离正在撰写的段落最近的摘要；带数字时为第 n 近的摘要（1 为最新）。没有则为空。");
         setValue(L.DESC_MACRO_CURRENT_MESSAGE, "重新生成或切换所要替换的段落文本。新段落为空。");
         setValue(L.DESC_MACRO_JOIN, "以第一个参数为分隔符连接其后的文本，空文本会被忽略。带空格的分隔符请使用 {{space}} 或 {{newline}}。");
+        setValue(L.DESC_TEMPLATE_FACTS, "扩展所掌握的、该段时点的故事事实，例如每个角色所知道的内容（没有扩展提供则为空）。请据此检查该段，与之矛盾即为连续性错误。");
     }
 
     @Override

@@ -173,6 +173,7 @@ public class KnowledgeTrackerCommands extends ManuscriptReadSupport {
         result.addProperty("depth", state.getSettings().getDepth());
         result.addProperty("role", state.getSettings().getRole().name().toLowerCase(Locale.ROOT));
         result.addProperty("closedWorld", state.getSettings().isClosedWorld());
+        result.addProperty("factsForAnnotation", state.getSettings().isFactsForAnnotation());
         result.add("separators", array(state.getSettings().getSeparators()));
         result.addProperty("autoProcess", state.getSettings().isAutoProcess());
         result.addProperty("hasStartPoint", state.getStartMessage() != null);
