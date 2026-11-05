@@ -19,6 +19,7 @@ import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.data.provider.Query;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import org.junit.jupiter.api.AfterEach;
@@ -105,10 +106,10 @@ class PhoneManuscriptPartFoldersTest extends MarginaliaTestBase {
         return ((ComponentRenderer<Component, FolderBookRow>) grid().getColumns().getFirst().getRenderer()).createComponent(row);
     }
 
-    // a folder row is tapped as a whole
+    // a folder row is tapped on its text; the menu button next to it is not part of the tap
     private void tap(FolderBookRow row) {
-        Component item = cell(row);
-        ComponentUtil.fireEvent(item, new ClickEvent<>(item));
+        Component text = ComponentTree.all(cell(row), VerticalLayout.class).findFirst().orElseThrow();
+        ComponentUtil.fireEvent(text, new ClickEvent<>(text));
     }
 
     private void click(String text) {
@@ -207,8 +208,10 @@ class PhoneManuscriptPartFoldersTest extends MarginaliaTestBase {
     }
 
     @Test
-    void aFolderRowHasNoButtonsToEditIt() {
-        assertThat(ComponentTree.all(cell(row("Sci-fi")), Button.class)).isEmpty();
+    void aFolderRowHasOnlyTheMenuButtonToEditIt() {
+        assertThat(ComponentTree.all(cell(row("Sci-fi")), Button.class))
+                .singleElement()
+                .satisfies(button -> assertThat(button.getAriaLabel()).hasValue(loc.getValue(L.LABEL_FOLDER_SETTINGS)));
     }
 
     @Test
