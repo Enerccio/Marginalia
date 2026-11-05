@@ -21,6 +21,7 @@ Extensions add features to Marginalia without changing the application itself. T
 | [Gemma 4 tools fix](gemma-4-tools-fix.md) | Makes function calling work with Gemma 4 models whose API wants another role for tool results. |
 | [Google Gemini](google-genai.md) | Google's Gemini models as an inference provider, over Google's own API, with the thinking summaries shown as reasoning. |
 | [Image Generator](image-generator.md) | Makes an image for a part of the story: the model writes the prompt, ComfyUI or an OpenAI-style images API draws it, you reroll and accept it. |
+| [Prompt History](prompt-history.md) | Keeps the last 20 requests sent to the models in your session (and per agent run), with the answers and the reasoning, for debugging plugins and checking prompts; opened from Settings → Extension Settings or the console of an agent. |
 | [Prompt Inspector](prompt-inspector.md) | Shows the prompt of a generation and asks before it is sent to the model; switched on and off in the settings menu of the story. |
 | [Instruction Exporter](instruction-exporter.md) | Copies the instructions, scene settings and characters of the story to the clipboard. |
 | [Knowledge Tracker](knowledge-tracker.md) | What each tracked character knows and does not know, put into the prompt so the model stops giving characters knowledge they cannot have. |

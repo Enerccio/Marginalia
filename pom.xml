@@ -35,6 +35,7 @@
     <module>marginalia/plugins/name-generator</module>
     <module>marginalia/plugins/name-provider</module>
     <module>marginalia/plugins/place-provider</module>
+    <module>marginalia/plugins/prompt-history</module>
     <module>marginalia/plugins/prompt-inspector</module>
     <module>marginalia/plugins/reallang-translator</module>
     <module>marginalia/plugins/reviewer</module>

@@ -1,5 +1,8 @@
 package com.github.enerccio.marginalia.domain.service;
 
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+
 /**
  * Names the kind of work the requests an inference service starts on this thread belong to, so that the service can
  * send it to the provider as the header {@value #HEADER}. The value is an opaque hash of the user and the kind (see
@@ -35,6 +38,29 @@ public final class InferenceSession implements AutoCloseable {
     public static final String HELP = "help";
 
     private static final ThreadLocal<Scope> ACTIVE = new ThreadLocal<>();
+
+    private static final List<InferenceListener> LISTENERS = new CopyOnWriteArrayList<>();
+
+    /**
+     * Installs a listener that is told about every request to a model, see {@link InferenceListener}. Remove it again
+     * when the extension is unloaded.
+     */
+    public static void addListener(InferenceListener listener) {
+        if (listener != null) {
+            LISTENERS.add(listener);
+        }
+    }
+
+    public static void removeListener(InferenceListener listener) {
+        LISTENERS.remove(listener);
+    }
+
+    /**
+     * @return the listeners now installed; a snapshot
+     */
+    public static List<InferenceListener> listeners() {
+        return List.copyOf(LISTENERS);
+    }
 
     /**
      * @param kind  what the work is, see the constants; a plugin uses its own name
