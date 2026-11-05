@@ -280,6 +280,13 @@ class WorksetBuilder extends MarginaliaTestBase {
             summaryBudget = (long) (contextShare * (ai.getMaxContext() - ai.getMaxCompletionTokens()));
             System.out.println("[workset] summaries may take " + summaryBudget + " tokens before meta summaries are made (" + contextShare + " of the usable context)");
             blockEnd = new BlockEnd(new TranslationPass(commandService, commandScopes), manuscriptService, chatMessageService, summaryMinWords, Integer.getInteger("workset.chapters"), Integer.getInteger("workset.chapterWords", 3000), summaryBudget, Integer.getInteger("workset.summaryEvery", 1), Integer.getInteger("workset.metaPairsPerBlock", 1));
+            blockEnd.forgetLastAnswerWith(() -> {
+                try {
+                    cache.forgetLast();
+                } catch (java.io.IOException e) {
+                    throw new IllegalStateException(e);
+                }
+            });
         }
 
         // ---- the parts

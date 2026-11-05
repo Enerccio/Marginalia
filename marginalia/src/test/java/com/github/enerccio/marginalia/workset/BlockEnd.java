@@ -72,6 +72,36 @@ public class BlockEnd {
         this.minWords = minWords;
     }
 
+    /** Forgets the answer stored last (set by the harness); used when the model's JSON was broken, so the request is asked again instead of replayed from the cache. */
+    private Runnable forgetLastAnswer = () -> {
+    };
+
+    public void forgetLastAnswerWith(Runnable forget) {
+        this.forgetLastAnswer = forget;
+    }
+
+    private static final int JSON_ATTEMPTS = 4;
+
+    /**
+     * The import of the arc, asked again when the model's answer is not usable JSON (a long answer from a small model now and then has a stray brace or a missing
+     * comma): the bad answer is dropped from the cache and the same request is sent once more. A refusal for the number of chapters is not retried here.
+     */
+    private String importArc(long bookId, Map<String, Object> args) throws Exception {
+        for (int attempt = 1; ; attempt++) {
+            try {
+                return commands.run(manuscripts.find(bookId), "import-arc-from-story", args);
+            } catch (IllegalStateException e) {
+                String message = String.valueOf(e.getMessage());
+                boolean broken = message.contains("Not valid JSON") || message.contains("required property");
+                if (!broken || attempt >= JSON_ATTEMPTS) {
+                    throw e;
+                }
+                System.out.println("[workset] the arc answer was not usable (" + message.substring(message.lastIndexOf(':') + 1).strip() + "), asking again (" + (attempt + 1) + "/" + JSON_ATTEMPTS + ")");
+                forgetLastAnswer.run();
+            }
+        }
+    }
+
     /** A chapter the model found, with the place of the part it begins in. */
     private record Found(String title, int part) {
     }
@@ -117,7 +147,7 @@ public class BlockEnd {
         String answer;
         String countNote = "";
         try {
-            answer = commands.run(manuscripts.find(bookId), "import-arc-from-story", args);
+            answer = importArc(bookId, args);
         } catch (IllegalStateException e) {
             // the plugin refuses an answer with another number of chapters than asked ("must have at most 4 items but found 5"): the refusal is cached like any answer, so the
             // model is asked again for the number it gave, which is a request of its own
@@ -129,7 +159,7 @@ public class BlockEnd {
             countNote = " The model gave " + given + " chapters for the " + count + " asked, so it was asked again for " + given + ".";
             count = given;
             args.put("count", count);
-            answer = commands.run(manuscripts.find(bookId), "import-arc-from-story", args);
+            answer = importArc(bookId, args);
         }
         JsonObject arc = GSON.fromJson(answer, JsonObject.class).getAsJsonObject("arc");
         List<Found> chapters = new ArrayList<>();
