@@ -27,6 +27,11 @@ public class BookSettings {
      * has met whom, which costs nothing.
      */
     private boolean extractWithModel = false;
+    /**
+     * Whether the model may read earlier parts of the story while it reads the new ones (the function {@code read_part}), to see where
+     * an item came from. Each read is one more round to the model, so it is off by default.
+     */
+    private boolean readEarlierParts = false;
     /** Parts read by one run of the extraction. */
     private int partsPerRun = 1;
     /** Whether the changes the model proposes are shown for review (guided) or applied at once and only logged. */
@@ -124,6 +129,14 @@ public class BookSettings {
 
     public void setTidyMinItems(int tidyMinItems) {
         this.tidyMinItems = Math.max(2, tidyMinItems);
+    }
+
+    public boolean isReadEarlierParts() {
+        return readEarlierParts;
+    }
+
+    public void setReadEarlierParts(boolean readEarlierParts) {
+        this.readEarlierParts = readEarlierParts;
     }
 
     public boolean isAskBeforeApplying() {

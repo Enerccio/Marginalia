@@ -3,6 +3,7 @@ package com.github.enerccio.marginalia.extensions.knowledgetracker.service;
 import com.github.enerccio.marginalia.domain.model.impl.*;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.service.*;
+import com.github.enerccio.marginalia.domain.service.function.FunctionSet;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LorebookEntryVerdict;
@@ -36,6 +37,11 @@ public class ExtractionService {
 
     /** Tokens kept free below the context of the model for the parts of the request this class cannot count. */
     private static final long MARGIN_TOKENS = 300;
+    /** What one read of an earlier part may take at most (characters), and the least that is worth offering the function for. */
+    private static final int MAX_READ_CHARS = 12000;
+    private static final int MIN_READ_CHARS = 1500;
+    /** About how many characters a token is, to turn the room that is left in the context into characters. */
+    private static final int CHARS_PER_TOKEN = 3;
     /** The answer of a model that thinks first is long; this is assumed when the model has no limit of its own. */
     private static final long DEFAULT_ANSWER_TOKENS = 4096;
 
@@ -183,7 +189,9 @@ public class ExtractionService {
         List<Part> wanted = pending.subList(0, Math.min(maxParts, pending.size()));
 
         // nobody tracked is in these parts: nothing to ask, no model needed, the cursor can move on over all of them
-        ExtractionPrompt.Request request = ExtractionPrompt.build(state, "", wanted, separators);
+        // the model may read what came before the run, to see where an item was learned (the first part of the run does not change below)
+        ExtractionPrompt.Readable readable = settings.isReadEarlierParts() ? ExtractionPrompt.Readable.of(branch, wanted) : null;
+        ExtractionPrompt.Request request = ExtractionPrompt.build(state, "", wanted, separators, readable);
         if (request.isEmpty()) {
             return new Proposal(List.copyOf(wanted), new ChangeSet(List.of(), List.of()), false, "", "", pending.size() - wanted.size());
         }
@@ -199,7 +207,7 @@ public class ExtractionService {
         int count = wanted.size();
         while (count > 1 && tokens(service, request) > budget) {
             count--;
-            request = ExtractionPrompt.build(state, "", wanted.subList(0, count), separators);
+            request = ExtractionPrompt.build(state, "", wanted.subList(0, count), separators, readable);
         }
         if (tokens(service, request) > budget) {
             throw new IllegalStateException("A single part does not fit the context of the model together with what the characters know");
@@ -217,9 +225,18 @@ public class ExtractionService {
         }
 
         String lore = lore(manuscript, settings.getLoreMode(), run, budget - tokens(service, request), service, note);
-        request = ExtractionPrompt.build(state, lore, run, separators);
+        request = ExtractionPrompt.build(state, lore, run, separators, readable);
 
-        Answered answered = ask(model, manuscript, request, live);
+        // what is left of the context is what the reads may take: a part is cut to its share, and with no room for a useful read there is none
+        PartReader reader = null;
+        if (readable != null) {
+            long spare = budget - tokens(service, request);
+            int maxChars = (int) Math.min(MAX_READ_CHARS, spare * CHARS_PER_TOKEN / PartReader.MAX_READS);
+            if (maxChars >= MIN_READ_CHARS) {
+                reader = new PartReader(branch, readable.readable(), maxChars, null);
+            }
+        }
+        Answered answered = ask(model, manuscript, request, live, reader);
         String raw = answered.text();
         ExtractionAnswer answer;
         try {
@@ -295,7 +312,7 @@ public class ExtractionService {
             note.append("Only the last ").append(recent.size()).append(" part(s) fit as context.");
         }
 
-        Answered answered = ask(model, manuscript, request, live);
+        Answered answered = ask(model, manuscript, request, live, null);
         TidyAnswer answer;
         try {
             answer = com.github.enerccio.marginalia.domain.service.structured.StructuredOutputs.parse(answered.text(), TidyAnswer.class);
@@ -351,7 +368,7 @@ public class ExtractionService {
      * Asks the model and waits for the whole answer. The request is streamed so that the reasoning of the model, which a plain
      * {@code infer} drops, can be kept for the review.
      */
-    private Answered ask(ModelSelection model, Manuscript book, ExtractionPrompt.Request request, Live live) throws Exception {
+    private Answered ask(ModelSelection model, Manuscript book, ExtractionPrompt.Request request, Live live, PartReader reader) throws Exception {
         List<LLMChatMessage> payload = List.of(LLMChatMessage.of(LLMRole.SYSTEM, request.system()),
                 LLMChatMessage.of(LLMRole.USER, request.user()));
         CompletableFuture<Answered> answer = new CompletableFuture<>();
@@ -361,9 +378,21 @@ public class ExtractionService {
         if (live != null) {
             live.started();
         }
-        try (InferenceSession _ = InferenceSession.open("knowledge-tracker"); UsageContext _ = UsageContext.open(book)) {
-            token = inferenceServices.forAIOrThrow(model.ai()).stream(payload, model.protocol(),
-                    new InferenceService.InferenceAsyncCallback() {
+        // what the model reads is shown like its reasoning and kept with it for the review
+        PartReader noted = reader == null ? null : reader.listening(number -> {
+            String line = "\n[The model read part " + number + ".]\n";
+            synchronized (reasoning) {
+                reasoning.append(line);
+            }
+            if (live != null) {
+                try {
+                    live.chunk(true, line);
+                } catch (RuntimeException e) {
+                    // showing it must never fail the request
+                }
+            }
+        });
+        InferenceService.InferenceAsyncCallback callback = new InferenceService.InferenceAsyncCallback() {
                         @Override
                         public void onChunk(InferenceService.InferenceAsyncController controller,
                                             InferenceService.ChunkType chunkType, String chunk) throws Exception {
@@ -398,7 +427,20 @@ public class ExtractionService {
                         public boolean isDead() {
                             return answer.isDone();
                         }
-                    });
+                    };
+        try (InferenceSession _ = InferenceSession.open("knowledge-tracker"); UsageContext _ = UsageContext.open(book)) {
+            InferenceService service = inferenceServices.forAIOrThrow(model.ai());
+            if (noted != null) {
+                try {
+                    FunctionSet functions = inferenceServices.getFunctionRegistry().bind(StoryFunctions.class, new StoryFunctionsImpl(noted));
+                    token = service.stream(payload, model.protocol(), functions, callback);
+                } catch (UnsupportedOperationException e) {
+                    // the provider can not call functions: the model reads the request as it is
+                    token = service.stream(payload, model.protocol(), callback);
+                }
+            } else {
+                token = service.stream(payload, model.protocol(), callback);
+            }
         }
         try {
             return answer.get();
