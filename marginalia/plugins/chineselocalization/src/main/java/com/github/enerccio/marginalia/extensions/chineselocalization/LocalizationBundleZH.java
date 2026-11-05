@@ -974,6 +974,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_SET_FOR_THE_BOOK, "已为本书设置");
         setValue(L.LABEL_TRANSLATION, "翻译");
         setValue(L.LABEL_CLEAR_SAVED_LOGINS, "清除已保存的登录（记住我）");
+        setValue(L.LABEL_RESUMMARIZE_ALL_SUMMARIES, "重新生成所有摘要");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -1649,6 +1650,11 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_IMPORT_SUMMARIES, "请选择由“导出摘要”生成的文件（可以用文本编辑器修改）。文件中所指的当前分支的摘要将被替换；在点击“导入”之前不会有任何更改。");
         setValue(L.MSG_SAVE_OUTDATED_SUMMARIES, "保存此更改会使 %d 条摘要过期：它们是根据该部分的旧文本写成的，生成时不会使用过期的摘要。\n\n返回编辑、仍然保存，还是保存并将摘要标记为仍然有效？");
         setValue(L.MSG_SUMMARIES_REVALIDATED, "已重新验证 %d 条摘要。");
+        setValue(L.MSG_RESUMMARIZE_CONFIRM, "当前分支的所有摘要（包括元摘要，共 %d 条）将由模型重新撰写，从最旧的开始，元摘要内部的摘要先于元摘要，使其符合当前的摘要提示词。每条摘要需要一次请求。新文本在最后一条完成后才会保存：如果中途停止或失败，摘要保持原样。");
+        setValue(L.MSG_RESUMMARIZE_PROGRESS, "第 %d 条摘要，共 %d 条");
+        setValue(L.MSG_RESUMMARIZE_FINISHED, "已重新撰写 %d 条摘要。");
+        setValue(L.MSG_RESUMMARIZE_STOPPED, "已停止，摘要未更改。");
+        setValue(L.MSG_RESUMMARIZE_NO_SUMMARIES, "没有可重新撰写的摘要。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");

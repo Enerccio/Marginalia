@@ -27,9 +27,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.context.request.RequestAttributes;
 
 import java.nio.charset.StandardCharsets;
@@ -74,6 +77,10 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
     @Autowired
     @Lazy
     private AgentRunService agentRunService;
+
+    @Autowired
+    @Qualifier("common")
+    private PlatformTransactionManager transactionManager;
 
     @Override
     @CommonTx
@@ -210,6 +217,304 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
         }
 
         return cancellationToken;
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public CancellationToken resummarize(Manuscript manuscript, ResummaryCallback callback) throws Exception {
+        if (manuscript == null || callback == null || manuscript.getAi() == null || manuscript.getActiveLeaf() == null) {
+            return null;
+        }
+        agentRunService.checkNotLocked(manuscript);
+
+        AI ai = aiService.find(manuscript.getAi());
+        Protocol protocol = protocolService.find(manuscript.getProtocol());
+        InferenceService inferenceService = inferenceServices.forAIOrThrow(ai);
+        if (inferenceService == null) {
+            return null;
+        }
+
+        // newest first
+        List<ChatMessage> tree = chatMessageService.getBranchFromLeaf(manuscript.getActiveLeaf()).reversed();
+        List<SummaryNode> roots = collectTree(tree);
+        if (roots.isEmpty()) {
+            return null;
+        }
+        Summary[] attached = new Summary[tree.size()];
+        for (int i = 0; i < attached.length; i++) {
+            ChatMessage message = tree.get(i);
+            attached[i] = message.getSummary() == null ? null : find(message.getSummary());
+        }
+
+        // the oldest first, a summary after those it stands in for
+        List<ResummaryStep> steps = new ArrayList<>();
+        for (SummaryNode root : roots) {
+            planResummary(root, tree, steps);
+        }
+
+        ResummaryRun run = new ResummaryRun(manuscript, ai, protocol, inferenceService, tree, attached, roots, steps, callback);
+        // on a thread of its own: building a request calls services (each in its own transaction), which does not work
+        // in the thread of this one, not even after its commit
+        Thread.ofVirtual().name("resummarize").start(() -> run.run(0));
+        return run.token;
+    }
+
+    private void planResummary(SummaryNode node, List<ChatMessage> tree, List<ResummaryStep> steps) {
+        for (SummaryNode child : node.getChildren()) {
+            planResummary(child, tree, steps);
+        }
+        steps.add(new ResummaryStep(node, indexOf(tree, node.getMessage()), node.getSummary().getSummaryType() == SummaryType.META_SUMMARY));
+    }
+
+    /**
+     * Puts the new texts into the summaries, children first: a summary a meta summary replaced is kept as text inside it,
+     * so the meta summary stores it again after it was changed.
+     */
+    private void storeResummary(SummaryNode node, Map<SummaryNode, ResummaryResult> results) throws Exception {
+        SummaryNode replaced = null;
+        for (SummaryNode child : node.getChildren()) {
+            storeResummary(child, results);
+            if (child.isReplaced()) {
+                replaced = child;
+            }
+        }
+        ResummaryResult result = results.get(node);
+        Summary target = node.isReplaced() ? node.getSummary() : find(node.getSummary());
+        target.setSummary(result.summary());
+        target.setSummaryTokens(result.summaryTokens());
+        target.setReasoning(result.reasoning());
+        target.setReasoningTokens(result.reasoningTokens());
+        target.setSummaryMessageHash(result.hash());
+        if (replaced != null) {
+            extendableListener.serialize(replaced.getSummary());
+            target.setReplacedSummary(new String(replaced.getSummary().getExtendedContent(), StandardCharsets.UTF_8));
+        }
+        if (!node.isReplaced()) {
+            save(target);
+        }
+    }
+
+    private record ResummaryStep(SummaryNode node, int index, boolean meta) {
+    }
+
+    private record ResummaryResult(String summary, String reasoning, long summaryTokens, long reasoningTokens, String hash) {
+    }
+
+    /**
+     * One run of {@link #resummarize}: the requests go one after another, the next one starts when the answer of the
+     * previous one is complete. Everything is kept here and stored at the end.
+     */
+    private final class ResummaryRun {
+        final CancellationToken token = new CancellationToken();
+
+        private final Manuscript manuscript;
+        private final AI ai;
+        private final Protocol protocol;
+        private final InferenceService inferenceService;
+        // the branch, newest first, and the summary on each part of it (null for none)
+        private final List<ChatMessage> tree;
+        private final Summary[] attached;
+        private final List<SummaryNode> roots;
+        private final List<ResummaryStep> steps;
+        private final ResummaryCallback callback;
+        private final RequestAttributes attributes = ThreadCopyRequestAttributes.create();
+        private final Map<SummaryNode, ResummaryResult> results = new IdentityHashMap<>();
+        // the new text of the summaries that are stored on a part, by uuid: the hash of a meta summary is made of them
+        private final Map<String, String> newTexts = new HashMap<>();
+
+        ResummaryRun(Manuscript manuscript, AI ai, Protocol protocol, InferenceService inferenceService, List<ChatMessage> tree,
+                     Summary[] attached, List<SummaryNode> roots, List<ResummaryStep> steps, ResummaryCallback callback) {
+            this.manuscript = manuscript;
+            this.ai = ai;
+            this.protocol = protocol;
+            this.inferenceService = inferenceService;
+            this.tree = tree;
+            this.attached = attached;
+            this.roots = roots;
+            this.steps = steps;
+            this.callback = callback;
+        }
+
+        void run(int index) {
+            try (InRequestScope _ = new InRequestScope(attributes)) {
+                if (token.isCancelled()) {
+                    callback.onTerminated();
+                    return;
+                }
+                if (index >= steps.size()) {
+                    store();
+                    callback.onFinished(steps.size());
+                    return;
+                }
+                ResummaryStep step = steps.get(index);
+                callback.onStep(index + 1, steps.size(), tree.get(step.index()), step.meta());
+
+                SummaryPayload prepared = prepare(step);
+                if (prepared == null) {
+                    throw new IllegalStateException("Nothing to summarize at the part " + tree.get(step.index()).getId());
+                }
+                if (token.isCancelled()) {
+                    callback.onTerminated();
+                    return;
+                }
+                try (InferenceSession _ = InferenceSession.open(InferenceSession.SUMMARY); UsageContext _ = UsageContext.open(manuscript)) {
+                    // a stop reaches the request also while the server still reads the prompt
+                    StepCallback stepCallback = new StepCallback(index, step, prepared.hash());
+                    stepCallback.unregister = token.onCancel(inferenceService.stream(prepared.payload(), protocol, stepCallback)::cancel);
+                }
+            } catch (Exception e) {
+                fail(e);
+            }
+        }
+
+        private void fail(Throwable error) {
+            log.error("Failed to write the summaries again", error);
+            try (InRequestScope _ = new InRequestScope(attributes)) {
+                callback.onError(error);
+            } catch (Exception e) {
+                log.error("Failed to report the error of writing the summaries again", e);
+            }
+        }
+
+        private void store() throws Exception {
+            agentRunService.checkNotLocked(manuscript);
+            new TransactionTemplate(transactionManager).executeWithoutResult(_ -> {
+                try {
+                    for (SummaryNode root : roots) {
+                        storeResummary(root, results);
+                    }
+                } catch (RuntimeException e) {
+                    throw e;
+                } catch (Exception e) {
+                    throw new IllegalStateException(e);
+                }
+            });
+        }
+
+        /**
+         * The request and the hash of the summary at the step: for the parts it covers (down to the next part with a
+         * summary), for a meta summary also the new texts of the summaries it stands in for.
+         */
+        private SummaryPayload prepare(ResummaryStep step) throws Exception {
+            int index = step.index();
+            ChatMessage head = tree.get(index);
+            List<ChatMessage> branch = tree.subList(index, tree.size());
+            if (!step.meta()) {
+                int end = index + 1;
+                while (end < tree.size() && attached[end] == null) {
+                    end++;
+                }
+                return buildSummaryPayload(manuscript, head, branch, tree.subList(index, end), ai, protocol, inferenceService);
+            }
+
+            List<String> texts = new ArrayList<>();
+            for (SummaryNode child : step.node().getChildren()) {
+                texts.add(StringUtils.defaultString(results.get(child).summary()));
+            }
+            List<LLMChatMessage> payload = buildMetaPayload(manuscript, head, branch, texts, ai, protocol, inferenceService);
+            return new SummaryPayload(payload, metaHash(step));
+        }
+
+        /**
+         * The hash {@link #walkBlocks} makes of a meta summary block: the parts down to the summary it continues with and
+         * the summaries on them, the head's own not included.
+         */
+        private String metaHash(ResummaryStep step) throws Exception {
+            int index = step.index();
+            int end = tree.size();
+            String next = step.node().getSummary().getNextSummaryUuid();
+            if (next != null) {
+                for (int i = index + 1; i < tree.size(); i++) {
+                    if (attached[i] != null && next.equals(attached[i].getUuid())) {
+                        end = i;
+                        break;
+                    }
+                }
+            }
+            BlockTexts texts = new BlockTexts() {
+                @Override
+                public String response(ChatMessage message) {
+                    return message.getResponse();
+                }
+
+                @Override
+                public String summary(Summary summary) {
+                    return newTexts.getOrDefault(summary.getUuid(), summary.getSummary());
+                }
+            };
+            MessageDigest digest = MessageDigest.getInstance("SHA512");
+            for (int i = index; i < end; i++) {
+                updateHash(digest, tree.get(i), i == index ? null : attached[i], texts);
+            }
+            return HexFormat.of().formatHex(digest.digest());
+        }
+
+        private final class StepCallback implements InferenceAsyncCallback {
+            private final int index;
+            private final ResummaryStep step;
+            private final String hash;
+            private final StringBuilder summary = new StringBuilder();
+            private final StringBuilder reasoning = new StringBuilder();
+            Runnable unregister = () -> {
+            };
+
+            StepCallback(int index, ResummaryStep step, String hash) {
+                this.index = index;
+                this.step = step;
+                this.hash = hash;
+            }
+
+            @Override
+            public void onChunk(InferenceAsyncController controller, ChunkType chunkType, String text) throws Exception {
+                try (InRequestScope _ = new InRequestScope(attributes)) {
+                    (chunkType == ChunkType.REASONING ? reasoning : summary).append(text);
+                    callback.onSummaryProgress(reasoning.toString(), summary.toString());
+                    controller.continueInference();
+                }
+            }
+
+            @Override
+            public void onCompletion() throws Exception {
+                unregister.run();
+                try (InRequestScope _ = new InRequestScope(attributes)) {
+                    String text = summary.toString();
+                    if (StringUtils.isBlank(text)) {
+                        // storing it would wipe the summary
+                        fail(new IllegalStateException("The model wrote no summary for the part " + tree.get(step.index()).getId()));
+                        return;
+                    }
+                    ResummaryResult result = new ResummaryResult(text, reasoning.toString(), inferenceService.countTokens(text),
+                            inferenceService.countTokens(reasoning.toString()), hash);
+                    results.put(step.node(), result);
+                    if (!step.node().isReplaced()) {
+                        newTexts.put(step.node().getSummary().getUuid(), text);
+                    }
+                } catch (Exception e) {
+                    fail(e);
+                    return;
+                }
+                run(index + 1);
+            }
+
+            @Override
+            public void onCancel() throws Exception {
+                unregister.run();
+                try (InRequestScope _ = new InRequestScope(attributes)) {
+                    callback.onTerminated();
+                }
+            }
+
+            @Override
+            public void onError(Throwable exception) throws Exception {
+                unregister.run();
+                fail(exception);
+            }
+
+            @Override
+            public boolean isDead() {
+                return token.isCancelled();
+            }
+        }
     }
 
     @Override
@@ -567,9 +872,36 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
     }
 
     private List<LLMChatMessage> createSummaryPayload(Manuscript manuscript, ChatMessage from, AI ai, Protocol protocol, InferenceService inferenceService, Summary newSummary) throws Exception {
-        String systemPrompt = manuscriptService.getSummaryPrompt(manuscript);
         List<ChatMessage> tree = chatMessageService.getBranchFromLeaf(from);
         tree = tree.reversed();
+
+        List<ChatMessage> messagesToSummarize = new ArrayList<>();
+        for (ChatMessage chatMessage : tree) {
+            if (chatMessage.getSummary() != null) {
+                break;
+            }
+            messagesToSummarize.add(chatMessage);
+        }
+
+        SummaryPayload built = buildSummaryPayload(manuscript, from, tree, messagesToSummarize, ai, protocol, inferenceService);
+        if (built == null) {
+            return null;
+        }
+        newSummary.setSummaryMessageHash(built.hash());
+        return built.payload();
+    }
+
+    /**
+     * The request that summarizes the parts, and the hash of their texts.
+     *
+     * @param tree              the branch from {@code from} to the root, newest first
+     * @param messagesToSummarize the parts the summary covers, newest first
+     * @return null when there is nothing to summarize
+     */
+    private SummaryPayload buildSummaryPayload(Manuscript manuscript, ChatMessage from, List<ChatMessage> tree,
+                                               List<ChatMessage> messagesToSummarize, AI ai, Protocol protocol,
+                                               InferenceService inferenceService) throws Exception {
+        String systemPrompt = manuscriptService.getSummaryPrompt(manuscript);
 
         // room for the response is reserved, the prompt gets the rest of the context
         int maxTokens = TokenLimits.promptTokens(ai, protocol);
@@ -591,14 +923,6 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
             throw new SummaryContextInsufficient(tokens, maxTokens);
         }
 
-        List<ChatMessage> messagesToSummarize = new ArrayList<>();
-        for (ChatMessage chatMessage : tree) {
-            if (chatMessage.getSummary() != null) {
-                break;
-            }
-            messagesToSummarize.add(chatMessage);
-        }
-
         if (messagesToSummarize.isEmpty()) {
             // should not happen
             return null;
@@ -611,7 +935,7 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
 
         MessageDigest digest = MessageDigest.getInstance("SHA512");
         messagesToSummarize.stream().map(ChatMessage::getResponse).map(s -> s.getBytes(StandardCharsets.UTF_8)).forEach(digest::update);
-        newSummary.setSummaryMessageHash(HexFormat.of().formatHex(digest.digest()));
+        String hash = HexFormat.of().formatHex(digest.digest());
         // the summarizer reads the story as a model reads it; the hash above is made of the story as it is stored
         template.setText(String.join("\n\n", partTextRegistry.forModel(messagesToSummarize.reversed())));
         template.setTemplateContext(templateContext);
@@ -622,7 +946,10 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
             throw new SummaryContextInsufficient(tokens, maxTokens);
         }
 
-        return List.of(LLMChatMessage.of(LLMRole.SYSTEM, fullPrompt));
+        return new SummaryPayload(List.of(LLMChatMessage.of(LLMRole.SYSTEM, fullPrompt)), hash);
+    }
+
+    private record SummaryPayload(List<LLMChatMessage> payload, String hash) {
     }
 
     private List<LLMChatMessage> createMetaSummaryPayload(Manuscript manuscript, ChatMessage from, ChatMessage to, AI ai, Protocol protocol, InferenceService inferenceService, Summary newSummary) throws Exception {
@@ -668,6 +995,16 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
                 .map(block -> StringUtils.defaultString(block.summary().getSummary()))
                 .collect(Collectors.toList());
 
+        return buildMetaPayload(manuscript, from, tree, texts, ai, protocol, inferenceService);
+    }
+
+    /**
+     * The request that merges the texts (the oldest first) into a meta summary.
+     *
+     * @param tree the branch from {@code from} to the root, newest first
+     */
+    private List<LLMChatMessage> buildMetaPayload(Manuscript manuscript, ChatMessage from, List<ChatMessage> tree, List<String> texts,
+                                                  AI ai, Protocol protocol, InferenceService inferenceService) throws Exception {
         String systemPrompt = manuscriptService.getMetaSummaryPrompt(manuscript);
         // room for the response is reserved, the prompt gets the rest of the context
         int maxTokens = TokenLimits.promptTokens(ai, protocol);

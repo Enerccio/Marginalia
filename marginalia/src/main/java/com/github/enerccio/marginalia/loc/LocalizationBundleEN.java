@@ -966,6 +966,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_SET_FOR_THE_BOOK, "Set for the book");
         setValue(L.LABEL_TRANSLATION, "Translation");
         setValue(L.LABEL_CLEAR_SAVED_LOGINS, "Clear saved logins (remember me)");
+        setValue(L.LABEL_RESUMMARIZE_ALL_SUMMARIES, "Resummarize all summaries");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -1641,6 +1642,11 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_IMPORT_SUMMARIES, "Choose a file made by Export Summaries (you can edit it in a text editor). The summaries of the active branch that the file names are replaced; nothing is changed until you press Import.");
         setValue(L.MSG_SAVE_OUTDATED_SUMMARIES, "Saving this change makes %d summaries outdated: they were written for the old text of the part, and generation does not use outdated summaries.\n\nGo back to editing, save anyway, or save and mark the summaries as still valid?");
         setValue(L.MSG_SUMMARIES_REVALIDATED, "%d summaries revalidated.");
+        setValue(L.MSG_RESUMMARIZE_CONFIRM, "Every summary of the active branch (%d, meta summaries included) will be written again by the model, the oldest first and the summaries inside a meta summary before it, so that they follow the current summary prompts. It takes one request per summary. The new texts are stored only after the last one is done: if you stop it or it fails, the summaries stay as they are.");
+        setValue(L.MSG_RESUMMARIZE_PROGRESS, "Summary %d of %d");
+        setValue(L.MSG_RESUMMARIZE_FINISHED, "%d summaries written again.");
+        setValue(L.MSG_RESUMMARIZE_STOPPED, "Stopped, the summaries were not changed.");
+        setValue(L.MSG_RESUMMARIZE_NO_SUMMARIES, "There are no summaries to write again.");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");
