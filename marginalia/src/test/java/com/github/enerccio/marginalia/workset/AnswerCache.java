@@ -25,6 +25,7 @@ public class AnswerCache {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 
     private final Path dir;
+    private volatile Path lastStored;
 
     public AnswerCache(Path dir) throws IOException {
         this.dir = dir;
@@ -59,5 +60,18 @@ public class AnswerCache {
         Path tmp = dir.resolve(key + ".json.tmp");
         Files.writeString(tmp, GSON.toJson(new Entry(authorId, messages, answer)), StandardCharsets.UTF_8);
         Files.move(tmp, dir.resolve(key + ".json"), java.nio.file.StandardCopyOption.REPLACE_EXISTING, java.nio.file.StandardCopyOption.ATOMIC_MOVE);
+        lastStored = dir.resolve(key + ".json");
+    }
+
+    /**
+     * Forgets the answer stored last, so the same request is asked again. For an answer the application refused (the model's JSON was broken): left in the
+     * cache it would be replayed for ever.
+     */
+    public void forgetLast() throws IOException {
+        Path file = lastStored;
+        if (file != null) {
+            Files.deleteIfExists(file);
+            lastStored = null;
+        }
     }
 }
