@@ -291,6 +291,8 @@ public class KnowledgeTrackerView extends VerticalLayout {
         extract.setTooltipText(T.localized(ASK_THE_MODEL_WHAT_EACH_TRACKED));
         Checkbox ask = new Checkbox(T.localized(ASK_BEFORE_APPLYING), settings.isAskBeforeApplying());
         ask.setTooltipText(T.localized(SHOW_WHAT_THE_MODEL_FOUND));
+        Checkbox readBack = new Checkbox(T.localized(LET_THE_MODEL_READ_EARLIER_PARTS), settings.isReadEarlierParts());
+        readBack.setTooltipText(T.localized(WHEN_AN_ITEM_CAME_FROM_AN_EARLIER_PART));
         IntegerField parts = new IntegerField(T.localized(PARTS_PER_RUN));
         parts.setMin(1);
         parts.setStepButtonsVisible(true);
@@ -345,6 +347,7 @@ public class KnowledgeTrackerView extends VerticalLayout {
         Runnable enable = () -> {
             boolean on = extract.getValue();
             ask.setEnabled(on);
+            readBack.setEnabled(on);
             parts.setEnabled(on);
             tidyParts.setEnabled(on);
             tidyMin.setEnabled(on);
@@ -361,6 +364,10 @@ public class KnowledgeTrackerView extends VerticalLayout {
         });
         ask.addValueChangeListener(e -> {
             state.getSettings().setAskBeforeApplying(e.getValue());
+            saveState();
+        });
+        readBack.addValueChangeListener(e -> {
+            state.getSettings().setReadEarlierParts(e.getValue());
             saveState();
         });
         parts.addValueChangeListener(e -> {
@@ -408,7 +415,7 @@ public class KnowledgeTrackerView extends VerticalLayout {
         });
         enable.run();
 
-        VerticalLayout box = new VerticalLayout(extract, ask, parts, autoTidy, tidyEvery, tidyParts, tidyMin, lore, model, protocol);
+        VerticalLayout box = new VerticalLayout(extract, ask, readBack, parts, autoTidy, tidyEvery, tidyParts, tidyMin, lore, model, protocol);
         box.setPadding(false);
         box.setSpacing(false);
         return box;

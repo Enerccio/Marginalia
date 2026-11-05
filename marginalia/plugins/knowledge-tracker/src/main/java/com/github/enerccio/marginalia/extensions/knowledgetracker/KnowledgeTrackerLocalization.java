@@ -47,6 +47,8 @@ public class KnowledgeTrackerLocalization extends PluginLocalizationBundle {
     public static final String HAS_MET = "Has met: %s";
     public static final String SETTINGS = "Settings";
     public static final String REFRESH = "Refresh";
+    public static final String LET_THE_MODEL_READ_EARLIER_PARTS = "Let the model read earlier parts";
+    public static final String WHEN_AN_ITEM_CAME_FROM_AN_EARLIER_PART = "The model may read the part an item was learned in when it is unsure (hearsay that is now confirmed, for instance). Each read is one more round to the model.";
     public static final String MET_PEOPLE = "Has met";
     public static final String PEOPLE_THE_CHARACTER_HAS_MET = "People the character has met, separated by commas. Processing adds the ones it sees in the story; the ones you remove come back only if the story is read again.";
     public static final String IN_PROMPT = "In prompt";
@@ -268,6 +270,12 @@ public class KnowledgeTrackerLocalization extends PluginLocalizationBundle {
 
         ja(REFRESH, "更新");
         zh(REFRESH, "刷新");
+
+        ja(LET_THE_MODEL_READ_EARLIER_PARTS, "モデルが以前のパートを読めるようにする");
+        zh(LET_THE_MODEL_READ_EARLIER_PARTS, "允许模型阅读之前的部分");
+
+        ja(WHEN_AN_ITEM_CAME_FROM_AN_EARLIER_PART, "モデルは、確信が持てないとき（たとえば噂で聞いたことが確認された場合）、項目を得たパートを読み返せます。読み返すたびにモデルへのやり取りが1回増えます。");
+        zh(WHEN_AN_ITEM_CAME_FROM_AN_EARLIER_PART, "模型不确定时（例如传闻现在得到证实），可以阅读某条内容得知的那一部分。每次阅读都会让模型多一轮请求。");
 
         ja(MET_PEOPLE, "会ったことがある人");
         zh(MET_PEOPLE, "见过的人");
