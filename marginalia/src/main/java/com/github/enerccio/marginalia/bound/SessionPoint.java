@@ -11,6 +11,9 @@ import com.github.enerccio.marginalia.ui.workspace.Workspace;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 
 /**
  * Session scoped state of the user's session.
@@ -24,6 +27,27 @@ public class SessionPoint {
     private final List<LLMChatMessage> helpChat = Collections.synchronizedList(new ArrayList<>());
 
     private final ProblemLog problems = new ProblemLog();
+
+    private final Map<String, Object> pluginData = new ConcurrentHashMap<>();
+
+    /**
+     * Free storage of this session for extensions, which cannot add fields to this class: keep your data under a key
+     * named like the extension (its package, for example). It lives as long as the session and is never saved. Keep
+     * the value itself (not this bean) in code that runs off the request.
+     */
+    public Map<String, Object> getPluginData() {
+        return pluginData;
+    }
+
+    /**
+     * The value under the key, created with {@code create} the first time (atomically).
+     *
+     * @throws ClassCastException when another type was stored under the key
+     */
+    @SuppressWarnings("unchecked")
+    public <T> T getPluginData(String key, Supplier<T> create) {
+        return (T) pluginData.computeIfAbsent(key, k -> create.get());
+    }
 
     /**
      * Language of the UI of this session, {@code null} until one is set (the default language is used then). Set from

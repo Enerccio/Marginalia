@@ -23,6 +23,7 @@ a restart.
 | [Name generator](name-generator/README.md) | Functions for the model to list name categories (about 1270: names of the world, places, deities, drugs...) and generate names from Markov chains; used by the Lore Generator and Arc Outline. |
 | [Name provider](name-provider/README.md) | Functions for the model to list lists of real names (forenames and surnames of about 100 countries) and pick names from them, each as a pair of the romanized and the original name; used by the Lore Generator and Arc Outline. |
 | [Place provider](place-provider/README.md) | Functions and commands to look up real places (Natural Earth, about 18 000 notable ones): a search by name, type and country, the places around a point and the distance of two places. |
+| [Prompt History](prompt-history/README.md) | The last 20 requests sent to the models in your session (what was sent, the answer and the reasoning, the model and the type of request), shown from a button in Settings → Extension Settings. |
 | [Prompt Inspector](prompt-inspector/README.md) | "Inspect prompt before sending" in the story settings menu: shows the prompt of a generation and asks before it is sent to the model. |
 | [Real Language Translator](reallang-translator/README.md) | The speech of the characters in a real language (Japanese for a story set in Japan; rules for the script, honorifics, politeness and names, no lexicon), the English kept as the source every model reads; shares the library `translator-common` with the Conlang Translator. |
 | [Reviewer](reviewer/README.md) | AI-written reviews of a story part, with configurable reviewer profiles. |
@@ -52,7 +53,7 @@ mvn -N install                   # in the repository root: installs the parent P
 cd marginalia
 mvn install -DskipTests          # installs the application (and its classes JAR used by plugins)
 
-cd plugins/chaptermarker          # or anthropic, arc-outline, authorsnote, beta-readers, book-description-generator, character-tracker, gemma4toolsfix, google-genai, image-generator, instructionexporter, lore-generator, lorebookvcs, manga-generator, name-generator, name-provider, place-provider, prompt-inspector, reallang-translator, reviewer, sidequery, sillytavern-converter, chineselocalization
+cd plugins/chaptermarker          # or anthropic, arc-outline, authorsnote, beta-readers, book-description-generator, character-tracker, gemma4toolsfix, google-genai, image-generator, instructionexporter, lore-generator, lorebookvcs, manga-generator, name-generator, name-provider, place-provider, prompt-history, prompt-inspector, reallang-translator, reviewer, sidequery, sillytavern-converter, chineselocalization
 mvn package                       # target/chaptermarker-1.4.0.jar
 ```
 
