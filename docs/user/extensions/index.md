@@ -25,6 +25,7 @@ Extensions add features to Marginalia without changing the application itself. T
 | [Name generator](name-generator.md) | Names for the model to use instead of inventing them: about 1270 lists of names, as Markov chains. |
 | [Name provider](name-provider.md) | Real names for the model to pick from: forenames and surnames of about 100 countries, with the original spelling. |
 | [Place provider](place-provider.md) | Real places for the model to look up: cities, seas, bays, rivers, mountains and more with coordinates and countries, what is around a place and the distance of two. |
+| [Real Language Translator](real-language-translator.md) | The speech of your characters in a real language (Japanese for a story set in Japan), with the English kept behind it for the models and a click for the reader. |
 | [Reviewer](reviewer.md) | Reviews of story parts written by the model - reader reactions, critique. |
 | [Side Query](side-query.md) | A chat with the model about your book, next to the story. |
 | [Converter](sillytavern-converter.md) | A SillyTavern chat next to the story and turn details the model prepares from it, to rewrite the chat as a story; or the parts of an older book (from a backup or the book itself) with their instructions, to redraft it. |

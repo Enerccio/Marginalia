@@ -60,6 +60,30 @@ public class ModelClient {
         return new ModelSelection(ai, protocol != null && !protocol.isDeleted() ? protocol : null);
     }
 
+    /**
+     * The model of a book's request: the AI and the protocol of the uuids (the plugin's own choice, either may be null), else the ones of the book,
+     * else the defaults of the user.
+     *
+     * @return null when there is no model at all
+     */
+    public ModelSelection choose(String aiUuid, String protocolUuid, Manuscript book) throws Exception {
+        AI ai = aiUuid != null ? aiService.findForUser(aiUuid) : null;
+        Protocol protocol = protocolUuid != null ? protocolService.findForUser(protocolUuid) : null;
+        if (ai == null || ai.isDeleted()) {
+            ai = book.getAi();
+            protocol = protocol != null && !protocol.isDeleted() ? protocol : book.getProtocol();
+        }
+        if (ai == null || ai.isDeleted()) {
+            UserSetting user = settingService.getOrCreate(UserSetting.class);
+            ai = user.getDefaultModel() != null ? aiService.find(user.getDefaultModel()) : null;
+            protocol = user.getDefaultProtocol() != null ? protocolService.find(user.getDefaultProtocol()) : protocol;
+        }
+        if (ai == null || ai.isDeleted()) {
+            return null;
+        }
+        return new ModelSelection(ai, protocol != null && !protocol.isDeleted() ? protocol : null);
+    }
+
     public String ask(ModelSelection model, Manuscript book, String system, String user) throws Exception {
         List<LLMChatMessage> payload = List.of(LLMChatMessage.of(LLMRole.SYSTEM, system), LLMChatMessage.of(LLMRole.USER, user));
         CompletableFuture<String> answer = new CompletableFuture<>();

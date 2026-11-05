@@ -36,6 +36,28 @@ public class TranslatorCommonLocalization extends PluginLocalizationBundle {
     public static final String MOVE_DOWN = "Move down";
     public static final String MOVE_UP = "Move up";
     public static final String OK = "OK";
+    public static final String A_RANGE_IS_BEING_TRANSLATED_ALREADY = "A range of this book is being processed already";
+    public static final String D_EDITED_SPEECHES_STAY = "%d edited speech(es) stay as they are.";
+    public static final String D_NEW_WORDS = "%d new word(s).";
+    public static final String D_PARTS_CHANGED_D_SPEECHES = "%d part(s) changed, %d speech(es).";
+    public static final String D_PARTS_FAILED_S = "%d part(s) failed: %s";
+    public static final String FROM_PART = "From part";
+    public static final String NOTHING_TO_DO_IN_THE_RANGE = "Nothing to do in the range";
+    public static final String PARTS_IN_THE_RANGE_D_TO_DO_D = "%d part(s) in the range, %d to do";
+    public static final String PART_D_OF_D = "Part %d of %d";
+    public static final String PUT_THE_ENGLISH_BACK = "Put the English back";
+    public static final String PUT_THE_ENGLISH_BACK_INTO_D_PARTS = "Put the English back into %d part(s)? The translation stays in the history of each part, and speeches you edited stay as they are.";
+    public static final String START = "Start";
+    public static final String STOP = "Stop";
+    public static final String STOPPED_AFTER_D_OF_D_PARTS = "Stopped after %d of %d part(s).";
+    public static final String STOPPING_AFTER_THIS_PART = "Stopping after this part...";
+    public static final String THE_TRANSLATION_FAILED = "The translation failed: %s";
+    public static final String TO_PART = "To part";
+    public static final String TRANSLATE_PARTS = "Translate parts";
+    public static final String TRANSLATE_THE_PARTS_THAT_ARE_NOT_TRANSLATED = "Translate the parts that are not translated";
+    public static final String TRANSLATE_THE_TRANSLATED_PARTS_AGAIN = "Translate the translated parts again";
+    public static final String WHAT_DO_YOU_WANT = "What do you want?";
+    public static final String CLOSE = "Close";
 
     @Override
     protected void loadKeys() {
@@ -115,5 +137,71 @@ public class TranslatorCommonLocalization extends PluginLocalizationBundle {
 
         ja(OK, "OK");
         zh(OK, "确定");
+
+        ja(A_RANGE_IS_BEING_TRANSLATED_ALREADY, "この本の範囲を処理中です");
+        zh(A_RANGE_IS_BEING_TRANSLATED_ALREADY, "本书已有一个范围正在处理");
+
+        ja(D_EDITED_SPEECHES_STAY, "編集された台詞%d件はそのままです。");
+        zh(D_EDITED_SPEECHES_STAY, "%d 句编辑过的对白保持不变。");
+
+        ja(D_NEW_WORDS, "新語%d個。");
+        zh(D_NEW_WORDS, "%d 个新词。");
+
+        ja(D_PARTS_CHANGED_D_SPEECHES, "%d個のパートを変更、台詞%d件。");
+        zh(D_PARTS_CHANGED_D_SPEECHES, "已修改 %d 段,%d 句对白。");
+
+        ja(D_PARTS_FAILED_S, "%d個のパートが失敗しました:%s");
+        zh(D_PARTS_FAILED_S, "%d 段失败:%s");
+
+        ja(FROM_PART, "開始パート");
+        zh(FROM_PART, "起始段落");
+
+        ja(NOTHING_TO_DO_IN_THE_RANGE, "範囲内に対象がありません");
+        zh(NOTHING_TO_DO_IN_THE_RANGE, "范围内没有需要处理的段落");
+
+        ja(PARTS_IN_THE_RANGE_D_TO_DO_D, "範囲内のパート:%d、対象:%d");
+        zh(PARTS_IN_THE_RANGE_D_TO_DO_D, "范围内 %d 段,待处理 %d 段");
+
+        ja(PART_D_OF_D, "パート %d / %d");
+        zh(PART_D_OF_D, "第 %d / %d 段");
+
+        ja(PUT_THE_ENGLISH_BACK, "英語に戻す");
+        zh(PUT_THE_ENGLISH_BACK, "恢复为英文");
+
+        ja(PUT_THE_ENGLISH_BACK_INTO_D_PARTS, "%d個のパートを英語に戻しますか?翻訳は各パートの履歴に残り、編集した台詞はそのままです。");
+        zh(PUT_THE_ENGLISH_BACK_INTO_D_PARTS, "要将 %d 段恢复为英文吗?译文保留在每段的历史中,你编辑过的对白保持不变。");
+
+        ja(START, "開始");
+        zh(START, "开始");
+
+        ja(STOP, "停止");
+        zh(STOP, "停止");
+
+        ja(STOPPED_AFTER_D_OF_D_PARTS, "%d / %d個のパートの後に停止しました。");
+        zh(STOPPED_AFTER_D_OF_D_PARTS, "在 %d / %d 段后停止。");
+
+        ja(STOPPING_AFTER_THIS_PART, "このパートの後に停止します...");
+        zh(STOPPING_AFTER_THIS_PART, "处理完这一段后停止...");
+
+        ja(THE_TRANSLATION_FAILED, "翻訳に失敗しました: %s");
+        zh(THE_TRANSLATION_FAILED, "翻译失败:%s");
+
+        ja(TO_PART, "終了パート");
+        zh(TO_PART, "结束段落");
+
+        ja(TRANSLATE_PARTS, "パートを翻訳");
+        zh(TRANSLATE_PARTS, "翻译段落");
+
+        ja(TRANSLATE_THE_PARTS_THAT_ARE_NOT_TRANSLATED, "未翻訳のパートを翻訳");
+        zh(TRANSLATE_THE_PARTS_THAT_ARE_NOT_TRANSLATED, "翻译尚未翻译的段落");
+
+        ja(TRANSLATE_THE_TRANSLATED_PARTS_AGAIN, "翻訳済みのパートを再翻訳");
+        zh(TRANSLATE_THE_TRANSLATED_PARTS_AGAIN, "重新翻译已翻译的段落");
+
+        ja(WHAT_DO_YOU_WANT, "何をしたいですか?");
+        zh(WHAT_DO_YOU_WANT, "你想要什么?");
+
+        ja(CLOSE, "閉じる");
+        zh(CLOSE, "关闭");
     }
 }

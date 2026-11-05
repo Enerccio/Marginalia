@@ -32,6 +32,8 @@ public class Span {
     private boolean understood = true;
     /** The register the model chose, empty for the neutral one. */
     private String register = "";
+    /** How the translation is read (the romaji of kana or kanji text), shown above the source; empty for none. */
+    private String reading = "";
     /** A hash of the translated text the plugin made, to tell that the author edited it. */
     private String textHash;
     /** The model that translated it, as the user names it, and when (epoch milliseconds). */
@@ -117,6 +119,14 @@ public class Span {
 
     public void setUnderstood(boolean understood) {
         this.understood = understood;
+    }
+
+    public String getReading() {
+        return reading == null ? "" : reading;
+    }
+
+    public void setReading(String reading) {
+        this.reading = reading;
     }
 
     public String getRegister() {

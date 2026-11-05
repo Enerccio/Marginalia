@@ -55,4 +55,12 @@ class SourcePopoverTest {
 
         assertEquals(List.of("\"Go.\""), texts(SourcePopover.content(span, null)));
     }
+
+    @Test
+    void aReadingIsShownAboveTheSource() {
+        Span span = new Span("ja", "\"I see the enemy.\"", "\"敵が見える。\"");
+        span.setReading("teki ga mieru.");
+
+        assertEquals(List.of("teki ga mieru.", "\"I see the enemy.\""), texts(SourcePopover.content(span, null)));
+    }
 }

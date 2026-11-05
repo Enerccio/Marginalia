@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847153534219">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847154911516">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../../resources/css/retype.css?v=4.6.0.847153534219" rel="stylesheet">
+    <link href="../../../../resources/css/retype.css?v=4.6.0.847154911516" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../../resources/js/config.js?v=4.6.0.847153534219" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../../resources/js/config.js?v=4.6.0.847154911516" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../../resources/js/lunr.js?v=4.6.0.847153534219" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../../resources/js/prism.js?v=4.6.0.847153534219" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../../resources/js/lunr.js?v=4.6.0.847154911516" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../../resources/js/prism.js?v=4.6.0.847154911516" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -188,25 +188,29 @@ where an invented language (a lexicon, new words) and a real one (a script, poli
 <h2 id="what-is-in-it">What is in it</h2>
 <retype-table copy-text="| Package | Class | What it is for |
 |---|---|---|
-| `model` | `Span` | What a plugin keeps for one translated passage: the **source**, the speaker, the language, whether the listener understands it, the register, the model and time, and a **hash of the translated text** the plugin wrote. `Span.read(attributes)` / `span.write(attributes)` store it as JSON in the attributes of the passage. `isEdited(currentText)` is true when the author changed the translation since: the source is then stale. |
+| `model` | `Span` | What a plugin keeps for one translated passage: the **source**, the speaker, the language, whether the listener understands it, the register, a **reading** (the romaji of a Japanese text, empty for none), the model and time, and a **hash of the translated text** the plugin wrote. `Span.read(attributes)` / `span.write(attributes)` store it as JSON in the attributes of the passage. `isEdited(currentText)` is true when the author changed the translation since: the source is then stale. |
 | | `Speakers`, `CharacterNote`, `SpeakersMode` | Who speaks the language in a book (everyone except the listed characters, or only the listed ones), with the aliases, gender and voice of each character. `speaks(name)`, `find(name)`. |
 | | `ReaderMode` | What the reader of a published book sees: `CLICK` (the translation, the source on a click), `TRANSLATED`, `SOURCE`. `id()` / `of(id)` for the setting. |
 | | `ExportMode` | What an export holds: `TRANSLATED` (as stored), `SOURCE`, `TRANSLATED_NOTES`, `SOURCE_NOTES` (the other text in footnotes). |
 | `translate` | `Reverse` | `Reverse.toModel(stored, located)` turns the translated passages of a stored text back into their source and returns the `ModelText` map, the substitutions, the passages the author edited and the ones that could not be used. |
 | | `TranslationPlan` | `TranslationPlan.make(source, accepted)`: the new text of a part with every accepted speech replaced, and the `Planned` passages in it (range, translation, source, speech). Pure. |
-| | `Speech` | One direct speech as the model answered for it (`quote`, `speaker`, `language`, `text`, `understood`, `register`). A convenient shape for the answer; a plugin may use its own. |
+| | `Speech` | One direct speech as the model answered for it (`quote`, `speaker`, `language`, `text`, `understood`, `register`). A convenient shape for the answer; a plugin may use its own and make a `Speech` of it. |
+| | `ModelJson` | `ModelJson.object(raw)`: the JSON object in what a model answered (a code fence or a word before it is ignored); null when there is none. |
 | | `SelectionRange` | `trim(text, start, end)`: the range the user selected without its white space. |
 | `text` | `SpeechTransformer` | A `PartTextRegistry.Transformer`: `new SpeechTransformer(passageAccess)`. |
 | | `SpeechExportContributor`, `ExportText` | An `ExportTextRegistry.Contributor`: `new SpeechExportContributor(passageAccess, session -&gt; mode)`. `ExportText.edits(mode, stored, located)` is the pure part. |
-| | `ReaderText` | The markdown of a part for the reader: `render(mode, stored, passages, markClass)`; the marks carry `data-translated-passage`. |
+| | `ReaderText` | The markdown of a part for the reader: `render(mode, stored, passages, markClass)` (or a function that gives each passage the mark of its kind); the marks carry `data-translated-passage`. |
 | | `SpeechPassageKind` | The `PassageKind` a plugin registers: `new SpeechPassageKind(id, markClass)`; the click opens `SourcePopover`. |
 | `service` | `PassageAccess` | `new PassageAccess(kind)`: the translated passages of parts of **your** kind, located (`of(parts)`, `passagesOf(part)`, `locate(passage)`). It is the `Passages` source of the transformer. |
-| | `ModelClient` | `new ModelClient(name).choose(aiUuid, protocolUuid)` finds the model, `ask(model, book, system, user)` waits for the whole answer (reasoning chunks are left out). `ModelSelection` is the AI and protocol. |
+| | `TranslationWriter` | `new TranslationWriter(kindId)`: **writes** a `TranslationPlan` into a part (`write`), one selected sentence (`writeSelection`) and takes a translation out again (`revert`), with a lock per book, a refusal of a part that changed meanwhile (`ChangedMeanwhile`) and the rule that a passage the author edited stays. Also `readOf(part)` and `overlaps(part, start, end)`. |
+| | `ModelClient` | `new ModelClient(name).choose(aiUuid, protocolUuid, book)` finds the model (yours, else the book's, else the user's defaults), `ask(model, book, system, user)` waits for the whole answer (reasoning chunks are left out). `ModelSelection` is the AI and protocol. |
 | | `RangeLoop`, `RangeRuns` | An action over a range of parts, one at a time: `RangeLoop.select` / `run` (pure, with a stop and a summary), `RangeRuns.start` on a worker thread of the session, telling the page the progress. The work is a lambda. |
 | | `PartRuns&lt;R&gt;`, `AsyncRuns` | One job on a worker thread with the user's request scope, the result handed to the page. One run per part. |
+| | `TranslatedPassages` | `TranslatedPassages.of(passages, kinds, partId)`: the passages of a part of **every** registered kind that carry a `Span`, whichever plugin made them; `markClass(kinds, passage, fallback)`. For the viewer. |
 | | `PluginLog` | The extension's logger for the code that has none (`PluginLog.set(log)` in `onExtensionLoad`). **Per copy**: set it in every plugin. |
 | `ui` | `SourcePopover` | The popover over a translated speech: the source, who said it, &quot;not understood&quot;, &quot;edited after the translation&quot;. |
-| | `ReaderView` | `ReaderView.apply(view, part, mode, passages, markClass)` in a decorator of `Viewer.createPart`. |
+| | `ReaderView` | `ReaderView.apply(view, part, mode, passages, markClass)` in a decorator of `Viewer.createPart`; with a function in place of the class for passages of several kinds. A part is changed once. |
+| | `RangeDialog` | The window of the actions on a range of parts (translate the new ones, translate again, put the source back), with a progress and a stop: `new RangeDialog(book, loader, rangeRuns, reload)`. |
 | | `SpeakersEditor`, `ListEditor&lt;T&gt;`, `EditDialog` | The editor of the speakers; the list editor it is built on (a grid with add, edit, delete, move) and the small dialog with a validation. |
 | | `ExportChoice` | `ExportChoice.field(label, labels)`: the select of the export dialog, with the plugin's own texts. |
 | | `CommonStyles`, `TranslatorCommonLocalization` | The CSS classes and `translatorcommon.css`; the texts with their Japanese and Chinese translations (`TC.localized(...)`). |">
@@ -223,7 +227,7 @@ where an invented language (a lexicon, new words) and a real one (a script, poli
 <tr>
 <td><code translate="no" v-pre>model</code></td>
 <td><code translate="no" v-pre>Span</code></td>
-<td>What a plugin keeps for one translated passage: the <strong>source</strong>, the speaker, the language, whether the listener understands it, the register, the model and time, and a <strong>hash of the translated text</strong> the plugin wrote. <code translate="no" v-pre>Span.read(attributes)</code> / <code translate="no" v-pre>span.write(attributes)</code> store it as JSON in the attributes of the passage. <code translate="no" v-pre>isEdited(currentText)</code> is true when the author changed the translation since: the source is then stale.</td>
+<td>What a plugin keeps for one translated passage: the <strong>source</strong>, the speaker, the language, whether the listener understands it, the register, a <strong>reading</strong> (the romaji of a Japanese text, empty for none), the model and time, and a <strong>hash of the translated text</strong> the plugin wrote. <code translate="no" v-pre>Span.read(attributes)</code> / <code translate="no" v-pre>span.write(attributes)</code> store it as JSON in the attributes of the passage. <code translate="no" v-pre>isEdited(currentText)</code> is true when the author changed the translation since: the source is then stale.</td>
 </tr>
 <tr>
 <td> </td>
@@ -253,7 +257,12 @@ where an invented language (a lexicon, new words) and a real one (a script, poli
 <tr>
 <td> </td>
 <td><code translate="no" v-pre>Speech</code></td>
-<td>One direct speech as the model answered for it (<code translate="no" v-pre>quote</code>, <code translate="no" v-pre>speaker</code>, <code translate="no" v-pre>language</code>, <code translate="no" v-pre>text</code>, <code translate="no" v-pre>understood</code>, <code translate="no" v-pre>register</code>). A convenient shape for the answer; a plugin may use its own.</td>
+<td>One direct speech as the model answered for it (<code translate="no" v-pre>quote</code>, <code translate="no" v-pre>speaker</code>, <code translate="no" v-pre>language</code>, <code translate="no" v-pre>text</code>, <code translate="no" v-pre>understood</code>, <code translate="no" v-pre>register</code>). A convenient shape for the answer; a plugin may use its own and make a <code translate="no" v-pre>Speech</code> of it.</td>
+</tr>
+<tr>
+<td> </td>
+<td><code translate="no" v-pre>ModelJson</code></td>
+<td><code translate="no" v-pre>ModelJson.object(raw)</code>: the JSON object in what a model answered (a code fence or a word before it is ignored); null when there is none.</td>
 </tr>
 <tr>
 <td> </td>
@@ -273,7 +282,7 @@ where an invented language (a lexicon, new words) and a real one (a script, poli
 <tr>
 <td> </td>
 <td><code translate="no" v-pre>ReaderText</code></td>
-<td>The markdown of a part for the reader: <code translate="no" v-pre>render(mode, stored, passages, markClass)</code>; the marks carry <code translate="no" v-pre>data-translated-passage</code>.</td>
+<td>The markdown of a part for the reader: <code translate="no" v-pre>render(mode, stored, passages, markClass)</code> (or a function that gives each passage the mark of its kind); the marks carry <code translate="no" v-pre>data-translated-passage</code>.</td>
 </tr>
 <tr>
 <td> </td>
@@ -287,8 +296,13 @@ where an invented language (a lexicon, new words) and a real one (a script, poli
 </tr>
 <tr>
 <td> </td>
+<td><code translate="no" v-pre>TranslationWriter</code></td>
+<td><code translate="no" v-pre>new TranslationWriter(kindId)</code>: <strong>writes</strong> a <code translate="no" v-pre>TranslationPlan</code> into a part (<code translate="no" v-pre>write</code>), one selected sentence (<code translate="no" v-pre>writeSelection</code>) and takes a translation out again (<code translate="no" v-pre>revert</code>), with a lock per book, a refusal of a part that changed meanwhile (<code translate="no" v-pre>ChangedMeanwhile</code>) and the rule that a passage the author edited stays. Also <code translate="no" v-pre>readOf(part)</code> and <code translate="no" v-pre>overlaps(part, start, end)</code>.</td>
+</tr>
+<tr>
+<td> </td>
 <td><code translate="no" v-pre>ModelClient</code></td>
-<td><code translate="no" v-pre>new ModelClient(name).choose(aiUuid, protocolUuid)</code> finds the model, <code translate="no" v-pre>ask(model, book, system, user)</code> waits for the whole answer (reasoning chunks are left out). <code translate="no" v-pre>ModelSelection</code> is the AI and protocol.</td>
+<td><code translate="no" v-pre>new ModelClient(name).choose(aiUuid, protocolUuid, book)</code> finds the model (yours, else the book&#x27;s, else the user&#x27;s defaults), <code translate="no" v-pre>ask(model, book, system, user)</code> waits for the whole answer (reasoning chunks are left out). <code translate="no" v-pre>ModelSelection</code> is the AI and protocol.</td>
 </tr>
 <tr>
 <td> </td>
@@ -299,6 +313,11 @@ where an invented language (a lexicon, new words) and a real one (a script, poli
 <td> </td>
 <td><code translate="no" v-pre>PartRuns&lt;R&gt;</code>, <code translate="no" v-pre>AsyncRuns</code></td>
 <td>One job on a worker thread with the user&#x27;s request scope, the result handed to the page. One run per part.</td>
+</tr>
+<tr>
+<td> </td>
+<td><code translate="no" v-pre>TranslatedPassages</code></td>
+<td><code translate="no" v-pre>TranslatedPassages.of(passages, kinds, partId)</code>: the passages of a part of <strong>every</strong> registered kind that carry a <code translate="no" v-pre>Span</code>, whichever plugin made them; <code translate="no" v-pre>markClass(kinds, passage, fallback)</code>. For the viewer.</td>
 </tr>
 <tr>
 <td> </td>
@@ -313,7 +332,12 @@ where an invented language (a lexicon, new words) and a real one (a script, poli
 <tr>
 <td> </td>
 <td><code translate="no" v-pre>ReaderView</code></td>
-<td><code translate="no" v-pre>ReaderView.apply(view, part, mode, passages, markClass)</code> in a decorator of <code translate="no" v-pre>Viewer.createPart</code>.</td>
+<td><code translate="no" v-pre>ReaderView.apply(view, part, mode, passages, markClass)</code> in a decorator of <code translate="no" v-pre>Viewer.createPart</code>; with a function in place of the class for passages of several kinds. A part is changed once.</td>
+</tr>
+<tr>
+<td> </td>
+<td><code translate="no" v-pre>RangeDialog</code></td>
+<td>The window of the actions on a range of parts (translate the new ones, translate again, put the source back), with a progress and a stop: <code translate="no" v-pre>new RangeDialog(book, loader, rangeRuns, reload)</code>.</td>
 </tr>
 <tr>
 <td> </td>
@@ -335,7 +359,7 @@ where an invented language (a lexicon, new words) and a real one (a script, poli
 </div>
 </retype-table>
 <h2 id="building-a-translator-plugin-on-it">Building a translator plugin on it</h2>
-<p>The skeleton <code translate="no" v-pre>marginalia/plugins/reallang-translator</code> is the smallest example; the Conlang Translator is the full one. The steps:</p>
+<p><code translate="no" v-pre>marginalia/plugins/reallang-translator</code> is the smaller example (no lexicon, no designer); the Conlang Translator is the larger one. The steps:</p>
 <p><strong>1. The identity of your plugin.</strong> The id of your passage kind and the CSS class of the mark are yours, unique among plugins:</p>
 <div id="building-a-translator-plugin-on-it-code-1" class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-java"><code v-pre class="language-java">public final class MyKind {
@@ -358,28 +382,26 @@ reads the field you added to the export dialog (below); return <code translate="
 <p><strong>3. The export field.</strong> Decorate <code translate="no" v-pre>ExportDialog.createExtensionFields</code> on leave, add <code translate="no" v-pre>ExportChoice.field(label, mode -&gt; text)</code> to the list it returns and keep it in a
 <code translate="no" v-pre>WeakHashMap</code> keyed by the dialog (<code translate="no" v-pre>instrumented</code>); <code translate="no" v-pre>chosenMode(session)</code> is <code translate="no" v-pre>map.get(session.source()).getValue()</code>. Add the field only for a book that has your passages.</p>
 <p><strong>4. The viewer.</strong> Decorate <code translate="no" v-pre>Viewer.createPart</code> on leave: when the part has passages of your kind (<code translate="no" v-pre>passageService.listForParts(ids, MyKind.ID)</code>), call
-<code translate="no" v-pre>ReaderView.apply(view, part, mode, passages, MyKind.MARK)</code>; the <code translate="no" v-pre>mode</code> is <code translate="no" v-pre>ReaderMode.of(...)</code> of the book&#x27;s setting for the readers.</p>
+<code translate="no" v-pre>ReaderView.apply(view, part, mode, TranslatedPassages.of(passageService, passageKinds, partId), p -&gt; TranslatedPassages.markClass(passageKinds, p, MyKind.MARK))</code>; the <code translate="no" v-pre>mode</code> is
+<code translate="no" v-pre>ReaderMode.of(...)</code> of the book&#x27;s setting for the readers. Passing the passages of every plugin is what makes a book that holds two kinds draw right (see below).</p>
 <p><strong>5. CSS and texts.</strong> <code translate="no" v-pre>ExtensionHasCss.getCss</code> returns <code translate="no" v-pre>CommonStyles.css() + &quot;\n&quot; + MyStyles.css()</code> for <code translate="no" v-pre>Main</code> and <code translate="no" v-pre>Viewer</code>. Your own texts are your own
 <code translate="no" v-pre>PluginLocalizationBundle</code>; the library&#x27;s screens have theirs.</p>
-<p><strong>6. Translating a part</strong> (yours; the library gives the pieces). The shape the Conlang Translator follows:</p>
+<p><strong>6. Translating a part</strong> (yours; the library gives the pieces). The shape both plugins follow:</p>
 <div id="building-a-translator-plugin-on-it-code-3" class="codeblock-wrapper"><doc-codeblock>
-<pre translate="no" class="language-java"><code v-pre class="language-java">Reverse.Result read = Reverse.toModel(part.getResponse(), located);      // the English of a part that is translated already
+<pre translate="no" class="language-java"><code v-pre class="language-java">TranslationWriter writer = new TranslationWriter(MyKind.ID);
+Reverse.Result read = writer.readOf(part);                               // the English of a part that is translated already
 String source = read.text();                                              // what you send to the model
 String raw = new ModelClient(&quot;my-translator&quot;).ask(model, book, system, user);
-// parse the answer into Speech objects, check them (the quote is in `source`, the language is right...), then
+// parse the answer (ModelJson.object finds the JSON in it), check it (the quote is in `source`, the language is right...), then
 List&lt;TranslationPlan.Accepted&gt; accepted = ...;                            // (speech, start, end) of the ones you accept
 TranslationPlan plan = TranslationPlan.make(source, accepted);
-// write: replace the text of the part and make a passage of every planned speech
-chatMessageService.replaceText(book, part, plan.stored(), plan.source(), null, RevisionOrigin.automatic(RevisionDetail.TRANSLATION, false));
-for (TranslationPlan.Planned p : plan.passages()) {
-    AnchoredPassage passage = passageService.create(book, part, MyKind.ID, p.start(), p.end());
-    new Span(languageId, p.english(), p.translated()).write(passage.getAttributes());   // the hash of the translation is made here
-    passageService.save(passage);
-}</code></pre>
+writer.write(book, part, plan, read, languageId, modelName,
+        (span, planned) -&gt; span.setReading(readingOf(planned.speech())));  // what only you know goes on the Span</code></pre>
 </doc-codeblock></div>
-<p><code translate="no" v-pre>ChatMessageService.replaceText</code> stores a text that says what the old one said (<a href="../../part-text/#putting-the-other-form-into-the-story">The text a model reads</a>);
-the old passages of the part are removed first (<code translate="no" v-pre>passageService.remove</code>) except the ones the author edited (<code translate="no" v-pre>read.edited()</code>). Run it on a worker thread: <code translate="no" v-pre>PartRuns</code>
-for a part, <code translate="no" v-pre>RangeRuns</code> (with <code translate="no" v-pre>RangeLoop</code>) for a range.</p>
+<p><code translate="no" v-pre>write</code> replaces the text of the part with a version in the history (<code translate="no" v-pre>ChatMessageService.replaceText</code>: a text that says what the old one said, <a href="../../part-text/#putting-the-other-form-into-the-story">The text a model
+reads</a>), removes the old passages of the part except the ones the author edited, and makes a passage of every planned speech;
+it throws <code translate="no" v-pre>TranslationWriter.ChangedMeanwhile</code> when the part is not what you read. <code translate="no" v-pre>writeSelection</code> does the same for one sentence the author selected, <code translate="no" v-pre>revert</code> puts the source back.
+Run it on a worker thread: <code translate="no" v-pre>PartRuns</code> for a part, <code translate="no" v-pre>RangeRuns</code> (with <code translate="no" v-pre>RangeLoop</code>) for a range, <code translate="no" v-pre>new RangeDialog(...)</code> for the window of a range.</p>
 <p><strong>7. Who speaks.</strong> Keep a <code translate="no" v-pre>Speakers</code> in the attributes of the book (it is Gson-friendly) and give the author <code translate="no" v-pre>new SpeakersEditor(speakers, onChange)</code>; put the notes of the
 characters in your prompt.</p>
 <h2 id="the-contract-a-passage-depends-on">The contract a passage depends on</h2>
@@ -389,11 +411,15 @@ range an earlier edit shifted, drop out instead of corrupting text. If you write
 <code translate="no" v-pre>SourcePopover</code> have tests that pin it.</p>
 <h2 id="two-plugins-in-one-book">Two plugins in one book</h2>
 <p>Each plugin has its own passage kind, so the passages never mix. Models read the source of both (<code translate="no" v-pre>PartTextRegistry</code> merges the substitutions of every transformer on
-the stored text); the export puts both plugins&#x27; edits together once (<a href="../../export-text/">The text of an export</a>). The published book&#x27;s viewer is the open point: each
-plugin&#x27;s <code translate="no" v-pre>ReaderView.apply</code> sets the content of the part from the stored text, so with both active the last one wins and only its marks are clickable.</p>
+the stored text); the export puts both plugins&#x27; edits together once (<a href="../../export-text/">The text of an export</a>). The published book&#x27;s viewer draws a part <strong>once</strong>, from the
+passages of every plugin (<code translate="no" v-pre>TranslatedPassages</code>), each with the mark of its own kind: the first plugin whose decorator reaches the part does it for both (<code translate="no" v-pre>ReaderView</code> leaves a flag on
+the part, a string key, so the copy of the class in the other bundle sees it) and the second finds it done. The consequence for a book with both is that <strong>one reader mode rules
+the page</strong> (the one of the plugin that decorates first); the author sets the same in both. A click finds its passage in the list that was drawn, whichever plugin it is.</p>
+<p>A translator does not read the translated speech of the <em>other</em> plugin as its source: the stored text it sends to its model has the other plugin&#x27;s translation in it (only its own
+passages are reversed), so the model sees that speech in the other language and, being told to translate the English, leaves it alone.</p>
 <h2 id="tests">Tests</h2>
 <p>The library has plain unit tests (<code translate="no" v-pre>mvn test</code> in <code translate="no" v-pre>marginalia/libs/translator-common</code>): <code translate="no" v-pre>ReverseTest</code>, <code translate="no" v-pre>TranslationPlanTest</code>, <code translate="no" v-pre>SelectionRangeTest</code>, <code translate="no" v-pre>SpanTest</code>, <code translate="no" v-pre>SpeakersTest</code>,
-<code translate="no" v-pre>SpeechTransformerTest</code>, <code translate="no" v-pre>ExportTextTest</code> (through the core registry), <code translate="no" v-pre>ReaderTextTest</code>, <code translate="no" v-pre>RangeLoopTest</code>, <code translate="no" v-pre>SourcePopoverTest</code> (a Vaadin component built without a browser: the
+<code translate="no" v-pre>SpeechTransformerTest</code>, <code translate="no" v-pre>ExportTextTest</code> (through the core registry), <code translate="no" v-pre>ReaderTextTest</code>, <code translate="no" v-pre>RangeLoopTest</code>, <code translate="no" v-pre>TranslationWriter</code> has no unit test here (it needs the services; the plugins&#x27; tests of the translation go through it), <code translate="no" v-pre>ModelJsonTest</code>, <code translate="no" v-pre>SourcePopoverTest</code> (a Vaadin component built without a browser: the
 library&#x27;s test dependencies include the servlet API for that) and <code translate="no" v-pre>TranslatorCommonLocalizationTest</code> (every text has its Japanese and Chinese translation, with the same
 <code translate="no" v-pre>%s</code> / <code translate="no" v-pre>%d</code> placeholders). A plugin that adds texts to its own bundle has its own such test (<code translate="no" v-pre>ConlangTranslatorLocalizationTest</code> is the template).</p>
 
@@ -433,7 +459,7 @@ library&#x27;s test dependencies include the servlet API for that) and <code tra
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (af9ef3c5f).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (57689a602).</p></div>
             </footer>
         </div>
     </div>
