@@ -12,6 +12,7 @@ import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
 import com.github.enerccio.marginalia.domain.traits.NoTx;
+import com.github.enerccio.marginalia.utils.AppClock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -99,7 +100,7 @@ public class UsageServiceImpl extends OwnedServiceImpl<Usage, UsageRepository> i
         // the tokens since the last reset are counted only for a user with a token limit, and start from zero in a new period
         AILimit limit = limitService.getLimit(stored);
         boolean limited = limit.getStrategy() == LimitStrategy.TOKEN_LIMIT;
-        Date now = new Date();
+        Date now = AppClock.now();
         if (limited) {
             getRepository().resetPeriod(ai, currentUser, limit.getResetStrategy().periodStart(now));
         }

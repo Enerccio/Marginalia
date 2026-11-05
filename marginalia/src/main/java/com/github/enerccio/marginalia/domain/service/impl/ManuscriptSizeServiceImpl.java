@@ -13,6 +13,7 @@ import com.github.enerccio.marginalia.domain.service.ManuscriptSizeService;
 import com.github.enerccio.marginalia.domain.service.ManuscriptStatisticService;
 import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
+import com.github.enerccio.marginalia.utils.AppClock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,7 +65,7 @@ public class ManuscriptSizeServiceImpl extends OwnedServiceImpl<ManuscriptSize, 
     });
     private volatile long delayMillis = DEFAULT_DELAY_MILLIS;
     private volatile boolean manual;
-    private volatile Clock clock = Clock.systemDefaultZone();
+    private volatile Clock clock = AppClock.INSTANCE;
 
     @Override
     @CommonTx
@@ -99,7 +100,7 @@ public class ManuscriptSizeServiceImpl extends OwnedServiceImpl<ManuscriptSize, 
             row.setLeafUuid(leafUuid);
             row.setBaseline(baseline);
             row.setReconstructed(false);
-            row.setLastChange(new Date());
+            row.setLastChange(AppClock.now());
             save(row);
         } catch (Exception e) {
             log.warn("Failed to set the size of book {}", book.getUuid(), e);

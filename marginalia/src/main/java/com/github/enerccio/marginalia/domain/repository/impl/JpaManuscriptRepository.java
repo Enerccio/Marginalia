@@ -10,6 +10,7 @@ import com.github.enerccio.marginalia.domain.service.search.ManuscriptFilterValu
 import com.github.enerccio.marginalia.domain.service.search.ManuscriptSearchCriteria;
 import com.github.enerccio.marginalia.domain.service.search.ManuscriptSearchCriteria.TagMatch;
 import com.github.enerccio.marginalia.domain.service.search.Sorter;
+import com.github.enerccio.marginalia.utils.AppClock;
 import jakarta.persistence.TypedQuery;
 
 import org.apache.commons.lang3.StringUtils;
@@ -31,7 +32,7 @@ public class JpaManuscriptRepository extends JpaExtendableRepository<Manuscript>
     protected void changed(Manuscript book) throws Exception {
         // the working copy of an agent is no content of the folder
         if (book.getFolder() != null && !book.isAgentic()) {
-            FolderModification.touch(entityManager, book.getFolder().getId(), new Date());
+            FolderModification.touch(entityManager, book.getFolder().getId(), AppClock.now());
         }
     }
 
@@ -51,7 +52,7 @@ public class JpaManuscriptRepository extends JpaExtendableRepository<Manuscript>
     public void markOpened(Long id, User user) throws Exception {
         // bulk update, so opening a book doesn't touch modification or extended content
         getEntityManager().createQuery("UPDATE Manuscript m SET m.lastOpened = :now WHERE m.id = :id AND m.owner.id = :ownerId")
-                .setParameter("now", new Date())
+                .setParameter("now", AppClock.now())
                 .setParameter("id", id)
                 .setParameter("ownerId", user.getId())
                 .executeUpdate();

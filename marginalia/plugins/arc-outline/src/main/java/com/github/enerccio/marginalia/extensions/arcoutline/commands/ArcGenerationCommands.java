@@ -52,7 +52,8 @@ public class ArcGenerationCommands extends ArcOutlineCommandSupport {
             + "record what has been written. count is an exact number of chapters, else the model divides the story where it divides naturally. "
             + "Pass save true to add the arc at the end of the outline at once, with every node in the state given (FINISHED by default, the story "
             + "is written already), otherwise nothing is stored. The range has to fit the model: a story that is too long is refused, choose "
-            + "fewer messages. Takes a while.";
+            + "fewer messages. Pass mapParts true to have every chapter linked to the message it begins in (its part). Takes a while.";
+    private static final String PARAM_MAP_PARTS = "Whether every chapter says the message of the story it begins in (the answer and the saved chapters then have a part, the number of that message among the messages with text of the active branch)";
     private static final String RESULT_GENERATED = "JSON: the generated arc or chapters, saved (true when they were added to the outline)";
 
     private static final String PARAM_SPECIFICATION = "What you want: the theme, the characters, where it should lead...; the model decides when omitted";
@@ -336,6 +337,23 @@ public class ArcGenerationCommands extends ArcOutlineCommandSupport {
         runImport(context);
     }
 
+    @Command(commandName = IMPORT_ARC, linkedCommand = ArcOutlineCommands.GET, humanNameText = "Import arc from story", async = true,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, descriptionText = IMPORT_TEXT, llmDescriptionText = IMPORT_LLM,
+            signature = @CommandParameterSignature({
+                    @CommandParameter(name = "from", type = Integer.class, optional = true,
+                            descriptionText = "Number of the first message to send, counted among the messages with text of the active branch; the first when omitted"),
+                    @CommandParameter(name = "to", type = Integer.class, optional = true,
+                            descriptionText = "Number of the last message to send; the last one when omitted"),
+                    @CommandParameter(name = "count", type = Integer.class, optional = true, descriptionText = PARAM_COUNT),
+                    @CommandParameter(name = "state", type = String.class, optional = true, defaultValue = "FINISHED",
+                            allowed = {"PLANNED", "CURRENT", "FINISHED"}, descriptionText = "State of the saved arc and its chapters"),
+                    @CommandParameter(name = "save", type = Boolean.class, optional = true, defaultValue = "false", descriptionText = PARAM_SAVE),
+                    @CommandParameter(name = "mapParts", type = Boolean.class, optional = true, defaultValue = "false", descriptionText = PARAM_MAP_PARTS)}),
+            returns = @CommandReturn(name = "result", type = String.class, descriptionText = RESULT_GENERATED))
+    public void importStoryMapped(CommandContext context) throws Exception {
+        runImport(context);
+    }
+
     private void runImport(CommandContext context) throws Exception {
         Book book = new Book(context);
         ArcOutline outline = outline(book);
@@ -359,8 +377,9 @@ public class ArcGenerationCommands extends ArcOutlineCommandSupport {
         }
         OutlineState state = state(context.get("state", String.class), OutlineState.FINISHED);
         ModelSelection model = requireModel(context, book);
-        String prompt = service.buildImportPrompt(book.manuscript, outline, service.importPrompt(service.getSettings()),
-                messages.subList(first - 1, last), count);
+        boolean mapParts = Boolean.TRUE.equals(context.get("mapParts", Boolean.class));
+        List<StoryMessage> sent = messages.subList(first - 1, last);
+        String prompt = service.buildImportPrompt(book.manuscript, outline, service.importPrompt(service.getSettings()), sent, count, mapParts);
         int available = TokenLimits.promptTokens(model.ai(), model.protocol());
         long tokens = service.countTokens(prompt);
         if (available > 0 && tokens > available) {
@@ -369,25 +388,58 @@ public class ArcGenerationCommands extends ArcOutlineCommandSupport {
         }
 
         context.setStatus("Summarizing messages " + first + " to " + last + " as an arc");
-        Generated<GeneratedStoryArc> generated;
+        String answerText;
+        String arcName;
+        String arcDescription;
+        String arcNote;
+        // the chapters as the model wrote them, with the place of the message they begin in (null when it was not asked or the model named a message that was not sent)
+        List<Chapter> written = new java.util.ArrayList<>();
         try {
-            generated = service.generate(model, book.manuscript, prompt, service.importSchema(count), GeneratedStoryArc.class);
+            if (mapParts) {
+                Generated<GeneratedMappedStoryArc> generated = service.generate(model, book.manuscript, prompt, service.importSchema(count, true), GeneratedMappedStoryArc.class);
+                answerText = generated.answer();
+                GeneratedMappedStoryArc result = generated.value();
+                arcName = result.name();
+                arcDescription = result.description();
+                arcNote = result.note();
+                for (GeneratedMappedChapter item : result.chapters()) {
+                    Chapter chapter = new Chapter();
+                    chapter.setTitle(item.name().trim());
+                    chapter.setDescription(item.description().trim());
+                    chapter.setNote(item.note().trim());
+                    chapter.setPart(ArcOutlineService.mapPart(sent, item.part()));
+                    written.add(chapter);
+                }
+            } else {
+                Generated<GeneratedStoryArc> generated = service.generate(model, book.manuscript, prompt, service.importSchema(count), GeneratedStoryArc.class);
+                answerText = generated.answer();
+                GeneratedStoryArc result = generated.value();
+                arcName = result.name();
+                arcDescription = result.description();
+                arcNote = result.note();
+                for (GeneratedChapter item : result.chapters()) {
+                    written.add(chapter(item, generated.answer()));
+                }
+            }
         } catch (CancellationException e) {
             return;
         }
         if (context.isTerminated()) {
             return;
         }
-        GeneratedStoryArc result = generated.value();
         Arc arc = new Arc();
-        arc.setTitle(result.name().trim());
-        arc.setDescription(result.description().trim());
-        arc.setNote(result.note().trim());
-        arc.setGenerationResult(generated.answer());
-        for (GeneratedChapter item : result.chapters()) {
-            Chapter chapter = chapter(item, generated.answer());
+        arc.setTitle(arcName.trim());
+        arc.setDescription(arcDescription.trim());
+        arc.setNote(arcNote.trim());
+        arc.setGenerationResult(answerText);
+        for (Chapter chapter : written) {
+            chapter.setGenerationResult(answerText);
             chapter.setState(state);
             arc.getChapters().add(chapter);
+        }
+        // the arc begins where its first chapter does
+        if (!written.isEmpty()) {
+            arc.setPart(written.getFirst().getPart());
         }
         // after the chapters, a finished arc finishes them
         arc.setState(state);

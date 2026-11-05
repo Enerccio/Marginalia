@@ -6,6 +6,7 @@ import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.repository.ChatMessageRepository;
 import com.github.enerccio.marginalia.domain.service.search.LikePatterns;
+import com.github.enerccio.marginalia.utils.AppClock;
 import jakarta.persistence.TypedQuery;
 
 import java.util.*;
@@ -31,7 +32,7 @@ public class JpaChatMessageRepository extends JpaExtendableRepository<ChatMessag
             return;
         }
         // bulk update: the extended content of the book is not touched, nor is its dirty state
-        Date now = new Date();
+        Date now = AppClock.now();
         entityManager.createQuery("UPDATE Manuscript m SET m.modification = :now WHERE m.id = :id")
                 .setParameter("now", now)
                 .setParameter("id", book.getId())
@@ -200,7 +201,7 @@ public class JpaChatMessageRepository extends JpaExtendableRepository<ChatMessag
         }
         return entityManager.createQuery(
                         "UPDATE ChatMessage m SET m.deleted = true, m.modification = :now WHERE m.parentScript.id = :manuscript AND m.deleted = false")
-                .setParameter("now", new Date())
+                .setParameter("now", AppClock.now())
                 .setParameter("manuscript", manuscript.getId())
                 .executeUpdate();
     }
@@ -208,7 +209,7 @@ public class JpaChatMessageRepository extends JpaExtendableRepository<ChatMessag
     @Override
     public int softDeleteByIds(Collection<Long> ids) throws Exception {
         int deleted = 0;
-        Date now = new Date();
+        Date now = AppClock.now();
         for (List<Long> chunk : chunks(ids)) {
             entityManager.createQuery(
                             "UPDATE Manuscript b SET b.modification = :now WHERE b.id IN "

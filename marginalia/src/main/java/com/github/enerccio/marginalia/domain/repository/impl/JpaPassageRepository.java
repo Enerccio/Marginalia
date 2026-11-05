@@ -4,6 +4,7 @@ import com.github.enerccio.marginalia.domain.model.impl.AnchoredPassage;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.repository.PassageRepository;
+import com.github.enerccio.marginalia.utils.AppClock;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -93,7 +94,7 @@ public class JpaPassageRepository extends JpaExtendableRepository<AnchoredPassag
         return entityManager.createQuery(
                         "UPDATE AnchoredPassage p SET p.deleted = true, p.modification = :now WHERE p.deleted = false "
                                 + "AND p.part.id IN (SELECT m.id FROM ChatMessage m WHERE m.parentScript.id = :manuscript)")
-                .setParameter("now", new Date())
+                .setParameter("now", AppClock.now())
                 .setParameter("manuscript", manuscript.getId())
                 .executeUpdate();
     }
@@ -101,7 +102,7 @@ public class JpaPassageRepository extends JpaExtendableRepository<AnchoredPassag
     @Override
     public int softDeleteByPartIds(Collection<Long> partIds) throws Exception {
         int deleted = 0;
-        Date now = new Date();
+        Date now = AppClock.now();
         for (List<Long> chunk : chunks(partIds)) {
             deleted += entityManager.createQuery(
                             "UPDATE AnchoredPassage p SET p.deleted = true, p.modification = :now WHERE p.deleted = false AND p.part.id IN :ids")

@@ -602,7 +602,7 @@ public class TranslationCommands extends ConlangCommandSupport {
 
     @Command(commandName = LIST_PASSAGES, linkedCommand = GET_SOURCE, humanNameText = "List translated speeches", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
             descriptionText = "The translated speeches of a part with their English. Reads only.",
-            llmDescriptionText = "Lists the translated speeches of the part as JSON: the conlang text, its English source, who said it, whether the listener understands it, the register, the model that translated it "
+            llmDescriptionText = "Lists the translated speeches of the part as JSON (all the languages of the book): the conlang text, its English source, the language, who said it, whether the listener understands it, the register, the model that translated it "
                     + "and whether the author edited it since (an edited speech keeps the author's words). Reads only.",
             signature = @CommandParameterSignature({@CommandParameter(name = "part", type = String.class, descriptionText = PARAM_PART)}),
             returns = @CommandReturn(name = "result", type = String.class, descriptionText = "JSON: the speeches"))
@@ -612,6 +612,7 @@ public class TranslationCommands extends ConlangCommandSupport {
         ChatMessage part = translation.find(located.message());
         String stored = StringUtils.defaultString(part.getResponse());
         JsonArray rows = new JsonArray();
+        List<LanguageRef> bookLanguages = bookConlang.languages(book.manuscript);
         for (AnchoredPassage passage : passages.passagesOf(part)) {
             Reverse.Located item = PassageAccess.locate(passage);
             if (item == null) {
@@ -622,6 +623,7 @@ public class TranslationCommands extends ConlangCommandSupport {
             JsonObject row = new JsonObject();
             row.addProperty("conlang", conlang);
             row.addProperty("english", span.getSource());
+            row.addProperty("language", bookLanguages.stream().filter(l -> l.id().equals(span.getLanguage())).map(LanguageRef::name).findFirst().orElse(StringUtils.defaultString(span.getLanguage())));
             row.addProperty("speaker", span.getSpeaker());
             row.addProperty("understood", span.isUnderstood());
             if (!span.getRegister().isBlank()) {

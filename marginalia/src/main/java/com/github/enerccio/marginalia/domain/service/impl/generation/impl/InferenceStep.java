@@ -10,19 +10,21 @@ import com.github.enerccio.marginalia.domain.service.InferenceService.InferenceA
 import com.github.enerccio.marginalia.domain.service.InferenceService.InferenceAsyncController;
 import com.github.enerccio.marginalia.domain.service.impl.generation.*;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationController.State;
+import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
+import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMToolCall;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.utils.AppClock;
 import com.github.enerccio.tools.Pointer;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class InferenceStep extends GenerationStepBase {
     private static final Logger log = LoggerFactory.getLogger(InferenceStep.class);
-    private static final Gson gson = new GsonBuilder().create();
 
 
     @Override
@@ -35,7 +37,7 @@ public class InferenceStep extends GenerationStepBase {
             }
             InferenceService inferenceService = inferenceServices.forAIOrThrow(controller.getAi());
 
-            long promptTokens = inferenceService.countTokens(gson.toJson(controller.getPayload()));
+            long promptTokens = countPromptTokens(inferenceService, controller.getPayload());
             controller.getMessage().setPromptTokens(promptTokens);
             controller.setMessage(chatMessageService.save(controller.getMessage()));
             warnIfOverflowing(controller, promptTokens);
@@ -66,7 +68,7 @@ public class InferenceStep extends GenerationStepBase {
                         controller.emitEvent(Events.REASONING_CHUNK_RECEIVED, () -> {
                             ChatMessage chatMessage = controller.getMessage();
                             if (chatMessage.getTtft() == null) {
-                                chatMessage.setTtft(new Date());
+                                chatMessage.setTtft(AppClock.now());
                             }
                             String t = (String) controller.getProperties().get(GenerationProperties.REASONING_CHUNK);
                             long deltaTokenIncrease = inferenceService.countTokensApprox(t);
@@ -84,10 +86,10 @@ public class InferenceStep extends GenerationStepBase {
                         controller.emitEvent(Events.CHUNK_RECEIVED, () -> {
                             ChatMessage chatMessage = controller.getMessage();
                             if (chatMessage.getTtft() == null) {
-                                chatMessage.setTtft(new Date());
+                                chatMessage.setTtft(AppClock.now());
                             }
                             if (chatMessage.getReasoningEnd() == null) {
-                                chatMessage.setReasoningEnd(new Date());
+                                chatMessage.setReasoningEnd(AppClock.now());
                             }
                             String t = (String) controller.getProperties().get(GenerationProperties.CHUNK);
                             long deltaTokenIncrease = inferenceService.countTokensApprox(t);
@@ -176,6 +178,40 @@ public class InferenceStep extends GenerationStepBase {
      * The prompt is trimmed to the budget when it is built, but extensions and the counting of the JSON payload can
      * still push it over: the provider would reject or cut it.
      */
+    /**
+     * Tokens of the text the model receives: the content of each message (and the calls of its tools), not the JSON
+     * the payload is sent in. The server decodes the JSON before it applies the chat template, so its syntax and escapes
+     * (<code>\n</code>, <code>\"</code>, Gson's <code>\u0027</code> for an apostrophe) never reach the model, and attached
+     * media (base64) is not text. Identical texts (the repeated "generate more" messages) are counted once.
+     */
+    private long countPromptTokens(InferenceService inferenceService, List<LLMChatMessage> payload) throws Exception {
+        if (payload == null) {
+            return 0;
+        }
+        Map<String, Long> counted = new HashMap<>();
+        long sum = 0;
+        for (LLMChatMessage message : payload) {
+            sum += countCached(inferenceService, counted, message.getContent());
+            for (LLMToolCall call : message.getToolCalls()) {
+                sum += countCached(inferenceService, counted, call.getName());
+                sum += countCached(inferenceService, counted, call.getArguments());
+            }
+        }
+        return sum;
+    }
+
+    private long countCached(InferenceService inferenceService, Map<String, Long> counted, String text) throws Exception {
+        if (StringUtils.isEmpty(text)) {
+            return 0;
+        }
+        Long tokens = counted.get(text);
+        if (tokens == null) {
+            tokens = inferenceService.countTokens(text);
+            counted.put(text, tokens);
+        }
+        return tokens;
+    }
+
     private void warnIfOverflowing(GenerationController controller, long promptTokens) {
         int context = TokenLimits.contextTokens(controller.getAi(), controller.getProtocol());
         int response = TokenLimits.responseTokens(controller.getAi(), controller.getProtocol());

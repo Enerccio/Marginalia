@@ -3,6 +3,7 @@ package com.github.enerccio.marginalia.domain.repository.impl;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Summary;
 import com.github.enerccio.marginalia.domain.repository.SummaryRepository;
+import com.github.enerccio.marginalia.utils.AppClock;
 
 import java.util.Collection;
 import java.util.Date;
@@ -23,7 +24,7 @@ public class JpaSummaryRepository extends JpaExtendableRepository<Summary> imple
         return entityManager.createQuery(
                         "UPDATE Summary s SET s.deleted = true, s.modification = :now WHERE s.deleted = false "
                                 + "AND s.id IN (SELECT m.summary.id FROM ChatMessage m WHERE m.parentScript.id = :manuscript)")
-                .setParameter("now", new Date())
+                .setParameter("now", AppClock.now())
                 .setParameter("manuscript", manuscript.getId())
                 .executeUpdate();
     }
@@ -31,7 +32,7 @@ public class JpaSummaryRepository extends JpaExtendableRepository<Summary> imple
     @Override
     public int softDeleteByMessageIds(Collection<Long> messageIds) throws Exception {
         int deleted = 0;
-        Date now = new Date();
+        Date now = AppClock.now();
         for (List<Long> chunk : chunks(messageIds)) {
             deleted += entityManager.createQuery(
                             "UPDATE Summary s SET s.deleted = true, s.modification = :now WHERE s.deleted = false "

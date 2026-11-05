@@ -3,6 +3,7 @@ package com.github.enerccio.marginalia.domain.service.impl;
 import com.github.enerccio.marginalia.domain.collections.ActivityKind;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.*;
+import com.github.enerccio.marginalia.utils.AppClock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -113,7 +114,7 @@ public class ActivityTrackerImpl implements ActivityTracker {
     private final Object writeLock = new Object();
     private final AtomicBoolean wakePending = new AtomicBoolean();
 
-    private volatile Clock clock = Clock.systemDefaultZone();
+    private volatile Clock clock = AppClock.INSTANCE;
     private volatile long tickMillis = DEFAULT_TICK_MILLIS;
     private volatile long generateLingerMillis = GENERATE_LINGER_MILLIS;
     private volatile boolean manual;
