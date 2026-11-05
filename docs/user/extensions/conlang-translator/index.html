@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847154911516">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847178226162">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.847154911516" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.847178226162" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847154911516" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847178226162" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847154911516" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847178226162" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -472,8 +472,9 @@ above, then the settings of your user.</p>
 </div>
 </retype-table>
 <h2 id="the-conlang-tab-of-the-book">The Conlang tab of the book</h2>
-<p>The story window has a <strong>Conlang</strong> tab (in the same dock as the chapters and the lorebook; drag it where you like) for the language of <em>this</em> book. It has three tabs
-of its own, and <strong>Refresh</strong> reads the language again after you changed it in the window of the book.</p>
+<p>The story window has a <strong>Conlang</strong> tab (in the same dock as the chapters and the lorebook; drag it where you like) for the language of <em>this</em> book. It has four tabs
+of its own, and <strong>Refresh</strong> reads the language again after you changed it in the window of the book. A book with <doc-anchor-trigger to="#more-than-one-language-in-a-book">more than one language</doc-anchor-trigger> has a field
+next to <strong>Refresh</strong> that chooses which of them the <em>Words</em>, <em>Speakers</em> and <em>Quick translate</em> tabs are about.</p>
 <h3 id="words">Words</h3>
 <p>The lexicon of the book&#x27;s language, with the search, the filters and the actions of the <doc-anchor-trigger to="#the-lexicon">editor</doc-anchor-trigger>: look a word up while you write, edit it, accept the words the
 model invented, lock or retire one. The change is stored in your library at once (the words a translation added meanwhile are not lost).</p>
@@ -484,16 +485,45 @@ you duplicate, export or compare carries no characters.</p>
 text overrides it (&quot;she said in the common tongue&quot;, &quot;the guard could not understand a word&quot;) and the model decides for every speech. For each character
 you may note the <strong>gender</strong> (a language that marks gender gets it wrong when the part only says &quot;her&quot;) and the <strong>voice</strong> (&quot;formal, clipped, coarse&quot;), which
 the model matches to the registers of the language. Changes are stored in the book at once.</p>
+<h3 id="languages-1">Languages</h3>
+<p>The other languages of the book, besides the one its <strong>Language of the speech</strong> field names: see <doc-anchor-trigger to="#more-than-one-language-in-a-book">More than one language in a book</doc-anchor-trigger>.</p>
 <h3 id="quick-translate">Quick translate</h3>
 <p>Write a text in English (a phrase, a name, a line you have not written yet), optionally who says it and to whom, and press <strong>Translate</strong>: the model translates it into the
 language of the book with the rules, the registers and the lexicon, and the notes of the characters named in the text. Nothing is written into the story. The result is the
 translation, a note on the choices, and the <strong>words the translation needed</strong> that the lexicon lacked, each with its meaning and why; select the ones you want and <strong>Import the selected words</strong>:
 they go into the lexicon as <em>new</em>, the same as the words of a translated part. Words in the translation that are neither in the lexicon nor reported are listed as a warning.</p>
+<h2 id="more-than-one-language-in-a-book">More than one language in a book</h2>
+<p>An epic may have a tongue for the elves, another for the dwarves and a third for the orcs. A book names <strong>one language first</strong> (the field above, which a folder or your settings may also give)
+and the <strong>Languages</strong> tab of the <strong>Conlang</strong> tab adds <strong>other languages</strong> from your library, one by one, and takes them away again.</p>
+<ul>
+<li>
+<p><strong>Each language has its own speakers.</strong> The <em>Speakers</em> tab is about the language the field at the top chooses. The first language is spoken by everybody except the characters you list, as before;
+<strong>a language you add starts as &quot;only the listed characters speak it&quot; with nobody listed</strong>, so it is not asked for anything until you list who speaks it. List a character as an exception of the first
+language when another language is theirs, or the first language is asked for their speech too (a speech two languages claim stays with the one that is asked first). A character may speak more than one language
+(list them in both; the text of the part tells the model which one a speech is in).</p>
+</li>
+<li>
+<p><strong>One request for each language.</strong> A request holds the rules and the lexicon of one language only, and only the speeches of its speakers; a part with the speech of two languages takes two requests, one after
+the other. The second one reads the part with the English of the first one&#x27;s speeches and leaves those speeches translated. A part whose point of view and present characters are all outside the speakers of a
+language is not asked for that language (a part that names no character is asked for every language that has speakers).</p>
+</li>
+<li>
+<p><strong>A passage knows its language.</strong> The popover, the export and the viewer work as before; <strong>Translate the speech</strong> again for one language leaves the speeches of the others alone, and <strong>Put the English back</strong>
+can be for one language or for all.</p>
+</li>
+<li>
+<p><strong>The menus ask which language</strong> when the book has more than one: the menu of a part (<em>Translate the speech</em>: one of the languages or <em>All languages</em>) and the right click on a selected sentence (one language).
+<strong>Translate parts</strong> has a <em>Language</em> field (all languages by default); <em>the parts that are not translated</em> means &quot;not translated in that language&quot;.</p>
+</li>
+<li>
+<p><strong>The automatic run</strong> translates a new part into every language whose speakers may be in it.</p>
+</li>
+</ul>
 <h2 id="translating">Translating</h2>
 <ul>
 <li>
 <p><strong>By hand:</strong> the menu of a part has <strong>Translate the speech</strong>. A part that is translated already is translated again <strong>from its English</strong>, so this is also how you retranslate a
-part after the rules or the lexicon changed.</p>
+part after the rules or the lexicon changed. A book with more than one language asks first <doc-anchor-trigger to="#more-than-one-language-in-a-book">which one</doc-anchor-trigger>.</p>
 </li>
 <li>
 <p><strong>By itself:</strong> with <strong>Translate a new part by itself</strong>, a generated part is translated as soon as it is final. A <em>regenerate</em> of a part gives it new English and removes the old translation.</p>
@@ -631,6 +661,7 @@ argument of a command; an agent may leave out the optional ones.</p>
 |---|---|
 | `conlang-list`, `conlang-get`, `conlang-create`, `conlang-duplicate`, `conlang-update`, `conlang-delete`, `conlang-export`, `conlang-import`, `conlang-set-references` | The library. `conlang-delete` asks, and is not available to an agent. |
 | `conlang-set-book-language` | The language of the open book (the **Language of the speech** field of its *Extension Settings*). |
+| `conlang-add-book-language`, `conlang-remove-book-language` | The other languages of the open book. Removing asks the user, and is not available to an agent. |
 | `conlang-list-rules`, `conlang-get-rules`, `conlang-add-rules`, `conlang-update-rules`, `conlang-delete-rules`, `conlang-move-rules` | The sections of the rules. |
 | `conlang-list-categories`, `conlang-add-category`, `conlang-update-category`, `conlang-move-category`, `conlang-delete-category` | The categories of the words. |
 | `conlang-list-registers`, `conlang-add-register`, `conlang-update-register`, `conlang-delete-register` | The registers. |
@@ -639,9 +670,9 @@ argument of a command; an agent may leave out the optional ones.</p>
 | `conlang-lock-word`, `conlang-unlock-word`, `conlang-retire-word`, `conlang-restore-word`, `conlang-accept-words` | The state of the words. |
 | `conlang-check-lexicon` | Repeated meanings, words without a category, compounds with parts that are not in the lexicon, and the homophones (for information). No model. |
 | `conlang-status` | The language of the book and which parts are translated. |
-| `conlang-translate-part`, `conlang-translate-range`, `conlang-translate-sentence`, `conlang-translate-text`, `conlang-revert-to-source` | Translating: one part, a range (`mode` *new* or *again*), one sentence of a part, a text that is only returned, and the English back. A range asks the user for *again*; so does the English back. |
+| `conlang-translate-part`, `conlang-translate-range`, `conlang-translate-sentence`, `conlang-translate-text`, `conlang-revert-to-source` | Translating: one part, a range (`mode` *new* or *again*), one sentence of a part, a text that is only returned, and the English back. A range asks the user for *again*; so does the English back. With the optional `language` they are about one language of the book (all of them by default, the first for a sentence or a text). |
 | `conlang-check-translation`, `conlang-get-source`, `conlang-list-passages` | Reading: the words of a translated speech that the lexicon does not have, the text of a part as the models read it (the English), and the translated speeches of a part with their English. |
-| `conlang-speakers`, `conlang-set-speakers-mode`, `conlang-set-speaker`, `conlang-remove-speaker` | Who speaks the language in the open book. |
+| `conlang-speakers`, `conlang-set-speakers-mode`, `conlang-set-speaker`, `conlang-remove-speaker` | Who speaks the language in the open book (`language` names one of the book's languages, the first by default). |
 | `conlang-design-words`, `conlang-design-rules`, `conlang-rewrite-rules`, `conlang-design-stage`, `conlang-ask-designer`, `conlang-try-sentences` | The designer. With `ask true` a command returns the proposal as a numbered list of changes and holds it; nothing is changed. |
 | `conlang-review` | The designer's review of the language: findings only. |
 | `conlang-apply-changes` | Applies the held changes, all of them or the numbers given (the same as **Apply** in the review). |
@@ -663,6 +694,10 @@ argument of a command; an agent may leave out the optional ones.</p>
 <tr>
 <td><code translate="no" v-pre>conlang-set-book-language</code></td>
 <td>The language of the open book (the <strong>Language of the speech</strong> field of its <em>Extension Settings</em>).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>conlang-add-book-language</code>, <code translate="no" v-pre>conlang-remove-book-language</code></td>
+<td>The other languages of the open book. Removing asks the user, and is not available to an agent.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>conlang-list-rules</code>, <code translate="no" v-pre>conlang-get-rules</code>, <code translate="no" v-pre>conlang-add-rules</code>, <code translate="no" v-pre>conlang-update-rules</code>, <code translate="no" v-pre>conlang-delete-rules</code>, <code translate="no" v-pre>conlang-move-rules</code></td>
@@ -698,7 +733,7 @@ argument of a command; an agent may leave out the optional ones.</p>
 </tr>
 <tr>
 <td><code translate="no" v-pre>conlang-translate-part</code>, <code translate="no" v-pre>conlang-translate-range</code>, <code translate="no" v-pre>conlang-translate-sentence</code>, <code translate="no" v-pre>conlang-translate-text</code>, <code translate="no" v-pre>conlang-revert-to-source</code></td>
-<td>Translating: one part, a range (<code translate="no" v-pre>mode</code> <em>new</em> or <em>again</em>), one sentence of a part, a text that is only returned, and the English back. A range asks the user for <em>again</em>; so does the English back.</td>
+<td>Translating: one part, a range (<code translate="no" v-pre>mode</code> <em>new</em> or <em>again</em>), one sentence of a part, a text that is only returned, and the English back. A range asks the user for <em>again</em>; so does the English back. With the optional <code translate="no" v-pre>language</code> they are about one language of the book (all of them by default, the first for a sentence or a text).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>conlang-check-translation</code>, <code translate="no" v-pre>conlang-get-source</code>, <code translate="no" v-pre>conlang-list-passages</code></td>
@@ -706,7 +741,7 @@ argument of a command; an agent may leave out the optional ones.</p>
 </tr>
 <tr>
 <td><code translate="no" v-pre>conlang-speakers</code>, <code translate="no" v-pre>conlang-set-speakers-mode</code>, <code translate="no" v-pre>conlang-set-speaker</code>, <code translate="no" v-pre>conlang-remove-speaker</code></td>
-<td>Who speaks the language in the open book.</td>
+<td>Who speaks the language in the open book (<code translate="no" v-pre>language</code> names one of the book&#x27;s languages, the first by default).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>conlang-design-words</code>, <code translate="no" v-pre>conlang-design-rules</code>, <code translate="no" v-pre>conlang-rewrite-rules</code>, <code translate="no" v-pre>conlang-design-stage</code>, <code translate="no" v-pre>conlang-ask-designer</code>, <code translate="no" v-pre>conlang-try-sentences</code></td>
@@ -800,7 +835,7 @@ compounds and affixes) and reports the rest; it does not check your grammar. Try
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (57689a602).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (a6155ceed).</p></div>
             </footer>
         </div>
     </div>

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847154911516">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847178226162">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.847154911516" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.847178226162" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847154911516" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847178226162" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847154911516" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847178226162" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -344,15 +344,42 @@ Settings screen to keep your changes.</p>
 </retype-table>
 <h2 id="the-real-language-tab-of-the-book">The Real language tab of the book</h2>
 <p>The story window has a <strong>Real language</strong> tab (in the same dock as the chapters and the lorebook) for the language of <em>this</em> book, with <strong>Refresh</strong> to read it again.</p>
-<p><strong>Speakers.</strong> Who speaks the language <strong>in this book</strong>. By default everybody speaks it except the listed characters (or only the listed ones). The text overrides this (&quot;she said in English&quot;,
+<p><strong>Speakers.</strong> Who speaks the language <strong>in this book</strong> (a book with <doc-anchor-trigger to="#more-than-one-language-in-a-book">more than one language</doc-anchor-trigger> has a <em>Speakers</em> tab for each). By default everybody speaks it except the listed characters (or only the listed ones). The text overrides this (&quot;she said in English&quot;,
 &quot;the guard could not understand a word&quot;). For each character note the <strong>gender</strong> and the <strong>voice</strong>: the level of speech follows it. Write the age, the rank and how the character talks to
 others here (&quot;a young officer, polite to her seniors, blunt with friends&quot;): that is what lets the translator choose between the plain form and keigo. The speakers belong to the book.</p>
-<p><strong>Quick translate.</strong> Write a text in English, optionally who says it and to whom, and press <strong>Translate</strong>: the model translates it with the rules of the language. Nothing is written into
-the story; you copy the translation.</p>
+<p><strong>Languages.</strong> The other languages of the book, besides the one its <strong>Language of the speech</strong> field names: see <doc-anchor-trigger to="#more-than-one-language-in-a-book">below</doc-anchor-trigger>.</p>
+<p><strong>Quick translate.</strong> Write a text in English, optionally who says it and to whom, and press <strong>Translate</strong>: the model translates it with the rules of the language (with several languages, choose
+which one). Nothing is written into the story; you copy the translation.</p>
+<h2 id="more-than-one-language-in-a-book">More than one language in a book</h2>
+<p>A story with Japanese and Korean speakers needs both. A book names <strong>one language first</strong> (the field above, which a folder or your settings may also give) and the <strong>Languages</strong> tab adds <strong>other languages</strong>
+from your library, one by one, and takes them away again.</p>
+<ul>
+<li>
+<p><strong>Each language has its own speakers</strong>, in a tab of its own. The first language is spoken by everybody except the characters you list, as before; <strong>a language you add starts as &quot;only the listed characters
+speak it&quot; with nobody listed</strong>, so it is not asked for anything until you list who speaks it. List a character as an exception of the first language when another language is theirs, or the first language
+is asked for their speech too (a speech two languages claim stays with the one that is asked first). A character may speak more than one language (list them in both; the text of the part tells the model which
+one a speech is in).</p>
+</li>
+<li>
+<p><strong>One request for each language</strong>: the rules and the notes of one language, and only the speeches of its speakers. A part with the speech of two languages takes two requests, one after the other; the second
+reads the part with the English of the first one&#x27;s speeches and leaves those speeches translated. A part whose point of view and present characters are all outside the speakers of a language is not asked for
+that language (a part that names no character is asked for every language that has speakers).</p>
+</li>
+<li>
+<p><strong>A passage knows its language.</strong> <strong>Translate the speech</strong> again for one language leaves the speeches of the others alone, and <strong>Put the English back</strong> can be for one language or for all.</p>
+</li>
+<li>
+<p><strong>The menus ask which language</strong> when the book has more than one: the menu of a part (one of the languages or <em>All languages</em>) and the right click on a selected sentence (one language).
+<strong>Translate parts</strong> has a <em>Language</em> field (all languages by default); <em>the parts that are not translated</em> means &quot;not translated in that language&quot;.</p>
+</li>
+<li>
+<p><strong>The automatic run</strong> translates a new part into every language whose speakers may be in it.</p>
+</li>
+</ul>
 <h2 id="translating">Translating</h2>
 <ul>
 <li>
-<p><strong>By hand:</strong> the menu of a part has <strong>Translate the speech (real language)</strong>. A part that is translated already is translated again <strong>from its English</strong>.</p>
+<p><strong>By hand:</strong> the menu of a part has <strong>Translate the speech (real language)</strong>. A part that is translated already is translated again <strong>from its English</strong>. A book with more than one language asks first <doc-anchor-trigger to="#more-than-one-language-in-a-book">which one</doc-anchor-trigger>.</p>
 </li>
 <li>
 <p><strong>By itself:</strong> with <strong>Translate a new part by itself</strong>, a generated part is translated as soon as it is final. A <em>regenerate</em> of a part gives it new English and removes the old translation.</p>
@@ -387,10 +414,11 @@ its position on the active branch (the first part is 1).</p>
 |---|---|
 | `reallang-list`, `reallang-create`, `reallang-update`, `reallang-delete` | The library. `reallang-create` takes a `preset` (`ja-kana-kanji`, `ja-kana`, `ja-romaji`, `other`). `reallang-delete` asks. |
 | `reallang-set-book-language` | The language of the open book (the **Language of the speech** field of its *Extension Settings*). |
+| `reallang-add-book-language`, `reallang-remove-book-language` | The other languages of the open book. Removing asks the user. |
 | `reallang-status` | The language of the book and which parts are translated. |
-| `reallang-translate-part`, `reallang-translate-range`, `reallang-translate-sentence`, `reallang-translate-text`, `reallang-revert-to-source` | Translating: one part, a range (`mode` *new* or *again*), one sentence of a part, a text that is only returned, and the English back. |
+| `reallang-translate-part`, `reallang-translate-range`, `reallang-translate-sentence`, `reallang-translate-text`, `reallang-revert-to-source` | Translating: one part, a range (`mode` *new* or *again*), one sentence of a part, a text that is only returned, and the English back. With the optional `language` they are about one language of the book (all of them by default, the first for a sentence or a text). |
 | `reallang-get-source`, `reallang-list-passages` | Reading: the text of a part as the models read it (the English), and the translated speeches of a part with their reading and English. |
-| `reallang-speakers`, `reallang-set-speakers-mode`, `reallang-set-speaker`, `reallang-remove-speaker` | Who speaks the language in the open book. |">
+| `reallang-speakers`, `reallang-set-speakers-mode`, `reallang-set-speaker`, `reallang-remove-speaker` | Who speaks the language in the open book (`language` names one of the book's languages, the first by default). |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -409,12 +437,16 @@ its position on the active branch (the first part is 1).</p>
 <td>The language of the open book (the <strong>Language of the speech</strong> field of its <em>Extension Settings</em>).</td>
 </tr>
 <tr>
+<td><code translate="no" v-pre>reallang-add-book-language</code>, <code translate="no" v-pre>reallang-remove-book-language</code></td>
+<td>The other languages of the open book. Removing asks the user.</td>
+</tr>
+<tr>
 <td><code translate="no" v-pre>reallang-status</code></td>
 <td>The language of the book and which parts are translated.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>reallang-translate-part</code>, <code translate="no" v-pre>reallang-translate-range</code>, <code translate="no" v-pre>reallang-translate-sentence</code>, <code translate="no" v-pre>reallang-translate-text</code>, <code translate="no" v-pre>reallang-revert-to-source</code></td>
-<td>Translating: one part, a range (<code translate="no" v-pre>mode</code> <em>new</em> or <em>again</em>), one sentence of a part, a text that is only returned, and the English back.</td>
+<td>Translating: one part, a range (<code translate="no" v-pre>mode</code> <em>new</em> or <em>again</em>), one sentence of a part, a text that is only returned, and the English back. With the optional <code translate="no" v-pre>language</code> they are about one language of the book (all of them by default, the first for a sentence or a text).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>reallang-get-source</code>, <code translate="no" v-pre>reallang-list-passages</code></td>
@@ -422,7 +454,7 @@ its position on the active branch (the first part is 1).</p>
 </tr>
 <tr>
 <td><code translate="no" v-pre>reallang-speakers</code>, <code translate="no" v-pre>reallang-set-speakers-mode</code>, <code translate="no" v-pre>reallang-set-speaker</code>, <code translate="no" v-pre>reallang-remove-speaker</code></td>
-<td>Who speaks the language in the open book.</td>
+<td>Who speaks the language in the open book (<code translate="no" v-pre>language</code> names one of the book&#x27;s languages, the first by default).</td>
 </tr>
 </tbody>
 </table>
@@ -432,12 +464,25 @@ its position on the active branch (the first part is 1).</p>
 the settings of the book and the passages are the book&#x27;s, and the run&#x27;s copy of the book carries them.</p>
 <h2 id="limits">Limits</h2>
 <ul>
-<li><strong>The quality is the model&#x27;s.</strong> Politeness is the hard part of Japanese; the rules and the notes on the characters guide it, a few parts read by a person decide whether they are enough.</li>
-<li><strong>One real language per book</strong> for now, and the speakers are per book, not per language: a story with Japanese and Korean needs the second language later (see the TODO of the plugin).</li>
-<li><strong>No second pass</strong> that rewrites a translation for naturalness, and no back-translation check yet.</li>
-<li><strong>No furigana.</strong> The reading is a line in the popover, not ruby text in the page.</li>
-<li><strong>A part that the other translator plugin translated</strong> is read by this model with that translation in the text (not its English); it is told only that the speech there is in another language.</li>
-<li><strong>A phone</strong> has the panel and the editor; the story side (menus, range window, click in the story) was not tried there.</li>
+<li>
+<p><strong>The quality is the model&#x27;s.</strong> Politeness is the hard part of Japanese; the rules and the notes on the characters guide it, a few parts read by a person decide whether they are enough.</p>
+</li>
+<li>
+<p><strong>Speakers decide which languages are asked for</strong>, from the point of view and the characters present of a part. A speech by a character the part does not name can be missed by a language whose speakers are
+listed; the text of the part decides inside a request.</p>
+</li>
+<li>
+<p><strong>No second pass</strong> that rewrites a translation for naturalness, and no back-translation check yet.</p>
+</li>
+<li>
+<p><strong>No furigana.</strong> The reading is a line in the popover, not ruby text in the page.</p>
+</li>
+<li>
+<p><strong>A part that the other translator plugin translated</strong> is read by this model with that translation in the text (not its English); it is told only that the speech there is in another language.</p>
+</li>
+<li>
+<p><strong>A phone</strong> has the panel and the editor; the story side (menus, range window, click in the story) was not tried there.</p>
+</li>
 </ul>
 
                 
@@ -476,7 +521,7 @@ the settings of the book and the passages are the book&#x27;s, and the run&#x27;
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (57689a602).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (a6155ceed).</p></div>
             </footer>
         </div>
     </div>

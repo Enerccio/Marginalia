@@ -67,16 +67,35 @@ The **Prompts** tab of the book window, under *Extension Settings*, has the fiel
 
 The story window has a **Real language** tab (in the same dock as the chapters and the lorebook) for the language of *this* book, with **Refresh** to read it again.
 
-**Speakers.** Who speaks the language **in this book**. By default everybody speaks it except the listed characters (or only the listed ones). The text overrides this ("she said in English",
+**Speakers.** Who speaks the language **in this book** (a book with [more than one language](#more-than-one-language-in-a-book) has a *Speakers* tab for each). By default everybody speaks it except the listed characters (or only the listed ones). The text overrides this ("she said in English",
 "the guard could not understand a word"). For each character note the **gender** and the **voice**: the level of speech follows it. Write the age, the rank and how the character talks to
 others here ("a young officer, polite to her seniors, blunt with friends"): that is what lets the translator choose between the plain form and keigo. The speakers belong to the book.
 
-**Quick translate.** Write a text in English, optionally who says it and to whom, and press **Translate**: the model translates it with the rules of the language. Nothing is written into
-the story; you copy the translation.
+**Languages.** The other languages of the book, besides the one its **Language of the speech** field names: see [below](#more-than-one-language-in-a-book).
+
+**Quick translate.** Write a text in English, optionally who says it and to whom, and press **Translate**: the model translates it with the rules of the language (with several languages, choose
+which one). Nothing is written into the story; you copy the translation.
+
+## More than one language in a book
+
+A story with Japanese and Korean speakers needs both. A book names **one language first** (the field above, which a folder or your settings may also give) and the **Languages** tab adds **other languages**
+from your library, one by one, and takes them away again.
+
+- **Each language has its own speakers**, in a tab of its own. The first language is spoken by everybody except the characters you list, as before; **a language you add starts as "only the listed characters
+  speak it" with nobody listed**, so it is not asked for anything until you list who speaks it. List a character as an exception of the first language when another language is theirs, or the first language
+  is asked for their speech too (a speech two languages claim stays with the one that is asked first). A character may speak more than one language (list them in both; the text of the part tells the model which
+  one a speech is in).
+- **One request for each language**: the rules and the notes of one language, and only the speeches of its speakers. A part with the speech of two languages takes two requests, one after the other; the second
+  reads the part with the English of the first one's speeches and leaves those speeches translated. A part whose point of view and present characters are all outside the speakers of a language is not asked for
+  that language (a part that names no character is asked for every language that has speakers).
+- **A passage knows its language.** **Translate the speech** again for one language leaves the speeches of the others alone, and **Put the English back** can be for one language or for all.
+- **The menus ask which language** when the book has more than one: the menu of a part (one of the languages or *All languages*) and the right click on a selected sentence (one language).
+  **Translate parts** has a *Language* field (all languages by default); *the parts that are not translated* means "not translated in that language".
+- **The automatic run** translates a new part into every language whose speakers may be in it.
 
 ## Translating
 
-- **By hand:** the menu of a part has **Translate the speech (real language)**. A part that is translated already is translated again **from its English**.
+- **By hand:** the menu of a part has **Translate the speech (real language)**. A part that is translated already is translated again **from its English**. A book with more than one language asks first [which one](#more-than-one-language-in-a-book).
 - **By itself:** with **Translate a new part by itself**, a generated part is translated as soon as it is final. A *regenerate* of a part gives it new English and removes the old translation.
 - **A sentence you wrote:** select it in the text of a part, right click and choose **Translate the selection (real language)**. The model translates it with the story around it; the English is
   kept as the source. A selection that holds a translated speech is refused.
@@ -114,10 +133,11 @@ its position on the active branch (the first part is 1).
 |---|---|
 | `reallang-list`, `reallang-create`, `reallang-update`, `reallang-delete` | The library. `reallang-create` takes a `preset` (`ja-kana-kanji`, `ja-kana`, `ja-romaji`, `other`). `reallang-delete` asks. |
 | `reallang-set-book-language` | The language of the open book (the **Language of the speech** field of its *Extension Settings*). |
+| `reallang-add-book-language`, `reallang-remove-book-language` | The other languages of the open book. Removing asks the user. |
 | `reallang-status` | The language of the book and which parts are translated. |
-| `reallang-translate-part`, `reallang-translate-range`, `reallang-translate-sentence`, `reallang-translate-text`, `reallang-revert-to-source` | Translating: one part, a range (`mode` *new* or *again*), one sentence of a part, a text that is only returned, and the English back. |
+| `reallang-translate-part`, `reallang-translate-range`, `reallang-translate-sentence`, `reallang-translate-text`, `reallang-revert-to-source` | Translating: one part, a range (`mode` *new* or *again*), one sentence of a part, a text that is only returned, and the English back. With the optional `language` they are about one language of the book (all of them by default, the first for a sentence or a text). |
 | `reallang-get-source`, `reallang-list-passages` | Reading: the text of a part as the models read it (the English), and the translated speeches of a part with their reading and English. |
-| `reallang-speakers`, `reallang-set-speakers-mode`, `reallang-set-speaker`, `reallang-remove-speaker` | Who speaks the language in the open book. |
+| `reallang-speakers`, `reallang-set-speakers-mode`, `reallang-set-speaker`, `reallang-remove-speaker` | Who speaks the language in the open book (`language` names one of the book's languages, the first by default). |
 
 A language is a few lines of rules and has no working copy for an agent run (the Conlang Translator copies a language with its lexicon): an agent that creates or changes a language changes your library at once. The speakers,
 the settings of the book and the passages are the book's, and the run's copy of the book carries them.
@@ -125,7 +145,8 @@ the settings of the book and the passages are the book's, and the run's copy of 
 ## Limits
 
 - **The quality is the model's.** Politeness is the hard part of Japanese; the rules and the notes on the characters guide it, a few parts read by a person decide whether they are enough.
-- **One real language per book** for now, and the speakers are per book, not per language: a story with Japanese and Korean needs the second language later (see the TODO of the plugin).
+- **Speakers decide which languages are asked for**, from the point of view and the characters present of a part. A speech by a character the part does not name can be missed by a language whose speakers are
+  listed; the text of the part decides inside a request.
 - **No second pass** that rewrites a translation for naturalness, and no back-translation check yet.
 - **No furigana.** The reading is a line in the popover, not ruby text in the page.
 - **A part that the other translator plugin translated** is read by this model with that translation in the text (not its English); it is told only that the speech there is in another language.

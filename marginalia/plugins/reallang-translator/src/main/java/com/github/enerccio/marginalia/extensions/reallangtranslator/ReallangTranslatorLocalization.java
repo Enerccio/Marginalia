@@ -33,6 +33,7 @@ public class ReallangTranslatorLocalization extends PluginLocalizationBundle {
     public static final String LANGUAGES = "Languages";
     public static final String LANGUAGES_D = "%d language(s)";
     public static final String LANGUAGE_OF_THE_SPEECH = "Language of the speech";
+    public static final String LANGUAGES_S = "Languages: %s";
     public static final String LANGUAGE_S = "Language: %s";
     public static final String MODEL_OF_THE_TRANSLATION = "Model of the translation";
     public static final String NAME = "Name";
@@ -52,6 +53,7 @@ public class ReallangTranslatorLocalization extends PluginLocalizationBundle {
     public static final String ROMAJI_LATIN_LETTERS = "Romaji (Latin letters)";
     public static final String SCRIPT = "Script";
     public static final String SPEAKERS = "Speakers";
+    public static final String SPEAKERS_S = "Speakers: %s";
     public static final String START_FROM = "Start from";
     public static final String TEXT_TO_TRANSLATE = "Text to translate (English)";
     public static final String THERE_IS_A_LANGUAGE_WITH_THIS_NAME = "There is a language with this name already";
@@ -166,6 +168,9 @@ public class ReallangTranslatorLocalization extends PluginLocalizationBundle {
         ja(LANGUAGE_OF_THE_SPEECH, "台詞の言語");
         zh(LANGUAGE_OF_THE_SPEECH, "对白的语言");
 
+        ja(LANGUAGES_S, "言語: %s");
+        zh(LANGUAGES_S, "语言:%s");
+
         ja(LANGUAGE_S, "言語: %s");
         zh(LANGUAGE_S, "语言:%s");
 
@@ -222,6 +227,9 @@ public class ReallangTranslatorLocalization extends PluginLocalizationBundle {
 
         ja(SPEAKERS, "話者");
         zh(SPEAKERS, "说话者");
+
+        ja(SPEAKERS_S, "話者: %s");
+        zh(SPEAKERS_S, "说话者:%s");
 
         ja(START_FROM, "元にする設定");
         zh(START_FROM, "基于");

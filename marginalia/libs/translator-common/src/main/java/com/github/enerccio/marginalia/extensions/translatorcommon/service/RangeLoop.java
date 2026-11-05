@@ -4,6 +4,7 @@ import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
@@ -31,8 +32,20 @@ public final class RangeLoop {
      *
      * @param number     its place among the parts that have text, counted from 1 (what the export dialog calls the message)
      * @param translated whether it has a translated speech
+     * @param languages  the languages (ids) its translated speeches are in
      */
-    public record RangePart(int number, ChatMessage part, boolean translated) {
+    public record RangePart(int number, ChatMessage part, boolean translated, Set<String> languages) {
+
+        public RangePart(int number, ChatMessage part, boolean translated) {
+            this(number, part, translated, Set.of());
+        }
+
+        /**
+         * Whether the part has a translated speech in the language; null asks for any language.
+         */
+        public boolean isTranslatedIn(String languageId) {
+            return languageId == null ? translated : languages.contains(languageId);
+        }
     }
 
     /** How a part went. */
@@ -98,12 +111,21 @@ public final class RangeLoop {
      * @param to   the last part number of the range
      */
     public static List<RangePart> select(Mode mode, List<RangePart> all, int from, int to) {
+        return select(mode, all, from, to, null);
+    }
+
+    /**
+     * The parts of the range the mode works on for one language of the book: "translated" means translated in that language.
+     *
+     * @param languageId the language (id), null for all of them: a part counts as translated when it has a speech in any language
+     */
+    public static List<RangePart> select(Mode mode, List<RangePart> all, int from, int to, String languageId) {
         List<RangePart> selected = new ArrayList<>();
         for (RangePart part : all) {
             if (part.number() < from || part.number() > to) {
                 continue;
             }
-            if (mode == Mode.TRANSLATE_NEW ? !part.translated() : part.translated()) {
+            if (mode == Mode.TRANSLATE_NEW ? !part.isTranslatedIn(languageId) : part.isTranslatedIn(languageId)) {
                 selected.add(part);
             }
         }

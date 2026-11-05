@@ -1,6 +1,11 @@
 package com.github.enerccio.marginalia.extensions.conlangtranslator.model;
 
+import com.github.enerccio.marginalia.extensions.translatorcommon.model.BookLanguage;
 import com.github.enerccio.marginalia.extensions.translatorcommon.model.Speakers;
+
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * What the plugin keeps in the attributes of a book: which language the book is translated into and how. Stored under {@link #KEY}.
  */
@@ -21,6 +26,8 @@ public class BookSettings {
     private int maxLexiconChars = 60000;
     /** Who speaks the language in this book, and what the translator knows of the characters. Per book: the same language is spoken by other people in another story. */
     private Speakers speakers = new Speakers();
+    /** The other languages of the book, each with its own speakers; the book's own (it is not inherited). */
+    private List<BookLanguage> otherLanguages = new ArrayList<>();
 
     public String getLanguageId() {
         return languageId == null || languageId.isBlank() ? null : languageId;
@@ -79,5 +86,48 @@ public class BookSettings {
 
     public void setSpeakers(Speakers speakers) {
         this.speakers = speakers;
+    }
+
+    public List<BookLanguage> getOtherLanguages() {
+        if (otherLanguages == null) {
+            otherLanguages = new ArrayList<>();
+        }
+        return otherLanguages;
+    }
+
+    public void setOtherLanguages(List<BookLanguage> otherLanguages) {
+        this.otherLanguages = otherLanguages;
+    }
+
+    /**
+     * The speakers of a language of the book: the language the book names has {@link #getSpeakers()}, the others have their own.
+     *
+     * @param languageId the id of the language
+     * @return null when the book does not have the language
+     */
+    public Speakers speakersOf(String languageId) {
+        if (languageId == null) {
+            return null;
+        }
+        if (languageId.equals(getLanguageId())) {
+            return getSpeakers();
+        }
+        return getOtherLanguages().stream().filter(other -> languageId.equals(other.getLanguageId())).findFirst().map(BookLanguage::getSpeakers).orElse(null);
+    }
+
+    /**
+     * The ids of the languages of the book, the one it names first; no duplicates.
+     */
+    public List<String> languageIds() {
+        List<String> ids = new ArrayList<>();
+        if (getLanguageId() != null) {
+            ids.add(getLanguageId());
+        }
+        for (BookLanguage other : getOtherLanguages()) {
+            if (other.getLanguageId() != null && !ids.contains(other.getLanguageId())) {
+                ids.add(other.getLanguageId());
+            }
+        }
+        return ids;
     }
 }

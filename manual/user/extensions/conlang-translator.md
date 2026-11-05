@@ -132,8 +132,9 @@ above, then the settings of your user.
 
 ## The Conlang tab of the book
 
-The story window has a **Conlang** tab (in the same dock as the chapters and the lorebook; drag it where you like) for the language of *this* book. It has three tabs
-of its own, and **Refresh** reads the language again after you changed it in the window of the book.
+The story window has a **Conlang** tab (in the same dock as the chapters and the lorebook; drag it where you like) for the language of *this* book. It has four tabs
+of its own, and **Refresh** reads the language again after you changed it in the window of the book. A book with [more than one language](#more-than-one-language-in-a-book) has a field
+next to **Refresh** that chooses which of them the *Words*, *Speakers* and *Quick translate* tabs are about.
 
 ### Words
 
@@ -150,6 +151,10 @@ text overrides it ("she said in the common tongue", "the guard could not underst
 you may note the **gender** (a language that marks gender gets it wrong when the part only says "her") and the **voice** ("formal, clipped, coarse"), which
 the model matches to the registers of the language. Changes are stored in the book at once.
 
+### Languages
+
+The other languages of the book, besides the one its **Language of the speech** field names: see [More than one language in a book](#more-than-one-language-in-a-book).
+
 ### Quick translate
 
 Write a text in English (a phrase, a name, a line you have not written yet), optionally who says it and to whom, and press **Translate**: the model translates it into the
@@ -157,10 +162,28 @@ language of the book with the rules, the registers and the lexicon, and the note
 translation, a note on the choices, and the **words the translation needed** that the lexicon lacked, each with its meaning and why; select the ones you want and **Import the selected words**:
 they go into the lexicon as *new*, the same as the words of a translated part. Words in the translation that are neither in the lexicon nor reported are listed as a warning.
 
+## More than one language in a book
+
+An epic may have a tongue for the elves, another for the dwarves and a third for the orcs. A book names **one language first** (the field above, which a folder or your settings may also give)
+and the **Languages** tab of the **Conlang** tab adds **other languages** from your library, one by one, and takes them away again.
+
+- **Each language has its own speakers.** The *Speakers* tab is about the language the field at the top chooses. The first language is spoken by everybody except the characters you list, as before;
+  **a language you add starts as "only the listed characters speak it" with nobody listed**, so it is not asked for anything until you list who speaks it. List a character as an exception of the first
+  language when another language is theirs, or the first language is asked for their speech too (a speech two languages claim stays with the one that is asked first). A character may speak more than one language
+  (list them in both; the text of the part tells the model which one a speech is in).
+- **One request for each language.** A request holds the rules and the lexicon of one language only, and only the speeches of its speakers; a part with the speech of two languages takes two requests, one after
+  the other. The second one reads the part with the English of the first one's speeches and leaves those speeches translated. A part whose point of view and present characters are all outside the speakers of a
+  language is not asked for that language (a part that names no character is asked for every language that has speakers).
+- **A passage knows its language.** The popover, the export and the viewer work as before; **Translate the speech** again for one language leaves the speeches of the others alone, and **Put the English back**
+  can be for one language or for all.
+- **The menus ask which language** when the book has more than one: the menu of a part (*Translate the speech*: one of the languages or *All languages*) and the right click on a selected sentence (one language).
+  **Translate parts** has a *Language* field (all languages by default); *the parts that are not translated* means "not translated in that language".
+- **The automatic run** translates a new part into every language whose speakers may be in it.
+
 ## Translating
 
 - **By hand:** the menu of a part has **Translate the speech**. A part that is translated already is translated again **from its English**, so this is also how you retranslate a
-  part after the rules or the lexicon changed.
+  part after the rules or the lexicon changed. A book with more than one language asks first [which one](#more-than-one-language-in-a-book).
 - **By itself:** with **Translate a new part by itself**, a generated part is translated as soon as it is final. A *regenerate* of a part gives it new English and removes the old translation.
 - **A sentence you wrote:** select it in the text of a part, right click and choose **Translate the selection**. The model translates the selected text
   (spaces and a pair of quotation marks around it are left out) with the language, the notes of the characters and the story around it; the text is replaced by the translation and
@@ -234,6 +257,7 @@ argument of a command; an agent may leave out the optional ones.
 |---|---|
 | `conlang-list`, `conlang-get`, `conlang-create`, `conlang-duplicate`, `conlang-update`, `conlang-delete`, `conlang-export`, `conlang-import`, `conlang-set-references` | The library. `conlang-delete` asks, and is not available to an agent. |
 | `conlang-set-book-language` | The language of the open book (the **Language of the speech** field of its *Extension Settings*). |
+| `conlang-add-book-language`, `conlang-remove-book-language` | The other languages of the open book. Removing asks the user, and is not available to an agent. |
 | `conlang-list-rules`, `conlang-get-rules`, `conlang-add-rules`, `conlang-update-rules`, `conlang-delete-rules`, `conlang-move-rules` | The sections of the rules. |
 | `conlang-list-categories`, `conlang-add-category`, `conlang-update-category`, `conlang-move-category`, `conlang-delete-category` | The categories of the words. |
 | `conlang-list-registers`, `conlang-add-register`, `conlang-update-register`, `conlang-delete-register` | The registers. |
@@ -242,9 +266,9 @@ argument of a command; an agent may leave out the optional ones.
 | `conlang-lock-word`, `conlang-unlock-word`, `conlang-retire-word`, `conlang-restore-word`, `conlang-accept-words` | The state of the words. |
 | `conlang-check-lexicon` | Repeated meanings, words without a category, compounds with parts that are not in the lexicon, and the homophones (for information). No model. |
 | `conlang-status` | The language of the book and which parts are translated. |
-| `conlang-translate-part`, `conlang-translate-range`, `conlang-translate-sentence`, `conlang-translate-text`, `conlang-revert-to-source` | Translating: one part, a range (`mode` *new* or *again*), one sentence of a part, a text that is only returned, and the English back. A range asks the user for *again*; so does the English back. |
+| `conlang-translate-part`, `conlang-translate-range`, `conlang-translate-sentence`, `conlang-translate-text`, `conlang-revert-to-source` | Translating: one part, a range (`mode` *new* or *again*), one sentence of a part, a text that is only returned, and the English back. A range asks the user for *again*; so does the English back. With the optional `language` they are about one language of the book (all of them by default, the first for a sentence or a text). |
 | `conlang-check-translation`, `conlang-get-source`, `conlang-list-passages` | Reading: the words of a translated speech that the lexicon does not have, the text of a part as the models read it (the English), and the translated speeches of a part with their English. |
-| `conlang-speakers`, `conlang-set-speakers-mode`, `conlang-set-speaker`, `conlang-remove-speaker` | Who speaks the language in the open book. |
+| `conlang-speakers`, `conlang-set-speakers-mode`, `conlang-set-speaker`, `conlang-remove-speaker` | Who speaks the language in the open book (`language` names one of the book's languages, the first by default). |
 | `conlang-design-words`, `conlang-design-rules`, `conlang-rewrite-rules`, `conlang-design-stage`, `conlang-ask-designer`, `conlang-try-sentences` | The designer. With `ask true` a command returns the proposal as a numbered list of changes and holds it; nothing is changed. |
 | `conlang-review` | The designer's review of the language: findings only. |
 | `conlang-apply-changes` | Applies the held changes, all of them or the numbers given (the same as **Apply** in the review). |

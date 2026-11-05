@@ -7,8 +7,8 @@ a parameter (the passage kind id, the mark class, the name of the requests, the 
 
 Packages: `model` (the data of a translated speech `Span`, the speakers, the reader and export modes), `translate` (`Reverse`: the translated text back to the English the models read;
 `TranslationPlan`; `SelectionRange`), `text` (the transformer for `PartTextRegistry`, the text of the export and of the reader, the passage kind), `service` (the run loops, the model client, the
-access to the passages, `TranslationWriter` that writes a translation into a part and takes it out, `TranslatedPassages` for the viewer), `ui` (the popover over a speech, the reader's part, the speakers' editor, the list editor, the export field; `CommonStyles` with `translatorcommon.css`, and
-`TranslatorCommonLocalization` with the Japanese and Chinese texts; the range window `RangeDialog`). A passage is used only when the text at its range still has the hash it was made for (`Span.isEdited`): that contract
+access to the passages, `TranslationWriter` that writes a translation into a part and takes it out (and keeps the speeches of the other languages of a book), `TranslatedPassages` for the viewer), `ui` (the popover over a speech, the reader's part, the speakers' editor, the list editor, the export field; `CommonStyles` with `translatorcommon.css`, and
+`TranslatorCommonLocalization` with the Japanese and Chinese texts; the range window `RangeDialog`, the choice of a language of the book and the panel of a book's other languages). A passage is used only when the text at its range still has the hash it was made for (`Span.isEdited`): that contract
 is what lets a second plugin's passages drop out quietly where the first one changed the text, and it has a test.
 
 Build: `mvn install -DskipTests` here (a plugin needs it in the local repository first). `install-plugins.sh`, `marginalia/plugins/Dockerfile` and the workflows do it.

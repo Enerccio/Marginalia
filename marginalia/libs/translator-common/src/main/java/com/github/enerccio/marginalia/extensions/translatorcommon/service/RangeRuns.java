@@ -33,7 +33,10 @@ public final class RangeRuns {
 
     /** What the plugin does to one part: translates it or puts the English back; the answer is how it went. */
     public interface Work {
-        PartResult apply(Manuscript book, Mode mode, ChatMessage part) throws Exception;
+        /**
+         * @param languageId the language of the book to work on, null for all of them
+         */
+        PartResult apply(Manuscript book, Mode mode, ChatMessage part, String languageId) throws Exception;
     }
 
     private final Work work;
@@ -61,11 +64,12 @@ public final class RangeRuns {
     /**
      * Starts the run; call it on the thread of the user's request.
      *
+     * @param languageId the language of the book to work on (its id), null for all of them
      * @param progress told on the thread of the page with the number of the parts done before each part
      * @param done     told on the thread of the page when the run is over, with the summary, or the failure (the summary is null then)
      * @return the handle of the run, null when a run of the book is on its way already (nothing is started)
      */
-    public Handle start(Manuscript book, Mode mode, List<RangePart> parts, IntConsumer progress, BiConsumer<Summary, Throwable> done) {
+    public Handle start(Manuscript book, Mode mode, String languageId, List<RangePart> parts, IntConsumer progress, BiConsumer<Summary, Throwable> done) {
         if (!running.add(book.getUuid())) {
             return null;
         }
@@ -76,7 +80,7 @@ public final class RangeRuns {
             Summary summary = null;
             Throwable failure = null;
             try (InRequestScope _ = new InRequestScope(attributes)) {
-                summary = RangeLoop.run(parts, part -> work.apply(book, mode, part), stop, count -> tell(ui, attributes, () -> progress.accept(count)));
+                summary = RangeLoop.run(parts, part -> work.apply(book, mode, part, languageId), stop, count -> tell(ui, attributes, () -> progress.accept(count)));
             } catch (Throwable e) {
                 failure = e;
                 log.warn("The range run failed: {}", e.getMessage(), e);

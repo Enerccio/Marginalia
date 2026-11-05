@@ -3,11 +3,11 @@ package com.github.enerccio.marginalia.extensions.conlangtranslator.ui;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.ConlangStyles;
-import com.github.enerccio.marginalia.extensions.translatorcommon.service.AsyncRuns;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.service.BookConlang;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.service.BookConlang.Quick;
-import com.github.enerccio.marginalia.extensions.translatorcommon.service.PluginLog;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.translate.AnswerChecker.Word;
+import com.github.enerccio.marginalia.extensions.translatorcommon.service.AsyncRuns;
+import com.github.enerccio.marginalia.extensions.translatorcommon.service.PluginLog;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.vaadin.flow.component.button.Button;
@@ -34,6 +34,7 @@ public class QuickTranslatePanel extends VerticalLayout {
     private final Manuscript book;
     private final BookConlang service;
     private final Runnable wordsImported;
+    private final String languageId;
 
     private final TextArea input = new TextArea(T.localized(TEXT_TO_TRANSLATE));
     private final TextField context = new TextField(T.localized(WHO_SAYS_IT_TO_WHOM));
@@ -50,11 +51,13 @@ public class QuickTranslatePanel extends VerticalLayout {
     private Quick last;
 
     /**
+     * @param languageId   the language of the book the text goes into (its id), null for the first one
      * @param wordsImported run after words were added to the lexicon, so the list of words shows them
      */
-    public QuickTranslatePanel(Manuscript book, BookConlang service, Runnable wordsImported) {
+    public QuickTranslatePanel(Manuscript book, BookConlang service, String languageId, Runnable wordsImported) {
         this.book = book;
         this.service = service;
+        this.languageId = languageId;
         this.wordsImported = wordsImported;
         setPadding(false);
         setSizeFull();
@@ -112,7 +115,7 @@ public class QuickTranslatePanel extends VerticalLayout {
         translate.setEnabled(false);
         busy.setVisible(true);
         showResult(null);
-        AsyncRuns.start("conlang-quick", PluginLog.get(), () -> service.quickTranslate(book, text, who), (result, failure) -> {
+        AsyncRuns.start("conlang-quick", PluginLog.get(), () -> service.quickTranslate(book, text, who, languageId), (result, failure) -> {
             translate.setEnabled(true);
             busy.setVisible(false);
             if (failure != null) {
@@ -169,7 +172,7 @@ public class QuickTranslatePanel extends VerticalLayout {
         List<Word> chosen = last.words().stream().filter(word -> words.getSelectedItems().contains(word)).toList();
         String model = last.model();
         importWords.setEnabled(false);
-        AsyncRuns.start("conlang-import-words", PluginLog.get(), () -> service.importWords(book, chosen, model), (added, failure) -> {
+        AsyncRuns.start("conlang-import-words", PluginLog.get(), () -> service.importWords(book, chosen, model, languageId), (added, failure) -> {
             if (failure != null) {
                 Notification.error(String.format(T.localized(THE_LANGUAGES_CAN_NOT_BE_LOADED), failure.getMessage()));
                 updateImport();

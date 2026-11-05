@@ -30,11 +30,12 @@ where an invented language (a lexicon, new words) and a real one (a script, poli
 | Package | Class | What it is for |
 |---|---|---|
 | `model` | `Span` | What a plugin keeps for one translated passage: the **source**, the speaker, the language, whether the listener understands it, the register, a **reading** (the romaji of a Japanese text, empty for none), the model and time, and a **hash of the translated text** the plugin wrote. `Span.read(attributes)` / `span.write(attributes)` store it as JSON in the attributes of the passage. `isEdited(currentText)` is true when the author changed the translation since: the source is then stale. |
-| | `Speakers`, `CharacterNote`, `SpeakersMode` | Who speaks the language in a book (everyone except the listed characters, or only the listed ones), with the aliases, gender and voice of each character. `speaks(name)`, `find(name)`. |
+| | `Speakers`, `CharacterNote`, `SpeakersMode` | Who speaks the language in a book (everyone except the listed characters, or only the listed ones), with the aliases, gender and voice of each character. `speaks(name)`, `find(name)`; `mayBeInvolved(names)` says whether a part with these characters may hold speech in the language (`Speakers.namesOf(pointOfView, present)` makes the names), which decides whether a language of a book is asked for. |
+| | `BookLanguage`, `LanguageRef` | A language a book has besides the one it names first: its id in the plugin's library and **its own** `Speakers` (a new one starts in the mode `ONLY` with nobody listed); `LanguageRef(id, name)` is how the screens list the languages of a book. |
 | | `ReaderMode` | What the reader of a published book sees: `CLICK` (the translation, the source on a click), `TRANSLATED`, `SOURCE`. `id()` / `of(id)` for the setting. |
 | | `ExportMode` | What an export holds: `TRANSLATED` (as stored), `SOURCE`, `TRANSLATED_NOTES`, `SOURCE_NOTES` (the other text in footnotes). |
 | `translate` | `Reverse` | `Reverse.toModel(stored, located)` turns the translated passages of a stored text back into their source and returns the `ModelText` map, the substitutions, the passages the author edited and the ones that could not be used. |
-| | `TranslationPlan` | `TranslationPlan.make(source, accepted)`: the new text of a part with every accepted speech replaced, and the `Planned` passages in it (range, translation, source, speech). Pure. |
+| | `TranslationPlan` | `TranslationPlan.make(source, accepted)`: the new text of a part with every accepted speech replaced, and the `Planned` passages in it (range, translation, source, speech). An `Accepted` may **carry** the `Span` of an earlier translation (a speech of another language of the book that stays as it is): it is in the new text and `Planned.carried()` gives its data back. `translatedCount()` counts the speeches of this run only. Pure. |
 | | `Speech` | One direct speech as the model answered for it (`quote`, `speaker`, `language`, `text`, `understood`, `register`). A convenient shape for the answer; a plugin may use its own and make a `Speech` of it. |
 | | `ModelJson` | `ModelJson.object(raw)`: the JSON object in what a model answered (a code fence or a word before it is ignored); null when there is none. |
 | | `SelectionRange` | `trim(text, start, end)`: the range the user selected without its white space. |
@@ -43,15 +44,16 @@ where an invented language (a lexicon, new words) and a real one (a script, poli
 | | `ReaderText` | The markdown of a part for the reader: `render(mode, stored, passages, markClass)` (or a function that gives each passage the mark of its kind); the marks carry `data-translated-passage`. |
 | | `SpeechPassageKind` | The `PassageKind` a plugin registers: `new SpeechPassageKind(id, markClass)`; the click opens `SourcePopover`. |
 | `service` | `PassageAccess` | `new PassageAccess(kind)`: the translated passages of parts of **your** kind, located (`of(parts)`, `passagesOf(part)`, `locate(passage)`). It is the `Passages` source of the transformer. |
-| | `TranslationWriter` | `new TranslationWriter(kindId)`: **writes** a `TranslationPlan` into a part (`write`), one selected sentence (`writeSelection`) and takes a translation out again (`revert`), with a lock per book, a refusal of a part that changed meanwhile (`ChangedMeanwhile`) and the rule that a passage the author edited stays. Also `readOf(part)` and `overlaps(part, start, end)`. |
+| | `TranslationWriter` | `new TranslationWriter(kindId)`: **writes** a `TranslationPlan` into a part (`write`), one selected sentence (`writeSelection`) and takes a translation out again (`revert`), with a lock per book, a refusal of a part that changed meanwhile (`ChangedMeanwhile`) and the rule that a passage the author edited stays. Also `readOf(part)` and `overlaps(part, start, end)`. For a book with several languages: `carried(part, read, languageId)` (the speeches of the **other** languages, as `Accepted` entries at their place in the English) with `overlapsAny(carried, start, end)`, and `revert(book, part, read, languageId)` that puts back one language. |
 | | `ModelClient` | `new ModelClient(name).choose(aiUuid, protocolUuid, book)` finds the model (yours, else the book's, else the user's defaults), `ask(model, book, system, user)` waits for the whole answer (reasoning chunks are left out). `ModelSelection` is the AI and protocol. |
-| | `RangeLoop`, `RangeRuns` | An action over a range of parts, one at a time: `RangeLoop.select` / `run` (pure, with a stop and a summary), `RangeRuns.start` on a worker thread of the session, telling the page the progress. The work is a lambda. |
+| | `RangeLoop`, `RangeRuns` | An action over a range of parts, one at a time: `RangeLoop.select` / `run` (pure, with a stop and a summary), `RangeRuns.start` on a worker thread of the session, telling the page the progress. The work is a lambda that gets the language to work on (null: all of the book's); a `RangePart` knows the languages it is translated in. |
 | | `PartRuns<R>`, `AsyncRuns` | One job on a worker thread with the user's request scope, the result handed to the page. One run per part. |
 | | `TranslatedPassages` | `TranslatedPassages.of(passages, kinds, partId)`: the passages of a part of **every** registered kind that carry a `Span`, whichever plugin made them; `markClass(kinds, passage, fallback)`. For the viewer. |
 | | `PluginLog` | The extension's logger for the code that has none (`PluginLog.set(log)` in `onExtensionLoad`). **Per copy**: set it in every plugin. |
 | `ui` | `SourcePopover` | The popover over a translated speech: the source, who said it, "not understood", "edited after the translation". |
 | | `ReaderView` | `ReaderView.apply(view, part, mode, passages, markClass)` in a decorator of `Viewer.createPart`; with a function in place of the class for passages of several kinds. A part is changed once. |
-| | `RangeDialog` | The window of the actions on a range of parts (translate the new ones, translate again, put the source back), with a progress and a stop: `new RangeDialog(book, loader, rangeRuns, reload)`. |
+| | `RangeDialog` | The window of the actions on a range of parts (translate the new ones, translate again, put the source back), with a progress and a stop: `new RangeDialog(book, languages, loader, rangeRuns, reload)`; with more than one `LanguageRef` it has a field for the language. |
+| | `LanguageChoiceDialog`, `BookLanguagesPanel` | `LanguageChoiceDialog.ask(languages, withAll, chosen)` asks which language of the book an action is for (it just runs with one); `BookLanguagesPanel` adds the other languages of a book from the plugin's library and takes them away. |
 | | `SpeakersEditor`, `ListEditor<T>`, `EditDialog` | The editor of the speakers; the list editor it is built on (a grid with add, edit, delete, move) and the small dialog with a validation. |
 | | `ExportChoice` | `ExportChoice.field(label, labels)`: the select of the export dialog, with the plugin's own texts. |
 | | `CommonStyles`, `TranslatorCommonLocalization` | The CSS classes and `translatorcommon.css`; the texts with their Japanese and Chinese translations (`TC.localized(...)`). |
@@ -117,6 +119,24 @@ Run it on a worker thread: `PartRuns` for a part, `RangeRuns` (with `RangeLoop`)
 **7. Who speaks.** Keep a `Speakers` in the attributes of the book (it is Gson-friendly) and give the author `new SpeakersEditor(speakers, onChange)`; put the notes of the
 characters in your prompt.
 
+**8. More than one language in a book** (both plugins do it; it needs nothing from the core). The book keeps the language it names first (the inherited setting) with `Speakers`, and a list of
+`BookLanguage` for the others. A translation is **one pass per language**: the rules, the lexicon and the speakers of one language, and only its speeches. The passes run one after the other, and a pass must
+leave the speeches of the other languages translated, which `write` does when the plan holds them:
+
+```java
+Reverse.Result read = writer.readOf(part);                                   // the English of ALL the languages
+List<TranslationPlan.Accepted> carried = writer.carried(part, read, languageId);   // the speeches of the other languages
+// ... ask the model for this language; drop the accepted speeches that TranslationWriter.overlapsAny(carried, start, end)
+accepted.addAll(carried);
+TranslationPlan plan = TranslationPlan.make(read.text(), accepted);
+if (plan.translatedCount() == 0) { /* nothing was translated in this pass */ }
+writer.write(book, part, plan, read, languageId, modelName, extra);          // the carried passages are made again with their own Span
+```
+
+The passages tell their language (`Span.language`), so a retranslation or a revert of one language (`writer.revert(book, part, read, languageId)`) leaves the others alone, and
+`Speakers.mayBeInvolved(Speakers.namesOf(pov, present))` spares the request for a language none of whose speakers is in the part. The menus ask the language with `LanguageChoiceDialog`, the range
+dialog has a field for it, and the commands take an optional `language`.
+
 ## The contract a passage depends on
 
 A passage is used **only when the text at its range still has the hash it was made for** (`Span.isEdited`). Every consumer in the library checks it (the reverse, the export,
@@ -138,6 +158,6 @@ passages are reversed), so the model sees that speech in the other language and,
 ## Tests
 
 The library has plain unit tests (`mvn test` in `marginalia/libs/translator-common`): `ReverseTest`, `TranslationPlanTest`, `SelectionRangeTest`, `SpanTest`, `SpeakersTest`,
-`SpeechTransformerTest`, `ExportTextTest` (through the core registry), `ReaderTextTest`, `RangeLoopTest`, `TranslationWriter` has no unit test here (it needs the services; the plugins' tests of the translation go through it), `ModelJsonTest`, `SourcePopoverTest` (a Vaadin component built without a browser: the
+`SpeechTransformerTest`, `ExportTextTest` (through the core registry), `ReaderTextTest`, `RangeLoopTest`, `CarriedSpeechesTest` (the speeches of the other languages kept through a write and a revert), `TranslationWriter` has no other unit test here (it needs the services; the plugins' tests of the translation go through it), `ModelJsonTest`, `SourcePopoverTest` (a Vaadin component built without a browser: the
 library's test dependencies include the servlet API for that) and `TranslatorCommonLocalizationTest` (every text has its Japanese and Chinese translation, with the same
 `%s` / `%d` placeholders). A plugin that adds texts to its own bundle has its own such test (`ConlangTranslatorLocalizationTest` is the template).

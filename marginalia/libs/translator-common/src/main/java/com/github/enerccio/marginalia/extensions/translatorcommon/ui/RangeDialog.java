@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.extensions.translatorcommon.ui;
 
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
+import com.github.enerccio.marginalia.extensions.translatorcommon.model.LanguageRef;
 import com.github.enerccio.marginalia.extensions.translatorcommon.service.RangeLoop;
 import com.github.enerccio.marginalia.extensions.translatorcommon.service.RangeLoop.Mode;
 import com.github.enerccio.marginalia.extensions.translatorcommon.service.RangeLoop.RangePart;
@@ -37,6 +38,8 @@ public class RangeDialog extends Dialog {
     private final Runnable reload;
 
     private final Select<Mode> action = new Select<>();
+    private final Select<LanguageRef> language = new Select<>();
+    private final List<LanguageRef> languages;
     private final IntegerField from = new IntegerField(TC.localized(FROM_PART));
     private final IntegerField to = new IntegerField(TC.localized(TO_PART));
     private final Div count = new Div();
@@ -53,7 +56,15 @@ public class RangeDialog extends Dialog {
      * @param reload draws the story again, called when a run that changed something is over
      */
     public RangeDialog(Manuscript book, Supplier<List<RangePart>> loader, RangeRuns runs, Runnable reload) {
+        this(book, List.of(), loader, runs, reload);
+    }
+
+    /**
+     * @param languages the languages of the book; a book with more than one gets a field to choose which one the run is for (all of them by default)
+     */
+    public RangeDialog(Manuscript book, List<LanguageRef> languages, Supplier<List<RangePart>> loader, RangeRuns runs, Runnable reload) {
         this.book = book;
+        this.languages = languages;
         this.loader = loader;
         this.all = loader.get();
         this.runs = runs;
@@ -71,6 +82,14 @@ public class RangeDialog extends Dialog {
         action.setItemLabelGenerator(RangeDialog::label);
         action.setValue(Mode.TRANSLATE_NEW);
         action.setWidthFull();
+
+        language.setLabel(TC.localized(LANGUAGE));
+        language.setItems(languages);
+        language.setEmptySelectionAllowed(true);
+        language.setEmptySelectionCaption(TC.localized(ALL_LANGUAGES));
+        language.setItemLabelGenerator(LanguageRef::name);
+        language.setWidthFull();
+        language.setVisible(languages.size() > 1);
 
         int last = Math.max(1, all.size());
         for (IntegerField field : new IntegerField[]{from, to}) {
@@ -99,10 +118,11 @@ public class RangeDialog extends Dialog {
         });
 
         action.addValueChangeListener(event -> refreshCount());
+        language.addValueChangeListener(event -> refreshCount());
         from.addValueChangeListener(event -> refreshCount());
         to.addValueChangeListener(event -> refreshCount());
 
-        VerticalLayout body = new VerticalLayout(action, from, to, count, progress, status);
+        VerticalLayout body = new VerticalLayout(action, language, from, to, count, progress, status);
         body.setPadding(false);
         add(body);
         getFooter().add(new Button(TC.localized(CLOSE), event -> close()), stop, start);
@@ -121,7 +141,12 @@ public class RangeDialog extends Dialog {
     private List<RangePart> selected() {
         int first = from.getValue() == null ? 1 : from.getValue();
         int last = to.getValue() == null ? all.size() : to.getValue();
-        return RangeLoop.select(action.getValue(), all, first, last);
+        return RangeLoop.select(action.getValue(), all, first, last, languageId());
+    }
+
+    /** The language the run is for, null for all of them. */
+    private String languageId() {
+        return language.getValue() == null ? null : language.getValue().id();
     }
 
     private void refreshCount() {
@@ -156,7 +181,7 @@ public class RangeDialog extends Dialog {
     private void run(List<RangePart> parts) {
         planned = parts.size();
         Mode mode = action.getValue();
-        RangeRuns.Handle started = runs.start(book, mode, parts, this::showProgress, this::finished);
+        RangeRuns.Handle started = runs.start(book, mode, languageId(), parts, this::showProgress, this::finished);
         if (started == null) {
             Notification.error(TC.localized(A_RANGE_IS_BEING_TRANSLATED_ALREADY));
             return;
@@ -169,7 +194,7 @@ public class RangeDialog extends Dialog {
     private void setRunning(boolean running) {
         start.setEnabled(!running);
         stop.setEnabled(running);
-        for (var field : new com.vaadin.flow.component.Component[]{action, from, to}) {
+        for (var field : new com.vaadin.flow.component.Component[]{action, language, from, to}) {
             ((com.vaadin.flow.component.HasEnabled) field).setEnabled(!running);
         }
         progress.setVisible(running);
