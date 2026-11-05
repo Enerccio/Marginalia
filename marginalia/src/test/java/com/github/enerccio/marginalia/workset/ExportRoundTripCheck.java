@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.workset;
 
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.security.model.User;
+import com.github.enerccio.marginalia.domain.service.LorebookService;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.test.MarginaliaTestBase;
 import com.google.gson.Gson;
@@ -29,6 +30,8 @@ class ExportRoundTripCheck extends MarginaliaTestBase {
 
     @Autowired
     private ManuscriptService manuscriptService;
+    @Autowired
+    private LorebookService lorebookService;
 
     private record Counts(int messages, int summaries, int annotations, int revisions, int words) {
     }
@@ -53,6 +56,13 @@ class ExportRoundTripCheck extends MarginaliaTestBase {
         User user = createUser("roundtrip", DEFAULT_PASSWORD, false);
         loginAs(user);
 
+        // the lorebook file first (a book backup only links its lorebook), then the book
+        Path lorebookFile = file.resolveSibling("lorebook.json");
+        if (Files.exists(lorebookFile)) {
+            var lorebook = lorebookService.importLorebook(Files.readString(lorebookFile, StandardCharsets.UTF_8), "imported");
+            System.out.println("[roundtrip] lorebook file imported: " + lorebook.getName() + ", uuid " + lorebook.getUuid()
+                    + " (the book links " + backup.getAsJsonObject("lorebook").get("uuid").getAsString() + ")");
+        }
         Manuscript clone = manuscriptService.cloneFromBackup(backup);
         assertNotNull(clone, "the import returned no book");
         JsonObject again = manuscriptService.createBackup(clone, true);
@@ -73,6 +83,6 @@ class ExportRoundTripCheck extends MarginaliaTestBase {
             }
         }
         JsonArray lorebooks = again.getAsJsonArray("lorebooks");
-        System.out.println("[roundtrip] lorebooks: " + (lorebooks == null ? 0 : lorebooks.size()));
+        System.out.println("[roundtrip] lorebooks linked to the clone: " + (lorebooks == null ? 0 : lorebooks.size()));
     }
 }

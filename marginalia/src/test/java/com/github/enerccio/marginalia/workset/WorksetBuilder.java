@@ -318,6 +318,11 @@ class WorksetBuilder extends MarginaliaTestBase {
         Manuscript finished = manuscriptService.find(bookId);
         Files.createDirectories(dir.resolve("export"));
         Files.writeString(dir.resolve("export/book.json"), GSON.toJson(manuscriptService.createBackup(finished, true)), StandardCharsets.UTF_8);
+        // the lorebook of the book in the file format of the lorebook import: a book backup only links its lorebook, so a new instance needs this file first
+        Lorebook bookLorebook = finished.getLorebook() == null ? null : lorebookService.find(finished.getLorebook());
+        if (bookLorebook != null) {
+            Files.writeString(dir.resolve("export/lorebook.json"), lorebookService.exportLorebook(bookLorebook), StandardCharsets.UTF_8);
+        }
         writeReview(doneThisRun);
         printTable(done);
         System.out.println("[workset] the book has " + done + " of " + skeleton.beats.size() + " parts; export: " + dir.resolve("export/book.json"));
