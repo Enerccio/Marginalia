@@ -37,7 +37,7 @@ registered stay in the data and are not shown.
 | `markClass(passage)` | CSS classes of the mark over the passage in the story card (desktop and phone) and in the redraft dialog; `null` is no mark. Your stylesheet comes with `ExtensionHasCss`, or use the shared `annotation-mark` classes. |
 | `markAttributes(passage)` | Further attributes of the mark as HTML (` data-x="y"`, values escaped). The core adds `data-annotation="<uuid>"`, which is how the click finds the passage. |
 | `onClick(passage, anchor)` | The author clicked the mark; open a popover or a dialog from `anchor`. |
-| `shownInViewer()`, `shownInExports()` | Whether the viewer of a published book and the exports get the passages of the kind. They only ask the kind: the core draws nothing of its own there, the extension's hooks do (the viewer click and the export hook are not part of this API yet). |
+| `shownInViewer()`, `shownInExports()` | Whether the viewer of a published book and the exports get the passages of the kind. They only ask the kind: the core draws nothing of its own there, the extension's hooks do: for the exports the extension registers a contributor in the [`ExportTextRegistry`](export-text.md); the viewer click is the extension's decorator of `Viewer.createPart` (the [translator library](libraries/translator-common.md) has one). |
 
 `StoryAnnotations` (the annotations a story tab keeps) loads the passages of the registered kinds once for the book, only while some kind is registered,
 and puts their marks into the text together with the marks of the annotations.

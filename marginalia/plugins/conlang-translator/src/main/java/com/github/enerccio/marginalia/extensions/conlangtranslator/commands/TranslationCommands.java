@@ -1,5 +1,9 @@
 package com.github.enerccio.marginalia.extensions.conlangtranslator.commands;
 
+import com.github.enerccio.marginalia.extensions.translatorcommon.model.CharacterNote;
+import com.github.enerccio.marginalia.extensions.translatorcommon.model.SpeakersMode;
+import com.github.enerccio.marginalia.extensions.translatorcommon.model.Speakers;
+import com.github.enerccio.marginalia.extensions.translatorcommon.model.Span;
 import com.github.enerccio.marginalia.domain.model.impl.AnchoredPassage;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
@@ -8,19 +12,19 @@ import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.extensions.PartTextRegistry;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.model.*;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.service.BookConlang;
-import com.github.enerccio.marginalia.extensions.conlangtranslator.service.PassageAccess;
-import com.github.enerccio.marginalia.extensions.conlangtranslator.service.RangeLoop;
-import com.github.enerccio.marginalia.extensions.conlangtranslator.service.RangeLoop.Mode;
-import com.github.enerccio.marginalia.extensions.conlangtranslator.service.RangeLoop.PartResult;
-import com.github.enerccio.marginalia.extensions.conlangtranslator.service.RangeLoop.RangePart;
-import com.github.enerccio.marginalia.extensions.conlangtranslator.service.RangeLoop.Summary;
+import com.github.enerccio.marginalia.extensions.translatorcommon.service.PassageAccess;
+import com.github.enerccio.marginalia.extensions.translatorcommon.service.RangeLoop;
+import com.github.enerccio.marginalia.extensions.translatorcommon.service.RangeLoop.Mode;
+import com.github.enerccio.marginalia.extensions.translatorcommon.service.RangeLoop.PartResult;
+import com.github.enerccio.marginalia.extensions.translatorcommon.service.RangeLoop.RangePart;
+import com.github.enerccio.marginalia.extensions.translatorcommon.service.RangeLoop.Summary;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.service.TranslationService;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.service.TranslationService.Outcome;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.service.TranslationService.Reverted;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.translate.AnswerChecker.Word;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.translate.LexiconCheck;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.translate.LexiconText;
-import com.github.enerccio.marginalia.extensions.conlangtranslator.translate.Reverse;
+import com.github.enerccio.marginalia.extensions.translatorcommon.translate.Reverse;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.apache.commons.lang3.StringUtils;
@@ -58,7 +62,7 @@ public class TranslationCommands extends ConlangCommandSupport {
 
     private final TranslationService translation;
     private final BookConlang bookConlang;
-    private final PassageAccess passages = new PassageAccess();
+    private final PassageAccess passages = new PassageAccess(com.github.enerccio.marginalia.extensions.conlangtranslator.text.ConlangKind.ID);
 
     @Autowired
     private PartTextRegistry partTexts;

@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <meta name="turbo-root" content="/Marginalia">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847153534219">
+
+    <!-- See retype.com -->
+    <meta name="generator" content="Retype 4.6.0">
+
+    <!-- Primary Meta Tags -->
+    <title>translator-common</title>
+    <meta name="title" content="translator-common">
+    <meta name="description" content="marginalia/libs/translator-common is what the Conlang Translator and the Real Language Translator share, written so that a third plugin can use it: any plugin that keeps a story in one language and lets the models, the exports and the readers deal with another.">
+
+    <!-- Canonical -->
+    <link rel="canonical" href="https://enerccio.github.io/Marginalia/developer/plugins/libraries/translator-common/">
+    <link rel="sitemap" type="application/xml" title="Sitemap" href="https://enerccio.github.io/Marginalia/sitemap.xml">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://enerccio.github.io/Marginalia/developer/plugins/libraries/translator-common/">
+    <meta property="og:title" content="translator-common">
+    <meta property="og:description" content="marginalia/libs/translator-common is what the Conlang Translator and the Real Language Translator share, written so that a third plugin can use it: any plugin that keeps a story in one language and lets the models, the exports and the readers deal with another.">
+    <meta property="og:site_name" content="Marginalia">
+    <meta property="og:locale" content="en_US">
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://enerccio.github.io/Marginalia/developer/plugins/libraries/translator-common/">
+    <meta name="twitter:title" content="translator-common">
+    <meta name="twitter:description" content="marginalia/libs/translator-common is what the Conlang Translator and the Real Language Translator share, written so that a third plugin can use it: any plugin that keeps a story in one language and lets the models, the exports and the readers deal with another.">
+
+    <!-- Alternate Markdown -->
+    <link rel="alternate" type="text/markdown" href="https://enerccio.github.io/Marginalia/developer/plugins/libraries/translator-common.md">
+
+    <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
+
+    <link href="../../../../resources/css/retype.css?v=4.6.0.847153534219" rel="stylesheet">
+
+    <script data-cfasync="false" src="../../../../resources/js/config.js?v=4.6.0.847153534219" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../../resources/js/lunr.js?v=4.6.0.847153534219" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../../resources/js/prism.js?v=4.6.0.847153534219" defer></script>
+    <script id="mermaid-js" data-cfasync="false" src="../../../../resources/js/mermaid.js?v=4.6.0" defer></script>
+</head>
+<body>
+    <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
+    <div class="absolute bottom-0 left-0" style="top: 5rem; right: 50%"></div>
+
+    <header id="retype-header" class="sticky top-0 z-30 flex w-full h-16 bg-header-bg border-b border-header-border md:h-20">
+        <div class="container relative flex items-center justify-between pr-6 grow md:justify-start">
+            <!-- Mobile menu button skeleton -->
+            <button v-cloak class="skeleton retype-mobile-menu-button flex items-center justify-center shrink-0 overflow-hidden dark:text-white focus:outline-hidden rounded-full w-10 h-10 ml-3.5 md:hidden"><svg xmlns="http://www.w3.org/2000/svg" class="mb-px shrink-0" width="24" height="24" viewBox="0 0 24 24" role="presentation" style="margin-bottom: 0px;"><g fill="currentColor"><path d="M2 4h20v2H2zM2 11h20v2H2zM2 18h20v2H2z"></path></g></svg></button>
+            <div v-cloak id="retype-sidebar-left-toggle-button"></div>
+    
+            <!-- Logo -->
+            <div class="flex items-center justify-between h-full py-2 md:w-75">
+                <div class="flex items-center px-2 md:px-6">
+                    <a id="retype-branding-logo" href="https://enerccio.github.io/Marginalia/" class="flex items-center leading-snug text-2xl">
+                        <span class="dark:text-white font-bold line-clamp-1 md:line-clamp-2">Marginalia</span>
+                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">Manual 1.7.0</span>
+                </div>
+    
+                <span class="hidden h-8 border-r md:inline-block border-base-border"></span>
+            </div>
+    
+            <div class="flex justify-between md:grow">
+                <!-- Top Nav -->
+                <nav id="retype-header-nav" class="hidden md:flex">
+                    <ul class="flex flex-col mb-4 md:pl-16 md:mb-0 md:flex-row md:items-center">
+                        <li class="mr-6">
+                            <a class="py-2 md:mb-0 inline-flex items-center text-sm whitespace-nowrap transition-colors duration-200 ease-linear md:text-header-text font-header-text hover:text-header-text-hover" href="https://github.com/Enerccio/Marginalia">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="block shrink-0 mr-1.5" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+                                    <path d="M10.226 17.284c-2.965-.36-5.054-2.493-5.054-5.256 0-1.123.404-2.336 1.078-3.144-.292-.741-.247-2.314.09-2.965.898-.112 2.111.36 2.83 1.01.853-.269 1.752-.404 2.853-.404 1.1 0 1.999.135 2.807.382.696-.629 1.932-1.1 2.83-.988.315.606.36 2.179.067 2.942.72.854 1.101 2 1.101 3.167 0 2.763-2.089 4.852-5.098 5.234.763.494 1.28 1.572 1.28 2.807v2.336c0 .674.561 1.056 1.235.786 4.066-1.55 7.255-5.615 7.255-10.646C23.5 6.188 18.334 1 11.978 1 5.62 1 .5 6.188.5 12.545c0 4.986 3.167 9.12 7.435 10.669.606.225 1.19-.18 1.19-.786V20.63a2.9 2.9 0 0 1-1.078.224c-1.483 0-2.359-.808-2.987-2.313-.247-.607-.517-.966-1.034-1.033-.27-.023-.359-.135-.359-.27 0-.27.45-.471.898-.471.652 0 1.213.404 1.797 1.235.45.651.921.943 1.483.943.561 0 .92-.202 1.437-.719.382-.381.674-.718.944-.943"/>
+                                </svg>
+                                <span>GitHub</span>
+                            </a>
+                        </li>
+                        <li class="mr-6">
+                            <a class="py-2 md:mb-0 inline-flex items-center text-sm whitespace-nowrap transition-colors duration-200 ease-linear md:text-header-text font-header-text hover:text-header-text-hover" href="https://github.com/Enerccio/Marginalia/releases">Releases</a>
+                        </li>
+    
+                    </ul>
+                </nav>
+    
+                <div v-cloak class="flex justify-end grow">
+                    <div id="retype-mobile-search-button"></div>
+                    <doc-search-desktop></doc-search-desktop>
+    
+                    <doc-theme-switch class="lg:ml-2"></doc-theme-switch>
+                    <doc-history></doc-history>
+                </div>
+            </div>
+        </div>
+    </header>
+
+
+    <div id="retype-container" class="container relative flex bg-white">
+        <!-- Sidebar Skeleton -->
+        <div v-cloak class="fixed flex flex-col shrink-0 duration-300 ease-in-out bg-sidebar-left-bg border-sidebar-left-border sidebar top-20 w-75 border-r h-screen md:sticky transition-transform skeleton">
+        
+            <div class="flex items-center h-16 px-6">
+                <input id="retype-filter-input-mock" class="w-full h-10 pl-8 px-3 py-2 transition-colors duration-200 ease-linear bg-filter-bg border border-filter-border rounded-lg shadow-none md:text-sm hover:border-filter-border-hover focus:outline-hidden focus:border-filter-border-focus placeholder-filter-placeholder" type="text">
+            </div>
+        
+            <div class="pl-6 mt-1 mb-4">
+                <div class="w-32 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-48 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-40 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-32 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-48 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+                <div class="w-40 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+            </div>
+        
+            <div class="shrink-0 mt-auto bg-transparent dark:border-base-border">
+                <a class="flex items-center justify-center flex-nowrap h-16 text-gray-350 dark:text-dark-400 hover:text-gray-600 dark:hover:text-dark-300 transition-colors duration-150 ease-in docs-powered-by" target="_blank" href="https://retype.com/" rel="noopener">
+                    <span class="text-xs whitespace-nowrap">Powered by</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="ml-2" fill="currentColor" width="96" height="20" overflow="visible"><path d="M0 0v20h13.59V0H0zm11.15 17.54H2.44V2.46h8.71v15.08zM15.8 20h2.44V4.67L15.8 2.22zM20.45 6.89V20h2.44V9.34z"/><g><path d="M40.16 8.44c0 1.49-.59 2.45-1.75 2.88l2.34 3.32h-2.53l-2.04-2.96h-1.43v2.96h-2.06V5.36h3.5c1.43 0 2.46.24 3.07.73s.9 1.27.9 2.35zm-2.48 1.1c.26-.23.38-.59.38-1.09 0-.5-.13-.84-.4-1.03s-.73-.28-1.39-.28h-1.54v2.75h1.5c.72 0 1.2-.12 1.45-.35zM51.56 5.36V7.2h-4.59v1.91h4.13v1.76h-4.13v1.92h4.74v1.83h-6.79V5.36h6.64zM60.09 7.15v7.48h-2.06V7.15h-2.61V5.36h7.28v1.79h-2.61zM70.81 14.64h-2.06v-3.66l-3.19-5.61h2.23l1.99 3.45 1.99-3.45H74l-3.19 5.61v3.66zM83.99 6.19c.65.55.97 1.4.97 2.55s-.33 1.98-1 2.51-1.68.8-3.04.8h-1.23v2.59h-2.06V5.36h3.26c1.42 0 2.45.28 3.1.83zm-1.51 3.65c.25-.28.37-.69.37-1.22s-.16-.92-.48-1.14c-.32-.23-.82-.34-1.5-.34H79.7v3.12h1.38c.68 0 1.15-.14 1.4-.42zM95.85 5.36V7.2h-4.59v1.91h4.13v1.76h-4.13v1.92H96v1.83h-6.79V5.36h6.64z"/></g></svg>
+                </a>
+            </div>
+        </div>
+        
+        <!-- Sidebar component -->
+        <doc-sidebar v-cloak>
+            <template #sidebar-footer>
+                <div class="shrink-0 mt-auto border-t md:bg-transparent md:border-none dark:border-base-border">
+        
+                    <div class="py-3 px-6 md:hidden border-b dark:border-base-border">
+                        <nav>
+                            <ul class="flex flex-wrap justify-center items-center">
+                                <li class="mr-6">
+                                    <a class="block py-1 inline-flex items-center text-sm whitespace-nowrap transition-colors duration-200 ease-linear md:text-header-text font-header-text hover:text-header-text-hover" href="https://github.com/Enerccio/Marginalia">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="block shrink-0 mr-1.5" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+                                            <path d="M10.226 17.284c-2.965-.36-5.054-2.493-5.054-5.256 0-1.123.404-2.336 1.078-3.144-.292-.741-.247-2.314.09-2.965.898-.112 2.111.36 2.83 1.01.853-.269 1.752-.404 2.853-.404 1.1 0 1.999.135 2.807.382.696-.629 1.932-1.1 2.83-.988.315.606.36 2.179.067 2.942.72.854 1.101 2 1.101 3.167 0 2.763-2.089 4.852-5.098 5.234.763.494 1.28 1.572 1.28 2.807v2.336c0 .674.561 1.056 1.235.786 4.066-1.55 7.255-5.615 7.255-10.646C23.5 6.188 18.334 1 11.978 1 5.62 1 .5 6.188.5 12.545c0 4.986 3.167 9.12 7.435 10.669.606.225 1.19-.18 1.19-.786V20.63a2.9 2.9 0 0 1-1.078.224c-1.483 0-2.359-.808-2.987-2.313-.247-.607-.517-.966-1.034-1.033-.27-.023-.359-.135-.359-.27 0-.27.45-.471.898-.471.652 0 1.213.404 1.797 1.235.45.651.921.943 1.483.943.561 0 .92-.202 1.437-.719.382-.381.674-.718.944-.943"/>
+                                        </svg>
+                                        <span>GitHub</span>
+                                    </a>
+                                </li>
+                                <li class="mr-6">
+                                    <a class="block py-1 inline-flex items-center text-sm whitespace-nowrap transition-colors duration-200 ease-linear md:text-header-text font-header-text hover:text-header-text-hover" href="https://github.com/Enerccio/Marginalia/releases">Releases</a>
+                                </li>
+        
+                            </ul>
+                        </nav>
+                    </div>
+        
+                    <a class="flex items-center justify-center flex-nowrap h-16 text-gray-350 dark:text-dark-400 hover:text-gray-600 dark:hover:text-dark-300 transition-colors duration-150 ease-in docs-powered-by" target="_blank" href="https://retype.com/" rel="noopener">
+                        <span class="text-xs whitespace-nowrap">Powered by</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="ml-2" fill="currentColor" width="96" height="20" overflow="visible"><path d="M0 0v20h13.59V0H0zm11.15 17.54H2.44V2.46h8.71v15.08zM15.8 20h2.44V4.67L15.8 2.22zM20.45 6.89V20h2.44V9.34z"/><g><path d="M40.16 8.44c0 1.49-.59 2.45-1.75 2.88l2.34 3.32h-2.53l-2.04-2.96h-1.43v2.96h-2.06V5.36h3.5c1.43 0 2.46.24 3.07.73s.9 1.27.9 2.35zm-2.48 1.1c.26-.23.38-.59.38-1.09 0-.5-.13-.84-.4-1.03s-.73-.28-1.39-.28h-1.54v2.75h1.5c.72 0 1.2-.12 1.45-.35zM51.56 5.36V7.2h-4.59v1.91h4.13v1.76h-4.13v1.92h4.74v1.83h-6.79V5.36h6.64zM60.09 7.15v7.48h-2.06V7.15h-2.61V5.36h7.28v1.79h-2.61zM70.81 14.64h-2.06v-3.66l-3.19-5.61h2.23l1.99 3.45 1.99-3.45H74l-3.19 5.61v3.66zM83.99 6.19c.65.55.97 1.4.97 2.55s-.33 1.98-1 2.51-1.68.8-3.04.8h-1.23v2.59h-2.06V5.36h3.26c1.42 0 2.45.28 3.1.83zm-1.51 3.65c.25-.28.37-.69.37-1.22s-.16-.92-.48-1.14c-.32-.23-.82-.34-1.5-.34H79.7v3.12h1.38c.68 0 1.15-.14 1.4-.42zM95.85 5.36V7.2h-4.59v1.91h4.13v1.76h-4.13v1.92H96v1.83h-6.79V5.36h6.64z"/></g></svg>
+                    </a>
+                </div>
+            </template>
+        </doc-sidebar>
+
+        <div class="grow min-w-0 bg-body-bg">
+            <!-- Render "toolbar" template here on api pages --><!-- Render page content -->
+<div class="flex">
+    <div id="retype-main" class="min-w-0 p-4 grow md:px-16">
+        <main class="relative pb-12 lg:pt-2">
+            <div class="relative retype-markdown" id="retype-content">
+                <!-- Rendered if sidebar right is enabled -->
+                <div id="retype-sidebar-right-toggle"></div>
+                <doc-page-actions></doc-page-actions>
+
+                <!-- Page content  -->
+<h1 id="translator-common">translator-common</h1>
+<p><code translate="no" v-pre>marginalia/libs/translator-common</code> is what the <strong>Conlang Translator</strong> and the <strong>Real Language Translator</strong> share, written so that a third plugin can use it: any plugin that
+keeps a story in one language and lets the models, the exports and the readers deal with another. Read <a href="../">Libraries for plugins</a> first for how a library is embedded
+and what that implies (a copy per plugin, no shared state, parameters instead of constants).</p>
+<h2 id="the-idea">The idea</h2>
+<p>A translator plugin stores the <strong>translated</strong> text in the story and keeps the text the model wrote it from, the <strong>source</strong>, beside it:</p>
+<div class="overflow-hidden mb-6 py-4 dark:px-5 dark:bg-white rounded-md"><pre translate="no" class="mermaid w-full">flowchart LR
+    subgraph Story[&quot;a part&quot;]
+        T[&quot;stored text&lt;br/&gt;… “Da ja-se vek.” …&quot;]
+        P[&quot;AnchoredPassage&lt;br/&gt;(range of the speech)&lt;br/&gt;attributes: Span&lt;br/&gt;source, speaker, hash&quot;]
+    end
+    T --- P
+    P --&gt;|Reverse| M[&quot;what a model reads&lt;br/&gt;… “I see the enemy.” …&quot;]
+    P --&gt;|SpeechExportContributor| E[&quot;an export&lt;br/&gt;translation / source / footnotes&quot;]
+    P --&gt;|ReaderText + ReaderView| R[&quot;the reader of a published book&lt;br/&gt;click shows the source&quot;]
+    P --&gt;|SourcePopover| A[&quot;the author's click&quot;]</pre></div>
+<p>Everything that gives the story to a model reads the source (<code translate="no" v-pre>PartTextRegistry</code>, <a href="../../part-text/">The text a model reads</a>), the export is decided by the author in the
+dialog (<a href="../../export-text/">The text of an export</a>), and a click shows the source. The <strong>translation itself</strong> (the prompt, the answer, what is acceptable) is the plugin&#x27;s: that is
+where an invented language (a lexicon, new words) and a real one (a script, politeness) differ, so it is not in the library.</p>
+<h2 id="what-is-in-it">What is in it</h2>
+<retype-table copy-text="| Package | Class | What it is for |
+|---|---|---|
+| `model` | `Span` | What a plugin keeps for one translated passage: the **source**, the speaker, the language, whether the listener understands it, the register, the model and time, and a **hash of the translated text** the plugin wrote. `Span.read(attributes)` / `span.write(attributes)` store it as JSON in the attributes of the passage. `isEdited(currentText)` is true when the author changed the translation since: the source is then stale. |
+| | `Speakers`, `CharacterNote`, `SpeakersMode` | Who speaks the language in a book (everyone except the listed characters, or only the listed ones), with the aliases, gender and voice of each character. `speaks(name)`, `find(name)`. |
+| | `ReaderMode` | What the reader of a published book sees: `CLICK` (the translation, the source on a click), `TRANSLATED`, `SOURCE`. `id()` / `of(id)` for the setting. |
+| | `ExportMode` | What an export holds: `TRANSLATED` (as stored), `SOURCE`, `TRANSLATED_NOTES`, `SOURCE_NOTES` (the other text in footnotes). |
+| `translate` | `Reverse` | `Reverse.toModel(stored, located)` turns the translated passages of a stored text back into their source and returns the `ModelText` map, the substitutions, the passages the author edited and the ones that could not be used. |
+| | `TranslationPlan` | `TranslationPlan.make(source, accepted)`: the new text of a part with every accepted speech replaced, and the `Planned` passages in it (range, translation, source, speech). Pure. |
+| | `Speech` | One direct speech as the model answered for it (`quote`, `speaker`, `language`, `text`, `understood`, `register`). A convenient shape for the answer; a plugin may use its own. |
+| | `SelectionRange` | `trim(text, start, end)`: the range the user selected without its white space. |
+| `text` | `SpeechTransformer` | A `PartTextRegistry.Transformer`: `new SpeechTransformer(passageAccess)`. |
+| | `SpeechExportContributor`, `ExportText` | An `ExportTextRegistry.Contributor`: `new SpeechExportContributor(passageAccess, session -&gt; mode)`. `ExportText.edits(mode, stored, located)` is the pure part. |
+| | `ReaderText` | The markdown of a part for the reader: `render(mode, stored, passages, markClass)`; the marks carry `data-translated-passage`. |
+| | `SpeechPassageKind` | The `PassageKind` a plugin registers: `new SpeechPassageKind(id, markClass)`; the click opens `SourcePopover`. |
+| `service` | `PassageAccess` | `new PassageAccess(kind)`: the translated passages of parts of **your** kind, located (`of(parts)`, `passagesOf(part)`, `locate(passage)`). It is the `Passages` source of the transformer. |
+| | `ModelClient` | `new ModelClient(name).choose(aiUuid, protocolUuid)` finds the model, `ask(model, book, system, user)` waits for the whole answer (reasoning chunks are left out). `ModelSelection` is the AI and protocol. |
+| | `RangeLoop`, `RangeRuns` | An action over a range of parts, one at a time: `RangeLoop.select` / `run` (pure, with a stop and a summary), `RangeRuns.start` on a worker thread of the session, telling the page the progress. The work is a lambda. |
+| | `PartRuns&lt;R&gt;`, `AsyncRuns` | One job on a worker thread with the user's request scope, the result handed to the page. One run per part. |
+| | `PluginLog` | The extension's logger for the code that has none (`PluginLog.set(log)` in `onExtensionLoad`). **Per copy**: set it in every plugin. |
+| `ui` | `SourcePopover` | The popover over a translated speech: the source, who said it, &quot;not understood&quot;, &quot;edited after the translation&quot;. |
+| | `ReaderView` | `ReaderView.apply(view, part, mode, passages, markClass)` in a decorator of `Viewer.createPart`. |
+| | `SpeakersEditor`, `ListEditor&lt;T&gt;`, `EditDialog` | The editor of the speakers; the list editor it is built on (a grid with add, edit, delete, move) and the small dialog with a validation. |
+| | `ExportChoice` | `ExportChoice.field(label, labels)`: the select of the export dialog, with the plugin's own texts. |
+| | `CommonStyles`, `TranslatorCommonLocalization` | The CSS classes and `translatorcommon.css`; the texts with their Japanese and Chinese translations (`TC.localized(...)`). |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Package</th>
+<th>Class</th>
+<th>What it is for</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>model</code></td>
+<td><code translate="no" v-pre>Span</code></td>
+<td>What a plugin keeps for one translated passage: the <strong>source</strong>, the speaker, the language, whether the listener understands it, the register, the model and time, and a <strong>hash of the translated text</strong> the plugin wrote. <code translate="no" v-pre>Span.read(attributes)</code> / <code translate="no" v-pre>span.write(attributes)</code> store it as JSON in the attributes of the passage. <code translate="no" v-pre>isEdited(currentText)</code> is true when the author changed the translation since: the source is then stale.</td>
+</tr>
+<tr>
+<td> </td>
+<td><code translate="no" v-pre>Speakers</code>, <code translate="no" v-pre>CharacterNote</code>, <code translate="no" v-pre>SpeakersMode</code></td>
+<td>Who speaks the language in a book (everyone except the listed characters, or only the listed ones), with the aliases, gender and voice of each character. <code translate="no" v-pre>speaks(name)</code>, <code translate="no" v-pre>find(name)</code>.</td>
+</tr>
+<tr>
+<td> </td>
+<td><code translate="no" v-pre>ReaderMode</code></td>
+<td>What the reader of a published book sees: <code translate="no" v-pre>CLICK</code> (the translation, the source on a click), <code translate="no" v-pre>TRANSLATED</code>, <code translate="no" v-pre>SOURCE</code>. <code translate="no" v-pre>id()</code> / <code translate="no" v-pre>of(id)</code> for the setting.</td>
+</tr>
+<tr>
+<td> </td>
+<td><code translate="no" v-pre>ExportMode</code></td>
+<td>What an export holds: <code translate="no" v-pre>TRANSLATED</code> (as stored), <code translate="no" v-pre>SOURCE</code>, <code translate="no" v-pre>TRANSLATED_NOTES</code>, <code translate="no" v-pre>SOURCE_NOTES</code> (the other text in footnotes).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>translate</code></td>
+<td><code translate="no" v-pre>Reverse</code></td>
+<td><code translate="no" v-pre>Reverse.toModel(stored, located)</code> turns the translated passages of a stored text back into their source and returns the <code translate="no" v-pre>ModelText</code> map, the substitutions, the passages the author edited and the ones that could not be used.</td>
+</tr>
+<tr>
+<td> </td>
+<td><code translate="no" v-pre>TranslationPlan</code></td>
+<td><code translate="no" v-pre>TranslationPlan.make(source, accepted)</code>: the new text of a part with every accepted speech replaced, and the <code translate="no" v-pre>Planned</code> passages in it (range, translation, source, speech). Pure.</td>
+</tr>
+<tr>
+<td> </td>
+<td><code translate="no" v-pre>Speech</code></td>
+<td>One direct speech as the model answered for it (<code translate="no" v-pre>quote</code>, <code translate="no" v-pre>speaker</code>, <code translate="no" v-pre>language</code>, <code translate="no" v-pre>text</code>, <code translate="no" v-pre>understood</code>, <code translate="no" v-pre>register</code>). A convenient shape for the answer; a plugin may use its own.</td>
+</tr>
+<tr>
+<td> </td>
+<td><code translate="no" v-pre>SelectionRange</code></td>
+<td><code translate="no" v-pre>trim(text, start, end)</code>: the range the user selected without its white space.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>text</code></td>
+<td><code translate="no" v-pre>SpeechTransformer</code></td>
+<td>A <code translate="no" v-pre>PartTextRegistry.Transformer</code>: <code translate="no" v-pre>new SpeechTransformer(passageAccess)</code>.</td>
+</tr>
+<tr>
+<td> </td>
+<td><code translate="no" v-pre>SpeechExportContributor</code>, <code translate="no" v-pre>ExportText</code></td>
+<td>An <code translate="no" v-pre>ExportTextRegistry.Contributor</code>: <code translate="no" v-pre>new SpeechExportContributor(passageAccess, session -&gt; mode)</code>. <code translate="no" v-pre>ExportText.edits(mode, stored, located)</code> is the pure part.</td>
+</tr>
+<tr>
+<td> </td>
+<td><code translate="no" v-pre>ReaderText</code></td>
+<td>The markdown of a part for the reader: <code translate="no" v-pre>render(mode, stored, passages, markClass)</code>; the marks carry <code translate="no" v-pre>data-translated-passage</code>.</td>
+</tr>
+<tr>
+<td> </td>
+<td><code translate="no" v-pre>SpeechPassageKind</code></td>
+<td>The <code translate="no" v-pre>PassageKind</code> a plugin registers: <code translate="no" v-pre>new SpeechPassageKind(id, markClass)</code>; the click opens <code translate="no" v-pre>SourcePopover</code>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>service</code></td>
+<td><code translate="no" v-pre>PassageAccess</code></td>
+<td><code translate="no" v-pre>new PassageAccess(kind)</code>: the translated passages of parts of <strong>your</strong> kind, located (<code translate="no" v-pre>of(parts)</code>, <code translate="no" v-pre>passagesOf(part)</code>, <code translate="no" v-pre>locate(passage)</code>). It is the <code translate="no" v-pre>Passages</code> source of the transformer.</td>
+</tr>
+<tr>
+<td> </td>
+<td><code translate="no" v-pre>ModelClient</code></td>
+<td><code translate="no" v-pre>new ModelClient(name).choose(aiUuid, protocolUuid)</code> finds the model, <code translate="no" v-pre>ask(model, book, system, user)</code> waits for the whole answer (reasoning chunks are left out). <code translate="no" v-pre>ModelSelection</code> is the AI and protocol.</td>
+</tr>
+<tr>
+<td> </td>
+<td><code translate="no" v-pre>RangeLoop</code>, <code translate="no" v-pre>RangeRuns</code></td>
+<td>An action over a range of parts, one at a time: <code translate="no" v-pre>RangeLoop.select</code> / <code translate="no" v-pre>run</code> (pure, with a stop and a summary), <code translate="no" v-pre>RangeRuns.start</code> on a worker thread of the session, telling the page the progress. The work is a lambda.</td>
+</tr>
+<tr>
+<td> </td>
+<td><code translate="no" v-pre>PartRuns&lt;R&gt;</code>, <code translate="no" v-pre>AsyncRuns</code></td>
+<td>One job on a worker thread with the user&#x27;s request scope, the result handed to the page. One run per part.</td>
+</tr>
+<tr>
+<td> </td>
+<td><code translate="no" v-pre>PluginLog</code></td>
+<td>The extension&#x27;s logger for the code that has none (<code translate="no" v-pre>PluginLog.set(log)</code> in <code translate="no" v-pre>onExtensionLoad</code>). <strong>Per copy</strong>: set it in every plugin.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>ui</code></td>
+<td><code translate="no" v-pre>SourcePopover</code></td>
+<td>The popover over a translated speech: the source, who said it, &quot;not understood&quot;, &quot;edited after the translation&quot;.</td>
+</tr>
+<tr>
+<td> </td>
+<td><code translate="no" v-pre>ReaderView</code></td>
+<td><code translate="no" v-pre>ReaderView.apply(view, part, mode, passages, markClass)</code> in a decorator of <code translate="no" v-pre>Viewer.createPart</code>.</td>
+</tr>
+<tr>
+<td> </td>
+<td><code translate="no" v-pre>SpeakersEditor</code>, <code translate="no" v-pre>ListEditor&lt;T&gt;</code>, <code translate="no" v-pre>EditDialog</code></td>
+<td>The editor of the speakers; the list editor it is built on (a grid with add, edit, delete, move) and the small dialog with a validation.</td>
+</tr>
+<tr>
+<td> </td>
+<td><code translate="no" v-pre>ExportChoice</code></td>
+<td><code translate="no" v-pre>ExportChoice.field(label, labels)</code>: the select of the export dialog, with the plugin&#x27;s own texts.</td>
+</tr>
+<tr>
+<td> </td>
+<td><code translate="no" v-pre>CommonStyles</code>, <code translate="no" v-pre>TranslatorCommonLocalization</code></td>
+<td>The CSS classes and <code translate="no" v-pre>translatorcommon.css</code>; the texts with their Japanese and Chinese translations (<code translate="no" v-pre>TC.localized(...)</code>).</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<h2 id="building-a-translator-plugin-on-it">Building a translator plugin on it</h2>
+<p>The skeleton <code translate="no" v-pre>marginalia/plugins/reallang-translator</code> is the smallest example; the Conlang Translator is the full one. The steps:</p>
+<p><strong>1. The identity of your plugin.</strong> The id of your passage kind and the CSS class of the mark are yours, unique among plugins:</p>
+<div id="building-a-translator-plugin-on-it-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-java"><code v-pre class="language-java">public final class MyKind {
+    public static final String ID = &quot;my-translator.speech&quot;;   // the id of the kind
+    public static final String MARK = &quot;my-passage&quot;;           // the CSS class of the mark
+}</code></pre>
+</doc-codeblock></div>
+<p>and the rule for the mark in your own CSS (<code translate="no" v-pre>mark.my-passage { border-bottom: 1px dotted ...; cursor: help; }</code>).</p>
+<p><strong>2. Register in <code translate="no" v-pre>onExtensionLoad</code>:</strong></p>
+<div id="building-a-translator-plugin-on-it-code-2" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-java"><code v-pre class="language-java">PluginLog.set(log);
+PassageAccess passages = new PassageAccess(MyKind.ID);
+
+passageKinds.register(new SpeechPassageKind(MyKind.ID, MyKind.MARK));                    // the mark and the click
+partTexts.register(owner, new SpeechTransformer(passages));                                // the models read the source
+exportTexts.register(owner, new SpeechExportContributor(passages, session -&gt; chosenMode(session)));  // the export</code></pre>
+</doc-codeblock></div>
+<p><code translate="no" v-pre>passageKinds</code> is the core&#x27;s <code translate="no" v-pre>PassageKinds</code>, <code translate="no" v-pre>partTexts</code> the <code translate="no" v-pre>PartTextRegistry</code>, <code translate="no" v-pre>exportTexts</code> the <code translate="no" v-pre>ExportTextRegistry</code>; unregister all three in <code translate="no" v-pre>onExtensionUnload</code>. <code translate="no" v-pre>chosenMode</code>
+reads the field you added to the export dialog (below); return <code translate="no" v-pre>null</code> or <code translate="no" v-pre>ExportMode.TRANSLATED</code> for no change.</p>
+<p><strong>3. The export field.</strong> Decorate <code translate="no" v-pre>ExportDialog.createExtensionFields</code> on leave, add <code translate="no" v-pre>ExportChoice.field(label, mode -&gt; text)</code> to the list it returns and keep it in a
+<code translate="no" v-pre>WeakHashMap</code> keyed by the dialog (<code translate="no" v-pre>instrumented</code>); <code translate="no" v-pre>chosenMode(session)</code> is <code translate="no" v-pre>map.get(session.source()).getValue()</code>. Add the field only for a book that has your passages.</p>
+<p><strong>4. The viewer.</strong> Decorate <code translate="no" v-pre>Viewer.createPart</code> on leave: when the part has passages of your kind (<code translate="no" v-pre>passageService.listForParts(ids, MyKind.ID)</code>), call
+<code translate="no" v-pre>ReaderView.apply(view, part, mode, passages, MyKind.MARK)</code>; the <code translate="no" v-pre>mode</code> is <code translate="no" v-pre>ReaderMode.of(...)</code> of the book&#x27;s setting for the readers.</p>
+<p><strong>5. CSS and texts.</strong> <code translate="no" v-pre>ExtensionHasCss.getCss</code> returns <code translate="no" v-pre>CommonStyles.css() + &quot;\n&quot; + MyStyles.css()</code> for <code translate="no" v-pre>Main</code> and <code translate="no" v-pre>Viewer</code>. Your own texts are your own
+<code translate="no" v-pre>PluginLocalizationBundle</code>; the library&#x27;s screens have theirs.</p>
+<p><strong>6. Translating a part</strong> (yours; the library gives the pieces). The shape the Conlang Translator follows:</p>
+<div id="building-a-translator-plugin-on-it-code-3" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-java"><code v-pre class="language-java">Reverse.Result read = Reverse.toModel(part.getResponse(), located);      // the English of a part that is translated already
+String source = read.text();                                              // what you send to the model
+String raw = new ModelClient(&quot;my-translator&quot;).ask(model, book, system, user);
+// parse the answer into Speech objects, check them (the quote is in `source`, the language is right...), then
+List&lt;TranslationPlan.Accepted&gt; accepted = ...;                            // (speech, start, end) of the ones you accept
+TranslationPlan plan = TranslationPlan.make(source, accepted);
+// write: replace the text of the part and make a passage of every planned speech
+chatMessageService.replaceText(book, part, plan.stored(), plan.source(), null, RevisionOrigin.automatic(RevisionDetail.TRANSLATION, false));
+for (TranslationPlan.Planned p : plan.passages()) {
+    AnchoredPassage passage = passageService.create(book, part, MyKind.ID, p.start(), p.end());
+    new Span(languageId, p.english(), p.translated()).write(passage.getAttributes());   // the hash of the translation is made here
+    passageService.save(passage);
+}</code></pre>
+</doc-codeblock></div>
+<p><code translate="no" v-pre>ChatMessageService.replaceText</code> stores a text that says what the old one said (<a href="../../part-text/#putting-the-other-form-into-the-story">The text a model reads</a>);
+the old passages of the part are removed first (<code translate="no" v-pre>passageService.remove</code>) except the ones the author edited (<code translate="no" v-pre>read.edited()</code>). Run it on a worker thread: <code translate="no" v-pre>PartRuns</code>
+for a part, <code translate="no" v-pre>RangeRuns</code> (with <code translate="no" v-pre>RangeLoop</code>) for a range.</p>
+<p><strong>7. Who speaks.</strong> Keep a <code translate="no" v-pre>Speakers</code> in the attributes of the book (it is Gson-friendly) and give the author <code translate="no" v-pre>new SpeakersEditor(speakers, onChange)</code>; put the notes of the
+characters in your prompt.</p>
+<h2 id="the-contract-a-passage-depends-on">The contract a passage depends on</h2>
+<p>A passage is used <strong>only when the text at its range still has the hash it was made for</strong> (<code translate="no" v-pre>Span.isEdited</code>). Every consumer in the library checks it (the reverse, the export,
+the popover). It is what keeps the author&#x27;s edits safe (an edited speech has no trustworthy source and is left as it is) and what lets the passage of another plugin, whose
+range an earlier edit shifted, drop out instead of corrupting text. If you write a consumer of your own passages, apply the same check; <code translate="no" v-pre>Reverse</code>, <code translate="no" v-pre>ExportText</code> and
+<code translate="no" v-pre>SourcePopover</code> have tests that pin it.</p>
+<h2 id="two-plugins-in-one-book">Two plugins in one book</h2>
+<p>Each plugin has its own passage kind, so the passages never mix. Models read the source of both (<code translate="no" v-pre>PartTextRegistry</code> merges the substitutions of every transformer on
+the stored text); the export puts both plugins&#x27; edits together once (<a href="../../export-text/">The text of an export</a>). The published book&#x27;s viewer is the open point: each
+plugin&#x27;s <code translate="no" v-pre>ReaderView.apply</code> sets the content of the part from the stored text, so with both active the last one wins and only its marks are clickable.</p>
+<h2 id="tests">Tests</h2>
+<p>The library has plain unit tests (<code translate="no" v-pre>mvn test</code> in <code translate="no" v-pre>marginalia/libs/translator-common</code>): <code translate="no" v-pre>ReverseTest</code>, <code translate="no" v-pre>TranslationPlanTest</code>, <code translate="no" v-pre>SelectionRangeTest</code>, <code translate="no" v-pre>SpanTest</code>, <code translate="no" v-pre>SpeakersTest</code>,
+<code translate="no" v-pre>SpeechTransformerTest</code>, <code translate="no" v-pre>ExportTextTest</code> (through the core registry), <code translate="no" v-pre>ReaderTextTest</code>, <code translate="no" v-pre>RangeLoopTest</code>, <code translate="no" v-pre>SourcePopoverTest</code> (a Vaadin component built without a browser: the
+library&#x27;s test dependencies include the servlet API for that) and <code translate="no" v-pre>TranslatorCommonLocalizationTest</code> (every text has its Japanese and Chinese translation, with the same
+<code translate="no" v-pre>%s</code> / <code translate="no" v-pre>%d</code> placeholders). A plugin that adds texts to its own bundle has its own such test (<code translate="no" v-pre>ConlangTranslatorLocalizationTest</code> is the template).</p>
+
+                
+                <!-- Required only on API pages -->
+                <doc-toolbar-member-filter-no-results></doc-toolbar-member-filter-no-results>
+            </div>
+            <footer id="retype-content-footer" class="clear-both">
+            
+                <nav id="retype-nextprev" class="print:hidden flex mt-14">
+                    <div class="w-1/2">
+                        <a class="px-5 py-4 h-full flex items-center break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-l-lg transition-colors duration-150 relative hover:z-5" href="../../../../developer/plugins/libraries/">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="mr-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19 11H7.41l5.29-5.29a.996.996 0 10-1.41-1.41l-7 7a1 1 0 000 1.42l7 7a1.024 1.024 0 001.42-.01.996.996 0 000-1.41L7.41 13H19c.55 0 1-.45 1-1s-.45-1-1-1z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
+                            <span>
+                                <span class="block text-xs font-normal text-base-text-muted">Previous</span>
+                                <span class="block mt-1">Libraries</span>
+                            </span>
+                        </a>
+                    </div>
+            
+                    <div class="w-1/2">
+                        <a class="px-5 py-4 -mx-px h-full flex items-center justify-end break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-r-lg transition-colors duration-150 relative hover:z-5" href="../../../../developer/testing/">
+                            <span>
+                                <span class="block text-xs font-normal text-right text-base-text-muted">Next</span>
+                                <span class="block mt-1">Testing</span>
+                            </span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="ml-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19.92 12.38a1 1 0 00-.22-1.09l-7-7a.996.996 0 10-1.41 1.41l5.3 5.3H5c-.55 0-1 .45-1 1s.45 1 1 1h11.59l-5.29 5.29a.996.996 0 000 1.41c.19.2.44.3.7.3s.51-.1.71-.29l7-7c.09-.09.16-.21.21-.33z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
+                        </a>
+                    </div>
+                </nav>
+            </footer>
+        </main>
+
+        <div id="retype-page-footer" class="print:border-none border-t border-base-border pt-6 mb-8">
+            <footer class="flex flex-wrap items-center justify-between print:justify-center">
+                <div id="retype-footer-links" class="print:hidden">
+                    <ul class="flex flex-wrap items-center text-sm">
+                    </ul>
+                </div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (af9ef3c5f).</p></div>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Rendered if sidebar right is enabled -->
+    <!-- Sidebar right skeleton-->
+    <div v-cloak class="fixed top-0 bottom-0 right-0 translate-x-full bg-sidebar-right-bg border-sidebar-right-border lg:sticky lg:border-l lg:shrink-0 lg:pt-6 lg:translate-x-0 sm:w-1/2 lg:w-64 lg:z-0 md:w-104 sidebar-right skeleton">
+        <div class="pl-5">
+            <div class="w-32 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+            <div class="w-48 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+            <div class="w-40 h-3 mb-4 bg-skeleton-bg rounded-full loading"></div>
+        </div>
+    </div>
+
+    <!-- User should be able to hide sidebar right -->
+    <doc-sidebar-right v-cloak></doc-sidebar-right>
+</div>
+
+        </div>
+    </div>
+
+    <doc-search-mobile></doc-search-mobile>
+    <doc-back-to-top></doc-back-to-top>
+</div>
+
+
+    <div id="retype-overlay-target"></div>
+
+        <script data-cfasync="false">window.__DOCS__ = { "title": "translator-common", level: 4, icon: "file", hasPrism: true, hasInstagram: false, hasMermaid: true, hasMath: false, tocDepth: 23, "md": "/developer/plugins/libraries/translator-common.md" }</script>
+</body>
+</html>

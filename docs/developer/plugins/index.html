@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847150822503">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847153534219">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.847150822503" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.847153534219" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847150822503" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847153534219" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847150822503" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.847150822503" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847153534219" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.847153534219" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -202,7 +202,9 @@ gets general mechanisms and the whole application to use them on:</p>
 | **Extended attributes** | A JSON object on every data entity where a plugin keeps its data - saved with the entity, included in backups, no schema change. | [Extended attributes](extended-attributes.md) |
 | **Inherited settings** | A setting of the plugin that books and folders inherit like the prompts: a field in the *Prompts* tab and the folder dialog, `ManuscriptService.resolveExtension` for the value (`InheritedSettingRegistry`). | [Inherited settings](inherited-settings.md) |
 | **The text a model reads** | Give the model another form of the story than the one that is stored (a translation, a redaction): a transformer in the `PartTextRegistry`, the offset map of `ModelText`, `ChatMessageService.replaceText` to store the other form. | [The text a model reads](part-text.md) |
+| **The text of an export** | Change what the export of a book holds for a passage (the English instead of a translation, a footnote with the other text) without touching the exporters, together with other plugins: a contributor in the `ExportTextRegistry`, edits as ranges of the stored text. | [The text of an export](export-text.md) |
 | **Anchored passages** | Attach your own data to a passage of a part that follows the text (edits, regenerate, merge, branch, backups): `PassageService`, a `PassageKind` in `PassageKinds` with the mark, the click and the flags for the viewer and the exports. | [Anchored passages](anchored-passages.md) |
+| **Libraries** | Share code between plugins: a plain jar in `marginalia/libs` that each plugin embeds in its bundle; the translator library is the example. | [Libraries for plugins](libraries/index.md) |
 | **Other extensions** | Offer text about a book or a story part to other extensions or ask them for it (`IPCService`), offer a suite of tools for the model with a human name, items and commands (`ToolService`), or call one particular extension by reflection, without importing its classes. | [Sharing data between extensions](ipc.md) |
 | **Inference providers** | A model API of the plugin's own: its settings form in the AI dialog and the inference service of its AIs (`ExtensionAIFactory`). | [Inference providers from a plugin](ai-providers.md) |
 | **Generation events** | Listeners that read and change the prompt, the lore, the summaries and the streamed answer while a story part is generated. | [Generation events](generation-events.md), [Generation pipeline](../generation-pipeline.md#events-for-extensions) |
@@ -243,9 +245,19 @@ gets general mechanisms and the whole application to use them on:</p>
 <td><a href="part-text/">The text a model reads</a></td>
 </tr>
 <tr>
+<td><strong>The text of an export</strong></td>
+<td>Change what the export of a book holds for a passage (the English instead of a translation, a footnote with the other text) without touching the exporters, together with other plugins: a contributor in the <code translate="no" v-pre>ExportTextRegistry</code>, edits as ranges of the stored text.</td>
+<td><a href="export-text/">The text of an export</a></td>
+</tr>
+<tr>
 <td><strong>Anchored passages</strong></td>
 <td>Attach your own data to a passage of a part that follows the text (edits, regenerate, merge, branch, backups): <code translate="no" v-pre>PassageService</code>, a <code translate="no" v-pre>PassageKind</code> in <code translate="no" v-pre>PassageKinds</code> with the mark, the click and the flags for the viewer and the exports.</td>
 <td><a href="anchored-passages/">Anchored passages</a></td>
+</tr>
+<tr>
+<td><strong>Libraries</strong></td>
+<td>Share code between plugins: a plain jar in <code translate="no" v-pre>marginalia/libs</code> that each plugin embeds in its bundle; the translator library is the example.</td>
+<td><a href="libraries/">Libraries for plugins</a></td>
 </tr>
 <tr>
 <td><strong>Other extensions</strong></td>
@@ -313,7 +325,8 @@ ones that ask for classes, methods, arguments, locals or fields that don&#x27;t 
 | [Instruction Exporter](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/instructionexporter) | Copies the instructions, scene settings and characters of the active branch to the clipboard, from the story settings menu. | Add an item to the settings menu of the story editor, read the story through a service, write to the clipboard. |
 | [Book Description Generator](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/book-description-generator) | Writes the name and the description of a book with the model from a range of its story, notes first when the range is longer than the context. | Add a button to the About tab of the book window (desktop and phone) and copy the result into its fields; register two [inherited settings](inherited-settings.md) (the prompts); run several requests in a row on a worker thread (`InRequestScope`) and read a JSON or Markdown answer; use the summaries of the story (`SummaryService.collectBlocks`). |
 | [Knowledge Tracker](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/knowledge-tracker) | Tracks what chosen characters know and do not know and puts it into the prompt; follows the active branch with a cursor. | Add a sidebar tab, insert a message into the payload (`BEFORE_PREPARE_CONTENT` reserves the tokens, `AFTER_PREPARE_PAYLOAD` inserts), listen to `AFTER_CLEANUP` for a regenerate, a read-only command for the `{{command::...}}` macro (`availableInMacros`), commands that ask the user (`async = true`), keep state in a book's attributes and settings in the user settings, stream a request to read the model's reasoning (`InferenceService.stream`, `infer` drops it), decorate the new `AutoAnnotate.finished` hook, a pure logic layer with plain unit tests.
-| [Conlang Translator](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/conlang-translator) | Writes the direct speech of the characters in a constructed language and keeps the English as the source the models read; a click shows it, in the story, the viewer and the exports. | Register a [passage kind](anchored-passages.md) (an `AnchoredPassage` with the plugin's data in its attributes, a mark and a click), a [`PartTextRegistry`](part-text.md) transformer that turns the stored text back into what a model reads, [inherited settings](inherited-settings.md) of a book and a folder, a panel in the Settings screen (decorators of `UserPart.refresh` / `save`), items of the story menu (`StoryMenuItem` tools and card), decorators of the viewer (`Viewer.createPart` with `PartView.setContent`) and of the export dialog (`createExtensionFields` and `export`), `StoryEditor.reloadStory`, workers that carry the session of the user (`ThreadCopyRequestAttributes`), command suites (`CommandService.registerCommands`) with the data of an agent run kept in the attributes of the working copy of the book (`LanguageAccess`), a `PluginLocalizationBundle` with a test that every text has its translations, pure logic layers with plain unit tests. |
+| [Conlang Translator](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/conlang-translator) | Writes the direct speech of the characters in a constructed language and keeps the English as the source the models read; a click shows it, in the story, the viewer and the exports. | Register a [passage kind](anchored-passages.md) (an `AnchoredPassage` with the plugin's data in its attributes, a mark and a click), a [`PartTextRegistry`](part-text.md) transformer that turns the stored text back into what a model reads, [inherited settings](inherited-settings.md) of a book and a folder, a panel in the Settings screen (decorators of `UserPart.refresh` / `save`), items of the story menu (`StoryMenuItem` tools and card), decorators of the viewer (`Viewer.createPart` with `PartView.setContent`), a field in the export dialog (`createExtensionFields`) and an [`ExportTextRegistry`](export-text.md) contributor for what the export holds, the shared library [`translator-common`](libraries/translator-common.md), `StoryEditor.reloadStory`, workers that carry the session of the user (`ThreadCopyRequestAttributes`), command suites (`CommandService.registerCommands`) with the data of an agent run kept in the attributes of the working copy of the book (`LanguageAccess`), a `PluginLocalizationBundle` with a test that every text has its translations, pure logic layers with plain unit tests. |
+| [Real Language Translator](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/reallang-translator) | The sibling of the Conlang Translator for a real language (Japanese for a story set in Japan): the dialogue is translated, the English stays behind it. A skeleton so far. | Shares the library [`translator-common`](libraries/translator-common.md) with the Conlang Translator, **embedded** in each bundle (`Embed-Dependency ...;inline=true`; plugins do not see each other's classes, so the library is shared source, not shared runtime), its own passage kind and CSS, a `PartTextRegistry` transformer. |
 | [Lore Generator](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/lore-generator) | Writes a lorebook entry with the model from the existing lore: a generation, then a compaction, optional attachments. | Add a column to a grid, open a dialog that streams from the model (with `LLMAttachment`s), keep prompts in the user settings, give the model the functions of another extension ([a direct call](ipc.md#calling-another-extension-directly)), let the user choose the model with `ModelProtocolPicker`. |
 | [Lorebook VCS](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/lorebookvcs) | Revision history of lorebook entries, export and import of the history. | Insert panels into a view, store data in a lorebook's attributes, replace a field of the view. |
 | [Manga Generator](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/manga-generator) | Adapts parts of the story into a manga script and image tags, in one large window opened from the story settings menu. | Add an item to the settings menu of the story editor that opens a dialog, activate lore for arbitrary text with `LorebookActivationService.evaluateAll`, fit it to the context with `TokenLimits`, stream several answers side by side, keep data in a book's attributes. |
@@ -402,7 +415,12 @@ ones that ask for classes, methods, arguments, locals or fields that don&#x27;t 
 <tr>
 <td><a href="https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/conlang-translator">Conlang Translator</a></td>
 <td>Writes the direct speech of the characters in a constructed language and keeps the English as the source the models read; a click shows it, in the story, the viewer and the exports.</td>
-<td>Register a <a href="anchored-passages/">passage kind</a> (an <code translate="no" v-pre>AnchoredPassage</code> with the plugin&#x27;s data in its attributes, a mark and a click), a <a href="part-text/"><code translate="no" v-pre>PartTextRegistry</code></a> transformer that turns the stored text back into what a model reads, <a href="inherited-settings/">inherited settings</a> of a book and a folder, a panel in the Settings screen (decorators of <code translate="no" v-pre>UserPart.refresh</code> / <code translate="no" v-pre>save</code>), items of the story menu (<code translate="no" v-pre>StoryMenuItem</code> tools and card), decorators of the viewer (<code translate="no" v-pre>Viewer.createPart</code> with <code translate="no" v-pre>PartView.setContent</code>) and of the export dialog (<code translate="no" v-pre>createExtensionFields</code> and <code translate="no" v-pre>export</code>), <code translate="no" v-pre>StoryEditor.reloadStory</code>, workers that carry the session of the user (<code translate="no" v-pre>ThreadCopyRequestAttributes</code>), command suites (<code translate="no" v-pre>CommandService.registerCommands</code>) with the data of an agent run kept in the attributes of the working copy of the book (<code translate="no" v-pre>LanguageAccess</code>), a <code translate="no" v-pre>PluginLocalizationBundle</code> with a test that every text has its translations, pure logic layers with plain unit tests.</td>
+<td>Register a <a href="anchored-passages/">passage kind</a> (an <code translate="no" v-pre>AnchoredPassage</code> with the plugin&#x27;s data in its attributes, a mark and a click), a <a href="part-text/"><code translate="no" v-pre>PartTextRegistry</code></a> transformer that turns the stored text back into what a model reads, <a href="inherited-settings/">inherited settings</a> of a book and a folder, a panel in the Settings screen (decorators of <code translate="no" v-pre>UserPart.refresh</code> / <code translate="no" v-pre>save</code>), items of the story menu (<code translate="no" v-pre>StoryMenuItem</code> tools and card), decorators of the viewer (<code translate="no" v-pre>Viewer.createPart</code> with <code translate="no" v-pre>PartView.setContent</code>), a field in the export dialog (<code translate="no" v-pre>createExtensionFields</code>) and an <a href="export-text/"><code translate="no" v-pre>ExportTextRegistry</code></a> contributor for what the export holds, the shared library <a href="libraries/translator-common/"><code translate="no" v-pre>translator-common</code></a>, <code translate="no" v-pre>StoryEditor.reloadStory</code>, workers that carry the session of the user (<code translate="no" v-pre>ThreadCopyRequestAttributes</code>), command suites (<code translate="no" v-pre>CommandService.registerCommands</code>) with the data of an agent run kept in the attributes of the working copy of the book (<code translate="no" v-pre>LanguageAccess</code>), a <code translate="no" v-pre>PluginLocalizationBundle</code> with a test that every text has its translations, pure logic layers with plain unit tests.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/reallang-translator">Real Language Translator</a></td>
+<td>The sibling of the Conlang Translator for a real language (Japanese for a story set in Japan): the dialogue is translated, the English stays behind it. A skeleton so far.</td>
+<td>Shares the library <a href="libraries/translator-common/"><code translate="no" v-pre>translator-common</code></a> with the Conlang Translator, <strong>embedded</strong> in each bundle (<code translate="no" v-pre>Embed-Dependency ...;inline=true</code>; plugins do not see each other&#x27;s classes, so the library is shared source, not shared runtime), its own passage kind and CSS, a <code translate="no" v-pre>PartTextRegistry</code> transformer.</td>
 </tr>
 <tr>
 <td><a href="https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/lore-generator">Lore Generator</a></td>
@@ -601,6 +619,9 @@ the model gets after every other extension has changed it.</p>
 <li><a href="ipc/">Sharing data between extensions</a> - <code translate="no" v-pre>IPCService</code>, <code translate="no" v-pre>ToolService</code> and calling another extension directly.</li>
 <li><a href="ai-providers/">Inference providers from a plugin</a> - bringing a model API: factory, settings form, inference service.</li>
 <li><a href="inherited-settings/">Inherited settings</a> - settings of a plugin that books and folders inherit.</li>
+<li><a href="part-text/">The text a model reads</a> and <a href="anchored-passages/">anchored passages</a> - keeping the story in one form and giving a model another.</li>
+<li><a href="export-text/">The text of an export</a> - what an export of a book holds for such a passage.</li>
+<li><a href="libraries/">Libraries for plugins</a> and <a href="libraries/translator-common/">translator-common</a> - sharing code between plugins.</li>
 </ol>
 
                 
@@ -639,7 +660,7 @@ the model gets after every other extension has changed it.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (a6ce4d29e).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (af9ef3c5f).</p></div>
             </footer>
         </div>
     </div>

@@ -1,5 +1,7 @@
 package com.github.enerccio.marginalia.extensions.conlangtranslator.ui;
 
+import com.github.enerccio.marginalia.extensions.translatorcommon.ui.EditDialog;
+import com.github.enerccio.marginalia.extensions.translatorcommon.ui.ListEditor;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.ConlangStyles;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.model.*;
 import com.vaadin.flow.component.combobox.ComboBox;

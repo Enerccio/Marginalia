@@ -5,7 +5,7 @@ import com.github.enerccio.marginalia.extensions.conlangtranslator.translate.Ans
 import com.github.enerccio.marginalia.extensions.conlangtranslator.translate.AnswerChecker.Item;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.translate.AnswerChecker.Problem;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.translate.TranslationAnswer.NewWord;
-import com.github.enerccio.marginalia.extensions.conlangtranslator.translate.TranslationAnswer.Speech;
+import com.github.enerccio.marginalia.extensions.translatorcommon.translate.Speech;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

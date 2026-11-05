@@ -3,7 +3,7 @@ package com.github.enerccio.marginalia.extensions.conlangtranslator.translate;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.model.Language;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.model.LexiconEntry;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.translate.TranslationAnswer.NewWord;
-import com.github.enerccio.marginalia.extensions.conlangtranslator.translate.TranslationAnswer.Speech;
+import com.github.enerccio.marginalia.extensions.translatorcommon.translate.Speech;
 import com.github.enerccio.marginalia.utils.QuoteFinder;
 
 import java.util.ArrayList;

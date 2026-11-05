@@ -210,6 +210,7 @@ The gear next to *Track a character*:
 | **Process new parts automatically** | See [Processing](#processing). |
 | **Read what the characters learn with the model** | Processing asks the model what each tracked character learned and proposes it. Off (the default): processing only notes who has met whom, which costs nothing. |
 | **Ask before applying** | On (the default): every proposal is shown for review. Off: it is applied at once and logged. |
+| **Let the model read earlier parts** | While it reads the new parts the model may read the part an item was learned in (the items say "learned in part 12"), to see whether what it reads confirms, repeats or contradicts it: hearsay that is now seen with the own eyes, for instance. At most 5 reads of one part each per request, the text of a long part is cut to what fits the context, and the review shows which parts it read. Every read is one more round to the model, so it is off by default. A model that can not call functions reads the request as before. |
 | **Parts per run** | How many parts one request reads. Larger is cheaper but gives a longer answer and a harder review. |
 | **Tidy automatically**, **Tidy after this many parts** | The tidy pass runs by itself at the end of a run that applies its changes without asking, every this many parts (10). Off by default. |
 | **Tidy: parts of context** | How many of the last processed parts the tidy pass reads (10). |

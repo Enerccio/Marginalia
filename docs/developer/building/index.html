@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847150822503">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847153534219">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.847150822503" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.847153534219" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847150822503" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847153534219" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847150822503" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.847150822503" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847153534219" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.847153534219" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -519,24 +519,30 @@ database in <code translate="no" v-pre>target/test-home/ctx-*</code>, and talk t
 needed. <code translate="no" v-pre>RuntimeInstrumentationTest</code> installs the ByteBuddy agent into the test JVM; Surefire passes the needed JVM
 options. <a href="../testing/">Testing</a> describes the test base and how to write tests.</p>
 <h2 id="building-the-plugins">Building the plugins</h2>
-<p>The nineteen bundled extensions in <code translate="no" v-pre>marginalia/plugins/</code> are separate Maven projects. They compile against the classes
+<p>The bundled extensions in <code translate="no" v-pre>marginalia/plugins/</code> are separate Maven projects. They compile against the classes
 JAR of the application, so install the parent POM and the application first:</p>
 <div id="building-the-plugins-code-1" class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">mvn -N install                    # in the repository root
 cd marginalia
 mvn install -DskipTests
 
-cd plugins/chaptermarker          # or anthropic, arc-outline, authorsnote, beta-readers, book-description-generator, character-tracker, conlang-translator, gemma4toolsfix, google-genai, image-generator, instructionexporter, knowledge-tracker, lore-generator, lorebookvcs, manga-generator, name-generator, name-provider, place-provider, prompt-inspector, reviewer, sidequery, sillytavern-converter, chineselocalization
+cd plugins/chaptermarker          # or anthropic, arc-outline, authorsnote, beta-readers, book-description-generator, character-tracker, conlang-translator, gemma4toolsfix, google-genai, image-generator, instructionexporter, knowledge-tracker, lore-generator, lorebookvcs, manga-generator, name-generator, name-provider, place-provider, prompt-inspector, reallang-translator, reviewer, sidequery, sillytavern-converter, chineselocalization
 mvn package                       # target/chaptermarker-1.7.0.jar</code></pre>
 </doc-codeblock></div>
+<h3 id="shared-libraries">Shared libraries</h3>
+<p>Code that two plugins share lives in <code translate="no" v-pre>marginalia/libs/</code> (see <a href="../plugins/libraries/">Libraries for plugins</a>) (today <code translate="no" v-pre>translator-common</code>, used by the Conlang Translator and the Real Language Translator). A library is a plain
+Maven jar that <strong>each plugin embeds</strong> in its bundle (<code translate="no" v-pre>&lt;Embed-Dependency&gt;translator-common;inline=true&lt;/Embed-Dependency&gt;</code>): plugins do not see each other&#x27;s classes, so this is
+shared source, not shared runtime, and a library holds no state the plugins would have to share. It is <strong>not</strong> an extension and never goes into the extensions folder (that is why it
+is not under <code translate="no" v-pre>marginalia/plugins/</code>, the folder every script and workflow loops over to collect the JARs). A plugin that uses a library needs it in the local Maven repository before it
+builds: <code translate="no" v-pre>mvn install -DskipTests</code> in <code translate="no" v-pre>marginalia/libs/&lt;library&gt;</code>. The scripts (<code translate="no" v-pre>install-plugins.sh</code>, <code translate="no" v-pre>marginalia/plugins/Dockerfile</code>, the workflows <code translate="no" v-pre>server.yml</code> and <code translate="no" v-pre>desktop.yml</code>) do this.</p>
 <p>Load the JAR in <em>Admin → Extensions</em> of your running instance, or copy it into <code translate="no" v-pre>.marginalia/extensions</code> of your
 development home before starting. Rebuild the plugins whenever you change classes they use - they are built for one
 exact version of the application. See <a href="../plugins/">Plugin development</a>.</p>
 <h3 id="in-docker">In Docker</h3>
 <p><code translate="no" v-pre>marginalia/plugins/Dockerfile</code> and <code translate="no" v-pre>docker-compose.yml</code> build everything in a container, so no local JDK or Maven is
 needed (this is how the Docker server is updated, see <a href="../packaging/#plugins">Packaging</a>). The build context is the
-repository root; the image copies <code translate="no" v-pre>pom.xml</code>, <code translate="no" v-pre>marginalia/pom.xml</code>, <code translate="no" v-pre>marginalia/src</code>, <code translate="no" v-pre>manual/user</code> (packed into the application&#x27;s classes, so a plugin build against it sees the same manual), <code translate="no" v-pre>.git</code> and <code translate="no" v-pre>marginalia/plugins</code>, runs
-<code translate="no" v-pre>mvn install -DskipTests -Dvaadin.skip=true</code> for the application, <code translate="no" v-pre>mvn install -N</code> for the parent POM and <code translate="no" v-pre>mvn package</code> in every folder of <code translate="no" v-pre>plugins/</code> that has a <code translate="no" v-pre>pom.xml</code>.
+repository root; the image copies <code translate="no" v-pre>pom.xml</code>, <code translate="no" v-pre>marginalia/pom.xml</code>, <code translate="no" v-pre>marginalia/src</code>, <code translate="no" v-pre>manual/user</code> (packed into the application&#x27;s classes, so a plugin build against it sees the same manual), <code translate="no" v-pre>.git</code>, <code translate="no" v-pre>marginalia/libs</code> and <code translate="no" v-pre>marginalia/plugins</code>, runs
+<code translate="no" v-pre>mvn install -DskipTests -Dvaadin.skip=true</code> for the application, <code translate="no" v-pre>mvn install -N</code> for the parent POM, <code translate="no" v-pre>mvn install -DskipTests</code> in every folder of <code translate="no" v-pre>libs/</code> and <code translate="no" v-pre>mvn package</code> in every folder of <code translate="no" v-pre>plugins/</code> that has a <code translate="no" v-pre>pom.xml</code>.
 The JARs are copied out when the container runs, because they go into a bind mount:</p>
 <div id="in-docker-code-1" class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">docker compose -f marginalia/plugins/docker-compose.yml build
@@ -650,7 +656,7 @@ tools/retype_build.sh              # writes docs/; plain `retype build` works to
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (a6ce4d29e).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (af9ef3c5f).</p></div>
             </footer>
         </div>
     </div>

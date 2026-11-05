@@ -1,0 +1,13 @@
+com/github/enerccio/marginalia/extensions/translatorcommon/model/SpeakersTest.class
+com/github/enerccio/marginalia/extensions/translatorcommon/text/ExportTextTest$1.class
+com/github/enerccio/marginalia/extensions/translatorcommon/text/SpeechTransformerTest.class
+com/github/enerccio/marginalia/extensions/translatorcommon/translate/SelectionRangeTest.class
+com/github/enerccio/marginalia/extensions/translatorcommon/translate/ReverseTest.class
+com/github/enerccio/marginalia/extensions/translatorcommon/ui/SourcePopoverTest.class
+com/github/enerccio/marginalia/extensions/translatorcommon/text/ExportTextTest.class
+com/github/enerccio/marginalia/extensions/translatorcommon/model/SpanTest.class
+com/github/enerccio/marginalia/extensions/translatorcommon/ui/TranslatorCommonLocalizationTest.class
+com/github/enerccio/marginalia/extensions/translatorcommon/text/SpeechTransformerTest$1.class
+com/github/enerccio/marginalia/extensions/translatorcommon/service/RangeLoopTest.class
+com/github/enerccio/marginalia/extensions/translatorcommon/translate/TranslationPlanTest.class
+com/github/enerccio/marginalia/extensions/translatorcommon/text/ReaderTextTest.class

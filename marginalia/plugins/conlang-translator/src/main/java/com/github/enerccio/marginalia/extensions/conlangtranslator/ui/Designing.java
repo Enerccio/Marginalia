@@ -1,7 +1,7 @@
 package com.github.enerccio.marginalia.extensions.conlangtranslator.ui;
 
-import com.github.enerccio.marginalia.extensions.conlangtranslator.service.AsyncRuns;
-import com.github.enerccio.marginalia.extensions.conlangtranslator.service.PluginLog;
+import com.github.enerccio.marginalia.extensions.translatorcommon.service.AsyncRuns;
+import com.github.enerccio.marginalia.extensions.translatorcommon.service.PluginLog;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;

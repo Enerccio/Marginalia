@@ -49,7 +49,8 @@ com/github/enerccio/marginalia/domain/service/impl/commands/manuscript/write/Ann
 com/github/enerccio/marginalia/domain/service/impl/commands/manuscript/write/ManuscriptWriteSupport.java
 com/github/enerccio/marginalia/domain/service/impl/commands/manuscript/write/RedraftCommands.java
 
-# --- the export (an exporter hook comes with the Conlang Translator's export step)
+# --- the export (ExportTextRegistry: what extensions change in the text of an export, as ranges of the stored text)
+com/github/enerccio/marginalia/extensions/ExportTextRegistry.java
 com/github/enerccio/marginalia/export/ExporterBase.java
 com/github/enerccio/marginalia/export/SillyTavernExporter.java
 com/github/enerccio/marginalia/ui/dialogs/ExportDialog.java

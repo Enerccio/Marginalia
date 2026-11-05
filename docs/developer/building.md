@@ -260,7 +260,7 @@ options. [Testing](testing.md) describes the test base and how to write tests.
 
 ## Building the plugins
 
-The nineteen bundled extensions in `marginalia/plugins/` are separate Maven projects. They compile against the classes
+The bundled extensions in `marginalia/plugins/` are separate Maven projects. They compile against the classes
 JAR of the application, so install the parent POM and the application first:
 
 ```sh
@@ -268,9 +268,17 @@ mvn -N install                    # in the repository root
 cd marginalia
 mvn install -DskipTests
 
-cd plugins/chaptermarker          # or anthropic, arc-outline, authorsnote, beta-readers, book-description-generator, character-tracker, conlang-translator, gemma4toolsfix, google-genai, image-generator, instructionexporter, knowledge-tracker, lore-generator, lorebookvcs, manga-generator, name-generator, name-provider, place-provider, prompt-inspector, reviewer, sidequery, sillytavern-converter, chineselocalization
+cd plugins/chaptermarker          # or anthropic, arc-outline, authorsnote, beta-readers, book-description-generator, character-tracker, conlang-translator, gemma4toolsfix, google-genai, image-generator, instructionexporter, knowledge-tracker, lore-generator, lorebookvcs, manga-generator, name-generator, name-provider, place-provider, prompt-inspector, reallang-translator, reviewer, sidequery, sillytavern-converter, chineselocalization
 mvn package                       # target/chaptermarker-1.7.0.jar
 ```
+
+### Shared libraries
+
+Code that two plugins share lives in `marginalia/libs/` (see [Libraries for plugins](plugins/libraries/index.md)) (today `translator-common`, used by the Conlang Translator and the Real Language Translator). A library is a plain
+Maven jar that **each plugin embeds** in its bundle (`<Embed-Dependency>translator-common;inline=true</Embed-Dependency>`): plugins do not see each other's classes, so this is
+shared source, not shared runtime, and a library holds no state the plugins would have to share. It is **not** an extension and never goes into the extensions folder (that is why it
+is not under `marginalia/plugins/`, the folder every script and workflow loops over to collect the JARs). A plugin that uses a library needs it in the local Maven repository before it
+builds: `mvn install -DskipTests` in `marginalia/libs/<library>`. The scripts (`install-plugins.sh`, `marginalia/plugins/Dockerfile`, the workflows `server.yml` and `desktop.yml`) do this.
 
 Load the JAR in *Admin → Extensions* of your running instance, or copy it into `.marginalia/extensions` of your
 development home before starting. Rebuild the plugins whenever you change classes they use - they are built for one
@@ -280,8 +288,8 @@ exact version of the application. See [Plugin development](plugins/index.md).
 
 `marginalia/plugins/Dockerfile` and `docker-compose.yml` build everything in a container, so no local JDK or Maven is
 needed (this is how the Docker server is updated, see [Packaging](packaging.md#plugins)). The build context is the
-repository root; the image copies `pom.xml`, `marginalia/pom.xml`, `marginalia/src`, `manual/user` (packed into the application's classes, so a plugin build against it sees the same manual), `.git` and `marginalia/plugins`, runs
-`mvn install -DskipTests -Dvaadin.skip=true` for the application, `mvn install -N` for the parent POM and `mvn package` in every folder of `plugins/` that has a `pom.xml`.
+repository root; the image copies `pom.xml`, `marginalia/pom.xml`, `marginalia/src`, `manual/user` (packed into the application's classes, so a plugin build against it sees the same manual), `.git`, `marginalia/libs` and `marginalia/plugins`, runs
+`mvn install -DskipTests -Dvaadin.skip=true` for the application, `mvn install -N` for the parent POM, `mvn install -DskipTests` in every folder of `libs/` and `mvn package` in every folder of `plugins/` that has a `pom.xml`.
 The JARs are copied out when the container runs, because they go into a bind mount:
 
 ```sh

@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.extensions.conlangtranslator.service;
 
+import com.github.enerccio.marginalia.extensions.translatorcommon.service.ModelClient;
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
 import com.github.enerccio.marginalia.domain.service.LorebookEntryService;
@@ -10,7 +11,7 @@ import com.github.enerccio.marginalia.extensions.conlangtranslator.designer.Prop
 import com.github.enerccio.marginalia.extensions.conlangtranslator.model.Language;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.model.Origin;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.model.UserDefaults;
-import com.github.enerccio.marginalia.extensions.conlangtranslator.service.TranslationService.ModelSelection;
+import com.github.enerccio.marginalia.extensions.translatorcommon.service.ModelSelection;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.translate.TranslationPrompt.Request;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
@@ -40,7 +41,7 @@ public class DesignerService {
     @Autowired
     private LorebookEntryService lorebookEntryService;
 
-    private final ModelClient client = new ModelClient();
+    private final ModelClient client = new ModelClient("conlang-translator");
     private final LanguageLibrary library = new LanguageLibrary();
 
     /**

@@ -51,11 +51,11 @@ mvn -N install                   # in the repository root: installs the parent P
 cd marginalia
 mvn install -DskipTests          # installs the application (and its classes JAR used by plugins)
 
-cd plugins/chaptermarker          # or anthropic, arc-outline, authorsnote, beta-readers, book-description-generator, character-tracker, gemma4toolsfix, google-genai, image-generator, instructionexporter, lore-generator, lorebookvcs, manga-generator, name-generator, name-provider, place-provider, prompt-inspector, reviewer, sidequery, sillytavern-converter, chineselocalization
+cd plugins/chaptermarker          # or anthropic, arc-outline, authorsnote, beta-readers, book-description-generator, character-tracker, gemma4toolsfix, google-genai, image-generator, instructionexporter, lore-generator, lorebookvcs, manga-generator, name-generator, name-provider, place-provider, prompt-inspector, reallang-translator, reviewer, sidequery, sillytavern-converter, chineselocalization
 mvn package                       # target/chaptermarker-1.4.0.jar
 ```
 
-`mvn package` in the repository root builds the application and all plugins in one go. Requirements are the same as for
+`mvn package` in the repository root builds the application, the shared libraries (`marginalia/libs`, embedded by the plugins that use them; install a library with `mvn install -DskipTests` in its folder before building a plugin on its own) and all plugins in one go. Requirements are the same as for
 the application: JDK 25+ and Maven 3.9+.
 
 ### Building in Docker

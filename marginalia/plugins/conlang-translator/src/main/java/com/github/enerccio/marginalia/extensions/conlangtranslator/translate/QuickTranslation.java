@@ -1,7 +1,7 @@
 package com.github.enerccio.marginalia.extensions.conlangtranslator.translate;
 
 import com.github.enerccio.marginalia.extensions.conlangtranslator.model.Language;
-import com.github.enerccio.marginalia.extensions.conlangtranslator.model.Speakers;
+import com.github.enerccio.marginalia.extensions.translatorcommon.model.Speakers;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.translate.TranslationAnswer.NewWord;
 import com.google.gson.Gson;
 import com.google.gson.JsonParseException;

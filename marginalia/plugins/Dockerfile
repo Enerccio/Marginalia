@@ -1,5 +1,5 @@
 # Build environment for the plugins: builds and installs the application (the plugins compile against its classes
-# JAR), then builds every plugin. Build context is the repository root, see docker-compose.yml.
+# JAR), then builds the shared libraries and every plugin. Build context is the repository root, see docker-compose.yml.
 #
 # The finished JARs are copied to /output when the container runs, so mount a folder there
 # (docker compose run --rm plugins).
@@ -19,6 +19,12 @@ COPY manual/user /build/manual/user
 COPY .git /build/.git
 RUN mvn install -DskipTests -Dvaadin.skip=true -B \
     && mvn install -N -B -f /build/pom.xml
+
+# Build and install the libraries the plugins share (marginalia/libs); a plugin embeds the library in its bundle
+COPY marginalia/libs ./libs
+RUN for pom in libs/*/pom.xml; do \
+        (cd "$(dirname "$pom")" && mvn install -DskipTests -B) || exit 1; \
+    done
 
 # Build the plugins; each one is a separate Maven project
 COPY marginalia/plugins ./plugins

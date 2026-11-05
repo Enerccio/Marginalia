@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.extensions.conlangtranslator.translate;
 
+import com.github.enerccio.marginalia.extensions.translatorcommon.translate.Speech;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -27,12 +28,12 @@ class TranslationAnswerTest {
         TranslationAnswer answer = TranslationAnswer.parse(ANSWER);
 
         assertEquals(2, answer.translations().size());
-        TranslationAnswer.Speech first = answer.translations().getFirst();
+        Speech first = answer.translations().getFirst();
         assertEquals("Da ja-se vek.", first.text());
         assertFalse(first.isUnderstood());
         assertFalse(first.isNone());
         assertEquals("formal", first.register());
-        TranslationAnswer.Speech second = answer.translations().get(1);
+        Speech second = answer.translations().get(1);
         assertTrue(second.isNone());
         assertTrue(second.isUnderstood(), "an answer without the flag means it is understood");
         assertEquals("eiz-blod", answer.newWords().getFirst().word());
@@ -61,10 +62,10 @@ class TranslationAnswerTest {
 
     @Test
     void aNoneLanguageIsWrittenInAnyWay() {
-        assertTrue(new TranslationAnswer.Speech("q", "s", "None", "", "", null, "").isNone());
-        assertTrue(new TranslationAnswer.Speech("q", "s", " none ", "", "", null, "").isNone());
-        assertTrue(new TranslationAnswer.Speech("q", "s", null, "", "", null, "").isNone());
-        assertTrue(new TranslationAnswer.Speech("q", "s", "", "", "", null, "").isNone());
+        assertTrue(new Speech("q", "s", "None", "", "", null, "").isNone());
+        assertTrue(new Speech("q", "s", " none ", "", "", null, "").isNone());
+        assertTrue(new Speech("q", "s", null, "", "", null, "").isNone());
+        assertTrue(new Speech("q", "s", "", "", "", null, "").isNone());
     }
 
     @Test
@@ -73,9 +74,9 @@ class TranslationAnswerTest {
 
         assertFalse(schema.get("additionalProperties").getAsBoolean());
         assertEquals(Set.of("translations", "newWords"), required(schema));
-        assertEquals(components(TranslationAnswer.Speech.class), required(item(schema, "translations")));
+        assertEquals(components(Speech.class), required(item(schema, "translations")));
         assertEquals(components(TranslationAnswer.NewWord.class), required(item(schema, "newWords")));
-        assertEquals(components(TranslationAnswer.Speech.class), item(schema, "translations").getAsJsonObject("properties").keySet());
+        assertEquals(components(Speech.class), item(schema, "translations").getAsJsonObject("properties").keySet());
         assertEquals(components(TranslationAnswer.NewWord.class), item(schema, "newWords").getAsJsonObject("properties").keySet());
         assertFalse(item(schema, "translations").get("additionalProperties").getAsBoolean());
     }

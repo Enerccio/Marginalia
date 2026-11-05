@@ -3,7 +3,7 @@ package com.github.enerccio.marginalia.extensions.conlangtranslator.service;
 import com.github.enerccio.marginalia.extensions.InheritedSetting;
 import com.github.enerccio.marginalia.extensions.InheritedSetting.Choice;
 import com.github.enerccio.marginalia.extensions.InheritedSettingRegistry;
-import com.github.enerccio.marginalia.extensions.conlangtranslator.model.ReaderMode;
+import com.github.enerccio.marginalia.extensions.translatorcommon.model.ReaderMode;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.model.UserDefaults;
 
 import java.util.List;
@@ -60,7 +60,7 @@ public final class ConlangInherited {
         // decide what the reader sees
         registry.register(owner, InheritedSetting.choice(READER, () -> T.localized(READERS_SEE), () -> List.of(
                         new Choice(ReaderMode.CLICK.id(), T.localized(CONLANG_WITH_THE_ENGLISH_ON_CLICK)),
-                        new Choice(ReaderMode.CONLANG.id(), T.localized(CONLANG_ONLY)),
+                        new Choice(ReaderMode.TRANSLATED.id(), T.localized(CONLANG_ONLY)),
                         new Choice(ReaderMode.SOURCE.id(), T.localized(ENGLISH_ONLY))))
                 .group(() -> T.localized(CONLANG_TRANSLATOR))
                 .help(() -> T.localized(WHAT_THE_READERS_OF_THE_PUBLISHED_BOOK_SEE))

@@ -1,5 +1,8 @@
 package com.github.enerccio.marginalia.extensions.conlangtranslator.translate;
 
+import com.github.enerccio.marginalia.extensions.translatorcommon.model.CharacterNote;
+import com.github.enerccio.marginalia.extensions.translatorcommon.model.SpeakersMode;
+import com.github.enerccio.marginalia.extensions.translatorcommon.model.Speakers;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.model.*;
 
 import java.util.List;

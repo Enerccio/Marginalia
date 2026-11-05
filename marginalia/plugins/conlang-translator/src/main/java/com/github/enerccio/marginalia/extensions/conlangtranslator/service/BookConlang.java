@@ -1,11 +1,13 @@
 package com.github.enerccio.marginalia.extensions.conlangtranslator.service;
 
+import com.github.enerccio.marginalia.extensions.translatorcommon.service.ModelClient;
+import com.github.enerccio.marginalia.extensions.translatorcommon.model.Speakers;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.domain.service.SettingService;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.model.*;
-import com.github.enerccio.marginalia.extensions.conlangtranslator.service.TranslationService.ModelSelection;
+import com.github.enerccio.marginalia.extensions.translatorcommon.service.ModelSelection;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.service.TranslationService.Status;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.store.ConlangStore;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.translate.*;
@@ -44,7 +46,7 @@ public class BookConlang {
     private SettingService settingService;
 
     private final TranslationService translation;
-    private final ModelClient modelClient = new ModelClient();
+    private final ModelClient modelClient = new ModelClient("conlang-translator");
     private final LanguageAccess languages = new LanguageAccess();
 
     public BookConlang(TranslationService translation) {
