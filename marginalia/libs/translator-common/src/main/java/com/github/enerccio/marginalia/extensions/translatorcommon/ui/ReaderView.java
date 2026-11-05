@@ -6,9 +6,11 @@ import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.extensions.translatorcommon.model.ReaderMode;
 import com.github.enerccio.marginalia.extensions.translatorcommon.text.ReaderText;
 import com.github.enerccio.marginalia.ui.components.PartView;
+import com.vaadin.flow.component.ComponentUtil;
 import com.vaadin.flow.component.html.Div;
 
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * Puts the translated speech of a part into the page of a published book the way the book asks for ({@link ReaderMode}). In the click mode the
@@ -18,6 +20,8 @@ import java.util.List;
 public final class ReaderView {
 
     private static final String CLICK_EVENT = "translator-click";
+    /** The key of the flag on a part that a plugin changed it; a string, so the copy of this class in another bundle sees it. */
+    private static final String APPLIED = "translator-reader-applied";
 
     private ReaderView() {
     }
@@ -31,10 +35,25 @@ public final class ReaderView {
      * @param markClass the CSS class of the mark over a translated speech (the one of the plugin's passage kind)
      */
     public static void apply(PartView view, ChatMessage part, ReaderMode mode, List<AnchoredPassage> passages, String markClass) {
-        if (passages.isEmpty() || mode == ReaderMode.TRANSLATED) {
+        apply(view, part, mode, passages, passage -> markClass);
+    }
+
+    /**
+     * Like {@link #apply(PartView, ChatMessage, ReaderMode, List, String)} for the passages of every plugin that translated the part (see
+     * {@code TranslatedPassages}): each gets the mark class of its kind. The part is changed once: when two plugins decorate the same part, the first
+     * does it for both and the second finds the part done and leaves it, so the mode of the plugin that decorates first rules the page. Set the same
+     * mode in both when a book holds both kinds.
+     */
+    public static void apply(PartView view, ChatMessage part, ReaderMode mode, List<AnchoredPassage> passages,
+                             Function<AnchoredPassage, String> markClassOf) {
+        if (passages.isEmpty() || ComponentUtil.getData(view, APPLIED) != null) {
             return;
         }
-        view.setContent(ReaderText.render(mode, part.getResponse(), passages, markClass), part.getImages());
+        ComponentUtil.setData(view, APPLIED, Boolean.TRUE);
+        if (mode == ReaderMode.TRANSLATED) {
+            return;
+        }
+        view.setContent(ReaderText.render(mode, part.getResponse(), passages, markClassOf), part.getImages());
         if (mode != ReaderMode.CLICK) {
             return;
         }

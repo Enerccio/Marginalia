@@ -1,12 +1,5 @@
 package com.github.enerccio.marginalia.extensions.conlangtranslator;
 
-import com.github.enerccio.marginalia.extensions.translatorcommon.ui.CommonStyles;
-import com.github.enerccio.marginalia.extensions.translatorcommon.ui.ExportChoice;
-import com.github.enerccio.marginalia.extensions.translatorcommon.ui.ReaderView;
-import com.github.enerccio.marginalia.extensions.translatorcommon.service.RangeRuns;
-import com.github.enerccio.marginalia.extensions.translatorcommon.service.PluginLog;
-import com.github.enerccio.marginalia.extensions.translatorcommon.service.PassageAccess;
-import com.github.enerccio.marginalia.extensions.translatorcommon.service.RangeLoop;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.domain.model.impl.AnchoredPassage;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
@@ -19,27 +12,31 @@ import com.github.enerccio.marginalia.domain.service.impl.generation.*;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationControllerEvent.EventChain;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationControllerEvent.Registration;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.GenerationOutcome;
-import com.github.enerccio.marginalia.extensions.ExtensionHasCss;
-import com.github.enerccio.marginalia.extensions.InheritedSettingRegistry;
-import com.github.enerccio.marginalia.extensions.MarginaliaExtension;
-import com.github.enerccio.marginalia.extensions.ExportTextRegistry;
-import com.github.enerccio.marginalia.extensions.PartTextRegistry;
+import com.github.enerccio.marginalia.extensions.*;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.commands.DesignerCommands;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.commands.LexiconCommands;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.commands.LibraryCommands;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.commands.TranslationCommands;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.model.BookSettings;
-import com.github.enerccio.marginalia.extensions.translatorcommon.model.ExportMode;
-import com.github.enerccio.marginalia.extensions.translatorcommon.model.ReaderMode;
-import com.github.enerccio.marginalia.extensions.translatorcommon.model.Span;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.service.*;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.service.TranslationService.Outcome;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.text.ConlangKind;
+import com.github.enerccio.marginalia.extensions.conlangtranslator.ui.ConlangBookView;
+import com.github.enerccio.marginalia.extensions.conlangtranslator.ui.LanguageSettingsForm;
+import com.github.enerccio.marginalia.extensions.translatorcommon.model.ExportMode;
+import com.github.enerccio.marginalia.extensions.translatorcommon.model.ReaderMode;
+import com.github.enerccio.marginalia.extensions.translatorcommon.service.PassageAccess;
+import com.github.enerccio.marginalia.extensions.translatorcommon.service.RangeLoop;
+import com.github.enerccio.marginalia.extensions.translatorcommon.service.RangeRuns;
+import com.github.enerccio.marginalia.extensions.translatorcommon.service.TranslatedPassages;
+import com.github.enerccio.marginalia.extensions.translatorcommon.text.SpeechExportContributor;
 import com.github.enerccio.marginalia.extensions.translatorcommon.text.SpeechPassageKind;
 import com.github.enerccio.marginalia.extensions.translatorcommon.text.SpeechTransformer;
-import com.github.enerccio.marginalia.extensions.translatorcommon.text.SpeechExportContributor;
 import com.github.enerccio.marginalia.extensions.translatorcommon.translate.Reverse.Located;
-import com.github.enerccio.marginalia.extensions.conlangtranslator.ui.*;
+import com.github.enerccio.marginalia.extensions.translatorcommon.ui.CommonStyles;
+import com.github.enerccio.marginalia.extensions.translatorcommon.ui.ExportChoice;
+import com.github.enerccio.marginalia.extensions.translatorcommon.ui.RangeDialog;
+import com.github.enerccio.marginalia.extensions.translatorcommon.ui.ReaderView;
 import com.github.enerccio.marginalia.ui.components.PartView;
 import com.github.enerccio.marginalia.ui.dialogs.story.StoryCard;
 import com.github.enerccio.marginalia.ui.dialogs.story.StoryEditor;
@@ -50,7 +47,6 @@ import com.github.enerccio.marginalia.ui.menu.StoryMenuItem;
 import com.github.enerccio.marginalia.ui.menu.StoryMenuRegistry;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.ui.widgets.TabDock;
-import com.github.enerccio.marginalia.ui.widgets.TabDockIcon;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ComponentUtil;
@@ -264,9 +260,11 @@ public class ConlangTranslatorExtension implements MarginaliaExtension, Extensio
                 if (part == null || part.getId() == null || !(built instanceof PartView view)) {
                     return;
                 }
-                List<AnchoredPassage> passages = passageService.listForParts(List.of(part.getId()), ConlangKind.ID);
-                if (!passages.isEmpty()) {
-                    ReaderView.apply(view, part, readerMode(instrumented, context), passages, ConlangStyles.PASSAGE);
+                // the page is drawn from the passages of every plugin that translated the part (a book may hold both kinds), once: the plugin that
+                // gets here first does it for both
+                if (!passageService.listForParts(List.of(part.getId()), ConlangKind.ID).isEmpty()) {
+                    ReaderView.apply(view, part, readerMode(instrumented, context), TranslatedPassages.of(passageService, passageKinds, part.getId()),
+                            passage -> TranslatedPassages.markClass(passageKinds, passage, ConlangStyles.PASSAGE));
                 }
             }
         };

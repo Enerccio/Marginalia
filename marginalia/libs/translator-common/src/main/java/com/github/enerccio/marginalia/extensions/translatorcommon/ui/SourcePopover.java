@@ -84,6 +84,11 @@ public final class SourcePopover {
             speaker.addClassName(CommonStyles.HINT);
             box.add(speaker);
         }
+        if (StringUtils.isNotBlank(span.getReading())) {
+            Div reading = new Div(span.getReading());
+            reading.addClassName(CommonStyles.HINT);
+            box.add(reading);
+        }
         Div source = new Div(span.getSource());
         source.addClassName(CommonStyles.SOURCE_TEXT);
         box.add(source);

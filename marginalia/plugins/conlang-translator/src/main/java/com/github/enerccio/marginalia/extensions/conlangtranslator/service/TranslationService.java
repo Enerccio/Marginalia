@@ -1,32 +1,30 @@
 package com.github.enerccio.marginalia.extensions.conlangtranslator.service;
 
-import com.github.enerccio.marginalia.extensions.translatorcommon.service.ModelSelection;
-import com.github.enerccio.marginalia.extensions.conlangtranslator.text.ConlangKind;
-import com.github.enerccio.marginalia.extensions.translatorcommon.service.PassageAccess;
-import com.github.enerccio.marginalia.extensions.translatorcommon.service.ModelClient;
-import com.github.enerccio.marginalia.extensions.translatorcommon.translate.TranslationPlan;
-import com.github.enerccio.marginalia.extensions.translatorcommon.translate.SelectionRange;
-import com.github.enerccio.marginalia.extensions.translatorcommon.translate.Reverse;
-import com.github.enerccio.marginalia.domain.collections.RevisionDetail;
-import com.github.enerccio.marginalia.domain.components.RevisionOrigin;
-import com.github.enerccio.marginalia.domain.model.impl.*;
+import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
+import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
-import com.github.enerccio.marginalia.domain.service.*;
+import com.github.enerccio.marginalia.domain.service.ChatMessageService;
+import com.github.enerccio.marginalia.domain.service.ManuscriptService;
+import com.github.enerccio.marginalia.domain.service.SettingService;
 import com.github.enerccio.marginalia.extensions.PartTextRegistry;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.model.BookSettings;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.model.Language;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.model.Origin;
-import com.github.enerccio.marginalia.extensions.translatorcommon.model.Span;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.store.ConlangStore;
+import com.github.enerccio.marginalia.extensions.conlangtranslator.text.ConlangKind;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.translate.*;
+import com.github.enerccio.marginalia.extensions.translatorcommon.service.ModelClient;
+import com.github.enerccio.marginalia.extensions.translatorcommon.service.ModelSelection;
+import com.github.enerccio.marginalia.extensions.translatorcommon.service.TranslationWriter;
+import com.github.enerccio.marginalia.extensions.translatorcommon.translate.Reverse;
+import com.github.enerccio.marginalia.extensions.translatorcommon.translate.SelectionRange;
+import com.github.enerccio.marginalia.extensions.translatorcommon.translate.TranslationPlan;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Translates the direct speech of a part into the language of the book: asks the model (one request for a part), checks the answer, writes the
@@ -79,25 +77,16 @@ public class TranslationService {
     @Autowired
     private ChatMessageService chatMessageService;
     @Autowired
-    private PassageService passageService;
-    @Autowired
     private PartTextRegistry partTexts;
     @Autowired
     private SettingService settingService;
-    @Autowired
-    private InferenceServices inferenceServices;
-    @Autowired
-    private AIService aiService;
-    @Autowired
-    private ProtocolService protocolService;
 
     /** How much of the story before and after a selected sentence the model reads (characters). */
     private static final int AROUND = 400;
 
-    private final PassageAccess passages = new PassageAccess(ConlangKind.ID);
+    private final TranslationWriter writer = new TranslationWriter(ConlangKind.ID);
     private final LanguageAccess languages = new LanguageAccess();
     private final ModelClient modelClient = new ModelClient("conlang-translator");
-    private final Map<String, Object> locks = new ConcurrentHashMap<>();
 
     /**
      * The part as it is stored now.
@@ -180,10 +169,7 @@ public class TranslationService {
         if (plan.isEmpty()) {
             return new Outcome(Status.NOTHING_TO_TRANSLATE, 0, 0, dropped, 0, "");
         }
-        Object lock = locks.computeIfAbsent(book.getUuid(), uuid -> new Object());
-        synchronized (lock) {
-            write(book, current, language, model, plan, checked, read);
-        }
+        write(book, current, language, model, plan, checked, read);
         int repair = (int) checked.accepted().stream().filter(item -> !item.unknownWords().isEmpty()).count();
         return new Outcome(Status.TRANSLATED, plan.passages().size(), checked.words().size(), dropped, repair,
                 repair > 0 ? repair + " translation(s) use words that are not in the lexicon and were not reported." : "");
@@ -206,38 +192,15 @@ public class TranslationService {
         if (book == null || current == null) {
             throw new IllegalArgumentException("The part does not exist");
         }
-        Reverse.Result read = readOf(current);
-        if (read.substitutions().isEmpty()) {
-            return new Reverted(0, read.edited().size());
-        }
-        Object lock = locks.computeIfAbsent(book.getUuid(), uuid -> new Object());
-        synchronized (lock) {
-            ChatMessage fresh = chatMessageService.find(part);
-            if (!StringUtils.defaultString(fresh.getResponse()).equals(StringUtils.defaultString(current.getResponse()))) {
-                throw new IllegalStateException("The part was changed while it was being reverted");
-            }
-            String english = read.text();
-            for (AnchoredPassage old : passages.passagesOf(fresh)) {
-                var located = PassageAccess.locate(old);
-                boolean editedByAuthor = located != null && read.edited().stream().anyMatch(e -> e.start() == located.start() && e.end() == located.end());
-                if (located != null && !editedByAuthor) {
-                    passageService.remove(book, old);
-                }
-            }
-            boolean untouched = fresh.getOriginalResponse() != null && fresh.getOriginalResponse().equals(fresh.getResponse());
-            chatMessageService.replaceText(book, fresh, english, english, untouched ? english : null,
-                    RevisionOrigin.automatic(RevisionDetail.TRANSLATION, false));
-        }
-        return new Reverted(read.substitutions().size(), read.edited().size());
+        TranslationWriter.Reverted done = writer.revert(book, current, writer.readOf(current));
+        return new Reverted(done.reverted(), done.kept());
     }
 
     /**
      * The part as a model reads it, with the passages that were edited by the author (they are left as they are).
      */
     private Reverse.Result readOf(ChatMessage part) throws Exception {
-        List<com.github.enerccio.marginalia.extensions.translatorcommon.translate.Reverse.Located> located = passages.of(List.of(part))
-                .getOrDefault(part.getId(), List.of());
-        return Reverse.toModel(part.getResponse(), located);
+        return writer.readOf(part);
     }
 
     private TranslationPrompt.Scene scene(Manuscript book, ChatMessage part, BookSettings settings) throws Exception {
@@ -260,36 +223,10 @@ public class TranslationService {
     /** What is written: the text, the passages, the new words. The part is read again under the lock, so an edit made meanwhile is not lost. */
     private void write(Manuscript book, ChatMessage part, Language language, ModelSelection model, TranslationPlan plan,
                        AnswerChecker.Checked checked, Reverse.Result read) throws Exception {
-        ChatMessage fresh = chatMessageService.find(part);
-        if (!StringUtils.defaultString(fresh.getResponse()).equals(StringUtils.defaultString(part.getResponse()))) {
-            throw new IllegalStateException("The part was changed while it was being translated");
-        }
-        // the old passages go with the text they stood in, but the ones the author edited stay: they hold his words
-        for (AnchoredPassage old : passages.passagesOf(fresh)) {
-            var located = PassageAccess.locate(old);
-            boolean editedByAuthor = located != null && read.edited().stream().anyMatch(e -> e.start() == located.start() && e.end() == located.end());
-            boolean unusable = located == null;
-            if (!editedByAuthor && !unusable) {
-                passageService.remove(book, old);
-            }
-        }
-        boolean untouched = fresh.getOriginalResponse() != null && fresh.getOriginalResponse().equals(fresh.getResponse());
-        chatMessageService.replaceText(book, fresh, plan.stored(), plan.source(), untouched ? plan.stored() : null,
-                RevisionOrigin.automatic(RevisionDetail.TRANSLATION, false));
-        long now = System.currentTimeMillis();
         String modelName = model.ai().getName();
-        for (TranslationPlan.Planned planned : plan.passages()) {
-            AnchoredPassage passage = passageService.create(book, fresh, ConlangKind.ID, planned.start(), planned.end());
-            Span span = new Span(language.getId(), planned.english(), planned.translated());
-            span.setSpeaker(StringUtils.defaultString(planned.speech().speaker()));
-            span.setUnderstood(planned.speech().isUnderstood());
-            span.setRegister(StringUtils.defaultString(planned.speech().register()));
-            span.setModel(modelName);
-            span.setTime(now);
-            span.write(passage.getAttributes());
-            passageService.save(passage);
-        }
-        addNewWords(book, language, checked.words(), fresh.getUuid(), modelName, now);
+        long now = System.currentTimeMillis();
+        writer.write(book, part, plan, read, language.getId(), modelName, null);
+        addNewWords(book, language, checked.words(), part.getUuid(), modelName, now);
     }
 
     /** Adds the words the model invented to the lexicon of the library (of the run's copy of the language in an agent run), new. */
@@ -337,9 +274,7 @@ public class TranslationService {
             return Outcome.of(Status.NO_MODEL, "There is no model for the translation.");
         }
         Reverse.Result read = readOf(current);
-        boolean overlaps = passages.of(List.of(current)).getOrDefault(current.getId(), List.of()).stream()
-                .anyMatch(located -> range[0] < located.end() && range[1] > located.start());
-        if (overlaps) {
+        if (writer.overlaps(current, range[0], range[1])) {
             return Outcome.of(Status.OVERLAPS, "The selection holds a translated speech.");
         }
         String english = text.substring(range[0], range[1]);
@@ -362,29 +297,11 @@ public class TranslationService {
         String conlang = answer.text();
         List<String> reported = checked.words().stream().map(word -> word.word().word()).toList();
         int unknown = new LexiconCheck(language, reported, text).unknown(conlang).isEmpty() ? 0 : 1;
-        Object lock = locks.computeIfAbsent(book.getUuid(), uuid -> new Object());
-        synchronized (lock) {
-            ChatMessage fresh = chatMessageService.find(part);
-            if (!text.equals(StringUtils.defaultString(fresh.getResponse()))) {
-                return Outcome.of(Status.CHANGED, "The part was changed while it was being translated.");
-            }
-            String stored = text.substring(0, range[0]) + conlang + text.substring(range[1]);
-            boolean untouched = fresh.getOriginalResponse() != null && fresh.getOriginalResponse().equals(fresh.getResponse());
-            // what a model reads is the same text as before: the English of the sentence stays in the passage
-            ChatMessage saved = chatMessageService.replaceText(book, fresh, stored, read.text(), untouched ? stored : null,
-                    RevisionOrigin.automatic(RevisionDetail.TRANSLATION, false));
-            long now = System.currentTimeMillis();
-            AnchoredPassage passage = passageService.create(book, saved, ConlangKind.ID, range[0], range[0] + conlang.length());
-            Span span = new Span(language.getId(), english, conlang);
-            span.setSpeaker("");
-            span.setUnderstood(true);
-            span.setRegister("");
-            span.setModel(model.ai().getName());
-            span.setTime(now);
-            span.write(passage.getAttributes());
-            passageService.save(passage);
-            addNewWords(book, language, checked.words(), saved.getUuid(), model.ai().getName(), now);
+        ChatMessage saved = writer.writeSelection(book, current, text, range[0], range[1], conlang, language.getId(), model.ai().getName(), read, null);
+        if (saved == null) {
+            return Outcome.of(Status.CHANGED, "The part was changed while it was being translated.");
         }
+        addNewWords(book, language, checked.words(), saved.getUuid(), model.ai().getName(), System.currentTimeMillis());
         return new Outcome(Status.TRANSLATED, 1, checked.words().size(), 0, unknown,
                 unknown > 0 ? "The translation uses words that are not in the lexicon and were not reported." : "");
     }
@@ -395,21 +312,7 @@ public class TranslationService {
      * The model and the protocol of the book's settings of this plugin, else the book's, else the defaults of the user; null when there is none.
      */
     ModelSelection resolveModel(Manuscript book, BookSettings settings) throws Exception {
-        AI ai = settings.getAiUuid() != null ? aiService.findForUser(settings.getAiUuid()) : null;
-        Protocol protocol = settings.getProtocolUuid() != null ? protocolService.findForUser(settings.getProtocolUuid()) : null;
-        if (ai == null || ai.isDeleted()) {
-            ai = book.getAi();
-            protocol = protocol != null && !protocol.isDeleted() ? protocol : book.getProtocol();
-        }
-        if (ai == null || ai.isDeleted()) {
-            UserSetting user = settingService.getOrCreate(UserSetting.class);
-            ai = user.getDefaultModel() != null ? aiService.find(user.getDefaultModel()) : null;
-            protocol = user.getDefaultProtocol() != null ? protocolService.find(user.getDefaultProtocol()) : protocol;
-        }
-        if (ai == null || ai.isDeleted()) {
-            return null;
-        }
-        return new ModelSelection(ai, protocol != null && !protocol.isDeleted() ? protocol : null);
+        return modelClient.choose(settings.getAiUuid(), settings.getProtocolUuid(), book);
     }
 
     /**

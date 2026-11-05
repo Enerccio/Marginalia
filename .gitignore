@@ -6,6 +6,7 @@
 /marginalia/src/main/bundles/
 /marginalia/target
 /marginalia/plugins/*/target
+/marginalia/libs/*/target
 retype.manifest
 /marginalia/package.json
 /marginalia/package-lock.json

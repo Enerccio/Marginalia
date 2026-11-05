@@ -1,6 +1,6 @@
 ---
 label: Reviewer
-order: 3
+order: 2
 ---
 
 # Reviewer

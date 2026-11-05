@@ -87,4 +87,24 @@ class ReaderTextTest {
         assertEquals(ReaderMode.TRANSLATED, ReaderMode.of("conlang"));
         assertEquals(ReaderMode.SOURCE, ReaderMode.of("source"));
     }
+
+    @Test
+    void thePassagesOfTwoPluginsInOnePartKeepEachOthersMarksAndBothGoBackToEnglish() {
+        String second = "\"Kare wa iku.\"";
+        String stored = "Mara said, " + CONLANG + " and Ken said " + second + ".";
+        int a = stored.indexOf(CONLANG);
+        int b = stored.indexOf(second);
+        AnchoredPassage first = passage("p-1", a, a + CONLANG.length(), SOURCE, CONLANG);
+        first.setPassageKind("conlang.speech");
+        AnchoredPassage other = passage("p-2", b, b + second.length(), "\"He goes.\"", second);
+        other.setPassageKind("reallang.speech");
+
+        String marked = ReaderText.render(ReaderMode.CLICK, stored, List.of(first, other),
+                passage -> passage.getPassageKind().startsWith("conlang") ? "conlang-mark" : "reallang-mark");
+        assertTrue(marked.contains("<mark class=\"conlang-mark\" data-translated-passage=\"p-1\">"), marked);
+        assertTrue(marked.contains("<mark class=\"reallang-mark\" data-translated-passage=\"p-2\">"), marked);
+
+        assertEquals("Mara said, " + SOURCE + " and Ken said \"He goes.\".",
+                ReaderText.render(ReaderMode.SOURCE, stored, List.of(first, other), passage -> "x"));
+    }
 }
