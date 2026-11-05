@@ -451,8 +451,8 @@ delete buttons and the edit pencil exist only on the top level - the text of the
 of their meta summary, so editing them one by one would invalidate it (the search and replace works them out again).
 A summary that no longer describes the story (`SummaryNode.isValid()` false: the hash of the block it stands for changed) has the grid part name `CssStyles.SUMMARY_OUTDATED` (another background) and, on the top level, a **Revalidate** button (`createRevalidateButton`); the menu bar has **Revalidate all summaries**. Both call `revalidate(part or null)`, which is `SummaryService.revalidateActiveBranch`: the hash of the story is stored again, the author says the summary still fits. The valid ones only are summed in the token total of the story tab. `PhoneSummariesDialog` has the same.
 
-The menu bar above the grid (`populateMenuBar(bar)`, also where extensions add items) has *Search and Replace*, *Export Summaries* and
-*Import Summaries*: the last two are added by `SummariesImportDialog.addMenuItems`, shared with `PhoneSummariesDialog`. The export is an
+The menu bar above the grid (`populateMenuBar(bar)`, also where extensions add items) has *Search and Replace*, *Revalidate all summaries*, *Resummarize all summaries*, *Export Summaries* and
+*Import Summaries*: *Resummarize* is added by `ResummarizeDialog.addMenuItem` (a confirmation with the number of summaries, then a modal progress dialog with Stop; not `@Extendable`), the last two by `SummariesImportDialog.addMenuItems`, both shared with `PhoneSummariesDialog`. The export is an
 `Anchor` with an `InputStreamDownloadHandler` over `SummaryService.exportSummaries`; the import dialog reads the uploaded file
 (`InMemoryUploadHandler`), calls `SummaryService.analyzeImport` (again when *Match by position* is toggled), lists the `ImportEntry`s with
 their status and writes with `applyImport` on *Import*, then runs the callback that loads the overview again. `PhoneSummariesDialog` puts
