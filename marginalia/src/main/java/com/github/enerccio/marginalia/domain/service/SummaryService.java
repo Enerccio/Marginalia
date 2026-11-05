@@ -50,6 +50,21 @@ public interface SummaryService extends ExtendableService<Summary, SummaryReposi
     Summary copySummary(Summary summary) throws Exception;
 
     /**
+     * Writes every summary the active branch has again with the model, for when the summary prompts changed and the
+     * summaries should follow them. Starts with the oldest and goes on one request at a time; a meta summary is made
+     * after the summaries it stands in for (the inner ones first, a meta summary of meta summaries last), from their new
+     * texts. Each summary keeps its place, its uuid and what points to it, and gets the hash of the story it covers, so
+     * the ones that were outdated are valid afterwards.
+     * <p>
+     * Nothing is stored until the last summary is written: a stop or an error leaves every summary as it was.
+     *
+     * @return null when the book has no model or no summaries
+     * @throws ManuscriptLockedException when an agent works on the book
+     */
+    CancellationToken resummarize(Manuscript manuscript, ResummaryCallback callback) throws Exception;
+
+
+    /**
      * Says that the summaries of the branch still describe the story: works out their hash again from the story as it is
      * now, the way a search and replace does for the texts it changed. For the author (or an agent) who edited a part
      * and knows that what the summary says is still true.
@@ -214,6 +229,34 @@ public interface SummaryService extends ExtendableService<Summary, SummaryReposi
         public boolean isValid() {
             return hash.equals(summary.getSummaryMessageHash());
         }
+
+    }
+
+    /**
+     * What {@link #resummarize} reports, on the threads the model answers on.
+     */
+    interface ResummaryCallback {
+
+        /**
+         * The next summary is being written.
+         *
+         * @param number 1 based number of the summary, of {@code total}
+         * @param part   the part the summary belongs to
+         * @param meta   whether it is a meta summary
+         */
+        void onStep(int number, int total, ChatMessage part, boolean meta) throws Exception;
+
+        /** The reasoning and the text of the summary being written, as far as they arrived. */
+        void onSummaryProgress(String reasoning, String summary) throws Exception;
+
+        /** Every summary was written and stored. */
+        void onFinished(int count) throws Exception;
+
+        /** Stopped, nothing was changed. */
+        void onTerminated() throws Exception;
+
+        /** Failed (the prompt does not fit, the model failed or answered nothing), nothing was changed. */
+        void onError(Throwable throwable) throws Exception;
 
     }
 

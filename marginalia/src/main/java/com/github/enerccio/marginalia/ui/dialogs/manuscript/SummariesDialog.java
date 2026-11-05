@@ -117,6 +117,7 @@ public class SummariesDialog extends Dialog implements LLMInteract {
     private void populateMenuBar(MenuBar bar) {
         bar.addItem(loc.getValue(L.LABEL_SEARCH_AND_REPLACE), _ -> openSearchReplaceDialog());
         bar.addItem(loc.getValue(L.LABEL_REVALIDATE_ALL_SUMMARIES), _ -> revalidate(null));
+        ResummarizeDialog.addMenuItem(bar, manuscript, loc, summaryService, this::refresh);
         SummariesImportDialog.addMenuItems(bar, manuscript, loc, summaryService, this::refresh);
     }
 

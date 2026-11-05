@@ -66,6 +66,17 @@ public final class SummaryNode {
         return children;
     }
 
+    /**
+     * @return this summary and all those under it
+     */
+    public int countAll() {
+        int count = 1;
+        for (SummaryNode child : children) {
+            count += child.countAll();
+        }
+        return count;
+    }
+
     public long getTokens() {
         return summary.getSummaryTokens() == null ? 0 : summary.getSummaryTokens();
     }

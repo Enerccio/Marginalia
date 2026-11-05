@@ -966,6 +966,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_SET_FOR_THE_BOOK, "このブックに設定済み");
         setValue(L.LABEL_TRANSLATION, "翻訳");
         setValue(L.LABEL_CLEAR_SAVED_LOGINS, "保存されたログインを削除（ログイン状態の保持）");
+        setValue(L.LABEL_RESUMMARIZE_ALL_SUMMARIES, "すべての要約を再作成");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -1641,6 +1642,11 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_IMPORT_SUMMARIES, "「要約をエクスポート」で作成したファイル（テキストエディタで編集できます）を選択してください。ファイルが指すアクティブなブランチの要約が置き換えられます。「インポート」を押すまで何も変更されません。");
         setValue(L.MSG_SAVE_OUTDATED_SUMMARIES, "この変更を保存すると %d 件の要約が古くなります。これらはパートの元の文章に基づいており、古い要約は生成に使われません。\n\n編集に戻る、そのまま保存する、または保存して要約を有効のままにしますか？");
         setValue(L.MSG_SUMMARIES_REVALIDATED, "%d 件の要約を再検証しました。");
+        setValue(L.MSG_RESUMMARIZE_CONFIRM, "アクティブな分岐のすべての要約（メタ要約を含む %d 件）をモデルが書き直します。古いものから順に、メタ要約はその中の要約の後に作成され、現在の要約プロンプトに合わせた内容になります。要約ごとに 1 回のリクエストが必要です。新しいテキストは最後の要約が完了してから保存されます。中止またはエラーの場合、要約は元のままです。");
+        setValue(L.MSG_RESUMMARIZE_PROGRESS, "要約 %d / %d");
+        setValue(L.MSG_RESUMMARIZE_FINISHED, "%d 件の要約を書き直しました。");
+        setValue(L.MSG_RESUMMARIZE_STOPPED, "中止しました。要約は変更されていません。");
+        setValue(L.MSG_RESUMMARIZE_NO_SUMMARIES, "書き直す要約がありません。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");
