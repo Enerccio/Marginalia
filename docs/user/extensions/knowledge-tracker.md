@@ -202,6 +202,7 @@ The gear next to *Track a character*:
 | **Depth** | Where it goes, counted in messages from the end of the prompt: `0` after the instructions of the turn, `1` right before them. It never goes before the system prompt. |
 | **Role** | Whether it is sent as a *System*, *Assistant* or *User* message. |
 | **Say that nothing else is known** | The closed world line. |
+| **Give what the characters know to the annotation** | On (the default): [Annotate with AI](#annotating-with-what-the-characters-know) gets what the tracked characters of the part knew when it begins. |
 | **Process new parts automatically** | See [Processing](#processing). |
 | **Read what the characters learn with the model** | Processing asks the model what each tracked character learned and proposes it. Off (the default): processing only notes who has met whom, which costs nothing. |
 | **Ask before applying** | On (the default): every proposal is shown for review. Off: it is applied at once and logged. |
@@ -214,6 +215,28 @@ The gear next to *Track a character*:
 | **Model / Protocol for the extraction** | Empty: the model of the book. A cheaper model is enough for this, and on a server that holds one prompt cache a separate model keeps it from being replaced. |
 | **Separators of this book** | How the present characters field is split into names, one per line (a new line is `\n`). A word such as `and` splits between spaces, so *Jack and Jill* stays one name until you add it. |
 | **My separators (all books)** | The same for all your books. The book's own separators win; with neither, the built-in ones are used. |
+
+## Annotating with what the characters know
+
+The block above keeps the model from making a character omniscient *while it writes*. The same records also help to find the slips that got
+in anyway. When a model [annotates a part](../books/annotations.md#letting-a-model-annotate) (**Annotate with AI**, a range of parts, the
+automatic annotation, `/generate-annotation`), the tracker tells it what the tracked characters of that part knew **when the part begins**,
+and the editor flags a character who says, thinks or does what they cannot know: *Fiora greets Thomas by name; the records say she has never
+met him.* The note names the fact.
+
+- **The facts are those of the part, not of the end of the book.** What a character learned in a later part is not yet known; an item that a
+  later part retracts was still true. What the part itself brings (what is learned, who is met, what stops being true in it) is listed apart,
+  so the first half of the part is not checked against the second.
+- **Which characters.** The tracked ones that are in the *Present Characters* of the part, are its point of view, or are named in its text
+  (a whole word, any case, aliases too).
+- **Items that are not facts at any point** are left out: the ones you retracted by hand, the ones the tidy pass dropped, the ones you declined
+  in a review.
+- **Only what is recorded.** The model is told that what the records do not say is not a fact, so it does not flag a character for a thing the
+  tracker simply never heard of. *Say that nothing else is known* also adds "(nobody else)" to who a character has met.
+- If a part before the reviewed one was not read by the tracker, the facts say so: what the characters learned there is missing, and
+  **Process now** first gives a better review.
+- The facts cost tokens in the request of the annotation, only for the parts that have a tracked character. Switch them off with **Give what
+  the characters know to the annotation**.
 
 ## The block as a macro
 

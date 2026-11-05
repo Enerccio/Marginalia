@@ -377,6 +377,7 @@ public class AnnotateDialog extends Dialog {
         if (parts.isEmpty()) {
             return;
         }
+        showResolvedInstructions();
         clear();
         batchRun = parts.size() > 1;
         total = parts.size();
@@ -385,6 +386,24 @@ public class AnnotateDialog extends Dialog {
         attributes = ThreadCopyRequestAttributes.create();
         showRunning(true);
         annotateNext(UI.getCurrent());
+    }
+
+    /**
+     * A run started with the field empty asks for what the book inherits (the service resolves it the same way): the field shows that
+     * text from then on, instead of the placeholder, so the author sees what the model was told to look for.
+     */
+    private void showResolvedInstructions() {
+        if (StringUtils.isNotBlank(instructions.getValue())) {
+            return;
+        }
+        try {
+            String resolved = StringUtils.trimToEmpty(manuscriptService.getAnnotateInstructions(manuscript));
+            if (!resolved.isEmpty()) {
+                instructions.setValue(resolved);
+            }
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
     }
 
     /**
@@ -694,6 +713,10 @@ public class AnnotateDialog extends Dialog {
     }
 
     // for the tests
+
+    void showResolvedInstructionsForTest() {
+        showResolvedInstructions();
+    }
 
     ComboBox<Mode> modeField() {
         return mode;

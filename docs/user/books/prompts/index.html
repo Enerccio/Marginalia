@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847213954694">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847222462314">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.847213954694" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.847222462314" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847213954694" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847222462314" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847213954694" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.847213954694" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847222462314" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.847222462314" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -326,7 +326,7 @@ point for your own version. The template fields also list the <strong>Available 
 | Meta Summary Prompt | `{{backgroundLore}}`, `{{summaryBlocks}}` (the summaries to merge) |
 | Redraft System Prompt, Redraft Prompt | `{{text}}` (the part), `{{redraftInstructions}}` (what you want changed), `{{previousStory}}`, `{{summaries}}`, `{{followingStory}}`, `{{backgroundLore}}`, `{{narrativePov}}`, `{{narrativeTense}}`, `{{style}}`, and the turn the part was written from: `{{sceneSetting}}`, `{{povCharacter}}`, `{{presentCharacters}}`, `{{instructions}}`, and `{{annotations}}` (your open notes on the part, empty unless you ask for them in the redraft window), and for the [redraft of a selection](story-editor.md#redrafting-only-a-passage) `{{selection}}` (the selected text; empty when the whole part is redrafted), `{{selectionBefore}}` and `{{selectionAfter}}` (the text of the part around it) |
 | Impersonate Prompt | `{{impersonateInstructions}}` (your guidance), `{{outline}}` (the plan of the story a caller gives, e.g. the current chapter of the Arc Outline), `{{previousStory}}`, `{{summaries}}`, `{{backgroundLore}}` (the lore of the last part), `{{instructionExamples}}` (your instructions of the last three parts, oldest first), `{{narrativePov}}`, `{{narrativeTense}}`, `{{style}}`, and the turn the instructions are for: `{{sceneSetting}}`, `{{povCharacter}}`, `{{presentCharacters}}` |
-| Annotate System Prompt, Annotate Prompt | The variables of the redraft prompts, with `{{annotateInstructions}}` (what you want looked at) instead of `{{redraftInstructions}}`, `{{annotations}}` (the notes the part already has) and `{{outputFormat}}` (how the model is told to answer) |">
+| Annotate System Prompt, Annotate Prompt | The variables of the redraft prompts, with `{{annotateInstructions}}` (what you want looked at) instead of `{{redraftInstructions}}`, `{{annotations}}` (the notes the part already has), `{{facts}}` (what extensions know about the story at the part, for example what the characters know; empty without such an extension) and `{{outputFormat}}` (how the model is told to answer) |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -362,7 +362,7 @@ point for your own version. The template fields also list the <strong>Available 
 </tr>
 <tr>
 <td>Annotate System Prompt, Annotate Prompt</td>
-<td>The variables of the redraft prompts, with <code translate="no" v-pre>{{annotateInstructions}}</code> (what you want looked at) instead of <code translate="no" v-pre>{{redraftInstructions}}</code>, <code translate="no" v-pre>{{annotations}}</code> (the notes the part already has) and <code translate="no" v-pre>{{outputFormat}}</code> (how the model is told to answer)</td>
+<td>The variables of the redraft prompts, with <code translate="no" v-pre>{{annotateInstructions}}</code> (what you want looked at) instead of <code translate="no" v-pre>{{redraftInstructions}}</code>, <code translate="no" v-pre>{{annotations}}</code> (the notes the part already has), <code translate="no" v-pre>{{facts}}</code> (what extensions know about the story at the part, for example what the characters know; empty without such an extension) and <code translate="no" v-pre>{{outputFormat}}</code> (how the model is told to answer)</td>
 </tr>
 </tbody>
 </table>
@@ -417,7 +417,9 @@ selection; add a <code translate="no" v-pre>{#selection}...{{/selection}}</code>
 <strong>Annotate System Prompt</strong> as the system message, the story before the part as earlier messages and the <strong>Annotate Prompt</strong> as the
 last message. The built-in default makes the model an editor: it finds the passages that have a problem in the sense of your
 instructions, quotes each one letter for letter, and writes a short note for you, without praise or filler and without
-repeating the notes the part already has. The prompt has the variable <code translate="no" v-pre>{{outputFormat}}</code> where the way of answering is
+repeating the notes the part already has. When an extension gives <a href="../annotations/#letting-a-model-annotate">facts about the story</a> (the
+Knowledge Tracker: what the characters know), the default prompt shows them as <em>Established facts</em> and the editor flags what contradicts
+them. The prompt has the variable <code translate="no" v-pre>{{outputFormat}}</code> where the way of answering is
 described (JSON, text blocks or a free review, it depends on the answer format you choose); keep it in a prompt of your own, or the
 model is not told how to answer. Both annotate prompts follow the rule of all prompts: the book&#x27;s field, else the one in
 <em>Settings → Templates</em>, else the built-in one.</p>
@@ -503,7 +505,7 @@ text off.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (78db4ecac).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (4714e5ba5).</p></div>
             </footer>
         </div>
     </div>

@@ -2147,6 +2147,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.DESC_MACRO_CLOSEST_SUMMARY, "執筆中のパートに最も近い要約。数値を指定するとn番目に近い要約（1が最新）。該当がなければ空です。");
         setValue(L.DESC_MACRO_CURRENT_MESSAGE, "再生成またはスワイプで置き換えられるパートのテキスト。新しいパートでは空です。");
         setValue(L.DESC_MACRO_JOIN, "最初の引数を区切りとして、2番目以降のテキストを連結します。空のテキストは除外されます。空白を含む区切りには {{space}} や {{newline}} を使用してください。");
+        setValue(L.DESC_TEMPLATE_FACTS, "拡張機能が把握している、そのパート時点の物語の事実（たとえば各キャラクターが知っていること。提供がなければ空）。パートをこれと照らし合わせ、矛盾は設定の不整合として扱います。");
     }
 
     @Override

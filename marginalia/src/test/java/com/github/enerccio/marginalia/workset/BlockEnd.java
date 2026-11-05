@@ -46,8 +46,13 @@ public class BlockEnd {
     private final Integer chapterCount;
     /** The length a chapter should have, in words: the number of chapters of a block is its words divided by this (a chapter every ~1000 words is far too many). */
     private final int chapterWords;
-    /** The tokens the summaries of the active branch may take together in the prompt; above it the oldest two are merged into a meta summary. 0 = never merge. */
-    private final int summaryBudget;
+    /**
+     * The tokens the summaries of the active branch may take together in the prompt: not a fixed small cap, a share of the usable context of the book's AI (see
+     * {@code workset.contextShare}). Only above it are two fresh summaries merged into a meta summary; 0 = never merge. Everything below it the prompt simply uses.
+     */
+    private final long summaryBudget;
+    /** How many pairs of fresh summaries are merged into meta summaries at the close of a block, from the second block on (the oldest pairs first). */
+    private final int metaPairsPerBlock;
     /** A summary at the end of every n-th chapter of the block (1 = each chapter, 2 = every second one); the last chapter of the block is never summarized. */
     private final int summaryEvery;
 
@@ -55,7 +60,8 @@ public class BlockEnd {
      * @param minWords     a chapter with fewer words than this gets no summary (a very short one)
      * @param chapterCount the exact number of chapters to ask for in a block, null = as the story divides
      */
-    public BlockEnd(TranslationPass commands, ManuscriptService manuscripts, ChatMessageService messages, int minWords, Integer chapterCount, int chapterWords, int summaryBudget, int summaryEvery) {
+    public BlockEnd(TranslationPass commands, ManuscriptService manuscripts, ChatMessageService messages, int minWords, Integer chapterCount, int chapterWords, long summaryBudget, int summaryEvery, int metaPairsPerBlock) {
+        this.metaPairsPerBlock = metaPairsPerBlock;
         this.summaryEvery = summaryEvery;
         this.summaryBudget = summaryBudget;
         this.chapterCount = chapterCount;
@@ -176,6 +182,31 @@ public class BlockEnd {
         report.append("\n**Summaries** (at the last part of each chapter; none for a chapter under ").append(minWords).append(" words, none for the last chapter of the block):\n\n");
         List<ChatMessage> parts = chain.get();
         int lastSummaryEnd = from - 1;
+        if (from > 1) {
+            // the last chapter of the previous block was kept whole while this block was written; it gets its own summary now, before the chapters of this block
+            JsonObject listed = GSON.fromJson(commands.run(manuscripts.find(bookId), "list-summaries", Map.of()), JsonObject.class);
+            int summarized = 0;
+            for (JsonElement node : listed.getAsJsonArray("summaries")) {
+                summarized = Math.max(summarized, node.getAsJsonObject().get("position").getAsInt());
+            }
+            if (summarized < from - 1) {
+                int tailWords = 0;
+                for (int p = summarized + 1; p <= from - 1; p++) {
+                    String t = parts.get(p - 1).getResponse();
+                    tailWords += t == null || t.isBlank() ? 0 : t.strip().split("\\s+").length;
+                }
+                String name = "the chapter kept whole from the previous block (parts " + (summarized + 1) + "-" + (from - 1) + ")";
+                if (tailWords < minWords) {
+                    report.append("- ").append(name).append(": ").append(tailWords).append(" words, too short for a summary\n");
+                } else {
+                    mark.accept(label + " summary " + (from - 1), "summary");
+                    String summary = commands.run(manuscripts.find(bookId), "regenerate-summary", Map.of("part", parts.get(from - 2).getUuid()));
+                    JsonObject row = GSON.fromJson(summary, JsonObject.class);
+                    report.append("- ").append(name).append(": summary at part ").append(from - 1).append(", ").append(tailWords).append(" words covered").append(row != null && row.has("tokens")
+                            ? ", " + row.get("tokens").getAsLong() + " tokens" : "").append(":\n\n  > ").append(row != null && row.has("text") ? row.get("text").getAsString().replace("\n", "\n  > ") : summary).append("\n\n");
+                }
+            }
+        }
         for (int i = 0; i < chapters.size(); i++) {
             int start = chapters.get(i).part();
             int end = i + 1 < chapters.size() ? chapters.get(i + 1).part() - 1 : to;
@@ -206,9 +237,9 @@ public class BlockEnd {
                     ? ", " + row.get("tokens").getAsLong() + " tokens" : "").append(":\n\n  > ").append(row != null && row.has("text") ? row.get("text").getAsString().replace("\n", "\n  > ") : summary).append("\n\n");
         }
 
-        if (summaryBudget > 0) {
-            report.append(meta(book, bookId, label, mark));
-        }
+        // meta summaries: from the second block on one pair of the oldest fresh summaries is merged (summary 1 + 2 -> meta 1), and more only if the summaries alone would
+        // take more than the share of the context
+        report.append(meta(book, bookId, label, mark, label.endsWith(" 1") ? 0 : metaPairsPerBlock));
         return report.toString();
     }
 
@@ -216,18 +247,21 @@ public class BlockEnd {
      * Meta summaries: when the summaries of the active branch together are more than {@code summaryBudget} tokens, the oldest two are merged into one meta summary
      * ({@code create-meta-summary}; the default meta prompt asks for about half the size), until they fit or only one is left. The numbers before and after are in the report.
      */
-    public String meta(Manuscript book, long bookId, String label, BiConsumer<String, String> mark) throws Exception {
-        StringBuilder report = new StringBuilder("**Meta summaries** (the summaries of the branch may take ").append(summaryBudget).append(" tokens in the prompt):\n\n");
-        for (int round = 0; round < 6; round++) {
+    public String meta(Manuscript book, long bookId, String label, BiConsumer<String, String> mark, int pairs) throws Exception {
+        StringBuilder report = new StringBuilder("**Meta summaries** (").append(pairs).append(" pair(s) of the oldest fresh summaries at this block; more only above ").append(summaryBudget)
+                .append(" tokens of summaries):\n\n");
+        int merged = 0;
+        for (int round = 0; round < 12; round++) {
             JsonObject listed = GSON.fromJson(commands.run(manuscripts.find(bookId), "list-summaries", Map.of()), JsonObject.class);
             JsonArray nodes = listed.getAsJsonArray("summaries");
             long total = 0;
             for (JsonElement node : nodes) {
                 total += node.getAsJsonObject().get("tokens").getAsLong();
             }
+            boolean wanted = merged < pairs || total > summaryBudget;
             report.append("- ").append(nodes.size()).append(" summaries, ").append(total).append(" tokens");
-            if (total <= summaryBudget || nodes.size() < 2) {
-                report.append(total <= summaryBudget ? ": fits\n" : ": only one left, nothing to merge\n");
+            if (!wanted) {
+                report.append(merged == 0 ? ": nothing to merge at this block\n" : ": done\n");
                 break;
             }
             // two FRESH summaries side by side (the list is oldest first) become a meta summary that sits on the newer one and takes the place of both; a meta summary is
@@ -245,7 +279,7 @@ public class BlockEnd {
             }
             if (pair < 0) {
                 if (metas < MAX_META) {
-                    report.append(": over the budget, but no two plain summaries are side by side and there are only ").append(metas).append(" meta summaries (merging one into another is the last resort, from ")
+                    report.append(": no two plain summaries are side by side and there are only ").append(metas).append(" meta summaries (merging one into another is the last resort, from ")
                             .append(MAX_META).append("): nothing merged\n");
                     break;
                 }
@@ -254,13 +288,14 @@ public class BlockEnd {
             }
             JsonObject older = nodes.get(pair).getAsJsonObject();
             JsonObject newer = nodes.get(pair + 1).getAsJsonObject();
-            report.append(": too many, merging the summaries at parts ").append(older.get("position").getAsInt()).append(" (").append(older.get("tokens").getAsLong()).append(" tokens) and ")
+            report.append(": merging the summaries at parts ").append(older.get("position").getAsInt()).append(" (").append(older.get("tokens").getAsLong()).append(" tokens) and ")
                     .append(newer.get("position").getAsInt()).append(" (").append(newer.get("tokens").getAsLong()).append(" tokens)\n");
             mark.accept(label + " meta " + newer.get("position").getAsInt(), "summary");
-            String merged = commands.run(manuscripts.find(bookId), "create-meta-summary", Map.of("from", newer.get("handle").getAsString(), "to", older.get("handle").getAsString()));
-            JsonObject row = GSON.fromJson(merged, JsonObject.class);
+            String result = commands.run(manuscripts.find(bookId), "create-meta-summary", Map.of("from", newer.get("handle").getAsString(), "to", older.get("handle").getAsString()));
+            merged++;
+            JsonObject row = GSON.fromJson(result, JsonObject.class);
             report.append("  - meta summary at part ").append(newer.get("position").getAsInt()).append(row != null && row.has("tokens") ? ", " + row.get("tokens").getAsLong() + " tokens" : "")
-                    .append(":\n\n    > ").append(row != null && row.has("text") ? row.get("text").getAsString().replace("\n", "\n    > ") : merged).append("\n\n");
+                    .append(":\n\n    > ").append(row != null && row.has("text") ? row.get("text").getAsString().replace("\n", "\n    > ") : result).append("\n\n");
         }
         return report.toString();
     }

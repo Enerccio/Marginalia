@@ -61,6 +61,8 @@ public class KnowledgeTrackerLocalization extends PluginLocalizationBundle {
     public static final String USER = "User";
     public static final String SAY_THAT_NOTHING_ELSE_IS_KNOWN = "Say that nothing else is known";
     public static final String THE_CHARACTER_HAS_NEVER_MET_OR_HEARD = "Add a line saying that the character has never met or heard of anyone else and knows nothing else of the story's secrets";
+    public static final String GIVE_THE_FACTS_TO_THE_ANNOTATION = "Give what the characters know to the annotation";
+    public static final String WHEN_A_MODEL_ANNOTATES_A_PART = "When a model annotates a part (Annotate with AI), it is told what the tracked characters of the part knew when it begins, and flags the ones who act on what they cannot know";
     public static final String SEPARATORS_OF_THIS_BOOK = "Separators of this book";
     public static final String MY_SEPARATORS = "My separators (all books)";
     public static final String SEPARATORS_HELP = "How the present characters field is split into names. One per line; empty = the book uses mine, mine empty = the built-in ones (, ; new line / | 、 ， ；). A word such as and splits between spaces, \\n is a new line.";
@@ -312,6 +314,12 @@ public class KnowledgeTrackerLocalization extends PluginLocalizationBundle {
 
         ja(THE_CHARACTER_HAS_NEVER_MET_OR_HEARD, "キャラクターは他の誰にも会ったことも聞いたこともなく、物語の秘密や計画や出来事を他には知らない、という一行を加えます");
         zh(THE_CHARACTER_HAS_NEVER_MET_OR_HEARD, "加一行说明：该角色没有见过也没有听说过其他任何人，也不知道故事中的其他秘密、计划或事件");
+
+        ja(GIVE_THE_FACTS_TO_THE_ANNOTATION, "キャラクターの知識を注釈に渡す");
+        zh(GIVE_THE_FACTS_TO_THE_ANNOTATION, "把角色所知内容提供给批注");
+
+        ja(WHEN_A_MODEL_ANNOTATES_A_PART, "モデルがパートに注釈を付けるとき（AIで注釈）、パートの始まりの時点で追跡中のキャラクターが知っていたことを伝え、知り得ないことに基づいて行動するキャラクターを指摘させます");
+        zh(WHEN_A_MODEL_ANNOTATES_A_PART, "模型为某一段添加批注时（用 AI 批注），会被告知该段开始时被追踪角色所知道的内容，并指出依据其不可能知道的事情行事的角色");
 
         ja(SEPARATORS_OF_THIS_BOOK, "この本の区切り文字");
         zh(SEPARATORS_OF_THIS_BOOK, "本书的分隔符");

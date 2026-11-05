@@ -262,6 +262,13 @@ public class KnowledgeTrackerView extends VerticalLayout {
             saveState();
         });
 
+        Checkbox annotationFacts = new Checkbox(T.localized(GIVE_THE_FACTS_TO_THE_ANNOTATION), settings.isFactsForAnnotation());
+        annotationFacts.setTooltipText(T.localized(WHEN_A_MODEL_ANNOTATES_A_PART));
+        annotationFacts.addValueChangeListener(e -> {
+            state.getSettings().setFactsForAnnotation(e.getValue());
+            saveState();
+        });
+
         TextArea bookSeparators = separatorsField(T.localized(SEPARATORS_OF_THIS_BOOK), SeparatorText.format(settings.getSeparators()));
         bookSeparators.setHelperText(T.localized(SEPARATORS_HELP));
         bookSeparators.addValueChangeListener(e -> {
@@ -278,7 +285,7 @@ public class KnowledgeTrackerView extends VerticalLayout {
             }
         });
 
-        VerticalLayout controls = new VerticalLayout(inPrompt, depth, role, closedWorld, autoProcess, extraction, bookSeparators, mySeparators);
+        VerticalLayout controls = new VerticalLayout(inPrompt, depth, role, closedWorld, annotationFacts, autoProcess, extraction, bookSeparators, mySeparators);
         controls.addClassName(KnowledgeTrackerStyles.SETTINGS);
         controls.setPadding(false);
         controls.setSpacing(false);

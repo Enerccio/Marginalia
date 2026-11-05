@@ -306,6 +306,8 @@
 
     <!-- where the code that gives the story to a model asks for the text of a part, and where an extension says how to turn it back -->
     <bean class="com.github.enerccio.marginalia.extensions.PartTextRegistry" />
+    <!-- where an extension offers the facts it knows about the story to the annotation (what the characters know at the part...) -->
+    <bean class="com.github.enerccio.marginalia.extensions.AnnotationFactsRegistry" />
     <bean class="com.github.enerccio.marginalia.extensions.ExportTextRegistry" />
 
     <bean class="com.github.enerccio.marginalia.domain.service.impl.OsgiServiceImpl" />

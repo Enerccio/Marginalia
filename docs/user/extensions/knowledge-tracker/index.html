@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847213954694">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847222462314">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.847213954694" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.847222462314" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847213954694" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847222462314" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847213954694" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847222462314" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -462,6 +462,7 @@ button), and <code translate="no" v-pre>lock-knowledge</code> / <code translate=
 | **Depth** | Where it goes, counted in messages from the end of the prompt: `0` after the instructions of the turn, `1` right before them. It never goes before the system prompt. |
 | **Role** | Whether it is sent as a *System*, *Assistant* or *User* message. |
 | **Say that nothing else is known** | The closed world line. |
+| **Give what the characters know to the annotation** | On (the default): [Annotate with AI](#annotating-with-what-the-characters-know) gets what the tracked characters of the part knew when it begins. |
 | **Process new parts automatically** | See [Processing](#processing). |
 | **Read what the characters learn with the model** | Processing asks the model what each tracked character learned and proposes it. Off (the default): processing only notes who has met whom, which costs nothing. |
 | **Ask before applying** | On (the default): every proposal is shown for review. Off: it is applied at once and logged. |
@@ -498,6 +499,10 @@ button), and <code translate="no" v-pre>lock-knowledge</code> / <code translate=
 <tr>
 <td><strong>Say that nothing else is known</strong></td>
 <td>The closed world line.</td>
+</tr>
+<tr>
+<td><strong>Give what the characters know to the annotation</strong></td>
+<td>On (the default): <doc-anchor-trigger to="#annotating-with-what-the-characters-know">Annotate with AI</doc-anchor-trigger> gets what the tracked characters of the part knew when it begins.</td>
 </tr>
 <tr>
 <td><strong>Process new parts automatically</strong></td>
@@ -551,6 +556,39 @@ button), and <code translate="no" v-pre>lock-knowledge</code> / <code translate=
 </table>
 </div>
 </retype-table>
+<h2 id="annotating-with-what-the-characters-know">Annotating with what the characters know</h2>
+<p>The block above keeps the model from making a character omniscient <em>while it writes</em>. The same records also help to find the slips that got
+in anyway. When a model <a href="../../books/annotations/#letting-a-model-annotate">annotates a part</a> (<strong>Annotate with AI</strong>, a range of parts, the
+automatic annotation, <code translate="no" v-pre>/generate-annotation</code>), the tracker tells it what the tracked characters of that part knew <strong>when the part begins</strong>,
+and the editor flags a character who says, thinks or does what they cannot know: <em>Fiora greets Thomas by name; the records say she has never
+met him.</em> The note names the fact.</p>
+<ul>
+<li>
+<p><strong>The facts are those of the part, not of the end of the book.</strong> What a character learned in a later part is not yet known; an item that a
+later part retracts was still true. What the part itself brings (what is learned, who is met, what stops being true in it) is listed apart,
+so the first half of the part is not checked against the second.</p>
+</li>
+<li>
+<p><strong>Which characters.</strong> The tracked ones that are in the <em>Present Characters</em> of the part, are its point of view, or are named in its text
+(a whole word, any case, aliases too).</p>
+</li>
+<li>
+<p><strong>Items that are not facts at any point</strong> are left out: the ones you retracted by hand, the ones the tidy pass dropped, the ones you declined
+in a review.</p>
+</li>
+<li>
+<p><strong>Only what is recorded.</strong> The model is told that what the records do not say is not a fact, so it does not flag a character for a thing the
+tracker simply never heard of. <em>Say that nothing else is known</em> also adds &quot;(nobody else)&quot; to who a character has met.</p>
+</li>
+<li>
+<p>If a part before the reviewed one was not read by the tracker, the facts say so: what the characters learned there is missing, and
+<strong>Process now</strong> first gives a better review.</p>
+</li>
+<li>
+<p>The facts cost tokens in the request of the annotation, only for the parts that have a tracked character. Switch them off with <strong>Give what
+the characters know to the annotation</strong>.</p>
+</li>
+</ul>
 <h2 id="the-block-as-a-macro">The block as a macro</h2>
 <p>Instead of (or besides) the automatic insertion you can place the block yourself with the
 <a href="../../templates/macros/#commands"><code translate="no" v-pre>{{command::knowledge-tracker-block::&lt;characters&gt;}}</code> macro</a>. The argument is the list of
@@ -669,7 +707,7 @@ so a second generation from the same part does not see a change you made in betw
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (78db4ecac).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (4714e5ba5).</p></div>
             </footer>
         </div>
     </div>

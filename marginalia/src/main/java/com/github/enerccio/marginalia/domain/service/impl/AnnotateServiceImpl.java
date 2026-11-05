@@ -24,6 +24,7 @@ import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
 import com.github.enerccio.marginalia.domain.traits.LLMField;
 import com.github.enerccio.marginalia.domain.traits.LLMSchema;
+import com.github.enerccio.marginalia.extensions.AnnotationFactsRegistry;
 import com.github.enerccio.marginalia.extensions.PartTextRegistry;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes.InRequestScope;
@@ -104,6 +105,9 @@ public class AnnotateServiceImpl implements AnnotateService {
 
     @Autowired
     private PartTextRegistry partTextRegistry;
+
+    @Autowired
+    private AnnotationFactsRegistry annotationFacts;
 
     @Autowired
     private MessagePromptService messagePromptService;
@@ -722,6 +726,7 @@ public class AnnotateServiceImpl implements AnnotateService {
         data.setText(partTextRegistry.forModel(part));
         data.setAnnotateInstructions(instructions);
         data.setAnnotations(AnnotationTexts.openAnnotations(annotationService.listForPart(book, part)));
+        data.setFacts(annotationFacts.facts(book, part, upToPart));
         data.setOutputFormat(outputFormat);
         data.setSummaries("");
         data.setPreviousStory("");

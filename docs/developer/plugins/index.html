@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847213954694">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847222462314">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.847213954694" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.847222462314" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847213954694" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847222462314" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847213954694" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.847213954694" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847222462314" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.847222462314" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -203,6 +203,7 @@ gets general mechanisms and the whole application to use them on:</p>
 | **Inherited settings** | A setting of the plugin that books and folders inherit like the prompts: a field in the *Prompts* tab and the folder dialog, `ManuscriptService.resolveExtension` for the value (`InheritedSettingRegistry`). | [Inherited settings](inherited-settings.md) |
 | **The text a model reads** | Give the model another form of the story than the one that is stored (a translation, a redaction): a transformer in the `PartTextRegistry`, the offset map of `ModelText`, `ChatMessageService.replaceText` to store the other form. | [The text a model reads](part-text.md) |
 | **The text of an export** | Change what the export of a book holds for a passage (the English instead of a translation, a footnote with the other text) without touching the exporters, together with other plugins: a contributor in the `ExportTextRegistry`, edits as ranges of the stored text. | [The text of an export](export-text.md) |
+| **Facts for the annotation** | Hand what the plugin knows about the story (what the characters know, a timeline) to the model that annotates a part, so it can mark continuity errors no text shows: a provider in the `AnnotationFactsRegistry`. | [Facts for the annotation](annotation-facts.md) |
 | **Anchored passages** | Attach your own data to a passage of a part that follows the text (edits, regenerate, merge, branch, backups): `PassageService`, a `PassageKind` in `PassageKinds` with the mark, the click and the flags for the viewer and the exports. | [Anchored passages](anchored-passages.md) |
 | **Libraries** | Share code between plugins: a plain jar in `marginalia/libs` that each plugin embeds in its bundle; the translator library is the example. | [Libraries for plugins](libraries/index.md) |
 | **Other extensions** | Offer text about a book or a story part to other extensions or ask them for it (`IPCService`), offer a suite of tools for the model with a human name, items and commands (`ToolService`), or call one particular extension by reflection, without importing its classes. | [Sharing data between extensions](ipc.md) |
@@ -248,6 +249,11 @@ gets general mechanisms and the whole application to use them on:</p>
 <td><strong>The text of an export</strong></td>
 <td>Change what the export of a book holds for a passage (the English instead of a translation, a footnote with the other text) without touching the exporters, together with other plugins: a contributor in the <code translate="no" v-pre>ExportTextRegistry</code>, edits as ranges of the stored text.</td>
 <td><a href="export-text/">The text of an export</a></td>
+</tr>
+<tr>
+<td><strong>Facts for the annotation</strong></td>
+<td>Hand what the plugin knows about the story (what the characters know, a timeline) to the model that annotates a part, so it can mark continuity errors no text shows: a provider in the <code translate="no" v-pre>AnnotationFactsRegistry</code>.</td>
+<td><a href="annotation-facts/">Facts for the annotation</a></td>
 </tr>
 <tr>
 <td><strong>Anchored passages</strong></td>
@@ -621,6 +627,7 @@ the model gets after every other extension has changed it.</p>
 <li><a href="inherited-settings/">Inherited settings</a> - settings of a plugin that books and folders inherit.</li>
 <li><a href="part-text/">The text a model reads</a> and <a href="anchored-passages/">anchored passages</a> - keeping the story in one form and giving a model another.</li>
 <li><a href="export-text/">The text of an export</a> - what an export of a book holds for such a passage.</li>
+<li><a href="annotation-facts/">Facts for the annotation</a> - offering what a plugin knows to the model that reviews a part.</li>
 <li><a href="libraries/">Libraries for plugins</a> and <a href="libraries/translator-common/">translator-common</a> - sharing code between plugins.</li>
 </ol>
 
@@ -660,7 +667,7 @@ the model gets after every other extension has changed it.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (78db4ecac).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (4714e5ba5).</p></div>
             </footer>
         </div>
     </div>

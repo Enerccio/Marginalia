@@ -103,6 +103,34 @@ class AnnotateDialogTest extends MarginaliaTestBase {
         assertThat(own.instructionsField().getValue()).isEqualTo("flag continuity errors, and weak dialogue");
     }
 
+    @Test
+    void startingWithAnEmptyFieldShowsWhatTheBookInheritsInsteadOfThePlaceholder() throws Exception {
+        Manuscript loaded = manuscriptService.find(book.getId());
+        loaded.setAnnotateInstructions("flag continuity errors");
+        book = manuscriptService.save(loaded);
+
+        AnnotateDialog dialog = AnnotateDialog.create(book, part, () -> {
+        });
+        assertThat(dialog.instructionsField().getValue()).isEmpty();
+        dialog.showResolvedInstructionsForTest();
+        assertThat(dialog.instructionsField().getValue()).isEqualTo("flag continuity errors");
+
+        // what the author wrote is not replaced
+        AnnotateDialog written = AnnotateDialog.create(book, part, () -> {
+        });
+        written.instructionsField().setValue("only the dialogue");
+        written.showResolvedInstructionsForTest();
+        assertThat(written.instructionsField().getValue()).isEqualTo("only the dialogue");
+    }
+
+    @Test
+    void startingWithAnEmptyFieldAndNothingInheritedLeavesItEmpty() {
+        AnnotateDialog dialog = AnnotateDialog.create(book, part, () -> {
+        });
+        dialog.showResolvedInstructionsForTest();
+        assertThat(dialog.instructionsField().getValue()).isEmpty();
+    }
+
     private static Button findButton(Component root) {
         if (root instanceof Button button) {
             return button;

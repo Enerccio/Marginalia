@@ -83,7 +83,7 @@ Templates are text with placeholders in double curly braces. Each template gets 
 | Meta Summary Prompt | `{%{{{backgroundLore}}}%}`, `{%{{{summaryBlocks}}}%}` (the summaries to merge) |
 | Redraft System Prompt, Redraft Prompt | `{%{{{text}}}%}` (the part), `{%{{{redraftInstructions}}}%}` (what you want changed), `{%{{{previousStory}}}%}`, `{%{{{summaries}}}%}`, `{%{{{followingStory}}}%}`, `{%{{{backgroundLore}}}%}`, `{%{{{narrativePov}}}%}`, `{%{{{narrativeTense}}}%}`, `{%{{{style}}}%}`, and the turn the part was written from: `{%{{{sceneSetting}}}%}`, `{%{{{povCharacter}}}%}`, `{%{{{presentCharacters}}}%}`, `{%{{{instructions}}}%}`, and `{%{{{annotations}}}%}` (your open notes on the part, empty unless you ask for them in the redraft window), and for the [redraft of a selection](story-editor.md#redrafting-only-a-passage) `{%{{{selection}}}%}` (the selected text; empty when the whole part is redrafted), `{%{{{selectionBefore}}}%}` and `{%{{{selectionAfter}}}%}` (the text of the part around it) |
 | Impersonate Prompt | `{%{{{impersonateInstructions}}}%}` (your guidance), `{%{{{outline}}}%}` (the plan of the story a caller gives, e.g. the current chapter of the Arc Outline), `{%{{{previousStory}}}%}`, `{%{{{summaries}}}%}`, `{%{{{backgroundLore}}}%}` (the lore of the last part), `{%{{{instructionExamples}}}%}` (your instructions of the last three parts, oldest first), `{%{{{narrativePov}}}%}`, `{%{{{narrativeTense}}}%}`, `{%{{{style}}}%}`, and the turn the instructions are for: `{%{{{sceneSetting}}}%}`, `{%{{{povCharacter}}}%}`, `{%{{{presentCharacters}}}%}` |
-| Annotate System Prompt, Annotate Prompt | The variables of the redraft prompts, with `{%{{{annotateInstructions}}}%}` (what you want looked at) instead of `{%{{{redraftInstructions}}}%}`, `{%{{{annotations}}}%}` (the notes the part already has) and `{%{{{outputFormat}}}%}` (how the model is told to answer) |
+| Annotate System Prompt, Annotate Prompt | The variables of the redraft prompts, with `{%{{{annotateInstructions}}}%}` (what you want looked at) instead of `{%{{{redraftInstructions}}}%}`, `{%{{{annotations}}}%}` (the notes the part already has), `{%{{{facts}}}%}` (what extensions know about the story at the part, for example what the characters know; empty without such an extension) and `{%{{{outputFormat}}}%}` (how the model is told to answer) |
 
 A section prints its content only when the variable is not empty, so the prompt has no empty headings:
 
@@ -149,7 +149,9 @@ When a model [annotates a part](annotations.md#letting-a-model-annotate) it gets
 **Annotate System Prompt** as the system message, the story before the part as earlier messages and the **Annotate Prompt** as the
 last message. The built-in default makes the model an editor: it finds the passages that have a problem in the sense of your
 instructions, quotes each one letter for letter, and writes a short note for you, without praise or filler and without
-repeating the notes the part already has. The prompt has the variable `{%{{{outputFormat}}}%}` where the way of answering is
+repeating the notes the part already has. When an extension gives [facts about the story](annotations.md#letting-a-model-annotate) (the
+Knowledge Tracker: what the characters know), the default prompt shows them as *Established facts* and the editor flags what contradicts
+them. The prompt has the variable `{%{{{outputFormat}}}%}` where the way of answering is
 described (JSON, text blocks or a free review, it depends on the answer format you choose); keep it in a prompt of your own, or the
 model is not told how to answer. Both annotate prompts follow the rule of all prompts: the book's field, else the one in
 *Settings → Templates*, else the built-in one.
