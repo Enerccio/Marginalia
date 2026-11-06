@@ -173,3 +173,7 @@ findings are in `TODO.DATASET.MD`.
 (prompts, versions, annotations, plugin data) so that tests have a book of a real size. `LargeWorksetTest` restores it once per class (about 5 s on an M4) and checks it; `ExportRoundTripCheck`
 (`-Dworkset.roundtrip=true`) checks a fresh export of the harness the same way and prints the times. To replace the fixture after a new run, copy the two files from `work/harness/export/`.
 The lorebook is imported first (a backup only links its lorebook, by a fixed uuid).
+
+`LargeWorksetMigrationTest` runs the two data migrations of the upgrade (`PartRevisionMigration`, `StatisticsBackfillMigration`) over the book, and `LargeWorksetSoakTest` is the soak test:
+two users, each on a restored copy of the book (one grown to 400 parts), three generations each in flight on a slowly streaming mock model while their other threads take backups with history,
+edit parts and read the statistics; it checks that nothing failed, every generation landed in the right book, and the users do not see each other's book. Agents are not covered yet.
