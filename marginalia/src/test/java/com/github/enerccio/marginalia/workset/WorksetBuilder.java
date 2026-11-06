@@ -347,11 +347,11 @@ class WorksetBuilder extends MarginaliaTestBase {
             + "(https://www.rawpixel.com/image/13744617/image-face-person-art).";
 
     /**
-     * Attaches the picture {@code cover.png} of the dataset folder (a public domain painting, see {@code TODO.DATASET.MD}) to one part, once: an image of a part is shown with
+     * Attaches the picture {@code cover.jpg} of the dataset folder (a public domain painting, see {@code TODO.DATASET.MD}) to one part, once: an image of a part is shown with
      * it, never reaches the model and travels in the exports. Skipped when the file or the part is missing or the part already has an image.
      */
     private void illustrate(Path skeletonDir, long bookId) throws Exception {
-        Path file = skeletonDir.resolve("cover.png");
+        Path file = skeletonDir.resolve("cover.jpg");
         List<ChatMessage> parts = chain(manuscriptService.find(bookId));
         if (!Files.exists(file) || parts.size() < ILLUSTRATED_PART) {
             return;
@@ -360,7 +360,7 @@ class WorksetBuilder extends MarginaliaTestBase {
         if (!part.getImages().isEmpty()) {
             return;
         }
-        Resource picture = resourceService.uploadImage("hut-interior.png", Files.readAllBytes(file), ChatMessage.class, part.getId());
+        Resource picture = resourceService.uploadImage("hut-interior.jpg", Files.readAllBytes(file), ChatMessage.class, part.getId());
         part.setImages(List.of(new com.github.enerccio.marginalia.domain.model.ImageAttachment(picture.getUuid(), ILLUSTRATION_CAPTION)));
         ChatMessage saved = chatMessageService.save(part);
         System.out.println("[workset] picture attached to part " + ILLUSTRATED_PART + ": saved has " + saved.getImages().size() + ", stored has " + chatMessageService.find(part.getId()).getImages().size()

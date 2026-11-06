@@ -53,10 +53,16 @@ class ExportRoundTripCheck extends MarginaliaTestBase {
         return new Counts(messages, summaries, annotations, revisions, words);
     }
 
+    private static String ms(long since) {
+        return (System.nanoTime() - since) / 1_000_000 + " ms";
+    }
+
     @Test
     void exportImportsAndComesBackTheSame() throws Exception {
         Path file = Path.of(System.getProperty("workset.export", "../work/harness/export/book.json")).toAbsolutePath().normalize();
+        long t0 = System.nanoTime();
         JsonObject backup = new Gson().fromJson(Files.readString(file, StandardCharsets.UTF_8), JsonObject.class);
+        System.out.println("[roundtrip] time: parse of the file " + ms(t0));
         User user = createUser("roundtrip", DEFAULT_PASSWORD, false);
         loginAs(user);
 
@@ -67,9 +73,13 @@ class ExportRoundTripCheck extends MarginaliaTestBase {
             System.out.println("[roundtrip] lorebook file imported: " + lorebook.getName() + ", uuid " + lorebook.getUuid()
                     + " (the book links " + backup.getAsJsonObject("lorebook").get("uuid").getAsString() + ")");
         }
+        t0 = System.nanoTime();
         Manuscript clone = manuscriptService.cloneFromBackup(backup);
+        System.out.println("[roundtrip] time: cloneFromBackup " + ms(t0));
         assertNotNull(clone, "the import returned no book");
+        t0 = System.nanoTime();
         JsonObject again = manuscriptService.createBackup(clone, true);
+        System.out.println("[roundtrip] time: createBackup with history " + ms(t0));
 
         Counts before = count(backup);
         Counts after = count(again);
@@ -89,7 +99,9 @@ class ExportRoundTripCheck extends MarginaliaTestBase {
         // the archive with the pictures (book.zip), restored the way the import of the app does it
         Path archive = file.resolveSibling("book.zip");
         if (Files.exists(archive)) {
+            t0 = System.nanoTime();
             Manuscript restored = backupService.restoreAsNewManuscript(archive.toFile(), "from the archive", java.util.Map.of());
+            System.out.println("[roundtrip] time: restoreAsNewManuscript of the archive " + ms(t0));
             JsonObject fromArchive = manuscriptService.createBackup(restored, true);
             Counts viaArchive = count(fromArchive);
             long pictures = 0;
