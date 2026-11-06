@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847288888975">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847293045907">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.847288888975" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.847293045907" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847288888975" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847293045907" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847288888975" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847293045907" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -369,6 +369,12 @@ Settings screen to keep your changes.</p>
 <p><strong>Speakers.</strong> Who speaks the language <strong>in this book</strong> (a book with <doc-anchor-trigger to="#more-than-one-language-in-a-book">more than one language</doc-anchor-trigger> has a <em>Speakers</em> tab for each). By default everybody speaks it except the listed characters (or only the listed ones). The text overrides this (&quot;she said in English&quot;,
 &quot;the guard could not understand a word&quot;). For each character note the <strong>gender</strong> and the <strong>voice</strong>: the level of speech follows it. Write the age, the rank and how the character talks to
 others here (&quot;a young officer, polite to her seniors, blunt with friends&quot;): that is what lets the translator choose between the plain form and keigo. The speakers belong to the book.</p>
+<p>Each character can also have a level of <strong>understanding</strong>: <em>understands nothing</em>, <em>knows a few words</em>, <em>follows most of it</em> or <em>follows everything</em>. Leave it empty (or <em>follows everything</em>) and the
+models are told nothing. Use it for the people who hear the language without speaking it: <em>Tomáš: understands nothing (Japanese)</em>, <em>Other villagers: follows most of it</em> (the name is only text, so a group works). The levels are
+<strong>static for the whole book</strong> and are handed to the models as information; what a character does with it is up to the model, and you can always say more in the instructions (&quot;Tomáš does not understand what they say&quot;).
+They reach the models in two ways: the <strong>story model</strong> gets a short message with the levels (inserted into the prompt like the Author&#x27;s Note; the checkbox above the list turns it off and the number says how many
+messages from the end it goes), and the model that <strong>reviews a part</strong> (<em>Annotate with AI</em>) gets them as a section of the facts, so it can flag a character who reacts to words they cannot follow. If you would rather
+place the text yourself, turn the insertion off and use the <code translate="no" v-pre>{{command::reallang-understanding}}</code> <a href="../../templates/macros/#commands">macro</a> in a template; it takes an optional list of characters to keep.</p>
 <p><strong>Languages.</strong> The other languages of the book, besides the one its <strong>Language of the speech</strong> field names: see <doc-anchor-trigger to="#more-than-one-language-in-a-book">below</doc-anchor-trigger>.</p>
 <p><strong>Quick translate.</strong> Write a text in English, optionally who says it and to whom, and press <strong>Translate</strong>: the model translates it with the rules of the language (with several languages, choose
 which one). Nothing is written into the story; you copy the translation.</p>
@@ -471,7 +477,9 @@ its position on the active branch (the first part is 1).</p>
 | `reallang-glossary`, `reallang-glossary-set`, `reallang-glossary-remove`, `reallang-glossary-accept`, `reallang-glossary-switch`, `reallang-glossary-move` | The [glossary](#the-glossary-of-names-and-special-words) of the open book in a language: read the merged entries with their level, add or change an entry at a `level` (`language`, `folder` with the `folder` name, `book`), remove one (asks), accept the proposals, switch a word of a higher level off or on for the book, move an entry of the book up. |
 | `reallang-edit-source` | Sets the English source of one translated speech (`part`, `speech` as `reallang-list-passages` numbers it, `source`); the translation as it is now counts as the one it belongs to. Replaces the old source. |
 | `reallang-get-source`, `reallang-list-passages` | Reading: the text of a part as the models read it (the English), and the translated speeches of a part with their reading and English. |
-| `reallang-speakers`, `reallang-set-speakers-mode`, `reallang-set-speaker`, `reallang-remove-speaker` | Who speaks the language in the open book (`language` names one of the book's languages, the first by default). |">
+| `reallang-speakers`, `reallang-set-speakers-mode`, `reallang-set-speaker`, `reallang-remove-speaker` | Who speaks the language in the open book (`language` names one of the book's languages, the first by default); `reallang-set-speaker` also sets the level of `understands`. |
+| `reallang-set-understanding-prompt` | Whether the levels of understanding are inserted into the prompt of the story by themselves, and how many messages from the end. |
+| `reallang-understanding` | Who does not follow which language, as text, for the `{{command::reallang-understanding::&lt;characters&gt;}}` [macro](../templates/macros.md#commands) (the characters are optional). |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -515,7 +523,15 @@ its position on the active branch (the first part is 1).</p>
 </tr>
 <tr>
 <td><code translate="no" v-pre>reallang-speakers</code>, <code translate="no" v-pre>reallang-set-speakers-mode</code>, <code translate="no" v-pre>reallang-set-speaker</code>, <code translate="no" v-pre>reallang-remove-speaker</code></td>
-<td>Who speaks the language in the open book (<code translate="no" v-pre>language</code> names one of the book&#x27;s languages, the first by default).</td>
+<td>Who speaks the language in the open book (<code translate="no" v-pre>language</code> names one of the book&#x27;s languages, the first by default); <code translate="no" v-pre>reallang-set-speaker</code> also sets the level of <code translate="no" v-pre>understands</code>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>reallang-set-understanding-prompt</code></td>
+<td>Whether the levels of understanding are inserted into the prompt of the story by themselves, and how many messages from the end.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>reallang-understanding</code></td>
+<td>Who does not follow which language, as text, for the <code translate="no" v-pre>{{command::reallang-understanding::&lt;characters&gt;}}</code> <a href="../../templates/macros/#commands">macro</a> (the characters are optional).</td>
 </tr>
 </tbody>
 </table>
@@ -582,7 +598,7 @@ listed; the text of the part decides inside a request.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (cf0e9ebbc).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (7f3b136c7).</p></div>
             </footer>
         </div>
     </div>

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847288888975">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847293045907">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../../resources/css/retype.css?v=4.6.0.847288888975" rel="stylesheet">
+    <link href="../../../../resources/css/retype.css?v=4.6.0.847293045907" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../../resources/js/config.js?v=4.6.0.847288888975" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../../resources/js/config.js?v=4.6.0.847293045907" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../../resources/js/lunr.js?v=4.6.0.847288888975" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../../resources/js/prism.js?v=4.6.0.847288888975" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../../resources/js/lunr.js?v=4.6.0.847293045907" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../../resources/js/prism.js?v=4.6.0.847293045907" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -190,6 +190,7 @@ where an invented language (a lexicon, new words) and a real one (a script, poli
 |---|---|---|
 | `model` | `Span` | What a plugin keeps for one translated passage: the **source**, the speaker, the language, whether the listener understands it, the register, a **reading** (the romaji of a Japanese text, empty for none), the model and time, and a **hash of the translated text** the plugin wrote. `Span.read(attributes)` / `span.write(attributes)` store it as JSON in the attributes of the passage. `isEdited(currentText)` is true when the author changed the translation since: the source is then stale. |
 | | `Speakers`, `CharacterNote`, `SpeakersMode` | Who speaks the language in a book (everyone except the listed characters, or only the listed ones), with the aliases, gender and voice of each character. `speaks(name)`, `find(name)`; `mayBeInvolved(names)` says whether a part with these characters may hold speech in the language (`Speakers.namesOf(pointOfView, present)` makes the names), which decides whether a language of a book is asked for. |
+| | `UnderstandingLevel`, `UnderstandingSettings` | How much of a language a character follows (`CharacterNote.getLevel()`: `NONE`, `FEW_WORDS`, `FOLLOWS_MOST`, `FLUENT`; null = not said), static for the book, with `key()` / `parse(key)` for the commands; and how a plugin inserts the block into the prompt of the story (`inPrompt`, `depth`), kept in the plugin's book settings and edited in the `SpeakersEditor`. |
 | | `BookLanguage`, `LanguageRef` | A language a book has besides the one it names first: its id in the plugin's library and **its own** `Speakers` (a new one starts in the mode `ONLY` with nobody listed); `LanguageRef(id, name)` is how the screens list the languages of a book. |
 | | `ReaderMode` | What the reader of a published book sees: `CLICK` (the translation, the source on a click), `TRANSLATED`, `SOURCE`. `id()` / `of(id)` for the setting. |
 | | `ExportMode` | What an export holds: `TRANSLATED` (as stored), `SOURCE`, `TRANSLATED_NOTES`, `SOURCE_NOTES` (the other text in footnotes). |
@@ -198,12 +199,14 @@ where an invented language (a lexicon, new words) and a real one (a script, poli
 | | `Speech` | One direct speech as the model answered for it (`quote`, `speaker`, `language`, `text`, `understood`, `register`). A convenient shape for the answer; a plugin may use its own and make a `Speech` of it. |
 | | `ModelJson` | `ModelJson.object(raw)`: the JSON object in what a model answered (a code fence or a word before it is ignored); null when there is none. |
 | | `SelectionRange` | `trim(text, start, end)`: the range the user selected without its white space. |
-| `text` | `SpeechTransformer` | A `PartTextRegistry.Transformer`: `new SpeechTransformer(passageAccess)`. |
+| `text` | `UnderstandingBlock` | The text that tells the models who does not follow which language: `build(entries, characters)` from the levels of the `Speakers` of the languages of a book (`Entry(languageName, speakers)`); only a level that says something is written; the optional `characters` keeps the names and aliases. Pure. |
+| | `SpeechTransformer` | A `PartTextRegistry.Transformer`: `new SpeechTransformer(passageAccess)`. |
 | | `SpeechExportContributor`, `ExportText` | An `ExportTextRegistry.Contributor`: `new SpeechExportContributor(passageAccess, session -&gt; mode)`. `ExportText.edits(mode, stored, located)` is the pure part. |
 | | `ReaderText` | The markdown of a part for the reader: `render(mode, stored, passages, markClass)` (or a function that gives each passage the mark of its kind); the marks carry `data-translated-passage`. |
 | | `SpeechPassageKind` | The `PassageKind` a plugin registers: `new SpeechPassageKind(id, markClass)`; the click opens `SourcePopover`. |
 | `service` | `PassageAccess` | `new PassageAccess(kind)`: the translated passages of parts of **your** kind, located (`of(parts)`, `passagesOf(part)`, `locate(passage)`). It is the `Passages` source of the transformer. |
 | | `TranslationWriter` | `new TranslationWriter(kindId)`: **writes** a `TranslationPlan` into a part (`write`), one selected sentence (`writeSelection`) and takes a translation out again (`revert`), with a lock per book, a refusal of a part that changed meanwhile (`ChangedMeanwhile`) and the rule that a passage the author edited stays. Also `readOf(part)` and `overlaps(part, start, end)`. For a book with several languages: `carried(part, read, languageId)` (the speeches of the **other** languages, as `Accepted` entries at their place in the English) with `overlapsAny(carried, start, end)`, and `revert(book, part, read, languageId)` that puts back one language. `editSource(passageUuid, source)` sets the English of one speech by hand and takes the text it has now as the one it belongs to (a speech marked as edited is turned back again); `replaceSource(passageUuid, expected, source)` writes a source a search and replace made, only if it is still `expected` (`SourceReplace` plans and applies it over the active branch). |
+| | `UnderstandingPrompt`, `PayloadBlock` | `new UnderstandingPrompt(source, propertyKey, log)` gives the block to the story model (`register(storyGenerationService)`: the tokens are reserved in `BEFORE_PREPARE_CONTENT`, the message inserted in `AFTER_PREPARE_PAYLOAD` at the depth of the book's `UnderstandingSettings`) and, as `factsProvider()`, to the annotation reviewer (`AnnotationFactsRegistry`); `block(book, characters)` is what the plugin's macro command returns. The plugin's `Source` says where the entries and the settings are; `propertyKey` must be the plugin's own. Call `unregister()` and `annotationFacts.unregisterAll(owner)` on unload. `PayloadBlock.insert(payload, text, depth, role)` is the insertion. |
 | | `ModelClient` | `new ModelClient(name).choose(aiUuid, protocolUuid, book)` finds the model (yours, else the book's, else the user's defaults), `ask(model, book, system, user)` waits for the whole answer (reasoning chunks are left out). `ModelSelection` is the AI and protocol. |
 | | `RangeLoop`, `RangeRuns` | An action over a range of parts, one at a time: `RangeLoop.select` / `run` (pure, with a stop and a summary), `RangeRuns.start` on a worker thread of the session, telling the page the progress. The work is a lambda that gets the language to work on (null: all of the book's); a `RangePart` knows the languages it is translated in. |
 | | `PartRuns&lt;R&gt;`, `AsyncRuns` | One job on a worker thread with the user's request scope, the result handed to the page. One run per part. |
@@ -237,6 +240,11 @@ where an invented language (a lexicon, new words) and a real one (a script, poli
 <td> </td>
 <td><code translate="no" v-pre>Speakers</code>, <code translate="no" v-pre>CharacterNote</code>, <code translate="no" v-pre>SpeakersMode</code></td>
 <td>Who speaks the language in a book (everyone except the listed characters, or only the listed ones), with the aliases, gender and voice of each character. <code translate="no" v-pre>speaks(name)</code>, <code translate="no" v-pre>find(name)</code>; <code translate="no" v-pre>mayBeInvolved(names)</code> says whether a part with these characters may hold speech in the language (<code translate="no" v-pre>Speakers.namesOf(pointOfView, present)</code> makes the names), which decides whether a language of a book is asked for.</td>
+</tr>
+<tr>
+<td> </td>
+<td><code translate="no" v-pre>UnderstandingLevel</code>, <code translate="no" v-pre>UnderstandingSettings</code></td>
+<td>How much of a language a character follows (<code translate="no" v-pre>CharacterNote.getLevel()</code>: <code translate="no" v-pre>NONE</code>, <code translate="no" v-pre>FEW_WORDS</code>, <code translate="no" v-pre>FOLLOWS_MOST</code>, <code translate="no" v-pre>FLUENT</code>; null = not said), static for the book, with <code translate="no" v-pre>key()</code> / <code translate="no" v-pre>parse(key)</code> for the commands; and how a plugin inserts the block into the prompt of the story (<code translate="no" v-pre>inPrompt</code>, <code translate="no" v-pre>depth</code>), kept in the plugin&#x27;s book settings and edited in the <code translate="no" v-pre>SpeakersEditor</code>.</td>
 </tr>
 <tr>
 <td> </td>
@@ -280,6 +288,11 @@ where an invented language (a lexicon, new words) and a real one (a script, poli
 </tr>
 <tr>
 <td><code translate="no" v-pre>text</code></td>
+<td><code translate="no" v-pre>UnderstandingBlock</code></td>
+<td>The text that tells the models who does not follow which language: <code translate="no" v-pre>build(entries, characters)</code> from the levels of the <code translate="no" v-pre>Speakers</code> of the languages of a book (<code translate="no" v-pre>Entry(languageName, speakers)</code>); only a level that says something is written; the optional <code translate="no" v-pre>characters</code> keeps the names and aliases. Pure.</td>
+</tr>
+<tr>
+<td> </td>
 <td><code translate="no" v-pre>SpeechTransformer</code></td>
 <td>A <code translate="no" v-pre>PartTextRegistry.Transformer</code>: <code translate="no" v-pre>new SpeechTransformer(passageAccess)</code>.</td>
 </tr>
@@ -307,6 +320,11 @@ where an invented language (a lexicon, new words) and a real one (a script, poli
 <td> </td>
 <td><code translate="no" v-pre>TranslationWriter</code></td>
 <td><code translate="no" v-pre>new TranslationWriter(kindId)</code>: <strong>writes</strong> a <code translate="no" v-pre>TranslationPlan</code> into a part (<code translate="no" v-pre>write</code>), one selected sentence (<code translate="no" v-pre>writeSelection</code>) and takes a translation out again (<code translate="no" v-pre>revert</code>), with a lock per book, a refusal of a part that changed meanwhile (<code translate="no" v-pre>ChangedMeanwhile</code>) and the rule that a passage the author edited stays. Also <code translate="no" v-pre>readOf(part)</code> and <code translate="no" v-pre>overlaps(part, start, end)</code>. For a book with several languages: <code translate="no" v-pre>carried(part, read, languageId)</code> (the speeches of the <strong>other</strong> languages, as <code translate="no" v-pre>Accepted</code> entries at their place in the English) with <code translate="no" v-pre>overlapsAny(carried, start, end)</code>, and <code translate="no" v-pre>revert(book, part, read, languageId)</code> that puts back one language. <code translate="no" v-pre>editSource(passageUuid, source)</code> sets the English of one speech by hand and takes the text it has now as the one it belongs to (a speech marked as edited is turned back again); <code translate="no" v-pre>replaceSource(passageUuid, expected, source)</code> writes a source a search and replace made, only if it is still <code translate="no" v-pre>expected</code> (<code translate="no" v-pre>SourceReplace</code> plans and applies it over the active branch).</td>
+</tr>
+<tr>
+<td> </td>
+<td><code translate="no" v-pre>UnderstandingPrompt</code>, <code translate="no" v-pre>PayloadBlock</code></td>
+<td><code translate="no" v-pre>new UnderstandingPrompt(source, propertyKey, log)</code> gives the block to the story model (<code translate="no" v-pre>register(storyGenerationService)</code>: the tokens are reserved in <code translate="no" v-pre>BEFORE_PREPARE_CONTENT</code>, the message inserted in <code translate="no" v-pre>AFTER_PREPARE_PAYLOAD</code> at the depth of the book&#x27;s <code translate="no" v-pre>UnderstandingSettings</code>) and, as <code translate="no" v-pre>factsProvider()</code>, to the annotation reviewer (<code translate="no" v-pre>AnnotationFactsRegistry</code>); <code translate="no" v-pre>block(book, characters)</code> is what the plugin&#x27;s macro command returns. The plugin&#x27;s <code translate="no" v-pre>Source</code> says where the entries and the settings are; <code translate="no" v-pre>propertyKey</code> must be the plugin&#x27;s own. Call <code translate="no" v-pre>unregister()</code> and <code translate="no" v-pre>annotationFacts.unregisterAll(owner)</code> on unload. <code translate="no" v-pre>PayloadBlock.insert(payload, text, depth, role)</code> is the insertion.</td>
 </tr>
 <tr>
 <td> </td>
@@ -498,7 +516,7 @@ library&#x27;s test dependencies include the servlet API for that) and <code tra
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (cf0e9ebbc).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (7f3b136c7).</p></div>
             </footer>
         </div>
     </div>

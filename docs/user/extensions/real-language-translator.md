@@ -79,6 +79,13 @@ The story window has a **Real language** tab (in the same dock as the chapters a
 "the guard could not understand a word"). For each character note the **gender** and the **voice**: the level of speech follows it. Write the age, the rank and how the character talks to
 others here ("a young officer, polite to her seniors, blunt with friends"): that is what lets the translator choose between the plain form and keigo. The speakers belong to the book.
 
+Each character can also have a level of **understanding**: *understands nothing*, *knows a few words*, *follows most of it* or *follows everything*. Leave it empty (or *follows everything*) and the
+models are told nothing. Use it for the people who hear the language without speaking it: *Tomáš: understands nothing (Japanese)*, *Other villagers: follows most of it* (the name is only text, so a group works). The levels are
+**static for the whole book** and are handed to the models as information; what a character does with it is up to the model, and you can always say more in the instructions ("Tomáš does not understand what they say").
+They reach the models in two ways: the **story model** gets a short message with the levels (inserted into the prompt like the Author's Note; the checkbox above the list turns it off and the number says how many
+messages from the end it goes), and the model that **reviews a part** (*Annotate with AI*) gets them as a section of the facts, so it can flag a character who reacts to words they cannot follow. If you would rather
+place the text yourself, turn the insertion off and use the `{{command::reallang-understanding}}` [macro](../templates/macros.md#commands) in a template; it takes an optional list of characters to keep.
+
 **Languages.** The other languages of the book, besides the one its **Language of the speech** field names: see [below](#more-than-one-language-in-a-book).
 
 **Quick translate.** Write a text in English, optionally who says it and to whom, and press **Translate**: the model translates it with the rules of the language (with several languages, choose
@@ -177,7 +184,9 @@ its position on the active branch (the first part is 1).
 | `reallang-glossary`, `reallang-glossary-set`, `reallang-glossary-remove`, `reallang-glossary-accept`, `reallang-glossary-switch`, `reallang-glossary-move` | The [glossary](#the-glossary-of-names-and-special-words) of the open book in a language: read the merged entries with their level, add or change an entry at a `level` (`language`, `folder` with the `folder` name, `book`), remove one (asks), accept the proposals, switch a word of a higher level off or on for the book, move an entry of the book up. |
 | `reallang-edit-source` | Sets the English source of one translated speech (`part`, `speech` as `reallang-list-passages` numbers it, `source`); the translation as it is now counts as the one it belongs to. Replaces the old source. |
 | `reallang-get-source`, `reallang-list-passages` | Reading: the text of a part as the models read it (the English), and the translated speeches of a part with their reading and English. |
-| `reallang-speakers`, `reallang-set-speakers-mode`, `reallang-set-speaker`, `reallang-remove-speaker` | Who speaks the language in the open book (`language` names one of the book's languages, the first by default). |
+| `reallang-speakers`, `reallang-set-speakers-mode`, `reallang-set-speaker`, `reallang-remove-speaker` | Who speaks the language in the open book (`language` names one of the book's languages, the first by default); `reallang-set-speaker` also sets the level of `understands`. |
+| `reallang-set-understanding-prompt` | Whether the levels of understanding are inserted into the prompt of the story by themselves, and how many messages from the end. |
+| `reallang-understanding` | Who does not follow which language, as text, for the `{{command::reallang-understanding::<characters>}}` [macro](../templates/macros.md#commands) (the characters are optional). |
 
 A language is a few lines of rules and has no working copy for an agent run (the Conlang Translator copies a language with its lexicon): an agent that creates or changes a language changes your library at once. The speakers,
 the settings of the book and the passages are the book's, and the run's copy of the book carries them.

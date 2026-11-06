@@ -1307,9 +1307,18 @@ An epic fantasy has a tongue for the elves, another for the dwarves, a third for
   font embedded by the PDF library; none of the exporters has a way to add a file today (it would be part of the export hook).
   So: the display first, the HTML / EPUB export next, DOCX / PDF last or never (a note that the font must be installed).
 
-- **The POV character does not understand.** The prompt of the next generation sees the source (English), so the model may let a character
-  who does not know Sylvari react to what was said. A block like the Knowledge Tracker's ("Mara does not understand Sylvari;
-  she does not know what was said") for the speech with `understood: false`, or telling the Knowledge Tracker.
+- **The POV character does not understand (decided and built 2026-11-06: static, applied by the model's discretion; unit tests only, not tried in the real app or on the real model: the facts section, the inserted message and its wording, the editor column on a phone).** The prompt of the next generation sees
+  the source (English), so the model may let a character who does not know Sylvari react to what was said. **Design, for both this plugin and the Real Language Translator:** a `level`
+  (none, a few words, follows most, fluent) on the **`CharacterNote` of `translator-common`**, so it is a column of the existing *Speakers* tab of each
+  language of each plugin (the name is free text: a name, aliases, or a group such as "Other villagers"); **one level per character and language for the
+  whole book, no start part and no time dependence**. "Does not know the language" already exists (listed in *everyone except*, unlisted in *only*) and is
+  level *none*; the new level is for the in-between. The model decides how to use it, and the author can always say more in the instructions ("Tomáš does
+  not understand what they say"). One `UnderstandingBlock` in `translator-common` builds the text from the `Speakers` of each language and the characters of
+  the scene (POV, present only); each plugin registers it the two ways the Knowledge Tracker does: (1) an `AnnotationFactsRegistry.Provider` (the
+  `{{facts}}` variable of the *annotate* prompt only, so the reviewer can flag a character who acts on words they cannot understand) and (2) the generation
+  prompt, by **insertion into the payload** (depth and role as the Knowledge Tracker's block) and a macro `{{command::conlang-understanding::<characters>}}`
+  / `reallang-understanding`. A book with both plugins gets two blocks (one per plugin); merging them is left until it is seen to matter. **Built:** the levels, the block, the facts provider, the insertion and the macro are in `translator-common` (`UnderstandingLevel`, `UnderstandingBlock`, `UnderstandingPrompt`); both plugins register them, the *Speakers* tab has the column and the insertion settings, `conlang-set-speaker` / `reallang-set-speaker` take `understands`. The block is made of **all** the characters with a level, not only those in the scene (a group such as "Other villagers" never matches a present character); the macro takes an optional filter. Not done:
+  deriving `understood` of a passage from the listener's level, a level that changes over the book (see *Learning a language*).
 - **Learning a language.** A character who picks it up (the lexicon words they know) and the translation showing partly.
   The dataset story ("Unregistered", `../../../TODO.DATASET.MD`) is exactly this case: two characters who learn Vrakht over the book while the Lyrshara
   speak Aethel-Vael around them. Its Knowledge Tracker pass would track "understands Vrakht: basic / follows most", the words a character has been

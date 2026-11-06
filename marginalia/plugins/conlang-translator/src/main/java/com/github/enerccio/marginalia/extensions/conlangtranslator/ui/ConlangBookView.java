@@ -12,6 +12,7 @@ import com.github.enerccio.marginalia.extensions.conlangtranslator.text.ConlangK
 import com.github.enerccio.marginalia.extensions.translatorcommon.model.BookLanguage;
 import com.github.enerccio.marginalia.extensions.translatorcommon.model.LanguageRef;
 import com.github.enerccio.marginalia.extensions.translatorcommon.model.Speakers;
+import com.github.enerccio.marginalia.extensions.translatorcommon.model.UnderstandingSettings;
 import com.github.enerccio.marginalia.extensions.translatorcommon.ui.BookLanguagesPanel;
 import com.github.enerccio.marginalia.extensions.translatorcommon.ui.SourceSearchReplaceDialog;
 import com.github.enerccio.marginalia.extensions.translatorcommon.ui.SpeakersEditor;
@@ -201,9 +202,11 @@ public class ConlangBookView extends VerticalLayout {
     private Component speakers() throws Exception {
         String languageId = selectedId;
         Speakers speakers = service.speakers(book, languageId);
-        return new SpeakersEditor(speakers, () -> {
+        UnderstandingSettings understanding = service.understanding(book);
+        return new SpeakersEditor(speakers, understanding, () -> {
             try {
                 service.saveSpeakers(book, languageId, speakers);
+                service.saveUnderstanding(book, understanding);
             } catch (Exception e) {
                 Notification.error(String.format(T.localized(THE_LANGUAGES_CAN_NOT_BE_LOADED), e.getMessage()));
             }

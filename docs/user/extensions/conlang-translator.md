@@ -146,6 +146,13 @@ text overrides it ("she said in the common tongue", "the guard could not underst
 you may note the **gender** (a language that marks gender gets it wrong when the part only says "her") and the **voice** ("formal, clipped, coarse"), which
 the model matches to the registers of the language. Changes are stored in the book at once.
 
+Each character can also have a level of **understanding**: *understands nothing*, *knows a few words*, *follows most of it* or *follows everything*. Leave it empty (or *follows everything*) and the
+models are told nothing. Use it for the people who hear the language without speaking it: *Tomáš: understands nothing*, *Other villagers: follows most of it* (the name is only text, so a group works). The levels are
+**static for the whole book** and are handed to the models as information; what a character does with it is up to the model, and you can always say more in the instructions ("Tomáš does not understand what they say").
+They reach the models in two ways: the **story model** gets a short message with the levels (inserted into the prompt like the Author's Note; the checkbox above the list turns it off and the number says how many
+messages from the end it goes), and the model that **reviews a part** (*Annotate with AI*) gets them as a section of the facts, so it can flag a character who reacts to words they cannot follow. If you would rather
+place the text yourself, turn the insertion off and use the `{{command::conlang-understanding}}` [macro](../templates/macros.md#commands) in a template; it takes an optional list of characters to keep.
+
 ### Languages
 
 The other languages of the book, besides the one its **Language of the speech** field names: see [More than one language in a book](#more-than-one-language-in-a-book).
@@ -273,11 +280,13 @@ argument of a command; an agent may leave out the optional ones.
 | `conlang-translate-part`, `conlang-translate-range`, `conlang-translate-sentence`, `conlang-translate-text`, `conlang-revert-to-source` | Translating: one part, a range (`mode` *new* or *again*), one sentence of a part, a text that is only returned, and the English back. A range asks the user for *again*; so does the English back. With the optional `language` they are about one language of the book (all of them by default, the first for a sentence or a text). |
 | `conlang-edit-source` | Sets the English source of one translated speech (`part`, `speech` as `conlang-list-passages` numbers it, `source`); the translation as it is now counts as the one it belongs to. Replaces the old source. |
 | `conlang-check-translation`, `conlang-get-source`, `conlang-list-passages` | Reading: the words of a translated speech that the lexicon does not have, the text of a part as the models read it (the English), and the translated speeches of a part with their English. |
-| `conlang-speakers`, `conlang-set-speakers-mode`, `conlang-set-speaker`, `conlang-remove-speaker` | Who speaks the language in the open book (`language` names one of the book's languages, the first by default). |
+| `conlang-speakers`, `conlang-set-speakers-mode`, `conlang-set-speaker`, `conlang-remove-speaker` | Who speaks the language in the open book (`language` names one of the book's languages, the first by default); `conlang-set-speaker` also sets the level of `understands`. |
+| `conlang-set-understanding-prompt` | Whether the levels of understanding are inserted into the prompt of the story by themselves, and how many messages from the end. |
 | `conlang-design-words`, `conlang-design-rules`, `conlang-rewrite-rules`, `conlang-design-stage`, `conlang-ask-designer`, `conlang-try-sentences` | The designer. With `ask true` a command returns the proposal as a numbered list of changes and holds it; nothing is changed. |
 | `conlang-review` | The designer's review of the language: findings only. |
 | `conlang-apply-changes` | Applies the held changes, all of them or the numbers given (the same as **Apply** in the review). |
 | `conlang-pending-changes`, `conlang-take-pending-changes`, `conlang-discard-pending-changes` | What an agent run left in the book, see [below](#agent-runs). |
+| `conlang-understanding` | Who does not follow which language, as text, for the `{{command::conlang-understanding::<characters>}}` macro (the characters are optional). |
 | `conlang-lexicon`, `conlang-rules` | The lexicon and the rules a translation request sends, as text, for the `{{command::conlang-lexicon::<language>}}` and `{{command::conlang-rules::<language>}}` [macros](../templates/macros.md#commands). |
 
 ### Agent runs

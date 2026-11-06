@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847288888975">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847293045907">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.847288888975" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.847293045907" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847288888975" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847293045907" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847288888975" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847293045907" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -485,6 +485,12 @@ you duplicate, export or compare carries no characters.</p>
 text overrides it (&quot;she said in the common tongue&quot;, &quot;the guard could not understand a word&quot;) and the model decides for every speech. For each character
 you may note the <strong>gender</strong> (a language that marks gender gets it wrong when the part only says &quot;her&quot;) and the <strong>voice</strong> (&quot;formal, clipped, coarse&quot;), which
 the model matches to the registers of the language. Changes are stored in the book at once.</p>
+<p>Each character can also have a level of <strong>understanding</strong>: <em>understands nothing</em>, <em>knows a few words</em>, <em>follows most of it</em> or <em>follows everything</em>. Leave it empty (or <em>follows everything</em>) and the
+models are told nothing. Use it for the people who hear the language without speaking it: <em>Tomáš: understands nothing</em>, <em>Other villagers: follows most of it</em> (the name is only text, so a group works). The levels are
+<strong>static for the whole book</strong> and are handed to the models as information; what a character does with it is up to the model, and you can always say more in the instructions (&quot;Tomáš does not understand what they say&quot;).
+They reach the models in two ways: the <strong>story model</strong> gets a short message with the levels (inserted into the prompt like the Author&#x27;s Note; the checkbox above the list turns it off and the number says how many
+messages from the end it goes), and the model that <strong>reviews a part</strong> (<em>Annotate with AI</em>) gets them as a section of the facts, so it can flag a character who reacts to words they cannot follow. If you would rather
+place the text yourself, turn the insertion off and use the <code translate="no" v-pre>{{command::conlang-understanding}}</code> <a href="../../templates/macros/#commands">macro</a> in a template; it takes an optional list of characters to keep.</p>
 <h3 id="languages-1">Languages</h3>
 <p>The other languages of the book, besides the one its <strong>Language of the speech</strong> field names: see <doc-anchor-trigger to="#more-than-one-language-in-a-book">More than one language in a book</doc-anchor-trigger>.</p>
 <h3 id="quick-translate">Quick translate</h3>
@@ -680,11 +686,13 @@ argument of a command; an agent may leave out the optional ones.</p>
 | `conlang-translate-part`, `conlang-translate-range`, `conlang-translate-sentence`, `conlang-translate-text`, `conlang-revert-to-source` | Translating: one part, a range (`mode` *new* or *again*), one sentence of a part, a text that is only returned, and the English back. A range asks the user for *again*; so does the English back. With the optional `language` they are about one language of the book (all of them by default, the first for a sentence or a text). |
 | `conlang-edit-source` | Sets the English source of one translated speech (`part`, `speech` as `conlang-list-passages` numbers it, `source`); the translation as it is now counts as the one it belongs to. Replaces the old source. |
 | `conlang-check-translation`, `conlang-get-source`, `conlang-list-passages` | Reading: the words of a translated speech that the lexicon does not have, the text of a part as the models read it (the English), and the translated speeches of a part with their English. |
-| `conlang-speakers`, `conlang-set-speakers-mode`, `conlang-set-speaker`, `conlang-remove-speaker` | Who speaks the language in the open book (`language` names one of the book's languages, the first by default). |
+| `conlang-speakers`, `conlang-set-speakers-mode`, `conlang-set-speaker`, `conlang-remove-speaker` | Who speaks the language in the open book (`language` names one of the book's languages, the first by default); `conlang-set-speaker` also sets the level of `understands`. |
+| `conlang-set-understanding-prompt` | Whether the levels of understanding are inserted into the prompt of the story by themselves, and how many messages from the end. |
 | `conlang-design-words`, `conlang-design-rules`, `conlang-rewrite-rules`, `conlang-design-stage`, `conlang-ask-designer`, `conlang-try-sentences` | The designer. With `ask true` a command returns the proposal as a numbered list of changes and holds it; nothing is changed. |
 | `conlang-review` | The designer's review of the language: findings only. |
 | `conlang-apply-changes` | Applies the held changes, all of them or the numbers given (the same as **Apply** in the review). |
 | `conlang-pending-changes`, `conlang-take-pending-changes`, `conlang-discard-pending-changes` | What an agent run left in the book, see [below](#agent-runs). |
+| `conlang-understanding` | Who does not follow which language, as text, for the `{{command::conlang-understanding::&lt;characters&gt;}}` macro (the characters are optional). |
 | `conlang-lexicon`, `conlang-rules` | The lexicon and the rules a translation request sends, as text, for the `{{command::conlang-lexicon::&lt;language&gt;}}` and `{{command::conlang-rules::&lt;language&gt;}}` [macros](../templates/macros.md#commands). |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -753,7 +761,11 @@ argument of a command; an agent may leave out the optional ones.</p>
 </tr>
 <tr>
 <td><code translate="no" v-pre>conlang-speakers</code>, <code translate="no" v-pre>conlang-set-speakers-mode</code>, <code translate="no" v-pre>conlang-set-speaker</code>, <code translate="no" v-pre>conlang-remove-speaker</code></td>
-<td>Who speaks the language in the open book (<code translate="no" v-pre>language</code> names one of the book&#x27;s languages, the first by default).</td>
+<td>Who speaks the language in the open book (<code translate="no" v-pre>language</code> names one of the book&#x27;s languages, the first by default); <code translate="no" v-pre>conlang-set-speaker</code> also sets the level of <code translate="no" v-pre>understands</code>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>conlang-set-understanding-prompt</code></td>
+<td>Whether the levels of understanding are inserted into the prompt of the story by themselves, and how many messages from the end.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>conlang-design-words</code>, <code translate="no" v-pre>conlang-design-rules</code>, <code translate="no" v-pre>conlang-rewrite-rules</code>, <code translate="no" v-pre>conlang-design-stage</code>, <code translate="no" v-pre>conlang-ask-designer</code>, <code translate="no" v-pre>conlang-try-sentences</code></td>
@@ -770,6 +782,10 @@ argument of a command; an agent may leave out the optional ones.</p>
 <tr>
 <td><code translate="no" v-pre>conlang-pending-changes</code>, <code translate="no" v-pre>conlang-take-pending-changes</code>, <code translate="no" v-pre>conlang-discard-pending-changes</code></td>
 <td>What an agent run left in the book, see <doc-anchor-trigger to="#agent-runs">below</doc-anchor-trigger>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>conlang-understanding</code></td>
+<td>Who does not follow which language, as text, for the <code translate="no" v-pre>{{command::conlang-understanding::&lt;characters&gt;}}</code> macro (the characters are optional).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>conlang-lexicon</code>, <code translate="no" v-pre>conlang-rules</code></td>
@@ -847,7 +863,7 @@ compounds and affixes) and reports the rest; it does not check your grammar. Try
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (cf0e9ebbc).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (7f3b136c7).</p></div>
             </footer>
         </div>
     </div>

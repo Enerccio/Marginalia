@@ -84,7 +84,7 @@ class CommandsTest {
                 assertEquals(CommandDataSeverity.DESTRUCTIVE, command.dataSeverity(), command.commandName());
             }
         }
-        assertEquals(Set.of("conlang-lexicon", "conlang-rules"),
+        assertEquals(Set.of("conlang-lexicon", "conlang-rules", "conlang-understanding"),
                 COMMANDS.values().stream().filter(CommandDefinition::availableInMacros).map(CommandDefinition::commandName).collect(Collectors.toSet()));
     }
 
@@ -134,6 +134,9 @@ class CommandsTest {
             Map.entry("BookConlang.saveOtherLanguages", "conlang-add-book-language"),
             Map.entry("BookConlang.speakers", "conlang-speakers"),
             Map.entry("BookConlang.saveSpeakers", "conlang-set-speaker"),
+            Map.entry("BookConlang.understanding", "conlang-set-understanding-prompt"),
+            Map.entry("BookConlang.saveUnderstanding", "conlang-set-understanding-prompt"),
+            Map.entry("BookConlang.understandingEntries", "conlang-understanding"),
             Map.entry("BookConlang.saveWords", "conlang-update-word"),
             Map.entry("BookConlang.runChanges", "conlang-pending-changes"),
             Map.entry("BookConlang.runChangeSet", "conlang-pending-changes"),

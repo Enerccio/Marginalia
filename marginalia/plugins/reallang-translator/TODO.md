@@ -49,6 +49,7 @@ The plugin was installed in a copy of the screenshot environment (the *Unregiste
 - **Not tried:** the language editor's glossary list in *Settings*, a folder level entry through the *Move to* menu (the book was not in a folder), the commands `-remove`, `-accept`, `-move`, the export and the viewer of a real book, *Translate parts*.
 
 ## Not tried
+- **Level of understanding (2026-11-06, shared with the Conlang Translator, see its TODO, *The POV character does not understand*):** built in `translator-common` and registered here (facts for the annotation, the message inserted into the prompt, the `reallang-understanding` macro, the column in the *Speakers* tab); unit tests only, not tried in the real app or on the real model.
 - **The screens and the app:** the tab, the glossary, the part menu, the selection and the commands were run in the real app (trial 2); the settings panel and the language editor, the range window, the viewer and the export of a real book were not.
 
 - **Language cues in the narration (idea, from the dataset build, 2026-11-05).** The English source has to say which language a speech is in ("she said in Japanese") because that is what the
