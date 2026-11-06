@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847240457288">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847240597923">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.847240457288" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.847240597923" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847240457288" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847240597923" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847240457288" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.847240457288" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847240597923" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.847240597923" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -339,7 +339,9 @@ fake is the model server.</p>
 | `crud`, `generation`, `backup`, `domain`, `ui` (folders, 1.6.0) | `FolderCrudTest`, `FolderServiceTest`, `FolderTransferTest`, `FolderListTest`, `FolderSettingsTest`, `SettingsInheritanceTest`, `ModificationTest`, `FolderSettingsGenerationTest`, `BackupFoldersTest`, `BackupExportInheritanceTest`, `AgentFoldersTest`, `HelpAssistantBooksTest`, `FolderDialogTest`, `OrganiseDialogTest`, `OrganiseDialogFlowTest`, `BookPromptSettingsTest`, `MassChangeModelProtocolDialogTest`, `MassChangeLanguageDialogTest`, `ManuscriptPartFoldersTest`, `PhoneManuscriptPartFoldersTest`, `BookLabelsTest`, `StoryMassDeleteTest`, `TabDockIconsTest` | The folders, see [Folders](folders.md#tests): the entity and the service rules (names, cycles, delete, the lock of an agent's book), copy and move with name clashes, the settings of the folders resolved for a book and reaching the prompt of a generation, the modification time of books and folders, the folder in a backup and the inherited settings in an export, the working copy of an agent, the books tools of the help assistant, and the windows (settings, Organise with its keys, the lists on the desktop and the phone). The mass delete of parts and the icons of the minimized tabs are here too. |
 | `generation`, `utils` (macros, 1.7.0) | `ClosestMacroTest`, `CommandMacroTest`, `ReflectUtilsTest` | `ClosestMacroTest`: `{{closest-message::n}}`, `{{closest-summary::n}}` and `` count the parts and summaries back from the part being written (a position that is not there is empty, the argument can be a macro, a regenerate and a swipe have the part they replace as the current one, a new part has none). `CommandMacroTest`: `{{command::name::argument}}` runs a read only command made for macros (its answer is in the prompt, it runs once per generation whatever the number of renders, other arguments are other calls, a command in an untaken branch is not run, an `async` one is waited for, one not made for macros is not run, a failing one renders empty and is not kept); the answer is kept with the part the generation continues from (a later generation from the part reads it, a regenerate or a swipe runs it again, a refresh drops the answers of calls that were not made); `availableInMacros` without `readOnly` is refused when the commands are registered. `ReflectUtilsTest`: a private method or field is found in a class whose hierarchy ends in JDK classes (`Object`'s methods cannot be opened: the lookup used to fail and an extension was told the method did not exist). |
 | `cleanup` | `CleanupServiceTest`, `TrashServiceTest`, `SoftDeleteCascadeTest`, `PermanentDeleteTest`, `AgentCleanupTest` | Purging soft-deleted data (also an AI with usage rows), owned data, strong and weak references; the trash: own objects only, administrator sees all, restore refused while a deleted parent is not restored with it, extended content; `SoftDeleteCascadeTest`: a soft delete takes the owned objects with it and a restore brings them back (the purge tests there log in as administrator); `PermanentDeleteTest`: deleting parts and entries for good, children moved to the parent, active leaf, blocked deletes roll back. |
-| `instruct` | `ExtendableMethodVisitorTest`, `RuntimeInstrumentationTest`, `ExtensionVerifierTest`, `PublicAPISignatureTest` | The bytecode instrumentation of `@Extendable` methods and the runtime agent; the verification of extensions against the application; the `@PublicAPI` declarations of the `@Extendable` classes. |">
+| `instruct` | `ExtendableMethodVisitorTest`, `RuntimeInstrumentationTest`, `ExtensionVerifierTest`, `PublicAPISignatureTest` | The bytecode instrumentation of `@Extendable` methods and the runtime agent; the verification of extensions against the application; the `@PublicAPI` declarations of the `@Extendable` classes. |
+| `utils`, `generation` (1.7.0) | `AppClockTest`, `StoredTimesFollowAppClockTest` | `AppClock`, the one clock the application stores times from: it follows the system clock until a test sets another, every reader sees the set clock; a generation run &quot;on&quot; another day stores the times of the part (creation, modification, the stamps of the history) from it. The dataset build moves it day by day. |
+| `workset` (1.7.0) | `LargeWorksetTest`, `LargeWorksetMigrationTest`, `LargeWorksetSoakTest`, `ExportRoundTripCheck` (only with `-Dworkset.roundtrip=true`) | A book of a real size, the [dataset book](#the-dataset-book): restored and checked (100 parts and a branch of 3, 31 summaries, 1,697 annotations and passages, 360 versions, the stored prompts, the data of four plugins, the lorebook, the picture); `PartRevisionMigration` and `StatisticsBackfillMigration` over it (the result and the time); two users on long books (one of 400 parts) with generations in flight on a slow mock model while backups, edits and statistics reads run on other threads. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -544,6 +546,16 @@ fake is the model server.</p>
 <td><code translate="no" v-pre>instruct</code></td>
 <td><code translate="no" v-pre>ExtendableMethodVisitorTest</code>, <code translate="no" v-pre>RuntimeInstrumentationTest</code>, <code translate="no" v-pre>ExtensionVerifierTest</code>, <code translate="no" v-pre>PublicAPISignatureTest</code></td>
 <td>The bytecode instrumentation of <code translate="no" v-pre>@Extendable</code> methods and the runtime agent; the verification of extensions against the application; the <code translate="no" v-pre>@PublicAPI</code> declarations of the <code translate="no" v-pre>@Extendable</code> classes.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>utils</code>, <code translate="no" v-pre>generation</code> (1.7.0)</td>
+<td><code translate="no" v-pre>AppClockTest</code>, <code translate="no" v-pre>StoredTimesFollowAppClockTest</code></td>
+<td><code translate="no" v-pre>AppClock</code>, the one clock the application stores times from: it follows the system clock until a test sets another, every reader sees the set clock; a generation run &quot;on&quot; another day stores the times of the part (creation, modification, the stamps of the history) from it. The dataset build moves it day by day.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>workset</code> (1.7.0)</td>
+<td><code translate="no" v-pre>LargeWorksetTest</code>, <code translate="no" v-pre>LargeWorksetMigrationTest</code>, <code translate="no" v-pre>LargeWorksetSoakTest</code>, <code translate="no" v-pre>ExportRoundTripCheck</code> (only with <code translate="no" v-pre>-Dworkset.roundtrip=true</code>)</td>
+<td>A book of a real size, the <doc-anchor-trigger to="#the-dataset-book">dataset book</doc-anchor-trigger>: restored and checked (100 parts and a branch of 3, 31 summaries, 1,697 annotations and passages, 360 versions, the stored prompts, the data of four plugins, the lorebook, the picture); <code translate="no" v-pre>PartRevisionMigration</code> and <code translate="no" v-pre>StatisticsBackfillMigration</code> over it (the result and the time); two users on long books (one of 400 parts) with generations in flight on a slow mock model while backups, edits and statistics reads run on other threads.</td>
 </tr>
 </tbody>
 </table>
@@ -1015,6 +1027,24 @@ and prints the annotation the method needs.</p>
 <p>The fixtures are compiled with the same <code translate="no" v-pre>-parameters</code> and <code translate="no" v-pre>preserveAllLocals</code> options as the application; if you
 change the compiler settings in <code translate="no" v-pre>pom.xml</code>, these tests tell you whether extensions still see names of arguments and
 locals.</p>
+<h2 id="the-dataset-book">The dataset book</h2>
+<p>A test that needs a book of a real size (a long story with summaries, annotations, versions, translations, the data of plugins, a lorebook and a picture) does not build one: the repository has one, <em>Unregistered</em>,
+the same book that the user manual offers as the <a href="../../user/getting-started/example-book/">example book</a>. It is two files in <code translate="no" v-pre>src/test/resources/workset</code>: <code translate="no" v-pre>book.zip</code> (the archive of the app with the picture, 5.7 MB)
+and <code translate="no" v-pre>lorebook.json</code> (a backup only links its lorebook, by a fixed uuid, so the lorebook is imported first). It was written by the harness described below, with the real generation loop and a model (Claude Haiku), not by a script that
+imitates one, so it holds what the application leaves behind: prompts of up to 86k tokens, the versions of a redraft, the notes of an annotation, the passages of four translators.</p>
+<p><strong>Loading it</strong> is <code translate="no" v-pre>WorksetFixture.restore(backupService, lorebookService, name, true)</code> as the logged in user (about 5 seconds on an M4, a bit more on slower machines). Restore <strong>once per class</strong>, not per test: the database is shared by the
+classes of a JVM and each test method has a session of its own, so keep the result in <code translate="no" v-pre>static</code> fields and let the first test make it (<code translate="no" v-pre>LargeWorksetTest.restoreOnce</code>); the tests of the class only read it. A test that changes the book
+restores its own copy (<code translate="no" v-pre>LargeWorksetMigrationTest</code>). The restore stamps everything with today; a test that needs the history of months (statistics) spreads the creation dates itself.
+The context normally gets a fresh folder (<code translate="no" v-pre>target/test-home/ctx-*</code>); with <code translate="no" v-pre>-Dmarginalia.test.fixedHome=&lt;folder&gt;</code> (<code translate="no" v-pre>TestContextPostProcessor.FIXED_HOME_PROPERTY</code>) it uses that folder and its database, which is how the harness continues
+on the book of an earlier run. To run work as another user on a thread of its own, put a <code translate="no" v-pre>MockHttpServletRequest</code> session on the thread (<code translate="no" v-pre>RequestContextHolder</code>) and <code translate="no" v-pre>loginAs</code> there (<code translate="no" v-pre>LargeWorksetSoakTest.asUser</code>).</p>
+<p>The tests do not assert times except against a limit that no machine we use comes near (a guard against something that became quadratic); they print what they measured (<code translate="no" v-pre>[large workset]</code>, <code translate="no" v-pre>[soak]</code>).</p>
+<p><strong>Rebuilding it</strong> is <code translate="no" v-pre>tools/workset_run.sh</code> (the <code translate="no" v-pre>WorksetBuilder</code> class: not a test, it does nothing without <code translate="no" v-pre>-Dworkset.build=true</code>, and its name keeps it out of the suite). It needs the plugins built (<code translate="no" v-pre>mvn install -DskipTests</code>
+of the app, then <code translate="no" v-pre>mvn package</code> in the four plugins it starts) and the <code translate="no" v-pre>claude</code> command line tool, and it is resumable: every answer of the model is cached by a hash of the request in <code translate="no" v-pre>work/harness/answers</code>, so a rerun asks only
+for what changed. The folder <code translate="no" v-pre>work/</code> is not in git. The skeleton (the beats, the lorebook, the languages, the knowledge seed) is in <code translate="no" v-pre>work/dataset</code>. All the properties, the steps of the loop, the block close and what the review file
+holds are in <code translate="no" v-pre>marginalia/src/test/java/com/github/enerccio/marginalia/workset/README.md</code>. A run writes <code translate="no" v-pre>work/harness/export/</code> (<code translate="no" v-pre>book.json</code>, <code translate="no" v-pre>book.zip</code>, <code translate="no" v-pre>lorebook.json</code>); to replace the fixture copy <code translate="no" v-pre>book.zip</code> and
+<code translate="no" v-pre>lorebook.json</code> into <code translate="no" v-pre>src/test/resources/workset</code> (every replacement adds 5 to 6 MB to the history of the repository, so do it for a reason) and run <code translate="no" v-pre>LargeWorksetTest</code>, whose numbers (the 103 parts, 31 summaries and so on) then change.
+<code translate="no" v-pre>ExportRoundTripCheck</code> (<code translate="no" v-pre>-Dworkset.roundtrip=true</code>) imports a fresh export the way the application does and compares what comes back.</p>
+<p>The text, the lorebook and the two constructed languages of the book are dedicated to the public domain (CC0); the picture is a public domain painting, see the manual page.</p>
 <h2 id="checklist-for-a-new-test">Checklist for a new test</h2>
 <ul>
 <li>
@@ -1083,7 +1113,7 @@ all migrations and validates the schema against the entities).</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (7353c7685).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (0ea856b1b).</p></div>
             </footer>
         </div>
     </div>

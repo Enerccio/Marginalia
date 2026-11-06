@@ -253,6 +253,9 @@
     <loc>https://enerccio.github.io/Marginalia/developer/custom-components/</loc>
   </url>
   <url>
+    <loc>https://enerccio.github.io/Marginalia/developer/testing/</loc>
+  </url>
+  <url>
     <loc>https://enerccio.github.io/Marginalia/user/extensions/manga-generator/</loc>
   </url>
   <url>
@@ -263,9 +266,6 @@
   </url>
   <url>
     <loc>https://enerccio.github.io/Marginalia/user/administration/extensions/</loc>
-  </url>
-  <url>
-    <loc>https://enerccio.github.io/Marginalia/developer/testing/</loc>
   </url>
   <url>
     <loc>https://enerccio.github.io/Marginalia/user/extensions/prompt-history/</loc>
