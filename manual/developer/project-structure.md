@@ -57,7 +57,7 @@ marginalia/
 ├── src/main/java/                application code
 ├── src/main/resources/           Spring XML, Flyway migrations, logback, Vaadin build info
 ├── src/main/resources-release/   WAR-only resources: the release logback.xml
-├── src/main/resources-raw/       copied into WEB-INF/classes without filtering (empty)
+├── src/main/resources-raw/       copied into WEB-INF/classes without filtering (binary files: the font of the PDF export); also a resource folder of the classes
 ├── src/main/webapp/config/       configuration.properties, persistence.xml
 ├── src/main/frontend/            CSS and JavaScript for the Vaadin frontend
 ├── src/desktop/                  desktop launcher and launch scripts (not part of the WAR)
