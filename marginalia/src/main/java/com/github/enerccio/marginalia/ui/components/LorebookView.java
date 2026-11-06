@@ -695,7 +695,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
         grid.setItemDetailsRenderer(new ComponentRenderer<>(this::createEntryDetailLayout));
     }
 
-    @PublicAPI(from = "1.1.0",
+    @PublicAPI(from = "1.7.0",
             returns = @APIReturn(type = Component.class),
             parameters = {@APIParameter(name = "entry", type = LorebookEntry.class)},
             locals = {@APILocals(name = "detailsLayout", type = VerticalLayout.class),
@@ -710,6 +710,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
                     @APILocals(name = "activationContextCombo", type = ComboBox.class),
                     @APILocals(name = "fromMessageField", type = IntegerField.class),
                     @APILocals(name = "toMessageField", type = IntegerField.class),
+                    @APILocals(name = "conditionField", type = TextArea.class),
                     @APILocals(name = "preventRecursionCheckbox", type = Checkbox.class),
                     @APILocals(name = "commentField", type = TextArea.class)})
     public Component createEntryDetailLayout(LorebookEntry entry) {
@@ -838,6 +839,8 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
             }
         });
 
+        TextArea conditionField = LoreConditionField.create(loc, templateService, entry, () -> saveEntry(entry));
+
         Checkbox preventRecursionCheckbox = new Checkbox(loc.getValue(L.LABEL_PREVENT_RECURSION), entry.isPreventRecursion());
         UIUtils.addTooltip(preventRecursionCheckbox, loc.getValue(L.HELP_PREVENT_RECURSION));
         preventRecursionCheckbox.addValueChangeListener(e -> {
@@ -860,7 +863,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
 
         settingsForm.add(filteringModeCombo, filteringField, insertionModeCombo, negativeTagCombo, activationContextCombo, activationPartsField, fromMessageField, toMessageField, preventRecursionCheckbox);
 
-        detailsLayout.add(payloadField, payloadTokensSpan, settingsForm, commentField);
+        detailsLayout.add(payloadField, payloadTokensSpan, settingsForm, conditionField, commentField);
         return detailsLayout;
     }
 

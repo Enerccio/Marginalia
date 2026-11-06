@@ -3,6 +3,7 @@ package com.github.enerccio.marginalia.generation;
 import com.github.enerccio.marginalia.domain.collections.ActivationContext;
 import com.github.enerccio.marginalia.domain.collections.FilteringMode;
 import com.github.enerccio.marginalia.domain.collections.InsertionMode;
+import com.github.enerccio.marginalia.domain.components.LoreConditions;
 import com.github.enerccio.marginalia.domain.components.LoreUsage;
 import com.github.enerccio.marginalia.domain.components.TurnInput;
 import com.github.enerccio.marginalia.domain.model.BaseEntity;
@@ -1426,5 +1427,278 @@ class LorebookActivationTest extends GenerationTestBase {
 
         assertThat(usageOf(book(book), "Nothing here.").getEntries()).isEmpty();
         assertThat(usageOf(book(null), "Nothing here.")).isNull();
+    }
+
+    // ------------------------------------------------------------------------------------------------------------
+    // activation condition: a template that has to give a true value for the turn
+    // ------------------------------------------------------------------------------------------------------------
+
+    private LorebookEntry when(Lorebook book, String name, String condition) throws Exception {
+        return entry(book, name, e -> e.setActivationCondition(condition));
+    }
+
+    private LorebookEntry saved(Lorebook book, String name) throws Exception {
+        return lorebookEntryService.getEntriesForLorebook(book).stream()
+                .filter(e -> e.getName().equals(name)).findFirst().orElseThrow();
+    }
+
+    @Test
+    void entryWithoutConditionIsUnaffected() throws Exception {
+        Lorebook book = lorebook("world");
+        LorebookEntry plain = entry(book, "plain");
+        entry(book, "blank", e -> e.setActivationCondition("   "));
+
+        assertThat(plain.hasActivationCondition()).isFalse();
+        assertThat(saved(book, "blank").getActivationCondition()).isNull();
+        assertThat(activationService.conditionsNeeded(lorebookEntryService.getEntriesForLorebook(book))).isFalse();
+        assertThat(activate(book(book)).activated()).containsExactlyInAnyOrder("plain", "blank");
+    }
+
+    @Test
+    void conditionIsRenderedForTheTurn() throws Exception {
+        Lorebook book = lorebook("world");
+        when(book, "fiora", "{{eval::povCharacter == \"Fiora\"}}");
+
+        assertThat(activate(book(book), new TurnInput(null, "Fiora", null, "Walk.")).activated()).containsExactly("fiora");
+        assertThat(activate(book(book), new TurnInput(null, "Mara", null, "Walk.")).activated()).isEmpty();
+        assertThat(activate(book(book), new TurnInput(null, null, null, "Walk.")).activated()).isEmpty();
+    }
+
+    @Test
+    void conditionCanBeAnExpressionWithAndOrNot() throws Exception {
+        Lorebook book = lorebook("world");
+        when(book, "pair", "{{eval::povCharacter == \"Fiora\" and presentCharacters has \"Mara\"}}");
+
+        assertThat(activate(book(book), new TurnInput(null, "Fiora", "Fiora, Mara", "Walk.")).activated()).containsExactly("pair");
+        assertThat(activate(book(book), new TurnInput(null, "Fiora", "Fiora, Marati", "Walk.")).activated()).isEmpty();
+        assertThat(activate(book(book), new TurnInput(null, "Mara", "Fiora, Mara", "Walk.")).activated()).isEmpty();
+    }
+
+    @Test
+    void anExpressionWithAnUnquotedTextIsAnErrorNotTrue() throws Exception {
+        Lorebook book = lorebook("world");
+        when(book, "typo", "{{eval::povCharacter == Fiora}}");
+
+        Verdict verdict = activationService.evaluate(saved(book, "typo"), List.of(), "text");
+
+        assertThat(verdict.reason()).isEqualTo(Reason.CONDITION_ERROR);
+        assertThat(verdict.activated()).isFalse();
+        assertThat(activate(book(book), new TurnInput(null, "Fiora", null, "Walk.")).activated()).isEmpty();
+    }
+
+    @Test
+    void conditionSeesThePresentCharactersAndTheInstructions() throws Exception {
+        Lorebook book = lorebook("world");
+        when(book, "company", "{{#if presentCharacters}}yes{{/if}}");
+        // the instructions are the result: "no" is false, like any falsy value
+        when(book, "instructed", "{{instructions}}");
+
+        assertThat(activate(book(book), new TurnInput(null, null, "Fiora, Mara", "go")).activated())
+                .containsExactlyInAnyOrder("company", "instructed");
+        assertThat(activate(book(book), new TurnInput(null, null, null, "no")).activated()).isEmpty();
+    }
+
+    @Test
+    void falsyResultsAreFalseAndEverythingElseIsTrue() throws Exception {
+        Lorebook book = lorebook("world");
+        for (String falsy : List.of("false", "FALSE", "0", "no", "off", "{{noop}}")) {
+            when(book, "falsy " + falsy, falsy);
+        }
+        when(book, "yes", "yes");
+        when(book, "word", "anything at all");
+        when(book, "one", "1");
+
+        assertThat(activate(book(book)).activated()).containsExactlyInAnyOrder("yes", "word", "one");
+    }
+
+    @Test
+    void falseConditionWinsOverAFilterThatMatches() throws Exception {
+        Lorebook book = lorebook("world");
+        entry(book, "dragon", e -> {
+            e.setFiltering("dragon");
+            e.setActivationCondition("no");
+        });
+        LorebookEntry saved = saved(book, "dragon");
+
+        Verdict verdict = activationService.evaluate(saved, List.of(), "A dragon appears.");
+
+        assertThat(verdict.reason()).isEqualTo(Reason.CONDITION_FALSE);
+        assertThat(verdict.detail()).isEqualTo("no");
+        assertThat(verdict.activated()).isFalse();
+        assertThat(activate(book(book), "A dragon appears.").activated()).isEmpty();
+    }
+
+    @Test
+    void trueConditionStillNeedsTheFilter() throws Exception {
+        Lorebook book = lorebook("world");
+        entry(book, "dragon", e -> {
+            e.setFiltering("dragon");
+            e.setActivationCondition("yes");
+        });
+        LorebookEntry saved = saved(book, "dragon");
+
+        assertThat(activationService.evaluate(saved, List.of(), "A dragon appears.").reason()).isEqualTo(Reason.FILTER_MATCHED);
+        assertThat(activationService.evaluate(saved, List.of(), "Nothing here.").reason()).isEqualTo(Reason.FILTER_NOT_MATCHED);
+    }
+
+    @Test
+    void conditionIsCheckedAfterTheCheaperRules() throws Exception {
+        Lorebook book = lorebook("world");
+        entry(book, "off", e -> {
+            e.setEnabled(false);
+            e.setActivationCondition("{{setvar::ran::yes}}yes");
+        });
+        LoreConditions conditions = new LoreConditions(new LorebookTemplateData());
+
+        assertThat(activationService.evaluate(saved(book, "off"), List.of(), "text", List.of(), null, conditions).reason())
+                .isEqualTo(Reason.DISABLED);
+        assertThat(conditions.decision(saved(book, "off"))).isNull();
+        assertThat(conditions.spentNanos()).isZero();
+    }
+
+    @Test
+    void conditionThatCannotBeRenderedIsFalseAndSaysWhy() throws Exception {
+        Lorebook book = lorebook("world");
+        when(book, "unknown name", "{{noSuchThing}}");
+        when(book, "broken", "{{#if}}");
+
+        for (String name : List.of("unknown name", "broken")) {
+            Verdict verdict = activationService.evaluate(saved(book, name), List.of(), "text");
+            assertThat(verdict.reason()).as(name).isEqualTo(Reason.CONDITION_ERROR);
+            assertThat(verdict.activated()).as(name).isFalse();
+            assertThat(verdict.detail()).as(name).isNotBlank();
+        }
+        assertThat(activationService.evaluate(saved(book, "unknown name"), List.of(), "text").detail()).contains("noSuchThing");
+        assertThat(activate(book(book)).activated()).isEmpty();
+    }
+
+    @Test
+    void conditionCannotChangeTheVariablesOfTheGeneration() throws Exception {
+        Lorebook book = lorebook("world");
+        when(book, "writer", "{{setvar::x::1}}yes");
+        entry(book, "reader", e -> {
+            e.setOrder(200);
+            e.setPayload("[{{getvar::x}}]");
+        });
+
+        Lore lore = activate(book(book));
+
+        assertThat(lore.activated()).containsExactly("writer", "reader");
+        assertThat(lore.lore()).contains("[]").doesNotContain("[1]");
+    }
+
+    @Test
+    void conditionReadsTheVariablesOfTheGeneration() throws Exception {
+        Lorebook book = lorebook("world");
+        when(book, "revealed", "{{getvar::revealed}}");
+        LorebookTemplateData data = new LorebookTemplateData();
+        LoreConditions conditions = new LoreConditions(data);
+        LorebookEntry entry = saved(book, "revealed");
+
+        assertThat(activationService.evaluate(entry, List.of(), "text", List.of(), null, conditions).reason())
+                .isEqualTo(Reason.CONDITION_FALSE);
+
+        data.templateContext().getVariables().set(Scope.LOCAL, "revealed", "true");
+        LoreConditions later = new LoreConditions(data);
+        assertThat(activationService.evaluate(entry, List.of(), "text", List.of(), null, later).reason())
+                .isEqualTo(Reason.CONSTANT);
+    }
+
+    @Test
+    void conditionIsDecidedOncePerActivation() throws Exception {
+        Lorebook book = lorebook("world");
+        when(book, "coin", "{{random::yes::no}}");
+        LorebookEntry entry = saved(book, "coin");
+        LoreConditions conditions = new LoreConditions(new LorebookTemplateData());
+
+        Verdict first = activationService.evaluate(entry, List.of(), "text", List.of(), null, conditions);
+        for (int i = 0; i < 30; i++) {
+            assertThat(activationService.evaluate(entry, List.of(), "text", List.of(), null, conditions)).isEqualTo(first);
+        }
+    }
+
+    @Test
+    void spentTimeBudgetMakesTheConditionsErrors() throws Exception {
+        Lorebook book = lorebook("world");
+        when(book, "late", "yes");
+        LoreConditions conditions = new LoreConditions(new LorebookTemplateData(), 0);
+
+        Verdict verdict = activationService.evaluate(saved(book, "late"), List.of(), "text", List.of(), null, conditions);
+
+        assertThat(conditions.exhausted()).isTrue();
+        assertThat(verdict.reason()).isEqualTo(Reason.CONDITION_ERROR);
+        assertThat(verdict.detail()).isEqualTo("timeout");
+    }
+
+    @Test
+    void conditionsShareOneBudgetAndItIsSpentByRendering() throws Exception {
+        Lorebook book = lorebook("world");
+        when(book, "a", "yes");
+        LoreConditions conditions = new LoreConditions(new LorebookTemplateData());
+
+        assertThat(conditions.exhausted()).isFalse();
+        activationService.evaluate(saved(book, "a"), List.of(), "text", List.of(), null, conditions);
+
+        assertThat(conditions.spentNanos()).isPositive();
+        assertThat(conditions.exhausted()).isFalse();
+        conditions.spend(LoreConditions.TIME_BUDGET_SECONDS * 1_000_000_000L);
+        assertThat(conditions.exhausted()).isTrue();
+    }
+
+    @Test
+    void falseConditionStopsAnEntryFoundByTheContentOfOthers() throws Exception {
+        Lorebook book = scanning(1);
+        entry(book, "source", e -> e.setPayload("A dragon lives here."));
+        entry(book, "blocked", e -> {
+            e.setFiltering("dragon");
+            e.setActivationCondition("no");
+        });
+        entry(book, "allowed", e -> {
+            e.setFiltering("dragon");
+            e.setActivationCondition("yes");
+        });
+
+        assertThat(activate(book(book)).activated()).containsExactlyInAnyOrder("source", "allowed");
+    }
+
+    @Test
+    void previewAgreesWithTheGeneration() throws Exception {
+        Lorebook book = lorebook("world");
+        when(book, "fiora", "{{eval::povCharacter == \"Fiora\"}}");
+        entry(book, "plain");
+        Lorebook root = lorebookService.find(book.getId());
+        List<Lorebook> books = activationService.collectLorebooks(root);
+        LorebookTemplateData fiora = new LorebookTemplateData();
+        fiora.setPovCharacter("Fiora");
+        fiora.templateContext().setPovCharacter("Fiora");
+
+        List<LorebookEntryVerdict> with = activationService.evaluateAll(root, books, List.of(), "text", List.of(), null, new LoreConditions(fiora));
+        List<LorebookEntryVerdict> without = activationService.evaluateAll(root, books, List.of(), "text", List.of(), null,
+                new LoreConditions(new LorebookTemplateData()));
+
+        assertThat(with.stream().filter(v -> v.verdict().activated()).map(v -> v.entry().getName()))
+                .containsExactlyInAnyOrder("fiora", "plain");
+        assertThat(without.stream().filter(v -> v.verdict().activated()).map(v -> v.entry().getName()))
+                .containsExactly("plain");
+    }
+
+    @Test
+    void conditionsAreNeededOnlyByEnabledEntriesThatHaveOne() throws Exception {
+        Lorebook book = lorebook("world");
+        entry(book, "plain");
+        LorebookEntry conditional = when(book, "conditional", "yes");
+        assertThat(activationService.conditionsNeeded(lorebookEntryService.getEntriesForLorebook(book))).isTrue();
+
+        conditional.setEnabled(false);
+        lorebookEntryService.save(conditional);
+        assertThat(activationService.conditionsNeeded(lorebookEntryService.getEntriesForLorebook(book))).isFalse();
+    }
+
+    @Test
+    void conditionIsKeptWhenTheEntryIsSaved() throws Exception {
+        Lorebook book = lorebook("world");
+        LorebookEntry conditional = when(book, "conditional", "{{getvar::x}}");
+
+        assertThat(lorebookEntryService.find(conditional.getId()).getActivationCondition()).isEqualTo("{{getvar::x}}");
     }
 }

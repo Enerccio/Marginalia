@@ -976,6 +976,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_CLEAR_SAVED_LOGINS, "清除已保存的登录（记住我）");
         setValue(L.LABEL_RESUMMARIZE_ALL_SUMMARIES, "重新生成所有摘要");
         setValue(L.LABEL_IMPORT_FROM_LMSTUDIO, "从 LM Studio 导入");
+        setValue(L.LABEL_ACTIVATION_CONDITION, "条件");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -1155,6 +1156,8 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.ENUM_LORE_USAGE_STATUS_NEVER, "从未使用");
         setValue(L.ENUM_LORE_USAGE_STATUS_SOMETIMES, "有时使用");
         setValue(L.ENUM_LORE_USAGE_STATUS_ALWAYS, "始终使用");
+        setValue(L.ENUM_ACTIVATION_REASON_CONDITION_FALSE, "未使用：条件为假");
+        setValue(L.ENUM_ACTIVATION_REASON_CONDITION_ERROR, "未使用：条件失败");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "内部服务器错误");
@@ -1767,6 +1770,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.HELP_PROTOCOL_SHARED, "其他用户可以在“从其他用户导入”中看到此协议，并导入一份副本。他们无法修改你的协议。");
         setValue(L.HELP_MATCH_BY_POSITION, "摘要按段落的 ID 匹配。来自另一本书的文件（副本的 ID 不同）请勾选此项：段落不在当前分支中的摘要会放到相同位置的摘要上。");
         setValue(L.HELP_ANNOTATE_INSTRUCTIONS, "模型为段落添加注释时要查找的内容，例如：指出连贯性错误、薄弱的对话。留空则使用注释提示词的默认任务。“用 AI 添加注释”窗口以此文本开头。");
+        setValue(L.HELP_ACTIVATION_CONDITION, "与内容写法相同的模板（宏和 Handlebars），会根据视角人物、在场人物、指令和变量为每一回合渲染。只有结果为真（空、0、false、no、off 以外）时才会使用该条目。无法渲染的条件（错误、不存在的名称、超时）视为假，激活预览会说明原因。它在过滤器之前检查，对由其他条目内容找到的条目同样有效。可以使用只读命令，变量不会被修改。留空表示没有条件。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景设定与世界观。");
@@ -2160,6 +2164,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.DESC_MACRO_CURRENT_MESSAGE, "重新生成或切换所要替换的段落文本。新段落为空。");
         setValue(L.DESC_MACRO_JOIN, "以第一个参数为分隔符连接其后的文本，空文本会被忽略。带空格的分隔符请使用 {{space}} 或 {{newline}}。");
         setValue(L.DESC_TEMPLATE_FACTS, "扩展所掌握的、该段时点的故事事实，例如每个角色所知道的内容（没有扩展提供则为空）。请据此检查该段，与之矛盾即为连续性错误。");
+        setValue(L.DESC_MACRO_EVAL, "返回表达式的结果 true 或 false：比较（== != < <= > >= ~= contains has）可以用 and、or、not 和括号组合。文本要加引号，名称是模板的值（povCharacter、presentCharacters、无参数的宏），.name 是局部变量，$name 是全局变量。未知名称或语法错误会返回 Error。== 精确比较（数字按数值），~= 忽略大小写，contains 在文本中查找文本，has 在以逗号分隔的列表中查找项目。");
     }
 
     @Override

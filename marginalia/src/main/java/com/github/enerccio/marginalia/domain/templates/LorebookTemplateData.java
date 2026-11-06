@@ -87,4 +87,22 @@ public class LorebookTemplateData extends TemplateData {
     public void setStyle(String style) {
         this.style = style;
     }
+
+    /**
+     * A copy with the same values whose context is a {@link TemplateContext#fork()} of this one: what the copy sets
+     * (variables) does not reach this data. Used to render something without side effects, such as the condition of an
+     * entry.
+     */
+    public LorebookTemplateData fork() {
+        LorebookTemplateData copy = new LorebookTemplateData();
+        copy.povCharacter = povCharacter;
+        copy.sceneSetting = sceneSetting;
+        copy.presentCharacters = presentCharacters;
+        copy.instructions = instructions;
+        copy.narrativePov = narrativePov;
+        copy.narrativeTense = narrativeTense;
+        copy.style = style;
+        copy.setTemplateContext(templateContext().fork());
+        return copy;
+    }
 }

@@ -327,6 +327,21 @@ class LorebookImportExportTest extends MarginaliaTestBase {
     }
 
     @Test
+    void activationConditionSurvivesExportImportAndClone() throws Exception {
+        LorebookEntry harbour = entryNamed(shared, "harbour");
+        harbour.setActivationCondition("{{if povCharacter == Fiora}}true{{/if}}");
+        lorebookEntryService.save(harbour);
+
+        Lorebook imported = lorebookService.importLorebook(lorebookService.exportLorebook(world), null);
+        Lorebook cloned = lorebookService.cloneLorebook(lorebookService.find(shared.getId()), "copy");
+
+        assertThat(entryNamed(subbook(imported, "Shared"), "harbour").getActivationCondition())
+                .isEqualTo("{{if povCharacter == Fiora}}true{{/if}}");
+        assertThat(entryNamed(subbook(imported, "Magic"), "spells").getActivationCondition()).isNull();
+        assertThat(entryNamed(cloned, "harbour").getActivationCondition()).isEqualTo("{{if povCharacter == Fiora}}true{{/if}}");
+    }
+
+    @Test
     void rangeOfPartsSurvivesExportImportAndClone() throws Exception {
         LorebookEntry harbour = entryNamed(shared, "harbour");
         harbour.setFromMessage(3);

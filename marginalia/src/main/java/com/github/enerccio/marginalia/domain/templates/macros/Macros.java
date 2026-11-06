@@ -146,6 +146,7 @@ public final class Macros {
         define("{{noop}}", 0, 0, L.DESC_MACRO_NOOP, (d, _) -> d.noop(), "noop");
         define("{{trim}}", 0, 0, L.DESC_MACRO_TRIM, (d, _) -> d.trim(), "trim");
         define("{{command::name::argument}}", 1, -1, L.DESC_MACRO_COMMAND, (d, c) -> d.command(c.args()), "command");
+        define("{{eval::povCharacter == \"Fiora\" and not .met}}", 1, 1, L.DESC_MACRO_EVAL, (d, c) -> d.eval(c.argOrEmpty(0)), "eval");
         define("{{join::, ::a::b::c}}", 1, -1, L.DESC_MACRO_JOIN, (d, c) -> d.join(c.args()), "join");
         define("{{reverse::text}}", 1, 1, L.DESC_MACRO_REVERSE, (d, c) -> d.reverse(c.arg(0)), "reverse");
 

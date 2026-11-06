@@ -280,6 +280,80 @@ class MacroRenderingTest extends TemplateTestBase {
     }
 
     @Nested
+    class Expressions {
+
+        @Test
+        void comparesTextExactlyAndIgnoringCase() throws Exception {
+            assertThat(render("{{eval::povCharacter == \"Alice\"}}|{{eval::povCharacter != \"Alice\"}}|{{eval::povCharacter == \"alice\"}}|{{eval::povCharacter ~= \"alice\"}}"))
+                    .isEqualTo("true|false|false|true");
+        }
+
+        @Test
+        void comparesNumbersByValue() throws Exception {
+            render("{{.hp = 17}}");
+
+            assertThat(render("{{eval::5 == 5.0}}|{{eval::.hp > 10}}|{{eval::.hp <= 16}}|{{eval::2 < 3}}|{{eval::-1 < 0}}|{{eval::\"abc\" < 5}}"))
+                    .isEqualTo("true|true|false|true|true|false");
+        }
+
+        @Test
+        void looksForATextAndForAnItemOfAList() throws Exception {
+            assertThat(render("{{eval::presentCharacters contains \"bob\"}}|{{eval::presentCharacters contains \"Zed\"}}"
+                    + "|{{eval::presentCharacters has \" bob \"}}|{{eval::presentCharacters has \"Bo\"}}|{{eval::presentCharacters has \"\"}}"))
+                    .isEqualTo("true|false|true|false|false");
+        }
+
+        @Test
+        void joinsWithAndOrNotAndParentheses() throws Exception {
+            assertThat(render("{{eval::povCharacter == \"Alice\" and presentCharacters has \"Bob\"}}"
+                    + "|{{eval::povCharacter == \"Bob\" or presentCharacters has \"Bob\"}}"
+                    + "|{{eval::not povCharacter == \"Bob\"}}"
+                    + "|{{eval::povCharacter == \"Alice\" && !(presentCharacters has \"Bob\" || false)}}"
+                    + "|{{eval::true or false and false}}|{{eval::(true or false) and false}}|{{eval::1 == 1 AND NOT 1 == 2}}"))
+                    .isEqualTo("true|true|true|false|true|false|true");
+        }
+
+        @Test
+        void aValueAloneIsTrueUnlessItIsFalsy() throws Exception {
+            render("{{.flag = no}}");
+
+            assertThat(render("{{eval::sceneSetting}}|{{eval::.flag}}|{{eval::.missing}}|{{eval::$none}}|{{eval::\"off\"}}|{{eval::\"x\"}}|{{eval::0}}"))
+                    .isEqualTo("true|false|false|false|false|true|false");
+        }
+
+        @Test
+        void readsMacrosWithoutArgumentsAndNestedMacrosInTexts() throws Exception {
+            assertThat(render("{{eval::user == \"Alice\"}}|{{eval::povCharacter == \"{{user}}\"}}|{{eval::manuscriptName == \"{{user}}\"}}"))
+                    .isEqualTo("true|true|false");
+        }
+
+        @Test
+        void worksAsTheConditionOfAnIf() throws Exception {
+            assertThat(render("{{if {{eval::povCharacter == \"Alice\"}} }}pov{{else}}WRONG{{/if}}|{{if {{eval::povCharacter == \"Bob\"}} }}WRONG{{else}}other{{/if}}"))
+                    .isEqualTo("pov|other");
+        }
+
+        @Test
+        void anExpressionThatIsNotValidGivesError() throws Exception {
+            // a text without quotes is a name, and an unknown name is an error, never a text that is true
+            assertThat(render("{{eval::povCharacter == Alice}}")).isEqualTo("Error");
+            assertThat(render("{{eval::(1 == 1}}")).isEqualTo("Error");
+            assertThat(render("{{eval::1 ==}}")).isEqualTo("Error");
+            assertThat(render("{{eval::\"open}}")).isEqualTo("Error");
+            assertThat(render("{{eval::1 == 1 2}}")).isEqualTo("Error");
+            assertThat(render("{{eval::1 ? 2}}")).isEqualTo("Error");
+            assertThat(render("{{eval::nothing}}")).isEqualTo("Error");
+            // names are checked also where the expression does not look
+            assertThat(render("{{eval::true or nothing}}")).isEqualTo("Error");
+        }
+
+        @Test
+        void isInTheListOfMacros() {
+            assertThat(Macros.hints()).extracting(Macros.MacroHint::signature).anyMatch(signature -> signature.startsWith("{{eval::"));
+        }
+    }
+
+    @Nested
     class Conditionals {
 
         @Test

@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.domain.service.impl.generation.impl;
 
 import com.github.enerccio.marginalia.domain.collections.InsertionMode;
+import com.github.enerccio.marginalia.domain.components.LoreConditions;
 import com.github.enerccio.marginalia.domain.components.LoreUsage;
 import com.github.enerccio.marginalia.domain.components.TurnInput;
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
@@ -53,13 +54,16 @@ public class ProcessLorebookStep extends GenerationStepBase {
                     // the story is read only as far back as the deepest entry looks
                     List<String> parts = storyParts(controller, activationService.partsNeeded(entries));
                     Integer position = turnPosition(controller, entries);
-                    LoreScan scan = new LoreScan(controller, entries, manuscriptTags, activationService.scanDepth(lorebook));
+                    // what the conditions of the entries are rendered against: the turn and a copy of the variables as they are
+                    // now, so a condition changes nothing
+                    LoreConditions conditions = activationService.conditionsNeeded(entries) ? new LoreConditions(createTemplateData(controller)) : null;
+                    LoreScan scan = new LoreScan(controller, entries, manuscriptTags, activationService.scanDepth(lorebook), conditions);
                     controller.getProperties().put(GenerationProperties.LOREBOOK_VERDICTS, scan.verdicts);
                     forEachAsync(controller, entries, (entry, next) -> {
                         log.debug("Processing entry: {} ", entry.getName());
                         // evaluated before the event: listeners see the verdict and can replace it
                         scan.emit(entry, activationService.evaluate(entry, manuscriptTags,
-                                controller.getPrePromptData().getUserPromptProcessed(), parts, position), 0, verdict -> {
+                                controller.getPrePromptData().getUserPromptProcessed(), parts, position, conditions), 0, verdict -> {
                             scan.record(entry, verdict, 0);
                             next.returnFromEvent();
                         });
@@ -152,7 +156,7 @@ public class ProcessLorebookStep extends GenerationStepBase {
                 .filter(entry -> scan.verdictOf(entry).reason() == Reason.FILTER_NOT_MATCHED).toList();
         List<LorebookEntry> thisPass = new java.util.ArrayList<>();
         forEachAsync(scan.controller, candidates, (entry, next) -> {
-            Verdict verdict = activationService.evaluateInContent(entry, scan.manuscriptTags, sources);
+            Verdict verdict = activationService.evaluateInContent(entry, scan.manuscriptTags, sources, scan.conditions);
             if (!verdict.activated()) {
                 next.returnFromEvent();
                 return;
@@ -181,12 +185,14 @@ public class ProcessLorebookStep extends GenerationStepBase {
         final List<LorebookEntry> entries;
         final List<String> manuscriptTags;
         final int scanDepth;
+        final LoreConditions conditions;
         final List<LorebookEntryVerdict> verdicts = new java.util.ArrayList<>();
         private final Map<LorebookEntry, Integer> index = new IdentityHashMap<>();
         private final Verdict[] current;
 
-        LoreScan(GenerationController controller, List<LorebookEntry> entries, List<String> manuscriptTags, int scanDepth) {
+        LoreScan(GenerationController controller, List<LorebookEntry> entries, List<String> manuscriptTags, int scanDepth, LoreConditions conditions) {
             this.controller = controller;
+            this.conditions = conditions;
             this.entries = entries;
             this.manuscriptTags = manuscriptTags;
             this.scanDepth = scanDepth;

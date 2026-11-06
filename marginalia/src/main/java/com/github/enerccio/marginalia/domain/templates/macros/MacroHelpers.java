@@ -19,7 +19,10 @@ public final class MacroHelpers {
     public static final String DATA_LITERALS = "marginalia.literals";
     public static final String DATA_TEMPLATE_KEY = "marginalia.templateKey";
 
-    private static final String MISSING_VALUE = "Error";
+    /**
+     * What a name that is not defined renders as.
+     */
+    public static final String MISSING_VALUE = "Error";
     private static final Pattern TRIM = Pattern.compile("(?:\\r?\\n)*" + Pattern.quote(TemplateData.TRIM_MARKER) + "(?:\\r?\\n)*");
 
     private MacroHelpers() {
