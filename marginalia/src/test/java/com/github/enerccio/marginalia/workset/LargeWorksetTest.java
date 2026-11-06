@@ -15,11 +15,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -38,8 +34,6 @@ import static org.junit.jupiter.api.Assertions.*;
 class LargeWorksetTest extends MarginaliaTestBase {
 
     private static final Gson GSON = new Gson();
-    private static final String BOOK = "/workset/book.zip";
-    private static final String LOREBOOK = "/workset/lorebook.json";
 
     /** What the first test of the class restored; the database is shared by the classes of a JVM, so it is made once. */
     private static String login;
@@ -62,22 +56,11 @@ class LargeWorksetTest extends MarginaliaTestBase {
         if (login == null) {
             User user = createUser(uniqueName("large"), DEFAULT_PASSWORD, false);
             loginAs(user);
-            Path file = Files.createTempFile("workset-book", ".zip");
-            try (InputStream in = LargeWorksetTest.class.getResourceAsStream(BOOK)) {
-                assertNotNull(in, "the book of the dataset is not in the test resources: " + BOOK);
-                Files.copy(in, file, StandardCopyOption.REPLACE_EXISTING);
-            }
-            try (InputStream in = LargeWorksetTest.class.getResourceAsStream(LOREBOOK)) {
-                assertNotNull(in, "the lorebook of the dataset is not in the test resources: " + LOREBOOK);
-                // a backup only links its lorebook, so the lorebook comes first (its uuid is fixed, the book finds it)
-                lorebookService.importLorebook(new String(in.readAllBytes(), StandardCharsets.UTF_8), "Unregistered");
-            }
             long start = System.nanoTime();
-            Manuscript restored = backupService.restoreAsNewManuscript(file.toFile(), uniqueName("Unregistered"), Map.of());
+            Manuscript restored = WorksetFixture.restore(backupService, lorebookService, uniqueName("Unregistered"), true);
             restoreMillis = (System.nanoTime() - start) / 1_000_000;
-            Files.deleteIfExists(file);
             backup = manuscriptService.createBackup(restored, true);
-            try (java.util.zip.ZipFile zip = new java.util.zip.ZipFile(extract())) {
+            try (java.util.zip.ZipFile zip = new java.util.zip.ZipFile(WorksetFixture.archive().toFile())) {
                 JsonObject stored = GSON.fromJson(new String(zip.getInputStream(zip.getEntry("backup.json")).readAllBytes(), StandardCharsets.UTF_8), JsonObject.class);
                 // the file is the stored backup (the book is in its "backup") or the book itself
                 original = stored.has("backup") && stored.get("backup").isJsonObject() ? stored.getAsJsonObject("backup") : stored;
@@ -88,15 +71,6 @@ class LargeWorksetTest extends MarginaliaTestBase {
         } else {
             loginAs(userService.findByName(login));
         }
-    }
-
-    private static java.io.File extract() throws Exception {
-        java.io.File file = java.io.File.createTempFile("workset-book", ".zip");
-        file.deleteOnExit();
-        try (InputStream in = LargeWorksetTest.class.getResourceAsStream(BOOK)) {
-            Files.copy(in, file.toPath(), StandardCopyOption.REPLACE_EXISTING);
-        }
-        return file;
     }
 
     private static JsonArray messages(JsonObject book) {
