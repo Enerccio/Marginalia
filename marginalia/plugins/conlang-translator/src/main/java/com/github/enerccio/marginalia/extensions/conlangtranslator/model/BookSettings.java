@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.extensions.conlangtranslator.model;
 
 import com.github.enerccio.marginalia.extensions.translatorcommon.model.BookLanguage;
 import com.github.enerccio.marginalia.extensions.translatorcommon.model.Speakers;
+import com.github.enerccio.marginalia.extensions.translatorcommon.model.UnderstandingSettings;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +29,8 @@ public class BookSettings {
     private Speakers speakers = new Speakers();
     /** The other languages of the book, each with its own speakers; the book's own (it is not inherited). */
     private List<BookLanguage> otherLanguages = new ArrayList<>();
+    /** How the levels of understanding of the characters (in the notes of the speakers) are put into the prompt of the story. */
+    private UnderstandingSettings understanding = new UnderstandingSettings();
 
     public String getLanguageId() {
         return languageId == null || languageId.isBlank() ? null : languageId;
@@ -86,6 +89,17 @@ public class BookSettings {
 
     public void setSpeakers(Speakers speakers) {
         this.speakers = speakers;
+    }
+
+    public UnderstandingSettings getUnderstanding() {
+        if (understanding == null) {
+            understanding = new UnderstandingSettings();
+        }
+        return understanding;
+    }
+
+    public void setUnderstanding(UnderstandingSettings understanding) {
+        this.understanding = understanding;
     }
 
     public List<BookLanguage> getOtherLanguages() {

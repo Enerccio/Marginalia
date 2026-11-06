@@ -20,6 +20,8 @@ public class CharacterNote {
     private String voice = "";
     /** On the list of the speakers: excluded in the mode {@link SpeakersMode#EVERYONE_EXCEPT}, the only ones in {@link SpeakersMode#ONLY}. */
     private boolean listed;
+    /** How much of the language the character follows when it is spoken around them; null: not said (the model is told nothing). */
+    private UnderstandingLevel level;
 
     public CharacterNote() {
     }
@@ -84,6 +86,14 @@ public class CharacterNote {
 
     public void setVoice(String voice) {
         this.voice = voice;
+    }
+
+    public UnderstandingLevel getLevel() {
+        return level;
+    }
+
+    public void setLevel(UnderstandingLevel level) {
+        this.level = level;
     }
 
     public boolean isListed() {

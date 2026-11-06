@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.extensions.reallangtranslator.model;
 
 import com.github.enerccio.marginalia.extensions.translatorcommon.model.BookLanguage;
 import com.github.enerccio.marginalia.extensions.translatorcommon.model.Speakers;
+import com.github.enerccio.marginalia.extensions.translatorcommon.model.UnderstandingSettings;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -30,6 +31,8 @@ public class BookSettings {
     private Speakers speakers = new Speakers();
     /** The other languages of the book, each with its own speakers; the book's own (it is not inherited). */
     private List<BookLanguage> otherLanguages = new ArrayList<>();
+    /** How the levels of understanding of the characters (in the notes of the speakers) are put into the prompt of the story. */
+    private UnderstandingSettings understanding = new UnderstandingSettings();
     /**
      * The glossary of this book (the nearest level): its names and terms, and the ones the model proposed, for each language of the book (the key is the
      * id of the language: a name is written another way in every language). The book's own, not inherited.
@@ -85,6 +88,17 @@ public class BookSettings {
 
     public void setSpeakers(Speakers speakers) {
         this.speakers = speakers;
+    }
+
+    public UnderstandingSettings getUnderstanding() {
+        if (understanding == null) {
+            understanding = new UnderstandingSettings();
+        }
+        return understanding;
+    }
+
+    public void setUnderstanding(UnderstandingSettings understanding) {
+        this.understanding = understanding;
     }
 
     public List<BookLanguage> getOtherLanguages() {

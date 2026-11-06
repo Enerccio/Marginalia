@@ -12,8 +12,10 @@ import com.github.enerccio.marginalia.extensions.conlangtranslator.translate.Ans
 import com.github.enerccio.marginalia.extensions.translatorcommon.model.BookLanguage;
 import com.github.enerccio.marginalia.extensions.translatorcommon.model.LanguageRef;
 import com.github.enerccio.marginalia.extensions.translatorcommon.model.Speakers;
+import com.github.enerccio.marginalia.extensions.translatorcommon.model.UnderstandingSettings;
 import com.github.enerccio.marginalia.extensions.translatorcommon.service.ModelClient;
 import com.github.enerccio.marginalia.extensions.translatorcommon.service.ModelSelection;
+import com.github.enerccio.marginalia.extensions.translatorcommon.text.UnderstandingBlock;
 import com.google.gson.JsonObject;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -183,6 +185,42 @@ public class BookConlang {
             settings.setSpeakers(speakers);
             ConlangStore.writeBook(attributes, settings);
         });
+    }
+
+    // ---- the understanding of the languages
+
+    /**
+     * How the book puts the levels of understanding into the prompt, as they are stored now, never null.
+     */
+    public UnderstandingSettings understanding(Manuscript book) throws Exception {
+        return translation.settings(book).getUnderstanding();
+    }
+
+    /**
+     * Stores how the book puts the levels of understanding into the prompt; the rest of the settings of the book is left as it is.
+     */
+    public void saveUnderstanding(Manuscript book, UnderstandingSettings understanding) throws Exception {
+        manuscriptService.update(book, current -> {
+            JsonObject attributes = ensure(current);
+            BookSettings settings = ConlangStore.readBook(attributes);
+            settings.setUnderstanding(understanding);
+            ConlangStore.writeBook(attributes, settings);
+        });
+    }
+
+    /**
+     * The languages of the book with their speakers, for the block that tells the models who follows which language.
+     */
+    public List<UnderstandingBlock.Entry> understandingEntries(Manuscript book) throws Exception {
+        BookSettings settings = translation.settings(book);
+        List<UnderstandingBlock.Entry> entries = new java.util.ArrayList<>();
+        for (LanguageRef ref : languages(book)) {
+            Speakers speakers = settings.speakersOf(ref.id());
+            if (speakers != null) {
+                entries.add(new UnderstandingBlock.Entry(ref.name(), speakers));
+            }
+        }
+        return entries;
     }
 
     // ---- the words

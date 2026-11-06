@@ -73,4 +73,35 @@ class BookSettingsTest {
         assertEquals(java.util.List.of("elf"), read.languageIds());
         assertTrue(read.getOtherLanguages().isEmpty());
     }
+
+    @Test
+    void theLevelsOfUnderstandingAndHowTheyAreInsertedAreStoredInTheBook() {
+        BookSettings settings = new BookSettings();
+        CharacterNote tomas = new CharacterNote("Tomáš");
+        tomas.setLevel(com.github.enerccio.marginalia.extensions.translatorcommon.model.UnderstandingLevel.FEW_WORDS);
+        settings.getSpeakers().getCharacters().add(tomas);
+        settings.getUnderstanding().setInPrompt(false);
+        settings.getUnderstanding().setDepth(3);
+        JsonObject attributes = new JsonObject();
+        ConlangStore.writeBook(attributes, settings);
+
+        BookSettings read = ConlangStore.readBook(attributes);
+
+        assertEquals(com.github.enerccio.marginalia.extensions.translatorcommon.model.UnderstandingLevel.FEW_WORDS, read.getSpeakers().find("Tomáš").getLevel());
+        assertFalse(read.getUnderstanding().isInPrompt());
+        assertEquals(3, read.getUnderstanding().getDepth());
+    }
+
+    @Test
+    void aBookStoredBeforeTheLevelsHasTheDefaults() {
+        JsonObject attributes = new JsonObject();
+        JsonObject stored = new JsonObject();
+        stored.addProperty("languageId", "elf");
+        attributes.add(BookSettings.KEY, stored);
+
+        BookSettings read = ConlangStore.readBook(attributes);
+
+        assertTrue(read.getUnderstanding().isInPrompt());
+        assertEquals(1, read.getUnderstanding().getDepth());
+    }
 }

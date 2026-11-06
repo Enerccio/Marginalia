@@ -1,13 +1,13 @@
 package com.github.enerccio.marginalia.extensions.translatorcommon.ui;
 
-import com.github.enerccio.marginalia.extensions.translatorcommon.model.CharacterNote;
-import com.github.enerccio.marginalia.extensions.translatorcommon.model.Speakers;
-import com.github.enerccio.marginalia.extensions.translatorcommon.model.SpeakersMode;
+import com.github.enerccio.marginalia.extensions.translatorcommon.model.*;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.radiobutton.RadioButtonGroup;
+import com.vaadin.flow.component.select.Select;
+import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import org.apache.commons.lang3.StringUtils;
@@ -24,6 +24,13 @@ import static com.github.enerccio.marginalia.extensions.translatorcommon.ui.Tran
 public class SpeakersEditor extends VerticalLayout {
 
     public SpeakersEditor(Speakers speakers, Runnable onChange) {
+        this(speakers, null, onChange);
+    }
+
+    /**
+     * @param understanding how the plugin inserts who does not follow the language into the prompt of the story, edited here too; null for none
+     */
+    public SpeakersEditor(Speakers speakers, UnderstandingSettings understanding, Runnable onChange) {
         setPadding(false);
         setSizeFull();
         setMinWidth("0");
@@ -41,7 +48,31 @@ public class SpeakersEditor extends VerticalLayout {
             }
         });
         CharactersList characters = new CharactersList(speakers.getCharacters(), onChange);
-        add(hint, mode, characters);
+        add(hint, mode);
+        if (understanding != null) {
+            Checkbox inPrompt = new Checkbox(TC.localized(TELL_THE_STORY_MODEL_WHO_DOES_NOT_FOLLOW_IT));
+            inPrompt.setValue(understanding.isInPrompt());
+            IntegerField depth = new IntegerField(TC.localized(MESSAGES_FROM_THE_END));
+            depth.setMin(0);
+            depth.setStepButtonsVisible(true);
+            depth.setValue(understanding.getDepth());
+            depth.setEnabled(understanding.isInPrompt());
+            inPrompt.addValueChangeListener(event -> {
+                if (event.isFromClient()) {
+                    understanding.setInPrompt(event.getValue());
+                    depth.setEnabled(event.getValue());
+                    onChange.run();
+                }
+            });
+            depth.addValueChangeListener(event -> {
+                if (event.isFromClient()) {
+                    understanding.setDepth(event.getValue() == null ? 1 : event.getValue());
+                    onChange.run();
+                }
+            });
+            add(inPrompt, depth);
+        }
+        add(characters);
         setFlexGrow(1, characters);
     }
 
@@ -59,6 +90,7 @@ public class SpeakersEditor extends VerticalLayout {
             grid.addColumn(CharacterNote::getGender).setHeader(TC.localized(GENDER)).setFlexGrow(0).setAutoWidth(true);
             grid.addColumn(CharacterNote::getVoice).setHeader(TC.localized(VOICE)).setFlexGrow(3);
             grid.addColumn(note -> note.isListed() ? TC.localized(YES_TEXT) : "").setHeader(TC.localized(LISTED)).setFlexGrow(0).setAutoWidth(true);
+            grid.addColumn(note -> note.getLevel() == null ? "" : levelLabel(note.getLevel())).setHeader(TC.localized(UNDERSTANDING)).setFlexGrow(0).setAutoWidth(true);
         }
 
         @Override
@@ -84,7 +116,16 @@ public class SpeakersEditor extends VerticalLayout {
             voice.setValue(note.getVoice());
             Checkbox listed = new Checkbox(TC.localized(LISTED_IN_THE_RULE_ABOVE));
             listed.setValue(note.isListed());
-            new EditDialog(isNew ? TC.localized(NEW_CHARACTER) : TC.localized(EDIT_CHARACTER), new VerticalLayout(title, aliases, gender, voice, listed), () -> {
+            Select<UnderstandingLevel> level = new Select<>();
+            level.setLabel(TC.localized(UNDERSTANDING));
+            level.setWidthFull();
+            level.setItems(UnderstandingLevel.values());
+            level.setEmptySelectionAllowed(true);
+            level.setEmptySelectionCaption(TC.localized(UNDERSTANDING_NOT_SAID));
+            level.setItemLabelGenerator(SpeakersEditor::levelLabel);
+            level.setHelperText(TC.localized(UNDERSTANDING_HELP));
+            level.setValue(note.getLevel());
+            new EditDialog(isNew ? TC.localized(NEW_CHARACTER) : TC.localized(EDIT_CHARACTER), new VerticalLayout(title, aliases, gender, voice, listed, level), () -> {
                 if (StringUtils.isBlank(title.getValue())) {
                     return TC.localized(THE_NAME_IS_EMPTY);
                 }
@@ -99,6 +140,7 @@ public class SpeakersEditor extends VerticalLayout {
                 note.setGender(gender.getValue().strip());
                 note.setVoice(voice.getValue().strip());
                 note.setListed(listed.getValue());
+                note.setLevel(level.getValue());
                 return null;
             }, done).open();
         }
@@ -107,5 +149,14 @@ public class SpeakersEditor extends VerticalLayout {
         protected String labelOf(CharacterNote note) {
             return note.getName();
         }
+    }
+
+    private static String levelLabel(UnderstandingLevel level) {
+        return switch (level) {
+            case NONE -> TC.localized(UNDERSTANDS_NOTHING);
+            case FEW_WORDS -> TC.localized(KNOWS_A_FEW_WORDS);
+            case FOLLOWS_MOST -> TC.localized(FOLLOWS_MOST_OF_IT);
+            case FLUENT -> TC.localized(FOLLOWS_EVERYTHING);
+        };
     }
 }

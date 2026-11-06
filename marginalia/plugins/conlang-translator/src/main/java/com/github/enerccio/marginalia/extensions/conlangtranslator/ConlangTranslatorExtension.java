@@ -26,13 +26,12 @@ import com.github.enerccio.marginalia.extensions.conlangtranslator.ui.LanguageSe
 import com.github.enerccio.marginalia.extensions.translatorcommon.model.ExportMode;
 import com.github.enerccio.marginalia.extensions.translatorcommon.model.LanguageRef;
 import com.github.enerccio.marginalia.extensions.translatorcommon.model.ReaderMode;
-import com.github.enerccio.marginalia.extensions.translatorcommon.service.PassageAccess;
-import com.github.enerccio.marginalia.extensions.translatorcommon.service.RangeLoop;
-import com.github.enerccio.marginalia.extensions.translatorcommon.service.RangeRuns;
-import com.github.enerccio.marginalia.extensions.translatorcommon.service.TranslatedPassages;
+import com.github.enerccio.marginalia.extensions.translatorcommon.model.UnderstandingSettings;
+import com.github.enerccio.marginalia.extensions.translatorcommon.service.*;
 import com.github.enerccio.marginalia.extensions.translatorcommon.text.SpeechExportContributor;
 import com.github.enerccio.marginalia.extensions.translatorcommon.text.SpeechPassageKind;
 import com.github.enerccio.marginalia.extensions.translatorcommon.text.SpeechTransformer;
+import com.github.enerccio.marginalia.extensions.translatorcommon.text.UnderstandingBlock;
 import com.github.enerccio.marginalia.extensions.translatorcommon.translate.Reverse.Located;
 import com.github.enerccio.marginalia.extensions.translatorcommon.ui.*;
 import com.github.enerccio.marginalia.ui.components.PartView;
@@ -110,6 +109,9 @@ public class ConlangTranslatorExtension implements MarginaliaExtension, Extensio
     private InheritedSettingRegistry inheritedSettingRegistry;
 
     @Autowired
+    private AnnotationFactsRegistry annotationFacts;
+
+    @Autowired
     private CommandService commandService;
 
     private final LanguageLibrary library = new LanguageLibrary();
@@ -126,6 +128,7 @@ public class ConlangTranslatorExtension implements MarginaliaExtension, Extensio
     private RangeRuns rangeRuns;
     private ExtensionDecorator partFinishedDecorator;
     private Registration cleanupRegistration;
+    private UnderstandingPrompt understandingPrompt;
     private ExtensionDecorator userPartDecorator;
     private ExtensionDecorator userPartSaveDecorator;
     private ExtensionDecorator viewerDecorator;
@@ -189,6 +192,21 @@ public class ConlangTranslatorExtension implements MarginaliaExtension, Extensio
 
             // a part that is generated again has a new English text: the passages of the old one go
             cleanupRegistration = storyGenerationService.addEventListener(Events.AFTER_CLEANUP, this::dropRegenerated);
+
+            // who does not follow the language (the levels in the notes of the speakers): the story model gets a message, the reviewer of a part the facts
+            understandingPrompt = new UnderstandingPrompt(new UnderstandingPrompt.Source() {
+                @Override
+                public List<UnderstandingBlock.Entry> entries(Manuscript book) throws Exception {
+                    return bookConlang.understandingEntries(book);
+                }
+
+                @Override
+                public UnderstandingSettings settings(Manuscript book) throws Exception {
+                    return bookConlang.understanding(book);
+                }
+            }, BookSettings.KEY + ".understanding", log);
+            understandingPrompt.register(storyGenerationService);
+            annotationFacts.register(owner, understandingPrompt.factsProvider());
             log.info("Conlang Translator loaded");
         } catch (Exception e) {
             throw new IllegalStateException("Failed to load the Conlang Translator extension", e);
@@ -608,6 +626,11 @@ public class ConlangTranslatorExtension implements MarginaliaExtension, Extensio
         commandSuites.clear();
         passageKinds.unregister(kind);
         partTexts.unregisterAll(owner);
+        annotationFacts.unregisterAll(owner);
+        if (understandingPrompt != null) {
+            understandingPrompt.unregister();
+            understandingPrompt = null;
+        }
         inheritedSettingRegistry.unregisterAll(owner);
         menuRegistry.unregisterAll(owner);
         if (partFinishedDecorator != null) {

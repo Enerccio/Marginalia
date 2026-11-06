@@ -28,6 +28,15 @@ public class TranslatorCommonLocalization extends PluginLocalizationBundle {
     public static final String THE_NAME_IS_EMPTY = "The name is empty";
     public static final String VOICE = "Voice";
     public static final String YES_TEXT = "Yes";
+    public static final String UNDERSTANDING = "Understands it";
+    public static final String UNDERSTANDING_NOT_SAID = "Not said";
+    public static final String UNDERSTANDS_NOTHING = "Understands nothing";
+    public static final String KNOWS_A_FEW_WORDS = "Knows a few words";
+    public static final String FOLLOWS_MOST_OF_IT = "Follows most of it";
+    public static final String FOLLOWS_EVERYTHING = "Follows everything";
+    public static final String UNDERSTANDING_HELP = "How much of the language the character follows when it is spoken around them. The story model and the reviewer of the annotation are told (\"not said\" and \"follows everything\" tell them nothing); what to do with it is up to the model, and you can say more in the instructions. A group can be written as a name (\"Other villagers\").";
+    public static final String TELL_THE_STORY_MODEL_WHO_DOES_NOT_FOLLOW_IT = "Insert who does not follow the language into the prompt of the story (off: only where the template has the macro)";
+    public static final String MESSAGES_FROM_THE_END = "Messages from the end where it is inserted";
     public static final String ADD = "Add";
     public static final String CANCEL = "Cancel";
     public static final String DELETE = "Delete";
@@ -132,6 +141,24 @@ public class TranslatorCommonLocalization extends PluginLocalizationBundle {
 
         ja(YES_TEXT, "はい");
         zh(YES_TEXT, "是");
+        ja(UNDERSTANDING, "理解の程度");
+        zh(UNDERSTANDING, "理解程度");
+        ja(UNDERSTANDING_NOT_SAID, "未指定");
+        zh(UNDERSTANDING_NOT_SAID, "未说明");
+        ja(UNDERSTANDS_NOTHING, "まったく理解しない");
+        zh(UNDERSTANDS_NOTHING, "完全听不懂");
+        ja(KNOWS_A_FEW_WORDS, "数語だけ知っている");
+        zh(KNOWS_A_FEW_WORDS, "只懂几个词");
+        ja(FOLLOWS_MOST_OF_IT, "ほとんど理解できる");
+        zh(FOLLOWS_MOST_OF_IT, "大部分能听懂");
+        ja(FOLLOWS_EVERYTHING, "すべて理解できる");
+        zh(FOLLOWS_EVERYTHING, "完全听得懂");
+        ja(UNDERSTANDING_HELP, "その言語が周囲で話されたとき、人物がどの程度理解できるか。物語のモデルと注釈のレビュー担当モデルに伝えられます(「未指定」と「すべて理解できる」は何も伝えません)。どう扱うかはモデル次第で、指示でさらに補足できます。グループも名前として書けます(「その他の村人」)。");
+        zh(UNDERSTANDING_HELP, "该语言在角色周围被说出时,角色能听懂多少。会告诉故事模型和批注审阅模型(“未说明”和“完全听得懂”不告诉它们任何内容);怎么处理由模型自行决定,你也可以在指令中补充。也可以把一个群体写成名字(“其他村民”)。");
+        ja(TELL_THE_STORY_MODEL_WHO_DOES_NOT_FOLLOW_IT, "言語を理解しない人物を物語のプロンプトに挿入する(オフ: テンプレートにマクロがある場合のみ)");
+        zh(TELL_THE_STORY_MODEL_WHO_DOES_NOT_FOLLOW_IT, "把听不懂该语言的人物插入故事提示词(关闭:仅在模板中有宏的地方)");
+        ja(MESSAGES_FROM_THE_END, "末尾から数えて挿入するメッセージ位置");
+        zh(MESSAGES_FROM_THE_END, "从末尾数起的插入位置(消息数)");
         ja(ADD, "追加");
         zh(ADD, "添加");
 

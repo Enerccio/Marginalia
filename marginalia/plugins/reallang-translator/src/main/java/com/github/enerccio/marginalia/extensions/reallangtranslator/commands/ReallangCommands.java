@@ -22,6 +22,7 @@ import com.github.enerccio.marginalia.extensions.translatorcommon.service.RangeL
 import com.github.enerccio.marginalia.extensions.translatorcommon.service.RangeLoop.RangePart;
 import com.github.enerccio.marginalia.extensions.translatorcommon.service.RangeLoop.Summary;
 import com.github.enerccio.marginalia.extensions.translatorcommon.service.TranslationWriter;
+import com.github.enerccio.marginalia.extensions.translatorcommon.text.UnderstandingBlock;
 import com.github.enerccio.marginalia.extensions.translatorcommon.translate.Reverse;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -61,6 +62,8 @@ public class ReallangCommands extends ManuscriptReadSupport {
     public static final String SET_SPEAKERS_MODE = "reallang-set-speakers-mode";
     public static final String SET_SPEAKER = "reallang-set-speaker";
     public static final String REMOVE_SPEAKER = "reallang-remove-speaker";
+    public static final String SET_UNDERSTANDING_PROMPT = "reallang-set-understanding-prompt";
+    public static final String UNDERSTANDING = "reallang-understanding";
     public static final String GLOSSARY = "reallang-glossary";
     public static final String GLOSSARY_SET = "reallang-glossary-set";
     public static final String GLOSSARY_REMOVE = "reallang-glossary-remove";
@@ -71,6 +74,7 @@ public class ReallangCommands extends ManuscriptReadSupport {
     public static final String LIST_PASSAGES = "reallang-list-passages";
     public static final String EDIT_SOURCE = "reallang-edit-source";
 
+    private static final String PARAM_UNDERSTANDS = "How much of the language the character follows: none, few-words, follows-most or fluent; empty = not said";
     private static final String PARAM_PART = "The part: its handle, or its position on the active branch (the first part is 1)";
     private static final String PARAM_LANGUAGE = "The language: its name (the case does not matter) or its id, see reallang-list";
     private static final String PARAM_BOOK_LANGUAGE = "One of the languages of the book: its name or its id (reallang-status lists them); all of them when left out";
@@ -768,13 +772,15 @@ public class ReallangCommands extends ManuscriptReadSupport {
     @Command(commandName = SET_SPEAKER, linkedCommand = SPEAKERS, humanNameText = "Set a character of the real language speakers", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
             descriptionText = "Adds a character to the speakers or changes the note on one.",
             llmDescriptionText = "Adds a character, or changes the one with this name or alias: aliases (separated by commas), gender, voice (how the character sounds: age, rank, manner, how they speak to others; the level of "
-                    + "speech follows it) and listed (in everyone-except mode a listed character does not speak the language; in only mode a listed character does). Pass only what to change. Returns the speakers.",
+                    + "speech follows it) and listed (in everyone-except mode a listed character does not speak the language; in only mode a listed character does) and understands (how much of the language the character follows "
+                    + "when it is spoken around them: none, few-words, follows-most, fluent; empty = not said; the story model and the reviewer of the annotation are told). Pass only what to change. Returns the speakers.",
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "name", type = String.class, descriptionText = "The name of the character (or an alias of one that is there)"),
                     @CommandParameter(name = "listed", type = Boolean.class, optional = true, descriptionText = "Whether the character is on the list of the mode"),
                     @CommandParameter(name = "aliases", type = String.class, optional = true, descriptionText = "Other names, separated by commas; empty removes them"),
                     @CommandParameter(name = "gender", type = String.class, optional = true, descriptionText = "The gender, free text"),
                     @CommandParameter(name = "voice", type = String.class, optional = true, descriptionText = "How the character speaks"),
+                    @CommandParameter(name = "understands", type = String.class, optional = true, descriptionText = PARAM_UNDERSTANDS),
                     @CommandParameter(name = "language", type = String.class, optional = true, descriptionText = PARAM_BOOK_LANGUAGE_FIRST)}),
             returns = @CommandReturn(name = "result", type = String.class, descriptionText = "JSON: the speakers"))
     public void setSpeaker(CommandContext context) throws Exception {
@@ -791,6 +797,10 @@ public class ReallangCommands extends ManuscriptReadSupport {
         String aliases = context.get("aliases", String.class);
         String gender = context.get("gender", String.class);
         String voice = context.get("voice", String.class);
+        String understands = context.get("understands", String.class);
+        if (understands != null) {
+            note.setLevel(UnderstandingLevel.parse(understands));
+        }
         if (listed != null) {
             note.setListed(listed);
         }
@@ -832,6 +842,47 @@ public class ReallangCommands extends ManuscriptReadSupport {
         speakers.getCharacters().remove(note);
         bookReal.saveSpeakers(book.manuscript, languageId, speakers);
         context.setReturn(GSON.toJson(speakersRow(speakers)));
+    }
+
+    // ---- the understanding of the language
+
+    @Command(commandName = SET_UNDERSTANDING_PROMPT, linkedCommand = SPEAKERS, humanNameText = "Insert who does not follow the real language", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            descriptionText = "Chooses whether the levels of understanding of the characters are inserted into the prompt of the story, and where.",
+            llmDescriptionText = "Sets whether the book inserts the levels of understanding (set with reallang-set-speaker) into the prompt of the story by itself (in-prompt; turn it off to place the "
+                    + "{{command::reallang-understanding}} macro in a template instead) and how many messages from the end of the payload it goes (depth, 0 = the very end, 1 = before the instructions of the turn). "
+                    + "Pass only what to change. Returns the settings.",
+            signature = @CommandParameterSignature({
+                    @CommandParameter(name = "inPrompt", type = Boolean.class, optional = true, descriptionText = "Insert the block into the prompt of the story"),
+                    @CommandParameter(name = "depth", type = Integer.class, optional = true, descriptionText = "Messages from the end of the payload, 0 or more")}),
+            returns = @CommandReturn(name = "result", type = String.class, descriptionText = "JSON: inPrompt and depth"))
+    public void setUnderstandingPrompt(CommandContext context) throws Exception {
+        Book book = new Book(context);
+        UnderstandingSettings settings = bookReal.understanding(book.manuscript);
+        Boolean inPrompt = context.get("inPrompt", Boolean.class);
+        Integer depth = context.get("depth", Integer.class);
+        if (inPrompt != null) {
+            settings.setInPrompt(inPrompt);
+        }
+        if (depth != null) {
+            settings.setDepth(depth);
+        }
+        bookReal.saveUnderstanding(book.manuscript, settings);
+        JsonObject result = new JsonObject();
+        result.addProperty("inPrompt", settings.isInPrompt());
+        result.addProperty("depth", settings.getDepth());
+        answer(context, result);
+    }
+
+    @Command(commandName = UNDERSTANDING, linkedCommand = SPEAKERS, humanNameText = "Language understanding block", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true, availableInMacros = true,
+            descriptionText = "Which characters do not follow which language, as plain text, the way the prompt gets it. Made for the {{command::reallang-understanding::<characters>}} macro of a template: the argument "
+                    + "is an optional list of characters to keep, all of them when left out. Reads only.",
+            llmDescriptionText = "Returns the text the prompt gets about which characters do not follow which language (the levels set with reallang-set-speaker); characters is an optional list of "
+                    + "names to keep, separated by commas. Empty when no level is set. Reads only.",
+            signature = @CommandParameterSignature({@CommandParameter(name = "characters", type = String.class, optional = true, descriptionText = "The characters to keep, separated by commas; all of them when left out")}),
+            returns = @CommandReturn(name = "result", type = String.class, descriptionText = "Text: the levels that say something; empty when none is set"))
+    public void understanding(CommandContext context) throws Exception {
+        Book book = new Book(context);
+        context.setReturn(UnderstandingBlock.build(bookReal.understandingEntries(book.manuscript), context.get("characters", String.class)));
     }
 
     // ---- reading
@@ -1014,6 +1065,7 @@ public class ReallangCommands extends ManuscriptReadSupport {
             c.addProperty("voice", note.getVoice());
             c.addProperty("listed", note.isListed());
             c.addProperty("speaksTheLanguage", speakers.speaks(note.getName()));
+            c.addProperty("understands", note.getLevel() == null ? "" : note.getLevel().key());
             list.add(c);
         }
         row.add("characters", list);
