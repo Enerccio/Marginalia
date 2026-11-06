@@ -289,6 +289,12 @@ public final class CssStyles {
     public static final String STYLE_EDITOR_PREVIEW = "style-editor-preview";
     public static final String STYLE_EDITOR_CSS = "style-editor-css";
 
+    // --- Planner tab of the story editor (ui.dialogs.story.PlannerPanel) ---
+    public static final String PLANNER_SCENE = "planner-scene";
+    public static final String PLANNER_SCENE_DONE = "planner-scene-done";
+    public static final String PLANNER_SCENE_MAIN = "planner-scene-main";
+    public static final String PLANNER_SCENE_TEXT = "planner-scene-text";
+
     private CssStyles() {
     }
 

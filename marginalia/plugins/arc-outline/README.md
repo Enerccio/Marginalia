@@ -148,6 +148,15 @@ the limit and the newest messages of the chat that fit what the model takes. The
 (`InferenceService.stream`), nothing in the book is changed by it; *Generate an arc from this message* opens the `ArcGeneratorDialog` with the
 text as its specification.
 
+**Tools.** `WizardOptions.toolGroups` (`PLANNER`, `LORE`, `OUTLINE`, `GENERATE`) and `askBeforeChanging` choose what the model may call. `ArcOutlineService.toolNames`
+lists the commands of a group and `wizardFunctions` makes the `FunctionSet` of them with `CommandFunctions.create` (the same bridge agents use), on a `CommandCage` with
+`CommandScopes.forManuscript(book)` and `DestructiveCommandMode.ASK` (or `AUTO`), plus the functions of the name tools of the tool dialog (`ToolSet`). Commands that are
+not registered (the Lore Generator is not installed) are skipped, the delete commands of the lorebook and the outline are left out (they ask a question nobody can answer in
+that scope). The stream is `InferenceService.stream(payload, protocol, functions, callback)`: the inference service runs the loop and the calls on threads that have the request
+context of the user. `onFunctionCall` adds a `WizardCall` to the answer (kept in `WizardMessage.calls`); `Approval` shows a `ConfirmDialog` and the model waits for the answer
+(a stop answers it with no). The instructions for the model are `Defaults.WIZARD_TOOLS_PROMPT` (with the hints of the name tools), added to the system prompt only when
+there are functions.
+
 The chats (`WizardData` > `WizardChat` > `WizardMessage`) are stored with the book under `com.github.enerccio.marginalia.extensions.arcoutline.wizard`.
 A branch (`WizardChat.branch`) is a deep copy. *Summarize the chat* asks the author for an optional note on what to keep (`WizardContext.summaryPrompt` puts it under the instructions), asks the model with `Defaults.WIZARD_SUMMARY_PROMPT` and adds the answer as a
 message with `summary` set; `WizardContext.sinceSummary` and `lastSummary` make the model get the newest summary (in its system prompt) and the

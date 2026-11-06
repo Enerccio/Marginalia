@@ -208,6 +208,7 @@
     <bean class="com.github.enerccio.marginalia.domain.service.impl.RedraftServiceImpl" />
     <bean class="com.github.enerccio.marginalia.domain.service.impl.ImpersonateServiceImpl" />
     <bean class="com.github.enerccio.marginalia.domain.service.impl.AnnotateServiceImpl" />
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.PlannerServiceImpl" />
 
     <bean id="agentRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaAgentRepository">
         <property name="entityManager" ref="em"/>

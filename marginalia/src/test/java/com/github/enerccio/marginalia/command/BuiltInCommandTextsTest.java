@@ -57,7 +57,7 @@ class BuiltInCommandTextsTest extends MarginaliaTestBase {
                 "get-part-metrics", "show-prompt", "search-parts", "find-occurrences", "compare-parts", "count-tokens",
                 "list-summaries", "get-summary", "check-summaries", "get-template-variables",
                 "list-lorebooks", "list-lore-entries", "get-lore-entry", "search-lore", "preview-lore-activation",
-                "list-annotations", "get-annotation", "get-book-statistics", "get-statistics")) {
+                "list-annotations", "get-annotation", "get-book-statistics", "get-statistics", "get-planned-scenes")) {
             expected.put(name, CommandDataSeverity.NON_DESTRUCTIVE);
         }
         // the commands that change the book: what they do to the text that exists decides (adding is not destructive)
@@ -65,11 +65,12 @@ class BuiltInCommandTextsTest extends MarginaliaTestBase {
                 "set-summary", "revalidate-summaries", "regenerate-summary", "create-meta-summary", "next", "swipe",
                 "set-book-info", "set-book-tags", "set-book-history-limit", "create-lore-entry", "update-lore-entry", "move-lore-entry",
                 "set-lore-entry-tags", "create-lorebook", "set-lorebook", "add-subbook", "remove-subbook",
-                "create-annotation", "update-annotation", "resolve-annotation", "reattach-annotation", "generate-annotation", "impersonate")) {
+                "create-annotation", "update-annotation", "resolve-annotation", "reattach-annotation", "generate-annotation", "impersonate",
+                "add-planned-scene", "set-planned-scene-done", "move-planned-scene")) {
             expected.put(name, CommandDataSeverity.NON_DESTRUCTIVE);
         }
         for (String name : List.of("replace-part-text", "delete-part", "remove-summary", "regenerate", "redraft-part", "set-book-prompts",
-                "delete-lore-entry", "delete-lorebook", "delete-annotation")) {
+                "delete-lore-entry", "delete-lorebook", "delete-annotation", "update-planned-scene", "delete-planned-scene")) {
             expected.put(name, CommandDataSeverity.DESTRUCTIVE);
         }
         for (CommandDefinition definition : commandService.getCommands()) {

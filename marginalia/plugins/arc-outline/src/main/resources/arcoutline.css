@@ -192,3 +192,14 @@
     opacity: 0.55;
 }
 
+/* A tool the model called: small, under the answer it belongs to */
+.arc-outline-wizard-call {
+    font-size: var(--lumo-font-size-xs);
+    color: var(--lumo-secondary-text-color);
+    margin-bottom: var(--lumo-space-xs);
+}
+
+.arc-outline-wizard-call-failed {
+    color: var(--lumo-error-text-color);
+}
+

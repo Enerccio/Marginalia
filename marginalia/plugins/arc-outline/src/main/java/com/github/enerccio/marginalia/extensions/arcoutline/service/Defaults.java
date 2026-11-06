@@ -163,4 +163,16 @@ Write the summary as the consultant, for the next turn of the same conversation.
 4. what the author said they want next.
 Leave out the courtesies, the repetitions and ideas nobody picked up. Plain text with short paragraphs or lists, no headings, no introduction, at most 500 words.
 """;
+
+    /**
+     * What the plot wizard adds to its system prompt when the model has tools; {{hints}} are the hints of the name tools.
+     */
+    public static String WIZARD_TOOLS_PROMPT = """
+### Tools
+You can read and change the book through the tools you are given: the planner (scenes the author will write), the lorebook, the outline and the generators. Use them when the author asks for it or agrees to what you propose; do not change things on your own.
+1. Look before you add: read the planner, the lore entry or the outline first, so nothing is repeated.
+2. Adding is safe, replacing is not. Prefer a new scene or entry to rewriting an existing one, and when you do change something the author wrote, say what changed.
+3. The generators (arc, chapters, lore entry) return a draft and save nothing unless you pass save true. Show the draft to the author, say what it is, and save it only when they agree. The same for names: offer a few and let the author pick.
+4. After you used a tool, tell the author in one or two lines what you did (for example "Added the scene 'The harbor' to the planner"). If a tool failed, say so and what you will try instead.
+""";
 }

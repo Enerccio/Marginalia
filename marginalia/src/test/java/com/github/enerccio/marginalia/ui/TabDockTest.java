@@ -576,6 +576,7 @@ class TabDockTest extends MarginaliaTestBase {
     private static final String CHAPTERS = ManuscriptStoryPart.CHAPTERS_TAB;
     private static final String LOREBOOK = ManuscriptStoryPart.LOREBOOK_TAB;
     private static final String ANNOTATIONS = ManuscriptStoryPart.ANNOTATIONS_TAB;
+    private static final String PLANNER = ManuscriptStoryPart.PLANNER_TAB;
 
     private Manuscript book() throws Exception {
         Manuscript manuscript = new Manuscript();
@@ -597,7 +598,7 @@ class TabDockTest extends MarginaliaTestBase {
 
         TabDock dock = leftBar(dialog);
         assertThat(dock.getLayout()).isEqualTo(json("{\"columns\":["
-                + "{\"size\":20,\"groups\":[{\"tabs\":[\"" + CHAPTERS + "\",\"" + LOREBOOK + "\",\"" + ANNOTATIONS + "\"]}]},"
+                + "{\"size\":20,\"groups\":[{\"tabs\":[\"" + CHAPTERS + "\",\"" + LOREBOOK + "\",\"" + ANNOTATIONS + "\",\"" + PLANNER + "\"]}]},"
                 + "{\"size\":80,\"groups\":[{\"tabs\":[\"" + STORY + "\"]}]}]}"));
         assertThat(sheets(dock)).hasSize(2);
         assertThat(captions(sheets(dock).get(1))).hasSize(1);
@@ -622,7 +623,7 @@ class TabDockTest extends MarginaliaTestBase {
         Manuscript saved = manuscriptService.find(manuscript);
         assertThat(saved.getAttributes().getAsJsonObject(ManuscriptStoryPart.TABS_CONFIG_ATTRIBUTE))
                 .isEqualTo(json("{\"columns\":["
-                        + "{\"size\":20,\"groups\":[{\"tabs\":[\"" + CHAPTERS + "\",\"" + LOREBOOK + "\",\"" + ANNOTATIONS + "\"]},{\"tabs\":[\"extra\"]}]},"
+                        + "{\"size\":20,\"groups\":[{\"tabs\":[\"" + CHAPTERS + "\",\"" + LOREBOOK + "\",\"" + ANNOTATIONS + "\",\"" + PLANNER + "\"]},{\"tabs\":[\"extra\"]}]},"
                         + "{\"size\":80,\"groups\":[{\"tabs\":[\"" + STORY + "\"]}]}]}"));
 
         // a dialog opened later has the sheets as they were left
@@ -685,8 +686,8 @@ class TabDockTest extends MarginaliaTestBase {
         TabDock dock = leftBar(opened(manuscript));
 
         assertThat(dock.getLayout()).isEqualTo(json("{\"columns\":["
-                // the tab of the annotations is new to the layout: it goes to the first sheet, as the tabs of extensions do
-                + "{\"size\":30,\"groups\":[{\"tabs\":[\"" + CHAPTERS + "\",\"" + ANNOTATIONS + "\"]},{\"tabs\":[\"" + LOREBOOK + "\"]}]},"
+                // the tabs of the annotations and the planner are new to the layout: they go to the first sheet, as the tabs of extensions do
+                + "{\"size\":30,\"groups\":[{\"tabs\":[\"" + CHAPTERS + "\",\"" + ANNOTATIONS + "\",\"" + PLANNER + "\"]},{\"tabs\":[\"" + LOREBOOK + "\"]}]},"
                 + "{\"size\":70,\"groups\":[{\"tabs\":[\"" + STORY + "\"]}]}]}"));
         assertThat(sheets(dock)).hasSize(3);
 
@@ -728,7 +729,7 @@ class TabDockTest extends MarginaliaTestBase {
         restore.invoke(storyPart(dialog));
 
         assertThat(dock.getLayout()).isEqualTo(json("{\"columns\":["
-                + "{\"size\":20,\"groups\":[{\"tabs\":[\"" + CHAPTERS + "\",\"" + LOREBOOK + "\",\"" + ANNOTATIONS + "\"]}]},"
+                + "{\"size\":20,\"groups\":[{\"tabs\":[\"" + CHAPTERS + "\",\"" + LOREBOOK + "\",\"" + ANNOTATIONS + "\",\"" + PLANNER + "\"]}]},"
                 + "{\"size\":80,\"groups\":[{\"tabs\":[\"" + STORY + "\"]}]}]}"));
         Manuscript saved = manuscriptService.find(manuscript);
         assertThat(saved.getAttributes().has(ManuscriptStoryPart.TABS_CONFIG_ATTRIBUTE)).isFalse();
@@ -751,7 +752,7 @@ class TabDockTest extends MarginaliaTestBase {
         restore.invoke(storyPart(dialog));
 
         // in the first sheet, with the tabs of the sidebar
-        assertThat(captions(sheets(dock).get(0))).hasSize(4).contains("Extra");
+        assertThat(captions(sheets(dock).get(0))).hasSize(5).contains("Extra");
     }
 
     @Test

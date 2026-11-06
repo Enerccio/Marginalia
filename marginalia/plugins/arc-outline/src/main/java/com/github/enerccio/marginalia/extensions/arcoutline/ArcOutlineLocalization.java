@@ -167,6 +167,20 @@ public class ArcOutlineLocalization extends PluginLocalizationBundle {
     public static final String THE_SUMMARY_KEEPS_PLACEHOLDER = "For example: keep the twist about the traitor and the ending we rejected";
     public static final String EMPTY_THE_MODEL_DECIDES = "Optional. Empty: the model decides what matters.";
     public static final String SUMMARIZE = "Summarize";
+    public static final String WHAT_THE_MODEL_MAY_DO = "What the model may do";
+    public static final String TOOLS_PLANNER = "Planner: read and change the scenes";
+    public static final String TOOLS_PLANNER_TIP = "The scenes you plan to write: it can list them, add, change, move and mark them done.";
+    public static final String TOOLS_LOREBOOK = "Lorebook: read, add and change entries";
+    public static final String TOOLS_LOREBOOK_TIP = "It can search and read the lore, create entries and change the text of existing ones.";
+    public static final String TOOLS_OUTLINE = "Outline: read and change arcs and chapters";
+    public static final String TOOLS_OUTLINE_TIP = "It can read the outline, add arcs and chapters, change them and move them.";
+    public static final String TOOLS_GENERATORS = "Generators: arc, chapters, lore entry";
+    public static final String TOOLS_GENERATORS_TIP = "It can call the arc and chapter generators and the Lore Generator. They return a draft; it saves one only when told to.";
+    public static final String ASK_BEFORE_IT_CHANGES_ANYTHING = "Ask me before it changes or deletes something";
+    public static final String ADDING_IS_NOT_ASKED = "Adding a scene, an entry or an arc is not asked, you see it in the chat and can delete it. Changing and deleting what exists is.";
+    public static final String THE_MODEL_WANTS_TO_RUN = "The model wants to run %s";
+    public static final String ALLOW = "Allow";
+    public static final String REFUSE = "Refuse";
 
     @Override
     protected void loadKeys() {
@@ -639,5 +653,47 @@ public class ArcOutlineLocalization extends PluginLocalizationBundle {
 
         ja(SUMMARIZE, "要約する");
         zh(SUMMARIZE, "总结");
+
+        ja(WHAT_THE_MODEL_MAY_DO, "モデルができること");
+        zh(WHAT_THE_MODEL_MAY_DO, "模型可以做什么");
+
+        ja(TOOLS_PLANNER, "プランナー: シーンの読み取りと変更");
+        zh(TOOLS_PLANNER, "规划器：读取和修改场景");
+
+        ja(TOOLS_PLANNER_TIP, "書く予定のシーン: 一覧、追加、変更、移動、完了の設定ができます。");
+        zh(TOOLS_PLANNER_TIP, "你计划要写的场景：可以列出、添加、修改、移动并标记为已完成。");
+
+        ja(TOOLS_LOREBOOK, "ロアブック: エントリの読み取り、追加、変更");
+        zh(TOOLS_LOREBOOK, "设定集：读取、添加和修改条目");
+
+        ja(TOOLS_LOREBOOK_TIP, "設定を検索・閲覧し、エントリを作成し、既存のエントリの本文を変更できます。");
+        zh(TOOLS_LOREBOOK_TIP, "可以搜索和阅读设定，创建条目并修改现有条目的文本。");
+
+        ja(TOOLS_OUTLINE, "アウトライン: アークと章の読み取りと変更");
+        zh(TOOLS_OUTLINE, "大纲：读取和修改故事弧与章节");
+
+        ja(TOOLS_OUTLINE_TIP, "アウトラインを読み、アークと章の追加、変更、移動ができます。");
+        zh(TOOLS_OUTLINE_TIP, "可以读取大纲，添加、修改和移动故事弧与章节。");
+
+        ja(TOOLS_GENERATORS, "ジェネレーター: アーク、章、設定エントリ");
+        zh(TOOLS_GENERATORS, "生成器：故事弧、章节、设定条目");
+
+        ja(TOOLS_GENERATORS_TIP, "アークと章のジェネレーターおよびロアジェネレーターを呼び出せます。下書きを返し、指示があったときだけ保存します。");
+        zh(TOOLS_GENERATORS_TIP, "可以调用故事弧和章节生成器以及设定生成器。它们返回草稿，只有被告知时才保存。");
+
+        ja(ASK_BEFORE_IT_CHANGES_ANYTHING, "変更や削除の前に確認する");
+        zh(ASK_BEFORE_IT_CHANGES_ANYTHING, "修改或删除前先询问我");
+
+        ja(ADDING_IS_NOT_ASKED, "シーン、エントリ、アークの追加は確認しません（チャットに表示され、削除できます）。既存のものの変更と削除は確認します。");
+        zh(ADDING_IS_NOT_ASKED, "添加场景、条目或故事弧不会询问（会显示在对话中，可以删除）。修改和删除已有内容则会询问。");
+
+        ja(THE_MODEL_WANTS_TO_RUN, "モデルが %s を実行しようとしています");
+        zh(THE_MODEL_WANTS_TO_RUN, "模型想要运行 %s");
+
+        ja(ALLOW, "許可");
+        zh(ALLOW, "允许");
+
+        ja(REFUSE, "拒否");
+        zh(REFUSE, "拒绝");
     }
 }

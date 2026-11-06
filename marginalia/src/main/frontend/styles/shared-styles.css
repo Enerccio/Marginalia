@@ -1894,3 +1894,44 @@ vaadin-dialog-overlay.agent-console-phone .help-message-user {
     font-family: var(--lumo-font-family-monospace, monospace);
     font-size: var(--lumo-font-size-s);
 }
+
+/* Planner tab of the story editor: a scene is a row, the text of it is clickable (it goes into the next turn) */
+.planner-scene {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--lumo-space-xs);
+    padding: var(--lumo-space-xs) var(--lumo-space-s);
+    border-bottom: 1px solid var(--lumo-contrast-10pct);
+}
+
+.planner-scene-main {
+    flex: 1 1 auto;
+    min-width: 0;
+    cursor: pointer;
+    border-radius: var(--lumo-border-radius-s);
+}
+
+.planner-scene-main:hover {
+    background-color: var(--lumo-primary-color-10pct);
+}
+
+.planner-scene-text {
+    font-size: var(--lumo-font-size-s);
+    color: var(--lumo-secondary-text-color);
+    overflow-wrap: anywhere;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* A scene that is written: dimmed and its title struck through */
+.planner-scene-done {
+    opacity: 0.6;
+}
+
+.planner-scene-done .text-bold {
+    text-decoration: line-through;
+}
+

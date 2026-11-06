@@ -98,6 +98,11 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
      */
     public static final String ANNOTATIONS_TAB = "annotations";
 
+    /**
+     * Id of the Planner tab (the scenes the author plans to write) in the layout of the tabs.
+     */
+    public static final String PLANNER_TAB = "planner";
+
     @Autowired
     private Localization loc;
 
@@ -169,6 +174,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
     private StoryBranchSearch branchSearch;
     private StoryAnnotations annotations;
     private AnnotationsPanel annotationsPanel;
+    private PlannerPanel plannerPanel;
     private final StoryBackup backup = new StoryBackup();
     private final StoryMassDelete massDelete;
     private Long scrollToMessageId;
@@ -195,10 +201,11 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
             }
         });
         // the default arrangement from the start: the tabs added below find their place in it
-        leftBar.setLayout(StoryDockLayout.defaultLayout(STORY_TAB, null, CHAPTERS_TAB, LOREBOOK_TAB, ANNOTATIONS_TAB));
+        leftBar.setLayout(StoryDockLayout.defaultLayout(STORY_TAB, null, CHAPTERS_TAB, LOREBOOK_TAB, ANNOTATIONS_TAB, PLANNER_TAB));
         createStoryOutlineTab();
         createLorebookTab();
         createAnnotationsTab();
+        createPlannerTab();
 
         centerLayout = new VerticalLayout();
         centerLayout.setSizeFull();
@@ -956,6 +963,8 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
         Set<Long> openedReasonings = cards.collectOpenedReasonings();
         // the texts may have changed since the annotations were read
         annotations.invalidate();
+        // the book may be another one than before
+        plannerPanel.refresh();
 
         centerContentPanel.removeAll();
         sidebarList.removeAll();
@@ -1114,6 +1123,23 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
             }
         });
         leftBar.add(ANNOTATIONS_TAB, loc.getValue(L.LABEL_ANNOTATIONS), TabDockIcon.ANNOTATIONS, annotationsPanel);
+    }
+
+    /**
+     * The Planner tab: the scenes the author plans to write. A click on a scene puts its details into the new turn form.
+     */
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = void.class))
+    private void createPlannerTab() {
+        plannerPanel = new PlannerPanel(() -> currentManuscript, scene -> {
+            if (newTurnForm == null || newTurnPopover == null) {
+                return false;
+            }
+            newTurnForm.restoreState(PlannerPanel.toFormState(scene));
+            newTurnPopover.setOpened(true);
+            return true;
+        });
+        leftBar.add(PLANNER_TAB, loc.getValue(L.LABEL_PLANNER), TabDockIcon.PLANNER, plannerPanel);
     }
 
     /**
@@ -1295,7 +1321,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
         }
         leftBar.setLayout(StoryDockLayout.migrate(stored,
                 position != null && position.isJsonPrimitive() && position.getAsJsonPrimitive().isNumber() ? position.getAsDouble() : null,
-                STORY_TAB, CHAPTERS_TAB, LOREBOOK_TAB, ANNOTATIONS_TAB));
+                STORY_TAB, CHAPTERS_TAB, LOREBOOK_TAB, ANNOTATIONS_TAB, PLANNER_TAB));
     }
 
     /**

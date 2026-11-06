@@ -23,6 +23,18 @@ public class WizardOptions {
         NONE, TERSE, FULL
     }
 
+    /** What the model may do through tools; each group is a set of commands (see {@code ArcOutlineService.toolNames}). */
+    public enum ToolGroup {
+        /** Read and change the scenes of the planner. */
+        PLANNER,
+        /** Read the lorebook, add and change its entries. */
+        LORE,
+        /** Read and change the arcs and chapters of the outline. */
+        OUTLINE,
+        /** The generators: an arc, the chapters of an arc, a lore entry. They only return a draft until the model is told to save it. */
+        GENERATE
+    }
+
     private Mode mode = Mode.FREE;
     private boolean lorebook = true;
     private OutlineDetail outline = OutlineDetail.FULL;
@@ -32,6 +44,10 @@ public class WizardOptions {
     private boolean story = false;
     /** The most tokens of the story parts, null for a third of what the model takes. */
     private Integer storyTokens;
+    /** The groups of tools the model may use, none for a plain conversation. */
+    private java.util.Set<ToolGroup> toolGroups;
+    /** Whether the author is asked before the model runs a command that changes or deletes what exists (adding is not asked). */
+    private boolean askBeforeChanging = true;
     /** The template of the system prompt, blank for {@code Defaults.WIZARD_PROMPT}. */
     private String prompt;
 
@@ -81,6 +97,22 @@ public class WizardOptions {
 
     public void setStoryTokens(Integer storyTokens) {
         this.storyTokens = storyTokens;
+    }
+
+    public java.util.Set<ToolGroup> getToolGroups() {
+        return toolGroups == null ? java.util.EnumSet.noneOf(ToolGroup.class) : toolGroups;
+    }
+
+    public void setToolGroups(java.util.Set<ToolGroup> toolGroups) {
+        this.toolGroups = toolGroups == null || toolGroups.isEmpty() ? null : java.util.EnumSet.copyOf(toolGroups);
+    }
+
+    public boolean isAskBeforeChanging() {
+        return askBeforeChanging;
+    }
+
+    public void setAskBeforeChanging(boolean askBeforeChanging) {
+        this.askBeforeChanging = askBeforeChanging;
     }
 
     public String getPrompt() {

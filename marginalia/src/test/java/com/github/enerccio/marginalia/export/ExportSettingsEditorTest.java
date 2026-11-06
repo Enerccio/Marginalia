@@ -65,7 +65,7 @@ class ExportSettingsEditorTest extends MarginaliaTestBase {
         ExportSettingsEditor editor = editor();
 
         assertThat(editor.getShownExporters()).extracting(ExporterService.Exporter::getId)
-                .containsExactlyInAnyOrder("txt", "md", "html", "docx", "pdf", "epub", "markdown-front-matter", "obsidian");
+                .containsExactlyInAnyOrder("txt", "md", "html", "docx", "pdf", "epub", "markdown-front-matter", "obsidian", "latex");
         assertThat(editor.getStyleField("txt")).as("no fonts, no style").isNull();
         assertThat(editor.getStyleField("pdf").getValue()).isEqualTo("export-pdf");
         assertThat(editor.getStyleField("html").getValue()).isEqualTo("export-html");

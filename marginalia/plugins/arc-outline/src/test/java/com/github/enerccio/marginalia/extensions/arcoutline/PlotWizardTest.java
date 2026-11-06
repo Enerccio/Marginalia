@@ -122,6 +122,32 @@ class PlotWizardTest {
     }
 
     @Test
+    void everyGroupOfToolsHasCommandsAndNoneOfThemDeletesFromTheBookExceptThePlanner() {
+        for (var group : com.github.enerccio.marginalia.extensions.arcoutline.model.WizardOptions.ToolGroup.values()) {
+            List<String> names = com.github.enerccio.marginalia.extensions.arcoutline.service.ArcOutlineService.toolNames(group);
+            assertFalse(names.isEmpty(), group.name());
+            if (group != com.github.enerccio.marginalia.extensions.arcoutline.model.WizardOptions.ToolGroup.PLANNER) {
+                names.forEach(name -> assertFalse(name.startsWith("delete-"), name + " asks a question nobody can answer there"));
+            }
+        }
+    }
+
+    @Test
+    void theToolsAreExplainedToTheModelWithTheHintsOfTheNameToolsUnder() {
+        String system = WizardContext.withTools("system\n", "### Tools\nuse them", " hint ");
+        assertEquals("system\n\n### Tools\nuse them\n\nhint", system);
+        assertEquals("system\n\n### Tools\nuse them", WizardContext.withTools("system", "### Tools\nuse them", null));
+    }
+
+    @Test
+    void anEarlierAnswerTellsTheModelWhichToolsItUsed() {
+        var ok = new com.github.enerccio.marginalia.extensions.arcoutline.model.WizardCall("add-planned-scene", "{}", "{}", false);
+        var bad = new com.github.enerccio.marginalia.extensions.arcoutline.model.WizardCall("update-lore-entry", "{}", "no", true);
+        assertEquals("text", WizardContext.withCalls("text", List.of()));
+        assertEquals("text\n\n[Tools used in this answer: add-planned-scene, update-lore-entry (failed)]", WizardContext.withCalls("text", List.of(ok, bad)));
+    }
+
+    @Test
     void aBranchIsACopyThatHasNothingToDoWithTheOriginal() {
         WizardChat chat = new WizardChat();
         chat.getMessages().addAll(List.of(user("q1"), model("a1"), summary("S"), user("q2")));
