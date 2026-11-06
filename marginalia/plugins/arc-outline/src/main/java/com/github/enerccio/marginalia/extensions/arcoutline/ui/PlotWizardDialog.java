@@ -671,17 +671,39 @@ public class PlotWizardDialog extends Dialog {
         return payload;
     }
 
-    /** Asks the model to summarize the chat; the summary becomes the newest message of the chat. */
+    /** Asks what the summary should keep, then asks the model to summarize the chat; the summary becomes the newest message of the chat. */
     private void summarize() {
         if (modelPicker.getAi() == null) {
             Notification.warning(T.localized(CHOOSE_A_MODEL));
             return;
         }
-        List<WizardMessage> messages = WizardContext.sinceSummary(chat.getMessages());
-        if (messages.stream().noneMatch(m -> !m.isFromUser())) {
+        if (WizardContext.sinceSummary(chat.getMessages()).stream().noneMatch(m -> !m.isFromUser())) {
             Notification.warning(T.localized(NOTHING_TO_SUMMARIZE));
             return;
         }
+        Dialog dialog = new Dialog();
+        dialog.setHeaderTitle(T.localized(SUMMARIZE_THE_CHAT_TITLE));
+        dialog.setWidth("600px");
+        TextArea note = new TextArea(T.localized(WHAT_THE_SUMMARY_SHOULD_KEEP));
+        note.setWidthFull();
+        note.setMinHeight("120px");
+        note.setMaxHeight("40vh");
+        note.setPlaceholder(T.localized(THE_SUMMARY_KEEPS_PLACEHOLDER));
+        note.setHelperText(T.localized(EMPTY_THE_MODEL_DECIDES));
+        DialogFocus.onOpen(dialog, note);
+        Button ok = new Button(T.localized(SUMMARIZE), Solid.COMPRESS.create(), _ -> {
+            dialog.close();
+            runSummary(note.getValue());
+        });
+        ok.setThemeName("primary");
+        dialog.add(note);
+        dialog.getFooter().add(new Button(T.localized(CANCEL), _ -> dialog.close()), ok);
+        dialog.open();
+    }
+
+    /** @param note what the author asks the summary to keep or stress, may be blank */
+    private void runSummary(String note) {
+        List<WizardMessage> messages = WizardContext.sinceSummary(chat.getMessages());
         StringBuilder transcript = new StringBuilder();
         String earlier = WizardContext.lastSummary(chat.getMessages());
         if (StringUtils.isNotBlank(earlier)) {
@@ -691,7 +713,7 @@ public class PlotWizardDialog extends Dialog {
             transcript.append(message.isFromUser() ? "Author: " : "Consultant: ").append(message.getText().strip()).append("\n\n");
         }
         List<LLMChatMessage> payload = new ArrayList<>();
-        payload.add(LLMChatMessage.of(LLMRole.SYSTEM, Defaults.WIZARD_SUMMARY_PROMPT));
+        payload.add(LLMChatMessage.of(LLMRole.SYSTEM, WizardContext.summaryPrompt(Defaults.WIZARD_SUMMARY_PROMPT, note)));
         payload.add(LLMChatMessage.of(LLMRole.USER, transcript.toString().stripTrailing()));
         start(payload, true);
     }

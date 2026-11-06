@@ -114,6 +114,14 @@ class PlotWizardTest {
     }
 
     @Test
+    void whatTheAuthorAsksTheSummaryToKeepGoesUnderTheInstructions() {
+        assertEquals("base", WizardContext.summaryPrompt("base", null));
+        assertEquals("base", WizardContext.summaryPrompt("base", "  "));
+        String prompt = WizardContext.summaryPrompt("base\n", " keep the twist ");
+        assertTrue(prompt.startsWith("base\n\n### What the author asks the summary to keep or stress\nkeep the twist\n"));
+    }
+
+    @Test
     void aBranchIsACopyThatHasNothingToDoWithTheOriginal() {
         WizardChat chat = new WizardChat();
         chat.getMessages().addAll(List.of(user("q1"), model("a1"), summary("S"), user("q2")));

@@ -162,6 +162,11 @@ public class ArcOutlineLocalization extends PluginLocalizationBundle {
     public static final String EMPTY_A_THIRD_OF_WHAT_THE_MODEL_TAKES = "Empty: a third of what the model takes";
     public static final String THE_MODEL_GETS = "The model gets %d summaries and %d parts of the story.";
     public static final String PROMPT_SENT_TO_THE_MODEL_DOES_NOT_FIT = "Prompt sent to the model: about %s tokens of %s the model takes - it does not fit, send less or summarize the chat.";
+    public static final String SUMMARIZE_THE_CHAT_TITLE = "Summarize the chat";
+    public static final String WHAT_THE_SUMMARY_SHOULD_KEEP = "What the summary should keep or stress";
+    public static final String THE_SUMMARY_KEEPS_PLACEHOLDER = "For example: keep the twist about the traitor and the ending we rejected";
+    public static final String EMPTY_THE_MODEL_DECIDES = "Optional. Empty: the model decides what matters.";
+    public static final String SUMMARIZE = "Summarize";
 
     @Override
     protected void loadKeys() {
@@ -619,5 +624,20 @@ public class ArcOutlineLocalization extends PluginLocalizationBundle {
 
         ja(PROMPT_SENT_TO_THE_MODEL_DOES_NOT_FIT, "モデルに送信されるプロンプト: 約%sトークン（モデルが受け付ける%s中）- 収まりません。送る量を減らすかチャットを要約してください。");
         zh(PROMPT_SENT_TO_THE_MODEL_DOES_NOT_FIT, "发送给模型的提示词：约 %s 个词元（模型可接受 %s 个）- 放不下，请少发送一些或总结对话。");
+
+        ja(SUMMARIZE_THE_CHAT_TITLE, "チャットを要約");
+        zh(SUMMARIZE_THE_CHAT_TITLE, "总结对话");
+
+        ja(WHAT_THE_SUMMARY_SHOULD_KEEP, "要約で残す・強調すること");
+        zh(WHAT_THE_SUMMARY_SHOULD_KEEP, "总结应保留或强调的内容");
+
+        ja(THE_SUMMARY_KEEPS_PLACEHOLDER, "例: 裏切り者に関するどんでん返しと、却下した結末を残す");
+        zh(THE_SUMMARY_KEEPS_PLACEHOLDER, "例如：保留关于叛徒的反转以及我们否决的结局");
+
+        ja(EMPTY_THE_MODEL_DECIDES, "任意。空欄: モデルが重要なことを判断します。");
+        zh(EMPTY_THE_MODEL_DECIDES, "可选。留空：由模型判断什么重要。");
+
+        ja(SUMMARIZE, "要約する");
+        zh(SUMMARIZE, "总结");
     }
 }
