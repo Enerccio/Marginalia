@@ -181,7 +181,7 @@ when you ask or agree; it is told to look before it adds, to prefer adding to re
   what the model wants to pass, and the model waits for **Allow** or **Refuse**. Adding a scene, an entry or an arc is not asked: you see it in the chat and in the planner,
   the lorebook or the outline, and can delete it.
 - Every tool the model called is listed under its answer (a line with the name and a mark: ✓ worked, ✗ failed; open it to see what was passed and what came back).
-  The next messages tell the model which tools it used, the calls themselves are not sent again.
+  The next messages carry the calls the model made and what they returned (a long result is cut), so it knows what it already did and does not make the same entry again; they count against the token limit of the chat.
 - What the tools cost: their descriptions are part of every request, so a model that is short of context has less room. Only models that can call functions work with it; the dialog says so when one
   can't.
 

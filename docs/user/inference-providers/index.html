@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847312576986">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847319242551">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.847312576986" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.847319242551" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847312576986" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847319242551" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847312576986" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847319242551" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -392,7 +392,7 @@ test then only needs the one-token answer.</p>
 | **Max Response Tokens** | Required. The longest response the model may write. Sent to the API as `max_completion_tokens`, and this much of the context is kept free for the response. Must be lower than *Max Context Size*. |
 | **Concurrent requests of agents** | Optional, for a server that answers one request (or a few) at a time. How many requests of [agents](agents.md#one-model-several-agents) may be on the way to this provider at once, the others wait their turn. Empty is no limit. Your own writing in the story window is not queued. |
 | **Needs Jailbreak**, **Jailbreak Prompt** | An extra prompt for models that refuse to write some content. When checked, the jailbreak prompt is put at the very beginning of the prompt. |
-| **Enable Reasoning**, **Reasoning Effort** | For reasoning (&quot;thinking&quot;) models, see [Reasoning models](#reasoning-models). |">
+| **Enable Reasoning**, **Reasoning Effort**, **Send the thinking back** | For reasoning (&quot;thinking&quot;) models, see [Reasoning models](#reasoning-models). |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -419,7 +419,7 @@ test then only needs the one-token answer.</p>
 <td>An extra prompt for models that refuse to write some content. When checked, the jailbreak prompt is put at the very beginning of the prompt.</td>
 </tr>
 <tr>
-<td><strong>Enable Reasoning</strong>, <strong>Reasoning Effort</strong></td>
+<td><strong>Enable Reasoning</strong>, <strong>Reasoning Effort</strong>, <strong>Send the thinking back</strong></td>
 <td>For reasoning (&quot;thinking&quot;) models, see <doc-anchor-trigger to="#reasoning-models">Reasoning models</doc-anchor-trigger>.</td>
 </tr>
 </tbody>
@@ -520,7 +520,45 @@ better planned text, but slower and more expensive responses. Not every API supp
 fail with reasoning enabled, turn it off.</p>
 <p>When the model returns its reasoning (as <code translate="no" v-pre>reasoning_content</code> or <code translate="no" v-pre>reasoning</code>, depending on the server), it is shown
 above the generated part under <strong>View Reasoning</strong>. The reasoning is not part of the story and is not sent back to the
-model.</p>
+model, unless you set <strong>Send the thinking back</strong> (below).</p>
+<h3 id="send-the-thinking-back">Send the thinking back</h3>
+<p><strong>Send the thinking back</strong> says whether the thinking of the model goes back to it, as the <code translate="no" v-pre>reasoning_content</code> of its
+earlier message, in the next request:</p>
+<retype-table copy-text="| Value | |
+|---|---|
+| **None** (default) | Never. Right for most models and servers, and for APIs that refuse an unknown field. |
+| **Between tool calls** | Only while the tool calls of one answer go on: the model that called a tool gets its own thinking back with the result. A new message of yours starts without the old thinking. This is what Google asks for Gemma 4 (*thoughts must not be removed between the function calls*, but removed between turns). |
+| **Always** | Also with the earlier answers that have thinking, where the chat keeps it (the plot wizard of the Arc Outline does). A server whose template drops old thinking by itself, like the one of Gemma 4, ignores it. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Value</th>
+<th> </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>None</strong> (default)</td>
+<td>Never. Right for most models and servers, and for APIs that refuse an unknown field.</td>
+</tr>
+<tr>
+<td><strong>Between tool calls</strong></td>
+<td>Only while the tool calls of one answer go on: the model that called a tool gets its own thinking back with the result. A new message of yours starts without the old thinking. This is what Google asks for Gemma 4 (<em>thoughts must not be removed between the function calls</em>, but removed between turns).</td>
+</tr>
+<tr>
+<td><strong>Always</strong></td>
+<td>Also with the earlier answers that have thinking, where the chat keeps it (the plot wizard of the Arc Outline does). A server whose template drops old thinking by itself, like the one of Gemma 4, ignores it.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>It applies to the tool loop (the plot wizard, the generators that use tools) and to agents: an agent gets the thinking of
+its earlier rounds back as long as the tool calls of one turn go on (the thinking is kept with the message in the
+console, not in the stored message). The server has to take the field: llama.cpp does (it reads
+<code translate="no" v-pre>reasoning_content</code>, not <code translate="no" v-pre>reasoning</code>), also behind LiteLLM; a provider that rejects unknown message fields fails, then
+leave it on <em>None</em>.</p>
 <figure class="content-center">
     <img src="../../images/reasoning-view.png" alt="Reasoning of a generated part" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1398" height="603" />
     <figcaption class="caption">Reasoning of a generated part</figcaption>
@@ -750,7 +788,7 @@ part; parts written before stay as they are.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (ca0a5a5ed).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (d1aef7c8f).</p></div>
             </footer>
         </div>
     </div>

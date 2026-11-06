@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847312576986">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847319242551">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.847312576986" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.847319242551" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847312576986" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847319242551" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847312576986" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.847312576986" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847319242551" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.847319242551" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -1140,7 +1140,7 @@ filters are stacked over the whole width, the description is behind an info butt
 table (<code translate="no" v-pre>createDescription()</code>), and the table has only the check box column and one content column that
 shows name, type, owner (<code translate="no" v-pre>allUsers</code>), delete time and the <em>Extended Content</em> link below each other.</p>
 <p>Generic dialogs: <code translate="no" v-pre>ConfirmDialog.show(message, onYes)</code>, <code translate="no" v-pre>TextInputDialog.Builder</code>, <code translate="no" v-pre>ListSelectDialog</code>,
-<code translate="no" v-pre>ErrorDialog</code> (message and expandable stack trace), <code translate="no" v-pre>ProgressBarDialog</code>, <code translate="no" v-pre>SearchReplaceDialog</code>. <code translate="no" v-pre>DialogFocus.onOpen(dialog, field)</code> (<code translate="no" v-pre>ui.widgets</code>) puts the cursor into the field a dialog is about every time it opens, so the user can type at once; the form dialogs (<code translate="no" v-pre>AIDialog</code>, <code translate="no" v-pre>ProtocolDialog</code>, <code translate="no" v-pre>UserDialog</code>, <code translate="no" v-pre>ExportDialog</code>, <code translate="no" v-pre>TextInputDialog</code>, <code translate="no" v-pre>ListSelectDialog</code>, <code translate="no" v-pre>AILimitEditDialog</code>, <code translate="no" v-pre>SearchReplaceDialog</code>) call it. <code translate="no" v-pre>ExtensionLogDialog.show(bundle, name)</code> is the
+<code translate="no" v-pre>ErrorDialog</code> (message and expandable stack trace), <code translate="no" v-pre>ProgressBarDialog</code>, <code translate="no" v-pre>SearchReplaceDialog</code>. <code translate="no" v-pre>DialogFocus.onOpen(dialog, field)</code> (<code translate="no" v-pre>ui.widgets</code>) puts the cursor into the field a dialog is about every time it opens, so the user can type at once; the form dialogs (<code translate="no" v-pre>AIDialog</code>, <code translate="no" v-pre>ProtocolDialog</code>, <code translate="no" v-pre>UserDialog</code>, <code translate="no" v-pre>ExportDialog</code>, <code translate="no" v-pre>TextInputDialog</code>, <code translate="no" v-pre>ListSelectDialog</code>, <code translate="no" v-pre>AILimitEditDialog</code>, <code translate="no" v-pre>SearchReplaceDialog</code>) call it. <code translate="no" v-pre>DialogShortcuts.submitWith(button, fields...)</code> (<code translate="no" v-pre>ui.widgets</code>) makes the dialog&#x27;s main button (Save, Generate, Send; never a destructive one) fire from the keyboard while one of the fields has the focus: Enter in a single line field, Ctrl/Cmd+Enter in a text area (and in a single line field too); the focus is reset first so the typed value is on the server. Every dialog with an input uses it (the Mass* bulk dialogs and read-only areas excepted), plugins too; the arc-outline <code translate="no" v-pre>GeneratorDialog</code> subclasses call <code translate="no" v-pre>generateOnShortcut(fields)</code>. <code translate="no" v-pre>ExtensionLogDialog.show(bundle, name)</code> is the
 read-only, monospace view of an extension&#x27;s log. <code translate="no" v-pre>UsageDialog.show()</code> is the read-only table of every user&#x27;s <code translate="no" v-pre>Usage</code> (administrators). <code translate="no" v-pre>AILimitsDialog.show(ai)</code> is the table of the limits of a shared AI with add / edit (<code translate="no" v-pre>AILimitEditDialog</code>) / delete, <code translate="no" v-pre>AILimitInfoDialog.show(ai)</code> the current user&#x27;s limit and usage of it.</p>
 <p><code translate="no" v-pre>SearchReplaceDialog</code> (<code translate="no" v-pre>ui.dialogs.search</code>) is the search and replace window without any knowledge of what it searches.
 A subclass supplies the title, its own options (<code translate="no" v-pre>createOptions()</code>, shown next to the regex option and locked with it)
@@ -1764,7 +1764,7 @@ the buttons a dialog has in its bottom right corner). The server accepts their e
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (ca0a5a5ed).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (d1aef7c8f).</p></div>
             </footer>
         </div>
     </div>
