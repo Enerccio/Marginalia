@@ -6,7 +6,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import {execFileSync} from 'node:child_process';
-import {closeDialog, dialog, idle, login, main, openTab, outDir, pick, press, root, section, sleep, snap, snapDialog} from '../lib/shot.mjs';
+import {bookListMenu, closeDialog, dialog, idle, login, main, openTab, outDir, pick, press, root, section, sleep, snap, snapDialog} from '../lib/shot.mjs';
 
 execFileSync('node', [path.join(root, 'dataset/lorebook.mjs')], { stdio: 'inherit' });
 
@@ -23,15 +23,15 @@ const zipOf = (zipName, files) => {
   return zip;
 };
 fs.mkdirSync(archiveDir, { recursive: true });
-const bookZip = zipOf('Notes from the Quidditch Pitch.zip', {
-  '01 The Frost.md': 'The grass was white with frost when the team came down from the castle. Nobody spoke; breath hung in the air in small clouds.\n',
-  '02 The Broom Shed.md': 'The broom shed smelled of polish and old wood. Ginny took the best broom without asking, and nobody asked her to give it back.\n',
-  '03 The First Bell.md': 'The first bell rang over the lake. By then the Snitch had been caught twice and lost three times.\n',
+const bookZip = zipOf('Notes from the Cellar.zip', {
+  '01 The Stairs.md': 'The stone stairs were wet when the last group came up from the cellar. Nobody spoke; breath hung in the air in small clouds.\n',
+  '02 The Iron Ring.md': 'The iron ring in the wall smelled of rust and old rope. Everybody reached for it, and nobody asked why it was there.\n',
+  '03 The Bolt.md': 'The bolt slid home at nine. By then the tour had been counted twice and lost once.\n',
 });
-const loreZip = zipOf('Hogsmeade Places.zip', {
-  'The Three Broomsticks.md': 'The inn on the main street. Warm, loud, smells of butterbeer; Madam Rosmerta keeps it.\n',
-  'Honeydukes.md': 'The sweet shop. The cellar has a trapdoor that leads under the castle.\n',
-  'The Shrieking Shack.md': 'A boarded up house on the hill above the village. Nobody goes there, and everybody says it is haunted.\n',
+const loreZip = zipOf('Valley Places.zip', {
+  'The Ferry Landing.md': 'A wooden jetty on the Lyrasil. A lantern on a pole, a broad woman who shouts, and the smell of wet rope.\n',
+  'The Weir.md': 'A low dam above the village. The river sounds like applause there.\n',
+  'Ledger House.md': 'A square stone building by the bridge. Nobody goes there for pleasure, and everybody has a line in it.\n',
 });
 
 await main(async ({ page }) => {
@@ -40,7 +40,7 @@ await main(async ({ page }) => {
   // a book from a zip of .md files
   await section(page, 'archive-book', async () => {
     await openTab(page, 'Books');
-    await page.locator('vaadin-button:has(vaadin-icon[icon$=":file-import"])').first().click();
+    await bookListMenu(page, 'Import', 'Import from archive');
     await idle(page, 900);
     await snapDialog(page, 'archive-upload', -1);
     await page.locator('vaadin-upload input[type=file]').last().setInputFiles(bookZip);
@@ -52,9 +52,9 @@ await main(async ({ page }) => {
 
   await section(page, 'tag-books', async () => {
     await openTab(page, 'Books');
-    await page.getByRole('button', { name: 'Tag books', exact: true }).click();
+    await bookListMenu(page, 'Manage', 'Tag books');
     await idle(page, 1200);
-    await pick(dialog(page), 'Tag', 'genderbend');
+    await pick(dialog(page), 'Tag', 'portal fantasy');
     await sleep(800);
     await snapDialog(page, 'multi-tag-books', -1);
     await closeDialog(page);

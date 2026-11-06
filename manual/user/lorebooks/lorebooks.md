@@ -51,6 +51,8 @@ The rest of the editor is the list of [entries](entries.md). All changes are sav
 
 The description is a few words (or lines) about the lorebook: what world it is, what it is for, which book uses it. Click the lines icon in the first row of the toolbar, write it in the window and confirm; an empty text removes it. A lorebook that has a description shows it in one line under its settings, cut with an ellipsis where it does not fit; rest the mouse pointer on the line to read all of it. The description is copied with the lorebook (clone, export, import, backups) and is the text other users see next to its name when you share it.
 
+![The window of the description of a lorebook](../../images/lorebook-description.png)
+
 ### Sharing a lorebook
 
 Check **Share with other users** and every other user of this installation sees the lorebook in **Import from other user** (the import button in the first row of the toolbar), with its name, its author (your full name, or your login when you have none) and its description. They can open a row to read the entries (and the entries of the sub lorebooks) and import a copy. Uncheck it and the lorebook is gone from their list; copies they already made stay theirs.

@@ -14,6 +14,8 @@ changed it: each message under its role - `[SYSTEM]` (the template, the lore and
 story as `[USER]` and `[ASSISTANT]` messages, and the instructions of the turn last. Images sent along are counted at the
 end of their message.
 
+![The prompt before it is sent](../../images/plugin-prompt-inspector.png)
+
 - **Send** sends the request and the generation goes on as usual.
 - **Cancel** stops the generation. The part that was started for it is removed again (a regenerated part gets its old text
   back), as when a generation fails before any text arrives.

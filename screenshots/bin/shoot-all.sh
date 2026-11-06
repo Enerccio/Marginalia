@@ -34,7 +34,7 @@ run shoot-search-replace.mjs                     # looks only, but leaves the wo
 on 13-db-backup
 run shoot-help.mjs                               # chooses the model of the help assistant (installation wide), a permission for the administrator: a copy, discarded
 on 13-db-backup
-run shoot-permissions.mjs                        # changes the permissions of ginny: a copy, discarded
+run shoot-permissions.mjs                        # changes the permissions of jana: a copy, discarded
 on 13-db-backup
 run plugin-googlegenai.mjs                       # installs the Gemini plugin: a copy, discarded
 on 13-db-backup
@@ -62,6 +62,8 @@ on 13-db-backup
 run plugin-imagegenerator.mjs                     # installs the Image Generator, adds a backend (the fake model draws one fixed picture), makes an image of the last part: a copy, discarded
 on 13-db-backup
 run shoot-books-extra.mjs                        # imports a lorebook with subbooks and a book from a zip: a copy, discarded
+on 13-db-backup
+run shoot-new.mjs                                 # installs three plugins, a generation, an edited part under a summary: a copy, discarded
 on 22-arcoutline
 run shoot-agents.mjs                             # four agents with runs (the fake model answers from its queue), three more books: a copy, discarded
 on 22-arcoutline

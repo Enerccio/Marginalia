@@ -63,10 +63,10 @@ await main(async ({ page }) => {
     await page.getByText('Tags', { exact: true }).first().click();
     await idle(page, 800);
     await snap(page, 'settings-tags', { clip: CONTENT });
-    // rename f/m to an existing tag: Marginalia asks whether to merge
+    // rename the first tag to an existing one: Marginalia asks whether to merge
     await page.mouse.click(1788, 227);
     await idle(page, 600);
-    await fill(dialog(page), 'Name', 'genderbend');
+    await fill(dialog(page), 'Name', 'portal fantasy');
     await press(dialog(page), 'Yes');
     await idle(page, 800);
     await snapDialog(page, 'tag-merge');
@@ -94,14 +94,14 @@ await main(async ({ page }) => {
 
   await section(page, 'lorebook', async () => {
     await openTab(page, 'Lorebooks');
-    await pick(page, 'Lorebook', 'Harry Potter - Half-Blood Prince');
+    await pick(page, 'Lorebook', 'Unregistered - the valley of the Lyrasil');
     await sleep(1000);
-    // expand the entry of Draconia (the chevron of its row)
+    // expand the entry of Mizuki (the chevron of its row)
     const cell = page.locator('vaadin-grid-cell-content').filter({ hasText: /^$/ }).first();
     const row = page.locator('vaadin-text-field input').filter({ hasText: '' });
     const nameInput = page.locator('input').filter({ has: page.locator('xpath=.') });
     const y = await page.evaluate(() => {
-      const inp = [...document.querySelectorAll('vaadin-text-field')].find(f => f.value === 'Draconia Malfoy');
+      const inp = [...document.querySelectorAll('vaadin-text-field')].find(f => f.value === 'Mizuki Hayashida');
       return inp ? inp.getBoundingClientRect().y + inp.getBoundingClientRect().height / 2 : null;
     });
     if (y == null) throw new Error('entry row not found');
@@ -111,12 +111,12 @@ await main(async ({ page }) => {
     await snap(page, 'lorebook');
     // the entry with its details alone
     await page.evaluate(() => {
-      const f = [...document.querySelectorAll('vaadin-text-field')].find(x => x.value === 'Draconia Malfoy');
+      const f = [...document.querySelectorAll('vaadin-text-field')].find(x => x.value === 'Mizuki Hayashida');
       f.scrollIntoView({ block: 'start' });
     });
     await sleep(500);
     const top = await page.evaluate(() => {
-      const f = [...document.querySelectorAll('vaadin-text-field')].find(x => x.value === 'Draconia Malfoy');
+      const f = [...document.querySelectorAll('vaadin-text-field')].find(x => x.value === 'Mizuki Hayashida');
       return f.getBoundingClientRect().y;
     });
     await snap(page, 'lorebook-entry', { clip: { x: 292, y: Math.max(0, top - 18), width: 1599, height: 591 } });

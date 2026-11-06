@@ -208,6 +208,9 @@
     <loc>https://enerccio.github.io/Marginalia/developer/templating/</loc>
   </url>
   <url>
+    <loc>https://enerccio.github.io/Marginalia/credits/</loc>
+  </url>
+  <url>
     <loc>https://enerccio.github.io/Marginalia/user/extensions/google-genai/</loc>
   </url>
   <url>
@@ -221,9 +224,6 @@
   </url>
   <url>
     <loc>https://enerccio.github.io/Marginalia/developer/contributing/</loc>
-  </url>
-  <url>
-    <loc>https://enerccio.github.io/Marginalia/credits/</loc>
   </url>
   <url>
     <loc>https://enerccio.github.io/Marginalia/user/extensions/gemma-4-tools-fix/</loc>

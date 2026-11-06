@@ -14,6 +14,8 @@ With the extension installed, the **About** tab of the book window has a **Gener
 end. It works in the [phone layout](../phone.md#extensions) too. The dialog has the options on the left and the result on the
 right.
 
+![The window that generates the name and the description](../../images/plugin-book-description.png)
+
 | Option | |
 |---|---|
 | **Model**, **Protocols** | What the generation runs with. It starts with the model and protocol of the book, else your defaults from *Settings* (see [Account & settings](../account.md)); the choice is for this generation only. Without a model it only shows a warning. |

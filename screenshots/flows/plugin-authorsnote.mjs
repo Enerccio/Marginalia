@@ -10,8 +10,8 @@ await main(async ({ page }) => {
   await sideTab(page, "Author's Note");
   await field(page, 'Insert into prompt').check();
   await sleep(300);
-  await fill(page, "Author's Note", 'Keep the fog and the cold in every scene. Draconia is frightened, not cruel: she hides it behind sarcasm. Do not reveal what she is building in the Room of Requirement yet.');
-  await fill(page, "Author's Note (private)", 'Plan: next chapter Harry finds the cabinet, Ginny starts to suspect. Ron finds out last. Snape appears at the end.');
+  await fill(page, "Author's Note", 'Keep the cold and the wet reeds in every scene. Tomáš hides how well he speaks Japanese, and Mizuki must not find out before the ferry. Do not explain the archway yet.');
+  await fill(page, "Author's Note (private)", 'Plan: next chapter the lantern on the river turns out to be a ferry; Saellen speaks first, Steing appears at the end.');
   await sleep(800);
   await page.evaluate(() => document.activeElement && document.activeElement.blur());
   await snap(page, 'plugin-authorsnote');

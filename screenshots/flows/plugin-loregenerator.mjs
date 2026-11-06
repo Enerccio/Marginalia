@@ -1,4 +1,4 @@
-// Lore Generator: a new entry for the Three Broomsticks - prompt, generation, compaction, copy to the entry, Tools.
+// Lore Generator: a new entry for the Bridge of Silvakhor - prompt, generation, compaction, copy to the entry, Tools.
 import {bookTab, closeDialog, fill, idle, llm, login, main, openBook, press, sleep, snapDialog} from '../lib/shot.mjs';
 
 await main(async ({ page }) => {
@@ -7,24 +7,35 @@ await main(async ({ page }) => {
   await bookTab(page, 'Lorebook');
   await press(page, 'Add Entry', { exact: false });
   await idle(page, 1000);
-  await page.evaluate(() => { for (const g of document.querySelectorAll('vaadin-grid')) g.scrollToIndex(g.size - 1); });
-  await sleep(1000);
+  // the new entry is put among the others by its order (not at the end): scroll the grid until its row is drawn
+  for (let i = 0; i < 40; i++) {
+    await page.evaluate(n => { for (const g of document.querySelectorAll('vaadin-grid')) g.scrollToIndex(n); }, i);
+    await sleep(200);
+    if (await page.evaluate(() => [...document.querySelectorAll('vaadin-text-field')].some(x => x.value === 'New Entry'))) break;
+  }
+  await sleep(500);
   const row = await page.evaluate(() => {
     const f = [...document.querySelectorAll('vaadin-text-field')].filter(x => x.value === 'New Entry').pop();
+    f.scrollIntoView({ block: 'center' });
     const r = f.getBoundingClientRect(); return { y: r.y + r.height / 2 };
   });
   await page.mouse.click(400, row.y);
   await page.keyboard.press('Meta+A');
-  await page.keyboard.type('The Three Broomsticks');
+  await page.keyboard.type('The Bridge of Silvakhor');
   await page.keyboard.press('Tab');
   await sleep(800);
-  await page.mouse.click(1845, row.y);                         // the wand of the row
+  const wandY = await page.evaluate(() => {
+    const f = [...document.querySelectorAll('vaadin-text-field')].find(x => x.value === 'The Bridge of Silvakhor');
+    f.scrollIntoView({ block: 'center' });
+    const r = f.getBoundingClientRect(); return r.y + r.height / 2;
+  });
+  await page.mouse.click(1845, wandY);                         // the wand of the row
   await idle(page, 1200);
 
   const d = page.locator('vaadin-dialog[opened]').last();
-  await fill(d, 'Prompt', 'Write the lore entry for "The Three Broomsticks", the inn of Hogsmeade, about 120 words as one paragraph: Madam Rosmerta, the dark wooden room, butterbeer, the Aurors at the door in autumn 1996 and the lane behind the inn.');
+  await fill(d, 'Prompt', 'Write the lore entry for "The Bridge of Silvakhor", the stone bridge over the Lyrasil, as one paragraph: the soldiers who watch it, the toll in tally tokens, the ledger house at its far end and the river that sounds different under it.');
   await press(d, 'Run Generation');
-  await page.getByText('Madam Rosmerta', { exact: false }).last().waitFor({ timeout: 30000 });
+  await page.getByText('Paskal', { exact: false }).last().waitFor({ timeout: 30000 });
   await page.getByRole('button', { name: 'Stop', exact: true }).waitFor({ state: 'detached', timeout: 20000 }).catch(() => {});
   await sleep(1000);
   await snapDialog(page, 'plugin-loregenerator', -1);
@@ -32,7 +43,7 @@ await main(async ({ page }) => {
   await d.getByRole('tab', { name: 'Compaction' }).click();
   await sleep(500);
   await press(d, 'Run Compaction');
-  await page.getByText('Three Broomsticks: Hogsmeade inn', { exact: false }).last().waitFor({ timeout: 30000 });
+  await page.getByText('Bridge of Silvakhor: stone bridge', { exact: false }).last().waitFor({ timeout: 30000 });
   await page.getByRole('button', { name: 'Stop', exact: true }).waitFor({ state: 'detached', timeout: 20000 }).catch(() => {});
   await sleep(1000);
   await snapDialog(page, 'plugin-loregenerator-compaction', -1);

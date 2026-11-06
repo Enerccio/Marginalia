@@ -1,7 +1,7 @@
 // Step 05-lorebook -> 06-story: the demo book - settings, lorebook, then the story written against the fake model.
 import {bookTab, dialog, field, fill, idle, llm, login, main, openTab, pick, press, sleep, snap} from '../lib/shot.mjs';
 import {fillTurn, generate, partAction} from '../lib/story.mjs';
-import {BOOK, turns} from '../dataset/story.mjs';
+import {BOOK, DESCRIPTION, LOREBOOK, TAGS, turns} from '../dataset/story.mjs';
 
 await main(async ({ page }) => {
   await login(page);
@@ -14,14 +14,14 @@ await main(async ({ page }) => {
   await page.getByText('Branch view', { exact: true }).first().waitFor();
   await idle(page, 1000);
 
-  for (const tag of ['genderbend', 'harry potter', 'f/m']) {
+  for (const tag of TAGS) {
     const input = field(page, 'Tags');
     await input.click(); await input.fill(tag); await input.press('Enter'); await sleep(300);
   }
-  await fill(page, 'Description', 'Sixth year, autumn 1996. A rivalry that will not stay a rivalry: Harry follows Draconia Malfoy through the fog of Hogsmeade. A genderbend retelling of Half-Blood Prince.');
+  await fill(page, 'Description', DESCRIPTION);
 
   await bookTab(page, 'Lorebook');
-  await pick(page, 'Lorebook', 'Harry Potter - Half-Blood Prince');
+  await pick(page, 'Lorebook', LOREBOOK);
   await sleep(800);
 
   await bookTab(page, 'Story');

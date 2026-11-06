@@ -1,205 +1,138 @@
-// The story of the demo book. The flow types `scene`, `pov`, `present`, `instructions` into the New Turn panel;
-// the fake inference server (llm/rules.mjs) recognizes the turn by its instructions and answers with `reply`.
-export const BOOK = 'Harry Potter and Half Blood Prince - FDM';
+// The story of the demo book "Unregistered" (a Czech cellar guide and a Japanese nurse fall through a bricked archway into the valley of the
+// Lyrasil). The first five parts are the first parts of the dataset book of the tests (dataset/unregistered-parts.json, made by
+// dataset/from-fixture.py); the swipe, the branch of the reasoning model, the summaries and the book of the second user are written for the
+// pictures. The flow types `scene`, `pov`, `present`, `instructions` into the New Turn panel; the fake inference server (llm/rules.mjs)
+// recognizes the turn by its instructions and answers with `reply`.
+import fs from 'node:fs';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
+
+const here = path.dirname(fileURLToPath(import.meta.url));
+const parts = JSON.parse(fs.readFileSync(path.join(here, 'unregistered-parts.json'), 'utf8'));
+
+export const BOOK = 'Unregistered';
+export const TAGS = ['portal fantasy', 'language barrier', 'slow burn'];
+export const LOREBOOK = 'Unregistered - the valley of the Lyrasil';
+export const DESCRIPTION = 'A Czech cellar guide who learned Japanese from novels and a Japanese nurse on holiday step through a bricked archway in a Prague cellar and wake in a river valley held by a Vrakht-speaking empire. Neither of them knows the language.';
 
 export const turns = {
   t1: {
-    scene: 'Hogsmeade evening, main street',
-    pov: 'Harry',
-    present: 'Harry, Hermione, Ron, Ginny',
-    instructions: 'Harry, Ron and Hermione walk out of the Three Broomsticks after a few butterbeers, Ron hiccuping loudly. Ginny catches up with them and pulls Harry aside.',
-    reply: `The Three Broomsticks let them out into the cold with a gust of warm air and the smell of butterbeer. Dusk had turned the village the colour of a bruise. Along the main street the lamps were being lit one by one, and a thin fog crept down from the hills to meet them.
-
-"Hic -" Ron stopped in the middle of the road, one hand pressed to his chest, and looked offended at his own body. "Sorry. 'Mione, s'not funny."
-
-"I didn't say anything," Hermione said, though her mouth was twitching. "Three butterbeers, Ronald. Three. You were warned."
-
-Harry laughed and hooked an arm under Ron's elbow to steer him away from a lamp post. It felt good, for a minute, to be sixteen and walking home with his friends and nothing worse to worry about than a hiccup. Then he noticed the two Aurors by the post office, watching every student who passed, and the feeling went out of him like air from a punctured ball.
-
-"Harry!" Quick footsteps behind them. Ginny, her hair darker with fog, her scarf already half off. She did not slow down; she caught his sleeve and pulled him two steps aside, out of earshot of the others. "You promised you would tell me. Before you did anything stupid."
-
-"I haven't done anything," Harry said.
-
-"Yet," said Ginny, and held on to his sleeve a little harder than she needed to.`,
-    summary: `[Location] Hogsmeade main street, dusk, fog from the hills, Aurors by the post office.
-[Ron Weasley] leaves the Three Broomsticks after three butterbeers -> persistent hiccups.
-[Hermione Granger] teases Ron, mild reprimand.
-[Harry Potter] steers Ron, notices the Aurors -> mood drops.
-[Ginny Weasley] catches up, pulls Harry aside -> reminds him of his promise to tell her before he does anything stupid.`,
+    ...parts[0],
+    summary: `[LOCATION / SCENE: Prague / evening cellar tour]
+* Tomáš counts the last eleven tourists out and bolts the door at nine o'clock -> he is alone in the cellar with Mizuki.
+* Mizuki stays at the bricked archway and asks whether the wall is old -> he answers fourteenth century at best, bricks newer, nobody knows who closed it.
+* She lays her palm on the brick and murmurs in Japanese that it is breathing -> Tomáš understands every word and answers in English that it is only cold air in the cracks.`,
   },
   t2a: {
-    scene: 'Hogsmeade evening, main street',
-    pov: 'Harry',
-    present: 'Harry, Hermione, Ron, Ginny, Draconia, Crabbe, Goyle',
-    instructions: 'Draconia insults Harry, calling him a show-off for letting a girl pull him around in public. Ginny joins the argument, defending him.',
-    reply: `A cold voice cut through the fog. "How touching. Does the Boy Who Lived hold hands with every Weasley, or is there a rota?"
-
-Draconia Malfoy stood under the nearest lamp as if she had been placed there, hands in the pockets of a long green coat, platinum hair pinned back so tightly it looked painful. Behind her Crabbe and Goyle studied the cobbles. She smiled with only half of her face, and Harry thought, not for the first time, that she had been getting thinner all autumn.
-
-"Get lost, Malfoy," Ron said, with great dignity and a hiccup.
-
-"Language, Weasley. There are Aurors." Her grey eyes went back to Harry. "Though I understand you have a taste for public displays. Hogsmeade, a Saturday, a girl towing you around by the sleeve - I'm told that is what you call a good time."
-
-Ginny let go of his sleeve and turned on her heel, so fast that her scarf swung out like a whip. "He doesn't need to explain himself to you. Neither do I. Go back to wherever you're hiding, Malfoy, and take your bodyguards with you."
-
-"Hiding?" For a heartbeat something moved behind Draconia's face, quick and ugly, and was gone. "How little you know."
-
-Harry stepped between them before it could turn into a wand fight in the middle of the main street. He did not like that look. It was not the look of someone who wanted to win an argument.`,
-    summary: `[Draconia Malfoy] appears under a lamp with Crabbe and Goyle -> mocks Harry for "public displays".
-[Ron Weasley] tells her to get lost (hiccup).
-[Ginny Weasley] lets go of Harry's sleeve -> defends him, tells Draconia to go back to hiding.
-[Draconia Malfoy] reacts sharply to the word "hiding" -> "How little you know."
-[Harry Potter] steps between them, notices that she does not look like someone who wants to win an argument.`,
+    ...parts[1],
+    summary: `[LOCATION / SCENE: Reed fields / night, a huge low moon]
+* Mizuki wakes face down in wet reeds -> no arch, no cellar, only black water and a swollen moon.
+* She finds Tomáš unconscious with a slow pulse, wakes him -> they speak broken English.
+* She asks in Japanese where they are -> Tomáš does not react to the Japanese and answers carefully in English.`,
   },
   // the other version of t2a, written by Swipe: same turn details, so the fake server gets it through its queue
   t2b: {
-    scene: 'Hogsmeade evening, main street',
-    pov: 'Harry',
-    present: 'Harry, Hermione, Ron, Ginny, Draconia, Crabbe, Goyle',
-    instructions: 'Draconia insults Harry, calling him a show-off for letting a girl pull him around in public. Ginny joins the argument, defending him.',
-    reply: `Draconia's drawl came out of the fog before she did. "Potter. Out on a Saturday night with half of Gryffindor's nursery. Do they let you stay up this late?"
+    ...parts[1],
+    reply: `Water in her mouth. Mizuki came up coughing, one cheek in cold mud, and for a long moment she did not know whether she was on the ward floor or in a dream of it.
 
-Ginny's hand fell from Harry's sleeve. Her mouth set into a thin line, and she looked at the cobbles as though she had decided that Malfoy was not worth the effort. It would have been unlike her any other week.
+Then the smell reached her, green and rotten and alive, and she opened her eyes on reeds. Reeds in every direction, taller than she was, black against a moon that hung so low and so large that she thought for a second it was a lamp somebody had forgotten to switch off.
 
-Hermione stepped forward instead, her prefect badge catching the lamplight. "Draconia. The Aurors are twenty yards away and none of us has done anything to you. Go home."
+"Tomáš," she said in Japanese, very quietly, as if the reeds might hear. "Tomáš, where are we?"
 
-"Or what, Granger? You'll deduct points?" She was smiling, but it did not reach her eyes, and when she looked past Hermione at Harry the smile slipped. For one moment she looked simply tired. Then she turned on her heel and the fog closed behind her.`,
-    summary: `[Draconia Malfoy] teases Harry for being out late with "Gryffindor's nursery".
-[Ginny Weasley] says nothing, drops Harry's sleeve.
-[Hermione Granger] steps in, points at the Aurors, tells Draconia to go home.
-[Draconia Malfoy] answers with a thin smile, looks tired when she sees Harry -> leaves into the fog.`,
+He lay a few steps away with his headlamp still strapped to his wrist, its beam pointed at nothing. She crawled to him and counted his pulse against her second hand out of habit: slow, steady, rude in its calm. When he groaned and opened his eyes, she switched to English without deciding to, and every word came out smaller than she meant.
+
+"Not the cellar," she said. "Please. Tell me this is also the cellar."`,
+    summary: `[Mizuki] wakes in reeds under an enormous moon -> asks in Japanese where they are, finds Tomáš.
+[Tomáš] unconscious, pulse slow and steady -> wakes, she switches to English: "Tell me this is also the cellar."`,
   },
   t3: {
-    scene: 'Hogsmeade evening, main street',
-    pov: 'Harry',
-    present: 'Harry, Hermione, Ron (tipsy), Ginny',
-    instructions: 'Ron wants to discuss what just happened. Hermione wonders if Draconia might have a reason to be in Hogsmeade tonight. Harry watches the fog behind them.',
-    reply: `They walked the rest of the way to the castle path in a bunch, Ron propped between Harry and Hermione and still hiccuping at intervals.
-
-"I'm just saying," Ron said, for the fourth time, "she's up to something. She's always up to something, but now she's *really* up to something."
-
-"That is almost an insight," said Hermione. "Don't spoil it by repeating it."
-
-Harry said nothing. He was watching the fog behind them, where a slim figure in a green coat had gone into one of the side streets without Crabbe or Goyle. Alone. At night. In a village full of Aurors that her family had every reason to avoid.
-
-"Think about it," Hermione went on, lower. "Why would Draconia be in Hogsmeade at all? She hates the village. She says the shops are common. And look at her, Harry, she's lost weight, she doesn't sleep - it was in her face just now. Whatever she is doing, she is not doing it because she wants to."
-
-"You're feeling sorry for her?" Ron gaped.
-
-"I'm saying she might have a reason," said Hermione. "That isn't the same thing."
-
-Ginny had fallen back a little. She was looking at Harry, and he knew that she had seen exactly where he was looking.`,
-    summary: `[Ron Weasley] insists that Draconia is "really" up to something.
-[Hermione Granger] notes that Draconia hates the village, has lost weight and does not sleep -> suggests she has a reason, not an excuse.
-[Harry Potter] watches a figure in a green coat enter a side street alone.
-[Ginny Weasley] falls back, sees where Harry is looking.`,
+    ...parts[2],
+    summary: `[LOCATION / SCENE: Reed fields / night]
+* Tomáš takes stock: phone at 58 percent without signal, headlamp, notebook, water bottle; her bag with a first-aid kit and a phone.
+* He thinks and swears in Czech, still hides that he understood her mutter -> decides to follow the river downstream.`,
   },
   t4: {
-    scene: 'Hogsmeade evening, side streets behind the Three Broomsticks',
-    pov: 'Harry',
-    present: 'Harry; Draconia',
-    instructions: 'Harry slips away from his friends, saying he lost a glove, and follows Draconia into the side streets until he is behind the Three Broomsticks.',
-    reply: `It was easy to lose them. Ron wanted to sit down on the verge and Hermione was occupied with that, and Ginny had gone ahead without a word. Harry said he had dropped his glove, that he would only be a minute, and turned back before anyone could ask what glove.
-
-The fog had thickened. The sound of the village shrank behind him until it was only the drip of water from the eaves and his own footsteps. He took the first side street where she had gone, then a second, narrower, between a blacksmith's yard and the blind back of a shop. Somewhere ahead a door closed.
-
-He slowed. Through the mist he saw a line of lamplight under a doorway and a slender shadow in front of it. Draconia had not gone to Borgin and Burkes, or to any of the shops. She stood with her back against the brick behind the Three Broomsticks, one hand over her mouth, shoulders rising and falling as if she had been running.
-
-She was crying, Harry realised. Quietly, furiously, the way someone cries who has never been allowed to.
-
-He had one step still to take to leave the shadow, and no idea what he would say when he did.`,
-    summary: `[Harry Potter] excuses himself ("lost a glove") -> follows Draconia through two side streets, fog thickening.
-[Environment] Drip of water, muffled village sounds, a door closing ahead.
-[Draconia Malfoy] found behind the Three Broomsticks, hand over her mouth, crying silently.
-[Harry Potter] unseen, one step from the shadow, has no plan.`,
+    ...parts[3],
+    summary: `[LOCATION / SCENE: Reed fields / night]
+* Mizuki slips in the mud and says in Japanese that she wants to go home -> Tomáš answers in Japanese before he can stop himself.
+* Her shock, his embarrassment -> first real conversation: her Japanese is natural, his is stiff and bookish.`,
   },
   t5: {
-    scene: 'Hogsmeade evening, behind the Three Broomsticks',
-    pov: 'Harry',
-    present: 'Harry; Draconia',
-    instructions: 'Draconia notices Harry and raises her wand, afraid that someone will see them. Harry asks what she is doing in the Room of Requirement. She refuses to answer.',
-    reply: `He must have made a sound, because her head came up and her wand was in her hand before he could speak.
-
-"Stop it," she hissed, though he had not moved. Her mercury-grey eyes darted left and right along the empty stretch of the lane. "Someone will see us, you idiot."
-
-"No one is here." Harry kept his hands open and slightly away from his sides. "Draconia. What are you doing?"
-
-"Walking. It's a free village." She wiped her face with the back of her wrist, a quick angry gesture, as though she could take the evidence off like dirt. "Go back to your friends."
-
-"You've been in the Room of Requirement every night for weeks. I've seen the map." He watched that land. Her wand arm shook, only slightly. "Whatever it is -"
-
-"You don't know what it is." Her voice dropped, and with it all the mockery. "You don't know anything. Do you think I'd be out here if I had a choice?"
-
-"Then tell me what the choice is."
-
-For a long moment she looked at him as if she wanted to. Then the church bell down in the valley rang the hour, and she flinched, and the wand dropped to her side. "Not tonight, Potter," she said, very quietly. "And if you follow me again, I won't be the one who regrets it."`,
-    summary: `[Draconia Malfoy] hears Harry -> draws her wand, hisses that someone will see them.
-[Harry Potter] hands open, asks what she is doing; mentions the Room of Requirement and the map.
-[Draconia Malfoy] denies, says he knows nothing; the church bell makes her flinch -> lowers the wand, refuses to explain "tonight", warns him not to follow her again.`,
+    ...parts[4],
+    summary: `[LOCATION / SCENE: River bank / night]
+* Tomáš explains too eagerly what an isekai is and looks for a status window and a summoner -> finds neither.
+* Mizuki teases his stiff Japanese and asks where he learned it -> he blames novels and subtitles.
+* She decides the order: water, shelter, people -> they walk along the river.`,
   },
   // a branch from t4 written with the reasoning model (Local Reasoner): its reasoning is shown with the part
   t5alt: {
-    scene: 'Hogsmeade evening, behind the Three Broomsticks',
-    pov: 'Harry',
-    present: 'Harry; Draconia',
-    instructions: 'Draconia notices Harry following her and loses her temper. She pushes him against the wall and demands to know who sent him; Harry has to convince her that nobody did.',
-    reasoning: `Harry's point of view, behind the Three Broomsticks, fog, evening.
-Beats: 1. She hears him and reacts with force, not with words. 2. She is afraid of being watched, so the threat must be quiet. 3. Harry stays calm and does not draw his wand. 4. She asks who sent him - this tells us she expects to be followed. 5. End on her doubt, not on a fight.
-Keep her sharp but visibly shaking: the hand with the wand trembles, her breath is uneven. Do not reveal the task. No violence beyond the push.`,
-    reply: `She had her wand under his chin before he finished stepping out of the shadow, and the brick was cold through his robes where she had slammed him against it.
+    scene: 'Reed fields, a stretch of dry ground',
+    pov: 'Tomáš',
+    present: 'Tomáš, Mizuki',
+    instructions: 'Mizuki stops walking and asks why he pretended not to understand her in the first place. Tomáš has to answer without making excuses, and she decides whether she believes him.',
+    reasoning: `Tomáš's point of view, a dry patch between the reeds, night, a moon that is too large.
+Beats: 1. She stops and does not look at him. 2. The question is short and in Japanese, so he cannot hide in English. 3. He tells the truth in the clumsy way he speaks it: he was afraid that a stranger who understood her would sound like a threat. 4. She is angry, but she is also a nurse, so she checks the fact before the feeling. 5. End on a small decision, not a reconciliation.
+Keep the Japanese stiff on his side. Do not let anyone cry. No explanation of the wall.`,
+    reply: `Mizuki stopped on the last dry tussock and did not turn around. The reeds went on whispering around them, and the moon laid a long, broken road across the water.
 
-"Who sent you?" Draconia's voice was low and even, which was worse than shouting. "Snape? Dumbledore? Did they tell you to follow me?"
+"Why," she said in Japanese. Only that.
 
-"Nobody sent me." Harry kept very still. The tip of the wand shook against his throat, only a little, but he could feel it. "I saw you leave. That's all."
+Tomáš had practised answers to a great many questions in the last hour, but not this one. "You were afraid," he said, slowly, choosing each word as if it might break. "A stranger who understands you, in a place like this - I thought it would sound like a threat. I was wrong. I am sorry."
 
-"That's all." She laughed, a breath without any sound in it. "You expect me to believe that Harry Potter just happened to be walking behind the Three Broomsticks in the fog."
+"You let me talk to myself like a fool." Her voice was low and even, which was worse than shouting. "You watched me be afraid and said nothing."
 
-"I expect you to look at me," Harry said. "If someone had sent me, I wouldn't be standing here without my wand."
+"Yes."
 
-For a moment her grey eyes moved over his face as if she were reading something written in small letters. Then the wand dropped, very slowly, and she took one step back. She did not look relieved. She looked like someone who had just found out how alone she was.`,
+She turned then, and looked at him in the thin yellow beam of the lamp, the way she must have looked at patients who said they felt fine. He did not look away. After a while something in her shoulders let go, only a little.
+
+"Next time you hide something," she said, "hide it in Czech. I will not understand that, and it will be honest at least."
+
+She stepped onto the next tussock, and he followed her.`,
   },
 };
 
 // The edit that makes "Highlight Generated Text" visible: the user rewrites one line of the last part.
 export const edit = {
   turn: 't5',
-  from: '"Then tell me what the choice is."',
-  to: '"Then tell me what the choice is," Harry said, and for the first time he meant it as an offer, not a challenge.',
+  from: 'He winced. "I know."',
+  to: 'He winced. "I know," he said in Czech, because it was the only language in which he could admit it.',
 };
 
 // What the model answers to "Create meta summary" for the summaries of t3 and t5.
-export const metaSummary = `[Location] Hogsmeade, main street at dusk (fog, Aurors by the post office) -> the side streets behind the Three Broomsticks.
-* Ron leaves the Three Broomsticks after three butterbeers (hiccups) -> Hermione teases him; Ginny catches up and pulls Harry aside, reminding him of his promise to tell her before he does anything stupid.
-* Draconia appears with Crabbe and Goyle and mocks Harry's "public displays" -> Ron and Ginny answer; "hiding" touches a nerve -> Hermione later points out that she has lost weight and does not sleep: she has a reason, not an excuse.
-* Harry excuses himself ("lost a glove") and follows Draconia through two side streets -> finds her crying behind the Three Broomsticks -> she draws her wand, forbids him to follow, refuses to explain "tonight" when the church bell rings.`;
+export const metaSummary = `[LOCATION / SCENE: Reed fields -> the river bank / night under an enormous moon]
+* Tomáš and Mizuki step through a bricked archway in a Prague cellar and wake in wet reeds -> he takes stock (phone, headlamp, notebook, her first-aid kit) and decides to follow the river downstream.
+* Tomáš hides that he understands Japanese -> Mizuki slips, says in Japanese that she wants to go home, and he answers before he can stop himself.
+* On the bank he looks for a status window and a summoner and finds neither -> Mizuki teases his bookish Japanese and decides the order: water, shelter, people.`;
 
 export const summaryReasoning = 'Reading the passage beat by beat, keeping who acts, what changes and what the next part must remember.';
 
-// The regular user (ginny) uses the shared provider once, so that usage and limits have numbers.
-export const ginnyBook = 'Quidditch Tryouts';
-export const ginnyTurn = {
-  scene: 'The Quidditch pitch, early morning',
-  pov: 'Ginny',
-  present: 'Ginny; a first-year in the stands',
-  instructions: 'Ginny practises alone on the pitch before breakfast. A first-year watches from the stands and does not dare to say a word.',
-  reply: `The grass was still grey with frost when Ginny kicked off, and the whole pitch smelled of cold earth. She flew three laps with the Quaffle tucked under one arm, then let herself drop, so low that her toes brushed the grass, and pulled up again with a laugh she had not meant to let out.
+// The regular user (jana) uses the shared provider once, so that usage and limits have numbers.
+export const readerBook = 'Night Shift';
+export const readerTurn = {
+  scene: 'A hospital ward in Sendai, 3 a.m.',
+  pov: 'Mizuki',
+  present: 'Mizuki; an old man in bed 7',
+  instructions: 'Mizuki does her night round alone. The old man in bed seven is awake and wants to talk about the weather, because it is easier than talking about his daughter.',
+  reply: `The ward was quiet in the way it only was at three in the morning, a low hum of machines and the soft squeak of Mizuki's shoes on the floor. She checked bed four, bed five, bed six, writing the numbers on the back of her hand because the chart was at the desk.
 
-Somebody in the stands gasped. A first-year, a thin boy with a scarf wound twice around his neck, was sitting in the very last row with his knees drawn up, trying to look as if he had not been watching.
+Bed seven was awake. The old man had propped himself on two pillows and was watching the rain run down the window, his hands folded on the blanket like something he had been told to guard.
 
-"You can come down, you know," Ginny called. "I don't bite. Not before breakfast."`,
+"It will stop by morning," he said, before she could ask. "The rain. It always does when somebody important is coming."
+
+"Is somebody coming?" Mizuki asked, and checked his drip, and did not say that his daughter's name was written on the visitor list for the third day in a row and crossed out each time.`,
 };
 
 // Her second part, written after the limit was set, so that the limit dialog shows what she used.
-export const ginnyTurn2 = {
-  scene: 'The Quidditch pitch, early morning',
-  pov: 'Ginny',
-  present: 'Ginny; the first-year',
-  instructions: 'The first-year climbs down and admits he wants to try out for Seeker. Ginny hands him a broom and tells him to catch the Snitch before breakfast.',
-  reply: `The boy came down the steps one at a time, as if the stairs might change their minds. Up close he was even smaller than he had looked from the stands, and his ears were red from the cold.
+export const readerTurn2 = {
+  scene: 'A hospital ward in Sendai, 3 a.m.',
+  pov: 'Mizuki',
+  present: 'Mizuki; the old man',
+  instructions: 'The old man asks Mizuki to open the window a hand-width so he can smell the rain. She breaks a rule for him and pretends to check the lock.',
+  reply: `"Only a little," the old man said. "A hand. I won't climb out, nurse, I can barely climb in."
 
-"I want to try out," he said, very fast, before he could lose his nerve. "For Seeker. I know I'm only a first-year. I know it's silly."
+Mizuki looked at the sign on the window, the one about draughts and infections, and then at the wet glass. She slid the latch back a hand's width and stood with her back to the room, apparently inspecting the lock. Cold air came in smelling of asphalt and wet leaves, and behind her she heard him breathe it in as if he had been given back something he had lost.
 
-"It's not silly. It's early." Ginny pushed her own broom into his hands and fished the Snitch out of her pocket, a tiny golden flicker that fought her fingers. "Rule one: you don't talk about it, you catch it. You have until the first bell for breakfast."
+"Thank you," he said, after a while. "Tell nobody."
 
-He stared at the broom, then at the sky, which was turning from grey to pink above the goalposts. Then he kicked off so hard that he nearly fell off backwards, and Ginny laughed until her sides hurt.`,
+"Lock's loose," Mizuki said gravely. "I'll write it down."`,
 };

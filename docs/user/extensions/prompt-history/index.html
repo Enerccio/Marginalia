@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847242965527">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847251041713">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -24,6 +24,10 @@
     <meta property="og:url" content="https://enerccio.github.io/Marginalia/user/extensions/prompt-history/">
     <meta property="og:title" content="Prompt History">
     <meta property="og:description" content="Shows what was really sent to the model and what it answered, for debugging a plugin or checking what is in the prompt of anything besides a regular generation.">
+    <meta property="og:image" content="https://enerccio.github.io/Marginalia/images/plugin-prompt-history.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Prompt History">
     <meta property="og:site_name" content="Marginalia">
     <meta property="og:locale" content="en_US">
 
@@ -32,17 +36,19 @@
     <meta name="twitter:url" content="https://enerccio.github.io/Marginalia/user/extensions/prompt-history/">
     <meta name="twitter:title" content="Prompt History">
     <meta name="twitter:description" content="Shows what was really sent to the model and what it answered, for debugging a plugin or checking what is in the prompt of anything besides a regular generation.">
+    <meta name="twitter:image" content="https://enerccio.github.io/Marginalia/images/plugin-prompt-history.png">
+    <meta name="twitter:image:alt" content="Prompt History">
 
     <!-- Alternate Markdown -->
     <link rel="alternate" type="text/markdown" href="https://enerccio.github.io/Marginalia/user/extensions/prompt-history.md">
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.847242965527" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.847251041713" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847242965527" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847251041713" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847242965527" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847251041713" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -189,6 +195,10 @@ Settings</em>; the button <strong>Show prompt history</strong> opens the list, n
 and <strong>Response</strong> (the answer, the functions the model called, and the error of a request that failed). <strong>Refresh</strong>
 reloads the list and <strong>Clear</strong> empties it. A request is listed when it is sent: while it runs its answer and reasoning grow in
 the dialog as the model writes them.</p>
+<figure class="content-center">
+    <img src="../../../images/plugin-prompt-history.png" alt="The history of the requests" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1120" height="827" />
+    <figcaption class="caption">The history of the requests</figcaption>
+</figure>
 <p>For an <a href="../../agents/">agent</a>, the footer of its console has the button <strong>Prompt history</strong>: it opens the same list with the
 requests of that run.</p>
 <h2 id="notes">Notes</h2>
@@ -234,7 +244,7 @@ requests of that run.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (d828c79bf).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (13b37e9a8).</p></div>
             </footer>
         </div>
     </div>

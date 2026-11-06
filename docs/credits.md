@@ -3,20 +3,16 @@
 ## Pictures in the screenshots
 
 The screenshots in this manual that show a picture of a part (for example in the story editor, the Images dialog, the
-Resources tab, the backup dialogs, the Character Tracker and the plugins that show the story) use this photograph:
+Resources tab, the backup dialogs, the Character Tracker and the plugins that show the story) use this painting:
 
 | | |
 |---|---|
-| **Work** | [*Harry Potter.jpg*](https://commons.wikimedia.org/wiki/File:Harry_Potter.jpg), Wikimedia Commons |
-| **Author** | Mademoiselle Ortie / Elodie Tihange ([Mlle Ortie](https://commons.wikimedia.org/wiki/User:Mlle_Ortie)) |
-| **Source** | Own work of the author, 26 February 2017 |
-| **License** | [Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)](https://creativecommons.org/licenses/by-sa/4.0/) |
-| **Changes** | The photograph is shown in a smaller size inside screenshots of Marginalia; the screenshots may crop it. The file on Commons is the version without the watermark. |
+| **Work** | *Interior of a Cottage in Scheveningen* (1887) |
+| **Author** | Willem Adriaan Alexander Liernur |
+| **Source** | [Rawpixel](https://www.rawpixel.com/image/13744617/image-face-person-art), from a public domain collection |
+| **License** | Public domain (free for personal and business use) |
+| **Changes** | The painting is shown in a smaller size inside screenshots of Marginalia; the screenshots may crop it (a detail of the teapot is the portrait of a character in the Character Tracker). |
 
-The screenshots that contain the photograph are shared under the same license, CC BY-SA 4.0. The rest of this manual
-and Marginalia itself are not changed by that: Marginalia is under the
+The same painting is the cover of the [example book](user/getting-started/example-book.md). Nothing in the screenshots
+or in this manual is changed by the license of the painting: Marginalia is under the
 [MIT License](https://github.com/Enerccio/Marginalia/blob/master/LICENSE).
-
-The Commons page marks the photograph as fan art of a character from a copyrighted work and points out that the
-rights holder may have trademark rights, which can limit some uses of it. It is used here only to show how pictures
-look in Marginalia.

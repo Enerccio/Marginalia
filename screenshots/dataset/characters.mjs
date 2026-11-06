@@ -1,21 +1,21 @@
 // The cast of the Character Tracker plugin (Characters tab of the story editor).
 export const characters = [
-  { name: 'Harry Potter', tagline: 'Gryffindor Seeker, follows Draconia', note: 'Sixth year. Convinced that Draconia is up to something. Keeps his promise to Ginny only when it suits him.', color: '#b3434a', icon: 'Harry_Potter.jpg' },
-  { name: 'Draconia Malfoy', tagline: 'Slytherin, carries a secret task', note: 'Pale, sleeps badly, spends the nights in the Room of Requirement. Her sarcasm is a shield.', color: '#2e7d6b' },
-  { name: 'Ginny Weasley', tagline: 'Chaser, does not trust Draconia', note: 'Direct and funny. Notices where Harry is looking.', color: '#c97b2c' },
-  { name: 'Hermione Granger', tagline: 'Prefect, sees what others miss', note: 'The first to suspect that Draconia has a reason to be in Hogsmeade.', color: '#8b6bb5' },
-  { name: 'Ron Weasley', tagline: 'Keeper, three butterbeers too many', note: 'Hiccups. Jokes when he is worried.', color: '#b59a35' },
-  { name: 'Severus Snape', tagline: 'Watches Draconia more closely than he admits', note: 'Potions master and Defence teacher.', color: '#4f6377' },
+  { name: 'Tomáš Hájek', tagline: 'Czech cellar guide, hides his Japanese', note: 'Twenty-nine. Learned Japanese from novels and subtitles, so he speaks it stiff and bookish. Understood her first mutter and pretended he did not.', color: '#b3434a', icon: 'portrait.jpg' },
+  { name: 'Mizuki Hayashida', tagline: 'Nurse from Sendai, organises', note: 'Twenty-seven. Natural, everyday Japanese, a little teasing; broken English. Mutters in Japanese when she is alone.', color: '#2e7d6b' },
+  { name: 'Saellen', tagline: 'Ferry-woman of the Lyrasil', note: 'Broad, loud, kind. The first to feed them, and the first to teach them a word of Vrakht.', color: '#c97b2c' },
+  { name: 'Steing', tagline: 'Life-tax assessor with a ledger', note: 'Thin, fifty-one, patronizing. Writes down the sounds of Japanese as if it were a chant.', color: '#8b6bb5' },
+  { name: 'Paskal', tagline: 'Conscript from the steppe', note: 'Nineteen, homesick, cheerful. Plain soldier\'s speech.', color: '#b59a35' },
+  { name: 'Aelmoria', tagline: 'The reed-mother', note: 'Speaks Aethel-Vael, soft and flowing. Nobody in the Dominion admits to having met her.', color: '#4f6377' },
 ];
 
 // [from, to, name, tagline, direction] - direction: 'forward' (from -> to), 'both'
 export const relationships = [
-  ['Harry Potter', 'Draconia Malfoy', 'follows', 'since the summer', 'forward'],
-  ['Draconia Malfoy', 'Harry Potter', 'distrusts', 'and cannot stop watching him', 'forward'],
-  ['Harry Potter', 'Ginny Weasley', 'promised to tell', 'before doing anything stupid', 'forward'],
-  ['Harry Potter', 'Ron Weasley', 'best friends', '', 'both'],
-  ['Harry Potter', 'Hermione Granger', 'best friends', '', 'both'],
-  ['Ginny Weasley', 'Ron Weasley', 'sister of', '', 'forward'],
-  ['Hermione Granger', 'Draconia Malfoy', 'wonders about', 'why she is in Hogsmeade', 'forward'],
-  ['Severus Snape', 'Draconia Malfoy', 'watches over', 'Unbreakable Vow', 'forward'],
+  ['Tomáš Hájek', 'Mizuki Hayashida', 'hides from', 'that he understands her', 'forward'],
+  ['Mizuki Hayashida', 'Tomáš Hájek', 'teases', 'and lets him translate', 'forward'],
+  ['Saellen', 'Mizuki Hayashida', 'feeds', 'on the ferry', 'forward'],
+  ['Saellen', 'Tomáš Hájek', 'teaches words to', 'mosh, vat', 'forward'],
+  ['Steing', 'Tomáš Hájek', 'writes down', 'every sound he makes', 'forward'],
+  ['Steing', 'Mizuki Hayashida', 'writes down', 'her Japanese as a chant', 'forward'],
+  ['Paskal', 'Steing', 'escorts', '', 'forward'],
+  ['Saellen', 'Aelmoria', 'hums the river song of', 'in Aethel-Vael', 'forward'],
 ];

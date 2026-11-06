@@ -87,7 +87,8 @@ public class RangeDialog extends Dialog {
         language.setItems(languages);
         language.setEmptySelectionAllowed(true);
         language.setEmptySelectionCaption(TC.localized(ALL_LANGUAGES));
-        language.setItemLabelGenerator(LanguageRef::name);
+        // the empty selection ("all languages") is drawn through the generator too: it gets a null
+        language.setItemLabelGenerator(ref -> ref == null ? TC.localized(ALL_LANGUAGES) : ref.name());
         language.setWidthFull();
         language.setVisible(languages.size() > 1);
 

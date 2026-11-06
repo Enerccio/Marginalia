@@ -40,6 +40,8 @@ A language is edited in **Settings → Extension Settings → Real Language Tran
 
 The editor has these fields:
 
+![The languages in the settings](../../images/plugin-reallang-settings.png)
+
 | Field | |
 |---|---|
 | **Name** | What you call it ("Japanese, romaji for the novel"). |
@@ -48,6 +50,8 @@ The editor has these fields:
 | **Write the honorific suffixes of names** | san, sama, kun... |
 | **Also write how it is read (romaji)** | The model also writes the reading of the translation; the popover shows it above the English. |
 | **Politeness and speech level**, **Names of people and places**, **Other rules** | Short texts for the translator. The Japanese presets bring a text for the first two (plain form between close equals, the polite form with strangers, keigo to superiors; a foreign name in katakana). |
+
+![The editor of a language](../../images/plugin-reallang-editor.png)
 
 Below the list are the choices that books and folders **inherit** from you: the language, whether a part is translated by itself, and the model and protocol of the translation. **Save** the
 Settings screen to keep your changes.
@@ -63,9 +67,13 @@ The **Prompts** tab of the book window, under *Extension Settings*, has the fiel
 | **Model of the translation**, **Protocol of the translation** | Empty: the model and protocol of the book, else your defaults. |
 | **Readers of the published book see** | What the [viewer](#what-the-reader-sees) shows. |
 
+![The fields of a book](../../images/plugin-reallang-book.png)
+
 ## The Real language tab of the book
 
 The story window has a **Real language** tab (in the same dock as the chapters and the lorebook) for the language of *this* book, with **Refresh** to read it again.
+
+![The Real language tab of the story](../../images/plugin-reallang-tab.png)
 
 **Speakers.** Who speaks the language **in this book** (a book with [more than one language](#more-than-one-language-in-a-book) has a *Speakers* tab for each). By default everybody speaks it except the listed characters (or only the listed ones). The text overrides this ("she said in English",
 "the guard could not understand a word"). For each character note the **gender** and the **voice**: the level of speech follows it. Write the age, the rank and how the character talks to
@@ -102,6 +110,8 @@ from your library, one by one, and takes them away again.
 - **A range:** **Translate parts (real language)** in the tools menu of the story opens a window that stays open beside the story: *Translate the parts that are not translated*, *Translate the
   translated parts again* or *Put the English back*, from a part to a part, with a **Stop**.
 
+![The window that translates a range of parts](../../images/plugin-reallang-range.png)
+
 A translation is stored like any change of the text: the history of the part gets a version, the part is **not marked as edited**, and the English is kept. **A speech you changed by hand is
 left as it is** when the part is translated again or put back to English, because it holds your words.
 
@@ -110,6 +120,8 @@ left as it is** when the part is translated again or put back to English, becaus
 A translated speech has a **dotted line**; a click on it shows the English in a popover: the reading (when the language asks for it), who said it and whether the listener does not understand it, and a red
 note when you edited the translation after it was made.
 
+![A translated speech with the English in a popover](../../images/plugin-reallang-story.png)
+
 The [published book](../books/publishing.md) shows it the way the book asks, with **Readers of the published book see**: *the translation, the English on click* (the default), *the translation
 only* (the English is never sent to the reader's browser) or *the English only*.
 
@@ -117,6 +129,8 @@ only* (the English is never sent to the reader's browser) or *the English only*.
 
 When the book has translated speech, the [export](../books/export.md) dialog has the field **Translated speech (real language)**: *the translation as it is*, *the English only*, *the translation with
 the English in footnotes* or *the English with the translation in footnotes*. The stored text of the book is never changed by an export.
+
+![The export dialog with the translated speech](../../images/plugin-reallang-export.png)
 
 ## Together with the Conlang Translator
 

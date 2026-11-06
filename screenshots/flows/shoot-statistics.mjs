@@ -2,7 +2,7 @@
 // calendar) and of all books (the calendar with the goal), and the phone layout.
 // Run on a COPY of 13-db-backup that bin/seed-statistics.py has given a year of history (the application stopped for it, see
 // bin/shoot-all.sh): the dataset itself has a day or two of statistics. The goals are set here, through the Settings tab.
-import {bookTab, closeDialog, dialog, fill, idle, launch, login, main, openBook, openTab, press, section, sleep, snap, snapDialog, menuItem} from '../lib/shot.mjs';
+import {bookListMenu, bookTab, closeDialog, dialog, fill, idle, launch, login, main, openBook, openTab, press, section, sleep, snap, snapDialog, menuItem} from '../lib/shot.mjs';
 import {openStoryMenu} from '../lib/story.mjs';
 
 // the tab of the open statistics window
@@ -55,7 +55,7 @@ await main(async ({ page }) => {
     await idle(page, 800);
     await openTab(page, 'Books');
     await idle(page, 600);
-    await page.getByRole('button', { name: 'Statistics', exact: true }).first().click();
+    await bookListMenu(page, 'Manage', 'Statistics');
     await idle(page, 1500);
     await snapDialog(page, 'statistics-global', 0);
     await statTab(page, 'Calendar').click();

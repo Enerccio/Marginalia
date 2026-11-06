@@ -11,7 +11,7 @@ import {
   review,
   sideQuery
 } from '../dataset/plugins.mjs';
-import {ginnyTurn, ginnyTurn2, metaSummary, summaryReasoning, turns} from '../dataset/story.mjs';
+import {metaSummary, readerTurn, readerTurn2, summaryReasoning, turns} from '../dataset/story.mjs';
 
 const storyRules = Object.entries(turns).filter(([id]) => id !== 't2b').map(([id, t]) => ({
   name: 'story-' + id,
@@ -24,7 +24,7 @@ const storyRules = Object.entries(turns).filter(([id]) => id !== 't2b').map(([id
 // summaries of every part whose text is in it.
 const summaryRule = {
   name: 'summary',
-  when: ctx => /Context Ledger/.test(ctx.system) && ctx.messages.length === 1,
+  when: ctx => /compact event ledger/.test(ctx.system) && ctx.messages.length === 1,
   reply: ctx => {
     const found = ['t1', 't2a', 't3', 't4', 't5'].filter(id => ctx.text.includes(turns[id].reply.trim().slice(0, 60)));
     return { reply: found.map(id => turns[id].summary).join('\n'), reasoning: summaryReasoning };
@@ -37,8 +37,8 @@ const metaRule = {
   reply: () => ({ reply: metaSummary, reasoning: summaryReasoning }),
 };
 
-const ginnyRule = { name: 'ginny', when: ctx => ctx.last.includes(ginnyTurn.instructions), reply: ginnyTurn.reply };
-const ginnyRule2 = { name: 'ginny-2', when: ctx => ctx.last.includes(ginnyTurn2.instructions), reply: ginnyTurn2.reply };
+const readerRule = { name: 'reader', when: ctx => ctx.last.includes(readerTurn.instructions), reply: readerTurn.reply };
+const readerRule2 = { name: 'reader-2', when: ctx => ctx.last.includes(readerTurn2.instructions), reply: readerTurn2.reply };
 
 const sideQueryRule = {
   name: 'side-query',
@@ -60,8 +60,8 @@ const loreCompactionRule = {
 };
 const loreRule = {
   name: 'lore-generation',
-  when: ctx => ctx.text.includes('Write the lore entry for "The Three Broomsticks"'),
-  reply: () => ({ reply: loreGeneration, reasoning: 'An inn needs a keeper, a smell and a reason to matter to the story.' }),
+  when: ctx => ctx.text.includes('Write the lore entry for "The Bridge of Silvakhor"'),
+  reply: () => ({ reply: loreGeneration, reasoning: 'A bridge needs soldiers, a toll and a reason to matter to the story.' }),
 };
 
 // Arc Outline: the prompt for an arc and the prompt for the chapters of an arc are told apart by their first sentence.
@@ -104,7 +104,7 @@ const betaPersonaRule = {
 const imagePromptRule = {
   name: 'image-prompt',
   when: ctx => ctx.text.includes('You write prompts for an image generation model'),
-  reply: 'watercolor, a foggy village street at dusk, a girl in a long green coat standing under a gas lamp, a boy with glasses and a red and gold scarf watching from the shadows, cobblestones, stone houses with lit windows, cold blue fog, warm lamplight, melancholy mood',
+  reply: 'watercolor, a reed field at night under an enormous low moon, a young man with a cracked headlamp and a young woman in a grey jacket walking along a black river, tall reeds, a long broken road of moonlight on the water, cold blue and green, small warm light, quiet mood',
 };
 
 export default [
@@ -118,8 +118,8 @@ export default [
   loreRule,
   reviewRule,
   sideQueryRule,
-  ginnyRule,
-  ginnyRule2,
+  readerRule,
+  readerRule2,
   summaryRule,
   metaRule,
   ...storyRules,

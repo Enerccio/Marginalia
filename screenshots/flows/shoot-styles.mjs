@@ -135,7 +135,7 @@ await main(async ({ page }) => {
   await section(page, 'viewer', async () => {
     await login(page, users.admin, '/view');
     await sleep(1200);
-    await page.getByText('Harry Potter and Half Blood Prince - FDM', { exact: false }).first().click();
+    await page.getByText('Unregistered', { exact: false }).first().click();
     await idle(page, 2000);
     await page.locator('vaadin-button, button').filter({ has: page.locator('vaadin-icon[icon$=":paintbrush"], vaadin-icon[icon$=":magic"], vaadin-icon[icon$=":pencil"]') }).last().click().catch(() => {});
     await page.mouse.click(1875, 37);

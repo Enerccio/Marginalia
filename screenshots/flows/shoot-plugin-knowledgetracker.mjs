@@ -17,17 +17,17 @@ await main(async ({ page }) => {
 
   await page.getByRole('button', { name: 'Track a character' }).click();
   await idle(page, 500);
-  await fill(dialog(page), 'Name', 'Draconia');
-  await fill(dialog(page), 'Aliases', 'Dray');
+  await fill(dialog(page), 'Name', 'Tomáš');
+  await fill(dialog(page), 'Aliases', 'Tomas');
   await save(page);
   await idle(page, 600);
 
   await page.getByRole('button', { name: 'Show what the character knows' }).first().click();
   await idle(page, 500);
   const items = [
-    ['Knows', 'Harry has seen her go to the Room of Requirement.'],
-    ['Does not know', 'Ginny has found the cabinet in the Room of Requirement.'],
-    ['Does not know', 'Harry has not spoken to Snape about her yet.'],
+    ['Knows', 'Mizuki said in Japanese, at the arch, that the wall was breathing.'],
+    ['Does not know', 'Mizuki has noticed that he understands Japanese.'],
+    ['Does not know', 'Anybody lives in this valley.'],
   ];
   for (const [kind, text] of items) {
     await page.getByRole('button', { name: 'Add knowledge' }).first().click();

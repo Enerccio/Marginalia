@@ -55,7 +55,7 @@ character that is not present gets nothing at all, not even a line saying it doe
 
 The block is made from the **Present Characters** field of the part. The field is free text, so it is read leniently:
 
-- text in brackets is ignored: `Ron (tipsy), Ginny` is Ron and Ginny;
+- text in brackets is ignored: `Tomáš (tired), Mizuki` is Tomáš and Mizuki;
 - the names are split at the **separators** (default: `,` `;` a new line, `/`, `|`, `、` `，` `；`);
 - what is after ` - ` or `:` is a note and is dropped (`Mara - wounded`);
 - upper or lower case, accents and a leading *the* do not matter;

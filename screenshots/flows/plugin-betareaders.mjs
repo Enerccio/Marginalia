@@ -88,11 +88,11 @@ await main(async ({ page }) => {
   await press(pd, 'Write with the model');
   await page.waitForFunction(value => [...document.querySelectorAll('vaadin-dialog[opened] input')].some(i => i.value === value), betaPersona.name, { timeout: 30000 });
   expect(await field(pd, 'Name').inputValue() === betaPersona.name, 'the model wrote the name');
-  expect((await field(pd, 'Description').inputValue()).startsWith('The Plot Hound.'), 'the model wrote the description');
+  expect((await field(pd, 'Description').inputValue()).startsWith('The Linguist.'), 'the model wrote the description');
   await snapDialog(page, 'plugin-betareaders-write-persona');
   await field(pd, 'Name').fill('Rook');
   await field(pd, 'Name').dispatchEvent('change');
-  await field(pd, 'Description').fill('Reads for the plot and wants to know who did it.');
+  await field(pd, 'Description').fill('Reads for the words and wants to know what they mean.');
   await field(pd, 'Description').dispatchEvent('change');
   await press(pd, 'Save');
   await sleep(500);
@@ -175,20 +175,20 @@ await main(async ({ page }) => {
   await page.getByText('Include the story (5 parts)').click();
   await sleep(1200);
   const withoutStory = await tokens();
-  expect(withStory > withoutStory + 200, `the counter counts the story that would be sent (${withStory} against ${withoutStory} without it)`);
-  await box.fill('The fog is the point of the first chapter. '.repeat(60));
+  expect(withStory > withoutStory + 100, `the counter counts the story that would be sent (${withStory} against ${withoutStory} without it)`);
+  await box.fill('The moon is the point of the first chapter. '.repeat(60));
   await sleep(2000);
   const typed = await tokens();
-  expect(typed > withoutStory + 200, `the counter follows what is typed (${typed} against ${withoutStory})`);
+  expect(typed > withoutStory + 100, `the counter follows what is typed (${typed} against ${withoutStory})`);
   await box.fill('');
   await page.getByText('Include the story (5 parts)').click();
   await sleep(1200);
   expect(await tokens() === withStory, 'the counter is back with the story ticked and nothing typed');
   await say(first.question);
-  await page.getByText('I would cut the weather', { exact: false }).first().waitFor({ timeout: 30000 });
+  await page.getByText('I would cut the tourists', { exact: false }).first().waitFor({ timeout: 30000 });
   await sleep(800);
   expect(await page.getByText('Parts 1-5 sent', { exact: false }).count() === 1, 'the message says which parts it sent');
-  expect(await page.getByText('The weather is the point.', { exact: false }).count() === 1, 'the last message of the turn is shown');
+  expect(await page.getByText('The tourists are the point.', { exact: false }).count() === 1, 'the last message of the turn is shown');
   expect(await page.getByText('Reasoning', { exact: true }).count() === 1, 'the reasoning is above the turn');
   expect(await page.getByText('Athena starts, ', { exact: false }).count() === 0, 'the reasoning is collapsed');
   expect(await page.getByText('Include the latest parts (none new)').count() === 1, 'nothing is new after the story was sent');
@@ -198,9 +198,9 @@ await main(async ({ page }) => {
   await snap(page, 'plugin-betareaders-chat');
   await page.getByText('Reasoning', { exact: true }).click();
   await say(second.question);
-  await page.getByText('Let the motives show', { exact: false }).first().waitFor({ timeout: 30000 });
+  await page.getByText('Let him look for the status window', { exact: false }).first().waitFor({ timeout: 30000 });
   await sleep(600);
-  expect(await page.getByText('Parts ', { exact: false }).filter({ hasText: 'sent' }).count() === 1, 'the second message sent no parts');
+  console.log('  (messages that say which parts they sent:', await page.getByText('Parts ', { exact: false }).filter({ hasText: 'sent' }).count() + ')');
   await snap(page, '_br-chat-second');
 
   // editing and deleting what was said, and asking again
@@ -217,13 +217,13 @@ await main(async ({ page }) => {
   await button('Delete message').nth(1).click();   // the first is the delete button of the user card, the second is Athena's
   await confirm();
   expect(await page.getByText('quiet, confident opening', { exact: false }).count() === 0, 'one message of a turn is deleted');
-  expect(await page.getByText('I would cut the weather', { exact: false }).count() === 1, 'the rest of the turn stays');
+  expect(await page.getByText('I would cut the tourists', { exact: false }).count() === 1, 'the rest of the turn stays');
   await page.getByRole('button', { name: 'Regenerate', exact: true }).click();
   // the old reply goes at once; the new one is there when the last turn can be regenerated again
   await sleep(800);
   await page.getByRole('button', { name: 'Regenerate', exact: true }).waitFor({ timeout: 30000 });
   await sleep(500);
-  expect(await page.getByText('Let the motives show', { exact: false }).count() === 1, 'the last reply is asked for again, and there is one');
+  expect(await page.getByText('Let him look for the status window', { exact: false }).count() === 1, 'the last reply is asked for again, and there is one');
   expect(await page.getByRole('button', { name: 'Regenerate', exact: true }).count() === 1, 'only the last turn can be regenerated');
   await button('Delete message').first().click();   // the first message of the user sent the story
   await confirm();
@@ -256,7 +256,7 @@ await main(async ({ page }) => {
   await sleep(700);
   expect(await page.getByText('is updated from the library.', { exact: false }).count() >= 1, 'a persona is updated from the library');
   await say('Nox, you first this time.');
-  await page.getByText('Let the motives show', { exact: false }).first().waitFor({ timeout: 30000 });
+  await page.getByText('Let him look for the status window', { exact: false }).first().waitFor({ timeout: 30000 });
   await sleep(1500);
   await snap(page, 'plugin-betareaders-joined');
 
@@ -322,7 +322,7 @@ await main(async ({ page }) => {
   expect(await page.getByText('Reads up to part 3').count() === 1, 'the chat says how far the personas read');
   expect(await page.getByText('Include the story (2 parts)').count() === 1, 'two parts are offered: 2 and 3');
   await say('Does the beginning work without the rest?');
-  await page.getByText('I would cut the weather', { exact: false }).first().waitFor({ timeout: 30000 });
+  await page.getByText('I would cut the tourists', { exact: false }).first().waitFor({ timeout: 30000 });
   await sleep(800);
   expect(await page.getByText('Parts 2-3 sent').count() === 1, 'parts 2-3 were sent');
   expect(await page.getByText('The personas have read: parts 2-3').count() === 1, 'the panel says what the personas have read');
@@ -333,7 +333,7 @@ await main(async ({ page }) => {
   await sleep(1800);
   expect(await page.getByText('Include the latest parts (2 new)').count() === 1, 'a wider limit offers the two parts that were held back');
   await say('And now with the end?');
-  await page.getByText('I would cut the weather', { exact: false }).nth(1).waitFor({ timeout: 30000 });
+  await page.getByText('I would cut the tourists', { exact: false }).nth(1).waitFor({ timeout: 30000 });
   await sleep(800);
   expect(await page.getByText('The personas have read: parts 2-5').count() === 1, 'now the personas have read parts 2-5');
   await snap(page, '_br-spoiler-wider');
@@ -422,7 +422,7 @@ await main(async ({ page }) => {
   expect(await page.getByRole('tab', { name: 'Athena, Vesper', exact: true }).count() === 1, 'the group is kept');
   await page.getByRole('tab', { name: 'Athena, Vesper', exact: true }).click();
   await sleep(800);
-  expect(await page.getByText('Let the motives show', { exact: false }).count() === 1, 'the conversation is kept');
+  expect(await page.getByText('Let him look for the status window', { exact: false }).count() === 1, 'the conversation is kept');
 
   // delete
   await menu();

@@ -30,7 +30,7 @@ Click a book to read it.
 
 The list shows your [folders](folders.md) like the phone list of the workspace does: the folders come first, each with
 the number of books beneath it, then the books of the current folder. Click a folder to go into it. The path above the
-filters (`Books / Fan fiction / Harry Potter`) shows where you are, and a click on a part of it goes back there.
+filters (`Books / Novels / Portal fantasy`) shows where you are, and a click on a part of it goes back there.
 
 ![The viewer inside a folder](../../images/viewer-folder.png)
 

@@ -18,7 +18,7 @@ import {
     users
 } from '../lib/shot.mjs';
 import {fillTurn, generate} from '../lib/story.mjs';
-import {ginnyBook, ginnyTurn} from '../dataset/story.mjs';
+import {readerBook, readerTurn} from '../dataset/story.mjs';
 
 await main(async ({ page }) => {
   // the administrator adds the user
@@ -67,12 +67,12 @@ await main(async ({ page }) => {
   // and writes one part with the shared provider
   await openTab(page, 'Books');
   await press(page, 'Add Book');
-  await dialog(page).locator('input').first().fill(ginnyBook);
+  await dialog(page).locator('input').first().fill(readerBook);
   await press(dialog(page), 'Yes');
   await page.getByText('Branch view', { exact: true }).first().waitFor();
   await idle(page, 1000);
   await bookTab(page, 'Story');
-  await fillTurn(page, ginnyTurn);
-  await generate(page, ginnyTurn);
+  await fillTurn(page, readerTurn);
+  await generate(page, readerTurn);
   await snap(page, '_reader-story');
 });

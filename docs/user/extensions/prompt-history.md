@@ -19,6 +19,8 @@ and **Response** (the answer, the functions the model called, and the error of a
 reloads the list and **Clear** empties it. A request is listed when it is sent: while it runs its answer and reasoning grow in
 the dialog as the model writes them.
 
+![The history of the requests](../../images/plugin-prompt-history.png)
+
 For an [agent](../agents.md), the footer of its console has the button **Prompt history**: it opens the same list with the
 requests of that run.
 

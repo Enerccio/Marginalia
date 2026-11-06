@@ -1,5 +1,5 @@
 // The permissions window of a user (Admin → Users, the key button): adding a permission, the settings of one, the list.
-// Run on a copy of 13-db-backup, it is discarded: the permissions of ginny are changed (the migration of the application
+// Run on a copy of 13-db-backup, it is discarded: the permissions of jana are changed (the migration of the application
 // gave her "Create own models", as everybody could create models before the permissions). Pictures: permissions-add,
 // permissions-settings, permissions-settings-agents, permissions-dialog.
 import {addPermission, dialogRects, idle, login, main, openPermissions, press, sleep, snap, snapDialog} from '../lib/shot.mjs';
@@ -9,7 +9,7 @@ await main(async ({ page }) => {
   await press(page, 'Admin');
   await idle(page, 800);
 
-  const d = await openPermissions(page, 'ginny');
+  const d = await openPermissions(page, 'jana');
 
   // the combo box offers what she has none of
   await d.getByLabel('Permission', { exact: true }).click();

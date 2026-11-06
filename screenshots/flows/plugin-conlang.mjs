@@ -33,7 +33,7 @@ await main(async ({ page }) => {
     await sleep(1000);
     await snap(page, 'plugin-conlang-settings', { clip: CONTENT });
     // the editor of a language
-    await page.locator('vaadin-grid-cell-content').filter({ hasText: /^Orrelian$/ }).first().click();
+    await page.locator('vaadin-grid-cell-content').filter({ hasText: /^Vrakht$/ }).first().click();
     await sleep(400);
     await page.getByRole('button', { name: 'Edit', exact: true }).click();
     await idle(page, 1200);
@@ -79,12 +79,12 @@ await main(async ({ page }) => {
 
   await section(page, 'review', async () => {
     await panel();
-    await select('Orrelian');
+    await select('Vrakht');
     await page.getByRole('button', { name: 'Compare', exact: true }).click();
     await idle(page, 700);
     await press(dialog(page), 'Review the differences');
     await idle(page, 1500);
-    await dialog(page).locator('vaadin-grid-cell-content').filter({ hasText: /^Grammar$/ }).first().click();
+    await dialog(page).locator('vaadin-grid-cell-content').filter({ hasText: /^Syntax and grammar$/ }).first().click();
     await sleep(800);
     await snapDialog(page, 'plugin-conlang-review', -1);
     await closeDialog(page);
@@ -92,7 +92,7 @@ await main(async ({ page }) => {
 
   await section(page, 'designer', async () => {
     await panel();
-    await select('Orrelian');
+    await select('Vrakht');
     await page.getByRole('button', { name: 'Edit', exact: true }).click();
     await idle(page, 1200);
     await dialog(page).getByText('Design with AI', { exact: true }).click();
@@ -123,7 +123,7 @@ await main(async ({ page }) => {
     await center(mark);
     await sleep(500);
     await mark.click();
-    await page.locator('.conlang-source-box').first().waitFor({ timeout: 10000 });
+    await page.locator('.translator-source-box').first().waitFor({ timeout: 10000 });
     await sleep(500);
     await snapAround('plugin-conlang-story', mark);
     await page.keyboard.press('Escape');
@@ -157,7 +157,7 @@ await main(async ({ page }) => {
     await center(mark);
     await sleep(500);
     await mark.click();
-    await page.locator('.conlang-source-box').first().waitFor({ timeout: 10000 });
+    await page.locator('.translator-source-box').first().waitFor({ timeout: 10000 });
     await sleep(500);
     await snapAround('plugin-conlang-viewer', mark);
   });
