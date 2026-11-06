@@ -202,6 +202,8 @@ public class LoreGeneratorDialog extends Dialog {
         generationPane = new GenerationPane(T.localized(RUN_GENERATION), this::runGeneration, this::stop);
         compactionPane = new GenerationPane(T.localized(RUN_COMPACTION), this::runCompaction, this::stop);
 
+        generationPane.runOnShortcut(promptArea);
+
         tabs = new TabSheet();
         tabs.setSizeFull();
         tabs.addClassNames(CssStyles.MIN_HEIGHT_0, CssStyles.OVERFLOW_HIDDEN);

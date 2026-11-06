@@ -3,6 +3,7 @@ package com.github.enerccio.marginalia.ui.dialogs;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
+import com.github.enerccio.marginalia.ui.widgets.DialogShortcuts;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.textfield.TextArea;
@@ -44,6 +45,7 @@ public final class DescriptionDialog {
         });
         ok.setThemeName("primary");
         dialog.getFooter().add(cancel, ok);
+        DialogShortcuts.submitWith(ok, field);
         dialog.open();
     }
 }

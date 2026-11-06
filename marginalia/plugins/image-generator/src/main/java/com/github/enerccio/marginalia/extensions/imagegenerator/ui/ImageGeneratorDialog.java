@@ -13,6 +13,7 @@ import com.github.enerccio.marginalia.extensions.imagegenerator.model.ImageSetti
 import com.github.enerccio.marginalia.extensions.imagegenerator.service.*;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
+import com.github.enerccio.marginalia.ui.widgets.DialogShortcuts;
 import com.github.enerccio.marginalia.ui.widgets.ModelProtocolPicker;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.utils.UIUtils;
@@ -165,6 +166,8 @@ public class ImageGeneratorDialog extends Dialog {
         add(content);
 
         getFooter().add(new Button(T.localized(CLOSE), e -> close()), discard, accept, generate);
+        DialogShortcuts.submitWith(writePrompt, details);
+        DialogShortcuts.submitWith(generate, prompt, negative, width, height);
 
         applyBackendDefaults(selected);
         updateButtons();

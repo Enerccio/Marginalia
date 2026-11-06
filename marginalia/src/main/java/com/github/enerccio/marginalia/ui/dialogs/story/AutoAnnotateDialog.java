@@ -7,6 +7,8 @@ import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.domain.service.ProtocolService;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
+import com.github.enerccio.marginalia.ui.widgets.DialogShortcuts;
 import com.github.enerccio.marginalia.ui.widgets.ModelProtocolPicker;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.ui.widgets.TextAreaPopoverComponent;
@@ -119,6 +121,8 @@ public class AutoAnnotateDialog extends Dialog {
         save.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         Button close = new Button(loc.getValue(L.LABEL_CLOSE), _ -> close());
         getFooter().add(close, save);
+        DialogShortcuts.submitWith(save, instructions);
+        DialogFocus.onOpen(this, instructions);
     }
 
     /**

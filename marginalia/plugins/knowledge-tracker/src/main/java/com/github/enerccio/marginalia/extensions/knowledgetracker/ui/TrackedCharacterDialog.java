@@ -5,6 +5,7 @@ import com.github.enerccio.marginalia.extensions.knowledgetracker.model.MetPerso
 import com.github.enerccio.marginalia.extensions.knowledgetracker.model.TrackedCharacter;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.scene.PresentCharacters;
 import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
+import com.github.enerccio.marginalia.ui.widgets.DialogShortcuts;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.dialog.Dialog;
@@ -67,6 +68,7 @@ public class TrackedCharacterDialog extends Dialog {
         Button save = new Button(T.localized(SAVE), _ -> save());
         save.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         getFooter().add(new Button(T.localized(CANCEL), _ -> close()), save);
+        DialogShortcuts.submitWith(save, name, aliases, met);
     }
 
     private void save() {

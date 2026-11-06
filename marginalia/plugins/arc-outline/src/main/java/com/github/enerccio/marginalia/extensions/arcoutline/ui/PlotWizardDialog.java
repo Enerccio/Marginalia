@@ -511,6 +511,7 @@ public class PlotWizardDialog extends Dialog {
             }
         });
         sendButton.setThemeName("primary");
+        DialogShortcuts.submitWith(sendButton, input);
 
         HorizontalLayout inputRow = new HorizontalLayout(input, sendButton);
         inputRow.setWidthFull();
@@ -590,6 +591,7 @@ public class PlotWizardDialog extends Dialog {
         ok.setThemeName("primary");
         dialog.add(name);
         dialog.getFooter().add(new Button(T.localized(CANCEL), _ -> dialog.close()), ok);
+        DialogShortcuts.submitWith(ok, name);
         dialog.open();
     }
 
@@ -835,6 +837,7 @@ public class PlotWizardDialog extends Dialog {
         for (WizardMessage message : messages) {
             transcript.append(message.isFromUser() ? "Author: " : "Consultant: ").append(message.getText().strip()).append("\n\n");
         }
+        DialogShortcuts.submitWith(ok, note);
         List<LLMChatMessage> payload = new ArrayList<>();
         payload.add(LLMChatMessage.of(LLMRole.SYSTEM, WizardContext.summaryPrompt(Defaults.WIZARD_SUMMARY_PROMPT, note)));
         payload.add(LLMChatMessage.of(LLMRole.USER, transcript.toString().stripTrailing()));

@@ -17,6 +17,7 @@ import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.styles.PartStyleApplier;
 import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
+import com.github.enerccio.marginalia.ui.widgets.DialogShortcuts;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Component;
@@ -149,6 +150,7 @@ public class ExportDialog extends Dialog implements LLMInteract {
         export.setThemeName("primary");
         export.setEnabled(!exporters.isEmpty());
         getFooter().add(new Button(loc.getValue(L.LABEL_CANCEL), event -> close()), export);
+        DialogShortcuts.submitWith(export, fileName, bookTitle, author, from, to);
     }
 
     /**

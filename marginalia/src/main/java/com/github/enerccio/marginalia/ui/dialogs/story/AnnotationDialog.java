@@ -3,6 +3,7 @@ package com.github.enerccio.marginalia.ui.dialogs.story;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.widgets.DialogShortcuts;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
@@ -90,6 +91,7 @@ public class AnnotationDialog extends Dialog {
         save.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         Button cancel = new Button(loc.getValue(L.LABEL_CANCEL), event -> close());
         getFooter().add(cancel, save);
+        DialogShortcuts.submitWith(save, note, type);
     }
 
     private void save() {

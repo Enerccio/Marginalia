@@ -72,6 +72,7 @@ public class ArcGeneratorDialog extends GeneratorDialog {
         specificationArea = new TextArea(T.localized(SPECIFICATION));
         specificationArea.setWidthFull();
         DialogFocus.onOpen(this, specificationArea);
+        generateOnShortcut(specificationArea);
         specificationArea.setMinHeight("140px");
         specificationArea.setMaxHeight("30vh");
         specificationArea.setPlaceholder(T.localized(WHAT_YOU_WANT_FROM_THE_ARC));

@@ -126,6 +126,8 @@ public class ChapterGeneratorDialog extends GeneratorDialog {
             refreshChapterAreas();
         });
 
+        generateOnShortcut(generalSpecification, countText, countNumber);
+
         VerticalLayout inputs = new VerticalLayout(contextGroup, generalSpecification, countText, countNumber, chapterAreas);
         inputs.setPadding(false);
         inputs.getThemeList().add("spacing-xs");
@@ -149,6 +151,7 @@ public class ChapterGeneratorDialog extends GeneratorDialog {
             area.setMaxHeight("20vh");
             chapterSpecifications.add(area);
             chapterAreas.add(area);
+            generateOnShortcut(area);
         }
     }
 

@@ -5,6 +5,7 @@ import com.github.enerccio.marginalia.domain.service.PlannerService;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
+import com.github.enerccio.marginalia.ui.widgets.DialogShortcuts;
 import com.github.enerccio.marginalia.ui.widgets.ResizableTextArea;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
@@ -68,6 +69,7 @@ class PlannedSceneDialog extends Dialog {
         });
         save.setThemeName("primary");
         getFooter().add(new Button(loc.getValue(L.LABEL_CANCEL), _ -> close()), save);
+        DialogShortcuts.submitWith(save, title, setting, pov, present, instructions);
     }
 
     private static TextArea area(Localization loc, L label, String value) {

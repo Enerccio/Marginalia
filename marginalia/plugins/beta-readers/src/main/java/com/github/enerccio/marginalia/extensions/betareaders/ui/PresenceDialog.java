@@ -1,6 +1,8 @@
 package com.github.enerccio.marginalia.extensions.betareaders.ui;
 
 import com.github.enerccio.marginalia.extensions.betareaders.model.Persona;
+import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
+import com.github.enerccio.marginalia.ui.widgets.DialogShortcuts;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -61,5 +63,7 @@ public class PresenceDialog extends Dialog {
             onChosen.accept(persona.getValue(), note.getValue() == null ? "" : note.getValue().strip());
         });
         getFooter().add(new Button(T.localized(CANCEL), _ -> close()), confirm);
+        DialogShortcuts.submitWith(confirm, note);
+        DialogFocus.onOpen(this, note);
     }
 }

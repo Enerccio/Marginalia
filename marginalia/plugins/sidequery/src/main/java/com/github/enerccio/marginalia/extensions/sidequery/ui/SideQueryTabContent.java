@@ -13,6 +13,7 @@ import com.github.enerccio.marginalia.extensions.sidequery.service.SideQueryServ
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
 import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
+import com.github.enerccio.marginalia.ui.widgets.DialogShortcuts;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.ui.widgets.ResizableTextArea;
 import com.github.enerccio.marginalia.ui.widgets.ScrollPanel;
@@ -232,6 +233,7 @@ public class SideQueryTabContent extends VerticalLayout {
 
         sendBtn = new Button("SEND", e -> handleSend());
         sendBtn.setThemeName("primary");
+        DialogShortcuts.submitWith(sendBtn, userInputArea);
 
         undoBtn = new Button("UNDO", e -> handleUndo());
         generateAgainBtn = new Button("REGENERATE", e -> handleGenerateAgain());
@@ -309,6 +311,7 @@ public class SideQueryTabContent extends VerticalLayout {
 
         dialog.add(new VerticalLayout(nameField));
         dialog.getFooter().add(cancelBtn, saveBtn);
+        DialogShortcuts.submitWith(saveBtn, nameField);
         dialog.open();
     }
 

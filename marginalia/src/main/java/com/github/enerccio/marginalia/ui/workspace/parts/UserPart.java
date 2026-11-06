@@ -1067,6 +1067,7 @@ public class UserPart implements WorkspaceComponent {
         nameField.setRequired(true);
         nameField.setWidthFull();
         nameField.setValueChangeMode(ValueChangeMode.EAGER);
+        DialogFocus.onOpen(dialog, nameField);
 
         // the backup is read from a file, it can be big and have images; the file is needed until the lorebooks are
         // resolved (a dialog), so it's deleted when the restore is done or the dialog is closed

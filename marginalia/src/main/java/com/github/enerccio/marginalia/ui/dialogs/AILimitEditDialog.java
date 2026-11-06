@@ -13,6 +13,7 @@ import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
+import com.github.enerccio.marginalia.ui.widgets.DialogShortcuts;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.ModalityMode;
@@ -83,6 +84,10 @@ public class AILimitEditDialog extends Dialog implements LLMInteract {
         Button save = new Button("", e -> save());
         save.setThemeName("primary");
         getFooter().add(cancel, save);
+        DialogShortcuts.submitWith(save, prefillField, generatedField, totalField);
+        if (entry != null) {
+            DialogFocus.onOpen(this, prefillField);
+        }
 
         // texts need the injected localization, which is there only after the constructor
         addAttachListener(e -> {

@@ -8,6 +8,7 @@ import com.github.enerccio.marginalia.extensions.conlangtranslator.service.NameG
 import com.github.enerccio.marginalia.extensions.translatorcommon.ui.EditDialog;
 import com.github.enerccio.marginalia.extensions.translatorcommon.ui.ListEditor;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
+import com.github.enerccio.marginalia.ui.widgets.DialogShortcuts;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
@@ -122,6 +123,7 @@ public class LanguageEditorDialog extends Dialog {
         Button save = new Button(T.localized(SAVE), _ -> save());
         save.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         getFooter().add(cancel, save);
+        DialogShortcuts.submitWith(save, name, description);
     }
 
     /** Everything the window can change: the language (the tabs edit it in place) and the fields of the overview. */

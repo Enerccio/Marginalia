@@ -12,6 +12,8 @@ import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
+import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
+import com.github.enerccio.marginalia.ui.widgets.DialogShortcuts;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.ui.widgets.ResizableTextArea;
 import com.github.enerccio.marginalia.ui.widgets.WordDiffView;
@@ -259,6 +261,8 @@ public class RedraftDialog extends Dialog {
         apply.addClickListener(_ -> apply());
         Button close = new Button(loc.getValue(L.LABEL_CLOSE), _ -> close());
         getFooter().add(close, apply);
+        DialogShortcuts.submitWith(start, instructions);
+        DialogFocus.onOpen(this, instructions);
 
         addOpenedChangeListener(e -> {
             if (!e.isOpened() && generating && cancellationToken != null) {

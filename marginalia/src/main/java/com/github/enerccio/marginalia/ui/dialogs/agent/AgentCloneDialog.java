@@ -9,6 +9,8 @@ import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.widgets.BookLabels;
+import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
+import com.github.enerccio.marginalia.ui.widgets.DialogShortcuts;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.button.Button;
@@ -95,6 +97,8 @@ public class AgentCloneDialog extends Dialog implements LLMInteract {
         footer.setWidthFull();
         footer.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
         getFooter().add(footer);
+        DialogShortcuts.submitWith(cloneButton, nameField);
+        DialogFocus.onOpen(this, nameField);
 
         try {
             // a clone works on another book: the books without an agent

@@ -9,6 +9,7 @@ import com.github.enerccio.marginalia.extensions.charactertracker.model.StoryCha
 import com.github.enerccio.marginalia.extensions.charactertracker.service.CharacterTrackerService;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
+import com.github.enerccio.marginalia.ui.widgets.DialogShortcuts;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
@@ -115,6 +116,7 @@ public class CharacterDialog extends Dialog {
         save.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         Button cancel = new Button(T.localized(CANCEL), _ -> requestClose());
         getFooter().add(cancel, save);
+        DialogShortcuts.submitWith(save, name, tagline, note);
     }
 
     private Component buildFields() {
@@ -253,6 +255,7 @@ public class CharacterDialog extends Dialog {
             relationTagline.clear();
         });
         add.setEnabled(!others.isEmpty());
+        DialogShortcuts.submitWith(add, relationName, relationTagline);
         if (others.isEmpty()) {
             relationOther.setHelperText(T.localized(THERE_IS_NO_OTHER_CHARACTER));
         }

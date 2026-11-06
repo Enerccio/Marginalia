@@ -13,6 +13,7 @@ import com.github.enerccio.marginalia.extensions.mangagenerator.service.MangaSer
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
+import com.github.enerccio.marginalia.ui.widgets.DialogShortcuts;
 import com.github.enerccio.marginalia.ui.widgets.ModelProtocolPicker;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.ui.widgets.ScrollPanel;
@@ -471,6 +472,7 @@ public class MangaDialog extends Dialog {
         save.setThemeName("primary");
         dialog.add(name);
         dialog.getFooter().add(new Button(T.localized(CANCEL), e -> dialog.close()), save);
+        DialogShortcuts.submitWith(save, name);
         dialog.open();
     }
 

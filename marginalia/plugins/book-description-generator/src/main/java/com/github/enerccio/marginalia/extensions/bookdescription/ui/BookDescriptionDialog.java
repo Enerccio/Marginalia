@@ -18,6 +18,7 @@ import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes.InRequestScope;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
+import com.github.enerccio.marginalia.ui.widgets.DialogShortcuts;
 import com.github.enerccio.marginalia.ui.widgets.ModelProtocolPicker;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.utils.UIUtils;
@@ -188,6 +189,7 @@ public class BookDescriptionDialog extends Dialog {
             }
         });
         generateButton.setWidthFull();
+        DialogShortcuts.submitWith(generateButton, fromField, toField);
 
         VerticalLayout left = new VerticalLayout(modelPicker, range, rangeHint, useSummaries, formatSelect, tokenInfo, promptsHint, generateButton);
         left.setPadding(true);
