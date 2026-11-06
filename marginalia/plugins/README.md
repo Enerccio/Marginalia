@@ -12,11 +12,13 @@ a restart.
 | [Book Description Generator](book-description-generator/README.md) | Writes the name and the description of a book with the model from a range of its story (notes first when it is too long, optional summaries), from a button on the About tab. |
 | [Chapter Marker](chaptermarker/README.md) | Story parts starting a chapter (a Markdown `#` heading) are shown as chapters in the story sidebar. |
 | [Character Tracker](character-tracker/README.md) | The characters of the book with their relationships, and a map of the relationships, in the story sidebar. |
+| [Chinese localization](chineselocalization/README.md) | Simplified Chinese as a language of the user interface; the example for adding a language. |
 | [Conlang Translator](conlang-translator/README.md) | The speech of the characters in a constructed language (rules and a lexicon, edited with the model's help), the English kept as the source every model reads; a click shows it in the story and in the viewer, the exports can print it as footnotes. |
 | [Gemma 4 tools fix](gemma4toolsfix/README.md) | Sends the results of function calls to Gemma 4 models with the role `tool_responses`. |
 | [Google Gemini](google-genai/README.md) | Google's Gemini models as an inference provider (type *Extension*), over the Google Gen AI Java SDK: thinking summaries as reasoning, safety filters, exact usage. |
 | [Image Generator](image-generator/README.md) | "Generate image" in the menu of a part: the model writes the prompt, ComfyUI or an OpenAI-style images API makes the picture, you reroll and accept it as an image of the part. Hooks free the GPU memory around it. |
 | [Instruction Exporter](instructionexporter/README.md) | "Export instructions" in the story settings menu: copies the instructions, scene settings and characters of the active branch to the clipboard. |
+| [Knowledge Tracker](knowledge-tracker/README.md) | What the characters you choose know and do not know, tracked per part and put into the prompt (and given to the annotation as facts), so the model stops giving them knowledge they cannot have; the Knowledge tab of the story sidebar. |
 | [Lore Generator](lore-generator/README.md) | Writes the content of a lorebook entry with the model from the existing lore (generation, compaction, attachments), from a button in the lorebook editor. |
 | [Lorebook VCS](lorebookvcs/README.md) | Revision history for lorebook entries: snapshots, browsing and restoring old versions, export/import. |
 | [Manga Generator](manga-generator/README.md) | Turns parts of the story into a manga script of pages and panels and into image generation tags, from the story settings menu. |
@@ -28,8 +30,7 @@ a restart.
 | [Real Language Translator](reallang-translator/README.md) | The speech of the characters in a real language (Japanese for a story set in Japan; rules for the script, honorifics, politeness and names, no lexicon), the English kept as the source every model reads; shares the library `translator-common` with the Conlang Translator. |
 | [Reviewer](reviewer/README.md) | AI-written reviews of a story part, with configurable reviewer profiles. |
 | [Side Query](sidequery/README.md) | A chat panel next to the story for asking the model questions about the book, its lore and recent parts. |
-| [Converter](sillytavern-converter/README.md) | A tab next to the story with a SillyTavern chat to review and the turn details the model prepares from it, to put into the new turn form. |
-| [Chinese localization](chineselocalization/README.md) | Simplified Chinese as a language of the user interface; the example for adding a language. |
+| [SillyTavern Converter](sillytavern-converter/README.md) | A tab next to the story with a SillyTavern chat to review and the turn details the model prepares from it, to put into the new turn form. |
 
 ## Installing
 
@@ -53,7 +54,7 @@ mvn -N install                   # in the repository root: installs the parent P
 cd marginalia
 mvn install -DskipTests          # installs the application (and its classes JAR used by plugins)
 
-cd plugins/chaptermarker          # or anthropic, arc-outline, authorsnote, beta-readers, book-description-generator, character-tracker, gemma4toolsfix, google-genai, image-generator, instructionexporter, lore-generator, lorebookvcs, manga-generator, name-generator, name-provider, place-provider, prompt-history, prompt-inspector, reallang-translator, reviewer, sidequery, sillytavern-converter, chineselocalization
+cd plugins/chaptermarker          # or anthropic, arc-outline, authorsnote, beta-readers, book-description-generator, character-tracker, chineselocalization, conlang-translator, gemma4toolsfix, google-genai, image-generator, instructionexporter, knowledge-tracker, lore-generator, lorebookvcs, manga-generator, name-generator, name-provider, place-provider, prompt-history, prompt-inspector, reallang-translator, reviewer, sidequery, sillytavern-converter
 mvn package                       # target/chaptermarker-1.4.0.jar
 ```
 
