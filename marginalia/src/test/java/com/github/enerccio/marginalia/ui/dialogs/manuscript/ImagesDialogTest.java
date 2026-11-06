@@ -102,6 +102,11 @@ class ImagesDialogTest extends MarginaliaTestBase {
                 .filter(b -> label.equals(b.getText()) || label.equals(b.getAriaLabel().orElse(null))).findFirst().orElseThrow();
     }
 
+    /** A place of the picker is a ring; the chosen one has it filled (a CSS class on the dot the button holds). */
+    private static boolean isChosen(Button place) {
+        return place.getIcon() != null && place.getIcon().getElement().getClassList().contains(com.github.enerccio.marginalia.CssStyles.IMAGE_ANCHOR_DOT_SELECTED);
+    }
+
     private Checkbox checkbox(String label) {
         return components().filter(Checkbox.class::isInstance).map(Checkbox.class::cast)
                 .filter(c -> label.equals(c.getLabel())).findFirst().orElseThrow();
@@ -122,7 +127,7 @@ class ImagesDialogTest extends MarginaliaTestBase {
     @Test
     void anImageIsAfterTheTextUntilTheAuthorPlacesIt() throws Exception {
         assertThat(saved().anchor()).isNull();
-        assertThat(button(loc.getValue(L.ENUM_IMAGE_ANCHOR_BOTTOM_CENTER)).getThemeName()).contains("primary");
+        assertThat(isChosen(button(loc.getValue(L.ENUM_IMAGE_ANCHOR_BOTTOM_CENTER)))).isTrue();
         assertThat(checkbox(loc.getValue(L.LABEL_AUTOMATIC)).getValue()).isTrue();
         assertThat(width().isEnabled()).isFalse();
     }
@@ -134,7 +139,8 @@ class ImagesDialogTest extends MarginaliaTestBase {
         assertThat(saved().anchor()).isEqualTo(ImageAnchor.TOP_LEFT);
         assertThat(changed.get().getImages().getFirst().anchor()).isEqualTo(ImageAnchor.TOP_LEFT);
         // the picker shows the new place, the caption is kept
-        assertThat(button(loc.getValue(L.ENUM_IMAGE_ANCHOR_TOP_LEFT)).getThemeName()).contains("primary");
+        assertThat(isChosen(button(loc.getValue(L.ENUM_IMAGE_ANCHOR_TOP_LEFT)))).isTrue();
+        assertThat(isChosen(button(loc.getValue(L.ENUM_IMAGE_ANCHOR_BOTTOM_CENTER)))).isFalse();
         assertThat(saved().caption()).isEqualTo("The map");
     }
 

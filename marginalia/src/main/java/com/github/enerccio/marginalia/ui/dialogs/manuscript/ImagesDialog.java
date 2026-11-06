@@ -148,7 +148,7 @@ public class ImagesDialog extends Dialog implements LLMInteract {
      * The place of the image (a 3x3 picker: the column is the side of the text, the row the place in it), whether the text flows
      * around it, and its width.
      */
-    @PublicAPI(from = "1.6.0",
+    @PublicAPI(from = "1.7.0",
             returns = @APIReturn(type = Div.class),
             parameters = {@APIParameter(name = "attachment", type = ImageAttachment.class),
                     @APIParameter(name = "index", type = int.class),
@@ -156,6 +156,7 @@ public class ImagesDialog extends Dialog implements LLMInteract {
             locals = {@APILocals(name = "anchor", type = ImageAnchor.class),
                     @APILocals(name = "picker", type = Div.class),
                     @APILocals(name = "candidate", type = ImageAnchor.class),
+                    @APILocals(name = "dot", type = Div.class),
                     @APILocals(name = "button", type = Button.class),
                     @APILocals(name = "name", type = String.class),
                     @APILocals(name = "wrap", type = Checkbox.class),
@@ -172,9 +173,14 @@ public class ImagesDialog extends Dialog implements LLMInteract {
         picker.addClassName(CssStyles.IMAGE_ANCHOR_PICKER);
         for (ImageAnchor candidate : ImageAnchor.values()) {
             boolean selected = candidate == anchor;
-            Button button = new Button((selected ? VaadinIcon.CIRCLE : VaadinIcon.CIRCLE_THIN).create(),
+            Div dot = new Div();
+            dot.addClassName(CssStyles.IMAGE_ANCHOR_DOT);
+            if (selected) {
+                dot.addClassName(CssStyles.IMAGE_ANCHOR_DOT_SELECTED);
+            }
+            Button button = new Button(dot,
                     _ -> change(index, current -> current.withLayout(candidate, current.wrap(), current.width()), true, onChanged));
-            button.setThemeName(selected ? "primary icon" : "tertiary icon");
+            button.setThemeName("tertiary icon");
             String name = loc.getValue(L.valueOf("ENUM_IMAGE_ANCHOR_" + candidate.name()));
             button.setAriaLabel(name);
             UIUtils.addTooltip(button, name);
