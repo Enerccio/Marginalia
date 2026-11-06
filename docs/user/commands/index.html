@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847307453251">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847312576986">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.847307453251" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.847312576986" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847307453251" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847312576986" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847307453251" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847312576986" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -734,6 +734,56 @@ never the story, so only the delete asks first. An agent can use all of them; it
 </table>
 </div>
 </retype-table>
+<h3 id="the-planner">The planner</h3>
+<p>The commands for the <a href="../books/story-editor/#the-planner-tab">planner</a> of the book. A scene is given by its <strong>number</strong> in the list (from 1, <code translate="no" v-pre>/get-planned-scenes</code>
+shows them); the numbers change when a scene is moved or deleted, so read the list again after changing it. They change only the planner, never the story. Adding,
+moving and marking a scene done are not asked; changing the text of a scene and deleting one are destructive (an <a href="../agents/">agent</a> is asked as for other
+destructive commands).</p>
+<retype-table copy-text="| Command | What it does |
+|---------|--------------|
+| `/get-planned-scenes` | The scenes with their number, title, scene setting, POV character, present characters, instructions and whether they are done. |
+| `/add-planned-scene &lt;title&gt; [instructions [sceneSetting [povCharacter [presentCharacters]]]]` | Adds a scene at the end of the list. |
+| `/update-planned-scene &lt;scene&gt; &lt;title&gt; [instructions [sceneSetting [povCharacter [presentCharacters]]]]` | Changes the title and the details that are given; what is left out stays, an empty text clears it. |
+| `/set-planned-scene-done &lt;scene&gt; [done]` | Marks the scene as written (`done` is `true` by default) or not written. |
+| `/move-planned-scene &lt;scene&gt; &lt;to&gt;` | Moves the scene to the place `to` (1 is the first, the last place when it is too large). |
+| `/delete-planned-scene &lt;scene&gt;` | Deletes the scene. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Command</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>/get-planned-scenes</code></td>
+<td>The scenes with their number, title, scene setting, POV character, present characters, instructions and whether they are done.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/add-planned-scene &lt;title&gt; [instructions [sceneSetting [povCharacter [presentCharacters]]]]</code></td>
+<td>Adds a scene at the end of the list.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/update-planned-scene &lt;scene&gt; &lt;title&gt; [instructions [sceneSetting [povCharacter [presentCharacters]]]]</code></td>
+<td>Changes the title and the details that are given; what is left out stays, an empty text clears it.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/set-planned-scene-done &lt;scene&gt; [done]</code></td>
+<td>Marks the scene as written (<code translate="no" v-pre>done</code> is <code translate="no" v-pre>true</code> by default) or not written.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/move-planned-scene &lt;scene&gt; &lt;to&gt;</code></td>
+<td>Moves the scene to the place <code translate="no" v-pre>to</code> (1 is the first, the last place when it is too large).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>/delete-planned-scene &lt;scene&gt;</code></td>
+<td>Deletes the scene.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
 <p>The commands that have the model write or review (<code translate="no" v-pre>/next</code>, <code translate="no" v-pre>/swipe</code>, <code translate="no" v-pre>/regenerate</code>, <code translate="no" v-pre>/generate-annotation</code>, the two summaries) take time and show the <strong>Stop</strong> window.</p>
 <h2 id="commands-that-come-with-extensions">Commands that come with extensions</h2>
 <p>You see these in the list as long as the extension is loaded; each is described in the documentation of its extension.</p>
@@ -876,7 +926,7 @@ Character Tracker also change the outline and the characters of the open book; o
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (4f388def1).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (ca0a5a5ed).</p></div>
             </footer>
         </div>
     </div>

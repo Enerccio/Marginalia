@@ -5,6 +5,10 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.enerccio.marginalia.domain.model.impl.*;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.service.*;
+import com.github.enerccio.marginalia.domain.collections.DestructiveCommandMode;
+import com.github.enerccio.marginalia.domain.service.agent.CommandCage;
+import com.github.enerccio.marginalia.domain.service.agent.CommandFunctions;
+import com.github.enerccio.marginalia.domain.service.function.FunctionSet;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
 import com.github.enerccio.marginalia.domain.service.structured.SchemaCheck;
@@ -113,6 +117,15 @@ public class ArcOutlineService {
 
     @Autowired
     private ToolService toolService;
+
+    @Autowired
+    private CommandService commandService;
+
+    @Autowired
+    private CommandScopes commandScopes;
+
+    @Autowired
+    private com.github.enerccio.marginalia.loc.Localization loc;
 
     /** Set when the extension loads, to tell the tool providers who asks. */
     private Bundle bundle;
@@ -414,6 +427,44 @@ public class ArcOutlineService {
             case FREE -> "";
         });
         return new WizardPrompt(templateService.processTemplate(template, "plotWizard", data), summaryCount, partCount);
+    }
+
+    // --- the tools of the plot wizard ---
+
+    /**
+     * The names of the commands a group of tools is made of. The commands that are not there (a plugin that is not installed) are skipped
+     * by the function set. Deleting commands are left out: they ask a question that nobody can answer there.
+     */
+    public static List<String> toolNames(WizardOptions.ToolGroup group) {
+        return switch (group) {
+            case PLANNER -> List.of("get-planned-scenes", "add-planned-scene", "update-planned-scene", "set-planned-scene-done", "move-planned-scene",
+                    "delete-planned-scene");
+            case LORE -> List.of("list-lorebooks", "list-lore-entries", "get-lore-entry", "search-lore", "create-lore-entry", "update-lore-entry",
+                    "set-lore-entry-tags");
+            case OUTLINE -> List.of("get-arc-outline", "add-arc", "update-arc", "move-arc", "add-outline-chapter", "update-outline-chapter",
+                    "move-outline-chapter");
+            case GENERATE -> List.of("generate-arc", "generate-outline-chapters", "list-lore-templates", "generate-lore-entry");
+        };
+    }
+
+    /**
+     * The functions the model of the plot wizard may call: the commands of the chosen groups, run on the book, and the functions of the
+     * tools the author chose (names...).
+     *
+     * @param approval who decides about a command that changes or removes what exists, null when nobody can be asked (such a command is then
+     *                 refused)
+     * @param names    the tools the author chose in the tool dialog, {@link ToolSet#NONE} for none
+     */
+    public FunctionSet wizardFunctions(Manuscript book, WizardOptions options, CommandFunctions.Approval approval, ToolSet names) {
+        FunctionSet functions = names == null ? FunctionSet.empty() : names.functions();
+        Set<String> allowed = new LinkedHashSet<>();
+        options.getToolGroups().forEach(group -> allowed.addAll(toolNames(group)));
+        if (!allowed.isEmpty()) {
+            DestructiveCommandMode mode = options.isAskBeforeChanging() ? DestructiveCommandMode.ASK : DestructiveCommandMode.AUTO;
+            functions = functions.and(CommandFunctions.create(commandService, allowed, mode, loc::getValue, approval, null, null, null,
+                    new CommandCage(commandScopes.forManuscript(book), null)));
+        }
+        return functions;
     }
 
     // --- tools ---

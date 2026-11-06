@@ -164,6 +164,27 @@ Under the options a line tells how many summaries and story parts the model gets
 
 On the right is the chat. Type a message and press **Send** (it is **Stop** while the model writes; what has arrived is kept). Each message has buttons: copy, **branch from here**, delete, and on an answer of the model also a wand, **Generate an arc from this message**, which opens the arc generator with the message as the specification. Ask the model to summarize what you decided as a specification first if the discussion was long.
 
+### Letting the model change the book
+
+Under the options is **What the model may do**. With none of these ticked the chat is only a talk. Tick a group and the model gets tools for it, and can use them
+when you ask or agree; it is told to look before it adds, to prefer adding to replacing, and to say what it did:
+
+| Group | The model can |
+|---|---|
+| **Planner** | list the scenes of the [planner](../books/story-editor.md#the-planner-tab), add, change, move, delete them and mark them done. |
+| **Lorebook** | search and read the lore, create entries and change existing ones (not delete them). |
+| **Outline** | read the outline, add arcs and chapters, change and move them (not delete them). |
+| **Generators** | call the arc and chapter generators and, when the [Lore Generator](lore-generator.md) is installed, generate a lore entry. They return a draft and save nothing unless the model is told to; it shows you the draft and saves it when you agree. |
+| **Tools** (button, when a [tool suite](tools.md) is installed) | the name tools (names, places), as in the generators, so it can offer you real names. |
+
+- **Ask me before it changes or deletes something** (on by default): changing the text of what exists (a lore entry, a scene, an arc) and deleting are shown to you first, with
+  what the model wants to pass, and the model waits for **Allow** or **Refuse**. Adding a scene, an entry or an arc is not asked: you see it in the chat and in the planner,
+  the lorebook or the outline, and can delete it.
+- Every tool the model called is listed under its answer (a line with the name and a mark: ✓ worked, ✗ failed; open it to see what was passed and what came back).
+  The next messages tell the model which tools it used, the calls themselves are not sent again.
+- What the tools cost: their descriptions are part of every request, so a model that is short of context has less room. Only models that can call functions work with it; the dialog says so when one
+  can't.
+
 ### Chats, branches and summaries
 
 A book has any number of chats; pick one in the list above the messages, **+** starts a new one, the pen renames it (it is named after your first message until then) and the trash can deletes it. They are stored with the book.

@@ -977,6 +977,22 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_RESUMMARIZE_ALL_SUMMARIES, "重新生成所有摘要");
         setValue(L.LABEL_IMPORT_FROM_LMSTUDIO, "从 LM Studio 导入");
         setValue(L.LABEL_ACTIVATION_CONDITION, "条件");
+        setValue(L.LABEL_PLANNER, "规划器");
+        setValue(L.LABEL_ADD_SCENE, "添加场景");
+        setValue(L.LABEL_NEW_SCENE, "新场景");
+        setValue(L.LABEL_EDIT_SCENE, "编辑场景");
+        setValue(L.LABEL_TITLE, "标题");
+        setValue(L.LABEL_MOVE_UP, "上移");
+        setValue(L.LABEL_MOVE_DOWN, "下移");
+        setValue(L.LABEL_MARK_DONE, "标记为已完成");
+        setValue(L.LABEL_MARK_NOT_DONE, "标记为未完成");
+        setValue(L.LABEL_USE_IN_NEXT_TURN, "放入下一回合");
+        setValue(L.LABEL_COMMAND_GET_PLANNED_SCENES, "获取计划的场景");
+        setValue(L.LABEL_COMMAND_ADD_PLANNED_SCENE, "添加计划的场景");
+        setValue(L.LABEL_COMMAND_UPDATE_PLANNED_SCENE, "更新计划的场景");
+        setValue(L.LABEL_COMMAND_SET_PLANNED_SCENE_DONE, "标记计划的场景为已完成");
+        setValue(L.LABEL_COMMAND_MOVE_PLANNED_SCENE, "移动计划的场景");
+        setValue(L.LABEL_COMMAND_DELETE_PLANNED_SCENE, "删除计划的场景");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -1662,6 +1678,11 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_IMPORT_LMSTUDIO, "上传一个或多个 LM Studio 对话（.conversation.json，位于主目录下的 .lmstudio/conversations 文件夹）。开头相同的对话会合并为一棵树，消息重新生成的回答会成为备选段落。结果是一本新书。");
         setValue(L.MSG_INVALID_LMSTUDIO_CHAT, "%s 不是 LM Studio 对话（.conversation.json）。");
         setValue(L.MSG_IMPORTING_LMSTUDIO, "正在从 LM Studio 导入");
+        setValue(L.MSG_PLANNER_NONE, "还没有计划的场景。添加你希望故事经过的场景，点击某个场景即可放入下一回合。");
+        setValue(L.MSG_PLANNER_SUMMARY, "已完成 %d / %d");
+        setValue(L.MSG_PLANNER_TITLE_REQUIRED, "标题必填");
+        setValue(L.MSG_PLANNER_DELETE_CONFIRM, "删除场景“%s”？");
+        setValue(L.MSG_PLANNER_NO_TURN_FORM, "故事中没有可放入场景的位置");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");
@@ -2165,6 +2186,27 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.DESC_MACRO_JOIN, "以第一个参数为分隔符连接其后的文本，空文本会被忽略。带空格的分隔符请使用 {{space}} 或 {{newline}}。");
         setValue(L.DESC_TEMPLATE_FACTS, "扩展所掌握的、该段时点的故事事实，例如每个角色所知道的内容（没有扩展提供则为空）。请据此检查该段，与之矛盾即为连续性错误。");
         setValue(L.DESC_MACRO_EVAL, "返回表达式的结果 true 或 false：比较（== != < <= > >= ~= contains has）可以用 and、or、not 和括号组合。文本要加引号，名称是模板的值（povCharacter、presentCharacters、无参数的宏），.name 是局部变量，$name 是全局变量。未知名称或语法错误会返回 Error。== 精确比较（数字按数值），~= 忽略大小写，contains 在文本中查找文本，has 在以逗号分隔的列表中查找项目。");
+        setValue(L.DESC_COMMAND_GET_PLANNED_SCENES, "列出本书规划器中的场景及其详情，以及是否已写。");
+        setValue(L.DESC_COMMAND_GET_PLANNED_SCENES_LLM, "按顺序列出作者计划要写的场景，包括编号、标题、场景设定、视角人物、在场人物、指示以及是否已完成。添加场景之前先读取，以免重复。");
+        setValue(L.DESC_COMMAND_ADD_PLANNED_SCENE, "在规划器末尾添加一个场景。");
+        setValue(L.DESC_COMMAND_ADD_PLANNED_SCENE_LLM, "在作者的规划器末尾添加一个场景：一个简短标题，以及作者写作时放入新回合表单的回合详情（指示、场景设定、视角人物、在场人物）。作者会立即在规划器标签页看到它，并可编辑或删除。指示要写成给故事模型的具体、简短的指令，不要写场景本身。");
+        setValue(L.DESC_COMMAND_UPDATE_PLANNED_SCENE, "更改计划场景的标题或回合详情。");
+        setValue(L.DESC_COMMAND_UPDATE_PLANNED_SCENE_LLM, "更改规划器中的一个场景：只传要更改的内容，省略的保持不变。传入的文本会替换旧文本。场景是否已完成不在此处更改，见 set-planned-scene-done。");
+        setValue(L.DESC_COMMAND_SET_PLANNED_SCENE_DONE, "将计划的场景标记为已写或未写。");
+        setValue(L.DESC_COMMAND_SET_PLANNED_SCENE_DONE_LLM, "将规划器中的场景标记为已完成（已写）或未完成。场景是否已写由作者的故事决定：在作者说明时再执行。");
+        setValue(L.DESC_COMMAND_MOVE_PLANNED_SCENE, "将计划的场景移动到列表中的另一个位置。");
+        setValue(L.DESC_COMMAND_MOVE_PLANNED_SCENE_LLM, "将规划器中的场景移动到指定位置（1 为第一个）。其他场景随之移动；之后请重新读取列表。");
+        setValue(L.DESC_COMMAND_DELETE_PLANNED_SCENE, "删除计划的场景。");
+        setValue(L.DESC_COMMAND_DELETE_PLANNED_SCENE_LLM, "删除作者规划器中的一个场景。其后的场景编号会减小；之后请重新读取列表。");
+        setValue(L.DESC_COMMAND_PLANNER_RETURN, "JSON：场景或场景列表");
+        setValue(L.DESC_COMMAND_PLANNER_SCENE_PARAM, "场景在 get-planned-scenes 列表中的编号（从 1 开始）");
+        setValue(L.DESC_COMMAND_PLANNER_TITLE_PARAM, "场景的简短标题，用于列表");
+        setValue(L.DESC_COMMAND_PLANNER_INSTRUCTIONS_PARAM, "写这个场景的回合要做什么：作者放入新回合表单的指示");
+        setValue(L.DESC_COMMAND_PLANNER_SETTING_PARAM, "场景设定：场景发生的地点和时间");
+        setValue(L.DESC_COMMAND_PLANNER_POV_PARAM, "场景的视角人物");
+        setValue(L.DESC_COMMAND_PLANNER_PRESENT_PARAM, "场景中在场的人物（用逗号分隔）");
+        setValue(L.DESC_COMMAND_PLANNER_DONE_PARAM, "true（默认）表示已写，false 表示未写");
+        setValue(L.DESC_COMMAND_PLANNER_TO_PARAM, "场景的新编号（从 1 开始）；过大则放到最后");
     }
 
     @Override

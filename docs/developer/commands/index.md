@@ -258,6 +258,14 @@ parts as a tree, with the numbers of the branches). All are `NON_DESTRUCTIVE`, s
 Tests: `ManuscriptReadCommandsTest` runs them in an agent session (`AgenticRequestAttributes` in the test sources puts an
 `AgenticSessionPoint` into the session scope of the logged in test user).
 
+### Commands for the planner
+
+`PlannerCommands` (package `commands.manuscript.write`, on `ManuscriptReadSupport`) is `get-planned-scenes` (read only) and `add-planned-scene`, `update-planned-scene`,
+`set-planned-scene-done`, `move-planned-scene`, `delete-planned-scene` over `PlannerService` (see [The planner](../domain-model.md#plannedscene-the-planner-of-a-book)). A scene is
+addressed by its number in the list, not by its uuid, so no handle leaves the service; every change reads the list again, so a number that was right when it was read may be
+another scene by the time it is written. `update-planned-scene` and `delete-planned-scene` are `DESTRUCTIVE`, the others `NON_DESTRUCTIVE`. The forms are a ladder (one method
+per number of arguments, the later ones add optional details), as in the other command classes.
+
 ### Commands for annotations
 
 `ListAnnotationsCommand` (`list-annotations [status [part [offset [limit]]]]`) and `GetAnnotationCommand` (`get-annotation`) read, `AnnotationWriteCommands`

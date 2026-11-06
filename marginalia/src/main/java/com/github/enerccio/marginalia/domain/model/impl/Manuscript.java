@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.domain.model.impl;
 
 import com.github.enerccio.marginalia.domain.collections.Language;
 import com.github.enerccio.marginalia.domain.model.ExtendableEntity;
+import com.github.enerccio.marginalia.domain.model.PlannedScene;
 import com.github.enerccio.marginalia.domain.service.BackupService.BackupStrategy;
 import com.github.enerccio.marginalia.domain.traits.CleanupReference;
 import com.github.enerccio.marginalia.domain.traits.CleanupReference.Policy;
@@ -9,7 +10,9 @@ import com.github.enerccio.marginalia.domain.traits.ExtendedAttribute;
 import com.github.enerccio.marginalia.domain.traits.Fulltextable;
 import jakarta.persistence.*;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 @Entity
 @Table(name = "manuscripts")
@@ -75,6 +78,11 @@ public class Manuscript extends ExtendableEntity {
     @ExtendedAttribute
     @Transient
     private String userPrompt;
+
+    // the scenes the author plans to write, in the order they want them (see PlannerService); a list is stored as one JSON value
+    @ExtendedAttribute(inject = true, injectPrefix = "plan")
+    @Transient
+    private List<PlannedScene> plan;
 
     /**
      * Legacy: the book style (see {@code PartStyleRegistry.BOOK}) was turned on for the story. Read only when {@link #partStyle} is
@@ -269,6 +277,17 @@ public class Manuscript extends ExtendableEntity {
 
     public void setUserPrompt(String userPrompt) {
         this.userPrompt = userPrompt;
+    }
+
+    /**
+     * The planned scenes, never null. Change them through {@code PlannerService}: a list changed here is only stored when the book is saved.
+     */
+    public List<PlannedScene> getPlan() {
+        return plan == null ? new ArrayList<>() : plan;
+    }
+
+    public void setPlan(List<PlannedScene> plan) {
+        this.plan = plan == null || plan.isEmpty() ? null : plan;
     }
 
     public ChatMessage getActiveLeaf() {

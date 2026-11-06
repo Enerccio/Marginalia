@@ -13,6 +13,7 @@ This page describes the desktop layout. On a phone the story is one column with 
 | **Outline** (left) | One entry per part, `#1`, `#2`... with the part's database ID. Click an entry to scroll to the part (the parts before it are loaded first when it is not loaded yet). The header shows how many parts the branch has. A part that has a [summary](summaries.md) has a small document icon after its entry. The [Chapter Marker](../extensions/chapter-marker.md) extension shows chapter titles here. |
 | **Lorebook** (left, next to the Outline) | A read only look at the lore of the book, see [The lorebook tab](#the-lorebook-tab). |
 | **Annotations** (left, next to the Outline) | The [notes](annotations.md) on passages of the story, for the whole book. |
+| **Planner** (left, next to the Outline) | The scenes you plan to write, a list you fill by hand, see [The planner tab](#the-planner-tab). |
 | **Story** (center) | The text of each part, with its menu (☰) and its metadata on the right, and under it the bottom bar. |
 | **Bottom bar** | The **Summaries** button (list icon) and the settings menu (⚙) on the left, the command line, and the **+** button on the right. |
 
@@ -59,6 +60,23 @@ swap tabs to check what an entry says. It is a preview: nothing can be changed h
 - A book without a lorebook shows a note instead.
 
 ![The Lorebook tab with two entries opened](../../images/story-lorebook-tab.png)
+
+Like every tab of the editor it can be dragged out into a panel of its own, see below.
+
+### The planner tab
+
+The **Planner** tab is a list of the scenes you want the story to go through, in the order you want them. Each scene is the details of a turn that
+writes it: a **title** for the list, the **scene setting**, the **POV character**, the **present characters** and the **instructions**, the same four
+fields as the new turn form.
+
+- **Add scene** opens a form for a new scene; it goes to the end of the list. The pen edits a scene, the arrows move it up or down, the trash can deletes it.
+- The box in front of a scene says it is **done** (written): the title is struck through and the scene is dimmed. Nothing checks it for you, tick it
+  when you have written the scene. The line above the list counts how many are done.
+- **Click a scene** to put its details into the **new turn form** (the form opens, with the scene setting, POV, present characters and instructions of the
+  scene in it; what was there is replaced) and press **Generate** when you are happy with it. On the phone the drawer closes first.
+- The scenes are saved with the book, so they are in its backups and copies. A model can add scenes too: the [plot wizard](../extensions/arc-outline.md#developing-the-plot-in-a-conversation)
+  of the Arc Outline extension and an [agent](../agents.md) can read and change the planner with [commands](../commands/index.md#the-planner); the list
+  shows what they added at once.
 
 Like every tab of the editor it can be dragged out into a panel of its own, see below.
 

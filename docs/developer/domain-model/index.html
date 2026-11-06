@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847307453251">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847312576986">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.847307453251" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.847312576986" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847307453251" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847312576986" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847307453251" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.847307453251" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847312576986" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.847312576986" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -747,6 +747,15 @@ joins on is a real column: relations, <code translate="no" v-pre>name</code>, <c
 </div>
 </retype-table>
 <p>Tags of a book are <code translate="no" v-pre>TagRelation</code>s (see <doc-anchor-trigger to="#tags">Tags</doc-anchor-trigger>).</p>
+<p><code translate="no" v-pre>plan</code> (JSON, a list of <code translate="no" v-pre>PlannedScene</code>) holds the planner of the book, see <doc-anchor-trigger to="#plannedscene-the-planner-of-a-book"><code translate="no" v-pre>PlannedScene</code></doc-anchor-trigger>.</p>
+<h3 id="plannedscene-the-planner-of-a-book"><code translate="no" v-pre>PlannedScene</code> (the planner of a book)</h3>
+<p>A scene the author plans to write: <code translate="no" v-pre>uuid</code>, <code translate="no" v-pre>title</code>, <code translate="no" v-pre>sceneSetting</code>, <code translate="no" v-pre>povCharacter</code>, <code translate="no" v-pre>presentCharacters</code>, <code translate="no" v-pre>instructions</code> (the four fields of the new turn form) and <code translate="no" v-pre>done</code>. The list is
+the extended attribute <code translate="no" v-pre>Manuscript.plan</code> (<code translate="no" v-pre>@ExtendedAttribute(inject = true, injectPrefix = &quot;plan&quot;)</code>: a list can&#x27;t be flattened into keys, so it is stored as one JSON value), so there
+is no table and no migration, and the scenes are in the backups and copies of the book. <code translate="no" v-pre>Manuscript.getPlan()</code> never returns null; a list that is changed on the entity is stored only
+when the book is saved, so changes go through <code translate="no" v-pre>PlannerService</code>, which reads the book again (<code translate="no" v-pre>ManuscriptService.update</code>), changes a copy of the list, saves it and tells the listeners
+(<code translate="no" v-pre>onChange</code>, by the uuid of the book: the Planner tab and the plot wizard use it). The order of the list is the order of the planner. The tab is <code translate="no" v-pre>ui.dialogs.story.PlannerPanel</code>
+(<code translate="no" v-pre>PlannedSceneDialog</code> edits a scene), added to the story editor by <code translate="no" v-pre>createPlannerTab</code> of <code translate="no" v-pre>ManuscriptStoryPart</code> and to the drawer of the phone story part; a click puts the scene into
+<code translate="no" v-pre>NewTurnForm.restoreState</code> (<code translate="no" v-pre>PlannerPanel.toFormState</code>) and opens the popover of the form.</p>
 <h3 id="folder"><code translate="no" v-pre>Folder</code></h3>
 <p>A group of books, nested through <code translate="no" v-pre>parent</code> (a column, <code translate="no" v-pre>OWNED_BY</code> for the cleanup), with a <code translate="no" v-pre>name</code> (column), a <code translate="no" v-pre>description</code> and the same thirteen text settings and the language as a book, all extended attributes where null means inherit; tags like a book. Described in <a href="../folders/">Folders</a>. Migration V21.</p>
 <h3 id="chatmessage-part-and-the-story-tree"><code translate="no" v-pre>ChatMessage</code> (part) and the story tree</h3>
@@ -2103,7 +2112,7 @@ define both beans in <code translate="no" v-pre>services-config.xml</code>.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (4f388def1).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (ca0a5a5ed).</p></div>
             </footer>
         </div>
     </div>

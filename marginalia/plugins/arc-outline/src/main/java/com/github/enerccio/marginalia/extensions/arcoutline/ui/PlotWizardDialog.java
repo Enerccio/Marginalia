@@ -7,17 +7,23 @@ import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.service.*;
+import com.github.enerccio.marginalia.domain.service.agent.CommandFunctions;
+import com.github.enerccio.marginalia.domain.service.function.FunctionSet;
+import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMToolCall;
+import com.github.enerccio.marginalia.domain.service.tool.ToolSet;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
 import com.github.enerccio.marginalia.extensions.arcoutline.model.*;
 import com.github.enerccio.marginalia.extensions.arcoutline.model.WizardOptions.Mode;
 import com.github.enerccio.marginalia.extensions.arcoutline.model.WizardOptions.OutlineDetail;
+import com.github.enerccio.marginalia.extensions.arcoutline.model.WizardOptions.ToolGroup;
 import com.github.enerccio.marginalia.extensions.arcoutline.service.ArcOutlineService;
 import com.github.enerccio.marginalia.extensions.arcoutline.service.ArcOutlineService.ModelSelection;
 import com.github.enerccio.marginalia.extensions.arcoutline.service.ArcOutlineService.WizardPrompt;
 import com.github.enerccio.marginalia.extensions.arcoutline.service.Defaults;
 import com.github.enerccio.marginalia.extensions.arcoutline.service.WizardContext;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
 import com.github.enerccio.marginalia.ui.widgets.*;
 import com.github.enerccio.marginalia.utils.UIUtils;
@@ -46,6 +52,10 @@ import org.springframework.beans.factory.annotation.Configurable;
 
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.EnumSet;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -89,6 +99,9 @@ public class PlotWizardDialog extends Dialog {
     private Checkbox storyBox;
     private IntegerField storyTokensField;
     private TextAreaPopoverComponent promptArea;
+    private final Map<ToolGroup, Checkbox> toolBoxes = new EnumMap<>(ToolGroup.class);
+    private Checkbox askBox;
+    private ToolSelectionButton namesButton;
     private Span tokenInfo;
 
     private ComboBox<WizardChat> chatSelect;
@@ -107,9 +120,12 @@ public class PlotWizardDialog extends Dialog {
     private boolean running;
     private boolean updating;
     private CancellationToken token;
+    /** The question the author is asked about a command of the model, null when there is none. */
+    private ConfirmDialog pendingConfirm;
+    private CompletableFuture<Boolean> pendingDecision;
 
     /** A message of the chat on the screen. */
-    private record Card(Div root, Markdown text, Markdown reasoning, Details reasoningDetails) {
+    private record Card(Div root, Markdown text, Markdown reasoning, Details reasoningDetails, Div calls) {
     }
 
     /**
@@ -136,7 +152,10 @@ public class PlotWizardDialog extends Dialog {
         setCloseOnOutsideClick(false);
         addThemeName("no-padding");
         addOpenedChangeListener(e -> {
-            if (!e.isOpened()) {
+            if (e.isOpened()) {
+                // the chat is opened at its end
+                scrollToEndLater();
+            } else {
                 stop();
             }
         });
@@ -283,6 +302,56 @@ public class PlotWizardDialog extends Dialog {
             }
         });
 
+        Span toolsHeading = new Span(T.localized(WHAT_THE_MODEL_MAY_DO));
+        toolsHeading.addClassName(CssStyles.TEXT_BOLD);
+        VerticalLayout tools = new VerticalLayout(toolsHeading);
+        tools.setPadding(false);
+        tools.getThemeList().add("spacing-xs");
+        for (ToolGroup group : ToolGroup.values()) {
+            Checkbox box = new Checkbox(label(group), options.getToolGroups().contains(group));
+            box.setTooltipText(tooltip(group));
+            box.addValueChangeListener(e -> {
+                if (e.isFromClient()) {
+                    EnumSet<ToolGroup> groups = EnumSet.noneOf(ToolGroup.class);
+                    toolBoxes.forEach((g, b) -> {
+                        if (b.getValue()) {
+                            groups.add(g);
+                        }
+                    });
+                    options.setToolGroups(groups);
+                    optionsChanged();
+                }
+            });
+            toolBoxes.put(group, box);
+            tools.add(box);
+        }
+        askBox = new Checkbox(T.localized(ASK_BEFORE_IT_CHANGES_ANYTHING), options.isAskBeforeChanging());
+        askBox.setTooltipText(T.localized(ADDING_IS_NOT_ASKED));
+        askBox.addValueChangeListener(e -> {
+            if (e.isFromClient()) {
+                options.setAskBeforeChanging(e.getValue());
+                optionsChanged();
+            }
+        });
+        tools.add(askBox);
+        // the name tools (names, places...), shown only when a suite is installed; the choice is the one of the generators
+        namesButton = new ToolSelectionButton();
+        try {
+            namesButton.setValue(service.getSettings().getTools());
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+        namesButton.addValueChangeListener(selection -> {
+            try {
+                var settings = service.getSettings();
+                settings.setTools(selection);
+                service.saveSettings(settings);
+            } catch (Exception e) {
+                UIUtils.internalServerError(loc, e);
+            }
+        });
+        tools.add(namesButton);
+
         promptArea = new TextAreaPopoverComponent(T.localized(PROMPT));
         promptArea.setWidthFull();
         promptArea.setValue(service.wizardPrompt(options));
@@ -302,7 +371,7 @@ public class PlotWizardDialog extends Dialog {
         tokenInfo.setWidthFull();
 
         VerticalLayout left = new VerticalLayout(modelPicker, modeSelect, lorebookBox, outlineSelect, summariesBox, storyBox,
-                storyTokensField, tokenInfo, promptArea);
+                storyTokensField, tools, tokenInfo, promptArea);
         left.setPadding(true);
         left.getThemeList().add("spacing-xs");
         left.setSizeFull();
@@ -322,6 +391,24 @@ public class PlotWizardDialog extends Dialog {
             case EXPLORE -> T.localized(MODE_EXPLORE_DIRECTIONS);
             case CHALLENGE -> T.localized(MODE_FIND_THE_PROBLEMS);
             case EXPAND -> T.localized(MODE_EXPAND_AN_IDEA);
+        };
+    }
+
+    private static String label(ToolGroup group) {
+        return switch (group) {
+            case PLANNER -> T.localized(TOOLS_PLANNER);
+            case LORE -> T.localized(TOOLS_LOREBOOK);
+            case OUTLINE -> T.localized(TOOLS_OUTLINE);
+            case GENERATE -> T.localized(TOOLS_GENERATORS);
+        };
+    }
+
+    private static String tooltip(ToolGroup group) {
+        return switch (group) {
+            case PLANNER -> T.localized(TOOLS_PLANNER_TIP);
+            case LORE -> T.localized(TOOLS_LOREBOOK_TIP);
+            case OUTLINE -> T.localized(TOOLS_OUTLINE_TIP);
+            case GENERATE -> T.localized(TOOLS_GENERATORS_TIP);
         };
     }
 
@@ -540,7 +627,7 @@ public class PlotWizardDialog extends Dialog {
             Card card = card(messages.get(i), i, i < lastSummary);
             messagesPanel.add(card.root());
         }
-        scrollToEnd();
+        scrollToEndLater();
     }
 
     /**
@@ -589,6 +676,11 @@ public class PlotWizardDialog extends Dialog {
         details.setVisible(hasReasoning);
         root.add(details);
 
+        Div calls = new Div();
+        calls.setWidthFull();
+        message.getCalls().forEach(call -> calls.add(callRow(call)));
+        root.add(calls);
+
         Markdown text = new Markdown();
         text.setWidthFull();
         text.setContent(StringUtils.defaultString(message.getText()));
@@ -598,7 +690,21 @@ public class PlotWizardDialog extends Dialog {
             note.addClassName(CssStyles.HINT_TEXT);
             root.add(note);
         }
-        return new Card(root, text, reasoning, details);
+        return new Card(root, text, reasoning, details, calls);
+    }
+
+    /** A tool the model called: its name and whether it worked, what it passed and what it got back under it. */
+    private Component callRow(WizardCall call) {
+        Span body = new Span(StringUtils.abbreviate(StringUtils.defaultString(call.getArguments()), 4000) + "\n→ "
+                + StringUtils.abbreviate(StringUtils.defaultString(call.getResult()), 8000));
+        body.addClassNames(ArcOutlineStyles.GENERATION_JSON);
+        Details details = new Details((call.isFailed() ? "✗ " : "✓ ") + call.getName(), body);
+        details.setWidthFull();
+        details.addClassName(ArcOutlineStyles.WIZARD_CALL);
+        if (call.isFailed()) {
+            details.addClassName(ArcOutlineStyles.WIZARD_CALL_FAILED);
+        }
+        return details;
     }
 
     private Button small(Solid icon, String tooltip, com.vaadin.flow.component.ComponentEventListener<com.vaadin.flow.component.ClickEvent<Button>> listener) {
@@ -624,8 +730,9 @@ public class PlotWizardDialog extends Dialog {
         new ArcGeneratorDialog(service, manuscript, outline.get(), text, onArc).open();
     }
 
-    private void scrollToEnd() {
-        messagesPanel.getElement().executeJs("this.scrollTop = this.scrollHeight");
+    /** Opens the messages at their end: they are drawn by the browser after the page is built, so the end is kept while they settle. */
+    private void scrollToEndLater() {
+        JavascriptLibrary.scrollToBottomWhileSettling(messagesPanel.getElement(), messagesPanel.getContent().getElement());
     }
 
     // --- talking to the model ---
@@ -640,9 +747,13 @@ public class PlotWizardDialog extends Dialog {
             return;
         }
         List<LLMChatMessage> payload;
+        FunctionSet functions;
         try {
+            // the name tools (names, places) of the tool dialog, when a suite is installed
+            ToolSet names = namesButton.isVisible() ? service.tools(namesButton.getValue()) : ToolSet.NONE;
+            functions = service.wizardFunctions(manuscript, options, approval(UI.getCurrent()), names);
             chat.getMessages().add(new WizardMessage(true, text.strip(), null));
-            payload = payload();
+            payload = payload(functions, names);
         } catch (Exception e) {
             chat.getMessages().removeLast();
             Notification.error(T.localized(CANT_GENERATE).formatted(StringUtils.defaultIfBlank(e.getMessage(), e.toString())));
@@ -650,18 +761,25 @@ public class PlotWizardDialog extends Dialog {
         }
         input.clear();
         persist();
-        refreshChats();
-        renderMessages();
+        List<WizardMessage> messages = chat.getMessages();
+        messagesPanel.add(card(messages.getLast(), messages.size() - 1, false).root());
+        if (messages.size() == 1) {
+            // the first message names the chat
+            refreshChats();
+        }
         updateTokenInfo();
-        start(payload, false);
+        start(payload, false, functions);
     }
 
     /** The request for the chat as it is: the system prompt with what the author chose, and the messages that fit. */
-    private List<LLMChatMessage> payload() throws Exception {
+    private List<LLMChatMessage> payload(FunctionSet functions, ToolSet names) throws Exception {
         AI ai = modelPicker.getAi();
         int capacity = TokenLimits.promptTokens(ai, modelPicker.getProtocol());
         WizardPrompt prompt = service.buildWizardPrompt(manuscript, outline.get(), options, promptArea.getValue(), capacity);
         String system = WizardContext.withSummary(prompt.system(), WizardContext.lastSummary(chat.getMessages()));
+        if (!functions.isEmpty()) {
+            system = WizardContext.withTools(system, Defaults.WIZARD_TOOLS_PROMPT, names.hint());
+        }
         List<WizardMessage> history = WizardContext.sinceSummary(chat.getMessages());
         if (capacity > 0) {
             history = WizardContext.historyThatFits(history, capacity - service.countTokens(system), service::countTokens);
@@ -669,7 +787,9 @@ public class PlotWizardDialog extends Dialog {
         List<LLMChatMessage> payload = new ArrayList<>();
         payload.add(LLMChatMessage.of(LLMRole.SYSTEM, system));
         for (WizardMessage message : history) {
-            payload.add(LLMChatMessage.of(message.isFromUser() ? LLMRole.USER : LLMRole.ASSISTANT, message.getText()));
+            // the calls of an earlier answer are not sent again, the text says they were made
+            payload.add(LLMChatMessage.of(message.isFromUser() ? LLMRole.USER : LLMRole.ASSISTANT,
+                    WizardContext.withCalls(message.getText(), message.getCalls())));
         }
         return payload;
     }
@@ -718,7 +838,7 @@ public class PlotWizardDialog extends Dialog {
         List<LLMChatMessage> payload = new ArrayList<>();
         payload.add(LLMChatMessage.of(LLMRole.SYSTEM, WizardContext.summaryPrompt(Defaults.WIZARD_SUMMARY_PROMPT, note)));
         payload.add(LLMChatMessage.of(LLMRole.USER, transcript.toString().stripTrailing()));
-        start(payload, true);
+        start(payload, true, FunctionSet.empty());
     }
 
     /**
@@ -726,20 +846,21 @@ public class PlotWizardDialog extends Dialog {
      *
      * @param summary the answer is a summary of the chat
      */
-    private void start(List<LLMChatMessage> payload, boolean summary) {
+    private void start(List<LLMChatMessage> payload, boolean summary, FunctionSet functions) {
         WizardMessage answer = new WizardMessage(false, "", null);
         answer.setSummary(summary);
         streaming = card(answer, -1, false);
         messagesPanel.add(streaming.root());
-        scrollToEnd();
+        JavascriptLibrary.scrollToBottomAfterLayout(messagesPanel.getElement());
         StringBuilder text = new StringBuilder();
         StringBuilder reasoning = new StringBuilder();
+        List<WizardCall> calls = new ArrayList<>();
         UI ui = UI.getCurrent();
         running = true;
         updateControls();
         try (InferenceSession _ = InferenceSession.open("arc-outline"); UsageContext _ = UsageContext.open(manuscript)) {
             token = inferenceServices.forAIOrThrow(modelPicker.getAi()).stream(payload, modelPicker.getProtocol(),
-                    callback(ui, answer, text, reasoning));
+                    functions, callback(ui, answer, text, reasoning, calls));
         } catch (Exception e) {
             // nothing runs, do not leave the controls frozen
             running = false;
@@ -750,7 +871,8 @@ public class PlotWizardDialog extends Dialog {
         }
     }
 
-    private InferenceService.InferenceAsyncCallback callback(UI ui, WizardMessage answer, StringBuilder text, StringBuilder reasoning) {
+    private InferenceService.InferenceAsyncCallback callback(UI ui, WizardMessage answer, StringBuilder text, StringBuilder reasoning,
+                                                             List<WizardCall> calls) {
         return new InferenceService.InferenceAsyncCallback() {
             @Override
             public void onChunk(InferenceService.InferenceAsyncController controller, InferenceService.ChunkType type, String chunk) {
@@ -765,7 +887,7 @@ public class PlotWizardDialog extends Dialog {
                             text.append(chunk);
                             card.text().setContent(text.toString());
                         }
-                        scrollToEnd();
+                        JavascriptLibrary.scrollToBottomIfAtBottom(messagesPanel.getElement());
                     }
                     UIPushGuard.push(ui);
                     controller.continueInference();
@@ -773,18 +895,32 @@ public class PlotWizardDialog extends Dialog {
             }
 
             @Override
+            public void onFunctionCall(LLMToolCall call, String result, boolean failed) {
+                ui.access(() -> {
+                    WizardCall made = new WizardCall(call.getName(), call.getArguments(), result, failed);
+                    calls.add(made);
+                    Card card = streaming;
+                    if (card != null) {
+                        card.calls().add(callRow(made));
+                        JavascriptLibrary.scrollToBottomIfAtBottom(messagesPanel.getElement());
+                    }
+                    UIPushGuard.push(ui);
+                });
+            }
+
+            @Override
             public void onCompletion() {
-                finish(ui, answer, text, reasoning, null);
+                finish(ui, answer, text, reasoning, calls, null);
             }
 
             @Override
             public void onCancel() {
-                finish(ui, answer, text, reasoning, null);
+                finish(ui, answer, text, reasoning, calls, null);
             }
 
             @Override
             public void onError(Throwable exception) {
-                finish(ui, answer, text, reasoning, exception);
+                finish(ui, answer, text, reasoning, calls, exception);
             }
 
             @Override
@@ -794,25 +930,38 @@ public class PlotWizardDialog extends Dialog {
         };
     }
 
-    private void finish(UI ui, WizardMessage answer, StringBuilder text, StringBuilder reasoning, Throwable error) {
+    private void finish(UI ui, WizardMessage answer, StringBuilder text, StringBuilder reasoning, List<WizardCall> calls, Throwable error) {
         ui.access(() -> {
             running = false;
             token = null;
-            if (StringUtils.isNotBlank(text)) {
+            Card shown = streaming;
+            streaming = null;
+            // an answer that is only calls of tools is an answer too
+            boolean kept = StringUtils.isNotBlank(text) || !calls.isEmpty();
+            if (kept) {
                 // what arrived is kept, also when the model was stopped or failed on the way
                 answer.setText(text.toString().strip());
+                answer.setCalls(new ArrayList<>(calls));
                 answer.setReasoning(StringUtils.defaultIfBlank(reasoning.toString(), null));
                 chat.getMessages().add(answer);
                 persist();
             }
-            streaming = null;
             if (error != null) {
                 UIUtils.inferenceError(loc, error);
-            } else if (StringUtils.isBlank(text)) {
+            } else if (!kept) {
                 Notification.warning(T.localized(THE_MODEL_DID_NOT_ANSWER));
             }
-            refreshChats();
-            renderMessages();
+            if (shown != null) {
+                if (!kept) {
+                    messagesPanel.remove(shown.root());
+                } else if (answer.isSummary()) {
+                    // the messages before the summary are dimmed from now on
+                    renderMessages();
+                } else {
+                    // only the card of the answer is replaced (it has its buttons now), the rest stays where it is
+                    messagesPanel.getContent().replace(shown.root(), card(answer, chat.getMessages().size() - 1, false).root());
+                }
+            }
             updateControls();
             updateTokenInfo();
             UIPushGuard.push(ui);
@@ -827,10 +976,54 @@ public class PlotWizardDialog extends Dialog {
     }
 
     private void stop() {
+        // a question the author did not answer is a no, the model is waiting for it
+        if (pendingDecision != null) {
+            pendingDecision.complete(false);
+        }
+        if (pendingConfirm != null) {
+            pendingConfirm.close();
+            pendingConfirm = null;
+        }
+        pendingDecision = null;
         CancellationToken current = token;
         if (current != null) {
             current.cancel();
         }
+    }
+
+    /**
+     * Asks the author whether the model may run a command that changes or removes what exists (the commands that only add are not asked).
+     * The model waits for the answer; a question that is closed or left open when the model is stopped is a no.
+     */
+    private CommandFunctions.Approval approval(UI ui) {
+        return (command, arguments) -> {
+            CompletableFuture<Boolean> decision = new CompletableFuture<>();
+            ui.access(() -> {
+                StringBuilder body = new StringBuilder();
+                arguments.forEach((name, value) -> body.append(name).append(": ").append(StringUtils.abbreviate(String.valueOf(value), 1500)).append('\n'));
+                Div text = new Div(new Span(body.toString().stripTrailing()));
+                text.addClassNames(CssStyles.PRE_WRAP, CssStyles.WRAP_ANYWHERE);
+                ConfirmDialog confirm = new ConfirmDialog();
+                confirm.setHeader(T.localized(THE_MODEL_WANTS_TO_RUN).formatted(command));
+                confirm.add(text);
+                confirm.setCancelable(true);
+                confirm.setConfirmText(T.localized(ALLOW));
+                confirm.setCancelText(T.localized(REFUSE));
+                confirm.addConfirmListener(_ -> decision.complete(true));
+                confirm.addCancelListener(_ -> decision.complete(false));
+                pendingConfirm = confirm;
+                pendingDecision = decision;
+                decision.whenComplete((_, _) -> ui.access(() -> {
+                    if (pendingDecision == decision) {
+                        pendingConfirm = null;
+                        pendingDecision = null;
+                    }
+                }));
+                confirm.open();
+                UIPushGuard.push(ui);
+            });
+            return decision;
+        };
     }
 
     /** Freezes what must not change while the model writes; the button that sends then stops. */
@@ -843,6 +1036,9 @@ public class PlotWizardDialog extends Dialog {
         summariesBox.setEnabled(idle);
         storyBox.setEnabled(idle);
         storyTokensField.setEnabled(idle && storyBox.getValue());
+        toolBoxes.values().forEach(box -> box.setEnabled(idle));
+        askBox.setEnabled(idle && !options.getToolGroups().isEmpty());
+        namesButton.setEnabled(idle);
         promptArea.setEnabled(idle);
         chatSelect.setEnabled(idle);
         newButton.setEnabled(idle);

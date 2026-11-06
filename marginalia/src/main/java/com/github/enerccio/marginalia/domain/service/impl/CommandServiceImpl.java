@@ -8,6 +8,7 @@ import com.github.enerccio.marginalia.domain.service.impl.commands.SearchReplace
 import com.github.enerccio.marginalia.domain.service.impl.commands.SearchReplaceLoreEntryCommand;
 import com.github.enerccio.marginalia.domain.service.impl.commands.lorebook.read.*;
 import com.github.enerccio.marginalia.domain.service.impl.commands.lorebook.write.LoreEntryWriteCommands;
+import com.github.enerccio.marginalia.domain.service.impl.commands.manuscript.write.PlannerCommands;
 import com.github.enerccio.marginalia.domain.service.impl.commands.lorebook.write.LorebookWriteCommands;
 import com.github.enerccio.marginalia.domain.service.impl.commands.manuscript.read.*;
 import com.github.enerccio.marginalia.domain.service.impl.commands.manuscript.write.*;
@@ -92,6 +93,7 @@ public class CommandServiceImpl implements CommandService, InitializingBean, Dis
         registerCommands(new ImpersonateCommands());
         registerCommands(new LoreEntryWriteCommands());
         registerCommands(new LorebookWriteCommands());
+        registerCommands(new PlannerCommands());
     }
 
     private void registerLorebookReadCommands() {

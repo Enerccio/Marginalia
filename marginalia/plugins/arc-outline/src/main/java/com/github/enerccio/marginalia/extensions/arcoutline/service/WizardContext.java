@@ -114,6 +114,34 @@ public final class WizardContext {
     }
 
     /**
+     * The system prompt with the instructions for the tools, and the hints of the tools the author chose (the name tools) under them.
+     *
+     * @param hints null or blank for none
+     */
+    public static String withTools(String system, String instructions, String hints) {
+        StringBuilder text = new StringBuilder(system.stripTrailing()).append("\n\n").append(instructions.strip());
+        if (hints != null && !hints.isBlank()) {
+            text.append("\n\n").append(hints.strip());
+        }
+        return text.toString();
+    }
+
+    /**
+     * What the model is told of the tools it called in an earlier answer: the calls are not sent again, so the text says that they
+     * were made.
+     */
+    public static String withCalls(String text, List<com.github.enerccio.marginalia.extensions.arcoutline.model.WizardCall> calls) {
+        if (calls == null || calls.isEmpty()) {
+            return text;
+        }
+        StringBuilder note = new StringBuilder("[Tools used in this answer: ");
+        for (int i = 0; i < calls.size(); i++) {
+            note.append(i == 0 ? "" : ", ").append(calls.get(i).getName()).append(calls.get(i).isFailed() ? " (failed)" : "");
+        }
+        return text + "\n\n" + note.append(']');
+    }
+
+    /**
      * The messages of the conversation that go to the model: the newest ones whose tokens fit {@code room}, oldest first.
      * The newest message (what the author just wrote) is always kept, even when it alone is too long, a request without
      * it would answer nothing.

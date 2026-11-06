@@ -215,6 +215,22 @@ never the story, so only the delete asks first. An agent can use all of them; it
 | `/delete-annotation <annotation>` | Deletes a note (it can be restored from the trash). Asks first. |
 | `/generate-annotation <part> [profile]` | Has the model review the part like [Annotate with AI](../books/annotations.md#letting-a-model-annotate) and adds everything it finds as notes (source *AI*; a quote that is not in the text makes a note about the whole part). Nothing is asked: the notes are the only change, and they can be resolved, edited or deleted. It reviews with the model of the book; an agent uses its own model when *Write the book with the model of the agent* is on (as the Lore Generator commands do), `profile` is a model profile of an agent. Runs alone, takes time, costs tokens. |
 
+### The planner
+
+The commands for the [planner](../books/story-editor.md#the-planner-tab) of the book. A scene is given by its **number** in the list (from 1, `/get-planned-scenes`
+shows them); the numbers change when a scene is moved or deleted, so read the list again after changing it. They change only the planner, never the story. Adding,
+moving and marking a scene done are not asked; changing the text of a scene and deleting one are destructive (an [agent](../agents.md) is asked as for other
+destructive commands).
+
+| Command | What it does |
+|---------|--------------|
+| `/get-planned-scenes` | The scenes with their number, title, scene setting, POV character, present characters, instructions and whether they are done. |
+| `/add-planned-scene <title> [instructions [sceneSetting [povCharacter [presentCharacters]]]]` | Adds a scene at the end of the list. |
+| `/update-planned-scene <scene> <title> [instructions [sceneSetting [povCharacter [presentCharacters]]]]` | Changes the title and the details that are given; what is left out stays, an empty text clears it. |
+| `/set-planned-scene-done <scene> [done]` | Marks the scene as written (`done` is `true` by default) or not written. |
+| `/move-planned-scene <scene> <to>` | Moves the scene to the place `to` (1 is the first, the last place when it is too large). |
+| `/delete-planned-scene <scene>` | Deletes the scene. |
+
 The commands that have the model write or review (`/next`, `/swipe`, `/regenerate`, `/generate-annotation`, the two summaries) take time and show the **Stop** window.
 
 ## Commands that come with extensions

@@ -136,6 +136,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
     private StoryBranchSearch branchSearch;
     private StoryAnnotations annotations;
     private AnnotationsPanel annotationsPanel;
+    private PlannerPanel plannerPanel;
     private final StoryBackup backup = new StoryBackup();
     private final StoryMassDelete massDelete;
     private Long scrollToMessageId;
@@ -662,6 +663,8 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
         Set<Long> openedReasonings = cards.collectOpenedReasonings();
         // the texts may have changed since the annotations were read
         annotations.invalidate();
+        // the book may be another one than before
+        plannerPanel.refresh();
 
         centerContentPanel.removeAll();
         sidebarList.removeAll();
@@ -801,6 +804,18 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
             }
         });
         leftBar.add(ManuscriptStoryPart.ANNOTATIONS_TAB, loc.getValue(L.LABEL_ANNOTATIONS), annotationsPanel);
+
+        plannerPanel = new PlannerPanel(() -> currentManuscript, scene -> {
+            if (newTurnForm == null || newTurnPopover == null) {
+                return false;
+            }
+            newTurnForm.restoreState(PlannerPanel.toFormState(scene));
+            // the drawer covers the story and the button the form opens from
+            layout.setDrawerOpened(false);
+            newTurnPopover.setOpened(true);
+            return true;
+        });
+        leftBar.add(ManuscriptStoryPart.PLANNER_TAB, loc.getValue(L.LABEL_PLANNER), plannerPanel);
 
         VerticalLayout outline = new VerticalLayout(leftBar);
         outline.setSizeFull();

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847307453251">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847312576986">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.847307453251" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.847312576986" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847307453251" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847312576986" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847307453251" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847312576986" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -508,6 +508,64 @@ several steps, one arc for each range.</p>
 </retype-table>
 <p>Under the options a line tells how many summaries and story parts the model gets, and how many tokens the request has of what the model takes. It turns into a warning when it does not fit; send less or <doc-anchor-trigger to="#chats-branches-and-summaries">summarize the chat</doc-anchor-trigger>. The book is read again for every message, so a change of the outline or the story is seen by the next answer.</p>
 <p>On the right is the chat. Type a message and press <strong>Send</strong> (it is <strong>Stop</strong> while the model writes; what has arrived is kept). Each message has buttons: copy, <strong>branch from here</strong>, delete, and on an answer of the model also a wand, <strong>Generate an arc from this message</strong>, which opens the arc generator with the message as the specification. Ask the model to summarize what you decided as a specification first if the discussion was long.</p>
+<h3 id="letting-the-model-change-the-book">Letting the model change the book</h3>
+<p>Under the options is <strong>What the model may do</strong>. With none of these ticked the chat is only a talk. Tick a group and the model gets tools for it, and can use them
+when you ask or agree; it is told to look before it adds, to prefer adding to replacing, and to say what it did:</p>
+<retype-table copy-text="| Group | The model can |
+|---|---|
+| **Planner** | list the scenes of the [planner](../books/story-editor.md#the-planner-tab), add, change, move, delete them and mark them done. |
+| **Lorebook** | search and read the lore, create entries and change existing ones (not delete them). |
+| **Outline** | read the outline, add arcs and chapters, change and move them (not delete them). |
+| **Generators** | call the arc and chapter generators and, when the [Lore Generator](lore-generator.md) is installed, generate a lore entry. They return a draft and save nothing unless the model is told to; it shows you the draft and saves it when you agree. |
+| **Tools** (button, when a [tool suite](tools.md) is installed) | the name tools (names, places), as in the generators, so it can offer you real names. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Group</th>
+<th>The model can</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Planner</strong></td>
+<td>list the scenes of the <a href="../../books/story-editor/#the-planner-tab">planner</a>, add, change, move, delete them and mark them done.</td>
+</tr>
+<tr>
+<td><strong>Lorebook</strong></td>
+<td>search and read the lore, create entries and change existing ones (not delete them).</td>
+</tr>
+<tr>
+<td><strong>Outline</strong></td>
+<td>read the outline, add arcs and chapters, change and move them (not delete them).</td>
+</tr>
+<tr>
+<td><strong>Generators</strong></td>
+<td>call the arc and chapter generators and, when the <a href="../lore-generator/">Lore Generator</a> is installed, generate a lore entry. They return a draft and save nothing unless the model is told to; it shows you the draft and saves it when you agree.</td>
+</tr>
+<tr>
+<td><strong>Tools</strong> (button, when a <a href="../tools/">tool suite</a> is installed)</td>
+<td>the name tools (names, places), as in the generators, so it can offer you real names.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<ul>
+<li>
+<p><strong>Ask me before it changes or deletes something</strong> (on by default): changing the text of what exists (a lore entry, a scene, an arc) and deleting are shown to you first, with
+what the model wants to pass, and the model waits for <strong>Allow</strong> or <strong>Refuse</strong>. Adding a scene, an entry or an arc is not asked: you see it in the chat and in the planner,
+the lorebook or the outline, and can delete it.</p>
+</li>
+<li>
+<p>Every tool the model called is listed under its answer (a line with the name and a mark: ✓ worked, ✗ failed; open it to see what was passed and what came back).
+The next messages tell the model which tools it used, the calls themselves are not sent again.</p>
+</li>
+<li>
+<p>What the tools cost: their descriptions are part of every request, so a model that is short of context has less room. Only models that can call functions work with it; the dialog says so when one
+can&#x27;t.</p>
+</li>
+</ul>
 <h3 id="chats-branches-and-summaries">Chats, branches and summaries</h3>
 <p>A book has any number of chats; pick one in the list above the messages, <strong>+</strong> starts a new one, the pen renames it (it is named after your first message until then) and the trash can deletes it. They are stored with the book.</p>
 <ul>
@@ -691,7 +749,7 @@ chapters at the end of the arc) and the answer has their numbers. A story that i
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (4f388def1).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (ca0a5a5ed).</p></div>
             </footer>
         </div>
     </div>

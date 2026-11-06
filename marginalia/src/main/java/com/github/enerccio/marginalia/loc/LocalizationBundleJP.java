@@ -969,6 +969,22 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_RESUMMARIZE_ALL_SUMMARIES, "すべての要約を再作成");
         setValue(L.LABEL_IMPORT_FROM_LMSTUDIO, "LM Studio からインポート");
         setValue(L.LABEL_ACTIVATION_CONDITION, "条件");
+        setValue(L.LABEL_PLANNER, "プランナー");
+        setValue(L.LABEL_ADD_SCENE, "シーンを追加");
+        setValue(L.LABEL_NEW_SCENE, "新しいシーン");
+        setValue(L.LABEL_EDIT_SCENE, "シーンを編集");
+        setValue(L.LABEL_TITLE, "タイトル");
+        setValue(L.LABEL_MOVE_UP, "上へ移動");
+        setValue(L.LABEL_MOVE_DOWN, "下へ移動");
+        setValue(L.LABEL_MARK_DONE, "完了にする");
+        setValue(L.LABEL_MARK_NOT_DONE, "未完了に戻す");
+        setValue(L.LABEL_USE_IN_NEXT_TURN, "次のターンに入れる");
+        setValue(L.LABEL_COMMAND_GET_PLANNED_SCENES, "予定のシーンを取得");
+        setValue(L.LABEL_COMMAND_ADD_PLANNED_SCENE, "予定のシーンを追加");
+        setValue(L.LABEL_COMMAND_UPDATE_PLANNED_SCENE, "予定のシーンを更新");
+        setValue(L.LABEL_COMMAND_SET_PLANNED_SCENE_DONE, "予定のシーンを完了にする");
+        setValue(L.LABEL_COMMAND_MOVE_PLANNED_SCENE, "予定のシーンを移動");
+        setValue(L.LABEL_COMMAND_DELETE_PLANNED_SCENE, "予定のシーンを削除");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -1654,6 +1670,11 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_IMPORT_LMSTUDIO, "LM Studio の会話（.conversation.json、ホームフォルダの .lmstudio/conversations にあります）を 1 つ以上アップロードします。冒頭が共通の会話は 1 つのツリーにまとめられ、メッセージの再生成された返答は代替パートになります。結果は新しい本になります。");
         setValue(L.MSG_INVALID_LMSTUDIO_CHAT, "%s は LM Studio の会話（.conversation.json）ではありません。");
         setValue(L.MSG_IMPORTING_LMSTUDIO, "LM Studio からインポート中");
+        setValue(L.MSG_PLANNER_NONE, "予定のシーンはまだありません。物語で通したいシーンを追加し、クリックすると次のターンに入ります。");
+        setValue(L.MSG_PLANNER_SUMMARY, "%d / %d 完了");
+        setValue(L.MSG_PLANNER_TITLE_REQUIRED, "タイトルは必須です");
+        setValue(L.MSG_PLANNER_DELETE_CONFIRM, "シーン「%s」を削除しますか？");
+        setValue(L.MSG_PLANNER_NO_TURN_FORM, "物語にシーンを入れる場所がありません");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");
@@ -2157,6 +2178,27 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.DESC_MACRO_JOIN, "最初の引数を区切りとして、2番目以降のテキストを連結します。空のテキストは除外されます。空白を含む区切りには {{space}} や {{newline}} を使用してください。");
         setValue(L.DESC_TEMPLATE_FACTS, "拡張機能が把握している、そのパート時点の物語の事実（たとえば各キャラクターが知っていること。提供がなければ空）。パートをこれと照らし合わせ、矛盾は設定の不整合として扱います。");
         setValue(L.DESC_MACRO_EVAL, "式の結果を true または false で返します。比較（== != < <= > >= ~= contains has）を and、or、not、括弧で組み合わせられます。テキストは引用符で囲み、名前はテンプレートの値（povCharacter、presentCharacters、引数のないマクロ）、.name はローカル変数、$name はグローバル変数です。不明な名前や構文エラーは Error になります。== は完全一致（数値は値で比較）、~= は大文字小文字を無視、contains はテキスト内の検索、has はカンマ区切りのリストの項目を検索します。");
+        setValue(L.DESC_COMMAND_GET_PLANNED_SCENES, "本のプランナーのシーンを、詳細と執筆済みかどうかとともに一覧表示します。");
+        setValue(L.DESC_COMMAND_GET_PLANNED_SCENES_LLM, "作者が書く予定のシーンを順に、番号、タイトル、場面設定、視点人物、登場人物、指示、完了かどうかとともに一覧表示します。シーンを追加する前に読み、重複を避けてください。");
+        setValue(L.DESC_COMMAND_ADD_PLANNED_SCENE, "プランナーの末尾にシーンを追加します。");
+        setValue(L.DESC_COMMAND_ADD_PLANNED_SCENE_LLM, "作者のプランナーの末尾にシーンを追加します。短いタイトルと、作者が書くときに新規ターンフォームへ入れるターンの詳細（指示、場面設定、視点人物、登場人物）です。作者はすぐにプランナーのタブで見て、編集や削除ができます。指示は物語モデルへの具体的で短い指示として書き、シーン自体は書かないでください。");
+        setValue(L.DESC_COMMAND_UPDATE_PLANNED_SCENE, "予定のシーンのタイトルやターンの詳細を変更します。");
+        setValue(L.DESC_COMMAND_UPDATE_PLANNED_SCENE_LLM, "プランナーのシーンを変更します。変更する項目だけを渡してください。省略したものはそのままです。渡したテキストは古いものを置き換えます。完了かどうかはここでは変わりません（set-planned-scene-done を参照）。");
+        setValue(L.DESC_COMMAND_SET_PLANNED_SCENE_DONE, "予定のシーンを執筆済み・未執筆にします。");
+        setValue(L.DESC_COMMAND_SET_PLANNED_SCENE_DONE_LLM, "プランナーのシーンを完了（執筆済み）または未完了にします。シーンが書かれたかどうかは作者の物語が決めます。作者がそう言ったときに行ってください。");
+        setValue(L.DESC_COMMAND_MOVE_PLANNED_SCENE, "予定のシーンをリスト内の別の位置へ移動します。");
+        setValue(L.DESC_COMMAND_MOVE_PLANNED_SCENE_LLM, "プランナーのシーンを指定した位置（1が先頭）へ移動します。他のシーンはずれるので、後でリストを読み直してください。");
+        setValue(L.DESC_COMMAND_DELETE_PLANNED_SCENE, "予定のシーンを削除します。");
+        setValue(L.DESC_COMMAND_DELETE_PLANNED_SCENE_LLM, "作者のプランナーのシーンを削除します。後ろのシーンの番号が下がるので、後でリストを読み直してください。");
+        setValue(L.DESC_COMMAND_PLANNER_RETURN, "JSON: シーンまたはシーンの一覧");
+        setValue(L.DESC_COMMAND_PLANNER_SCENE_PARAM, "get-planned-scenes の一覧でのシーンの番号（1から）");
+        setValue(L.DESC_COMMAND_PLANNER_TITLE_PARAM, "リスト用のシーンの短いタイトル");
+        setValue(L.DESC_COMMAND_PLANNER_INSTRUCTIONS_PARAM, "このシーンを書くターンが行うこと（作者が新規ターンフォームに入れる指示）");
+        setValue(L.DESC_COMMAND_PLANNER_SETTING_PARAM, "場面設定: シーンが行われる場所と時間");
+        setValue(L.DESC_COMMAND_PLANNER_POV_PARAM, "シーンの視点人物");
+        setValue(L.DESC_COMMAND_PLANNER_PRESENT_PARAM, "シーンに登場する人物（カンマ区切り）");
+        setValue(L.DESC_COMMAND_PLANNER_DONE_PARAM, "true（既定）で執筆済み、false で未執筆");
+        setValue(L.DESC_COMMAND_PLANNER_TO_PARAM, "シーンの新しい番号（1から）。大きすぎる場合は最後の位置");
     }
 
     @Override

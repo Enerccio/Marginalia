@@ -281,6 +281,18 @@ joins on is a real column: relations, `name`, `enabled`, `ordinal`, `published`,
 
 Tags of a book are `TagRelation`s (see [Tags](#tags)).
 
+`plan` (JSON, a list of `PlannedScene`) holds the planner of the book, see [`PlannedScene`](#plannedscene-the-planner-of-a-book).
+
+### `PlannedScene` (the planner of a book)
+
+A scene the author plans to write: `uuid`, `title`, `sceneSetting`, `povCharacter`, `presentCharacters`, `instructions` (the four fields of the new turn form) and `done`. The list is
+the extended attribute `Manuscript.plan` (`@ExtendedAttribute(inject = true, injectPrefix = "plan")`: a list can't be flattened into keys, so it is stored as one JSON value), so there
+is no table and no migration, and the scenes are in the backups and copies of the book. `Manuscript.getPlan()` never returns null; a list that is changed on the entity is stored only
+when the book is saved, so changes go through `PlannerService`, which reads the book again (`ManuscriptService.update`), changes a copy of the list, saves it and tells the listeners
+(`onChange`, by the uuid of the book: the Planner tab and the plot wizard use it). The order of the list is the order of the planner. The tab is `ui.dialogs.story.PlannerPanel`
+(`PlannedSceneDialog` edits a scene), added to the story editor by `createPlannerTab` of `ManuscriptStoryPart` and to the drawer of the phone story part; a click puts the scene into
+`NewTurnForm.restoreState` (`PlannerPanel.toFormState`) and opens the popover of the form.
+
 ### `Folder`
 
 A group of books, nested through `parent` (a column, `OWNED_BY` for the cleanup), with a `name` (column), a `description` and the same thirteen text settings and the language as a book, all extended attributes where null means inherit; tags like a book. Described in [Folders](folders.md). Migration V21.

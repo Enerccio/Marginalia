@@ -21,6 +21,10 @@ public final class TabDockIcon {
     public static final TabDockIcon ANNOTATIONS = glyph(
             "<path d='M4 4.5h16v11H10.5L6 20v-4.5H4zM8 8.5h8M8 11.5h5'/>");
 
+    /** A list of checked boxes. */
+    public static final TabDockIcon PLANNER = glyph(
+            "<path d='M4 6.5l1.5 1.5 3-3M4 12.5l1.5 1.5 3-3M4 18.5l1.5 1.5 3-3M12 6.5h8M12 12.5h8M12 18.5h8'/>");
+
     private final String letters;
     private final String glyph;
 

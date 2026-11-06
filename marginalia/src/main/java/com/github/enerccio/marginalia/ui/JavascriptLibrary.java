@@ -282,6 +282,42 @@ public final class JavascriptLibrary {
     }
 
     /**
+     * Opens a list at its end: scrolls to the bottom and keeps it there while the content settles (its Markdown is rendered after it
+     * is in the page, so its height is not final when the first scroll runs), until the user scrolls on their own or a
+     * moment has passed. Sticks to the bottom afterwards like {@link #scrollToBottom}.
+     *
+     * @param element the scroll element
+     * @param content the element whose size changes while the content settles
+     */
+    public static void scrollToBottomWhileSettling(Element element, Element content) {
+        element.executeJs(INSTALL_STICKY_SCROLL + """
+                const el = $0;
+                const content = $1;
+                installSticky(el);
+                el._stick = true;
+                if (el._settleStop) el._settleStop();
+                const apply = () => {
+                  if (!el._stick) return;
+                  el.scrollTop = el.scrollHeight;
+                  el._lastTop = el.scrollTop;
+                };
+                const observer = new ResizeObserver(apply);
+                const events = ['wheel', 'touchstart', 'pointerdown', 'keydown'];
+                const stop = () => {
+                  observer.disconnect();
+                  clearTimeout(el._settleTimer);
+                  events.forEach(name => el.removeEventListener(name, stop));
+                  el._settleStop = null;
+                };
+                el._settleStop = stop;
+                events.forEach(name => el.addEventListener(name, stop, {passive: true}));
+                observer.observe(content);
+                el._settleTimer = setTimeout(stop, 1500);
+                requestAnimationFrame(() => requestAnimationFrame(apply));
+                """, element, content);
+    }
+
+    /**
      * Scrolls to the bottom while the element is stuck to it, i.e. until the user scrolls up; reaching the bottom again
      * sticks it again.
      */

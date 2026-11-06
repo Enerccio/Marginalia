@@ -969,6 +969,22 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_RESUMMARIZE_ALL_SUMMARIES, "Resummarize all summaries");
         setValue(L.LABEL_IMPORT_FROM_LMSTUDIO, "Import from LM Studio");
         setValue(L.LABEL_ACTIVATION_CONDITION, "Condition");
+        setValue(L.LABEL_PLANNER, "Planner");
+        setValue(L.LABEL_ADD_SCENE, "Add scene");
+        setValue(L.LABEL_NEW_SCENE, "New scene");
+        setValue(L.LABEL_EDIT_SCENE, "Edit scene");
+        setValue(L.LABEL_TITLE, "Title");
+        setValue(L.LABEL_MOVE_UP, "Move up");
+        setValue(L.LABEL_MOVE_DOWN, "Move down");
+        setValue(L.LABEL_MARK_DONE, "Mark as done");
+        setValue(L.LABEL_MARK_NOT_DONE, "Mark as not done");
+        setValue(L.LABEL_USE_IN_NEXT_TURN, "Put into the next turn");
+        setValue(L.LABEL_COMMAND_GET_PLANNED_SCENES, "Get planned scenes");
+        setValue(L.LABEL_COMMAND_ADD_PLANNED_SCENE, "Add planned scene");
+        setValue(L.LABEL_COMMAND_UPDATE_PLANNED_SCENE, "Update planned scene");
+        setValue(L.LABEL_COMMAND_SET_PLANNED_SCENE_DONE, "Mark planned scene done");
+        setValue(L.LABEL_COMMAND_MOVE_PLANNED_SCENE, "Move planned scene");
+        setValue(L.LABEL_COMMAND_DELETE_PLANNED_SCENE, "Delete planned scene");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -1654,6 +1670,11 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_IMPORT_LMSTUDIO, "Upload one or more LM Studio conversations (.conversation.json, in the folder .lmstudio/conversations of your home folder). Conversations that share their beginning are joined into one tree, the regenerated answers of a message become alternative parts. The result is a new book.");
         setValue(L.MSG_INVALID_LMSTUDIO_CHAT, "%s is not an LM Studio conversation (.conversation.json).");
         setValue(L.MSG_IMPORTING_LMSTUDIO, "Importing from LM Studio");
+        setValue(L.MSG_PLANNER_NONE, "No scenes planned yet. Add the scenes you want the story to go through, then click one to put it into the next turn.");
+        setValue(L.MSG_PLANNER_SUMMARY, "%d of %d done");
+        setValue(L.MSG_PLANNER_TITLE_REQUIRED, "The title is required");
+        setValue(L.MSG_PLANNER_DELETE_CONFIRM, "Delete the scene \"%s\"?");
+        setValue(L.MSG_PLANNER_NO_TURN_FORM, "The story has no place for the scene");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");
@@ -2157,6 +2178,27 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.DESC_MACRO_JOIN, "Joins the texts after the first argument with the first argument as the separator. Empty texts are left out. Use {{space}} or {{newline}} for a separator with spaces.");
         setValue(L.DESC_TEMPLATE_FACTS, "The facts that extensions know about the story at the part, for example what each character knows (empty when no extension gives any). Check the part against them: a contradiction is a continuity error.");
         setValue(L.DESC_MACRO_EVAL, "true or false for an expression: comparisons (== != < <= > >= ~= contains has) joined with and, or, not and parentheses. A text is written in quotes, a name is a value of the template (povCharacter, presentCharacters, a macro without arguments), .name is a local variable and $name a global one. An unknown name or a syntax error gives Error. == compares exactly (numbers by value), ~= ignores case, contains looks for a text in a text, has looks for an item in a list separated by commas.");
+        setValue(L.DESC_COMMAND_GET_PLANNED_SCENES, "Lists the scenes of the planner of the book with their details and whether they are written.");
+        setValue(L.DESC_COMMAND_GET_PLANNED_SCENES_LLM, "Lists the scenes the author planned to write, in order, with their number, title, scene setting, POV character, present characters, instructions and whether they are done. Read it before adding scenes so you do not repeat one.");
+        setValue(L.DESC_COMMAND_ADD_PLANNED_SCENE, "Adds a scene at the end of the planner.");
+        setValue(L.DESC_COMMAND_ADD_PLANNED_SCENE_LLM, "Adds a scene to the end of the author's planner: a short title and the turn details the author will put into the new turn form when they write it (instructions, scene setting, POV character, present characters). The author sees it in the Planner tab at once and can edit or delete it. Write the instructions as an instruction for the story model, concrete and short; do not write the scene itself.");
+        setValue(L.DESC_COMMAND_UPDATE_PLANNED_SCENE, "Changes the title or the turn details of a planned scene.");
+        setValue(L.DESC_COMMAND_UPDATE_PLANNED_SCENE_LLM, "Changes a scene of the planner: pass only what is to change, what you leave out stays. The text you pass replaces the old one. Whether the scene is done is not changed here, see set-planned-scene-done.");
+        setValue(L.DESC_COMMAND_SET_PLANNED_SCENE_DONE, "Marks a planned scene as written or not written.");
+        setValue(L.DESC_COMMAND_SET_PLANNED_SCENE_DONE_LLM, "Marks a scene of the planner as done (written) or not done. Only the author's story decides that a scene is written: do it when the author says so.");
+        setValue(L.DESC_COMMAND_MOVE_PLANNED_SCENE, "Moves a planned scene to another place in the list.");
+        setValue(L.DESC_COMMAND_MOVE_PLANNED_SCENE_LLM, "Moves a scene of the planner to the place given (1 is the first). The other scenes shift; read the list again after it.");
+        setValue(L.DESC_COMMAND_DELETE_PLANNED_SCENE, "Deletes a planned scene.");
+        setValue(L.DESC_COMMAND_DELETE_PLANNED_SCENE_LLM, "Deletes a scene of the author's planner. The scenes after it get a lower number; read the list again after it.");
+        setValue(L.DESC_COMMAND_PLANNER_RETURN, "JSON: the scene or the list of scenes");
+        setValue(L.DESC_COMMAND_PLANNER_SCENE_PARAM, "The number of the scene in the list of get-planned-scenes, from 1");
+        setValue(L.DESC_COMMAND_PLANNER_TITLE_PARAM, "A short title of the scene, for the list");
+        setValue(L.DESC_COMMAND_PLANNER_INSTRUCTIONS_PARAM, "What the turn that writes this scene is to do: the instructions the author puts into the new turn form");
+        setValue(L.DESC_COMMAND_PLANNER_SETTING_PARAM, "The scene setting: where and when the scene takes place");
+        setValue(L.DESC_COMMAND_PLANNER_POV_PARAM, "The point of view character of the scene");
+        setValue(L.DESC_COMMAND_PLANNER_PRESENT_PARAM, "The characters present in the scene, separated by commas");
+        setValue(L.DESC_COMMAND_PLANNER_DONE_PARAM, "true (default) for written, false for not written");
+        setValue(L.DESC_COMMAND_PLANNER_TO_PARAM, "The new number of the scene, from 1; the last place when it is too large");
 
     }
 

@@ -11,6 +11,8 @@ public class WizardMessage {
     private String reasoning;
     /** The message is a summary of the chat before it: the model gets it and what comes after, not the messages before. */
     private boolean summary;
+    /** The tools the model called while it wrote this answer, in order; null for none. */
+    private java.util.List<WizardCall> calls;
 
     public WizardMessage() {
     }
@@ -29,9 +31,23 @@ public class WizardMessage {
         this.summary = summary;
     }
 
+    public java.util.List<WizardCall> getCalls() {
+        return calls == null ? java.util.List.of() : calls;
+    }
+
+    public void setCalls(java.util.List<WizardCall> calls) {
+        this.calls = calls == null || calls.isEmpty() ? null : calls;
+    }
+
     public WizardMessage copy() {
         WizardMessage copy = new WizardMessage(fromUser, text, reasoning);
         copy.summary = summary;
+        if (calls != null) {
+            copy.calls = new java.util.ArrayList<>();
+            for (WizardCall call : calls) {
+                copy.calls.add(new WizardCall(call.getName(), call.getArguments(), call.getResult(), call.isFailed()));
+            }
+        }
         return copy;
     }
 
