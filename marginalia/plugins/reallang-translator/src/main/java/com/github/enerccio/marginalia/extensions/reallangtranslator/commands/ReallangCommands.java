@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.extensions.reallangtranslator.commands;
 
 import com.github.enerccio.marginalia.domain.model.impl.AnchoredPassage;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
+import com.github.enerccio.marginalia.domain.model.impl.Folder;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
@@ -10,14 +11,8 @@ import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.extensions.InheritedSettingValues;
 import com.github.enerccio.marginalia.extensions.PartTextRegistry;
 import com.github.enerccio.marginalia.extensions.reallangtranslator.ReallangKind;
-import com.github.enerccio.marginalia.extensions.reallangtranslator.model.BookSettings;
-import com.github.enerccio.marginalia.extensions.reallangtranslator.model.Presets;
-import com.github.enerccio.marginalia.extensions.reallangtranslator.model.RealLanguage;
-import com.github.enerccio.marginalia.extensions.reallangtranslator.model.Script;
-import com.github.enerccio.marginalia.extensions.reallangtranslator.service.BookReal;
-import com.github.enerccio.marginalia.extensions.reallangtranslator.service.LanguageLibrary;
-import com.github.enerccio.marginalia.extensions.reallangtranslator.service.RealInherited;
-import com.github.enerccio.marginalia.extensions.reallangtranslator.service.TranslationService;
+import com.github.enerccio.marginalia.extensions.reallangtranslator.model.*;
+import com.github.enerccio.marginalia.extensions.reallangtranslator.service.*;
 import com.github.enerccio.marginalia.extensions.reallangtranslator.service.TranslationService.Outcome;
 import com.github.enerccio.marginalia.extensions.translatorcommon.model.*;
 import com.github.enerccio.marginalia.extensions.translatorcommon.service.PassageAccess;
@@ -66,6 +61,12 @@ public class ReallangCommands extends ManuscriptReadSupport {
     public static final String SET_SPEAKERS_MODE = "reallang-set-speakers-mode";
     public static final String SET_SPEAKER = "reallang-set-speaker";
     public static final String REMOVE_SPEAKER = "reallang-remove-speaker";
+    public static final String GLOSSARY = "reallang-glossary";
+    public static final String GLOSSARY_SET = "reallang-glossary-set";
+    public static final String GLOSSARY_REMOVE = "reallang-glossary-remove";
+    public static final String GLOSSARY_ACCEPT = "reallang-glossary-accept";
+    public static final String GLOSSARY_SWITCH = "reallang-glossary-switch";
+    public static final String GLOSSARY_MOVE = "reallang-glossary-move";
     public static final String GET_SOURCE = "reallang-get-source";
     public static final String LIST_PASSAGES = "reallang-list-passages";
 
@@ -304,6 +305,189 @@ public class ReallangCommands extends ManuscriptReadSupport {
             throw new IllegalStateException("The book has no language (reallang-set-book-language)");
         }
         return id;
+    }
+
+    // ---- the glossary of names and special words
+
+    private static final String PARAM_LEVEL = "Where the entry lives: language (every book in this language), folder (the books of a folder, see 'folder') or book (this book)";
+    private static final String PARAM_FOLDER = "For the folder level: the name (or uuid) of one of the folders the book is in";
+
+    @Command(commandName = GLOSSARY, linkedCommand = GLOSSARY_SET, humanNameText = "Glossary of the real language", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
+            descriptionText = "The glossary of names and special words as the model gets it for this book. Reads only.",
+            llmDescriptionText = "Returns as JSON the glossary of the book in a language: the entries of the language, of the folders of the book and of the book merged (the nearest level wins for the same word), "
+                    + "each with its word, how it is written (or kept as it is), the reading, the note, the level it lives at, whether it is in use (active) and whether the model proposed it and the author has not looked at it yet. Reads only.",
+            signature = @CommandParameterSignature({@CommandParameter(name = "language", type = String.class, optional = true, descriptionText = PARAM_BOOK_LANGUAGE_FIRST)}),
+            returns = @CommandReturn(name = "result", type = String.class, descriptionText = "JSON: the glossary"))
+    public void glossary(CommandContext context) throws Exception {
+        Book book = new Book(context);
+        String languageId = speakersLanguage(book, context);
+        JsonArray list = new JsonArray();
+        for (Glossary.Effective item : bookReal.glossary(book.manuscript, languageId)) {
+            GlossaryEntry entry = item.entry();
+            JsonObject row = new JsonObject();
+            row.addProperty("source", entry.getSource());
+            row.addProperty("kind", entry.getKind() == GlossaryKind.KEEP ? "keep" : "written");
+            row.addProperty("written", entry.getWritten());
+            row.addProperty("reading", entry.getReading());
+            row.addProperty("note", entry.getNote());
+            row.addProperty("level", item.level().name().toLowerCase(Locale.ROOT));
+            row.addProperty("levelName", item.label());
+            row.addProperty("active", item.active());
+            row.addProperty("proposed", entry.isProposed());
+            list.add(row);
+        }
+        JsonObject result = new JsonObject();
+        result.add("entries", list);
+        answer(context, result);
+    }
+
+    @Command(commandName = GLOSSARY_SET, linkedCommand = GLOSSARY, humanNameText = "Set a glossary entry", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            descriptionText = "Adds a name or special word to the glossary, or changes the entry of the word at that level.",
+            llmDescriptionText = "Adds an entry to the glossary of a level (book by default), or replaces the entry of the same word there. 'source' is the word as the English story writes it; 'written' how the language writes it "
+                    + "(not needed with kind keep, which leaves the word as it is); 'reading' how it is read, 'note' a few words for the translator. An entry the author sets is never a proposal. Returns the glossary.",
+            signature = @CommandParameterSignature({
+                    @CommandParameter(name = "source", type = String.class, descriptionText = "The word as the story writes it (\"Saellen\", \"witch\")"),
+                    @CommandParameter(name = "written", type = String.class, optional = true, descriptionText = "How the language writes it; empty for kind keep"),
+                    @CommandParameter(name = "kind", type = String.class, optional = true, defaultValue = "written", allowed = {"written", "keep"}, descriptionText = "written, or keep to leave the word as it is"),
+                    @CommandParameter(name = "reading", type = String.class, optional = true, descriptionText = "How it is read, may be empty"),
+                    @CommandParameter(name = "note", type = String.class, optional = true, descriptionText = "A few words for the translator"),
+                    @CommandParameter(name = "level", type = String.class, optional = true, defaultValue = "book", allowed = {"language", "folder", "book"}, descriptionText = PARAM_LEVEL),
+                    @CommandParameter(name = "folder", type = String.class, optional = true, descriptionText = PARAM_FOLDER),
+                    @CommandParameter(name = "language", type = String.class, optional = true, descriptionText = PARAM_BOOK_LANGUAGE_FIRST)}),
+            returns = @CommandReturn(name = "result", type = String.class, descriptionText = "JSON: the glossary"))
+    public void glossarySet(CommandContext context) throws Exception {
+        Book book = new Book(context);
+        String languageId = speakersLanguage(book, context);
+        GlossaryEntry entry = new GlossaryEntry();
+        entry.setSource(required(context.get("source", String.class), "the word"));
+        String kind = StringUtils.defaultIfBlank(context.get("kind", String.class), "written").toLowerCase(Locale.ROOT);
+        entry.setKind(switch (kind) {
+            case "written" -> GlossaryKind.WRITTEN;
+            case "keep" -> GlossaryKind.KEEP;
+            default -> throw new IllegalArgumentException("The kind is written or keep, not " + kind);
+        });
+        entry.setWritten(StringUtils.defaultString(context.get("written", String.class)));
+        entry.setReading(StringUtils.defaultString(context.get("reading", String.class)));
+        entry.setNote(StringUtils.defaultString(context.get("note", String.class)));
+        bookReal.putGlossaryEntry(book.manuscript, languageId, glossaryTarget(book, context), entry);
+        glossary(context);
+    }
+
+    @Command(commandName = GLOSSARY_REMOVE, linkedCommand = GLOSSARY, humanNameText = "Remove a glossary entry", async = true, dataSeverity = CommandDataSeverity.DESTRUCTIVE,
+            descriptionText = "Removes the entry of a word from a level of the glossary.",
+            llmDescriptionText = "Removes the entry of the word from the glossary of the level (book by default). Destructive, asks the user. To only stop using a word of a higher level in this book use reallang-glossary-switch. Returns the glossary.",
+            signature = @CommandParameterSignature({
+                    @CommandParameter(name = "source", type = String.class, descriptionText = "The word of the entry"),
+                    @CommandParameter(name = "level", type = String.class, optional = true, defaultValue = "book", allowed = {"language", "folder", "book"}, descriptionText = PARAM_LEVEL),
+                    @CommandParameter(name = "folder", type = String.class, optional = true, descriptionText = PARAM_FOLDER),
+                    @CommandParameter(name = "language", type = String.class, optional = true, descriptionText = PARAM_BOOK_LANGUAGE_FIRST)}),
+            returns = @CommandReturn(name = "result", type = String.class, descriptionText = "JSON: the glossary"))
+    public void glossaryRemove(CommandContext context) throws Exception {
+        Book book = new Book(context);
+        String languageId = speakersLanguage(book, context);
+        String source = required(context.get("source", String.class), "the word");
+        GlossaryService.Target target = glossaryTarget(book, context);
+        GlossaryEntry entry = glossaryEntryAt(book, languageId, target, source);
+        if (!context.confirm("Remove " + entry.getSource() + " from the glossary?")) {
+            if (!context.isTerminated()) {
+                context.setReturn("Nothing was removed");
+            }
+            return;
+        }
+        bookReal.removeGlossaryEntry(book.manuscript, languageId, target, entry.getId());
+        glossary(context);
+    }
+
+    @Command(commandName = GLOSSARY_ACCEPT, linkedCommand = GLOSSARY, humanNameText = "Accept a proposed glossary entry", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            descriptionText = "Marks an entry the model proposed as looked at.",
+            llmDescriptionText = "Accepts the proposed entries of the book: the word given, or all the proposals when 'source' is left out. The model uses a proposal from the moment it is made; accepting only says the author looked at it. Returns the glossary.",
+            signature = @CommandParameterSignature({
+                    @CommandParameter(name = "source", type = String.class, optional = true, descriptionText = "The word; all the proposals of the book when left out"),
+                    @CommandParameter(name = "language", type = String.class, optional = true, descriptionText = PARAM_BOOK_LANGUAGE_FIRST)}),
+            returns = @CommandReturn(name = "result", type = String.class, descriptionText = "JSON: the glossary"))
+    public void glossaryAccept(CommandContext context) throws Exception {
+        Book book = new Book(context);
+        String languageId = speakersLanguage(book, context);
+        String source = context.get("source", String.class);
+        for (Glossary.Effective item : bookReal.glossary(book.manuscript, languageId)) {
+            if (item.level() == Glossary.Level.BOOK && item.entry().isProposed()
+                    && (StringUtils.isBlank(source) || item.entry().key().equals(Glossary.key(source)))) {
+                bookReal.acceptGlossaryEntry(book.manuscript, languageId, item.entry().getId());
+            }
+        }
+        glossary(context);
+    }
+
+    @Command(commandName = GLOSSARY_SWITCH, linkedCommand = GLOSSARY, humanNameText = "Switch a glossary word off or on for the book", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            descriptionText = "Stops using (or uses again) a word of the language's or a folder's glossary in this book.",
+            llmDescriptionText = "Switches a word that comes from the language or a folder off for this book (enabled false), or on again (enabled true) by writing an entry of the book for the same word. A word of the book itself is changed with reallang-glossary-set or removed. Returns the glossary.",
+            signature = @CommandParameterSignature({
+                    @CommandParameter(name = "source", type = String.class, descriptionText = "The word"),
+                    @CommandParameter(name = "enabled", type = Boolean.class, descriptionText = "false: do not use it in this book; true: use it"),
+                    @CommandParameter(name = "language", type = String.class, optional = true, descriptionText = PARAM_BOOK_LANGUAGE_FIRST)}),
+            returns = @CommandReturn(name = "result", type = String.class, descriptionText = "JSON: the glossary"))
+    public void glossarySwitch(CommandContext context) throws Exception {
+        Book book = new Book(context);
+        String languageId = speakersLanguage(book, context);
+        String source = required(context.get("source", String.class), "the word");
+        Boolean enabled = context.get("enabled", Boolean.class);
+        if (enabled == null) {
+            throw new IllegalArgumentException("Give enabled: true or false");
+        }
+        Glossary.Effective found = bookReal.glossary(book.manuscript, languageId).stream().filter(item -> item.entry().key().equals(Glossary.key(source))).findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("The glossary has no word " + source));
+        if (found.level() == Glossary.Level.BOOK) {
+            GlossaryEntry own = found.entry().copy();
+            own.setEnabled(enabled);
+            bookReal.putGlossaryEntry(book.manuscript, languageId, GlossaryService.Target.book(), own);
+        } else {
+            bookReal.switchGlossaryEntry(book.manuscript, languageId, found.entry(), enabled);
+        }
+        glossary(context);
+    }
+
+    @Command(commandName = GLOSSARY_MOVE, linkedCommand = GLOSSARY, humanNameText = "Move a glossary entry of the book up", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            descriptionText = "Moves an entry of the book to a folder or to the language, so every book there gets it.",
+            llmDescriptionText = "Moves the entry of the word from the book to the glossary of a folder the book is in or of the language (the entry of the same word there is replaced). The book does not hold it afterwards. Returns the glossary.",
+            signature = @CommandParameterSignature({
+                    @CommandParameter(name = "source", type = String.class, descriptionText = "The word of an entry of the book"),
+                    @CommandParameter(name = "level", type = String.class, allowed = {"language", "folder"}, descriptionText = "Where to: language or folder"),
+                    @CommandParameter(name = "folder", type = String.class, optional = true, descriptionText = PARAM_FOLDER),
+                    @CommandParameter(name = "language", type = String.class, optional = true, descriptionText = PARAM_BOOK_LANGUAGE_FIRST)}),
+            returns = @CommandReturn(name = "result", type = String.class, descriptionText = "JSON: the glossary"))
+    public void glossaryMove(CommandContext context) throws Exception {
+        Book book = new Book(context);
+        String languageId = speakersLanguage(book, context);
+        GlossaryEntry entry = glossaryEntryAt(book, languageId, GlossaryService.Target.book(), required(context.get("source", String.class), "the word"));
+        if (!bookReal.moveGlossaryEntry(book.manuscript, languageId, entry.getId(), glossaryTarget(book, context))) {
+            throw new IllegalArgumentException("The book does not have the entry");
+        }
+        glossary(context);
+    }
+
+    /** The level an entry command is about: language, folder (named by 'folder') or book. */
+    private GlossaryService.Target glossaryTarget(Book book, CommandContext context) throws Exception {
+        String level = StringUtils.defaultIfBlank(context.get("level", String.class), "book").strip().toLowerCase(Locale.ROOT);
+        return switch (level) {
+            case "language" -> GlossaryService.Target.language();
+            case "book" -> GlossaryService.Target.book();
+            case "folder" -> {
+                String reference = required(context.get("folder", String.class), "the folder (its name or uuid)");
+                List<Folder> folders = bookReal.glossaryFolders(book.manuscript);
+                yield folders.stream().filter(folder -> folder.getUuid().equals(reference) || folder.getName().strip().equalsIgnoreCase(reference)).findFirst()
+                        .map(folder -> GlossaryService.Target.folder(folder.getUuid()))
+                        .orElseThrow(() -> new IllegalArgumentException("The book is not in a folder " + reference + ". Folders: "
+                                + (folders.isEmpty() ? "none" : String.join(", ", folders.stream().map(Folder::getName).toList()))));
+            }
+            default -> throw new IllegalArgumentException("The level is language, folder or book, not " + level);
+        };
+    }
+
+    private GlossaryEntry glossaryEntryAt(Book book, String languageId, GlossaryService.Target target, String source) throws Exception {
+        return bookReal.glossary(book.manuscript, languageId).stream()
+                .filter(item -> item.level() == target.level() && java.util.Objects.equals(item.id(), target.folderUuid()) && item.entry().key().equals(Glossary.key(source)))
+                .map(Glossary.Effective::entry).findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("That level has no word " + source + " (reallang-glossary lists the entries and their levels)"));
     }
 
     // ---- the state

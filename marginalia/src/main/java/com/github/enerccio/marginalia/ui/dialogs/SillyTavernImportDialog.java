@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Asks for the chats of SillyTavern ({@code .jsonl}, any number of them), the name of the book and whether the messages of the
+ * Asks for the chats of SillyTavern ({@code .jsonl}, any number of them; or of another program, see {@link ChatImportFormat}), the name of the book and whether the messages of the
  * user and the assistant are merged into one part, and hands the tree made of the chats ({@link SillyTavernChats#merge}) to the
  * callback. A file that is not a chat is refused with a warning, the others stay.
  */
@@ -43,6 +43,7 @@ public class SillyTavernImportDialog extends Dialog {
     private Localization loc;
 
     private final Handler handler;
+    private final ChatImportFormat format;
     private final UI ui = UI.getCurrent();
     private final List<SillyTavernChats.Chat> chats = new ArrayList<>();
 
@@ -51,7 +52,8 @@ public class SillyTavernImportDialog extends Dialog {
     private Span status;
     private Button importButton;
 
-    private SillyTavernImportDialog(Handler handler) {
+    private SillyTavernImportDialog(ChatImportFormat format, Handler handler) {
+        this.format = format;
         this.handler = handler;
     }
 
@@ -59,13 +61,20 @@ public class SillyTavernImportDialog extends Dialog {
      * Opens the dialog; the callback runs when the user chose to import and the dialog closes when it does not fail.
      */
     public static void show(Handler handler) {
-        SillyTavernImportDialog dialog = new SillyTavernImportDialog(handler);
+        show(ChatImportFormat.SILLYTAVERN, handler);
+    }
+
+    /**
+     * Opens the dialog for the chats of a program.
+     */
+    public static void show(ChatImportFormat format, Handler handler) {
+        SillyTavernImportDialog dialog = new SillyTavernImportDialog(format, handler);
         dialog.create();
         dialog.open();
     }
 
     private void create() {
-        setHeaderTitle(loc.getValue(L.LABEL_IMPORT_FROM_SILLYTAVERN));
+        setHeaderTitle(loc.getValue(format.title()));
         setWidth("500px");
 
         InMemoryUploadHandler uploadHandler = new InMemoryUploadHandler((metadata, data) -> ui.access(() -> {
@@ -74,9 +83,9 @@ public class SillyTavernImportDialog extends Dialog {
                 text = text.substring(1);
             }
             try {
-                chats.add(SillyTavernChats.parse(text, metadata.fileName()));
+                chats.add(format.parse(text, metadata.fileName()));
             } catch (IllegalArgumentException e) {
-                Notification.warning(String.format(loc.getValue(L.MSG_INVALID_SILLYTAVERN_CHAT), metadata.fileName()));
+                Notification.warning(String.format(loc.getValue(format.invalid()), metadata.fileName()));
                 return;
             }
             if (StringUtils.isBlank(nameField.getValue())) {
@@ -86,14 +95,14 @@ public class SillyTavernImportDialog extends Dialog {
             refreshStatus();
         }));
         Upload upload = new Upload(uploadHandler);
-        upload.setAcceptedFileTypes(".jsonl", ".json", "application/json", "application/x-ndjson");
+        upload.setAcceptedFileTypes(format.fileTypes());
 
         status = new Span();
         nameField = new TextField(loc.getValue(L.LABEL_NAME));
         nameField.setWidthFull();
         mergeTurns = new Checkbox(loc.getValue(L.LABEL_ST_MERGE_TURNS));
 
-        VerticalLayout layout = new VerticalLayout(new Span(loc.getValue(L.MSG_IMPORT_SILLYTAVERN)), upload, status, nameField,
+        VerticalLayout layout = new VerticalLayout(new Span(loc.getValue(format.description())), upload, status, nameField,
                 mergeTurns, new Span(loc.getValue(L.HELP_ST_MERGE_TURNS)));
         layout.setPadding(true);
         add(layout);

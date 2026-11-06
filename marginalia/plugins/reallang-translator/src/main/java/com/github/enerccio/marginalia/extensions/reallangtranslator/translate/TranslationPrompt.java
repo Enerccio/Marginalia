@@ -1,7 +1,6 @@
 package com.github.enerccio.marginalia.extensions.reallangtranslator.translate;
 
-import com.github.enerccio.marginalia.extensions.reallangtranslator.model.RealLanguage;
-import com.github.enerccio.marginalia.extensions.reallangtranslator.model.Script;
+import com.github.enerccio.marginalia.extensions.reallangtranslator.model.*;
 import com.github.enerccio.marginalia.extensions.translatorcommon.model.CharacterNote;
 import com.github.enerccio.marginalia.extensions.translatorcommon.model.Speakers;
 import com.github.enerccio.marginalia.extensions.translatorcommon.model.SpeakersMode;
@@ -32,13 +31,15 @@ public final class TranslationPrompt {
             - "register": the level of speech you chose (see THE LANGUAGE), empty for the neutral one.
             - "choice": one short sentence: why this language, and the main choices of the translation.
 
+            After the entries give "names": the names of people and places and the special terms in the speeches you wrote in %1$s that the GLOSSARY below (if there is one) does not list, and that you had to choose a written form for. One entry for each: {"source": the word as the English writes it, "written": how you wrote it, in the base form the name has in a dictionary and not in the inflected form this sentence needed, "reading": how it is read (empty when not asked), "note": a few words, may be empty}. A name the GLOSSARY lists is written exactly as the GLOSSARY says and is not repeated here. The list is empty when there is nothing to report.
+
             Who speaks %1$s: %2$s The text of the PART overrides this: if it says that a speech is spoken in another language ("in English", "in the common tongue"), or that someone speaks %1$s, follow the text.
 
             How to translate: the speech is written the way a native author would write that character saying it, not word for word. Take the voice of the speaker (age, gender, manner) and the relationship to the listener from the CHARACTERS and the story. Keep what the PART says around the speech true to the translation (a word the narration repeats, a name). Keep the names as the language asks.
 
             Answer with one JSON object only, no other text, in this form:
-            {"translations":[{"quote":"...","speaker":"...","language":"...","text":"...","reading":"","understood":true,"register":"","choice":"..."}]}
-            When the PART has no direct speech, the list is empty.""";
+            {"translations":[{"quote":"...","speaker":"...","language":"...","text":"...","reading":"","understood":true,"register":"","choice":"..."}],"names":[{"source":"...","written":"...","reading":"","note":""}]}
+            When the PART has no direct speech, the lists are empty.""";
 
     private TranslationPrompt() {
     }
@@ -64,14 +65,55 @@ public final class TranslationPrompt {
         }
     }
 
+    /** A glossary up to this many entries goes to the model whole (the same text for every part, so a server that caches the prompt reads it once); a bigger one only with the entries the part has. */
+    public static final int WHOLE_GLOSSARY = 100;
+
     public static Request build(RealLanguage language, Speakers speakers, String partText, Scene scene) {
-        return new Request(system(language, speakers), user(language, speakers, partText, scene));
+        return build(language, List.of(), speakers, partText, scene);
+    }
+
+    /**
+     * @param glossary the active entries of the merged glossary (see {@link Glossary}); may be empty
+     */
+    public static Request build(RealLanguage language, List<GlossaryEntry> glossary, Speakers speakers, String partText, Scene scene) {
+        List<GlossaryEntry> sent = glossary.size() <= WHOLE_GLOSSARY ? glossary : Glossary.relevant(glossary, partText);
+        return new Request(system(language, speakers) + glossaryBlock(sent), user(language, speakers, partText, scene));
     }
 
     static String system(RealLanguage language, Speakers speakers) {
         String tongue = language.getTongue();
         return String.format(INSTRUCTIONS, tongue, speakersRule(tongue, speakers), scriptRule(language.getScript()), readingRule(language))
                 + "\n\n" + languageBlock(language);
+    }
+
+    /**
+     * The glossary as the model reads it: how the names and the special words of the story are written in the language. Empty text for no entries.
+     */
+    public static String glossaryBlock(List<GlossaryEntry> entries) {
+        if (entries == null || entries.stream().noneMatch(GlossaryEntry::isUsable)) {
+            return "";
+        }
+        StringBuilder block = new StringBuilder("\n=== GLOSSARY ===\nThe names and special words of this story and how they are written in the language. Write each of them exactly like this "
+                + "wherever it is in a speech (decline or inflect it only as the language requires, the form stays the same).\n");
+        for (GlossaryEntry entry : entries) {
+            if (!entry.isUsable()) {
+                continue;
+            }
+            block.append("- ").append(entry.getSource()).append(": ");
+            if (entry.getKind() == GlossaryKind.KEEP) {
+                block.append("keep it as it is");
+            } else {
+                block.append(entry.getWritten());
+                if (!entry.getReading().isEmpty()) {
+                    block.append(" (read: ").append(entry.getReading()).append(')');
+                }
+            }
+            if (!entry.getNote().isEmpty()) {
+                block.append(" - ").append(entry.getNote());
+            }
+            block.append('\n');
+        }
+        return block.toString();
     }
 
     /**

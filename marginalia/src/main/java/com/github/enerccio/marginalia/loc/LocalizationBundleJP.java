@@ -967,6 +967,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_TRANSLATION, "翻訳");
         setValue(L.LABEL_CLEAR_SAVED_LOGINS, "保存されたログインを削除（ログイン状態の保持）");
         setValue(L.LABEL_RESUMMARIZE_ALL_SUMMARIES, "すべての要約を再作成");
+        setValue(L.LABEL_IMPORT_FROM_LMSTUDIO, "LM Studio からインポート");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -1647,6 +1648,9 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_RESUMMARIZE_FINISHED, "%d 件の要約を書き直しました。");
         setValue(L.MSG_RESUMMARIZE_STOPPED, "中止しました。要約は変更されていません。");
         setValue(L.MSG_RESUMMARIZE_NO_SUMMARIES, "書き直す要約がありません。");
+        setValue(L.MSG_IMPORT_LMSTUDIO, "LM Studio の会話（.conversation.json、ホームフォルダの .lmstudio/conversations にあります）を 1 つ以上アップロードします。冒頭が共通の会話は 1 つのツリーにまとめられ、メッセージの再生成された返答は代替パートになります。結果は新しい本になります。");
+        setValue(L.MSG_INVALID_LMSTUDIO_CHAT, "%s は LM Studio の会話（.conversation.json）ではありません。");
+        setValue(L.MSG_IMPORTING_LMSTUDIO, "LM Studio からインポート中");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");

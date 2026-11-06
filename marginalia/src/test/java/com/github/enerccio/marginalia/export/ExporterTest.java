@@ -59,7 +59,7 @@ class ExporterTest extends MarginaliaTestBase {
     @Test
     void allFormatsAreRegistered() {
         assertThat(exporterService.getExporters()).extracting(Exporter::getFileExtension)
-                .containsExactlyInAnyOrder("txt", "md", "html", "docx", "pdf", "epub", "html", "md", "jsonl", "zip");
+                .containsExactlyInAnyOrder("txt", "md", "html", "docx", "pdf", "epub", "html", "md", "jsonl", "zip", "zip");
     }
 
     @Test

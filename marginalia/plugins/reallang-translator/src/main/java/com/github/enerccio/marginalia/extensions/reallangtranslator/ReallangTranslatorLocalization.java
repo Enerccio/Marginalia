@@ -96,6 +96,45 @@ public class ReallangTranslatorLocalization extends PluginLocalizationBundle {
     public static final String WHO_SAYS_IT_TO_WHOM = "Who says it, to whom (optional)";
     public static final String WRITE_THE_HONORIFICS_OF_NAMES = "Write the honorific suffixes of names (san, sama...)";
     public static final String YES_TEXT = "Yes";
+    public static final String ACCEPT = "Accept";
+    public static final String ADD = "Add";
+    public static final String DELETE = "Delete";
+    public static final String EDIT = "Edit";
+    public static final String GLOSSARY = "Glossary";
+    public static final String D_TRANSLATIONS_WRITE_A_NAME_OF_THE_GLOSSARY_ANOTHER_WAY = "%d translation(s) write a name of the glossary another way than the glossary says";
+    public static final String D_NAMES_WERE_ADDED_TO_THE_GLOSSARY_TO_LOOK_AT = "%d name(s) were added to the glossary of the book to look at";
+    public static final String GLOSSARY_OF_THE_LANGUAGE_HINT = "Names and terms every book in this language writes the same way. A folder or a book can add to them or switch one off.";
+    public static final String GLOSSARY_S = "Glossary: %s";
+    public static final String GLOSSARY_HINT = "The names and special words of the story and how this language writes them. Three levels are merged: the language, the folders of the book and the book itself; for the same word the nearest level wins. A name the model had to choose is proposed here for you to look at.";
+    public static final String FOLDER_S = "Folder: %s";
+    public static final String THIS_BOOK = "This book";
+    public static final String LEVEL = "Level";
+    public static final String WORD = "Word";
+    public static final String WRITTEN_AS = "Written as";
+    public static final String READ_AS = "Read as";
+    public static final String NOTE = "Note";
+    public static final String STATUS = "Status";
+    public static final String PROPOSED = "Proposed";
+    public static final String SWITCHED_OFF = "Off";
+    public static final String WORD_IN_THE_STORY = "The word as the story writes it";
+    public static final String IN_THE_TRANSLATION = "In the translation";
+    public static final String WRITTEN_AS_BELOW = "Written as below";
+    public static final String KEEP_IT_AS_IT_IS = "Keep it as it is";
+    public static final String HOW_IT_IS_WRITTEN = "How it is written in the language";
+    public static final String HOW_IT_IS_READ = "How it is read (optional)";
+    public static final String A_FEW_WORDS_FOR_THE_TRANSLATOR = "A few words for the translator (optional)";
+    public static final String THE_ENTRY_APPLIES = "The entry applies";
+    public static final String NEW_GLOSSARY_ENTRY = "New glossary entry";
+    public static final String EDIT_THE_GLOSSARY_ENTRY = "Edit the glossary entry";
+    public static final String THE_WORD_IS_EMPTY = "The word is empty";
+    public static final String WRITE_HOW_THE_WORD_IS_WRITTEN_OR_KEEP_IT = "Write how the word is written, or choose to keep it as it is";
+    public static final String SWITCH_OFF_FOR_THIS_BOOK = "Switch off for this book";
+    public static final String SWITCH_ON_FOR_THIS_BOOK = "Switch on for this book";
+    public static final String MOVE_TO = "Move to";
+    public static final String MOVE_TO_THE_LANGUAGE = "The language";
+    public static final String THE_GLOSSARY_CAN_NOT_BE_CHANGED = "The glossary can not be changed: %s";
+    public static final String THE_WORD_IS_IN_THE_GLOSSARY_ALREADY = "The glossary of this level has the word already";
+    public static final String DELETE_THE_ENTRY_S = "Delete the entry %s?";
 
     @Override
     protected void loadKeys() {
@@ -356,5 +395,122 @@ public class ReallangTranslatorLocalization extends PluginLocalizationBundle {
 
         ja(YES_TEXT, "はい");
         zh(YES_TEXT, "是");
+
+        ja(ACCEPT, "承認");
+        zh(ACCEPT, "接受");
+
+        ja(ADD, "追加");
+        zh(ADD, "添加");
+
+        ja(DELETE, "削除");
+        zh(DELETE, "删除");
+
+        ja(EDIT, "編集");
+        zh(EDIT, "编辑");
+
+        ja(GLOSSARY_OF_THE_LANGUAGE_HINT, "この言語のどの本でも同じ表記にする名前や用語です。フォルダーや本で追加したり、個別にオフにしたりできます。");
+        zh(GLOSSARY_OF_THE_LANGUAGE_HINT, "使用该语言的每本书都以相同方式书写的名字和术语。文件夹或书可以补充,也可以单独关闭其中某项。");
+
+        ja(D_TRANSLATIONS_WRITE_A_NAME_OF_THE_GLOSSARY_ANOTHER_WAY, "%d 件の翻訳が、用語集の名前を用語集と異なる表記で書いています");
+        zh(D_TRANSLATIONS_WRITE_A_NAME_OF_THE_GLOSSARY_ANOTHER_WAY, "%d 处译文没有按术语表书写术语表中的名字");
+
+        ja(D_NAMES_WERE_ADDED_TO_THE_GLOSSARY_TO_LOOK_AT, "%d 件の名前が確認用に本の用語集へ追加されました");
+        zh(D_NAMES_WERE_ADDED_TO_THE_GLOSSARY_TO_LOOK_AT, "已有 %d 个名字加入本书术语表,待你查看");
+
+        ja(GLOSSARY, "用語集");
+        zh(GLOSSARY, "术语表");
+
+        ja(GLOSSARY_S, "用語集: %s");
+        zh(GLOSSARY_S, "术语表:%s");
+
+        ja(GLOSSARY_HINT, "物語の名前や特別な語と、この言語での表記です。言語、本のフォルダー、本自体の三つのレベルが統合され、同じ語では最も近いレベルが優先されます。モデルが表記を決めた名前は、確認用にここへ提案されます。");
+        zh(GLOSSARY_HINT, "故事中的名字和特殊词语,以及这种语言如何书写它们。语言、书所在的文件夹和书本身三个层级会合并;同一个词以最近的层级为准。模型不得不自行选择写法的名字会在这里提出,供你查看。");
+
+        ja(FOLDER_S, "フォルダー: %s");
+        zh(FOLDER_S, "文件夹:%s");
+
+        ja(THIS_BOOK, "この本");
+        zh(THIS_BOOK, "本书");
+
+        ja(LEVEL, "レベル");
+        zh(LEVEL, "层级");
+
+        ja(WORD, "語");
+        zh(WORD, "词");
+
+        ja(WRITTEN_AS, "表記");
+        zh(WRITTEN_AS, "写作");
+
+        ja(READ_AS, "読み");
+        zh(READ_AS, "读作");
+
+        ja(NOTE, "メモ");
+        zh(NOTE, "备注");
+
+        ja(STATUS, "状態");
+        zh(STATUS, "状态");
+
+        ja(PROPOSED, "提案");
+        zh(PROPOSED, "待确认");
+
+        ja(SWITCHED_OFF, "オフ");
+        zh(SWITCHED_OFF, "已关闭");
+
+        ja(WORD_IN_THE_STORY, "物語での語の表記");
+        zh(WORD_IN_THE_STORY, "故事中该词的写法");
+
+        ja(IN_THE_TRANSLATION, "翻訳での扱い");
+        zh(IN_THE_TRANSLATION, "在译文中");
+
+        ja(WRITTEN_AS_BELOW, "下の表記で書く");
+        zh(WRITTEN_AS_BELOW, "按下面的写法");
+
+        ja(KEEP_IT_AS_IT_IS, "そのまま残す");
+        zh(KEEP_IT_AS_IT_IS, "保持原样");
+
+        ja(HOW_IT_IS_WRITTEN, "この言語での表記");
+        zh(HOW_IT_IS_WRITTEN, "在该语言中的写法");
+
+        ja(HOW_IT_IS_READ, "読み(任意)");
+        zh(HOW_IT_IS_READ, "读音(可选)");
+
+        ja(A_FEW_WORDS_FOR_THE_TRANSLATOR, "翻訳者への一言(任意)");
+        zh(A_FEW_WORDS_FOR_THE_TRANSLATOR, "给译者的几句话(可选)");
+
+        ja(THE_ENTRY_APPLIES, "この項目を適用する");
+        zh(THE_ENTRY_APPLIES, "该条目生效");
+
+        ja(NEW_GLOSSARY_ENTRY, "用語集の新しい項目");
+        zh(NEW_GLOSSARY_ENTRY, "新的术语表条目");
+
+        ja(EDIT_THE_GLOSSARY_ENTRY, "用語集の項目を編集");
+        zh(EDIT_THE_GLOSSARY_ENTRY, "编辑术语表条目");
+
+        ja(THE_WORD_IS_EMPTY, "語が空です");
+        zh(THE_WORD_IS_EMPTY, "词为空");
+
+        ja(WRITE_HOW_THE_WORD_IS_WRITTEN_OR_KEEP_IT, "表記を入力するか、そのまま残す設定にしてください");
+        zh(WRITE_HOW_THE_WORD_IS_WRITTEN_OR_KEEP_IT, "请填写该词的写法,或选择保持原样");
+
+        ja(SWITCH_OFF_FOR_THIS_BOOK, "この本ではオフにする");
+        zh(SWITCH_OFF_FOR_THIS_BOOK, "在本书中关闭");
+
+        ja(SWITCH_ON_FOR_THIS_BOOK, "この本ではオンにする");
+        zh(SWITCH_ON_FOR_THIS_BOOK, "在本书中开启");
+
+        ja(MOVE_TO, "移動先");
+        zh(MOVE_TO, "移到");
+
+        ja(MOVE_TO_THE_LANGUAGE, "言語");
+        zh(MOVE_TO_THE_LANGUAGE, "语言");
+
+        ja(THE_GLOSSARY_CAN_NOT_BE_CHANGED, "用語集を変更できません: %s");
+        zh(THE_GLOSSARY_CAN_NOT_BE_CHANGED, "无法修改术语表:%s");
+
+        ja(THE_WORD_IS_IN_THE_GLOSSARY_ALREADY, "このレベルの用語集には、その語がすでにあります");
+        zh(THE_WORD_IS_IN_THE_GLOSSARY_ALREADY, "该层级的术语表已有这个词");
+
+        ja(DELETE_THE_ENTRY_S, "項目「%s」を削除しますか?");
+        zh(DELETE_THE_ENTRY_S, "删除条目“%s”?");
     }
 }

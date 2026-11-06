@@ -1,17 +1,18 @@
 package com.github.enerccio.marginalia.extensions.reallangtranslator.ui;
 
-import com.github.enerccio.marginalia.extensions.reallangtranslator.model.Presets;
-import com.github.enerccio.marginalia.extensions.reallangtranslator.model.RealLanguage;
-import com.github.enerccio.marginalia.extensions.reallangtranslator.model.Script;
+import com.github.enerccio.marginalia.extensions.reallangtranslator.model.*;
 import com.github.enerccio.marginalia.extensions.translatorcommon.ui.CommonStyles;
 import com.github.enerccio.marginalia.extensions.translatorcommon.ui.EditDialog;
+import com.github.enerccio.marginalia.extensions.translatorcommon.ui.ListEditor;
 import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.List;
 import java.util.function.Predicate;
 
 import static com.github.enerccio.marginalia.extensions.reallangtranslator.ReallangTranslatorLocalization.*;
@@ -75,7 +76,11 @@ public class LanguageEditor extends EditDialog {
         }
         Span hint = new Span(T.localized(THERE_IS_NO_LEXICON_THE_MODEL_KNOWS_THE_LANGUAGE));
         hint.addClassName(CommonStyles.HINT);
-        body().add(hint, name, tongue, script, honorifics, reading, politeness, names, rules);
+        GlossaryList glossary = new GlossaryList(language.getGlossary());
+        glossary.setHeight("18rem");
+        Span glossaryHint = new Span(T.localized(GLOSSARY_OF_THE_LANGUAGE_HINT));
+        glossaryHint.addClassName(CommonStyles.HINT);
+        body().add(hint, name, tongue, script, honorifics, reading, politeness, names, rules, new Span(T.localized(GLOSSARY)), glossaryHint, glossary);
 
         setValidator(() -> {
             if (StringUtils.isBlank(name.getValue())) {
@@ -114,5 +119,38 @@ public class LanguageEditor extends EditDialog {
             case ROMAJI -> T.localized(ROMAJI_LATIN_LETTERS);
             case NATIVE -> T.localized(ANOTHER_SCRIPT_NOT_CHECKED);
         };
+    }
+
+    /** The entries of the glossary that belong to the language itself (the farthest level): every book in this language gets them. */
+    private static final class GlossaryList extends ListEditor<GlossaryEntry> {
+
+        GlossaryList(List<GlossaryEntry> entries) {
+            super(entries, () -> {
+            });
+            build();
+        }
+
+        @Override
+        protected void addColumns(Grid<GlossaryEntry> grid) {
+            grid.addColumn(GlossaryEntry::getSource).setHeader(T.localized(WORD)).setFlexGrow(1);
+            grid.addColumn(entry -> entry.getKind() == GlossaryKind.KEEP ? T.localized(KEEP_IT_AS_IT_IS) : entry.getWritten()).setHeader(T.localized(WRITTEN_AS)).setFlexGrow(1);
+            grid.addColumn(GlossaryEntry::getReading).setHeader(T.localized(READ_AS)).setFlexGrow(1);
+            grid.addColumn(GlossaryEntry::getNote).setHeader(T.localized(NOTE)).setFlexGrow(2);
+        }
+
+        @Override
+        protected GlossaryEntry create() {
+            return new GlossaryEntry();
+        }
+
+        @Override
+        protected void edit(GlossaryEntry entry, boolean isNew, Runnable done) {
+            new GlossaryEntryDialog(entry, isNew, done).open();
+        }
+
+        @Override
+        protected String labelOf(GlossaryEntry entry) {
+            return entry.getSource();
+        }
     }
 }

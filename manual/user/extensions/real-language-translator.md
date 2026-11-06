@@ -89,6 +89,23 @@ others here ("a young officer, polite to her seniors, blunt with friends"): that
 **Quick translate.** Write a text in English, optionally who says it and to whom, and press **Translate**: the model translates it with the rules of the language (with several languages, choose
 which one). Nothing is written into the story; you copy the translation.
 
+**Glossary.** How the names and the special words of the story are written in the language (a [section below](#the-glossary-of-names-and-special-words)); a *Glossary* tab for each language of the book.
+
+## The glossary of names and special words
+
+Without a glossary the model chooses again in every part how a name is written: `Saellen` is `サエレン` in one part and stays in Latin letters in the next, `Tomáš` becomes `トマーシュ` or `トマシュ`. The glossary fixes the choice once. An entry has
+
+- the **word** as the story writes it (`Saellen`, `witch`), the key of the entry, the case does not matter;
+- **how it is written** in the language (`サエレン`, `魔女`), or *keep it as it is* for a title, a place or a made-up term that is not translated;
+- **how it is read** (optional, for a language with a reading: `魔女` read `ウィッチ`), and a **note** for the translator (the honorific the character gets, the order of the family name);
+- whether it **applies**.
+
+**Three levels, merged.** The glossary of a language lives at three levels: the **language** (in its editor, in *Settings → Extension Settings*: the names and terms of every book in this language), the **folders** the book is in (a series defines the names its books share; the folders nest) and the **book** (its own, the one used most). The model gets the *union*; for the same word the **nearest level wins**, so a book can write a name another way than its folder does. The *Glossary* tab of the *Real language* tab shows all of them with the level each entry comes from and changes an entry where it lives. A word of a higher level that this book should not use is **switched off for this book** (an entry of the book that is off; switch it on again the same way, or delete it to get the higher level's word back). An entry of the book can be **moved up** to a folder or to the language when it turns out to be common. The glossary of a folder and of a book is kept **for each language** of the book, because a name is written another way in every language.
+
+**What the translation does with it.** The glossary is part of the request, so the model writes the words as listed. A glossary of up to 100 entries goes whole in every request (a server that caches the prompt reads it once); a bigger one goes with the entries the part has. After the answer the plugin **checks** it: a speech whose English has a word of the glossary but whose translation does not write it as the glossary says is kept and **reported** (the author decides). A name the model **had to choose** a written form for, that the glossary does not list, is added to the book's glossary as a **proposal** (the *Status* column says *Proposed*): the model uses it from then on, and *Accept* says you looked at it, or *Edit* changes it. A word that any level has already (even switched off) is never proposed again.
+
+The commands for it are in the table below. A part that a book translated before the glossary existed keeps its translation; translate it again to use the glossary.
+
 ## More than one language in a book
 
 A story with Japanese and Korean speakers needs both. A book names **one language first** (the field above, which a folder or your settings may also give) and the **Languages** tab adds **other languages**
@@ -155,6 +172,7 @@ its position on the active branch (the first part is 1).
 | `reallang-add-book-language`, `reallang-remove-book-language` | The other languages of the open book. Removing asks the user. |
 | `reallang-status` | The language of the book and which parts are translated. |
 | `reallang-translate-part`, `reallang-translate-range`, `reallang-translate-sentence`, `reallang-translate-text`, `reallang-revert-to-source` | Translating: one part, a range (`mode` *new* or *again*), one sentence of a part, a text that is only returned, and the English back. With the optional `language` they are about one language of the book (all of them by default, the first for a sentence or a text). |
+| `reallang-glossary`, `reallang-glossary-set`, `reallang-glossary-remove`, `reallang-glossary-accept`, `reallang-glossary-switch`, `reallang-glossary-move` | The [glossary](#the-glossary-of-names-and-special-words) of the open book in a language: read the merged entries with their level, add or change an entry at a `level` (`language`, `folder` with the `folder` name, `book`), remove one (asks), accept the proposals, switch a word of a higher level off or on for the book, move an entry of the book up. |
 | `reallang-get-source`, `reallang-list-passages` | Reading: the text of a part as the models read it (the English), and the translated speeches of a part with their reading and English. |
 | `reallang-speakers`, `reallang-set-speakers-mode`, `reallang-set-speaker`, `reallang-remove-speaker` | Who speaks the language in the open book (`language` names one of the book's languages, the first by default). |
 

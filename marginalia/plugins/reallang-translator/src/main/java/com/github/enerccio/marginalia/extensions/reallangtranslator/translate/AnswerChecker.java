@@ -1,5 +1,7 @@
 package com.github.enerccio.marginalia.extensions.reallangtranslator.translate;
 
+import com.github.enerccio.marginalia.extensions.reallangtranslator.model.Glossary;
+import com.github.enerccio.marginalia.extensions.reallangtranslator.model.GlossaryEntry;
 import com.github.enerccio.marginalia.extensions.reallangtranslator.model.RealLanguage;
 import com.github.enerccio.marginalia.extensions.translatorcommon.translate.Speech;
 import com.github.enerccio.marginalia.utils.QuoteFinder;
@@ -13,7 +15,9 @@ import java.util.List;
  *   <li>the <b>quote</b> must be found in the part (letter for letter, else as {@link QuoteFinder} finds it); a speech whose quote is not is dropped;
  *   two translated speeches never overlap (the later is dropped);</li>
  *   <li>the <b>language</b> must be the one of the book or {@code none}; another name drops the speech; a speech in the language without text is dropped;</li>
- *   <li>the <b>script</b> is checked ({@link ScriptCheck}); a speech in the wrong script is kept and flagged, the author decides.</li>
+ *   <li>the <b>script</b> is checked ({@link ScriptCheck}); a speech in the wrong script is kept and flagged, the author decides;</li>
+ *   <li>the <b>glossary</b> is checked: a name of the glossary that is in the English of the speech must be written as the glossary says in the translation;
+ *   a speech that writes it another way is kept and flagged ({@link Item#glossary()}).</li>
  * </ul>
  */
 public final class AnswerChecker {
@@ -34,7 +38,18 @@ public final class AnswerChecker {
         /** The quote overlaps the speech before it; dropped. */
         OVERLAP,
         /** The text is not in the script that was asked for ({@link Item#script()}); the speech is kept. */
-        WRONG_SCRIPT
+        WRONG_SCRIPT,
+        /** A name of the glossary is written another way than the glossary says; the speech is kept. */
+        GLOSSARY
+    }
+
+    /**
+     * A word of the glossary that the translation does not write as the glossary says.
+     *
+     * @param source   the word in the English of the speech
+     * @param expected what the translation should have (the written form, or the word itself when it is kept)
+     */
+    public record Miss(String source, String expected) {
     }
 
     /**
@@ -48,9 +63,15 @@ public final class AnswerChecker {
      * @param accepted   whether the speech is usable
      * @param problems   what is wrong with it
      * @param script     what is wrong with the script, null for nothing
+     * @param glossary   the words of the glossary the translation does not write as the glossary says; never null
      */
     public record Item(TranslationAnswer.Entry entry, Speech speech, int start, int end, boolean translated, boolean accepted, List<Problem> problems,
-                       ScriptCheck.Problem script) {
+                       ScriptCheck.Problem script, List<Miss> glossary) {
+
+        public Item(TranslationAnswer.Entry entry, Speech speech, int start, int end, boolean translated, boolean accepted, List<Problem> problems,
+                    ScriptCheck.Problem script) {
+            this(entry, speech, start, end, translated, accepted, problems, script, List.of());
+        }
     }
 
     /**
@@ -63,6 +84,13 @@ public final class AnswerChecker {
          */
         public List<Item> accepted() {
             return speeches.stream().filter(item -> item.translated() && item.accepted()).sorted((a, b) -> Integer.compare(a.start(), b.start())).toList();
+        }
+
+        /**
+         * How many speeches that were kept write a name of the glossary another way than the glossary says.
+         */
+        public int glossaryMisses() {
+            return (int) accepted().stream().filter(item -> !item.glossary().isEmpty()).count();
         }
 
         /**
@@ -79,6 +107,13 @@ public final class AnswerChecker {
      * @param language the language of the book
      */
     public static Checked check(String partText, TranslationAnswer answer, RealLanguage language) {
+        return check(partText, answer, language, List.of());
+    }
+
+    /**
+     * @param glossary the active entries of the merged glossary
+     */
+    public static Checked check(String partText, TranslationAnswer answer, RealLanguage language, List<GlossaryEntry> glossary) {
         String part = partText == null ? "" : partText;
         List<Item> items = new ArrayList<>();
         if (answer == null) {
@@ -119,16 +154,38 @@ public final class AnswerChecker {
             boolean accepted = problems.stream().noneMatch(p -> p == Problem.QUOTE_NOT_FOUND || p == Problem.LANGUAGE_UNKNOWN
                     || p == Problem.EMPTY_TEXT || p == Problem.OVERLAP);
             ScriptCheck.Problem script = null;
+            List<Miss> misses = List.of();
             if (accepted) {
                 taken.add(new int[]{start, end});
                 script = ScriptCheck.problem(language.getScript(), speech.text());
                 if (script != null) {
                     problems.add(Problem.WRONG_SCRIPT);
                 }
+                misses = glossaryMisses(part.substring(start, end), speech.text(), glossary);
+                if (!misses.isEmpty()) {
+                    problems.add(Problem.GLOSSARY);
+                }
             }
-            items.add(new Item(entry, speech, start, end, true, accepted, problems, script));
+            items.add(new Item(entry, speech, start, end, true, accepted, problems, script, misses));
         }
         return new Checked(items);
+    }
+
+    /**
+     * The words of the glossary that the English of a speech has and the translation does not write as the glossary says.
+     */
+    static List<Miss> glossaryMisses(String english, String translation, List<GlossaryEntry> glossary) {
+        List<Miss> misses = new ArrayList<>();
+        for (GlossaryEntry entry : glossary) {
+            if (!entry.isUsable() || !Glossary.contains(english, entry.getSource())) {
+                continue;
+            }
+            String expected = entry.expected();
+            if (!translation.contains(expected)) {
+                misses.add(new Miss(entry.getSource(), expected));
+            }
+        }
+        return misses;
     }
 
     /** The answer names the language as the model was told ({@code tongue}), or as the user calls it ({@code name}). */

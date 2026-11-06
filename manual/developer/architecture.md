@@ -369,7 +369,11 @@ summaries - updates the UI with `ui.access(...)`, and the change reaches the bro
 Background threads have no HTTP request, so session-scoped beans (the current `user`) would not resolve.
 `generateNextTurn` therefore captures the request attributes in a `ThreadCopyRequestAttributes` and the engine wraps
 its work in `ThreadCopyRequestAttributes.InRequestScope`, which makes the session of the user who started the
-generation current on the worker thread.
+generation current on the worker thread. The session scope of the copy is a **copy of the session's attributes**
+taken when the copy is made (a bean the worker adds goes to the copy and, while the session lives, to the session
+too), because the session may be invalid when the worker is done: the last page of a browser that is closed while
+the model works closes the session. The UI is a different matter: a worker that shows its result calls `ui.access`
+and catches `UIDetachedException` (the result is written, only the page does not see it).
 
 An [agent](agents.md) run is not started by a request at all: `AgentRunner` works it in a background worker of its own
 (a thread pool, one round of the model at a time) and sets up the request context from the run, not from a browser:

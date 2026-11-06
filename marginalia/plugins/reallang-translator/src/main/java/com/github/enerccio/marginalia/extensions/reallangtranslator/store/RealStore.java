@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.extensions.reallangtranslator.store;
 
 import com.github.enerccio.marginalia.extensions.reallangtranslator.model.BookSettings;
+import com.github.enerccio.marginalia.extensions.reallangtranslator.model.GlossaryEntry;
 import com.github.enerccio.marginalia.extensions.reallangtranslator.model.RealLanguage;
 import com.github.enerccio.marginalia.extensions.reallangtranslator.model.UserDefaults;
 import com.google.gson.*;
@@ -18,6 +19,8 @@ public final class RealStore {
     /** The key in the attributes of the user settings. */
     public static final String LIBRARY_KEY = "com.github.enerccio.marginalia.extensions.reallangtranslator.languages";
 
+    /** The key in the attributes of a folder: its glossary (the entries of the folders and the book are merged with the language's, see {@code Glossary}). */
+    public static final String FOLDER_GLOSSARY_KEY = "com.github.enerccio.marginalia.extensions.reallangtranslator.folderglossary";
     private static final Gson GSON = new Gson();
 
     private RealStore() {
@@ -121,6 +124,49 @@ public final class RealStore {
 
     public static void writeDefaults(JsonObject attributes, UserDefaults defaults) {
         attributes.add(UserDefaults.KEY, GSON.toJsonTree(defaults));
+    }
+
+    /**
+     * The glossary a folder holds for a language (the folder's attributes keep an object with a list for each language id), never null.
+     */
+    public static List<GlossaryEntry> readFolderGlossary(JsonObject attributes, String languageId) {
+        List<GlossaryEntry> entries = new ArrayList<>();
+        if (attributes == null || !attributes.has(FOLDER_GLOSSARY_KEY) || !attributes.get(FOLDER_GLOSSARY_KEY).isJsonObject()) {
+            return entries;
+        }
+        JsonElement list = attributes.getAsJsonObject(FOLDER_GLOSSARY_KEY).get(languageId == null ? "" : languageId);
+        if (list == null || !list.isJsonArray()) {
+            return entries;
+        }
+        for (JsonElement element : list.getAsJsonArray()) {
+            try {
+                GlossaryEntry entry = GSON.fromJson(element, GlossaryEntry.class);
+                if (entry != null) {
+                    entries.add(entry);
+                }
+            } catch (JsonParseException e) {
+                // an entry that is not readable must not take the glossary with it
+            }
+        }
+        return entries;
+    }
+
+    public static void writeFolderGlossary(JsonObject attributes, String languageId, List<GlossaryEntry> entries) {
+        JsonObject all = attributes.has(FOLDER_GLOSSARY_KEY) && attributes.get(FOLDER_GLOSSARY_KEY).isJsonObject()
+                ? attributes.getAsJsonObject(FOLDER_GLOSSARY_KEY) : new JsonObject();
+        String key = languageId == null ? "" : languageId;
+        if (entries.isEmpty()) {
+            all.remove(key);
+        } else {
+            JsonArray array = new JsonArray();
+            entries.forEach(entry -> array.add(GSON.toJsonTree(entry)));
+            all.add(key, array);
+        }
+        if (all.size() == 0) {
+            attributes.remove(FOLDER_GLOSSARY_KEY);
+        } else {
+            attributes.add(FOLDER_GLOSSARY_KEY, all);
+        }
     }
 
     /**

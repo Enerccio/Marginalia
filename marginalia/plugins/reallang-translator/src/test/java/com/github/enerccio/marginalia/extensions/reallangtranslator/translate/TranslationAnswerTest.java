@@ -47,4 +47,23 @@ class TranslationAnswerTest {
         assertTrue(answer.translations().getFirst().speech().isNone());
         assertTrue(answer.translations().getFirst().speech().isUnderstood());
     }
+
+    @Test
+    void theNamesTheModelChoseAreRead() {
+        TranslationAnswer answer = TranslationAnswer.parse("{\"translations\":[],\"names\":[{\"source\":\"Saellen\",\"written\":\"サエレン\",\"reading\":\"saeren\",\"note\":\"\"},"
+                + "{\"source\":\"\",\"written\":\"x\"},{\"source\":\"Nobody\",\"written\":\"\"}]}");
+
+        assertNotNull(answer);
+        assertEquals(1, answer.names().size(), "an entry with no word or no written form is left out");
+        assertEquals("サエレン", answer.names().getFirst().written());
+        assertEquals("saeren", answer.names().getFirst().reading());
+    }
+
+    @Test
+    void anAnswerWithoutNamesHasAnEmptyList() {
+        TranslationAnswer answer = TranslationAnswer.parse("{\"translations\":[]}");
+
+        assertNotNull(answer);
+        assertTrue(answer.names().isEmpty());
+    }
 }

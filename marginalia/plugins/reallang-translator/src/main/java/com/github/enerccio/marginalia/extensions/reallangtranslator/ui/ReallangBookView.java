@@ -78,6 +78,9 @@ public class ReallangBookView extends VerticalLayout {
             for (LanguageRef language : languages) {
                 tabs.add(languages.size() == 1 ? T.localized(SPEAKERS) : T.localized(SPEAKERS_S).formatted(language.name()), speakers(language.id()));
             }
+            for (LanguageRef language : languages) {
+                tabs.add(languages.size() == 1 ? T.localized(GLOSSARY) : T.localized(GLOSSARY_S).formatted(language.name()), new GlossaryPanel(book, service, language.id()));
+            }
             tabs.add(T.localized(LANGUAGES), otherLanguages());
             tabs.add(T.localized(QUICK_TRANSLATE), new QuickTranslatePanel(book, service, languages));
             body.add(tabs);

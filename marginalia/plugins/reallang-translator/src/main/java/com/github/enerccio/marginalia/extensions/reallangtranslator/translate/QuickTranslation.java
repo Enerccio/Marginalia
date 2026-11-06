@@ -1,10 +1,14 @@
 package com.github.enerccio.marginalia.extensions.reallangtranslator.translate;
 
+import com.github.enerccio.marginalia.extensions.reallangtranslator.model.Glossary;
+import com.github.enerccio.marginalia.extensions.reallangtranslator.model.GlossaryEntry;
 import com.github.enerccio.marginalia.extensions.reallangtranslator.model.RealLanguage;
 import com.github.enerccio.marginalia.extensions.translatorcommon.model.Speakers;
 import com.github.enerccio.marginalia.extensions.translatorcommon.translate.ModelJson;
 import com.google.gson.Gson;
 import com.google.gson.JsonParseException;
+
+import java.util.List;
 
 /**
  * The quick translation: the author writes a text (a phrase, a name, a line not written yet, or a sentence selected in the story) and the
@@ -51,8 +55,16 @@ public final class QuickTranslation {
      * @param around the story around the sentence (for who speaks to whom; it is not translated); may be empty
      */
     public static TranslationPrompt.Request build(RealLanguage language, Speakers speakers, String text, String context, String around) {
+        return build(language, List.of(), speakers, text, context, around);
+    }
+
+    /**
+     * @param glossary the active entries of the merged glossary; only the ones the text (and what is around it) has are sent
+     */
+    public static TranslationPrompt.Request build(RealLanguage language, List<GlossaryEntry> glossary, Speakers speakers, String text, String context, String around) {
         String system = String.format(INSTRUCTIONS, language.getTongue(), TranslationPrompt.scriptRule(language.getScript()),
-                TranslationPrompt.readingRule(language)) + "\n\n" + TranslationPrompt.languageBlock(language);
+                TranslationPrompt.readingRule(language)) + "\n\n" + TranslationPrompt.languageBlock(language)
+                + TranslationPrompt.glossaryBlock(Glossary.relevant(glossary, text + "\n" + (context == null ? "" : context)));
         StringBuilder user = new StringBuilder();
         String characters = TranslationPrompt.characters(language, speakers, TranslationPrompt.Scene.none(),
                 text + "\n" + (context == null ? "" : context) + "\n" + (around == null ? "" : around));

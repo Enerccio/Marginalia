@@ -1,8 +1,11 @@
 package com.github.enerccio.marginalia.extensions.reallangtranslator.service;
 
+import com.github.enerccio.marginalia.domain.model.impl.Folder;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.extensions.reallangtranslator.model.BookSettings;
+import com.github.enerccio.marginalia.extensions.reallangtranslator.model.Glossary;
+import com.github.enerccio.marginalia.extensions.reallangtranslator.model.GlossaryEntry;
 import com.github.enerccio.marginalia.extensions.reallangtranslator.model.RealLanguage;
 import com.github.enerccio.marginalia.extensions.reallangtranslator.store.RealStore;
 import com.github.enerccio.marginalia.extensions.translatorcommon.model.BookLanguage;
@@ -25,9 +28,83 @@ public class BookReal {
     private ManuscriptService manuscriptService;
 
     private final TranslationService translation;
+    private final GlossaryService glossary;
 
-    public BookReal(TranslationService translation) {
+    public BookReal(TranslationService translation, GlossaryService glossary) {
         this.translation = translation;
+        this.glossary = glossary;
+    }
+
+    // ---- the glossary of names and special words (the three levels are merged by Glossary)
+
+    /**
+     * The glossary of the book in a language as the model gets it, with where every entry comes from; the entries that are off are in it, marked.
+     *
+     * @param languageId one of the languages of the book (its id), null for the first one
+     * @throws IllegalArgumentException when the book does not have the language, or has none
+     */
+    public List<Glossary.Effective> glossary(Manuscript book, String languageId) throws Exception {
+        return glossary.effective(book, glossaryLanguage(book, languageId));
+    }
+
+    /**
+     * The folders above the book, the outer one first: where a book's entry can be moved to.
+     */
+    public List<Folder> glossaryFolders(Manuscript book) throws Exception {
+        return glossary.folders(book);
+    }
+
+    /**
+     * Adds an entry to a level of the glossary, or replaces the one with the same source word there.
+     */
+    public GlossaryEntry putGlossaryEntry(Manuscript book, String languageId, GlossaryService.Target target, GlossaryEntry entry) throws Exception {
+        return glossary.put(book, glossaryLanguage(book, languageId), target, entry);
+    }
+
+    /**
+     * Takes an entry out of a level.
+     *
+     * @return whether the level had it
+     */
+    public boolean removeGlossaryEntry(Manuscript book, String languageId, GlossaryService.Target target, String entryId) throws Exception {
+        return glossary.remove(book, glossaryLanguage(book, languageId), target, entryId);
+    }
+
+    /**
+     * The author looked at a proposed entry of the book.
+     */
+    public boolean acceptGlossaryEntry(Manuscript book, String languageId, String entryId) throws Exception {
+        return glossary.accept(book, glossaryLanguage(book, languageId), entryId);
+    }
+
+    /**
+     * Moves an entry of the book up to a folder or to the language.
+     */
+    public boolean moveGlossaryEntry(Manuscript book, String languageId, String entryId, GlossaryService.Target to) throws Exception {
+        return glossary.moveFromBook(book, glossaryLanguage(book, languageId), entryId, to);
+    }
+
+    /**
+     * Switches a word off, or on, for this book: an entry of the book with the same source word that overrides the one from above.
+     */
+    public void switchGlossaryEntry(Manuscript book, String languageId, GlossaryEntry inherited, boolean enabled) throws Exception {
+        GlossaryEntry own = inherited.copy();
+        own.setId(java.util.UUID.randomUUID().toString());
+        own.setEnabled(enabled);
+        own.setProposed(false);
+        glossary.put(book, glossaryLanguage(book, languageId), GlossaryService.Target.book(), own);
+    }
+
+    private RealLanguage glossaryLanguage(Manuscript book, String languageId) throws Exception {
+        List<TranslationService.BookLang> languages = translation.languagesOf(translation.settings(book));
+        if (languages.isEmpty()) {
+            throw new IllegalArgumentException("The book has no language");
+        }
+        if (languageId == null) {
+            return languages.getFirst().language();
+        }
+        return languages.stream().map(TranslationService.BookLang::language).filter(language -> language.getId().equals(languageId)).findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("The book does not have that language"));
     }
 
     /**

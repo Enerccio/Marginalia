@@ -1,8 +1,6 @@
 package com.github.enerccio.marginalia.extensions.reallangtranslator.translate;
 
-import com.github.enerccio.marginalia.extensions.reallangtranslator.model.Presets;
-import com.github.enerccio.marginalia.extensions.reallangtranslator.model.RealLanguage;
-import com.github.enerccio.marginalia.extensions.reallangtranslator.model.Script;
+import com.github.enerccio.marginalia.extensions.reallangtranslator.model.*;
 import com.github.enerccio.marginalia.extensions.translatorcommon.model.CharacterNote;
 import com.github.enerccio.marginalia.extensions.translatorcommon.model.Speakers;
 import com.github.enerccio.marginalia.extensions.translatorcommon.model.SpeakersMode;
@@ -128,5 +126,66 @@ class TranslationPromptTest {
         assertEquals("ohayou", answer.reading());
         assertNull(QuickTranslation.parse("{\"text\":\"\"}"));
         assertNull(QuickTranslation.parse("nothing"));
+    }
+
+    private static List<GlossaryEntry> glossary(int extra) {
+        List<GlossaryEntry> entries = new java.util.ArrayList<>(List.of(
+                new GlossaryEntry("Saellen", GlossaryKind.WRITTEN, "サエレン", "saeren", "the ferrywoman, called -san"),
+                new GlossaryEntry("Tomáš", GlossaryKind.KEEP, "", "", "")));
+        for (int i = 0; i < extra; i++) {
+            entries.add(new GlossaryEntry("Name" + i, GlossaryKind.WRITTEN, "ネーム" + i, "", ""));
+        }
+        return entries;
+    }
+
+    @Test
+    void theGlossaryIsInTheSystemMessageAndTheModelIsAskedForTheNamesItChose() {
+        String system = TranslationPrompt.build(Presets.make("ja-kana-kanji"), glossary(0), new Speakers(), "Saellen spoke.", TranslationPrompt.Scene.none()).system();
+
+        assertTrue(system.contains("=== GLOSSARY ==="), system);
+        assertTrue(system.contains("- Saellen: サエレン (read: saeren) - the ferrywoman, called -san"), system);
+        assertTrue(system.contains("- Tomáš: keep it as it is"), system);
+        assertTrue(system.contains("\"names\""), "the answer has a list of the names the model chose");
+    }
+
+    @Test
+    void noGlossaryNoBlock() {
+        String system = TranslationPrompt.build(Presets.make("ja-kana-kanji"), List.of(), new Speakers(), "x", TranslationPrompt.Scene.none()).system();
+
+        assertFalse(system.contains("=== GLOSSARY ==="), system);
+    }
+
+    @Test
+    void aSmallGlossaryGoesWholeEveryTimeSoTheSystemMessageDoesNotChangeWithThePart() {
+        List<GlossaryEntry> entries = glossary(10);
+        RealLanguage japanese = Presets.make("ja-kana-kanji");
+
+        String one = TranslationPrompt.build(japanese, entries, new Speakers(), "Saellen spoke.", TranslationPrompt.Scene.none()).system();
+        String other = TranslationPrompt.build(japanese, entries, new Speakers(), "Nobody spoke.", TranslationPrompt.Scene.none()).system();
+
+        assertEquals(one, other);
+        assertTrue(one.contains("Name9"));
+    }
+
+    @Test
+    void aBigGlossaryGoesWithTheEntriesThePartHas() {
+        List<GlossaryEntry> entries = glossary(TranslationPrompt.WHOLE_GLOSSARY);
+        RealLanguage japanese = Presets.make("ja-kana-kanji");
+
+        String system = TranslationPrompt.build(japanese, entries, new Speakers(), "Saellen met Name7 at the ferry.", TranslationPrompt.Scene.none()).system();
+
+        assertTrue(system.contains("- Saellen:"), system);
+        assertTrue(system.contains("- Name7:"), system);
+        assertFalse(system.contains("- Name8:"), system);
+    }
+
+    @Test
+    void theQuickTranslationGetsOnlyTheEntriesOfTheTextAndItsContext() {
+        RealLanguage japanese = Presets.make("ja-kana-kanji");
+
+        String system = QuickTranslation.build(japanese, glossary(3), new Speakers(), "Hello, Saellen.", "", null).system();
+
+        assertTrue(system.contains("- Saellen:"), system);
+        assertFalse(system.contains("- Name1:"), system);
     }
 }

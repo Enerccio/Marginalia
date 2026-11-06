@@ -4,7 +4,9 @@ import com.github.enerccio.marginalia.extensions.translatorcommon.model.BookLang
 import com.github.enerccio.marginalia.extensions.translatorcommon.model.Speakers;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * What the plugin keeps in the attributes of a book: which language the book is translated into and how. Stored under {@link #KEY}; the language,
@@ -28,6 +30,11 @@ public class BookSettings {
     private Speakers speakers = new Speakers();
     /** The other languages of the book, each with its own speakers; the book's own (it is not inherited). */
     private List<BookLanguage> otherLanguages = new ArrayList<>();
+    /**
+     * The glossary of this book (the nearest level): its names and terms, and the ones the model proposed, for each language of the book (the key is the
+     * id of the language: a name is written another way in every language). The book's own, not inherited.
+     */
+    private Map<String, List<GlossaryEntry>> glossary = new LinkedHashMap<>();
 
     public String getLanguageId() {
         return languageId == null || languageId.isBlank() ? null : languageId;
@@ -121,5 +128,28 @@ public class BookSettings {
             }
         }
         return ids;
+    }
+
+    /**
+     * The book's own entries of the glossary in a language, never null; the list belongs to the settings (changing it changes them).
+     *
+     * @param languageId the language (its id)
+     */
+    public List<GlossaryEntry> getGlossary(String languageId) {
+        if (glossary == null) {
+            glossary = new LinkedHashMap<>();
+        }
+        return glossary.computeIfAbsent(languageId == null ? "" : languageId, _ -> new ArrayList<>());
+    }
+
+    public void setGlossary(String languageId, List<GlossaryEntry> entries) {
+        if (glossary == null) {
+            glossary = new LinkedHashMap<>();
+        }
+        if (entries == null || entries.isEmpty()) {
+            glossary.remove(languageId == null ? "" : languageId);
+        } else {
+            glossary.put(languageId == null ? "" : languageId, new ArrayList<>(entries));
+        }
     }
 }

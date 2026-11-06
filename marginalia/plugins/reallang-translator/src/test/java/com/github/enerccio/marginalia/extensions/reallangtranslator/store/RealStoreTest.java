@@ -118,4 +118,51 @@ class RealStoreTest {
         assertEquals(language.getId(), copy.getId());
         assertNotEquals(language.getName(), copy.getName());
     }
+
+    @Test
+    void theGlossaryOfALanguageComesBackWithTheLanguage() {
+        JsonObject attributes = new JsonObject();
+        RealLanguage language = Presets.make("ja-kana-kanji");
+        language.getGlossary().add(new GlossaryEntry("witch", GlossaryKind.WRITTEN, "魔女", "ウィッチ", "gikun"));
+        RealStore.save(attributes, language);
+
+        GlossaryEntry read = RealStore.find(attributes, language.getId()).getGlossary().getFirst();
+
+        assertEquals("witch", read.getSource());
+        assertEquals("ウィッチ", read.getReading());
+        assertTrue(read.isEnabled());
+    }
+
+    @Test
+    void theGlossaryOfABookIsKeptForEachLanguageOfTheBook() {
+        JsonObject attributes = new JsonObject();
+        BookSettings settings = new BookSettings();
+        GlossaryEntry proposed = new GlossaryEntry("Saellen", GlossaryKind.WRITTEN, "サエレン", "", "");
+        proposed.setProposed(true);
+        settings.getGlossary("ja").add(proposed);
+        settings.getGlossary("cs").add(new GlossaryEntry("Saellen", GlossaryKind.KEEP, "", "", ""));
+        RealStore.writeBook(attributes, settings);
+
+        BookSettings read = RealStore.readBook(attributes);
+
+        assertEquals("サエレン", read.getGlossary("ja").getFirst().getWritten());
+        assertTrue(read.getGlossary("ja").getFirst().isProposed());
+        assertEquals(GlossaryKind.KEEP, read.getGlossary("cs").getFirst().getKind());
+        assertTrue(read.getGlossary("other").isEmpty());
+    }
+
+    @Test
+    void theGlossaryOfAFolderIsKeptForEachLanguageAndGoneWhenEmpty() {
+        JsonObject attributes = new JsonObject();
+        RealStore.writeFolderGlossary(attributes, "ja", java.util.List.of(new GlossaryEntry("Silvakhor", GlossaryKind.WRITTEN, "シルヴァコール", "", "")));
+        RealStore.writeFolderGlossary(attributes, "cs", java.util.List.of(new GlossaryEntry("Silvakhor", GlossaryKind.KEEP, "", "", "")));
+
+        assertEquals("シルヴァコール", RealStore.readFolderGlossary(attributes, "ja").getFirst().getWritten());
+        assertEquals(GlossaryKind.KEEP, RealStore.readFolderGlossary(attributes, "cs").getFirst().getKind());
+        assertTrue(RealStore.readFolderGlossary(attributes, "de").isEmpty());
+
+        RealStore.writeFolderGlossary(attributes, "ja", java.util.List.of());
+        RealStore.writeFolderGlossary(attributes, "cs", java.util.List.of());
+        assertFalse(attributes.has(RealStore.FOLDER_GLOSSARY_KEY), "nothing is left in the folder when its glossary is empty");
+    }
 }

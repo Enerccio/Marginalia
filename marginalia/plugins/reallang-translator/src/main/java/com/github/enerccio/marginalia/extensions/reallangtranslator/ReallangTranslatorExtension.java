@@ -100,8 +100,9 @@ public class ReallangTranslatorExtension implements MarginaliaExtension, Extensi
     private CommandService commandService;
 
     private final LanguageLibrary library = new LanguageLibrary();
-    private final TranslationService translationService = new TranslationService();
-    private final BookReal bookReal = new BookReal(translationService);
+    private final GlossaryService glossaryService = new GlossaryService(library);
+    private final TranslationService translationService = new TranslationService(glossaryService);
+    private final BookReal bookReal = new BookReal(translationService, glossaryService);
     private final PassageAccess passageAccess = new PassageAccess(ReallangKind.ID);
     private final SpeechPassageKind kind = new SpeechPassageKind(ReallangKind.ID, ReallangKind.MARK);
     private final SpeechTransformer transformer = new SpeechTransformer(passageAccess);
@@ -536,6 +537,12 @@ public class ReallangTranslatorExtension implements MarginaliaExtension, Extensi
                 Notification.success(String.format(T.localized(TRANSLATED_D_SPEECHES), outcome.translated()));
                 if (outcome.wrongScript() > 0) {
                     Notification.error(String.format(T.localized(D_TRANSLATIONS_ARE_NOT_IN_THE_SCRIPT_OF_THE_LANGUAGE), outcome.wrongScript()));
+                }
+                if (outcome.glossaryMisses() > 0) {
+                    Notification.error(String.format(T.localized(D_TRANSLATIONS_WRITE_A_NAME_OF_THE_GLOSSARY_ANOTHER_WAY), outcome.glossaryMisses()));
+                }
+                if (outcome.proposed() > 0) {
+                    Notification.success(String.format(T.localized(D_NAMES_WERE_ADDED_TO_THE_GLOSSARY_TO_LOOK_AT), outcome.proposed()));
                 }
             }
             case NOTHING_TO_TRANSLATE -> Notification.success(T.localized(NO_SPEECH_IN_THE_LANGUAGE));

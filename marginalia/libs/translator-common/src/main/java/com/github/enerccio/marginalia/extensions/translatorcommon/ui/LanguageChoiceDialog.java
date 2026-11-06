@@ -19,6 +19,9 @@ import static com.github.enerccio.marginalia.extensions.translatorcommon.ui.Tran
  */
 public final class LanguageChoiceDialog {
 
+    /** The choice <i>All languages</i> in the radio group: a null item is shown as nothing selected, so it has a value of its own. */
+    private static final String ALL = "\u0000all";
+
     private LanguageChoiceDialog() {
     }
 
@@ -39,12 +42,12 @@ public final class LanguageChoiceDialog {
         }
         List<String> ids = new ArrayList<>();
         if (withAll) {
-            ids.add(null);
+            ids.add(ALL);
         }
         languages.forEach(language -> ids.add(language.id()));
         RadioButtonGroup<String> group = new RadioButtonGroup<>();
         group.setItems(ids);
-        group.setItemLabelGenerator(id -> id == null ? TC.localized(ALL_LANGUAGES) : languages.stream().filter(l -> l.id().equals(id)).findFirst()
+        group.setItemLabelGenerator(id -> ALL.equals(id) ? TC.localized(ALL_LANGUAGES) : languages.stream().filter(l -> l.id().equals(id)).findFirst()
                 .map(LanguageRef::name).orElse(id));
         group.setValue(ids.getFirst());
         Dialog dialog = new Dialog();
@@ -52,7 +55,7 @@ public final class LanguageChoiceDialog {
         dialog.add(new VerticalLayout(group));
         Button go = new Button(TC.localized(TRANSLATE), event -> {
             dialog.close();
-            chosen.accept(group.getValue());
+            chosen.accept(ALL.equals(group.getValue()) ? null : group.getValue());
         });
         go.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         dialog.getFooter().add(new Button(TC.localized(CANCEL), event -> dialog.close()), go);

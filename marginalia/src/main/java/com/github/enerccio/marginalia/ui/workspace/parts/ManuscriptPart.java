@@ -178,6 +178,8 @@ public class ManuscriptPart implements ManuscriptSection {
                 _ -> new NewBookAction(this::openManuscript, currentFolder).runFromArchive());
         importItem.getSubMenu().addItem(loc.getValue(L.LABEL_IMPORT_FROM_SILLYTAVERN),
                 _ -> new NewBookAction(this::openManuscript, currentFolder).runFromSillyTavern());
+        importItem.getSubMenu().addItem(loc.getValue(L.LABEL_IMPORT_FROM_LMSTUDIO),
+                _ -> new NewBookAction(this::openManuscript, currentFolder).runFromLmStudio());
         headerLayout.add(titleSpan, searchButton, manageBar, importBar, newFolderButton, addBookButton);
         headerLayout.setFlexGrow(1, titleSpan);
         headerLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
