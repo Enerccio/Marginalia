@@ -172,14 +172,19 @@ public final class WizardContext {
                     toolCalls.add(LLMToolCall.of("call_" + number + "_" + i, calls.get(i).getName(),
                             arguments == null || arguments.isBlank() ? "{}" : arguments));
                 }
-                payload.add(LLMChatMessage.ofToolCalls(null, toolCalls));
+                // the thinking is the model's, whether it is sent back is up to the AI (an earlier turn, so only if it is set to always)
+                payload.add(LLMChatMessage.ofToolCalls(null, toolCalls).withReasoning(message.getReasoning(), false));
                 for (int i = 0; i < calls.size(); i++) {
                     payload.add(LLMChatMessage.ofToolResult("call_" + number + "_" + i, boundedResult(calls.get(i))));
                 }
             }
             // an answer that is only calls ends with the results, an empty message would be refused by some providers
             if (!text.isBlank() || calls.isEmpty()) {
-                payload.add(LLMChatMessage.of(LLMRole.ASSISTANT, text));
+                LLMChatMessage said = LLMChatMessage.of(LLMRole.ASSISTANT, text);
+                if (calls.isEmpty()) {
+                    said.withReasoning(message.getReasoning(), false);
+                }
+                payload.add(said);
             }
         }
         return payload;

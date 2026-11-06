@@ -162,6 +162,23 @@ class PlotWizardTest {
     }
 
     @Test
+    void theThinkingOfAnEarlierAnswerGoesWithItsMessageButNotAsOfThisTurn() {
+        var made = new com.github.enerccio.marginalia.extensions.arcoutline.model.WizardCall("get-arc-outline", "{}", "[]", false);
+        WizardMessage withCalls = new WizardMessage(false, "Here.", "thought about calls");
+        withCalls.setCalls(List.of(made));
+        WizardMessage plain = new WizardMessage(false, "Plain.", "thought about plain");
+        var payload = WizardContext.toPayload(List.of(user("a"), withCalls, user("b"), plain, user("c")));
+
+        // the call carries the thinking, the answer after it does not (it is one thinking per answer); a plain answer carries its own
+        assertEquals("thought about calls", payload.get(1).getReasoning());
+        assertNull(payload.get(3).getReasoning());
+        assertEquals("thought about plain", payload.get(5).getReasoning());
+        // none of it is of the turn that is going on, an AI that sends the thinking between the calls only leaves it out
+        assertFalse(payload.get(1).isReasoningInTurn());
+        assertFalse(payload.get(5).isReasoningInTurn());
+    }
+
+    @Test
     void aLongResultIsCutAndAnAnswerOfCallsOnlyHasNoEmptyTextMessage() {
         var made = new com.github.enerccio.marginalia.extensions.arcoutline.model.WizardCall("get-arc-outline", "", "x".repeat(5000), false);
         WizardMessage answer = new WizardMessage(false, " ", null);

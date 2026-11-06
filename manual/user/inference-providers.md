@@ -104,7 +104,7 @@ test then only needs the one-token answer.
 | **Max Response Tokens** | Required. The longest response the model may write. Sent to the API as `max_completion_tokens`, and this much of the context is kept free for the response. Must be lower than *Max Context Size*. |
 | **Concurrent requests of agents** | Optional, for a server that answers one request (or a few) at a time. How many requests of [agents](agents.md#one-model-several-agents) may be on the way to this provider at once, the others wait their turn. Empty is no limit. Your own writing in the story window is not queued. |
 | **Needs Jailbreak**, **Jailbreak Prompt** | An extra prompt for models that refuse to write some content. When checked, the jailbreak prompt is put at the very beginning of the prompt. |
-| **Enable Reasoning**, **Reasoning Effort** | For reasoning ("thinking") models, see [Reasoning models](#reasoning-models). |
+| **Enable Reasoning**, **Reasoning Effort**, **Send the thinking back** | For reasoning ("thinking") models, see [Reasoning models](#reasoning-models). |
 
 Marginalia keeps **Max Response Tokens** of the context free for the response and fills the rest with the prompt:
 templates, [lorebook](lorebooks/index.md) entries and [summaries](books/summaries.md) are counted in, and the oldest
@@ -152,7 +152,24 @@ fail with reasoning enabled, turn it off.
 
 When the model returns its reasoning (as `reasoning_content` or `reasoning`, depending on the server), it is shown
 above the generated part under **View Reasoning**. The reasoning is not part of the story and is not sent back to the
-model.
+model, unless you set **Send the thinking back** (below).
+
+### Send the thinking back
+
+**Send the thinking back** says whether the thinking of the model goes back to it, as the `reasoning_content` of its
+earlier message, in the next request:
+
+| Value | |
+|---|---|
+| **None** (default) | Never. Right for most models and servers, and for APIs that refuse an unknown field. |
+| **Between tool calls** | Only while the tool calls of one answer go on: the model that called a tool gets its own thinking back with the result. A new message of yours starts without the old thinking. This is what Google asks for Gemma 4 (*thoughts must not be removed between the function calls*, but removed between turns). |
+| **Always** | Also with the earlier answers that have thinking, where the chat keeps it (the plot wizard of the Arc Outline does). A server whose template drops old thinking by itself, like the one of Gemma 4, ignores it. |
+
+It applies to the tool loop (the plot wizard, the generators that use tools) and to agents: an agent gets the thinking of
+its earlier rounds back as long as the tool calls of one turn go on (the thinking is kept with the message in the
+console, not in the stored message). The server has to take the field: llama.cpp does (it reads
+`reasoning_content`, not `reasoning`), also behind LiteLLM; a provider that rejects unknown message fields fails, then
+leave it on *None*.
 
 ![Reasoning of a generated part](../images/reasoning-view.png)
 

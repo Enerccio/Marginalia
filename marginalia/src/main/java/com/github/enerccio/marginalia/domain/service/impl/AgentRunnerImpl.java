@@ -1428,6 +1428,8 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                             ? LLMChatMessage.of(LLMRole.ASSISTANT, textOnly && StringUtils.isBlank(round.text())
                             ? Defaults.AGENT_REPEATING_NO_ANSWER : round.text())
                             : LLMChatMessage.ofToolCalls(StringUtils.isEmpty(round.text()) ? null : round.text(), round.calls());
+                    // not stored with the message (the answer row has its own column), the next request may send it back
+                    answer.setReasoning(round.reasoning());
                     changeLock.lock();
                     try {
                         messageService.appendAnswer(run, answer, progress.contextTokens, round.reasoning(),
@@ -2671,7 +2673,25 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
             List<LLMChatMessage> payload = new ArrayList<>();
             payload.add(LLMChatMessage.of(LLMRole.SYSTEM, systemParts().stream().map(SystemPart::text).collect(Collectors.joining("\n\n"))));
             payload.addAll(withImages(coalesced(transcript)));
+            markCurrentTurn(payload);
             return payload;
+        }
+
+        /**
+         * Tells which thinking is of the turn that goes on: the answers after the last message of a user (the author, or the runner
+         * speaking for them). An AI that is set to get the thinking back between the tool calls of one turn sends only these.
+         */
+        private static void markCurrentTurn(List<LLMChatMessage> payload) {
+            boolean turn = true;
+            for (int i = payload.size() - 1; i >= 0; i--) {
+                LLMChatMessage message = payload.get(i);
+                if (message.getRole() == LLMRole.USER) {
+                    turn = false;
+                }
+                if (message.getReasoning() != null) {
+                    message.setReasoningInTurn(turn);
+                }
+            }
         }
 
         // ------------------------------------------------------------------ the context, taken apart
@@ -3310,6 +3330,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                     return text.isEmpty() ? "(The sub-agent gave no answer.)" : text;
                 }
                 LLMChatMessage said = LLMChatMessage.ofToolCalls(StringUtils.isEmpty(round.text()) ? null : round.text(), round.calls());
+                said.setReasoning(round.reasoning());
                 conversation.add(said);
                 changeLock.lock();
                 try {

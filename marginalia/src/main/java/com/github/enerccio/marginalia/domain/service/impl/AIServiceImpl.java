@@ -104,6 +104,7 @@ public class AIServiceImpl extends ExtendableServiceImpl<AI, AIRepository> imple
         copy.setNeedsJailbreak(original.getNeedsJailbreak());
         copy.setEnabledReasoning(original.getEnabledReasoning());
         copy.setReasoningEffort(original.getReasoningEffort());
+        copy.setReasoningPassthrough(original.getReasoningPassthrough());
         copy.setMaxCompletionTokens(original.getMaxCompletionTokens());
         copy.setMaxContext(original.getMaxContext());
         copy.setMaxConcurrentRequests(original.getMaxConcurrentRequests());
