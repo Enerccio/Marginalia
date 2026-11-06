@@ -163,6 +163,41 @@ Falsy are an empty value and `0`, `false`, `no`, `off` (any case). Everything el
   (the [Handlebars if](templates.md#conditions)) keeps the whitespace.
 - A `{{if}}` without `{{/if}}` is printed as text.
 
+## Expressions
+
+`{{eval::expression}}` gives `true` or `false`. Use it where a comparison is needed that `{{if}}` cannot do: on the values
+of the template (not only variables), joined with `and`, `or` and `not`:
+
+```handlebars
+{{eval::povCharacter == "Fiora" and presentCharacters has "Mara"}}
+{{if {{eval::.hp < 10 or not .armed}} }}Fiora is in danger.{{/if}}
+```
+
+| In an expression | Meaning |
+|---|---|
+| `"text"`, `'text'` | A text. **A text is always in quotes**: a word without quotes is a name. |
+| `12`, `-3.5`, `true`, `false` | A number or a truth value. |
+| `povCharacter`, `presentCharacters`, `sceneSetting`... | A value of the template, as in `{{povCharacter}}`. A macro without arguments works too (`user`, `summary`, `lastMessage`). |
+| `.mood`, `$chapter` | A local or a global [variable](#variables); empty when it is not set. |
+| `( )` | Grouping. |
+
+Comparisons:
+
+| Operator | True when |
+|---|---|
+| `==`, `!=` | Equal, not equal. Numbers are compared by value (`5 == 5.0`), anything else exactly, so `"Fiora" == "fiora"` is false. |
+| `~=` | Equal, ignoring case. |
+| `<`, `<=`, `>`, `>=` | The numbers are in that order. False when a side is not a number. |
+| `contains` | The text on the left has the text on the right inside, ignoring case: `presentCharacters contains "ma"` is also true for *Mara*. |
+| `has` | The list on the left, separated by commas, semicolons or lines, has the item on the right, ignoring case and the spaces around the items: `presentCharacters has "Mara"` is not true for *Marati*. |
+
+Joining: `and` (`&&`), `or` (`||`), `not` (`!`); `not` binds tightest, then `and`, then `or`. A value on its own is true unless it is empty,
+`0`, `false`, `no` or `off`. Macros are allowed inside a text (`"{{user}}"`) and are rendered first.
+
+An expression that is not valid prints `Error`: a syntax error, an unquoted word that is not a name (`povCharacter == Fiora`), an unknown
+name. All the names are checked, also in the part of an `and` / `or` that would not be reached, so a typo cannot hide. In a
+[lorebook condition](../lorebooks/entries.md#a-condition-for-an-entry) an `Error` makes the entry unused and the preview says so.
+
 ## Randomness
 
 | Macro | Result |

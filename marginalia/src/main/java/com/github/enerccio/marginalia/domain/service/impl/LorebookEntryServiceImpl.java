@@ -157,6 +157,7 @@ public class LorebookEntryServiceImpl extends ExtendableServiceImpl<LorebookEntr
         to.setActivationParts(from.getActivationParts());
         to.setFromMessage(from.getFromMessage());
         to.setToMessage(from.getToMessage());
+        to.setActivationCondition(from.getActivationCondition());
     }
 
     @Override

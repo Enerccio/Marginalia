@@ -2,10 +2,14 @@ package com.github.enerccio.marginalia.generation;
 
 import com.github.enerccio.marginalia.domain.components.TurnInput;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
+import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
+import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.CommandScopes;
 import com.github.enerccio.marginalia.domain.service.CommandService;
+import com.github.enerccio.marginalia.domain.service.LorebookEntryService;
+import com.github.enerccio.marginalia.domain.service.LorebookService;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
 import com.github.enerccio.marginalia.domain.service.impl.generation.CommandMacros;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationRequest;
@@ -41,6 +45,12 @@ class CommandMacroTest extends GenerationTestBase {
 
     @Autowired
     private CommandScopes commandScopes;
+
+    @Autowired
+    private LorebookService lorebookService;
+
+    @Autowired
+    private LorebookEntryService lorebookEntryService;
 
     @Autowired
     private ChatMessageService chatMessageService;
@@ -120,6 +130,33 @@ class CommandMacroTest extends GenerationTestBase {
         assertThat(run.await(TIMEOUT)).isEqualTo(GenerationRun.Outcome.COMPLETED);
         assertThat(run.getSimpleErrors()).isEmpty();
         return chatMessageService.find(run.getMessage().getId());
+    }
+
+    private void conditional(Lorebook lorebook, String name, String condition) throws Exception {
+        LorebookEntry entry = new LorebookEntry();
+        entry.setLorebook(lorebook);
+        entry.setName(name);
+        entry.setPayload("<" + name + ">");
+        entry.setActivationCondition(condition);
+        lorebookEntryService.save(entry);
+    }
+
+    @Test
+    void theConditionOfALoreEntryRunsOnlyCommandsMadeForMacros() throws Exception {
+        Lorebook lorebook = new Lorebook();
+        lorebook.setName("world");
+        lorebook = lorebookService.save(lorebook);
+        conditional(lorebook, "read", "{{command::macro-probe::x}}");
+        conditional(lorebook, "write", "{{command::macro-writer}}");
+        Manuscript manuscript = book("{{backgroundLore}}");
+        manuscript.setLorebook(lorebook);
+        manuscript = manuscriptService.save(manuscript);
+
+        generate(manuscript, GenerationRequest.newMessage());
+
+        assertThat(systemPrompt()).contains("<read>").doesNotContain("<write>");
+        assertThat(PROBE_RUNS).hasValue(1);
+        assertThat(WRITER_RUNS).hasValue(0);
     }
 
     @Test

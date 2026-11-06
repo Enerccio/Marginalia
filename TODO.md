@@ -379,12 +379,16 @@ Most are 🧩 plugin-sized; the ones that need a core hook say so.
     with one slot): choose another model for it. Not done: a continuity preset for the instructions (free text now), a run after a
     generation made by a command or an agent, a check of the windows on a phone. Not verified: whether the annotate context includes
     the summaries.
-42. **Time-scoped lorebook entries.** An entry valid from part X to part Y of a branch (the character is alive until
-    chapter 12, the secret is public after the reveal), or with variants per story phase. Core: an activation
-    condition that reads the branch position. Avoids the usual "disable the entry by hand and forget".
-43. **Knowledge-aware lore ("who knows this").** Entries tagged with the characters that know them; the entry fires
-    only when the POV character is among them (the turn already has POV and present characters). Prevents the narrator
-    leaking secrets the POV character cannot know.
+42. ✅ **Time-scoped lorebook entries.** Done: a range of parts per entry (*From message* / *To message*, the numbers of the outline,
+    both included; `Reason.OUT_OF_RANGE`) and, for anything else that depends on the turn or the story so far, the **condition** of an
+    entry (a template that has to give a true value, `activationCondition`, `CONDITION_FALSE` / `CONDITION_ERROR`; it reads the POV, the
+    present characters, the instructions and the variables, so "the secret is public after the reveal" is a variable set by the reveal
+    part and read by `{{getvar::revealed}}`). Not done: variants of one entry per story phase (use several entries with ranges or conditions).
+43. ✅ **Knowledge-aware lore ("who knows this").** Done without a core change to the activation: the **Knowledge Tracker** plugin puts
+    what each tracked character knows and does not know into the prompt (closed world), and an entry can be gated by the POV or the
+    present characters with a condition, e.g. `{{eval::povCharacter == "Fiora" or presentCharacters has "Fiora"}}` (the `{{eval}}` macro,
+    comparisons `== != ~= contains has`, `and` / `or` / `not`). Not done: a list of knowers on the entry itself (the condition is the
+    place for it) and the separators of the characters set per book, which the Knowledge Tracker reads (`has` splits at `,` `;` and line breaks).
 44. 🧩 **Beat sheet / outline mode.** The author writes the upcoming beats as a list; each turn gets the next open beat
     as an instruction, and a side query ticks it off when the generated part covered it (or flags drift). Beats are
     reorderable, and the unfinished ones survive branching.

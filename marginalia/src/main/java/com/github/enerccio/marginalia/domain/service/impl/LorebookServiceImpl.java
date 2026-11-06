@@ -869,6 +869,7 @@ public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, Loreboo
         entryObj.addProperty("activationParts", entry.getActivationParts());
         entryObj.addProperty("fromMessage", entry.getFromMessage());
         entryObj.addProperty("toMessage", entry.getToMessage());
+        entryObj.addProperty("activationCondition", entry.getActivationCondition());
         addAttributes(entryObj, entry);
         entryObj.add("tags", toJsonArray(tagRelationService.getTagsForObject(entry)));
         entryObj.add("negativeTags", toJsonArray(tagRelationService.getTagsForObject(entry, true)));
@@ -945,6 +946,9 @@ public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, Loreboo
             }
             if (entryObj.has("toMessage") && !entryObj.get("toMessage").isJsonNull()) {
                 entry.setToMessage(entryObj.get("toMessage").getAsInt());
+            }
+            if (entryObj.has("activationCondition") && !entryObj.get("activationCondition").isJsonNull()) {
+                entry.setActivationCondition(entryObj.get("activationCondition").getAsString());
             }
 
             entry = lorebookEntryService.save(entry);

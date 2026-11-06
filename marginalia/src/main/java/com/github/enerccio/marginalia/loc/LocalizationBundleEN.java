@@ -968,6 +968,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_CLEAR_SAVED_LOGINS, "Clear saved logins (remember me)");
         setValue(L.LABEL_RESUMMARIZE_ALL_SUMMARIES, "Resummarize all summaries");
         setValue(L.LABEL_IMPORT_FROM_LMSTUDIO, "Import from LM Studio");
+        setValue(L.LABEL_ACTIVATION_CONDITION, "Condition");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -1147,6 +1148,8 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.ENUM_LORE_USAGE_STATUS_NEVER, "Never used");
         setValue(L.ENUM_LORE_USAGE_STATUS_SOMETIMES, "Sometimes used");
         setValue(L.ENUM_LORE_USAGE_STATUS_ALWAYS, "Always used");
+        setValue(L.ENUM_ACTIVATION_REASON_CONDITION_FALSE, "Not used: condition is false");
+        setValue(L.ENUM_ACTIVATION_REASON_CONDITION_ERROR, "Not used: condition failed");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "Internal Server Error");
@@ -1759,6 +1762,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_PROTOCOL_SHARED, "Other users see this protocol in \"Import from other user\" and can import a copy of it. They cannot change yours.");
         setValue(L.HELP_MATCH_BY_POSITION, "Summaries are matched to parts by the id of the part. Tick this for a file from another book (a copy has other ids): a summary whose part is not in this branch goes to the summary at the same position.");
         setValue(L.HELP_ANNOTATE_INSTRUCTIONS, "What the model looks for when it annotates a part, for example: flag continuity errors, weak dialogue. Empty is the default task of the annotate prompt. The Annotate with AI window starts with this text.");
+        setValue(L.HELP_ACTIVATION_CONDITION, "A template, written like the content (macros and Handlebars), that is rendered for the turn with the point of view, the present characters, the instructions and the variables. The entry is used only when the result is true: anything except empty, 0, false, no or off. A condition that cannot be rendered (an error, a name that does not exist, too much time) counts as false and the activation preview says why. It is checked before the filter, also for entries found by the content of other entries. Commands that only read can be used, variables are not changed. Leave empty for no condition.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Background lore and world context.");
@@ -2152,6 +2156,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.DESC_MACRO_CURRENT_MESSAGE, "The text of the part that Regenerate or a swipe replaces. Empty for a new part.");
         setValue(L.DESC_MACRO_JOIN, "Joins the texts after the first argument with the first argument as the separator. Empty texts are left out. Use {{space}} or {{newline}} for a separator with spaces.");
         setValue(L.DESC_TEMPLATE_FACTS, "The facts that extensions know about the story at the part, for example what each character knows (empty when no extension gives any). Check the part against them: a contradiction is a continuity error.");
+        setValue(L.DESC_MACRO_EVAL, "true or false for an expression: comparisons (== != < <= > >= ~= contains has) joined with and, or, not and parentheses. A text is written in quotes, a name is a value of the template (povCharacter, presentCharacters, a macro without arguments), .name is a local variable and $name a global one. An unknown name or a syntax error gives Error. == compares exactly (numbers by value), ~= ignores case, contains looks for a text in a text, has looks for an item in a list separated by commas.");
 
     }
 

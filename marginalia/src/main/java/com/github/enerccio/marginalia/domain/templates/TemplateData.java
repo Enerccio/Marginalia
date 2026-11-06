@@ -1,6 +1,9 @@
 package com.github.enerccio.marginalia.domain.templates;
 
 import com.github.enerccio.marginalia.domain.templates.TemplateVariables.Scope;
+import com.github.enerccio.marginalia.domain.templates.macros.ExpressionEvaluator;
+import com.github.enerccio.marginalia.domain.templates.macros.MacroHelpers;
+import com.github.enerccio.marginalia.domain.templates.macros.Macros;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -726,6 +729,50 @@ public abstract class TemplateData {
         }
         String separator = Objects.toString(args.getFirst(), "");
         return args.stream().skip(1).filter(part -> part != null && !part.isEmpty()).collect(java.util.stream.Collectors.joining(separator));
+    }
+
+    /**
+     * {{eval::expression}} - {@code true} or {@code false}, see {@link ExpressionEvaluator}. An expression that is not valid (a
+     * syntax error, a name that is not known) gives {@code Error}, like any name that is not defined.
+     */
+    public String eval(String expression) {
+        try {
+            return ExpressionEvaluator.evaluate(expression, new ExpressionEnvironment()) ? "true" : "false";
+        } catch (ExpressionEvaluator.ExpressionException e) {
+            log.debug("The expression '{}' is not valid: {}", expression, e.getMessage());
+            return MacroHelpers.MISSING_VALUE;
+        }
+    }
+
+    /**
+     * What the names of an {@code eval} expression mean for this data: its properties (and the ones of the context) and the macros
+     * without arguments, the variables.
+     */
+    private final class ExpressionEnvironment implements ExpressionEvaluator.Environment {
+
+        @Override
+        public boolean knows(String name) {
+            return hasProperty(name) || zeroArgumentMacro(name) != null;
+        }
+
+        @Override
+        public String value(String name) {
+            if (hasProperty(name)) {
+                return Objects.toString(resolveProperty(name), "");
+            }
+            Macros.MacroDefinition macro = zeroArgumentMacro(name);
+            return macro == null ? "" : Objects.toString(macro.function().apply(TemplateData.this, new Macros.MacroCall(0, "", List.of())), "");
+        }
+
+        @Override
+        public String variable(Scope scope, String name) {
+            return Objects.toString(getVar(scope, name), "");
+        }
+
+        private Macros.MacroDefinition zeroArgumentMacro(String name) {
+            Macros.MacroDefinition macro = Macros.find(name);
+            return macro != null && macro.minArgs() == 0 && !Macros.IF.equals(macro.name()) ? macro : null;
+        }
     }
 
     public String reverse(String text) {

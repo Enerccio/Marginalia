@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847298883613">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847305196340">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.847298883613" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.847305196340" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847298883613" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847305196340" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847298883613" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.847298883613" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847305196340" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.847305196340" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -1210,6 +1210,7 @@ uuids; the overload with a <code translate="no" v-pre>Collection&lt;UuidPair&gt;
 | `insertionMode` | JSON | `IN_LORE_BLOCK` or `BEFORE_USER_PROMPT`. |
 | `activationContext`, `activationParts` | JSON | What the filter is looked for in: `ActivationContext.INSTRUCTIONS` (default, the rendered user prompt) or `INCLUDE_PARTS` (the user prompt and the newest `activationParts` parts of the story, at least 1; `partsInContext()` is 0 for `INSTRUCTIONS`). Copied by clone, export (`activationContext`, `activationParts`) and import; the Lorebook VCS plugin keeps both in its revisions. |
 | `fromMessage`, `toMessage` | JSON | `Integer`, null = no limit (a value below 1 is stored as null): the entry is used only for the turns that create a part with a number in the range, both included, numbered like the outline (the first part of the branch is 1). `hasMessageRange()`, `inMessageRange(position)`. The check comes before tags and filter and gives `Reason.OUT_OF_RANGE`. Copied by clone, export (`fromMessage`, `toMessage`) and import; the Lorebook VCS plugin keeps both in its revisions (older ones have none). |
+| `activationCondition` | JSON | `String`, null = no condition (blank is stored as null): a template rendered for the turn, the entry is used only when the result is true. Checked after the tags and before the filter, `Reason.CONDITION_FALSE` / `CONDITION_ERROR`; see [Generation pipeline](generation-pipeline.md). `hasActivationCondition()`. Copied by clone, export (`activationCondition`) and import; the Lorebook VCS plugin keeps it in its revisions (older ones have none). |
 | `preventRecursion` | JSON | The content of the entry is not searched for the filters of other entries (see `Lorebook.scanDepth`); it can still be used itself. Copied by clone, export and import. |
 | `cachedTags`, `cachedNegativeTags` | transient | Filled by `fillEntries`: the entry's tags plus the tags of its lorebook, and the entry's negative tags. |">
 <div class="table-wrapper scrollbar overflow-hidden">
@@ -1261,6 +1262,11 @@ uuids; the overload with a <code translate="no" v-pre>Collection&lt;UuidPair&gt;
 <td><code translate="no" v-pre>fromMessage</code>, <code translate="no" v-pre>toMessage</code></td>
 <td>JSON</td>
 <td><code translate="no" v-pre>Integer</code>, null = no limit (a value below 1 is stored as null): the entry is used only for the turns that create a part with a number in the range, both included, numbered like the outline (the first part of the branch is 1). <code translate="no" v-pre>hasMessageRange()</code>, <code translate="no" v-pre>inMessageRange(position)</code>. The check comes before tags and filter and gives <code translate="no" v-pre>Reason.OUT_OF_RANGE</code>. Copied by clone, export (<code translate="no" v-pre>fromMessage</code>, <code translate="no" v-pre>toMessage</code>) and import; the Lorebook VCS plugin keeps both in its revisions (older ones have none).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>activationCondition</code></td>
+<td>JSON</td>
+<td><code translate="no" v-pre>String</code>, null = no condition (blank is stored as null): a template rendered for the turn, the entry is used only when the result is true. Checked after the tags and before the filter, <code translate="no" v-pre>Reason.CONDITION_FALSE</code> / <code translate="no" v-pre>CONDITION_ERROR</code>; see <a href="../generation-pipeline/">Generation pipeline</a>. <code translate="no" v-pre>hasActivationCondition()</code>. Copied by clone, export (<code translate="no" v-pre>activationCondition</code>) and import; the Lorebook VCS plugin keeps it in its revisions (older ones have none).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>preventRecursion</code></td>
@@ -2097,7 +2103,7 @@ define both beans in <code translate="no" v-pre>services-config.xml</code>.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (69be44f03).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (98a74d847).</p></div>
             </footer>
         </div>
     </div>

@@ -148,6 +148,7 @@ Skipped when the book has no lorebook. Otherwise:
    | range of parts | `fromMessage` / `toMessage` are empty, or the number of the part the turn creates is inside them (both included): else `OUT_OF_RANGE`, whatever the rest says - the entry is also never a `FILTER_NOT_MATCHED` candidate of the scan of step 4. Checked only when the position is known (see below) |
    | negative tags | none of the entry's negative tags is a tag of the book |
    | tags | the entry has no tags, or one of them is a tag of the book (the entry's tags include the tags of its lorebook) |
+   | condition | `activationCondition` is empty, or the template renders to a true value (`TemplateData.isTruthy`: not empty, `0`, `false`, `no`, `off`): else `CONDITION_FALSE`; a condition that cannot be decided is `CONDITION_ERROR` (false), see below. An entry with a false condition is never a `FILTER_NOT_MATCHED` candidate of the scan of step 4 |
    | filter | no filter, or the filter matches the **rendered user prompt** (for `activationContext = INCLUDE_PARTS`: the text of the newest `activationParts` parts of the branch, oldest first, then the user prompt, all joined by blank lines; see below): `KEYWORDS_OR` / `KEYWORDS_AND` - the filter split by commas, trimmed, blanks dropped; any / every keyword is a case-insensitive substring (no keyword never matches); `TEXT` - case-insensitive substring; `REGEX` - case-insensitive `find()` (`DOTALL`); an invalid regex never matches |
 
    Before the entries are evaluated the step asks `LorebookActivationService.partsNeeded` (the largest `activationParts` of the
@@ -155,6 +156,19 @@ Skipped when the book has no lorebook. Otherwise:
    excludeLeaf)`: the non-blank `response` of the branch from the root to the active leaf, the newest `n`, oldest first (the leaf is left out
    for a swipe or a regeneration - it is the part being replaced). With 0 the story is not read. Each entry then takes the newest of the
    parts it asks for (`evaluate(entry, tags, instructions, parts)`); the scan of step 4 does not use the parts.
+
+   The condition is rendered with a `LoreConditions` (`domain.components`), which the step makes when `conditionsNeeded(entries)` (an
+   enabled entry has one) from `createTemplateData(controller)` and passes to `evaluate(..., position, conditions)` and `evaluateInContent(..., conditions)`:
+   the turn and the shared `TemplateContext`. Each condition is rendered by `TemplateService.processTemplate` with `LorebookTemplateData.fork()`
+   (a copy of the data with `TemplateContext.fork()`, so a `setvar` of a condition does not reach the prompt or the following entries; the
+   `CommandMacroRunner` is shared, and it runs only commands made for macros, which only read, and keeps their answers). The check is
+   after the cheaper rules, so a disabled, out of range or tagged out entry never costs a render. The verdict of an entry is kept in
+   the `LoreConditions` (`decision`/`keep`, by identity): it is decided once per activation, so the scan depth passes and a `random` give
+   the same answer. Before rendering, `isValidTemplate(condition, ..., LorebookTemplateData.class)` (cached by the text in the service)
+   must be valid and without unknown names; a result of `Error` (`MacroHelpers.MISSING_VALUE`: an unknown command) is an error too. All
+   the conditions of an activation share `LoreConditions.TIME_BUDGET_SECONDS` (60) of wall time, measured around each render; once it is spent
+   the remaining conditions are `CONDITION_ERROR` with the detail `timeout`. A render in progress is not interrupted. Without a `LoreConditions`
+   (the overloads without it, tests) a condition is rendered with an empty turn and no command runner.
 
    The position of the turn is `activationService.turnPosition(activeLeaf, excludeLeaf)`: the number of parts of the branch (blank ones
    included, like the outline) plus one, or - for a swipe or a regeneration (`excludeLeaf`) - the number of the leaf itself. The step asks for it

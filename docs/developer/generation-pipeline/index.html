@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847298883613">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847305196340">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.847298883613" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.847305196340" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847298883613" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847305196340" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847298883613" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.847298883613" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847305196340" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.847305196340" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -405,6 +405,7 @@ is loaded with <code translate="no" v-pre>LorebookService.fillEntries</code> (en
    | range of parts | `fromMessage` / `toMessage` are empty, or the number of the part the turn creates is inside them (both included): else `OUT_OF_RANGE`, whatever the rest says - the entry is also never a `FILTER_NOT_MATCHED` candidate of the scan of step 4. Checked only when the position is known (see below) |
    | negative tags | none of the entry's negative tags is a tag of the book |
    | tags | the entry has no tags, or one of them is a tag of the book (the entry's tags include the tags of its lorebook) |
+   | condition | `activationCondition` is empty, or the template renders to a true value (`TemplateData.isTruthy`: not empty, `0`, `false`, `no`, `off`): else `CONDITION_FALSE`; a condition that cannot be decided is `CONDITION_ERROR` (false), see below. An entry with a false condition is never a `FILTER_NOT_MATCHED` candidate of the scan of step 4 |
    | filter | no filter, or the filter matches the **rendered user prompt** (for `activationContext = INCLUDE_PARTS`: the text of the newest `activationParts` parts of the branch, oldest first, then the user prompt, all joined by blank lines; see below): `KEYWORDS_OR` / `KEYWORDS_AND` - the filter split by commas, trimmed, blanks dropped; any / every keyword is a case-insensitive substring (no keyword never matches); `TEXT` - case-insensitive substring; `REGEX` - case-insensitive `find()` (`DOTALL`); an invalid regex never matches |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -432,6 +433,10 @@ is loaded with <code translate="no" v-pre>LorebookService.fillEntries</code> (en
 <td>the entry has no tags, or one of them is a tag of the book (the entry&#x27;s tags include the tags of its lorebook)</td>
 </tr>
 <tr>
+<td>condition</td>
+<td><code translate="no" v-pre>activationCondition</code> is empty, or the template renders to a true value (<code translate="no" v-pre>TemplateData.isTruthy</code>: not empty, <code translate="no" v-pre>0</code>, <code translate="no" v-pre>false</code>, <code translate="no" v-pre>no</code>, <code translate="no" v-pre>off</code>): else <code translate="no" v-pre>CONDITION_FALSE</code>; a condition that cannot be decided is <code translate="no" v-pre>CONDITION_ERROR</code> (false), see below. An entry with a false condition is never a <code translate="no" v-pre>FILTER_NOT_MATCHED</code> candidate of the scan of step 4</td>
+</tr>
+<tr>
 <td>filter</td>
 <td>no filter, or the filter matches the <strong>rendered user prompt</strong> (for <code translate="no" v-pre>activationContext = INCLUDE_PARTS</code>: the text of the newest <code translate="no" v-pre>activationParts</code> parts of the branch, oldest first, then the user prompt, all joined by blank lines; see below): <code translate="no" v-pre>KEYWORDS_OR</code> / <code translate="no" v-pre>KEYWORDS_AND</code> - the filter split by commas, trimmed, blanks dropped; any / every keyword is a case-insensitive substring (no keyword never matches); <code translate="no" v-pre>TEXT</code> - case-insensitive substring; <code translate="no" v-pre>REGEX</code> - case-insensitive <code translate="no" v-pre>find()</code> (<code translate="no" v-pre>DOTALL</code>); an invalid regex never matches</td>
 </tr>
@@ -443,6 +448,18 @@ is loaded with <code translate="no" v-pre>LorebookService.fillEntries</code> (en
 enabled <code translate="no" v-pre>INCLUDE_PARTS</code> entries, 0 when there is none) and reads that many parts with <code translate="no" v-pre>recentParts(activeLeaf, n, excludeLeaf)</code>: the non-blank <code translate="no" v-pre>response</code> of the branch from the root to the active leaf, the newest <code translate="no" v-pre>n</code>, oldest first (the leaf is left out
 for a swipe or a regeneration - it is the part being replaced). With 0 the story is not read. Each entry then takes the newest of the
 parts it asks for (<code translate="no" v-pre>evaluate(entry, tags, instructions, parts)</code>); the scan of step 4 does not use the parts.</p>
+<p>The condition is rendered with a <code translate="no" v-pre>LoreConditions</code> (<code translate="no" v-pre>domain.components</code>), which the step makes when <code translate="no" v-pre>conditionsNeeded(entries)</code> (an
+enabled entry has one) from <code translate="no" v-pre>createTemplateData(controller)</code> and passes to <code translate="no" v-pre>evaluate(..., position, conditions)</code> and <code translate="no" v-pre>evaluateInContent(..., conditions)</code>:
+the turn and the shared <code translate="no" v-pre>TemplateContext</code>. Each condition is rendered by <code translate="no" v-pre>TemplateService.processTemplate</code> with <code translate="no" v-pre>LorebookTemplateData.fork()</code>
+(a copy of the data with <code translate="no" v-pre>TemplateContext.fork()</code>, so a <code translate="no" v-pre>setvar</code> of a condition does not reach the prompt or the following entries; the
+<code translate="no" v-pre>CommandMacroRunner</code> is shared, and it runs only commands made for macros, which only read, and keeps their answers). The check is
+after the cheaper rules, so a disabled, out of range or tagged out entry never costs a render. The verdict of an entry is kept in
+the <code translate="no" v-pre>LoreConditions</code> (<code translate="no" v-pre>decision</code>/<code translate="no" v-pre>keep</code>, by identity): it is decided once per activation, so the scan depth passes and a <code translate="no" v-pre>random</code> give
+the same answer. Before rendering, <code translate="no" v-pre>isValidTemplate(condition, ..., LorebookTemplateData.class)</code> (cached by the text in the service)
+must be valid and without unknown names; a result of <code translate="no" v-pre>Error</code> (<code translate="no" v-pre>MacroHelpers.MISSING_VALUE</code>: an unknown command) is an error too. All
+the conditions of an activation share <code translate="no" v-pre>LoreConditions.TIME_BUDGET_SECONDS</code> (60) of wall time, measured around each render; once it is spent
+the remaining conditions are <code translate="no" v-pre>CONDITION_ERROR</code> with the detail <code translate="no" v-pre>timeout</code>. A render in progress is not interrupted. Without a <code translate="no" v-pre>LoreConditions</code>
+(the overloads without it, tests) a condition is rendered with an empty turn and no command runner.</p>
 <p>The position of the turn is <code translate="no" v-pre>activationService.turnPosition(activeLeaf, excludeLeaf)</code>: the number of parts of the branch (blank ones
 included, like the outline) plus one, or - for a swipe or a regeneration (<code translate="no" v-pre>excludeLeaf</code>) - the number of the leaf itself. The step asks for it
 only when <code translate="no" v-pre>positionNeeded(entries)</code> (an enabled entry has a range), else it passes null and no range is checked
@@ -1023,7 +1040,7 @@ wait for it to finish. See <a href="../testing/">Testing</a>.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (69be44f03).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (98a74d847).</p></div>
             </footer>
         </div>
     </div>

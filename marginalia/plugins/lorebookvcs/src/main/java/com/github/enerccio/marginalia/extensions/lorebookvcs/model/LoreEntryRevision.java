@@ -30,6 +30,8 @@ public class LoreEntryRevision {
     // likewise: older revisions have no range of parts
     private Integer fromMessage;
     private Integer toMessage;
+    // likewise: older revisions have no condition
+    private String activationCondition;
     private List<String> positiveTags = new ArrayList<>();
     private List<String> negativeTags = new ArrayList<>();
 
@@ -53,6 +55,7 @@ public class LoreEntryRevision {
         rev.setActivationParts(entry.getActivationParts());
         rev.setFromMessage(entry.getFromMessage());
         rev.setToMessage(entry.getToMessage());
+        rev.setActivationCondition(entry.getActivationCondition());
         rev.setPositiveTags(positiveTags != null ? new ArrayList<>(positiveTags) : new ArrayList<>());
         rev.setNegativeTags(negativeTags != null ? new ArrayList<>(negativeTags) : new ArrayList<>());
         return rev;
@@ -72,6 +75,7 @@ public class LoreEntryRevision {
         entry.setActivationParts(getActivationParts());
         entry.setFromMessage(getFromMessage());
         entry.setToMessage(getToMessage());
+        entry.setActivationCondition(getActivationCondition());
     }
 
     public boolean matches(LorebookEntry entry, List<String> curPosTags, List<String> curNegTags) {
@@ -89,6 +93,7 @@ public class LoreEntryRevision {
         if (getActivationParts() != entry.getActivationParts()) return false;
         if (!Objects.equals(getFromMessage(), entry.getFromMessage())) return false;
         if (!Objects.equals(getToMessage(), entry.getToMessage())) return false;
+        if (!Objects.equals(getActivationCondition(), entry.getActivationCondition())) return false;
 
         List<String> p1 = getPositiveTags() != null ? new ArrayList<>(getPositiveTags()) : new ArrayList<>();
         List<String> p2 = curPosTags != null ? new ArrayList<>(curPosTags) : new ArrayList<>();
@@ -155,6 +160,9 @@ public class LoreEntryRevision {
 
     public Integer getToMessage() { return toMessage != null && toMessage >= 1 ? toMessage : null; }
     public void setToMessage(Integer toMessage) { this.toMessage = toMessage; }
+
+    public String getActivationCondition() { return activationCondition == null || activationCondition.isBlank() ? null : activationCondition; }
+    public void setActivationCondition(String activationCondition) { this.activationCondition = activationCondition; }
 
     public List<String> getPositiveTags() { return positiveTags != null ? positiveTags : new ArrayList<>(); }
     public void setPositiveTags(List<String> positiveTags) { this.positiveTags = positiveTags; }

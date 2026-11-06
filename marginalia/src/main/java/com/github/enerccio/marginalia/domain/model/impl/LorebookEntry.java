@@ -83,6 +83,12 @@ public class LorebookEntry extends ExtendableEntity {
     @ExtendedAttribute
     private Integer toMessage;
 
+    // a template (macros and Handlebars, like the content) rendered for the turn; the entry is used only when the result
+    // is true (see LorebookActivationService); null = no condition
+    @Transient
+    @ExtendedAttribute
+    private String activationCondition;
+
     public Lorebook getLorebook() {
         return lorebook;
     }
@@ -209,6 +215,21 @@ public class LorebookEntry extends ExtendableEntity {
 
     public void setToMessage(Integer toMessage) {
         this.toMessage = toMessage == null || toMessage < 1 ? null : toMessage;
+    }
+
+    public String getActivationCondition() {
+        return activationCondition;
+    }
+
+    public void setActivationCondition(String activationCondition) {
+        this.activationCondition = activationCondition == null || activationCondition.isBlank() ? null : activationCondition;
+    }
+
+    /**
+     * Whether the entry has a condition (a template that has to give a true value for the turn).
+     */
+    public boolean hasActivationCondition() {
+        return activationCondition != null;
     }
 
     /**

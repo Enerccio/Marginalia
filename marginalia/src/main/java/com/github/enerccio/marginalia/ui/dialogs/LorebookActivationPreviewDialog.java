@@ -3,6 +3,8 @@ package com.github.enerccio.marginalia.ui.dialogs;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.UIConstants;
+import com.github.enerccio.marginalia.domain.components.LoreConditions;
+import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
@@ -13,6 +15,9 @@ import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.domain.service.TagRelationService;
 import com.github.enerccio.marginalia.domain.service.TokenizerService;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LorebookEntryVerdict;
+import com.github.enerccio.marginalia.domain.templates.LorebookTemplateData;
+import com.github.enerccio.marginalia.domain.templates.TemplateContext;
+import com.github.enerccio.marginalia.domain.templates.TemplateVariables;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.BookLabels;
@@ -174,7 +179,7 @@ public class LorebookActivationPreviewDialog extends Dialog {
                     || !activationService.positionNeeded(activationService.orderedEntries(books)) ? null
                     : activationService.turnPosition(bookBox.getValue().getActiveLeaf(), false);
             List<LorebookEntryVerdict> verdicts = activationService.evaluateAll(root, books, tags,
-                    StringUtils.defaultString(textField.getValue()), parts, position);
+                    StringUtils.defaultString(textField.getValue()), parts, position, conditionsFor(bookBox.getValue()));
             grid.setItems(verdicts);
 
             long used = 0;
@@ -189,6 +194,33 @@ public class LorebookActivationPreviewDialog extends Dialog {
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
+    }
+
+    /**
+     * What the conditions of the entries are rendered against: the text as the instructions of the turn and, with a
+     * book picked, the book's variables and the POV, the present characters and the setting of its last part.
+     */
+    private LoreConditions conditionsFor(Manuscript manuscript) throws Exception {
+        LorebookTemplateData data = new LorebookTemplateData();
+        data.setInstructions(StringUtils.defaultString(textField.getValue()));
+        TemplateContext context = data.templateContext();
+        context.setInstructions(data.getInstructions());
+        if (manuscript != null) {
+            ChatMessage last = manuscript.getActiveLeaf();
+            if (last != null) {
+                data.setPovCharacter(last.getPovCharacter());
+                data.setPresentCharacters(last.getPresentCharacters());
+                data.setSceneSetting(last.getSceneSetting());
+                context.setPovCharacter(last.getPovCharacter());
+                context.setPresentCharacters(last.getPresentCharacters());
+                context.setSceneSetting(last.getSceneSetting());
+                context.getVariables().loadFrom(TemplateVariables.Scope.LOCAL, last.getAttributes());
+            }
+            context.setManuscriptName(manuscript.getName());
+            context.setManuscriptDescription(manuscript.getDescription());
+            context.getVariables().loadFrom(TemplateVariables.Scope.GLOBAL, manuscript.getAttributes());
+        }
+        return new LoreConditions(data);
     }
 
     private String reason(Verdict verdict) {

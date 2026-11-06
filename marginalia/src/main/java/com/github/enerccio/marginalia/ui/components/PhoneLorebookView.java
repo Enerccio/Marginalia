@@ -731,6 +731,7 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
                     @APILocals(name = "activationContextCombo", type = ComboBox.class),
                     @APILocals(name = "fromMessageField", type = IntegerField.class),
                     @APILocals(name = "toMessageField", type = IntegerField.class),
+                    @APILocals(name = "conditionField", type = TextArea.class),
                     @APILocals(name = "preventRecursionCheckbox", type = Checkbox.class),
                     @APILocals(name = "commentField", type = TextArea.class),
                     @APILocals(name = "deleteButton", type = Button.class)})
@@ -850,6 +851,8 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
             }
         });
 
+        TextArea conditionField = LoreConditionField.create(loc, templateService, entry, () -> saveEntry(entry));
+
         Checkbox preventRecursionCheckbox = new Checkbox(loc.getValue(L.LABEL_PREVENT_RECURSION), entry.isPreventRecursion());
         preventRecursionCheckbox.setHelperText(loc.getValue(L.HELP_PREVENT_RECURSION));
         preventRecursionCheckbox.addValueChangeListener(e -> {
@@ -875,7 +878,7 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
 
         detailsLayout.add(nameField, orderField, tagCombo);
         return List.of(filteringModeCombo, filteringField, insertionModeCombo, negativeTagCombo,
-                activationContextCombo, activationPartsField, fromMessageField, toMessageField, preventRecursionCheckbox,
+                activationContextCombo, activationPartsField, fromMessageField, toMessageField, conditionField, preventRecursionCheckbox,
                 commentField, deleteButton);
     }
 
@@ -960,6 +963,9 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
             }
             if (entry.getToMessage() != null) {
                 detailsLayout.add(infoSpan(L.LABEL_TO_MESSAGE, String.valueOf(entry.getToMessage())));
+            }
+            if (entry.hasActivationCondition()) {
+                detailsLayout.add(infoSpan(L.LABEL_ACTIVATION_CONDITION, entry.getActivationCondition()));
             }
             if (entry.isPreventRecursion()) {
                 detailsLayout.add(infoSpan(L.LABEL_PREVENT_RECURSION, "✓"));

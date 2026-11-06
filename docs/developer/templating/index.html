@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847298883613">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847305196340">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.847298883613" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.847305196340" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847298883613" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847305196340" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847298883613" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847305196340" data-turbo-eval="false" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -314,6 +314,18 @@ generation from the same part run the command once. A regenerate and a swipe (<c
 kept, and the first answer they get replaces everything kept before; the first part of a book has nothing to keep it with
 (the answers live for that generation only). Saving the answer is best effort, a failure is logged and the generation goes on.
 <code translate="no" v-pre>TemplateContext.fork</code> shares the runner, so a dry render does not run the commands twice.</p>
+<h2 id="expressions">Expressions</h2>
+<p><code translate="no" v-pre>{{eval::expression}}</code> (<code translate="no" v-pre>Macros</code>, <code translate="no" v-pre>TemplateData.eval</code>) gives <code translate="no" v-pre>true</code> or <code translate="no" v-pre>false</code> for a small expression language, parsed and evaluated by
+<code translate="no" v-pre>ExpressionEvaluator</code> (<code translate="no" v-pre>domain.templates.macros</code>): <code translate="no" v-pre>or</code> / <code translate="no" v-pre>||</code>, <code translate="no" v-pre>and</code> / <code translate="no" v-pre>&amp;&amp;</code>, <code translate="no" v-pre>not</code> / <code translate="no" v-pre>!</code>, parentheses, the comparisons <code translate="no" v-pre>== != &lt; &lt;= &gt; &gt;= ~= contains has</code> and operands that are quoted texts, numbers, <code translate="no" v-pre>true</code> / <code translate="no" v-pre>false</code>, names, <code translate="no" v-pre>.local</code> and <code translate="no" v-pre>$global</code> variables. The whole expression
+is read before anything is evaluated and every name is checked then (<code translate="no" v-pre>Environment.knows</code>), so an unknown name is an error also in an
+<code translate="no" v-pre>and</code> / <code translate="no" v-pre>or</code> branch that is not reached. <code translate="no" v-pre>TemplateData.ExpressionEnvironment</code> answers the names: a property of the data or of the
+<code translate="no" v-pre>TemplateContext</code> (<code translate="no" v-pre>hasProperty</code> / <code translate="no" v-pre>resolveProperty</code>), else a macro with no arguments (<code translate="no" v-pre>Macros.find</code>, <code translate="no" v-pre>minArgs == 0</code>, not <code translate="no" v-pre>if</code>), and
+the variables through <code translate="no" v-pre>getVar</code>. A text is only ever in quotes, on purpose: unlike the plain text of <code translate="no" v-pre>{{if text}}</code> (always true), a word
+that is not a name cannot turn a typo into a true result. An <code translate="no" v-pre>ExpressionException</code> (syntax, unknown name) is logged at debug level and the
+macro renders <code translate="no" v-pre>MacroHelpers.MISSING_VALUE</code> (<code translate="no" v-pre>Error</code>), like any name that is not defined; the lorebook condition (<code translate="no" v-pre>activationCondition</code>) takes a
+result of <code translate="no" v-pre>Error</code> as <code translate="no" v-pre>CONDITION_ERROR</code>. <code translate="no" v-pre>==</code> / <code translate="no" v-pre>!=</code> / <code translate="no" v-pre>~=</code> compare numbers by value when both sides are numbers (<code translate="no" v-pre>BigDecimal</code>), the
+ordering operators are false for a side that is not a number, <code translate="no" v-pre>has</code> splits the list at <code translate="no" v-pre>,</code> <code translate="no" v-pre>;</code> and line breaks. It is not
+a <code translate="no" v-pre>Macros.IF</code> condition: <code translate="no" v-pre>{{if {{eval::...}} }}</code> is the way to use it there.</p>
 <h2 id="joining-texts">Joining texts</h2>
 <p><code translate="no" v-pre>{{join::separator::a::b::c}}</code> (<code translate="no" v-pre>Macros</code>, <code translate="no" v-pre>TemplateData.join</code>) puts the separator between the texts that follow it, any number of
 them (macros included, they are evaluated first like every argument). Empty texts are left out, so an optional macro such as
@@ -355,7 +367,7 @@ them (macros included, they are evaluated first like every argument). Empty text
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (69be44f03).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (98a74d847).</p></div>
             </footer>
         </div>
     </div>

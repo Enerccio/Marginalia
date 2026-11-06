@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847298883613">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847305196340">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.847298883613" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.847305196340" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847298883613" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847305196340" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847298883613" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.847298883613" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847305196340" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.847305196340" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -605,6 +605,99 @@ This is part {{.part}} of the story.</code></pre>
 <p>A <code translate="no" v-pre>{{if}}</code> without <code translate="no" v-pre>{{/if}}</code> is printed as text.</p>
 </li>
 </ul>
+<h2 id="expressions">Expressions</h2>
+<p><code translate="no" v-pre>{{eval::expression}}</code> gives <code translate="no" v-pre>true</code> or <code translate="no" v-pre>false</code>. Use it where a comparison is needed that <code translate="no" v-pre>{{if}}</code> cannot do: on the values
+of the template (not only variables), joined with <code translate="no" v-pre>and</code>, <code translate="no" v-pre>or</code> and <code translate="no" v-pre>not</code>:</p>
+<div id="expressions-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-handlebars"><code v-pre class="language-handlebars">{{eval::povCharacter == &quot;Fiora&quot; and presentCharacters has &quot;Mara&quot;}}
+{{if {{eval::.hp &lt; 10 or not .armed}} }}Fiora is in danger.{{/if}}</code></pre>
+</doc-codeblock></div>
+<retype-table copy-text="| In an expression | Meaning |
+|---|---|
+| `&quot;text&quot;`, `'text'` | A text. **A text is always in quotes**: a word without quotes is a name. |
+| `12`, `-3.5`, `true`, `false` | A number or a truth value. |
+| `povCharacter`, `presentCharacters`, `sceneSetting`... | A value of the template, as in `{{povCharacter}}`. A macro without arguments works too (`user`, `summary`, `lastMessage`). |
+| `.mood`, `$chapter` | A local or a global [variable](#variables); empty when it is not set. |
+| `( )` | Grouping. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>In an expression</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>&quot;text&quot;</code>, <code translate="no" v-pre>'text'</code></td>
+<td>A text. <strong>A text is always in quotes</strong>: a word without quotes is a name.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>12</code>, <code translate="no" v-pre>-3.5</code>, <code translate="no" v-pre>true</code>, <code translate="no" v-pre>false</code></td>
+<td>A number or a truth value.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>povCharacter</code>, <code translate="no" v-pre>presentCharacters</code>, <code translate="no" v-pre>sceneSetting</code>...</td>
+<td>A value of the template, as in <code translate="no" v-pre>{{povCharacter}}</code>. A macro without arguments works too (<code translate="no" v-pre>user</code>, <code translate="no" v-pre>summary</code>, <code translate="no" v-pre>lastMessage</code>).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>.mood</code>, <code translate="no" v-pre>$chapter</code></td>
+<td>A local or a global <doc-anchor-trigger to="#variables">variable</doc-anchor-trigger>; empty when it is not set.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>( )</code></td>
+<td>Grouping.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>Comparisons:</p>
+<retype-table copy-text="| Operator | True when |
+|---|---|
+| `==`, `!=` | Equal, not equal. Numbers are compared by value (`5 == 5.0`), anything else exactly, so `&quot;Fiora&quot; == &quot;fiora&quot;` is false. |
+| `~=` | Equal, ignoring case. |
+| `&lt;`, `&lt;=`, `&gt;`, `&gt;=` | The numbers are in that order. False when a side is not a number. |
+| `contains` | The text on the left has the text on the right inside, ignoring case: `presentCharacters contains &quot;ma&quot;` is also true for *Mara*. |
+| `has` | The list on the left, separated by commas, semicolons or lines, has the item on the right, ignoring case and the spaces around the items: `presentCharacters has &quot;Mara&quot;` is not true for *Marati*. |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Operator</th>
+<th>True when</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>==</code>, <code translate="no" v-pre>!=</code></td>
+<td>Equal, not equal. Numbers are compared by value (<code translate="no" v-pre>5 == 5.0</code>), anything else exactly, so <code translate="no" v-pre>&quot;Fiora&quot; == &quot;fiora&quot;</code> is false.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>~=</code></td>
+<td>Equal, ignoring case.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>&lt;</code>, <code translate="no" v-pre>&lt;=</code>, <code translate="no" v-pre>&gt;</code>, <code translate="no" v-pre>&gt;=</code></td>
+<td>The numbers are in that order. False when a side is not a number.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>contains</code></td>
+<td>The text on the left has the text on the right inside, ignoring case: <code translate="no" v-pre>presentCharacters contains &quot;ma&quot;</code> is also true for <em>Mara</em>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>has</code></td>
+<td>The list on the left, separated by commas, semicolons or lines, has the item on the right, ignoring case and the spaces around the items: <code translate="no" v-pre>presentCharacters has &quot;Mara&quot;</code> is not true for <em>Marati</em>.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>Joining: <code translate="no" v-pre>and</code> (<code translate="no" v-pre>&amp;&amp;</code>), <code translate="no" v-pre>or</code> (<code translate="no" v-pre>||</code>), <code translate="no" v-pre>not</code> (<code translate="no" v-pre>!</code>); <code translate="no" v-pre>not</code> binds tightest, then <code translate="no" v-pre>and</code>, then <code translate="no" v-pre>or</code>. A value on its own is true unless it is empty,
+<code translate="no" v-pre>0</code>, <code translate="no" v-pre>false</code>, <code translate="no" v-pre>no</code> or <code translate="no" v-pre>off</code>. Macros are allowed inside a text (<code translate="no" v-pre>&quot;{{user}}&quot;</code>) and are rendered first.</p>
+<p>An expression that is not valid prints <code translate="no" v-pre>Error</code>: a syntax error, an unquoted word that is not a name (<code translate="no" v-pre>povCharacter == Fiora</code>), an unknown
+name. All the names are checked, also in the part of an <code translate="no" v-pre>and</code> / <code translate="no" v-pre>or</code> that would not be reached, so a typo cannot hide. In a
+<a href="../../lorebooks/entries/#a-condition-for-an-entry">lorebook condition</a> an <code translate="no" v-pre>Error</code> makes the entry unused and the preview says so.</p>
 <h2 id="randomness">Randomness</h2>
 <retype-table copy-text="| Macro | Result |
 |---|---|
@@ -807,7 +900,7 @@ doesn&#x27;t leak them into the prompt. <code translate="no" v-pre>{{isMobile}}<
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (69be44f03).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (98a74d847).</p></div>
             </footer>
         </div>
     </div>

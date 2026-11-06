@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.service;
 
+import com.github.enerccio.marginalia.domain.components.LoreConditions;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
@@ -20,6 +21,15 @@ import java.util.List;
  * numbers of the outline, both included, the first part is 1): it is used only for the turn that creates a part inside
  * them, whatever its filter says ({@link Reason#OUT_OF_RANGE}). {@link #turnPosition} gives the number of the part the turn
  * creates; without it (null) the limits are not checked.
+ * <p>
+ * An entry can also have a condition ({@code activationCondition}): a template, written like the content of an entry
+ * (Handlebars and SillyTavern macros, {@code {{command::...}}} for commands that only read included), that is rendered for
+ * the turn with the POV, the present characters, the instructions and the variables as they are. The entry is used only
+ * when the result is true (not empty, not {@code 0}, {@code false}, {@code no}, {@code off}, any case). It is checked after
+ * the tags and before the filter, so a false condition wins over a filter that matches, also for the scan depth. A
+ * condition that cannot be rendered (not a valid template, a name that does not exist, the result {@code Error}, the time
+ * budget of {@link LoreConditions} spent) is false and says why ({@link Reason#CONDITION_ERROR}). It is rendered on a copy
+ * of the context, so it changes no variable, and at most once per entry and activation.
  * <p>
  * The filter is looked for in the instructions of the turn, or - when the entry's activation context is
  * {@code INCLUDE_PARTS} - in the instructions and the newest N parts of the story (N is the entry's
@@ -56,6 +66,10 @@ public interface LorebookActivationService {
         OUT_OF_RANGE,
         /** Not used, its filter is not in the text (or is a regular expression that is not valid). */
         FILTER_NOT_MATCHED,
+        /** Not used, its condition is false (the detail is the condition). */
+        CONDITION_FALSE,
+        /** Not used, its condition could not be decided, which counts as false (the detail says why). */
+        CONDITION_ERROR,
         /** Used, its filter is found in the content of an entry that was used (the detail names the filter and the entry). */
         LORE_MATCHED,
         /** Used, an extension changed the verdict (the detail names why). */
@@ -124,6 +138,20 @@ public interface LorebookActivationService {
     Verdict evaluate(LorebookEntry entry, List<String> manuscriptTags, String instructions, List<String> parts, Integer position);
 
     /**
+     * {@link #evaluate(LorebookEntry, List, String, List, Integer)} with the context the condition of the entry is
+     * rendered against.
+     *
+     * @param conditions the turn and the time budget for the conditions of the entries; null renders the conditions with
+     *                   nothing known about the turn (no POV, no instructions...)
+     */
+    Verdict evaluate(LorebookEntry entry, List<String> manuscriptTags, String instructions, List<String> parts, Integer position, LoreConditions conditions);
+
+    /**
+     * Whether an enabled entry has a condition, so {@link LoreConditions} has to be made for the activation.
+     */
+    boolean conditionsNeeded(List<LorebookEntry> entries);
+
+    /**
      * The number of the part a turn creates, the first part of the branch being 1: one more than the parts of the branch
      * that ends in the leaf, or - with {@code excludeLeaf}, for a swipe, a regeneration or the preview of the turn of a
      * part - the number of the leaf itself. 1 without a leaf.
@@ -175,6 +203,12 @@ public interface LorebookActivationService {
     Verdict evaluateInContent(LorebookEntry entry, List<String> manuscriptTags, List<LorebookEntry> sources);
 
     /**
+     * {@link #evaluateInContent(LorebookEntry, List, List)} with the context for the conditions: the condition of the entry
+     * counts here too (the answer given in the first pass is used, it is not rendered again).
+     */
+    Verdict evaluateInContent(LorebookEntry entry, List<String> manuscriptTags, List<LorebookEntry> sources, LoreConditions conditions);
+
+    /**
      * The decision on every entry of the lorebooks for the text, scan depth included, without the events of a generation
      * (extensions do not get to change it), in the order the entries are used.
      *
@@ -199,6 +233,11 @@ public interface LorebookActivationService {
      * @param position the number of the part the turn creates ({@link #turnPosition}), null when it is not known
      */
     List<LorebookEntryVerdict> evaluateAll(Lorebook root, List<Lorebook> lorebooks, List<String> manuscriptTags, String text, List<String> parts, Integer position);
+
+    /**
+     * {@link #evaluateAll(Lorebook, List, List, String, List, Integer)} with the context for the conditions of the entries.
+     */
+    List<LorebookEntryVerdict> evaluateAll(Lorebook root, List<Lorebook> lorebooks, List<String> manuscriptTags, String text, List<String> parts, Integer position, LoreConditions conditions);
 
     /**
      * The text of the entry put into the prompt: its payload as a template. A payload that is not a valid template is

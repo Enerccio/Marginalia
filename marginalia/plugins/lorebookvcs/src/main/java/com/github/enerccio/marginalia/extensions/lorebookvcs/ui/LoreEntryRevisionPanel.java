@@ -196,6 +196,7 @@ public class LoreEntryRevisionPanel extends HorizontalLayout {
         target.setActivationParts(source.getActivationParts());
         target.setFromMessage(source.getFromMessage());
         target.setToMessage(source.getToMessage());
+        target.setActivationCondition(source.getActivationCondition());
         target.setPositiveTags(source.getPositiveTags());
         target.setNegativeTags(source.getNegativeTags());
         target.setLastModified(System.currentTimeMillis());

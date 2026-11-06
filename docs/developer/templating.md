@@ -88,6 +88,21 @@ kept, and the first answer they get replaces everything kept before; the first p
 (the answers live for that generation only). Saving the answer is best effort, a failure is logged and the generation goes on.
 `TemplateContext.fork` shares the runner, so a dry render does not run the commands twice.
 
+## Expressions
+
+`{{eval::expression}}` (`Macros`, `TemplateData.eval`) gives `true` or `false` for a small expression language, parsed and evaluated by
+`ExpressionEvaluator` (`domain.templates.macros`): `or` / `||`, `and` / `&&`, `not` / `!`, parentheses, the comparisons `== != < <= > >= ~=
+contains has` and operands that are quoted texts, numbers, `true` / `false`, names, `.local` and `$global` variables. The whole expression
+is read before anything is evaluated and every name is checked then (`Environment.knows`), so an unknown name is an error also in an
+`and` / `or` branch that is not reached. `TemplateData.ExpressionEnvironment` answers the names: a property of the data or of the
+`TemplateContext` (`hasProperty` / `resolveProperty`), else a macro with no arguments (`Macros.find`, `minArgs == 0`, not `if`), and
+the variables through `getVar`. A text is only ever in quotes, on purpose: unlike the plain text of `{{if text}}` (always true), a word
+that is not a name cannot turn a typo into a true result. An `ExpressionException` (syntax, unknown name) is logged at debug level and the
+macro renders `MacroHelpers.MISSING_VALUE` (`Error`), like any name that is not defined; the lorebook condition (`activationCondition`) takes a
+result of `Error` as `CONDITION_ERROR`. `==` / `!=` / `~=` compare numbers by value when both sides are numbers (`BigDecimal`), the
+ordering operators are false for a side that is not a number, `has` splits the list at `,` `;` and line breaks. It is not
+a `Macros.IF` condition: `{{if {{eval::...}} }}` is the way to use it there.
+
 ## Joining texts
 
 `{{join::separator::a::b::c}}` (`Macros`, `TemplateData.join`) puts the separator between the texts that follow it, any number of

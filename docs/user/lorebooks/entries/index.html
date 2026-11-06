@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847298883613">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847305196340">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.847298883613" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.847305196340" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847298883613" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847305196340" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847298883613" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.847298883613" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847305196340" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.847305196340" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -257,6 +257,7 @@ can use <code translate="no" v-pre>(?i)</code> to ignore the case). Entries that
 | **Parts** | With *Instructions and parts of the story*: how many of the newest parts of the story are searched together with the request, at least 1. |
 | **From message** | The entry is used only from the part with this number on, see [Limiting an entry to some parts](#limiting-an-entry-to-some-parts). Empty: from the start. |
 | **To message** | The entry is used only up to the part with this number. Empty: to the end. |
+| **Condition** | A template that has to give a true value for the entry to be used, see [A condition for an entry](#a-condition-for-an-entry). Empty: no condition. |
 | **Negative Tags (Exclusion)** | Tags that switch the entry off, see [Tags](#tags). |
 | **Do not search its content for other entries** | When ticked, the words in this entry's content never bring other entries in, see [Entries brought in by other entries](#entries-brought-in-by-other-entries). |
 | **Note** | Your notes. Not sent to the model. Entries imported from SillyTavern list the settings that couldn't be imported here. |">
@@ -302,6 +303,10 @@ can use <code translate="no" v-pre>(?i)</code> to ignore the case). Entries that
 <td>The entry is used only up to the part with this number. Empty: to the end.</td>
 </tr>
 <tr>
+<td><strong>Condition</strong></td>
+<td>A template that has to give a true value for the entry to be used, see <doc-anchor-trigger to="#a-condition-for-an-entry">A condition for an entry</doc-anchor-trigger>. Empty: no condition.</td>
+</tr>
+<tr>
 <td><strong>Negative Tags (Exclusion)</strong></td>
 <td>Tags that switch the entry off, see <doc-anchor-trigger to="#tags">Tags</doc-anchor-trigger>.</td>
 </tr>
@@ -330,6 +335,7 @@ the mages&#x27; guild. Speaks in short, clipped sentences.</p>
 <li>the part being written is inside its range of parts, if it has one (<strong>From message</strong>, <strong>To message</strong>);</li>
 <li>none of its <strong>negative tags</strong> is a tag of the book;</li>
 <li>it has no <strong>tags</strong>, or at least one of them is a tag of the book;</li>
+<li>its <strong>condition</strong>, if it has one, is true, see <doc-anchor-trigger to="#a-condition-for-an-entry">A condition for an entry</doc-anchor-trigger>;</li>
 <li>it has no <strong>filter</strong>, or the filter matches the instructions for the part (or, with <strong>Activation Context</strong> <em>Instructions and parts of the story</em>, the instructions and the newest parts of the story).</li>
 </ol>
 <p>All conditions must hold. An entry without tags and filter is always active.</p>
@@ -501,6 +507,78 @@ regeneration writes the part it replaces.</p>
 lorebook keep it.</p>
 </li>
 </ul>
+<h3 id="a-condition-for-an-entry">A condition for an entry</h3>
+<p>The <strong>Condition</strong> is a template, written like the <doc-anchor-trigger to="#templates-in-entries">content of an entry</doc-anchor-trigger>, that Marginalia renders before
+each part. The entry is used only when the result is <strong>true</strong>: anything except an empty result, <code translate="no" v-pre>0</code>, <code translate="no" v-pre>false</code>, <code translate="no" v-pre>no</code> and <code translate="no" v-pre>off</code>
+(any case). It sees the same things as the content: the point of view character, the present characters, the scene, the
+instructions of the turn, the story so far and the variables.</p>
+<retype-table copy-text="| Condition | The entry is used when |
+|---|---|
+| `{{#if presentCharacters}}yes{{/if}}` | the turn has present characters |
+| `{{eval::povCharacter == &quot;Fiora&quot;}}` | the point of view is Fiora (see [Expressions](../templates/macros.md#expressions)) |
+| `{{eval::povCharacter == &quot;Fiora&quot; and presentCharacters has &quot;Mara&quot;}}` | Fiora is the point of view and Mara is present |
+| `{{getvar::revealed}}` | the variable `revealed` has a value (set by an earlier part, see [Macro reference](../templates/macros.md#variables)) |
+| `{{command::authors-note}}` | the [command](../commands/index.md) answers with something (only a command that is made for macros can be used) |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="comfortable">
+<thead>
+<tr>
+<th>Condition</th>
+<th>The entry is used when</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code translate="no" v-pre>{{#if presentCharacters}}yes{{/if}}</code></td>
+<td>the turn has present characters</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>{{eval::povCharacter == &quot;Fiora&quot;}}</code></td>
+<td>the point of view is Fiora (see <a href="../../templates/macros/#expressions">Expressions</a>)</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>{{eval::povCharacter == &quot;Fiora&quot; and presentCharacters has &quot;Mara&quot;}}</code></td>
+<td>Fiora is the point of view and Mara is present</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>{{getvar::revealed}}</code></td>
+<td>the variable <code translate="no" v-pre>revealed</code> has a value (set by an earlier part, see <a href="../../templates/macros/#variables">Macro reference</a>)</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>{{command::authors-note}}</code></td>
+<td>the <a href="../../commands/">command</a> answers with something (only a command that is made for macros can be used)</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>How it works:</p>
+<ul>
+<li>
+<p>It is checked after the enabled switch, the range of parts and the tags, and <strong>before the filter</strong>: an entry whose condition is
+false is not used even when its filter matches, and it is not brought in by <doc-anchor-trigger to="#entries-brought-in-by-other-entries">other entries</doc-anchor-trigger> either.</p>
+</li>
+<li>
+<p>A condition that <strong>cannot be decided</strong> counts as false and the <doc-anchor-trigger to="#preview-activation">preview</doc-anchor-trigger> says why: it is not a valid template,
+it uses a name that does not exist (a typo), a command that does not exist or is not made for macros, or the time ran out.
+The field turns red for the first two while you type.</p>
+</li>
+<li>
+<p>It only reads. A <code translate="no" v-pre>{{setvar}}</code> in a condition changes nothing, for the prompt or for the other entries, and the commands are
+the ones that only read.</p>
+</li>
+<li>
+<p>It is rendered once for each entry and part, so <code translate="no" v-pre>{{random::yes::no}}</code> does not change its mind between the first pass and
+the passes of the scan depth.</p>
+</li>
+<li>
+<p>All the conditions of one part share <strong>60 seconds</strong>. When they are used up, the conditions that are left count as false
+(<em>condition failed</em>, timeout). A condition that is running is not stopped, the time is checked before the next one.</p>
+</li>
+<li>
+<p>Lorebook import and export, cloning and the Lorebook VCS extension keep the condition.</p>
+</li>
+</ul>
 <h3 id="entries-brought-in-by-other-entries">Entries brought in by other entries</h3>
 <p>Normally only the request for the part activates entries. With a <strong>scan depth</strong> (the field of the
 <a href="../lorebooks/#the-lorebook-editor">lorebook</a>; <code translate="no" v-pre>0</code>, which is the default, switches this off) the content of the entries that
@@ -547,12 +625,14 @@ brought in by <doc-anchor-trigger to="#entries-brought-in-by-other-entries">othe
 </li>
 <li>
 <p>the <strong>Reason</strong>: no filter, filter found in the text, filter found in the content of another entry (with the filter and the
-entry), or why not: switched off, the part is outside its range, a negative tag of the book, the book lacks a tag of the entry, the filter was not found.</p>
+entry), or why not: switched off, the part is outside its range, a negative tag of the book, the book lacks a tag of the entry, the condition is false or could not be decided, the filter was not found.</p>
 </li>
 </ul>
 <p>The tags decide too, so pick a book in <strong>Tags of the book</strong> to use its tags (without one, no tags count). That book also
 gives the parts of its story for the entries that <doc-anchor-trigger to="#looking-into-the-story">look into the story</doc-anchor-trigger> (without one, they search the text only)
-and the number of the next part for the entries <doc-anchor-trigger to="#limiting-an-entry-to-some-parts">limited to some parts</doc-anchor-trigger> (without one, their range is not checked). Below the text, a line says how many entries
+and the number of the next part for the entries <doc-anchor-trigger to="#limiting-an-entry-to-some-parts">limited to some parts</doc-anchor-trigger> (without one, their range is not checked).
+The text you type is the instructions of the turn for the <doc-anchor-trigger to="#a-condition-for-an-entry">conditions</doc-anchor-trigger>; with a book, its variables and the point of view,
+the present characters and the scene of its last part are used too (the commands of a condition are not run in the preview). Below the text, a line says how many entries
 would be used and about how many tokens of lore that is. The scan depth of the lorebook is used.</p>
 <figure class="content-center">
     <img src="../../../images/lorebook-preview-activation.png" alt="Preview activation of a lorebook" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1000" height="765" />
@@ -683,7 +763,7 @@ between books.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (69be44f03).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (98a74d847).</p></div>
             </footer>
         </div>
     </div>
