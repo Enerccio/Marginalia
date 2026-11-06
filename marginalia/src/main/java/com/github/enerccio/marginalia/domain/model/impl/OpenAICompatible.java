@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.domain.model.impl;
 
 import com.github.enerccio.marginalia.domain.model.converter.EncryptedStringConverter;
+import com.github.enerccio.marginalia.domain.collections.ReasoningPassthrough;
 import com.github.enerccio.marginalia.domain.traits.ExtendedAttribute;
 import com.google.gson.JsonObject;
 import jakarta.persistence.*;
@@ -37,6 +38,14 @@ public class OpenAICompatible extends AI {
      * otherwise the name of one tokenizer strategy or {@code ext:} and the id of a tokenizer of a plugin, see
      * {@code TokenizerService.getChoices}.
      */
+    /**
+     * Whether the thinking of the model is sent back to it: never (the default), between the tool calls of one turn, or always. See
+     * {@link ReasoningPassthrough}.
+     */
+    @Transient
+    @ExtendedAttribute
+    private ReasoningPassthrough reasoningPassthrough;
+
     @Transient
     @ExtendedAttribute
     private String tokenizer;
@@ -99,6 +108,15 @@ public class OpenAICompatible extends AI {
 
     public void setMaxRetries(Integer maxRetries) {
         this.maxRetries = maxRetries;
+    }
+
+    /** Never null: {@link ReasoningPassthrough#NONE} when it was not set. */
+    public ReasoningPassthrough getReasoningPassthrough() {
+        return reasoningPassthrough == null ? ReasoningPassthrough.NONE : reasoningPassthrough;
+    }
+
+    public void setReasoningPassthrough(ReasoningPassthrough reasoningPassthrough) {
+        this.reasoningPassthrough = reasoningPassthrough == ReasoningPassthrough.NONE ? null : reasoningPassthrough;
     }
 
     public String getTokenizer() {
