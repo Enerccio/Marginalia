@@ -157,7 +157,7 @@ and, if it is too high, the author model is switched to the local model (slower,
    can be switched to the local one between runs); then the workflow passes, the summaries and the plugin passes, in the order of
    the workflow section, also in short runs.
 5. **Export:** `createBackup(includeHistory = true)` of the book, the statistics tables, the language file; then the
-   [checks](#checks-on-the-data-itself) and `LargeWorksetTest` (restore the file as a new book, assert 100+ parts on the main
+   [checks](#checks-on-the-data-itself) and `LargeWorksetTest` (done: `src/test/resources/workset`, see the harness README; restore the file as a new book, assert 100+ parts on the main
    branch, the branch, the lorebook entry count, the stored prompts and lore usage, summaries not stale, and that a backup of
    the restored book matches the file in structure). Also open it once in the UI.
 

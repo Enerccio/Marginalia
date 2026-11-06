@@ -165,3 +165,11 @@ tools/workset_run.sh -Dworkset.parts=20 -Dworkset.author=claude -Dworkset.model=
 Summaries and the author's block-end step (Arc Outline import, chapter headings, a summary at the end of each chapter), annotation and redraft passes, the plugin passes (Knowledge Tracker while the
 story is generated, the Vrakht, Aethel-Vael and Japanese translators), the statistics companion, `--redo`, a second author for the local reasoning model. The plan, the decisions and the
 findings are in `TODO.DATASET.MD`.
+
+
+## The book as a test fixture
+
+`src/test/resources/workset/book.zip` (5.7 MB, the archive of the app with the picture) and `lorebook.json` are the export of the finished dataset (`work/harness/export`), kept whole
+(prompts, versions, annotations, plugin data) so that tests have a book of a real size. `LargeWorksetTest` restores it once per class (about 5 s on an M4) and checks it; `ExportRoundTripCheck`
+(`-Dworkset.roundtrip=true`) checks a fresh export of the harness the same way and prints the times. To replace the fixture after a new run, copy the two files from `work/harness/export/`.
+The lorebook is imported first (a backup only links its lorebook, by a fixed uuid).
