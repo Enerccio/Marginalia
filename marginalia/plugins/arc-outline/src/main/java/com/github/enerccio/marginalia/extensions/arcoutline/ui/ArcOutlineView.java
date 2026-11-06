@@ -155,7 +155,7 @@ public class ArcOutlineView extends VerticalLayout {
         });
         addArc.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
 
-        // the wand: a new arc from the specification, or one summarizing the written story
+        // the wand: a new arc from the specification, one summarizing the written story, or a talk about the plot
         Button generate = new Button(Solid.WAND_MAGIC_SPARKLES.create());
         generate.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         generate.setAriaLabel(T.localized(GENERATE_AN_ARC));
@@ -165,6 +165,8 @@ public class ArcOutlineView extends VerticalLayout {
         generateMenu.addItem(UIUtils.menuItemWithIcon(Solid.WAND_MAGIC_SPARKLES.create(), T.localized(GENERATE_AN_ARC)), _ ->
                 new ArcGeneratorDialog(service, manuscript, outline, this::addGenerated).open());
         generateMenu.addItem(UIUtils.menuItemWithIcon(Solid.FILE_IMPORT.create(), T.localized(IMPORT_FROM_STORY)), _ -> importFromStory());
+        generateMenu.addItem(UIUtils.menuItemWithIcon(Solid.COMMENTS.create(), T.localized(DEVELOP_THE_PLOT)), _ ->
+                new PlotWizardDialog(service, manuscript, () -> outline, this::addGenerated).open());
 
         HorizontalLayout buttons = new HorizontalLayout(addArc, generate);
         if (storyTarget != null) {

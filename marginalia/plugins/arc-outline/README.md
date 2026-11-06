@@ -135,6 +135,24 @@ the **end of the arc**, each with the full reasoning and JSON of the request (th
 
 An arc made this way has a robot button (so has a generated chapter) that opens a popover with the reasoning and the JSON the model wrote.
 
+## Developing the plot in a conversation
+
+*Develop the plot* in the menu of the wand opens `PlotWizardDialog`, a chat about the plot. Options on the left (`WizardOptions`, stored
+in the user settings as `wizard`): the mode (`Defaults.MODE_*`, the text goes into `{{mode}}`), the lorebook, the outline (none, descriptions,
+with notes), the summaries, the latest parts of the story with a token limit, and the prompt (`Defaults.WIZARD_PROMPT`; variables
+`{{backgroundLore}}`, `{{outline}}`, `{{summaries}}`, `{{story}}`, `{{mode}}` and the flags `hasLore`, `hasOutline`, `hasSummaries`, `hasStory`,
+`hasMode`). The system prompt is built for every message (`ArcOutlineService.buildWizardPrompt`), so the model sees the outline and the story as
+they are now. The summaries and the story parts come from `ArcOutlineService.storyState`: the valid summaries of the active branch as a
+generation gathers them, and the parts with text after the newest of them. `WizardContext` (pure functions) takes the newest parts that fit
+the limit and the newest messages of the chat that fit what the model takes. The conversation is a normal streaming request without functions
+(`InferenceService.stream`), nothing in the book is changed by it; *Generate an arc from this message* opens the `ArcGeneratorDialog` with the
+text as its specification.
+
+The chats (`WizardData` > `WizardChat` > `WizardMessage`) are stored with the book under `com.github.enerccio.marginalia.extensions.arcoutline.wizard`.
+A branch (`WizardChat.branch`) is a deep copy. *Summarize the chat* asks the model with `Defaults.WIZARD_SUMMARY_PROMPT` and adds the answer as a
+message with `summary` set; `WizardContext.sinceSummary` and `lastSummary` make the model get the newest summary (in its system prompt) and the
+messages after it only.
+
 ## Commands
 
 `ArcOutlineCommands` and `ArcGenerationCommands` register the outline and its generators for the command bar and for agents:

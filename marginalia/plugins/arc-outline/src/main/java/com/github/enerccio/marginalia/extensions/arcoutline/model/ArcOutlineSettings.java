@@ -18,6 +18,8 @@ public class ArcOutlineSettings {
     private String chapterGenerationPrompt;
     /** The template of the prompt for importing an arc from the story, see {@code Defaults.IMPORT_PROMPT}. */
     private String importPrompt;
+    /** The choices of the plot wizard (what it sends, how it helps), as the author left them. */
+    private WizardOptions wizard;
     /** The tools the model may use, chosen in the tool dialog; none checked means no tools. */
     private ToolSelection tools;
     /** The name categories (with the prefix of their source) saved before the tools were chosen in the tool dialog; read once. */
@@ -49,6 +51,14 @@ public class ArcOutlineSettings {
 
     public void setImportPrompt(String importPrompt) {
         this.importPrompt = importPrompt;
+    }
+
+    public WizardOptions getWizard() {
+        return wizard;
+    }
+
+    public void setWizard(WizardOptions wizard) {
+        this.wizard = wizard;
     }
 
     public ToolSelection getTools() {

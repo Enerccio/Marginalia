@@ -53,6 +53,25 @@ public class ArcOutlineService {
     public record Generated<T>(T value, String answer) {
     }
 
+    /**
+     * What of the story the plot wizard can send.
+     *
+     * @param summaries the summaries of the story, oldest first, empty when there are none or they were not asked for
+     * @param parts     the parts with text after the newest summary (all of them without summaries), oldest first
+     */
+    public record StoryState(List<String> summaries, List<StoryMessage> parts) {
+    }
+
+    /**
+     * The system prompt of the plot wizard and what went into it.
+     *
+     * @param system        the prompt
+     * @param summaries     how many summaries it holds
+     * @param storyParts    how many parts of the story it holds
+     */
+    public record WizardPrompt(String system, int summaries, int storyParts) {
+    }
+
     /** The logger of the extension (Admin → Extensions → Log), set when the extension loads. */
     private Logger log;
 
@@ -76,6 +95,9 @@ public class ArcOutlineService {
 
     @Autowired
     private TokenizerService tokenizerService;
+
+    @Autowired
+    private SummaryService summaryService;
 
     @Autowired
     private LorebookService lorebookService;
@@ -276,6 +298,122 @@ public class ArcOutlineService {
      */
     public String importPrompt(ArcOutlineSettings settings) {
         return StringUtils.defaultIfBlank(settings.getImportPrompt(), Defaults.IMPORT_PROMPT);
+    }
+
+    // --- the plot wizard ---
+
+    public String wizardPrompt(WizardOptions options) {
+        return StringUtils.defaultIfBlank(options.getPrompt(), Defaults.WIZARD_PROMPT);
+    }
+
+    /** The conversations of the book as they are stored now. */
+    public WizardData loadWizard(Manuscript manuscript) throws Exception {
+        Manuscript current = manuscriptService.find(manuscript);
+        JsonObject attrs = (current != null ? current : manuscript).getAttributes();
+        WizardData data = attrs != null && attrs.has(WizardData.KEY) ? gson.fromJson(attrs.get(WizardData.KEY), WizardData.class) : null;
+        return data != null ? data : new WizardData();
+    }
+
+    /** Stores the conversations with the book; none removes them. */
+    public void saveWizard(Manuscript manuscript, WizardData data) throws Exception {
+        manuscript = manuscriptService.find(manuscript);
+        JsonObject attrs = manuscript.getAttributes();
+        if (attrs == null) {
+            attrs = new JsonObject();
+            manuscript.setAttributes(attrs);
+        }
+        if (data.getChats().isEmpty()) {
+            attrs.remove(WizardData.KEY);
+        } else {
+            attrs.add(WizardData.KEY, gson.toJsonTree(data));
+        }
+        manuscriptService.save(manuscript);
+    }
+
+    /**
+     * The summaries of the active branch as a generation gathers them, oldest first (a meta summary in place of the
+     * summaries it merged; a summary whose story was changed since it was made is left out), and the parts with text
+     * after the newest of them. The summaries stand in for the story up to their part.
+     *
+     * @param withSummaries false: no summaries, all the parts
+     */
+    public StoryState storyState(Manuscript manuscript, boolean withSummaries) throws Exception {
+        Manuscript current = manuscriptService.find(manuscript);
+        ChatMessage leaf = (current != null ? current : manuscript).getActiveLeaf();
+        if (leaf == null) {
+            return new StoryState(List.of(), List.of());
+        }
+        List<ChatMessage> branch = chatMessageService.getBranchFromLeaf(leaf);
+        List<String> summaries = new ArrayList<>();
+        Long stopId = null;
+        if (withSummaries) {
+            List<SummaryService.SummaryBlock> blocks = summaryService.collectBlocks(new ArrayList<>(branch.reversed())).stream()
+                    .filter(SummaryService.SummaryBlock::isValid).toList();
+            if (!blocks.isEmpty()) {
+                blocks.reversed().forEach(block -> summaries.add(StringUtils.defaultString(block.summary().getSummary())));
+                stopId = blocks.getFirst().head().getId();
+            }
+        }
+        // the parts after the part with the newest summary
+        int from = 0;
+        if (stopId != null) {
+            for (int i = 0; i < branch.size(); i++) {
+                if (stopId.equals(branch.get(i).getId())) {
+                    from = i + 1;
+                    break;
+                }
+            }
+        }
+        List<StoryMessage> parts = new ArrayList<>();
+        for (int i = from; i < branch.size(); i++) {
+            String text = partTexts.forModel(branch.get(i));
+            if (StringUtils.isNotBlank(text)) {
+                long tokens = branch.get(i).getTokenCount() > 0 ? branch.get(i).getTokenCount() : countTokens(text);
+                // the place among all the parts of the branch, the number the outline of the story shows
+                parts.add(new StoryMessage(parts.size() + 1, i + 1, text, tokens));
+            }
+        }
+        return new StoryState(summaries, parts);
+    }
+
+    /**
+     * The system prompt of the plot wizard: the template with what the options say to send put in.
+     *
+     * @param promptCapacity what the model takes of a prompt ({@code TokenLimits.promptTokens}), the story parts get
+     *                       their share of it unless the options give a limit
+     * @throws Exception when the template is not valid
+     */
+    public WizardPrompt buildWizardPrompt(Manuscript manuscript, ArcOutline outline, WizardOptions options, String template,
+                                          long promptCapacity) throws Exception {
+        PlotWizardTemplateData data = new PlotWizardTemplateData();
+        if (options.isLorebook()) {
+            data.setBackgroundLore(buildBackgroundLore(manuscript));
+        }
+        if (options.getOutline() != WizardOptions.OutlineDetail.NONE && !outline.arcs().isEmpty()) {
+            data.setOutline(describe(outline, null, ChapterContext.EVERYTHING, options.getOutline() == WizardOptions.OutlineDetail.FULL));
+        }
+        int summaryCount = 0;
+        int partCount = 0;
+        if (options.isSummaries() || options.isStory()) {
+            StoryState state = storyState(manuscript, options.isSummaries());
+            if (options.isSummaries()) {
+                data.setSummaries(WizardContext.summariesText(state.summaries()));
+                summaryCount = state.summaries().size();
+            }
+            if (options.isStory()) {
+                long budget = options.getStoryTokens() != null ? options.getStoryTokens() : WizardContext.defaultStoryTokens(promptCapacity);
+                List<StoryMessage> chosen = WizardContext.newestThatFit(state.parts(), budget);
+                data.setStory(WizardContext.storyText(chosen));
+                partCount = chosen.size();
+            }
+        }
+        data.setMode(switch (options.getMode()) {
+            case EXPLORE -> Defaults.MODE_EXPLORE;
+            case CHALLENGE -> Defaults.MODE_CHALLENGE;
+            case EXPAND -> Defaults.MODE_EXPAND;
+            case FREE -> "";
+        });
+        return new WizardPrompt(templateService.processTemplate(template, "plotWizard", data), summaryCount, partCount);
     }
 
     // --- tools ---
