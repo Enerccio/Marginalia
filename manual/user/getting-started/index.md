@@ -28,3 +28,4 @@ and an API key ready (a local server that doesn't need one works without a key, 
 1. Install Marginalia: [desktop app](desktop-app.md) or [server](docker-server.md).
 2. [Create the administrator account](first-start.md) on the first start.
 3. Follow the [quick start](quick-start.md): connect a model, create a protocol and write the first part of a book.
+4. Optional: open the [example book](example-book.md), a finished story with summaries, annotations and translations, to see what a long book looks like.
