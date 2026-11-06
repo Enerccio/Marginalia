@@ -36,10 +36,20 @@ public class ArcGeneratorDialog extends GeneratorDialog {
      * @param onSave  gets the new arc (it is not in the outline yet) when the user saves the answer
      */
     public ArcGeneratorDialog(ArcOutlineService service, Manuscript manuscript, ArcOutline outline, Consumer<Arc> onSave) {
+        this(service, manuscript, outline, null, onSave);
+    }
+
+    /**
+     * @param specification what the specification field starts with (the plot wizard hands over what was discussed), null for none
+     */
+    public ArcGeneratorDialog(ArcOutlineService service, Manuscript manuscript, ArcOutline outline, String specification, Consumer<Arc> onSave) {
         super(service, manuscript, T.localized(GENERATE_AN_ARC), T.localized(SAVE_AS_ARC));
         this.outline = outline;
         this.onSave = onSave;
         build();
+        if (specification != null) {
+            specificationArea.setValue(specification);
+        }
     }
 
     @Override

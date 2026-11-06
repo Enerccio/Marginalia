@@ -122,6 +122,47 @@ public class ArcOutlineLocalization extends PluginLocalizationBundle {
     public static final String THE_ACTIVE_BRANCH_HAS_NO = "The active branch has no part %d";
     public static final String GO_TO_PART = "Go to part %d of the story";
 
+    public static final String DEVELOP_THE_PLOT = "Develop the plot";
+    public static final String CHAT = "Chat";
+    public static final String NEW_CHAT = "New chat";
+    public static final String BRANCH_THIS_CHAT = "Branch this chat (a copy)";
+    public static final String BRANCH_FROM_HERE = "Branch from here (a copy up to this message)";
+    public static final String BRANCH_OF = "%s (branch)";
+    public static final String RENAME_THE_CHAT = "Rename the chat";
+    public static final String NAME = "Name";
+    public static final String DELETE_THE_CHAT_BUTTON = "Delete the chat";
+    public static final String DELETE_THE_CHAT = "Delete the chat %s?";
+    public static final String SUMMARIZE_THE_CHAT = "Summarize the chat (the model then gets the summary instead of the earlier messages)";
+    public static final String SUMMARY_OF_THE_CHAT = "Summary of the chat";
+    public static final String THE_MODEL_GETS_THIS_SUMMARY = "The model gets this summary and the messages after it, not the ones above.";
+    public static final String NOTHING_TO_SUMMARIZE = "There is nothing to summarize yet";
+    public static final String YOU = "You";
+    public static final String MODEL = "Model";
+    public static final String SEND = "Send";
+    public static final String COPY = "Copy";
+    public static final String COPIED_TO_THE_CLIPBOARD = "Copied to the clipboard";
+    public static final String DELETE_THE_MESSAGE = "Delete the message";
+    public static final String GENERATE_AN_ARC_FROM_THIS = "Generate an arc from this message";
+    public static final String TALK_ABOUT_THE_PLOT = "Talk about the plot...";
+    public static final String HOW_THE_MODEL_HELPS = "How the model helps";
+    public static final String MODE_FREE_TALK = "Free talk";
+    public static final String MODE_EXPLORE_DIRECTIONS = "Explore directions";
+    public static final String MODE_FIND_THE_PROBLEMS = "Find the problems";
+    public static final String MODE_EXPAND_AN_IDEA = "Expand an idea";
+    public static final String SEND_THE_LOREBOOK = "Send the lorebook";
+    public static final String SEND_THE_OUTLINE = "Send the outline";
+    public static final String NOT_SENT = "Not sent";
+    public static final String DESCRIPTIONS_ONLY = "Descriptions only";
+    public static final String WITH_THE_NOTES = "With the notes";
+    public static final String SEND_THE_SUMMARIES = "Send the summaries of the story";
+    public static final String THE_SUMMARIES_STAND_IN = "The summaries stand in for the story up to the newest of them, the way a generation sends them.";
+    public static final String SEND_THE_LATEST_PARTS = "Send the latest parts of the story";
+    public static final String THE_NEWEST_PARTS_THAT_FIT = "The parts after the newest summary (all of them without summaries), the newest ones that fit the limit below.";
+    public static final String TOKENS_OF_THE_STORY = "Tokens of the story";
+    public static final String EMPTY_A_THIRD_OF_WHAT_THE_MODEL_TAKES = "Empty: a third of what the model takes";
+    public static final String THE_MODEL_GETS = "The model gets %d summaries and %d parts of the story.";
+    public static final String PROMPT_SENT_TO_THE_MODEL_DOES_NOT_FIT = "Prompt sent to the model: about %s tokens of %s the model takes - it does not fit, send less or summarize the chat.";
+
     @Override
     protected void loadKeys() {
         ja(ARCS, "アーク");
@@ -458,5 +499,125 @@ public class ArcOutlineLocalization extends PluginLocalizationBundle {
 
         ja(GO_TO_PART, "物語のパート %d へ移動");
         zh(GO_TO_PART, "转到故事的第 %d 段");
+
+        ja(DEVELOP_THE_PLOT, "プロットを練る");
+        zh(DEVELOP_THE_PLOT, "讨论情节");
+
+        ja(CHAT, "チャット");
+        zh(CHAT, "对话");
+
+        ja(NEW_CHAT, "新しいチャット");
+        zh(NEW_CHAT, "新对话");
+
+        ja(BRANCH_THIS_CHAT, "このチャットを分岐（コピー）");
+        zh(BRANCH_THIS_CHAT, "分支此对话（复制）");
+
+        ja(BRANCH_FROM_HERE, "ここから分岐（このメッセージまでのコピー）");
+        zh(BRANCH_FROM_HERE, "从此处分支（复制到这条消息）");
+
+        ja(BRANCH_OF, "%s（分岐）");
+        zh(BRANCH_OF, "%s（分支）");
+
+        ja(RENAME_THE_CHAT, "チャット名を変更");
+        zh(RENAME_THE_CHAT, "重命名对话");
+
+        ja(NAME, "名前");
+        zh(NAME, "名称");
+
+        ja(DELETE_THE_CHAT_BUTTON, "チャットを削除");
+        zh(DELETE_THE_CHAT_BUTTON, "删除对话");
+
+        ja(DELETE_THE_CHAT, "チャット「%s」を削除しますか？");
+        zh(DELETE_THE_CHAT, "删除对话“%s”？");
+
+        ja(SUMMARIZE_THE_CHAT, "チャットを要約（以降モデルには以前のメッセージの代わりに要約が渡されます）");
+        zh(SUMMARIZE_THE_CHAT, "总结对话（之后模型收到的是总结，而不是之前的消息）");
+
+        ja(SUMMARY_OF_THE_CHAT, "チャットの要約");
+        zh(SUMMARY_OF_THE_CHAT, "对话总结");
+
+        ja(THE_MODEL_GETS_THIS_SUMMARY, "モデルにはこの要約とそれ以降のメッセージが渡され、これより上のメッセージは渡されません。");
+        zh(THE_MODEL_GETS_THIS_SUMMARY, "模型收到这份总结及其后的消息，不再收到上面的消息。");
+
+        ja(NOTHING_TO_SUMMARIZE, "まだ要約するものがありません");
+        zh(NOTHING_TO_SUMMARIZE, "还没有可总结的内容");
+
+        ja(YOU, "あなた");
+        zh(YOU, "你");
+
+        ja(MODEL, "モデル");
+        zh(MODEL, "模型");
+
+        ja(SEND, "送信");
+        zh(SEND, "发送");
+
+        ja(COPY, "コピー");
+        zh(COPY, "复制");
+
+        ja(COPIED_TO_THE_CLIPBOARD, "クリップボードにコピーしました");
+        zh(COPIED_TO_THE_CLIPBOARD, "已复制到剪贴板");
+
+        ja(DELETE_THE_MESSAGE, "メッセージを削除");
+        zh(DELETE_THE_MESSAGE, "删除消息");
+
+        ja(GENERATE_AN_ARC_FROM_THIS, "このメッセージからアークを生成");
+        zh(GENERATE_AN_ARC_FROM_THIS, "根据这条消息生成故事弧");
+
+        ja(TALK_ABOUT_THE_PLOT, "プロットについて話しましょう…");
+        zh(TALK_ABOUT_THE_PLOT, "聊聊情节……");
+
+        ja(HOW_THE_MODEL_HELPS, "モデルの手伝い方");
+        zh(HOW_THE_MODEL_HELPS, "模型如何协助");
+
+        ja(MODE_FREE_TALK, "自由な会話");
+        zh(MODE_FREE_TALK, "自由交谈");
+
+        ja(MODE_EXPLORE_DIRECTIONS, "方向性を探る");
+        zh(MODE_EXPLORE_DIRECTIONS, "探索方向");
+
+        ja(MODE_FIND_THE_PROBLEMS, "問題点を探す");
+        zh(MODE_FIND_THE_PROBLEMS, "找出问题");
+
+        ja(MODE_EXPAND_AN_IDEA, "アイデアを広げる");
+        zh(MODE_EXPAND_AN_IDEA, "展开想法");
+
+        ja(SEND_THE_LOREBOOK, "ロアブックを送る");
+        zh(SEND_THE_LOREBOOK, "发送设定集");
+
+        ja(SEND_THE_OUTLINE, "アウトラインを送る");
+        zh(SEND_THE_OUTLINE, "发送大纲");
+
+        ja(NOT_SENT, "送らない");
+        zh(NOT_SENT, "不发送");
+
+        ja(DESCRIPTIONS_ONLY, "説明のみ");
+        zh(DESCRIPTIONS_ONLY, "仅描述");
+
+        ja(WITH_THE_NOTES, "メモ付き");
+        zh(WITH_THE_NOTES, "含备注");
+
+        ja(SEND_THE_SUMMARIES, "物語の要約を送る");
+        zh(SEND_THE_SUMMARIES, "发送故事的总结");
+
+        ja(THE_SUMMARIES_STAND_IN, "要約は、生成時と同様に、最新の要約までの物語の代わりとして送られます。");
+        zh(THE_SUMMARIES_STAND_IN, "总结代替其中最新一条之前的故事，与生成时的发送方式相同。");
+
+        ja(SEND_THE_LATEST_PARTS, "物語の最新パートを送る");
+        zh(SEND_THE_LATEST_PARTS, "发送故事的最新段落");
+
+        ja(THE_NEWEST_PARTS_THAT_FIT, "最新の要約より後のパート（要約なしの場合はすべて）のうち、下の上限に収まる最新のもの。");
+        zh(THE_NEWEST_PARTS_THAT_FIT, "最新总结之后的段落（不发送总结时为全部），取符合下方上限的最新几段。");
+
+        ja(TOKENS_OF_THE_STORY, "物語のトークン数");
+        zh(TOKENS_OF_THE_STORY, "故事的词元数");
+
+        ja(EMPTY_A_THIRD_OF_WHAT_THE_MODEL_TAKES, "空欄: モデルが受け付ける量の3分の1");
+        zh(EMPTY_A_THIRD_OF_WHAT_THE_MODEL_TAKES, "留空：模型可接受量的三分之一");
+
+        ja(THE_MODEL_GETS, "モデルに渡すもの: 要約%d件、物語のパート%d件。");
+        zh(THE_MODEL_GETS, "模型收到：%d 条总结、%d 个故事段落。");
+
+        ja(PROMPT_SENT_TO_THE_MODEL_DOES_NOT_FIT, "モデルに送信されるプロンプト: 約%sトークン（モデルが受け付ける%s中）- 収まりません。送る量を減らすかチャットを要約してください。");
+        zh(PROMPT_SENT_TO_THE_MODEL_DOES_NOT_FIT, "发送给模型的提示词：约 %s 个词元（模型可接受 %s 个）- 放不下，请少发送一些或总结对话。");
     }
 }

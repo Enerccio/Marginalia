@@ -91,7 +91,7 @@ the story is at (see [Drafting the instructions for the current chapter](#drafti
 
 ## Generating an arc
 
-The wand button next to **Add new arc** opens a menu with two items: **Generate an arc** asks the model to write a new arc, **Import from story** summarizes what you have already written, see [below](#importing-an-arc-from-the-story).
+The wand button next to **Add new arc** opens a menu with three items: **Generate an arc** asks the model to write a new arc, **Import from story** summarizes what you have already written, see [below](#importing-an-arc-from-the-story), and **Develop the plot** is a conversation with the model about where the story goes, see [below](#developing-the-plot-in-a-conversation).
 
 ![The menu of the wand](../../images/plugin-arcoutline-menu.png)
 
@@ -142,6 +142,34 @@ There are no tools here, the names are in the story. On the right you see the re
 chapters as the model writes them. **Save as arc** adds the arc with its chapters at the end of the outline; every one
 of them keeps the reasoning and the answer of the model and has its own robot button. A long story is best imported in
 several steps, one arc for each range.
+
+## Developing the plot in a conversation
+
+**Develop the plot** in the menu of the wand opens a chat with the model about the plot. Nothing in the book changes by talking: the model sees what you choose to send, answers, and when you have agreed on something you hand it to the arc generator with one click.
+
+On the left you choose what the model sees and how it helps (the choices are remembered for the next time):
+
+| | |
+|---|---|
+| Model, Protocols | Start as the model and protocol of the book. Changing them applies to this conversation only. |
+| How the model helps | **Free talk** (you lead), **Explore directions** (several distinct ways the story can go next), **Find the problems** (threads never resolved, promises nobody keeps, contradictions with the lore, pacing) or **Expand an idea** (your idea grown into a premise, turning points, an ending and chapters that fit after your arcs). |
+| Send the lorebook | The entries of the book's lorebook and its sub lorebooks. |
+| Send the outline | **Not sent**, **Descriptions only**, or **With the notes** (your private notes too). |
+| Send the summaries of the story | The summaries stand in for the story up to the newest of them, the way a generation sends them. |
+| Send the latest parts of the story | The parts after the newest summary (all of them when summaries are off), the newest ones that fit **Tokens of the story**. Each part is shown to the model under its number in the outline of the story. |
+| Tokens of the story | The most tokens of story parts. Empty: a third of what the model takes. |
+| Prompt | The instructions for the model, with the variables ``, ``, ``, `` and ``. The change is remembered. |
+
+Under the options a line tells how many summaries and story parts the model gets, and how many tokens the request has of what the model takes. It turns into a warning when it does not fit; send less or [summarize the chat](#chats-branches-and-summaries). The book is read again for every message, so a change of the outline or the story is seen by the next answer.
+
+On the right is the chat. Type a message and press **Send** (it is **Stop** while the model writes; what has arrived is kept). Each message has buttons: copy, **branch from here**, delete, and on an answer of the model also a wand, **Generate an arc from this message**, which opens the arc generator with the message as the specification. Ask the model to summarize what you decided as a specification first if the discussion was long.
+
+### Chats, branches and summaries
+
+A book has any number of chats; pick one in the list above the messages, **+** starts a new one, the pen renames it (it is named after your first message until then) and the trash can deletes it. They are stored with the book.
+
+- **Branch** copies the chat as it is into a new chat; the branch button on a message copies it up to and including that message, to take the talk another way from there. The copy has nothing to do with the original afterwards.
+- **Summarize the chat** asks the model for a summary of the chat (what you decided, what you rejected, what is still open, the names that were fixed) and adds it as a message. From then on the model gets that summary and the messages after it, **not** the messages above it, which stay on the screen, dimmed. Use it when the chat has grown too long for the model, or to start from a clean state without losing the decisions. Summarize again later and the new summary covers the old one. Branch first when you want to keep the whole chat for the model.
 
 ## Generating chapters
 

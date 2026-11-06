@@ -31,6 +31,12 @@ public final class ArcOutlineStyles {
     public static final String GENERATION_TEXT = "arc-outline-generation-text";
     public static final String GENERATION_JSON = "arc-outline-generation-json";
     public static final String REASONING = "arc-outline-reasoning";
+    public static final String WIZARD_MESSAGES = "arc-outline-wizard-messages";
+    public static final String WIZARD_MESSAGE = "arc-outline-wizard-message";
+    public static final String WIZARD_USER = "arc-outline-wizard-user";
+    public static final String WIZARD_MODEL = "arc-outline-wizard-model";
+    public static final String WIZARD_SUMMARY = "arc-outline-wizard-summary";
+    public static final String WIZARD_OLD = "arc-outline-wizard-old";
 
     private static final String RESOURCE = "/arcoutline.css";
 
