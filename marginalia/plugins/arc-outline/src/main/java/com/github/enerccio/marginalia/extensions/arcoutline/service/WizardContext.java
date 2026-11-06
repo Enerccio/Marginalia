@@ -103,6 +103,17 @@ public final class WizardContext {
     }
 
     /**
+     * The instructions for summarizing a chat with what the author asked the summary to keep or stress under them.
+     *
+     * @param note what the author wrote, null or blank for nothing
+     */
+    public static String summaryPrompt(String base, String note) {
+        return note == null || note.isBlank() ? base
+                : base.stripTrailing() + "\n\n### What the author asks the summary to keep or stress\n"
+                + note.strip() + "\nThis comes first: put it in the summary even if it does not fit the limit above.";
+    }
+
+    /**
      * The messages of the conversation that go to the model: the newest ones whose tokens fit {@code room}, oldest first.
      * The newest message (what the author just wrote) is always kept, even when it alone is too long, a request without
      * it would answer nothing.

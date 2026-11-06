@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847306735161">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847307453251">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.847306735161" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.847307453251" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847306735161" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847307453251" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847306735161" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847307453251" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -512,7 +512,7 @@ several steps, one arc for each range.</p>
 <p>A book has any number of chats; pick one in the list above the messages, <strong>+</strong> starts a new one, the pen renames it (it is named after your first message until then) and the trash can deletes it. They are stored with the book.</p>
 <ul>
 <li><strong>Branch</strong> copies the chat as it is into a new chat; the branch button on a message copies it up to and including that message, to take the talk another way from there. The copy has nothing to do with the original afterwards.</li>
-<li><strong>Summarize the chat</strong> asks the model for a summary of the chat (what you decided, what you rejected, what is still open, the names that were fixed) and adds it as a message. From then on the model gets that summary and the messages after it, <strong>not</strong> the messages above it, which stay on the screen, dimmed. Use it when the chat has grown too long for the model, or to start from a clean state without losing the decisions. Summarize again later and the new summary covers the old one. Branch first when you want to keep the whole chat for the model.</li>
+<li><strong>Summarize the chat</strong> first asks what the summary should keep or stress (optional, for example &quot;keep the twist about the traitor and the ending we rejected&quot;; empty: the model decides), then asks the model for a summary of the chat (what you decided, what you rejected, what is still open, the names that were fixed) and adds it as a message. From then on the model gets that summary and the messages after it, <strong>not</strong> the messages above it, which stay on the screen, dimmed. Use it when the chat has grown too long for the model, or to start from a clean state without losing the decisions. Summarize again later and the new summary covers the old one. Branch first when you want to keep the whole chat for the model.</li>
 </ul>
 <h2 id="generating-chapters">Generating chapters</h2>
 <p>The wand button on an arc asks the model to divide that arc into chapters. The dialog is like the one for arcs, with
@@ -691,7 +691,7 @@ chapters at the end of the arc) and the answer has their numbers. A story that i
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (5c11f2f03).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (4f388def1).</p></div>
             </footer>
         </div>
     </div>

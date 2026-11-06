@@ -149,7 +149,7 @@ the limit and the newest messages of the chat that fit what the model takes. The
 text as its specification.
 
 The chats (`WizardData` > `WizardChat` > `WizardMessage`) are stored with the book under `com.github.enerccio.marginalia.extensions.arcoutline.wizard`.
-A branch (`WizardChat.branch`) is a deep copy. *Summarize the chat* asks the model with `Defaults.WIZARD_SUMMARY_PROMPT` and adds the answer as a
+A branch (`WizardChat.branch`) is a deep copy. *Summarize the chat* asks the author for an optional note on what to keep (`WizardContext.summaryPrompt` puts it under the instructions), asks the model with `Defaults.WIZARD_SUMMARY_PROMPT` and adds the answer as a
 message with `summary` set; `WizardContext.sinceSummary` and `lastSummary` make the model get the newest summary (in its system prompt) and the
 messages after it only.
 
