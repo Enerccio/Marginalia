@@ -4,10 +4,20 @@ import com.github.enerccio.marginalia.domain.service.CancellationToken;
 import com.github.enerccio.marginalia.domain.service.InferenceService;
 import com.github.enerccio.marginalia.domain.service.InferenceService.InferenceAsyncCallback;
 import com.github.enerccio.marginalia.domain.service.InferenceService.InferenceAsyncController;
+import com.github.enerccio.marginalia.domain.service.function.FunctionContinuation;
+import com.github.enerccio.marginalia.domain.service.function.FunctionSet;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
+import com.github.enerccio.marginalia.domain.traits.LLMFunction;
 import com.github.enerccio.marginalia.test.MarginaliaTestBase;
 import com.github.enerccio.marginalia.test.llm.MockLLMResponse;
+import com.github.enerccio.marginalia.domain.service.agent.CommandFunctions;
+import com.github.enerccio.marginalia.domain.collections.DestructiveCommandMode;
+import com.github.enerccio.marginalia.domain.service.command.CommandContext;
+import com.github.enerccio.marginalia.domain.service.impl.CommandServiceImpl;
+import com.github.enerccio.marginalia.domain.traits.Command;
+import com.github.enerccio.marginalia.domain.traits.CommandDataSeverity;
+import com.github.enerccio.marginalia.domain.traits.CommandParameterSignature;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
@@ -175,6 +185,135 @@ class StreamStopTest extends MarginaliaTestBase {
             assertThat(llm.getCompletionRequests()).hasSize(1);
         } finally {
             prompt.countDown();
+        }
+    }
+
+    interface Writer {
+
+        @LLMFunction(description = "Asks the model for a draft")
+        void draft(FunctionContinuation<String> done);
+    }
+
+    /**
+     * A function that asks the model itself (a generator tool) is told when the request is stopped, and what it started is
+     * stopped with it: the second request does not go on after the stop.
+     */
+    @Test
+    void aStopWhileAFunctionAsksTheModelStopsThatRequestToo() throws Exception {
+        login();
+        CountDownLatch prompt = new CountDownLatch(1);
+        CompletableFuture<String> nestedEnded = new CompletableFuture<>();
+        CompletableFuture<String> hookRan = new CompletableFuture<>();
+        CountDownLatch called = new CountDownLatch(1);
+        com.github.enerccio.marginalia.domain.service.InferenceService inference = inferenceServices.forAI(createAI());
+        FunctionSet functions = inferenceServices.getFunctionRegistry().bind(Writer.class, (Writer) done -> {
+            try {
+                CancellationToken nested = inference.infer(PAYLOAD, null, null, null,
+                        new InferenceService.InferenceResultCallback() {
+                            public void onResult(String text, com.github.enerccio.marginalia.domain.service.structured.SchemaCheck check) {
+                                nestedEnded.complete("result");
+                                done.complete(text);
+                            }
+
+                            public void onCancel() {
+                                nestedEnded.complete("cancel");
+                            }
+
+                            public void onError(Throwable exception) {
+                                nestedEnded.complete("error: " + exception);
+                            }
+                        });
+                done.onCancel(() -> {
+                    hookRan.complete("hook");
+                    nested.cancel();
+                });
+            } catch (Exception e) {
+                done.fail(e);
+            }
+            called.countDown();
+        });
+        llm.enqueue(MockLLMResponse.toolCall("draft", "{}"));
+        llm.enqueue(MockLLMResponse.text("never read").waitFor(prompt, Duration.ofSeconds(30)));
+        Watch watch = new Watch();
+
+        try {
+            CancellationToken token = inference.stream(PAYLOAD, null, functions, watch);
+            assertThat(called.await(10, TimeUnit.SECONDS)).isTrue();
+            Thread.sleep(300);
+
+            token.cancel();
+
+            assertThat(hookRan.get(5, TimeUnit.SECONDS)).isEqualTo("hook");
+            assertThat(nestedEnded.get(5, TimeUnit.SECONDS)).isEqualTo("cancel");
+            assertThat(watch.ended.get(5, TimeUnit.SECONDS)).isEqualTo("cancel");
+        } finally {
+            prompt.countDown();
+        }
+    }
+
+    /** A command that asks the model and waits for the answer, as the generators of the Arc Outline and the Lore Generator do. */
+    public static class AskModel {
+        final InferenceService inference;
+        final CompletableFuture<String> nestedEnded = new CompletableFuture<>();
+        final CountDownLatch started = new CountDownLatch(1);
+
+        AskModel(InferenceService inference) {
+            this.inference = inference;
+        }
+
+        @Command(commandName = "ask-model", humanNameText = "Ask model", async = true, dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+                signature = @CommandParameterSignature)
+        public void ask(CommandContext context) throws Exception {
+            CompletableFuture<String> answer = new CompletableFuture<>();
+            CancellationToken token = inference.infer(PAYLOAD, null, null, null, new InferenceService.InferenceResultCallback() {
+                public void onResult(String text, com.github.enerccio.marginalia.domain.service.structured.SchemaCheck check) {
+                    answer.complete(text);
+                }
+
+                public void onCancel() {
+                    nestedEnded.complete("cancel");
+                    answer.cancel(false);
+                }
+
+                public void onError(Throwable exception) {
+                    answer.completeExceptionally(exception);
+                }
+            });
+            started.countDown();
+            try {
+                context.setReturn(answer.get());
+            } catch (InterruptedException e) {
+                token.cancel();
+                Thread.currentThread().interrupt();
+            }
+        }
+    }
+
+    @Test
+    void aStopWhileACommandAsksTheModelStopsThatRequestToo() throws Exception {
+        login();
+        CommandServiceImpl commands = new CommandServiceImpl();
+        CountDownLatch prompt = new CountDownLatch(1);
+        try {
+            InferenceService inference = inferenceServices.forAI(createAI());
+            AskModel ask = new AskModel(inference);
+            commands.registerCommands(ask);
+            FunctionSet functions = CommandFunctions.create(commands, List.of("ask-model"), DestructiveCommandMode.AUTO, l -> l.name(), null);
+            llm.enqueue(MockLLMResponse.toolCall(CommandFunctions.functionName("ask-model"), "{}"));
+            llm.enqueue(MockLLMResponse.text("never read").waitFor(prompt, Duration.ofSeconds(30)));
+            Watch watch = new Watch();
+
+            CancellationToken token = inference.stream(PAYLOAD, null, functions, watch);
+            assertThat(ask.started.await(10, TimeUnit.SECONDS)).isTrue();
+            Thread.sleep(500);
+
+            token.cancel();
+
+            assertThat(ask.nestedEnded.get(5, TimeUnit.SECONDS)).isEqualTo("cancel");
+            assertThat(watch.ended.get(5, TimeUnit.SECONDS)).isEqualTo("cancel");
+        } finally {
+            prompt.countDown();
+            commands.destroy();
         }
     }
 }
