@@ -13,9 +13,9 @@ await main(async ({ page }) => {
     await page.getByRole('tab', { name: 'Lorebook', exact: true }).nth(1).click();
     await idle(page, 900);
     // open the details of two entries, the lower one first (the rows below an opened one move down): the arrow at the end of the name
-    await page.mouse.click(229, 376);                    // Draconia Malfoy
+    await page.mouse.click(229, 376);                    // Mizuki Hayashida
     await idle(page, 600);
-    await page.mouse.click(200, 329);                    // Harry Potter
+    await page.mouse.click(200, 329);                    // Tomáš Hájek
     await idle(page, 900);
     await sleep(500);
     await snap(page, 'story-lorebook-tab');

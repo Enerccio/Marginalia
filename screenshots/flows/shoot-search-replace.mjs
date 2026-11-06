@@ -31,8 +31,8 @@ await main(async ({ page }) => {
     await openMenu(page);
     await menuItem(page, 'Search and replace').click();
     await idle(page, 800);
-    await fill(page, 'Search for', 'Draconia');
-    await fill(page, 'Replace with', 'Dracona');
+    await fill(page, 'Search for', 'Mizuki');
+    await fill(page, 'Replace with', 'Mizuko');
     await page.evaluate(() => document.activeElement && document.activeElement.blur());
     await sleep(300);
     await snapDialog(page, 'search-replace-dialog', 0);
@@ -65,16 +65,16 @@ await main(async ({ page }) => {
     await idle(page, 1000);
     await closeRestoredBook(page);
     await openTab(page, 'Lorebooks');
-    await pick(page, 'Lorebook', 'Harry Potter - Half-Blood Prince');
+    await pick(page, 'Lorebook', 'Unregistered - the valley of the Lyrasil');
     await sleep(1000);
     await page.getByRole('button', { name: 'Search and replace', exact: true }).click();
     await idle(page, 800);
-    await fill(page, 'Search for', 'Draconia');
-    await fill(page, 'Replace with', 'Dracona');
+    await fill(page, 'Search for', 'Mizuki');
+    await fill(page, 'Replace with', 'Mizuko');
     await dialog(page).getByRole('button', { name: 'Search', exact: true }).click();
     await page.getByText('Found ', { exact: false }).first().waitFor({ timeout: 30000 });
     await idle(page, 1200);
-    await page.mouse.click(406, 591);                      // open the row of Draconia Malfoy: the matches in it
+    await page.mouse.click(406, 591);                      // open the row of Mizuki Hayashida: the matches in it
     await idle(page, 900);
     await snapDialog(page, 'lorebook-search-replace', 0);
     await closeDialog(page);

@@ -16,7 +16,7 @@ export const PHONE = { width: 402, height: 874 };      // phone shots
 
 export const users = {
   admin: { login: 'admin', name: 'Administrator', password: 'marginalia' },
-  reader: { login: 'ginny', name: 'Ginny W.', password: 'marginalia' },
+  reader: { login: 'jana', name: 'Jana K.', password: 'marginalia' },
 };
 
 /** Opens the browser. `phone` emulates a phone (touch, mobile user agent) in Chrome. */
@@ -203,7 +203,7 @@ export async function main(fn, opts = {}) {
 }
 
 /** Opens a book from the Books tab (the pen button of its row) and waits for the book window. */
-export async function openBook(page, name = 'Harry Potter and Half Blood Prince - FDM') {
+export async function openBook(page, name = 'Unregistered') {
   await openTab(page, 'Books');
   const cell = page.locator('vaadin-grid-cell-content').filter({ hasText: name }).first();
   const box = await cell.boundingBox();
@@ -402,4 +402,17 @@ export async function rowIconButton(page, text, icon) {
   }
   if (!best) throw new Error(`no ${icon} button in the row of ${text}`);
   return buttons.nth(best.index);
+}
+
+/**
+ * An item of the Manage or the Import menu of the list of books (1.7.0: they replaced the row of buttons), by the labels along the way:
+ * `bookListMenu(page, 'Manage', 'Mass changes', 'Mass Rename')`.
+ */
+export async function bookListMenu(page, menu, ...labels) {
+  await page.locator('vaadin-menu-bar-button').filter({ hasText: new RegExp('^\\s*' + menu + '\\s*$') }).first().click();
+  await idle(page, 500);
+  for (const label of labels) {
+    await page.getByRole('menuitem', { name: new RegExp('^\\s*' + label.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&')) }).first().click();
+    await idle(page, 500);
+  }
 }

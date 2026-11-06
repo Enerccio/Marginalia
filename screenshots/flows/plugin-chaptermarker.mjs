@@ -6,7 +6,7 @@ await main(async ({ page }) => {
   await login(page);
   await openBook(page);
   await bookTab(page, 'Story');
-  for (const [index, heading] of [[0, '# Chapter 1: The Fog on the Main Street'], [3, '# Chapter 2: Behind the Three Broomsticks']]) {
+  for (const [index, heading] of [[0, '# Chapter 1: The Bricked Arch'], [3, '# Chapter 2: Go Home']]) {
     await partAction(page, index, 'Edit');
     await idle(page, 600);
     const area = parts(page).nth(index).locator('textarea').first();

@@ -1,0 +1,68 @@
+{
+ "scene": "Ferry landing",
+ "pov": "Tomáš",
+ "present": "Tomáš, Mizuki, Saellen",
+ "instructions": "A ferry lantern and a broad woman who shouts at them in Vrakht. First sound of the language: hard, short, with a tone that needs no words. He recognises a German-sounding rhythm and nothing else. The two speak English and Japanese; she answers louder.",
+ "response": "The lantern hung on its pole at the end of a slipway, a yellow point above the water. Beyond it lay a flat black shape, and then Tomáš made out the rope that ran from the dark bank into the mist, humming taut in the cold. A ferry. The thought was ordinary, and it steadied him. Ferries had landings, and landings had people who knew where the roads went.\n\n\"しゃがんでて。,\" Mizuki murmured, her hand tight on his arm. \"兵隊かもしれない。\"\n\n\"そうかもしれません。\" He stood anyway, slowly, his bandaged hand held against his chest, and lifted the headlamp so the beam fell on the slipway, wet planks sloping down into the reeds. \"助けが必要です。あらゆる明かりから隠れることはできません。\"\n\nThe ferry bumped against the piles with a dull knock. A woman stepped off onto the planks. She was broad through the shoulders, her sleeves rolled to the elbow, her face weathered brown under a knotted scarf. A long pole rested in her hands, its iron foot already sunk in the mud, and she leaned her weight against it as if she meant to stay. The lantern swung once on its hook above her head and steadied, and its light lay gold across her cheekbones.\n\n\"Hello,\" Tomáš said in English. \"We are lost. We fell in the water. Please, we need—\"\n\nShe did not wait for him to finish. She shouted in Vrakht. The sound rolled out over the water, and the reeds on the far bank bent flat under it. A bird lifted from the channel with a clatter of wings. The words were short and hard, each one punched out and dropped, and her chin came up with every syllable. He heard a clipped, marching shape in them, something like the barking German of old war films, and beyond that he had nothing. He did not need the words. Her weight had shifted onto her back foot, her shoulders squared, and the pole did not move in her grip. Behind her the rope sang with a long, taut note, and the ferry leaned against it as if it had been told to wait.\n\nMizuki stepped half a pace forward and answered in English, her words broken and careful, each one set down like a stone. \"Please. Only help. We are not... dangerous. We are not bad people.\"\n\nThe woman's head snapped toward her. She answered louder, a flat roar in Vrakht, and jabbed the pole at Mizuki's bandaged hand, then at the reeds, then at the black water, as if she were counting their faults one by one.\n\nTomáš's mouth went dry. The headlamp trembled in his fist, and its beam shook across the woman's boots. Behind her the rope hummed on, and the ferry knocked softly against its piles, waiting for an answer he did not have.",
+ "original": "The lantern came closer across the water. Tomáš watched it swing on its pole above a flat black shape, and then he made out the rope that ran from the dark bank into the mist, humming taut in the cold. A ferry. The thought was ordinary, and it steadied him. Ferries had landings, and landings had people who knew where the roads went.\n\n\"Stay down,\" Mizuki murmured in Japanese, her hand tight on his arm. \"Maybe they are soldiers.\"\n\n\"Maybe.\" He stood anyway, slowly, his bandaged hand held against his chest, and lifted the headlamp so the beam fell on the slipway, wet planks sloping down into the reeds. \"We need help. We cannot hide from every light.\"\n\nA woman stepped off the ferry. She was broad through the shoulders, her sleeves rolled to the elbow, her face weathered brown under a knotted scarf. She carried the lantern in one hand and a long pole in the other, and she planted the pole in the mud as though she meant to stay there.\n\n\"Hello,\" Tomáš said in English. \"We are lost. We fell in the water. Please, we need—\"\n\nShe did not wait for him to finish. She shouted in Vrakht, and the sound cracked across the flat water like a whip. The words were short and hard, each one punched out and dropped, and her chin came up with every syllable. He heard a clipped, marching shape in it, something like the barking German of old war films, and beyond that he had nothing. He did not need the words. The tone came through the mud and the cold as plainly as a slap. She was angry, and she was angry that they were here at all.\n\nMizuki flinched beside him. She answered in Japanese, low and steady, the way she spoke to frightened patients on the ward. \"Please. Only help. We are not dangerous.\"\n\nThe woman's head snapped toward her. She answered louder, a flat roar in Vrakht, and jabbed the lantern at Mizuki's bandaged hand, then at the reeds, then at the water, as if she were counting their faults one by one.\n\nTomáš's mouth went dry. The headlamp trembled in his fist, and its beam shook across the woman's boots. Behind her the rope hummed on, and the ferry knocked softly against its piles, waiting for an answer he did not have.",
+ "tokens": 594,
+ "words": 465,
+ "passages": [
+  {
+   "quote": "しゃがんでて。",
+   "start": 357,
+   "end": 364,
+   "before": "s, and landings had people who knew where the roads went.\n\n\"",
+   "after": ",\" Mizuki murmured, her hand tight on his arm. \"兵隊かもしれない。\"\n\n",
+   "span": {
+    "source": "Stay down",
+    "speaker": "Mizuki",
+    "understood": true,
+    "register": "plain",
+    "reading": "Shagande te."
+   }
+  },
+  {
+   "quote": "兵隊かもしれない。",
+   "start": 412,
+   "end": 421,
+   "before": "t.\n\n\"しゃがんでて。,\" Mizuki murmured, her hand tight on his arm. \"",
+   "after": "\"\n\n\"そうかもしれません。\" He stood anyway, slowly, his bandaged hand h",
+   "span": {
+    "source": "Maybe they are soldiers.",
+    "speaker": "Mizuki",
+    "understood": true,
+    "register": "plain",
+    "reading": "Heitai kamo shirenai."
+   }
+  },
+  {
+   "quote": "そうかもしれません。",
+   "start": 425,
+   "end": 435,
+   "before": "\" Mizuki murmured, her hand tight on his arm. \"兵隊かもしれない。\"\n\n\"",
+   "after": "\" He stood anyway, slowly, his bandaged hand held against hi",
+   "span": {
+    "source": "Maybe.",
+    "speaker": "Tomáš",
+    "understood": true,
+    "register": "polite",
+    "reading": "Sō ka mo shiremasen."
+   }
+  },
+  {
+   "quote": "助けが必要です。あらゆる明かりから隠れることはできません。",
+   "start": 602,
+   "end": 631,
+   "before": "ll on the slipway, wet planks sloping down into the reeds. \"",
+   "after": "\"\n\nThe ferry bumped against the piles with a dull knock. A w",
+   "span": {
+    "source": "We need help. We cannot hide from every light.",
+    "speaker": "Tomáš",
+    "understood": true,
+    "register": "polite",
+    "reading": "Tasuke ga hitsuyō desu. Arayuru akari kara kakureru koto wa dekimasen."
+   }
+  }
+ ]
+}

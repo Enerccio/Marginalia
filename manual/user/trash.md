@@ -55,7 +55,7 @@ An object whose lorebook, book... is deleted **can only be restored together wit
 the entry, Marginalia restores **nothing** and tells you what is missing:
 
 > Nothing was restored. These objects need a deleted object that is not selected. Select it too, or leave them deleted.
-> Lorebook Entry "Dragon" needs the deleted Lorebook "Bestiary" (lorebook)
+> Lorebook Entry "mosh" needs the deleted Lorebook "Phrasebook" (lorebook)
 
 ![Restore refused because the lorebook of the entry is deleted too](../images/trash-restore-blocked.png)
 

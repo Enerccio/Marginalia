@@ -1,0 +1,51 @@
+{
+ "auto": false,
+ "contextParts": 2,
+ "speakers": {
+  "mode": "ONLY",
+  "characters": [
+   {
+    "id": "334a1db6-f0c6-437d-ab51-2b1ae7e0cee4",
+    "name": "Mizuki",
+    "aliases": [
+     "Mizuki Hayashida"
+    ],
+    "gender": "female",
+    "voice": "Nurse of twenty-seven from Sendai. Natural, everyday Japanese, a little teasing with Tomáš; polite with strangers. Mutters in Japanese when alone.",
+    "listed": true
+   },
+   {
+    "id": "5e5fc703-d444-467c-9a69-2924cd3579fc",
+    "name": "Tomáš",
+    "aliases": [
+     "Tomáš Hájek",
+     "Tomas"
+    ],
+    "gender": "male",
+    "voice": "Czech guide of twenty-nine who learned Japanese from novels and subtitles: stiff, bookish, over-polite at the wrong moment, sometimes boyish or anime-sounding.",
+    "listed": true
+   }
+  ]
+ },
+ "otherLanguages": [
+  {
+   "languageId": "dab63a83-21f5-4bd0-927c-8a99a88fae9d",
+   "speakers": {
+    "mode": "ONLY",
+    "characters": [
+     {
+      "id": "c6709d00-87da-46dc-b4e0-0c0988ef0d93",
+      "name": "Tomáš",
+      "aliases": [
+       "Tomáš Hájek",
+       "Tomas"
+      ],
+      "gender": "male",
+      "voice": "Czech is his private language: he speaks it ONLY when the text says he mutters, swears, thinks aloud or speaks Czech (informal, short). A line of his that the text does not mark is English (with Mizuki or the locals) or Japanese (with Mizuki), never Czech; a name he repeats is not translated.",
+      "listed": true
+     }
+    ]
+   }
+  }
+ ]
+}

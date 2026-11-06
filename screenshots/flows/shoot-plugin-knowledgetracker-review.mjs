@@ -18,16 +18,16 @@ await main(async ({ page }) => {
 
   await page.getByRole('button', { name: 'Track a character' }).click();
   await idle(page, 500);
-  await fill(dialog(page), 'Name', 'Draconia');
-  await fill(dialog(page), 'Aliases', 'Dray');
+  await fill(dialog(page), 'Name', 'Tomáš');
+  await fill(dialog(page), 'Aliases', 'Tomas');
   await save(page);
   await idle(page, 600);
   await page.getByRole('button', { name: 'Show what the character knows' }).first().click();
   await idle(page, 500);
   for (const [kind, text] of [
-    ['Knows', 'Harry has seen her go to the Room of Requirement.'],
-    ['Does not know', 'Ginny has found the cabinet in the Room of Requirement.'],
-    ['Does not know', 'Harry has not spoken to Snape about her yet.']]) {
+    ['Knows', 'Mizuki said in Japanese, at the arch, that the wall was breathing.'],
+    ['Does not know', 'Mizuki has noticed that he understands Japanese.'],
+    ['Does not know', 'The phone has no signal here.']]) {
     await page.getByRole('button', { name: 'Add knowledge' }).first().click();
     await idle(page, 400);
     if (kind !== 'Knows') await pickSelect(dialog(page), kind);
@@ -49,10 +49,10 @@ await main(async ({ page }) => {
   await idle(page, 500);
 
   // what the model "answers": one retraction and two additions (the second quote is not in the part, the review says so)
-  await llm('/_queue', { reply: JSON.stringify({ characters: [{ name: 'Draconia',
-    retract: [{ item: 3, evidence: 'A cold voice cut through the fog', message: 2 }],
-    add: [{ kind: 'knows', text: 'Harry followed her through the fog on the Main Street', evidence: 'A cold voice cut through the fog', message: 2 },
-          { kind: 'knows', text: 'She smiled at him in the market', evidence: 'she smiled and waved at him', message: 1 }] }] }) });
+  await llm('/_queue', { reply: JSON.stringify({ characters: [{ name: 'Tomáš',
+    retract: [{ item: 3, evidence: 'The screen woke at fifty-eight percent, and above the battery the signal bars stood empty.', message: 3 }],
+    add: [{ kind: 'knows', text: 'The phone has fifty-eight percent and no signal', evidence: 'The screen woke at fifty-eight percent, and above the battery the signal bars stood empty.', message: 3 },
+          { kind: 'knows', text: 'A ferry will come at dawn', evidence: 'the ferryman waved at him from the river', message: 1 }] }] }) });
   await page.getByRole('button', { name: 'Process now' }).click();
   await page.getByText(/changes are waiting for your review/).waitFor({ timeout: 60000 });
   await idle(page, 600);

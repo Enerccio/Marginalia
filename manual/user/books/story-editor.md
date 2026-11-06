@@ -467,6 +467,8 @@ so a lorebook can be pruned by what it does and not by guessing. Every generatio
   deep the part is in the tree); leave them empty for the start and the end.
 - **Show** keeps the entries that were **Never used**, **Sometimes used** or **Always used** in the counted parts.
 
+![The Lore Usage window](../../images/lore-usage.png)
+
 The table has one line for every entry of the lorebooks of the book, the most used first: its lorebook, whether it was never, sometimes or always
 used, in how many parts (of the parts that have a record, with the percent), the tokens it cost in all of them and per use, and the first and
 last part that used it. Click a header to sort. An entry that was used earlier but is not in the lorebooks of the book now (deleted, moved, or

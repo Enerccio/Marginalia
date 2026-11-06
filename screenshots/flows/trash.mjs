@@ -1,11 +1,11 @@
-// Puts things into the trash: a lorebook with entries (Bestiary), a scratch book, a story part of a branch.
+// Puts things into the trash: a lorebook with entries (Phrasebook), a scratch book, a story part of a branch.
 import path from 'node:path';
 import {dialog, idle, login, main, openTab, press, root, snap} from '../lib/shot.mjs';
 
 await main(async ({ page }) => {
   await login(page);
 
-  // the Bestiary lorebook: import, then delete it
+  // the Phrasebook lorebook: import, then delete it
   await openTab(page, 'Lorebooks');
   await page.mouse.click(1226, 71);          // the import menu button (the first of the three icon buttons after Delete Lorebook)
   await idle(page, 500);

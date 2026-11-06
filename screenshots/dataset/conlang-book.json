@@ -1,0 +1,161 @@
+{
+ "auto": false,
+ "contextParts": 2,
+ "maxLexiconChars": 60000,
+ "speakers": {
+  "mode": "ONLY",
+  "characters": [
+   {
+    "id": "91ea53e5-7c15-4a6f-ae91-6ae677c5cc3c",
+    "name": "Steing",
+    "aliases": [
+     "Steing"
+    ],
+    "gender": "male",
+    "voice": "Life-tax assessor, thin, fifty-one. Speaks the Dominion's Vrakht like a ledger clerk; uses the Hoh tone (patronizing) even on friends.",
+    "listed": true
+   },
+   {
+    "id": "11944bbc-2444-4079-8dec-b945663245e7",
+    "name": "Paskal",
+    "aliases": [],
+    "gender": "male",
+    "voice": "Conscript of nineteen from the far steppe, homesick, cheerful, plain soldier's speech.",
+    "listed": true
+   },
+   {
+    "id": "8e085e64-d931-4376-a574-9087a8d18ec6",
+    "name": "Mangel",
+    "aliases": [
+     "Lieutenant Mangel"
+    ],
+    "gender": "female",
+    "voice": "Officer of twenty-five, straight-backed. Gna (polite) to her commander, Bef (command) to everyone else.",
+    "listed": true
+   },
+   {
+    "id": "39ab42c9-e9da-40d4-aaea-3b07c79ad0ed",
+    "name": "Frecht",
+    "aliases": [
+     "Commander Frecht"
+    ],
+    "gender": "male",
+    "voice": "Commander, fifty-eight, tired and clever, speaks little and plainly.",
+    "listed": true
+   },
+   {
+    "id": "0458330f-67be-4362-ae85-36d1c9ad1e09",
+    "name": "Kestim",
+    "aliases": [
+     "Inspector Kestim"
+    ],
+    "gender": "female",
+    "voice": "Auditor of the capital, dry, polite, never raises her voice.",
+    "listed": true
+   },
+   {
+    "id": "16c295b7-4329-4893-a6bf-29e47eaee3d6",
+    "name": "Roid",
+    "aliases": [],
+    "gender": "",
+    "voice": "Surgeon of the fort.",
+    "listed": true
+   },
+   {
+    "id": "7fd77da1-1e53-415e-a69f-b63ad91de5ad",
+    "name": "Saellen",
+    "aliases": [],
+    "gender": "female",
+    "voice": "Ferrywoman of the Lyrshara; speaks market Vrakht to the soldiers, Aethel-Vael at home. Only her speech to the Dominion is Vrakht.",
+    "listed": true
+   },
+   {
+    "id": "bb1e56fb-a744-4ed3-b6f5-07313e9bb0e5",
+    "name": "soldier",
+    "aliases": [
+     "soldiers",
+     "sentry",
+     "guard",
+     "corporal",
+     "sergeant",
+     "conscript"
+    ],
+    "gender": "",
+    "voice": "Soldier of the Dominion garrison: speaks plain barracks Vrakht (Bef commands, short, rough); the Hoh and Droh tones to civilians.",
+    "listed": true
+   },
+   {
+    "id": "ab41d074-e706-4232-8bd5-489a7a516001",
+    "name": "clerk",
+    "aliases": [
+     "clerks",
+     "scribe",
+     "ledger-keeper"
+    ],
+    "gender": "",
+    "voice": "Clerk of the Ledger House: speaks Vrakht, dry and exact, Gna (polite) to the assessor.",
+    "listed": true
+   },
+   {
+    "id": "4e1f9caf-d72b-4c7e-84ad-3db8552a4fc9",
+    "name": "Dominion",
+    "aliases": [
+     "Vrakht-speaking",
+     "officer",
+     "official"
+    ],
+    "gender": "",
+    "voice": "Anyone of the Dominion (an officer, an official, an unnamed man or woman of its towns) speaks Vrakht.",
+    "listed": true
+   }
+  ]
+ },
+ "otherLanguages": [
+  {
+   "languageId": "2f9b0439-a0d2-4b1a-9d4a-ddeb7703f70b",
+   "speakers": {
+    "mode": "ONLY",
+    "characters": [
+     {
+      "id": "f233c25f-1d9b-4f50-8d08-0895623a2fd2",
+      "name": "Saellen",
+      "aliases": [],
+      "gender": "female",
+      "voice": "Ferrywoman of Silvakhor landing, forty-four, broad, sings under her breath, loses patience with fools and never with the hungry.",
+      "listed": true
+     },
+     {
+      "id": "804636de-8a65-455a-b482-4b98918df058",
+      "name": "Aelmoria",
+      "aliases": [
+       "the reed-mother"
+      ],
+      "gender": "female",
+      "voice": "Hedge-witch of Kaelthal, sixty-eight, small, bent, very still; speaks softly and slowly.",
+      "listed": true
+     },
+     {
+      "id": "3201a09a-1099-4217-ac96-a3ebe9fcd437",
+      "name": "Lyrshara",
+      "aliases": [
+       "villager",
+       "villagers",
+       "ferryman",
+       "boatman",
+       "merchant",
+       "merchants",
+       "child",
+       "children",
+       "mother",
+       "old woman",
+       "old man"
+      ],
+      "gender": "",
+      "voice": "Any of the river people the story does not name: speaks Aethel-Vael among themselves (soft, flowing); market Vrakht only to the Dominion.",
+      "listed": true
+     }
+    ]
+   }
+  }
+ ]
+}

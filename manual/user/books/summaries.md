@@ -243,6 +243,12 @@ the book.
 When you save the [edit of a part](story-editor.md#editing-the-text) that would make summaries outdated, Marginalia warns
 you first and lets you go back to editing, save anyway, or save and revalidate the summaries.
 
+![The question when a save makes summaries outdated](../../images/summaries-save-warning.png)
+
+After **Save anyway** the Summaries overview shows the summary as outdated (red, with the label **Outdated**, and not counted in the sum at the top):
+
+![An outdated summary in the overview](../../images/summaries-outdated.png)
+
 A [search and replace](story-editor.md#search-and-replace) in the story keeps the summaries it covers valid and warns about
 the ones that become outdated. The [search and replace of the summaries](#search-and-replace-in-the-summaries) keeps the meta
 summaries valid.

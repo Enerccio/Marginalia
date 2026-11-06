@@ -11,15 +11,15 @@ import {CHAT_FILE} from '../dataset/stchat.mjs';
 execFileSync('node', [path.join(root, 'dataset/stchat.mjs')], { stdio: 'inherit' });
 
 const TURNS = { turns: [
-  { firstMessage: 1, lastMessage: 3, povCharacter: 'Harry', presentCharacters: 'Harry, Draconia',
-    sceneSetting: 'The last lamp before the bridge in Hogsmeade, a foggy autumn evening. Cold, quiet, nobody else in the street.',
-    instructions: 'Draconia waits under the lamp as if she did not wait for anyone. Harry, who followed her from the Three Broomsticks, steps out of the fog. She says he is late and asks what he wants from her.' },
-  { firstMessage: 4, lastMessage: 5, povCharacter: 'Harry', presentCharacters: 'Harry, Draconia',
-    sceneSetting: 'The same street, a few minutes later, the fog thicker.',
-    instructions: 'Harry asks where she goes at night and why she comes back with mud on her robes. Something moves behind her face; she says she only walks, and starts across the bridge.' },
-  { firstMessage: 6, lastMessage: 8, povCharacter: 'Harry', presentCharacters: 'Harry, Draconia',
-    sceneSetting: 'The middle of the stone bridge, the stream loud with the autumn rain.',
-    instructions: 'Harry follows three steps behind. She stops so suddenly that he nearly walks into her and asks why he cares. He answers that someone has to, and he is the only one who noticed.' },
+  { firstMessage: 1, lastMessage: 3, povCharacter: 'Mizuki', presentCharacters: 'Mizuki, Tomáš',
+    sceneSetting: 'The end of the jetty at the ferry landing, night, a lantern on a pole.',
+    instructions: 'Mizuki stands at the end of the jetty, afraid of a woman who shouts at her in a language she does not know. Tomáš cannot translate; he can only tell her that the woman is not asking them to leave, and that she holds out a bowl.' },
+  { firstMessage: 4, lastMessage: 5, povCharacter: 'Tomáš', presentCharacters: 'Mizuki, Tomáš',
+    sceneSetting: 'The jetty, a minute later, the ferry rocking under them.',
+    instructions: 'Mizuki steps onto the planks with the soup joke. Tomáš follows and writes the word the woman shouts in his notebook: mosh, and he thinks it means food.' },
+  { firstMessage: 6, lastMessage: 8, povCharacter: 'Mizuki', presentCharacters: 'Mizuki, Tomáš',
+    sceneSetting: 'The middle of the deck, the river loud against the hull.',
+    instructions: 'Mizuki stops so suddenly that Tomáš nearly walks into her and asks why he pretended in the cellar. He answers that he was afraid a stranger who understood her would sound like a threat, and apologises.' },
 ] };
 
 await main(async ({ page }) => {

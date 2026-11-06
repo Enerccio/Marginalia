@@ -24,8 +24,8 @@ await main(async ({ page }) => {
   await snapDialog(page, '_summaries-plain');
 
   // meta summary of both: select the rows, create; the answer shows in a Summary dialog over the Summaries dialog
-  await page.mouse.click(1614, 320);
-  await page.mouse.click(1614, 479);
+  await page.mouse.click(1581, 322);
+  await page.mouse.click(1581, 481);
   await sleep(300);
   await page.mouse.click(1640, 149);
   await sleep(3500);

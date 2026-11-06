@@ -39,8 +39,8 @@ await main(async ({ page }) => {
     await sleep(500);
     await menuItem(page, 'Search and replace').click();
     await idle(page, 800);
-    await fill(page, 'Search for', 'Draconia');
-    await fill(page, 'Replace with', 'Dracona');
+    await fill(page, 'Search for', 'Mizuki');
+    await fill(page, 'Replace with', 'Mizuko');
     await page.getByRole('button', { name: 'Search', exact: true }).click();
     await page.getByText('Found ', { exact: false }).first().waitFor({ timeout: 30000 });
     await idle(page, 1200);
@@ -58,8 +58,8 @@ await main(async ({ page }) => {
     // the search and replace window of the lorebook (the icon button next to the Enabled check box)
     await page.mouse.click(227, 171);                        // the button next to the Enabled check box
     await idle(page, 800);
-    await fill(page, 'Search for', 'Draconia');
-    await fill(page, 'Replace with', 'Dracona');
+    await fill(page, 'Search for', 'Mizuki');
+    await fill(page, 'Replace with', 'Mizuko');
     await page.getByRole('button', { name: 'Search', exact: true }).click();
     await page.getByText('Found ', { exact: false }).first().waitFor({ timeout: 30000 });
     await idle(page, 1200);
@@ -116,7 +116,7 @@ await main(async ({ page }) => {
   await section(page, 'viewer', async () => {
     await login(page, users.admin, '/view');                // the viewer has a login of its own
     await sleep(1200);
-    await page.getByText('Harry Potter and Half Blood Prince - FDM', { exact: false }).first().click();
+    await page.getByText('Unregistered', { exact: false }).first().click();
     await idle(page, 2000);
     await snap(page, 'viewer-reading');
   });

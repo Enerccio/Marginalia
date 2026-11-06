@@ -1,4 +1,4 @@
-// Step 07-summaries -> 08-images: the picture of Harry (Wikimedia Commons, see manual/credits.md) on the last part.
+// Step 07-summaries -> 08-images: the painting (public domain, Rawpixel, see manual/credits.md) on the last part.
 import path from 'node:path';
 import {
     bookTab,
@@ -23,9 +23,9 @@ await main(async ({ page }) => {
   await bookTab(page, 'Story');
   await partAction(page, -1, 'Images');
   await idle(page, 600);
-  await page.locator('vaadin-dialog[opened] vaadin-upload input[type=file]').setInputFiles(path.join(root, 'assets/Harry_Potter.jpg'));
+  await page.locator('vaadin-dialog[opened] vaadin-upload input[type=file]').setInputFiles(path.join(root, 'assets/cover.jpg'));
   await sleep(4000);
-  await fill(dialog(page), 'Caption', 'Harry Potter');
+  await fill(dialog(page), 'Caption', 'Interior of a Cottage in Scheveningen (1887), Willem Adriaan Alexander Liernur');
   await sleep(500);
   await snapDialog(page, 'images-dialog');
   await press(dialog(page), 'Close');
@@ -33,7 +33,7 @@ await main(async ({ page }) => {
 
   // a second upload that is taken off the part again: the file stays in Resources, used by nothing
   await partAction(page, -1, 'Images');
-  await page.locator('vaadin-dialog[opened] vaadin-upload input[type=file]').setInputFiles(path.join(root, 'assets/Harry_Potter.jpg'));
+  await page.locator('vaadin-dialog[opened] vaadin-upload input[type=file]').setInputFiles(path.join(root, 'assets/cover.jpg'));
   await sleep(4000);
   await snapDialog(page, '_images-2');
   await page.getByRole('button', { name: 'Remove image' }).last().click();

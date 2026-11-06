@@ -4,7 +4,7 @@
 The dataset is made in a few days (and the statistics are only kept since 1.6.0, the older days are rebuilt from the parts), so
 the book would show one or two days on its calendar. This writes the rows that the application would have written over the
 last year into the database of the screenshot environment (rows of `manuscript_statistics`, `manuscript_sizes` and
-`activity_intervals` of the book *Harry Potter and Half Blood Prince - FDM*), so run it with the application STOPPED, on a copy
+`activity_intervals` of the book *Unregistered*), so run it with the application STOPPED, on a copy
 of 13-db-backup (`bin/shoot-all.sh` does), and never on anything that is kept. The numbers are made by a fixed random generator,
 so every run gives the same picture; the days are counted back from today.
 
@@ -18,7 +18,7 @@ Usage: seed-statistics.py <marginalia.sqlite> [--today YYYY-MM-DD]
 import argparse, datetime, gzip, json, random, sqlite3, uuid
 
 BOOK = None                    # the uuid of the book is looked up by its name: every rebuild of the dataset makes a new one
-NAME = 'Harry Potter and Half Blood Prince - FDM'
+NAME = 'Unregistered'
 OWNER = 1                      # admin
 LIVE_DAYS = 200
 FIRST_ID = 1_000_000           # ids of the seeded rows; the sequences are moved above them

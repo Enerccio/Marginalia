@@ -105,7 +105,7 @@ The limit can be set on four levels, and **the strictest one wins**:
 
 An empty field means that this level sets no limit. **0** keeps no history at all (the versions that exist stay until you
 clear them, but nothing new is added). The field shows, as its hint, the limit it inherits and which level sets it, for
-example *Limited to 20 by the folder "Fan fiction"*. A book cannot raise a limit set above it.
+example *Limited to 20 by the folder "Novels"*. A book cannot raise a limit set above it.
 
 ## Searching the old text
 

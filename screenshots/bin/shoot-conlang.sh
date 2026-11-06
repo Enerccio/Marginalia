@@ -14,7 +14,7 @@ cp "$REPO_ROOT/marginalia/plugins/conlang-translator/target/conlang-translator-"
 "$SHOT_ROOT/bin/start-app.sh" >/dev/null; "$SHOT_ROOT/bin/stop-app.sh" >/dev/null
 python3 -I "$SHOT_ROOT/bin/seed-conlang.py" "$SHOT_HOME/.marginalia/marginalia.sqlite"
 "$SHOT_ROOT/bin/start-app.sh" >/dev/null
-sqlite3 "$SHOT_HOME/.marginalia/marginalia.sqlite" "select uuid from manuscripts where name = 'Harry Potter and Half Blood Prince - FDM'" > "$SHOT_ROOT/.run/book-uuid.txt"
+sqlite3 "$SHOT_HOME/.marginalia/marginalia.sqlite" "select uuid from manuscripts where name = 'Unregistered'" > "$SHOT_ROOT/.run/book-uuid.txt"
 curl -s -X POST "localhost:$SHOT_LLM_PORT/v1/_reset" >/dev/null
 node flows/plugin-conlang.mjs 2>&1 | grep -v "^  saved\|dismissed"
 echo done

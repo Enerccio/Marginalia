@@ -1,4 +1,4 @@
-// Character Tracker: the cast of the book (Characters tab), step by step, with a picture for Harry.
+// Character Tracker: the cast of the book (Characters tab), step by step, with a picture for Tomáš.
 import path from 'node:path';
 import {bookTab, fill, idle, login, main, openBook, press, root, sleep, snap} from '../lib/shot.mjs';
 import {sideTab, widenSidebar} from '../lib/story.mjs';
