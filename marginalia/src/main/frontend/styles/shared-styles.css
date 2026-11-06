@@ -65,6 +65,18 @@ vaadin-markdown span {
     box-sizing: border-box !important;
 }
 
+/* Code blocks: Lumo's unlayered inline-code background beats the base styles' "pre code { background: none }" and the base
+   pre colors (light-dark of the text/background colors) end up as light text on a light box in day mode. Set both explicitly. */
+vaadin-markdown pre {
+    background-color: var(--lumo-contrast-10pct);
+    color: var(--lumo-body-text-color);
+}
+
+vaadin-markdown pre code {
+    background: none;
+    color: inherit;
+}
+
 /* The other elements Markdown makes break long words too: lists, headings, quotes, tables, links, emphasis */
 vaadin-markdown li,
 vaadin-markdown h1,
