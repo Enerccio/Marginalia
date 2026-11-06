@@ -203,6 +203,9 @@ public class PlotWizardDialog extends Dialog {
 
     private Component buildOptions() {
         modelPicker = new ModelProtocolPicker();
+        // the options are a narrow column: the protocol goes under the model when the two boxes do not fit next to each other
+        modelPicker.setWrap(true);
+        modelPicker.setWidthFull();
         try {
             // starts with the model of the book, can be changed for this conversation
             ModelSelection initial = service.resolveModel(manuscript);
