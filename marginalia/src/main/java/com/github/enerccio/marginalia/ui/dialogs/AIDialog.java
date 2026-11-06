@@ -164,7 +164,6 @@ public class AIDialog extends Dialog implements LLMInteract {
         generalFormLayout.add(needsJailbreakCheckbox, jailbreakField);
         generalFormLayout.setColspan(jailbreakField, 2);
         generalFormLayout.add(enabledReasoningCheckbox, reasoningEffortCombo);
-        generalFormLayout.add(reasoningPassthroughCombo, 2);
         generalFormLayout.add(maxConcurrentField, 2);
 
         tabSheet.add(loc.getValue(L.LABEL_GENERAL_SETTINGS), generalFormLayout);
@@ -412,7 +411,8 @@ public class AIDialog extends Dialog implements LLMInteract {
             modelLayout.setFlexGrow(1, modelCombo);
 
             dynamicFormLayout.add(urlField, apiKeyLayout, modelLayout, requestTimeoutField, maxRetriesField,
-                    tokenizerCombo, additionalParametersField, testConnectionButton, testTokenizerButton);
+                    tokenizerCombo, reasoningPassthroughCombo, additionalParametersField, testConnectionButton, testTokenizerButton);
+            dynamicFormLayout.setColspan(reasoningPassthroughCombo, 2);
             dynamicFormLayout.setColspan(tokenizerCombo, 2);
             dynamicFormLayout.setColspan(urlField, 2);
             dynamicFormLayout.setColspan(apiKeyLayout, 2);
@@ -512,9 +512,9 @@ public class AIDialog extends Dialog implements LLMInteract {
         enabledReasoningCheckbox.setValue(Boolean.TRUE.equals(ai.getEnabledReasoning()));
         reasoningEffortCombo.setValue(ai.getReasoningEffort() != null ? ai.getReasoningEffort() : ReasoningEffort.NONE);
         reasoningEffortCombo.setEnabled(Boolean.TRUE.equals(ai.getEnabledReasoning()));
-        reasoningPassthroughCombo.setValue(ai.getReasoningPassthrough());
 
         if (ai.getAiType() == AIType.OPEN_AI_COMPATIBLE && ai instanceof OpenAICompatible compatible) {
+            reasoningPassthroughCombo.setValue(compatible.getReasoningPassthrough());
             urlField.setValue(StringUtils.defaultString(compatible.getUri()));
 
             apiKeyField.setValue("");
@@ -812,7 +812,6 @@ public class AIDialog extends Dialog implements LLMInteract {
         copy.setMaxCompletionTokens(maxResponseField.getValue());
         copy.setEnabledReasoning(enabledReasoningCheckbox.getValue());
         copy.setReasoningEffort(reasoningEffortCombo.getValue());
-        copy.setReasoningPassthrough(reasoningPassthroughCombo.getValue());
         extensionForm.apply(copy);
         return copy;
     }
@@ -913,9 +912,9 @@ public class AIDialog extends Dialog implements LLMInteract {
             ai.setNeedsJailbreak(needsJailbreakCheckbox.getValue());
             ai.setEnabledReasoning(enabledReasoningCheckbox.getValue());
             ai.setReasoningEffort(reasoningEffortCombo.getValue());
-            ai.setReasoningPassthrough(reasoningPassthroughCombo.getValue());
 
             if (type == AIType.OPEN_AI_COMPATIBLE && ai instanceof OpenAICompatible compatible) {
+                compatible.setReasoningPassthrough(reasoningPassthroughCombo.getValue());
                 compatible.setUri(urlField.getValue().trim());
 
                 if (apiKeyEditable) {

@@ -87,6 +87,7 @@ public class AIServiceImpl extends ExtendableServiceImpl<AI, AIRepository> imple
             target.setRequestTimeoutSeconds(openAI.getRequestTimeoutSeconds());
             target.setMaxRetries(openAI.getMaxRetries());
             target.setTokenizer(openAI.getTokenizer());
+            target.setReasoningPassthrough(openAI.getReasoningPassthrough());
             if (openAI.getAdditionalParameters() != null) {
                 target.setAdditionalParameters(openAI.getAdditionalParameters().deepCopy());
             }
@@ -104,7 +105,6 @@ public class AIServiceImpl extends ExtendableServiceImpl<AI, AIRepository> imple
         copy.setNeedsJailbreak(original.getNeedsJailbreak());
         copy.setEnabledReasoning(original.getEnabledReasoning());
         copy.setReasoningEffort(original.getReasoningEffort());
-        copy.setReasoningPassthrough(original.getReasoningPassthrough());
         copy.setMaxCompletionTokens(original.getMaxCompletionTokens());
         copy.setMaxContext(original.getMaxContext());
         copy.setMaxConcurrentRequests(original.getMaxConcurrentRequests());

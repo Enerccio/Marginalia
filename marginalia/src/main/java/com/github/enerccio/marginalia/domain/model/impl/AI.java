@@ -2,7 +2,6 @@ package com.github.enerccio.marginalia.domain.model.impl;
 
 import com.github.enerccio.marginalia.domain.collections.AIType;
 import com.github.enerccio.marginalia.domain.collections.ReasoningEffort;
-import com.github.enerccio.marginalia.domain.collections.ReasoningPassthrough;
 import com.github.enerccio.marginalia.domain.model.ExtendableEntity;
 import com.github.enerccio.marginalia.domain.service.InferenceService;
 import com.github.enerccio.marginalia.domain.traits.ExtendedAttribute;
@@ -61,29 +60,12 @@ public class AI extends ExtendableEntity {
     private String limits;
 
     /**
-     * Whether the thinking of the model is sent back to it: never (the default), between the tool calls of one turn, or always. See
-     * {@link ReasoningPassthrough}.
-     */
-    @Transient
-    @ExtendedAttribute
-    private ReasoningPassthrough reasoningPassthrough;
-
-    /**
      * How many requests of agents may be on the way to this AI at once, the rest waits (see {@code AIGate}); null or zero is no
      * cap. A server with one slot (a single GPU) sets one.
      */
     @Transient
     @ExtendedAttribute
     private Integer maxConcurrentRequests;
-
-    /** Never null: {@link ReasoningPassthrough#NONE} when it was not set. */
-    public ReasoningPassthrough getReasoningPassthrough() {
-        return reasoningPassthrough == null ? ReasoningPassthrough.NONE : reasoningPassthrough;
-    }
-
-    public void setReasoningPassthrough(ReasoningPassthrough reasoningPassthrough) {
-        this.reasoningPassthrough = reasoningPassthrough == ReasoningPassthrough.NONE ? null : reasoningPassthrough;
-    }
 
     public Integer getMaxConcurrentRequests() {
         return maxConcurrentRequests;

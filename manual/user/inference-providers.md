@@ -80,6 +80,7 @@ The tab is taller than the dialog and scrolls. The lower fields:
 | **Timeout (seconds)** | How long to wait for the API to answer, and for more text once it started writing. The default is 300. Reasoning models may need minutes before the first text; a request that hears nothing for this long fails with a timeout message (the thinking of a model counts as text, so a model that keeps thinking is not cut). A change is used by the next request, also of an agent that is working. |
 | **Retries** | How often a request is repeated when the API answers with a rate limit (429) or a server error (5xx), or cannot be reached. The wait between attempts grows, and a `Retry-After` header of the API is respected. The default is 2, 0 turns retrying off. Only the start of a request is retried, text that already arrived is never written twice. |
 | **Tokenizer** | How Marginalia counts the tokens of the texts for this provider. **Automatic** (the default) tries the tokenizer endpoints of the server one after the other (OpenAI, llama.cpp, LiteLLM) and uses the first that answers, and a local estimate when none does. Choose one to use only that, or **LOCAL_TOKKIT** for the local estimate that never calls the server (useful when counting would make the server load another model). A tokenizer from a plugin is listed here too; it gets the address, the model and the text, never the API key, and only when you choose it. **Test tokenizer** counts a sample text with what the provider would try and shows what each answered. When you create a provider, a plugin tokenizer that fits the address is preselected until you choose yourself. |
+| **Send the thinking back** | Whether the model gets its own thinking back in the next request, see [Send the thinking back](#send-the-thinking-back). Only for OpenAI-compatible providers: the Anthropic and Google providers send what their APIs need by themselves. |
 | **Additional Parameters** | A JSON object with extra fields for every request to this provider, e.g. `{"top_k": 40, "min_p": 0.05}` for a local server, or `{"provider": {"order": ["anthropic"]}}` for OpenRouter. A field set here wins over the same setting from the [protocol](protocols.md) (e.g. `temperature`) or the response limit (`max_completion_tokens`). Must be a valid JSON object or empty. |
 
 When you edit an existing provider, the API key is not shown again. It is kept as it is unless you click
@@ -104,7 +105,7 @@ test then only needs the one-token answer.
 | **Max Response Tokens** | Required. The longest response the model may write. Sent to the API as `max_completion_tokens`, and this much of the context is kept free for the response. Must be lower than *Max Context Size*. |
 | **Concurrent requests of agents** | Optional, for a server that answers one request (or a few) at a time. How many requests of [agents](agents.md#one-model-several-agents) may be on the way to this provider at once, the others wait their turn. Empty is no limit. Your own writing in the story window is not queued. |
 | **Needs Jailbreak**, **Jailbreak Prompt** | An extra prompt for models that refuse to write some content. When checked, the jailbreak prompt is put at the very beginning of the prompt. |
-| **Enable Reasoning**, **Reasoning Effort**, **Send the thinking back** | For reasoning ("thinking") models, see [Reasoning models](#reasoning-models). |
+| **Enable Reasoning**, **Reasoning Effort** | For reasoning ("thinking") models, see [Reasoning models](#reasoning-models). |
 
 Marginalia keeps **Max Response Tokens** of the context free for the response and fills the rest with the prompt:
 templates, [lorebook](lorebooks/index.md) entries and [summaries](books/summaries.md) are counted in, and the oldest
@@ -156,7 +157,7 @@ model, unless you set **Send the thinking back** (below).
 
 ### Send the thinking back
 
-**Send the thinking back** says whether the thinking of the model goes back to it, as the `reasoning_content` of its
+**Send the thinking back** (in *Per Type Settings* of an OpenAI-compatible provider) says whether the thinking of the model goes back to it, as the `reasoning_content` of its
 earlier message, in the next request:
 
 | Value | |
