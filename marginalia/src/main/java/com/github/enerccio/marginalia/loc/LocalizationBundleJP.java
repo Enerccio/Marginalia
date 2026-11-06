@@ -985,6 +985,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_COMMAND_SET_PLANNED_SCENE_DONE, "予定のシーンを完了にする");
         setValue(L.LABEL_COMMAND_MOVE_PLANNED_SCENE, "予定のシーンを移動");
         setValue(L.LABEL_COMMAND_DELETE_PLANNED_SCENE, "予定のシーンを削除");
+        setValue(L.LABEL_REASONING_PASSTHROUGH, "思考を送り返す");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -1166,6 +1167,9 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.ENUM_LORE_USAGE_STATUS_ALWAYS, "常に使用");
         setValue(L.ENUM_ACTIVATION_REASON_CONDITION_FALSE, "未使用: 条件が偽");
         setValue(L.ENUM_ACTIVATION_REASON_CONDITION_ERROR, "未使用: 条件の評価に失敗");
+        setValue(L.ENUM_REASONING_PASSTHROUGH_NONE, "なし");
+        setValue(L.ENUM_REASONING_PASSTHROUGH_TOOL_CALLS, "ツール呼び出しの間");
+        setValue(L.ENUM_REASONING_PASSTHROUGH_ALWAYS, "常に");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "内部サーバーエラー");
@@ -1784,6 +1788,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_MATCH_BY_POSITION, "要約はパートのIDで対応付けられます。別のブックのファイル（コピーはIDが異なります）の場合はこれをオンにしてください。このブランチにないパートの要約は、同じ位置の要約に入ります。");
         setValue(L.HELP_ANNOTATE_INSTRUCTIONS, "AI が注釈を付けるときに確認する点です。例: 設定の矛盾、弱い会話を指摘する。空の場合は注釈プロンプトの既定のタスクになります。「AI で注釈を付ける」ウィンドウはこの内容で始まります。");
         setValue(L.HELP_ACTIVATION_CONDITION, "コンテンツと同じ書き方（マクロとHandlebars）のテンプレートで、視点人物、同席する登場人物、指示、変数を使ってターンごとに評価されます。結果が真（空、0、false、no、off以外）のときだけエントリーが使われます。評価できない条件（エラー、存在しない名前、時間切れ）は偽として扱われ、有効化プレビューに理由が表示されます。フィルターより先に確認され、他のエントリーの内容で見つかったエントリーにも適用されます。読み取り専用のコマンドを使えますが、変数は変更されません。空欄は条件なし。");
+        setValue(L.HELP_REASONING_PASSTHROUGH, "モデルの思考を次のリクエストでモデルに返すかどうか(reasoning_content として)。ツール呼び出しの間: 1回の回答のツール呼び出しが続く間だけ(Gemma 4 が想定する動作)。常に: 思考のあるすべての過去の回答でも返します。ほとんどのモデルとサーバーは「なし」を想定しています。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景設定と世界観の文脈。");

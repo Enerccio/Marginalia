@@ -312,6 +312,53 @@ class AgentRunnerTest extends AgentTestBase {
         assertThat(transcript.get(2).getContent()).doesNotStartWith("Error").containsIgnoringCase("lorebook");
     }
 
+    /** The reading agent, on an AI that is set to get the thinking back as {@code mode} says. */
+    private Agent readingAgentWithPassthrough(com.github.enerccio.marginalia.domain.collections.ReasoningPassthrough mode) throws Exception {
+        Agent agent = readingAgent();
+        var ai = createAI();
+        ai.setReasoningPassthrough(mode);
+        aiService.save(ai);
+        agent.getModelProfiles().clear();
+        agent.getModelProfiles().add(new com.github.enerccio.marginalia.domain.model.AgentModelProfile("overseer", ai.getUuid(), protocol().getUuid()));
+        return agentService.save(agent);
+    }
+
+    /** The thinking the second request of the run carried for the assistant message that called the tool, null for none. */
+    private String thinkingSentWithTheCall() {
+        for (com.google.gson.JsonElement message : llm.lastCompletionRequest().getBody().getAsJsonArray("messages")) {
+            com.google.gson.JsonObject object = message.getAsJsonObject();
+            if ("assistant".equals(object.get("role").getAsString()) && object.has("tool_calls")) {
+                return object.has("reasoning_content") ? object.get("reasoning_content").getAsString() : null;
+            }
+        }
+        throw new AssertionError("no assistant message with a call in the last request");
+    }
+
+    @Test
+    void anAgentOnAnAIThatTakesTheThinkingBackGetsItsThinkingWithTheNextRound() throws Exception {
+        Agent agent = readingAgentWithPassthrough(com.github.enerccio.marginalia.domain.collections.ReasoningPassthrough.TOOL_CALLS);
+        llm.enqueue(MockLLMResponse.toolCall("get-book-info", "{}").withReasoning("I will read the book first."),
+                MockLLMResponse.toolCall("finish", "{\"summary\":\"done\"}"));
+
+        AgentRun run = await(startRun(agent));
+
+        assertThat(run.getStatus()).isEqualTo(AgentRunStatus.DONE);
+        assertThat(thinkingSentWithTheCall()).isEqualTo("I will read the book first.");
+        // the thinking stays out of the stored message: it has its own column
+        assertThat(messageService.transcript(run).get(1).getContent()).isNull();
+    }
+
+    @Test
+    void anAgentOnAnAIThatDoesNotTakeTheThinkingBackSendsNone() throws Exception {
+        Agent agent = readingAgentWithPassthrough(com.github.enerccio.marginalia.domain.collections.ReasoningPassthrough.NONE);
+        llm.enqueue(MockLLMResponse.toolCall("get-book-info", "{}").withReasoning("I will read the book first."),
+                MockLLMResponse.toolCall("finish", "{\"summary\":\"done\"}"));
+
+        await(startRun(agent));
+
+        assertThat(thinkingSentWithTheCall()).isNull();
+    }
+
     @Test
     void theModelCallsToolsUntilItFinishes() throws Exception {
         Agent agent = readingAgent();

@@ -11,6 +11,11 @@ public class LLMChatMessage {
     // null when there are none, so that the serialized payload of a plain message stays small
     private List<LLMToolCall> toolCalls;
     private String toolCallId;
+    // what the model thought before it wrote this message, null for none; sent back only as the AI is set to (ReasoningPassthrough)
+    // transient: it is never stored with the message (an agent keeps it in its own column) or logged with the payload
+    private transient String reasoning;
+    // the thinking belongs to the turn that is going on: the calls of the loop that runs now, not an answer of an earlier turn
+    private transient boolean reasoningInTurn;
 
     public LLMRole getRole() {
         return role;
@@ -66,6 +71,36 @@ public class LLMChatMessage {
 
     public void setToolCallId(String toolCallId) {
         this.toolCallId = toolCallId;
+    }
+
+    /** What the model thought before it wrote this message (an assistant message), null for none. */
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    public String getReasoning() {
+        return reasoning;
+    }
+
+    public void setReasoning(String reasoning) {
+        this.reasoning = reasoning == null || reasoning.isBlank() ? null : reasoning;
+    }
+
+    /**
+     * Whether the reasoning is of the turn that is going on (the tool calls the model made in the request that runs now): an AI set to
+     * send the thinking back only between tool calls sends it for these and not for the answers of earlier turns.
+     */
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    public boolean isReasoningInTurn() {
+        return reasoningInTurn;
+    }
+
+    public void setReasoningInTurn(boolean reasoningInTurn) {
+        this.reasoningInTurn = reasoningInTurn;
+    }
+
+    /** This message with the reasoning of the model; {@code inTurn} see {@link #isReasoningInTurn()}. */
+    public LLMChatMessage withReasoning(String reasoning, boolean inTurn) {
+        setReasoning(reasoning);
+        this.reasoningInTurn = inTurn;
+        return this;
     }
 
     public static LLMChatMessage of(LLMRole role, String content) {

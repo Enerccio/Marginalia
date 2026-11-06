@@ -993,6 +993,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_COMMAND_SET_PLANNED_SCENE_DONE, "标记计划的场景为已完成");
         setValue(L.LABEL_COMMAND_MOVE_PLANNED_SCENE, "移动计划的场景");
         setValue(L.LABEL_COMMAND_DELETE_PLANNED_SCENE, "删除计划的场景");
+        setValue(L.LABEL_REASONING_PASSTHROUGH, "回传思考内容");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -1174,6 +1175,9 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.ENUM_LORE_USAGE_STATUS_ALWAYS, "始终使用");
         setValue(L.ENUM_ACTIVATION_REASON_CONDITION_FALSE, "未使用：条件为假");
         setValue(L.ENUM_ACTIVATION_REASON_CONDITION_ERROR, "未使用：条件失败");
+        setValue(L.ENUM_REASONING_PASSTHROUGH_NONE, "无");
+        setValue(L.ENUM_REASONING_PASSTHROUGH_TOOL_CALLS, "工具调用之间");
+        setValue(L.ENUM_REASONING_PASSTHROUGH_ALWAYS, "始终");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "内部服务器错误");
@@ -1792,6 +1796,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.HELP_MATCH_BY_POSITION, "摘要按段落的 ID 匹配。来自另一本书的文件（副本的 ID 不同）请勾选此项：段落不在当前分支中的摘要会放到相同位置的摘要上。");
         setValue(L.HELP_ANNOTATE_INSTRUCTIONS, "模型为段落添加注释时要查找的内容，例如：指出连贯性错误、薄弱的对话。留空则使用注释提示词的默认任务。“用 AI 添加注释”窗口以此文本开头。");
         setValue(L.HELP_ACTIVATION_CONDITION, "与内容写法相同的模板（宏和 Handlebars），会根据视角人物、在场人物、指令和变量为每一回合渲染。只有结果为真（空、0、false、no、off 以外）时才会使用该条目。无法渲染的条件（错误、不存在的名称、超时）视为假，激活预览会说明原因。它在过滤器之前检查，对由其他条目内容找到的条目同样有效。可以使用只读命令，变量不会被修改。留空表示没有条件。");
+        setValue(L.HELP_REASONING_PASSTHROUGH, "是否在下一次请求中将模型的思考内容回传给模型(作为 reasoning_content)。工具调用之间:仅在一次回答的工具调用期间回传(Gemma 4 的预期用法)。始终:连同所有带思考内容的先前回答一起回传。大多数模型和服务器应选择“无”。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景设定与世界观。");

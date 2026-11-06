@@ -985,6 +985,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_COMMAND_SET_PLANNED_SCENE_DONE, "Mark planned scene done");
         setValue(L.LABEL_COMMAND_MOVE_PLANNED_SCENE, "Move planned scene");
         setValue(L.LABEL_COMMAND_DELETE_PLANNED_SCENE, "Delete planned scene");
+        setValue(L.LABEL_REASONING_PASSTHROUGH, "Send the thinking back");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -1166,6 +1167,9 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.ENUM_LORE_USAGE_STATUS_ALWAYS, "Always used");
         setValue(L.ENUM_ACTIVATION_REASON_CONDITION_FALSE, "Not used: condition is false");
         setValue(L.ENUM_ACTIVATION_REASON_CONDITION_ERROR, "Not used: condition failed");
+        setValue(L.ENUM_REASONING_PASSTHROUGH_NONE, "None");
+        setValue(L.ENUM_REASONING_PASSTHROUGH_TOOL_CALLS, "Between tool calls");
+        setValue(L.ENUM_REASONING_PASSTHROUGH_ALWAYS, "Always");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "Internal Server Error");
@@ -1784,6 +1788,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_MATCH_BY_POSITION, "Summaries are matched to parts by the id of the part. Tick this for a file from another book (a copy has other ids): a summary whose part is not in this branch goes to the summary at the same position.");
         setValue(L.HELP_ANNOTATE_INSTRUCTIONS, "What the model looks for when it annotates a part, for example: flag continuity errors, weak dialogue. Empty is the default task of the annotate prompt. The Annotate with AI window starts with this text.");
         setValue(L.HELP_ACTIVATION_CONDITION, "A template, written like the content (macros and Handlebars), that is rendered for the turn with the point of view, the present characters, the instructions and the variables. The entry is used only when the result is true: anything except empty, 0, false, no or off. A condition that cannot be rendered (an error, a name that does not exist, too much time) counts as false and the activation preview says why. It is checked before the filter, also for entries found by the content of other entries. Commands that only read can be used, variables are not changed. Leave empty for no condition.");
+        setValue(L.HELP_REASONING_PASSTHROUGH, "Whether the thinking of the model goes back to it in the next request (as reasoning_content). Between tool calls: only while the tool calls of one answer go on, as Gemma 4 expects. Always: with every earlier answer that has it too. Most models and servers want None.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Background lore and world context.");

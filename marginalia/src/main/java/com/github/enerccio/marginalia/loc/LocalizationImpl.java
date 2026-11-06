@@ -35,6 +35,7 @@ public class LocalizationImpl implements Localization, InitializingBean {
     private final Map<AIType, L> aiTypes = new HashMap<>();
     private final Map<ProtocolType, L> protocolTypes = new HashMap<>();
     private final Map<ReasoningEffort, L> reasoningEfforts = new HashMap<>();
+    private final Map<ReasoningPassthrough, L> reasoningPassthroughs = new HashMap<>();
     private final Map<LimitStrategy, L> limitStrategies = new HashMap<>();
     private final Map<ResetStrategy, L> resetStrategies = new HashMap<>();
     private final Map<BackupStrategy, L> backupStrategies = new HashMap<>();
@@ -104,6 +105,9 @@ public class LocalizationImpl implements Localization, InitializingBean {
         reasoningEfforts.put(ReasoningEffort.LOW, L.ENUM_REASONING_LOW);
         reasoningEfforts.put(ReasoningEffort.MEDIUM, L.ENUM_REASONING_MEDIUM);
         reasoningEfforts.put(ReasoningEffort.HIGH, L.ENUM_REASONING_HIGH);
+        reasoningPassthroughs.put(ReasoningPassthrough.NONE, L.ENUM_REASONING_PASSTHROUGH_NONE);
+        reasoningPassthroughs.put(ReasoningPassthrough.TOOL_CALLS, L.ENUM_REASONING_PASSTHROUGH_TOOL_CALLS);
+        reasoningPassthroughs.put(ReasoningPassthrough.ALWAYS, L.ENUM_REASONING_PASSTHROUGH_ALWAYS);
 
         limitStrategies.put(LimitStrategy.UNLIMITED, L.ENUM_LIMIT_UNLIMITED);
         limitStrategies.put(LimitStrategy.TOKEN_LIMIT, L.ENUM_LIMIT_TOKEN_LIMIT);
@@ -376,6 +380,11 @@ public class LocalizationImpl implements Localization, InitializingBean {
     public L getReasoningEffort(ReasoningEffort type) {
         return reasoningEfforts.get(type);
     }
+    @Override
+    public L getReasoningPassthrough(ReasoningPassthrough type) {
+        return reasoningPassthroughs.get(type);
+    }
+
     @Override
     public L getLimitStrategy(LimitStrategy type) {
         return limitStrategies.get(type);
