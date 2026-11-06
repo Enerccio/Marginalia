@@ -695,18 +695,35 @@ public class PlotWizardDialog extends Dialog {
         return new Card(root, text, reasoning, details, calls);
     }
 
+    /** The row of a tool call; a running one is filled with the result when it comes. */
+    private record CallRow(String name, Details details, Span body) {
+    }
+
     /** A tool the model called: its name and whether it worked, what it passed and what it got back under it. */
     private Component callRow(WizardCall call) {
-        Span body = new Span(StringUtils.abbreviate(StringUtils.defaultString(call.getArguments()), 4000) + "\n→ "
-                + StringUtils.abbreviate(StringUtils.defaultString(call.getResult()), 8000));
+        CallRow row = newCallRow(call.getName(), call.getArguments());
+        fill(row, call);
+        return row.details();
+    }
+
+    /** The row of a call that is running: the name and what the model passed, the result follows. */
+    private CallRow newCallRow(String name, String arguments) {
+        Span body = new Span(StringUtils.abbreviate(StringUtils.defaultString(arguments), 4000) + "\n→ …");
         body.addClassNames(ArcOutlineStyles.GENERATION_JSON);
-        Details details = new Details((call.isFailed() ? "✗ " : "✓ ") + call.getName(), body);
+        Details details = new Details("… " + name, body);
         details.setWidthFull();
         details.addClassName(ArcOutlineStyles.WIZARD_CALL);
+        return new CallRow(name, details, body);
+    }
+
+    /** Shows how the call ended, in the row it was shown in while it ran. */
+    private void fill(CallRow row, WizardCall call) {
+        row.body().setText(StringUtils.abbreviate(StringUtils.defaultString(call.getArguments()), 4000) + "\n→ "
+                + StringUtils.abbreviate(StringUtils.defaultString(call.getResult()), 8000));
+        row.details().setSummaryText((call.isFailed() ? "✗ " : "✓ ") + call.getName());
         if (call.isFailed()) {
-            details.addClassName(ArcOutlineStyles.WIZARD_CALL_FAILED);
+            row.details().addClassName(ArcOutlineStyles.WIZARD_CALL_FAILED);
         }
-        return details;
     }
 
     private Button small(Solid icon, String tooltip, com.vaadin.flow.component.ComponentEventListener<com.vaadin.flow.component.ClickEvent<Button>> listener) {
@@ -820,6 +837,7 @@ public class PlotWizardDialog extends Dialog {
         ok.setThemeName("primary");
         dialog.add(note);
         dialog.getFooter().add(new Button(T.localized(CANCEL), _ -> dialog.close()), ok);
+        DialogShortcuts.submitWith(ok, note);
         dialog.open();
     }
 
@@ -835,7 +853,6 @@ public class PlotWizardDialog extends Dialog {
             transcript.append(message.isFromUser() ? "Author: " : "Consultant: ")
                     .append(WizardContext.withCalls(message.getText(), message.getCalls()).strip()).append("\n\n");
         }
-        DialogShortcuts.submitWith(ok, note);
         List<LLMChatMessage> payload = new ArrayList<>();
         payload.add(LLMChatMessage.of(LLMRole.SYSTEM, WizardContext.summaryPrompt(Defaults.WIZARD_SUMMARY_PROMPT, note)));
         payload.add(LLMChatMessage.of(LLMRole.USER, transcript.toString().stripTrailing()));
@@ -856,12 +873,24 @@ public class PlotWizardDialog extends Dialog {
         StringBuilder text = new StringBuilder();
         StringBuilder reasoning = new StringBuilder();
         List<WizardCall> calls = new ArrayList<>();
+        // the calls that run now, shown before their result is there
+        List<CallRow> pending = new ArrayList<>();
         UI ui = UI.getCurrent();
+        FunctionSet observed = functions.isEmpty() ? functions : functions.whenCalled((name, arguments) -> ui.access(() -> {
+            Card card = streaming;
+            if (card != null) {
+                CallRow row = newCallRow(name, arguments);
+                pending.add(row);
+                card.calls().add(row.details());
+                JavascriptLibrary.scrollToBottomIfAtBottom(messagesPanel.getElement());
+            }
+            UIPushGuard.push(ui);
+        }));
         running = true;
         updateControls();
         try (InferenceSession _ = InferenceSession.open("arc-outline"); UsageContext _ = UsageContext.open(manuscript)) {
             token = inferenceServices.forAIOrThrow(modelPicker.getAi()).stream(payload, modelPicker.getProtocol(),
-                    functions, callback(ui, answer, text, reasoning, calls));
+                    observed, callback(ui, answer, text, reasoning, calls, pending));
         } catch (Exception e) {
             // nothing runs, do not leave the controls frozen
             running = false;
@@ -873,7 +902,7 @@ public class PlotWizardDialog extends Dialog {
     }
 
     private InferenceService.InferenceAsyncCallback callback(UI ui, WizardMessage answer, StringBuilder text, StringBuilder reasoning,
-                                                             List<WizardCall> calls) {
+                                                             List<WizardCall> calls, List<CallRow> pending) {
         return new InferenceService.InferenceAsyncCallback() {
             @Override
             public void onChunk(InferenceService.InferenceAsyncController controller, InferenceService.ChunkType type, String chunk) {
@@ -901,8 +930,14 @@ public class PlotWizardDialog extends Dialog {
                     WizardCall made = new WizardCall(call.getName(), call.getArguments(), result, failed);
                     calls.add(made);
                     Card card = streaming;
-                    if (card != null) {
+                    CallRow row = pending.stream().filter(p -> p.name().equals(call.getName())).findFirst().orElse(null);
+                    if (row != null) {
+                        pending.remove(row);
+                        fill(row, made);
+                    } else if (card != null) {
                         card.calls().add(callRow(made));
+                    }
+                    if (card != null) {
                         JavascriptLibrary.scrollToBottomIfAtBottom(messagesPanel.getElement());
                     }
                     UIPushGuard.push(ui);
