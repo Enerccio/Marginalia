@@ -31,7 +31,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 
@@ -55,6 +57,8 @@ public class ImagesDialog extends Dialog implements LLMInteract {
 
     private final VerticalLayout list = new VerticalLayout();
     private final MessageImages renderer = new MessageImages(List.of());
+    /** Per image (by index): shows a saved layout in the controls that are already there, so a change does not build the dialog again. */
+    private final Map<Integer, Consumer<ImageAttachment>> syncs = new HashMap<>();
     private ChatMessage message;
 
     public ImagesDialog(ChatMessage message, Consumer<ChatMessage> onChanged) {
@@ -119,15 +123,16 @@ public class ImagesDialog extends Dialog implements LLMInteract {
     /**
      * Saves the image at the index as the function changes it.
      *
-     * @param redraw true to build the controls again (the change affects what the other controls offer)
+     * @param redraw true to show the new layout in the controls of the image again (the change affects what the other controls offer); nothing else is built again
      */
-    @PublicAPI(from = "1.6.0",
+    @PublicAPI(from = "1.7.0",
             returns = @APIReturn(type = void.class),
             parameters = {@APIParameter(name = "index", type = int.class),
                     @APIParameter(name = "change", type = UnaryOperator.class),
                     @APIParameter(name = "redraw", type = boolean.class),
                     @APIParameter(name = "onChanged", type = Consumer.class)},
             locals = {@APILocals(name = "current", type = List.class),
+                    @APILocals(name = "sync", type = Consumer.class),
                     @APILocals(name = "ex", type = Exception.class)})
     private void change(int index, UnaryOperator<ImageAttachment> change, boolean redraw, Consumer<ChatMessage> onChanged) {
         try {
@@ -136,7 +141,13 @@ public class ImagesDialog extends Dialog implements LLMInteract {
             message.setImages(current);
             message = chatMessageService.save(message);
             if (redraw) {
-                refresh(onChanged);
+                // the controls of the image show the new layout themselves (what the other controls offer follows from it); the rest of the dialog stays as it is
+                Consumer<ImageAttachment> sync = syncs.get(index);
+                if (sync != null) {
+                    sync.accept(message.getImages().get(index));
+                } else {
+                    refresh(onChanged);
+                }
             }
             onChanged.accept(message);
         } catch (Exception ex) {
@@ -155,6 +166,7 @@ public class ImagesDialog extends Dialog implements LLMInteract {
                     @APIParameter(name = "onChanged", type = Consumer.class)},
             locals = {@APILocals(name = "anchor", type = ImageAnchor.class),
                     @APILocals(name = "picker", type = Div.class),
+                    @APILocals(name = "dots", type = List.class),
                     @APILocals(name = "candidate", type = ImageAnchor.class),
                     @APILocals(name = "dot", type = Div.class),
                     @APILocals(name = "button", type = Button.class),
@@ -171,9 +183,11 @@ public class ImagesDialog extends Dialog implements LLMInteract {
 
         Div picker = new Div();
         picker.addClassName(CssStyles.IMAGE_ANCHOR_PICKER);
+        List<Div> dots = new ArrayList<>();
         for (ImageAnchor candidate : ImageAnchor.values()) {
             boolean selected = candidate == anchor;
             Div dot = new Div();
+            dots.add(dot);
             dot.addClassName(CssStyles.IMAGE_ANCHOR_DOT);
             if (selected) {
                 dot.addClassName(CssStyles.IMAGE_ANCHOR_DOT_SELECTED);
@@ -223,6 +237,18 @@ public class ImagesDialog extends Dialog implements LLMInteract {
         row.setAlignItems(FlexComponent.Alignment.START);
         Span hint = new Span(loc.getValue(L.HELP_IMAGE_LAYOUT));
         hint.addClassNames(CssStyles.TEXT_S, CssStyles.TEXT_SECONDARY);
+        syncs.put(index, saved -> {
+            ImageAnchor now = saved.effectiveAnchor();
+            for (int i = 0; i < dots.size(); i++) {
+                dots.get(i).setClassName(CssStyles.IMAGE_ANCHOR_DOT_SELECTED, ImageAnchor.values()[i] == now);
+            }
+            wrap.setValue(saved.wrap());
+            automatic.setValue(saved.width() == null);
+            width.setMax(saved.maxWidth());
+            Integer effective = saved.effectiveWidth();
+            width.setValue(effective == null ? Math.min(50, width.getMax()) : effective);
+            width.setEnabled(saved.width() != null);
+        });
         return new Div(row, hint);
     }
 
@@ -239,6 +265,7 @@ public class ImagesDialog extends Dialog implements LLMInteract {
                     @APILocals(name = "e", type = Exception.class)})
     private void refresh(Consumer<ChatMessage> onChanged) {
         list.removeAll();
+        syncs.clear();
         List<ImageAttachment> images = message.getImages();
         for (int i = 0; i < images.size(); i++) {
             int index = i;

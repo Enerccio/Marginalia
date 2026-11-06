@@ -145,6 +145,31 @@ class ImagesDialogTest extends MarginaliaTestBase {
     }
 
     @Test
+    void aChangeOfThePlaceDoesNotBuildTheDialogAgain() throws Exception {
+        Button place = button(loc.getValue(L.ENUM_IMAGE_ANCHOR_CENTER_RIGHT));
+        Checkbox wrap = checkbox(loc.getValue(L.LABEL_IMAGE_WRAP));
+        IntegerField width = width();
+        com.vaadin.flow.component.textfield.TextField caption = components().filter(com.vaadin.flow.component.textfield.TextField.class::isInstance)
+                .map(com.vaadin.flow.component.textfield.TextField.class::cast).findFirst().orElseThrow();
+
+        place.click();
+
+        // the same components, the new place shown in them (a new set would flash and lose the focus of the caption)
+        assertThat(button(loc.getValue(L.ENUM_IMAGE_ANCHOR_CENTER_RIGHT))).isSameAs(place);
+        assertThat(checkbox(loc.getValue(L.LABEL_IMAGE_WRAP))).isSameAs(wrap);
+        assertThat(width()).isSameAs(width);
+        assertThat(components().filter(com.vaadin.flow.component.textfield.TextField.class::isInstance).findFirst().orElseThrow()).isSameAs(caption);
+        assertThat(isChosen(place)).isTrue();
+        assertThat(isChosen(button(loc.getValue(L.ENUM_IMAGE_ANCHOR_BOTTOM_CENTER)))).isFalse();
+        // what the layout offers follows it: with the text flowing beside the image it is at most 60 percent wide, with the check box set from the dialog itself
+        assertThat(width.getMax()).isEqualTo(saved().maxWidth());
+        wrap.setValue(true);
+        fromClientEvent(wrap, false);
+        assertThat(width.getMax()).isEqualTo(com.github.enerccio.marginalia.domain.model.ImageAttachment.MAX_WRAPPED_WIDTH);
+        assertThat(checkbox(loc.getValue(L.LABEL_IMAGE_WRAP))).isSameAs(wrap);
+    }
+
+    @Test
     void theTextCanFlowAroundAnImageAtTheSideOrOnBothSidesOfOneInTheMiddle() throws Exception {
         button(loc.getValue(L.ENUM_IMAGE_ANCHOR_CENTER_RIGHT)).click();
         Checkbox wrap = checkbox(loc.getValue(L.LABEL_IMAGE_WRAP));
