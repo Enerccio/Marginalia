@@ -105,7 +105,7 @@ class ExporterFootnotesTest extends MarginaliaTestBase {
     @Test
     void pdfHasTheNote() throws Exception {
         try (PDDocument document = Loader.loadPDF(export("pdf"))) {
-            assertThat(new PDFTextStripper().getText(document)).contains("and left.").contains("[7]").contains("Mara: I see the enemy.");
+            assertThat(new PDFTextStripper().getText(document)).contains("and left.").contains("Mara: I see the enemy.");
         }
     }
 }

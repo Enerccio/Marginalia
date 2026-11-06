@@ -37,7 +37,7 @@ another version of the story, switch to that branch first.
 | **Markdown** (`.md`) | The text as it is written in the story, for editors such as Obsidian or Typora, a static site or a repository. Emphasis, headings, quotes, lists, code blocks and scene breaks stay Markdown. Raw HTML in the text is kept as typed, the Markdown reader decides whether to show it. |
 | **HTML** (`.html`) | One page with a book-like style included, so it looks the same in every browser. It can be printed and has no external files. |
 | **Word document** (`.docx`) | Opens in Word, LibreOffice and similar programs. Justified text, with the title and author set in the file properties. |
-| **PDF** (`.pdf`) | A5 pages with embedded fonts that cover Latin, Greek and Cyrillic text. |
+| **PDF** (`.pdf`) | A5 pages with embedded fonts that cover Latin, Greek and Cyrillic text, and a bundled Japanese font (Noto Sans JP) for kana, kanji and Japanese punctuation. Text of another script (Chinese-only characters, Korean, Arabic) is not drawn: the PDF has no font for it. |
 | **EPUB** (`.epub`) | An e-book for e-readers and reading apps. Long books are split into several files inside the EPUB so readers stay fast. |
 | **HTML for Archive of Our Own** (`.html`) | For posting on AO3, see [below](#for-other-tools). |
 | **Markdown with front matter** (`.md`) | For static site generators, see [below](#for-other-tools). |
@@ -49,7 +49,7 @@ every format that can show them. Raw HTML in the text is shown as text, never ru
 
 ## Footnotes
 
-A footnote is written in the text of a part as `[^1]` where the mark stands and `[^1]: the note` on a line of its own (the label can be any word). Every format has them: **Markdown** keeps the syntax, **HTML**, **EPUB** and **HTML for Archive of Our Own** put a small raised number that links to the notes under the text of the part (AO3 gets the plain markup its editor keeps), **plain text**, **Word** and **PDF** write the mark as `[1]` and the notes as lines that start with `[1]` after the text of the part, which is how an endnote looks. Real footnotes at the bottom of the page of a Word document or a PDF are not made yet. Extensions can use them, too: the Conlang Translator extension writes the English of each speech as a footnote.
+A footnote is written in the text of a part as `[^1]` where the mark stands and `[^1]: the note` on a line of its own (the label can be any word). Every format has them: **Markdown** keeps the syntax, **HTML**, **EPUB** and **HTML for Archive of Our Own** put a small raised number that links to the notes under the text of the part (AO3 gets the plain markup its editor keeps), **plain text** and **Word** write the mark as `[1]` and the notes as lines that start with `[1]` after the text of the part, which is how an endnote looks. The **PDF** has real footnotes: the mark is a small raised number, and the note stands at the bottom of the same page, in a smaller type under a short rule (the pages are laid out until every page has the room its notes need). Real footnotes in a Word document are not made yet. Extensions can use them, too: the Conlang Translator extension writes the English of each speech as a footnote.
 
 ## Images
 
