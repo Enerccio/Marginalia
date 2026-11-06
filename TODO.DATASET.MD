@@ -254,6 +254,9 @@ A lighter output of the same build, for new users: the story as an example book 
   the licence: **CC0 1.0** (decided). Only possible because the world is original; the package includes the CC0 notice
   and the README says the text may be used for anything. Check that nothing in it is third-party (no borrowed names, lore or
   text), and that `vrakht.md`, the language it converts, is the user's own work and covered by the same dedication.
+  **The picture** (part 31, `work/dataset/cover.png`, attached by the harness) is not covered by it: *Interior of a Cottage in Scheveningen* (1887) by
+  Willem Adriaan Alexander Liernur, public domain, from Rawpixel (https://www.rawpixel.com/image/13744617/image-face-person-art); the caption of the
+  image says so and the README of the package must repeat it.
 - **Where it lives:** first as a download in the manual (next to the pages; `tools/retype_build.sh`, and `docs/` is committed
   with every `manual/` change); a "Add example book" button in the app (bundled resource, 3 languages, docs, changelog) only later.
 - **Test:** the package imports into a fresh installation with no AI configured, with and without the two plugins, and the

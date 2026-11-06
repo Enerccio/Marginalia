@@ -32,6 +32,10 @@ class ExportRoundTripCheck extends MarginaliaTestBase {
     private ManuscriptService manuscriptService;
     @Autowired
     private LorebookService lorebookService;
+    @Autowired
+    private com.github.enerccio.marginalia.domain.service.BackupService backupService;
+    @Autowired
+    private com.github.enerccio.marginalia.domain.service.ChatMessageService chatMessageService;
 
     private record Counts(int messages, int summaries, int annotations, int revisions, int words) {
     }
@@ -81,6 +85,21 @@ class ExportRoundTripCheck extends MarginaliaTestBase {
             if (key.startsWith("attributes_")) {
                 assertEquals(true, b.has(key), "book data lost: " + key);
             }
+        }
+        // the archive with the pictures (book.zip), restored the way the import of the app does it
+        Path archive = file.resolveSibling("book.zip");
+        if (Files.exists(archive)) {
+            Manuscript restored = backupService.restoreAsNewManuscript(archive.toFile(), "from the archive", java.util.Map.of());
+            JsonObject fromArchive = manuscriptService.createBackup(restored, true);
+            Counts viaArchive = count(fromArchive);
+            long pictures = 0;
+            for (JsonElement element : fromArchive.getAsJsonArray("messages")) {
+                JsonObject extended = element.getAsJsonObject().getAsJsonObject("extendedContent");
+                pictures += extended != null && extended.has("imageAttachments") ? 1 : 0;
+            }
+            System.out.println("[roundtrip] archive: " + viaArchive + ", parts with a picture: " + pictures);
+            assertEquals(before, viaArchive);
+            assertEquals(1, pictures, "the picture of the archive");
         }
         JsonArray lorebooks = again.getAsJsonArray("lorebooks");
         System.out.println("[roundtrip] lorebooks linked to the clone: " + (lorebooks == null ? 0 : lorebooks.size()));

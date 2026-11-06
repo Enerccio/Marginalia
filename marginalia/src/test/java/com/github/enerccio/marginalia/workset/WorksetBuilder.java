@@ -82,6 +82,10 @@ class WorksetBuilder extends MarginaliaTestBase {
     @Autowired
     private LorebookService lorebookService;
     @Autowired
+    private ResourceService resourceService;
+    @Autowired
+    private BackupService backupService;
+    @Autowired
     private ChatMessageService chatMessageService;
     @Autowired
     private MessagePromptService messagePromptService;
@@ -314,10 +318,19 @@ class WorksetBuilder extends MarginaliaTestBase {
             }
         }
 
+        illustrate(skeletonDir, bookId);
+
         // ---- what a run leaves behind
         Manuscript finished = manuscriptService.find(bookId);
         Files.createDirectories(dir.resolve("export"));
         Files.writeString(dir.resolve("export/book.json"), GSON.toJson(manuscriptService.createBackup(finished, true)), StandardCharsets.UTF_8);
+        // the same book as the archive of the app (backup.json, the list of the images and the images themselves): the JSON alone has only the references to the pictures
+        BackupService.BackupExport archive = backupService.exportBackup(backupService.takeBackup(finished, true), true, false, () -> {
+        });
+        Files.move(archive.file().toPath(), dir.resolve("export/book.zip"), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+        if (archive.missingImages() > 0) {
+            System.out.println("[workset] WARNING: " + archive.missingImages() + " image(s) could not be packed into export/book.zip");
+        }
         // the lorebook of the book in the file format of the lorebook import: a book backup only links its lorebook, so a new instance needs this file first
         Lorebook bookLorebook = finished.getLorebook() == null ? null : lorebookService.find(finished.getLorebook());
         if (bookLorebook != null) {
@@ -326,6 +339,32 @@ class WorksetBuilder extends MarginaliaTestBase {
         writeReview(doneThisRun);
         printTable(done);
         System.out.println("[workset] the book has " + done + " of " + skeleton.beats.size() + " parts; export: " + dir.resolve("export/book.json"));
+    }
+
+    /** The part of the main line the picture belongs to: the first visit to the herb-woman's hut (Aelmoria's hearth). */
+    private static final int ILLUSTRATED_PART = 31;
+    private static final String ILLUSTRATION_CAPTION = "Interior of a Cottage in Scheveningen (1887), Willem Adriaan Alexander Liernur. Public domain, via Rawpixel "
+            + "(https://www.rawpixel.com/image/13744617/image-face-person-art).";
+
+    /**
+     * Attaches the picture {@code cover.png} of the dataset folder (a public domain painting, see {@code TODO.DATASET.MD}) to one part, once: an image of a part is shown with
+     * it, never reaches the model and travels in the exports. Skipped when the file or the part is missing or the part already has an image.
+     */
+    private void illustrate(Path skeletonDir, long bookId) throws Exception {
+        Path file = skeletonDir.resolve("cover.png");
+        List<ChatMessage> parts = chain(manuscriptService.find(bookId));
+        if (!Files.exists(file) || parts.size() < ILLUSTRATED_PART) {
+            return;
+        }
+        ChatMessage part = chatMessageService.find(parts.get(ILLUSTRATED_PART - 1).getId());
+        if (!part.getImages().isEmpty()) {
+            return;
+        }
+        Resource picture = resourceService.uploadImage("hut-interior.png", Files.readAllBytes(file), ChatMessage.class, part.getId());
+        part.setImages(List.of(new com.github.enerccio.marginalia.domain.model.ImageAttachment(picture.getUuid(), ILLUSTRATION_CAPTION)));
+        ChatMessage saved = chatMessageService.save(part);
+        System.out.println("[workset] picture attached to part " + ILLUSTRATED_PART + ": saved has " + saved.getImages().size() + ", stored has " + chatMessageService.find(part.getId()).getImages().size()
+                + ", the book's part has " + chain(manuscriptService.find(bookId)).get(ILLUSTRATED_PART - 1).getImages().size());
     }
 
     // -------------------------------------------------------------------------------------------------------- generation
