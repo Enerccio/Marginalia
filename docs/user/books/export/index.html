@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847251041713">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847283536935">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.847251041713" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.847283536935" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847251041713" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847283536935" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847251041713" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847283536935" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -264,7 +264,8 @@ bar shows how far it is.</p>
 | **HTML for Archive of Our Own** (`.html`) | For posting on AO3, see [below](#for-other-tools). |
 | **Markdown with front matter** (`.md`) | For static site generators, see [below](#for-other-tools). |
 | **SillyTavern chat** (`.jsonl`) | The story as a chat, see [below](#for-other-tools). |
-| **Obsidian vault** (`.zip`) | The chapters and the lorebook as linked notes, see [below](#for-other-tools). |">
+| **Obsidian vault** (`.zip`) | The chapters and the lorebook as linked notes, see [below](#for-other-tools). |
+| **LaTeX** (`.zip`) | A LaTeX project of the book (`main.tex` and the images), see [below](#for-other-tools). |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -314,6 +315,10 @@ bar shows how far it is.</p>
 <td><strong>Obsidian vault</strong> (<code translate="no" v-pre>.zip</code>)</td>
 <td>The chapters and the lorebook as linked notes, see <doc-anchor-trigger to="#for-other-tools">below</doc-anchor-trigger>.</td>
 </tr>
+<tr>
+<td><strong>LaTeX</strong> (<code translate="no" v-pre>.zip</code>)</td>
+<td>A LaTeX project of the book (<code translate="no" v-pre>main.tex</code> and the images), see <doc-anchor-trigger to="#for-other-tools">below</doc-anchor-trigger>.</td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -335,6 +340,7 @@ its size, scaled down to the page). Not every format can put text beside a pictu
 | **Plain text** | Marked with `[Image]` or `[Image: caption]` at their place in the text. |
 | **HTML for Archive of Our Own** | Marked with `[Image: caption]`: AO3 takes images only from links. |
 | **Obsidian vault** | Saved in the `Attachments` folder of the vault and embedded in the note of their chapter at their place, with the caption in italics. |
+| **LaTeX** | Saved in the `images` folder of the project and included in the text at their place (a figure in the width of the picture, never wider than the text) with the caption under it. The text does not flow around them. |
 | **SillyTavern chat** | Left out, a chat has only text. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -374,6 +380,10 @@ its size, scaled down to the page). Not every format can put text beside a pictu
 <td>Saved in the <code translate="no" v-pre>Attachments</code> folder of the vault and embedded in the note of their chapter at their place, with the caption in italics.</td>
 </tr>
 <tr>
+<td><strong>LaTeX</strong></td>
+<td>Saved in the <code translate="no" v-pre>images</code> folder of the project and included in the text at their place (a figure in the width of the picture, never wider than the text) with the caption under it. The text does not flow around them.</td>
+</tr>
+<tr>
 <td><strong>SillyTavern chat</strong></td>
 <td>Left out, a chat has only text.</td>
 </tr>
@@ -401,6 +411,15 @@ of the entry are the tags of the note, its comment is a callout), and the images
 an entry (a name of at least three characters, whole words, as spelled) is a link to its note, so the graph view shows which entry is in which
 chapter. A part with a heading starts a chapter; parts before the first heading are the note <em>Beginning</em> (or <em>Story</em> when the book has no headings).
 The front matter and the title page are templates you can change in <a href="../../account/#exports">Settings → Exports</a>.</p>
+<p><strong>LaTeX.</strong> A ZIP with a folder named after the book. <code translate="no" v-pre>main.tex</code> is a <code translate="no" v-pre>book</code> that compiles with <code translate="no" v-pre>pdflatex</code>, <code translate="no" v-pre>xelatex</code> or <code translate="no" v-pre>lualatex</code> and the images of the parts are in <code translate="no" v-pre>images</code>. The title page is a <code translate="no" v-pre>titlepage</code> made of the
+<a href="../../account/#exports">title page template</a>. The shallowest heading of the story is a chapter, the next level a section and so on; they are not
+numbered (a story names its chapters itself) but they are listed in a table of contents. Emphasis, quotes, lists, code blocks and scene breaks
+become what they are in LaTeX, the footnotes are real footnotes, the characters that mean something to LaTeX are written as text, and the language
+of the book selects the hyphenation (<code translate="no" v-pre>babel</code>) when it is one of the common ones. A book with Japanese, Chinese or Korean text needs <code translate="no" v-pre>xelatex</code> or <code translate="no" v-pre>lualatex</code> (<code translate="no" v-pre>pdflatex</code> stops with a message): the file loads <code translate="no" v-pre>xeCJK</code> or
+<code translate="no" v-pre>luatexja</code> for it, and with <code translate="no" v-pre>xelatex</code> you set a font that has your characters (the line to change is in the comment above it, for example
+<code translate="no" v-pre>\setCJKmainfont{Noto Serif CJK JP}</code>), otherwise only the Chinese font that comes with <code translate="no" v-pre>xeCJK</code> is used. Upload the ZIP to <a href="https://www.overleaf.com">Overleaf</a> or unpack it
+and run <code translate="no" v-pre>pdflatex main.tex</code> (twice, for the table of contents). The print style does not apply: the look is the one of the class, change it in the
+preamble of <code translate="no" v-pre>main.tex</code>.</p>
 <h2 id="print-styles">Print styles</h2>
 <p>The export uses the text styles of <a href="../../account/#styles">Settings → Styles</a> that are marked <strong>For exports</strong>. Styles are either for books
 (the story and the reader) or for exports: the <em>Change Styles For Text</em> menu and the reader show only the first kind, the export dialog only the
@@ -563,7 +582,7 @@ all of it, make a <a href="../backups/">backup</a>.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (13b37e9a8).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (abc080165).</p></div>
             </footer>
         </div>
     </div>

@@ -39,17 +39,24 @@ public class SillyTavernImportRunner {
      * Stores the parts of the tree in the book.
      */
     public void run(Manuscript manuscript, SillyTavernChats.Tree tree, Continuation afterwards) {
+        run(ChatImportFormat.SILLYTAVERN, manuscript, tree, afterwards);
+    }
+
+    /**
+     * Stores the parts of the tree made of the chats of a program in the book.
+     */
+    public void run(ChatImportFormat format, Manuscript manuscript, SillyTavernChats.Tree tree, Continuation afterwards) {
         AtomicReference<ImportResult<Manuscript>> result = new AtomicReference<>();
         AtomicReference<Exception> failure = new AtomicReference<>();
 
         ProgressBarDialog progress = new ProgressBarDialog(true, true);
-        progress.setTitle(loc.getValue(L.MSG_IMPORTING_SILLYTAVERN));
+        progress.setTitle(loc.getValue(format.progress()));
         progress.setTotal((long) tree.size());
         progress.setCancelLabel(L.LABEL_STOP);
         progress.create();
         progress.setAction(dialog -> {
             try {
-                result.set(sillyTavernImportService.importTree(manuscript, tree, dialog::isCancelled, dialog::updateProgress));
+                result.set(sillyTavernImportService.importTree(manuscript, tree, format.source(), dialog::isCancelled, dialog::updateProgress));
             } catch (Exception e) {
                 failure.set(e);
             }

@@ -1,5 +1,7 @@
 package com.github.enerccio.marginalia.extensions.reallangtranslator.model;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -24,6 +26,8 @@ public class RealLanguage {
     private String names = "";
     /** Anything else the translator should hold to. */
     private String rules = "";
+    /** The glossary of the language: the names and terms every book in this language writes the same way (the farthest level of the glossary). */
+    private List<GlossaryEntry> glossary = new ArrayList<>();
 
     public String getId() {
         return id;
@@ -96,5 +100,17 @@ public class RealLanguage {
 
     public void setRules(String rules) {
         this.rules = rules;
+    }
+
+    /** The language's own entries of the glossary, never null. */
+    public List<GlossaryEntry> getGlossary() {
+        if (glossary == null) {
+            glossary = new ArrayList<>();
+        }
+        return glossary;
+    }
+
+    public void setGlossary(List<GlossaryEntry> glossary) {
+        this.glossary = glossary == null ? new ArrayList<>() : new ArrayList<>(glossary);
     }
 }

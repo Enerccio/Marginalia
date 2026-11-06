@@ -34,6 +34,10 @@ public enum RevisionDetail {
      */
     SILLYTAVERN_IMPORT,
     /**
+     * Imported from a conversation of LM Studio.
+     */
+    LMSTUDIO_IMPORT,
+    /**
      * The text was put into another language by an extension: what it says is the same
      * ({@code ChatMessageService#replaceText}).
      */

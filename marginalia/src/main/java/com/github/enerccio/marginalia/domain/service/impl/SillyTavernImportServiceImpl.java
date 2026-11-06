@@ -29,8 +29,8 @@ public class SillyTavernImportServiceImpl implements SillyTavernImportService {
 
     @Override
     @NoTx
-    public ImportResult<Manuscript> importTree(Manuscript manuscript, SillyTavernChats.Tree tree, BooleanSupplier stopped,
-                                               Runnable onStored) throws Exception {
+    public ImportResult<Manuscript> importTree(Manuscript manuscript, SillyTavernChats.Tree tree, RevisionDetail source,
+                                               BooleanSupplier stopped, Runnable onStored) throws Exception {
         List<Node> order = tree.inStoringOrder();
         Map<Node, ChatMessage> stored = new IdentityHashMap<>();
         int imported = 0;
@@ -47,7 +47,7 @@ public class SillyTavernImportServiceImpl implements SillyTavernImportService {
             part.setModelUsed(node.alternative().model());
             ChatMessage saved = chatMessageService.addPart(manuscript, node.parent() == null ? null : stored.get(node.parent()), part,
                     // the text was written elsewhere: an import is not the work of the author or of a model on this book
-                    (node.alternative().model() == null ? RevisionOrigin.human(RevisionDetail.SILLYTAVERN_IMPORT, false)
+                    (node.alternative().model() == null ? RevisionOrigin.human(source, false)
                             : RevisionOrigin.model(RevisionSource.GENERATE, node.alternative().model(), false, node.alternative().reasoning()))
                             .uncounted());
             stored.put(node, saved);

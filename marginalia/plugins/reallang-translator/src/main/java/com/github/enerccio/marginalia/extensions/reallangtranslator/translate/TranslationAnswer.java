@@ -13,8 +13,9 @@ import java.util.List;
  * a code fence or write a word before it), checked by {@link AnswerChecker}.
  *
  * @param translations the speeches, in the order of the part
+ * @param names         the names and special terms the model had to choose a written form for (proposed for the glossary); never null
  */
-public record TranslationAnswer(List<Entry> translations) {
+public record TranslationAnswer(List<Entry> translations, List<Name> names) {
 
     private static final Gson GSON = new Gson();
 
@@ -28,6 +29,22 @@ public record TranslationAnswer(List<Entry> translations) {
         public Speech speech() {
             return new Speech(quote, speaker, language, text, choice, understood, register);
         }
+    }
+
+    /**
+     * A name or a special term the model chose a written form for.
+     *
+     * @param source  the word as the English writes it
+     * @param written how the model wrote it
+     * @param reading how it is read, may be empty
+     * @param note    a few words, may be empty
+     */
+    public record Name(String source, String written, String reading, String note) {
+    }
+
+    /** An answer with no names, for the code that makes one by hand. */
+    public TranslationAnswer(List<Entry> translations) {
+        this(translations, List.of());
     }
 
     /**
@@ -45,7 +62,12 @@ public record TranslationAnswer(List<Entry> translations) {
             }
             List<Entry> cleaned = new ArrayList<>();
             answer.translations.stream().filter(item -> item != null).forEach(cleaned::add);
-            return new TranslationAnswer(cleaned);
+            List<Name> names = new ArrayList<>();
+            if (answer.names != null) {
+                answer.names.stream().filter(name -> name != null && name.source() != null && !name.source().isBlank()
+                        && name.written() != null && !name.written().isBlank()).forEach(names::add);
+            }
+            return new TranslationAnswer(cleaned, names);
         } catch (JsonParseException e) {
             return null;
         }

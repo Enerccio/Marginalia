@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847251041713">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847283536935">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.847251041713" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.847283536935" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847251041713" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847283536935" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847251041713" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.847251041713" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847283536935" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.847283536935" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -820,7 +820,11 @@ summaries - updates the UI with <code translate="no" v-pre>ui.access(...)</code>
 <p>Background threads have no HTTP request, so session-scoped beans (the current <code translate="no" v-pre>user</code>) would not resolve.
 <code translate="no" v-pre>generateNextTurn</code> therefore captures the request attributes in a <code translate="no" v-pre>ThreadCopyRequestAttributes</code> and the engine wraps
 its work in <code translate="no" v-pre>ThreadCopyRequestAttributes.InRequestScope</code>, which makes the session of the user who started the
-generation current on the worker thread.</p>
+generation current on the worker thread. The session scope of the copy is a <strong>copy of the session&#x27;s attributes</strong>
+taken when the copy is made (a bean the worker adds goes to the copy and, while the session lives, to the session
+too), because the session may be invalid when the worker is done: the last page of a browser that is closed while
+the model works closes the session. The UI is a different matter: a worker that shows its result calls <code translate="no" v-pre>ui.access</code>
+and catches <code translate="no" v-pre>UIDetachedException</code> (the result is written, only the page does not see it).</p>
 <p>An <a href="../agents/">agent</a> run is not started by a request at all: <code translate="no" v-pre>AgentRunner</code> works it in a background worker of its own
 (a thread pool, one round of the model at a time) and sets up the request context from the run, not from a browser:
 <code translate="no" v-pre>AgentRequestAttributes</code> make the <code translate="no" v-pre>user</code> bean resolve to the owner of the agent and the session point an
@@ -1106,7 +1110,7 @@ refused, so an extension can&#x27;t replace English.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (13b37e9a8).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (abc080165).</p></div>
             </footer>
         </div>
     </div>

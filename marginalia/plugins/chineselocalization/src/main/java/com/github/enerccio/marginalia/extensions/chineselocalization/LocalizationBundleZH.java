@@ -975,6 +975,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_TRANSLATION, "翻译");
         setValue(L.LABEL_CLEAR_SAVED_LOGINS, "清除已保存的登录（记住我）");
         setValue(L.LABEL_RESUMMARIZE_ALL_SUMMARIES, "重新生成所有摘要");
+        setValue(L.LABEL_IMPORT_FROM_LMSTUDIO, "从 LM Studio 导入");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -1655,6 +1656,9 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_RESUMMARIZE_FINISHED, "已重新撰写 %d 条摘要。");
         setValue(L.MSG_RESUMMARIZE_STOPPED, "已停止，摘要未更改。");
         setValue(L.MSG_RESUMMARIZE_NO_SUMMARIES, "没有可重新撰写的摘要。");
+        setValue(L.MSG_IMPORT_LMSTUDIO, "上传一个或多个 LM Studio 对话（.conversation.json，位于主目录下的 .lmstudio/conversations 文件夹）。开头相同的对话会合并为一棵树，消息重新生成的回答会成为备选段落。结果是一本新书。");
+        setValue(L.MSG_INVALID_LMSTUDIO_CHAT, "%s 不是 LM Studio 对话（.conversation.json）。");
+        setValue(L.MSG_IMPORTING_LMSTUDIO, "正在从 LM Studio 导入");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");

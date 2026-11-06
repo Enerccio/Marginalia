@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.service;
 
+import com.github.enerccio.marginalia.domain.collections.RevisionDetail;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.ArchiveImportService.ImportResult;
 import com.github.enerccio.marginalia.utils.SillyTavernChats;
@@ -23,6 +24,17 @@ public interface SillyTavernImportService {
      * @param onStored called after each part was stored
      * @throws IllegalArgumentException when the manuscript is not the user's
      */
-    ImportResult<Manuscript> importTree(Manuscript manuscript, SillyTavernChats.Tree tree, BooleanSupplier stopped,
-                                        Runnable onStored) throws Exception;
+    default ImportResult<Manuscript> importTree(Manuscript manuscript, SillyTavernChats.Tree tree, BooleanSupplier stopped,
+                                                Runnable onStored) throws Exception {
+        return importTree(manuscript, tree, RevisionDetail.SILLYTAVERN_IMPORT, stopped, onStored);
+    }
+
+    /**
+     * Like {@link #importTree(Manuscript, SillyTavernChats.Tree, BooleanSupplier, Runnable)} for a tree made of the chats of another
+     * program ({@code LmStudioChats} makes the same chats), the revisions of the parts say where the text came from.
+     *
+     * @param source {@link RevisionDetail#SILLYTAVERN_IMPORT} or {@link RevisionDetail#LMSTUDIO_IMPORT}
+     */
+    ImportResult<Manuscript> importTree(Manuscript manuscript, SillyTavernChats.Tree tree, RevisionDetail source,
+                                        BooleanSupplier stopped, Runnable onStored) throws Exception;
 }

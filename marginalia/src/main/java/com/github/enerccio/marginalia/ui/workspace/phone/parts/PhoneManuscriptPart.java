@@ -114,6 +114,19 @@ public class PhoneManuscriptPart implements ManuscriptSection {
         return loc.getValue(L.LABEL_BOOKS);
     }
 
+    /**
+     * The button that imports a conversation of LM Studio (a method of its own, so that the locals of {@link #create()} that plugins read
+     * stay the same).
+     */
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = Button.class),
+            locals = {@APILocals(name = "button", type = Button.class)})
+    private Button createImportLmStudioButton() {
+        Button button = new Button(Solid.COMMENT_DOTS.create(), event -> new NewBookAction(this::openManuscript, currentFolder).runFromLmStudio());
+        button.setTooltipText(loc.getValue(L.LABEL_IMPORT_FROM_LMSTUDIO));
+        return button;
+    }
+
     @PublicAPI(from = "1.1.0",
             returns = @APIReturn(type = Component.class),
             locals = {@APILocals(name = "mainLayout", type = VerticalLayout.class),
@@ -162,7 +175,7 @@ public class PhoneManuscriptPart implements ManuscriptSection {
         manageButton.setAriaLabel(loc.getValue(L.LABEL_MANAGE));
         createManageMenu(manageButton);
 
-        HorizontalLayout headerLayout = new HorizontalLayout(addBookButton, newFolderButton, searchButton, statisticsButton, importArchiveButton, importSillyTavernButton, refreshButton, manageButton);
+        HorizontalLayout headerLayout = new HorizontalLayout(addBookButton, newFolderButton, searchButton, statisticsButton, importArchiveButton, importSillyTavernButton, createImportLmStudioButton(), refreshButton, manageButton);
         headerLayout.setWidthFull();
         headerLayout.addClassName(CssStyles.FLEX_WRAP);
         headerLayout.setAlignItems(FlexComponent.Alignment.CENTER);

@@ -3,10 +3,7 @@ package com.github.enerccio.marginalia.extensions.reallangtranslator.commands;
 import com.github.enerccio.marginalia.domain.service.command.CommandDefinition;
 import com.github.enerccio.marginalia.domain.service.impl.CommandServiceImpl;
 import com.github.enerccio.marginalia.domain.traits.CommandDataSeverity;
-import com.github.enerccio.marginalia.extensions.reallangtranslator.service.BookReal;
-import com.github.enerccio.marginalia.extensions.reallangtranslator.service.LanguageLibrary;
-import com.github.enerccio.marginalia.extensions.reallangtranslator.service.TranslationRuns;
-import com.github.enerccio.marginalia.extensions.reallangtranslator.service.TranslationService;
+import com.github.enerccio.marginalia.extensions.reallangtranslator.service.*;
 import com.github.enerccio.marginalia.extensions.translatorcommon.service.RangeRuns;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -28,8 +25,10 @@ class CommandsTest {
     private static final Map<String, CommandDefinition> COMMANDS = new TreeMap<>();
 
     static {
-        TranslationService translation = new TranslationService();
-        SUITE = new ReallangCommands(translation, new BookReal(translation), new LanguageLibrary());
+        LanguageLibrary library = new LanguageLibrary();
+        GlossaryService glossary = new GlossaryService(library);
+        TranslationService translation = new TranslationService(glossary);
+        SUITE = new ReallangCommands(translation, new BookReal(translation, glossary), library);
     }
 
     @BeforeAll
@@ -114,6 +113,24 @@ class CommandsTest {
             Map.entry("BookReal.speakers", "reallang-speakers"),
             Map.entry("BookReal.saveSpeakers", "reallang-set-speaker"),
             Map.entry("BookReal.quickTranslate", "reallang-translate-text"),
+            Map.entry("BookReal.glossary", "reallang-glossary"),
+            Map.entry("BookReal.glossaryFolders", "reallang-glossary"),
+            Map.entry("BookReal.putGlossaryEntry", "reallang-glossary-set"),
+            Map.entry("BookReal.removeGlossaryEntry", "reallang-glossary-remove"),
+            Map.entry("BookReal.acceptGlossaryEntry", "reallang-glossary-accept"),
+            Map.entry("BookReal.moveGlossaryEntry", "reallang-glossary-move"),
+            Map.entry("BookReal.switchGlossaryEntry", "reallang-glossary-switch"),
+            Map.entry("GlossaryService.layers", "reallang-glossary"),
+            Map.entry("GlossaryService.folders", "reallang-glossary"),
+            Map.entry("GlossaryService.effective", "reallang-glossary"),
+            Map.entry("GlossaryService.active", "reallang-glossary"),
+            Map.entry("GlossaryService.entries", "reallang-glossary"),
+            Map.entry("GlossaryService.put", "reallang-glossary-set"),
+            Map.entry("GlossaryService.remove", "reallang-glossary-remove"),
+            Map.entry("GlossaryService.replace", "ui only: the language editor stores its own list"),
+            Map.entry("GlossaryService.moveFromBook", "reallang-glossary-move"),
+            Map.entry("GlossaryService.accept", "reallang-glossary-accept"),
+            Map.entry("GlossaryService.propose", "internal: the translation of a part proposes the names the model chose"),
             Map.entry("LanguageLibrary.languages", "reallang-list"),
             Map.entry("LanguageLibrary.resolve", "internal"),
             Map.entry("LanguageLibrary.store", "reallang-create"),
@@ -135,7 +152,7 @@ class CommandsTest {
     @Test
     void everyOperationOfAServiceHasACommand() {
         Set<String> seen = new TreeSet<>();
-        for (Class<?> service : List.of(TranslationService.class, BookReal.class, LanguageLibrary.class, RangeRuns.class, TranslationRuns.class)) {
+        for (Class<?> service : List.of(TranslationService.class, BookReal.class, GlossaryService.class, LanguageLibrary.class, RangeRuns.class, TranslationRuns.class)) {
             for (Method method : service.getDeclaredMethods()) {
                 if (Modifier.isPublic(method.getModifiers()) && !method.isSynthetic() && !method.getName().startsWith("lambda$")) {
                     seen.add(service.getSimpleName() + "." + method.getName());

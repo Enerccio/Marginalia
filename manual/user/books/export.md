@@ -48,6 +48,7 @@ another version of the story, switch to that branch first.
 | **Markdown with front matter** (`.md`) | For static site generators, see [below](#for-other-tools). |
 | **SillyTavern chat** (`.jsonl`) | The story as a chat, see [below](#for-other-tools). |
 | **Obsidian vault** (`.zip`) | The chapters and the lorebook as linked notes, see [below](#for-other-tools). |
+| **LaTeX** (`.zip`) | A LaTeX project of the book (`main.tex` and the images), see [below](#for-other-tools). |
 
 The text of the parts is Markdown. Emphasis, headings, quotes, lists, code blocks and scene breaks (`---`) are kept in
 every format that can show them. Raw HTML in the text is shown as text, never run.
@@ -71,6 +72,7 @@ its size, scaled down to the page). Not every format can put text beside a pictu
 | **Plain text** | Marked with `[Image]` or `[Image: caption]` at their place in the text. |
 | **HTML for Archive of Our Own** | Marked with `[Image: caption]`: AO3 takes images only from links. |
 | **Obsidian vault** | Saved in the `Attachments` folder of the vault and embedded in the note of their chapter at their place, with the caption in italics. |
+| **LaTeX** | Saved in the `images` folder of the project and included in the text at their place (a figure in the width of the picture, never wider than the text) with the caption under it. The text does not flow around them. |
 | **SillyTavern chat** | Left out, a chat has only text. |
 
 ## For other tools
@@ -99,6 +101,16 @@ of the entry are the tags of the note, its comment is a callout), and the images
 an entry (a name of at least three characters, whole words, as spelled) is a link to its note, so the graph view shows which entry is in which
 chapter. A part with a heading starts a chapter; parts before the first heading are the note *Beginning* (or *Story* when the book has no headings).
 The front matter and the title page are templates you can change in [Settings → Exports](../account.md#exports).
+
+**LaTeX.** A ZIP with a folder named after the book. `main.tex` is a `book` that compiles with `pdflatex`, `xelatex` or `lualatex` and the images of the parts are in `images`. The title page is a `titlepage` made of the
+[title page template](../account.md#exports). The shallowest heading of the story is a chapter, the next level a section and so on; they are not
+numbered (a story names its chapters itself) but they are listed in a table of contents. Emphasis, quotes, lists, code blocks and scene breaks
+become what they are in LaTeX, the footnotes are real footnotes, the characters that mean something to LaTeX are written as text, and the language
+of the book selects the hyphenation (`babel`) when it is one of the common ones. A book with Japanese, Chinese or Korean text needs `xelatex` or `lualatex` (`pdflatex` stops with a message): the file loads `xeCJK` or
+`luatexja` for it, and with `xelatex` you set a font that has your characters (the line to change is in the comment above it, for example
+`\setCJKmainfont{Noto Serif CJK JP}`), otherwise only the Chinese font that comes with `xeCJK` is used. Upload the ZIP to [Overleaf](https://www.overleaf.com) or unpack it
+and run `pdflatex main.tex` (twice, for the table of contents). The print style does not apply: the look is the one of the class, change it in the
+preamble of `main.tex`.
 
 ## Print styles
 

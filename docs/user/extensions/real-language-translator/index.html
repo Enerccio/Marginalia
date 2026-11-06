@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847251041713">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847283536935">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.847251041713" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.847283536935" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847251041713" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847283536935" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847251041713" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847283536935" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -372,6 +372,18 @@ others here (&quot;a young officer, polite to her seniors, blunt with friends&qu
 <p><strong>Languages.</strong> The other languages of the book, besides the one its <strong>Language of the speech</strong> field names: see <doc-anchor-trigger to="#more-than-one-language-in-a-book">below</doc-anchor-trigger>.</p>
 <p><strong>Quick translate.</strong> Write a text in English, optionally who says it and to whom, and press <strong>Translate</strong>: the model translates it with the rules of the language (with several languages, choose
 which one). Nothing is written into the story; you copy the translation.</p>
+<p><strong>Glossary.</strong> How the names and the special words of the story are written in the language (a <doc-anchor-trigger to="#the-glossary-of-names-and-special-words">section below</doc-anchor-trigger>); a <em>Glossary</em> tab for each language of the book.</p>
+<h2 id="the-glossary-of-names-and-special-words">The glossary of names and special words</h2>
+<p>Without a glossary the model chooses again in every part how a name is written: <code translate="no" v-pre>Saellen</code> is <code translate="no" v-pre>サエレン</code> in one part and stays in Latin letters in the next, <code translate="no" v-pre>Tomáš</code> becomes <code translate="no" v-pre>トマーシュ</code> or <code translate="no" v-pre>トマシュ</code>. The glossary fixes the choice once. An entry has</p>
+<ul>
+<li>the <strong>word</strong> as the story writes it (<code translate="no" v-pre>Saellen</code>, <code translate="no" v-pre>witch</code>), the key of the entry, the case does not matter;</li>
+<li><strong>how it is written</strong> in the language (<code translate="no" v-pre>サエレン</code>, <code translate="no" v-pre>魔女</code>), or <em>keep it as it is</em> for a title, a place or a made-up term that is not translated;</li>
+<li><strong>how it is read</strong> (optional, for a language with a reading: <code translate="no" v-pre>魔女</code> read <code translate="no" v-pre>ウィッチ</code>), and a <strong>note</strong> for the translator (the honorific the character gets, the order of the family name);</li>
+<li>whether it <strong>applies</strong>.</li>
+</ul>
+<p><strong>Three levels, merged.</strong> The glossary of a language lives at three levels: the <strong>language</strong> (in its editor, in <em>Settings → Extension Settings</em>: the names and terms of every book in this language), the <strong>folders</strong> the book is in (a series defines the names its books share; the folders nest) and the <strong>book</strong> (its own, the one used most). The model gets the <em>union</em>; for the same word the <strong>nearest level wins</strong>, so a book can write a name another way than its folder does. The <em>Glossary</em> tab of the <em>Real language</em> tab shows all of them with the level each entry comes from and changes an entry where it lives. A word of a higher level that this book should not use is <strong>switched off for this book</strong> (an entry of the book that is off; switch it on again the same way, or delete it to get the higher level&#x27;s word back). An entry of the book can be <strong>moved up</strong> to a folder or to the language when it turns out to be common. The glossary of a folder and of a book is kept <strong>for each language</strong> of the book, because a name is written another way in every language.</p>
+<p><strong>What the translation does with it.</strong> The glossary is part of the request, so the model writes the words as listed. A glossary of up to 100 entries goes whole in every request (a server that caches the prompt reads it once); a bigger one goes with the entries the part has. After the answer the plugin <strong>checks</strong> it: a speech whose English has a word of the glossary but whose translation does not write it as the glossary says is kept and <strong>reported</strong> (the author decides). A name the model <strong>had to choose</strong> a written form for, that the glossary does not list, is added to the book&#x27;s glossary as a <strong>proposal</strong> (the <em>Status</em> column says <em>Proposed</em>): the model uses it from then on, and <em>Accept</em> says you looked at it, or <em>Edit</em> changes it. A word that any level has already (even switched off) is never proposed again.</p>
+<p>The commands for it are in the table below. A part that a book translated before the glossary existed keeps its translation; translate it again to use the glossary.</p>
 <h2 id="more-than-one-language-in-a-book">More than one language in a book</h2>
 <p>A story with Japanese and Korean speakers needs both. A book names <strong>one language first</strong> (the field above, which a folder or your settings may also give) and the <strong>Languages</strong> tab adds <strong>other languages</strong>
 from your library, one by one, and takes them away again.</p>
@@ -451,6 +463,7 @@ its position on the active branch (the first part is 1).</p>
 | `reallang-add-book-language`, `reallang-remove-book-language` | The other languages of the open book. Removing asks the user. |
 | `reallang-status` | The language of the book and which parts are translated. |
 | `reallang-translate-part`, `reallang-translate-range`, `reallang-translate-sentence`, `reallang-translate-text`, `reallang-revert-to-source` | Translating: one part, a range (`mode` *new* or *again*), one sentence of a part, a text that is only returned, and the English back. With the optional `language` they are about one language of the book (all of them by default, the first for a sentence or a text). |
+| `reallang-glossary`, `reallang-glossary-set`, `reallang-glossary-remove`, `reallang-glossary-accept`, `reallang-glossary-switch`, `reallang-glossary-move` | The [glossary](#the-glossary-of-names-and-special-words) of the open book in a language: read the merged entries with their level, add or change an entry at a `level` (`language`, `folder` with the `folder` name, `book`), remove one (asks), accept the proposals, switch a word of a higher level off or on for the book, move an entry of the book up. |
 | `reallang-get-source`, `reallang-list-passages` | Reading: the text of a part as the models read it (the English), and the translated speeches of a part with their reading and English. |
 | `reallang-speakers`, `reallang-set-speakers-mode`, `reallang-set-speaker`, `reallang-remove-speaker` | Who speaks the language in the open book (`language` names one of the book's languages, the first by default). |">
 <div class="table-wrapper scrollbar overflow-hidden">
@@ -481,6 +494,10 @@ its position on the active branch (the first part is 1).</p>
 <tr>
 <td><code translate="no" v-pre>reallang-translate-part</code>, <code translate="no" v-pre>reallang-translate-range</code>, <code translate="no" v-pre>reallang-translate-sentence</code>, <code translate="no" v-pre>reallang-translate-text</code>, <code translate="no" v-pre>reallang-revert-to-source</code></td>
 <td>Translating: one part, a range (<code translate="no" v-pre>mode</code> <em>new</em> or <em>again</em>), one sentence of a part, a text that is only returned, and the English back. With the optional <code translate="no" v-pre>language</code> they are about one language of the book (all of them by default, the first for a sentence or a text).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>reallang-glossary</code>, <code translate="no" v-pre>reallang-glossary-set</code>, <code translate="no" v-pre>reallang-glossary-remove</code>, <code translate="no" v-pre>reallang-glossary-accept</code>, <code translate="no" v-pre>reallang-glossary-switch</code>, <code translate="no" v-pre>reallang-glossary-move</code></td>
+<td>The <doc-anchor-trigger to="#the-glossary-of-names-and-special-words">glossary</doc-anchor-trigger> of the open book in a language: read the merged entries with their level, add or change an entry at a <code translate="no" v-pre>level</code> (<code translate="no" v-pre>language</code>, <code translate="no" v-pre>folder</code> with the <code translate="no" v-pre>folder</code> name, <code translate="no" v-pre>book</code>), remove one (asks), accept the proposals, switch a word of a higher level off or on for the book, move an entry of the book up.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>reallang-get-source</code>, <code translate="no" v-pre>reallang-list-passages</code></td>
@@ -555,7 +572,7 @@ listed; the text of the part decides inside a request.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (13b37e9a8).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (abc080165).</p></div>
             </footer>
         </div>
     </div>

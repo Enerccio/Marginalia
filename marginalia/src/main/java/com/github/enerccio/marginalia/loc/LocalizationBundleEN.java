@@ -967,6 +967,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_TRANSLATION, "Translation");
         setValue(L.LABEL_CLEAR_SAVED_LOGINS, "Clear saved logins (remember me)");
         setValue(L.LABEL_RESUMMARIZE_ALL_SUMMARIES, "Resummarize all summaries");
+        setValue(L.LABEL_IMPORT_FROM_LMSTUDIO, "Import from LM Studio");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -1647,6 +1648,9 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_RESUMMARIZE_FINISHED, "%d summaries written again.");
         setValue(L.MSG_RESUMMARIZE_STOPPED, "Stopped, the summaries were not changed.");
         setValue(L.MSG_RESUMMARIZE_NO_SUMMARIES, "There are no summaries to write again.");
+        setValue(L.MSG_IMPORT_LMSTUDIO, "Upload one or more LM Studio conversations (.conversation.json, in the folder .lmstudio/conversations of your home folder). Conversations that share their beginning are joined into one tree, the regenerated answers of a message become alternative parts. The result is a new book.");
+        setValue(L.MSG_INVALID_LMSTUDIO_CHAT, "%s is not an LM Studio conversation (.conversation.json).");
+        setValue(L.MSG_IMPORTING_LMSTUDIO, "Importing from LM Studio");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");

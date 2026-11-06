@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847251041713">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847283536935">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.847251041713" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.847283536935" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847251041713" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847283536935" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847251041713" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847283536935" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -229,7 +229,7 @@ the list is sorted by all of them in order.</p>
 <p>Each row has buttons: the star makes the book a <a href="../folders/#favorites">favorite</a>, the pen opens it, <strong>Move to folder</strong> puts it
 into a <a href="../folders/">folder</a>, the clone button makes a copy of it and the trash button deletes it. The header has <strong>New folder</strong>,
 the <strong>Manage</strong> menu (<strong>Organise</strong>, the window to <a href="../folders/#organise">move and copy</a> books and folders, <strong>Tag books</strong>,
-<strong>Statistics</strong> and the <strong>Mass changes</strong> sub menu) and the <strong>Import</strong> menu (<strong>Import from archive</strong>, <strong>Import from SillyTavern</strong>).</p>
+<strong>Statistics</strong> and the <strong>Mass changes</strong> sub menu) and the <strong>Import</strong> menu (<strong>Import from archive</strong>, <strong>Import from SillyTavern</strong>, <strong>Import from LM Studio</strong>).</p>
 <h3 id="advanced-search">Advanced search</h3>
 <p><strong>Search</strong> (in the header, next to <strong>Manage</strong>; the magnifier in the header on a phone) opens a window that finds books by more than
 the filter row can. Fill in what you want to check, leave the rest empty, and press <strong>Search</strong> (or Enter in a text field):</p>
@@ -444,6 +444,29 @@ beginning. Upload them together and Marginalia finds the common messages and sto
 branches of one tree, which you can walk in the <a href="../story-editor/">tree view</a>. The <em>swipes</em> (alternative answers) of a message become sibling parts, and the book opens at the end of the chat written last (by the date of its
 last message). Chats that don&#x27;t begin with the same message become separate first parts. Hidden (system) messages are
 skipped, and so are swipes that are empty. The reasoning and the model name of an answer are kept with the part.</p>
+<h3 id="importing-from-lm-studio">Importing from LM Studio</h3>
+<p>To continue a conversation you had in <a href="https://lmstudio.ai">LM Studio</a>, use <strong>Import → Import from LM Studio</strong> in the header of the list.
+LM Studio keeps each conversation in a file <code translate="no" v-pre>&lt;number&gt;.conversation.json</code> in the folder <code translate="no" v-pre>.lmstudio/conversations</code> of your home folder (on Windows
+<code translate="no" v-pre>%USERPROFILE%\.lmstudio\conversations</code>). It works like <doc-anchor-trigger to="#importing-from-sillytavern">Importing from SillyTavern</doc-anchor-trigger>:</p>
+<ol>
+<li>
+<p>Upload <strong>one or more</strong> conversations. A file that is not a conversation of LM Studio is refused, the others stay.</p>
+</li>
+<li>
+<p>Give the book a name (it is filled with the name of the conversation, or the name of the file when it has none).</p>
+</li>
+<li>
+<p>Tick <strong>Merge user and assistant messages into one part</strong> for one part per turn (your message is the <em>instructions</em> of the part), or leave
+it off so that every message is a part of its own.</p>
+</li>
+<li>
+<p>Click <strong>Import</strong>.</p>
+</li>
+</ol>
+<p>The versions of a message that LM Studio keeps (the answers you regenerated, the text you edited) become sibling parts and the version that was
+shown is the one the book opens on; conversations that share their beginning are joined into one tree. The thinking of a reasoning model is kept
+as the reasoning of the part, together with the model name. The system prompt of the conversation, the calls of tools and attached files are not
+imported.</p>
 <p>To start a book from a backup file, use <strong>Import Backup as New Book</strong> in the <em>Settings</em> tab, see
 <a href="../backups/#importing-a-backup-as-a-new-book">Book backups</a>.</p>
 <h2 id="the-about-tab">The About tab</h2>
@@ -578,7 +601,7 @@ where they are.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (13b37e9a8).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (abc080165).</p></div>
             </footer>
         </div>
     </div>

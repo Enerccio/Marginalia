@@ -37,6 +37,7 @@ public class ExporterServiceImpl implements ExporterService, InitializingBean {
         registerExporter(new FrontMatterMarkdownExporter());
         registerExporter(new SillyTavernExporter());
         registerExporter(new ObsidianExporter());
+        registerExporter(new LatexExporter());
     }
 
     @Override

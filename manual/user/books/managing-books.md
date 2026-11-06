@@ -33,7 +33,7 @@ The refresh button at the end of the filter row reloads the list.
 Each row has buttons: the star makes the book a [favorite](folders.md#favorites), the pen opens it, **Move to folder** puts it
 into a [folder](folders.md), the clone button makes a copy of it and the trash button deletes it. The header has **New folder**,
 the **Manage** menu (**Organise**, the window to [move and copy](folders.md#organise) books and folders, **Tag books**,
-**Statistics** and the **Mass changes** sub menu) and the **Import** menu (**Import from archive**, **Import from SillyTavern**).
+**Statistics** and the **Mass changes** sub menu) and the **Import** menu (**Import from archive**, **Import from SillyTavern**, **Import from LM Studio**).
 
 ### Advanced search
 
@@ -165,6 +165,23 @@ beginning. Upload them together and Marginalia finds the common messages and sto
 branches of one tree, which you can walk in the [tree view](story-editor.md). The *swipes* (alternative answers) of a message become sibling parts, and the book opens at the end of the chat written last (by the date of its
 last message). Chats that don't begin with the same message become separate first parts. Hidden (system) messages are
 skipped, and so are swipes that are empty. The reasoning and the model name of an answer are kept with the part.
+
+### Importing from LM Studio
+
+To continue a conversation you had in [LM Studio](https://lmstudio.ai), use **Import → Import from LM Studio** in the header of the list.
+LM Studio keeps each conversation in a file `<number>.conversation.json` in the folder `.lmstudio/conversations` of your home folder (on Windows
+`%USERPROFILE%\.lmstudio\conversations`). It works like [Importing from SillyTavern](#importing-from-sillytavern):
+
+1. Upload **one or more** conversations. A file that is not a conversation of LM Studio is refused, the others stay.
+2. Give the book a name (it is filled with the name of the conversation, or the name of the file when it has none).
+3. Tick **Merge user and assistant messages into one part** for one part per turn (your message is the *instructions* of the part), or leave
+   it off so that every message is a part of its own.
+4. Click **Import**.
+
+The versions of a message that LM Studio keeps (the answers you regenerated, the text you edited) become sibling parts and the version that was
+shown is the one the book opens on; conversations that share their beginning are joined into one tree. The thinking of a reasoning model is kept
+as the reasoning of the part, together with the model name. The system prompt of the conversation, the calls of tools and attached files are not
+imported.
 
 To start a book from a backup file, use **Import Backup as New Book** in the *Settings* tab, see
 [Book backups](backups.md#importing-a-backup-as-a-new-book).

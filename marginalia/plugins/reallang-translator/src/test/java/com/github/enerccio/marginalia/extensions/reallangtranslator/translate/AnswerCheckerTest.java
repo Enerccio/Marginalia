@@ -1,5 +1,7 @@
 package com.github.enerccio.marginalia.extensions.reallangtranslator.translate;
 
+import com.github.enerccio.marginalia.extensions.reallangtranslator.model.GlossaryEntry;
+import com.github.enerccio.marginalia.extensions.reallangtranslator.model.GlossaryKind;
 import com.github.enerccio.marginalia.extensions.reallangtranslator.model.Presets;
 import com.github.enerccio.marginalia.extensions.reallangtranslator.model.RealLanguage;
 import com.github.enerccio.marginalia.extensions.reallangtranslator.translate.AnswerChecker.Item;
@@ -109,5 +111,46 @@ class AnswerCheckerTest {
     @Test
     void noAnswerIsNothing() {
         assertTrue(AnswerChecker.check(PART, null, japanese()).speeches().isEmpty());
+    }
+
+    private static final List<GlossaryEntry> GLOSSARY = List.of(
+            new GlossaryEntry("Tomo", GlossaryKind.WRITTEN, "トモ", "", ""),
+            new GlossaryEntry("Mara", GlossaryKind.KEEP, "", "", ""));
+
+    @Test
+    void aNameWrittenAsTheGlossarySaysIsFine() {
+        AnswerChecker.Checked checked = AnswerChecker.check(PART, answer(entry("Wait for me!", "Japanese", "待って、私も行く!")), japanese(), GLOSSARY);
+
+        assertEquals(0, checked.glossaryMisses());
+    }
+
+    @Test
+    void aNameOfTheGlossaryInTheEnglishOfTheSpeechMustBeWrittenAsTheGlossarySays() {
+        String part = "\"Tomo, come here!\" Mara said. \"Mara waits.\" he said.";
+        AnswerChecker.Checked checked = AnswerChecker.check(part, answer(entry("Tomo, come here!", "Japanese", "友、こっちへ来て!")), japanese(), GLOSSARY);
+
+        assertEquals(1, checked.accepted().size(), "the speech is kept, the author decides");
+        assertEquals(1, checked.glossaryMisses());
+        Item item = checked.accepted().getFirst();
+        assertEquals(List.of(new AnswerChecker.Miss("Tomo", "トモ")), item.glossary());
+        assertTrue(item.problems().contains(Problem.GLOSSARY));
+    }
+
+    @Test
+    void aKeptNameMustStayAsItIs() {
+        String part = "\"Mara waits.\" he said.";
+
+        AnswerChecker.Checked wrong = AnswerChecker.check(part, answer(entry("Mara waits.", "Japanese", "マラが待っている。")), japanese(), GLOSSARY);
+        AnswerChecker.Checked right = AnswerChecker.check(part, answer(entry("Mara waits.", "Japanese", "Maraが待っている。")), japanese(), GLOSSARY);
+
+        assertEquals(1, wrong.glossaryMisses());
+        assertEquals(0, right.glossaryMisses());
+    }
+
+    @Test
+    void aNameThatIsNotInTheEnglishOfTheSpeechIsNotChecked() {
+        AnswerChecker.Checked checked = AnswerChecker.check(PART, answer(entry("Then we go.", "Japanese", "では行こう。")), japanese(), GLOSSARY);
+
+        assertEquals(0, checked.glossaryMisses());
     }
 }

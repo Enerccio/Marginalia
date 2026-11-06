@@ -9,6 +9,7 @@ import com.github.enerccio.marginalia.domain.service.SettingService;
 import com.github.enerccio.marginalia.extensions.PartTextRegistry;
 import com.github.enerccio.marginalia.extensions.reallangtranslator.ReallangKind;
 import com.github.enerccio.marginalia.extensions.reallangtranslator.model.BookSettings;
+import com.github.enerccio.marginalia.extensions.reallangtranslator.model.GlossaryEntry;
 import com.github.enerccio.marginalia.extensions.reallangtranslator.model.RealLanguage;
 import com.github.enerccio.marginalia.extensions.reallangtranslator.store.RealStore;
 import com.github.enerccio.marginalia.extensions.reallangtranslator.translate.*;
@@ -66,8 +67,14 @@ public class TranslationService {
      * @param dropped     how many speeches of the answer could not be used (quote not found, another language, overlap)
      * @param wrongScript how many written speeches are not in the script the language asks for
      * @param note        what the user should know, may be empty
+     * @param glossaryMisses how many written speeches write a name of the glossary another way than the glossary says
+     * @param proposed    how many names the model chose a written form for and that were added to the glossary of the book as proposals
      */
-    public record Outcome(Status status, int translated, int dropped, int wrongScript, String note) {
+    public record Outcome(Status status, int translated, int dropped, int wrongScript, String note, int glossaryMisses, int proposed) {
+
+        public Outcome(Status status, int translated, int dropped, int wrongScript, String note) {
+            this(status, translated, dropped, wrongScript, note, 0, 0);
+        }
 
         static Outcome of(Status status, String note) {
             return new Outcome(status, 0, 0, 0, note);
@@ -98,6 +105,11 @@ public class TranslationService {
 
     private final TranslationWriter writer = new TranslationWriter(ReallangKind.ID);
     private final ModelClient modelClient = new ModelClient("reallang-translator");
+    private final GlossaryService glossary;
+
+    public TranslationService(GlossaryService glossary) {
+        this.glossary = glossary;
+    }
 
     /**
      * The part as it is stored now.
@@ -225,6 +237,8 @@ public class TranslationService {
         int translated = 0;
         int dropped = 0;
         int wrong = 0;
+        int misses = 0;
+        int proposed = 0;
         Outcome failure = null;
         for (BookLang language : languages) {
             // the part as the pass before it left it
@@ -232,6 +246,8 @@ public class TranslationService {
             translated += outcome.translated();
             dropped += outcome.dropped();
             wrong += outcome.wrongScript();
+            misses += outcome.glossaryMisses();
+            proposed += outcome.proposed();
             if (outcome.status() != Status.TRANSLATED && outcome.status() != Status.NOTHING_TO_TRANSLATE && failure == null) {
                 failure = new Outcome(outcome.status(), 0, 0, 0, language.language().getName() + ": " + outcome.note());
             }
@@ -241,7 +257,7 @@ public class TranslationService {
             if (failure != null) {
                 note = (note + " " + failure.note()).strip();
             }
-            return new Outcome(Status.TRANSLATED, translated, dropped, wrong, note);
+            return new Outcome(Status.TRANSLATED, translated, dropped, wrong, note, misses, proposed);
         }
         return failure != null ? failure : new Outcome(Status.NOTHING_TO_TRANSLATE, 0, dropped, 0, "");
     }
@@ -260,12 +276,13 @@ public class TranslationService {
         // the speeches of the other languages stay translated, and nothing of this answer may land on them
         List<TranslationPlan.Accepted> carried = writer.carried(current, read, language.getId());
 
-        TranslationPrompt.Request request = TranslationPrompt.build(language, bookLang.speakers(), source, scene(book, current, settings));
+        List<GlossaryEntry> names = glossary.active(book, language);
+        TranslationPrompt.Request request = TranslationPrompt.build(language, names, bookLang.speakers(), source, scene(book, current, settings));
         TranslationAnswer answer = TranslationAnswer.parse(modelClient.ask(model, book, request.system(), request.user()));
         if (answer == null) {
             return Outcome.of(Status.BAD_ANSWER, "The model did not answer in the expected form.");
         }
-        AnswerChecker.Checked checked = AnswerChecker.check(source, answer, language);
+        AnswerChecker.Checked checked = AnswerChecker.check(source, answer, language, names);
         List<AnswerChecker.Item> usable = checked.accepted().stream().filter(item -> !TranslationWriter.overlapsAny(carried, item.start(), item.end())).toList();
         List<TranslationPlan.Accepted> accepted = new ArrayList<>(usable.stream().map(item -> new TranslationPlan.Accepted(item.speech(), item.start(), item.end())).toList());
         accepted.addAll(carried);
@@ -279,8 +296,12 @@ public class TranslationService {
         writer.write(book, current, plan, read, language.getId(), model.ai().getName(),
                 (span, planned) -> span.setReading(readings.getOrDefault(planned.speech(), "")));
         int wrong = (int) usable.stream().filter(item -> item.script() != null).count();
-        return new Outcome(Status.TRANSLATED, plan.translatedCount(), dropped, wrong,
-                wrong > 0 ? wrong + " translation(s) are not in the script the language asks for." : "");
+        int misses = (int) usable.stream().filter(item -> !item.glossary().isEmpty()).count();
+        int proposed = glossary.propose(book, language, answer.names(), source).size();
+        String note = (wrong > 0 ? wrong + " translation(s) are not in the script the language asks for. " : "")
+                + (misses > 0 ? misses + " translation(s) write a name of the glossary another way than the glossary says. " : "")
+                + (proposed > 0 ? proposed + " name(s) were added to the glossary of the book to look at." : "");
+        return new Outcome(Status.TRANSLATED, plan.translatedCount(), dropped, wrong, note.strip(), misses, proposed);
     }
 
     /**
@@ -381,7 +402,7 @@ public class TranslationService {
         }
         String around = text.substring(Math.max(0, range[0] - AROUND), range[0]) + "[[" + english + "]]"
                 + text.substring(range[1], Math.min(text.length(), range[1] + AROUND));
-        TranslationPrompt.Request request = QuickTranslation.build(language, chosen.speakers(), english, who.toString().strip(), around);
+        TranslationPrompt.Request request = QuickTranslation.build(language, glossary.active(book, language), chosen.speakers(), english, who.toString().strip(), around);
         QuickTranslation.Answer answer = QuickTranslation.parse(modelClient.ask(model, book, request.system(), request.user()));
         if (answer == null) {
             return Outcome.of(Status.BAD_ANSWER, "The model did not answer in the expected form.");
@@ -429,7 +450,7 @@ public class TranslationService {
         if (model == null) {
             return Quick.failed(Status.NO_MODEL);
         }
-        TranslationPrompt.Request request = QuickTranslation.build(language, chosen.speakers(), text, context);
+        TranslationPrompt.Request request = QuickTranslation.build(language, glossary.active(book, language), chosen.speakers(), text, context, null);
         QuickTranslation.Answer answer = QuickTranslation.parse(modelClient.ask(model, book, request.system(), request.user()));
         if (answer == null) {
             return Quick.failed(Status.BAD_ANSWER);

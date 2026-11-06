@@ -7,10 +7,26 @@ import jakarta.servlet.http.HttpSession;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+import org.springframework.web.util.WebUtils;
 
 import java.lang.reflect.Field;
+import java.util.Enumeration;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * The request context of a page in a form a worker thread can run in. The request is over by the time the worker is done, and so may be the browser
+ * session: the last page of a browser that is closed while a model works closes the session (the work of minutes would be lost at the write). So the
+ * session scope of this copy is a <b>copy of the attributes of the session</b>, taken when the copy is made: the session-scoped beans the thread needs
+ * (the user above all) are in it and go on being found after the session is invalid. A bean the worker puts into the session scope is kept in the copy
+ * and, as long as the session is alive, also in the session, so the page sees it.
+ */
 public class ThreadCopyRequestAttributes extends ServletRequestAttributes {
+
+	/** The session attributes as they were when the copy was made, and what the thread added to them. */
+	private final Map<String, Object> sessionCopy = new ConcurrentHashMap<>();
+	/** What the page locks for the session (the mutex of the session, or the session itself); the copy locks the same object. */
+	private final Object sessionMutex;
 
 	private ThreadCopyRequestAttributes(HttpServletRequest request, HttpServletResponse response) {
 		super(request, response);
@@ -24,6 +40,14 @@ public class ThreadCopyRequestAttributes extends ServletRequestAttributes {
 		} catch (Exception e) {
 			// ignore
 		}
+		sessionMutex = WebUtils.getSessionMutex(s);
+		for (Enumeration<String> names = s.getAttributeNames(); names.hasMoreElements(); ) {
+			String name = names.nextElement();
+			Object value = s.getAttribute(name);
+			if (value != null) {
+				sessionCopy.put(name, value);
+			}
+		}
 	}
 
 	@Override
@@ -31,11 +55,60 @@ public class ThreadCopyRequestAttributes extends ServletRequestAttributes {
 		// fake copy, do nothing
 	}
 
+	@Override
+	public Object getAttribute(String name, int scope) {
+		if (scope == SCOPE_SESSION) {
+			return sessionCopy.get(name);
+		}
+		return super.getAttribute(name, scope);
+	}
+
+	@Override
+	public void setAttribute(String name, Object value, int scope) {
+		if (scope != SCOPE_SESSION) {
+			super.setAttribute(name, value, scope);
+			return;
+		}
+		sessionCopy.put(name, value);
+		try {
+			super.setAttribute(name, value, scope);
+		} catch (IllegalStateException e) {
+			// the session is gone, the copy has it
+		}
+	}
+
+	@Override
+	public void removeAttribute(String name, int scope) {
+		if (scope != SCOPE_SESSION) {
+			super.removeAttribute(name, scope);
+			return;
+		}
+		sessionCopy.remove(name);
+		try {
+			super.removeAttribute(name, scope);
+		} catch (IllegalStateException e) {
+			// the session is gone, the copy is changed
+		}
+	}
+
+	@Override
+	public String[] getAttributeNames(int scope) {
+		if (scope == SCOPE_SESSION) {
+			return sessionCopy.keySet().toArray(String[]::new);
+		}
+		return super.getAttributeNames(scope);
+	}
+
+	@Override
+	public Object getSessionMutex() {
+		return sessionMutex;
+	}
+
 	/**
 	 * The request context of the current thread in a form another thread can run in (see {@link InRequestScope}), null
 	 * when this thread has none. Whoever starts a worker thread takes it before, on the thread that has the context.
 	 * <p>
-	 * A browser session is copied (the copy outlives the request); the attributes of an agent run are not bound to a
+	 * A browser session is copied (the copy outlives the request and the session); the attributes of an agent run are not bound to a
 	 * request and are used by all the threads of the run as they are.
 	 */
 	public static RequestAttributes create() {
@@ -69,5 +142,5 @@ public class ThreadCopyRequestAttributes extends ServletRequestAttributes {
 			RequestContextHolder.setRequestAttributes(oldAttributes);
 		}
 	}
-	
+
 }
