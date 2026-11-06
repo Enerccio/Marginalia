@@ -13,10 +13,7 @@ import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationC
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationControllerEvent.Registration;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.GenerationOutcome;
 import com.github.enerccio.marginalia.extensions.*;
-import com.github.enerccio.marginalia.extensions.conlangtranslator.commands.DesignerCommands;
-import com.github.enerccio.marginalia.extensions.conlangtranslator.commands.LexiconCommands;
-import com.github.enerccio.marginalia.extensions.conlangtranslator.commands.LibraryCommands;
-import com.github.enerccio.marginalia.extensions.conlangtranslator.commands.TranslationCommands;
+import com.github.enerccio.marginalia.extensions.conlangtranslator.commands.*;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.model.BookSettings;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.service.*;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.service.TranslationService.Outcome;
@@ -122,6 +119,7 @@ public class ConlangTranslatorExtension implements MarginaliaExtension, Extensio
     private final SpeechTransformer transformer = new SpeechTransformer(passageAccess);
 
     private final DesignerService designerService = new DesignerService();
+    private NameGeneratorBridge nameBridge;
     private final List<Object> commandSuites = new ArrayList<>();
 
     private TranslationRuns runs;
@@ -149,6 +147,7 @@ public class ConlangTranslatorExtension implements MarginaliaExtension, Extensio
         owner = bundle.getSymbolicName();
         runs = new TranslationRuns(translationService, log);
         rangeRuns = new RangeRuns(this::rangeWork, "conlang-translator-range", log);
+        nameBridge = new NameGeneratorBridge(bundle, library, log);
         try {
             passageKinds.register(kind);
             partTexts.register(owner, transformer);
@@ -167,6 +166,9 @@ public class ConlangTranslatorExtension implements MarginaliaExtension, Extensio
                     .icon(Solid.LANGUAGE::create));
             menuRegistry.register(owner, StoryMenuItem.tools(RANGE_ITEM_KEY, l -> T.localized(TRANSLATE_PARTS), this::openRange)
                     .icon(Solid.LAYER_GROUP::create));
+
+            // the Name generator asks this provider for the categories of names of the user who asks
+            nameBridge.start();
 
             registerCommands();
             registerBookTab(extensionService);
@@ -220,6 +222,7 @@ public class ConlangTranslatorExtension implements MarginaliaExtension, Extensio
     private void registerCommands() throws Exception {
         commandSuites.add(new LibraryCommands());
         commandSuites.add(new LexiconCommands());
+        commandSuites.add(new NameCommands(nameBridge));
         commandSuites.add(new TranslationCommands(translationService, bookConlang));
         commandSuites.add(new DesignerCommands(designerService));
         for (Object suite : commandSuites) {
@@ -388,7 +391,7 @@ public class ConlangTranslatorExtension implements MarginaliaExtension, Extensio
                         }
                     });
                 } else {
-                    panel = extensionSettings.add(T.localized(CONLANG_TRANSLATOR), new LanguageSettingsForm(library));
+                    panel = extensionSettings.add(T.localized(CONLANG_TRANSLATOR), new LanguageSettingsForm(library, nameBridge));
                     ComponentUtil.setData(extensionSettings, SETTINGS_PANEL_KEY, panel);
                     activeAccordions.add(extensionSettings);
                 }
@@ -625,6 +628,9 @@ public class ConlangTranslatorExtension implements MarginaliaExtension, Extensio
         }
         commandSuites.clear();
         passageKinds.unregister(kind);
+        if (nameBridge != null) {
+            nameBridge.stop();
+        }
         partTexts.unregisterAll(owner);
         annotationFacts.unregisterAll(owner);
         if (understandingPrompt != null) {

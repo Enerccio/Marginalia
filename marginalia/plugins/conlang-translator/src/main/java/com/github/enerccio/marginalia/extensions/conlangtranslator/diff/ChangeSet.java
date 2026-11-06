@@ -109,7 +109,7 @@ public final class ChangeSet {
             Register found = Optional.ofNullable(incoming.findRegister(raw)).orElse(current.findRegister(raw));
             return found == null ? raw : found.getName();
         }
-        if ("variants".equals(field)) {
+        if ("variants".equals(field) || "entries".equals(field)) {
             return java.util.Arrays.stream(raw.split("\n")).map(id -> {
                 var entry = Optional.ofNullable(incoming.findEntry(id)).orElse(current.findEntry(id));
                 return entry == null ? id : entry.getWord();

@@ -239,4 +239,61 @@ class LanguageTest {
         assertSame(history, language.findRule(history.getId()));
         assertNull(language.findRule("nothing"));
     }
+
+    @Test
+    void theWordsOfANameCategoryAreReadAsTheyAreNowAndGoneOnesAreIgnored() {
+        LexiconEntry drak = word("drak", "war", war);
+        LexiconEntry vrak = word("vrak", "wolf", war);
+        LexiconEntry krom = word("krom", "king", people);
+        NameCategory places = new NameCategory("Places");
+        places.set(drak.getId(), true);
+        places.set(vrak.getId(), true);
+        places.set(krom.getId(), true);
+        places.set("an-id-of-a-word-that-never-was", true);
+        language.getNameCategories().add(places);
+
+        assertEquals(List.of("drak", "vrak", "krom"), language.nameWords(places));
+
+        // deleted, retired and changed words: nothing is repaired, the category is read as the lexicon is now
+        language.deleteEntry(vrak.getId());
+        krom.setStatus(EntryStatus.RETIRED);
+        drak.setWord(" drakh ");
+
+        assertEquals(List.of("drakh"), language.nameWords(places));
+        assertEquals(4, places.getEntries().size(), "the ids stay in the choice, they are only not read");
+        language.deleteEntry(drak.getId());
+        assertTrue(language.nameWords(places).isEmpty());
+    }
+
+    @Test
+    void aNameCategorySetsAndDropsWordsOnceAndHasATitleUnderConlang() {
+        NameCategory places = new NameCategory("Places");
+        language.getNameCategories().add(places);
+
+        assertTrue(places.set("a", true));
+        assertFalse(places.set("a", true));
+        assertTrue(places.has("a"));
+        assertTrue(places.set("a", false));
+        assertFalse(places.set("a", false));
+        assertEquals("Conlang - Vrakht - Places", language.nameCategoryTitle(places));
+        assertSame(places, language.findNameCategory(places.getId()));
+        assertNull(language.findNameCategory("nothing"));
+    }
+
+    @Test
+    void theNameCategoriesTravelWithACopyAndAnExport() {
+        LexiconEntry drak = word("drak", "war", war);
+        NameCategory places = new NameCategory("Places");
+        places.set(drak.getId(), true);
+        language.getNameCategories().add(places);
+
+        Language copy = language.duplicate("Vrakht 2");
+        Language exported = language.forExport();
+
+        assertEquals(List.of("drak"), copy.nameWords(copy.getNameCategories().getFirst()));
+        assertEquals("Conlang - Vrakht 2 - Places", copy.nameCategoryTitle(copy.getNameCategories().getFirst()));
+        assertEquals(List.of("drak"), exported.nameWords(exported.getNameCategories().getFirst()));
+        // a language stored before the name categories existed has none
+        assertTrue(new Language("Old").getNameCategories().isEmpty());
+    }
 }

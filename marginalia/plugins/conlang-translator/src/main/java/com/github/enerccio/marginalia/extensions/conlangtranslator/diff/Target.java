@@ -9,5 +9,7 @@ public enum Target {
     RULE,
     CATEGORY,
     REGISTER,
-    WORD
+    WORD,
+    /** A category of names for the Name generator: its name and the words chosen (it comes after the words it names). */
+    NAME_CATEGORY
 }

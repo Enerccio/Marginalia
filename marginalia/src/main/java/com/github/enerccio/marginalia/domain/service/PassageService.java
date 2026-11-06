@@ -88,6 +88,13 @@ public interface PassageService extends ExtendableService<AnchoredPassage, Passa
     void shift(Manuscript manuscript, ChatMessage part, String oldText, String newText) throws Exception;
 
     /**
+     * The text of the part was changed by a search and replace ({@link ManuscriptReplaceService}): moves the ranges as {@link #shift}
+     * does and tells the {@link PassageKind} of every passage whose own text changed ({@link PassageKind#textReplaced}), saving the
+     * passage when the kind changed it.
+     */
+    void shiftReplaced(Manuscript manuscript, ChatMessage part, String oldText, String newText) throws Exception;
+
+    /**
      * The later part was merged into the previous one: its passages belong to the previous part now.
      *
      * @param offset where the text of the later part starts in the text of the previous one

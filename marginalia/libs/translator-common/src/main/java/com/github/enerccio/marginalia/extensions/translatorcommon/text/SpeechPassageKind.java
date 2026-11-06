@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.extensions.translatorcommon.text;
 
 import com.github.enerccio.marginalia.domain.model.impl.AnchoredPassage;
 import com.github.enerccio.marginalia.domain.service.PassageKind;
+import com.github.enerccio.marginalia.extensions.translatorcommon.model.Span;
 import com.github.enerccio.marginalia.extensions.translatorcommon.ui.SourcePopover;
 import com.vaadin.flow.component.Component;
 
@@ -36,6 +37,21 @@ public final class SpeechPassageKind implements PassageKind {
     @Override
     public void onClick(AnchoredPassage passage, Component anchor) {
         SourcePopover.open(passage, anchor);
+    }
+
+    /**
+     * A search and replace of the book changed words inside the translated speech: the new text is the one the plugin made, not the author's
+     * edit, so the hash is made again. A speech the author had edited before stays an edit.
+     */
+    @Override
+    public boolean textReplaced(AnchoredPassage passage, String before, String after) {
+        Span span = Span.read(passage.getAttributes());
+        if (span == null || span.isEdited(before)) {
+            return false;
+        }
+        span.textIs(after);
+        span.write(passage.getAttributes());
+        return true;
     }
 
     @Override

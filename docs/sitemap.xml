@@ -322,6 +322,9 @@
     <loc>https://enerccio.github.io/Marginalia/developer/plugins/export-text/</loc>
   </url>
   <url>
+    <loc>https://enerccio.github.io/Marginalia/developer/plugins/anchored-passages/</loc>
+  </url>
+  <url>
     <loc>https://enerccio.github.io/Marginalia/developer/plugins/ipc/</loc>
   </url>
   <url>
@@ -329,9 +332,6 @@
   </url>
   <url>
     <loc>https://enerccio.github.io/Marginalia/developer/plugins/part-text/</loc>
-  </url>
-  <url>
-    <loc>https://enerccio.github.io/Marginalia/developer/plugins/anchored-passages/</loc>
   </url>
   <url>
     <loc>https://enerccio.github.io/Marginalia/developer/plugins/libraries/</loc>

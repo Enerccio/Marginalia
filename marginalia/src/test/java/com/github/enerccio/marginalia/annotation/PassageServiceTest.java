@@ -225,4 +225,40 @@ class PassageServiceTest extends MarginaliaTestBase {
         assertThat(passageKinds.get(KIND)).isNull();
         assertThat(passageKinds.all()).doesNotContain(kind);
     }
+
+    @Test
+    void aKindIsToldWhatAReplaceChangedInsideItsPassage() throws Exception {
+        List<String> told = new java.util.ArrayList<>();
+        PassageKind watching = new PassageKind() {
+            @Override
+            public String id() {
+                return "watching-kind";
+            }
+
+            @Override
+            public boolean textReplaced(AnchoredPassage passage, String before, String after) {
+                told.add(before + " -> " + after);
+                passage.getAttributes().addProperty("now", after);
+                return true;
+            }
+        };
+        passageKinds.register(watching);
+        try {
+            int start = TEXT.indexOf("\"Hello there,\"");
+            AnchoredPassage speech = passageService.create(book, part, "watching-kind", start, start + "\"Hello there,\"".length());
+            AnchoredPassage other = passage("Then she left.");
+            String replaced = TEXT.replace("Hello there", "Good evening");
+
+            passageService.shiftReplaced(book, part, TEXT, replaced);
+
+            assertThat(told).containsExactly("\"Hello there,\" -> \"Good evening,\"");
+            assertThat(passageService.find(speech.getId()).getAttributes().get("now").getAsString()).isEqualTo("\"Good evening,\"");
+            // the passage of a kind that does not care and a replace outside every passage
+            passageService.shiftReplaced(book, part, replaced, replaced.replace("bar", "pub"));
+            assertThat(told).hasSize(1);
+            assertThat(passageService.find(other.getId()).getAttributes().has("now")).isFalse();
+        } finally {
+            passageKinds.unregister(watching);
+        }
+    }
 }

@@ -534,4 +534,60 @@ class LanguageDiffTest {
         three.pickClean();
         assertEquals(1, three.pickedCount());
     }
+
+    // ---- the categories of names
+
+    @Test
+    void aNewCategoryOfNamesIsAnAddWithItsWordsAndAppliesToTheOtherLanguage() {
+        Language base = base();
+        Language incoming = copy(base);
+        NameCategory places = new NameCategory("Places");
+        places.set(word(incoming, "drak").getId(), true);
+        places.set(word(incoming, "rota").getId(), true);
+        incoming.getNameCategories().add(places);
+        Language current = copy(base);
+
+        ChangeSet set = LanguageDiff.diff(base, incoming, current);
+
+        Change add = change(set, Target.NAME_CATEGORY, Change.Kind.ADD);
+        assertEquals("Places", add.label());
+        assertNull(add.conflict());
+        assertEquals("drak, rota", set.display("entries", field(add, "entries").after()));
+        LanguageDiff.apply(current, set);
+        assertEquals(1, current.getNameCategories().size());
+        assertEquals(List.of("drak", "rota"), current.nameWords(current.getNameCategories().getFirst()));
+    }
+
+    @Test
+    void theWordsChosenForNamesFromBothSidesStayChosen() {
+        Language base = base();
+        NameCategory places = new NameCategory("Places");
+        places.set(word(base, "drak").getId(), true);
+        base.getNameCategories().add(places);
+        Language incoming = copy(base);
+        incoming.getNameCategories().getFirst().set(word(incoming, "rota").getId(), true);
+        Language current = copy(base);
+        current.getNameCategories().getFirst().set(word(current, "mela").getId(), true);
+
+        ChangeSet set = LanguageDiff.diff(base, incoming, current);
+        LanguageDiff.apply(current, set);
+
+        assertEquals(List.of("drak", "rota", "mela"), List.copyOf(current.nameWords(current.getNameCategories().getFirst())).stream()
+                .sorted(java.util.Comparator.comparingInt(f -> List.of("drak", "rota", "mela").indexOf(f))).toList());
+    }
+
+    @Test
+    void aDeletedCategoryOfNamesIsADelete() {
+        Language base = base();
+        base.getNameCategories().add(new NameCategory("Places"));
+        Language incoming = copy(base);
+        incoming.getNameCategories().clear();
+        Language current = copy(base);
+
+        ChangeSet set = LanguageDiff.diff(base, incoming, current);
+
+        assertEquals(1, set.changes().stream().filter(c -> c.target() == Target.NAME_CATEGORY && c.kind() == Change.Kind.DELETE).count());
+        LanguageDiff.apply(current, set);
+        assertTrue(current.getNameCategories().isEmpty());
+    }
 }

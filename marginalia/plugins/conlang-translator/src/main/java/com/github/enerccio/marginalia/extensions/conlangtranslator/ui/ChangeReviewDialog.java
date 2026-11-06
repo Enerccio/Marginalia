@@ -69,7 +69,7 @@ public class ChangeReviewDialog extends Dialog {
         Button none = new Button(T.localized(SELECT_NONE), _ -> pick(Mode.NONE));
         Button clean = new Button(T.localized(SELECT_WITHOUT_CONFLICTS), _ -> pick(Mode.CLEAN));
         ComboBox<String> only = new ComboBox<>();
-        only.setItems(ALL, Target.WORD.name(), Target.RULE.name(), Target.CATEGORY.name(), Target.REGISTER.name(), Target.LANGUAGE.name());
+        only.setItems(ALL, Target.WORD.name(), Target.RULE.name(), Target.CATEGORY.name(), Target.REGISTER.name(), Target.NAME_CATEGORY.name(), Target.LANGUAGE.name());
         only.setItemLabelGenerator(value -> value.equals(ALL) ? T.localized(EVERYTHING) : T.localized(targetLabel(Target.valueOf(value))));
         only.setValue(ALL);
         only.setAllowCustomValue(false);
@@ -308,6 +308,7 @@ public class ChangeReviewDialog extends Dialog {
             case CATEGORY -> TARGET_CATEGORY;
             case REGISTER -> TARGET_REGISTER;
             case WORD -> TARGET_WORD;
+            case NAME_CATEGORY -> TARGET_NAME_CATEGORY;
         };
     }
 
@@ -342,6 +343,7 @@ public class ChangeReviewDialog extends Dialog {
             case "notes" -> NOTES;
             case "senses" -> MEANINGS;
             case "variants" -> OTHER_FORMS_OF_THE_SAME_CONCEPT;
+            case "entries" -> WORDS_CHOSEN;
             default -> field;
         });
     }

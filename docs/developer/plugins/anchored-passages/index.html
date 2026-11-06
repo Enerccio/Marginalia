@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847294423167">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847297604553">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.847294423167" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.847297604553" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847294423167" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847297604553" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847294423167" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.847294423167" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847297604553" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.847297604553" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -209,6 +209,7 @@ registered stay in the data and are not shown.</p>
 | `markClass(passage)` | CSS classes of the mark over the passage in the story card (desktop and phone) and in the redraft dialog; `null` is no mark. Your stylesheet comes with `ExtensionHasCss`, or use the shared `annotation-mark` classes. |
 | `markAttributes(passage)` | Further attributes of the mark as HTML (` data-x=&quot;y&quot;`, values escaped). The core adds `data-annotation=&quot;&lt;uuid&gt;&quot;`, which is how the click finds the passage. |
 | `onClick(passage, anchor)` | The author clicked the mark; open a popover or a dialog from `anchor`. |
+| `textReplaced(passage, before, after)` | A search and replace of the book ([`ManuscriptReplaceService`](../services.md)) changed words inside the passage; the range is already moved. Not called for an edit by hand. Bring up to date what you keep of the passage's text (a hash that tells an edit, a copy) so a replace is not taken for an edit; return `true` when you changed the passage and the core saves it. `PassageService.shiftReplaced` does the shifting and the call. |
 | `shownInViewer()`, `shownInExports()` | Whether the viewer of a published book and the exports get the passages of the kind. They only ask the kind: the core draws nothing of its own there, the extension's hooks do: for the exports the extension registers a contributor in the [`ExportTextRegistry`](export-text.md); the viewer click is the extension's decorator of `Viewer.createPart` (the [translator library](libraries/translator-common.md) has one). |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -234,6 +235,10 @@ registered stay in the data and are not shown.</p>
 <tr>
 <td><code translate="no" v-pre>onClick(passage, anchor)</code></td>
 <td>The author clicked the mark; open a popover or a dialog from <code translate="no" v-pre>anchor</code>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>textReplaced(passage, before, after)</code></td>
+<td>A search and replace of the book (<a href="../../services/"><code translate="no" v-pre>ManuscriptReplaceService</code></a>) changed words inside the passage; the range is already moved. Not called for an edit by hand. Bring up to date what you keep of the passage&#x27;s text (a hash that tells an edit, a copy) so a replace is not taken for an edit; return <code translate="no" v-pre>true</code> when you changed the passage and the core saves it. <code translate="no" v-pre>PassageService.shiftReplaced</code> does the shifting and the call.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>shownInViewer()</code>, <code translate="no" v-pre>shownInExports()</code></td>
@@ -283,7 +288,7 @@ and puts their marks into the text together with the marks of the annotations.</
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (bdee09035).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (51600aa24).</p></div>
             </footer>
         </div>
     </div>

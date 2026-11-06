@@ -50,6 +50,23 @@ public interface PassageKind {
     }
 
     /**
+     * Called when a search and replace ({@link ManuscriptReplaceService}) changed the text inside a passage of this kind, after the core
+     * moved the range of the passage through the change. It is not called for an edit of the author by hand (the passage can tell that
+     * one by comparing the text with what it stored) nor for a replace that left the text of the passage as it was.
+     * <p>
+     * A kind that stores something made of the text of the passage (a hash to tell an edit, a copy) brings it up to date here, so a
+     * replace is not taken for an edit.
+     *
+     * @param passage the passage, its range is in the new text
+     * @param before  the text of the passage before the replace
+     * @param after   the text of the passage now
+     * @return true when the method changed the passage (its attributes); the core saves it then
+     */
+    default boolean textReplaced(AnchoredPassage passage, String before, String after) {
+        return false;
+    }
+
+    /**
      * @return true when the viewer of a published book gets the passages of this kind
      */
     default boolean shownInViewer() {

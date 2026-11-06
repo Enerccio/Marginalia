@@ -6,16 +6,16 @@ import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
- * The functions of {@link NameGeneratorFunctions} on the Markov chain tables of {@link NameTables}.
+ * The functions of {@link NameGeneratorFunctions} on the Markov chain tables of {@link NameCatalog}.
  */
 public class NameGeneratorFunctionsImpl implements NameGeneratorFunctions {
 
     /** The most names one call returns, whatever the model asks for. */
     public static final int MAX_COUNT = 100;
 
-    private final NameTables tables;
+    private final NameCatalog tables;
 
-    public NameGeneratorFunctionsImpl(NameTables tables) {
+    public NameGeneratorFunctionsImpl(NameCatalog tables) {
         this.tables = tables;
     }
 
@@ -31,7 +31,12 @@ public class NameGeneratorFunctionsImpl implements NameGeneratorFunctions {
             done.fail(NameTables.unknown("category", category, tables.categories(), "list_name_categories"));
             return;
         }
-        done.complete(tables.generate(category, clampCount(count), minLength, maxLength, ThreadLocalRandom.current()));
+        try {
+            done.complete(tables.generate(category, clampCount(count), minLength, maxLength, ThreadLocalRandom.current()));
+        } catch (IllegalStateException e) {
+            // the extension that registered the category could not make the names
+            done.fail(e.getMessage());
+        }
     }
 
     /** The count the model asked for limited to 1..{@link #MAX_COUNT}. */

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847294423167">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847297604553">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.847294423167" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.847297604553" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847294423167" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847297604553" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847294423167" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.847294423167" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847297604553" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.847297604553" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -419,7 +419,9 @@ what the other extension no longer has.</p>
 <p>An extension that wants to be called gives its <code translate="no" v-pre>MarginaliaExtension</code> class a few <code translate="no" v-pre>public</code> methods that use only JDK and
 application types. There is no compiler between the two, so treat the class name, the method names and their signatures as a
 contract: keep them stable, say so in the README of the plugin, and when you must change them, change the callers in the same
-commit. The offering extension does not need to know who calls it. (The Name generator and the Name provider had <code translate="no" v-pre>categories()</code>,
+commit. The offering extension does not need to know who calls it. The Name generator is such an extension: other plugins add categories
+of their own to it (<code translate="no" v-pre>registerWords</code>, <code translate="no" v-pre>registerGenerator</code>, <code translate="no" v-pre>unregister</code>, <code translate="no" v-pre>unregisterAll</code> on <code translate="no" v-pre>NameGeneratorExtension</code>, JDK types and <code translate="no" v-pre>Bundle</code> only), see its README.
+(The Name generator and the Name provider had <code translate="no" v-pre>categories()</code>,
 <code translate="no" v-pre>newFunctions()</code> and <code translate="no" v-pre>functions()</code> for the bridges; they are gone, their suites are offered through <code translate="no" v-pre>ToolService</code>.)</p>
 <h3 id="which-one">Which one?</h3>
 <retype-table copy-text="| | `IPCService` | `ToolService` | Direct call |
@@ -525,7 +527,7 @@ options of the tab, a source that is gone is skipped until it comes back.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (bdee09035).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (51600aa24).</p></div>
             </footer>
         </div>
     </div>

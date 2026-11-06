@@ -10,6 +10,7 @@ import com.github.enerccio.marginalia.extensions.conlangtranslator.diff.Language
 import com.github.enerccio.marginalia.extensions.conlangtranslator.model.Language;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.model.UserDefaults;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.service.LanguageLibrary;
+import com.github.enerccio.marginalia.extensions.conlangtranslator.service.NameGeneratorBridge;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.store.ConlangStore;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
@@ -53,6 +54,7 @@ import static com.github.enerccio.marginalia.extensions.conlangtranslator.Conlan
 public class LanguageSettingsForm extends VerticalLayout {
 
     private final LanguageLibrary library;
+    private final NameGeneratorBridge nameBridge;
 
     private final TextField summary = new TextField(T.localized(LANGUAGES));
     private final Grid<Language> grid = new Grid<>();
@@ -74,8 +76,9 @@ public class LanguageSettingsForm extends VerticalLayout {
     private Button exportButton;
     private Button compareButton;
 
-    public LanguageSettingsForm(LanguageLibrary library) {
+    public LanguageSettingsForm(LanguageLibrary library, NameGeneratorBridge nameBridge) {
         this.library = library;
+        this.nameBridge = nameBridge;
         setWidthFull();
         setPadding(true);
         setSpacing(true);
@@ -234,7 +237,7 @@ public class LanguageSettingsForm extends VerticalLayout {
             books = List.of();
             lorebooks = List.of();
         }
-        new LanguageEditorDialog(language, name -> nameTaken(language, name), books, lorebooks, saved -> {
+        new LanguageEditorDialog(language, name -> nameTaken(language, name), books, lorebooks, nameBridge, saved -> {
             if (isNew) {
                 shown.add(saved);
             } else {

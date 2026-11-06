@@ -2,15 +2,14 @@ package com.github.enerccio.marginalia.generation;
 
 import com.github.enerccio.marginalia.domain.collections.SummaryType;
 import com.github.enerccio.marginalia.domain.components.SummaryNode;
+import com.github.enerccio.marginalia.domain.model.impl.AnchoredPassage;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Summary;
-import com.github.enerccio.marginalia.domain.service.ChatMessageService;
-import com.github.enerccio.marginalia.domain.service.ManuscriptReplaceService;
+import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.ManuscriptReplaceService.Kind;
 import com.github.enerccio.marginalia.domain.service.ManuscriptReplaceService.Options;
 import com.github.enerccio.marginalia.domain.service.ManuscriptReplaceService.Plan;
-import com.github.enerccio.marginalia.domain.service.SummaryService;
 import com.github.enerccio.marginalia.domain.service.SummaryService.BlockTexts;
 import com.github.enerccio.marginalia.domain.service.SummaryService.SummaryBlock;
 import com.github.enerccio.marginalia.domain.service.search.replace.TaskProgress;
@@ -45,6 +44,12 @@ class ManuscriptReplaceTest extends GenerationTestBase {
 
     @Autowired
     private ManuscriptReplaceService replaceService;
+
+    @Autowired
+    private PassageService passageService;
+
+    @Autowired
+    private PassageKinds passageKinds;
 
     private Manuscript manuscript;
     private List<ChatMessage> story;
@@ -460,4 +465,35 @@ class ManuscriptReplaceTest extends GenerationTestBase {
         assertThatThrownBy(() -> plan("John", "Jon", false, true, true)).isInstanceOf(IllegalArgumentException.class);
     }
 
+
+    @Test
+    void aKindOfPassagesIsToldWhatTheReplaceChangedInsideItsPassage() throws Exception {
+        List<String> told = new ArrayList<>();
+        PassageKind kind = new PassageKind() {
+            @Override
+            public String id() {
+                return "replace-test-kind";
+            }
+
+            @Override
+            public boolean textReplaced(AnchoredPassage passage, String before, String after) {
+                told.add(before + " -> " + after);
+                return false;
+            }
+        };
+        passageKinds.register(kind);
+        try {
+            // "John went home": the passage is the name
+            passageService.create(manuscript, story.get(1), kind.id(), 0, 4);
+            // "John smiled": a passage over the other words, which the replace does not touch
+            passageService.create(manuscript, story.get(3), kind.id(), 5, 11);
+
+            Plan plan = plan("John", "Jon", false, false, false);
+            replaceService.apply(book(), plan, TaskProgress.NONE);
+
+            assertThat(told).containsExactly("John -> Jon");
+        } finally {
+            passageKinds.unregister(kind);
+        }
+    }
 }

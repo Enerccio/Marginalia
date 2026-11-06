@@ -17,6 +17,9 @@ public class Language {
 
     private static final Gson GSON = new Gson();
 
+    /** What the titles of the categories of names start with; the Name generator lists them together. */
+    public static final String NAME_TITLE_PREFIX = "Conlang - ";
+
     private int format = FORMAT;
     private String id = UUID.randomUUID().toString();
     private String name = "";
@@ -25,6 +28,8 @@ public class Language {
     private List<Category> categories = new ArrayList<>();
     private List<Register> registers = new ArrayList<>();
     private List<LexiconEntry> lexicon = new ArrayList<>();
+    /** The categories of names this language gives the Name generator, each a choice of words of the lexicon. */
+    private List<NameCategory> nameCategories = new ArrayList<>();
     /**
      * Whether a hyphen is a part of a word of the language (it marks a boundary or joins a morpheme and the form differs without it). Off
      * (the default): hyphens are ignored when forms are compared, so a compound written with or without them is the same word.
@@ -54,6 +59,31 @@ public class Language {
 
     public Register findRegister(String registerId) {
         return registerId == null ? null : getRegisters().stream().filter(register -> register.getId().equals(registerId)).findFirst().orElse(null);
+    }
+
+    public NameCategory findNameCategory(String nameCategoryId) {
+        return nameCategoryId == null ? null
+                : getNameCategories().stream().filter(category -> category.getId().equals(nameCategoryId)).findFirst().orElse(null);
+    }
+
+    /** The title of the category of names in the Name generator's list: the language and the category, under the heading Conlang. */
+    public String nameCategoryTitle(NameCategory category) {
+        return NAME_TITLE_PREFIX + getName() + " - " + category.getName();
+    }
+
+    /**
+     * The forms of the words of the category as they are now, for the Name generator: the entries the category names that still exist and are
+     * not retired (an entry that was deleted or replaced is ignored, the choice is not repaired), each form once, in the order of the lexicon.
+     */
+    public List<String> nameWords(NameCategory category) {
+        Set<String> chosen = new HashSet<>(category.getEntries());
+        Set<String> forms = new LinkedHashSet<>();
+        for (LexiconEntry entry : getLexicon()) {
+            if (chosen.contains(entry.getId()) && entry.getStatus() != EntryStatus.RETIRED && !entry.getWord().isBlank()) {
+                forms.add(entry.getWord().strip());
+            }
+        }
+        return List.copyOf(forms);
     }
 
     public LexiconEntry findEntry(String entryId) {
@@ -286,6 +316,13 @@ public class Language {
             lexicon = new ArrayList<>();
         }
         return lexicon;
+    }
+
+    public List<NameCategory> getNameCategories() {
+        if (nameCategories == null) {
+            nameCategories = new ArrayList<>();
+        }
+        return nameCategories;
     }
 
     public boolean isHyphenStructural() {
