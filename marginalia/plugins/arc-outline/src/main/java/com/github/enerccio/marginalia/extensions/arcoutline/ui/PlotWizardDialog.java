@@ -788,11 +788,8 @@ public class PlotWizardDialog extends Dialog {
         }
         List<LLMChatMessage> payload = new ArrayList<>();
         payload.add(LLMChatMessage.of(LLMRole.SYSTEM, system));
-        for (WizardMessage message : history) {
-            // the calls of an earlier answer are not sent again, the text says they were made
-            payload.add(LLMChatMessage.of(message.isFromUser() ? LLMRole.USER : LLMRole.ASSISTANT,
-                    WizardContext.withCalls(message.getText(), message.getCalls())));
-        }
+        // the calls of the earlier answers go with their results, so the model sees what it already did
+        payload.addAll(WizardContext.toPayload(history));
         return payload;
     }
 
@@ -835,7 +832,8 @@ public class PlotWizardDialog extends Dialog {
             transcript.append("Summary of the conversation before:\n").append(earlier.strip()).append("\n\n");
         }
         for (WizardMessage message : messages) {
-            transcript.append(message.isFromUser() ? "Author: " : "Consultant: ").append(message.getText().strip()).append("\n\n");
+            transcript.append(message.isFromUser() ? "Author: " : "Consultant: ")
+                    .append(WizardContext.withCalls(message.getText(), message.getCalls()).strip()).append("\n\n");
         }
         DialogShortcuts.submitWith(ok, note);
         List<LLMChatMessage> payload = new ArrayList<>();

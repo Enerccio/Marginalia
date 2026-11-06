@@ -174,5 +174,7 @@ You can read and change the book through the tools you are given: the planner (s
 2. Adding is safe, replacing is not. Prefer a new scene or entry to rewriting an existing one, and when you do change something the author wrote, say what changed.
 3. The generators (arc, chapters, lore entry) return a draft and save nothing unless you pass save true. Show the draft to the author, say what it is, and save it only when they agree. The same for names: offer a few and let the author pick.
 4. After you used a tool, tell the author in one or two lines what you did (for example "Added the scene 'The harbor' to the planner"). If a tool failed, say so and what you will try instead.
+5. Write it yourself or generate it: when the conversation already holds what is to be added (an agreed arc, a chapter list, the text of an entry), write it with the direct tools (add-arc, add-outline-chapter, create-lore-entry, ...) using that content. Do not hand it to a generator: a generator writes something new and loses what was agreed. Use a generator only when the author asks you to generate or there is nothing to start from.
+6. The tool calls and results earlier in the conversation are things already done. Do not make the same entry, arc, chapter or scene again unless the author asks for it; answer only the latest message of the author.
 """;
 }

@@ -1,5 +1,9 @@
 package com.github.enerccio.marginalia.extensions.arcoutline.service;
 
+import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
+import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
+import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMToolCall;
+import com.github.enerccio.marginalia.extensions.arcoutline.model.WizardCall;
 import com.github.enerccio.marginalia.extensions.arcoutline.model.WizardMessage;
 import com.github.enerccio.marginalia.extensions.arcoutline.service.ArcOutlineService.StoryMessage;
 
@@ -13,6 +17,9 @@ import java.util.function.ToLongFunction;
  * functions of the numbers, so they can be tested without a model.
  */
 public final class WizardContext {
+
+    /** The longest result of a tool call that is sent again with the conversation; more is cut, the model can read the rest again. */
+    static final int MAX_RESULT_CHARS = 2000;
 
     /** The room the model keeps for its answer is not counted here, the caller gives the room for the prompt. */
     private static final double DEFAULT_STORY_SHARE = 1.0 / 3.0;
@@ -126,6 +133,58 @@ public final class WizardContext {
         return text.toString();
     }
 
+    /** Everything of the message that goes to the model as text, for counting: the text and what the calls passed and got back. */
+    public static String sentText(WizardMessage message) {
+        StringBuilder text = new StringBuilder(message.getText() == null ? "" : message.getText());
+        if (message.getCalls() != null) {
+            for (WizardCall call : message.getCalls()) {
+                text.append('\n').append(call.getName()).append(' ').append(call.getArguments()).append(' ').append(boundedResult(call));
+            }
+        }
+        return text.toString();
+    }
+
+    private static String boundedResult(WizardCall call) {
+        String result = call.getResult() == null ? "" : call.getResult();
+        return result.length() <= MAX_RESULT_CHARS ? result : result.substring(0, MAX_RESULT_CHARS) + " ...[cut]";
+    }
+
+    /**
+     * The messages of the conversation as the model gets them. The tools a model message called are sent as the calls and results they
+     * were (a call, then its result), ahead of the text of the answer, so the model sees what it did and does not do it again; a text
+     * that only says "tools used" is not enough, it cannot tell what was made.
+     */
+    public static List<LLMChatMessage> toPayload(List<WizardMessage> messages) {
+        List<LLMChatMessage> payload = new ArrayList<>();
+        int number = 0;
+        for (WizardMessage message : messages) {
+            String text = message.getText() == null ? "" : message.getText();
+            if (message.isFromUser()) {
+                payload.add(LLMChatMessage.of(LLMRole.USER, text));
+                continue;
+            }
+            number++;
+            List<WizardCall> calls = message.getCalls() == null ? List.of() : message.getCalls();
+            if (!calls.isEmpty()) {
+                List<LLMToolCall> toolCalls = new ArrayList<>();
+                for (int i = 0; i < calls.size(); i++) {
+                    String arguments = calls.get(i).getArguments();
+                    toolCalls.add(LLMToolCall.of("call_" + number + "_" + i, calls.get(i).getName(),
+                            arguments == null || arguments.isBlank() ? "{}" : arguments));
+                }
+                payload.add(LLMChatMessage.ofToolCalls(null, toolCalls));
+                for (int i = 0; i < calls.size(); i++) {
+                    payload.add(LLMChatMessage.ofToolResult("call_" + number + "_" + i, boundedResult(calls.get(i))));
+                }
+            }
+            // an answer that is only calls ends with the results, an empty message would be refused by some providers
+            if (!text.isBlank() || calls.isEmpty()) {
+                payload.add(LLMChatMessage.of(LLMRole.ASSISTANT, text));
+            }
+        }
+        return payload;
+    }
+
     /**
      * What the model is told of the tools it called in an earlier answer: the calls are not sent again, so the text says that they
      * were made.
@@ -154,7 +213,7 @@ public final class WizardContext {
         long used = 0;
         for (int i = history.size() - 1; i >= 0; i--) {
             WizardMessage message = history.get(i);
-            long size = tokens.applyAsLong(message.getText() == null ? "" : message.getText());
+            long size = tokens.applyAsLong(sentText(message));
             if (!chosen.isEmpty() && used + size > room) {
                 break;
             }

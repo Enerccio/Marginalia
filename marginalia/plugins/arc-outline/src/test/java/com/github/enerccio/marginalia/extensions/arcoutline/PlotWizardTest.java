@@ -140,6 +140,44 @@ class PlotWizardTest {
     }
 
     @Test
+    void anEarlierAnswerIsSentWithItsToolCallsAndResultsSoTheModelSeesWhatItDid() {
+        var made = new com.github.enerccio.marginalia.extensions.arcoutline.model.WizardCall("create-lore-entry", "{\"name\":\"Bracelet\"}", "{\"entry\":10}", false);
+        WizardMessage answer = new WizardMessage(false, "Done.", null);
+        answer.setCalls(List.of(made));
+        var payload = WizardContext.toPayload(List.of(user("make the entry"), answer, user("now the arc")));
+
+        assertEquals(5, payload.size());
+        assertEquals(com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole.USER, payload.get(0).getRole());
+        var calls = payload.get(1);
+        assertEquals(com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole.ASSISTANT, calls.getRole());
+        assertEquals(1, calls.getToolCalls().size());
+        assertEquals("create-lore-entry", calls.getToolCalls().getFirst().getName());
+        assertEquals("{\"name\":\"Bracelet\"}", calls.getToolCalls().getFirst().getArguments());
+        var result = payload.get(2);
+        assertEquals(com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole.TOOL, result.getRole());
+        assertEquals(calls.getToolCalls().getFirst().getId(), result.getToolCallId());
+        assertEquals("{\"entry\":10}", result.getContent());
+        assertEquals("Done.", payload.get(3).getContent());
+        assertEquals("now the arc", payload.get(4).getContent());
+    }
+
+    @Test
+    void aLongResultIsCutAndAnAnswerOfCallsOnlyHasNoEmptyTextMessage() {
+        var made = new com.github.enerccio.marginalia.extensions.arcoutline.model.WizardCall("get-arc-outline", "", "x".repeat(5000), false);
+        WizardMessage answer = new WizardMessage(false, " ", null);
+        answer.setCalls(List.of(made));
+        var payload = WizardContext.toPayload(List.of(user("show it"), answer));
+
+        // the author's message, the call and its result: no empty answer after them
+        assertEquals(3, payload.size());
+        assertEquals("{}", payload.get(1).getToolCalls().getFirst().getArguments());
+        assertTrue(payload.get(2).getContent().length() < 2100);
+        assertTrue(payload.get(2).getContent().endsWith("...[cut]"));
+        // what is sent is what is counted
+        assertTrue(WizardContext.sentText(answer).length() < 2200);
+    }
+
+    @Test
     void anEarlierAnswerTellsTheModelWhichToolsItUsed() {
         var ok = new com.github.enerccio.marginalia.extensions.arcoutline.model.WizardCall("add-planned-scene", "{}", "{}", false);
         var bad = new com.github.enerccio.marginalia.extensions.arcoutline.model.WizardCall("update-lore-entry", "{}", "no", true);
