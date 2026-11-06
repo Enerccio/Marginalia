@@ -6,6 +6,7 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executor;
+import java.util.function.BiConsumer;
 import java.util.function.BooleanSupplier;
 
 /**
@@ -29,9 +30,17 @@ public final class FunctionSet {
     // what is offered: the functions whose linked tools are all bound too
     private final Map<String, Binding> functions;
 
+    // told when a call starts, before it runs; null for none
+    private final BiConsumer<String, String> starting;
+
     private FunctionSet(Map<String, Binding> bound) {
+        this(bound, null);
+    }
+
+    private FunctionSet(Map<String, Binding> bound, BiConsumer<String, String> starting) {
         this.bound = bound;
         this.functions = complete(bound);
+        this.starting = starting;
     }
 
     // a function is out when a function linked to it is missing, and so is everything linked to that one in turn
@@ -61,10 +70,10 @@ public final class FunctionSet {
      * @throws IllegalArgumentException when both have a function of the same name
      */
     public FunctionSet and(FunctionSet other) {
-        if (other.bound.isEmpty()) {
+        if (other.bound.isEmpty() && other.starting == null) {
             return this;
         }
-        if (bound.isEmpty()) {
+        if (bound.isEmpty() && starting == null) {
             return other;
         }
         Map<String, Binding> bindings = new LinkedHashMap<>(bound);
@@ -73,7 +82,26 @@ public final class FunctionSet {
                 throw new IllegalArgumentException("Function " + binding.getKey() + " is bound twice");
             }
         }
-        return new FunctionSet(bindings);
+        return new FunctionSet(bindings, both(starting, other.starting));
+    }
+
+    private static BiConsumer<String, String> both(BiConsumer<String, String> a, BiConsumer<String, String> b) {
+        if (a == null || b == null) {
+            return a == null ? b : a;
+        }
+        return (name, arguments) -> {
+            a.accept(name, arguments);
+            b.accept(name, arguments);
+        };
+    }
+
+    /**
+     * The same functions, and {@code starting} is told the name and the JSON arguments of each call when it starts, before the
+     * function runs, on the thread that asks for the call (a function can take long: this is how a screen shows that it is
+     * running before the result comes). What it throws is ignored.
+     */
+    public FunctionSet whenCalled(BiConsumer<String, String> starting) {
+        return new FunctionSet(bound, both(this.starting, starting));
     }
 
     public boolean isEmpty() {
@@ -107,6 +135,13 @@ public final class FunctionSet {
      */
     public CompletableFuture<String> call(String name, String argumentsJson, Executor executor, BooleanSupplier cancelled) {
         CompletableFuture<String> result = new CompletableFuture<>();
+        if (starting != null) {
+            try {
+                starting.accept(name, argumentsJson);
+            } catch (RuntimeException ignored) {
+                // an observer must not break the call
+            }
+        }
         Binding binding = functions.get(name);
         if (binding == null) {
             result.completeExceptionally(new FunctionCallException(Kind.UNKNOWN_FUNCTION, "Unknown function " + name
