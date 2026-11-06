@@ -10,6 +10,7 @@ import com.github.enerccio.marginalia.domain.service.structured.StructuredOutput
 import com.github.enerccio.marginalia.domain.templates.LorebookTemplateData;
 import com.github.enerccio.marginalia.extensions.stconverter.STConverterLog;
 import com.github.enerccio.marginalia.extensions.stconverter.model.*;
+import com.github.enerccio.marginalia.utils.LmStudioChats;
 import com.github.enerccio.marginalia.utils.SillyTavernChats;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -166,19 +167,19 @@ public class ConverterService {
     // --- the chat ---
 
     /**
-     * Reads an uploaded SillyTavern chat ({@code .jsonl}) into the data of the book, replacing the chat and the turn
+     * Reads an uploaded SillyTavern chat ({@code .jsonl}) or LM Studio conversation ({@code .conversation.json}, told by its content) into the data of the book, replacing the chat and the turn
      * details, which describe the chat. The file is stored as a resource of the user (linked to the book), the book keeps
      * only its uuid. The branches of the chat are not followed: every message is the swipe that was shown; hidden (system)
      * messages and empty ones are left out.
      *
      * @return the number of messages
-     * @throws IllegalArgumentException when the file is not a SillyTavern chat or has no messages
+     * @throws IllegalArgumentException when the file is not a chat of SillyTavern or a conversation of LM Studio, or has no messages
      */
     public int importChat(Manuscript manuscript, ConverterData data, byte[] file, String fileName) throws Exception {
         String name = StringUtils.defaultIfBlank(fileName, "chat.jsonl");
         List<ChatLine> lines = readLines(file, name);
 
-        Resource resource = resourceService.upload(name, file, CHAT_MIME_TYPE);
+        Resource resource = resourceService.upload(name, file, LmStudioChats.isConversation(new String(file, StandardCharsets.UTF_8)) ? "application/json" : CHAT_MIME_TYPE);
         if (manuscript.getId() != null) {
             resourceService.link(resource, Manuscript.class, manuscript.getId());
         }
@@ -273,14 +274,15 @@ public class ConverterService {
     /**
      * The messages of the chat in the file.
      *
-     * @throws IllegalArgumentException when the file is not a SillyTavern chat or has no messages
+     * @throws IllegalArgumentException when the file is not a chat of SillyTavern or a conversation of LM Studio, or has no messages
      */
-    static List<ChatLine> readLines(byte[] file, String fileName) {
+    public static List<ChatLine> readLines(byte[] file, String fileName) {
         String text = new String(file, StandardCharsets.UTF_8);
         if (text.startsWith("\uFEFF")) {
             text = text.substring(1);
         }
-        List<ChatLine> lines = toLines(SillyTavernChats.parse(text, fileName));
+        // a conversation of LM Studio is one JSON document, a chat of SillyTavern a line of JSON per message
+        List<ChatLine> lines = toLines(LmStudioChats.isConversation(text) ? LmStudioChats.parse(text, fileName) : SillyTavernChats.parse(text, fileName));
         if (lines.isEmpty()) {
             throw new IllegalArgumentException(T.localized(THE_CHAT_HAS_NO_MESSAGES));
         }

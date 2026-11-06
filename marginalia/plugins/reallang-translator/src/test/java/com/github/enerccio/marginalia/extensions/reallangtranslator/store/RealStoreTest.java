@@ -165,4 +165,41 @@ class RealStoreTest {
         RealStore.writeFolderGlossary(attributes, "cs", java.util.List.of());
         assertFalse(attributes.has(RealStore.FOLDER_GLOSSARY_KEY), "nothing is left in the folder when its glossary is empty");
     }
+    @Test
+    void theExtractionPromptsKeepTheirOrderAndAnUnreadableOneIsLeftOut() {
+        JsonObject attributes = new JsonObject();
+        RealStore.writePrompts(attributes, java.util.List.of(new ExtractionPrompt("a", "First", "text one"), new ExtractionPrompt("b", "Second", "text two")));
+        attributes.getAsJsonArray(RealStore.PROMPTS_KEY).add("not a prompt");
+
+        var read = RealStore.readPrompts(attributes);
+
+        assertEquals(java.util.List.of("a", "b"), read.stream().map(ExtractionPrompt::getId).toList());
+        assertEquals("text two", read.get(1).getText());
+    }
+
+    @Test
+    void noPromptsMeansNoKey() {
+        JsonObject attributes = new JsonObject();
+        RealStore.writePrompts(attributes, java.util.List.of(new ExtractionPrompt("a", "First", "text")));
+        RealStore.writePrompts(attributes, java.util.List.of());
+
+        assertFalse(attributes.has(RealStore.PROMPTS_KEY));
+        assertTrue(RealStore.readPrompts(attributes).isEmpty());
+        assertTrue(RealStore.readPrompts(null).isEmpty());
+    }
+
+    @Test
+    void theExtractionOfABookIsKeptWithItsSettings() {
+        JsonObject attributes = new JsonObject();
+        BookSettings settings = new BookSettings();
+        settings.getExtraction().setPromptId(ExtractionPrompts.JAPANESE);
+        settings.getExtraction().setSpecification("  Leave out the minor characters.  ");
+        RealStore.writeBook(attributes, settings);
+
+        BookSettings read = RealStore.readBook(attributes);
+
+        assertEquals(ExtractionPrompts.JAPANESE, read.getExtraction().getPromptId());
+        assertEquals("Leave out the minor characters.", read.getExtraction().getSpecification());
+        assertNull(RealStore.readBook(new JsonObject()).getExtraction().getPromptId(), "a book that never extracted has no prompt");
+    }
 }

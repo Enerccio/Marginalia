@@ -111,6 +111,46 @@ class LmStudioChatsTest {
         assertThat(tree.roots().getFirst().alternative().text()).isEqualTo("Swords.");
     }
 
+    /** The shape LM Studio writes for a model without thinking: the answer block with its generation info, then a block of debug information. */
+    private static final String AS_WRITTEN = """
+            {"name":"System Prompt Testing","pinned":false,"createdAt":1700000000000,"preset":"","tokenCount":199,"systemPrompt":"",
+             "usePerChatPredictionConfig":true,"perChatPredictionConfig":{"fields":[]},"clientInput":"","clientInputFiles":[],
+             "userLastMessagedAt":1700000100000,"assistantLastMessagedAt":1700000101000,"messages":[
+              {"versions":[{"type":"singleStep","role":"user","content":[{"type":"text","text":"Test message"}]}],"currentlySelected":0},
+              {"versions":[{"type":"multiStep","role":"assistant","steps":[
+                {"type":"contentBlock","stepIdentifier":"1-0.2","content":[{"type":"text","text":"Ready.","fromDraftModel":false,"tokensCount":2,"isStructural":false}],
+                 "defaultShouldIncludeInContext":true,"shouldIncludeInContext":true,
+                 "genInfo":{"indexedModelIdentifier":"org/model-GGUF/model.gguf","identifier":"model-1b","loadModelConfig":{"fields":[{"key":"llm.load.contextLength","value":8192}]},
+                            "predictionConfig":{"fields":[]},"stats":{"stopReason":"eosFound","predictedTokensCount":2}}},
+                {"type":"debugInfoBlock","stepIdentifier":"2-0.3","debugInfo":"Conversation naming technique: 'prompt'"}],
+               "senderInfo":{"senderName":"model-1b"}}],"currentlySelected":0}
+             ]}
+            """;
+
+    @Test
+    void readsTheFileTheWayLmStudioWritesIt() {
+        assertThat(LmStudioChats.isConversation(AS_WRITTEN)).isTrue();
+        Chat chat = LmStudioChats.parse(AS_WRITTEN, "1700000000000.conversation.json");
+
+        assertThat(chat.name()).isEqualTo("System Prompt Testing");
+        assertThat(chat.messages()).hasSize(2);
+        SillyTavernChats.Alternative answer = chat.messages().get(1).shown();
+        // the debug block is not a part of the answer
+        assertThat(answer.text()).isEqualTo("Ready.");
+        assertThat(answer.model()).isEqualTo("model-1b");
+        assertThat(answer.reasoning()).isNull();
+    }
+
+    @Test
+    void aConversationIsToldFromAChatOfSillyTavern() {
+        assertThat(LmStudioChats.isConversation("\uFEFF  " + AS_WRITTEN)).isTrue();
+        assertThat(LmStudioChats.isConversation("{\"user_name\":\"Me\",\"chat_metadata\":{}}\n{\"mes\":\"hi\",\"is_user\":true}")).isFalse();
+        assertThat(LmStudioChats.isConversation("{\"mes\":\"hi\",\"is_user\":true}")).isFalse();
+        assertThat(LmStudioChats.isConversation("[1]")).isFalse();
+        assertThat(LmStudioChats.isConversation("")).isFalse();
+        assertThat(LmStudioChats.isConversation(null)).isFalse();
+    }
+
     @Test
     void somethingThatIsNotAConversationIsRefused() {
         assertThatThrownBy(() -> LmStudioChats.parse("not json at all {", "x.json")).isInstanceOf(IllegalArgumentException.class);

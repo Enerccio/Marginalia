@@ -1,6 +1,6 @@
 # Converter (sillytavern-converter)
 
-Rewrite a SillyTavern roleplay chat as a story, turn by turn. Load the chat into the book, read it in a table, let the
+Rewrite a SillyTavern roleplay chat (or an LM Studio conversation) as a story, turn by turn. Load the chat into the book, read it in a table, let the
 model split it into *turn details* (scene setting, POV character, present characters, instructions) from the chat and the
 lore of the book, and put each of them into the new turn form of the story with a click.
 
@@ -21,8 +21,8 @@ turn details get the room), holds:
 
 Under that, two tabs:
 
-- **Chat** - upload a `.jsonl` chat exported by SillyTavern (a chat without branches; of the swipes of a message the
-  shown one is read, hidden system messages are left out). It is shown as a table: a checkbox, the number and the message with
+- **Chat** - upload a `.jsonl` chat exported by SillyTavern or an LM Studio conversation (`.conversation.json`, told by its content; a chat without
+  branches; of the swipes of a message, or the versions in LM Studio, the shown one is read, hidden system messages are left out). It is shown as a table: a checkbox, the number and the message with
   the name of the speaker in bold above it. Tick the messages you have gone through while you rewrite them; the double arrow above the table goes
   to the next unchecked message (the turn details have one too). **Click a message** to start a range,
   **Shift+click** another to extend it up to there; the range is highlighted. The button with the cross removes the chat

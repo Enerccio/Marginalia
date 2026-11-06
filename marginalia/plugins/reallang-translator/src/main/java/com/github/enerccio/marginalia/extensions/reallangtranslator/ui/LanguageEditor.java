@@ -76,7 +76,9 @@ public class LanguageEditor extends EditDialog {
         }
         Span hint = new Span(T.localized(THERE_IS_NO_LEXICON_THE_MODEL_KNOWS_THE_LANGUAGE));
         hint.addClassName(CommonStyles.HINT);
-        GlossaryList glossary = new GlossaryList(language.getGlossary());
+        // the glossary list edits in place: it gets a copy, so Cancel leaves the language as it was; OK puts the copy back
+        RealLanguage working = com.github.enerccio.marginalia.extensions.reallangtranslator.store.RealStore.copy(language);
+        GlossaryList glossary = new GlossaryList(working.getGlossary());
         glossary.setHeight("18rem");
         Span glossaryHint = new Span(T.localized(GLOSSARY_OF_THE_LANGUAGE_HINT));
         glossaryHint.addClassName(CommonStyles.HINT);
@@ -97,6 +99,7 @@ public class LanguageEditor extends EditDialog {
             language.setPoliteness(politeness.getValue().strip());
             language.setNames(names.getValue().strip());
             language.setRules(rules.getValue().strip());
+            language.setGlossary(working.getGlossary());
             return null;
         });
     }

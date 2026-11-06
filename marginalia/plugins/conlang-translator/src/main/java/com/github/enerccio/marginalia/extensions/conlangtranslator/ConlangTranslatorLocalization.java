@@ -217,6 +217,7 @@ public class ConlangTranslatorLocalization extends PluginLocalizationBundle {
     public static final String CONSTRAINTS_AND_WHAT_TO_AVOID = "Constraints and what to avoid";
     public static final String DESIGN_A_LANGUAGE = "Design a language";
     public static final String DESIGN_WITH_AI = "Design with AI";
+    public static final String DISCARD_THE_CHANGES = "Discard the changes to the language?";
     public static final String DISCARD_THE_NEW_LANGUAGE = "Discard the new language and what was made so far?";
     public static final String EDIT_THE_PROPOSAL_YOURSELF = "Edit the text yourself, or write a note above and propose again to refine it.";
     public static final String EMPTY_THE_FIRST_PROPOSAL_FROM_THE_BRIEF = "Empty: the first proposal comes from the brief. With a proposal below, the note says what to change.";
@@ -926,6 +927,8 @@ public class ConlangTranslatorLocalization extends PluginLocalizationBundle {
         ja(DESIGN_WITH_AI, "AI でデザイン");
         zh(DESIGN_WITH_AI, "用 AI 设计");
 
+        ja(DISCARD_THE_CHANGES, "言語への変更を破棄しますか?");
+        zh(DISCARD_THE_CHANGES, "放弃对语言的修改?");
         ja(DISCARD_THE_NEW_LANGUAGE, "新しい言語とここまでの作業を破棄しますか?");
         zh(DISCARD_THE_NEW_LANGUAGE, "放弃新语言及目前的成果?");
 

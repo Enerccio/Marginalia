@@ -108,6 +108,19 @@ Without a glossary the model chooses again in every part how a name is written: 
 
 The commands for it are in the table below. A part that a book translated before the glossary existed keeps its translation; translate it again to use the glossary.
 
+## Extracting the words by model
+
+Writing the glossary by hand is slow for a long book. The **Word extraction** tab (next to the glossary tabs of the *Real language* tab) has the model read a **range of parts** and list the names and special words it finds, with the form each has in the language. Everything it finds that the glossary does not have yet is added to the glossary of the book as a **proposal**: the model uses it from the next request on, and you accept, edit or delete it in the *Glossary* tab. Nothing in the story changes.
+
+- **Language.** With more than one language in the book, the language the glossary is for.
+- **Prompt.** Instructions for the model: what to look for and how each kind of word is written in the language. Choose one from the library, or *None: only my specification*. The plugin comes with a prompt for Japanese (real-world places and organizations in their usual Japanese form, made-up foreign names in katakana, Japanese names in kanji with the reading, coined terms of the world as kanji with a katakana reading, *gikun*); it is marked *built-in* and is always there.
+- **Specification.** Free text for *this* book, added after the prompt: what to leave out (minor characters), how to write a kind of word here, a spelling you want. With no prompt it is all the model is told.
+- **From part / To part**, then **Extract the words**. The parts are read one after the other (a part is minutes of a slow model's time), the tab shows *Part 3 of 12*, **Stop** stops after the part that is being read. A part that fails is counted and the run goes on; a book with no language, no model, or neither a prompt nor a specification ends the run.
+
+The words the glossary has already (at any level, even switched off) are told to the model and are not proposed again, so a second run over the same range adds only what is new. The *category* the model put a term in ("Fictional coined term / gikun") is written into the note of the entry. You do not describe the output: the plugin asks for a fixed format, whatever the prompt says.
+
+**The library of prompts.** *Settings → Extension Settings → Real Language Translator* has the **Extraction prompts** list: your own prompts with a name and the instructions, to add, edit, delete and reorder. **Copy a built-in prompt** puts a copy of the built-in one in your list to change. The prompts belong to you, not to a book; a book remembers which one it chose and its specification.
+
 ## More than one language in a book
 
 A story with Japanese and Korean speakers needs both. A book names **one language first** (the field above, which a folder or your settings may also give) and the **Languages** tab adds **other languages**
@@ -182,6 +195,8 @@ its position on the active branch (the first part is 1).
 | `reallang-status` | The language of the book and which parts are translated. |
 | `reallang-translate-part`, `reallang-translate-range`, `reallang-translate-sentence`, `reallang-translate-text`, `reallang-revert-to-source` | Translating: one part, a range (`mode` *new* or *again*), one sentence of a part, a text that is only returned, and the English back. With the optional `language` they are about one language of the book (all of them by default, the first for a sentence or a text). |
 | `reallang-glossary`, `reallang-glossary-set`, `reallang-glossary-remove`, `reallang-glossary-accept`, `reallang-glossary-switch`, `reallang-glossary-move` | The [glossary](#the-glossary-of-names-and-special-words) of the open book in a language: read the merged entries with their level, add or change an entry at a `level` (`language`, `folder` with the `folder` name, `book`), remove one (asks), accept the proposals, switch a word of a higher level off or on for the book, move an entry of the book up. |
+| `reallang-extract-terms`, `reallang-extraction-set` | The [word extraction](#extracting-the-words-by-model): `reallang-extraction-set` chooses the `prompt` and writes the `specification` of the open book (what is left out stays), `reallang-extract-terms` reads the parts from..to and proposes the terms to the glossary of the book (`language` for the language). |
+| `reallang-extraction-prompts`, `reallang-extraction-prompt-set`, `reallang-extraction-prompt-remove` | The library of extraction prompts: list the built-in and your own, add or change one (naming a built-in one makes a copy), remove one (asks). |
 | `reallang-edit-source` | Sets the English source of one translated speech (`part`, `speech` as `reallang-list-passages` numbers it, `source`); the translation as it is now counts as the one it belongs to. Replaces the old source. |
 | `reallang-get-source`, `reallang-list-passages` | Reading: the text of a part as the models read it (the English), and the translated speeches of a part with their reading and English. |
 | `reallang-speakers`, `reallang-set-speakers-mode`, `reallang-set-speaker`, `reallang-remove-speaker` | Who speaks the language in the open book (`language` names one of the book's languages, the first by default); `reallang-set-speaker` also sets the level of `understands`. |

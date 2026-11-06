@@ -20,6 +20,7 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.TabSheet;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.github.enerccio.marginalia.extensions.reallangtranslator.ReallangTranslatorLocalization.*;
@@ -32,12 +33,14 @@ public class ReallangBookView extends VerticalLayout {
 
     private final Manuscript book;
     private final BookReal service;
+    private final ExtractionTools extraction;
     private final Span title = new Span();
     private final VerticalLayout body = new VerticalLayout();
 
-    public ReallangBookView(Manuscript book, BookReal service) {
+    public ReallangBookView(Manuscript book, BookReal service, ExtractionTools extraction) {
         this.book = book;
         this.service = service;
+        this.extraction = extraction;
         setPadding(false);
         setSpacing(false);
         setSizeFull();
@@ -81,9 +84,14 @@ public class ReallangBookView extends VerticalLayout {
             for (LanguageRef language : languages) {
                 tabs.add(languages.size() == 1 ? T.localized(SPEAKERS) : T.localized(SPEAKERS_S).formatted(language.name()), speakers(language.id()));
             }
+            List<GlossaryPanel> glossaries = new ArrayList<>();
             for (LanguageRef language : languages) {
-                tabs.add(languages.size() == 1 ? T.localized(GLOSSARY) : T.localized(GLOSSARY_S).formatted(language.name()), new GlossaryPanel(book, service, language.id()));
+                GlossaryPanel glossary = new GlossaryPanel(book, service, language.id());
+                glossaries.add(glossary);
+                tabs.add(languages.size() == 1 ? T.localized(GLOSSARY) : T.localized(GLOSSARY_S).formatted(language.name()), glossary);
             }
+            tabs.add(T.localized(WORD_EXTRACTION), new ExtractionPanel(book, service, extraction.runs(), languages, extraction.prompts().call(),
+                    service.extraction(book), extraction.parts(), () -> glossaries.forEach(GlossaryPanel::refresh)));
             tabs.add(T.localized(LANGUAGES), otherLanguages());
             tabs.add(T.localized(QUICK_TRANSLATE), new QuickTranslatePanel(book, service, languages));
             body.add(tabs);

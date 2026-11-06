@@ -38,6 +38,8 @@ public class BookSettings {
      * id of the language: a name is written another way in every language). The book's own, not inherited.
      */
     private Map<String, List<GlossaryEntry>> glossary = new LinkedHashMap<>();
+    /** The word extraction of the book: its prompt and its specification. The book's own, not inherited. */
+    private ExtractionSettings extraction = new ExtractionSettings();
 
     public String getLanguageId() {
         return languageId == null || languageId.isBlank() ? null : languageId;
@@ -99,6 +101,17 @@ public class BookSettings {
 
     public void setUnderstanding(UnderstandingSettings understanding) {
         this.understanding = understanding;
+    }
+
+    public ExtractionSettings getExtraction() {
+        if (extraction == null) {
+            extraction = new ExtractionSettings();
+        }
+        return extraction;
+    }
+
+    public void setExtraction(ExtractionSettings extraction) {
+        this.extraction = extraction;
     }
 
     public List<BookLanguage> getOtherLanguages() {

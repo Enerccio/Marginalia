@@ -27,6 +27,16 @@ class ConverterLogicTest {
             {"is_user":false,"is_system":false,"mes":"No name."}
             """;
 
+    private static final String LM_STUDIO = """
+            {"name":"Tavern","createdAt":1700000000000,"systemPrompt":"ignored","messages":[
+              {"versions":[{"type":"singleStep","role":"user","content":[{"type":"text","text":"I look around."}]}],"currentlySelected":0},
+              {"versions":[{"type":"multiStep","role":"assistant","steps":[
+                {"type":"contentBlock","content":[{"type":"text","text":"A fire burns."}],"genInfo":{"identifier":"m"}},
+                {"type":"debugInfoBlock","debugInfo":"x"}],"senderInfo":{"senderName":"m"}},
+               {"type":"multiStep","role":"assistant","steps":[{"type":"contentBlock","content":[{"type":"text","text":"Rain falls."}]}]}],"currentlySelected":1}
+            ]}
+            """;
+
     private static GeneratedTurn turn(int first, int last) {
         return new GeneratedTurn(first, last, " scene ", " Robin ", "Robin, Julia", " do it ");
     }
@@ -35,6 +45,21 @@ class ConverterLogicTest {
         TurnItem item = new TurnItem(first, last, "s", "p", "c", "i");
         item.setReviewed(reviewed);
         return item;
+    }
+
+    @Test
+    void anLmStudioConversationIsToldByItsContentAndReadLikeAChat() {
+        List<ChatLine> lines = ConverterService.readLines(LM_STUDIO.getBytes(java.nio.charset.StandardCharsets.UTF_8), "1.conversation.json");
+
+        assertEquals(2, lines.size());
+        assertTrue(lines.get(0).isUser());
+        assertEquals("I look around.", lines.get(0).getText());
+        // of the versions of a message the one that was shown
+        assertFalse(lines.get(1).isUser());
+        assertEquals("Rain falls.", lines.get(1).getText());
+        // a chat of SillyTavern is still one
+        assertEquals(4, ConverterService.readLines(CHAT.getBytes(java.nio.charset.StandardCharsets.UTF_8), "x.jsonl").size());
+        assertThrows(IllegalArgumentException.class, () -> ConverterService.readLines("{\"messages\":[]}".getBytes(java.nio.charset.StandardCharsets.UTF_8), "x.json"));
     }
 
     @Test

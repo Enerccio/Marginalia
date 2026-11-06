@@ -1,11 +1,12 @@
 package com.github.enerccio.marginalia.extensions.conlangtranslator.ui;
 
-import com.github.enerccio.marginalia.extensions.translatorcommon.ui.EditDialog;
-import com.github.enerccio.marginalia.extensions.translatorcommon.ui.ListEditor;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.extensions.InheritedSetting.Choice;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.ConlangStyles;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.model.*;
+import com.github.enerccio.marginalia.extensions.translatorcommon.ui.EditDialog;
+import com.github.enerccio.marginalia.extensions.translatorcommon.ui.ListEditor;
+import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
@@ -56,6 +57,7 @@ public class LanguageEditorDialog extends Dialog {
     private RulesList rulesList;
     private final MenuBar designer = new MenuBar();
     private boolean maximized;
+    private String opened;
 
     /**
      * @param language  the language to edit, which is not changed: the dialog works on a copy
@@ -106,10 +108,28 @@ public class LanguageEditorDialog extends Dialog {
         content.setSizeFull();
         add(content);
 
-        Button cancel = new Button(T.localized(CANCEL), _ -> close());
+        opened = state();
+        Button cancel = new Button(T.localized(CANCEL), _ -> cancel());
         Button save = new Button(T.localized(SAVE), _ -> save());
         save.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         getFooter().add(cancel, save);
+    }
+
+    /** Everything the window can change: the language (the tabs edit it in place) and the fields of the overview. */
+    private String state() {
+        return com.github.enerccio.marginalia.extensions.conlangtranslator.store.ConlangStore.fingerprint(language) + '\n'
+                + name.getValue() + '\n' + description.getValue() + '\n' + hyphen.getValue() + '\n'
+                + (exampleBook.getValue() == null ? "" : exampleBook.getValue().id()) + '\n'
+                + (exampleLorebook.getValue() == null ? "" : exampleLorebook.getValue().id());
+    }
+
+    /** Closes the window; asks first when something was changed, as the copy is lost. */
+    private void cancel() {
+        if (state().equals(opened)) {
+            close();
+        } else {
+            ConfirmDialog.show(T.localized(DISCARD_THE_CHANGES), this::close);
+        }
     }
 
     // ---- the designer

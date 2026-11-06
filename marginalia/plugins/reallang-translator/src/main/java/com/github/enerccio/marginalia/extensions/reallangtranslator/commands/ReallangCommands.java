@@ -73,6 +73,11 @@ public class ReallangCommands extends ManuscriptReadSupport {
     public static final String GET_SOURCE = "reallang-get-source";
     public static final String LIST_PASSAGES = "reallang-list-passages";
     public static final String EDIT_SOURCE = "reallang-edit-source";
+    public static final String EXTRACTION_PROMPTS = "reallang-extraction-prompts";
+    public static final String EXTRACTION_PROMPT_SET = "reallang-extraction-prompt-set";
+    public static final String EXTRACTION_PROMPT_REMOVE = "reallang-extraction-prompt-remove";
+    public static final String EXTRACTION_SET = "reallang-extraction-set";
+    public static final String EXTRACT_TERMS = "reallang-extract-terms";
 
     private static final String PARAM_UNDERSTANDS = "How much of the language the character follows: none, few-words, follows-most or fluent; empty = not said";
     private static final String PARAM_PART = "The part: its handle, or its position on the active branch (the first part is 1)";
@@ -87,6 +92,7 @@ public class ReallangCommands extends ManuscriptReadSupport {
     private final TranslationService translation;
     private final BookReal bookReal;
     private final LanguageLibrary library;
+    private final ExtractionService extraction;
     private final PassageAccess passages = new PassageAccess(ReallangKind.ID);
 
     @Autowired
@@ -94,10 +100,11 @@ public class ReallangCommands extends ManuscriptReadSupport {
     @Autowired
     private ManuscriptService books;
 
-    public ReallangCommands(TranslationService translation, BookReal bookReal, LanguageLibrary library) {
+    public ReallangCommands(TranslationService translation, BookReal bookReal, LanguageLibrary library, ExtractionService extraction) {
         this.translation = translation;
         this.bookReal = bookReal;
         this.library = library;
+        this.extraction = extraction;
     }
 
     private Manuscript scopeBook(CommandContext context) {
@@ -1070,6 +1077,191 @@ public class ReallangCommands extends ManuscriptReadSupport {
         }
         row.add("characters", list);
         return row;
+    }
+
+    // ---- the word extraction
+
+    @Command(commandName = EXTRACTION_PROMPTS, linkedCommand = EXTRACTION_SET, humanNameText = "List the extraction prompts", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
+            descriptionText = "Lists the prompts of the word extraction: the built-in ones and the user's own. Reads only.",
+            llmDescriptionText = "Lists the prompts the word extraction (reallang-extract-terms) can use as JSON: id, name, whether it is built in, and its text (the instructions for the model; the output format is added by "
+                    + "the plugin). Reads only.",
+            signature = @CommandParameterSignature,
+            returns = @CommandReturn(name = "result", type = String.class, descriptionText = RESULT_JSON))
+    public void extractionPrompts(CommandContext context) throws Exception {
+        JsonArray list = new JsonArray();
+        for (ExtractionPrompt prompt : library.extractionPrompts()) {
+            JsonObject row = new JsonObject();
+            row.addProperty("id", prompt.getId());
+            row.addProperty("name", prompt.getName());
+            row.addProperty("builtIn", ExtractionPrompts.isBuiltIn(prompt.getId()));
+            row.addProperty("text", prompt.getText());
+            list.add(row);
+        }
+        JsonObject result = new JsonObject();
+        result.add("prompts", list);
+        answer(context, result);
+    }
+
+    @Command(commandName = EXTRACTION_PROMPT_SET, linkedCommand = EXTRACTION_PROMPTS, humanNameText = "Add or change an extraction prompt", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            descriptionText = "Adds a prompt to the extraction library of the user, or changes one.",
+            llmDescriptionText = "Adds a prompt to the user's extraction library (without 'prompt': 'name' and 'text' are needed), or changes the one named in 'prompt' (only the fields given change). A built-in prompt can't be "
+                    + "changed: naming one makes a copy of it, with the 'name' given (else 'copy of ...') and the 'text' given (else the built-in text). The text is instructions for the model about what to look for and how each "
+                    + "kind of word is written in the language; the plugin adds the output format. Returns the prompt.",
+            signature = @CommandParameterSignature({
+                    @CommandParameter(name = "prompt", type = String.class, optional = true, descriptionText = "The prompt to change: its name or id, see reallang-extraction-prompts; a new prompt when left out"),
+                    @CommandParameter(name = "name", type = String.class, optional = true, descriptionText = "What the prompt is called"),
+                    @CommandParameter(name = "text", type = String.class, optional = true, descriptionText = "The instructions for the model")}),
+            returns = @CommandReturn(name = "result", type = String.class, descriptionText = RESULT_JSON))
+    public void extractionPromptSet(CommandContext context) throws Exception {
+        String reference = context.get("prompt", String.class);
+        String name = context.get("name", String.class);
+        String text = context.get("text", String.class);
+        ExtractionPrompt prompt;
+        if (StringUtils.isBlank(reference)) {
+            prompt = new ExtractionPrompt();
+            prompt.setName(required(name, "the name of the prompt"));
+            prompt.setText(required(text, "the text of the prompt"));
+        } else {
+            ExtractionPrompt found = library.resolvePrompt(reference);
+            prompt = found.copy();
+            if (ExtractionPrompts.isBuiltIn(found.getId())) {
+                prompt.setId(java.util.UUID.randomUUID().toString());
+                prompt.setName(StringUtils.isBlank(name) ? "Copy of " + found.getName() : name);
+            } else if (!StringUtils.isBlank(name)) {
+                prompt.setName(name);
+            }
+            if (!StringUtils.isBlank(text)) {
+                prompt.setText(text);
+            }
+        }
+        library.storePrompt(prompt);
+        JsonObject row = new JsonObject();
+        row.addProperty("id", prompt.getId());
+        row.addProperty("name", prompt.getName());
+        row.addProperty("text", prompt.getText());
+        answer(context, row);
+    }
+
+    @Command(commandName = EXTRACTION_PROMPT_REMOVE, linkedCommand = EXTRACTION_PROMPTS, humanNameText = "Remove an extraction prompt", async = true, dataSeverity = CommandDataSeverity.DESTRUCTIVE,
+            descriptionText = "Removes a prompt from the extraction library of the user.",
+            llmDescriptionText = "Removes the prompt from the user's extraction library. A built-in prompt can't be removed. A book that used the prompt is left with its specification only. Destructive, asks the user. "
+                    + "Returns what was done.",
+            signature = @CommandParameterSignature({@CommandParameter(name = "prompt", type = String.class, descriptionText = "The prompt: its name or id, see reallang-extraction-prompts")}),
+            returns = @CommandReturn(name = "result", type = String.class, descriptionText = RESULT_JSON))
+    public void extractionPromptRemove(CommandContext context) throws Exception {
+        ExtractionPrompt prompt = library.resolvePrompt(context.get("prompt", String.class));
+        if (ExtractionPrompts.isBuiltIn(prompt.getId())) {
+            throw new IllegalArgumentException("A built-in prompt can't be removed");
+        }
+        if (!context.confirm("Remove the extraction prompt " + prompt.getName() + " from your library?")) {
+            if (!context.isTerminated()) {
+                context.setReturn("Nothing was removed");
+            }
+            return;
+        }
+        library.removePrompt(prompt.getId());
+        context.setReturn("{\"removed\":\"" + prompt.getName().replace("\"", "'") + "\"}");
+    }
+
+    @Command(commandName = EXTRACTION_SET, linkedCommand = EXTRACT_TERMS, humanNameText = "Set the word extraction of the book", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            descriptionText = "Chooses the prompt and writes the specification the open book uses for the word extraction.",
+            llmDescriptionText = "Sets the prompt (from the library, see reallang-extraction-prompts) and the specification (free text added after the prompt: what to look for, what to leave out, how to write a kind of word in "
+                    + "this book) of the word extraction of the open book. Only the fields given change; an empty 'prompt' means no prompt (the specification is then all the model is told). With no field given it "
+                    + "only returns what the book has. Returns the settings.",
+            signature = @CommandParameterSignature({
+                    @CommandParameter(name = "prompt", type = String.class, optional = true, descriptionText = "The prompt: its name or id; empty = none; left out = unchanged"),
+                    @CommandParameter(name = "specification", type = String.class, optional = true, descriptionText = "The specification of the book; empty = none; left out = unchanged")}),
+            returns = @CommandReturn(name = "result", type = String.class, descriptionText = RESULT_JSON))
+    public void extractionSet(CommandContext context) throws Exception {
+        Book book = new Book(context);
+        ExtractionSettings settings = bookReal.extraction(book.manuscript);
+        String prompt = context.get("prompt", String.class);
+        String specification = context.get("specification", String.class);
+        if (prompt != null || specification != null) {
+            if (prompt != null) {
+                settings.setPromptId(StringUtils.isBlank(prompt) ? null : library.resolvePrompt(prompt).getId());
+            }
+            if (specification != null) {
+                settings.setSpecification(specification);
+            }
+            bookReal.saveExtraction(book.manuscript, settings);
+        }
+        ExtractionPrompt chosen = library.findPrompt(settings.getPromptId());
+        JsonObject row = new JsonObject();
+        row.addProperty("prompt", chosen == null ? "" : chosen.getName());
+        row.addProperty("promptId", StringUtils.defaultString(settings.getPromptId()));
+        row.addProperty("specification", settings.getSpecification());
+        answer(context, row);
+    }
+
+    @Command(commandName = EXTRACT_TERMS, linkedCommand = EXTRACTION_SET, humanNameText = "Extract the words of the parts", async = true, dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            descriptionText = "Asks the model for the names and special words of the parts of a range and adds the new ones to the glossary of the book as proposals.",
+            llmDescriptionText = "Reads the parts from..to of the active branch, one part after the other (a part is minutes of the model's time), with the prompt and the specification of the book (reallang-extraction-set), and "
+                    + "asks the model for the proper nouns and coined terms with the form each has in the language. The terms the glossary has not got yet are added to the glossary of the book as proposals "
+                    + "(reallang-glossary lists them, reallang-glossary-accept confirms them). Nothing in the story changes. Without 'to' only the part 'from' is read, without 'from' the whole branch. "
+                    + "A part that fails is counted and the run goes on; no language, no model or no prompt and specification ends it. Returns the summary.",
+            signature = @CommandParameterSignature({
+                    @CommandParameter(name = "from", type = String.class, optional = true, descriptionText = "The first part: its handle or position; the first part of the story when left out"),
+                    @CommandParameter(name = "to", type = String.class, optional = true, descriptionText = "The last part: its handle or position; the last part of the branch when left out"),
+                    @CommandParameter(name = "language", type = String.class, optional = true, descriptionText = PARAM_BOOK_LANGUAGE_FIRST)}),
+            returns = @CommandReturn(name = "result", type = String.class, descriptionText = "JSON: the summary"))
+    public void extractTerms(CommandContext context) throws Exception {
+        Book book = new Book(context);
+        String languageId = bookLanguage(book, context);
+        List<RangePart> parts = allInRange(book, context.get("from", String.class), context.get("to", String.class));
+        if (parts.isEmpty()) {
+            context.setReturn("{\"planned\":0,\"hint\":\"No part with text in the range\"}");
+            return;
+        }
+        AtomicBoolean stop = new AtomicBoolean();
+        int[] done = {0};
+        Summary summary = RangeLoop.run(parts, part -> {
+            if (context.isTerminated()) {
+                stop.set(true);
+                return PartResult.nothing();
+            }
+            context.setStatus("Part " + (done[0] + 1) + " of " + parts.size());
+            ExtractionService.Outcome outcome = extraction.extract(book.manuscript, part, languageId);
+            done[0]++;
+            return switch (outcome.status()) {
+                case DONE -> PartResult.done(outcome.found(), outcome.added(), 0);
+                case EMPTY -> PartResult.nothing();
+                case NO_LANGUAGE, NO_MODEL, NO_PROMPT -> PartResult.abort(outcome.note());
+                case BAD_ANSWER -> PartResult.failed(outcome.note());
+            };
+        }, stop, null);
+        JsonObject row = new JsonObject();
+        row.addProperty("planned", summary.planned());
+        row.addProperty("processed", summary.processed());
+        row.addProperty("termsFound", summary.speeches());
+        row.addProperty("addedToTheGlossary", summary.newWords());
+        row.addProperty("failed", summary.failed());
+        if (!summary.firstFailure().isBlank()) {
+            row.addProperty("firstFailure", summary.firstFailure());
+        }
+        row.addProperty("stopped", summary.stopped());
+        row.addProperty("aborted", summary.aborted());
+        if (!context.isTerminated()) {
+            context.setReturn(GSON.toJson(row));
+        }
+    }
+
+    /** The parts with text from..to of the active branch, the positions as the other commands count them (a single part when only 'from' is given). */
+    private List<RangePart> allInRange(Book book, String from, String to) throws Exception {
+        List<ChatMessage> path = book.path((Integer) null);
+        int first = StringUtils.isBlank(from) ? 1 : book.locate(from, null).position();
+        int last = StringUtils.isBlank(to) ? (StringUtils.isBlank(from) ? path.size() : first) : book.locate(to, null).position();
+        if (last < first) {
+            throw new IllegalArgumentException("The range ends before it starts");
+        }
+        List<RangePart> parts = new ArrayList<>();
+        for (ChatMessage part : path) {
+            int position = path.indexOf(part) + 1;
+            if (position >= first && position <= last && part.getResponse() != null && !part.getResponse().isBlank()) {
+                parts.add(new RangePart(position, part, false));
+            }
+        }
+        return parts;
     }
 
     private static String required(String value, String what) {

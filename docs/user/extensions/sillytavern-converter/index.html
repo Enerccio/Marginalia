@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847293045907">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847294423167">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.847293045907" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.847294423167" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847293045907" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847294423167" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847293045907" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847294423167" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -189,7 +189,7 @@
     </div>
 </div>
 <p>Rewrite a <a href="https://github.com/SillyTavern/SillyTavern">SillyTavern</a> roleplay chat as a story, turn by turn: load the
-chat into a book, let the model split it into <em>turn details</em> using the chat and the lore of the book, and put each turn
+chat (or an <a href="https://lmstudio.ai">LM Studio</a> conversation) into a book, let the model split it into <em>turn details</em> using the chat and the lore of the book, and put each turn
 into the new turn form of the story with one click.</p>
 <p>The source does not have to be a chat: the converter can also take the parts of another book of yours (from a backup file or
 the book itself) and give you their instructions one by one, to <doc-anchor-trigger to="#redrafting-a-book">redraft a book</doc-anchor-trigger>.</p>
@@ -291,8 +291,10 @@ the chat changes them. This is how a batch of the auto mode continues from the o
 a batch are stored before the next one is sent. When there is no turn before the range the part of the prompt is left out.</p>
 <h2 id="the-chat">The chat</h2>
 <p>Upload the <code translate="no" v-pre>.jsonl</code> file of a chat (in SillyTavern it is in <code translate="no" v-pre>data/&lt;user&gt;/chats/&lt;character&gt;/</code>, or export it from the
-chat). The chat must have no branches: of every message the swipe that was shown is read, and hidden system messages and
-empty ones are left out. If your chat has branches, import the one you want to rewrite first (see
+chat), or a conversation of LM Studio (<code translate="no" v-pre>&lt;number&gt;.conversation.json</code> in the folder <code translate="no" v-pre>.lmstudio/conversations</code> of your home folder). The
+two are told apart by what is in the file. The chat must have no branches: of every message the swipe that was shown (in LM Studio the version
+that was shown) is read, and hidden system messages and empty ones are left out; the system prompt of an LM Studio conversation, its thinking
+and the calls of tools are not messages of the chat. If your chat has branches, import the one you want to rewrite first (see
 <a href="../../books/managing-books/#importing-from-sillytavern">Importing from SillyTavern</a> for joining branches into a tree).</p>
 <p>The <strong>Chat</strong> tab is a table of the messages: a checkbox, the number and the message, with the name of who said it in bold above the
 text (the messages of the user are marked with <code translate="no" v-pre>»</code>).</p>
@@ -446,7 +448,7 @@ with the cross deletes the resource.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (7f3b136c7).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (bdee09035).</p></div>
             </footer>
         </div>
     </div>

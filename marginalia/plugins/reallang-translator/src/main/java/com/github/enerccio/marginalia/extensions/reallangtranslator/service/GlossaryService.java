@@ -216,18 +216,36 @@ public class GlossaryService {
         if (names == null || names.isEmpty()) {
             return List.of();
         }
+        List<GlossaryEntry> candidates = new ArrayList<>();
+        for (TranslationAnswer.Name name : names) {
+            candidates.add(new GlossaryEntry(name.source().strip(), com.github.enerccio.marginalia.extensions.reallangtranslator.model.GlossaryKind.WRITTEN,
+                    name.written().strip(), name.reading() == null ? "" : name.reading().strip(), name.note() == null ? "" : name.note().strip()));
+        }
+        return proposeEntries(book, language, candidates, partText);
+    }
+
+    /**
+     * Takes entries into the book as proposals, unless the glossary has the word (at any level, active or off), the text does not have it, or an
+     * earlier candidate of the same call is the word. What the word extraction finds goes in this way.
+     *
+     * @param candidates the entries to propose; they are marked as proposed
+     * @param partText   the text the entries must be in (the part as the model read it)
+     * @return the entries that were added
+     */
+    public List<GlossaryEntry> proposeEntries(Manuscript book, RealLanguage language, List<GlossaryEntry> candidates, String partText) throws Exception {
+        if (candidates == null || candidates.isEmpty()) {
+            return List.of();
+        }
         synchronized (WRITE) {
             Set<String> known = new HashSet<>();
             effective(book, language).forEach(item -> known.add(item.entry().key()));
             List<GlossaryEntry> own = entries(book, language, Target.book());
             List<GlossaryEntry> added = new ArrayList<>();
-            for (TranslationAnswer.Name name : names) {
-                String source = name.source().strip();
-                if (known.contains(Glossary.key(source)) || !Glossary.contains(partText, source)) {
+            for (GlossaryEntry candidate : candidates) {
+                if (!candidate.isUsable() || known.contains(candidate.key()) || !Glossary.contains(partText, candidate.getSource())) {
                     continue;
                 }
-                GlossaryEntry entry = new GlossaryEntry(source, com.github.enerccio.marginalia.extensions.reallangtranslator.model.GlossaryKind.WRITTEN,
-                        name.written().strip(), name.reading() == null ? "" : name.reading().strip(), name.note() == null ? "" : name.note().strip());
+                GlossaryEntry entry = candidate.copy();
                 entry.setProposed(true);
                 known.add(entry.key());
                 own.add(entry);

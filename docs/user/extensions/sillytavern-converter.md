@@ -5,7 +5,7 @@ This extension was called *SillyTavern Converter* before 1.6.0. Only the name ch
 !!!
 
 Rewrite a [SillyTavern](https://github.com/SillyTavern/SillyTavern) roleplay chat as a story, turn by turn: load the
-chat into a book, let the model split it into *turn details* using the chat and the lore of the book, and put each turn
+chat (or an [LM Studio](https://lmstudio.ai) conversation) into a book, let the model split it into *turn details* using the chat and the lore of the book, and put each turn
 into the new turn form of the story with one click.
 
 The source does not have to be a chat: the converter can also take the parts of another book of yours (from a backup file or
@@ -67,8 +67,10 @@ a batch are stored before the next one is sent. When there is no turn before the
 ## The chat
 
 Upload the `.jsonl` file of a chat (in SillyTavern it is in `data/<user>/chats/<character>/`, or export it from the
-chat). The chat must have no branches: of every message the swipe that was shown is read, and hidden system messages and
-empty ones are left out. If your chat has branches, import the one you want to rewrite first (see
+chat), or a conversation of LM Studio (`<number>.conversation.json` in the folder `.lmstudio/conversations` of your home folder). The
+two are told apart by what is in the file. The chat must have no branches: of every message the swipe that was shown (in LM Studio the version
+that was shown) is read, and hidden system messages and empty ones are left out; the system prompt of an LM Studio conversation, its thinking
+and the calls of tools are not messages of the chat. If your chat has branches, import the one you want to rewrite first (see
 [Importing from SillyTavern](../books/managing-books.md#importing-from-sillytavern) for joining branches into a tree).
 
 The **Chat** tab is a table of the messages: a checkbox, the number and the message, with the name of who said it in bold above the

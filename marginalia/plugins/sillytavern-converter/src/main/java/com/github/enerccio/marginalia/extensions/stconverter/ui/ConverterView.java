@@ -514,7 +514,7 @@ public class ConverterView extends VerticalLayout {
             Upload backupUpload = upload(Solid.BOX_ARCHIVE, T.localized(LOAD_A_BACKUP), (bytes, fileName) -> uploadBackup(bytes, fileName),
                     ".json", ".zip", "application/json", "application/zip");
             Button bookButton = new Button(T.localized(PICK_A_BOOK), Solid.BOOK.create(), e -> openBookPicker());
-            Span chatExplanation = new Span(T.localized(A_SILLYTAVERN_CHAT_JSONL_WITHOUT));
+            Span chatExplanation = new Span(T.localized(A_SILLYTAVERN_CHAT_JSONL_OR_AN_LM_STUDIO));
             chatExplanation.addClassName(STConverterStyles.HINT);
             Span bookExplanation = new Span(T.localized(OR_THE_PARTS));
             bookExplanation.addClassName(STConverterStyles.HINT);
@@ -582,7 +582,7 @@ public class ConverterView extends VerticalLayout {
             sourceLoaded();
             Notification.success(T.localized(MESSAGES_LOADED).formatted(count));
         } catch (IllegalArgumentException e) {
-            Notification.warning(StringUtils.defaultIfBlank(e.getMessage(), T.localized(NOT_A_SILLYTAVERN_CHAT)) + " (" + fileName + ")");
+            Notification.warning(StringUtils.defaultIfBlank(e.getMessage(), T.localized(NOT_A_SILLYTAVERN_OR_LM_STUDIO_CHAT)) + " (" + fileName + ")");
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }

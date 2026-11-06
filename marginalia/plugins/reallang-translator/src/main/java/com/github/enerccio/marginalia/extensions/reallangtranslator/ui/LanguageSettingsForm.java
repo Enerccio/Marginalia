@@ -4,6 +4,8 @@ import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
+import com.github.enerccio.marginalia.extensions.reallangtranslator.model.ExtractionPrompt;
+import com.github.enerccio.marginalia.extensions.reallangtranslator.model.ExtractionPrompts;
 import com.github.enerccio.marginalia.extensions.reallangtranslator.model.RealLanguage;
 import com.github.enerccio.marginalia.extensions.reallangtranslator.model.UserDefaults;
 import com.github.enerccio.marginalia.extensions.reallangtranslator.service.LanguageLibrary;
@@ -14,11 +16,13 @@ import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.contextmenu.ContextMenu;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,8 +47,10 @@ public class LanguageSettingsForm extends VerticalLayout {
     private final ComboBox<Protocol> protocolCombo = new ComboBox<>(T.localized(PROTOCOL_OF_THE_TRANSLATION));
 
     private final List<RealLanguage> shown = new ArrayList<>();
+    private final List<ExtractionPrompt> shownPrompts = new ArrayList<>();
     private boolean changed;
     private Languages languages;
+    private Prompts prompts;
 
     public LanguageSettingsForm(LanguageLibrary library) {
         this.library = library;
@@ -62,6 +68,8 @@ public class LanguageSettingsForm extends VerticalLayout {
         try {
             shown.clear();
             shown.addAll(library.languages());
+            shownPrompts.clear();
+            shownPrompts.addAll(library.userPrompts());
             changed = false;
 
             Span intro = new Span(T.localized(THE_REAL_LANGUAGES_YOU_TRANSLATE_INTO));
@@ -100,7 +108,11 @@ public class LanguageSettingsForm extends VerticalLayout {
             protocolCombo.setValue(protocols.stream().filter(protocol -> protocol.getUuid().equals(stored.getProtocolUuid())).findFirst().orElse(null));
             auto.setValue(stored.isAuto());
             showLibrary(stored.getLanguageId());
-            add(intro, summary, languages, defaultsHint, defaults);
+            Span promptsHint = new Span(T.localized(THE_PROMPTS_OF_THE_WORD_EXTRACTION));
+            promptsHint.addClassName(CommonStyles.HINT);
+            prompts = new Prompts();
+            prompts.setHeight("14rem");
+            add(intro, summary, languages, defaultsHint, defaults, new Span(T.localized(EXTRACTION_PROMPTS)), promptsHint, prompts);
         } catch (Exception e) {
             Notification.error(String.format(T.localized(THE_LANGUAGES_CAN_NOT_BE_LOADED), e.getMessage()));
         }
@@ -134,7 +146,7 @@ public class LanguageSettingsForm extends VerticalLayout {
         defaults.setAiUuid(ai == null ? null : ai.getUuid());
         Protocol protocol = protocolCombo.getValue();
         defaults.setProtocolUuid(protocol == null ? null : protocol.getUuid());
-        library.put(shown, defaults, into);
+        library.put(shown, defaults, shownPrompts, into);
     }
 
     /** The list of languages, with a button that duplicates the selected one. */
@@ -182,6 +194,49 @@ public class LanguageSettingsForm extends VerticalLayout {
 
         @Override
         protected String labelOf(RealLanguage item) {
+            return item.getName();
+        }
+    }
+
+    /** The user's prompts of the word extraction, with a menu that copies a built-in one into the list. */
+    private final class Prompts extends ListEditor<ExtractionPrompt> {
+
+        Prompts() {
+            super(shownPrompts, LanguageSettingsForm.this::libraryChanged);
+            Button copy = new Button(T.localized(COPY_A_BUILT_IN_PROMPT), Solid.COPY.create());
+            ContextMenu menu = new ContextMenu(copy);
+            menu.setOpenOnClick(true);
+            for (ExtractionPrompt builtIn : ExtractionPrompts.builtIn()) {
+                menu.addItem(builtIn.getName(), _ -> {
+                    ExtractionPrompt made = new ExtractionPrompt(java.util.UUID.randomUUID().toString(), builtIn.getName() + " " + T.localized(COPY_SUFFIX), builtIn.getText());
+                    shownPrompts.add(made);
+                    libraryChanged();
+                    refresh();
+                    grid().select(made);
+                });
+            }
+            addToolbarButton(copy);
+            build();
+        }
+
+        @Override
+        protected void addColumns(Grid<ExtractionPrompt> grid) {
+            grid.addColumn(ExtractionPrompt::getName).setHeader(T.localized(NAME)).setFlexGrow(1);
+            grid.addColumn(prompt -> StringUtils.abbreviate(prompt.getText().replaceAll("\\s+", " "), 120)).setHeader(T.localized(PROMPT)).setFlexGrow(2);
+        }
+
+        @Override
+        protected ExtractionPrompt create() {
+            return new ExtractionPrompt();
+        }
+
+        @Override
+        protected void edit(ExtractionPrompt item, boolean isNew, Runnable done) {
+            new ExtractionPromptDialog(item, isNew, done).open();
+        }
+
+        @Override
+        protected String labelOf(ExtractionPrompt item) {
             return item.getName();
         }
     }
