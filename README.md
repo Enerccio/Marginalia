@@ -139,7 +139,7 @@ model. Then create a book, choose the provider and a protocol, and start writing
 ## Extensions
 
 Extensions are OSGi bundles (JAR files). Administrators install them in *Admin → Extensions*; they are stored in
-`~/.marginalia/extensions`. Twenty plugins are included in [`marginalia/plugins`](marginalia/plugins/README.md) and
+`~/.marginalia/extensions`. Twenty-six plugins are included in [`marginalia/plugins`](marginalia/plugins/README.md) and
 built separately with Maven, or in Docker (see the plugins README):
 
 - [Anthropic Claude](marginalia/plugins/anthropic/README.md) - Anthropic's Claude models as an inference provider, over the Anthropic Java SDK,
@@ -149,10 +149,13 @@ built separately with Maven, or in Docker (see the plugins README):
 - [Book Description Generator](marginalia/plugins/book-description-generator/README.md) - the name and the description of a book written by the model from its story,
 - [Chapter Marker](marginalia/plugins/chaptermarker/README.md) - chapters in the story sidebar,
 - [Character Tracker](marginalia/plugins/character-tracker/README.md) - the characters of the book with their relationships and a map of them,
+- [Chinese localization](marginalia/plugins/chineselocalization/README.md) - Simplified Chinese as a language of the interface (the example for adding a language),
+- [Conlang Translator](marginalia/plugins/conlang-translator/README.md) - the speech of your characters in a constructed language (rules and a lexicon, written with the model's help), the English kept behind it as the source every model reads,
 - [Gemma 4 tools fix](marginalia/plugins/gemma4toolsfix/README.md) - function calling with Gemma 4 models whose API wants another role for tool results,
 - [Google Gemini](marginalia/plugins/google-genai/README.md) - Google's Gemini models as an inference provider, over the Google Gen AI SDK,
 - [Image Generator](marginalia/plugins/image-generator/README.md) - make an image for a part of the story with ComfyUI or an OpenAI-style images API, the model writes the prompt,
 - [Instruction Exporter](marginalia/plugins/instructionexporter/README.md) - copy the instructions, scene settings and characters of the story to the clipboard,
+- [Knowledge Tracker](marginalia/plugins/knowledge-tracker/README.md) - what the characters you choose know and do not know, put into the prompt (and given to the annotation as facts) so the model stops giving them knowledge they cannot have,
 - [Lore Generator](marginalia/plugins/lore-generator/README.md) - write a lorebook entry with the model from the existing lore,
 - [Lorebook VCS](marginalia/plugins/lorebookvcs/README.md) - revision history for lorebook entries,
 - [Manga Generator](marginalia/plugins/manga-generator/README.md) - turn parts of the story into a manga script and image generation tags,
@@ -161,10 +164,10 @@ built separately with Maven, or in Docker (see the plugins README):
 - [Place provider](marginalia/plugins/place-provider/README.md) - functions and commands to look up real places (about 18 000 notable ones), what is near a place and the distance of two,
 - [Prompt History](marginalia/plugins/prompt-history/README.md) - the last 20 requests sent to the models in your session, with the answers and the reasoning,
 - [Prompt Inspector](marginalia/plugins/prompt-inspector/README.md) - see the prompt of a generation and confirm it before it is sent to the model,
+- [Real Language Translator](marginalia/plugins/reallang-translator/README.md) - the speech of your characters in a real language (Japanese for a story set in Japan), the English kept behind it as the source every model reads,
 - [Reviewer](marginalia/plugins/reviewer/README.md) - AI reviews of story parts,
 - [Side Query](marginalia/plugins/sidequery/README.md) - ask the model about your book without changing it,
-- [Converter](marginalia/plugins/sillytavern-converter/README.md) - rewrite a SillyTavern chat as a story: the chat next to the story, turn details made of it by the model,
-- [Chinese localization](marginalia/plugins/chineselocalization/README.md) - Simplified Chinese as a language of the interface (the example for adding a language).
+- [SillyTavern Converter](marginalia/plugins/sillytavern-converter/README.md) - rewrite a SillyTavern chat as a story: the chat next to the story, turn details made of it by the model.
 
 The extension API is not frozen in 1.0: extensions are built for one Marginalia version, and Marginalia refuses to start
 one that does not fit the version it is running.
