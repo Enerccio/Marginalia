@@ -30,7 +30,7 @@ class CommandsTest {
         CommandServiceImpl service = new CommandServiceImpl();
         TranslationService translation = new TranslationService();
         SUITES.addAll(List.of(new LibraryCommands(), new LexiconCommands(), new TranslationCommands(translation, new BookConlang(translation)),
-                new DesignerCommands(new DesignerService())));
+                new DesignerCommands(new DesignerService()), new NameCommands(null)));
         for (Object suite : SUITES) {
             for (CommandDefinition definition : service.registerCommands(suite)) {
                 COMMANDS.put(definition.commandName(), definition);
@@ -62,7 +62,7 @@ class CommandsTest {
     @Test
     void aCommandThatAsksTheUserIsAsyncAndTheOnesThatCallTheModelToo() {
         // a command that calls context.confirm waits for the answer on a worker thread; the names are the ones that confirm or ask a model
-        List<String> mustBeAsync = List.of("conlang-delete", "conlang-delete-rules", "conlang-delete-category", "conlang-delete-register", "conlang-delete-word",
+        List<String> mustBeAsync = List.of("conlang-delete", "conlang-delete-rules", "conlang-delete-category", "conlang-delete-register", "conlang-delete-word", "conlang-delete-name-category",
                 "conlang-translate-part", "conlang-translate-range", "conlang-revert-to-source", "conlang-translate-text", "conlang-translate-sentence",
                 "conlang-design-words", "conlang-design-rules", "conlang-rewrite-rules", "conlang-design-stage", "conlang-ask-designer", "conlang-review",
                 "conlang-try-sentences", "conlang-take-pending-changes", "conlang-discard-pending-changes", "conlang-remove-speaker");

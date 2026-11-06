@@ -9,9 +9,7 @@ import com.github.enerccio.marginalia.domain.model.impl.Annotation;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.repository.PassageRepository;
-import com.github.enerccio.marginalia.domain.service.ChatMessageService;
-import com.github.enerccio.marginalia.domain.service.ManuscriptService;
-import com.github.enerccio.marginalia.domain.service.PassageService;
+import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.agent.UuidPair;
 import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
@@ -49,6 +47,9 @@ public class PassageServiceImpl extends ExtendableServiceImpl<AnchoredPassage, P
     @Autowired
     @Lazy
     private ChatMessageService chatMessageService;
+
+    @Autowired
+    private PassageKinds passageKinds;
 
     @Override
     @CommonTx
@@ -176,6 +177,45 @@ public class PassageServiceImpl extends ExtendableServiceImpl<AnchoredPassage, P
                 }
             }
         }
+    }
+
+    @Override
+    @CommonTx
+    public void shiftReplaced(Manuscript manuscript, ChatMessage part, String oldText, String newText) throws Exception {
+        String before = oldText == null ? "" : oldText;
+        String after = newText == null ? "" : newText;
+        if (before.equals(after) || part == null || part.getId() == null) {
+            return;
+        }
+        Map<Long, String> was = new HashMap<>();
+        for (AnchoredPassage passage : getRepository().findAllByPart(part)) {
+            if (passage.hasRange() && !passage.isOrphaned() && kindOf(passage) != null && passage.getEnd() <= before.length()) {
+                was.put(passage.getId(), before.substring(passage.getStart(), passage.getEnd()));
+            }
+        }
+        shift(manuscript, part, before, after);
+        if (was.isEmpty()) {
+            return;
+        }
+        for (AnchoredPassage passage : getRepository().findAllByPart(part)) {
+            String old = was.get(passage.getId());
+            if (old == null || !passage.hasRange() || passage.isOrphaned() || passage.getEnd() > after.length()) {
+                continue;
+            }
+            String now = after.substring(passage.getStart(), passage.getEnd());
+            PassageKind kind = kindOf(passage);
+            if (!now.equals(old) && kind != null && kind.textReplaced(passage, old, now)) {
+                save(passage);
+            }
+        }
+    }
+
+    /**
+     * @return the registered kind of an extension's passage, null for an editorial note or a kind whose extension is not loaded
+     */
+    private PassageKind kindOf(AnchoredPassage passage) {
+        String id = passage.getPassageKind();
+        return id == null ? null : passageKinds.get(id);
     }
 
     @Override

@@ -4,6 +4,7 @@ import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.extensions.InheritedSetting.Choice;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.ConlangStyles;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.model.*;
+import com.github.enerccio.marginalia.extensions.conlangtranslator.service.NameGeneratorBridge;
 import com.github.enerccio.marginalia.extensions.translatorcommon.ui.EditDialog;
 import com.github.enerccio.marginalia.extensions.translatorcommon.ui.ListEditor;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
@@ -43,6 +44,7 @@ public class LanguageEditorDialog extends Dialog {
     private final Predicate<String> nameTaken;
     private final List<Choice> books;
     private final List<Choice> lorebooks;
+    private final NameGeneratorBridge nameBridge;
 
     private final TextField name = new TextField(T.localized(NAME));
     private final TextArea description = new TextArea(T.localized(DESCRIPTION));
@@ -52,6 +54,7 @@ public class LanguageEditorDialog extends Dialog {
     private final Button maximize = new Button(Solid.EXPAND.create());
 
     private LexiconTab lexicon;
+    private NameCategoriesTab namesTab;
     private CategoriesList categoriesList;
     private RegistersList registersList;
     private RulesList rulesList;
@@ -64,15 +67,17 @@ public class LanguageEditorDialog extends Dialog {
      * @param nameTaken whether another language of the library has the name
      * @param books     the books of the user, to choose the example book from
      * @param lorebooks the lorebooks of the user, to choose the example lorebook from
+     * @param nameBridge the Name generator, for the preview of the names of the <i>Names</i> tab
      * @param onSave    given the edited copy after <i>Save</i>
      */
     public LanguageEditorDialog(Language language, Predicate<String> nameTaken, List<Choice> books, List<Choice> lorebooks,
-                                Consumer<Language> onSave) {
+                                NameGeneratorBridge nameBridge, Consumer<Language> onSave) {
         this.language = com.github.enerccio.marginalia.extensions.conlangtranslator.store.ConlangStore.copy(language);
         this.onSave = onSave;
         this.nameTaken = nameTaken;
         this.books = books;
         this.lorebooks = lorebooks;
+        this.nameBridge = nameBridge;
 
         setHeaderTitle(T.localized(LANGUAGE_S).formatted(language.getName().isBlank() ? T.localized(NEW_LANGUAGE) : language.getName()));
         setWidth("1180px");
@@ -97,11 +102,15 @@ public class LanguageEditorDialog extends Dialog {
         lexicon = new LexiconTab(this.language, () -> {
         });
         tabs.add(T.localized(LEXICON), lexicon);
+        namesTab = new NameCategoriesTab(this.language, nameBridge, () -> {
+        });
+        tabs.add(T.localized(NAMES), namesTab);
         tabs.addSelectedChangeListener(_ -> {
             // the counts of the words and the choices of the lexicon follow what the other tabs changed
             categoriesList.refresh();
             registersList.refresh();
             lexicon.refresh();
+            namesTab.refresh();
         });
         VerticalLayout content = new VerticalLayout(tabs);
         content.setPadding(false);
@@ -166,6 +175,7 @@ public class LanguageEditorDialog extends Dialog {
         categoriesList.refresh();
         registersList.refresh();
         lexicon.refresh();
+        namesTab.refresh();
     }
 
     private void toggleMaximized() {

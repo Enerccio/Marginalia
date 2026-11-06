@@ -17,6 +17,7 @@ covers:
   - marginalia/plugins/lore-generator
   - marginalia/plugins/name-generator/src/main/java/com/github/enerccio/marginalia/extensions/namegenerator/NameGeneratorExtension.java
   - marginalia/plugins/name-generator/src/main/java/com/github/enerccio/marginalia/extensions/namegenerator/NameGeneratorToolProvider.java
+  - marginalia/plugins/name-generator/src/main/java/com/github/enerccio/marginalia/extensions/namegenerator/NameSources.java
   - marginalia/plugins/name-provider/src/main/java/com/github/enerccio/marginalia/extensions/nameprovider/NameProviderExtension.java
   - marginalia/plugins/name-provider/src/main/java/com/github/enerccio/marginalia/extensions/nameprovider/NameProviderToolProvider.java
   - marginalia/plugins/place-provider/src/main/java/com/github/enerccio/marginalia/extensions/placeprovider/PlaceProviderToolProvider.java
@@ -230,7 +231,9 @@ The rules the bundled code follows:
 An extension that wants to be called gives its `MarginaliaExtension` class a few `public` methods that use only JDK and
 application types. There is no compiler between the two, so treat the class name, the method names and their signatures as a
 contract: keep them stable, say so in the README of the plugin, and when you must change them, change the callers in the same
-commit. The offering extension does not need to know who calls it. (The Name generator and the Name provider had `categories()`,
+commit. The offering extension does not need to know who calls it. The Name generator is such an extension: other plugins add categories
+of their own to it (`registerWords`, `registerGenerator`, `unregister`, `unregisterAll` on `NameGeneratorExtension`, JDK types and `Bundle` only), see its README.
+(The Name generator and the Name provider had `categories()`,
 `newFunctions()` and `functions()` for the bridges; they are gone, their suites are offered through `ToolService`.)
 
 ### Which one?

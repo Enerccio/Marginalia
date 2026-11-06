@@ -308,6 +308,25 @@ public class ConlangTranslatorLocalization extends PluginLocalizationBundle {
     public static final String THE_SELECTION_HOLDS_A_TRANSLATED_SPEECH = "The selection holds a translated speech; put the English back first";
     public static final String THE_PART_WAS_CHANGED_MEANWHILE = "The part was changed meanwhile; select the text again";
 
+    public static final String NAMES = "Names";
+    public static final String THE_NAME_GENERATOR_MAKES_ITS_NAMES = "Check the words the Name generator makes its names of: it trains a Markov chain on them, so the names it gives sound like the language. A word that is deleted or retired later is left out. The categories are offered as \"Conlang - language - category\" after you save the settings.";
+    public static final String NAME_CATEGORY = "Name category";
+    public static final String NEW_NAME_CATEGORY = "New name category";
+    public static final String RENAME = "Rename";
+    public static final String RENAME_THE_NAME_CATEGORY = "Rename the name category";
+    public static final String THE_LANGUAGE_HAS_A_NAME_CATEGORY_OF_THAT_NAME = "The language has a name category of that name";
+    public static final String ADD_A_NAME_CATEGORY_FIRST = "Add a name category first";
+    public static final String D_WORDS_CHOSEN_D_SHOWN = "%d words chosen, %d shown";
+    public static final String CHECK_ALL_SHOWN = "Check all shown";
+    public static final String UNCHECK_ALL_SHOWN = "Uncheck all shown";
+    public static final String PREVIEW_NAMES = "Preview names";
+    public static final String CHECK_SOME_WORDS_FIRST = "Check some words first";
+    public static final String THE_NAME_GENERATOR_IS_NOT_INSTALLED = "The Name generator is not installed";
+    public static final String TOO_FEW_WORDS_TO_MAKE_NAMES = "Too few words to make names of";
+
+    public static final String TARGET_NAME_CATEGORY = "Name category";
+    public static final String WORDS_CHOSEN = "Words chosen";
+
     @Override
     protected void loadKeys() {
         ja(TRANSLATE_THE_SPEECH, "台詞を翻訳");
@@ -1195,5 +1214,56 @@ public class ConlangTranslatorLocalization extends PluginLocalizationBundle {
 
         ja(THE_PART_WAS_CHANGED_MEANWHILE, "その間にパートが変更されました。もう一度選択してください");
         zh(THE_PART_WAS_CHANGED_MEANWHILE, "该段在此期间已被修改,请重新选择文本");
+
+        ja(NAMES, "名前");
+        zh(NAMES, "名称");
+
+        ja(THE_NAME_GENERATOR_MAKES_ITS_NAMES, "名前ジェネレーターが名前を作る元になる単語にチェックを入れてください。ジェネレーターはそれらでマルコフ連鎖を学習するので、言語らしい響きの名前になります。後で削除または廃止された単語は除外されます。設定を保存すると、カテゴリは「Conlang - 言語 - カテゴリ」として提供されます。");
+        zh(THE_NAME_GENERATOR_MAKES_ITS_NAMES, "勾选名称生成器用来生成名称的词:它用这些词训练马尔可夫链,生成的名称会带有该语言的音感。之后被删除或弃用的词会被忽略。保存设置后,这些类别会以\"Conlang - 语言 - 类别\"的形式提供。");
+
+        ja(NAME_CATEGORY, "名前カテゴリ");
+        zh(NAME_CATEGORY, "名称类别");
+
+        ja(NEW_NAME_CATEGORY, "新しい名前カテゴリ");
+        zh(NEW_NAME_CATEGORY, "新建名称类别");
+
+        ja(RENAME, "名前を変更");
+        zh(RENAME, "重命名");
+
+        ja(RENAME_THE_NAME_CATEGORY, "名前カテゴリの名前を変更");
+        zh(RENAME_THE_NAME_CATEGORY, "重命名名称类别");
+
+        ja(THE_LANGUAGE_HAS_A_NAME_CATEGORY_OF_THAT_NAME, "その名前の名前カテゴリがすでにあります");
+        zh(THE_LANGUAGE_HAS_A_NAME_CATEGORY_OF_THAT_NAME, "该语言已有同名的名称类别");
+
+        ja(ADD_A_NAME_CATEGORY_FIRST, "先に名前カテゴリを追加してください");
+        zh(ADD_A_NAME_CATEGORY_FIRST, "请先添加名称类别");
+
+        ja(D_WORDS_CHOSEN_D_SHOWN, "%d語を選択、%d語を表示");
+        zh(D_WORDS_CHOSEN_D_SHOWN, "已选 %d 个词,显示 %d 个");
+
+        ja(CHECK_ALL_SHOWN, "表示中をすべて選択");
+        zh(CHECK_ALL_SHOWN, "全选显示的词");
+
+        ja(UNCHECK_ALL_SHOWN, "表示中をすべて解除");
+        zh(UNCHECK_ALL_SHOWN, "取消选择显示的词");
+
+        ja(PREVIEW_NAMES, "名前をプレビュー");
+        zh(PREVIEW_NAMES, "预览名称");
+
+        ja(CHECK_SOME_WORDS_FIRST, "先に単語を選択してください");
+        zh(CHECK_SOME_WORDS_FIRST, "请先勾选一些词");
+
+        ja(THE_NAME_GENERATOR_IS_NOT_INSTALLED, "名前ジェネレーターがインストールされていません");
+        zh(THE_NAME_GENERATOR_IS_NOT_INSTALLED, "未安装名称生成器");
+
+        ja(TOO_FEW_WORDS_TO_MAKE_NAMES, "名前を作るには単語が少なすぎます");
+        zh(TOO_FEW_WORDS_TO_MAKE_NAMES, "词太少,无法生成名称");
+
+        ja(TARGET_NAME_CATEGORY, "名前カテゴリ");
+        zh(TARGET_NAME_CATEGORY, "名称类别");
+
+        ja(WORDS_CHOSEN, "選択した単語");
+        zh(WORDS_CHOSEN, "已选的词");
     }
 }

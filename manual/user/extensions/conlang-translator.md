@@ -87,6 +87,17 @@ A word the model needs but the lexicon lacks is **never dropped for being new**:
 way, and it waits as *New*. A translation that uses words that are not in the lexicon and that the model did **not** report is flagged, because
 nobody can tell whether the word is a mistake.
 
+### Names for the Name generator
+
+The **Names** tab of the editor makes the language available to the [Name generator](name-generator.md): the names it gives sound like the language. Add a **name category**
+(for example *Places* or *People*), then check the words of the lexicon it is made of. The **search** and the **category filter** narrow the list, **Check all shown** and **Uncheck all shown**
+act on the words that are shown, and **Preview names** makes 20 names from the words that are checked now, before you save anything. The Name generator trains a Markov chain on the checked
+words, so a category needs a few words (a dozen or more gives better names).
+
+Only your choice is kept, not the words: a word you change is read as it is now, and one you delete, or retire, is left out when the names are made. After you save the settings, the
+category is offered in the Name generator (the lore generator's and the arc outline's **Tools** dialog, the `generate-names` command, an agent's run) as *Conlang - language - category*.
+It is your own: another user of the installation sees only their categories.
+
 ### The designer
 
 The **Design with AI** menu of the editor asks the model for help, always with the language **as it is** (its rules, registers, categories, lexicon and the example lorebook), and
@@ -110,7 +121,7 @@ sentences). Each step is a section that the model proposes and you edit, refine 
 ### Comparing and merging
 
 **Compare** (and the import of a language you already have) opens a window with the differences between two languages, each a line with a check box: what was added,
-changed, deleted or moved among the language's fields, rules, categories, registers and words. A change that both sides made differently is a **conflict**:
+changed, deleted or moved among the language's fields, rules, categories, registers, words and categories of names. A change that both sides made differently is a **conflict**:
 your value is kept until you choose theirs or write your own. What you pick is written into the language on the screen, and stored when you save the Settings screen. The
 same window shows what the designer proposes.
 
@@ -272,6 +283,7 @@ argument of a command; an agent may leave out the optional ones.
 | Command | |
 |---|---|
 | `conlang-list`, `conlang-get`, `conlang-create`, `conlang-duplicate`, `conlang-update`, `conlang-delete`, `conlang-export`, `conlang-import`, `conlang-set-references` | The library. `conlang-delete` asks, and is not available to an agent. |
+| `conlang-list-name-categories`, `conlang-add-name-category`, `conlang-update-name-category`, `conlang-delete-name-category`, `conlang-preview-names` | The categories of names for the [Name generator](name-generator.md) (the **Names** tab). Add and update take the words of the lexicon (`;` between them) or a whole category of the lexicon; deleting asks the user; the preview needs the Name generator. The generator's own `list-name-categories` and `generate-names` list and make the names. |
 | `conlang-set-book-language` | The language of the open book (the **Language of the speech** field of its *Extension Settings*). |
 | `conlang-add-book-language`, `conlang-remove-book-language` | The other languages of the open book. Removing asks the user, and is not available to an agent. |
 | `conlang-list-rules`, `conlang-get-rules`, `conlang-add-rules`, `conlang-update-rules`, `conlang-delete-rules`, `conlang-move-rules` | The sections of the rules. |

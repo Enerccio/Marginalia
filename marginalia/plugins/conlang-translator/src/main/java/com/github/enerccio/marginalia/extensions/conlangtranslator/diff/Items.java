@@ -96,6 +96,7 @@ final class Items {
             case CATEGORY -> CATEGORIES;
             case REGISTER -> REGISTERS;
             case WORD -> WORDS;
+            case NAME_CATEGORY -> NAME_CATEGORIES;
         };
     }
 
@@ -402,6 +403,62 @@ final class Items {
         @Override
         Class<LexiconEntry> type() {
             return LexiconEntry.class;
+        }
+    };
+
+    // ---- the categories of names
+
+    static final Access<NameCategory> NAME_CATEGORIES = new Access<>(Target.NAME_CATEGORY) {
+        @Override
+        List<NameCategory> items(Language language) {
+            return language.getNameCategories();
+        }
+
+        @Override
+        String id(NameCategory item) {
+            return item.getId();
+        }
+
+        @Override
+        String label(NameCategory item) {
+            return item.getName();
+        }
+
+        @Override
+        Map<String, String> text(NameCategory item) {
+            Map<String, String> map = new LinkedHashMap<>();
+            map.put("name", item.getName());
+            return map;
+        }
+
+        @Override
+        void setText(NameCategory item, String field, String value) {
+            if ("name".equals(field)) {
+                item.setName(value);
+            } else {
+                throw new IllegalArgumentException(field);
+            }
+        }
+
+        /** The words chosen, by their ids: a list merged as a set, so what both sides chose stays chosen. An id of a word that is gone is ignored when the names are made. */
+        @Override
+        Map<String, List<String>> lists(NameCategory item) {
+            Map<String, List<String>> map = new LinkedHashMap<>();
+            map.put("entries", new ArrayList<>(item.getEntries()));
+            return map;
+        }
+
+        @Override
+        void setList(NameCategory item, String field, List<String> values) {
+            if ("entries".equals(field)) {
+                item.getEntries().clear();
+                item.getEntries().addAll(values);
+            }
+        }
+
+        @Override
+        Class<NameCategory> type() {
+            return NameCategory.class;
         }
     };
 }

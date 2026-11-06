@@ -23,6 +23,29 @@ commands and the [Lore Generator](../lore-generator/README.md) and the [Arc Outl
 functions. The service removes both when the extension is unloaded, so it can be unloaded and installed again without restarting the
 others. The hint added to the prompt is `NameGeneratorToolProvider.HINT`; the user can replace it in the tool dialog.
 
+## Categories from other extensions
+
+An extension can add categories of its own, which are then listed, offered in the tool dialog and generated like the shipped ones. The generator
+does the work: it keeps the Markov chain and the mathematics, the other extension only gives it the material. Plugins do not see each other's classes,
+so this is a **direct call**: find the loaded extension whose class is `com.github.enerccio.marginalia.extensions.namegenerator.NameGeneratorExtension`
+(`OsgiService.getLoadedExtensions()`) and call its public methods by reflection; they take only JDK types and `org.osgi.framework.Bundle`. The names of the
+methods and of the keys are a contract. Nothing is kept when the name generator is unloaded, so register again when it (re)loads (`OsgiService.addExtensionListener`).
+
+| Method | |
+|---|---|
+| `registerWords(Bundle owner, String category, Supplier<? extends Collection<String>> words, Map<String,Object> options)` | A category of **words**: the generator trains a chain on them and makes names that sound like them. The supplier is asked at every call and the chain is trained again only when the words changed, so the category follows the owner's data. `options` may be `null`: `order` (1 to 4, default 2), `minLength`, `maxLength` (default those of the shortest and longest word); numbers. |
+| `registerGenerator(Bundle owner, String category, Function<Map<String,Object>,List<String>> generator)` | A category the owner makes the names of itself; the generator is the proxy. The function gets a read only map with `count` and, when asked, `minLength` and `maxLength`, and returns names (stripped, made different and cut to `count`). |
+| `registerProvider(Bundle owner, String key, Supplier<Map<String,Collection<String>>> categories)` | A **provider** of word categories, asked whenever the categories are listed or names are wanted, **on the thread of the caller**: it answers with title to words for the user whose session that thread has (a command, a tool call of a generation, an agent run), so one registration at load serves every user and nobody sees another's categories, and a change of the data needs no new registration. Same chain as `registerWords`. A category with no words is not listed, a title of the generator's own wins; a supplier that throws (a thread with no session) has nothing for that caller. Registering the same key replaces it. |
+| `unregisterProvider(Bundle owner, String key)` | Removes one provider of the owner, `false` if it has none of that key. |
+| `previewWords(Collection<String> words, Map<String,Object> options, int count)` | Names from the words with the same chain, **without registering** anything (same `options`): to show what a selection of words gives before the user keeps it. Throws `IllegalArgumentException` when no word is usable. |
+| `unregister(Bundle owner, String category)` | Removes one category of the owner, `false` if it has none of that name. |
+| `unregisterAll(Bundle owner)` | Removes all of them, providers included (call it in `onExtensionUnload`), returns how many. |
+
+The owner is the bundle of the caller (its symbolic name says who owns a category; a category of a bundle that is not running is dropped). A title is free
+text, not case sensitive (a path such as `Conlang - Vrakht` sorts well); registering your own title again replaces it, a title of the shipped categories or
+of another extension raises `IllegalArgumentException`. The supplier and the function are called on the thread of whoever needs the names, with the session of
+that thread; keep them cheap. When one throws, or the words are empty, the call that wanted the names fails with a message that names the owner.
+
 ## Groups
 
 A category can also be a **group** of categories (`src/main/resources/name-groups.json`, committed, read at run time, no

@@ -23,10 +23,10 @@ public class NameGeneratorToolProvider implements ToolProvider {
 [ Name tools: you can call list_name_categories to see the categories of names, and generate_names with a category and a count (and optionally min_length and max_length) to get names of it. Call a reasonable amount, minimum is 10. When you need a name for a person, place or thing, call generate_names instead of inventing one, and pick from the returned names. You may also modify or remix the returned names when none of them fits as it is: combine parts of two names, change an ending or a letter, adjust the spelling, or shorten or lengthen a name. Keep the result sounding like it belongs to the same category. ]
 """;
 
-    private final NameTables tables;
+    private final NameCatalog tables;
     private final FunctionRegistry registry;
 
-    public NameGeneratorToolProvider(NameTables tables, FunctionRegistry registry) {
+    public NameGeneratorToolProvider(NameCatalog tables, FunctionRegistry registry) {
         this.tables = tables;
         this.registry = registry;
     }

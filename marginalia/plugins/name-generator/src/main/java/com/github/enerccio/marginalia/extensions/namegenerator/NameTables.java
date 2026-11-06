@@ -329,6 +329,57 @@ public class NameTables {
         return new Category(title, order, minLength, maxLength, size, builder.build(order));
     }
 
+    /**
+     * A name as the chains know it: stripped and in lower case, null when nothing is left or it has one of the two characters that mark the
+     * start and the end of a name.
+     */
+    static String normalize(String name) {
+        if (name == null) {
+            return null;
+        }
+        String normalized = name.strip().toLowerCase(Locale.ROOT);
+        return normalized.isEmpty() || normalized.indexOf(START) >= 0 || normalized.indexOf(END) >= 0 ? null : normalized;
+    }
+
+    /**
+     * Trains a category from names, the same way the build step does ({@code GenerateTables}): the probability of each character after the last
+     * {@code order} ones, counted over the names. Names that {@link #normalize} refuses are left out.
+     *
+     * @param minLength the shortest name that is made, null: that of the shortest name trained on
+     * @param maxLength the longest name that is made, null: that of the longest name trained on
+     * @throws IllegalArgumentException when no name is left
+     */
+    static Category train(String title, Collection<String> names, int order, Integer minLength, Integer maxLength) {
+        Map<String, Map<Character, Integer>> counts = new TreeMap<>();
+        int trained = 0;
+        int shortest = Integer.MAX_VALUE;
+        int longest = 0;
+        for (String raw : names) {
+            String name = normalize(raw);
+            if (name == null) {
+                continue;
+            }
+            String padded = String.valueOf(START).repeat(order) + name + END;
+            for (int i = order; i < padded.length(); i++) {
+                counts.computeIfAbsent(padded.substring(i - order, i), k -> new TreeMap<>()).merge(padded.charAt(i), 1, Integer::sum);
+            }
+            trained++;
+            shortest = Math.min(shortest, name.length());
+            longest = Math.max(longest, name.length());
+        }
+        if (trained == 0) {
+            throw new IllegalArgumentException("No names to train " + title + " on");
+        }
+        Map<String, Map<Character, Double>> tables = new LinkedHashMap<>();
+        counts.forEach((context, next) -> {
+            double total = next.values().stream().mapToInt(Integer::intValue).sum();
+            Map<Character, Double> probabilities = new LinkedHashMap<>();
+            next.forEach((c, n) -> probabilities.put(c, n / total));
+            tables.put(context, probabilities);
+        });
+        return new Category(title, order, clampLength(minLength, shortest), clampLength(maxLength, longest), trained, tables);
+    }
+
     /** The titles of the categories and of the groups, sorted. */
     public List<String> categories() {
         return Stream.concat(categories.values().stream().map(Category::title), groups.keySet().stream()).sorted().toList();
