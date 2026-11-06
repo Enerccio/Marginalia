@@ -9,17 +9,57 @@ import org.librepdf.openpdf.fonts.Liberation;
 import org.openpdf.text.*;
 import org.openpdf.text.pdf.*;
 import org.openpdf.text.pdf.draw.DottedLineSeparator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
- * PDF with the embedded Liberation fonts, so the text is not limited to Latin-1.
+ * PDF with the embedded Liberation fonts, so the text is not limited to Latin-1, and a bundled Japanese font (a subset of Noto Sans JP, see
+ * {@code src/main/resources/fonts/README.md}) for the characters they lack: a character is drawn in the first font that has it. Footnotes are set
+ * at the bottom of the page of their mark, in a smaller type under a short rule: the pages are laid out again until the space kept for the notes
+ * of each page is the space they need (the same loop settles the page numbers of the table of contents).
  */
 public class PdfExporter extends ExporterBase {
+    private static final Logger log = LoggerFactory.getLogger(PdfExporter.class);
+
+    /** The margins of the page; the bottom one is what the notes of a page add to. */
+    private static final float MARGIN_SIDE = 54, MARGIN_TOP = 60, MARGIN_BOTTOM = 60;
+    /** Between the text and the rule above the notes, and the rule and the notes. */
+    private static final float NOTE_GAP = 8;
+    private static final String NOTE_TAG = "fn:";
+
+    private static final String CJK_FONT = "/fonts/NotoSansJP-Regular-subset.ttf";
+    private static BaseFont cjkBase;
+    private static boolean cjkTried;
+
+    /**
+     * @return the font of the characters Liberation lacks, null when it can't be loaded (they are then not drawn)
+     */
+    private static synchronized BaseFont cjk() {
+        if (!cjkTried) {
+            cjkTried = true;
+            try (InputStream in = PdfExporter.class.getResourceAsStream(CJK_FONT)) {
+                if (in == null) {
+                    log.warn("The font of the Japanese text, {}, is not in the application: such text is not drawn in the PDF", CJK_FONT);
+                } else {
+                    cjkBase = BaseFont.createFont("NotoSansJP-Regular-subset.ttf", BaseFont.IDENTITY_H, BaseFont.EMBEDDED, true, in.readAllBytes(), null);
+                }
+            } catch (Exception e) {
+                log.warn("The font of the Japanese text can't be loaded, such text is not drawn in the PDF", e);
+            }
+        }
+        return cjkBase;
+    }
+
     // the sizes of the headings as multiples of the body text, 24 pt for the first level of 12 pt text
     private static final float[] HEADING_RATIOS = {2f, 20f / 12, 17f / 12, 15f / 12, 13f / 12, 1f};
     private static final float INDENT = 20;
@@ -85,11 +125,11 @@ public class PdfExporter extends ExporterBase {
     }
 
     /**
-     * The table of contents shows the pages of the chapters, which are known only when the text is laid out, so the
-     * export is kept and rendered until the pages stay the same.
+     * The table of contents shows the pages of the chapters, and the notes take room at the bottom of the pages that have them: both are known only when
+     * the text is laid out, so the export is kept and rendered until the pages and the room kept for the notes stay the same.
      */
     private static class PdfWriterAdapter implements ExportWriter {
-        private static final int MAX_PASSES = 4;
+        private static final int MAX_PASSES = 8;
 
         private final ExportOptions options;
         private final List<List<Part>> messages = new ArrayList<>();
@@ -124,11 +164,21 @@ public class PdfExporter extends ExporterBase {
 
         @Override
         public byte[] finish() throws Exception {
-            PdfRendering rendering = new PdfRendering(options, titleMarkdown, chapters, messages, chapterOf, Map.of());
+            Map<Integer, Float> reserve = new HashMap<>();
+            // the largest room each page was ever asked for: when the layout does not settle, the last passes keep at least that much and so it does
+            Map<Integer, Float> largest = new HashMap<>();
+            PdfRendering rendering = new PdfRendering(options, titleMarkdown, chapters, messages, chapterOf, Map.of(), reserve);
             byte[] result = rendering.render();
-            for (int pass = 1; pass < MAX_PASSES && !chapters.isEmpty() && !rendering.chapterPages.equals(rendering.shownPages); pass++) {
-                rendering = new PdfRendering(options, titleMarkdown, chapters, messages, chapterOf, rendering.chapterPages);
+            for (int pass = 1; pass < MAX_PASSES && !rendering.isSettled(chapters); pass++) {
+                rendering.needed.forEach((page, height) -> largest.merge(page, height, Math::max));
+                reserve = pass >= MAX_PASSES - 2 ? new HashMap<>(largest) : new HashMap<>(rendering.needed);
+                rendering = new PdfRendering(options, titleMarkdown, chapters, messages, chapterOf, rendering.chapterPages, reserve);
                 result = rendering.render();
+            }
+            if (!rendering.uncovered.isEmpty()) {
+                StringBuilder missing = new StringBuilder();
+                rendering.uncovered.stream().limit(20).forEach(cp -> missing.append(String.format("U+%04X ", cp)));
+                log.warn("{} different characters of the book are in none of the fonts of the PDF and are not drawn: {}", rendering.uncovered.size(), missing.toString().strip());
             }
             return result;
         }
@@ -136,7 +186,7 @@ public class PdfExporter extends ExporterBase {
 
     private static class PdfRendering {
         private final ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-        private final Document document = new Document(PageSize.A5, 54, 54, 60, 60);
+        private final Document document = new Document(PageSize.A5, MARGIN_SIDE, MARGIN_SIDE, MARGIN_TOP, MARGIN_BOTTOM);
         private final PrintStyle style;
         private final float bodySize;
         private final float[] headingSizes = new float[HEADING_RATIOS.length];
@@ -155,8 +205,27 @@ public class PdfExporter extends ExporterBase {
         // destination of the chapter that is going to be written, given to its first paragraph
         private Chapter pendingChapter;
 
+        /** A footnote mark of the text: the note is looked up by the label in the notes of its part when the page is closed (the text of a part may come in pieces). */
+        private record Note(String label, Map<String, List<List<Run>>> source) {
+        }
+
+        // the room kept at the bottom of each page for its notes (from the pass before), and what the notes of each page need in this one
+        private final Map<Integer, Float> reserve;
+        final Map<Integer, Float> needed = new HashMap<>();
+        private final Map<String, Note> marks = new HashMap<>();
+        // the height of the notes set on each page so far
+        private final Map<Integer, Float> usedOnPage = new HashMap<>();
+        // the notes of the part that is being written, and whether the marks of the text are footnote marks (not on the cover)
+        private Map<String, List<List<Run>>> partNotes = new HashMap<>();
+        private boolean placingNotes;
+        private boolean inNote;
+        private int markCount;
+        // the characters that are in none of the fonts
+        final Set<Integer> uncovered = new TreeSet<>();
+
         private PdfRendering(ExportOptions options, String titleMarkdown, List<Chapter> chapters, List<List<Part>> messages,
-                             List<Chapter> chapterOf, Map<String, Integer> shownPages) throws Exception {
+                             List<Chapter> chapterOf, Map<String, Integer> shownPages, Map<Integer, Float> reserve) throws Exception {
+            this.reserve = reserve;
             this.titleMarkdown = titleMarkdown;
             this.chapters = chapters;
             this.messages = messages;
@@ -177,6 +246,8 @@ public class PdfExporter extends ExporterBase {
             small = Liberation.SERIF.create(Math.round(bodySize * 10 / 12));
 
             writer = PdfWriter.getInstance(document, bytes);
+            // the first page is laid out with the room its notes need, the later ones are set when the page before them ends
+            document.setMargins(MARGIN_SIDE, MARGIN_SIDE, MARGIN_TOP, MARGIN_BOTTOM + reserve.getOrDefault(1, 0f));
             writer.setPageEvent(new PdfPageEventHelper() {
                 @Override
                 public void onEndPage(PdfWriter writer, Document document) {
@@ -190,18 +261,29 @@ public class PdfExporter extends ExporterBase {
                         under.fill();
                         under.restoreState();
                     }
+                    int page = writer.getPageNumber();
+                    // the next page keeps the room its notes had in the pass before
+                    document.setMargins(MARGIN_SIDE, MARGIN_SIDE, MARGIN_TOP, MARGIN_BOTTOM + reserve.getOrDefault(page + 1, 0f));
                     // the title page is the cover, the numbers are the pages of the file as the readers count them
-                    if (titleMarkdown != null && writer.getPageNumber() == 1) {
+                    if (titleMarkdown != null && page == 1) {
                         return;
                     }
                     ColumnText.showTextAligned(writer.getDirectContent(), Element.ALIGN_CENTER,
-                            new Phrase(String.valueOf(writer.getPageNumber()), small),
-                            (document.left() + document.right()) / 2, document.bottom() - 28, 0);
+                            new Phrase(String.valueOf(page), small),
+                            (document.left() + document.right()) / 2, MARGIN_BOTTOM - 28, 0);
                 }
 
                 @Override
                 public void onGenericTag(PdfWriter writer, Document document, Rectangle rect, String text) {
-                    chapterPages.put(text, writer.getPageNumber());
+                    if (text.startsWith(NOTE_TAG)) {
+                        // the page is not finished when its last lines are written (its end event comes before them), so each note is set when its mark is
+                        Note note = marks.get(text);
+                        if (note != null) {
+                            placeNote(writer, writer.getPageNumber(), note);
+                        }
+                    } else {
+                        chapterPages.put(text, writer.getPageNumber());
+                    }
                 }
             });
             document.addTitle(options.bookName());
@@ -223,6 +305,162 @@ public class PdfExporter extends ExporterBase {
             }
         }
 
+        /**
+         * @return whether another pass would lay the book out the same: the chapters are on the pages the table of contents shows, and every page has
+         * the room its notes need
+         */
+        boolean isSettled(List<Chapter> chapters) {
+            if (!chapters.isEmpty() && !chapterPages.equals(shownPages)) {
+                return false;
+            }
+            Set<Integer> pages = new HashSet<>(needed.keySet());
+            pages.addAll(reserve.keySet());
+            for (int page : pages) {
+                if (Math.abs(needed.getOrDefault(page, 0f) - reserve.getOrDefault(page, 0f)) > 0.5f) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        private float noteSize() {
+            return bodySize * 0.8f;
+        }
+
+        /** The paragraphs of the notes of a page, a number in front of the first one of each. */
+        private List<Paragraph> noteParagraphs(List<Note> notes) {
+            List<Paragraph> result = new ArrayList<>();
+            inNote = true;
+            try {
+                float size = noteSize();
+                for (Note note : notes) {
+                    List<List<Run>> blocks = note.source().get(note.label());
+                    if (blocks == null) {
+                        continue;
+                    }
+                    boolean first = true;
+                    for (List<Run> runs : blocks) {
+                        Paragraph paragraph = buildParagraph(runs, size, false, null);
+                        if (first) {
+                            paragraph.add(0, new Chunk(note.label() + " ", textFont(regular, size, style.getTextColor())));
+                            first = false;
+                        }
+                        paragraph.setAlignment(Element.ALIGN_LEFT);
+                        paragraph.setSpacingAfter(2);
+                        result.add(paragraph);
+                    }
+                }
+            } finally {
+                inNote = false;
+            }
+            return result;
+        }
+
+        /** The height of the notes laid out in the width of the text, without the rule and the gaps. */
+        private float heightOf(List<Paragraph> paragraphs) {
+            float top = 5000;
+            ColumnText column = new ColumnText(writer.getDirectContent());
+            column.setSimpleColumn(document.left(), 0, document.right(), top);
+            paragraphs.forEach(column::addElement);
+            try {
+                column.go(true);
+            } catch (DocumentException e) {
+                throw new IllegalStateException(e);
+            }
+            return top - column.getYLine();
+        }
+
+        /**
+         * Sets the note of a mark at the bottom of its page, above the number of the page: the notes of a page are one under another, from the top of the
+         * room the pass before kept for them, the first one under a short rule. What the notes of the page need is kept for the next pass. A note that does
+         * not fit in the room is left out while the layout has not settled, the book is laid out again with room for it.
+         */
+        private void placeNote(PdfWriter writer, int page, Note note) {
+            List<Paragraph> paragraphs = noteParagraphs(List.of(note));
+            if (paragraphs.isEmpty()) {
+                return;
+            }
+            float height = heightOf(paragraphs);
+            float used = usedOnPage.getOrDefault(page, 0f);
+            usedOnPage.put(page, used + height);
+            needed.put(page, used + height + NOTE_GAP);
+            if (reserve.isEmpty()) {
+                // the first pass only measures
+                return;
+            }
+            float roomTop = MARGIN_BOTTOM + Math.max(0, reserve.getOrDefault(page, 0f) - NOTE_GAP);
+            float top = roomTop - used;
+            if (top - height < MARGIN_BOTTOM - 4) {
+                log.debug("The note {} does not fit on page {} yet", note.label(), page);
+                return;
+            }
+            PdfContentByte canvas = writer.getDirectContent();
+            ColumnText column = new ColumnText(canvas);
+            column.setSimpleColumn(document.left(), top - height - 3, document.right(), top);
+            paragraphs.forEach(column::addElement);
+            try {
+                column.go();
+            } catch (DocumentException e) {
+                throw new IllegalStateException(e);
+            }
+            if (used == 0) {
+                canvas.saveState();
+                canvas.setLineWidth(0.4f);
+                canvas.setColorStroke(color(style.getTextColor() != null ? style.getTextColor() : 0x000000));
+                canvas.moveTo(document.left(), roomTop + NOTE_GAP / 2);
+                canvas.lineTo(document.left() + (document.right() - document.left()) * 0.3f, roomTop + NOTE_GAP / 2);
+                canvas.stroke();
+                canvas.restoreState();
+            }
+        }
+
+        private static boolean covers(Font font, int codePoint) {
+            return font.getBaseFont().charExists(codePoint);
+        }
+
+        /**
+         * The text as chunks, each character in the first font that has it: the font given (Liberation), then the Japanese one in the same size, style
+         * and color. A character that no font has stays in the font it is next to, where it is not drawn, and is counted for the warning.
+         */
+        private List<Chunk> textChunks(String text, Font font, boolean bold, boolean italic) {
+            BaseFont fallback = cjk();
+            if (fallback == null || text.isEmpty()) {
+                return List.of(new Chunk(text, font));
+            }
+            int style = (bold ? Font.BOLD : 0) | (italic ? Font.ITALIC : 0);
+            Font japanese = new Font(fallback, font.getSize(), style == 0 ? Font.NORMAL : style, font.getColor());
+            List<Chunk> chunks = new ArrayList<>();
+            StringBuilder run = new StringBuilder();
+            Font current = null;
+            for (int i = 0; i < text.length(); ) {
+                int cp = text.codePointAt(i);
+                i += Character.charCount(cp);
+                Font choice;
+                if (cp < 0x20 || Character.isWhitespace(cp)) {
+                    choice = current != null ? current : font;
+                } else if (current != null && covers(current, cp)) {
+                    choice = current;
+                } else if (covers(font, cp)) {
+                    choice = font;
+                } else if (covers(japanese, cp)) {
+                    choice = japanese;
+                } else {
+                    uncovered.add(cp);
+                    choice = current != null ? current : font;
+                }
+                if (choice != current && run.length() > 0) {
+                    chunks.add(new Chunk(run.toString(), current));
+                    run.setLength(0);
+                }
+                current = choice;
+                run.appendCodePoint(cp);
+            }
+            if (run.length() > 0) {
+                chunks.add(new Chunk(run.toString(), current != null ? current : font));
+            }
+            return chunks;
+        }
+
         private byte[] render() throws Exception {
             if (titleMarkdown != null) {
                 walk(titleMarkdown, titleSink);
@@ -231,7 +469,9 @@ public class PdfExporter extends ExporterBase {
             if (!chapters.isEmpty()) {
                 writeContents();
             }
+            placingNotes = true;
             for (int i = 0; i < messages.size(); i++) {
+                partNotes = new HashMap<>();
                 pendingChapter = chapterOf.get(i);
                 if (pendingChapter != null) {
                     // a chapter starts on a new page, nothing happens when the page is still empty
@@ -246,6 +486,7 @@ public class PdfExporter extends ExporterBase {
                 }
                 pendingChapter = null;
             }
+            placingNotes = false;
             if (document.getPageNumber() == 0) {
                 // nothing was exported, the document needs at least one page
                 document.add(new Paragraph(" "));
@@ -466,12 +707,13 @@ public class PdfExporter extends ExporterBase {
 
             PdfOutline root = writer.getRootOutline();
             for (Chapter chapter : chapters) {
-                Chunk link = new Chunk(chapter.title() + " ", textFont(regular, bodySize, style.getTextColor()));
-                link.setLocalGoto(chapter.anchor());
                 Chunk page = new Chunk(" " + String.valueOf(shownPages.getOrDefault(chapter.anchor(), 0)), textFont(regular, bodySize, style.getTextColor()));
                 page.setLocalGoto(chapter.anchor());
                 Paragraph entry = new Paragraph(bodySize * 1.4f);
-                entry.add(link);
+                for (Chunk link : textChunks(chapter.title() + " ", textFont(regular, bodySize, style.getTextColor()), false, false)) {
+                    link.setLocalGoto(chapter.anchor());
+                    entry.add(link);
+                }
                 entry.add(new Chunk(new DottedLineSeparator()));
                 entry.add(page);
                 entry.setSpacingAfter(4);
@@ -511,12 +753,32 @@ public class PdfExporter extends ExporterBase {
         }
 
         private Paragraph paragraphOf(List<Run> runs, float size, boolean heading, Integer quoteRgb) {
+            return anchored(buildParagraph(runs, size, heading, quoteRgb));
+        }
+
+        private Paragraph buildParagraph(List<Run> runs, float size, boolean heading, Integer quoteRgb) {
             Paragraph paragraph = new Paragraph();
             paragraph.setLeading(size * style.getLineHeight());
             for (Run run : runs) {
-                paragraph.add(run.lineBreak() ? Chunk.NEWLINE : new Chunk(run.text(), font(run, size, heading, quoteRgb)));
+                if (run.lineBreak()) {
+                    paragraph.add(Chunk.NEWLINE);
+                    continue;
+                }
+                Font font = font(run, size, heading, quoteRgb);
+                if (run.note() != null && placingNotes && !inNote) {
+                    // a footnote mark: a small raised number; the note goes to the bottom of the page the mark is on
+                    Font raised = new Font(font.getBaseFont(), size * 0.62f, font.getStyle(), font.getColor());
+                    Chunk mark = new Chunk(run.note(), raised);
+                    mark.setTextRise(size * 0.38f);
+                    String id = NOTE_TAG + (++markCount);
+                    mark.setGenericTag(id);
+                    marks.put(id, new Note(run.note(), partNotes));
+                    paragraph.add(mark);
+                } else {
+                    textChunks(run.text(), font, run.bold() || heading, run.italic()).forEach(paragraph::add);
+                }
             }
-            return anchored(paragraph);
+            return paragraph;
         }
 
         /**
@@ -539,6 +801,15 @@ public class PdfExporter extends ExporterBase {
 
             private PdfSink(boolean centered) {
                 this.centered = centered;
+            }
+
+            @Override
+            public boolean notes(Map<String, List<List<Run>>> notes) {
+                if (centered) {
+                    return false;
+                }
+                partNotes.putAll(notes);
+                return true;
             }
 
             @Override

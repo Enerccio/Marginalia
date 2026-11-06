@@ -1,0 +1,28 @@
+from fontTools.ttLib import TTFont
+from fontTools.varLib import instancer
+from fontTools import subset
+import sys
+f=TTFont('NotoSansJP-VF.ttf')
+inst=instancer.instantiateVariableFont(f,{'wght':400})
+inst.save('NotoSansJP-400.ttf')
+chars=set()
+# JIS X 0208: kana, symbols, level 1 and 2 kanji (EUC-JP rows 0xA1-0xFE)
+for hi in range(0xA1,0xFF):
+    for lo in range(0xA1,0xFF):
+        try: chars.add(bytes([hi,lo]).decode('euc_jp'))
+        except Exception: pass
+for lo in range(0x20,0x7F): chars.add(chr(lo))
+for r in [(0x3000,0x303F),(0x3040,0x30FF),(0x31F0,0x31FF),(0xFF00,0xFFEF),(0x2010,0x2027),(0x2030,0x205E),(0x25A0,0x25FF),(0x2190,0x21FF)]:
+    for c in range(r[0],r[1]+1): chars.add(chr(c))
+opts=subset.Options()
+opts.layout_features=[]
+opts.name_IDs=[0,1,2,3,4,6,13,14]
+opts.notdef_outline=True
+opts.hinting=False
+opts.glyph_names=False
+s=subset.Subsetter(opts)
+font=TTFont('NotoSansJP-400.ttf')
+s.populate(text=''.join(sorted(chars)))
+s.subset(font)
+font.save('NotoSansJP-Regular-subset.ttf')
+print(len(chars),'chars requested')

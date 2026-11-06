@@ -225,7 +225,7 @@ the scene break; a style without content gives the defaults, which are the look 
 source and not a rendered format), as blocks separated by an empty line.
 It also provides `toHtml` (CommonMark, raw HTML escaped, XHTML safe) and `walk`, which turns
 Markdown into paragraphs, headings, code and rules for formats built from styled text (`BlockSink`; used by TXT, DOCX
-and PDF). Libraries: CommonMark (parsing), Apache POI (DOCX), OpenPDF with the Liberation fonts (PDF); EPUB is written
+and PDF). Libraries: CommonMark (parsing), Apache POI (DOCX), OpenPDF with the Liberation fonts and a bundled subset of Noto Sans JP, `src/main/resources/fonts` (PDF: a character is drawn in the first font that has it; footnotes are set at the bottom of the page of their mark by laying the book out again until the room kept for each page's notes is what they need, see `PdfExporter`; a `BlockSink` that wants the notes itself answers true to `notes(...)`); EPUB is written
 with `java.util.zip`.
 
 ### Lorebooks and tags

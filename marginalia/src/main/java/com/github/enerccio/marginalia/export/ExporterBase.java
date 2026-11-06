@@ -29,7 +29,9 @@ import org.springframework.beans.factory.annotation.Configurable;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -474,9 +476,13 @@ public abstract class ExporterBase implements Exporter {
     /**
      * Piece of text with the same style.
      */
-    protected record Run(String text, boolean bold, boolean italic, boolean code, boolean lineBreak) {
+    protected record Run(String text, boolean bold, boolean italic, boolean code, boolean lineBreak, String note) {
 
         static final Run LINE_BREAK = new Run("\n", false, false, false, true);
+
+        Run(String text, boolean bold, boolean italic, boolean code, boolean lineBreak) {
+            this(text, bold, italic, code, lineBreak, null);
+        }
     }
 
     /**
@@ -500,10 +506,38 @@ public abstract class ExporterBase implements Exporter {
         void code(BlockContext context, String code) throws Exception;
 
         void rule() throws Exception;
+
+        /**
+         * The notes of a text (footnotes: label, then the paragraphs of the note), given before the text that refers to them ({@link Run#note()} is the label).
+         * A sink that sets them where they belong (the bottom of the page) keeps them and answers true: they are then not walked as blocks at the end of the text.
+         * The others answer false and get each note as the last block of the text, an item of a list whose marker is its label (an endnote).
+         */
+        default boolean notes(Map<String, List<List<Run>>> notes) throws Exception {
+            return false;
+        }
     }
 
     protected static void walk(String markdown, BlockSink sink) throws Exception {
-        walk(parse(markdown), BlockContext.ROOT, sink);
+        Node document = parse(markdown);
+        Map<String, List<List<Run>>> notes = new LinkedHashMap<>();
+        List<Node> definitions = new ArrayList<>();
+        for (Node node = document.getFirstChild(); node != null; node = node.getNext()) {
+            if (node instanceof FootnoteDefinition d) {
+                List<List<Run>> paragraphs = new ArrayList<>();
+                for (Node block = d.getFirstChild(); block != null; block = block.getNext()) {
+                    List<Run> runs = runs(block);
+                    if (!runs.isEmpty()) {
+                        paragraphs.add(runs);
+                    }
+                }
+                notes.put(d.getLabel(), paragraphs);
+                definitions.add(d);
+            }
+        }
+        if (!notes.isEmpty() && sink.notes(notes)) {
+            definitions.forEach(Node::unlink);
+        }
+        walk(document, BlockContext.ROOT, sink);
     }
 
     private static void walk(Node parent, BlockContext context, BlockSink sink) throws Exception {
@@ -548,7 +582,7 @@ public abstract class ExporterBase implements Exporter {
                 case HtmlInline h -> result.add(new Run(h.getLiteral(), bold, italic, code, false));
                 case SoftLineBreak _ -> result.add(new Run(" ", bold, italic, code, false));
                 case HardLineBreak _ -> result.add(Run.LINE_BREAK);
-                case FootnoteReference r -> result.add(new Run("[" + r.getLabel() + "]", bold, italic, code, false));
+                case FootnoteReference r -> result.add(new Run("[" + r.getLabel() + "]", bold, italic, code, false, r.getLabel()));
                 case Emphasis e -> collectRuns(e, bold, true, code, result);
                 case StrongEmphasis s -> collectRuns(s, true, italic, code, result);
                 default -> collectRuns(node, bold, italic, code, result);
