@@ -893,6 +893,20 @@ vaadin-markdown.agent-report td {
     flex-shrink: 0;
 }
 
+/* a place of the picker: a ring, filled for the chosen one (drawn here, not an icon: the icon glyphs were cut off on the right) */
+.image-anchor-dot {
+    display: block;
+    width: 0.875rem;
+    height: 0.875rem;
+    box-sizing: border-box;
+    border: 2px solid var(--lumo-primary-color);
+    border-radius: 50%;
+}
+
+.image-anchor-dot-selected {
+    background: var(--lumo-primary-color);
+}
+
 /* preview of a part as the viewer shows it (ui.dialogs.manuscript.PartPreviewDialog) */
 .part-preview-frame {
     padding: var(--lumo-space-m);

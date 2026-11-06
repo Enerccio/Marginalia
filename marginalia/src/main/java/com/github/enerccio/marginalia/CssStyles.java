@@ -119,6 +119,8 @@ public final class CssStyles {
     public static final String PART_BAND_MIDDLE = "part-band-middle";
     public static final String PART_BAND_TEXT = "part-band-text";
     public static final String IMAGE_ANCHOR_PICKER = "image-anchor-picker";
+    public static final String IMAGE_ANCHOR_DOT = "image-anchor-dot";
+    public static final String IMAGE_ANCHOR_DOT_SELECTED = "image-anchor-dot-selected";
     public static final String PART_PREVIEW_FRAME = "part-preview-frame";
     public static final String PART_PREVIEW_PHONE = "part-preview-phone";
 
