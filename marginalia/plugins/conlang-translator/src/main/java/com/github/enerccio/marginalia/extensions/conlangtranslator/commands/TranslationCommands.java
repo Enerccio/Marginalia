@@ -22,6 +22,7 @@ import com.github.enerccio.marginalia.extensions.translatorcommon.service.RangeL
 import com.github.enerccio.marginalia.extensions.translatorcommon.service.RangeLoop.PartResult;
 import com.github.enerccio.marginalia.extensions.translatorcommon.service.RangeLoop.RangePart;
 import com.github.enerccio.marginalia.extensions.translatorcommon.service.RangeLoop.Summary;
+import com.github.enerccio.marginalia.extensions.translatorcommon.service.TranslationWriter;
 import com.github.enerccio.marginalia.extensions.translatorcommon.translate.Reverse;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -50,6 +51,7 @@ public class TranslationCommands extends ConlangCommandSupport {
     public static final String CHECK_TRANSLATION = "conlang-check-translation";
     public static final String GET_SOURCE = "conlang-get-source";
     public static final String LIST_PASSAGES = "conlang-list-passages";
+    public static final String EDIT_SOURCE = "conlang-edit-source";
     public static final String TRANSLATE_SENTENCE = "conlang-translate-sentence";
     public static final String SPEAKERS = "conlang-speakers";
     public static final String SET_SPEAKERS_MODE = "conlang-set-speakers-mode";
@@ -613,6 +615,7 @@ public class TranslationCommands extends ConlangCommandSupport {
         String stored = StringUtils.defaultString(part.getResponse());
         JsonArray rows = new JsonArray();
         List<LanguageRef> bookLanguages = bookConlang.languages(book.manuscript);
+        int number = 0;
         for (AnchoredPassage passage : passages.passagesOf(part)) {
             Reverse.Located item = PassageAccess.locate(passage);
             if (item == null) {
@@ -621,6 +624,7 @@ public class TranslationCommands extends ConlangCommandSupport {
             Span span = item.span();
             String conlang = slice(stored, item.start(), item.end());
             JsonObject row = new JsonObject();
+            row.addProperty("speech", ++number);
             row.addProperty("conlang", conlang);
             row.addProperty("english", span.getSource());
             row.addProperty("language", bookLanguages.stream().filter(l -> l.id().equals(span.getLanguage())).map(LanguageRef::name).findFirst().orElse(StringUtils.defaultString(span.getLanguage())));
@@ -636,6 +640,40 @@ public class TranslationCommands extends ConlangCommandSupport {
         JsonObject result = new JsonObject();
         result.addProperty("part", located.position());
         result.add("speeches", rows);
+        answer(context, result);
+    }
+
+    @Command(commandName = EDIT_SOURCE, linkedCommand = LIST_PASSAGES, humanNameText = "Edit the source of a speech", dataSeverity = CommandDataSeverity.DESTRUCTIVE,
+            descriptionText = "Sets the English a translated speech means, after the translation was fixed by hand.",
+            llmDescriptionText = "Sets the English source of one translated speech of a part (its number is the 'speech' of conlang-list-passages): the English the models read in place of the translation. "
+                    + "Use it when the translation was corrected by hand (a native speaker's edit) and the source says something else now, or when the model got the English wrong. The text of the part is not changed; "
+                    + "the translation as it is now counts as the one this source belongs to, so a speech marked as edited is not any more. Replaces the old source. Returns the speech.",
+            signature = @CommandParameterSignature({
+                    @CommandParameter(name = "part", type = String.class, descriptionText = PARAM_PART),
+                    @CommandParameter(name = "speech", type = Integer.class, min = "1", descriptionText = "The number of the translated speech in the part, as conlang-list-passages lists it"),
+                    @CommandParameter(name = "source", type = String.class, descriptionText = "The English the speech means, without the quotation marks")}),
+            returns = @CommandReturn(name = "result", type = String.class, descriptionText = "JSON: the speech with its new source"))
+    public void editSource(CommandContext context) throws Exception {
+        Book book = new Book(context);
+        Book.Located located = book.locate(context.get("part", String.class), null);
+        ChatMessage part = translation.find(located.message());
+        int wanted = context.get("speech", Integer.class);
+        int at = 0;
+        AnchoredPassage chosen = null;
+        for (AnchoredPassage passage : passages.passagesOf(part)) {
+            if (PassageAccess.locate(passage) != null && ++at == wanted) {
+                chosen = passage;
+                break;
+            }
+        }
+        if (chosen == null) {
+            throw new IllegalArgumentException("The part has no translated speech number " + wanted + " (" + LIST_PASSAGES + " lists them)");
+        }
+        Span span = new TranslationWriter(com.github.enerccio.marginalia.extensions.conlangtranslator.text.ConlangKind.ID).editSource(chosen.getUuid(), required(context.get("source", String.class), "the source"));
+        JsonObject result = new JsonObject();
+        result.addProperty("part", located.position());
+        result.addProperty("speech", wanted);
+        result.addProperty("english", span.getSource());
         answer(context, result);
     }
 

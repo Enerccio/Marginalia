@@ -4,6 +4,8 @@ import com.github.enerccio.marginalia.domain.model.impl.AnchoredPassage;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.extensions.translatorcommon.model.Span;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.popover.Popover;
 import org.apache.commons.lang3.StringUtils;
@@ -26,7 +28,7 @@ public final class SourcePopover {
      * @param anchor  the component the browser moved onto the mark
      */
     public static void open(AnchoredPassage passage, Component anchor) {
-        open(passage, anchor, currentText(passage));
+        open(passage, anchor, currentText(passage), true);
     }
 
     /**
@@ -35,6 +37,16 @@ public final class SourcePopover {
      * @param currentText the translated text of the passage now, null when the reader is not the author (no warning about an edit) or it is unknown
      */
     public static void open(AnchoredPassage passage, Component anchor, String currentText) {
+        open(passage, anchor, currentText, false);
+    }
+
+    /**
+     * Opens the popover at the anchor of the mark.
+     *
+     * @param currentText the translated text of the passage now, see above
+     * @param editable    whether the popover has the button that edits the source: only for the author, in the views where the author edits
+     */
+    public static void open(AnchoredPassage passage, Component anchor, String currentText, boolean editable) {
         Span span = Span.read(passage.getAttributes());
         if (span == null) {
             return;
@@ -42,7 +54,10 @@ public final class SourcePopover {
         Popover popover = new Popover();
         popover.setOpenOnClick(false);
         popover.addClassName(CommonStyles.SOURCE_POPOVER);
-        popover.add(content(span, currentText));
+        popover.add(content(span, currentText, editable ? () -> {
+            popover.setOpened(false);
+            new SourceEditDialog(passage, span, currentText(passage)).open();
+        } : null));
         popover.setTarget(anchor);
         popover.addOpenedChangeListener(event -> {
             if (!event.isOpened()) {
@@ -77,6 +92,15 @@ public final class SourcePopover {
      * @param currentText the translated text of the passage now, null when unknown
      */
     static Div content(Span span, String currentText) {
+        return content(span, currentText, null);
+    }
+
+    /**
+     * The content of the popover with a button that edits the source.
+     *
+     * @param onEdit what the button does, null for no button
+     */
+    static Div content(Span span, String currentText, Runnable onEdit) {
         Div box = new Div();
         box.addClassName(CommonStyles.SOURCE_BOX);
         if (StringUtils.isNotBlank(span.getSpeaker())) {
@@ -101,6 +125,11 @@ public final class SourcePopover {
             Div note = new Div(TC.localized(EDITED_AFTER_TRANSLATION));
             note.addClassName(CommonStyles.CONFLICT);
             box.add(note);
+        }
+        if (onEdit != null) {
+            Button edit = new Button(TC.localized(EDIT_THE_SOURCE), _ -> onEdit.run());
+            edit.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
+            box.add(edit);
         }
         return box;
     }
