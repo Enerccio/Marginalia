@@ -9,8 +9,9 @@ import com.github.enerccio.marginalia.ui.dialogs.ProgressBarDialog;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
-import org.apache.poi.xwpf.extractor.XWPFWordExtractor;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
+import org.apache.poi.xwpf.usermodel.XWPFFootnote;
+import org.apache.poi.xwpf.usermodel.XWPFParagraph;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -18,6 +19,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -95,10 +97,35 @@ class ExporterFootnotesTest extends MarginaliaTestBase {
     }
 
     @Test
-    void docxHasTheNote() throws Exception {
-        try (XWPFDocument document = new XWPFDocument(new ByteArrayInputStream(export("docx")));
-             XWPFWordExtractor extractor = new XWPFWordExtractor(document)) {
-            assertThat(extractor.getText()).contains("and left.").contains("[7]").contains("Mara: I see the enemy.");
+    void docxHasARealFootnote() throws Exception {
+        try (XWPFDocument document = new XWPFDocument(new ByteArrayInputStream(export("docx")))) {
+            String body = document.getParagraphs().stream().map(XWPFParagraph::getText).collect(Collectors.joining("\n"));
+            // the text has a Word mark, not "[7]" and not an endnote after the text; the note is a footnote of the document that the mark refers to
+            assertThat(body).contains("and left.").doesNotContain("[7]");
+            List<XWPFFootnote> notes = document.getFootnotes().stream().filter(f -> f.getParagraphs().stream()
+                    .anyMatch(p -> p.getText().contains("Mara: I see the enemy."))).toList();
+            assertThat(notes).hasSize(1);
+            String xml = document.getDocument().xmlText();
+            assertThat(xml).contains("footnoteReference").contains("w:id=\"" + notes.getFirst().getId() + "\"");
+        }
+    }
+
+    @Test
+    void docxNumbersTheNotesOfSeveralParts() throws Exception {
+        Exporter exporter = exporterService.getExporters().stream().filter(e -> e.getFileExtension().equals("docx")).findFirst().orElseThrow();
+        List<ChatMessage> parts = new java.util.ArrayList<>();
+        for (String text : List.of("One.[^1]\n\n[^1]: First note.", "Two.[^1] and [^2] and [^9]\n\n[^1]: Second note.\n\n[^2]: Third note.")) {
+            ChatMessage message = new ChatMessage();
+            message.setResponse(text);
+            parts.add(message);
+        }
+        try (XWPFDocument document = new XWPFDocument(new ByteArrayInputStream(
+                exporter.export(new ExportOptions("Book", "Author", false, "en"), parts, new ProgressBarDialog(false))))) {
+            List<String> notes = document.getFootnotes().stream().map(f -> f.getParagraphs().stream().map(XWPFParagraph::getText)
+                    .collect(Collectors.joining(" ")).trim()).filter(t -> t.contains("note.")).toList();
+            assertThat(notes).hasSize(3);
+            // a mark without a note stays as plain text
+            assertThat(document.getParagraphs().stream().map(XWPFParagraph::getText).collect(Collectors.joining("\n"))).contains("[^9]");
         }
     }
 
