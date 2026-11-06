@@ -34,3 +34,7 @@ retype.manifest
 /screenshots/assets/*.jpg
 /marginalia/vite.config.ts
 /marginalia/vite.generated.ts
+
+# Python bytecode (the screenshot and tool scripts)
+__pycache__/
+*.pyc
