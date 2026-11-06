@@ -63,4 +63,26 @@ class SourcePopoverTest {
 
         assertEquals(List.of("teki ga mieru.", "\"I see the enemy.\""), texts(SourcePopover.content(span, null)));
     }
+
+    @Test
+    void theAuthorsPopoverHasAButtonThatEditsTheSource() {
+        Span span = new Span("lang-1", "\"Go.\"", "\"Ke.\"");
+        int[] clicked = {0};
+
+        Div box = SourcePopover.content(span, "\"Ke.\"", () -> clicked[0]++);
+
+        com.vaadin.flow.component.button.Button button = box.getChildren()
+                .filter(com.vaadin.flow.component.button.Button.class::isInstance)
+                .map(com.vaadin.flow.component.button.Button.class::cast).findFirst().orElseThrow();
+        assertEquals("Edit the source", button.getText());
+        button.click();
+        assertEquals(1, clicked[0]);
+    }
+
+    @Test
+    void theReadersPopoverHasNoButton() {
+        Span span = new Span("lang-1", "\"Go.\"", "\"Ke.\"");
+
+        assertTrue(SourcePopover.content(span, null).getChildren().noneMatch(com.vaadin.flow.component.button.Button.class::isInstance));
+    }
 }

@@ -246,6 +246,75 @@ public class TranslationWriter {
     }
 
     /**
+     * Sets the English source of one translated speech by hand, for the author who edited the translation (a native speaker's fix) and now says what
+     * it means, or who corrects the English the model wrote. The translated text the speech has now is taken as the one the plugin made, so a speech
+     * that was marked as edited is not any more: the models read the new source in its place, and a retranslation of the part replaces it again.
+     * The text of the part is not changed.
+     *
+     * @param passageUuid the uuid of the passage (it must be of this plugin's kind and the current user's)
+     * @param source      the English the model reads in place of the speech
+     * @return the data of the passage as it is saved
+     * @throws IllegalArgumentException when the source is empty or the passage is not a translated speech of the text
+     */
+    public Span editSource(String passageUuid, String source) throws Exception {
+        String english = StringUtils.strip(source);
+        if (StringUtils.isEmpty(english)) {
+            throw new IllegalArgumentException("The source is empty");
+        }
+        AnchoredPassage stored = ownPassage(passageUuid);
+        Reverse.Located located = PassageAccess.locate(stored);
+        if (located == null) {
+            throw new IllegalArgumentException("The speech is not in the text any more");
+        }
+        String text = StringUtils.defaultString(chatMessageService.find(stored.getPart()).getResponse());
+        if (located.end() > text.length() || located.start() >= located.end()) {
+            throw new IllegalArgumentException("The speech is not in the text any more");
+        }
+        Span span = located.span();
+        span.setSource(english);
+        span.textIs(text.substring(located.start(), located.end()));
+        span.write(stored.getAttributes());
+        passageService.save(stored);
+        return span;
+    }
+
+    /**
+     * Writes the source a search and replace made, if the passage still has the source the search saw. Only the source changes: the translated
+     * text and whether the author edited it stay as they are.
+     *
+     * @param expected the source the new one was made from
+     * @return false when the source is not {@code expected} any more or the passage is gone (nothing was written)
+     */
+    public boolean replaceSource(String passageUuid, String expected, String source) throws Exception {
+        if (StringUtils.isEmpty(source)) {
+            throw new IllegalArgumentException("The source is empty");
+        }
+        AnchoredPassage stored;
+        try {
+            stored = ownPassage(passageUuid);
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
+        Reverse.Located located = PassageAccess.locate(stored);
+        if (located == null || !StringUtils.equals(located.span().getSource(), expected)) {
+            return false;
+        }
+        Span span = located.span();
+        span.setSource(source);
+        span.write(stored.getAttributes());
+        passageService.save(stored);
+        return true;
+    }
+
+    private AnchoredPassage ownPassage(String uuid) throws Exception {
+        AnchoredPassage stored = uuid == null ? null : passageService.findForUser(uuid);
+        if (stored == null || stored.isDeleted() || !kindId.equals(stored.getPassageKind())) {
+            throw new IllegalArgumentException("The speech does not exist");
+        }
+        return stored;
+    }
+
+    /**
      * The part as a model reads it, with the passages the author edited (they are left as they are).
      */
     public Reverse.Result readOf(ChatMessage part) throws Exception {

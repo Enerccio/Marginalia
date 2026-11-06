@@ -66,6 +66,16 @@ public class TranslatorCommonLocalization extends PluginLocalizationBundle {
     public static final String THE_BOOK_IS_TRANSLATED_INTO_THE_OTHER_LANGUAGES_TOO = "The book is translated into these languages besides the one it names. Each has its own speakers. A request is for one language: a part with speech in two languages takes two requests, one after the other.";
     public static final String TRANSLATE = "Translate";
     public static final String WHICH_LANGUAGE = "Which language?";
+    public static final String EDIT_THE_SOURCE = "Edit the source";
+    public static final String PART_D_SPEECH_D = "Part %d, speech %d";
+    public static final String SEARCH_AND_REPLACE_IN_THE_SOURCES = "Search and replace in the sources";
+    public static final String SPEECH = "Speech";
+    public static final String THE_ENGLISH_SOURCE = "The English source";
+    public static final String THE_SOURCE_IS_EMPTY = "The source is empty";
+    public static final String THE_SOURCE_WAS_SAVED = "The source was saved";
+    public static final String THE_TRANSLATION = "The translation";
+    public static final String THE_TRANSLATION_COUNTS_AS_UP_TO_DATE = "Saving also takes the translation as it is now for the one this source belongs to, so the models read this source in its place.";
+    public static final String TRANSLATED_SPEECH = "Translated speech";
 
     @Override
     protected void loadKeys() {
@@ -235,5 +245,35 @@ public class TranslatorCommonLocalization extends PluginLocalizationBundle {
 
         ja(WHICH_LANGUAGE, "どの言語ですか?");
         zh(WHICH_LANGUAGE, "哪种语言?");
+
+        ja(EDIT_THE_SOURCE, "原文を編集");
+        zh(EDIT_THE_SOURCE, "编辑原文");
+
+        ja(PART_D_SPEECH_D, "パート%d、台詞%d");
+        zh(PART_D_SPEECH_D, "第%d段,第%d句对白");
+
+        ja(SEARCH_AND_REPLACE_IN_THE_SOURCES, "原文の検索と置換");
+        zh(SEARCH_AND_REPLACE_IN_THE_SOURCES, "在原文中查找和替换");
+
+        ja(SPEECH, "台詞");
+        zh(SPEECH, "对白");
+
+        ja(THE_ENGLISH_SOURCE, "英語の原文");
+        zh(THE_ENGLISH_SOURCE, "英文原文");
+
+        ja(THE_SOURCE_IS_EMPTY, "原文が空です");
+        zh(THE_SOURCE_IS_EMPTY, "原文为空");
+
+        ja(THE_SOURCE_WAS_SAVED, "原文を保存しました");
+        zh(THE_SOURCE_WAS_SAVED, "原文已保存");
+
+        ja(THE_TRANSLATION, "翻訳");
+        zh(THE_TRANSLATION, "译文");
+
+        ja(THE_TRANSLATION_COUNTS_AS_UP_TO_DATE, "保存すると、現在の翻訳がこの原文に対応するものとして扱われ、モデルは翻訳の代わりにこの原文を読みます。");
+        zh(THE_TRANSLATION_COUNTS_AS_UP_TO_DATE, "保存后,当前译文会被视为与这段原文对应,模型将读取这段原文来代替译文。");
+
+        ja(TRANSLATED_SPEECH, "翻訳された台詞");
+        zh(TRANSLATED_SPEECH, "已翻译的对白");
     }
 }

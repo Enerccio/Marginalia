@@ -2,12 +2,14 @@ package com.github.enerccio.marginalia.extensions.reallangtranslator.ui;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
+import com.github.enerccio.marginalia.extensions.reallangtranslator.ReallangKind;
 import com.github.enerccio.marginalia.extensions.reallangtranslator.service.BookReal;
 import com.github.enerccio.marginalia.extensions.translatorcommon.model.BookLanguage;
 import com.github.enerccio.marginalia.extensions.translatorcommon.model.LanguageRef;
 import com.github.enerccio.marginalia.extensions.translatorcommon.model.Speakers;
 import com.github.enerccio.marginalia.extensions.translatorcommon.ui.BookLanguagesPanel;
 import com.github.enerccio.marginalia.extensions.translatorcommon.ui.CommonStyles;
+import com.github.enerccio.marginalia.extensions.translatorcommon.ui.SourceSearchReplaceDialog;
 import com.github.enerccio.marginalia.extensions.translatorcommon.ui.SpeakersEditor;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.vaadin.flow.component.button.Button;
@@ -44,7 +46,7 @@ public class ReallangBookView extends VerticalLayout {
         refresh.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         refresh.setTooltipText(T.localized(REFRESH));
         refresh.setAriaLabel(T.localized(REFRESH));
-        HorizontalLayout header = new HorizontalLayout(title, refresh);
+        HorizontalLayout header = new HorizontalLayout(title, SourceSearchReplaceDialog.button(book, ReallangKind.ID), refresh);
         header.setWidthFull();
         header.setAlignItems(Alignment.CENTER);
         header.expand(title);

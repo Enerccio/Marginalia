@@ -213,6 +213,15 @@ register is much better that way), so give the model a generous output limit.
 A translated speech has a **dotted line**. A click on it shows the English in a popover: who said it, and *(not understood by the listener)* when the listener does not understand the
 language; a red note says that you edited the conlang text after the translation, so the English may not be what it says now.
 
+**Edit the source** (a button in the popover, in your own views only; the readers of a published book do not have it) opens a small window with the translation as the story has it and the English
+the models read. Use it when a native speaker fixed the translation by hand and the English says something else now, or when the model got the English wrong. Saving gives the speech its new
+English, takes the translation as it is now as the one the English belongs to (the red note goes away) and from then on the models read the new English in its place. The text of the part is not
+changed, and *Translate the speech* again replaces both. `conlang-edit-source` does the same from the command line.
+
+**Search and replace in the sources** (the button with the arrows at the top of the Conlang tab) opens the application's search and replace window over the English sources of the translated speeches of the
+active branch (plain text or a regular expression, with or without case; the table lists the speeches that have a match by part and speech number). Use it for a name that was spelled two ways in the English.
+Only the sources change; to change the words of the translation itself use the search and replace of the book. A speech whose source was changed after the search is left as it is and counted.
+
 ![The English behind a translated speech](../../images/plugin-conlang-story.png)
 
 ### The viewer
@@ -267,6 +276,7 @@ argument of a command; an agent may leave out the optional ones.
 | `conlang-check-lexicon` | Repeated meanings, words without a category, compounds with parts that are not in the lexicon, and the homophones (for information). No model. |
 | `conlang-status` | The language of the book and which parts are translated. |
 | `conlang-translate-part`, `conlang-translate-range`, `conlang-translate-sentence`, `conlang-translate-text`, `conlang-revert-to-source` | Translating: one part, a range (`mode` *new* or *again*), one sentence of a part, a text that is only returned, and the English back. A range asks the user for *again*; so does the English back. With the optional `language` they are about one language of the book (all of them by default, the first for a sentence or a text). |
+| `conlang-edit-source` | Sets the English source of one translated speech (`part`, `speech` as `conlang-list-passages` numbers it, `source`); the translation as it is now counts as the one it belongs to. Replaces the old source. |
 | `conlang-check-translation`, `conlang-get-source`, `conlang-list-passages` | Reading: the words of a translated speech that the lexicon does not have, the text of a part as the models read it (the English), and the translated speeches of a part with their English. |
 | `conlang-speakers`, `conlang-set-speakers-mode`, `conlang-set-speaker`, `conlang-remove-speaker` | Who speaks the language in the open book (`language` names one of the book's languages, the first by default). |
 | `conlang-design-words`, `conlang-design-rules`, `conlang-rewrite-rules`, `conlang-design-stage`, `conlang-ask-designer`, `conlang-try-sentences` | The designer. With `ask true` a command returns the proposal as a numbered list of changes and holds it; nothing is changed. |

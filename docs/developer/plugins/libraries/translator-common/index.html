@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847283536935">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847288888975">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../../resources/css/retype.css?v=4.6.0.847283536935" rel="stylesheet">
+    <link href="../../../../resources/css/retype.css?v=4.6.0.847288888975" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../../resources/js/config.js?v=4.6.0.847283536935" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../../resources/js/config.js?v=4.6.0.847288888975" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../../resources/js/lunr.js?v=4.6.0.847283536935" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../../resources/js/prism.js?v=4.6.0.847283536935" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../../resources/js/lunr.js?v=4.6.0.847288888975" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../../resources/js/prism.js?v=4.6.0.847288888975" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -203,14 +203,16 @@ where an invented language (a lexicon, new words) and a real one (a script, poli
 | | `ReaderText` | The markdown of a part for the reader: `render(mode, stored, passages, markClass)` (or a function that gives each passage the mark of its kind); the marks carry `data-translated-passage`. |
 | | `SpeechPassageKind` | The `PassageKind` a plugin registers: `new SpeechPassageKind(id, markClass)`; the click opens `SourcePopover`. |
 | `service` | `PassageAccess` | `new PassageAccess(kind)`: the translated passages of parts of **your** kind, located (`of(parts)`, `passagesOf(part)`, `locate(passage)`). It is the `Passages` source of the transformer. |
-| | `TranslationWriter` | `new TranslationWriter(kindId)`: **writes** a `TranslationPlan` into a part (`write`), one selected sentence (`writeSelection`) and takes a translation out again (`revert`), with a lock per book, a refusal of a part that changed meanwhile (`ChangedMeanwhile`) and the rule that a passage the author edited stays. Also `readOf(part)` and `overlaps(part, start, end)`. For a book with several languages: `carried(part, read, languageId)` (the speeches of the **other** languages, as `Accepted` entries at their place in the English) with `overlapsAny(carried, start, end)`, and `revert(book, part, read, languageId)` that puts back one language. |
+| | `TranslationWriter` | `new TranslationWriter(kindId)`: **writes** a `TranslationPlan` into a part (`write`), one selected sentence (`writeSelection`) and takes a translation out again (`revert`), with a lock per book, a refusal of a part that changed meanwhile (`ChangedMeanwhile`) and the rule that a passage the author edited stays. Also `readOf(part)` and `overlaps(part, start, end)`. For a book with several languages: `carried(part, read, languageId)` (the speeches of the **other** languages, as `Accepted` entries at their place in the English) with `overlapsAny(carried, start, end)`, and `revert(book, part, read, languageId)` that puts back one language. `editSource(passageUuid, source)` sets the English of one speech by hand and takes the text it has now as the one it belongs to (a speech marked as edited is turned back again); `replaceSource(passageUuid, expected, source)` writes a source a search and replace made, only if it is still `expected` (`SourceReplace` plans and applies it over the active branch). |
 | | `ModelClient` | `new ModelClient(name).choose(aiUuid, protocolUuid, book)` finds the model (yours, else the book's, else the user's defaults), `ask(model, book, system, user)` waits for the whole answer (reasoning chunks are left out). `ModelSelection` is the AI and protocol. |
 | | `RangeLoop`, `RangeRuns` | An action over a range of parts, one at a time: `RangeLoop.select` / `run` (pure, with a stop and a summary), `RangeRuns.start` on a worker thread of the session, telling the page the progress. The work is a lambda that gets the language to work on (null: all of the book's); a `RangePart` knows the languages it is translated in. |
 | | `PartRuns&lt;R&gt;`, `AsyncRuns` | One job on a worker thread with the user's request scope, the result handed to the page. One run per part. |
 | | `TranslatedPassages` | `TranslatedPassages.of(passages, kinds, partId)`: the passages of a part of **every** registered kind that carry a `Span`, whichever plugin made them; `markClass(kinds, passage, fallback)`. For the viewer. |
 | | `PluginLog` | The extension's logger for the code that has none (`PluginLog.set(log)` in `onExtensionLoad`). **Per copy**: set it in every plugin. |
-| `ui` | `SourcePopover` | The popover over a translated speech: the source, who said it, &quot;not understood&quot;, &quot;edited after the translation&quot;. |
+| `ui` | `SourcePopover` | The popover over a translated speech: the source, who said it, &quot;not understood&quot;, &quot;edited after the translation&quot;, and (only where `SpeechPassageKind.onClick` opens it, the author's views, not the viewer) the *Edit the source* button. |
 | | `ReaderView` | `ReaderView.apply(view, part, mode, passages, markClass)` in a decorator of `Viewer.createPart`; with a function in place of the class for passages of several kinds. A part is changed once. |
+| | `SourceEditDialog` | The window the popover's *Edit the source* button opens: the translation (read only) and the English source in a text area; saving calls `TranslationWriter.editSource`. |
+| | `SourceSearchReplaceDialog` | A subclass of the application's `SearchReplaceDialog` over the sources of the translated speeches of the active branch (`SourceReplace`); `SourceSearchReplaceDialog.button(book, kindId)` is the button a plugin puts into its tab of the story. |
 | | `RangeDialog` | The window of the actions on a range of parts (translate the new ones, translate again, put the source back), with a progress and a stop: `new RangeDialog(book, languages, loader, rangeRuns, reload)`; with more than one `LanguageRef` it has a field for the language. |
 | | `LanguageChoiceDialog`, `BookLanguagesPanel` | `LanguageChoiceDialog.ask(languages, withAll, chosen)` asks which language of the book an action is for (it just runs with one); `BookLanguagesPanel` adds the other languages of a book from the plugin's library and takes them away. |
 | | `SpeakersEditor`, `ListEditor&lt;T&gt;`, `EditDialog` | The editor of the speakers; the list editor it is built on (a grid with add, edit, delete, move) and the small dialog with a validation. |
@@ -304,7 +306,7 @@ where an invented language (a lexicon, new words) and a real one (a script, poli
 <tr>
 <td> </td>
 <td><code translate="no" v-pre>TranslationWriter</code></td>
-<td><code translate="no" v-pre>new TranslationWriter(kindId)</code>: <strong>writes</strong> a <code translate="no" v-pre>TranslationPlan</code> into a part (<code translate="no" v-pre>write</code>), one selected sentence (<code translate="no" v-pre>writeSelection</code>) and takes a translation out again (<code translate="no" v-pre>revert</code>), with a lock per book, a refusal of a part that changed meanwhile (<code translate="no" v-pre>ChangedMeanwhile</code>) and the rule that a passage the author edited stays. Also <code translate="no" v-pre>readOf(part)</code> and <code translate="no" v-pre>overlaps(part, start, end)</code>. For a book with several languages: <code translate="no" v-pre>carried(part, read, languageId)</code> (the speeches of the <strong>other</strong> languages, as <code translate="no" v-pre>Accepted</code> entries at their place in the English) with <code translate="no" v-pre>overlapsAny(carried, start, end)</code>, and <code translate="no" v-pre>revert(book, part, read, languageId)</code> that puts back one language.</td>
+<td><code translate="no" v-pre>new TranslationWriter(kindId)</code>: <strong>writes</strong> a <code translate="no" v-pre>TranslationPlan</code> into a part (<code translate="no" v-pre>write</code>), one selected sentence (<code translate="no" v-pre>writeSelection</code>) and takes a translation out again (<code translate="no" v-pre>revert</code>), with a lock per book, a refusal of a part that changed meanwhile (<code translate="no" v-pre>ChangedMeanwhile</code>) and the rule that a passage the author edited stays. Also <code translate="no" v-pre>readOf(part)</code> and <code translate="no" v-pre>overlaps(part, start, end)</code>. For a book with several languages: <code translate="no" v-pre>carried(part, read, languageId)</code> (the speeches of the <strong>other</strong> languages, as <code translate="no" v-pre>Accepted</code> entries at their place in the English) with <code translate="no" v-pre>overlapsAny(carried, start, end)</code>, and <code translate="no" v-pre>revert(book, part, read, languageId)</code> that puts back one language. <code translate="no" v-pre>editSource(passageUuid, source)</code> sets the English of one speech by hand and takes the text it has now as the one it belongs to (a speech marked as edited is turned back again); <code translate="no" v-pre>replaceSource(passageUuid, expected, source)</code> writes a source a search and replace made, only if it is still <code translate="no" v-pre>expected</code> (<code translate="no" v-pre>SourceReplace</code> plans and applies it over the active branch).</td>
 </tr>
 <tr>
 <td> </td>
@@ -334,12 +336,22 @@ where an invented language (a lexicon, new words) and a real one (a script, poli
 <tr>
 <td><code translate="no" v-pre>ui</code></td>
 <td><code translate="no" v-pre>SourcePopover</code></td>
-<td>The popover over a translated speech: the source, who said it, &quot;not understood&quot;, &quot;edited after the translation&quot;.</td>
+<td>The popover over a translated speech: the source, who said it, &quot;not understood&quot;, &quot;edited after the translation&quot;, and (only where <code translate="no" v-pre>SpeechPassageKind.onClick</code> opens it, the author&#x27;s views, not the viewer) the <em>Edit the source</em> button.</td>
 </tr>
 <tr>
 <td> </td>
 <td><code translate="no" v-pre>ReaderView</code></td>
 <td><code translate="no" v-pre>ReaderView.apply(view, part, mode, passages, markClass)</code> in a decorator of <code translate="no" v-pre>Viewer.createPart</code>; with a function in place of the class for passages of several kinds. A part is changed once.</td>
+</tr>
+<tr>
+<td> </td>
+<td><code translate="no" v-pre>SourceEditDialog</code></td>
+<td>The window the popover&#x27;s <em>Edit the source</em> button opens: the translation (read only) and the English source in a text area; saving calls <code translate="no" v-pre>TranslationWriter.editSource</code>.</td>
+</tr>
+<tr>
+<td> </td>
+<td><code translate="no" v-pre>SourceSearchReplaceDialog</code></td>
+<td>A subclass of the application&#x27;s <code translate="no" v-pre>SearchReplaceDialog</code> over the sources of the translated speeches of the active branch (<code translate="no" v-pre>SourceReplace</code>); <code translate="no" v-pre>SourceSearchReplaceDialog.button(book, kindId)</code> is the button a plugin puts into its tab of the story.</td>
 </tr>
 <tr>
 <td> </td>
@@ -486,7 +498,7 @@ library&#x27;s test dependencies include the servlet API for that) and <code tra
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (abc080165).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (cf0e9ebbc).</p></div>
             </footer>
         </div>
     </div>

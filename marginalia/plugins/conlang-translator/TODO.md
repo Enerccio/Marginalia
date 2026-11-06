@@ -1230,7 +1230,7 @@ reads it* accessor; the commands are thin wrappers added at step 13, with the te
     through `HeldProposals`, and the three commands for what a run left). `ConlangCommandSupport` (a `ManuscriptReadSupport`) finds a language by name or id, a section by title or number, a category by name or number, a word by its form (the id only for homophones). A word an agent adds or
     changes is the model's and *new*, one the author types at the command bar is the author's; a locked word is not changed or deleted. `CommandsTest` registers every suite in a plain `CommandServiceImpl` (the core checks the annotations), checks the conventions (prefix, texts, macros read only,
     the commands that ask or call a model are `async`) and has the table **operation of a service -> its command** that fails for a new public method of a service that is neither a command nor listed as ui-only. **Left out:** `conlang-replace-word` (the *Replace in the story* of step 11 does not exist
-    as a service), `ask true` for the translating commands (a translation is undone by `conlang-revert-to-source` and the history of the part), `conlang-edit-source`, `conlang-word-alternatives` / `conlang-word-senses` (the word window's buttons are the designer's `conlang-design-words` and `ask`), and a ladder of
+    as a service), `ask true` for the translating commands (a translation is undone by `conlang-revert-to-source` and the history of the part), `conlang-word-alternatives` / `conlang-word-senses` (the word window's buttons are the designer's `conlang-design-words` and `ask`), and a ladder of
     overloads: an optional parameter is `optional = true` in one form, so an agent may leave it out and the command bar needs every argument.
 14. **Agent runs** (done 2026-11-05 in a **simpler way than designed**, see *Agent runs* above and *Step 13 / 14 check*): **no hook of the core was added.** The design (the lazy duplicate, the lock, `ExtensionHasAgentRuns`-style events, an extra section in the merge) is replaced by what the core
     already does for the data of a plugin in a book: `LanguageAccess` is the one place that reads and writes a language; inside an agent run (`Manuscript.isAgentic`) the first change of a language puts a copy of it and the version it came from into the attributes of the **working copy**
@@ -1295,6 +1295,8 @@ An epic fantasy has a tongue for the elves, another for the dwarves, a third for
 - **Not tried on the real model**, and the footnotes of an export do not name the language yet (the popover and the footnote say who spoke, not in which language).
 
 ## Later / ideas
+
+- **Edit the source (done 2026-11-06, `translator-common`):** *Edit the source* in the popover of the author's views and `conlang-edit-source` / `reallang-edit-source` (`TranslationWriter.editSource`: the new English, and the translation as it is counts as the one it belongs to); a *Search and replace in the sources* button in the Conlang / Real language tab (`SourceSearchReplaceDialog`, `SourceReplace`) over the sources of the active branch. Not tried in the real app. Not built: the model translating an edited speech back to English (`editSource` takes the English from the author or the agent), a retranslate that keeps a speech whose source the author set.
 
 - **A custom script (a font per language).** The text stays romanized (the stored text, the reverse, the search and the model never
   see the script); the font only changes how the letters are drawn, as most conlang fonts map the Latin letters to glyphs.

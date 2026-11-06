@@ -107,4 +107,21 @@ class ReverseTest {
         assertEquals("", Reverse.sourceText(null, null));
         assertEquals("", Reverse.sourceText(null, List.of()));
     }
+
+    @Test
+    void anEditedSpeechWhoseSourceWasSetIsTurnedBackAgain() {
+        // a native speaker fixed the translation; "Edit the source" gave the new English and took the text as it is now as the one it belongs to
+        String edited = STORED.replace("Da ja-se vek,", "Da ja-se vek-is,");
+        Located made = passage(edited, "Da ja-se vek-is,", "I see the enemy,");
+        assertTrue(new Span("lang", "I see the enemy,", "Da ja-se vek,").isEdited("Da ja-se vek-is,"));
+        Span span = new Span("lang", "I see the enemy,", "Da ja-se vek,");
+        assertEquals("Mara looked up. \"Da ja-se vek-is,\" she said, and \"Frag drak?\" came from the dark.",
+                Reverse.sourceText(edited, List.of(new Located(made.start(), made.end(), span))));
+
+        span.setSource("I can see the enemy,");
+        span.textIs("Da ja-se vek-is,");
+
+        assertEquals("Mara looked up. \"I can see the enemy,\" she said, and \"Frag drak?\" came from the dark.",
+                Reverse.sourceText(edited, List.of(new Located(made.start(), made.end(), span))));
+    }
 }

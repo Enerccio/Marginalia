@@ -142,6 +142,13 @@ left as it is** when the part is translated again or put back to English, becaus
 A translated speech has a **dotted line**; a click on it shows the English in a popover: the reading (when the language asks for it), who said it and whether the listener does not understand it, and a red
 note when you edited the translation after it was made.
 
+**Edit the source** (a button in the popover, in your own views only) opens a window with the translation as the story has it and the English the models read. Use it when a native speaker corrected the
+Japanese by hand and the English says something else now, or when the model got the English wrong. Saving gives the speech its new English, takes the translation as it is now as the one the English belongs
+to (the red note goes away) and the models read the new English in its place. The text of the part is not changed. `reallang-edit-source` does the same from the command line.
+
+**Search and replace in the sources** (the button with the arrows at the top of the *Real language* tab) opens the application's search and replace window over the English sources of the translated speeches
+of the active branch (plain text or a regular expression). Only the sources change; the words of the translation itself are replaced with the search and replace of the book.
+
 ![A translated speech with the English in a popover](../../images/plugin-reallang-story.png)
 
 The [published book](../books/publishing.md) shows it the way the book asks, with **Readers of the published book see**: *the translation, the English on click* (the default), *the translation
@@ -173,6 +180,7 @@ its position on the active branch (the first part is 1).
 | `reallang-status` | The language of the book and which parts are translated. |
 | `reallang-translate-part`, `reallang-translate-range`, `reallang-translate-sentence`, `reallang-translate-text`, `reallang-revert-to-source` | Translating: one part, a range (`mode` *new* or *again*), one sentence of a part, a text that is only returned, and the English back. With the optional `language` they are about one language of the book (all of them by default, the first for a sentence or a text). |
 | `reallang-glossary`, `reallang-glossary-set`, `reallang-glossary-remove`, `reallang-glossary-accept`, `reallang-glossary-switch`, `reallang-glossary-move` | The [glossary](#the-glossary-of-names-and-special-words) of the open book in a language: read the merged entries with their level, add or change an entry at a `level` (`language`, `folder` with the `folder` name, `book`), remove one (asks), accept the proposals, switch a word of a higher level off or on for the book, move an entry of the book up. |
+| `reallang-edit-source` | Sets the English source of one translated speech (`part`, `speech` as `reallang-list-passages` numbers it, `source`); the translation as it is now counts as the one it belongs to. Replaces the old source. |
 | `reallang-get-source`, `reallang-list-passages` | Reading: the text of a part as the models read it (the English), and the translated speeches of a part with their reading and English. |
 | `reallang-speakers`, `reallang-set-speakers-mode`, `reallang-set-speaker`, `reallang-remove-speaker` | Who speaks the language in the open book (`language` names one of the book's languages, the first by default). |
 

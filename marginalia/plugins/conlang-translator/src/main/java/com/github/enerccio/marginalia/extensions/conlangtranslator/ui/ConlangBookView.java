@@ -8,10 +8,12 @@ import com.github.enerccio.marginalia.extensions.conlangtranslator.diff.Language
 import com.github.enerccio.marginalia.extensions.conlangtranslator.model.Language;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.model.RunLanguage;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.service.BookConlang;
+import com.github.enerccio.marginalia.extensions.conlangtranslator.text.ConlangKind;
 import com.github.enerccio.marginalia.extensions.translatorcommon.model.BookLanguage;
 import com.github.enerccio.marginalia.extensions.translatorcommon.model.LanguageRef;
 import com.github.enerccio.marginalia.extensions.translatorcommon.model.Speakers;
 import com.github.enerccio.marginalia.extensions.translatorcommon.ui.BookLanguagesPanel;
+import com.github.enerccio.marginalia.extensions.translatorcommon.ui.SourceSearchReplaceDialog;
 import com.github.enerccio.marginalia.extensions.translatorcommon.ui.SpeakersEditor;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
@@ -71,7 +73,7 @@ public class ConlangBookView extends VerticalLayout {
                 refresh();
             }
         });
-        HorizontalLayout header = new HorizontalLayout(title, picker, refresh);
+        HorizontalLayout header = new HorizontalLayout(title, picker, SourceSearchReplaceDialog.button(book, ConlangKind.ID), refresh);
         header.setWidthFull();
         header.setAlignItems(Alignment.CENTER);
         header.expand(title);

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847283536935">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847288888975">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.847283536935" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.847288888975" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847283536935" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847288888975" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847283536935" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847288888975" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -567,6 +567,13 @@ register is much better that way), so give the model a generous output limit.</p
 <h3 id="in-the-story">In the story</h3>
 <p>A translated speech has a <strong>dotted line</strong>. A click on it shows the English in a popover: who said it, and <em>(not understood by the listener)</em> when the listener does not understand the
 language; a red note says that you edited the conlang text after the translation, so the English may not be what it says now.</p>
+<p><strong>Edit the source</strong> (a button in the popover, in your own views only; the readers of a published book do not have it) opens a small window with the translation as the story has it and the English
+the models read. Use it when a native speaker fixed the translation by hand and the English says something else now, or when the model got the English wrong. Saving gives the speech its new
+English, takes the translation as it is now as the one the English belongs to (the red note goes away) and from then on the models read the new English in its place. The text of the part is not
+changed, and <em>Translate the speech</em> again replaces both. <code translate="no" v-pre>conlang-edit-source</code> does the same from the command line.</p>
+<p><strong>Search and replace in the sources</strong> (the button with the arrows at the top of the Conlang tab) opens the application&#x27;s search and replace window over the English sources of the translated speeches of the
+active branch (plain text or a regular expression, with or without case; the table lists the speeches that have a match by part and speech number). Use it for a name that was spelled two ways in the English.
+Only the sources change; to change the words of the translation itself use the search and replace of the book. A speech whose source was changed after the search is left as it is and counted.</p>
 <figure class="content-center">
     <img src="../../../images/plugin-conlang-story.png" alt="The English behind a translated speech" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1000" height="330" />
     <figcaption class="caption">The English behind a translated speech</figcaption>
@@ -671,6 +678,7 @@ argument of a command; an agent may leave out the optional ones.</p>
 | `conlang-check-lexicon` | Repeated meanings, words without a category, compounds with parts that are not in the lexicon, and the homophones (for information). No model. |
 | `conlang-status` | The language of the book and which parts are translated. |
 | `conlang-translate-part`, `conlang-translate-range`, `conlang-translate-sentence`, `conlang-translate-text`, `conlang-revert-to-source` | Translating: one part, a range (`mode` *new* or *again*), one sentence of a part, a text that is only returned, and the English back. A range asks the user for *again*; so does the English back. With the optional `language` they are about one language of the book (all of them by default, the first for a sentence or a text). |
+| `conlang-edit-source` | Sets the English source of one translated speech (`part`, `speech` as `conlang-list-passages` numbers it, `source`); the translation as it is now counts as the one it belongs to. Replaces the old source. |
 | `conlang-check-translation`, `conlang-get-source`, `conlang-list-passages` | Reading: the words of a translated speech that the lexicon does not have, the text of a part as the models read it (the English), and the translated speeches of a part with their English. |
 | `conlang-speakers`, `conlang-set-speakers-mode`, `conlang-set-speaker`, `conlang-remove-speaker` | Who speaks the language in the open book (`language` names one of the book's languages, the first by default). |
 | `conlang-design-words`, `conlang-design-rules`, `conlang-rewrite-rules`, `conlang-design-stage`, `conlang-ask-designer`, `conlang-try-sentences` | The designer. With `ask true` a command returns the proposal as a numbered list of changes and holds it; nothing is changed. |
@@ -734,6 +742,10 @@ argument of a command; an agent may leave out the optional ones.</p>
 <tr>
 <td><code translate="no" v-pre>conlang-translate-part</code>, <code translate="no" v-pre>conlang-translate-range</code>, <code translate="no" v-pre>conlang-translate-sentence</code>, <code translate="no" v-pre>conlang-translate-text</code>, <code translate="no" v-pre>conlang-revert-to-source</code></td>
 <td>Translating: one part, a range (<code translate="no" v-pre>mode</code> <em>new</em> or <em>again</em>), one sentence of a part, a text that is only returned, and the English back. A range asks the user for <em>again</em>; so does the English back. With the optional <code translate="no" v-pre>language</code> they are about one language of the book (all of them by default, the first for a sentence or a text).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>conlang-edit-source</code></td>
+<td>Sets the English source of one translated speech (<code translate="no" v-pre>part</code>, <code translate="no" v-pre>speech</code> as <code translate="no" v-pre>conlang-list-passages</code> numbers it, <code translate="no" v-pre>source</code>); the translation as it is now counts as the one it belongs to. Replaces the old source.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>conlang-check-translation</code>, <code translate="no" v-pre>conlang-get-source</code>, <code translate="no" v-pre>conlang-list-passages</code></td>
@@ -835,7 +847,7 @@ compounds and affixes) and reports the rest; it does not check your grammar. Try
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (abc080165).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (cf0e9ebbc).</p></div>
             </footer>
         </div>
     </div>

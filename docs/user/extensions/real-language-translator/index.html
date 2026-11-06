@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847283536935">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847288888975">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.847283536935" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.847288888975" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847283536935" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847288888975" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847283536935" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847288888975" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -436,6 +436,11 @@ left as it is</strong> when the part is translated again or put back to English,
 <h2 id="what-the-reader-sees">What the reader sees</h2>
 <p>A translated speech has a <strong>dotted line</strong>; a click on it shows the English in a popover: the reading (when the language asks for it), who said it and whether the listener does not understand it, and a red
 note when you edited the translation after it was made.</p>
+<p><strong>Edit the source</strong> (a button in the popover, in your own views only) opens a window with the translation as the story has it and the English the models read. Use it when a native speaker corrected the
+Japanese by hand and the English says something else now, or when the model got the English wrong. Saving gives the speech its new English, takes the translation as it is now as the one the English belongs
+to (the red note goes away) and the models read the new English in its place. The text of the part is not changed. <code translate="no" v-pre>reallang-edit-source</code> does the same from the command line.</p>
+<p><strong>Search and replace in the sources</strong> (the button with the arrows at the top of the <em>Real language</em> tab) opens the application&#x27;s search and replace window over the English sources of the translated speeches
+of the active branch (plain text or a regular expression). Only the sources change; the words of the translation itself are replaced with the search and replace of the book.</p>
 <figure class="content-center">
     <img src="../../../images/plugin-reallang-story.png" alt="A translated speech with the English in a popover" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1000" height="330" />
     <figcaption class="caption">A translated speech with the English in a popover</figcaption>
@@ -464,6 +469,7 @@ its position on the active branch (the first part is 1).</p>
 | `reallang-status` | The language of the book and which parts are translated. |
 | `reallang-translate-part`, `reallang-translate-range`, `reallang-translate-sentence`, `reallang-translate-text`, `reallang-revert-to-source` | Translating: one part, a range (`mode` *new* or *again*), one sentence of a part, a text that is only returned, and the English back. With the optional `language` they are about one language of the book (all of them by default, the first for a sentence or a text). |
 | `reallang-glossary`, `reallang-glossary-set`, `reallang-glossary-remove`, `reallang-glossary-accept`, `reallang-glossary-switch`, `reallang-glossary-move` | The [glossary](#the-glossary-of-names-and-special-words) of the open book in a language: read the merged entries with their level, add or change an entry at a `level` (`language`, `folder` with the `folder` name, `book`), remove one (asks), accept the proposals, switch a word of a higher level off or on for the book, move an entry of the book up. |
+| `reallang-edit-source` | Sets the English source of one translated speech (`part`, `speech` as `reallang-list-passages` numbers it, `source`); the translation as it is now counts as the one it belongs to. Replaces the old source. |
 | `reallang-get-source`, `reallang-list-passages` | Reading: the text of a part as the models read it (the English), and the translated speeches of a part with their reading and English. |
 | `reallang-speakers`, `reallang-set-speakers-mode`, `reallang-set-speaker`, `reallang-remove-speaker` | Who speaks the language in the open book (`language` names one of the book's languages, the first by default). |">
 <div class="table-wrapper scrollbar overflow-hidden">
@@ -498,6 +504,10 @@ its position on the active branch (the first part is 1).</p>
 <tr>
 <td><code translate="no" v-pre>reallang-glossary</code>, <code translate="no" v-pre>reallang-glossary-set</code>, <code translate="no" v-pre>reallang-glossary-remove</code>, <code translate="no" v-pre>reallang-glossary-accept</code>, <code translate="no" v-pre>reallang-glossary-switch</code>, <code translate="no" v-pre>reallang-glossary-move</code></td>
 <td>The <doc-anchor-trigger to="#the-glossary-of-names-and-special-words">glossary</doc-anchor-trigger> of the open book in a language: read the merged entries with their level, add or change an entry at a <code translate="no" v-pre>level</code> (<code translate="no" v-pre>language</code>, <code translate="no" v-pre>folder</code> with the <code translate="no" v-pre>folder</code> name, <code translate="no" v-pre>book</code>), remove one (asks), accept the proposals, switch a word of a higher level off or on for the book, move an entry of the book up.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>reallang-edit-source</code></td>
+<td>Sets the English source of one translated speech (<code translate="no" v-pre>part</code>, <code translate="no" v-pre>speech</code> as <code translate="no" v-pre>reallang-list-passages</code> numbers it, <code translate="no" v-pre>source</code>); the translation as it is now counts as the one it belongs to. Replaces the old source.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>reallang-get-source</code>, <code translate="no" v-pre>reallang-list-passages</code></td>
@@ -572,7 +582,7 @@ listed; the text of the part decides inside a request.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (abc080165).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (cf0e9ebbc).</p></div>
             </footer>
         </div>
     </div>
