@@ -24,7 +24,7 @@ import java.util.TreeSet;
 
 /**
  * PDF with the embedded Liberation fonts, so the text is not limited to Latin-1, and a bundled Japanese font (a subset of Noto Sans JP, see
- * {@code src/main/resources/fonts/README.md}) for the characters they lack: a character is drawn in the first font that has it. Footnotes are set
+ * {@code src/main/resources-raw/fonts/README.md}) for the characters they lack: a character is drawn in the first font that has it. Footnotes are set
  * at the bottom of the page of their mark, in a smaller type under a short rule: the pages are laid out again until the space kept for the notes
  * of each page is the space they need (the same loop settles the page numbers of the table of contents).
  */
