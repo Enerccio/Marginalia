@@ -57,8 +57,8 @@ An `Edit` is `(start, end, replacement, note, markAt)`; build it with `Edit.repl
 | `note` | The text of a footnote, `null` for none. The registry puts it on one line (a line break would end the definition). |
 | `markAt` | Where the footnote mark goes in the stored text, `end` or later: the text between `end` and `markAt` is kept and the mark follows it. It puts the mark behind the closing quotation mark of a speech instead of into it. Ignored without a note. |
 
-The footnotes are Markdown footnotes (`[^3]` in the text, `[^3]: the note` after the part): every exporter parses them (HTML and EPUB link them, plain text,
-Word and PDF write them as endnotes after the part, see [Footnotes of the export](../../user/books/export.md#footnotes)).
+The footnotes are Markdown footnotes (`[^3]` in the text, `[^3]: the note` after the part): every exporter parses them (HTML and EPUB link them, plain text
+writes them as endnotes after the part, Word and PDF as footnotes at the foot of the page, see [Footnotes of the export](../../user/books/export.md#footnotes)).
 
 ## What the registry does
 

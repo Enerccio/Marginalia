@@ -265,7 +265,7 @@ When the book has translated speech, the [export](../books/export.md) dialog has
 | **The conlang, the English in footnotes** | Every translated speech gets a footnote with the English (and the speaker). |
 | **The English, the conlang in footnotes** | The other way round. |
 
-The footnotes are the [footnotes of the export](../books/export.md#footnotes): linked notes in HTML and EPUB, endnotes after each part in plain text, Word and PDF. A speech you edited after it
+The footnotes are the [footnotes of the export](../books/export.md#footnotes): linked notes in HTML and EPUB, endnotes after each part in plain text, real footnotes at the foot of the page in Word and PDF. A speech you edited after it
 was translated stays as it is and has no footnote. The stored text of the book is never changed by an export.
 
 ## Commands
@@ -322,4 +322,3 @@ The run reads the library until it first changes a language, and its own copy af
 - **An agent's language changes wait in the book.** They are taken into the library by you, after the run is applied; a language is not locked while a run works.
 - **Commands do not replace a word in the story** and a retranslation cannot keep the translations whose English did not change (every part of the range is asked again).
 - **A phone** has the panel, the editor, the review and the wizard, but the lexicon grid scrolls sideways; the tap on a speech in the viewer works; the story side (the menu of a part, the range window, the click in the story) was not tried there.
-- **Footnotes of Word and PDF** are endnotes after the part, not notes at the foot of the page.
