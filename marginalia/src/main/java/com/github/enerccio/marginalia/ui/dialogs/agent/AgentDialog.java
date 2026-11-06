@@ -16,6 +16,8 @@ import com.github.enerccio.marginalia.loc.Language;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.widgets.*;
+import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
+import com.github.enerccio.marginalia.ui.widgets.DialogShortcuts;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
@@ -154,6 +156,9 @@ public class AgentDialog extends Dialog implements LLMInteract {
         footer.setWrap(true);
         footer.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
         getFooter().add(footer);
+        DialogShortcuts.submitWith(saveButton, nameField, maxRoundsField, maxSubagentsField, tokenBudgetField, contextLimitField,
+                autoCompactField, systemPromptField, compactionPromptField, instructionsField);
+        DialogFocus.onOpen(this, nameField);
 
         load();
         showSize();

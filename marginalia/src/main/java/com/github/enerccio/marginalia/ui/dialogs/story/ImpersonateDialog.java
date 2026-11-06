@@ -8,6 +8,8 @@ import com.github.enerccio.marginalia.domain.service.ImpersonateService;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
+import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
+import com.github.enerccio.marginalia.ui.widgets.DialogShortcuts;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.ModalityMode;
@@ -132,6 +134,8 @@ public class ImpersonateDialog extends Dialog {
         use.addClickListener(_ -> use());
         Button close = new Button(loc.getValue(L.LABEL_CLOSE), _ -> close());
         getFooter().add(close, use);
+        DialogShortcuts.submitWith(start, guidance);
+        DialogFocus.onOpen(this, guidance);
 
         addOpenedChangeListener(e -> {
             if (!e.isOpened() && generating && cancellationToken != null) {

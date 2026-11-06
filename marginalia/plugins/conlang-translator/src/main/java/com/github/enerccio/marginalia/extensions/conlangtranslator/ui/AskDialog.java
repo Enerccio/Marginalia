@@ -6,6 +6,8 @@ import com.github.enerccio.marginalia.extensions.conlangtranslator.designer.Desi
 import com.github.enerccio.marginalia.extensions.conlangtranslator.model.Language;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.service.DesignerService;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.store.ConlangStore;
+import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
+import com.github.enerccio.marginalia.ui.widgets.DialogShortcuts;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.dialog.Dialog;
@@ -60,6 +62,8 @@ public class AskDialog extends Dialog {
         input.setPlaceholder(T.localized(ASK_ABOUT_THE_LANGUAGE));
         send.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         send.addClickListener(_ -> ask());
+        DialogShortcuts.submitWith(send, input);
+        DialogFocus.onOpen(this, input);
         HorizontalLayout bar = new HorizontalLayout(input, send);
         bar.setWidthFull();
         bar.setAlignItems(FlexComponent.Alignment.END);

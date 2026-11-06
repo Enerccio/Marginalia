@@ -292,6 +292,8 @@ public class AnnotateDialog extends Dialog {
         add.addClickListener(_ -> accept());
         Button close = new Button(loc.getValue(L.LABEL_CLOSE), _ -> close());
         getFooter().add(close, add);
+        DialogShortcuts.submitWith(run, instructions);
+        DialogFocus.onOpen(this, instructions);
 
         addOpenedChangeListener(e -> {
             if (!e.isOpened() && running && cancellationToken != null) {

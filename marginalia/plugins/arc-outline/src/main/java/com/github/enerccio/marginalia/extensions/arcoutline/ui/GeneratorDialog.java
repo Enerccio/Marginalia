@@ -120,6 +120,14 @@ public abstract class GeneratorDialog extends Dialog {
     /** The inputs under the prompt, null for none. */
     protected abstract Component createInputs();
 
+    /**
+     * Makes Ctrl+Enter (Enter in a single line field) in the fields of the subclass press Generate, as in the prompt. Called
+     * from {@link #createInputs()}, where the button exists already.
+     */
+    protected final void generateOnShortcut(Component... fields) {
+        DialogShortcuts.submitWith(generateButton, fields);
+    }
+
     /** Enables or disables the inputs of the subclass. */
     protected abstract void setInputsEnabled(boolean enabled);
 
@@ -226,6 +234,8 @@ public abstract class GeneratorDialog extends Dialog {
                 generate();
             }
         });
+
+        generateOnShortcut(promptArea);
 
         HorizontalLayout buttons = supportsTools() ? new HorizontalLayout(toolsButton, generateButton) : new HorizontalLayout(generateButton);
         buttons.setWidthFull();

@@ -8,6 +8,7 @@ import com.github.enerccio.marginalia.extensions.betareaders.service.PersonaIcon
 import com.github.enerccio.marginalia.extensions.betareaders.service.PersonaWriter;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
 import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
+import com.github.enerccio.marginalia.ui.widgets.DialogShortcuts;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
@@ -105,6 +106,8 @@ public class PersonaDialog extends Dialog {
         Button save = new Button(T.localized(SAVE), _ -> save());
         save.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         getFooter().add(cancel, save);
+        DialogShortcuts.submitWith(save, name, description);
+        DialogShortcuts.submitWith(write, brief);
     }
 
     /**

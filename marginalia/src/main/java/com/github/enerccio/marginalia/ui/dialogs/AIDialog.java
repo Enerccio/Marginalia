@@ -19,6 +19,7 @@ import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
+import com.github.enerccio.marginalia.ui.widgets.DialogShortcuts;
 import com.github.enerccio.marginalia.ui.widgets.ResizableTextArea;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.google.gson.*;
@@ -215,6 +216,8 @@ public class AIDialog extends Dialog implements LLMInteract {
     }
 
     /**
+        DialogShortcuts.submitWith(saveButton, nameField, maxContextField, maxResponseField, maxConcurrentField, jailbreakField,
+                urlField, apiKeyField, additionalParametersField, requestTimeoutField, maxRetriesField);
      * The required fields that are empty, as any form, and what the dialog checks across fields when it saves: the
      * numbers have to be positive and the response smaller than the context, the additional parameters a JSON object.
      */

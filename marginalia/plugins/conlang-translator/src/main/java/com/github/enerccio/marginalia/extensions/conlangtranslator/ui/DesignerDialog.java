@@ -9,6 +9,8 @@ import com.github.enerccio.marginalia.extensions.conlangtranslator.model.RuleSec
 import com.github.enerccio.marginalia.extensions.conlangtranslator.service.DesignerService;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.store.ConlangStore;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.translate.TranslationPrompt.Request;
+import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
+import com.github.enerccio.marginalia.ui.widgets.DialogShortcuts;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -114,6 +116,10 @@ public class DesignerDialog extends Dialog {
         Button run = new Button(action == Action.REVIEW ? T.localized(REVIEW_THE_LANGUAGE) : T.localized(PROPOSE), _ -> run());
         run.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         getFooter().add(cancel, run);
+        if (action != Action.REVIEW) {
+            DialogShortcuts.submitWith(run, action == Action.WORDS ? count : null, note);
+            DialogFocus.onOpen(this, note);
+        }
     }
 
     private void run() {

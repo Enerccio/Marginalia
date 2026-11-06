@@ -9,6 +9,7 @@ import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
+import com.github.enerccio.marginalia.ui.widgets.DialogShortcuts;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.ModalityMode;
@@ -127,6 +128,8 @@ public class ProtocolDialog extends Dialog implements LLMInteract {
 
         footerLayout.add(cancelButton, saveButton);
         getFooter().add(footerLayout);
+        DialogShortcuts.submitWith(saveButton, nameField, maxTokensField, replyTokensField, temperatureField, topPField,
+                frequencyPenaltyField, presencePenaltyField);
     }
 
     @PublicAPI(from = "1.1.0",

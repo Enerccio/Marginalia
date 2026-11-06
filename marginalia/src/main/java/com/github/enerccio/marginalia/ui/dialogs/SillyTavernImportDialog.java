@@ -2,6 +2,8 @@ package com.github.enerccio.marginalia.ui.dialogs;
 
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
+import com.github.enerccio.marginalia.ui.widgets.DialogShortcuts;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.utils.SillyTavernChats;
 import com.github.enerccio.marginalia.utils.UIUtils;
@@ -110,6 +112,8 @@ public class SillyTavernImportDialog extends Dialog {
         importButton = new Button(loc.getValue(L.LABEL_IMPORT), event -> importChats());
         importButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         getFooter().add(new Button(loc.getValue(L.LABEL_CANCEL), event -> close()), importButton);
+        DialogShortcuts.submitWith(importButton, nameField);
+        DialogFocus.onOpen(this, nameField);
         refreshStatus();
     }
 

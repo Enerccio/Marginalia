@@ -4,6 +4,7 @@ import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.extensions.arcoutline.model.OutlineNode;
 import com.github.enerccio.marginalia.extensions.arcoutline.model.OutlineState;
 import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
+import com.github.enerccio.marginalia.ui.widgets.DialogShortcuts;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -104,6 +105,7 @@ public class OutlineNodeDialog extends Dialog {
         save.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         Button cancel = new Button(T.localized(CANCEL), _ -> close());
         getFooter().add(cancel, save);
+        DialogShortcuts.submitWith(save, title, description, note, part);
     }
 
     private void goToPart() {

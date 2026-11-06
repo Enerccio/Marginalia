@@ -8,6 +8,7 @@ import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
+import com.github.enerccio.marginalia.ui.widgets.DialogShortcuts;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.ModalityMode;
@@ -162,6 +163,10 @@ public class UserDialog extends Dialog implements LLMInteract {
 
         buttons.add(saveButton);
         getFooter().add(buttons);
+        DialogShortcuts.submitWith(saveButton, loginField, fullNameField, passwordField, passwordRepeatField);
+        if (currentPassword != null) {
+            DialogShortcuts.submitWith(saveButton, currentPassword);
+        }
     }
 
     @PublicAPI(from = "1.1.0",

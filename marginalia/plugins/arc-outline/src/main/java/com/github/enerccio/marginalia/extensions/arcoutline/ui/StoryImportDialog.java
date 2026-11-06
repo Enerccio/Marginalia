@@ -150,6 +150,8 @@ public class StoryImportDialog extends GeneratorDialog {
         tokenInfo.setWidthFull();
         tokenInfo.addClassNames(CssStyles.TEXT_S);
 
+        generateOnShortcut(fromField, toField, chaptersField);
+
         VerticalLayout inputs = new VerticalLayout(range, rangeHint, chaptersField, mapParts, stateSelect, tokenInfo);
         inputs.setPadding(false);
         inputs.getThemeList().add("spacing-xs");
