@@ -33,6 +33,27 @@ public final class LmStudioChats {
     }
 
     /**
+     * Tells a conversation of LM Studio from a chat of SillyTavern (a line of JSON per message) in a file whose kind is not known: a
+     * conversation is one JSON object with a {@code messages} array.
+     */
+    public static boolean isConversation(String text) {
+        String start = text == null ? "" : text.stripLeading();
+        if (start.startsWith("\uFEFF")) {
+            start = start.substring(1).stripLeading();
+        }
+        if (!start.startsWith("{")) {
+            return false;
+        }
+        try {
+            JsonElement element = JsonParser.parseString(start);
+            return element.isJsonObject() && element.getAsJsonObject().has("messages") && element.getAsJsonObject().get("messages").isJsonArray();
+        } catch (RuntimeException e) {
+            // several lines of JSON are not one document
+            return false;
+        }
+    }
+
+    /**
      * Reads a conversation.
      *
      * @param fileName the name of the uploaded file, used as the name of the chat when the conversation has none

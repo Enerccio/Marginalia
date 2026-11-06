@@ -3,10 +3,7 @@ package com.github.enerccio.marginalia.extensions.reallangtranslator.service;
 import com.github.enerccio.marginalia.domain.model.impl.Folder;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
-import com.github.enerccio.marginalia.extensions.reallangtranslator.model.BookSettings;
-import com.github.enerccio.marginalia.extensions.reallangtranslator.model.Glossary;
-import com.github.enerccio.marginalia.extensions.reallangtranslator.model.GlossaryEntry;
-import com.github.enerccio.marginalia.extensions.reallangtranslator.model.RealLanguage;
+import com.github.enerccio.marginalia.extensions.reallangtranslator.model.*;
 import com.github.enerccio.marginalia.extensions.reallangtranslator.store.RealStore;
 import com.github.enerccio.marginalia.extensions.translatorcommon.model.BookLanguage;
 import com.github.enerccio.marginalia.extensions.translatorcommon.model.LanguageRef;
@@ -256,6 +253,27 @@ public class BookReal {
             book.setAttributes(attributes);
         }
         return attributes;
+    }
+
+    // ---- the word extraction
+
+    /**
+     * What the book remembers of its word extraction (the prompt and the specification), never null.
+     */
+    public ExtractionSettings extraction(Manuscript book) throws Exception {
+        return translation.settings(book).getExtraction();
+    }
+
+    /**
+     * Stores the prompt and the specification of the word extraction in the attributes of the book; the rest of the settings is left as it is.
+     */
+    public void saveExtraction(Manuscript book, ExtractionSettings extraction) throws Exception {
+        manuscriptService.update(book, current -> {
+            JsonObject attributes = ensure(current);
+            BookSettings settings = RealStore.readBook(attributes);
+            settings.setExtraction(extraction);
+            RealStore.writeBook(attributes, settings);
+        });
     }
 
     /**

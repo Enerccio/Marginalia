@@ -7,6 +7,8 @@ import com.github.enerccio.marginalia.domain.service.AIService;
 import com.github.enerccio.marginalia.domain.service.ProtocolService;
 import com.github.enerccio.marginalia.domain.service.SettingService;
 import com.github.enerccio.marginalia.extensions.InheritedSetting.Choice;
+import com.github.enerccio.marginalia.extensions.reallangtranslator.model.ExtractionPrompt;
+import com.github.enerccio.marginalia.extensions.reallangtranslator.model.ExtractionPrompts;
 import com.github.enerccio.marginalia.extensions.reallangtranslator.model.RealLanguage;
 import com.github.enerccio.marginalia.extensions.reallangtranslator.model.UserDefaults;
 import com.github.enerccio.marginalia.extensions.reallangtranslator.store.RealStore;
@@ -14,6 +16,7 @@ import com.google.gson.JsonObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -63,6 +66,121 @@ public class LanguageLibrary {
         }
         RealStore.writeLibrary(attributes, shown);
         RealStore.writeDefaults(attributes, defaults);
+    }
+
+    /**
+     * Puts what the Settings screen holds, with the user's prompts of the word extraction, into the user settings that it stores.
+     *
+     * @param prompts the extraction prompts of the screen, in its order, with its edits
+     */
+    public void put(List<RealLanguage> shown, UserDefaults defaults, List<ExtractionPrompt> prompts, UserSetting into) {
+        put(shown, defaults, into);
+        RealStore.writePrompts(into.getAttributes(), prompts);
+    }
+
+    // ---- the extraction prompts
+
+    /**
+     * The user's own prompts of the word extraction as stored now, each an independent object.
+     */
+    public List<ExtractionPrompt> userPrompts() throws Exception {
+        return RealStore.readPrompts(settingService.getOrCreate(UserSetting.class).getAttributes());
+    }
+
+    /**
+     * The prompts to choose from: the built-in ones, then the user's own.
+     */
+    public List<ExtractionPrompt> extractionPrompts() throws Exception {
+        List<ExtractionPrompt> all = new ArrayList<>(ExtractionPrompts.builtIn());
+        all.addAll(userPrompts());
+        return all;
+    }
+
+    /**
+     * The prompt with the id (a built-in one or the user's), null for none.
+     */
+    public ExtractionPrompt findPrompt(String id) throws Exception {
+        return id == null ? null : extractionPrompts().stream().filter(prompt -> id.equals(prompt.getId())).findFirst().orElse(null);
+    }
+
+    /**
+     * The prompt the reference names: its id, else its name (the case does not matter), among the built-in and the user's.
+     *
+     * @throws IllegalArgumentException when there is none, or the name is not unique
+     */
+    public ExtractionPrompt resolvePrompt(String reference) throws Exception {
+        if (reference == null || reference.isBlank()) {
+            throw new IllegalArgumentException("Give the prompt: its name or its id, see reallang-extraction-prompts");
+        }
+        String wanted = reference.strip();
+        List<ExtractionPrompt> all = extractionPrompts();
+        for (ExtractionPrompt prompt : all) {
+            if (prompt.getId().equals(wanted)) {
+                return prompt;
+            }
+        }
+        List<ExtractionPrompt> named = all.stream().filter(prompt -> prompt.getName().equalsIgnoreCase(wanted)).toList();
+        if (named.size() == 1) {
+            return named.getFirst();
+        }
+        throw new IllegalArgumentException(named.isEmpty() ? "There is no prompt " + wanted + ". Prompts: " + String.join("; ", all.stream().map(ExtractionPrompt::getName).toList())
+                : "More than one prompt is called " + wanted + ", give its id");
+    }
+
+    /**
+     * Stores a prompt of the user (replaces the one with its id, else adds it), saved at once. A built-in prompt can't be stored: copy it first.
+     *
+     * @throws IllegalArgumentException when the prompt is a built-in one, or has no name or no text
+     */
+    public void storePrompt(ExtractionPrompt prompt) throws Exception {
+        if (ExtractionPrompts.isBuiltIn(prompt.getId())) {
+            throw new IllegalArgumentException("A built-in prompt can't be changed, make a copy of it");
+        }
+        if (prompt.getName().isEmpty() || prompt.getText().isEmpty()) {
+            throw new IllegalArgumentException("The prompt needs a name and a text");
+        }
+        synchronized (LIBRARY) {
+            UserSetting user = settingService.getOrCreate(UserSetting.class);
+            JsonObject attributes = user.getAttributes();
+            if (attributes == null) {
+                attributes = new JsonObject();
+                user.setAttributes(attributes);
+            }
+            List<ExtractionPrompt> prompts = RealStore.readPrompts(attributes);
+            boolean replaced = false;
+            for (int i = 0; i < prompts.size(); i++) {
+                if (prompts.get(i).getId().equals(prompt.getId())) {
+                    prompts.set(i, prompt);
+                    replaced = true;
+                }
+            }
+            if (!replaced) {
+                prompts.add(prompt);
+            }
+            RealStore.writePrompts(attributes, prompts);
+            settingService.save(user);
+        }
+    }
+
+    /**
+     * Takes a prompt of the user out of the library, saved at once.
+     *
+     * @return whether the library had it
+     */
+    public boolean removePrompt(String id) throws Exception {
+        synchronized (LIBRARY) {
+            UserSetting user = settingService.getOrCreate(UserSetting.class);
+            if (user.getAttributes() == null) {
+                return false;
+            }
+            List<ExtractionPrompt> prompts = RealStore.readPrompts(user.getAttributes());
+            if (!prompts.removeIf(prompt -> prompt.getId().equals(id))) {
+                return false;
+            }
+            RealStore.writePrompts(user.getAttributes(), prompts);
+            settingService.save(user);
+            return true;
+        }
     }
 
     // ---- what the commands need: the library written and saved at once

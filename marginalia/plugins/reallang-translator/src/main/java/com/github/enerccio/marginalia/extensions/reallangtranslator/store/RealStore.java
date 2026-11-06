@@ -1,9 +1,6 @@
 package com.github.enerccio.marginalia.extensions.reallangtranslator.store;
 
-import com.github.enerccio.marginalia.extensions.reallangtranslator.model.BookSettings;
-import com.github.enerccio.marginalia.extensions.reallangtranslator.model.GlossaryEntry;
-import com.github.enerccio.marginalia.extensions.reallangtranslator.model.RealLanguage;
-import com.github.enerccio.marginalia.extensions.reallangtranslator.model.UserDefaults;
+import com.github.enerccio.marginalia.extensions.reallangtranslator.model.*;
 import com.google.gson.*;
 
 import java.util.ArrayList;
@@ -21,6 +18,9 @@ public final class RealStore {
 
     /** The key in the attributes of a folder: its glossary (the entries of the folders and the book are merged with the language's, see {@code Glossary}). */
     public static final String FOLDER_GLOSSARY_KEY = "com.github.enerccio.marginalia.extensions.reallangtranslator.folderglossary";
+
+    /** The key in the attributes of the user settings: the user's own prompts of the word extraction. */
+    public static final String PROMPTS_KEY = "com.github.enerccio.marginalia.extensions.reallangtranslator.extractionprompts";
     private static final Gson GSON = new Gson();
 
     private RealStore() {
@@ -167,6 +167,37 @@ public final class RealStore {
         } else {
             attributes.add(FOLDER_GLOSSARY_KEY, all);
         }
+    }
+
+    /**
+     * The extraction prompts of the user, in the order they keep them; never null. An entry that cannot be read is left out.
+     */
+    public static List<ExtractionPrompt> readPrompts(JsonObject attributes) {
+        List<ExtractionPrompt> prompts = new ArrayList<>();
+        if (attributes == null || !attributes.has(PROMPTS_KEY) || !attributes.get(PROMPTS_KEY).isJsonArray()) {
+            return prompts;
+        }
+        for (JsonElement element : attributes.getAsJsonArray(PROMPTS_KEY)) {
+            try {
+                ExtractionPrompt prompt = GSON.fromJson(element, ExtractionPrompt.class);
+                if (prompt != null && prompt.getId() != null && !prompt.getId().isBlank()) {
+                    prompts.add(prompt);
+                }
+            } catch (JsonParseException e) {
+                // a prompt that is not readable must not take the library with it
+            }
+        }
+        return prompts;
+    }
+
+    public static void writePrompts(JsonObject attributes, List<ExtractionPrompt> prompts) {
+        if (prompts.isEmpty()) {
+            attributes.remove(PROMPTS_KEY);
+            return;
+        }
+        JsonArray array = new JsonArray();
+        prompts.forEach(prompt -> array.add(GSON.toJsonTree(prompt)));
+        attributes.add(PROMPTS_KEY, array);
     }
 
     /**

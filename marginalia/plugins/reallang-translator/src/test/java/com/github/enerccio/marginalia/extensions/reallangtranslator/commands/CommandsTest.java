@@ -28,7 +28,7 @@ class CommandsTest {
         LanguageLibrary library = new LanguageLibrary();
         GlossaryService glossary = new GlossaryService(library);
         TranslationService translation = new TranslationService(glossary);
-        SUITE = new ReallangCommands(translation, new BookReal(translation, glossary), library);
+        SUITE = new ReallangCommands(translation, new BookReal(translation, glossary), library, new ExtractionService(translation, glossary, library));
     }
 
     @BeforeAll
@@ -60,7 +60,7 @@ class CommandsTest {
     @Test
     void aCommandThatAsksTheUserOrCallsTheModelIsAsync() {
         for (String name : List.of("reallang-delete", "reallang-translate-part", "reallang-translate-range", "reallang-revert-to-source", "reallang-translate-text",
-                "reallang-translate-sentence", "reallang-remove-speaker")) {
+                "reallang-translate-sentence", "reallang-remove-speaker", "reallang-extract-terms", "reallang-extraction-prompt-remove")) {
             assertTrue(COMMANDS.get(name).async(), name + " must be async");
         }
     }
@@ -72,10 +72,10 @@ class CommandsTest {
                 assertEquals(CommandDataSeverity.NON_DESTRUCTIVE, command.dataSeverity(), command.commandName() + " reads only");
             }
         }
-        for (String name : List.of("reallang-delete", "reallang-remove-speaker", "reallang-revert-to-source", "reallang-translate-range")) {
+        for (String name : List.of("reallang-delete", "reallang-remove-speaker", "reallang-revert-to-source", "reallang-translate-range", "reallang-extraction-prompt-remove")) {
             assertEquals(CommandDataSeverity.DESTRUCTIVE, COMMANDS.get(name).dataSeverity(), name);
         }
-        for (String name : List.of("reallang-list", "reallang-status", "reallang-speakers", "reallang-get-source", "reallang-list-passages")) {
+        for (String name : List.of("reallang-list", "reallang-status", "reallang-speakers", "reallang-get-source", "reallang-list-passages", "reallang-extraction-prompts")) {
             assertTrue(COMMANDS.get(name).readOnly(), name + " only reads");
         }
     }
@@ -134,6 +134,18 @@ class CommandsTest {
             Map.entry("GlossaryService.moveFromBook", "reallang-glossary-move"),
             Map.entry("GlossaryService.accept", "reallang-glossary-accept"),
             Map.entry("GlossaryService.propose", "internal: the translation of a part proposes the names the model chose"),
+            Map.entry("GlossaryService.proposeEntries", "reallang-extract-terms"),
+            Map.entry("BookReal.extraction", "reallang-extraction-set"),
+            Map.entry("BookReal.saveExtraction", "reallang-extraction-set"),
+            Map.entry("ExtractionService.extract", "reallang-extract-terms"),
+            Map.entry("ExtractionRuns.isRunning", "ui only: the progress of the tab"),
+            Map.entry("ExtractionRuns.start", "reallang-extract-terms"),
+            Map.entry("LanguageLibrary.userPrompts", "reallang-extraction-prompts"),
+            Map.entry("LanguageLibrary.extractionPrompts", "reallang-extraction-prompts"),
+            Map.entry("LanguageLibrary.findPrompt", "reallang-extraction-set"),
+            Map.entry("LanguageLibrary.resolvePrompt", "internal"),
+            Map.entry("LanguageLibrary.storePrompt", "reallang-extraction-prompt-set"),
+            Map.entry("LanguageLibrary.removePrompt", "reallang-extraction-prompt-remove"),
             Map.entry("LanguageLibrary.languages", "reallang-list"),
             Map.entry("LanguageLibrary.resolve", "internal"),
             Map.entry("LanguageLibrary.store", "reallang-create"),
@@ -155,7 +167,8 @@ class CommandsTest {
     @Test
     void everyOperationOfAServiceHasACommand() {
         Set<String> seen = new TreeSet<>();
-        for (Class<?> service : List.of(TranslationService.class, BookReal.class, GlossaryService.class, LanguageLibrary.class, RangeRuns.class, TranslationRuns.class)) {
+        for (Class<?> service : List.of(TranslationService.class, BookReal.class, GlossaryService.class, LanguageLibrary.class, RangeRuns.class, TranslationRuns.class,
+                ExtractionService.class, ExtractionRuns.class)) {
             for (Method method : service.getDeclaredMethods()) {
                 if (Modifier.isPublic(method.getModifiers()) && !method.isSynthetic() && !method.getName().startsWith("lambda$")) {
                     seen.add(service.getSimpleName() + "." + method.getName());

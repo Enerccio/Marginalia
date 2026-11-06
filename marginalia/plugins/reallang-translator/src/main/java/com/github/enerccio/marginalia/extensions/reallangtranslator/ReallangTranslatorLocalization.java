@@ -135,6 +135,27 @@ public class ReallangTranslatorLocalization extends PluginLocalizationBundle {
     public static final String THE_GLOSSARY_CAN_NOT_BE_CHANGED = "The glossary can not be changed: %s";
     public static final String THE_WORD_IS_IN_THE_GLOSSARY_ALREADY = "The glossary of this level has the word already";
     public static final String DELETE_THE_ENTRY_S = "Delete the entry %s?";
+    public static final String WORD_EXTRACTION = "Word extraction";
+    public static final String THE_MODEL_READS_THE_PARTS_OF_THE_RANGE = "The model reads the parts of the range and lists the names and special words of the story with the form each has in the language. What it finds is added to the glossary of the book as proposals to look at; nothing in the story changes.";
+    public static final String PROMPT = "Prompt";
+    public static final String ONLY_MY_SPECIFICATION = "None: only my specification";
+    public static final String S_BUILT_IN = "%s (built-in)";
+    public static final String SPECIFICATION = "Specification";
+    public static final String ADDED_AFTER_THE_PROMPT = "Added after the prompt: what to look for, what to leave out, how to write a kind of word in this book. With no prompt it is all the model is told.";
+    public static final String EXTRACT_THE_WORDS = "Extract the words";
+    public static final String PARTS_IN_THE_RANGE_D = "%d part(s) in the range";
+    public static final String D_PARTS_READ_D_TERMS_D_NEW = "%d part(s) read, %d term(s) found, %d new in the glossary of the book.";
+    public static final String THE_EXTRACTION_FAILED = "The extraction failed: %s";
+    public static final String THE_WORDS_OF_THIS_BOOK_ARE_BEING_EXTRACTED = "The words of this book are being extracted already";
+    public static final String CHOOSE_A_PROMPT_OR_WRITE_A_SPECIFICATION = "Choose a prompt or write a specification first";
+    public static final String EXTRACTION_PROMPTS = "Extraction prompts";
+    public static final String THE_PROMPTS_OF_THE_WORD_EXTRACTION = "Prompts for the word extraction of a book (the Real language tab of the story): instructions to the model that lists the names and special words. The plugin adds the output format. The built-in prompts are always offered; copy one to change it.";
+    public static final String COPY_A_BUILT_IN_PROMPT = "Copy a built-in prompt";
+    public static final String NEW_PROMPT = "New prompt";
+    public static final String EDIT_THE_PROMPT = "Edit the prompt";
+    public static final String INSTRUCTIONS_FOR_THE_MODEL = "Instructions for the model";
+    public static final String WHAT_TO_LOOK_FOR_AND_HOW_TO_WRITE_IT = "What to look for and how each kind of word is written in the language. Do not describe the format of the answer: the plugin adds it.";
+    public static final String THE_PROMPT_NEEDS_A_NAME_AND_A_TEXT = "The prompt needs a name and a text";
 
     @Override
     protected void loadKeys() {
@@ -512,5 +533,68 @@ public class ReallangTranslatorLocalization extends PluginLocalizationBundle {
 
         ja(DELETE_THE_ENTRY_S, "項目「%s」を削除しますか?");
         zh(DELETE_THE_ENTRY_S, "删除条目“%s”?");
+
+        ja(WORD_EXTRACTION, "単語抽出");
+        zh(WORD_EXTRACTION, "词语提取");
+
+        ja(THE_MODEL_READS_THE_PARTS_OF_THE_RANGE, "モデルが範囲内のパートを読み、物語の名前や特別な語を、この言語での表記とともに一覧にします。見つかった語は確認用の提案として本の用語集に追加されます。物語の本文は変わりません。");
+        zh(THE_MODEL_READS_THE_PARTS_OF_THE_RANGE, "模型会阅读范围内的各段,列出故事中的名字和特殊词语及其在该语言中的写法。找到的词会作为待查看的建议加入本书术语表,故事正文不会改变。");
+
+        ja(PROMPT, "プロンプト");
+        zh(PROMPT, "提示词");
+
+        ja(ONLY_MY_SPECIFICATION, "なし:自分の指定のみ");
+        zh(ONLY_MY_SPECIFICATION, "无:仅使用我的说明");
+
+        ja(S_BUILT_IN, "%s(組み込み)");
+        zh(S_BUILT_IN, "%s(内置)");
+
+        ja(SPECIFICATION, "指定");
+        zh(SPECIFICATION, "说明");
+
+        ja(ADDED_AFTER_THE_PROMPT, "プロンプトの後に追加されます。探す語、除く語、この本での語の種類ごとの表記を書いてください。プロンプトがない場合は、モデルに伝わるのはこれだけです。");
+        zh(ADDED_AFTER_THE_PROMPT, "附在提示词之后:要找什么、要排除什么、本书中某类词怎么写。未选提示词时,模型只会看到这段说明。");
+
+        ja(EXTRACT_THE_WORDS, "単語を抽出");
+        zh(EXTRACT_THE_WORDS, "提取词语");
+
+        ja(PARTS_IN_THE_RANGE_D, "範囲内のパート:%d");
+        zh(PARTS_IN_THE_RANGE_D, "范围内有 %d 段");
+
+        ja(D_PARTS_READ_D_TERMS_D_NEW, "%d個のパートを読み、%d個の語が見つかり、うち%d個が本の用語集に新しく追加されました。");
+        zh(D_PARTS_READ_D_TERMS_D_NEW, "已阅读 %d 段,找到 %d 个词,其中 %d 个是加入本书术语表的新词。");
+
+        ja(THE_EXTRACTION_FAILED, "抽出に失敗しました: %s");
+        zh(THE_EXTRACTION_FAILED, "提取失败:%s");
+
+        ja(THE_WORDS_OF_THIS_BOOK_ARE_BEING_EXTRACTED, "この本の単語はすでに抽出中です");
+        zh(THE_WORDS_OF_THIS_BOOK_ARE_BEING_EXTRACTED, "本书的词语已在提取中");
+
+        ja(CHOOSE_A_PROMPT_OR_WRITE_A_SPECIFICATION, "先にプロンプトを選ぶか、指定を書いてください");
+        zh(CHOOSE_A_PROMPT_OR_WRITE_A_SPECIFICATION, "请先选择提示词或填写说明");
+
+        ja(EXTRACTION_PROMPTS, "抽出プロンプト");
+        zh(EXTRACTION_PROMPTS, "提取提示词");
+
+        ja(THE_PROMPTS_OF_THE_WORD_EXTRACTION, "本の単語抽出用のプロンプト(物語の「実在言語」タブ)です。名前や特別な語を一覧にするモデルへの指示を書きます。出力形式はプラグインが追加します。組み込みのプロンプトは常に選べます。変更するにはコピーしてください。");
+        zh(THE_PROMPTS_OF_THE_WORD_EXTRACTION, "书中词语提取所用的提示词(故事的“现实语言”标签页):给列出名字和特殊词语的模型的指示。输出格式由插件添加。内置提示词始终可选;要修改请先复制。");
+
+        ja(COPY_A_BUILT_IN_PROMPT, "組み込みプロンプトをコピー");
+        zh(COPY_A_BUILT_IN_PROMPT, "复制内置提示词");
+
+        ja(NEW_PROMPT, "新しいプロンプト");
+        zh(NEW_PROMPT, "新建提示词");
+
+        ja(EDIT_THE_PROMPT, "プロンプトを編集");
+        zh(EDIT_THE_PROMPT, "编辑提示词");
+
+        ja(INSTRUCTIONS_FOR_THE_MODEL, "モデルへの指示");
+        zh(INSTRUCTIONS_FOR_THE_MODEL, "给模型的指示");
+
+        ja(WHAT_TO_LOOK_FOR_AND_HOW_TO_WRITE_IT, "探す語と、語の種類ごとのこの言語での表記を書いてください。回答の形式は書かないでください(プラグインが追加します)。");
+        zh(WHAT_TO_LOOK_FOR_AND_HOW_TO_WRITE_IT, "要找什么,以及每类词在该语言中怎么写。不要描述回答的格式,插件会自动添加。");
+
+        ja(THE_PROMPT_NEEDS_A_NAME_AND_A_TEXT, "プロンプトには名前と本文が必要です");
+        zh(THE_PROMPT_NEEDS_A_NAME_AND_A_TEXT, "提示词需要名称和内容");
     }
 }

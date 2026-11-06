@@ -17,6 +17,7 @@ import com.github.enerccio.marginalia.extensions.reallangtranslator.commands.Rea
 import com.github.enerccio.marginalia.extensions.reallangtranslator.model.BookSettings;
 import com.github.enerccio.marginalia.extensions.reallangtranslator.service.*;
 import com.github.enerccio.marginalia.extensions.reallangtranslator.service.TranslationService.Outcome;
+import com.github.enerccio.marginalia.extensions.reallangtranslator.ui.ExtractionTools;
 import com.github.enerccio.marginalia.extensions.reallangtranslator.ui.LanguageSettingsForm;
 import com.github.enerccio.marginalia.extensions.reallangtranslator.ui.ReallangBookView;
 import com.github.enerccio.marginalia.extensions.translatorcommon.model.ExportMode;
@@ -107,6 +108,7 @@ public class ReallangTranslatorExtension implements MarginaliaExtension, Extensi
     private final GlossaryService glossaryService = new GlossaryService(library);
     private final TranslationService translationService = new TranslationService(glossaryService);
     private final BookReal bookReal = new BookReal(translationService, glossaryService);
+    private final ExtractionService extractionService = new ExtractionService(translationService, glossaryService, library);
     private final PassageAccess passageAccess = new PassageAccess(ReallangKind.ID);
     private final SpeechPassageKind kind = new SpeechPassageKind(ReallangKind.ID, ReallangKind.MARK);
     private final SpeechTransformer transformer = new SpeechTransformer(passageAccess);
@@ -114,6 +116,7 @@ public class ReallangTranslatorExtension implements MarginaliaExtension, Extensi
 
     private TranslationRuns runs;
     private RangeRuns rangeRuns;
+    private ExtractionRuns extractionRuns;
     private ExtensionDecorator partFinishedDecorator;
     private Registration cleanupRegistration;
     private UnderstandingPrompt understandingPrompt;
@@ -137,6 +140,7 @@ public class ReallangTranslatorExtension implements MarginaliaExtension, Extensi
         owner = bundle.getSymbolicName();
         runs = new TranslationRuns(translationService, log);
         rangeRuns = new RangeRuns(this::rangeWork, "reallang-translator-range", log);
+        extractionRuns = new ExtractionRuns(extractionService, log);
         try {
             passageKinds.register(kind);
             partTexts.register(owner, transformer);
@@ -205,7 +209,7 @@ public class ReallangTranslatorExtension implements MarginaliaExtension, Extensi
      * The commands: everything the dialogs do, for the command bar, for agents and for templates. They call the services the dialogs call.
      */
     private void registerCommands() throws Exception {
-        commandSuites.add(new ReallangCommands(translationService, bookReal, library));
+        commandSuites.add(new ReallangCommands(translationService, bookReal, library, extractionService));
         for (Object suite : commandSuites) {
             commandService.registerCommands(suite);
         }
@@ -228,7 +232,8 @@ public class ReallangTranslatorExtension implements MarginaliaExtension, Extensi
                 if (leftBar == null || currentManuscript == null || ComponentUtil.getData(leftBar, BOOK_VIEW_KEY) != null) {
                     return;
                 }
-                ReallangBookView view = new ReallangBookView(currentManuscript, bookReal);
+                ReallangBookView view = new ReallangBookView(currentManuscript, bookReal,
+                        new ExtractionTools(extractionRuns, () -> rangeParts(currentManuscript), library::extractionPrompts));
                 leftBar.add(BOOK_TAB_ID, T.localized(REAL_LANGUAGE), ReallangIcon.TAB, view);
                 ComponentUtil.setData(leftBar, BOOK_VIEW_KEY, view);
                 activeTabDocks.add(leftBar);

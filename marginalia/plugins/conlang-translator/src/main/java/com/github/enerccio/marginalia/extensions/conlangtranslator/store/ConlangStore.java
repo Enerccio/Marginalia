@@ -169,6 +169,13 @@ public final class ConlangStore {
     }
 
     /**
+     * The language as one string, to tell whether an editor changed it (two equal strings: nothing changed).
+     */
+    public static String fingerprint(Language language) {
+        return GSON.toJson(language);
+    }
+
+    /**
      * The library the settings screen stores. A run of the translator adds words to the stored library while the screen is open, so the
      * screen must not write back what it loaded: a language it did not touch is taken from the library as it is now.
      *
