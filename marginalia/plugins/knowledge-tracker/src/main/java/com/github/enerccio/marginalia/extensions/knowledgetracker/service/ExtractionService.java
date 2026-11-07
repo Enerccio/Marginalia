@@ -181,6 +181,7 @@ public class ExtractionService {
         BookSettings settings = state.getSettings();
         List<Part> branch = processService.branch(manuscript);
         List<String> separators = KnowledgeBlockBuilder.effectiveSeparators(state, stateService.getUserSeparators());
+        String systemPrompt = manuscriptService.resolveExtension(manuscript, KnowledgeInherited.EXTRACTION_PROMPT).value();
         List<Part> pending = BranchProcessor.pending(state, branch, BranchProcessor.settledCount(branch, lastSettled, excludeFrom),
                 Integer.MAX_VALUE);
         if (pending.isEmpty()) {
@@ -191,7 +192,7 @@ public class ExtractionService {
         // nobody tracked is in these parts: nothing to ask, no model needed, the cursor can move on over all of them
         // the model may read what came before the run, to see where an item was learned (the first part of the run does not change below)
         ExtractionPrompt.Readable readable = settings.isReadEarlierParts() ? ExtractionPrompt.Readable.of(branch, wanted) : null;
-        ExtractionPrompt.Request request = ExtractionPrompt.build(state, "", wanted, separators, readable);
+        ExtractionPrompt.Request request = ExtractionPrompt.build(state, "", wanted, separators, readable, systemPrompt);
         if (request.isEmpty()) {
             return new Proposal(List.copyOf(wanted), new ChangeSet(List.of(), List.of()), false, "", "", pending.size() - wanted.size());
         }
@@ -207,7 +208,7 @@ public class ExtractionService {
         int count = wanted.size();
         while (count > 1 && tokens(service, request) > budget) {
             count--;
-            request = ExtractionPrompt.build(state, "", wanted.subList(0, count), separators, readable);
+            request = ExtractionPrompt.build(state, "", wanted.subList(0, count), separators, readable, systemPrompt);
         }
         if (tokens(service, request) > budget) {
             throw new IllegalStateException("A single part does not fit the context of the model together with what the characters know");
@@ -225,7 +226,7 @@ public class ExtractionService {
         }
 
         String lore = lore(manuscript, settings.getLoreMode(), run, budget - tokens(service, request), service, note);
-        request = ExtractionPrompt.build(state, lore, run, separators, readable);
+        request = ExtractionPrompt.build(state, lore, run, separators, readable, systemPrompt);
 
         // what is left of the context is what the reads may take: a part is cut to its share, and with no room for a useful read there is none
         PartReader reader = null;
@@ -291,9 +292,10 @@ public class ExtractionService {
         List<Part> branch = processService.branch(manuscript);
         BranchProcessor.align(state, branch);
         int cursor = BranchProcessor.cursorPosition(state, branch);
+        String systemPrompt = manuscriptService.resolveExtension(manuscript, KnowledgeInherited.TIDY_PROMPT).value();
         List<Part> recent = new ArrayList<>(branch.subList(Math.max(0, cursor - settings.getTidyContextParts()), Math.min(cursor, branch.size())));
 
-        ExtractionPrompt.Request request = TidyPrompt.build(state, recent, settings.getTidyMinItems());
+        ExtractionPrompt.Request request = TidyPrompt.build(state, recent, settings.getTidyMinItems(), systemPrompt);
         if (request.isEmpty()) {
             return new Proposal(List.of(), new ChangeSet(List.of(), List.of()), false, "", "", 0, "", true);
         }
@@ -307,7 +309,7 @@ public class ExtractionService {
         // the context goes first when the request does not fit; the items are what is asked about
         while (!recent.isEmpty() && tokens(service, request) > budget) {
             recent.removeFirst();
-            request = TidyPrompt.build(state, recent, settings.getTidyMinItems());
+            request = TidyPrompt.build(state, recent, settings.getTidyMinItems(), systemPrompt);
             note.setLength(0);
             note.append("Only the last ").append(recent.size()).append(" part(s) fit as context.");
         }

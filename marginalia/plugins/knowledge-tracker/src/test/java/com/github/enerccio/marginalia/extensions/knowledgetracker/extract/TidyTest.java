@@ -6,13 +6,7 @@ import com.github.enerccio.marginalia.extensions.knowledgetracker.extract.Extrac
 import com.github.enerccio.marginalia.extensions.knowledgetracker.extract.TidyAnswer.CharacterTidy;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.extract.TidyAnswer.Drop;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.extract.TidyAnswer.Merge;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.model.ChangeLogEntry;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.model.ItemKind;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.model.KnowledgeItem;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.model.KnowledgeState;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.model.OldReason;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.model.ProcessedPart;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.model.TrackedCharacter;
+import com.github.enerccio.marginalia.extensions.knowledgetracker.model.*;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.process.Part;
 import com.google.gson.Gson;
 import org.junit.jupiter.api.Test;
@@ -82,6 +76,13 @@ class TidyTest {
         assertFalse(request.user().contains("Ilse"));
         assertTrue(request.user().contains("[Last parts of the story]"));
         assertEquals(4, request.numbering().items().get(state.findByName("Peter").getId()).size());
+    }
+
+    @Test
+    void anInheritedSystemMessageReplacesTheBuiltInOne() {
+        assertEquals("Tidy my way.", TidyPrompt.build(state(), List.of(RECENT), 3, " Tidy my way. ").system());
+        assertEquals(TidyPrompt.SYSTEM, TidyPrompt.build(state(), List.of(RECENT), 3, "").system());
+        assertEquals(TidyPrompt.SYSTEM, TidyPrompt.build(state(), List.of(RECENT), 3, null).system());
     }
 
     @Test

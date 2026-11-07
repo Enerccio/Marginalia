@@ -152,4 +152,21 @@ class ReadingPartsTest {
         assertTrue(plain.user().contains("#1 (POV"));
         assertEquals(plain.user(), ExtractionPrompt.build(state(), "", run, null, null).user());
     }
+
+    @Test
+    void anInheritedSystemMessageReplacesTheBuiltInOneAndKeepsTheReadingInstructions() {
+        List<Part> branch = branch();
+        List<Part> run = branch.subList(3, 5);
+
+        ExtractionPrompt.Request custom = ExtractionPrompt.build(state(), "", run, null, null, "  My own rules.  ");
+        assertEquals("My own rules.", custom.system());
+
+        ExtractionPrompt.Request reading = ExtractionPrompt.build(state(), "", run, null, ExtractionPrompt.Readable.of(branch, run), "My own rules.");
+        assertTrue(reading.system().startsWith("My own rules.\n\n"));
+        assertTrue(reading.system().endsWith(ExtractionPrompt.READING));
+
+        // blank = the tested wording
+        assertEquals(ExtractionPrompt.SYSTEM, ExtractionPrompt.build(state(), "", run, null, null, "  ").system());
+        assertEquals(ExtractionPrompt.SYSTEM, ExtractionPrompt.build(state(), "", run, null, null, null).system());
+    }
 }

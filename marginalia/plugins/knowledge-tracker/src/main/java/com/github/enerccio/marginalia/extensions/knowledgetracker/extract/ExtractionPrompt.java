@@ -106,6 +106,16 @@ public final class ExtractionPrompt {
      *                 can read say so, the messages say their part and the system message tells about the function
      */
     public static Request build(KnowledgeState state, String lore, List<Part> parts, Collection<String> separators, Readable readable) {
+        return build(state, lore, parts, separators, readable, SYSTEM);
+    }
+
+    /**
+     * @param system the system message, the one the book inherits; blank = the built-in {@link #SYSTEM}. The instructions about
+     *               {@code read_part} are added to it when {@code readable} is given.
+     */
+    public static Request build(KnowledgeState state, String lore, List<Part> parts, Collection<String> separators, Readable readable,
+                                String system) {
+        String instructions = StringUtils.isBlank(system) ? SYSTEM : system.strip();
         List<Set<String>> present = new ArrayList<>();
         for (Part part : parts) {
             present.add(PresentCharacters.normalizedNames(part.presentCharacters(), separators));
@@ -160,7 +170,7 @@ public final class ExtractionPrompt {
                     .append("; present: ").append(StringUtils.defaultString(part.presentCharacters()).strip()).append(")\n")
                     .append(StringUtils.defaultString(part.text()).strip()).append("\n\n");
         }
-        return new Request(readable != null ? SYSTEM + "\n\n" + READING : SYSTEM, user.toString().stripTrailing(), new Numbering(numbered, List.copyOf(parts)),
+        return new Request(readable != null ? instructions + "\n\n" + READING : instructions, user.toString().stripTrailing(), new Numbering(numbered, List.copyOf(parts)),
                 List.copyOf(where.keySet()));
     }
 }

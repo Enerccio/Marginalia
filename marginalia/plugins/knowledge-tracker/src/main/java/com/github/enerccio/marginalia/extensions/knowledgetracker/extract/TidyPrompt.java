@@ -44,6 +44,13 @@ public final class TidyPrompt {
      * @return a request without characters ({@link Request#isEmpty()}) when there is nothing to tidy
      */
     public static Request build(KnowledgeState state, List<Part> recent, int minItems) {
+        return build(state, recent, minItems, SYSTEM);
+    }
+
+    /**
+     * @param system the system message, the one the book inherits; blank = the built-in {@link #SYSTEM}
+     */
+    public static Request build(KnowledgeState state, List<Part> recent, int minItems, String system) {
         StringBuilder user = new StringBuilder("[Tracked characters]\n");
         Map<String, List<String>> numbered = new LinkedHashMap<>();
         List<TrackedCharacter> included = new ArrayList<>();
@@ -74,7 +81,7 @@ public final class TidyPrompt {
                         .append(StringUtils.defaultString(part.text()).strip()).append("\n\n");
             }
         }
-        return new Request(SYSTEM, user.toString().stripTrailing(), new Numbering(numbered, List.of()), List.copyOf(included));
+        return new Request(StringUtils.isBlank(system) ? SYSTEM : system.strip(), user.toString().stripTrailing(), new Numbering(numbered, List.of()), List.copyOf(included));
     }
 
     private static String line(KnowledgeItem item) {

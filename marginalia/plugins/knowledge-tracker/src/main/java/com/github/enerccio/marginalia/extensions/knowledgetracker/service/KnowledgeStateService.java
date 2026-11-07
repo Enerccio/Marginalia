@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.extensions.knowledgetracker.service;
 
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
+import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.domain.service.SettingService;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.model.KnowledgeState;
@@ -33,6 +34,9 @@ public class KnowledgeStateService {
 
     @Autowired
     private SettingService settingService;
+
+    @Autowired
+    private User currentUser;
 
     private final Gson gson = new Gson();
 
@@ -121,6 +125,42 @@ public class KnowledgeStateService {
         JsonArray array = new JsonArray();
         separators.forEach(array::add);
         attrs.add(USER_SEPARATORS_KEY, array);
+        settingService.save(userSetting);
+    }
+
+    /**
+     * What the user saved as the prompt {@code key} ({@link KnowledgeInherited#EXTRACTION_PROMPT}, {@link KnowledgeInherited#TIDY_PROMPT}),
+     * the user level of the setting the books and folders inherit. {@code null} for nothing. It never stores anything, so it can be asked
+     * from the suppliers of the registration, inside a read-only transaction too.
+     */
+    public String getUserPrompt(String key) {
+        try {
+            UserSetting userSetting = settingService.find(UserSetting.class, currentUser);
+            JsonObject attrs = userSetting == null ? null : userSetting.getAttributes();
+            if (attrs != null && attrs.has(key) && attrs.get(key).isJsonPrimitive()) {
+                String text = attrs.get(key).getAsString();
+                return text.isBlank() ? null : text;
+            }
+            return null;
+        } catch (Exception e) {
+            // asked from suppliers, which cannot throw a checked exception
+            throw new IllegalStateException("The settings of the user can't be read", e);
+        }
+    }
+
+    /** Saves the user level of a prompt; blank removes it (the built-in one applies again). */
+    public void saveUserPrompt(String key, String text) throws Exception {
+        UserSetting userSetting = settingService.getOrCreate(UserSetting.class);
+        JsonObject attrs = userSetting.getAttributes();
+        if (attrs == null) {
+            attrs = new JsonObject();
+            userSetting.setAttributes(attrs);
+        }
+        if (text == null || text.isBlank()) {
+            attrs.remove(key);
+        } else {
+            attrs.addProperty(key, text);
+        }
         settingService.save(userSetting);
     }
 }

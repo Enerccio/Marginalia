@@ -11,6 +11,7 @@ import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationC
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.GenerationOutcome;
 import com.github.enerccio.marginalia.extensions.AnnotationFactsRegistry;
 import com.github.enerccio.marginalia.extensions.ExtensionHasCss;
+import com.github.enerccio.marginalia.extensions.InheritedSettingRegistry;
 import com.github.enerccio.marginalia.extensions.MarginaliaExtension;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.block.PayloadInsertion;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.commands.KnowledgeTrackerCommands;
@@ -76,6 +77,9 @@ public class KnowledgeTrackerExtension implements MarginaliaExtension, Extension
     @Autowired
     private AnnotationFactsRegistry annotationFacts;
 
+    @Autowired
+    private InheritedSettingRegistry inheritedSettingRegistry;
+
     private final KnowledgeStateService stateService = new KnowledgeStateService();
     private final KnowledgePromptService promptService = new KnowledgePromptService(stateService);
     private final KnowledgeProcessService processService = new KnowledgeProcessService(stateService);
@@ -100,6 +104,9 @@ public class KnowledgeTrackerExtension implements MarginaliaExtension, Extension
         log = parentService.createLogger(bundle);
         notificationService.register(bundle.getSymbolicName(), new NotificationService.Source(NOTIFY_EXTRACT, () -> T.localized(KnowledgeTrackerLocalization.KNOWLEDGE_TRACKER_READ_THE_STORY)));
         try {
+            // what books and folders inherit (their dialogs get the fields); the user level is in the Knowledge tab
+            KnowledgeInherited.register(inheritedSettingRegistry, bundle.getSymbolicName(), stateService::getUserPrompt);
+
             // the Knowledge tab in the left sidebar of the story view (the drawer on a phone)
             storyPartDecorator = new ExtensionDecorator() {
                 @Override
@@ -290,6 +297,7 @@ public class KnowledgeTrackerExtension implements MarginaliaExtension, Extension
     @Override
     public void onExtensionUnload(Bundle b, OsgiService parentService, ExtensionService extensionService) {
         annotationFacts.unregisterAll(b.getSymbolicName());
+        inheritedSettingRegistry.unregisterAll(b.getSymbolicName());
         factsProvider = null;
         if (commands != null) {
             commandService.unregisterCommands(commands);
