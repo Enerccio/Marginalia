@@ -1,7 +1,7 @@
 ---
 label: Packaging & releases
 order: 880
-verified: 70516481f
+verified: 340c8ccaa
 covers:
   - pom.xml
   - Dockerfile
