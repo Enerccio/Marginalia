@@ -8,8 +8,6 @@ import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole
 import com.github.enerccio.marginalia.extensions.knowledgetracker.KnowledgeTrackerExtension;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.extract.ChangeApplier;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.extract.ChangeLog;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.extract.ExtractionPrompt;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.extract.TidyPrompt;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.model.*;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.process.BranchProcessor.Report;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.process.Part;
@@ -41,7 +39,6 @@ import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.data.value.ValueChangeMode;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
@@ -290,11 +287,7 @@ public class KnowledgeTrackerView extends VerticalLayout {
             }
         });
 
-        TextArea myExtractionPrompt = promptField(T.localized(MY_EXTRACTION_PROMPT), KnowledgeInherited.EXTRACTION_PROMPT, ExtractionPrompt.SYSTEM);
-        TextArea myTidyPrompt = promptField(T.localized(MY_TIDY_PROMPT), KnowledgeInherited.TIDY_PROMPT, TidyPrompt.SYSTEM);
-
-        VerticalLayout controls = new VerticalLayout(inPrompt, depth, role, closedWorld, annotationFacts, autoProcess, extraction, bookSeparators, mySeparators,
-                myExtractionPrompt, myTidyPrompt);
+        VerticalLayout controls = new VerticalLayout(inPrompt, depth, role, closedWorld, annotationFacts, autoProcess, extraction, bookSeparators, mySeparators);
         controls.addClassName(KnowledgeTrackerStyles.SETTINGS);
         controls.setPadding(false);
         controls.setSpacing(false);
@@ -444,33 +437,6 @@ public class KnowledgeTrackerView extends VerticalLayout {
         field.setValue(value);
         field.setValueChangeMode(ValueChangeMode.LAZY);
         field.setValueChangeTimeout(1000);
-        return field;
-    }
-
-    /**
-     * The user level of an inherited prompt (the book and the folders set theirs in the Extension Settings of their dialogs); empty
-     * shows the built-in text as the placeholder.
-     */
-    private TextArea promptField(String label, String key, String builtIn) {
-        TextArea field = new TextArea(label);
-        field.setWidthFull();
-        field.setMinHeight("120px");
-        field.setPlaceholder(builtIn);
-        field.setHelperText(T.localized(PROMPT_HELP));
-        try {
-            field.setValue(StringUtils.defaultString(service.getUserPrompt(key)));
-        } catch (Exception e) {
-            UIUtils.internalServerError(loc, e);
-        }
-        field.setValueChangeMode(ValueChangeMode.LAZY);
-        field.setValueChangeTimeout(1000);
-        field.addValueChangeListener(e -> {
-            try {
-                service.saveUserPrompt(key, e.getValue());
-            } catch (Exception ex) {
-                UIUtils.internalServerError(loc, ex);
-            }
-        });
         return field;
     }
 

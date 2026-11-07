@@ -71,9 +71,6 @@ public class KnowledgeTrackerLocalization extends PluginLocalizationBundle {
     public static final String KNOWLEDGE_TIDY_PROMPT = "Knowledge tidy prompt";
     public static final String THE_SYSTEM_MESSAGE_THAT_TELLS_THE_MODEL = "The system message that tells the model how to read the story for what the tracked characters learn. Keep the JSON answer format, the plugin reads it. Empty = the inherited one, else the built-in text.";
     public static final String THE_SYSTEM_MESSAGE_OF_THE_TIDY_PASS = "The system message of the tidy pass, which drops and merges items that are not worth keeping. Keep the JSON answer format, the plugin reads it. Empty = the inherited one, else the built-in text.";
-    public static final String MY_EXTRACTION_PROMPT = "My extraction prompt (all books)";
-    public static final String MY_TIDY_PROMPT = "My tidy prompt (all books)";
-    public static final String PROMPT_HELP = "The prompt for all your books. Empty = the built-in one (shown in grey). A book or a folder can set its own in the Extension Settings of its Prompts. Keep the JSON answer format.";
     public static final String PROCESSING = "Processing";
     public static final String PROCESSED_UP_TO_PART = "Processed up to part %d of %d";
     public static final String NOTHING_IS_PROCESSED_YET = "Nothing is processed yet (%d parts)";
@@ -593,13 +590,5 @@ public class KnowledgeTrackerLocalization extends PluginLocalizationBundle {
         ja(THE_SYSTEM_MESSAGE_OF_THE_TIDY_PASS, "残す価値のない項目を削除・統合する整理パスのシステムメッセージ。プラグインが読み取るため、JSON の回答形式は維持してください。空 = 継承されたもの、なければ組み込みのテキスト。");
         zh(THE_SYSTEM_MESSAGE_OF_THE_TIDY_PASS, "整理阶段的系统消息，用于删除和合并不值得保留的条目。请保留 JSON 回答格式，插件会读取它。留空 = 继承的设置，否则使用内置文本。");
 
-        ja(MY_EXTRACTION_PROMPT, "自分の読み取りプロンプト（すべての本）");
-        zh(MY_EXTRACTION_PROMPT, "我的读取提示词（所有书）");
-
-        ja(MY_TIDY_PROMPT, "自分の整理プロンプト（すべての本）");
-        zh(MY_TIDY_PROMPT, "我的整理提示词（所有书）");
-
-        ja(PROMPT_HELP, "すべての本のプロンプト。空 = 組み込み（灰色で表示）。本やフォルダは、プロンプトタブの拡張設定で独自のものを設定できます。JSON の回答形式は維持してください。");
-        zh(PROMPT_HELP, "适用于你所有书的提示词。留空 = 内置的（灰色显示）。书或文件夹可以在其“提示词”选项卡的扩展设置中设置自己的。请保留 JSON 回答格式。");
     }
 }

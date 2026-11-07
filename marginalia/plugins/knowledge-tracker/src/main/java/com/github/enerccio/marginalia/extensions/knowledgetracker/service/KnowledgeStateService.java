@@ -148,9 +148,11 @@ public class KnowledgeStateService {
         }
     }
 
-    /** Saves the user level of a prompt; blank removes it (the built-in one applies again). */
-    public void saveUserPrompt(String key, String text) throws Exception {
-        UserSetting userSetting = settingService.getOrCreate(UserSetting.class);
+    /**
+     * Sets the user level of a prompt in {@code userSetting}; blank removes it (the built-in one applies again). Does not store it: the
+     * Settings screen stores the user settings itself.
+     */
+    public void putUserPrompt(UserSetting userSetting, String key, String text) {
         JsonObject attrs = userSetting.getAttributes();
         if (attrs == null) {
             attrs = new JsonObject();
@@ -161,6 +163,5 @@ public class KnowledgeStateService {
         } else {
             attrs.addProperty(key, text);
         }
-        settingService.save(userSetting);
     }
 }

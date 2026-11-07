@@ -220,7 +220,17 @@ The gear next to *Track a character*:
 | **Model / Protocol for the extraction** | Empty: the model of the book. A cheaper model is enough for this, and on a server that holds one prompt cache a separate model keeps it from being replaced. |
 | **Separators of this book** | How the present characters field is split into names, one per line (a new line is `\n`). A word such as `and` splits between spaces, so *Jack and Jill* stays one name until you add it. |
 | **My separators (all books)** | The same for all your books. The book's own separators win; with neither, the built-in ones are used. |
-| **My extraction prompt (all books)**, **My tidy prompt (all books)** | Your own wording of the system message that tells the model how to read the story and how to tidy. Empty = the built-in text (shown grey). A book and a folder can set theirs in the *Extension Settings* of the *Prompts* tab and of the folder dialog (**Knowledge extraction prompt**, **Knowledge tidy prompt**): the book's wins, then the nearest folder's, then yours, then the built-in one. Keep the JSON answer format of the built-in text, the plugin reads the answer by it. |
+
+## Prompts
+
+The system message of the reading (**Knowledge extraction prompt**) and the one of the tidy pass (**Knowledge tidy prompt**) are
+[inherited settings](../books/prompts.md#inherited-settings): a book uses its own, else the nearest folder above it that sets one,
+else yours, else the built-in text that was tested against a real model.
+
+Set them in the *Prompts* tab of the book, under *Extension Settings*, in the dialog of a folder, or for all your books in
+*Settings → Extension Settings → Knowledge Tracker* (empty shows the built-in text in grey). Keep the JSON answer format of the
+built-in text: the plugin reads the answer by it. The instructions for `read_part` are added by the plugin when the model may read
+earlier parts, so your prompt does not need them.
 
 ## Annotating with what the characters know
 

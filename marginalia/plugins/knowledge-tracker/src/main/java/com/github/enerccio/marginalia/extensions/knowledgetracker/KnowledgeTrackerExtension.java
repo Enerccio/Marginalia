@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.extensions.knowledgetracker;
 
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
+import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.ExtensionService.ExtendableMethodContext;
 import com.github.enerccio.marginalia.domain.service.ExtensionService.ExtensionDecorator;
@@ -20,6 +21,7 @@ import com.github.enerccio.marginalia.extensions.knowledgetracker.model.BookSett
 import com.github.enerccio.marginalia.extensions.knowledgetracker.model.KnowledgeState;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.service.*;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.service.KnowledgePromptService.Prepared;
+import com.github.enerccio.marginalia.extensions.knowledgetracker.ui.KnowledgeSettingsForm;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.ui.KnowledgeTrackerStyles;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.ui.KnowledgeTrackerView;
 import com.github.enerccio.marginalia.ui.dialogs.story.StoryEditor;
@@ -29,6 +31,8 @@ import com.github.enerccio.marginalia.ui.widgets.TabDock;
 import com.github.enerccio.marginalia.ui.widgets.TabDockIcon;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.ComponentUtil;
+import com.vaadin.flow.component.accordion.Accordion;
+import com.vaadin.flow.component.accordion.AccordionPanel;
 import org.osgi.framework.Bundle;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,6 +60,8 @@ public class KnowledgeTrackerExtension implements MarginaliaExtension, Extension
                     + "<path d='M8 10.5c1 0 2 .6 2 1.8M16 10.5c-1 0-2 .6-2 1.8'/>");
 
     private static final String VIEW_KEY = KnowledgeState.KEY + ".view";
+    private static final String USER_PART = "com.github.enerccio.marginalia.ui.workspace.parts.UserPart";
+    private static final String SETTINGS_PANEL_KEY = KnowledgeState.KEY + ".settingsPanel";
     /** The source of the notification that a run the user started reads the story or waits for the review, see {@code NotificationService}. */
     public static final String NOTIFY_EXTRACT = KnowledgeState.KEY + ".extract";
 
@@ -92,11 +98,14 @@ public class KnowledgeTrackerExtension implements MarginaliaExtension, Extension
     private KnowledgeFactsProvider factsProvider;
 
     private ExtensionDecorator storyPartDecorator;
+    private ExtensionDecorator userPartDecorator;
+    private ExtensionDecorator userPartSaveDecorator;
     private ExtensionDecorator partFinishedDecorator;
     private Registration reserveRegistration;
     private Registration payloadRegistration;
     private Registration cleanupRegistration;
 
+    private final Set<Accordion> activeAccordions = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
     private final Set<TabDock> activeTabSheets = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
 
     @Override
@@ -106,6 +115,58 @@ public class KnowledgeTrackerExtension implements MarginaliaExtension, Extension
         try {
             // what books and folders inherit (their dialogs get the fields); the user level is in the Knowledge tab
             KnowledgeInherited.register(inheritedSettingRegistry, bundle.getSymbolicName(), stateService::getUserPrompt);
+
+            // the Knowledge Tracker section in the extension settings of the user settings
+            userPartDecorator = new ExtensionDecorator() {
+                @Override
+                public void onMethodEnter(Object instrumented, ExtendableMethodContext context) throws Exception {
+                }
+
+                @Override
+                public void onMethodLeave(Object instrumented, ExtendableMethodContext context, Throwable throwing) throws Exception {
+                    Accordion extensionSettings = context.getReflectiveFieldValue(instrumented, "extensionSettings", Accordion.class);
+                    if (extensionSettings == null) {
+                        return;
+                    }
+                    AccordionPanel panel = (AccordionPanel) ComponentUtil.getData(extensionSettings, SETTINGS_PANEL_KEY);
+                    if (panel != null) {
+                        panel.getContent().findFirst().ifPresent(content -> {
+                            if (content instanceof KnowledgeSettingsForm form) {
+                                form.refresh();
+                            }
+                        });
+                    } else {
+                        panel = extensionSettings.add(T.localized(KnowledgeTrackerLocalization.KNOWLEDGE_TRACKER), new KnowledgeSettingsForm(stateService));
+                        ComponentUtil.setData(extensionSettings, SETTINGS_PANEL_KEY, panel);
+                        activeAccordions.add(extensionSettings);
+                    }
+                }
+            };
+            extensionService.registerDecorator(userPartDecorator, USER_PART, "refresh");
+
+            userPartSaveDecorator = new ExtensionDecorator() {
+                @Override
+                public void onMethodEnter(Object instrumented, ExtendableMethodContext context) throws Exception {
+                    UserSetting userSetting = context.getReflectiveFieldValue(instrumented, "userSetting", UserSetting.class);
+                    Accordion extensionSettings = context.getReflectiveFieldValue(instrumented, "extensionSettings", Accordion.class);
+                    if (extensionSettings == null || userSetting == null) {
+                        return;
+                    }
+                    AccordionPanel panel = (AccordionPanel) ComponentUtil.getData(extensionSettings, SETTINGS_PANEL_KEY);
+                    if (panel != null) {
+                        panel.getContent().findFirst().ifPresent(content -> {
+                            if (content instanceof KnowledgeSettingsForm form) {
+                                form.save(userSetting);
+                            }
+                        });
+                    }
+                }
+
+                @Override
+                public void onMethodLeave(Object instrumented, ExtendableMethodContext context, Throwable throwing) throws Exception {
+                }
+            };
+            extensionService.registerDecorator(userPartSaveDecorator, USER_PART, "save");
 
             // the Knowledge tab in the left sidebar of the story view (the drawer on a phone)
             storyPartDecorator = new ExtensionDecorator() {
@@ -306,6 +367,25 @@ public class KnowledgeTrackerExtension implements MarginaliaExtension, Extension
         if (storyPartDecorator != null) {
             extensionService.unregisterDecorator(storyPartDecorator);
             storyPartDecorator = null;
+        }
+        for (ExtensionDecorator decorator : new ExtensionDecorator[] {userPartDecorator, userPartSaveDecorator}) {
+            if (decorator != null) {
+                extensionService.unregisterDecorator(decorator);
+            }
+        }
+        userPartDecorator = null;
+        userPartSaveDecorator = null;
+        synchronized (activeAccordions) {
+            for (Accordion accordion : activeAccordions) {
+                UIUtils.accessComponent(accordion, () -> {
+                    AccordionPanel panel = (AccordionPanel) ComponentUtil.getData(accordion, SETTINGS_PANEL_KEY);
+                    if (panel != null) {
+                        accordion.remove(panel);
+                        ComponentUtil.setData(accordion, SETTINGS_PANEL_KEY, null);
+                    }
+                });
+            }
+            activeAccordions.clear();
         }
         if (partFinishedDecorator != null) {
             extensionService.unregisterDecorator(partFinishedDecorator);
