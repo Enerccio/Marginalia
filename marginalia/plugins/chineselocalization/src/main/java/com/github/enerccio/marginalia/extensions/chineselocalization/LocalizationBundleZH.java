@@ -1395,7 +1395,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_TAG_RENAME_NOT_FOUND, "该标签已不存在");
         setValue(L.MSG_AI_EXTENSION_NOT_LOADED, "提供此 AI 的扩展“%s”未加载，因此无法显示其设置。请在“管理 → 扩展”中加载它。其他设置仍可保存。");
         setValue(L.MSG_NO_STORY_LOREBOOK, "此故事没有世界书。请在“世界书”标签页中选择。");
-        setValue(L.MSG_INVALID_EXTENSIONS_ADMIN, "有些扩展无效，未在运行。将鼠标悬停可查看是哪些。");
+        setValue(L.MSG_INVALID_EXTENSIONS_ADMIN, "有些扩展无效，未在运行。将鼠标悬停可查看是哪些，点击可打开“管理 → 扩展”。");
         setValue(L.MSG_INVALID_EXTENSIONS_ADMIN_LIST, "无效的扩展（报告见“管理 → 扩展”）：");
         setValue(L.MSG_INVALID_EXTENSIONS_USER, "有些扩展无效，未在运行。请告知管理员。");
         setValue(L.MSG_HELP_ANSWERING_WITH, "回答模型：%s");

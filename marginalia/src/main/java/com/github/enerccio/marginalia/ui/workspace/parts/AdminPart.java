@@ -77,6 +77,7 @@ public class AdminPart implements WorkspaceComponent {
     private TabSheet adminTabs;
     private final Map<Tab, LLMInteract> adminPanels = new LinkedHashMap<>();
     private Grid<Bundle> extensionsGrid;
+    private Tab shownExtensionsTab;
     private Grid<User> usersGrid;
     private final DatabaseBackupPanel databaseBackupPanel;
     private final CleanupPanel cleanupPanel;
@@ -141,6 +142,7 @@ public class AdminPart implements WorkspaceComponent {
         adminPanels.put(agentsTab, agentSettingsPanel);
 
         Tab extensionsTab = new Tab(loc.getValue(L.LABEL_EXTENSIONS));
+        shownExtensionsTab = extensionsTab;
         Component extensionsContent = createExtensionsTab();
         tabSheet.add(extensionsTab, extensionsContent);
 
@@ -711,6 +713,17 @@ public class AdminPart implements WorkspaceComponent {
     @Override
     public void onTabSwitched() throws Exception {
         refresh();
+    }
+
+    /**
+     * Selects the Extensions tab, what the red bar of invalid extensions asks for.
+     */
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = void.class))
+    public void showExtensions() {
+        if (adminTabs != null && shownExtensionsTab != null) {
+            adminTabs.setSelectedTab(shownExtensionsTab);
+        }
     }
 
     @PublicAPI(from = "1.1.0",

@@ -257,7 +257,7 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
     dialog (`OsgiService.createLogger`, `ExtensionLogDialog`). A red bar at the top of the workspace tells everybody (the
     administrator which ones, with a tooltip) that installed extensions are invalid and not running
     (`InvalidExtensionsWarning`, `OsgiService.getInvalidExtensions`); it is built at login, so it does not appear for an
-    extension that turns invalid while the page is open, and it does not link to *Admin → Extensions* yet. Still missing:
+    extension that turns invalid while the page is open; for an administrator a click opens *Admin → Extensions*. Still missing:
     show bundle errors and dependencies. The plugin API is not frozen in 1.0.
     ✅ Extensions can add settings that books and folders inherit (`InheritedSettingRegistry`: a line, a text area or a choice;
     shown as *Extension Settings* in the *Prompts* tab and in the folder window, resolved book -> folders -> user settings -> default;

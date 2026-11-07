@@ -1,7 +1,10 @@
 package com.github.enerccio.marginalia.ui.components;
 
+import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.service.OsgiService;
 import com.github.enerccio.marginalia.test.MarginaliaTestBase;
+import com.vaadin.flow.component.ClickEvent;
+import com.vaadin.flow.component.ComponentUtil;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.html.Span;
 import org.junit.jupiter.api.AfterEach;
@@ -13,6 +16,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import java.lang.reflect.Proxy;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -102,5 +106,23 @@ class InvalidExtensionsWarningTest extends MarginaliaTestBase {
         warning.refresh();
 
         assertThat(warning.isVisible()).isFalse();
+    }
+
+    @Test
+    void clickOpensTheExtensionsForTheAdministratorOnly() {
+        AtomicInteger opened = new AtomicInteger();
+        InvalidExtensionsWarning admin = new InvalidExtensionsWarning(true, opened::incrementAndGet).create();
+        ReflectionTestUtils.setField(admin, "osgiService", osgi(List.of(bundle("a.b", "1.0.0"))));
+        admin.refresh();
+        assertThat(admin.hasClassName(CssStyles.CURSOR_POINTER)).isTrue();
+        ComponentUtil.fireEvent(admin, new ClickEvent<>(admin));
+        assertThat(opened).hasValue(1);
+
+        InvalidExtensionsWarning user = new InvalidExtensionsWarning(false, opened::incrementAndGet).create();
+        ReflectionTestUtils.setField(user, "osgiService", osgi(List.of(bundle("a.b", "1.0.0"))));
+        user.refresh();
+        assertThat(user.hasClassName(CssStyles.CURSOR_POINTER)).isFalse();
+        ComponentUtil.fireEvent(user, new ClickEvent<>(user));
+        assertThat(opened).hasValue(1);
     }
 }

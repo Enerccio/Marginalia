@@ -324,7 +324,7 @@ public class DesktopWorkspace implements Workspace {
             locals = {@APILocals(name = "user", type = User.class)})
     private Component createInvalidExtensionsWarning() throws Exception {
         User user = userService.find(currentUser.getId());
-        return new InvalidExtensionsWarning(user != null && user.isAdmin()).create();
+        return new InvalidExtensionsWarning(user != null && user.isAdmin(), this::showAdminExtensions).create();
     }
 
     @PublicAPI(from = "1.1.0",
@@ -383,6 +383,21 @@ public class DesktopWorkspace implements Workspace {
         adminButton.setWidthFull();
         adminButton.addClickListener(e -> openAdmin());
         return adminButton;
+    }
+
+    /**
+     * Shows Admin → Extensions, what a click on the bar of invalid extensions does.
+     */
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = void.class))
+    private void showAdminExtensions() {
+        if (adminPart == null) {
+            return;
+        }
+        if (activeComponent != adminPart) {
+            openAdmin();
+        }
+        adminPart.showExtensions();
     }
 
     /**

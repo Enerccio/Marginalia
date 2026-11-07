@@ -1387,7 +1387,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_TAG_RENAME_NOT_FOUND, "The tag no longer exists");
         setValue(L.MSG_AI_EXTENSION_NOT_LOADED, "The extension \"%s\" that provides this AI is not loaded, so its settings cannot be shown. Load it in Admin → Extensions. The other settings can still be saved.");
         setValue(L.MSG_NO_STORY_LOREBOOK, "The story has no lorebook. Choose one in the Lorebook tab.");
-        setValue(L.MSG_INVALID_EXTENSIONS_ADMIN, "Some extensions are invalid and are not running. Hover to see which.");
+        setValue(L.MSG_INVALID_EXTENSIONS_ADMIN, "Some extensions are invalid and are not running. Hover to see which, click to open Admin → Extensions.");
         setValue(L.MSG_INVALID_EXTENSIONS_ADMIN_LIST, "Invalid extensions (the reports are in Admin → Extensions):");
         setValue(L.MSG_INVALID_EXTENSIONS_USER, "Some extensions are invalid and are not running. Please tell the administrator.");
         setValue(L.MSG_HELP_ANSWERING_WITH, "Answering with %s");
