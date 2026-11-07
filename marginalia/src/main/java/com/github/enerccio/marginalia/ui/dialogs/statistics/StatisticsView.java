@@ -49,7 +49,7 @@ public class StatisticsView extends VerticalLayout {
     private static final Gson gson = new Gson();
     private static final String CHART_HEIGHT = "340px";
     private static final String CHART_HEIGHT_COMPACT = "240px";
-    private static final String GRID_HEIGHT = "420px";
+    private static final String GRID_HEIGHT = "100%";
     private static final String GRID_HEIGHT_COMPACT = "340px";
 
     @Autowired
@@ -110,6 +110,10 @@ public class StatisticsView extends VerticalLayout {
         setPadding(false);
         setSpacing(true);
         setWidthFull();
+        if (!compact) {
+            // the dialog of a window has a fixed height: the tab sheet and its grids use all of it
+            setHeightFull();
+        }
 
         add(createControls());
         totals = new Div();
@@ -135,6 +139,9 @@ public class StatisticsView extends VerticalLayout {
         addTab(loc.getValue(L.LABEL_STATISTICS_CALENDAR), calendar, calendar::load);
         tabs.addSelectedChangeListener(_ -> renderSelected());
         add(totals, notes, tabs);
+        if (!compact) {
+            expand(tabs);
+        }
         reload();
     }
 
