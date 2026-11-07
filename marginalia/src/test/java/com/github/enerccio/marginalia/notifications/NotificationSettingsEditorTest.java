@@ -1,7 +1,6 @@
 package com.github.enerccio.marginalia.notifications;
 
 import com.github.enerccio.marginalia.domain.service.NotificationService;
-import com.github.enerccio.marginalia.domain.service.NotificationService.*;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.test.MarginaliaTestBase;
 import com.github.enerccio.marginalia.ui.notifications.NotificationSettingsEditor;
@@ -15,6 +14,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static com.github.enerccio.marginalia.domain.service.NotificationService.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
