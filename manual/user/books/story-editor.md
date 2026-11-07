@@ -225,7 +225,7 @@ The settings menu (⚙) in the bottom bar groups what acts on the whole story. *
 
 | Sub menu | Items |
 |---|---|
-| **Appearance** | **Change Styles For Text**, **Highlight Generated Text** and **Annotations in the margin** (desktop only, the last two) |
+| **Appearance** | **Change Styles For Text**, **Highlight Generated Text** and **Annotations in the margin** (desktop only, the last one) |
 | **Analysis** | **Annotate a range of parts with AI**, **Automatic annotation**, **Branch Tokens**, **Lore Usage**, **Statistics** |
 | **Import & export** | **Import from archive**, **Export story** (and the items of extensions that import or export, such as **Export instructions**) |
 | **Cleanup** | **Clear history of the book**, **Empty trash of the history**, **Mass delete** |
@@ -531,14 +531,19 @@ Books that had the old *Change Styles For Text* switch on keep showing the Book 
 
 ## Highlighting generated text
 
-The settings menu (⚙) also has the checkable **Highlight Generated Text**. While it is on, the text that is still the
-way the model wrote it is highlighted in every part, so what you added or rewrote stands out. Marginalia keeps the
-original text of each part and compares it with the current one word by word. A part you never edited is highlighted
-whole; a part you wrote yourself has nothing highlighted. The switch is not saved: it is off again when the page is
-opened anew.
+The settings menu (⚙) also has the checkable **Highlight Generated Text**. While it is on, the words a model wrote are
+highlighted in every part, so what you added or rewrote stands out. Marginalia follows the text through the
+[versions of the part](version-history.md): each version is laid over the one before it, and the words they have in common keep
+whoever wrote them, so a sentence you typed into a generated text stays yours however many times the model rewrites the rest. A part
+you never edited is highlighted whole; a part you wrote yourself has nothing highlighted. What an agent wrote counts as the
+model's. The switch is not saved: it is off again when the page is opened anew.
 
-Parts that existed before this feature count wholly as generated, because the original text was not kept for them.
-The highlight is available in the desktop view only, not in the [phone view](../phone.md).
+A part whose [history is switched off](version-history.md) has no versions to follow: it is compared with the text the model generated
+first. The highlight works on the [phone](../phone.md) too.
+
+The same count gives the ratio: the **Info** tab of the book has **Authorship of the branch** with a **Calculate** button, which tells
+how many percent of the words of the active branch you wrote and how many a model generated, and
+[the export](export.md) can end the file with a statement of it.
 
 ![Highlighted generated text and the settings menu](../../images/highlight-generated.png)
 

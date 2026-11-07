@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.service.impl;
 
+import com.github.enerccio.marginalia.domain.collections.RevisionDetail;
 import com.github.enerccio.marginalia.domain.collections.RevisionSource;
 import com.github.enerccio.marginalia.domain.components.*;
 import com.github.enerccio.marginalia.domain.model.OwnedEntity;
@@ -13,6 +14,7 @@ import com.github.enerccio.marginalia.domain.service.search.FulltextHit;
 import com.github.enerccio.marginalia.domain.service.search.FulltextQuery;
 import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
+import com.github.enerccio.marginalia.utils.AuthorshipTracker;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -204,6 +206,81 @@ public class MessageRevisionServiceImpl extends ExtendableServiceImpl<MessageRev
             return List.of();
         }
         return getRepository().findRows(part, includeDeleted);
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public PartAuthorship authorship(ChatMessage part) throws Exception {
+        String current = StringUtils.defaultString(part == null ? null : part.getResponse());
+        AuthorshipTracker tracker = new AuthorshipTracker();
+        List<RevisionRow> rows = part == null || part.getId() == null || !ownedByCurrentUser(part)
+                ? List.of() : getRepository().findRows(part, false);
+        String generated = part == null ? null : StringUtils.trimToNull(part.getOriginalResponse());
+        if (rows.isEmpty()) {
+            // no history (switched off, or a part that is being generated): the text the model wrote is the only thing known
+            if (generated != null) {
+                tracker.startWith(generated);
+                tracker.change(current, false);
+            } else {
+                tracker.replaceAll(current, part != null && StringUtils.isNotBlank(part.getModelUsed()));
+            }
+        } else {
+            if (generated != null) {
+                tracker.startWith(generated);
+            }
+            Map<String, AuthorshipTracker.Snapshot> known = new HashMap<>();
+            for (RevisionRow row : rows.reversed()) {
+                MessageRevision revision = getRepository().find(row.id());
+                if (revision == null) {
+                    continue;
+                }
+                String text = StringUtils.defaultString(revision.getResponse());
+                boolean model = revision.getSource().isModel() || revision.isAgent();
+                AuthorshipTracker.Snapshot restored = revision.getSource() == RevisionSource.RESTORE ? known.get(revision.getRestoredFrom()) : null;
+                if (revision.getSource() == RevisionSource.GENERATE || revision.getSource() == RevisionSource.REGENERATE) {
+                    tracker.replaceAll(text, true);
+                } else if (restored != null && text.equals(String.join("", restored.tokens()))) {
+                    tracker.load(restored);
+                } else if (generated != null && RevisionDetail.TRANSLATION.code().equals(revision.getSourceDetail())) {
+                    // the same words in another language: compared to the generated text, which was translated the same way
+                    tracker.changeAgainst(text, generated);
+                } else {
+                    tracker.change(text, model);
+                }
+                known.put(revision.getUuid(), tracker.snapshot());
+            }
+            if (!current.equals(tracker.text())) {
+                // the text changed without a version (or the newest version is not saved yet): a person's edit
+                tracker.change(current, false);
+            }
+        }
+        return new PartAuthorship(tracker.text(), tracker.generatedRanges(), tracker.generatedWords(), tracker.writtenWords());
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public BookAuthorship authorship(List<ChatMessage> parts) throws Exception {
+        int counted = 0;
+        int withGenerated = 0;
+        long generatedWords = 0;
+        long writtenWords = 0;
+        Set<String> models = new TreeSet<>();
+        for (ChatMessage part : parts) {
+            if (part == null || StringUtils.isBlank(part.getResponse())) {
+                continue;
+            }
+            PartAuthorship authorship = authorship(part);
+            counted++;
+            generatedWords += authorship.generatedWords();
+            writtenWords += authorship.writtenWords();
+            if (authorship.generatedWords() > 0) {
+                withGenerated++;
+                if (StringUtils.isNotBlank(part.getModelUsed())) {
+                    models.add(part.getModelUsed().trim());
+                }
+            }
+        }
+        return new BookAuthorship(counted, withGenerated, generatedWords, writtenWords, new ArrayList<>(models));
     }
 
     @Override

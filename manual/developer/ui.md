@@ -435,11 +435,16 @@ to it (see [Extending the UI](plugins/ui-extensions.md#the-story-menu-bar)):
 
 The checkable **Highlight Generated Text** item is the diff view: `setShowGeneratedDiff(show)` stores the flag (a field
 of the tab, not saved) and calls `ChatMessageCard.renderResponse()` of every card, which sets the content of the
-response `Markdown` - with the flag on, the text from `GeneratedTextHighlighter.highlight(response, originalResponse,
-CssStyles.GENERATED_TEXT)`, which diffs both texts word by word and wraps the shared words in `<mark>`. The card calls
+response `Markdown` - with the flag on, the ranges of the words a model wrote, from `CardAuthorship.marks` (it asks
+`MessageRevisionService.authorship(part)`, which merges the versions of the history, see [Who wrote the words](version-history.md#who-wrote-the-words),
+and keeps the result for the text it was worked out for; while the part is being generated all of the text is marked), wrapped in `<mark>`
+of `CssStyles.GENERATED_TEXT` by `TextMarkup`. The card calls
 `renderResponse()` whenever its response changes (construction, streaming, end of an edit), and
 `StoryGenerationListener.onResponseChunk` copies `originalResponse` into the card's own `ChatMessage` while streaming.
-The phone tab has no diff view.
+The phone tab has the same switch (`PhoneManuscriptStoryPart`).
+
+The **Info** tab of the book (`ManuscriptInfoPart`, `PhoneManuscriptInfoPart`) has the `AuthorshipField`: the share of the words of the active branch that the author wrote and a model generated
+(`BookAuthorship`, from `MessageRevisionService.authorship(parts)`). It reads every version of every part, so it is done by its **Calculate** button.
 
 ### The summaries overview
 

@@ -96,7 +96,6 @@ class ReplaceTextTest extends GenerationTestBase {
         ChatMessage part = stored(story.get(1));
         assertThat(saved.getId()).isEqualTo(part.getId());
         assertThat(part.getResponse()).isEqualTo("John said Da ek se za skag");
-        assertThat(part.isEdited()).isFalse();
         assertThat(part.getOriginalResponse()).isEqualTo("John said Da ek se za skag");
         assertThat(part.getWordCount()).isEqualTo(7);
     }
@@ -105,7 +104,6 @@ class ReplaceTextTest extends GenerationTestBase {
     void anEditOfTheAuthorIsFlaggedAsBefore() throws Exception {
         chatMessageService.updateResponse(manuscript, story.get(2), "John went away");
 
-        assertThat(stored(story.get(2)).isEdited()).isTrue();
     }
 
     @Test

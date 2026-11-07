@@ -127,7 +127,6 @@ class RedraftDialogTest extends MarginaliaTestBase {
 
         ChatMessage stored = chatMessageService.find(part.getId());
         assertThat(stored.getResponse()).isEqualTo("He drew his sword slowly, rain on the blade.");
-        assertThat(stored.isEdited()).isTrue();
         assertThat(stored.getWordCount()).isEqualTo(9);
         assertThat(applied.get().getResponse()).isEqualTo(stored.getResponse());
         assertThat(dialog.isOpened()).isFalse();

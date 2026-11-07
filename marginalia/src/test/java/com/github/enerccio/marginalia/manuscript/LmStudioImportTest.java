@@ -66,6 +66,5 @@ class LmStudioImportTest extends MarginaliaTestBase {
                 .containsExactly("Swords rang.", "Pistols cracked.");
         ChatMessage swords = chatMessageService.getSwipesForMessage(shown.get(1)).getFirst();
         assertThat(swords.getResponseReasoning()).isEqualTo("think first");
-        assertThat(shown.get(1).isEdited()).isFalse();
     }
 }

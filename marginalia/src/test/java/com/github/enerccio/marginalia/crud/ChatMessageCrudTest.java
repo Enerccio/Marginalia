@@ -90,20 +90,17 @@ class ChatMessageCrudTest extends ExtendableCrudContract<ChatMessage> {
         assertThat(loaded.getModelUsed()).isEqualTo("model-a");
         assertThat(loaded.getProtocolUsed()).isEqualTo("protocol-a");
         assertThat(loaded.getBuiltPromptTokens()).isEqualTo(1100L);
-        assertThat(loaded.isEdited()).isFalse();
     }
 
     @Override
     protected void modify(ChatMessage entity) {
         entity.setResponse("It was a bright morning.");
-        entity.setEdited(true);
         entity.setWordCount(4);
     }
 
     @Override
     protected void assertModified(ChatMessage loaded) {
         assertThat(loaded.getResponse()).isEqualTo("It was a bright morning.");
-        assertThat(loaded.isEdited()).isTrue();
         assertThat(loaded.getWordCount()).isEqualTo(4);
         assertThat(loaded.getInstructions()).isEqualTo("Continue the story");
     }

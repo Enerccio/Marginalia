@@ -625,7 +625,6 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
             msgObj.addProperty("uuid", msg.getUuid());
             msgObj.addProperty("tokenCount", msg.getTokenCount());
             msgObj.addProperty("wordCount", msg.getWordCount());
-            msgObj.addProperty("edited", msg.isEdited());
 
             if (msg.getParent() != null) {
                 msgObj.addProperty("parentUuid", msg.getParent().getUuid());
@@ -1157,9 +1156,6 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
             }
             if (msgObj.has("wordCount") && !msgObj.get("wordCount").isJsonNull()) {
                 msg.setWordCount(msgObj.get("wordCount").getAsInt());
-            }
-            if (msgObj.has("edited") && !msgObj.get("edited").isJsonNull()) {
-                msg.setEdited(msgObj.get("edited").getAsBoolean());
             }
 
             String restoredPrompt = null;

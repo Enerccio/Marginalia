@@ -132,6 +132,8 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
     private boolean isFrozen = false;
 
     private final StoryCards<ChatMessageCard> cards = new StoryCards<>();
+    // not stored: the text a model wrote is highlighted in the cards
+    private boolean showGeneratedDiff = false;
     private final StorySupport support = new StorySupport();
     private StoryLazyLoader<ChatMessageCard> lazyLoader;
     private StoryBranchSearch branchSearch;
@@ -379,6 +381,28 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
     @Override
     public void toggleMassDelete() {
         massDelete.toggle();
+    }
+
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = boolean.class))
+    @Override
+    public boolean isShowGeneratedDiff() {
+        return showGeneratedDiff;
+    }
+
+    /**
+     * Switches the highlight of the text a model wrote: the response of every card is drawn again.
+     */
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "show", type = boolean.class)},
+            locals = {@APILocals(name = "card", type = PhoneManuscriptStoryPart.ChatMessageCard.class)})
+    @Override
+    public void setShowGeneratedDiff(boolean show) {
+        showGeneratedDiff = show;
+        for (ChatMessageCard card : cards.values()) {
+            card.renderResponse();
+        }
     }
 
     @PublicAPI(from = "1.6.0",
@@ -1057,6 +1081,8 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
         private boolean revalidateSummariesOnSave = false;
 
         private CardAnnotations cardAnnotations;
+        // who wrote the words of the text, read from the history of the part
+        private final CardAuthorship authorship = new CardAuthorship(messageRevisionService, loc);
         // the text is being generated again: the passages of the annotations are not in it yet
         private boolean generating = false;
 
@@ -1701,7 +1727,11 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
         @Override
         public void renderResponse() {
             String response = StringUtils.defaultString(message.getResponse());
-            List<TextMarkup.Mark> marks = new ArrayList<>(branchSearch.marks(message.getId(), response));
+            List<TextMarkup.Mark> marks = new ArrayList<>();
+            if (showGeneratedDiff) {
+                marks.addAll(authorship.marks(message, response, generating));
+            }
+            marks.addAll(branchSearch.marks(message.getId(), response));
             if (!generating) {
                 marks.addAll(annotations.marks(message, response));
             }

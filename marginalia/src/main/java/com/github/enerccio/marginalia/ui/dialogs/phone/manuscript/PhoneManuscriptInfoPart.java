@@ -14,10 +14,7 @@ import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.phone.PhoneManuscriptDialog;
 import com.github.enerccio.marginalia.ui.dialogs.phone.PhoneManuscriptDialogPart;
 import com.github.enerccio.marginalia.ui.main.Viewer;
-import com.github.enerccio.marginalia.ui.widgets.HistoryLimitField;
-import com.github.enerccio.marginalia.ui.widgets.InheritedLanguageCombo;
-import com.github.enerccio.marginalia.ui.widgets.ResizableTextArea;
-import com.github.enerccio.marginalia.ui.widgets.TagMultiComboBox;
+import com.github.enerccio.marginalia.ui.widgets.*;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
@@ -73,6 +70,7 @@ public class PhoneManuscriptInfoPart implements PhoneManuscriptDialogPart {
     private Span totalTokenCountSpan;
     private Span branchWordCountSpan;
     private Span branchTokenCountSpan;
+    private AuthorshipField authorshipField;
 
     private boolean loading = false;
 
@@ -100,7 +98,7 @@ public class PhoneManuscriptInfoPart implements PhoneManuscriptDialogPart {
         statistics.setSpacing(false);
         statistics.addClassName(CssStyles.SUBTLE_BOX);
 
-        mainLayout.add(nameField, tags, descriptionField, languageCombo, historyLimitField, aiCombo, protocolCombo, publishedCheckbox, statistics);
+        mainLayout.add(nameField, tags, descriptionField, languageCombo, historyLimitField, aiCombo, protocolCombo, publishedCheckbox, statistics, authorshipField);
         return mainLayout;
     }
 
@@ -197,6 +195,15 @@ public class PhoneManuscriptInfoPart implements PhoneManuscriptDialogPart {
         totalTokenCountSpan = new Span();
         branchWordCountSpan = new Span();
         branchTokenCountSpan = new Span();
+
+        authorshipField = new AuthorshipField(() -> {
+            try {
+                return refreshModel();
+            } catch (Exception e) {
+                UIUtils.internalServerError(loc, e);
+                return null;
+            }
+        });
     }
 
     @PublicAPI(from = "1.1.0",
@@ -312,6 +319,7 @@ public class PhoneManuscriptInfoPart implements PhoneManuscriptDialogPart {
             returns = @APIReturn(type = void.class))
     @Override
     public void onTabEnter() throws Exception {
+        authorshipField.reset();
         updateSyntheticFields(parent.getManuscript());
     }
 }

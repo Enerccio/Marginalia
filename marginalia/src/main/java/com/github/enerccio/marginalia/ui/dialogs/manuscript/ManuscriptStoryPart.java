@@ -30,7 +30,6 @@ import com.github.enerccio.marginalia.ui.shortcuts.ShortcutActions;
 import com.github.enerccio.marginalia.ui.shortcuts.ShortcutRegistry;
 import com.github.enerccio.marginalia.ui.styles.PartStyleApplier;
 import com.github.enerccio.marginalia.ui.widgets.*;
-import com.github.enerccio.marginalia.utils.GeneratedTextHighlighter;
 import com.github.enerccio.marginalia.utils.MarkdownArchive;
 import com.github.enerccio.marginalia.utils.TextMarkup;
 import com.github.enerccio.marginalia.utils.UIUtils;
@@ -1505,6 +1504,8 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
         private boolean revalidateSummariesOnSave = false;
 
         private CardAnnotations cardAnnotations;
+        // who wrote the words of the text, read from the history of the part
+        private final CardAuthorship authorship = new CardAuthorship(messageRevisionService, loc);
         // the text is being generated again: the passages of the annotations are not in it yet
         private boolean generating = false;
 
@@ -2159,16 +2160,13 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
         @PublicAPI(from = "1.2.0",
                 returns = @APIReturn(type = void.class),
                 locals = {@APILocals(name = "response", type = String.class),
-                        @APILocals(name = "marks", type = List.class),
-                        @APILocals(name = "range", type = int[].class)})
+                        @APILocals(name = "marks", type = List.class)})
         public void renderResponse() {
             String response = StringUtils.defaultString(message.getResponse());
             // all the layers are ranges of the text as it is, put in at once (see TextMarkup)
             List<TextMarkup.Mark> marks = new ArrayList<>();
             if (showGeneratedDiff) {
-                for (int[] range : GeneratedTextHighlighter.ranges(response, message.getOriginalResponse())) {
-                    marks.add(new TextMarkup.Mark(range[0], range[1], CssStyles.GENERATED_TEXT));
-                }
+                marks.addAll(authorship.marks(message, response, generating));
             }
             marks.addAll(branchSearch.marks(message.getId(), response));
             if (!generating) {

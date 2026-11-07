@@ -162,7 +162,6 @@ class ManuscriptReplaceTest extends GenerationTestBase {
         assertThat(summaryText(story.get(5))).isEqualTo("Jon smiled and left");
 
         ChatMessage edited = chatMessageService.find(story.get(0).getId());
-        assertThat(edited.isEdited()).isTrue();
         assertThat(edited.getWordCount()).isEqualTo(3);
         assertThat(edited.get_fulltext()).isEqualTo("Anna met Jon");
 
@@ -345,7 +344,6 @@ class ManuscriptReplaceTest extends GenerationTestBase {
         assertThat(response(story.get(3))).isEqualTo("John smiled");
         assertThat(summaryText(story.get(2))).isEqualTo("Jon and Anna");
         assertThat(summaryText(story.get(5))).isEqualTo("Jon smiled and left");
-        assertThat(chatMessageService.find(story.get(0).getId()).isEdited()).isFalse();
         assertThat(blocks(story.getLast())).hasSize(2).allMatch(SummaryBlock::isValid);
     }
 

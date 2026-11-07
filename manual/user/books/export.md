@@ -31,6 +31,7 @@ another version of the story, switch to that branch first.
 | **Author** | Starts as your full name from your [account](../account.md). Empty means no author. |
 | **From message**, **To message** | Which parts to export. Parts are counted from 1 in the order of the story, parts without text are not counted. Leave **To message** empty to export to the end. |
 | **Include title page** | Starts the file with a first page holding the title and the author. |
+| **Include authorship statement** | Ends the file with a short statement of who wrote the words: how many words you wrote and how many a model generated, in words and percent, with the models. Some publishers and contests ask for it. It is worked out from the [version history](version-history.md) of the exported parts (see [Highlighting generated text](story-editor.md#highlighting-generated-text)). Not offered for the SillyTavern chat. The wording is a template in [Settings → Exports](../account.md#exports). |
 
 ![The finished export, ready to download](../../images/export-download.png)
 

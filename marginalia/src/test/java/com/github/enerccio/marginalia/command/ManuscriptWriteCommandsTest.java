@@ -136,7 +136,6 @@ class ManuscriptWriteCommandsTest extends GenerationTestBase {
         JsonObject result = run("/edit-part " + second.getUuid() + " \"slept soundly\" \"dreamed\"");
 
         assertThat(reload(second).getResponse()).isEqualTo("John went home. He dreamed.");
-        assertThat(reload(second).isEdited()).isTrue();
         assertThat(result.get("handle").getAsString()).isEqualTo(second.getUuid());
         assertThat(result.get("position").getAsInt()).isEqualTo(2);
         assertThat(result.get("words").getAsInt()).isEqualTo(5);
@@ -152,7 +151,6 @@ class ManuscriptWriteCommandsTest extends GenerationTestBase {
         assertThatThrownBy(() -> run("/edit-part " + first.getUuid() + " \"\" Bob")).isInstanceOf(ExecutionException.class);
 
         assertThat(reload(first).getResponse()).isEqualTo("Anna met John.");
-        assertThat(reload(first).isEdited()).isFalse();
     }
 
     @Test
@@ -172,7 +170,6 @@ class ManuscriptWriteCommandsTest extends GenerationTestBase {
         answer = true;
         JsonObject result = run("/replace-part-text " + first.getUuid() + " \"Brand new.\"");
         assertThat(reload(first).getResponse()).isEqualTo("Brand new.");
-        assertThat(reload(first).isEdited()).isTrue();
         assertThat(result.get("words").getAsInt()).isEqualTo(2);
     }
 
@@ -187,7 +184,6 @@ class ManuscriptWriteCommandsTest extends GenerationTestBase {
         // the turn is edited like a text, the part is not flagged as edited
         run("/edit-part " + first.getUuid() + " cold warm scene");
         assertThat(reload(first).getSceneSetting()).isEqualTo("A warm forest");
-        assertThat(reload(first).isEdited()).isFalse();
 
         // an empty text clears a field
         run("/set-part-fields " + first.getUuid() + " \"\"");
@@ -211,7 +207,6 @@ class ManuscriptWriteCommandsTest extends GenerationTestBase {
         JsonObject added = run("/create-part \"Night fell.\"");
         ChatMessage created = chatMessageService.find(chatMessageService.find(added.get("handle").getAsString()));
         assertThat(created.getParent().getId()).isEqualTo(second.getId());
-        assertThat(created.isEdited()).isFalse();
         assertThat(created.getWordCount()).isEqualTo(2);
         assertThat(added.get("position").getAsInt()).isEqualTo(3);
         assertThat(book().getActiveLeaf().getId()).isEqualTo(created.getId());
@@ -243,7 +238,6 @@ class ManuscriptWriteCommandsTest extends GenerationTestBase {
 
         ChatMessage inserted = chatMessageService.find(chatMessageService.find(result.get("handle").getAsString()));
         assertThat(inserted.getParent().getId()).isEqualTo(first.getId());
-        assertThat(inserted.isEdited()).isFalse();
         assertThat(result.get("position").getAsInt()).isEqualTo(2);
         assertThat(result.get("continuedBy").getAsInt()).as("both continuations of the part, the branches stay branches").isEqualTo(2);
         // the parts below were not made again: the same uuids, one place deeper

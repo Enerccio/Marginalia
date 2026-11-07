@@ -131,7 +131,6 @@ class FailedGenerationTest extends GenerationTestBase {
         assertThat(secondRun.await(TIMEOUT)).isEqualTo(GenerationRun.Outcome.COMPLETED);
 
         ChatMessage second = chatMessageService.find(secondRun.getMessage().getId());
-        second.setEdited(true);
         second.getAttributes().addProperty("extension", "keep me");
         second = chatMessageService.save(second);
         ChatMessage before = chatMessageService.find(second.getId());
@@ -156,7 +155,6 @@ class FailedGenerationTest extends GenerationTestBase {
         assertThat(after.getRequest()).isEqualTo(before.getRequest());
         assertThat(after.getTtft()).isEqualTo(before.getTtft());
         assertThat(after.getReasoningEnd()).isEqualTo(before.getReasoningEnd());
-        assertThat(after.isEdited()).isTrue();
         assertThat(after.getAttributes()).isEqualTo(attributesBefore);
         assertThat(story()).containsExactly("FIRST", "SECOND");
 

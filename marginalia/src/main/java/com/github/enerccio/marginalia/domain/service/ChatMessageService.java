@@ -160,7 +160,7 @@ public interface ChatMessageService extends ExtendableService<ChatMessage, ChatM
 
     /**
      * Stores the text of a part the author (or an agent) edited: counts its tokens (with the tokenizer of the book's AI, a
-     * generic one when it has none) and words, flags the part as edited and saves it.
+     * generic one when it has none) and words and saves it.
      *
      * @return the saved part and the summaries the edit made outdated (the ones that described the story before and no
      * longer do, not the ones that were outdated already)
@@ -179,7 +179,6 @@ public interface ChatMessageService extends ExtendableService<ChatMessage, ChatM
      * {@link #updateResponse(Manuscript, ChatMessage, String, RevisionOrigin)}, with these differences, because nothing was said
      * that was not said before:
      * <ul>
-     *     <li>the part is <b>not flagged as edited</b> (it is not what the author changed);</li>
      *     <li>its tokens are those of {@code modelText}, what a model reads of the new text (the context is made of what a model is
      *     sent), not of the stored text;</li>
      *     <li>{@code generatedText} becomes the text the model generated ({@code originalResponse}), so what the author changed is
@@ -232,8 +231,7 @@ public interface ChatMessageService extends ExtendableService<ChatMessage, ChatM
 
     /**
      * Adds a part the author (or an agent) wrote as a child of {@code parent}, or as the first part of an empty book when
-     * the parent is null: counts its tokens and words and makes it the active leaf of the book, which is saved. The part is
-     * not flagged as edited, nobody changed a text of the model.
+     * the parent is null: counts its tokens and words and makes it the active leaf of the book, which is saved.
      *
      * @param input what the turn the part stands for was made from; null for none
      * @throws IllegalArgumentException when the parent is not a part of the manuscript, the manuscript is not the user's,
@@ -268,8 +266,7 @@ public interface ChatMessageService extends ExtendableService<ChatMessage, ChatM
      * Inserts a part into the story, between a part and what follows it: the new part becomes the only child of {@code after},
      * and everything that followed {@code after} (all its continuations, the swipes of the next part with their own
      * continuations) follows the new part now. No part is deleted or made again, so their uuids, summaries and the data
-     * kept on them stay; every part below the new one is one place deeper. As {@link #createPart}, the text is counted and
-     * the part is not flagged as edited. The active leaf stays where it is, unless {@code after} was the leaf: the new
+     * kept on them stay; every part below the new one is one place deeper. As {@link #createPart}, the text is counted. The active leaf stays where it is, unless {@code after} was the leaf: the new
      * part is the end of the branch then, as with {@link #createPart}. The summaries of the parts below that covered
      * {@code after} are outdated, as they describe the story without the new part.
      *

@@ -12,10 +12,7 @@ import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.ManuscriptDialog;
 import com.github.enerccio.marginalia.ui.main.Viewer;
-import com.github.enerccio.marginalia.ui.widgets.HistoryLimitField;
-import com.github.enerccio.marginalia.ui.widgets.InheritedLanguageCombo;
-import com.github.enerccio.marginalia.ui.widgets.ResizableTextArea;
-import com.github.enerccio.marginalia.ui.widgets.TagMultiComboBox;
+import com.github.enerccio.marginalia.ui.widgets.*;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
@@ -71,6 +68,7 @@ public class ManuscriptInfoPart implements ManuscriptDialogPart {
     private IntegerField totalTokenCountField;
     private IntegerField branchWordCountField;
     private IntegerField branchTokenCountField;
+    private AuthorshipField authorshipField;
 
     private boolean loading = false;
 
@@ -102,7 +100,8 @@ public class ManuscriptInfoPart implements ManuscriptDialogPart {
 
         FormLayout syntheticFormLayout = new FormLayout();
         syntheticFormLayout.setWidthFull();
-        syntheticFormLayout.add(totalWordCountField, totalTokenCountField, branchWordCountField, branchTokenCountField);
+        syntheticFormLayout.add(totalWordCountField, totalTokenCountField, branchWordCountField, branchTokenCountField, authorshipField);
+        syntheticFormLayout.setColspan(authorshipField, 2);
 
         mainLayout.add(formLayout, syntheticFormLayout);
 
@@ -214,6 +213,15 @@ public class ManuscriptInfoPart implements ManuscriptDialogPart {
         branchTokenCountField = new IntegerField(loc.getValue(L.LABEL_BRANCH_TOKEN_COUNT));
         branchTokenCountField.setWidthFull();
         branchTokenCountField.setReadOnly(true);
+
+        authorshipField = new AuthorshipField(() -> {
+            try {
+                return refreshModel();
+            } catch (Exception e) {
+                UIUtils.internalServerError(loc, e);
+                return null;
+            }
+        });
     }
 
     @PublicAPI(from = "1.1.0",
@@ -331,6 +339,7 @@ public class ManuscriptInfoPart implements ManuscriptDialogPart {
             returns = @APIReturn(type = void.class))
     @Override
     public void onTabEnter() throws Exception {
+        authorshipField.reset();
         updateSyntheticFields(parent.getManuscript());
     }
 }

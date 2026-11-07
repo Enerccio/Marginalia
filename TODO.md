@@ -331,9 +331,10 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
       with a click). Works on a phone since 1.6.0 (a tab in the story drawer, the range chosen with two taps). Not done: editing the turn details in the tab, the converter wand as a command for the
       command bar and agents, running the wand on a long chat in chunks automatically, an automated test of the tab (only the
       logic has unit tests, the UI was checked by hand).
-35. **Image generation / illustrations** for scenes. 🧩 Started: the `image-generator` plugin (ComfyUI and OpenAI images API, hooks around the images for a single GPU; not done there: a generic HTTP template backend for other hosted services, manga tags as the prompt source). Attaching images by hand is done, see
-    *Images* in the part menu - generation, sending images to vision models and showing them to the readers of a
-    published book in the Viewer are not; the Viewer deliberately shows them to the owner only). Files of deleted
+35. **Image generation / illustrations** for scenes. 🧩 ✅ Partly: the `image-generator` plugin makes an image for a part (the model writes the prompt, ComfyUI and OpenAI images API, hooks around the images for a single GPU, reroll, accept as an image of the part; not done there: a generic HTTP template backend for other hosted services, manga tags as the prompt source). Attaching images by hand is done, see
+    *Images* in the part menu; agents can look at images (`view_image`). Not done: sending the images of the story to vision models in a
+    generation, and showing them to the readers of a
+    published book in the Viewer (the Viewer deliberately shows them to the owner only). Files of deleted
     resources and of replaced content stay in the data folder until the administrator removes them in *Admin → Resource Files*
     (garbage collection: scan, ZIP download, delete; done). 🧩
 36. **Text-to-speech read-aloud** in the Viewer. 🧩
@@ -390,15 +391,23 @@ Most are 🧩 plugin-sized; the ones that need a core hook say so.
     present characters with a condition, e.g. `{{eval::povCharacter == "Fiora" or presentCharacters has "Fiora"}}` (the `{{eval}}` macro,
     comparisons `== != ~= contains has`, `and` / `or` / `not`). Not done: a list of knowers on the entry itself (the condition is the
     place for it) and the separators of the characters set per book, which the Knowledge Tracker reads (`has` splits at `,` `;` and line breaks).
-44. 🧩 **Beat sheet / outline mode.** The author writes the upcoming beats as a list; each turn gets the next open beat
-    as an instruction, and a side query ticks it off when the generated part covered it (or flags drift). Beats are
-    reorderable, and the unfinished ones survive branching.
+44. ✅ Partly: **Beat sheet / outline mode.** Done in core by the **Planner** tab of the story editor (`PlannerService`, `PlannedScene`, stored
+    in the book's `plan` attribute, so backups and copies carry it): the scenes the author plans, reorderable, each with the turn details
+    (scene setting, POV, present characters, instructions) and a *written* flag; a click puts a scene into the new turn form. Commands
+    `/get-planned-scenes`, `/add-planned-scene`, `/update-planned-scene`, `/set-planned-scene-done`, `/move-planned-scene` and
+    `/delete-planned-scene` let agents, the command bar and the plot wizard of the Arc Outline plugin use it; on the phone it is in the
+    drawer. Not done: the flag is ticked by hand ("nothing checks it for you"), the next open scene is not fed to a turn by itself, no side
+    query ticks a scene off when the generated part covered it or flags drift, and the planner command is not `availableInMacros`, so a
+    template cannot pull the next open scene yet.
 
 ### Prose quality
 
-45. **Repetition and cliché radar.** Detect repeated n-grams across the last N parts of the branch (and a user
-    blacklist: "shivers down her spine", "a mix of X and Y") and highlight them in the editor. Optionally put the
-    offenders into an "avoid" block of the next prompt, or regenerate once automatically. Per-book and per-user lists.
+45. ✅ **Repetition and cliché radar.** Done by the annotations (54, like 41) instead of a detector: *Annotate with AI*, the batch over a range
+    and the *Automatic annotation* after every completed generation (`AutoAnnotate`) take an instruction such as "flag repeated phrases and
+    clichés (shivers down her spine, a mix of X and Y)" and a list of your own offenders can be written into it; the findings are wavy-underlined
+    notes in the editor, and *Redraft* (also automatic) rewrites the part to address the accepted ones. Not done, deliberately left to the model:
+    a deterministic n-gram detector across the last N parts, a stored per-book / per-user blacklist, and an "avoid" block put into the next
+    prompt (`RepeatDetector` is only for agents that loop).
 46. 🧩 **Swipe feedback loop.** Record why a swipe was rejected (one-click tags: too long, out of character, purple,
     repeats) and which one was kept. The tags build the "avoid" block of the next prompt, and the accept rate per
     protocol/template/model (sampler values are on the protocol) answers "is this prompt actually better".
@@ -411,11 +420,11 @@ Most are 🧩 plugin-sized; the ones that need a core hook say so.
     lore around it (not only the paragraph), writes the replacement alone, and the notes whose passage overlaps the
     selection can be given to it. Not done: the `/redraft-part` command and the agent tools take no passage, and the
     menu ☰ of the part does not offer it (it loses the selection). The right click menu was verified in real browsers.
-49. **Authorship provenance.** ✅ Partly (1.2.0): `ChatMessage.originalResponse` keeps what the model wrote and *Highlight
-    Generated Text* shows a word diff of a part against it (desktop story tab only). Since 1.6.0 the version history of a part also records who wrote each text (model, author, agent...). Open: the ratio per book, the
-    phone and exports. Goal: track which spans of a part are human (typed or edited) and which are model output; show
-    the ratio per book, optionally colour the text, and offer it as an export option (some publishers and
-    contests ask for it). `ChatMessage.edited` is a single flag today.
+49. ✅ **Authorship provenance.** Done (1.7.0): which words of a part a model wrote and which the author did is worked out from the version history
+    (`MessageRevisionService.authorship`, the versions are laid over each other like a merge, `AuthorshipTracker`), not from a flag: `ChatMessage.edited`
+    is gone (V27). Used by *Highlight Generated Text* (desktop and phone), the ratio of the active branch in the Info tab (**Calculate**) and the
+    check box *Include authorship statement* of the export (a template, ends the file with the words written / generated and the models). Not done: colouring
+    the generated text in the exported file, the ratio of the whole book (all branches) and per chapter, a stored (cached) result for very long books.
 
 ### Story tree and editing
 
@@ -427,9 +436,11 @@ Most are 🧩 plugin-sized; the ones that need a core hook say so.
 52. **Side-by-side model comparison.** Fan the same turn out to 2-3 providers/protocols in parallel and show the
     results as swipes in columns; the pick is recorded (feeds 46). Needs the generation engine to run several children
     of one prompt without re-running the lorebook step.
-53. 🧩 **Autopilot batch.** "Write the next N parts with these instructions" unattended, with stop conditions (word
-    or token budget, a side-query judge says the scene ended, an error), written to a new branch so the main one stays
-    clean; the result is reviewed and kept or pruned. Needs terminal events for failed/cancelled generations (24).
+53. ✅ Partly: **Autopilot batch.** Done by the agents (`manual/user/agents.md`): the *Drafter* preset writes the next turns with `/next` and
+    `/swipe` unattended in a **working copy** of the book, with limits (rounds, token budget, context cap), loop detection, pause / resume,
+    and a review of the changes before they are merged into the book (the unwanted ones are left out); the terminal events of 24 exist.
+    Not done: it is a book copy and a review, not a new branch of the book; no judge ("the scene ended") and no word-count stop condition of
+    its own; a plain "write N parts with these instructions" dialog without an agent.
 54. ✅ **Annotations (notes anchored to a passage of a part).** Done in 1.5.0 (see the CHANGELOG), also the *margin notes* mode and the annotations
     of agents (review, sync, handles); open: aligning each margin note with the line of its passage (client-side layout, now the notes are stacked in text
     order), (*Annotate selection* has a shortcut, `a`). The marks, the popover, the right click menu, the margin and the selection were verified in
@@ -564,10 +575,11 @@ Most are 🧩 plugin-sized; the ones that need a core hook say so.
     propose stubs; a click hands one to the Lore Generator. Also the reverse: entries whose name never appears in the
     book.
 59. 🧩 **Relationship graph.** Draw the lorebook as a graph (entries as nodes, mentions/links as edges, tag colours) to
-    see orphans and hubs; clicking opens the entry.
+    see orphans and hubs; clicking opens the entry. The widget exists (`GraphView`, Cytoscape, used by the relationship map of the
+    Character Tracker); the lorebook graph itself is not made.
 60. 🧩 **Markdown vault mirror.** Two-way sync of a lorebook (and optionally chapters) with a folder of Markdown files with
     front matter (name, tags, mode), so it can live in Obsidian or git. Complements `lorebookvcs`, which versions inside
-    the database.
+    the database. The one-way part exists: the Obsidian vault export (67); the two-way sync is not done.
 
 ### Prompt engineering
 
@@ -615,8 +627,7 @@ Most are 🧩 plugin-sized; the ones that need a core hook say so.
 70. ✅ Partly: **Notifications when a generation ends.** Slow local models take minutes. Done: browser desktop notifications when a
     run ends (generation, annotate, redraft, impersonate, summaries, help assistant, plugin runs; *Notifications* tab of the settings,
     `NotificationService`, plugins register sources) and a webhook (ntfy, Gotify, Discord) for agents only (`AgentWebhookService`).
-    Not done: the same webhook for generations and other runs, a tray notification in the desktop app (`DesktopLauncher`), a batch
-    (53) done.
+    Not done: the same webhook for generations and other runs, a tray notification in the desktop app (`DesktopLauncher`).
 71. 🧩 **MCP server.** Expose lore search, summaries and the active branch read-only (write behind a per-user token) to
     other tools such as an editor agent or a coding assistant, without adding a REST API to the core.
 72. **Off-site backup target.** Scheduled database backups can only stay in the data folder. Add an upload step (S3,

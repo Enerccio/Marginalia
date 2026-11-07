@@ -90,7 +90,6 @@ class PartEditServicesTest extends GenerationTestBase {
         ChatMessage part = stored(story.get(3));
         assertThat(edit.message().getId()).isEqualTo(part.getId());
         assertThat(part.getResponse()).isEqualTo("John smiled at the sea");
-        assertThat(part.isEdited()).isTrue();
         assertThat(part.getWordCount()).isEqualTo(5);
         assertThat(part.getTokenCount()).isPositive();
     }
@@ -117,7 +116,6 @@ class PartEditServicesTest extends GenerationTestBase {
 
         assertThat(preview).extracting(block -> block.head().getId()).containsExactly(story.get(4).getId());
         assertThat(stored(story.get(3)).getResponse()).isEqualTo("John smiled");
-        assertThat(stored(story.get(3)).isEdited()).isFalse();
         assertThat(summaryService.collectBlocks(chatMessageService.getBranchFromLeaf(stored(story.getLast())).reversed()))
                 .allMatch(SummaryBlock::isValid);
 

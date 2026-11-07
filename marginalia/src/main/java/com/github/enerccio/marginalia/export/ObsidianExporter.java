@@ -49,7 +49,7 @@ public class ObsidianExporter extends ExporterBase {
 
     @Override
     public List<ExportTemplate> getTemplates() {
-        return List.of(TITLE_PAGE_TEMPLATE, FRONT_MATTER_TEMPLATE);
+        return List.of(TITLE_PAGE_TEMPLATE, FRONT_MATTER_TEMPLATE, AUTHORSHIP_TEMPLATE);
     }
 
     @Override

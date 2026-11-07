@@ -49,7 +49,7 @@ public class StorySupport {
 
     /**
      * Stores the text the author edited: counts its tokens (with the tokenizer of the book's AI, a generic one when it
-     * has none) and words, flags the part as edited and saves it.
+     * has none) and words and saves it.
      *
      * @return the saved message
      */

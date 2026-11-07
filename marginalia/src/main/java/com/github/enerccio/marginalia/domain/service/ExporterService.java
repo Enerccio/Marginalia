@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.service;
 
+import com.github.enerccio.marginalia.domain.components.BookAuthorship;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.styles.PartStyle;
@@ -91,6 +92,14 @@ public interface ExporterService {
             return false;
         }
 
+        /**
+         * @return whether the exporter writes the statement of who wrote the words of the text ({@link ExportOptions#authorship()}); the
+         * export dialog offers the choice only for these
+         */
+        default boolean usesAuthorship() {
+            return false;
+        }
+
     }
 
     /**
@@ -131,9 +140,12 @@ public interface ExporterService {
      * @param templates      the templates of the exporter that the user changed, by {@link ExportTemplate#key()}; a template that is not here
      *                       is rendered as {@link ExportTemplate#defaultText()}
      * @param lore           the lore of the book, filled only for the exporters that {@link Exporter#usesLore() use it}
+     * @param authorship     who wrote the words of the exported text, null for an export without the authorship statement; the exporters
+     *                       that write text for reading (not the ones that write a transcript for a chat) end it with the statement
+     *                       ({@link com.github.enerccio.marginalia.export.ExporterBase#AUTHORSHIP_TEMPLATE})
      */
     record ExportOptions(String bookName, String author, boolean includeHeaders, String language, PartStyle style,
-                         Map<String, String> templates, List<ExportLoreEntry> lore) {
+                         Map<String, String> templates, List<ExportLoreEntry> lore, BookAuthorship authorship) {
 
         public ExportOptions {
             Map<String, String> changed = new HashMap<>();
@@ -146,6 +158,21 @@ public interface ExporterService {
             }
             templates = Map.copyOf(changed);
             lore = lore == null ? List.of() : List.copyOf(lore);
+        }
+
+        /**
+         * An export without the authorship statement.
+         */
+        public ExportOptions(String bookName, String author, boolean includeHeaders, String language, PartStyle style,
+                             Map<String, String> templates, List<ExportLoreEntry> lore) {
+            this(bookName, author, includeHeaders, language, style, templates, lore, null);
+        }
+
+        /**
+         * The same export with the authorship statement.
+         */
+        public ExportOptions withAuthorship(BookAuthorship authorship) {
+            return new ExportOptions(bookName, author, includeHeaders, language, style, templates, lore, authorship);
         }
 
         /**

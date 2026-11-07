@@ -81,8 +81,6 @@ public class ChatMessage extends ExtendableEntity {
 
     private int wordCount;
 
-    private boolean edited = false;
-
     @ExtendedAttribute
     @Transient
     private Date request;
@@ -153,7 +151,6 @@ public class ChatMessage extends ExtendableEntity {
         this.tokenReasoningCount = source.tokenReasoningCount;
         this.ttft = source.ttft;
         this.wordCount = source.wordCount;
-        this.edited = source.edited;
         this.setAttributes(source.getAttributes().deepCopy());
     }
 
@@ -267,14 +264,6 @@ public class ChatMessage extends ExtendableEntity {
 
     public void setWordCount(int wordCount) {
         this.wordCount = wordCount;
-    }
-
-    public boolean isEdited() {
-        return edited;
-    }
-
-    public void setEdited(boolean edited) {
-        this.edited = edited;
     }
 
     public Date getRequest() {

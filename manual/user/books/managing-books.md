@@ -211,6 +211,7 @@ Below are read-only counts:
 |---|---|
 | **Total Word Count**, **Total Token Count** | All parts of the book, in all branches. |
 | **Active Branch Word Count**, **Active Branch Token Count** | Only the parts of the [active branch](branches-and-story-tree.md). |
+| **Authorship of the branch** | Press **Calculate**: how many percent of the words of the active branch you wrote and how many a model generated, and the number of words. It is worked out from the [version history](version-history.md) of every part, so it takes a while on a long book, and a part whose history is switched off is compared with the text the model generated first. See [Highlighting generated text](story-editor.md#highlighting-generated-text). |
 
 A book needs a model and a protocol to generate. Without them, generating stops with *Book is missing model.* or
 *Book is missing protocol.*

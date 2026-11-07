@@ -1013,7 +1013,6 @@ public class AgentMergeServiceImpl implements AgentMergeService {
             message.setResponse(text);
             message.setTokenCount(source.getTokenCount());
             message.setWordCount(source.getWordCount());
-            message.setEdited(true);
             ChatMessage saved = chatMessageService.save(message);
             messageRevisionService.record(saved, MERGE_ORIGIN.data(saved));
             annotationService.shift(targetBook, saved, before, text);

@@ -92,9 +92,7 @@ class ManuscriptBackupCopyTest extends BackupTestBase {
         assertThat(one.getRequest()).isEqualTo(REQUEST);
         assertThat(one.getWordCount()).isEqualTo("chapter 1".length());
         assertThat(one.getTokenCount()).isEqualTo("chapter 1".length() * 2L);
-        assertThat(one.isEdited()).isTrue();
         assertThat(one.getAttributes().get("chapter").getAsString()).isEqualTo("chapter 1");
-        assertThat(messageByResponse(copy, "chapter 2b").isEdited()).isFalse();
 
         ChatMessage twoA = messageByResponse(copy, "chapter 2a");
         assertThat(twoA.getSummary()).isNotNull();

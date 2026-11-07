@@ -1008,6 +1008,9 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_FILTER_CONSTANT, "常驻（无关键词）");
         setValue(L.LABEL_SELECT_ENTRIES, "选择条目");
         setValue(L.LABEL_EDIT_ENTRY, "编辑条目");
+        setValue(L.LABEL_INCLUDE_AUTHORSHIP, "包含创作比例说明");
+        setValue(L.LABEL_AUTHORSHIP, "分支的创作比例");
+        setValue(L.LABEL_CALCULATE, "计算");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -1712,6 +1715,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_NOTIFICATION_FINISHED, "%s 已完成");
         setValue(L.MSG_NOTIFICATION_FAILED, "%s 失败");
         setValue(L.MSG_NOTIFICATION_TEST, "此浏览器中的通知可正常工作。");
+        setValue(L.MSG_AUTHORSHIP_RATIO, "%1$d%% 由你撰写，%2$d%% 由模型生成（共 %3$d 词）");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");
@@ -1825,6 +1829,8 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.HELP_RECURSION_ONLY, "该条目不会因回合的指示或故事而被使用；只有当其过滤词出现在已使用的其他条目的内容中时才会使用（需要扫描深度大于 0 且有过滤词）。");
         setValue(L.HELP_ACTIVATION_SUMMARIES, "过滤词也会在到目前为止的故事摘要（提示词会使用的那些）中查找。");
         setValue(L.HELP_OWN_SCAN_DEPTH, "该世界书作为另一个世界书的子世界书时，其条目的扫描深度（0 = 不会被其他条目的内容找到）。留空 = 书籍所用世界书的扫描深度。");
+        setValue(L.HELP_AUTHORSHIP, "根据当前分支每个部分的历史记录计算：模型或代理写的词，以及你输入或修改的词。它会读取所有版本，因此长篇书籍需要一些时间。");
+        setValue(L.HELP_INCLUDE_AUTHORSHIP, "在导出文本末尾添加说明：你写了多少词、模型生成了多少词。措辞是导出设置中的模板。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景设定与世界观。");
@@ -1924,14 +1930,14 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.DESC_COMMAND_GET_BOOK_INFO_LLM, "书籍概览：名称、简介、语言、视角、时态、文风、模型和协议、当前分支及整本书的部分数、词数和令牌数、标签以及备份策略。只读。首先调用它来了解这本书。");
         setValue(L.DESC_COMMAND_GET_BOOK_INFO_RETURN, "包含书籍设置和总计的 JSON");
         setValue(L.DESC_COMMAND_LIST_PARTS, "列出分支的各个部分及其位置、大小、备选数和预览。");
-        setValue(L.DESC_COMMAND_LIST_PARTS_LLM, "从故事的第一个部分起列出分支的各个部分：位置、备选（swipe）数、词数、令牌数、作者是否编辑过、摘要状态（none、valid、outdated）和简短预览。分页：offset 和 limit。部分通过句柄（列表中的 \"handle\"，不会随部分的增删而变化，建议使用）或其在分支上的位置（故事的第一个部分为 1）来指定；除非给出分支上某个部分的句柄或 list-branches 中的分支编号，否则使用当前分支。只读。选项按位置传递且均为可选，顺序如所列。每一行还有它的 \"handle\"：它不会随增删而变化，修改书的命令使用的就是它。");
-        setValue(L.DESC_COMMAND_LIST_PARTS_RETURN, "包含该页各部分的 JSON：位置、备选数、词数、令牌数、是否编辑、摘要状态、预览");
+        setValue(L.DESC_COMMAND_LIST_PARTS_LLM, "从故事的第一个部分起列出分支的各个部分：位置、备选（swipe）数、词数、令牌数、摘要状态（none、valid、outdated）和简短预览。分页：offset 和 limit。部分通过句柄（列表中的 \"handle\"，不会随部分的增删而变化，建议使用）或其在分支上的位置（故事的第一个部分为 1）来指定；除非给出分支上某个部分的句柄或 list-branches 中的分支编号，否则使用当前分支。只读。选项按位置传递且均为可选，顺序如所列。每一行还有它的 \"handle\"：它不会随增删而变化，修改书的命令使用的就是它。");
+        setValue(L.DESC_COMMAND_LIST_PARTS_RETURN, "包含该页各部分的 JSON：位置、备选数、词数、令牌数、摘要状态、预览");
         setValue(L.DESC_COMMAND_GET_PART, "分段读取部分的文本或其他字段。");
-        setValue(L.DESC_COMMAND_GET_PART_LLM, "读取一个部分：文本的一个片段（offset、length；返回总长度以及后面是否还有内容）、生成它所用的数据（指示、场景、视角、在场角色）、大小、是否被编辑以及使用的模型。field 选项可改为读取 instructions、scene、pov、present 或 reasoning。部分通过句柄（列表中的 \"handle\"，不会随部分的增删而变化，建议使用）或其在分支上的位置（故事的第一个部分为 1）来指定；除非给出分支上某个部分的句柄或 list-branches 中的分支编号，否则使用当前分支。只读。选项按位置传递且均为可选，顺序如所列。");
+        setValue(L.DESC_COMMAND_GET_PART_LLM, "读取一个部分：文本的一个片段（offset、length；返回总长度以及后面是否还有内容）、生成它所用的数据（指示、场景、视角、在场角色）、大小以及使用的模型。field 选项可改为读取 instructions、scene、pov、present 或 reasoning。部分通过句柄（列表中的 \"handle\"，不会随部分的增删而变化，建议使用）或其在分支上的位置（故事的第一个部分为 1）来指定；除非给出分支上某个部分的句柄或 list-branches 中的分支编号，否则使用当前分支。只读。选项按位置传递且均为可选，顺序如所列。");
         setValue(L.DESC_COMMAND_GET_PART_RETURN, "包含文本片段、偏移量、总长度以及该部分数据的 JSON");
         setValue(L.DESC_COMMAND_LIST_SWIPES, "列出部分的备选（swipe）。");
-        setValue(L.DESC_COMMAND_LIST_SWIPES_LLM, "列出部分的备选（为故事同一位置生成的不同版本）。每项包含编号、是否为当前显示的、词数、是否被编辑、预览以及显示它的分支编号（用于 get-part 读取）。部分通过句柄（列表中的 \"handle\"，不会随部分的增删而变化，建议使用）或其在分支上的位置（故事的第一个部分为 1）来指定；除非给出分支上某个部分的句柄或 list-branches 中的分支编号，否则使用当前分支。只读。选项按位置传递且均为可选，顺序如所列。每一行还有它的 \"handle\"：它不会随增删而变化，修改书的命令使用的就是它。");
-        setValue(L.DESC_COMMAND_LIST_SWIPES_RETURN, "包含各备选的 JSON：编号、是否显示、词数、是否编辑、预览、分支");
+        setValue(L.DESC_COMMAND_LIST_SWIPES_LLM, "列出部分的备选（为故事同一位置生成的不同版本）。每项包含编号、是否为当前显示的、词数、预览以及显示它的分支编号（用于 get-part 读取）。部分通过句柄（列表中的 \"handle\"，不会随部分的增删而变化，建议使用）或其在分支上的位置（故事的第一个部分为 1）来指定；除非给出分支上某个部分的句柄或 list-branches 中的分支编号，否则使用当前分支。只读。选项按位置传递且均为可选，顺序如所列。每一行还有它的 \"handle\"：它不会随增删而变化，修改书的命令使用的就是它。");
+        setValue(L.DESC_COMMAND_LIST_SWIPES_RETURN, "包含各备选的 JSON：编号、是否显示、词数、预览、分支");
         setValue(L.DESC_COMMAND_LIST_BRANCHES, "列出书籍的分支及其编号。");
         setValue(L.DESC_COMMAND_LIST_BRANCHES_LLM, "列出故事的分支（从第一个部分到某个末端的路径）。每项包含编号（可作为其他命令的 branch 传入；编号按末端的创建顺序排列，增删分支后会变化）、是否为当前分支、部分数、词数、与其他分支分开的位置以及末端的预览。分页：offset 和 limit。只读。选项按位置传递且均为可选，顺序如所列。每一行还有它的 \"handle\"：它不会随增删而变化，修改书的命令使用的就是它。");
         setValue(L.DESC_COMMAND_LIST_BRANCHES_RETURN, "包含各分支的 JSON：编号、是否当前、部分数、词数、分叉位置、创建时间、末端预览");
@@ -1960,8 +1966,8 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.DESC_COMMAND_GET_SUMMARY_LLM, "保存在部分上的摘要：文本、令牌数、类型以及是否仍然描述故事。摘要保存在其覆盖的最后一个部分上，因此大多数部分没有摘要（hasSummary 为 false）。部分通过句柄（列表中的 \"handle\"，不会随部分的增删而变化，建议使用）或其在分支上的位置（故事的第一个部分为 1）来指定；除非给出分支上某个部分的句柄或 list-branches 中的分支编号，否则使用当前分支。只读。选项按位置传递且均为可选，顺序如所列。");
         setValue(L.DESC_COMMAND_GET_SUMMARY_RETURN, "包含该部分摘要的 JSON");
         setValue(L.DESC_COMMAND_CHECK_SUMMARIES, "查找不再与故事匹配的摘要。");
-        setValue(L.DESC_COMMAND_CHECK_SUMMARIES_LLM, "查找分支上过期的摘要（生成时会被丢弃）：它们的位置、覆盖的部分，以及其中被编辑过的部分（即导致过期的原因）。只读。选项按位置传递且均为可选，顺序如所列。每一行还有它的 \"handle\"：它不会随增删而变化，修改书的命令使用的就是它。");
-        setValue(L.DESC_COMMAND_CHECK_SUMMARIES_RETURN, "包含摘要数量以及过期摘要和被编辑部分的 JSON");
+        setValue(L.DESC_COMMAND_CHECK_SUMMARIES_LLM, "查找分支上过期的摘要（生成时会被丢弃）：它们的位置、覆盖的部分。只读。选项按位置传递且均为可选，顺序如所列。每一行还有它的 \"handle\"：它不会随增删而变化，修改书的命令使用的就是它。");
+        setValue(L.DESC_COMMAND_CHECK_SUMMARIES_RETURN, "包含摘要数量以及过期摘要（含其覆盖的部分）的 JSON");
         setValue(L.DESC_COMMAND_GET_TEMPLATE_VARIABLES, "显示书籍或部分的模板变量。");
         setValue(L.DESC_COMMAND_GET_TEMPLATE_VARIABLES_LLM, "提示词模板通过 setvar 设置的变量：书籍的全局变量（scope 为 global），或随分支变化的部分上的变量（scope 为 part；未给出位置时为分支的最后一个部分）。部分通过句柄（列表中的 \"handle\"，不会随部分的增删而变化，建议使用）或其在分支上的位置（故事的第一个部分为 1）来指定；除非给出分支上某个部分的句柄或 list-branches 中的分支编号，否则使用当前分支。只读。选项按位置传递且均为可选，顺序如所列。");
         setValue(L.DESC_COMMAND_GET_TEMPLATE_VARIABLES_RETURN, "包含变量及其值的 JSON");
@@ -1997,14 +2003,14 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.DESC_COMMAND_TURN_POV_PARAM, "回合的视角角色；留空则清除，省略则保持不变");
         setValue(L.DESC_COMMAND_TURN_PRESENT_PARAM, "回合中在场的角色；留空则清除，省略则保持不变");
         setValue(L.DESC_COMMAND_EDIT_PART, "将部分文本的一段替换为另一段文本。参数：part（句柄）、old、new、field。");
-        setValue(L.DESC_COMMAND_EDIT_PART_LLM, "修改故事的一个部分：把文本 `old` 替换为 `new`。`old` 必须在该部分中恰好匹配一次（空格和换行也要相同），否则不会更改任何内容，错误信息会说明找到了几次：请包含更多周围的文本。部分通过句柄指定。会将该部分标记为已编辑，重新统计字数和令牌数，并说明哪些摘要已过时（如果它们仍然正确，请运行 revalidate-summaries，否则重新生成）。指定 `field` 时改为编辑回合的指示、场景、视角或在场角色。会更改书。");
-        setValue(L.DESC_COMMAND_EDIT_PART_RETURN, "包含该部分（handle、position、words、tokens、edited）以及已过时摘要的 JSON");
+        setValue(L.DESC_COMMAND_EDIT_PART_LLM, "修改故事的一个部分：把文本 `old` 替换为 `new`。`old` 必须在该部分中恰好匹配一次（空格和换行也要相同），否则不会更改任何内容，错误信息会说明找到了几次：请包含更多周围的文本。部分通过句柄指定。重新统计字数和令牌数，并说明哪些摘要已过时（如果它们仍然正确，请运行 revalidate-summaries，否则重新生成）。指定 `field` 时改为编辑回合的指示、场景、视角或在场角色。会更改书。");
+        setValue(L.DESC_COMMAND_EDIT_PART_RETURN, "包含该部分（handle、position、words、tokens）以及已过时摘要的 JSON");
         setValue(L.DESC_COMMAND_REPLACE_PART_TEXT, "替换一个部分的全部文本。参数：part（句柄）、text、field。");
-        setValue(L.DESC_COMMAND_REPLACE_PART_TEXT_LLM, "用 `text` 替换故事某个部分的全部文本（指定 `field` 时替换回合的全部指示、场景、视角或在场角色）。旧文本会丢失，因此小的修改请使用 edit-part，在末尾添加请使用 append-to-part。部分通过句柄指定。会将该部分标记为已编辑，重新统计字数和令牌数，并说明哪些摘要已过时。会更改书；用户需要确认，代理遵循其破坏性命令模式。");
-        setValue(L.DESC_COMMAND_REPLACE_PART_TEXT_RETURN, "包含该部分（handle、position、words、tokens、edited）以及已过时摘要的 JSON");
+        setValue(L.DESC_COMMAND_REPLACE_PART_TEXT_LLM, "用 `text` 替换故事某个部分的全部文本（指定 `field` 时替换回合的全部指示、场景、视角或在场角色）。旧文本会丢失，因此小的修改请使用 edit-part，在末尾添加请使用 append-to-part。部分通过句柄指定。重新统计字数和令牌数，并说明哪些摘要已过时。会更改书；用户需要确认，代理遵循其破坏性命令模式。");
+        setValue(L.DESC_COMMAND_REPLACE_PART_TEXT_RETURN, "包含该部分（handle、position、words、tokens）以及已过时摘要的 JSON");
         setValue(L.DESC_COMMAND_APPEND_TO_PART, "在部分文本的末尾添加文本。参数：part（句柄）、text、separator。");
-        setValue(L.DESC_COMMAND_APPEND_TO_PART_LLM, "在故事某个部分的文本末尾添加 `text`，前面加上 `separator`（省略时为一个空行，部分为空时不加）。用于续写一个部分；要写新的部分请使用 create-part。部分通过句柄指定。会将该部分标记为已编辑，重新统计字数和令牌数，并说明哪些摘要已过时。会更改书。");
-        setValue(L.DESC_COMMAND_APPEND_TO_PART_RETURN, "包含该部分（handle、position、words、tokens、edited）以及已过时摘要的 JSON");
+        setValue(L.DESC_COMMAND_APPEND_TO_PART_LLM, "在故事某个部分的文本末尾添加 `text`，前面加上 `separator`（省略时为一个空行，部分为空时不加）。用于续写一个部分；要写新的部分请使用 create-part。部分通过句柄指定。重新统计字数和令牌数，并说明哪些摘要已过时。会更改书。");
+        setValue(L.DESC_COMMAND_APPEND_TO_PART_RETURN, "包含该部分（handle、position、words、tokens）以及已过时摘要的 JSON");
         setValue(L.DESC_COMMAND_SET_PART_FIELDS, "更改部分的生成来源：指示、场景、视角和在场角色。参数：part（句柄）、instructions、scene、pov、present。");
         setValue(L.DESC_COMMAND_SET_PART_FIELDS_LLM, "更改与故事某个部分一起保存的回合输入：指示、场景设定、视角角色和在场角色，该部分的重新生成（swipe、regenerate）会再次以此为依据。只更改给出的字段，空文本会清除该字段。不会更改部分的文本。部分通过句柄指定。会更改书。");
         setValue(L.DESC_COMMAND_SET_PART_FIELDS_RETURN, "包含该部分及其当前回合输入的 JSON");
@@ -2142,7 +2148,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.DESC_TEMPLATE_REDRAFT_INSTRUCTIONS, "作者希望在这一段中修改的内容（未提供说明时为空）。");
         setValue(L.DESC_COMMAND_REDRAFT_PART, "让模型根据说明重写故事中的某一段（任意段落，不限于最后一段），并替换其文本。会消耗令牌。");
         setValue(L.DESC_COMMAND_REDRAFT_PART_LLM, "让模型重写片段 `part`（其句柄）并用结果替换其文本；该片段可位于故事中的任意位置。`instructions` 是要修改的内容（“增加对话”“让战斗更长”“保持结尾”），省略则以相同事件重写该段。模型会看到该段、其前后的故事（较早的故事以摘要代替）、写这一段时使用的背景设定及该回合的数据。`prompt` 是代替本书重写提示词的提示词（带有变量 text、redraftInstructions、previousStory、summaries、followingStory、backgroundLore、narrativePov、narrativeTense、style、povCharacter、sceneSetting、presentCharacters、instructions 的模板）；`profile` 是代替本次运行模型的代理模型配置；`apply` 为 false 时只返回重写的文本，不改动该段（先查看，再用 replace-part-text）。会替换文本，因此覆盖该段的摘要将过时（会报告）。较慢，消耗令牌。返回该段，apply 为 false 时还返回文本。");
-        setValue(L.DESC_COMMAND_REDRAFT_PART_RETURN, "JSON 对象：该段的句柄、位置、字数、令牌数、已编辑标记、applied、文本（apply 为 false 时为全文）以及过时的摘要");
+        setValue(L.DESC_COMMAND_REDRAFT_PART_RETURN, "JSON 对象：该段的句柄、位置、字数、令牌数、applied、文本（apply 为 false 时为全文）以及过时的摘要");
         setValue(L.DESC_COMMAND_REDRAFT_INSTRUCTIONS_PARAM, "要在该段中修改的内容；留空则以相同事件重写");
         setValue(L.DESC_COMMAND_REDRAFT_PROMPT_PARAM, "代替本书重写提示词的提示词（模板）；留空则使用本书的");
         setValue(L.DESC_COMMAND_REDRAFT_APPLY_PARAM, "false 仅返回重写的文本，不改动该段；true（默认）则替换该段文本");
@@ -2251,6 +2257,12 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.DESC_COMMAND_LORE_CONDITION_PARAM, "条目要被使用就必须得出真值的模板（可读取视角、在场角色、指示和变量）；空文本表示删除条件");
         setValue(L.DESC_COMMAND_LORE_RECURSION_ONLY_PARAM, "true：该条目仅通过其他条目的内容使用，不会因回合本身而使用；false 则允许回合使用");
         setValue(L.DESC_COMMAND_LORE_ACTIVATION_SUMMARIES_PARAM, "true：也在故事摘要中查找过滤词；false 则关闭");
+        setValue(L.DESC_TEMPLATE_EXPORT_TOTAL_WORDS, "导出文本的词数。");
+        setValue(L.DESC_TEMPLATE_EXPORT_WRITTEN_WORDS, "作者撰写的词数。");
+        setValue(L.DESC_TEMPLATE_EXPORT_GENERATED_WORDS, "模型生成的词数。");
+        setValue(L.DESC_TEMPLATE_EXPORT_WRITTEN_PERCENT, "作者撰写的词所占的百分比（整数）。");
+        setValue(L.DESC_TEMPLATE_EXPORT_GENERATED_PERCENT, "模型生成的词所占的百分比（整数）。");
+        setValue(L.DESC_TEMPLATE_EXPORT_MODELS, "生成了本书文本的模型，以逗号分隔（没有则为空）。");
     }
 
     @Override

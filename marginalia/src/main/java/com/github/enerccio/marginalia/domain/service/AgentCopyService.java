@@ -54,7 +54,7 @@ public interface AgentCopyService {
      * @param swipe    which of the parts that follow the same part this is, from 1, with {@code swipes} of them
      */
     record CopyPart(String uuid, int position, int swipe, int swipes, String text, String instructions, String sceneSetting,
-                    String povCharacter, String presentCharacters, String summary, boolean edited, int words) {
+                    String povCharacter, String presentCharacters, String summary, int words) {
     }
 
     /**

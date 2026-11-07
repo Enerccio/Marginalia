@@ -698,7 +698,7 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
             List<ChatMessage> newestFirst = leaf == null ? List.of() : new ArrayList<>(getBranchFromLeaf(leaf).reversed());
             Set<Long> outdatedBefore = outdatedHeads(newestFirst);
 
-            ChatMessage saved = storeResponse(book, stored, text == null ? "" : text, tokens, origin, false, generatedText);
+            ChatMessage saved = storeResponse(book, stored, text == null ? "" : text, tokens, origin, generatedText);
 
             // what the text says is the same, so the summaries that described the story before still do
             summaryService.revalidate(book, newlyOutdated(summaryService.collectBlocks(newestFirst), outdatedBefore));
@@ -797,15 +797,14 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
     }
 
     private ChatMessage storeResponse(Manuscript manuscript, ChatMessage message, String text, long tokens, RevisionOrigin origin) throws Exception {
-        return storeResponse(manuscript, message, text, tokens, origin, true, null);
+        return storeResponse(manuscript, message, text, tokens, origin, null);
     }
 
     /**
-     * @param markEdited whether the part is flagged as edited by the author
      * @param generated  the new text of the model's generation ({@code originalResponse}), null leaves it as it is
      */
     private ChatMessage storeResponse(Manuscript manuscript, ChatMessage message, String text, long tokens, RevisionOrigin origin,
-                                      boolean markEdited, String generated) throws Exception {
+                                      String generated) throws Exception {
         Manuscript book = ownBook(manuscript);
         ChatMessage stored = ownPart(book, message);
         String newText = text == null ? "" : text;
@@ -817,9 +816,6 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
         stored.setResponse(newText);
         stored.setTokenCount(tokens);
         stored.setWordCount(countWords(newText));
-        if (markEdited) {
-            stored.setEdited(true);
-        }
         if (generated != null) {
             stored.setOriginalResponse(generated);
         }
@@ -867,7 +863,6 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
         previous.setResponse(text);
         previous.setTokenCount(countTokens(book, text));
         previous.setWordCount(countWords(text));
-        previous.setEdited(previous.isEdited() || later.isEdited());
         previous.setResponseReasoning(blankToNull(PartMerge.join(previous.getResponseReasoning(), later.getResponseReasoning(), PartMerge.Join.PARAGRAPH)));
         if (previous.getTokenReasoningCount() != null || later.getTokenReasoningCount() != null) {
             previous.setTokenReasoningCount((previous.getTokenReasoningCount() == null ? 0 : previous.getTokenReasoningCount())

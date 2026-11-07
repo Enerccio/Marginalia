@@ -151,7 +151,6 @@ public abstract class ManuscriptWriteSupport extends ManuscriptReadSupport {
         result.addProperty("position", position);
         result.addProperty("words", message.getWordCount());
         result.addProperty("tokens", message.getTokenCount());
-        result.addProperty("edited", message.isEdited());
         return result;
     }
 

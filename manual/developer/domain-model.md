@@ -340,9 +340,8 @@ Siblings are ordered by `creation`. The branch from the root to a leaf is read w
 | `parent`, `parentScript` | FK columns | Tree position and book. |
 | `summary` | FK column | Summary covering this part and the parts before it (see below). |
 | `tokenCount`, `wordCount` | columns | Size of the text, summed for the book statistics. |
-| `edited` | column | The user edited the generated text. |
 | `response` | JSON | The text of the part. |
-| `originalResponse` | JSON | The text as the LLM produced it: filled chunk by chunk by `InferenceStep`, cleared by `GenerateNewMessageStep` (regenerate), never changed by editing; `null` for a part that was not generated. The story's *Highlight Generated Text* diffs `response` against it (`GeneratedTextHighlighter`). Existing parts got a copy of `response` from `OriginalResponseMigration`. |
+| `originalResponse` | JSON | The text as the LLM produced it: filled chunk by chunk by `InferenceStep`, cleared by `GenerateNewMessageStep` (regenerate), never changed by editing; `null` for a part that was not generated. The authorship (*Highlight Generated Text*, the ratio, the export statement) is not read from it but from the versions of the history, see [Version history](version-history.md#who-wrote-the-words); it only stands in for a part whose history is switched off. The column `edited` was dropped (V27): the history tells what was edited. Existing parts got a copy of `response` from `OriginalResponseMigration`. |
 | `responseReasoning` | JSON | Reasoning of a reasoning model. |
 | `instructions`, `sceneSetting`, `povCharacter`, `presentCharacters` | JSON | The instruction panel it was generated from (`TurnInput`). |
 | `builtPromptTokens` | JSON | Tokens of the full prompt sent to the model. The prompt itself and the activated lore (*Show Prompt*) are not in the part, see [`MessagePrompt`](#messageprompt). |

@@ -4,7 +4,6 @@ import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
-import com.github.enerccio.marginalia.extensions.ExportTextRegistry;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.ExporterService.ExportLoreEntry;
@@ -12,6 +11,7 @@ import com.github.enerccio.marginalia.domain.service.ExporterService.ExportOptio
 import com.github.enerccio.marginalia.domain.service.ExporterService.Exporter;
 import com.github.enerccio.marginalia.domain.styles.PartStyle;
 import com.github.enerccio.marginalia.domain.traits.*;
+import com.github.enerccio.marginalia.extensions.ExportTextRegistry;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
@@ -66,6 +66,9 @@ public class ExportDialog extends Dialog implements LLMInteract {
     private ChatMessageService chatMessageService;
 
     @Autowired
+    private MessageRevisionService messageRevisionService;
+
+    @Autowired
     private ManuscriptService manuscriptService;
 
     @Autowired
@@ -93,6 +96,7 @@ public class ExportDialog extends Dialog implements LLMInteract {
     private IntegerField from;
     private IntegerField to;
     private Checkbox includeHeaders;
+    private Checkbox includeAuthorship;
 
     /**
      * @param manuscript the book with the up to date active leaf, which is the end of the exported branch
@@ -139,9 +143,14 @@ public class ExportDialog extends Dialog implements LLMInteract {
 
         includeHeaders = new Checkbox(loc.getValue(L.LABEL_INCLUDE_TITLE_PAGE), true);
 
+        includeAuthorship = new Checkbox(loc.getValue(L.LABEL_INCLUDE_AUTHORSHIP), false);
+        includeAuthorship.setHelperText(loc.getValue(L.HELP_INCLUDE_AUTHORSHIP));
+        includeAuthorship.setVisible(format.getValue() != null && format.getValue().usesAuthorship());
+        format.addValueChangeListener(event -> includeAuthorship.setVisible(event.getValue() != null && event.getValue().usesAuthorship()));
+
         FormLayout form = new FormLayout();
         form.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 1));
-        form.add(format, styleChoice, fileName, bookTitle, author, from, to, includeHeaders);
+        form.add(format, styleChoice, fileName, bookTitle, author, from, to, includeHeaders, includeAuthorship);
         createExtensionFields().forEach(form::add);
         form.getChildren().forEach(c -> c.getElement().getClassList().add(CssStyles.FULL_WIDTH));
         add(form);
@@ -305,7 +314,18 @@ public class ExportDialog extends Dialog implements LLMInteract {
                 Notification.warning(loc.getValue(L.MSG_EXPORT_NOTHING));
                 return;
             }
-            export(exporter, options, file, applyExportTexts(all.subList(first - 1, toIndex)));
+            List<ChatMessage> range = all.subList(first - 1, toIndex);
+            ExportOptions withStatement = options;
+            if (exporter.usesAuthorship() && includeAuthorship.getValue()) {
+                try {
+                    // worked out on the stored parts: their history is what tells who wrote the words
+                    withStatement = options.withAuthorship(messageRevisionService.authorship(range));
+                } catch (Exception e) {
+                    UIUtils.internalServerError(loc, e);
+                    return;
+                }
+            }
+            export(exporter, withStatement, file, applyExportTexts(range));
         });
         collecting.open();
     }

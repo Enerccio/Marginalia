@@ -57,7 +57,6 @@ public class ListSwipesCommand extends ManuscriptReadSupport {
             row.addProperty("swipe", number);
             row.addProperty("shown", swipe.getId().equals(message.getId()));
             row.addProperty("words", swipe.getWordCount());
-            row.addProperty("edited", swipe.isEdited());
             row.addProperty("preview", preview(swipe.getResponse(), PREVIEW_LENGTH));
             // the branch that shows the swipe, to read it with get-part
             ChatMessage known = tree.byId.get(swipe.getId());

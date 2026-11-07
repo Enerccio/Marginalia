@@ -328,7 +328,6 @@ public class ManuscriptReplaceServiceImpl implements ManuscriptReplaceService {
                 String response = message.getResponse();
                 message.setTokenCount(countTokens(owned, response));
                 message.setWordCount(chatMessageService.countWords(response));
-                message.setEdited(true);
                 chatMessageService.save(message);
                 messageRevisionService.record(message, RevisionOrigin.automatic(RevisionDetail.REPLACE, false).data(message));
                 // the passages (the notes and the kinds of the extensions) move with the text, a kind is told what changed inside its own

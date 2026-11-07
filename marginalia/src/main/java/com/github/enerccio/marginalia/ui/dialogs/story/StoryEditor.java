@@ -92,14 +92,14 @@ public interface StoryEditor {
     boolean isMassDelete();
 
     /**
-     * Whether the text of the parts that is still the model's is highlighted (desktop only).
+     * Whether the text of the parts that a model wrote is highlighted.
      */
     default boolean isShowGeneratedDiff() {
         return false;
     }
 
     /**
-     * Highlights the text of the parts that is still the model's, or not (desktop only).
+     * Highlights the text of the parts that a model wrote, or not.
      */
     default void setShowGeneratedDiff(boolean show) {
     }

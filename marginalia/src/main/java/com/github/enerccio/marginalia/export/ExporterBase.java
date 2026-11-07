@@ -11,6 +11,7 @@ import com.github.enerccio.marginalia.domain.service.ExporterService.ExportTempl
 import com.github.enerccio.marginalia.domain.service.ExporterService.Exporter;
 import com.github.enerccio.marginalia.domain.service.ResourceService;
 import com.github.enerccio.marginalia.domain.service.TemplateService;
+import com.github.enerccio.marginalia.domain.templates.ExportAuthorshipTemplateData;
 import com.github.enerccio.marginalia.domain.templates.ExportFrontMatterTemplateData;
 import com.github.enerccio.marginalia.domain.templates.ExportHeaderTemplateData;
 import com.github.enerccio.marginalia.ui.dialogs.ProgressBarDialog;
@@ -59,6 +60,13 @@ public abstract class ExporterBase implements Exporter {
      */
     public static final ExportTemplate TITLE_PAGE_TEMPLATE = new ExportTemplate("titlePage", "Title page",
             Defaults.DEFAULT_EXPORT_HEADER_TEMPLATE, ExportHeaderTemplateData.class);
+
+    /**
+     * The statement at the end of the text of who wrote the words of it (the author, a model), which the export dialog offers; the user can
+     * change the template in the settings.
+     */
+    public static final ExportTemplate AUTHORSHIP_TEMPLATE = new ExportTemplate("authorship", "Authorship statement",
+            Defaults.DEFAULT_EXPORT_AUTHORSHIP_TEMPLATE, ExportAuthorshipTemplateData.class);
 
     /**
      * The YAML front matter of the formats that have one (Markdown for static site generators, the Obsidian vault); the user can change the
@@ -194,8 +202,13 @@ public abstract class ExporterBase implements Exporter {
     }
 
     @Override
+    public boolean usesAuthorship() {
+        return true;
+    }
+
+    @Override
     public List<ExportTemplate> getTemplates() {
-        return List.of(TITLE_PAGE_TEMPLATE);
+        return List.of(TITLE_PAGE_TEMPLATE, AUTHORSHIP_TEMPLATE);
     }
 
     protected abstract ExportWriter open(ExportOptions options) throws Exception;
@@ -233,6 +246,9 @@ public abstract class ExporterBase implements Exporter {
         for (int i = 0; i < partsOf.size(); i++) {
             writer.message(partsOf.get(i), chapterOf.get(i));
             progress.updateProgress();
+        }
+        if (options.authorship() != null) {
+            writer.message(buildAuthorship(options), null);
         }
         return writer.finish();
     }
@@ -316,6 +332,14 @@ public abstract class ExporterBase implements Exporter {
     protected String buildHeader(ExportOptions options) throws Exception {
         return templateService.processTemplate(options.templateText(TITLE_PAGE_TEMPLATE), "exportHeader",
                 new ExportHeaderTemplateData(options.bookName(), StringUtils.trimToNull(options.author())));
+    }
+
+    /**
+     * @return the Markdown of the statement of who wrote the words of the text, the template of the export rendered
+     */
+    protected String buildAuthorship(ExportOptions options) throws Exception {
+        return templateService.processTemplate(options.templateText(AUTHORSHIP_TEMPLATE), "exportAuthorship",
+                new ExportAuthorshipTemplateData(options.bookName(), StringUtils.trimToNull(options.author()), options.authorship()));
     }
 
     /**

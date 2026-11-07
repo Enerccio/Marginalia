@@ -18,7 +18,7 @@ public interface SillyTavernImportService {
      * Stores the parts of the tree and makes the active leaf of the tree the active leaf of the book (when the import is
      * stopped before it, the last part stored is). The parts are added beside the parts the book has. The text of a part is the
      * text of the message, the instructions of the turn are the instructions of the part; the reasoning and the model of the
-     * message are kept, the text is not flagged as edited or as written by the model.
+     * message are kept.
      *
      * @param stopped  asked before each part, true stops the import
      * @param onStored called after each part was stored

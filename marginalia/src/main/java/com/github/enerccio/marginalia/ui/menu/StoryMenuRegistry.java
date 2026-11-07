@@ -403,7 +403,7 @@ public class StoryMenuRegistry implements InitializingBean {
                 .icon(Solid.PEN_FANCY::create).choices(StoryEditor::getPartStyleChoices).path(StoryMenuKeys.GROUP_APPEARANCE));
         application(StoryMenuItem.tools(StoryMenuKeys.HIGHLIGHT_GENERATED, L.LABEL_HIGHLIGHT_GENERATED_TEXT,
                         part -> part.setShowGeneratedDiff(!part.isShowGeneratedDiff()))
-                .icon(Solid.HIGHLIGHTER::create).checkedWhen(StoryEditor::isShowGeneratedDiff).phone(false)
+                .icon(Solid.HIGHLIGHTER::create).checkedWhen(StoryEditor::isShowGeneratedDiff)
                 .path(StoryMenuKeys.GROUP_APPEARANCE));
         application(StoryMenuItem.tools(StoryMenuKeys.ANNOTATIONS_IN_MARGIN, L.LABEL_ANNOTATIONS_IN_MARGIN,
                         part -> part.setAnnotationsInMargin(!part.isAnnotationsInMargin()))

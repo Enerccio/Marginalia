@@ -1000,6 +1000,9 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_FILTER_CONSTANT, "常時（キーなし）");
         setValue(L.LABEL_SELECT_ENTRIES, "エントリを選択");
         setValue(L.LABEL_EDIT_ENTRY, "エントリを編集");
+        setValue(L.LABEL_INCLUDE_AUTHORSHIP, "執筆の内訳を含める");
+        setValue(L.LABEL_AUTHORSHIP, "ブランチの執筆の内訳");
+        setValue(L.LABEL_CALCULATE, "計算");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -1704,6 +1707,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_NOTIFICATION_FINISHED, "%s が完了しました");
         setValue(L.MSG_NOTIFICATION_FAILED, "%s が失敗しました");
         setValue(L.MSG_NOTIFICATION_TEST, "このブラウザで通知は動作しています。");
+        setValue(L.MSG_AUTHORSHIP_RATIO, "%1$d%%が自分で執筆、%2$d%%が生成（%3$d語）");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");
@@ -1817,6 +1821,8 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_RECURSION_ONLY, "このエントリはターンの指示や物語では使用されません。使用された他のエントリの内容にフィルタが見つかった場合のみ使用されます（スキャン深度が1以上でフィルタが必要です）。");
         setValue(L.HELP_ACTIVATION_SUMMARIES, "フィルタはこれまでの物語の要約（プロンプトで使われるもの）からも探されます。");
         setValue(L.HELP_OWN_SCAN_DEPTH, "このロアブックが別のロアブックのサブとして使われるときの、そのエントリのスキャン深度（0 = 他のエントリの内容では見つからない）。空 = 本が使うロアブックのスキャン深度。");
+        setValue(L.HELP_AUTHORSHIP, "有効なブランチの各パートの履歴から求めます：モデルまたはエージェントが書いた単語と、自分で入力または変更した単語。すべてのバージョンを読むため、長い本では時間がかかります。");
+        setValue(L.HELP_INCLUDE_AUTHORSHIP, "エクスポートしたテキストの末尾に、自分で書いた単語数とモデルが生成した単語数の説明を加えます。文面はエクスポート設定のテンプレートです。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景設定と世界観の文脈。");
@@ -1916,14 +1922,14 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.DESC_COMMAND_GET_BOOK_INFO_LLM, "本の概要：名前、説明、言語、視点、時制、文体、モデルとプロトコル、有効なブランチと本全体のパート数・単語数・トークン数、タグ、バックアップ方式。読み取り専用。まず本の内容を知るために呼び出します。");
         setValue(L.DESC_COMMAND_GET_BOOK_INFO_RETURN, "本の設定と合計を含む JSON");
         setValue(L.DESC_COMMAND_LIST_PARTS, "ブランチのパートを位置、サイズ、スワイプ、プレビュー付きで一覧表示します。");
-        setValue(L.DESC_COMMAND_LIST_PARTS_LLM, "ブランチのパートをストーリーの最初から一覧表示します：位置、スワイプ（代替案）の数、単語数、トークン数、著者が編集したか、要約の状態（none、valid、outdated）、短いプレビュー。ページ送り：offset と limit。パートはハンドル（一覧の \"handle\"。パートの追加や削除で変わらないので推奨）またはブランチ上の位置（ストーリーの最初のパートが1）で指定します。ブランチは、その上のパートのハンドルか list-branches の番号を指定しない限り有効なブランチです。読み取り専用。オプションは位置引数で、記載順に指定します。各行には \"handle\" もあります。追加や削除で変わらず、本を変更するコマンドが受け取るのはこれです。");
-        setValue(L.DESC_COMMAND_LIST_PARTS_RETURN, "ページ内のパートを含む JSON：位置、スワイプ、単語数、トークン数、編集済み、要約の状態、プレビュー");
+        setValue(L.DESC_COMMAND_LIST_PARTS_LLM, "ブランチのパートをストーリーの最初から一覧表示します：位置、スワイプ（代替案）の数、単語数、トークン数、要約の状態（none、valid、outdated）、短いプレビュー。ページ送り：offset と limit。パートはハンドル（一覧の \"handle\"。パートの追加や削除で変わらないので推奨）またはブランチ上の位置（ストーリーの最初のパートが1）で指定します。ブランチは、その上のパートのハンドルか list-branches の番号を指定しない限り有効なブランチです。読み取り専用。オプションは位置引数で、記載順に指定します。各行には \"handle\" もあります。追加や削除で変わらず、本を変更するコマンドが受け取るのはこれです。");
+        setValue(L.DESC_COMMAND_LIST_PARTS_RETURN, "ページ内のパートを含む JSON：位置、スワイプ、単語数、トークン数、要約の状態、プレビュー");
         setValue(L.DESC_COMMAND_GET_PART, "パートのテキスト、または他のフィールドをスライスで読みます。");
-        setValue(L.DESC_COMMAND_GET_PART_LLM, "パートを読みます：テキストの一部（offset、length。全長と続きがあるかが返されます）と、生成の元になったデータ（指示、シーン、視点、登場人物）、サイズ、編集済みか、使用モデル。field オプションで instructions、scene、pov、present、reasoning を代わりに読めます。パートはハンドル（一覧の \"handle\"。パートの追加や削除で変わらないので推奨）またはブランチ上の位置（ストーリーの最初のパートが1）で指定します。ブランチは、その上のパートのハンドルか list-branches の番号を指定しない限り有効なブランチです。読み取り専用。オプションは位置引数で、記載順に指定します。");
+        setValue(L.DESC_COMMAND_GET_PART_LLM, "パートを読みます：テキストの一部（offset、length。全長と続きがあるかが返されます）と、生成の元になったデータ（指示、シーン、視点、登場人物）、サイズ、使用モデル。field オプションで instructions、scene、pov、present、reasoning を代わりに読めます。パートはハンドル（一覧の \"handle\"。パートの追加や削除で変わらないので推奨）またはブランチ上の位置（ストーリーの最初のパートが1）で指定します。ブランチは、その上のパートのハンドルか list-branches の番号を指定しない限り有効なブランチです。読み取り専用。オプションは位置引数で、記載順に指定します。");
         setValue(L.DESC_COMMAND_GET_PART_RETURN, "テキストの一部とそのオフセット・全長、パートのデータを含む JSON");
         setValue(L.DESC_COMMAND_LIST_SWIPES, "パートの代替案（スワイプ）を一覧表示します。");
-        setValue(L.DESC_COMMAND_LIST_SWIPES_LLM, "パートのスワイプ（ストーリーの同じ位置に生成された代替案）を一覧表示します。それぞれ番号、表示中か、単語数、編集済みか、プレビュー、それを表示するブランチ番号（get-part で読むため）が返されます。パートはハンドル（一覧の \"handle\"。パートの追加や削除で変わらないので推奨）またはブランチ上の位置（ストーリーの最初のパートが1）で指定します。ブランチは、その上のパートのハンドルか list-branches の番号を指定しない限り有効なブランチです。読み取り専用。オプションは位置引数で、記載順に指定します。各行には \"handle\" もあります。追加や削除で変わらず、本を変更するコマンドが受け取るのはこれです。");
-        setValue(L.DESC_COMMAND_LIST_SWIPES_RETURN, "スワイプを含む JSON：番号、表示中、単語数、編集済み、プレビュー、ブランチ");
+        setValue(L.DESC_COMMAND_LIST_SWIPES_LLM, "パートのスワイプ（ストーリーの同じ位置に生成された代替案）を一覧表示します。それぞれ番号、表示中か、単語数、プレビュー、それを表示するブランチ番号（get-part で読むため）が返されます。パートはハンドル（一覧の \"handle\"。パートの追加や削除で変わらないので推奨）またはブランチ上の位置（ストーリーの最初のパートが1）で指定します。ブランチは、その上のパートのハンドルか list-branches の番号を指定しない限り有効なブランチです。読み取り専用。オプションは位置引数で、記載順に指定します。各行には \"handle\" もあります。追加や削除で変わらず、本を変更するコマンドが受け取るのはこれです。");
+        setValue(L.DESC_COMMAND_LIST_SWIPES_RETURN, "スワイプを含む JSON：番号、表示中、単語数、プレビュー、ブランチ");
         setValue(L.DESC_COMMAND_LIST_BRANCHES, "本のブランチを番号付きで一覧表示します。");
         setValue(L.DESC_COMMAND_LIST_BRANCHES_LLM, "ストーリーのブランチ（最初のパートからいずれかの末端までの道筋）を一覧表示します。それぞれ番号（他のコマンドの branch に渡す。番号は末端の作成順で、ブランチの追加・削除で変わります）、有効かどうか、パート数、単語数、他のブランチと分かれる位置、末端のプレビューが返されます。ページ送り：offset と limit。読み取り専用。オプションは位置引数で、記載順に指定します。各行には \"handle\" もあります。追加や削除で変わらず、本を変更するコマンドが受け取るのはこれです。");
         setValue(L.DESC_COMMAND_LIST_BRANCHES_RETURN, "ブランチを含む JSON：番号、有効、パート数、単語数、分岐位置、作成日時、末端のプレビュー");
@@ -1952,8 +1958,8 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.DESC_COMMAND_GET_SUMMARY_LLM, "パートに保存されている要約：テキスト、トークン数、種類、ストーリーを正しく表しているか。要約はカバーする最後のパートに保存されるため、ほとんどのパートには要約がありません（hasSummary が false）。パートはハンドル（一覧の \"handle\"。パートの追加や削除で変わらないので推奨）またはブランチ上の位置（ストーリーの最初のパートが1）で指定します。ブランチは、その上のパートのハンドルか list-branches の番号を指定しない限り有効なブランチです。読み取り専用。オプションは位置引数で、記載順に指定します。");
         setValue(L.DESC_COMMAND_GET_SUMMARY_RETURN, "パートの要約を含む JSON");
         setValue(L.DESC_COMMAND_CHECK_SUMMARIES, "ストーリーと一致しなくなった要約を探します。");
-        setValue(L.DESC_COMMAND_CHECK_SUMMARIES_LLM, "ブランチの古くなった要約（生成時に破棄されます）を探します：その位置、カバーするパート、そのうち編集されたパート（古くなった原因）。読み取り専用。オプションは位置引数で、記載順に指定します。各行には \"handle\" もあります。追加や削除で変わらず、本を変更するコマンドが受け取るのはこれです。");
-        setValue(L.DESC_COMMAND_CHECK_SUMMARIES_RETURN, "要約の数と、古くなった要約および編集されたパートを含む JSON");
+        setValue(L.DESC_COMMAND_CHECK_SUMMARIES_LLM, "ブランチの古くなった要約（生成時に破棄されます）を探します：その位置、カバーするパート。読み取り専用。オプションは位置引数で、記載順に指定します。各行には \"handle\" もあります。追加や削除で変わらず、本を変更するコマンドが受け取るのはこれです。");
+        setValue(L.DESC_COMMAND_CHECK_SUMMARIES_RETURN, "要約の数と、古くなった要約（カバーするパート付き）を含む JSON");
         setValue(L.DESC_COMMAND_GET_TEMPLATE_VARIABLES, "本またはパートのテンプレート変数を表示します。");
         setValue(L.DESC_COMMAND_GET_TEMPLATE_VARIABLES_LLM, "プロンプトテンプレートが setvar で設定する変数：本全体のグローバル変数（scope が global）、またはブランチに従うパート上の変数（scope が part。位置を省略するとブランチの最後のパート）。パートはハンドル（一覧の \"handle\"。パートの追加や削除で変わらないので推奨）またはブランチ上の位置（ストーリーの最初のパートが1）で指定します。ブランチは、その上のパートのハンドルか list-branches の番号を指定しない限り有効なブランチです。読み取り専用。オプションは位置引数で、記載順に指定します。");
         setValue(L.DESC_COMMAND_GET_TEMPLATE_VARIABLES_RETURN, "変数とその値を含む JSON");
@@ -1989,14 +1995,14 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.DESC_COMMAND_TURN_POV_PARAM, "ターンの視点キャラクター。空にすると消去、省略すると変更なし");
         setValue(L.DESC_COMMAND_TURN_PRESENT_PARAM, "ターンに登場するキャラクター。空にすると消去、省略すると変更なし");
         setValue(L.DESC_COMMAND_EDIT_PART, "パートのテキストの一部を別のテキストに置き換えます。パラメータ：part（ハンドル）、old、new、field。");
-        setValue(L.DESC_COMMAND_EDIT_PART_LLM, "ストーリーのパートを変更します。テキスト `old` を `new` に置き換えます。`old` はパート内でちょうど1回、同じ空白と改行で一致する必要があり、そうでなければ何も変更されず、エラーに見つかった回数が示されます。その場合は前後のテキストを含めてください。パートはハンドルで指定します。パートを編集済みとし、語数とトークン数を数え直し、古くなった要約を知らせます（内容がまだ正しければ revalidate-summaries、そうでなければ作り直してください）。`field` を指定するとテキストの代わりにターンの指示、シーン、視点、登場人物を編集します。本を変更します。");
-        setValue(L.DESC_COMMAND_EDIT_PART_RETURN, "パート（handle、position、words、tokens、edited）と古くなった要約を含む JSON");
+        setValue(L.DESC_COMMAND_EDIT_PART_LLM, "ストーリーのパートを変更します。テキスト `old` を `new` に置き換えます。`old` はパート内でちょうど1回、同じ空白と改行で一致する必要があり、そうでなければ何も変更されず、エラーに見つかった回数が示されます。その場合は前後のテキストを含めてください。パートはハンドルで指定します。語数とトークン数を数え直し、古くなった要約を知らせます（内容がまだ正しければ revalidate-summaries、そうでなければ作り直してください）。`field` を指定するとテキストの代わりにターンの指示、シーン、視点、登場人物を編集します。本を変更します。");
+        setValue(L.DESC_COMMAND_EDIT_PART_RETURN, "パート（handle、position、words、tokens）と古くなった要約を含む JSON");
         setValue(L.DESC_COMMAND_REPLACE_PART_TEXT, "パートのテキスト全体を置き換えます。パラメータ：part（ハンドル）、text、field。");
-        setValue(L.DESC_COMMAND_REPLACE_PART_TEXT_LLM, "ストーリーのパートのテキスト全体を `text` で置き換えます（`field` を指定するとターンの指示、シーン、視点、登場人物全体）。古いテキストは失われるため、小さな変更には edit-part、末尾への追加には append-to-part を使ってください。パートはハンドルで指定します。パートを編集済みとし、語数とトークン数を数え直し、古くなった要約を知らせます。本を変更します。ユーザーには確認が求められ、エージェントは破壊的コマンドのモードに従います。");
-        setValue(L.DESC_COMMAND_REPLACE_PART_TEXT_RETURN, "パート（handle、position、words、tokens、edited）と古くなった要約を含む JSON");
+        setValue(L.DESC_COMMAND_REPLACE_PART_TEXT_LLM, "ストーリーのパートのテキスト全体を `text` で置き換えます（`field` を指定するとターンの指示、シーン、視点、登場人物全体）。古いテキストは失われるため、小さな変更には edit-part、末尾への追加には append-to-part を使ってください。パートはハンドルで指定します。語数とトークン数を数え直し、古くなった要約を知らせます。本を変更します。ユーザーには確認が求められ、エージェントは破壊的コマンドのモードに従います。");
+        setValue(L.DESC_COMMAND_REPLACE_PART_TEXT_RETURN, "パート（handle、position、words、tokens）と古くなった要約を含む JSON");
         setValue(L.DESC_COMMAND_APPEND_TO_PART, "パートの末尾にテキストを追加します。パラメータ：part（ハンドル）、text、separator。");
-        setValue(L.DESC_COMMAND_APPEND_TO_PART_LLM, "ストーリーのパートのテキストの末尾に、`separator`（省略時は空行、パートが空なら何も入れない）を挟んで `text` を追加します。パートの続きを書くのに使い、新しいパートを書くには create-part を使います。パートはハンドルで指定します。パートを編集済みとし、語数とトークン数を数え直し、古くなった要約を知らせます。本を変更します。");
-        setValue(L.DESC_COMMAND_APPEND_TO_PART_RETURN, "パート（handle、position、words、tokens、edited）と古くなった要約を含む JSON");
+        setValue(L.DESC_COMMAND_APPEND_TO_PART_LLM, "ストーリーのパートのテキストの末尾に、`separator`（省略時は空行、パートが空なら何も入れない）を挟んで `text` を追加します。パートの続きを書くのに使い、新しいパートを書くには create-part を使います。パートはハンドルで指定します。語数とトークン数を数え直し、古くなった要約を知らせます。本を変更します。");
+        setValue(L.DESC_COMMAND_APPEND_TO_PART_RETURN, "パート（handle、position、words、tokens）と古くなった要約を含む JSON");
         setValue(L.DESC_COMMAND_SET_PART_FIELDS, "パートの元になった指示、シーン、視点、登場人物を変更します。パラメータ：part（ハンドル）、instructions、scene、pov、present。");
         setValue(L.DESC_COMMAND_SET_PART_FIELDS_LLM, "ストーリーのパートに保存されているターン入力（指示、シーン設定、視点キャラクター、登場人物）を変更します。パートの再生成（swipe、regenerate）はこれをもとに行われます。指定した項目だけが変更され、空のテキストは項目を消去します。パートのテキストは変更しません。パートはハンドルで指定します。本を変更します。");
         setValue(L.DESC_COMMAND_SET_PART_FIELDS_RETURN, "パートと現在のターン入力を含む JSON");
@@ -2134,7 +2140,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.DESC_TEMPLATE_REDRAFT_INSTRUCTIONS, "作者がパートで変更したい内容（指示がない場合は空）。");
         setValue(L.DESC_COMMAND_REDRAFT_PART, "指示に従ってモデルにストーリーのパートを書き直させ（最後のパートに限らず任意のパート）、その文章を置き換えます。トークンを消費します。");
         setValue(L.DESC_COMMAND_REDRAFT_PART_LLM, "モデルにパート `part`（そのハンドル）を書き直させ、その文章を結果で置き換えます。パートはストーリーのどこにあってもかまいません。`instructions` は変えたい内容（「会話を増やす」「戦闘を長くする」「結末はそのまま」）で、省略すると同じ出来事でパートを書き直します。モデルにはパート、その前後のストーリー（古い部分は要約）、パート作成時のロア、そのターンのデータが渡されます。`prompt` は本の書き直しプロンプトの代わりに使うプロンプト（変数 text, redraftInstructions, previousStory, summaries, followingStory, backgroundLore, narrativePov, narrativeTense, style, povCharacter, sceneSetting, presentCharacters, instructions を持つテンプレート）、`profile` は実行のモデルの代わりに使うエージェントのモデルプロファイル、`apply` を false にすると書き直した文章を返すだけでパートは変更しません（先に確認してから replace-part-text）。文章を置き換えるため、パートを含む要約は古くなります（報告されます）。時間とトークンを消費します。パートと、apply が false のときは文章を返します。");
-        setValue(L.DESC_COMMAND_REDRAFT_PART_RETURN, "JSONオブジェクト: パートのハンドル、位置、語数、トークン数、編集済みフラグ、applied、文章（apply が false のときは全文）、古くなった要約");
+        setValue(L.DESC_COMMAND_REDRAFT_PART_RETURN, "JSONオブジェクト: パートのハンドル、位置、語数、トークン数、applied、文章（apply が false のときは全文）、古くなった要約");
         setValue(L.DESC_COMMAND_REDRAFT_INSTRUCTIONS_PARAM, "パートで変えたい内容。空のときは同じ出来事で書き直す");
         setValue(L.DESC_COMMAND_REDRAFT_PROMPT_PARAM, "本の書き直しプロンプトの代わりに使うプロンプト（テンプレート）。空のときは本のもの");
         setValue(L.DESC_COMMAND_REDRAFT_APPLY_PARAM, "false のときは書き直した文章を返すだけでパートは変更しない。true（既定）ではパートの文章を置き換える");
@@ -2243,6 +2249,12 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.DESC_COMMAND_LORE_CONDITION_PARAM, "エントリを使用するために真の値になる必要があるテンプレート（視点、登場人物、指示、変数を読めます）。空文字で条件を削除");
         setValue(L.DESC_COMMAND_LORE_RECURSION_ONLY_PARAM, "true：このエントリは他のエントリの内容経由でのみ使用され、ターン自体では使用されません。false でターンでも使用可能");
         setValue(L.DESC_COMMAND_LORE_ACTIVATION_SUMMARIES_PARAM, "true：フィルタを物語の要約からも探します。false で無効");
+        setValue(L.DESC_TEMPLATE_EXPORT_TOTAL_WORDS, "エクスポートしたテキストの単語数。");
+        setValue(L.DESC_TEMPLATE_EXPORT_WRITTEN_WORDS, "著者が書いた単語数。");
+        setValue(L.DESC_TEMPLATE_EXPORT_GENERATED_WORDS, "モデルが生成した単語数。");
+        setValue(L.DESC_TEMPLATE_EXPORT_WRITTEN_PERCENT, "著者が書いた単語の割合（パーセント、整数）。");
+        setValue(L.DESC_TEMPLATE_EXPORT_GENERATED_PERCENT, "モデルが生成した単語の割合（パーセント、整数）。");
+        setValue(L.DESC_TEMPLATE_EXPORT_MODELS, "本のテキストを生成したモデル（カンマ区切り。ない場合は空）。");
     }
 
     @Override

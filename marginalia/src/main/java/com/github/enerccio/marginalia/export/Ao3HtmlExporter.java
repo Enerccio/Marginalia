@@ -67,11 +67,11 @@ public class Ao3HtmlExporter extends ExporterBase {
     }
 
     /**
-     * The title page is not written: AO3 asks for the title and the author in fields of its own.
+     * The title page is not written: AO3 asks for the title and the author in fields of its own. The authorship statement is.
      */
     @Override
     public List<ExportTemplate> getTemplates() {
-        return List.of();
+        return List.of(AUTHORSHIP_TEMPLATE);
     }
 
     @Override

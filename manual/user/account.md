@@ -199,6 +199,9 @@ What each file format is exported with: the tab has a section for every format t
 - **Title page** (every format but the ones for other tools; the Obsidian vault has it in the note of the book) - the template of the title page, a Handlebars template that writes Markdown, with `{{title}}` and
   `{{author}}` (the info icon in the field lists them). Empty is the default one: the title as a heading and the author in italics under it.
   **Fill default** in the info popover starts you from the default.
+- **Authorship statement** (every format but the SillyTavern chat) - the text that the check box *Include authorship statement* of the export
+  adds at the end: `{{title}}`, `{{author}}`, `{{totalWords}}`, `{{writtenWords}}`, `{{generatedWords}}`, `{{writtenPercent}}`,
+  `{{generatedPercent}}` and `{{models}}` (the models separated by commas, empty when there is none). Empty is the default text.
 
 The tab is saved with the **Save** of the settings and **Discard Changes** throws its changes away, like the others. A template that is not valid
 is refused when you save. A style you make in the Styles tab can be chosen here after you save.
