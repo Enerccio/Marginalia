@@ -1397,8 +1397,21 @@ public final class JavascriptLibrary {
                 };
                 // the overlay of a dialog is shown a moment after it is marked as opened
                 const later = () => { sync(); setTimeout(sync, 100); };
-                new MutationObserver(later).observe(document.body,
-                    { subtree: true, attributes: true, attributeFilter: ['opened'] });
+                // a notification (also marked 'opened') is in the top layer too, and the container of the notifications stays there
+                // from the first one, so it would be below the button put there later: raise it above the button again
+                const raiseNotifications = () => {
+                  for (const c of document.querySelectorAll('vaadin-notification-container')) {
+                    try { if (c.matches(':popover-open')) { c.hidePopover(); c.showPopover(); } } catch (e) {}
+                  }
+                };
+                new MutationObserver(records => {
+                  if (records.some(r => r.target.localName === 'vaadin-dialog' || r.target.localName === 'vaadin-confirm-dialog')) {
+                    later();
+                    setTimeout(raiseNotifications, 150);
+                  } else if (records.some(r => r.target.localName === 'vaadin-notification' && r.target.opened) && dialogOpen()) {
+                    raiseNotifications();
+                  }
+                }).observe(document.body, { subtree: true, attributes: true, attributeFilter: ['opened'] });
                 new MutationObserver(records => { if (records.some(r => r.target.parentElement === root)) later(); })
                     .observe(root, { subtree: true, attributes: true, attributeFilter: ['hidden'] });
                 later();
