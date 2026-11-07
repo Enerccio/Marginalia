@@ -20,6 +20,7 @@ import com.github.enerccio.marginalia.ui.LLMInteraction;
 import com.github.enerccio.marginalia.ui.components.TagsView;
 import com.github.enerccio.marginalia.ui.dialogs.LorebookImportDialog;
 import com.github.enerccio.marginalia.ui.exports.ExportSettingsEditor;
+import com.github.enerccio.marginalia.ui.notifications.NotificationSettingsEditor;
 import com.github.enerccio.marginalia.ui.shortcuts.KeyBindings;
 import com.github.enerccio.marginalia.ui.shortcuts.KeyBindingsEditor;
 import com.github.enerccio.marginalia.ui.styles.PartStyleEditor;
@@ -106,6 +107,9 @@ public class UserPart implements WorkspaceComponent {
     private ExportSettingsService exportSettingsService;
 
     @Autowired
+    private NotificationService notificationService;
+
+    @Autowired
     private User currentUser;
 
     private final Workspace workspace;
@@ -161,6 +165,9 @@ public class UserPart implements WorkspaceComponent {
 
     // Exports: the style and the templates of each format, saved and discarded with the page like the styles
     private ExportSettingsEditor exportsEditor;
+
+    // Notifications: the switch and the list of what notifies, saved and discarded with the page like the styles
+    private NotificationSettingsEditor notificationsEditor;
 
     // Tab 5 Extensions
     private Accordion extensionSettings;
@@ -269,6 +276,8 @@ public class UserPart implements WorkspaceComponent {
 
         tabSheet.add(loc.getValue(L.LABEL_KEYBOARD_SHORTCUTS), createShortcutsTab());
 
+        tabSheet.add(loc.getValue(L.LABEL_NOTIFICATIONS), createNotificationsTab());
+
         extensionSettings = new Accordion();
         extensionSettings.setSizeFull();
         // the first panel is open by default; the panels are added by the extensions and the user opens the one wanted
@@ -335,6 +344,24 @@ public class UserPart implements WorkspaceComponent {
         exportsEditor = editor;
         layout.add(help, editor);
         return layout;
+    }
+
+    /**
+     * The desktop notifications: whether the browser tells the user a run of a model is over and for which runs. Like the styles it keeps its
+     * changes in its fields and tells this part; {@link #save} stores them and {@link #refresh} reloads them.
+     */
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = Component.class),
+            locals = {@APILocals(name = "editor", type = NotificationSettingsEditor.class)})
+    private Component createNotificationsTab() {
+        NotificationSettingsEditor editor = new NotificationSettingsEditor(loc, notificationService);
+        editor.setOnChange(() -> {
+            if (!loading) {
+                setChanged(true);
+            }
+        });
+        notificationsEditor = editor;
+        return editor;
     }
 
     /**
@@ -729,6 +756,9 @@ public class UserPart implements WorkspaceComponent {
             if (exportsEditor != null) {
                 exportsEditor.reload();
             }
+            if (notificationsEditor != null) {
+                notificationsEditor.reload();
+            }
 
             List<AI> allModels = aiService.findAllForUser();
             defaultModelCombo.setItems(allModels);
@@ -848,8 +878,9 @@ public class UserPart implements WorkspaceComponent {
             parameters = {@APIParameter(name = "component", type = Component.class)},
             locals = {@APILocals(name = "field", type = HasValue.class)})
     private void trackChanges(Component component) {
-        if (component instanceof PartStyleEditor || component instanceof ExportSettingsEditor) {
-            // reports its changes itself, see createStylesTab and createExportsTab
+        if (component instanceof PartStyleEditor || component instanceof ExportSettingsEditor
+                || component instanceof NotificationSettingsEditor) {
+            // reports its changes itself, see createStylesTab, createExportsTab and createNotificationsTab
             return;
         }
         if (component instanceof HasValue<?, ?> field && ComponentUtil.getData(component, CHANGE_TRACKED_KEY) == null) {
@@ -1004,6 +1035,9 @@ public class UserPart implements WorkspaceComponent {
             if (exportsEditor != null) {
                 // after the styles: it chooses among them, and a style deleted just now counts as none
                 exportsEditor.save();
+            }
+            if (notificationsEditor != null) {
+                notificationsEditor.save();
             }
             // the open story tabs use the new keys from the next key press
             JavascriptLibrary.setShortcutKeys(UI.getCurrent().getPage(), KeyBindings.of(userSetting).toJson());

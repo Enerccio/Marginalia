@@ -5,6 +5,7 @@ import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
+import com.github.enerccio.marginalia.extensions.knowledgetracker.KnowledgeTrackerExtension;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.extract.ChangeApplier;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.extract.ChangeLog;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.model.*;
@@ -19,6 +20,7 @@ import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.dialogs.story.StoryEditor;
+import com.github.enerccio.marginalia.ui.widgets.DesktopNotifier;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.*;
@@ -754,6 +756,7 @@ public class KnowledgeTrackerView extends VerticalLayout {
             ExtractionRun run = runs.running(manuscript);
             if (run == null) {
                 run = runs.startTidy(manuscript, null);
+                notifyWhenOver(run);
             }
             watch(run);
             showProgress(run);
@@ -785,9 +788,36 @@ public class KnowledgeTrackerView extends VerticalLayout {
         ExtractionRun run = runs.running(manuscript);
         if (run == null) {
             run = runs.start(manuscript, null, null, maxParts);
+            notifyWhenOver(run);
         }
         watch(run);
         showProgress(run);
+    }
+
+    /**
+     * Tells the user, with a desktop notification, when a run they started has read the story and waits for the review, is done or
+     * failed. The runs the extension starts by itself while a part is generated are not told: nobody asked for them.
+     */
+    private void notifyWhenOver(ExtractionRun run) {
+        UI ui = UI.getCurrent();
+        java.util.concurrent.atomic.AtomicReference<ExtractionRun.Phase> last = new java.util.concurrent.atomic.AtomicReference<>();
+        run.addListener(status -> {
+            ExtractionRun.Phase phase = status.phase();
+            boolean failed = phase == ExtractionRun.Phase.FAILED;
+            if ((failed || phase == ExtractionRun.Phase.DONE || phase == ExtractionRun.Phase.REVIEW) && last.getAndSet(phase) != phase) {
+                UiAccess.run(ui, () -> {
+                    DesktopNotifier notifier = new DesktopNotifier(ui);
+                    if (failed) {
+                        notifier.failed(KnowledgeTrackerExtension.NOTIFY_EXTRACT, false, manuscript.getName());
+                    } else {
+                        notifier.finished(KnowledgeTrackerExtension.NOTIFY_EXTRACT, false, manuscript.getName());
+                    }
+                });
+            } else if (!phase.isFinished() && phase != ExtractionRun.Phase.REVIEW) {
+                // a new request of the series: the next review is told again
+                last.set(phase);
+            }
+        });
     }
 
     /**

@@ -6,6 +6,7 @@ import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.structured.SchemaCheck;
 import com.github.enerccio.marginalia.domain.service.structured.StructuredOutputs;
 import com.github.enerccio.marginalia.domain.service.tool.ToolSet;
+import com.github.enerccio.marginalia.extensions.arcoutline.ArcOutlineExtension;
 import com.github.enerccio.marginalia.extensions.arcoutline.model.*;
 import com.github.enerccio.marginalia.extensions.arcoutline.service.ArcOutlineService;
 import com.github.enerccio.marginalia.extensions.arcoutline.service.Defaults;
@@ -34,6 +35,11 @@ import static com.github.enerccio.marginalia.extensions.arcoutline.ArcOutlineLoc
  * chapter, to say what it should contain.
  */
 public class ChapterGeneratorDialog extends GeneratorDialog {
+
+    @Override
+    protected String notificationSource() {
+        return ArcOutlineExtension.NOTIFY_CHAPTERS;
+    }
 
     private static final int MAX_CHAPTERS = 40;
 

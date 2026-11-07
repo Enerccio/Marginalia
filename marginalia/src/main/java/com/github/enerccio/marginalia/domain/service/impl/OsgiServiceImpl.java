@@ -77,6 +77,9 @@ public class OsgiServiceImpl implements OsgiService, ApplicationListener<Context
     private InheritedSettingRegistry inheritedSettingRegistry;
 
     @Autowired
+    private NotificationService notificationService;
+
+    @Autowired
     private ExtensionService extensionService;
 
     @Autowired
@@ -692,6 +695,7 @@ public class OsgiServiceImpl implements OsgiService, ApplicationListener<Context
                 toolService.unregisterAll(b.getSymbolicName());
                 storyMenuRegistry.unregisterAll(b.getSymbolicName());
                 inheritedSettingRegistry.unregisterAll(b.getSymbolicName());
+                notificationService.unregisterAll(b.getSymbolicName());
             }
             getContext().ungetService(sr);
             if (reported) {

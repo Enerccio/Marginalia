@@ -4,6 +4,7 @@ import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.components.TokenLimits;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
+import com.github.enerccio.marginalia.extensions.bookdescription.BookDescriptionExtension;
 import com.github.enerccio.marginalia.extensions.bookdescription.model.BookDescriptionSettings;
 import com.github.enerccio.marginalia.extensions.bookdescription.model.OutputFormat;
 import com.github.enerccio.marginalia.extensions.bookdescription.service.AnswerParser;
@@ -18,6 +19,7 @@ import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes.InRequestScope;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
+import com.github.enerccio.marginalia.ui.widgets.DesktopNotifier;
 import com.github.enerccio.marginalia.ui.widgets.DialogShortcuts;
 import com.github.enerccio.marginalia.ui.widgets.ModelProtocolPicker;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
@@ -484,6 +486,7 @@ public class BookDescriptionDialog extends Dialog {
         generating = false;
         worker = null;
         status.setText(T.localized(DONE));
+        new DesktopNotifier(UI.getCurrent()).finished(BookDescriptionExtension.NOTIFY_GENERATE, false, manuscript.getName());
         if (result.description() != null) {
             AnswerParser.Parsed parsed = result.description();
             nameField.setValue(parsed.name());
@@ -502,6 +505,9 @@ public class BookDescriptionDialog extends Dialog {
         generating = false;
         worker = null;
         status.setText(message != null ? message : "");
+        if (failure != null) {
+            new DesktopNotifier(UI.getCurrent()).failed(BookDescriptionExtension.NOTIFY_GENERATE, false, manuscript.getName());
+        }
         if (failure instanceof String reason) {
             Notification.warning(reason);
         } else if (failure instanceof IllegalStateException e) {

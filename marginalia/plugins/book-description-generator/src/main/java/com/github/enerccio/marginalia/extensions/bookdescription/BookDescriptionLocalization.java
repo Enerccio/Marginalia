@@ -58,6 +58,7 @@ public class BookDescriptionLocalization extends PluginLocalizationBundle {
     public static final String CANT_COPY_TO_THE_BOOK = "Can't copy to the book: %s";
     public static final String THE_NAME_AND_THE_DESCRIPTION_APPEAR_HERE = "The name and the description the model writes appear here";
     public static final String THE_ANSWER_CANT_BE_READ = "The answer has no name and description that could be read. This is what the model wrote:";
+    public static final String BOOK_DESCRIPTION_GENERATOR_WRITE_THE_DESCRIPTION = "Book Description Generator: write the description";
 
     @Override
     protected void loadKeys() {
@@ -207,5 +208,8 @@ public class BookDescriptionLocalization extends PluginLocalizationBundle {
 
         ja(THE_ANSWER_CANT_BE_READ, "回答から名前と説明を読み取れませんでした。モデルの回答:");
         zh(THE_ANSWER_CANT_BE_READ, "无法从回答中读取名称和简介。模型的回答如下：");
+
+        ja(BOOK_DESCRIPTION_GENERATOR_WRITE_THE_DESCRIPTION, "ブック説明ジェネレーター: 説明を作成");
+        zh(BOOK_DESCRIPTION_GENERATOR_WRITE_THE_DESCRIPTION, "书籍简介生成器：撰写简介");
     }
 }

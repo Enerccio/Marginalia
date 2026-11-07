@@ -6,6 +6,7 @@ import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.structured.SchemaCheck;
 import com.github.enerccio.marginalia.domain.service.structured.StructuredOutputs;
 import com.github.enerccio.marginalia.domain.service.tool.ToolSet;
+import com.github.enerccio.marginalia.extensions.arcoutline.ArcOutlineExtension;
 import com.github.enerccio.marginalia.extensions.arcoutline.model.*;
 import com.github.enerccio.marginalia.extensions.arcoutline.service.ArcOutlineService;
 import com.github.enerccio.marginalia.extensions.arcoutline.service.Defaults;
@@ -23,6 +24,11 @@ import static com.github.enerccio.marginalia.extensions.arcoutline.ArcOutlineLoc
  * answer can be saved as an arc at the end of the outline, together with the reasoning and the JSON it came from.
  */
 public class ArcGeneratorDialog extends GeneratorDialog {
+
+    @Override
+    protected String notificationSource() {
+        return ArcOutlineExtension.NOTIFY_ARC;
+    }
 
     private final ArcOutline outline;
     private final Consumer<Arc> onSave;

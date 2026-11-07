@@ -2,12 +2,9 @@ package com.github.enerccio.marginalia.extensions.knowledgetracker;
 
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
-import com.github.enerccio.marginalia.domain.service.CommandService;
-import com.github.enerccio.marginalia.domain.service.ExtensionService;
+import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.ExtensionService.ExtendableMethodContext;
 import com.github.enerccio.marginalia.domain.service.ExtensionService.ExtensionDecorator;
-import com.github.enerccio.marginalia.domain.service.OsgiService;
-import com.github.enerccio.marginalia.domain.service.StoryGenerationService;
 import com.github.enerccio.marginalia.domain.service.impl.generation.*;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationControllerEvent.EventChain;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationControllerEvent.Registration;
@@ -58,6 +55,8 @@ public class KnowledgeTrackerExtension implements MarginaliaExtension, Extension
                     + "<path d='M8 10.5c1 0 2 .6 2 1.8M16 10.5c-1 0-2 .6-2 1.8'/>");
 
     private static final String VIEW_KEY = KnowledgeState.KEY + ".view";
+    /** The source of the notification that a run the user started reads the story or waits for the review, see {@code NotificationService}. */
+    public static final String NOTIFY_EXTRACT = KnowledgeState.KEY + ".extract";
 
     /** What the generation prepared for the prompt, in the properties of the generation. */
     private static final String PREPARED_KEY = KnowledgeState.KEY + ".prepared";
@@ -67,6 +66,9 @@ public class KnowledgeTrackerExtension implements MarginaliaExtension, Extension
 
     @Autowired
     private StoryGenerationService storyGenerationService;
+
+    @Autowired
+    private NotificationService notificationService;
 
     @Autowired
     private CommandService commandService;
@@ -96,6 +98,7 @@ public class KnowledgeTrackerExtension implements MarginaliaExtension, Extension
     @Override
     public void onExtensionLoad(Bundle bundle, OsgiService parentService, ExtensionService extensionService) {
         log = parentService.createLogger(bundle);
+        notificationService.register(bundle.getSymbolicName(), new NotificationService.Source(NOTIFY_EXTRACT, () -> T.localized(KnowledgeTrackerLocalization.KNOWLEDGE_TRACKER_READ_THE_STORY)));
         try {
             // the Knowledge tab in the left sidebar of the story view (the drawer on a phone)
             storyPartDecorator = new ExtensionDecorator() {

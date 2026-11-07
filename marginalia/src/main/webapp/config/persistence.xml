@@ -48,6 +48,7 @@
         <class>com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting</class>
         <class>com.github.enerccio.marginalia.domain.model.impl.settings.StylesSetting</class>
         <class>com.github.enerccio.marginalia.domain.model.impl.settings.ExportSettings</class>
+        <class>com.github.enerccio.marginalia.domain.model.impl.settings.NotificationSettings</class>
 
         <exclude-unlisted-classes>true</exclude-unlisted-classes>
 

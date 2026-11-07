@@ -171,6 +171,8 @@ public class BetaReadersLocalization extends PluginLocalizationBundle {
     public static final String EMPTY_NOT_NAMED = "Empty: not named. The personas call you by this name and your messages show it.";
     public static final String LAST_PART = "Last part";
     public static final String FIRST_PART = "First part";
+    public static final String BETA_READERS_ANSWER_IN_A_CHAT = "Beta Readers: answer in a chat";
+    public static final String BETA_READERS_WRITE_A_PERSONA = "Beta Readers: write a persona";
 
     @Override
     protected void loadKeys() {
@@ -868,5 +870,11 @@ public class BetaReadersLocalization extends PluginLocalizationBundle {
                 "最初のパート");
         zh(FIRST_PART,
                 "第一个部分");
+
+        ja(BETA_READERS_ANSWER_IN_A_CHAT, "ベータリーダー: チャットで回答");
+        zh(BETA_READERS_ANSWER_IN_A_CHAT, "试读者：在聊天中回答");
+
+        ja(BETA_READERS_WRITE_A_PERSONA, "ベータリーダー: ペルソナを作成");
+        zh(BETA_READERS_WRITE_A_PERSONA, "试读者：撰写角色设定");
     }
 }

@@ -9,6 +9,7 @@ import com.github.enerccio.marginalia.domain.service.function.FunctionSet;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMAttachment;
 import com.github.enerccio.marginalia.domain.service.tool.ToolSelection;
 import com.github.enerccio.marginalia.domain.service.tool.ToolSet;
+import com.github.enerccio.marginalia.extensions.loregenerator.LoreGeneratorExtension;
 import com.github.enerccio.marginalia.extensions.loregenerator.model.LoreEntryGeneration;
 import com.github.enerccio.marginalia.extensions.loregenerator.model.LoreGeneratorData;
 import com.github.enerccio.marginalia.extensions.loregenerator.service.Defaults;
@@ -19,6 +20,7 @@ import com.github.enerccio.marginalia.extensions.loregenerator.service.LoreGener
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
+import com.github.enerccio.marginalia.ui.widgets.DesktopNotifier;
 import com.github.enerccio.marginalia.ui.widgets.ModelProtocolPicker;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.ui.widgets.ToolSelectionButton;
@@ -461,6 +463,7 @@ public class LoreGeneratorDialog extends Dialog {
             @Override
             public void onCompletion() {
                 finish(ui, pane, null);
+                ended(ui, pane, false);
             }
 
             @Override
@@ -471,6 +474,7 @@ public class LoreGeneratorDialog extends Dialog {
             @Override
             public void onError(Throwable exception) {
                 finish(ui, pane, exception);
+                ended(ui, pane, true);
             }
 
             @Override
@@ -489,6 +493,19 @@ public class LoreGeneratorDialog extends Dialog {
             }
             updateControls();
             UIPushGuard.push(ui);
+        });
+    }
+
+    /** The run ended by itself (not stopped): tells the user, see {@code NotificationService}. */
+    private void ended(UI ui, GenerationPane pane, boolean failed) {
+        String source = pane == compactionPane ? LoreGeneratorExtension.NOTIFY_COMPACT : LoreGeneratorExtension.NOTIFY_GENERATE;
+        ui.access(() -> {
+            DesktopNotifier notifier = new DesktopNotifier(ui);
+            if (failed) {
+                notifier.failed(source, false, lorebook.getName());
+            } else {
+                notifier.finished(source, false, lorebook.getName());
+            }
         });
     }
 

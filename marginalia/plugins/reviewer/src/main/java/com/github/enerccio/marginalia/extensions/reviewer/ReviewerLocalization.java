@@ -51,6 +51,7 @@ public class ReviewerLocalization extends PluginLocalizationBundle {
     public static final String TOKEN_LIMIT = "Token Limit";
     public static final String GENERATE = "Generate";
     public static final String TOTAL_TOKENS = "Total tokens: %s";
+    public static final String REVIEWER_GENERATE_A_REVIEW = "Reviewer: generate a review";
 
     @Override
     protected void loadKeys() {
@@ -179,5 +180,8 @@ public class ReviewerLocalization extends PluginLocalizationBundle {
 
         ja(TOTAL_TOKENS, "合計トークン数: %s");
         zh(TOTAL_TOKENS, "总词元数：%s");
+
+        ja(REVIEWER_GENERATE_A_REVIEW, "レビュアー: レビューを生成");
+        zh(REVIEWER_GENERATE_A_REVIEW, "审阅器：生成审阅");
     }
 }

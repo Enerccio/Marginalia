@@ -99,6 +99,7 @@ public class STConverterLocalization extends PluginLocalizationBundle {
     public static final String THE_BACKUP_IS_DAMAGED = "The backup is damaged: the parts do not lead to the first part";
     public static final String THE_STORED_SOURCE = "The stored source of the book can't be read";
     public static final String THE_STORED_SOURCE_OF_THE_BOOK = "The stored source of the book is from a newer version of the plugin";
+    public static final String CONVERTER_CONVERT_THE_CHAT = "Converter: convert the chat into turn details";
 
     @Override
     protected void loadKeys() {
@@ -371,5 +372,8 @@ public class STConverterLocalization extends PluginLocalizationBundle {
 
         ja(THE_STORED_SOURCE_OF_THE_BOOK, "保存されているブックのソースは、より新しいバージョンのプラグインのものです");
         zh(THE_STORED_SOURCE_OF_THE_BOOK, "已保存的书籍来源来自更新版本的插件");
+
+        ja(CONVERTER_CONVERT_THE_CHAT, "コンバーター: チャットをターン詳細に変換");
+        zh(CONVERTER_CONVERT_THE_CHAT, "转换器：将聊天转换为回合详情");
     }
 }

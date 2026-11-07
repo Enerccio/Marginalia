@@ -303,6 +303,9 @@
     <!-- the default style and the changed templates of the user's exports, see ExportSettings -->
     <bean class="com.github.enerccio.marginalia.domain.service.impl.ExportSettingsServiceImpl" />
 
+    <!-- the desktop notifications of the browser: what can notify (the sources, extensions add theirs) and what the user chose -->
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.NotificationServiceImpl" />
+
     <bean class="com.github.enerccio.marginalia.extensions.InheritedSettingRegistry" />
 
     <!-- where the code that gives the story to a model asks for the text of a part, and where an extension says how to turn it back -->

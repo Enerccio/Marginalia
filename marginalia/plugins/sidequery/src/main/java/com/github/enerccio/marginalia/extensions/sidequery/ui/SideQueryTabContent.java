@@ -7,16 +7,13 @@ import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
+import com.github.enerccio.marginalia.extensions.sidequery.SideQueryExtension;
 import com.github.enerccio.marginalia.extensions.sidequery.SideQueryLog;
 import com.github.enerccio.marginalia.extensions.sidequery.model.*;
 import com.github.enerccio.marginalia.extensions.sidequery.service.SideQueryService;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
-import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
-import com.github.enerccio.marginalia.ui.widgets.DialogShortcuts;
-import com.github.enerccio.marginalia.ui.widgets.Notification;
-import com.github.enerccio.marginalia.ui.widgets.ResizableTextArea;
-import com.github.enerccio.marginalia.ui.widgets.ScrollPanel;
+import com.github.enerccio.marginalia.ui.widgets.*;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
@@ -479,6 +476,7 @@ public class SideQueryTabContent extends VerticalLayout {
                         triggerSave();
                         setGeneratingState(false);
                         updateTokenCount();
+                        new DesktopNotifier(ui).finished(SideQueryExtension.NOTIFY_QUERY, false, manuscript.getName());
                         UIPushGuard.push(ui);
                         nameTab(ui, profileSetting);
                     });
@@ -503,6 +501,7 @@ public class SideQueryTabContent extends VerticalLayout {
                         triggerSave();
                         setGeneratingState(false);
                         updateTokenCount();
+                        new DesktopNotifier(ui).failed(SideQueryExtension.NOTIFY_QUERY, false, manuscript.getName());
                         UIPushGuard.push(ui);
                     });
                 }

@@ -1,17 +1,19 @@
 package com.github.enerccio.marginalia.ui.dialogs.manuscript;
 
-import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Summary;
 import com.github.enerccio.marginalia.domain.service.CancellationToken;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService;
+import com.github.enerccio.marginalia.domain.service.NotificationService;
 import com.github.enerccio.marginalia.domain.service.SummaryService;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
+import com.github.enerccio.marginalia.ui.widgets.DesktopNotifier;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.ui.widgets.ScrollPanel;
 import com.github.enerccio.marginalia.utils.UIUtils;
@@ -219,6 +221,7 @@ public class SummaryDialog extends Dialog implements LLMInteract {
                     } catch (Exception e) {
                         UIUtils.internalServerError(loc, e);
                     }
+                    new DesktopNotifier(ui).finished(NotificationService.SUMMARY, false, manuscript.getName());
                     UIPushGuard.push(ui);
                 });
             }
@@ -238,6 +241,7 @@ public class SummaryDialog extends Dialog implements LLMInteract {
                     setHeaderTitle(loc.getValue(L.LABEL_SUMMARY_ERROR));
                     updateActionButtonState(false);
                     UIUtils.inferenceError(loc, throwable);
+                    new DesktopNotifier(ui).failed(NotificationService.SUMMARY, false, manuscript.getName());
                     UIPushGuard.push(ui);
                 });
             }

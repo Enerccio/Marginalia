@@ -5,6 +5,7 @@ import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.service.ExtensionService;
 import com.github.enerccio.marginalia.domain.service.ExtensionService.ExtendableMethodContext;
 import com.github.enerccio.marginalia.domain.service.ExtensionService.ExtensionDecorator;
+import com.github.enerccio.marginalia.domain.service.NotificationService;
 import com.github.enerccio.marginalia.domain.service.OsgiService;
 import com.github.enerccio.marginalia.extensions.ExtensionHasCss;
 import com.github.enerccio.marginalia.extensions.InheritedSettingRegistry;
@@ -56,6 +57,13 @@ public class BetaReadersExtension implements MarginaliaExtension, ExtensionHasCs
     @Autowired
     private InheritedSettingRegistry inheritedSettingRegistry;
 
+    @Autowired
+    private NotificationService notificationService;
+
+    /** The sources of the notifications that the beta readers answered, or a persona was written, see {@code NotificationService}. */
+    public static final String NOTIFY_CHAT = BetaReadersSettings.KEY + ".chat";
+    public static final String NOTIFY_PERSONA = BetaReadersSettings.KEY + ".persona";
+
     private final BetaReadersService service = new BetaReadersService();
 
     private ExtensionDecorator storyPartDecorator;
@@ -68,6 +76,8 @@ public class BetaReadersExtension implements MarginaliaExtension, ExtensionHasCs
     @Override
     public void onExtensionLoad(Bundle bundle, OsgiService parentService, ExtensionService extensionService) {
         log = parentService.createLogger(bundle);
+        notificationService.register(bundle.getSymbolicName(), new NotificationService.Source(NOTIFY_CHAT, () -> T.localized(BetaReadersLocalization.BETA_READERS_ANSWER_IN_A_CHAT)));
+        notificationService.register(bundle.getSymbolicName(), new NotificationService.Source(NOTIFY_PERSONA, () -> T.localized(BetaReadersLocalization.BETA_READERS_WRITE_A_PERSONA)));
         try {
             // what books and folders inherit: their dialogs get the fields, the user level is the panel below
             BetaReadersInherited.register(inheritedSettingRegistry, bundle.getSymbolicName(), service::settingsOrDefaults,

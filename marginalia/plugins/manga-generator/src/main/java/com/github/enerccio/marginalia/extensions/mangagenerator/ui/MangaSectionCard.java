@@ -6,6 +6,7 @@ import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.CancellationToken;
 import com.github.enerccio.marginalia.domain.service.InferenceErrors;
 import com.github.enerccio.marginalia.domain.service.UsageContext;
+import com.github.enerccio.marginalia.extensions.mangagenerator.MangaGeneratorExtension;
 import com.github.enerccio.marginalia.extensions.mangagenerator.MangaGeneratorLog;
 import com.github.enerccio.marginalia.extensions.mangagenerator.model.Manga;
 import com.github.enerccio.marginalia.extensions.mangagenerator.model.MangaSection;
@@ -14,6 +15,7 @@ import com.github.enerccio.marginalia.extensions.mangagenerator.service.MangaSer
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
+import com.github.enerccio.marginalia.ui.widgets.DesktopNotifier;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.UI;
@@ -533,6 +535,15 @@ public class MangaSectionCard extends VerticalLayout {
                 refreshView();
                 if (whenDone != null) {
                     whenDone.accept(outcome);
+                } else if (outcome != MangaService.Outcome.CANCELLED) {
+                    // a step of the continuous mode does not tell, the dialog tells when the mode is over
+                    DesktopNotifier notifier = new DesktopNotifier(ui);
+                    String source = tags ? MangaGeneratorExtension.NOTIFY_TAGS : MangaGeneratorExtension.NOTIFY_SCRIPT;
+                    if (outcome == MangaService.Outcome.FAILED) {
+                        notifier.failed(source, false, manuscript.getName());
+                    } else {
+                        notifier.finished(source, false, manuscript.getName());
+                    }
                 }
                 UIPushGuard.push(ui);
             });

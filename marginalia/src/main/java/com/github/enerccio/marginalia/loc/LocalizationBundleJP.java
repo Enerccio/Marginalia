@@ -986,6 +986,11 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_COMMAND_MOVE_PLANNED_SCENE, "予定のシーンを移動");
         setValue(L.LABEL_COMMAND_DELETE_PLANNED_SCENE, "予定のシーンを削除");
         setValue(L.LABEL_REASONING_PASSTHROUGH, "思考を送り返す");
+        setValue(L.LABEL_NOTIFICATIONS, "通知");
+        setValue(L.LABEL_NOTIFICATIONS_ENABLE, "デスクトップ通知を使用する");
+        setValue(L.LABEL_NOTIFICATIONS_TEST, "テスト通知を送信");
+        setValue(L.LABEL_NOTIFICATIONS_REGISTER, "このブラウザを登録");
+        setValue(L.LABEL_STORY_GENERATION, "ストーリー生成");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -1679,6 +1684,15 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_PLANNER_TITLE_REQUIRED, "タイトルは必須です");
         setValue(L.MSG_PLANNER_DELETE_CONFIRM, "シーン「%s」を削除しますか？");
         setValue(L.MSG_PLANNER_NO_TURN_FORM, "物語にシーンを入れる場所がありません");
+        setValue(L.MSG_NOTIFICATIONS_INFO, "別のタブやウィンドウを見ているときに、モデルの処理が終わったことをブラウザで知らせます。チェックボックスはアカウントの通知をオンにします。許可はアカウントではなくブラウザに属するため、通知を受け取りたいブラウザごとにボタンで一度登録する必要があります。通知する項目を下で選んでください。「自動」と付いた項目は本が自動で開始する処理（自動注釈）で、付いていない項目は自分で開いたダイアログの処理です。");
+        setValue(L.MSG_NOTIFICATIONS_PERMISSION_GRANTED, "このブラウザは通知を許可しています。");
+        setValue(L.MSG_NOTIFICATIONS_PERMISSION_DENIED, "このブラウザはこのサイトの通知をブロックしています。ブラウザのサイト設定で許可してください。");
+        setValue(L.MSG_NOTIFICATIONS_PERMISSION_DEFAULT, "このブラウザにはまだ確認していません。「このブラウザを登録」をクリックしてください。");
+        setValue(L.MSG_NOTIFICATIONS_UNSUPPORTED, "このブラウザではここで通知を表示できません。HTTPS のアドレスか localhost が必要です。");
+        setValue(L.MSG_NOTIFICATIONS_TEST_FAILED, "通知を表示できませんでした。");
+        setValue(L.MSG_NOTIFICATION_FINISHED, "%s が完了しました");
+        setValue(L.MSG_NOTIFICATION_FAILED, "%s が失敗しました");
+        setValue(L.MSG_NOTIFICATION_TEST, "このブラウザで通知は動作しています。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");

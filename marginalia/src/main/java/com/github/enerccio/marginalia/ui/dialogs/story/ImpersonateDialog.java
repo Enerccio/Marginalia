@@ -5,9 +5,11 @@ import com.github.enerccio.marginalia.domain.components.TurnInput;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.CancellationToken;
 import com.github.enerccio.marginalia.domain.service.ImpersonateService;
+import com.github.enerccio.marginalia.domain.service.NotificationService;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
+import com.github.enerccio.marginalia.ui.widgets.DesktopNotifier;
 import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
 import com.github.enerccio.marginalia.ui.widgets.DialogShortcuts;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
@@ -184,6 +186,7 @@ public class ImpersonateDialog extends Dialog {
             public void onFinished(String reasoning, String text) {
                 ui.access(() -> {
                     finish(reasoning, text);
+                    new DesktopNotifier(ui).finished(NotificationService.IMPERSONATE, false, manuscript.getName());
                     UIPushGuard.push(ui);
                 });
             }
@@ -201,6 +204,7 @@ public class ImpersonateDialog extends Dialog {
                 ui.access(() -> {
                     showGenerating(false);
                     UIUtils.inferenceError(loc, throwable);
+                    new DesktopNotifier(ui).failed(NotificationService.IMPERSONATE, false, manuscript.getName());
                     UIPushGuard.push(ui);
                 });
             }
