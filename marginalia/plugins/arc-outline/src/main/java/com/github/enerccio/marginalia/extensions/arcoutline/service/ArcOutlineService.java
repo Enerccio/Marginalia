@@ -456,7 +456,7 @@ public class ArcOutlineService {
      * @param names    the tools the author chose in the tool dialog, {@link ToolSet#NONE} for none
      */
     public FunctionSet wizardFunctions(Manuscript book, WizardOptions options, CommandFunctions.Approval approval, ToolSet names) {
-        FunctionSet functions = names == null ? FunctionSet.empty() : names.functions();
+        FunctionSet functions = toolFunctions(names);
         Set<String> allowed = new LinkedHashSet<>();
         options.getToolGroups().forEach(group -> allowed.addAll(toolNames(group)));
         if (!allowed.isEmpty()) {
@@ -465,6 +465,14 @@ public class ArcOutlineService {
                     new CommandCage(commandScopes.forManuscript(book), null)));
         }
         return functions;
+    }
+
+    /**
+     * The functions of the tools the author chose in the tool dialog; none for {@link ToolSet#NONE} (a set without functions has
+     * {@code null} for them, which is not a {@link FunctionSet} to add to).
+     */
+    public static FunctionSet toolFunctions(ToolSet names) {
+        return names == null || names.isEmpty() ? FunctionSet.empty() : names.functions();
     }
 
     // --- tools ---
