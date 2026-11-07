@@ -75,9 +75,13 @@ depth and *Share with other users* of the lorebook. See [Lorebooks](lorebooks/in
 
 Below are **Add Entry** (and the **⋮** with the mass edit and the tags of many entries), the search box and the entries. An entry opens
 with its enabled box and name on a row; opened it has a form: name, order, tags, filtering mode and text, insertion mode, negative tags,
-the activation context and its range, *Prevent recursion*, the content, the note and **Delete entry**. Everything that is changed is saved
-at once, as on the desktop. What is not here: the check box *Only root lorebooks* and selecting many entries to delete at once (delete an entry
-from its own form, or use the trash of the desktop).
+the activation context and its range, *Also search the summaries*, *Prevent recursion*, *Only through other entries*, the content, the note and
+**Delete entry**. Everything that is changed is saved at once, as on the desktop. Under the search box are the tag and the status boxes that
+limit the list; **Select entries** in the **⋮** menu puts a check box in front of every entry and shows **Delete selected** for the checked
+ones. What is not here: the check box *Only root lorebooks*.
+
+The **Lorebook** tab of the drawer of the story shows the lore of the book like the desktop tab: a search box, the entries that open to their
+content, and the pen that edits the text of an entry.
 
 The same editor is used in the *Lorebook* tab of a book. When the lorebook of the book has sub lorebooks, the box
 **Shown lorebook** under it switches the tab to any of them, and back, without changing the lorebook of the book. While an

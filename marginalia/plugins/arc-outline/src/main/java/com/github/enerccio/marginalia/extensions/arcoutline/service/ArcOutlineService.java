@@ -2,10 +2,10 @@ package com.github.enerccio.marginalia.extensions.arcoutline.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.github.enerccio.marginalia.domain.collections.DestructiveCommandMode;
 import com.github.enerccio.marginalia.domain.model.impl.*;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.service.*;
-import com.github.enerccio.marginalia.domain.collections.DestructiveCommandMode;
 import com.github.enerccio.marginalia.domain.service.agent.CommandCage;
 import com.github.enerccio.marginalia.domain.service.agent.CommandFunctions;
 import com.github.enerccio.marginalia.domain.service.function.FunctionSet;
@@ -440,7 +440,7 @@ public class ArcOutlineService {
             case PLANNER -> List.of("get-planned-scenes", "add-planned-scene", "update-planned-scene", "set-planned-scene-done", "move-planned-scene",
                     "delete-planned-scene");
             case LORE -> List.of("list-lorebooks", "list-lore-entries", "get-lore-entry", "search-lore", "create-lore-entry", "update-lore-entry",
-                    "set-lore-entry-tags");
+                    "set-lore-entry-tags", "set-lore-entry-activation");
             case OUTLINE -> List.of("get-arc-outline", "add-arc", "update-arc", "move-arc", "add-outline-chapter", "update-outline-chapter",
                     "move-outline-chapter");
             case GENERATE -> List.of("generate-arc", "generate-outline-chapters", "list-lore-templates", "generate-lore-entry");

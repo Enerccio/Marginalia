@@ -36,7 +36,7 @@ public enum AgentCommandPreset {
      * Reads, and keeps the lorebooks: creates and updates entries and lorebooks, tags, links the sub-lorebooks.
      */
     LORE_KEEPER(L.ENUM_COMMAND_PRESET_LORE_KEEPER,
-            "create-lore-entry", "update-lore-entry", "move-lore-entry", "set-lore-entry-tags", "create-lorebook",
+            "create-lore-entry", "update-lore-entry", "move-lore-entry", "set-lore-entry-tags", "set-lore-entry-activation", "create-lorebook",
             "set-lorebook", "add-subbook", "remove-subbook"),
 
     /**

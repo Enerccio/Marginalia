@@ -79,6 +79,7 @@ class OsgiServiceImplTest {
         ReflectionTestUtils.setField(service, "toolService", new ToolServiceImpl());
         ReflectionTestUtils.setField(service, "storyMenuRegistry", new StoryMenuRegistry());
         ReflectionTestUtils.setField(service, "inheritedSettingRegistry", new InheritedSettingRegistry());
+        ReflectionTestUtils.setField(service, "notificationService", new NotificationServiceImpl());
         localization = new LocalizationImpl();
         localization.setBundles(List.of(new LocalizationBundleEN()));
         ReflectionTestUtils.setField(service, "localization", localization);

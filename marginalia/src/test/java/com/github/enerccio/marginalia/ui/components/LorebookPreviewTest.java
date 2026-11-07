@@ -5,12 +5,17 @@ import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
 import com.github.enerccio.marginalia.domain.service.LorebookEntryService;
 import com.github.enerccio.marginalia.domain.service.LorebookService;
 import com.github.enerccio.marginalia.test.MarginaliaTestBase;
+import com.vaadin.flow.component.AbstractField;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.ComponentUtil;
 import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.treegrid.TreeGrid;
 import com.vaadin.flow.data.provider.hierarchy.TreeData;
 import com.vaadin.flow.data.provider.hierarchy.TreeDataProvider;
+import com.vaadin.flow.data.renderer.ComponentRenderer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -181,6 +186,55 @@ class LorebookPreviewTest extends MarginaliaTestBase {
         assertThat(roots(preview)).containsExactly("One", "Two");
         assertThat(grid.isDetailsVisible(data(preview).getRootItems().getFirst())).isTrue();
         assertThat(grid.isDetailsVisible(data(preview).getRootItems().getLast())).isFalse();
+    }
+
+    @Test
+    void theSearchBoxLimitsTheEntries() throws Exception {
+        Lorebook main = lorebook("main");
+        LorebookEntry varro = entry(main, "Varro", 10);
+        varro.setFiltering("captain");
+        lorebookEntryService.save(varro);
+        entry(main, "Ostra", 20);
+
+        LorebookPreview preview = new LorebookPreview().create();
+        preview.refresh(main);
+        assertThat(roots(preview)).containsExactly("Varro", "Ostra");
+
+        // typed in the browser: the listener acts on changes from the client only
+        TextField search = preview.getSearchField();
+        search.setValue("CAPTAIN");
+        ComponentUtil.fireEvent(search, new AbstractField.ComponentValueChangeEvent<>(search, search, "", true));
+        assertThat(roots(preview)).as("name, content, note or filter, any case").containsExactly("Varro");
+
+        search.setValue("payload of ostra");
+        ComponentUtil.fireEvent(search, new AbstractField.ComponentValueChangeEvent<>(search, search, "", true));
+        assertThat(roots(preview)).containsExactly("Ostra");
+    }
+
+    @SuppressWarnings("unchecked")
+    private static long buttonsOfTheFirstRow(LorebookPreview preview) {
+        TreeGrid<LorebookPreview.Row> grid = find(preview, TreeGrid.class);
+        ComponentRenderer<Component, LorebookPreview.Row> renderer =
+                (ComponentRenderer<Component, LorebookPreview.Row>) grid.getColumns().getFirst().getRenderer();
+        Component row = renderer.createComponent(data(preview).getRootItems().getFirst());
+        return java.util.stream.Stream.of(row).flatMap(LorebookPreviewTest::all).filter(Button.class::isInstance).count();
+    }
+
+    private static java.util.stream.Stream<Component> all(Component root) {
+        return java.util.stream.Stream.concat(java.util.stream.Stream.of(root), root.getChildren().flatMap(LorebookPreviewTest::all));
+    }
+
+    @Test
+    void anEntryHasAnEditButtonOnlyWhenThePreviewIsEditable() throws Exception {
+        Lorebook main = lorebook("main");
+        entry(main, "One", 1);
+
+        LorebookPreview preview = new LorebookPreview().create();
+        preview.refresh(main);
+        assertThat(buttonsOfTheFirstRow(preview)).as("only the one that opens the details").isEqualTo(1);
+
+        preview.setEditable(true);
+        assertThat(buttonsOfTheFirstRow(preview)).as("and the edit button").isEqualTo(2);
     }
 
 }

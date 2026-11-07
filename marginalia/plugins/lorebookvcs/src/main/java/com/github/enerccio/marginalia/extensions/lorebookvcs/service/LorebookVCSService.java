@@ -317,6 +317,8 @@ public class LorebookVCSService {
             }
             rev.setInsertionMode(flat.has("position") ? SillyTavernEntryConverter.insertionMode(flat) : fallbackEntry.getInsertionMode());
             rev.setPreventRecursion(fallbackEntry.isPreventRecursion());
+            rev.setRecursionOnly(fallbackEntry.isRecursionOnly());
+            rev.setActivationSummaries(fallbackEntry.isActivationSummaries());
             rev.setActivationContext(fallbackEntry.getActivationContext());
             rev.setActivationParts(fallbackEntry.getActivationParts());
             rev.setFromMessage(fallbackEntry.getFromMessage());

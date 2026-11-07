@@ -26,10 +26,18 @@ The box with the magnifier next to the buttons shows only the entries that have 
 filter (the case does not matter); clear it to see all of them again. It looks only at the entries of the selected
 lorebook, not at the sub lorebooks. The phone layout has the box above the list.
 
+Next to the box are two more boxes that limit the list. **Tags** shows the entries that have the tag (it lists the tags that
+at least one entry of the lorebook has; the *negative* tags are not looked at). **Status** shows **All**, **Enabled**,
+**Disabled** or **Constant (no keys)** - the entries that are enabled and have no filter, so they are used for every part.
+The search, the tag and the status are combined: an entry has to fit all of them. The phone layout has the two boxes under the
+search box.
+
 The checkbox column at the left selects entries (the one in the header selects all that are shown, so a search and then
 the header box selects the matches). When something is selected, **Delete selected** appears in the toolbar with the number
-of the entries; it asks once and then moves them to the [trash](../trash.md). The phone layout does not delete many entries
-at once (an entry has its own **Delete entry** button there).
+of the entries; it asks once and then moves them to the [trash](../trash.md). The [mass edit](lorebooks.md#mass-edit) has a
+**Delete checked** button too. On the phone, the **⋮** menu of the entries has **Select entries**: check boxes appear in
+front of the entries, and **Delete selected** appears with the number of the checked ones (an entry has its own **Delete
+entry** button there as well).
 
 
 ## Search and replace
@@ -64,7 +72,9 @@ The ⌄ button opens the details:
 | **To message** | The entry is used only up to the part with this number. Empty: to the end. |
 | **Condition** | A template that has to give a true value for the entry to be used, see [A condition for an entry](#a-condition-for-an-entry). Empty: no condition. |
 | **Negative Tags (Exclusion)** | Tags that switch the entry off, see [Tags](#tags). |
+| **Also search the summaries** | When ticked, the filter is also looked for in the [summaries](../books/summaries.md) of the story so far, the ones the next request would send (a summary that no longer matches its story is left out). Needs a filter. |
 | **Do not search its content for other entries** | When ticked, the words in this entry's content never bring other entries in, see [Entries brought in by other entries](#entries-brought-in-by-other-entries). |
+| **Only through other entries** | When ticked, the entry is never used because of the request or the story itself; only when its filter is found in the content of another entry that was used, see [Entries brought in by other entries](#entries-brought-in-by-other-entries). |
 | **Note** | Your notes. Not sent to the model. Entries imported from SillyTavern list the settings that couldn't be imported here. |
 
 Write the content as you want the model to read it - a short, factual description works best:
@@ -217,8 +227,15 @@ mentions the city. With a scan depth of `2`, the entry *Ostra* would in turn bri
 - Only **filters** count: an entry that is already used because it has no filter needs nothing, and an entry that is
   switched off, or excluded by its tags, is not brought in.
 - The content that is searched is the text of the entry as written, the templates in it are not run.
-- The setting of the lorebook the **book uses** counts; the scan depth of a sub lorebook is ignored.
+- The **scan depth** of the lorebook the **book uses** counts for its own entries and for the entries of its sub lorebooks. A sub
+  lorebook can have a depth of its own (**Scan depth as a sub lorebook** in its settings, empty: the one of the lorebook the book
+  uses): its entries are then found by the content of others only in the passes up to that depth, `0` never. The passes that are made
+  are as many as the greatest depth says. The field of a sub lorebook counts only while it is a sub lorebook; when a book uses it
+  directly, its normal **Scan depth** counts.
 - An entry with **Do not search its content for other entries** ticked can be activated, but it brings nobody in.
+- An entry with **Only through other entries** ticked is never found by the request: it is used only when the content of an entry
+  that was used has its filter. Without a scan depth, or without a filter, it is never used at all; the
+  [preview](#preview-activation) says *Not used: used only through the content of other entries*.
 - The order in the prompt does not depend on how an entry was found, see [Order and insertion](#order-and-insertion).
 - Extensions that change which entries are used (see [Extensions](../extensions/index.md)) are asked about the entries
   that are brought in too.

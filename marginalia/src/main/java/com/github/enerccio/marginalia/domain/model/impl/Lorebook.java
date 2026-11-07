@@ -47,6 +47,12 @@ public class Lorebook extends ExtendableEntity {
     @ExtendedAttribute
     private int scanDepth = 0;
 
+    // the scan depth of the entries of this lorebook while it is a sub lorebook of the one the book uses; null = the scan depth of
+    // that lorebook. 0 = the entries of this lorebook are never found by the content of other entries
+    @Transient
+    @ExtendedAttribute
+    private Integer ownScanDepth;
+
     public String getName() {
         return name;
     }
@@ -85,6 +91,14 @@ public class Lorebook extends ExtendableEntity {
 
     public void setScanDepth(int scanDepth) {
         this.scanDepth = scanDepth;
+    }
+
+    public Integer getOwnScanDepth() {
+        return ownScanDepth;
+    }
+
+    public void setOwnScanDepth(Integer ownScanDepth) {
+        this.ownScanDepth = ownScanDepth == null || ownScanDepth < 0 ? null : ownScanDepth;
     }
 
     public boolean isEnabled() {

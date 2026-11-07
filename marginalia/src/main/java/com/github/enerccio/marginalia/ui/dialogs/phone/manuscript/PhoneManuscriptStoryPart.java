@@ -14,6 +14,7 @@ import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.RestorableState;
+import com.github.enerccio.marginalia.ui.components.LorebookPreview;
 import com.github.enerccio.marginalia.ui.components.MessageImages;
 import com.github.enerccio.marginalia.ui.dialogs.*;
 import com.github.enerccio.marginalia.ui.dialogs.manuscript.*;
@@ -137,6 +138,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
     private StoryAnnotations annotations;
     private AnnotationsPanel annotationsPanel;
     private PlannerPanel plannerPanel;
+    private LorebookPreview lorebookPreview;
     private final StoryBackup backup = new StoryBackup();
     private final StoryMassDelete massDelete;
     private Long scrollToMessageId;
@@ -665,6 +667,8 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
         annotations.invalidate();
         // the book may be another one than before
         plannerPanel.refresh();
+        // the user may have changed the lore in the other tabs
+        lorebookPreview.refresh(currentManuscript == null ? null : currentManuscript.getLorebook());
 
         centerContentPanel.removeAll();
         sidebarList.removeAll();
@@ -816,6 +820,11 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
             return true;
         });
         leftBar.add(ManuscriptStoryPart.PLANNER_TAB, loc.getValue(L.LABEL_PLANNER), plannerPanel);
+
+        // the lore of the story: look at the entries and fix their text without leaving the story
+        lorebookPreview = new LorebookPreview().create();
+        lorebookPreview.setEditable(true);
+        leftBar.add(ManuscriptStoryPart.LOREBOOK_TAB, loc.getValue(L.LABEL_LOREBOOK), lorebookPreview);
 
         VerticalLayout outline = new VerticalLayout(leftBar);
         outline.setSizeFull();

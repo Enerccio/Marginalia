@@ -160,13 +160,18 @@ Skipped when the book has no lorebook. Otherwise:
    | negative tags | none of the entry's negative tags is a tag of the book |
    | tags | the entry has no tags, or one of them is a tag of the book (the entry's tags include the tags of its lorebook) |
    | condition | `activationCondition` is empty, or the template renders to a true value (`TemplateData.isTruthy`: not empty, `0`, `false`, `no`, `off`): else `CONDITION_FALSE`; a condition that cannot be decided is `CONDITION_ERROR` (false), see below. An entry with a false condition is never a `FILTER_NOT_MATCHED` candidate of the scan of step 4 |
+   | only through others | `recursionOnly` is off, or the evaluation is of the content of an entry that was used (step 4): else `RECURSION_ONLY` (not a use, but a candidate of the scan; an entry without a filter never leaves it). It comes before the filter |
    | filter | no filter, or the filter matches the **rendered user prompt** (for `activationContext = INCLUDE_PARTS`: the text of the newest `activationParts` parts of the branch, oldest first, then the user prompt, all joined by blank lines; see below): `KEYWORDS_OR` / `KEYWORDS_AND` - the filter split by commas, trimmed, blanks dropped; any / every keyword is a case-insensitive substring (no keyword never matches); `TEXT` - case-insensitive substring; `REGEX` - case-insensitive `find()` (`DOTALL`); an invalid regex never matches |
 
    Before the entries are evaluated the step asks `LorebookActivationService.partsNeeded` (the largest `activationParts` of the
    enabled `INCLUDE_PARTS` entries, 0 when there is none) and reads that many parts with `recentParts(activeLeaf, n,
    excludeLeaf)`: the non-blank `response` of the branch from the root to the active leaf, the newest `n`, oldest first (the leaf is left out
    for a swipe or a regeneration - it is the part being replaced). With 0 the story is not read. Each entry then takes the newest of the
-   parts it asks for (`evaluate(entry, tags, instructions, parts)`); the scan of step 4 does not use the parts.
+   parts it asks for (`evaluate(entry, tags, instructions, parts)`); the scan of step 4 does not use the parts. An entry with
+   `activationSummaries` also looks into the summaries of the story: `summariesNeeded(entries)` says whether to read them, and `storyText(entries,
+   leaf, excludeLeaf)` returns a `StoryText` (the parts and the summaries in use, oldest first, as one text: `SummaryService.collectBlocks` over the
+   branch, only the blocks that are still `isValid()`, nothing is removed or asked - that is the job of the content step), which `evaluate(entry, tags,
+   instructions, StoryText, position, conditions)` and `evaluateAll(..., StoryText, ...)` take; the summaries come before the parts in the text.
 
    The condition is rendered with a `LoreConditions` (`domain.components`), which the step makes when `conditionsNeeded(entries)` (an
    enabled entry has one) from `createTemplateData(controller)` and passes to `evaluate(..., position, conditions)` and `evaluateInContent(..., conditions)`:
@@ -186,9 +191,12 @@ Skipped when the book has no lorebook. Otherwise:
    only when `positionNeeded(entries)` (an enabled entry has a range), else it passes null and no range is checked
    (`evaluate(entry, tags, instructions, parts, position)`).
 4. **Scan** (only with a scan depth): `Lorebook.scanDepth` of the lorebook the book uses (clamped to
-   `LorebookActivationService.MAX_SCAN_DEPTH`, 5; the value of a sub-lorebook is ignored) is how many passes follow.
+   `LorebookActivationService.MAX_SCAN_DEPTH`, 5) is the depth of its entries and of the entries of its sub-lorebooks, unless the
+   sub-lorebook has `ownScanDepth` (null = the root's; `scanDepth(root, book)`, `scanDepths(root, lorebooks)` by lorebook id,
+   `scanDepthOf(depths, entry)`): the passes that follow are the greatest of them (`deepestScan`) and an entry is a candidate of pass n only when n
+   is not above the depth of its own lorebook.
    Pass n takes the entries pass n - 1 activated (pass 0 is step 3), leaves out those with `preventRecursion` or no
-   payload, and evaluates the entries whose verdict is still `FILTER_NOT_MATCHED` against the **raw** payloads of
+   payload, and evaluates the entries whose verdict is still scannable (`Reason.isScannable()`: `FILTER_NOT_MATCHED` or `RECURSION_ONLY`) against the **raw** payloads of
    those (joined; templates are not run): `evaluateInContent` gives `LORE_MATCHED`, the detail being
    `filter <- name of the first entry that has it`. The pass ends the scan when nothing was activated. Each such entry gets
    `PROCESS_LOREBOOK_ENTRY` again (`LOREBOOK_SCAN_DEPTH` = n) and a verdict a listener replaced counts. The activated

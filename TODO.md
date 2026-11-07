@@ -181,24 +181,25 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
 20. ✅ **Lorebook improvements.**
     - ✅ Edit lorebook-level tags in `LorebookView` (generation reads them in `fillEntries`, but there's no UI).
     - Bulk edit: ✅ *Mass edit* (`LorebookMassEditDialog`: all entries of the lorebook and its subbooks in one table, move
-      to another lorebook) and *Tag entries* (`MultiTagDialog`). ✅ entry search (name, content, note, filter) and bulk delete (selection column, *Delete selected*; desktop) in the entry grid. Not done: a filter
-      by tag or by status, bulk delete in the mass edit and on the phone.
+      to another lorebook) and *Tag entries* (`MultiTagDialog`). ✅ entry search (name, content, note, filter), a filter by tag and by status (`LorebookEntryFilter`, desktop and phone) and bulk delete
+      (selection column, *Delete selected*; the mass edit has *Delete checked*; the phone has *Select entries* in the **⋮** menu) in the entry grid.
     - ✅ SillyTavern **export** (`LorebookService.exportToSillytavern`: sub lorebooks merged, filters as keys, tags as the character filter).
     - ✅ Recursive activation / scan depth (`Lorebook.scanDepth`, 0-5, the raw content of used entries is searched for the
       filters of the others; `LorebookEntry.preventRecursion`) and ✅ activation preview (`LorebookActivationPreviewDialog`,
-      `LorebookActivationService.evaluateAll`). Not done: a "only by recursion" entry flag, the flags in the agent commands
-      (`/create-lore-entry`), a scan depth per lorebook of the tree.
+      `LorebookActivationService.evaluateAll`). ✅ `LorebookEntry.recursionOnly` (`Reason.RECURSION_ONLY`) and a scan depth per lorebook of the tree
+      (`Lorebook.ownScanDepth`, empty = the root's). The flags are in the agent commands (`/set-lore-entry-activation`, `/get-lore-entry`).
     - ✅ Activation context (`LorebookEntry.activationContext`: `INSTRUCTIONS`, the default, or `INCLUDE_PARTS` with
       `activationParts` ≥ 1): the filter is also looked for in the newest N parts of the branch; the generation step reads
-      only as many parts as the enabled entries need (`partsNeeded`, `recentParts`). Not done: the context in the agent
-      commands (`/create-lore-entry`, `/update-lore-entry`), searching summaries or the notes of the parts, a context in the
-      mass edit.
+      only as many parts as the enabled entries need (`partsNeeded`, `recentParts`). Agent commands: `/set-lore-entry-activation`. ✅ The context and the parts are columns of the mass edit, and `LorebookEntry.activationSummaries`
+      searches the summaries in use (`LorebookActivationService.storyText`). Not done: searching the notes of the parts (a part has no note of
+      its own; the annotations are for the author and never sent).
     - ✅ Range of parts (`LorebookEntry.fromMessage` / `toMessage`, the numbers of the outline, both included): the entry is
       used only for the turns that create a part inside it (`Reason.OUT_OF_RANGE`, `LorebookActivationService.turnPosition`).
-      Not done: the range in the agent commands (`/create-lore-entry`, `/update-lore-entry`) and in the mass edit.
-    - ✅ A read only *Lorebook* tab in the story editor (desktop) shows the lorebook of the story without leaving it:
-      entries with their activation text and Markdown content, optionally with the sub lorebooks (`LorebookPreview`).
-      Not done: editing from there, a phone twin, search in it.
+      Agent commands: `/set-lore-entry-activation`; the range is in the mass edit.
+    - ✅ The *Lorebook* tab in the story editor (desktop, and the drawer of the phone story) shows the lorebook of the story without leaving it:
+      entries with their activation text and Markdown content, optionally with the sub lorebooks (`LorebookPreview`), with a search box and
+      a pen that edits the text of an entry (`LorebookEntryEditDialog`: name, enabled, filter, content, note). Not done: the tags, the order and the
+      activation settings from there (the book's *Lorebook* tab has them).
 
 21. **Character / persona management.** POV and present characters are free text per turn. A character card
     entity (name, description, avatar via the `Resource` entity (`ResourceService.uploadImage`), linked lorebook entries) with

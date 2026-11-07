@@ -4,11 +4,7 @@ import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.UIConstants;
 import com.github.enerccio.marginalia.domain.components.LoreConditions;
-import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
-import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
-import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
-import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
-import com.github.enerccio.marginalia.domain.model.impl.Tag;
+import com.github.enerccio.marginalia.domain.model.impl.*;
 import com.github.enerccio.marginalia.domain.service.LorebookActivationService;
 import com.github.enerccio.marginalia.domain.service.LorebookActivationService.Verdict;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
@@ -171,15 +167,14 @@ public class LorebookActivationPreviewDialog extends Dialog {
                 }
             }
             // the parts of the picked book's story, as far back as an entry looks
-            List<String> parts = bookBox.getValue() == null ? List.of()
-                    : activationService.recentParts(bookBox.getValue().getActiveLeaf(),
-                    activationService.partsNeeded(activationService.orderedEntries(books)), false);
+            LorebookActivationService.StoryText story = bookBox.getValue() == null ? LorebookActivationService.StoryText.NONE
+                    : activationService.storyText(activationService.orderedEntries(books), bookBox.getValue().getActiveLeaf(), false);
             // the part the next turn of the picked book creates, for the entries limited to some parts
             Integer position = bookBox.getValue() == null
                     || !activationService.positionNeeded(activationService.orderedEntries(books)) ? null
                     : activationService.turnPosition(bookBox.getValue().getActiveLeaf(), false);
             List<LorebookEntryVerdict> verdicts = activationService.evaluateAll(root, books, tags,
-                    StringUtils.defaultString(textField.getValue()), parts, position, conditionsFor(bookBox.getValue()));
+                    StringUtils.defaultString(textField.getValue()), story, position, conditionsFor(bookBox.getValue()));
             grid.setItems(verdicts);
 
             long used = 0;

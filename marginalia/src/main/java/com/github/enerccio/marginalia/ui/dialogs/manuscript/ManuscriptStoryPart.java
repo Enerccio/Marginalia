@@ -1082,6 +1082,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
             returns = @APIReturn(type = void.class))
     private void createLorebookTab() {
         lorebookPreview = new LorebookPreview().create();
+        lorebookPreview.setEditable(true);
         leftBar.add(LOREBOOK_TAB, loc.getValue(L.LABEL_LOREBOOK), TabDockIcon.LOREBOOK, lorebookPreview);
     }
 

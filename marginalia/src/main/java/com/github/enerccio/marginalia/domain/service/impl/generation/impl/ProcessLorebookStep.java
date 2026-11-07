@@ -9,7 +9,6 @@ import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
 import com.github.enerccio.marginalia.domain.model.impl.Tag;
 import com.github.enerccio.marginalia.domain.service.InferenceService;
 import com.github.enerccio.marginalia.domain.service.LorebookActivationService;
-import com.github.enerccio.marginalia.domain.service.LorebookActivationService.Reason;
 import com.github.enerccio.marginalia.domain.service.LorebookActivationService.Verdict;
 import com.github.enerccio.marginalia.domain.service.impl.generation.*;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LorebookEntryVerdict;
@@ -52,18 +51,19 @@ public class ProcessLorebookStep extends GenerationStepBase {
                     log.debug("Processing entries: {}", entries);
 
                     // the story is read only as far back as the deepest entry looks
-                    List<String> parts = storyParts(controller, activationService.partsNeeded(entries));
+                    LorebookActivationService.StoryText story = storyText(controller, entries);
                     Integer position = turnPosition(controller, entries);
                     // what the conditions of the entries are rendered against: the turn and a copy of the variables as they are
                     // now, so a condition changes nothing
                     LoreConditions conditions = activationService.conditionsNeeded(entries) ? new LoreConditions(createTemplateData(controller)) : null;
-                    LoreScan scan = new LoreScan(controller, entries, manuscriptTags, activationService.scanDepth(lorebook), conditions);
+                    Map<Long, Integer> depths = activationService.scanDepths(lorebook, lorebooks);
+                    LoreScan scan = new LoreScan(controller, entries, manuscriptTags, depths, activationService.deepestScan(depths), activationService, conditions);
                     controller.getProperties().put(GenerationProperties.LOREBOOK_VERDICTS, scan.verdicts);
                     forEachAsync(controller, entries, (entry, next) -> {
                         log.debug("Processing entry: {} ", entry.getName());
                         // evaluated before the event: listeners see the verdict and can replace it
                         scan.emit(entry, activationService.evaluate(entry, manuscriptTags,
-                                controller.getPrePromptData().getUserPromptProcessed(), parts, position, conditions), 0, verdict -> {
+                                controller.getPrePromptData().getUserPromptProcessed(), story, position, conditions), 0, verdict -> {
                             scan.record(entry, verdict, 0);
                             next.returnFromEvent();
                         });
@@ -130,15 +130,13 @@ public class ProcessLorebookStep extends GenerationStepBase {
     }
 
     /**
-     * The newest {@code count} parts of the story the turn continues. Like the story of the prompt, the part being
+     * What the entries look into besides the instructions: the newest parts of the story the turn continues, as far back as
+     * the deepest entry looks, and the summaries when an entry asks for them. Like the story of the prompt, the part being
      * replaced by a swipe or a regeneration is not one of them.
      */
-    private List<String> storyParts(GenerationController controller, int count) throws Exception {
-        if (count <= 0) {
-            return List.of();
-        }
+    private LorebookActivationService.StoryText storyText(GenerationController controller, List<LorebookEntry> entries) throws Exception {
         GenerationRequestType requestType = controller.getRequest().getRequestType();
-        return activationService.recentParts(chatMessageService.find(controller.getManuscript().getActiveLeaf()), count,
+        return activationService.storyText(entries, chatMessageService.find(controller.getManuscript().getActiveLeaf()),
                 requestType == GenerationRequestType.SWIPE || requestType == GenerationRequestType.REGENERATE);
     }
 
@@ -147,13 +145,13 @@ public class ProcessLorebookStep extends GenerationStepBase {
      * that are still unused. The entries it activates are the next pass; with the depth spent or nothing new, {@code done}.
      */
     private void scanContent(LoreScan scan, int depth, List<LorebookEntry> lastPass, GenerationController.FromEventCallback done) throws Exception {
-        List<LorebookEntry> sources = depth > scan.scanDepth ? List.of() : activationService.scannable(lastPass);
+        List<LorebookEntry> sources = depth > scan.deepest ? List.of() : activationService.scannable(lastPass);
         if (sources.isEmpty()) {
             done.returnFromEvent();
             return;
         }
         List<LorebookEntry> candidates = scan.entries.stream()
-                .filter(entry -> scan.verdictOf(entry).reason() == Reason.FILTER_NOT_MATCHED).toList();
+                .filter(entry -> scan.verdictOf(entry).reason().isScannable() && depth <= scan.scanLimit(entry)).toList();
         List<LorebookEntry> thisPass = new java.util.ArrayList<>();
         forEachAsync(scan.controller, candidates, (entry, next) -> {
             Verdict verdict = activationService.evaluateInContent(entry, scan.manuscriptTags, sources, scan.conditions);
@@ -184,18 +182,23 @@ public class ProcessLorebookStep extends GenerationStepBase {
         final GenerationController controller;
         final List<LorebookEntry> entries;
         final List<String> manuscriptTags;
-        final int scanDepth;
+        final Map<Long, Integer> scanDepths;
+        final int deepest;
+        final LorebookActivationService activationService;
         final LoreConditions conditions;
         final List<LorebookEntryVerdict> verdicts = new java.util.ArrayList<>();
         private final Map<LorebookEntry, Integer> index = new IdentityHashMap<>();
         private final Verdict[] current;
 
-        LoreScan(GenerationController controller, List<LorebookEntry> entries, List<String> manuscriptTags, int scanDepth, LoreConditions conditions) {
+        LoreScan(GenerationController controller, List<LorebookEntry> entries, List<String> manuscriptTags, Map<Long, Integer> scanDepths,
+                 int deepest, LorebookActivationService activationService, LoreConditions conditions) {
             this.controller = controller;
+            this.activationService = activationService;
             this.conditions = conditions;
             this.entries = entries;
             this.manuscriptTags = manuscriptTags;
-            this.scanDepth = scanDepth;
+            this.scanDepths = scanDepths;
+            this.deepest = deepest;
             this.current = new Verdict[entries.size()];
             for (int i = 0; i < entries.size(); i++) {
                 index.put(entries.get(i), i);
@@ -228,6 +231,13 @@ public class ProcessLorebookStep extends GenerationStepBase {
                 }
             }
             verdicts.add(record);
+        }
+
+        /**
+         * How many passes may find the entry: the scan depth of its lorebook.
+         */
+        int scanLimit(LorebookEntry entry) {
+            return activationService.scanDepthOf(scanDepths, entry);
         }
 
         /**

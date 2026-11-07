@@ -16,7 +16,7 @@ This page describes the desktop layout. On a phone the story is one column with 
 | Area | |
 |---|---|
 | **Outline** (left) | One entry per part, `#1`, `#2`... with the part's database ID. Click an entry to scroll to the part (the parts before it are loaded first when it is not loaded yet). The header shows how many parts the branch has. A part that has a [summary](summaries.md) has a small document icon after its entry. The [Chapter Marker](../extensions/chapter-marker.md) extension shows chapter titles here. |
-| **Lorebook** (left, next to the Outline) | A read only look at the lore of the book, see [The lorebook tab](#the-lorebook-tab). |
+| **Lorebook** (left, next to the Outline) | A look at the lore of the book, with a search box and a quick edit of the text of an entry, see [The lorebook tab](#the-lorebook-tab). |
 | **Annotations** (left, next to the Outline) | The [notes](annotations.md) on passages of the story, for the whole book. |
 | **Planner** (left, next to the Outline) | The scenes you plan to write, a list you fill by hand, see [The planner tab](#the-planner-tab). |
 | **Story** (center) | The text of each part, with its menu (☰) and its metadata on the right, and under it the bottom bar. |
@@ -54,10 +54,15 @@ On the phone the search is in the outline drawer; the drawer closes when it show
 ### The lorebook tab
 
 The **Lorebook** tab of the sidebar shows the lore of the book's lorebook without leaving the story, so you do not have to
-swap tabs to check what an entry says. It is a preview: nothing can be changed here, change the lore in the book's
-*Lorebook* tab. It is read again every time you come back to the *Story* tab, so changes you made there show at once.
+swap tabs to check what an entry says, or to fix a word in it. It is read again every time you come back to the *Story* tab, so
+changes you made in the book's *Lorebook* tab show at once.
 
-- Every entry is a row with its name; the arrow opens it to show its **content** (rendered as Markdown) and the **text that activates it** (the
+- The **search box** at the top shows only the entries that have the text in their name, content, note or filter (the case does not matter).
+- The **pen** of an entry opens a small window with its name, whether it is used, the filter and how it is looked for, the content
+  and the note; **Save** writes them (the tags, the order and the activation settings are changed in the book's *Lorebook* tab). Nothing
+  can be changed while an agent works on the lorebook.
+
+- Every entry is a row with its name and the pen; the arrow opens it to show its **content** (rendered as Markdown) and the **text that activates it** (the
   *Filtering Text/Pattern*, with a note when it is a regular expression).
 - **Include sub lorebooks** shows the lorebook and each of its sub lorebooks (and theirs, however deep) as rows of their own, with their entries
   under them; click the arrow of a lorebook to hide its entries. Without it only the entries of the book's lorebook are listed.

@@ -5,12 +5,15 @@ import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.collections.FilteringMode;
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
+import com.github.enerccio.marginalia.domain.service.AgentRunService;
 import com.github.enerccio.marginalia.domain.service.LorebookEntryService;
 import com.github.enerccio.marginalia.domain.service.LorebookService;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
+import com.github.enerccio.marginalia.ui.dialogs.LorebookEntryEditDialog;
+import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
@@ -20,10 +23,12 @@ import com.vaadin.flow.component.markdown.Markdown;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.treegrid.TreeGrid;
 import com.vaadin.flow.data.provider.hierarchy.TreeData;
 import com.vaadin.flow.data.provider.hierarchy.TreeDataProvider;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
+import com.vaadin.flow.data.value.ValueChangeMode;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
@@ -33,8 +38,10 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 /**
- * Read only preview of the lore of a story, for a quick look without leaving the story: the entries of its lorebook,
- * each opens to its content and the text that activates it. Nothing is saved from here. With the sub lorebooks included,
+ * Preview of the lore of a story, for a quick look without leaving the story: the entries of its lorebook,
+ * each opens to its content and the text that activates it. A search box above the list limits it to the entries with the
+ * text in their name, content, note or filter. It changes nothing unless the owner makes it {@link #setEditable editable}:
+ * an entry then has an edit button that opens a small dialog for its text (the lorebook editor has the rest). With the sub lorebooks included,
  * the lorebook and every lorebook below it (however deep) is a top level row with its entries under it, otherwise
  * the entries of the lorebook of the story are the top level rows. The content of an entry is rendered as Markdown.
  * <p>
@@ -59,7 +66,13 @@ public class LorebookPreview extends VerticalLayout implements LLMInteract {
     @Autowired
     private LorebookEntryService lorebookEntryService;
 
+    @Autowired
+    private AgentRunService agentRunService;
+
     private Checkbox includeSubbooks;
+    private TextField searchField;
+    private final LorebookEntryFilter filter = new LorebookEntryFilter();
+    private boolean editable = false;
     private TreeGrid<Row> grid;
     private Span noLorebook;
 
@@ -88,6 +101,19 @@ public class LorebookPreview extends VerticalLayout implements LLMInteract {
             }
         });
 
+        searchField = new TextField();
+        searchField.setPlaceholder(loc.getValue(L.LABEL_SEARCH));
+        searchField.setPrefixComponent(Solid.SEARCH.create());
+        searchField.setClearButtonVisible(true);
+        searchField.setWidthFull();
+        searchField.setValueChangeMode(ValueChangeMode.LAZY);
+        searchField.addValueChangeListener(e -> {
+            if (e.isFromClient()) {
+                filter.setText(e.getValue());
+                refresh(lastLorebook);
+            }
+        });
+
         noLorebook = new Span(loc.getValue(L.MSG_NO_STORY_LOREBOOK));
         noLorebook.addClassNames(CssStyles.HINT_TEXT, CssStyles.WHITE_SPACE_NORMAL);
 
@@ -100,7 +126,7 @@ public class LorebookPreview extends VerticalLayout implements LLMInteract {
         grid.addExpandListener(e -> e.getItems().forEach(row -> closedBooks.remove(row.book().getUuid())));
         grid.addCollapseListener(e -> e.getItems().forEach(row -> closedBooks.add(row.book().getUuid())));
 
-        add(includeSubbooks, noLorebook, grid);
+        add(searchField, includeSubbooks, noLorebook, grid);
         setFlexGrow(1, grid);
         return this;
     }
@@ -114,6 +140,20 @@ public class LorebookPreview extends VerticalLayout implements LLMInteract {
             parameters = {@APIParameter(name = "subbookFilter", type = Predicate.class)})
     public void setSubbookFilter(Predicate<Lorebook> subbookFilter) {
         this.subbookFilter = subbookFilter == null ? book -> true : subbookFilter;
+    }
+
+    /**
+     * Lets the user edit the text of the entries from here (an edit button on every entry). Off by default: the lore of
+     * another user is only looked at.
+     */
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "editable", type = boolean.class)})
+    public void setEditable(boolean editable) {
+        this.editable = editable;
+        if (grid != null) {
+            grid.getDataProvider().refreshAll();
+        }
     }
 
     /**
@@ -137,6 +177,7 @@ public class LorebookPreview extends VerticalLayout implements LLMInteract {
             noLorebook.setVisible(root == null);
             grid.setVisible(root != null);
             includeSubbooks.setVisible(root != null);
+            searchField.setVisible(root != null);
             if (root == null) {
                 grid.setDataProvider(new TreeDataProvider<>(new TreeData<>()));
                 return;
@@ -238,7 +279,9 @@ public class LorebookPreview extends VerticalLayout implements LLMInteract {
     private List<Row> entriesOf(Lorebook book) throws Exception {
         List<Row> rows = new ArrayList<>();
         for (LorebookEntry entry : lorebookEntryService.getEntriesForLorebook(book)) {
-            rows.add(new Row(book, entry));
+            if (filter.matches(entry)) {
+                rows.add(new Row(book, entry));
+            }
         }
         return rows;
     }
@@ -248,7 +291,8 @@ public class LorebookPreview extends VerticalLayout implements LLMInteract {
             parameters = {@APIParameter(name = "row", type = LorebookPreview.Row.class)},
             locals = {@APILocals(name = "name", type = Span.class),
                     @APILocals(name = "layout", type = HorizontalLayout.class),
-                    @APILocals(name = "toggle", type = Button.class)})
+                    @APILocals(name = "toggle", type = Button.class),
+                    @APILocals(name = "edit", type = Button.class)})
     private HorizontalLayout createRow(Row row) {
         boolean isBook = row.entry() == null;
         boolean enabled = isBook ? row.book().isEnabled() : row.entry().isEnabled();
@@ -269,9 +313,36 @@ public class LorebookPreview extends VerticalLayout implements LLMInteract {
                     event.getSource().setIcon((toggleDetails(row) ? Solid.ANGLE_UP : Solid.ANGLE_DOWN).create()));
             toggle.setThemeName("tertiary small");
             toggle.addClassName(CssStyles.FLEX_SHRINK_0);
+            if (editable) {
+                Button edit = new Button(Solid.PEN.create(), event -> edit(row));
+                edit.setThemeName("tertiary small");
+                edit.addClassName(CssStyles.FLEX_SHRINK_0);
+                UIUtils.addTooltip(edit, loc.getValue(L.LABEL_EDIT_ENTRY));
+                layout.add(edit);
+            }
             layout.add(toggle);
         }
         return layout;
+    }
+
+    /**
+     * Opens the dialog that edits the entry, then loads the lore again. Nothing happens while an agent works on the lorebook
+     * of the entry.
+     */
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "row", type = LorebookPreview.Row.class)},
+            locals = {@APILocals(name = "e", type = Exception.class)})
+    void edit(Row row) {
+        try {
+            if (agentRunService.findLockingRun(row.book()) != null) {
+                Notification.warning(loc.getValue(L.LABEL_LOCKED_BY_AGENT));
+                return;
+            }
+            new LorebookEntryEditDialog(row.entry(), () -> refresh(lastLorebook)).create().open();
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
     }
 
     /**
@@ -330,6 +401,12 @@ public class LorebookPreview extends VerticalLayout implements LLMInteract {
             details.add(contentLabel, content);
         }
         return details;
+    }
+
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = TextField.class))
+    TextField getSearchField() {
+        return searchField;
     }
 
     /**

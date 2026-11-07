@@ -24,6 +24,9 @@ public class LoreEntryRevision {
     private InsertionMode insertionMode = InsertionMode.IN_LORE_BLOCK;
     // revisions made before the field existed have no value and read as false
     private boolean preventRecursion = false;
+    // likewise: older revisions read as false
+    private boolean recursionOnly = false;
+    private boolean activationSummaries = false;
     // likewise: older revisions read as the instructions only
     private ActivationContext activationContext = ActivationContext.INSTRUCTIONS;
     private int activationParts = 1;
@@ -51,6 +54,8 @@ public class LoreEntryRevision {
         rev.setFiltering(entry.getFiltering() != null ? entry.getFiltering() : "");
         rev.setInsertionMode(entry.getInsertionMode() != null ? entry.getInsertionMode() : InsertionMode.IN_LORE_BLOCK);
         rev.setPreventRecursion(entry.isPreventRecursion());
+        rev.setRecursionOnly(entry.isRecursionOnly());
+        rev.setActivationSummaries(entry.isActivationSummaries());
         rev.setActivationContext(entry.getActivationContext());
         rev.setActivationParts(entry.getActivationParts());
         rev.setFromMessage(entry.getFromMessage());
@@ -71,6 +76,8 @@ public class LoreEntryRevision {
         entry.setFiltering(getFiltering());
         entry.setInsertionMode(getInsertionMode());
         entry.setPreventRecursion(this.preventRecursion);
+        entry.setRecursionOnly(this.recursionOnly);
+        entry.setActivationSummaries(this.activationSummaries);
         entry.setActivationContext(getActivationContext());
         entry.setActivationParts(getActivationParts());
         entry.setFromMessage(getFromMessage());
@@ -89,6 +96,8 @@ public class LoreEntryRevision {
         if (!Objects.equals(getFiltering(), entry.getFiltering() != null ? entry.getFiltering() : "")) return false;
         if (getInsertionMode() != (entry.getInsertionMode() != null ? entry.getInsertionMode() : InsertionMode.IN_LORE_BLOCK)) return false;
         if (this.preventRecursion != entry.isPreventRecursion()) return false;
+        if (this.recursionOnly != entry.isRecursionOnly()) return false;
+        if (this.activationSummaries != entry.isActivationSummaries()) return false;
         if (getActivationContext() != entry.getActivationContext()) return false;
         if (getActivationParts() != entry.getActivationParts()) return false;
         if (!Objects.equals(getFromMessage(), entry.getFromMessage())) return false;
@@ -148,6 +157,10 @@ public class LoreEntryRevision {
 
     public boolean isPreventRecursion() { return preventRecursion; }
     public void setPreventRecursion(boolean preventRecursion) { this.preventRecursion = preventRecursion; }
+    public boolean isRecursionOnly() { return recursionOnly; }
+    public void setRecursionOnly(boolean recursionOnly) { this.recursionOnly = recursionOnly; }
+    public boolean isActivationSummaries() { return activationSummaries; }
+    public void setActivationSummaries(boolean activationSummaries) { this.activationSummaries = activationSummaries; }
 
     public ActivationContext getActivationContext() { return activationContext != null ? activationContext : ActivationContext.INSTRUCTIONS; }
     public void setActivationContext(ActivationContext activationContext) { this.activationContext = activationContext; }

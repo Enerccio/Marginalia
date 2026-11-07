@@ -39,7 +39,8 @@ Below the toolbar are the settings of the selected lorebook:
 | **Name** | The name of the lorebook, shown when you pick it for a book or as a sub lorebook. |
 | **Sub Lorebooks** | Other lorebooks whose entries are included with this one, see [below](#sub-lorebooks). Click the name of a selected sub lorebook to open it. |
 | **Tags** | Tags of the whole lorebook; they count as tags of each of its entries, see [Tags](entries.md#tags). |
-| **Scan depth** | `0` to `5`: how many times the content of the entries that were used is searched for the filters of the other entries, see [Entries brought in by other entries](entries.md#entries-brought-in-by-other-entries). Only the lorebook a book uses counts, not its sub lorebooks. |
+| **Scan depth** | `0` to `5`: how many times the content of the entries that were used is searched for the filters of the other entries, see [Entries brought in by other entries](entries.md#entries-brought-in-by-other-entries). It counts for the entries of the lorebook a book uses and for those of its sub lorebooks, unless a sub lorebook has its own depth (next row). |
+| **Scan depth as a sub lorebook** | Empty, or `0` to `5`: the scan depth for the entries of this lorebook while it is a sub lorebook of the one a book uses. Empty means the scan depth of that lorebook, `0` that the entries of this lorebook are never found by the content of others. |
 | **Enabled** | When unchecked, the lorebook contributes nothing - neither its entries nor those of its sub lorebooks. |
 | **Share with other users** | When checked, other users can look at the lorebook and import a copy, see [below](#sharing-a-lorebook). Off for a new lorebook. |
 
@@ -76,11 +77,13 @@ A lorebook of a book an agent works on is shown read only (see [Agents](../agent
 ordered by the **Order** of the entries (entries with the same order by lorebook, then by name). It is for tidying a big lorebook:
 
 - Change the *enabled* box, the **Entry Name**, the **Order**, the **Tags**, the **Filtering Mode**, the **Filtering**, the **Insertion Mode**, the
-  **Negative Tags** and the **Note** of an entry in place, as in the editor. Every entry is one line; the table scrolls down (and to the side when the
+  **Negative Tags**, the **Activation Context** with its **Parts**, the range of parts (**From message** and **To message**, empty: no limit) and
+  the **Note** of an entry in place, as in the editor. Every entry is one line; the table scrolls down (and to the side when the
   window is narrow). The row moves to its new place when you change the order. The text of an entry is shortened in the table; open the entry in
   the lorebook to read or edit all of it.
 - The **Lorebook** box of a row says in which lorebook the entry is. Pick another one (the lorebook itself or any of its sub lorebooks) to move the entry there.
 - To move many entries, tick them (the box in the header ticks all), pick **Move to lorebook** at the bottom and press **Move checked**.
+- To delete many entries, tick them and press **Delete checked**; it asks once and moves them to the [trash](../trash.md).
 - A lorebook that an agent works on is locked: its entries are grayed out and can not be changed or moved, and nothing can be moved into
   it. This is checked for each lorebook, so a lorebook can be free while one of its sub lorebooks is locked (it is used by another book).
   **Refresh** reads the window again to see whether a lock is gone.

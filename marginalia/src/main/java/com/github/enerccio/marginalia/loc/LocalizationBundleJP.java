@@ -991,6 +991,15 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_NOTIFICATIONS_TEST, "テスト通知を送信");
         setValue(L.LABEL_NOTIFICATIONS_REGISTER, "このブラウザを登録");
         setValue(L.LABEL_STORY_GENERATION, "ストーリー生成");
+        setValue(L.LABEL_COMMAND_SET_LORE_ENTRY_ACTIVATION, "ロアエントリの有効化条件を設定");
+        setValue(L.LABEL_RECURSION_ONLY, "他のエントリ経由のみ");
+        setValue(L.LABEL_ACTIVATION_SUMMARIES, "要約も検索する");
+        setValue(L.LABEL_OWN_SCAN_DEPTH, "サブロアブックとしてのスキャン深度");
+        setValue(L.LABEL_DELETE_CHECKED, "チェックしたものを削除");
+        setValue(L.LABEL_FILTER_DISABLED, "無効");
+        setValue(L.LABEL_FILTER_CONSTANT, "常時（キーなし）");
+        setValue(L.LABEL_SELECT_ENTRIES, "エントリを選択");
+        setValue(L.LABEL_EDIT_ENTRY, "エントリを編集");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -1175,6 +1184,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.ENUM_REASONING_PASSTHROUGH_NONE, "なし");
         setValue(L.ENUM_REASONING_PASSTHROUGH_TOOL_CALLS, "ツール呼び出しの間");
         setValue(L.ENUM_REASONING_PASSTHROUGH_ALWAYS, "常に");
+        setValue(L.ENUM_ACTIVATION_REASON_RECURSION_ONLY, "未使用: 他のエントリの内容経由でのみ使用");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "内部サーバーエラー");
@@ -1282,6 +1292,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.ERROR_STYLE_IMPORT_NOT_STYLES, "このファイルはテキストスタイルのファイルではありません。");
         setValue(L.ERROR_STYLE_IMPORT_NEWER, "このファイルは新しいバージョンのMarginaliaで作成されたため、読み込めません。");
         setValue(L.ERROR_STYLE_IMPORT_CSS, "スタイル「%s」のカスタムCSSの波括弧 { } が対応していません。");
+        setValue(L.ERROR_COMMAND_LORE_RANGE_EMPTY, "範囲が空です：パート %d から始まり、パート %d で終わります。");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "フォームを保存できません。");
@@ -1776,7 +1787,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_KEYBOARD_SHORTCUTS, "「記録」をクリックして新しいキーの組み合わせを押します。Ctrl・Alt・Meta のないキーは、テキスト欄にフォーカスがないときだけ動作します。ショートカットは開いている本のストーリータブで有効です。");
         setValue(L.HELP_ST_MERGE_TURNS, "ユーザーのメッセージは、その後の返答から作られるパートの指示になります。オフの場合、すべてのメッセージが個別のパートになります。");
         setValue(L.HELP_AI_TOKENIZER, "このAIのトークン数の数え方。自動ではサーバーのトークナイザーエンドポイント（OpenAI、llama.cpp、LiteLLM）を順に試し、使えない場合はローカルの推定にフォールバックします。1つを選ぶとそれだけを使います。プラグインのトークナイザーは、ここで選択された場合にのみ、エンドポイント、モデル、テキストを受け取ります。");
-        setValue(L.HELP_SCAN_DEPTH, "使用されたエントリーの内容を、他のエントリーのフィルターについて何回検索するか（0 = 検索しない）。ブックが使うロアブックの値のみが有効で、サブブックの値は無視されます。");
+        setValue(L.HELP_SCAN_DEPTH, "使用されたエントリの内容を、他のエントリのフィルタについて何回検索するか（0 = しない）。このロアブックと、独自のスキャン深度を持たないサブロアブックに適用されます。");
         setValue(L.HELP_PREVENT_RECURSION, "このエントリーの内容の語句で他のエントリーが発動することはありません。");
         setValue(L.HELP_ACTIVATION_PREVIEW, "このロアブックとサブブックのどのエントリーが、このテキストのターンで使用されるかを、理由とこのロアブックのスキャン深度を含めて表示します。実際の生成では拡張機能が結果を変更することがあります。ストーリーのパートも検索するエントリーには、選択したブックの最新のパートが使われます。");
         setValue(L.HELP_ACTIVATION_CONTEXT, "フィルターを探す範囲：ターンの指示のみ、または指示とストーリーの最新のパート。");
@@ -1803,6 +1814,9 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_ANNOTATE_INSTRUCTIONS, "AI が注釈を付けるときに確認する点です。例: 設定の矛盾、弱い会話を指摘する。空の場合は注釈プロンプトの既定のタスクになります。「AI で注釈を付ける」ウィンドウはこの内容で始まります。");
         setValue(L.HELP_ACTIVATION_CONDITION, "コンテンツと同じ書き方（マクロとHandlebars）のテンプレートで、視点人物、同席する登場人物、指示、変数を使ってターンごとに評価されます。結果が真（空、0、false、no、off以外）のときだけエントリーが使われます。評価できない条件（エラー、存在しない名前、時間切れ）は偽として扱われ、有効化プレビューに理由が表示されます。フィルターより先に確認され、他のエントリーの内容で見つかったエントリーにも適用されます。読み取り専用のコマンドを使えますが、変数は変更されません。空欄は条件なし。");
         setValue(L.HELP_REASONING_PASSTHROUGH, "モデルの思考を次のリクエストでモデルに返すかどうか(reasoning_content として)。ツール呼び出しの間: 1回の回答のツール呼び出しが続く間だけ(Gemma 4 が想定する動作)。常に: 思考のあるすべての過去の回答でも返します。ほとんどのモデルとサーバーは「なし」を想定しています。");
+        setValue(L.HELP_RECURSION_ONLY, "このエントリはターンの指示や物語では使用されません。使用された他のエントリの内容にフィルタが見つかった場合のみ使用されます（スキャン深度が1以上でフィルタが必要です）。");
+        setValue(L.HELP_ACTIVATION_SUMMARIES, "フィルタはこれまでの物語の要約（プロンプトで使われるもの）からも探されます。");
+        setValue(L.HELP_OWN_SCAN_DEPTH, "このロアブックが別のロアブックのサブとして使われるときの、そのエントリのスキャン深度（0 = 他のエントリの内容では見つからない）。空 = 本が使うロアブックのスキャン深度。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景設定と世界観の文脈。");
@@ -2218,6 +2232,17 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.DESC_COMMAND_PLANNER_PRESENT_PARAM, "シーンに登場する人物（カンマ区切り）");
         setValue(L.DESC_COMMAND_PLANNER_DONE_PARAM, "true（既定）で執筆済み、false で未執筆");
         setValue(L.DESC_COMMAND_PLANNER_TO_PARAM, "シーンの新しい番号（1から）。大きすぎる場合は最後の位置");
+        setValue(L.DESC_COMMAND_SET_LORE_ENTRY_ACTIVATION, "キー以外のエントリの使用条件を変更します。パラメータ：entry（ハンドル）、preventRecursion、recursionOnly、activationContext、activationParts、activationSummaries、fromMessage、toMessage、condition。");
+        setValue(L.DESC_COMMAND_SET_LORE_ENTRY_ACTIVATION_LLM, "指定したハンドルのエントリの有効化設定を、この順序で変更します：preventRecursion（true：このエントリの語は他のエントリを有効にしません）、recursionOnly（true：使用された他のエントリの内容にフィルタが見つかった場合のみ使用。ロアブックのスキャン深度を参照）、activationContext（INSTRUCTIONS：フィルタをターンの指示から探す。INCLUDE_PARTS：物語の最新の activationParts 個のパートからも探す）、activationParts、activationSummaries（true：要約からも探す）、fromMessage と toMessage（その範囲の番号のパートを作るターンでのみ使用。両端を含み、最初のパートは1。0で制限を解除）、condition（本文と同じ書き方のテンプレートで、真の値になる必要があります。空文字で削除）。空文字のパラメータは変更されないので、後ろのパラメータを変えるには前のものを空文字で渡してください（condition だけは空文字で削除）。現在の値は get-lore-entry で読めます。本を変更します。");
+        setValue(L.DESC_COMMAND_SET_LORE_ENTRY_ACTIVATION_RETURN, "変更後のエントリの有効化設定を含む JSON");
+        setValue(L.DESC_COMMAND_LORE_PREVENT_RECURSION_PARAM, "true：このエントリの内容の語は他のエントリを有効にしません。false で許可します");
+        setValue(L.DESC_COMMAND_LORE_ACTIVATION_CONTEXT_PARAM, "フィルタを探す場所：INSTRUCTIONS（ターンの指示）または INCLUDE_PARTS（指示と物語の最新のパート）");
+        setValue(L.DESC_COMMAND_LORE_ACTIVATION_PARTS_PARAM, "INCLUDE_PARTS のとき、対象にする最新パートの数（1以上）");
+        setValue(L.DESC_COMMAND_LORE_FROM_MESSAGE_PARAM, "この番号のパートを作るターンからのみエントリを使用します（最初のパートは1）。0で制限を解除");
+        setValue(L.DESC_COMMAND_LORE_TO_MESSAGE_PARAM, "この番号のパートを作るターンまで（含む）のみエントリを使用します。0で制限を解除");
+        setValue(L.DESC_COMMAND_LORE_CONDITION_PARAM, "エントリを使用するために真の値になる必要があるテンプレート（視点、登場人物、指示、変数を読めます）。空文字で条件を削除");
+        setValue(L.DESC_COMMAND_LORE_RECURSION_ONLY_PARAM, "true：このエントリは他のエントリの内容経由でのみ使用され、ターン自体では使用されません。false でターンでも使用可能");
+        setValue(L.DESC_COMMAND_LORE_ACTIVATION_SUMMARIES_PARAM, "true：フィルタを物語の要約からも探します。false で無効");
     }
 
     @Override

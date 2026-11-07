@@ -138,7 +138,7 @@ changes the book; **No** leaves everything as it was. The question stays until y
 | `/get-template-variables <scope> [part] [branch]` | The template variables of the book (`global`) or of a part (`part`). |
 | `/list-lorebooks` | The lorebooks of the open book (the root and its subbooks) with their numbers, entry counts, tags and subbooks. |
 | `/list-lore-entries [lorebook] [filter] [offset] [limit]` | The entries of a lorebook with their settings and a preview; the filter keeps the entries whose name or tag contains it. |
-| `/get-lore-entry <entry> [lorebook] [offset] [length]` | One entry: settings, keys, tags, comment and its text in slices. |
+| `/get-lore-entry <entry> [lorebook] [offset] [length]` | One entry: settings, keys, activation (recursion, context, range of parts, condition), tags, comment and its text in slices. |
 | `/search-lore <query> [regex] [limit]` | The entries of all the lorebooks of the book whose name, text or comment contain the query, with snippets. |
 | `/preview-lore-activation <text> [limit]`, `/preview-lore-activation <part> <branch> <limit>` | Which entries a generation would use for a text, or for a turn like the one that made a part, and why (no filter, filter found - in the text, or in the content of another entry when the lorebook has a [scan depth](../lorebooks/entries.md#entries-brought-in-by-other-entries) - or not used because it is switched off, a tag of the book decides, or the filter is not in the text), with the lore text and its tokens. The text may be the handle of a part. |
 | `/list-annotations [status [part [offset [limit]]]]` | The [annotations](../books/annotations.md) of the book or of a part: the open ones unless `status` says `resolved`, `dismissed`, `orphaned` or `all`. |
@@ -201,6 +201,7 @@ describes): the answer lists them and says what to do, `/revalidate-summaries` i
 | `/delete-lore-entry <entry>` | Deletes an entry. Asks first. |
 | `/move-lore-entry <entry> <lorebook>` | Moves an entry to another lorebook of the book. |
 | `/set-lore-entry-tags <entry> [add] [remove] [addNegative] [removeNegative]` | Changes the tags and negative tags of an entry (comma separated). |
+| `/set-lore-entry-activation <entry> [preventRecursion] [recursionOnly] [activationContext] [activationParts] [activationSummaries] [fromMessage] [toMessage] [condition]` | Changes when an entry is used: `preventRecursion`, `recursionOnly` and `activationSummaries` (`true` / `false`), `activationContext` (`INSTRUCTIONS` or `INCLUDE_PARTS`) with `activationParts`, the range of parts `fromMessage` / `toMessage` (0 removes a limit) and the `condition` template (empty text removes it). A value given as empty text is left as it is (except `condition`). |
 | `/create-lorebook <name> [parent]` | Makes a lorebook that is a subbook of `parent` (the root when none is given; a book that has no lorebook gets one first). |
 | `/set-lorebook <lorebook> [name] [enabled]` | Renames a lorebook or switches it on or off. |
 | `/add-subbook <lorebook> <subbook>`, `/remove-subbook <lorebook> <subbook>` | Changes which lorebooks a lorebook contains; a lorebook can't contain itself. For an [agent](../agents.md), `/add-subbook` also brings back a lorebook it deleted or took out of its parent earlier (it names it by the handle it had), with its entries. |

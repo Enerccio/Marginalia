@@ -279,6 +279,7 @@ public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, Loreboo
         copy.setName(StringUtils.isBlank(name) ? original.getName() : name);
         copy.setEnabled(original.isEnabled());
         copy.setScanDepth(original.getScanDepth());
+        copy.setOwnScanDepth(original.getOwnScanDepth());
         copy.setDescription(original.getDescription());
         if (original.getAttributes() != null) {
             copy.setAttributes(original.getAttributes().deepCopy());
@@ -640,6 +641,9 @@ public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, Loreboo
             bookObj.addProperty("name", book.getName());
             bookObj.addProperty("enabled", book.isEnabled());
             bookObj.addProperty("scanDepth", book.getScanDepth());
+            if (book.getOwnScanDepth() != null) {
+                bookObj.addProperty("ownScanDepth", book.getOwnScanDepth());
+            }
             if (StringUtils.isNotBlank(book.getDescription())) {
                 bookObj.addProperty("description", book.getDescription());
             }
@@ -810,6 +814,9 @@ public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, Loreboo
             Lorebook lorebook = new Lorebook();
             lorebook.setName(StringUtils.defaultIfBlank(getString(bookObj, "name"), "Imported Lorebook"));
             lorebook.setEnabled(getBoolean(bookObj, "enabled", true));
+            if (bookObj.has("ownScanDepth") && bookObj.get("ownScanDepth").isJsonPrimitive()) {
+                lorebook.setOwnScanDepth(bookObj.get("ownScanDepth").getAsInt());
+            }
             if (bookObj.has("scanDepth") && bookObj.get("scanDepth").isJsonPrimitive()) {
                 lorebook.setScanDepth(bookObj.get("scanDepth").getAsInt());
             }
@@ -865,6 +872,8 @@ public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, Loreboo
         entryObj.addProperty("filteringMode", entry.getFilteringMode() != null ? entry.getFilteringMode().name() : null);
         entryObj.addProperty("insertionMode", entry.getInsertionMode() != null ? entry.getInsertionMode().name() : null);
         entryObj.addProperty("preventRecursion", entry.isPreventRecursion());
+        entryObj.addProperty("recursionOnly", entry.isRecursionOnly());
+        entryObj.addProperty("activationSummaries", entry.isActivationSummaries());
         entryObj.addProperty("activationContext", entry.getActivationContext().name());
         entryObj.addProperty("activationParts", entry.getActivationParts());
         entryObj.addProperty("fromMessage", entry.getFromMessage());
@@ -921,6 +930,8 @@ public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, Loreboo
             entry.setEnabled(getBoolean(entryObj, "enabled", true));
             entry.setFiltering(getString(entryObj, "filtering"));
             entry.setPreventRecursion(getBoolean(entryObj, "preventRecursion", false));
+            entry.setRecursionOnly(getBoolean(entryObj, "recursionOnly", false));
+            entry.setActivationSummaries(getBoolean(entryObj, "activationSummaries", false));
             entry.setAttributes(attributesOf(entryObj));
 
             if (entryObj.has("order") && !entryObj.get("order").isJsonNull()) {

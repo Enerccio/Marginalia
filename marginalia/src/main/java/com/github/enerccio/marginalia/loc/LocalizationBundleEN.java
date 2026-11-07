@@ -991,6 +991,15 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_NOTIFICATIONS_TEST, "Send a test notification");
         setValue(L.LABEL_NOTIFICATIONS_REGISTER, "Register this browser");
         setValue(L.LABEL_STORY_GENERATION, "Story generation");
+        setValue(L.LABEL_COMMAND_SET_LORE_ENTRY_ACTIVATION, "Set the activation of a lore entry");
+        setValue(L.LABEL_RECURSION_ONLY, "Only through other entries");
+        setValue(L.LABEL_ACTIVATION_SUMMARIES, "Also search the summaries");
+        setValue(L.LABEL_OWN_SCAN_DEPTH, "Scan depth as a sub lorebook");
+        setValue(L.LABEL_DELETE_CHECKED, "Delete checked");
+        setValue(L.LABEL_FILTER_DISABLED, "Disabled");
+        setValue(L.LABEL_FILTER_CONSTANT, "Constant (no keys)");
+        setValue(L.LABEL_SELECT_ENTRIES, "Select entries");
+        setValue(L.LABEL_EDIT_ENTRY, "Edit entry");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -1175,6 +1184,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.ENUM_REASONING_PASSTHROUGH_NONE, "None");
         setValue(L.ENUM_REASONING_PASSTHROUGH_TOOL_CALLS, "Between tool calls");
         setValue(L.ENUM_REASONING_PASSTHROUGH_ALWAYS, "Always");
+        setValue(L.ENUM_ACTIVATION_REASON_RECURSION_ONLY, "Not used: used only through the content of other entries");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "Internal Server Error");
@@ -1282,6 +1292,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.ERROR_STYLE_IMPORT_NOT_STYLES, "The file is not a text style file.");
         setValue(L.ERROR_STYLE_IMPORT_NEWER, "The file was made by a newer version of Marginalia and cannot be read.");
         setValue(L.ERROR_STYLE_IMPORT_CSS, "The custom CSS of the style \"%s\" has braces { } that do not match.");
+        setValue(L.ERROR_COMMAND_LORE_RANGE_EMPTY, "The range is empty: it starts at part %d and ends at part %d.");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "Cannot save form.");
@@ -1776,7 +1787,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_KEYBOARD_SHORTCUTS, "Click Record and press the new key combination. A key without Ctrl, Alt or Meta works only when no text field has the focus. The shortcuts work in the story tab of an open book.");
         setValue(L.HELP_ST_MERGE_TURNS, "The message of the user becomes the instructions of the part made of the answer after it. Without it every message is a part of its own.");
         setValue(L.HELP_AI_TOKENIZER, "How the tokens of this AI are counted. Automatic tries the tokenizer endpoints of the server (OpenAI, llama.cpp, LiteLLM) and falls back to a local estimate; choose one to use only that. A tokenizer from a plugin gets the endpoint, the model and the text, and only when it is chosen here.");
-        setValue(L.HELP_SCAN_DEPTH, "How many times the content of the entries that were used is searched for the filters of the other entries (0 = never). Only the lorebook the book uses counts, the value of its subbooks is ignored.");
+        setValue(L.HELP_SCAN_DEPTH, "How many times the content of the entries that were used is searched for the filters of the other entries (0 = never). It counts for this lorebook and for its sub lorebooks that have no scan depth of their own.");
         setValue(L.HELP_PREVENT_RECURSION, "Words in the content of this entry do not activate other entries.");
         setValue(L.HELP_ACTIVATION_PREVIEW, "Shows which entries of this lorebook and its subbooks would be used for a turn with this text, and why, with the scan depth of this lorebook. In a real generation extensions can still change the result. Entries that also look into the parts of the story use the newest parts of the picked book.");
         setValue(L.HELP_ACTIVATION_CONTEXT, "Where the filter is looked for: only in the instructions of the turn, or in the instructions and the newest parts of the story.");
@@ -1803,6 +1814,9 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_ANNOTATE_INSTRUCTIONS, "What the model looks for when it annotates a part, for example: flag continuity errors, weak dialogue. Empty is the default task of the annotate prompt. The Annotate with AI window starts with this text.");
         setValue(L.HELP_ACTIVATION_CONDITION, "A template, written like the content (macros and Handlebars), that is rendered for the turn with the point of view, the present characters, the instructions and the variables. The entry is used only when the result is true: anything except empty, 0, false, no or off. A condition that cannot be rendered (an error, a name that does not exist, too much time) counts as false and the activation preview says why. It is checked before the filter, also for entries found by the content of other entries. Commands that only read can be used, variables are not changed. Leave empty for no condition.");
         setValue(L.HELP_REASONING_PASSTHROUGH, "Whether the thinking of the model goes back to it in the next request (as reasoning_content). Between tool calls: only while the tool calls of one answer go on, as Gemma 4 expects. Always: with every earlier answer that has it too. Most models and servers want None.");
+        setValue(L.HELP_RECURSION_ONLY, "The entry is never used because of the instructions or the story of the turn. It is used only when its filter is found in the content of another entry that was used (needs a scan depth above 0 and a filter).");
+        setValue(L.HELP_ACTIVATION_SUMMARIES, "The filter is also looked for in the summaries of the story so far (the ones the prompt would use).");
+        setValue(L.HELP_OWN_SCAN_DEPTH, "The scan depth of the entries of this lorebook while it is a sub lorebook of another one (0 = never found by the content of other entries). Empty = the scan depth of the lorebook the book uses.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Background lore and world context.");
@@ -2218,6 +2232,17 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.DESC_COMMAND_PLANNER_PRESENT_PARAM, "The characters present in the scene, separated by commas");
         setValue(L.DESC_COMMAND_PLANNER_DONE_PARAM, "true (default) for written, false for not written");
         setValue(L.DESC_COMMAND_PLANNER_TO_PARAM, "The new number of the scene, from 1; the last place when it is too large");
+        setValue(L.DESC_COMMAND_SET_LORE_ENTRY_ACTIVATION, "Changes when an entry is used besides its keys. Parameters: entry (handle), preventRecursion, recursionOnly, activationContext, activationParts, activationSummaries, fromMessage, toMessage, condition.");
+        setValue(L.DESC_COMMAND_SET_LORE_ENTRY_ACTIVATION_LLM, "Changes the activation settings of the entry with the given handle, in this order: preventRecursion (true: the words of this entry do not activate other entries), recursionOnly (true: the entry is used only when its filter is found in the content of other entries that were used, see the scan depth of the lorebook), activationContext (INSTRUCTIONS: the filter is looked for in the instructions of the turn; INCLUDE_PARTS: also in the newest activationParts parts of the story), activationParts, activationSummaries (true: the filter is also looked for in the summaries), fromMessage and toMessage (the entry is used only for the turns that create a part with a number in that range, both included, the first part is 1; 0 removes a limit) and condition (a template, written like the content, that has to give a true value; an empty text removes it). A parameter that is empty text is left as it is, so to change a later one give the earlier ones as empty text (only condition is different: empty text there removes it); read the current values with get-lore-entry. Changes the book.");
+        setValue(L.DESC_COMMAND_SET_LORE_ENTRY_ACTIVATION_RETURN, "JSON with the activation settings of the entry after the change");
+        setValue(L.DESC_COMMAND_LORE_PREVENT_RECURSION_PARAM, "true: the words in the content of this entry do not activate other entries; false allows it");
+        setValue(L.DESC_COMMAND_LORE_ACTIVATION_CONTEXT_PARAM, "Where the filter is looked for: INSTRUCTIONS (the instructions of the turn) or INCLUDE_PARTS (the instructions and the newest parts of the story)");
+        setValue(L.DESC_COMMAND_LORE_ACTIVATION_PARTS_PARAM, "With INCLUDE_PARTS, how many of the newest parts of the story count, at least 1");
+        setValue(L.DESC_COMMAND_LORE_FROM_MESSAGE_PARAM, "The entry is used only from the turn that creates this part number (the first part is 1); 0 removes the limit");
+        setValue(L.DESC_COMMAND_LORE_TO_MESSAGE_PARAM, "The entry is used only up to the turn that creates this part number, included; 0 removes the limit");
+        setValue(L.DESC_COMMAND_LORE_CONDITION_PARAM, "A template that has to give a true value for the entry to be used (it can read the point of view, the present characters, the instructions and the variables); an empty text removes the condition");
+        setValue(L.DESC_COMMAND_LORE_RECURSION_ONLY_PARAM, "true: the entry is used only through the content of other entries, never by the turn itself; false lets the turn use it");
+        setValue(L.DESC_COMMAND_LORE_ACTIVATION_SUMMARIES_PARAM, "true: the filter is also looked for in the summaries of the story; false turns it off");
 
     }
 

@@ -62,6 +62,17 @@ public class LorebookEntry extends ExtendableEntity {
     @ExtendedAttribute
     private boolean preventRecursion = false;
 
+    // the entry is used only because of the content of other entries (see Lorebook#getScanDepth), never by the instructions
+    // or the story of the turn itself
+    @Transient
+    @ExtendedAttribute
+    private boolean recursionOnly = false;
+
+    // the filter is also looked for in the summaries of the story so far
+    @Transient
+    @ExtendedAttribute
+    private boolean activationSummaries = false;
+
     // what the filter is looked for in: the instructions of the turn, or the instructions and the last activationParts parts
     @Transient
     @ExtendedAttribute
@@ -183,6 +194,22 @@ public class LorebookEntry extends ExtendableEntity {
 
     public void setPreventRecursion(boolean preventRecursion) {
         this.preventRecursion = preventRecursion;
+    }
+
+    public boolean isRecursionOnly() {
+        return recursionOnly;
+    }
+
+    public void setRecursionOnly(boolean recursionOnly) {
+        this.recursionOnly = recursionOnly;
+    }
+
+    public boolean isActivationSummaries() {
+        return activationSummaries;
+    }
+
+    public void setActivationSummaries(boolean activationSummaries) {
+        this.activationSummaries = activationSummaries;
     }
 
     public ActivationContext getActivationContext() {

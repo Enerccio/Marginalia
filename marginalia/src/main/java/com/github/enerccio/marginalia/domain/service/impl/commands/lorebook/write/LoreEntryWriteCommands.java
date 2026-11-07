@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.service.impl.commands.lorebook.write;
 
+import com.github.enerccio.marginalia.domain.collections.ActivationContext;
 import com.github.enerccio.marginalia.domain.collections.FilteringMode;
 import com.github.enerccio.marginalia.domain.collections.InsertionMode;
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
@@ -15,7 +16,8 @@ import java.util.List;
 /**
  * {@code /create-lore-entry name payload [lorebook [comment [enabled [order [keys [filteringMode [insertionMode [tags]]]]]]]]]},
  * {@code /update-lore-entry entry [name [payload ...]]}, {@code /delete-lore-entry entry}, {@code /move-lore-entry entry lorebook},
- * {@code /set-lore-entry-tags entry [add [remove [addNegative [removeNegative]]]]}: the commands that change the entries of the lorebooks
+ * {@code /set-lore-entry-tags entry [add [remove [addNegative [removeNegative]]]]},
+ * {@code /set-lore-entry-activation entry [preventRecursion [recursionOnly [activationContext [activationParts [activationSummaries [fromMessage [toMessage [condition]]]]]]]]}: the commands that change the entries of the lorebooks
  * of the book. Entries and lorebooks are given by their handles, see {@link LorebookWriteSupport}.
  */
 public class LoreEntryWriteCommands extends LorebookWriteSupport {
@@ -25,6 +27,7 @@ public class LoreEntryWriteCommands extends LorebookWriteSupport {
     static final String DELETE_LORE_ENTRY = "delete-lore-entry";
     static final String MOVE_LORE_ENTRY = "move-lore-entry";
     static final String SET_LORE_ENTRY_TAGS = "set-lore-entry-tags";
+    static final String SET_LORE_ENTRY_ACTIVATION = "set-lore-entry-activation";
 
     @Command(commandName = CREATE_LORE_ENTRY, humanName = L.LABEL_COMMAND_CREATE_LORE_ENTRY,
             dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
@@ -366,6 +369,199 @@ public class LoreEntryWriteCommands extends LorebookWriteSupport {
             returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_SET_LORE_ENTRY_TAGS_RETURN))
     public void setLoreEntryTagsRemoveNegative(CommandContext context) throws Exception {
         setLoreEntryTags(context, ref(context, "entry"), context.get("add", String.class), context.get("remove", String.class), context.get("addNegative", String.class), context.get("removeNegative", String.class));
+    }
+
+    @Command(commandName = SET_LORE_ENTRY_ACTIVATION, humanName = L.LABEL_COMMAND_SET_LORE_ENTRY_ACTIVATION,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            description = L.DESC_COMMAND_SET_LORE_ENTRY_ACTIVATION, llmDescription = L.DESC_COMMAND_SET_LORE_ENTRY_ACTIVATION_LLM,
+            signature = @CommandParameterSignature({
+                    @CommandParameter(name = "entry", type = String.class, description = L.DESC_COMMAND_LORE_ENTRY_HANDLE_PARAM),
+                    @CommandParameter(name = "preventRecursion", type = String.class, description = L.DESC_COMMAND_LORE_PREVENT_RECURSION_PARAM)}),
+            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_SET_LORE_ENTRY_ACTIVATION_RETURN))
+    public void setLoreEntryActivationRecursion(CommandContext context) throws Exception {
+        setLoreEntryActivation(context, ref(context, "entry"), context.get("preventRecursion", String.class), null, null, null, null, null, null, null);
+    }
+
+    @Command(commandName = SET_LORE_ENTRY_ACTIVATION, humanName = L.LABEL_COMMAND_SET_LORE_ENTRY_ACTIVATION,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            description = L.DESC_COMMAND_SET_LORE_ENTRY_ACTIVATION, llmDescription = L.DESC_COMMAND_SET_LORE_ENTRY_ACTIVATION_LLM,
+            signature = @CommandParameterSignature({
+                    @CommandParameter(name = "entry", type = String.class, description = L.DESC_COMMAND_LORE_ENTRY_HANDLE_PARAM),
+                    @CommandParameter(name = "preventRecursion", type = String.class, description = L.DESC_COMMAND_LORE_PREVENT_RECURSION_PARAM),
+                    @CommandParameter(name = "recursionOnly", type = String.class, description = L.DESC_COMMAND_LORE_RECURSION_ONLY_PARAM)}),
+            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_SET_LORE_ENTRY_ACTIVATION_RETURN))
+    public void setLoreEntryActivationRecursionOnly(CommandContext context) throws Exception {
+        setLoreEntryActivation(context, ref(context, "entry"), context.get("preventRecursion", String.class), context.get("recursionOnly", String.class), null, null, null, null, null, null);
+    }
+
+    @Command(commandName = SET_LORE_ENTRY_ACTIVATION, humanName = L.LABEL_COMMAND_SET_LORE_ENTRY_ACTIVATION,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            description = L.DESC_COMMAND_SET_LORE_ENTRY_ACTIVATION, llmDescription = L.DESC_COMMAND_SET_LORE_ENTRY_ACTIVATION_LLM,
+            signature = @CommandParameterSignature({
+                    @CommandParameter(name = "entry", type = String.class, description = L.DESC_COMMAND_LORE_ENTRY_HANDLE_PARAM),
+                    @CommandParameter(name = "preventRecursion", type = String.class, description = L.DESC_COMMAND_LORE_PREVENT_RECURSION_PARAM),
+                    @CommandParameter(name = "recursionOnly", type = String.class, description = L.DESC_COMMAND_LORE_RECURSION_ONLY_PARAM),
+                    @CommandParameter(name = "activationContext", type = String.class, description = L.DESC_COMMAND_LORE_ACTIVATION_CONTEXT_PARAM)}),
+            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_SET_LORE_ENTRY_ACTIVATION_RETURN))
+    public void setLoreEntryActivationContext(CommandContext context) throws Exception {
+        setLoreEntryActivation(context, ref(context, "entry"), context.get("preventRecursion", String.class), context.get("recursionOnly", String.class), context.get("activationContext", String.class), null, null, null, null, null);
+    }
+
+    @Command(commandName = SET_LORE_ENTRY_ACTIVATION, humanName = L.LABEL_COMMAND_SET_LORE_ENTRY_ACTIVATION,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            description = L.DESC_COMMAND_SET_LORE_ENTRY_ACTIVATION, llmDescription = L.DESC_COMMAND_SET_LORE_ENTRY_ACTIVATION_LLM,
+            signature = @CommandParameterSignature({
+                    @CommandParameter(name = "entry", type = String.class, description = L.DESC_COMMAND_LORE_ENTRY_HANDLE_PARAM),
+                    @CommandParameter(name = "preventRecursion", type = String.class, description = L.DESC_COMMAND_LORE_PREVENT_RECURSION_PARAM),
+                    @CommandParameter(name = "recursionOnly", type = String.class, description = L.DESC_COMMAND_LORE_RECURSION_ONLY_PARAM),
+                    @CommandParameter(name = "activationContext", type = String.class, description = L.DESC_COMMAND_LORE_ACTIVATION_CONTEXT_PARAM),
+                    @CommandParameter(name = "activationParts", type = String.class, description = L.DESC_COMMAND_LORE_ACTIVATION_PARTS_PARAM)}),
+            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_SET_LORE_ENTRY_ACTIVATION_RETURN))
+    public void setLoreEntryActivationParts(CommandContext context) throws Exception {
+        setLoreEntryActivation(context, ref(context, "entry"), context.get("preventRecursion", String.class), context.get("recursionOnly", String.class), context.get("activationContext", String.class), context.get("activationParts", String.class), null, null, null, null);
+    }
+
+    @Command(commandName = SET_LORE_ENTRY_ACTIVATION, humanName = L.LABEL_COMMAND_SET_LORE_ENTRY_ACTIVATION,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            description = L.DESC_COMMAND_SET_LORE_ENTRY_ACTIVATION, llmDescription = L.DESC_COMMAND_SET_LORE_ENTRY_ACTIVATION_LLM,
+            signature = @CommandParameterSignature({
+                    @CommandParameter(name = "entry", type = String.class, description = L.DESC_COMMAND_LORE_ENTRY_HANDLE_PARAM),
+                    @CommandParameter(name = "preventRecursion", type = String.class, description = L.DESC_COMMAND_LORE_PREVENT_RECURSION_PARAM),
+                    @CommandParameter(name = "recursionOnly", type = String.class, description = L.DESC_COMMAND_LORE_RECURSION_ONLY_PARAM),
+                    @CommandParameter(name = "activationContext", type = String.class, description = L.DESC_COMMAND_LORE_ACTIVATION_CONTEXT_PARAM),
+                    @CommandParameter(name = "activationParts", type = String.class, description = L.DESC_COMMAND_LORE_ACTIVATION_PARTS_PARAM),
+                    @CommandParameter(name = "activationSummaries", type = String.class, description = L.DESC_COMMAND_LORE_ACTIVATION_SUMMARIES_PARAM)}),
+            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_SET_LORE_ENTRY_ACTIVATION_RETURN))
+    public void setLoreEntryActivationSummaries(CommandContext context) throws Exception {
+        setLoreEntryActivation(context, ref(context, "entry"), context.get("preventRecursion", String.class), context.get("recursionOnly", String.class), context.get("activationContext", String.class), context.get("activationParts", String.class), context.get("activationSummaries", String.class), null, null, null);
+    }
+
+    @Command(commandName = SET_LORE_ENTRY_ACTIVATION, humanName = L.LABEL_COMMAND_SET_LORE_ENTRY_ACTIVATION,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            description = L.DESC_COMMAND_SET_LORE_ENTRY_ACTIVATION, llmDescription = L.DESC_COMMAND_SET_LORE_ENTRY_ACTIVATION_LLM,
+            signature = @CommandParameterSignature({
+                    @CommandParameter(name = "entry", type = String.class, description = L.DESC_COMMAND_LORE_ENTRY_HANDLE_PARAM),
+                    @CommandParameter(name = "preventRecursion", type = String.class, description = L.DESC_COMMAND_LORE_PREVENT_RECURSION_PARAM),
+                    @CommandParameter(name = "recursionOnly", type = String.class, description = L.DESC_COMMAND_LORE_RECURSION_ONLY_PARAM),
+                    @CommandParameter(name = "activationContext", type = String.class, description = L.DESC_COMMAND_LORE_ACTIVATION_CONTEXT_PARAM),
+                    @CommandParameter(name = "activationParts", type = String.class, description = L.DESC_COMMAND_LORE_ACTIVATION_PARTS_PARAM),
+                    @CommandParameter(name = "activationSummaries", type = String.class, description = L.DESC_COMMAND_LORE_ACTIVATION_SUMMARIES_PARAM),
+                    @CommandParameter(name = "fromMessage", type = String.class, description = L.DESC_COMMAND_LORE_FROM_MESSAGE_PARAM)}),
+            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_SET_LORE_ENTRY_ACTIVATION_RETURN))
+    public void setLoreEntryActivationFrom(CommandContext context) throws Exception {
+        setLoreEntryActivation(context, ref(context, "entry"), context.get("preventRecursion", String.class), context.get("recursionOnly", String.class), context.get("activationContext", String.class), context.get("activationParts", String.class), context.get("activationSummaries", String.class), context.get("fromMessage", String.class), null, null);
+    }
+
+    @Command(commandName = SET_LORE_ENTRY_ACTIVATION, humanName = L.LABEL_COMMAND_SET_LORE_ENTRY_ACTIVATION,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            description = L.DESC_COMMAND_SET_LORE_ENTRY_ACTIVATION, llmDescription = L.DESC_COMMAND_SET_LORE_ENTRY_ACTIVATION_LLM,
+            signature = @CommandParameterSignature({
+                    @CommandParameter(name = "entry", type = String.class, description = L.DESC_COMMAND_LORE_ENTRY_HANDLE_PARAM),
+                    @CommandParameter(name = "preventRecursion", type = String.class, description = L.DESC_COMMAND_LORE_PREVENT_RECURSION_PARAM),
+                    @CommandParameter(name = "recursionOnly", type = String.class, description = L.DESC_COMMAND_LORE_RECURSION_ONLY_PARAM),
+                    @CommandParameter(name = "activationContext", type = String.class, description = L.DESC_COMMAND_LORE_ACTIVATION_CONTEXT_PARAM),
+                    @CommandParameter(name = "activationParts", type = String.class, description = L.DESC_COMMAND_LORE_ACTIVATION_PARTS_PARAM),
+                    @CommandParameter(name = "activationSummaries", type = String.class, description = L.DESC_COMMAND_LORE_ACTIVATION_SUMMARIES_PARAM),
+                    @CommandParameter(name = "fromMessage", type = String.class, description = L.DESC_COMMAND_LORE_FROM_MESSAGE_PARAM),
+                    @CommandParameter(name = "toMessage", type = String.class, description = L.DESC_COMMAND_LORE_TO_MESSAGE_PARAM)}),
+            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_SET_LORE_ENTRY_ACTIVATION_RETURN))
+    public void setLoreEntryActivationTo(CommandContext context) throws Exception {
+        setLoreEntryActivation(context, ref(context, "entry"), context.get("preventRecursion", String.class), context.get("recursionOnly", String.class), context.get("activationContext", String.class), context.get("activationParts", String.class), context.get("activationSummaries", String.class), context.get("fromMessage", String.class), context.get("toMessage", String.class), null);
+    }
+
+    @Command(commandName = SET_LORE_ENTRY_ACTIVATION, humanName = L.LABEL_COMMAND_SET_LORE_ENTRY_ACTIVATION,
+            dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,
+            description = L.DESC_COMMAND_SET_LORE_ENTRY_ACTIVATION, llmDescription = L.DESC_COMMAND_SET_LORE_ENTRY_ACTIVATION_LLM,
+            signature = @CommandParameterSignature({
+                    @CommandParameter(name = "entry", type = String.class, description = L.DESC_COMMAND_LORE_ENTRY_HANDLE_PARAM),
+                    @CommandParameter(name = "preventRecursion", type = String.class, description = L.DESC_COMMAND_LORE_PREVENT_RECURSION_PARAM),
+                    @CommandParameter(name = "recursionOnly", type = String.class, description = L.DESC_COMMAND_LORE_RECURSION_ONLY_PARAM),
+                    @CommandParameter(name = "activationContext", type = String.class, description = L.DESC_COMMAND_LORE_ACTIVATION_CONTEXT_PARAM),
+                    @CommandParameter(name = "activationParts", type = String.class, description = L.DESC_COMMAND_LORE_ACTIVATION_PARTS_PARAM),
+                    @CommandParameter(name = "activationSummaries", type = String.class, description = L.DESC_COMMAND_LORE_ACTIVATION_SUMMARIES_PARAM),
+                    @CommandParameter(name = "fromMessage", type = String.class, description = L.DESC_COMMAND_LORE_FROM_MESSAGE_PARAM),
+                    @CommandParameter(name = "toMessage", type = String.class, description = L.DESC_COMMAND_LORE_TO_MESSAGE_PARAM),
+                    @CommandParameter(name = "condition", type = String.class, description = L.DESC_COMMAND_LORE_CONDITION_PARAM)}),
+            returns = @CommandReturn(name = "result", type = String.class, description = L.DESC_COMMAND_SET_LORE_ENTRY_ACTIVATION_RETURN))
+    public void setLoreEntryActivationCondition(CommandContext context) throws Exception {
+        setLoreEntryActivation(context, ref(context, "entry"), context.get("preventRecursion", String.class), context.get("recursionOnly", String.class), context.get("activationContext", String.class), context.get("activationParts", String.class), context.get("activationSummaries", String.class), context.get("fromMessage", String.class), context.get("toMessage", String.class), context.get("condition", String.class));
+    }
+
+    private void setLoreEntryActivation(CommandContext context, String handle, String preventRecursion, String recursionOnly,
+                                        String activationContext, String activationParts, String activationSummaries, String fromMessage,
+                                        String toMessage, String condition) throws Exception {
+        Lore lore = new Lore(new Book(context));
+        LorebookEntry entry = entry(lore, handle).entry();
+        boolean changed = false;
+        if (given(preventRecursion)) {
+            entry.setPreventRecursion(flag(preventRecursion));
+            changed = true;
+        }
+        if (given(recursionOnly)) {
+            entry.setRecursionOnly(flag(recursionOnly));
+            changed = true;
+        }
+        if (given(activationSummaries)) {
+            entry.setActivationSummaries(flag(activationSummaries));
+            changed = true;
+        }
+        if (given(activationContext)) {
+            entry.setActivationContext(mode(ActivationContext.class, activationContext));
+            changed = true;
+        }
+        if (given(activationParts)) {
+            entry.setActivationParts(number(activationParts));
+            changed = true;
+        }
+        if (given(fromMessage)) {
+            // 0 (or less) removes the limit, the setter turns it into null
+            entry.setFromMessage(number(fromMessage));
+            changed = true;
+        }
+        if (given(toMessage)) {
+            entry.setToMessage(number(toMessage));
+            changed = true;
+        }
+        if (condition != null) {
+            // the one parameter where empty text is a value: it removes the condition
+            entry.setActivationCondition(condition);
+            changed = true;
+        }
+        if (!changed) {
+            throw new IllegalArgumentException(loc.getValue(L.ERROR_COMMAND_NOTHING_TO_CHANGE));
+        }
+        if (entry.getFromMessage() != null && entry.getToMessage() != null && entry.getFromMessage() > entry.getToMessage()) {
+            throw new IllegalArgumentException(String.format(loc.getValue(L.ERROR_COMMAND_LORE_RANGE_EMPTY),
+                    entry.getFromMessage(), entry.getToMessage()));
+        }
+        LorebookEntryService.EntrySaved saved = lorebookEntryService.update(entry);
+        JsonObject result = new JsonObject();
+        result.addProperty("handle", handle);
+        result.addProperty("name", entry.getName());
+        addActivation(result, entry);
+        result.add("problems", problems(saved.problems()));
+        changed();
+        answer(context, result);
+    }
+
+    private boolean flag(String text) {
+        return switch (text.strip().toLowerCase()) {
+            case "true" -> true;
+            case "false" -> false;
+            default -> throw new IllegalArgumentException(String.format(loc.getValue(L.ERROR_COMMAND_UNKNOWN_MODE), text, List.of("true", "false")));
+        };
+    }
+
+    private static boolean given(String value) {
+        return value != null && !value.isBlank();
+    }
+
+    private int number(String text) {
+        try {
+            return Integer.parseInt(text.strip());
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException(String.format(loc.getValue(L.ERROR_COMMAND_UNKNOWN_MODE), text, "0, 1, 2, ..."));
+        }
     }
 
     private void createLoreEntry(CommandContext context, String name, String payload, String lorebook, String comment,

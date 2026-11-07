@@ -1701,4 +1701,158 @@ class LorebookActivationTest extends GenerationTestBase {
 
         assertThat(lorebookEntryService.find(conditional.getId()).getActivationCondition()).isEqualTo("{{getvar::x}}");
     }
+
+    // ------------------------------------------------------------------------------------------------------------
+    // used only through other entries, the scan depth of a sub lorebook, the summaries
+    // ------------------------------------------------------------------------------------------------------------
+
+    @Autowired
+    private SummaryService summaryService;
+
+    @Test
+    void entryThatIsUsedOnlyThroughOtherEntriesIsNotFoundByTheTurn() throws Exception {
+        Lorebook book = scanning(1);
+        chain(book);
+        LorebookEntry castle = lorebookEntryService.getEntriesForLorebook(book).stream()
+                .filter(e -> e.getName().equals("castle")).findFirst().orElseThrow();
+        castle.setRecursionOnly(true);
+        lorebookEntryService.save(castle);
+
+        // the castle is in the prompt itself: not enough
+        assertThat(activate(book(book), "A castle appears.").activated()).isEmpty();
+        // the dragon's content names it
+        assertThat(activate(book(book), "A dragon appears.").activated()).containsExactly("dragon", "castle");
+    }
+
+    @Test
+    void entryThatIsUsedOnlyThroughOtherEntriesNeedsAScanDepth() throws Exception {
+        Lorebook book = scanning(0);
+        chain(book);
+        LorebookEntry castle = lorebookEntryService.getEntriesForLorebook(book).stream()
+                .filter(e -> e.getName().equals("castle")).findFirst().orElseThrow();
+        castle.setRecursionOnly(true);
+        lorebookEntryService.save(castle);
+
+        Lore lore = activate(book(book), "A dragon appears.");
+
+        assertThat(lore.activated()).containsExactly("dragon");
+        Lorebook root = lorebookService.find(book.getId());
+        List<LorebookEntryVerdict> preview = activationService.evaluateAll(root, activationService.collectLorebooks(root),
+                List.of(), "A dragon appears.");
+        assertThat(preview).extracting(v -> v.entry().getName(), v -> v.verdict().reason())
+                .containsExactly(tuple("dragon", Reason.FILTER_MATCHED), tuple("castle", Reason.RECURSION_ONLY),
+                        tuple("moat", Reason.FILTER_NOT_MATCHED));
+    }
+
+    @Test
+    void aSubLorebookHasItsOwnScanDepth() throws Exception {
+        // the lorebook the book uses does not scan, the sub lorebook does: its own chain is followed
+        Lorebook sub = lorebook("sub");
+        sub.setOwnScanDepth(2);
+        sub = lorebookService.save(sub);
+        chain(sub);
+        Lorebook root = lorebook("root", sub);
+
+        Lore lore = activate(book(root), "A dragon appears.");
+
+        assertThat(lore.activated()).containsExactly("dragon", "castle", "moat");
+    }
+
+    @Test
+    void aSubLorebookCanTurnTheScanOffForItsEntries() throws Exception {
+        Lorebook sub = lorebook("sub");
+        sub.setOwnScanDepth(0);
+        sub = lorebookService.save(sub);
+        entry(sub, "moat", e -> {
+            e.setOrder(3);
+            e.setFiltering("moat");
+            e.setPayload("The moat is dry.");
+        });
+        Lorebook root = lorebook("root", sub);
+        root.setScanDepth(3);
+        root = lorebookService.save(root);
+        entry(root, "dragon", e -> {
+            e.setOrder(1);
+            e.setFiltering("dragon");
+            e.setPayload("The dragon sleeps by the moat.");
+        });
+
+        Lore lore = activate(book(root), "A dragon appears.");
+
+        // the root scans, but the entries of the sub lorebook are not found that way
+        assertThat(lore.activated()).containsExactly("dragon");
+    }
+
+    @Test
+    void aSubLorebookWithoutAnOwnScanDepthUsesTheOneOfTheRoot() throws Exception {
+        Lorebook sub = lorebook("sub");
+        chain(sub);
+        Lorebook root = lorebook("root", sub);
+        root.setScanDepth(1);
+        lorebookService.save(root);
+
+        Lore lore = activate(book(root), "A dragon appears.");
+
+        assertThat(lore.activated()).containsExactly("dragon", "castle");
+        assertThat(activationService.scanDepth(root, sub)).isEqualTo(1);
+        sub.setOwnScanDepth(99);
+        assertThat(activationService.scanDepth(root, sub)).isEqualTo(LorebookActivationService.MAX_SCAN_DEPTH);
+    }
+
+    /**
+     * Puts a summary on the part, valid for the story up to it.
+     */
+    private void summarize(ChatMessage message, String text) throws Exception {
+        Summary summary = new Summary();
+        summary.setSummary(text);
+        summary = summaryService.save(summary);
+        message = chatMessageService.find(message.getId());
+        message.setSummary(summary);
+        chatMessageService.save(message);
+        summary = summaryService.find(summary.getId());
+        summary.setSummaryMessageHash(summaryService.collectFirstBlock(
+                chatMessageService.getBranchFromLeaf(chatMessageService.find(message.getId())).reversed().iterator(),
+                SummaryService.BlockTexts.CURRENT).hash());
+        summaryService.save(summary);
+    }
+
+    @Test
+    void anEntryCanLookForItsFilterInTheSummaries() throws Exception {
+        Lorebook book = lorebook("world");
+        entry(book, "summaryOnly", e -> {
+            e.setFiltering("griffin");
+            e.setActivationSummaries(true);
+        });
+        entry(book, "plain", e -> e.setFiltering("griffin"));
+        Manuscript manuscript = withStory(book(book), "The first part.", "The second part.");
+        ChatMessage first = chatMessageService.getBranchFromLeaf(manuscriptService.find(manuscript.getId()).getActiveLeaf()).getFirst();
+        summarize(first, "A griffin guards the pass.");
+
+        Lore lore = activate(manuscriptService.find(manuscript.getId()), "Nothing to see.");
+
+        assertThat(lore.activated()).containsExactly("summaryOnly");
+    }
+
+    @Test
+    void theSummariesAreNotReadWhenTheyNoLongerMatchTheStory() throws Exception {
+        Lorebook book = lorebook("world");
+        entry(book, "summaryOnly", e -> {
+            e.setFiltering("griffin");
+            e.setActivationSummaries(true);
+        });
+        Manuscript manuscript = withStory(book(book), "The first part.", "The second part.");
+        ChatMessage leaf = manuscriptService.find(manuscript.getId()).getActiveLeaf();
+        ChatMessage first = chatMessageService.getBranchFromLeaf(leaf).getFirst();
+        summarize(first, "A griffin guards the pass.");
+        List<LorebookEntry> entries = lorebookEntryService.getEntriesForLorebook(book);
+
+        assertThat(activationService.summariesNeeded(entries)).isTrue();
+        assertThat(activationService.storyText(entries, leaf, false).summaries()).isEqualTo("A griffin guards the pass.");
+
+        first = chatMessageService.find(first.getId());
+        first.setResponse("The first part was rewritten.");
+        chatMessageService.save(first);
+
+        assertThat(activationService.storyText(entries, leaf, false).summaries()).isEmpty();
+    }
 }

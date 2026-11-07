@@ -3,9 +3,9 @@ package com.github.enerccio.marginalia.ui.components;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.collections.ActivationContext;
-import com.github.enerccio.marginalia.domain.model.BaseEntity;
 import com.github.enerccio.marginalia.domain.collections.FilteringMode;
 import com.github.enerccio.marginalia.domain.collections.InsertionMode;
+import com.github.enerccio.marginalia.domain.model.BaseEntity;
 import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
@@ -44,16 +44,16 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.data.provider.ListDataProvider;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
-import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.server.streams.DownloadResponse;
 import com.vaadin.flow.server.streams.InMemoryUploadHandler;
 import com.vaadin.flow.server.streams.InputStreamDownloadCallback;
 import com.vaadin.flow.server.streams.InputStreamDownloadHandler;
+import com.vaadin.flow.shared.Registration;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
@@ -62,7 +62,6 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * {@link LorebookView} for phones: the same things can be done, laid out in one column. The lorebook is chosen in a
@@ -108,6 +107,13 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
     private Button searchReplaceButton;
     private Button previewActivationButton;
     private TextField entrySearchField;
+    private ComboBox<String> entryTagFilter;
+    private ComboBox<LorebookEntryFilter.Status> entryStatusFilter;
+    private final LorebookEntryFilter entryFilter = new LorebookEntryFilter();
+    private Button deleteSelectedButton;
+    private MenuItem selectEntriesItem;
+    private HorizontalLayout entryFilterLayout;
+    private Registration selectionListener;
     private ListDataProvider<LorebookEntry> entryProvider;
     private Checkbox lorebookEnabledCheckbox;
     private Span lorebookInfoSpan;
@@ -127,6 +133,7 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
     private MultiSelectComboBox<Lorebook> subLorebooksCombo;
     private TagMultiComboBox tagMultiComboBox;
     private IntegerField scanDepthField;
+    private IntegerField ownScanDepthField;
     private Checkbox lorebookSharedCheckbox;
     private Span lorebookDescriptionLine;
 
@@ -157,9 +164,10 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
         this.pinnedLorebook = pinnedLorebook;
     }
 
-    @PublicAPI(from = "1.1.0",
+    @PublicAPI(from = "1.7.0",
             returns = @APIReturn(type = Component.class),
             locals = {@APILocals(name = "controlsLayout", type = HorizontalLayout.class),
+                    @APILocals(name = "filterLayout", type = HorizontalLayout.class),
                     @APILocals(name = "enabledLayout", type = HorizontalLayout.class),
                     @APILocals(name = "entriesLayout", type = HorizontalLayout.class)})
     public Component create() throws Exception {
@@ -227,6 +235,24 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
         entrySearchField.setValueChangeMode(ValueChangeMode.LAZY);
         entrySearchField.addValueChangeListener(_ -> applyEntrySearch());
 
+        entryTagFilter = LorebookEntryFilter.createTagBox(loc);
+        entryTagFilter.addValueChangeListener(_ -> applyEntrySearch());
+
+        entryStatusFilter = LorebookEntryFilter.createStatusBox(loc);
+        entryStatusFilter.addValueChangeListener(_ -> applyEntrySearch());
+        HorizontalLayout filterLayout = new HorizontalLayout(entryTagFilter, entryStatusFilter);
+        filterLayout.setWidthFull();
+        filterLayout.setFlexGrow(1, entryTagFilter);
+        filterLayout.setFlexGrow(1, entryStatusFilter);
+        entryTagFilter.setWidth("0");
+        entryStatusFilter.setWidth("0");
+        entryFilterLayout = filterLayout;
+
+        deleteSelectedButton = new Button(loc.getValue(L.LABEL_DELETE_SELECTED), Solid.TRASH.create(), _ -> deleteSelectedEntries());
+        deleteSelectedButton.setThemeName("error");
+        deleteSelectedButton.setWidthFull();
+        deleteSelectedButton.setVisible(false);
+
         addEntryButton = new Button(loc.getValue(L.LABEL_ADD_ENTRY), Solid.PLUS_CIRCLE.create(), _ -> createNewEntry());
         addEntryButton.setThemeName("primary");
 
@@ -254,7 +280,7 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
         lockedSpan = new Span();
         lockedSpan.addClassNames(CssStyles.HINT_TEXT, CssStyles.WHITE_SPACE_NORMAL, CssStyles.WRAP_ANYWHERE);
         lockedSpan.setVisible(false);
-        add(lockedSpan, controlsLayout, enabledLayout, settingsDetails, lorebookDescriptionLine, lorebookInfoSpan, entriesLayout, entrySearchField, grid);
+        add(lockedSpan, controlsLayout, enabledLayout, settingsDetails, lorebookDescriptionLine, lorebookInfoSpan, entriesLayout, entrySearchField, entryFilterLayout, deleteSelectedButton, grid);
         setFlexGrow(1, grid);
 
         refresh();
@@ -272,6 +298,7 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
         // rows grow with their content, so a long name breaks into lines instead of running under the button
         grid.addThemeVariants(GridVariant.LUMO_WRAP_CELL_CONTENT);
         grid.addComponentColumn(this::createEntryRow).setFlexGrow(1);
+        grid.setSelectionMode(Grid.SelectionMode.NONE);
         grid.setItemDetailsRenderer(new ComponentRenderer<>(this::createEntryDetailLayout));
     }
 
@@ -327,6 +354,8 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
         menu.setOpenOnClick(true);
         menu.addItem(loc.getValue(L.LABEL_MASS_EDIT), _ -> openMassEditDialog());
         menu.addItem(loc.getValue(L.LABEL_TAG_ENTRIES), _ -> openTagDialog(true));
+        selectEntriesItem = menu.addItem(loc.getValue(L.LABEL_SELECT_ENTRIES), _ -> toggleSelection());
+        selectEntriesItem.setCheckable(true);
     }
 
     /**
@@ -398,6 +427,26 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
             }
         });
 
+        // empty = the scan depth of the lorebook the book uses; only counts while this lorebook is a sub lorebook of another
+        ownScanDepthField = new IntegerField(loc.getValue(L.LABEL_OWN_SCAN_DEPTH));
+        ownScanDepthField.setMin(0);
+        ownScanDepthField.setMax(LorebookActivationService.MAX_SCAN_DEPTH);
+        ownScanDepthField.setStepButtonsVisible(true);
+        ownScanDepthField.setClearButtonVisible(true);
+        ownScanDepthField.setWidthFull();
+        ownScanDepthField.setHelperText(loc.getValue(L.HELP_OWN_SCAN_DEPTH));
+        ownScanDepthField.addValueChangeListener(e -> {
+            if (currentLorebook != null && e.isFromClient()) {
+                try {
+                    currentLorebook.setOwnScanDepth(e.getValue() == null ? null
+                            : Math.max(0, Math.min(LorebookActivationService.MAX_SCAN_DEPTH, e.getValue())));
+                    currentLorebook = lorebookService.save(currentLorebook);
+                } catch (Exception ex) {
+                    UIUtils.internalServerError(loc, ex);
+                }
+            }
+        });
+
         lorebookSharedCheckbox = new Checkbox(loc.getValue(L.LABEL_SHARE_WITH_OTHER_USERS));
         lorebookSharedCheckbox.setHelperText(loc.getValue(L.HELP_LOREBOOK_SHARED));
         lorebookSharedCheckbox.addValueChangeListener(e -> {
@@ -406,7 +455,7 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
             }
         });
 
-        VerticalLayout content = new VerticalLayout(lorebookNameField, subLorebooksCombo, tagMultiComboBox, scanDepthField, lorebookSharedCheckbox);
+        VerticalLayout content = new VerticalLayout(lorebookNameField, subLorebooksCombo, tagMultiComboBox, scanDepthField, ownScanDepthField, lorebookSharedCheckbox);
         content.setPadding(false);
         content.setSpacing(false);
         content.getThemeList().add("spacing-xs");
@@ -733,6 +782,8 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
                     @APILocals(name = "toMessageField", type = IntegerField.class),
                     @APILocals(name = "conditionField", type = TextArea.class),
                     @APILocals(name = "preventRecursionCheckbox", type = Checkbox.class),
+                    @APILocals(name = "recursionOnlyCheckbox", type = Checkbox.class),
+                    @APILocals(name = "activationSummariesCheckbox", type = Checkbox.class),
                     @APILocals(name = "commentField", type = TextArea.class),
                     @APILocals(name = "deleteButton", type = Button.class)})
     private List<Component> createEntryFields(VerticalLayout detailsLayout, LorebookEntry entry) {
@@ -862,6 +913,24 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
             }
         });
 
+        Checkbox recursionOnlyCheckbox = new Checkbox(loc.getValue(L.LABEL_RECURSION_ONLY), entry.isRecursionOnly());
+        recursionOnlyCheckbox.setHelperText(loc.getValue(L.HELP_RECURSION_ONLY));
+        recursionOnlyCheckbox.addValueChangeListener(e -> {
+            if (e.isFromClient()) {
+                entry.setRecursionOnly(Boolean.TRUE.equals(e.getValue()));
+                saveEntry(entry);
+            }
+        });
+
+        Checkbox activationSummariesCheckbox = new Checkbox(loc.getValue(L.LABEL_ACTIVATION_SUMMARIES), entry.isActivationSummaries());
+        activationSummariesCheckbox.setHelperText(loc.getValue(L.HELP_ACTIVATION_SUMMARIES));
+        activationSummariesCheckbox.addValueChangeListener(e -> {
+            if (e.isFromClient()) {
+                entry.setActivationSummaries(Boolean.TRUE.equals(e.getValue()));
+                saveEntry(entry);
+            }
+        });
+
         TextArea commentField = new TextArea(loc.getValue(L.LABEL_NOTE));
         commentField.setWidthFull();
         ResizableTextArea.install(loc, commentField, "100px");
@@ -878,8 +947,8 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
 
         detailsLayout.add(nameField, orderField, tagCombo);
         return List.of(filteringModeCombo, filteringField, insertionModeCombo, negativeTagCombo,
-                activationContextCombo, activationPartsField, fromMessageField, toMessageField, conditionField, preventRecursionCheckbox,
-                commentField, deleteButton);
+                activationContextCombo, activationPartsField, fromMessageField, toMessageField, conditionField, activationSummariesCheckbox, preventRecursionCheckbox,
+                recursionOnlyCheckbox, commentField, deleteButton);
     }
 
     @PublicAPI(from = "1.1.0",
@@ -1187,6 +1256,9 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
     @PublicAPI(from = "1.5.0",
             returns = @APIReturn(type = void.class))
     private void applyEntrySearch() {
+        entryFilter.setText(entrySearchField.getValue());
+        entryFilter.setTag(entryTagFilter.getValue());
+        entryFilter.setStatus(entryStatusFilter.getValue());
         if (entryProvider != null) {
             entryProvider.setFilter(this::matchesEntrySearch);
         }
@@ -1194,15 +1266,79 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
 
     @PublicAPI(from = "1.5.0",
             returns = @APIReturn(type = boolean.class),
-            parameters = {@APIParameter(name = "entry", type = LorebookEntry.class)},
-            locals = {@APILocals(name = "search", type = String.class)})
+            parameters = {@APIParameter(name = "entry", type = LorebookEntry.class)})
     private boolean matchesEntrySearch(LorebookEntry entry) {
-        String search = entrySearchField == null ? null : entrySearchField.getValue();
-        if (StringUtils.isBlank(search)) {
-            return true;
+        return entryFilter.matches(entry);
+    }
+
+    /**
+     * Turns the selection of entries on or off: a check box in front of every row and a button that deletes the checked ones.
+     */
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = void.class))
+    private void toggleSelection() {
+        setSelecting(selectEntriesItem.isChecked());
+    }
+
+    /**
+     * Turns the check boxes in front of the entries on or off.
+     */
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "on", type = boolean.class)})
+    void setSelecting(boolean on) {
+        grid.deselectAll();
+        grid.setSelectionMode(on ? Grid.SelectionMode.MULTI : Grid.SelectionMode.NONE);
+        // a new selection model has none of the listeners of the old one, and one that selects nothing takes none
+        listenToSelection(on);
+        updateDeleteSelectedButton();
+    }
+
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "on", type = boolean.class)})
+    private void listenToSelection(boolean on) {
+        if (selectionListener != null) {
+            selectionListener.remove();
+            selectionListener = null;
         }
-        return Stream.of(entry.getName(), entry.getPayload(), entry.getComment(), entry.getFiltering())
-                .anyMatch(text -> Strings.CI.contains(text, search.strip()));
+        if (on) {
+            selectionListener = grid.addSelectionListener(_ -> updateDeleteSelectedButton());
+        }
+    }
+
+    /**
+     * Shows how many entries are checked on the button that deletes them, there is no button without a selection.
+     */
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = void.class))
+    private void updateDeleteSelectedButton() {
+        int count = grid.getSelectedItems().size();
+        deleteSelectedButton.setVisible(count > 0);
+        deleteSelectedButton.setText(loc.getValue(L.LABEL_DELETE_SELECTED) + " (" + count + ")");
+    }
+
+    /**
+     * Deletes the checked entries (to the trash) after the user confirms.
+     */
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "selected", type = Set.class)})
+    private void deleteSelectedEntries() {
+        Set<LorebookEntry> selected = new LinkedHashSet<>(grid.getSelectedItems());
+        if (selected.isEmpty()) {
+            return;
+        }
+        ConfirmDialog.show(String.format(loc.getValue(L.MSG_CONFIRM_DELETE_ENTRIES), selected.size()), () -> {
+            try {
+                for (LorebookEntry entry : selected) {
+                    lorebookEntryService.delete(entry, false);
+                }
+                refreshEntries();
+            } catch (Exception ex) {
+                UIUtils.internalServerError(loc, ex);
+            }
+        });
     }
 
     /**
@@ -1260,6 +1396,10 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
         settingsDetails.setVisible(editable);
         settingsDetails.setEnabled(hasLorebook);
         entrySearchField.setVisible(editable);
+        entryFilterLayout.setVisible(editable);
+        if (!editable) {
+            deleteSelectedButton.setVisible(false);
+        }
         showDescription();
     }
 
@@ -1276,6 +1416,7 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
             lorebookNameField.setValue("");
             lorebookSharedCheckbox.setValue(false);
             scanDepthField.setValue(0);
+            ownScanDepthField.clear();
             subLorebooksCombo.setValue(Collections.emptySet());
             tagMultiComboBox.setForEntity(null);
             showDescription();
@@ -1284,6 +1425,7 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
         lorebookNameField.setValue(StringUtils.defaultString(currentLorebook.getName()));
         lorebookSharedCheckbox.setValue(currentLorebook.isShared());
         scanDepthField.setValue(currentLorebook.getScanDepth());
+        ownScanDepthField.setValue(currentLorebook.getOwnScanDepth());
         tagMultiComboBox.setForEntity(currentLorebook);
         try {
             List<Lorebook> available = lorebookService.findAllRegularForUser().stream()
@@ -1368,6 +1510,7 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
     @PublicAPI(from = "1.1.0",
             returns = @APIReturn(type = void.class),
             locals = {@APILocals(name = "entries", type = List.class),
+                    @APILocals(name = "tagNames", type = List.class),
                     @APILocals(name = "e", type = Exception.class)})
     public void refreshEntries() {
         if (currentLorebook == null || currentLorebook.getId() == null) {
@@ -1381,6 +1524,13 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
         try {
             List<LorebookEntry> entries = lorebookEntryService.getEntriesForLorebook(currentLorebook.getId());
             currentEntries.forEach(old -> grid.setDetailsVisible(old, false));
+            entryFilter.setTags(LorebookEntryFilter.loadTags(tagRelationService, entries));
+            List<String> tagNames = LorebookEntryFilter.tagNames(tagRelationService, entries);
+            entryTagFilter.setItems(tagNames);
+            if (entryTagFilter.getValue() != null && !tagNames.contains(entryTagFilter.getValue())) {
+                entryTagFilter.clear();
+            }
+            grid.deselectAll();
             entryProvider = new ListDataProvider<>(entries);
             entryProvider.setFilter(this::matchesEntrySearch);
             grid.setItems(entryProvider);

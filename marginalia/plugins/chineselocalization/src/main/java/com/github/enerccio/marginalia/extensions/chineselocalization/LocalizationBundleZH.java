@@ -999,6 +999,15 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_NOTIFICATIONS_TEST, "发送测试通知");
         setValue(L.LABEL_NOTIFICATIONS_REGISTER, "注册此浏览器");
         setValue(L.LABEL_STORY_GENERATION, "故事生成");
+        setValue(L.LABEL_COMMAND_SET_LORE_ENTRY_ACTIVATION, "设置世界书条目的激活条件");
+        setValue(L.LABEL_RECURSION_ONLY, "仅通过其他条目");
+        setValue(L.LABEL_ACTIVATION_SUMMARIES, "同时搜索摘要");
+        setValue(L.LABEL_OWN_SCAN_DEPTH, "作为子世界书的扫描深度");
+        setValue(L.LABEL_DELETE_CHECKED, "删除已勾选项");
+        setValue(L.LABEL_FILTER_DISABLED, "已禁用");
+        setValue(L.LABEL_FILTER_CONSTANT, "常驻（无关键词）");
+        setValue(L.LABEL_SELECT_ENTRIES, "选择条目");
+        setValue(L.LABEL_EDIT_ENTRY, "编辑条目");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -1183,6 +1192,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.ENUM_REASONING_PASSTHROUGH_NONE, "无");
         setValue(L.ENUM_REASONING_PASSTHROUGH_TOOL_CALLS, "工具调用之间");
         setValue(L.ENUM_REASONING_PASSTHROUGH_ALWAYS, "始终");
+        setValue(L.ENUM_ACTIVATION_REASON_RECURSION_ONLY, "未使用：仅通过其他条目的内容使用");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "内部服务器错误");
@@ -1290,6 +1300,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.ERROR_STYLE_IMPORT_NOT_STYLES, "该文件不是文本样式文件。");
         setValue(L.ERROR_STYLE_IMPORT_NEWER, "该文件由更新版本的 Marginalia 创建，无法读取。");
         setValue(L.ERROR_STYLE_IMPORT_CSS, "样式“%s”的自定义 CSS 的花括号 { } 不匹配。");
+        setValue(L.ERROR_COMMAND_LORE_RANGE_EMPTY, "范围为空：从第 %d 部分开始，到第 %d 部分结束。");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "无法保存表单。");
@@ -1784,7 +1795,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.HELP_KEYBOARD_SHORTCUTS, "点击“录制”并按下新的组合键。不带 Ctrl、Alt 或 Meta 的按键仅在没有文本框获得焦点时生效。快捷键在已打开书籍的故事标签页中有效。");
         setValue(L.HELP_ST_MERGE_TURNS, "用户的消息成为其后回答所生成段落的指示。不勾选时，每条消息都是独立的段落。");
         setValue(L.HELP_AI_TOKENIZER, "此 AI 计算词元数的方式。“自动”会依次尝试服务器的分词端点（OpenAI、llama.cpp、LiteLLM），不可用时回退到本地估算；选择其中一项则只使用该项。插件提供的分词器只有在此处被选中时，才会收到端点、模型和文本。");
-        setValue(L.HELP_SCAN_DEPTH, "对已使用条目的内容搜索其他条目过滤词的次数（0 = 不搜索）。仅书籍所用世界书的设置有效，子书的设置会被忽略。");
+        setValue(L.HELP_SCAN_DEPTH, "对已使用条目的内容搜索其他条目过滤词的次数（0 = 从不）。适用于此世界书及没有自己扫描深度的子世界书。");
         setValue(L.HELP_PREVENT_RECURSION, "此条目内容中的词语不会激活其他条目。");
         setValue(L.HELP_ACTIVATION_PREVIEW, "显示此世界书及其子书的哪些条目会用于包含此文本的回合及原因（含此世界书的扫描深度）。实际生成时扩展仍可能改变结果。同时搜索故事段落的条目会使用所选书的最新段落。");
         setValue(L.HELP_ACTIVATION_CONTEXT, "过滤词的搜索范围：仅回合的指令，或指令加上故事最新的段落。");
@@ -1811,6 +1822,9 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.HELP_ANNOTATE_INSTRUCTIONS, "模型为段落添加注释时要查找的内容，例如：指出连贯性错误、薄弱的对话。留空则使用注释提示词的默认任务。“用 AI 添加注释”窗口以此文本开头。");
         setValue(L.HELP_ACTIVATION_CONDITION, "与内容写法相同的模板（宏和 Handlebars），会根据视角人物、在场人物、指令和变量为每一回合渲染。只有结果为真（空、0、false、no、off 以外）时才会使用该条目。无法渲染的条件（错误、不存在的名称、超时）视为假，激活预览会说明原因。它在过滤器之前检查，对由其他条目内容找到的条目同样有效。可以使用只读命令，变量不会被修改。留空表示没有条件。");
         setValue(L.HELP_REASONING_PASSTHROUGH, "是否在下一次请求中将模型的思考内容回传给模型(作为 reasoning_content)。工具调用之间:仅在一次回答的工具调用期间回传(Gemma 4 的预期用法)。始终:连同所有带思考内容的先前回答一起回传。大多数模型和服务器应选择“无”。");
+        setValue(L.HELP_RECURSION_ONLY, "该条目不会因回合的指示或故事而被使用；只有当其过滤词出现在已使用的其他条目的内容中时才会使用（需要扫描深度大于 0 且有过滤词）。");
+        setValue(L.HELP_ACTIVATION_SUMMARIES, "过滤词也会在到目前为止的故事摘要（提示词会使用的那些）中查找。");
+        setValue(L.HELP_OWN_SCAN_DEPTH, "该世界书作为另一个世界书的子世界书时，其条目的扫描深度（0 = 不会被其他条目的内容找到）。留空 = 书籍所用世界书的扫描深度。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景设定与世界观。");
@@ -2226,6 +2240,17 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.DESC_COMMAND_PLANNER_PRESENT_PARAM, "场景中在场的人物（用逗号分隔）");
         setValue(L.DESC_COMMAND_PLANNER_DONE_PARAM, "true（默认）表示已写，false 表示未写");
         setValue(L.DESC_COMMAND_PLANNER_TO_PARAM, "场景的新编号（从 1 开始）；过大则放到最后");
+        setValue(L.DESC_COMMAND_SET_LORE_ENTRY_ACTIVATION, "更改条目除关键词外的使用条件。参数：entry（句柄）、preventRecursion、recursionOnly、activationContext、activationParts、activationSummaries、fromMessage、toMessage、condition。");
+        setValue(L.DESC_COMMAND_SET_LORE_ENTRY_ACTIVATION_LLM, "按此顺序更改给定句柄的条目的激活设置：preventRecursion（true：此条目中的词不会激活其他条目）、recursionOnly（true：仅当其过滤词出现在已使用的其他条目的内容中时才使用，参见世界书的扫描深度）、activationContext（INSTRUCTIONS：在回合的指示中查找过滤词；INCLUDE_PARTS：也在故事最新的 activationParts 个部分中查找）、activationParts、activationSummaries（true：也在摘要中查找）、fromMessage 和 toMessage（仅用于创建该范围内编号的部分的回合，含两端，第一部分为 1；0 表示取消限制）以及 condition（与内容写法相同的模板，必须得出真值；空文本表示删除）。空文本的参数保持不变，因此要更改靠后的参数，请把前面的参数给为空文本（只有 condition 例外：空文本表示删除）；当前值可用 get-lore-entry 读取。会更改书籍。");
+        setValue(L.DESC_COMMAND_SET_LORE_ENTRY_ACTIVATION_RETURN, "包含更改后条目激活设置的 JSON");
+        setValue(L.DESC_COMMAND_LORE_PREVENT_RECURSION_PARAM, "true：此条目内容中的词不会激活其他条目；false 则允许");
+        setValue(L.DESC_COMMAND_LORE_ACTIVATION_CONTEXT_PARAM, "在哪里查找过滤词：INSTRUCTIONS（回合的指示）或 INCLUDE_PARTS（指示和故事最新的部分）");
+        setValue(L.DESC_COMMAND_LORE_ACTIVATION_PARTS_PARAM, "使用 INCLUDE_PARTS 时，计入的最新部分数量，至少为 1");
+        setValue(L.DESC_COMMAND_LORE_FROM_MESSAGE_PARAM, "仅从创建此编号部分的回合起使用该条目（第一部分为 1）；0 表示取消限制");
+        setValue(L.DESC_COMMAND_LORE_TO_MESSAGE_PARAM, "仅到创建此编号部分的回合为止（含）使用该条目；0 表示取消限制");
+        setValue(L.DESC_COMMAND_LORE_CONDITION_PARAM, "条目要被使用就必须得出真值的模板（可读取视角、在场角色、指示和变量）；空文本表示删除条件");
+        setValue(L.DESC_COMMAND_LORE_RECURSION_ONLY_PARAM, "true：该条目仅通过其他条目的内容使用，不会因回合本身而使用；false 则允许回合使用");
+        setValue(L.DESC_COMMAND_LORE_ACTIVATION_SUMMARIES_PARAM, "true：也在故事摘要中查找过滤词；false 则关闭");
     }
 
     @Override

@@ -174,6 +174,21 @@ public abstract class LorebookReadSupport extends ManuscriptReadSupport {
     /**
      * One entry as a list shows it: the settings that decide how it is used and a preview of the text.
      */
+    /**
+     * The settings that say when an entry is used besides its keys: recursion, what the filter is looked for in, the range
+     * of parts (0 = no limit) and the condition (empty = none).
+     */
+    protected static void addActivation(JsonObject target, LorebookEntry entry) {
+        target.addProperty("preventRecursion", entry.isPreventRecursion());
+        target.addProperty("recursionOnly", entry.isRecursionOnly());
+        target.addProperty("activationSummaries", entry.isActivationSummaries());
+        target.addProperty("activationContext", entry.getActivationContext().name());
+        target.addProperty("activationParts", entry.getActivationParts());
+        target.addProperty("fromMessage", entry.getFromMessage() == null ? 0 : entry.getFromMessage());
+        target.addProperty("toMessage", entry.getToMessage() == null ? 0 : entry.getToMessage());
+        target.addProperty("condition", entry.getActivationCondition() == null ? "" : entry.getActivationCondition());
+    }
+
     protected JsonObject entryRow(int number, LorebookEntry entry) throws Exception {
         JsonObject row = new JsonObject();
         row.addProperty("entry", number);
