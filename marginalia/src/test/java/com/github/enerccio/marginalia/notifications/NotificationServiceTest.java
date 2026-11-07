@@ -1,7 +1,6 @@
 package com.github.enerccio.marginalia.notifications;
 
 import com.github.enerccio.marginalia.domain.service.NotificationService;
-import com.github.enerccio.marginalia.domain.service.NotificationService.*;
 import com.github.enerccio.marginalia.test.MarginaliaTestBase;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -11,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.List;
 import java.util.Set;
 
+import static com.github.enerccio.marginalia.domain.service.NotificationService.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
