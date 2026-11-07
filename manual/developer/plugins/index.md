@@ -2,7 +2,7 @@
 label: Plugin development
 icon: plug
 order: 900
-verified: 71b9a68b1
+verified: 340c8ccaa
 covers:
   - marginalia/plugins
 ---
