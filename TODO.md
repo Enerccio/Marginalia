@@ -612,8 +612,11 @@ Most are 🧩 plugin-sized; the ones that need a core hook say so.
 
 ### Operations and integration
 
-70. 🧩 **Notifications when a generation ends.** Slow local models take minutes: webhook (ntfy, Discord, Pushover) and, in
-    the desktop app, a tray notification when a generation finishes, fails or a batch (53) is done.
+70. ✅ Partly: **Notifications when a generation ends.** Slow local models take minutes. Done: browser desktop notifications when a
+    run ends (generation, annotate, redraft, impersonate, summaries, help assistant, plugin runs; *Notifications* tab of the settings,
+    `NotificationService`, plugins register sources) and a webhook (ntfy, Gotify, Discord) for agents only (`AgentWebhookService`).
+    Not done: the same webhook for generations and other runs, a tray notification in the desktop app (`DesktopLauncher`), a batch
+    (53) done.
 71. 🧩 **MCP server.** Expose lore search, summaries and the active branch read-only (write behind a per-user token) to
     other tools such as an editor agent or a coding assistant, without adding a REST API to the core.
 72. **Off-site backup target.** Scheduled database backups can only stay in the data folder. Add an upload step (S3,
