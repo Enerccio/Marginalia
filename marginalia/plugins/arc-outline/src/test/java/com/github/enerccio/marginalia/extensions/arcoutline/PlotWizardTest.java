@@ -4,6 +4,9 @@ import com.github.enerccio.marginalia.extensions.arcoutline.model.WizardChat;
 import com.github.enerccio.marginalia.extensions.arcoutline.model.WizardData;
 import com.github.enerccio.marginalia.extensions.arcoutline.model.WizardMessage;
 import com.github.enerccio.marginalia.extensions.arcoutline.service.ArcOutlineService.StoryMessage;
+import com.github.enerccio.marginalia.domain.service.function.FunctionSet;
+import com.github.enerccio.marginalia.domain.service.tool.ToolSet;
+import com.github.enerccio.marginalia.extensions.arcoutline.service.ArcOutlineService;
 import com.github.enerccio.marginalia.extensions.arcoutline.service.WizardContext;
 import org.junit.jupiter.api.Test;
 
@@ -36,6 +39,15 @@ class PlotWizardTest {
 
     private static long tokens(String text) {
         return text.length();
+    }
+
+    @Test
+    void noToolsChosenGiveNoFunctionsAndNotNull() {
+        // ToolSet.NONE has null for its functions: the wizard used to fail with a NullPointerException when nothing was chosen in the tool dialog
+        assertTrue(ArcOutlineService.toolFunctions(ToolSet.NONE).isEmpty());
+        assertTrue(ArcOutlineService.toolFunctions(null).isEmpty());
+        FunctionSet chosen = FunctionSet.empty();
+        assertNotNull(ArcOutlineService.toolFunctions(new ToolSet(chosen, "")));
     }
 
     @Test
