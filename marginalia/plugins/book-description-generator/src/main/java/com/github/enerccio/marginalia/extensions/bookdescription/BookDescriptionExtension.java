@@ -6,6 +6,7 @@ import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.service.ExtensionService;
 import com.github.enerccio.marginalia.domain.service.ExtensionService.ExtendableMethodContext;
 import com.github.enerccio.marginalia.domain.service.ExtensionService.ExtensionDecorator;
+import com.github.enerccio.marginalia.domain.service.NotificationService;
 import com.github.enerccio.marginalia.domain.service.OsgiService;
 import com.github.enerccio.marginalia.extensions.InheritedSettingRegistry;
 import com.github.enerccio.marginalia.extensions.MarginaliaExtension;
@@ -46,12 +47,17 @@ public class BookDescriptionExtension implements MarginaliaExtension {
     private static final String USER_PART = "com.github.enerccio.marginalia.ui.workspace.parts.UserPart";
     private static final String SETTINGS_PANEL_KEY = BookDescriptionSettings.KEY + ".settingsPanel";
     private static final String BUTTON_KEY = BookDescriptionSettings.KEY + ".button";
+    /** The source of the notification that the description is written, see {@code NotificationService}. */
+    public static final String NOTIFY_GENERATE = BookDescriptionExtension.class.getPackageName() + ".generate";
 
     /** The logger of this extension, its lines go to the extension log (Admin → Extensions → Log). */
     private Logger log;
 
     @Autowired
     private InheritedSettingRegistry inheritedSettingRegistry;
+
+    @Autowired
+    private NotificationService notificationService;
 
     private final BookDescriptionService service = new BookDescriptionService();
 
@@ -69,6 +75,7 @@ public class BookDescriptionExtension implements MarginaliaExtension {
     public void onExtensionLoad(Bundle bundle, OsgiService parentService, ExtensionService extensionService) {
         log = parentService.createLogger(bundle);
         service.setLogger(log);
+        notificationService.register(bundle.getSymbolicName(), new NotificationService.Source(NOTIFY_GENERATE, () -> T.localized(BOOK_DESCRIPTION_GENERATOR_WRITE_THE_DESCRIPTION)));
         try {
             // what books and folders inherit: their dialogs get the fields, the user level is the panel in the settings
             BookDescriptionInherited.register(inheritedSettingRegistry, bundle.getSymbolicName(), service::settingsOrBlank);

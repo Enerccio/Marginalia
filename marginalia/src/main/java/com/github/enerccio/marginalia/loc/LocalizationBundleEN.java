@@ -986,6 +986,11 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_COMMAND_MOVE_PLANNED_SCENE, "Move planned scene");
         setValue(L.LABEL_COMMAND_DELETE_PLANNED_SCENE, "Delete planned scene");
         setValue(L.LABEL_REASONING_PASSTHROUGH, "Send the thinking back");
+        setValue(L.LABEL_NOTIFICATIONS, "Notifications");
+        setValue(L.LABEL_NOTIFICATIONS_ENABLE, "Use desktop notifications");
+        setValue(L.LABEL_NOTIFICATIONS_TEST, "Send a test notification");
+        setValue(L.LABEL_NOTIFICATIONS_REGISTER, "Register this browser");
+        setValue(L.LABEL_STORY_GENERATION, "Story generation");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -1679,6 +1684,15 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_PLANNER_TITLE_REQUIRED, "The title is required");
         setValue(L.MSG_PLANNER_DELETE_CONFIRM, "Delete the scene \"%s\"?");
         setValue(L.MSG_PLANNER_NO_TURN_FORM, "The story has no place for the scene");
+        setValue(L.MSG_NOTIFICATIONS_INFO, "Tells you in the browser, when you are in another tab or window, that a model has finished. The check box turns notifications on for your account; each browser you want them in has to be registered once with the button, because the permission belongs to the browser and not to your account. Choose below what to be told about. The entries marked automatic are the runs the book starts by itself (the automatic annotation); the entry without it is the dialog you open yourself.");
+        setValue(L.MSG_NOTIFICATIONS_PERMISSION_GRANTED, "This browser allows notifications.");
+        setValue(L.MSG_NOTIFICATIONS_PERMISSION_DENIED, "This browser blocks notifications from this site. Allow them in the site settings of the browser.");
+        setValue(L.MSG_NOTIFICATIONS_PERMISSION_DEFAULT, "This browser has not been asked yet. Click Register this browser.");
+        setValue(L.MSG_NOTIFICATIONS_UNSUPPORTED, "This browser can't show notifications here. They need an HTTPS address or localhost.");
+        setValue(L.MSG_NOTIFICATIONS_TEST_FAILED, "The notification could not be shown.");
+        setValue(L.MSG_NOTIFICATION_FINISHED, "%s finished");
+        setValue(L.MSG_NOTIFICATION_FAILED, "%s failed");
+        setValue(L.MSG_NOTIFICATION_TEST, "Notifications work in this browser.");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");

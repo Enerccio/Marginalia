@@ -994,6 +994,11 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_COMMAND_MOVE_PLANNED_SCENE, "移动计划的场景");
         setValue(L.LABEL_COMMAND_DELETE_PLANNED_SCENE, "删除计划的场景");
         setValue(L.LABEL_REASONING_PASSTHROUGH, "回传思考内容");
+        setValue(L.LABEL_NOTIFICATIONS, "通知");
+        setValue(L.LABEL_NOTIFICATIONS_ENABLE, "使用桌面通知");
+        setValue(L.LABEL_NOTIFICATIONS_TEST, "发送测试通知");
+        setValue(L.LABEL_NOTIFICATIONS_REGISTER, "注册此浏览器");
+        setValue(L.LABEL_STORY_GENERATION, "故事生成");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -1687,6 +1692,15 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_PLANNER_TITLE_REQUIRED, "标题必填");
         setValue(L.MSG_PLANNER_DELETE_CONFIRM, "删除场景“%s”？");
         setValue(L.MSG_PLANNER_NO_TURN_FORM, "故事中没有可放入场景的位置");
+        setValue(L.MSG_NOTIFICATIONS_INFO, "当你在其他标签页或窗口时，浏览器会提示模型已完成。复选框为你的账号开启通知；权限属于浏览器而不属于账号，因此每个想接收通知的浏览器都需要用按钮注册一次。请在下面选择要通知的内容。标有“自动”的是书籍自行启动的运行（自动批注），不带“自动”的是你自己打开的对话框。");
+        setValue(L.MSG_NOTIFICATIONS_PERMISSION_GRANTED, "此浏览器已允许通知。");
+        setValue(L.MSG_NOTIFICATIONS_PERMISSION_DENIED, "此浏览器已阻止本网站的通知。请在浏览器的网站设置中允许。");
+        setValue(L.MSG_NOTIFICATIONS_PERMISSION_DEFAULT, "尚未询问此浏览器。请点击“注册此浏览器”。");
+        setValue(L.MSG_NOTIFICATIONS_UNSUPPORTED, "此浏览器在此处无法显示通知。需要 HTTPS 地址或 localhost。");
+        setValue(L.MSG_NOTIFICATIONS_TEST_FAILED, "无法显示通知。");
+        setValue(L.MSG_NOTIFICATION_FINISHED, "%s 已完成");
+        setValue(L.MSG_NOTIFICATION_FAILED, "%s 失败");
+        setValue(L.MSG_NOTIFICATION_TEST, "此浏览器中的通知可正常工作。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");

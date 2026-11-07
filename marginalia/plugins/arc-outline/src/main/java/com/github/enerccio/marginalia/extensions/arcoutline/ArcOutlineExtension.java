@@ -3,12 +3,9 @@ package com.github.enerccio.marginalia.extensions.arcoutline;
 import com.github.enerccio.marginalia.domain.components.TurnInput;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
-import com.github.enerccio.marginalia.domain.service.CommandService;
-import com.github.enerccio.marginalia.domain.service.ExtensionService;
+import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.ExtensionService.ExtendableMethodContext;
 import com.github.enerccio.marginalia.domain.service.ExtensionService.ExtensionDecorator;
-import com.github.enerccio.marginalia.domain.service.IPCService;
-import com.github.enerccio.marginalia.domain.service.OsgiService;
 import com.github.enerccio.marginalia.extensions.ExtensionHasCss;
 import com.github.enerccio.marginalia.extensions.MarginaliaExtension;
 import com.github.enerccio.marginalia.extensions.arcoutline.commands.ArcGenerationCommands;
@@ -57,6 +54,11 @@ public class ArcOutlineExtension implements MarginaliaExtension, ExtensionHasCss
     private static final String USER_PART = "com.github.enerccio.marginalia.ui.workspace.parts.UserPart";
     private static final String VIEW_KEY = ArcOutlineData.KEY + ".view";
     private static final String SETTINGS_PANEL_KEY = ArcOutlineData.KEY + ".settingsPanel";
+    /** The sources of the notifications that a generator or the plot wizard is done, see {@code NotificationService}. */
+    public static final String NOTIFY_ARC = ArcOutlineData.KEY + ".arc";
+    public static final String NOTIFY_CHAPTERS = ArcOutlineData.KEY + ".chapters";
+    public static final String NOTIFY_IMPORT = ArcOutlineData.KEY + ".import";
+    public static final String NOTIFY_WIZARD = ArcOutlineData.KEY + ".wizard";
 
     /** The logger of this extension, its lines go to the extension log (Admin → Extensions → Log). */
     private Logger log;
@@ -71,6 +73,9 @@ public class ArcOutlineExtension implements MarginaliaExtension, ExtensionHasCss
 
     @Autowired
     private CommandService commandService;
+
+    @Autowired
+    private NotificationService notificationService;
 
     private final ArcOutlineService service = new ArcOutlineService();
 
@@ -90,6 +95,11 @@ public class ArcOutlineExtension implements MarginaliaExtension, ExtensionHasCss
         log = parentService.createLogger(bundle);
         service.setLogger(log);
         service.setBundle(bundle);
+        String owner = bundle.getSymbolicName();
+        notificationService.register(owner, new NotificationService.Source(NOTIFY_ARC, () -> T.localized(ARC_OUTLINE_GENERATE_AN_ARC)));
+        notificationService.register(owner, new NotificationService.Source(NOTIFY_CHAPTERS, () -> T.localized(ARC_OUTLINE_GENERATE_CHAPTERS)));
+        notificationService.register(owner, new NotificationService.Source(NOTIFY_IMPORT, () -> T.localized(ARC_OUTLINE_IMPORT_FROM_STORY)));
+        notificationService.register(owner, new NotificationService.Source(NOTIFY_WIZARD, () -> T.localized(ARC_OUTLINE_PLOT_WIZARD)));
         // the outline as a source of data about the book, for the Side Query for one: the terse version (the
         // descriptions) and the full one (with the notes), so the user chooses how much of it the model gets
         ipcService.registerManuscriptProvider(bundle.getSymbolicName(), OUTLINE_SOURCE, "Arc outline",

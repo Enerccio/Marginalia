@@ -238,6 +238,35 @@ settings and apply at once in the open stories.
 
 ![Settings, Keyboard shortcuts](../images/settings-shortcuts.png)
 
+### Notifications
+
+A desktop notification of the browser when a model is done, so you can leave the tab while it works. The tab has a check box
+**Use desktop notifications**, the buttons below and a list of what notifies:
+
+- **Story generation**, **Annotate with AI**, **Annotate with AI (automatic)**, **Redraft**, **Redraft (automatic)**, **Draft Instructions**,
+  **Summary**, **Resummarize all summaries** and **Help assistant**, and what [extensions](extensions/index.md) add, named after the extension
+  (*Reviewer: generate a review*, *Lore Generator: generate lore*, *Image Generator: generate the image*, *Arc Outline: generate chapters*...).
+  The *Manga Generator* entries marked *(automatic)* are its continuous mode.
+- The entries marked *(automatic)* are the runs the book starts by itself, the [automatic annotation](books/story-editor.md) after a generation
+  and the redraft that follows it. They are chosen apart from the dialog you open yourself: with **Annotate with AI** checked and
+  **Annotate with AI (automatic)** not, the automatic annotation is silent; with only the automatic entry checked, only the automatic
+  annotation notifies.
+- A run that ends with an error notifies too (*… failed*), one you stop yourself does not.
+
+The check box turns notifications on for your account and enables two buttons. **Register this browser** asks the browser for the
+permission (from that click); the line under the buttons tells what this browser says: allowed, blocked (allow it in the site settings
+of the browser), or not asked yet. The permission belongs to the browser, not to your account: every browser or device you want
+notifications in has to be registered once, the check box and the list are the same everywhere. **Send a test notification** shows one at
+once, also while the page is in front.
+
+The **Filter** field narrows the list by name, **Check shown** and **Uncheck shown** act on the entries it shows and leave the others as
+they are. A notification is shown only while you are not looking at the page (another tab, or the window is not in front); clicking it
+brings the page back.
+
+Notifications need an `https://` address or `localhost`: on a plain `http://` address of a server in your network the browser does not
+offer them, and the tab says so. A tab the browser has put to sleep (usually on a phone) can't show them either. The tab is saved with the
+**Save** of the settings, like the others.
+
 ### Extension Settings
 
 Settings of the installed [extensions](extensions/index.md), one section per extension (for example *Reviewer Settings*

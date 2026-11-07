@@ -181,6 +181,10 @@ public class ArcOutlineLocalization extends PluginLocalizationBundle {
     public static final String THE_MODEL_WANTS_TO_RUN = "The model wants to run %s";
     public static final String ALLOW = "Allow";
     public static final String REFUSE = "Refuse";
+    public static final String ARC_OUTLINE_GENERATE_AN_ARC = "Arc Outline: generate an arc";
+    public static final String ARC_OUTLINE_GENERATE_CHAPTERS = "Arc Outline: generate chapters";
+    public static final String ARC_OUTLINE_IMPORT_FROM_STORY = "Arc Outline: import from the story";
+    public static final String ARC_OUTLINE_PLOT_WIZARD = "Arc Outline: plot wizard answer";
 
     @Override
     protected void loadKeys() {
@@ -695,5 +699,17 @@ public class ArcOutlineLocalization extends PluginLocalizationBundle {
 
         ja(REFUSE, "拒否");
         zh(REFUSE, "拒绝");
+
+        ja(ARC_OUTLINE_GENERATE_AN_ARC, "アークアウトライン: アークを生成");
+        zh(ARC_OUTLINE_GENERATE_AN_ARC, "故事弧大纲：生成故事弧");
+
+        ja(ARC_OUTLINE_GENERATE_CHAPTERS, "アークアウトライン: 章を生成");
+        zh(ARC_OUTLINE_GENERATE_CHAPTERS, "故事弧大纲：生成章节");
+
+        ja(ARC_OUTLINE_IMPORT_FROM_STORY, "アークアウトライン: 物語からインポート");
+        zh(ARC_OUTLINE_IMPORT_FROM_STORY, "故事弧大纲：从故事导入");
+
+        ja(ARC_OUTLINE_PLOT_WIZARD, "アークアウトライン: プロットウィザードの回答");
+        zh(ARC_OUTLINE_PLOT_WIZARD, "故事弧大纲：情节向导的回答");
     }
 }

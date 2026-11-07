@@ -7,10 +7,12 @@ import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
+import com.github.enerccio.marginalia.extensions.reviewer.ReviewerExtension;
 import com.github.enerccio.marginalia.extensions.reviewer.model.*;
 import com.github.enerccio.marginalia.extensions.reviewer.service.ReviewerService;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
+import com.github.enerccio.marginalia.ui.widgets.DesktopNotifier;
 import com.github.enerccio.marginalia.ui.widgets.ScrollPanel;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.DetachEvent;
@@ -264,6 +266,7 @@ public class ReviewDialog extends Dialog {
                         isGenerating = null;
                         persistData();
                         displayReview();
+                        new DesktopNotifier(ui).finished(ReviewerExtension.NOTIFY_REVIEW, false, manuscript.getName());
                         UIPushGuard.push(ui);
                     });
                 }
@@ -283,6 +286,7 @@ public class ReviewDialog extends Dialog {
                         isGenerating = null;
                         currentItem.setText(T.localized(ERROR_GENERATING_REVIEW).formatted(InferenceErrors.messageOf(loc, exception)));
                         displayReview();
+                        new DesktopNotifier(ui).failed(ReviewerExtension.NOTIFY_REVIEW, false, manuscript.getName());
                         UIPushGuard.push(ui);
                     });
                 }

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847332989118">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847362255140">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.847332989118" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.847362255140" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847332989118" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847362255140" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847332989118" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.847332989118" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847362255140" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.847362255140" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -187,7 +187,7 @@ delete, extended attributes and cleanup. Entities are in <code translate="no" v-
 | `ManuscriptStatistic`, `ActivityInterval`, `ManuscriptSize` | `manuscript_statistics`, `activity_intervals`, `manuscript_sizes` | The writing statistics of a book per day: counts, time, size, see [Writing statistics](#writing-statistics-manuscriptstatistic-activityinterval-manuscriptsize) |
 | `Protocol`, `ChatCompletionProtocol` | `protocols`, `protocols_chatcompletion` | Protocol |
 | `Tag`, `TagRelation` | `tags`, `t2e` | Tag |
-| `Setting`, `AppSettings`, `UserSetting`, `StylesSetting`, `ExportSettings` | `settings` | Settings page, admin settings; `StylesSetting` holds the text styles of a user (see [Text styles](ui.md#text-styles)); `ExportSettings` the style and the changed templates of each export format (see [Story export](services.md#story-export)) |
+| `Setting`, `AppSettings`, `UserSetting`, `StylesSetting`, `ExportSettings`, `NotificationSettings` | `settings` | Settings page, admin settings; `StylesSetting` holds the text styles of a user (see [Text styles](ui.md#text-styles)); `ExportSettings` the style and the changed templates of each export format (see [Story export](services.md#story-export)); `NotificationSettings` the switch and the chosen entries of the desktop notifications (see [Desktop notifications](plugins/notifications.md)) |
 | `User` | `users` | User |
 | `Permission` | `permissions` | What an administrator allowed a user to do, see [Permission](#permission-what-a-user-was-allowed) |
 | `Agent`, `AgentRun`, `AgentMessage` | `agents`, `agent_runs`, `agent_messages` | Agents, see [Agent and AgentRun](#agent-and-agentrun-agents) |
@@ -269,9 +269,9 @@ delete, extended attributes and cleanup. Entities are in <code translate="no" v-
 <td>Tag</td>
 </tr>
 <tr>
-<td><code translate="no" v-pre>Setting</code>, <code translate="no" v-pre>AppSettings</code>, <code translate="no" v-pre>UserSetting</code>, <code translate="no" v-pre>StylesSetting</code>, <code translate="no" v-pre>ExportSettings</code></td>
+<td><code translate="no" v-pre>Setting</code>, <code translate="no" v-pre>AppSettings</code>, <code translate="no" v-pre>UserSetting</code>, <code translate="no" v-pre>StylesSetting</code>, <code translate="no" v-pre>ExportSettings</code>, <code translate="no" v-pre>NotificationSettings</code></td>
 <td><code translate="no" v-pre>settings</code></td>
-<td>Settings page, admin settings; <code translate="no" v-pre>StylesSetting</code> holds the text styles of a user (see <a href="../ui/#text-styles">Text styles</a>); <code translate="no" v-pre>ExportSettings</code> the style and the changed templates of each export format (see <a href="../services/#story-export">Story export</a>)</td>
+<td>Settings page, admin settings; <code translate="no" v-pre>StylesSetting</code> holds the text styles of a user (see <a href="../ui/#text-styles">Text styles</a>); <code translate="no" v-pre>ExportSettings</code> the style and the changed templates of each export format (see <a href="../services/#story-export">Story export</a>); <code translate="no" v-pre>NotificationSettings</code> the switch and the chosen entries of the desktop notifications (see <a href="../plugins/notifications/">Desktop notifications</a>)</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>User</code></td>
@@ -2121,7 +2121,7 @@ define both beans in <code translate="no" v-pre>services-config.xml</code>.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (340c8ccaa).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (b0fb889e3).</p></div>
             </footer>
         </div>
     </div>

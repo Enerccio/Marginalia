@@ -4,6 +4,7 @@ import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.CancellationToken;
+import com.github.enerccio.marginalia.extensions.betareaders.BetaReadersExtension;
 import com.github.enerccio.marginalia.extensions.betareaders.model.*;
 import com.github.enerccio.marginalia.extensions.betareaders.service.*;
 import com.github.enerccio.marginalia.extensions.betareaders.service.BetaReadersService.Asked;
@@ -17,6 +18,7 @@ import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes.InRequestScope;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
+import com.github.enerccio.marginalia.ui.widgets.DesktopNotifier;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.ui.widgets.ResizableTextArea;
 import com.github.enerccio.marginalia.utils.UIUtils;
@@ -404,6 +406,14 @@ public class ChatPanel extends VerticalLayout {
             Notification.warning(T.localized(THE_MODEL_DID_NOT_ANSWER));
         } else if (outcome.error() != null) {
             UIUtils.inferenceError(loc, outcome.error());
+        }
+        if (!outcome.cancelled()) {
+            DesktopNotifier notifier = new DesktopNotifier(UI.getCurrent());
+            if (outcome.error() != null) {
+                notifier.failed(BetaReadersExtension.NOTIFY_CHAT, false, manuscript.getName());
+            } else {
+                notifier.finished(BetaReadersExtension.NOTIFY_CHAT, false, manuscript.getName());
+            }
         }
         if (outcome.prompt().dropped() > 0) {
             Notification.warning(T.localized(OLDER_MESSAGES_WERE_LEFT_OUT).formatted(outcome.prompt().dropped()));

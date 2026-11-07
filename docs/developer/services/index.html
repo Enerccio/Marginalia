@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847332989118">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847362255140">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.847332989118" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.847362255140" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847332989118" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847362255140" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847332989118" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.847332989118" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847362255140" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.847362255140" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -382,6 +382,7 @@ without any user and only use installation-wide data (<code translate="no" v-pre
 | `SillyTavernImportService` | Stores the tree built by `utils.SillyTavernChats` from SillyTavern chat files; `utils.LmStudioChats.parse` reads a conversation of LM Studio (`*.conversation.json`: `messages[].versions[]` are the alternatives, `currentlySelected` the shown one, a version of the assistant is `steps[]` whose `style.type == &quot;thinking&quot;` blocks are the reasoning, `genInfo.identifier` the model; the system prompt, tools and files are skipped) into the same `Chat`, so `merge` and the service are shared, and `importTree(..., RevisionDetail source, ...)` says in the revisions whether the text came from `SILLYTAVERN_IMPORT` or `LMSTUDIO_IMPORT` (`ui.dialogs.ChatImportFormat` holds the parser, texts and source of each; `NewBookAction.runFromLmStudio`) (`parse` reads one `.jsonl`: header line, then messages with `swipes` / `swipe_id`, system messages skipped; `merge(chats, mergeTurns)` puts the chats into one trie keyed by the instructions and text of a turn, so the shared beginning of branches and checkpoints is stored once and the swipes of a message are siblings; `mergeTurns` makes the user messages before an answer its instructions). `importTree` is `@NoTx` like the archive import: every part goes through `ChatMessageService.addPart` (counts tokens and words, adds a child or one more first part, does not touch the active leaf), `stopped` is asked before each part and `onStored` reports the progress; the active leaf of the book is the end of the chat whose last message is the newest, or the last part stored when stopped earlier. The UI is `SillyTavernImportDialog` (multi file upload, name, the merge checkbox) and `SillyTavernImportRunner` (progress with Stop), started by `NewBookAction.runFromSillyTavern`. |
 | `ExporterService` | Registry of story exporters (`registerExporter`, `unregisterExporter`, `getExporters`). The built-in `TxtExporter`, `MarkdownExporter`, `HtmlExporter`, `DocxExporter`, `PdfExporter` and `EpubExporter` (package `export`, all extend `ExporterBase`) are registered in `afterPropertiesSet`; an extension can register its own `Exporter` and it shows in the export dialog. See [Story export](#story-export). `collectLore(manuscript)` reads the enabled entries of the lorebook of the book and its sub lorebooks as `ExportLoreEntry` (lorebook name, entry name, content, tags, comment) for the exporters whose `usesLore()` is true. |
 | `ExportSettingsService` | What the current user wants of the exports of each format, kept in their `ExportSettings` (a `Setting` row, extended attributes, no migration), keyed by `Exporter.getId()`: `getStyleId(exporter)` (the style the dialog preselects: the user's choice if it still exists and is `forExport`, else `Exporter.getDefaultStyleId()`), `getChosenStyleId`, `setStyleId` (rejects a style that does not exist or is not for exports), `getTemplate` / `getTemplates` and `setTemplate` (validated with `TemplateService`, blank removes the change). See [Story export](#story-export). |
+| `NotificationService` | The desktop notifications of the browser: the registry of what can notify (`register(owner, Source)`, `unregister`, `unregisterAll`, `sources`; the built in sources `GENERATION`, `ANNOTATE`, `REDRAFT`, `IMPERSONATE`, `SUMMARY`, `RESUMMARIZE`, `HELP_ASSISTANT`, the ones of extensions are removed with them by `OsgiServiceImpl`), the list of the settings (`entries()`: a source with an automatic run has two, the key of the automatic one ends in `.auto`) and what the current user chose, kept in their `NotificationSettings` (`isEnabled`, `getChosen`, `save`: keys of sources that are not registered stay). `prepare(source, automatic, outcome, detail)` is the notice to show for the end of a run or `null` (off, not chosen, unknown source); only the entry of the kind of the run decides. Showing it is `ui.widgets.DesktopNotifier`. See [Desktop notifications](plugins/notifications.md). |
 | `BackupService` | Book backups as JSON files in `data/&lt;login&gt;/backups/manuscripts/&lt;book id&gt;/`: `takeBackup`, `getBackups`, `importBackup`, `applyBackup` (restore, optionally messages only), `cloneBackup` / `restoreAsNewManuscript`, `analyzeLorebooks` + `LorebookDecision`s for lorebooks found in the backup, `exportBackup` (see below; the file can carry the settings the book inherits, and the stored backup remembers the folder of the book, see [Folders](folders.md#other-places-that-know-about-folders)). Import and restore read a `File` (the UI uploads to a temp file, the `byte[]` overloads are for small payloads and tests). |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -463,6 +464,10 @@ without any user and only use installation-wide data (<code translate="no" v-pre
 <tr>
 <td><code translate="no" v-pre>ExportSettingsService</code></td>
 <td>What the current user wants of the exports of each format, kept in their <code translate="no" v-pre>ExportSettings</code> (a <code translate="no" v-pre>Setting</code> row, extended attributes, no migration), keyed by <code translate="no" v-pre>Exporter.getId()</code>: <code translate="no" v-pre>getStyleId(exporter)</code> (the style the dialog preselects: the user&#x27;s choice if it still exists and is <code translate="no" v-pre>forExport</code>, else <code translate="no" v-pre>Exporter.getDefaultStyleId()</code>), <code translate="no" v-pre>getChosenStyleId</code>, <code translate="no" v-pre>setStyleId</code> (rejects a style that does not exist or is not for exports), <code translate="no" v-pre>getTemplate</code> / <code translate="no" v-pre>getTemplates</code> and <code translate="no" v-pre>setTemplate</code> (validated with <code translate="no" v-pre>TemplateService</code>, blank removes the change). See <doc-anchor-trigger to="#story-export">Story export</doc-anchor-trigger>.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>NotificationService</code></td>
+<td>The desktop notifications of the browser: the registry of what can notify (<code translate="no" v-pre>register(owner, Source)</code>, <code translate="no" v-pre>unregister</code>, <code translate="no" v-pre>unregisterAll</code>, <code translate="no" v-pre>sources</code>; the built in sources <code translate="no" v-pre>GENERATION</code>, <code translate="no" v-pre>ANNOTATE</code>, <code translate="no" v-pre>REDRAFT</code>, <code translate="no" v-pre>IMPERSONATE</code>, <code translate="no" v-pre>SUMMARY</code>, <code translate="no" v-pre>RESUMMARIZE</code>, <code translate="no" v-pre>HELP_ASSISTANT</code>, the ones of extensions are removed with them by <code translate="no" v-pre>OsgiServiceImpl</code>), the list of the settings (<code translate="no" v-pre>entries()</code>: a source with an automatic run has two, the key of the automatic one ends in <code translate="no" v-pre>.auto</code>) and what the current user chose, kept in their <code translate="no" v-pre>NotificationSettings</code> (<code translate="no" v-pre>isEnabled</code>, <code translate="no" v-pre>getChosen</code>, <code translate="no" v-pre>save</code>: keys of sources that are not registered stay). <code translate="no" v-pre>prepare(source, automatic, outcome, detail)</code> is the notice to show for the end of a run or <code translate="no" v-pre>null</code> (off, not chosen, unknown source); only the entry of the kind of the run decides. Showing it is <code translate="no" v-pre>ui.widgets.DesktopNotifier</code>. See <a href="../plugins/notifications/">Desktop notifications</a>.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>BackupService</code></td>
@@ -1133,7 +1138,7 @@ call. See
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (340c8ccaa).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (b0fb889e3).</p></div>
             </footer>
         </div>
     </div>

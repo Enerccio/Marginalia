@@ -457,6 +457,10 @@ public class AnnotateDialog extends Dialog {
      */
     private void endRun(boolean complete) {
         showRunning(false);
+        if (complete) {
+            // the notification of the automatic annotation is the user's choice apart from the one of the dialog they open themselves
+            new DesktopNotifier(UI.getCurrent()).finished(NotificationService.ANNOTATE, auto != null, manuscript.getName());
+        }
         if (proposals.isEmpty() && notes.isEmpty()) {
             if (complete) {
                 showMessage(loc.getValue(L.MSG_ANNOTATE_NO_FINDINGS));
@@ -542,6 +546,7 @@ public class AnnotateDialog extends Dialog {
                     pending.clear();
                     endRun(false);
                     UIUtils.inferenceError(loc, throwable);
+                    new DesktopNotifier(ui).failed(NotificationService.ANNOTATE, auto != null, manuscript.getName());
                     UIPushGuard.push(ui);
                 });
             }

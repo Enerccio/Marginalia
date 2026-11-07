@@ -12,6 +12,7 @@ import com.github.enerccio.marginalia.domain.service.InferenceErrors;
 import com.github.enerccio.marginalia.domain.service.InferenceService.ChunkType;
 import com.github.enerccio.marginalia.domain.service.InferenceService.InferenceAsyncCallback;
 import com.github.enerccio.marginalia.domain.service.InferenceService.InferenceAsyncController;
+import com.github.enerccio.marginalia.domain.service.NotificationService;
 import com.github.enerccio.marginalia.domain.service.function.FunctionContinuation;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
@@ -22,6 +23,7 @@ import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.LLMSnapshot;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
+import com.github.enerccio.marginalia.ui.widgets.DesktopNotifier;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.github.enerccio.marginalia.utils.UiProblems;
 import com.vaadin.flow.component.*;
@@ -549,7 +551,10 @@ public class HelpAssistantWidget extends Div {
 
         @Override
         public void onCompletion() {
-            ui.access(this::finish);
+            ui.access(() -> {
+                finish();
+                new DesktopNotifier(ui).finished(NotificationService.HELP_ASSISTANT, false, null);
+            });
         }
 
         @Override
@@ -559,7 +564,10 @@ public class HelpAssistantWidget extends Div {
 
         @Override
         public void onError(Throwable exception) {
-            ui.access(() -> fail(exception));
+            ui.access(() -> {
+                fail(exception);
+                new DesktopNotifier(ui).failed(NotificationService.HELP_ASSISTANT, false, null);
+            });
         }
 
         @Override

@@ -5,6 +5,7 @@ import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.service.ExtensionService;
 import com.github.enerccio.marginalia.domain.service.ExtensionService.ExtendableMethodContext;
 import com.github.enerccio.marginalia.domain.service.ExtensionService.ExtensionDecorator;
+import com.github.enerccio.marginalia.domain.service.NotificationService;
 import com.github.enerccio.marginalia.domain.service.OsgiService;
 import com.github.enerccio.marginalia.extensions.ExtensionHasCss;
 import com.github.enerccio.marginalia.extensions.MarginaliaExtension;
@@ -22,6 +23,7 @@ import com.vaadin.flow.component.ComponentUtil;
 import com.vaadin.flow.component.accordion.Accordion;
 import com.vaadin.flow.component.accordion.AccordionPanel;
 import org.osgi.framework.Bundle;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
 import java.util.Collections;
@@ -39,6 +41,11 @@ public class SideQueryExtension implements MarginaliaExtension, ExtensionHasCss 
 
     private static final String SIDE_QUERY_VIEW_KEY = SideQuerySettings.KEY + ".view";
     private static final String SETTINGS_PANEL_KEY = SideQuerySettings.KEY + ".settingsPanel";
+    /** The source of the notification that a question is answered, see {@code NotificationService}. */
+    public static final String NOTIFY_QUERY = SideQuerySettings.KEY + ".query";
+
+    @Autowired
+    private NotificationService notificationService;
 
     private final SideQueryService sideQueryService = new SideQueryService();
 
@@ -53,6 +60,7 @@ public class SideQueryExtension implements MarginaliaExtension, ExtensionHasCss 
     public void onExtensionLoad(Bundle bundle, OsgiService parentService, ExtensionService extensionService) {
         SideQueryLog.install(parentService.createLogger(bundle));
         sideQueryService.setBundle(bundle);
+        notificationService.register(bundle.getSymbolicName(), new NotificationService.Source(NOTIFY_QUERY, () -> T.localized(SIDEQUERY_ANSWER_A_QUESTION)));
         try {
             // Decorate ManuscriptStoryPart to inject SideQuery tab in leftMarginLayout (leftBar TabDock)
             storyPartDecorator = new ExtensionDecorator() {

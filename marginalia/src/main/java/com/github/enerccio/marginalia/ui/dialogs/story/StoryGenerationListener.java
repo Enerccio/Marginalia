@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.ui.dialogs.story;
 
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.service.GenerationListener;
+import com.github.enerccio.marginalia.domain.service.NotificationService;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationRequest;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationRequestType;
 import com.github.enerccio.marginalia.domain.traits.*;
@@ -10,6 +11,7 @@ import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
+import com.github.enerccio.marginalia.ui.widgets.DesktopNotifier;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.ui.widgets.ScrollPanel;
 import com.github.enerccio.marginalia.utils.UIUtils;
@@ -215,6 +217,7 @@ public class StoryGenerationListener<C extends Component & StoryCard> implements
             }
             callbacks.renderStory();
             callbacks.partCompleted(message);
+            new DesktopNotifier(ui).finished(NotificationService.GENERATION, false, null);
             UIPushGuard.push(ui);
         });
     }
@@ -263,6 +266,7 @@ public class StoryGenerationListener<C extends Component & StoryCard> implements
     public void onError(Throwable cause) {
         ui.access(() -> {
             UIUtils.showError(loc.getValue(L.ERROR_INTERNAL_SERVER_ERROR), cause);
+            new DesktopNotifier(ui).failed(NotificationService.GENERATION, false, null);
             UIPushGuard.push(ui);
         });
     }
@@ -286,6 +290,7 @@ public class StoryGenerationListener<C extends Component & StoryCard> implements
         ui.access(() -> {
             UiProblems.inference(description, null);
             Notification.error(description);
+            new DesktopNotifier(ui).failed(NotificationService.GENERATION, false, null);
             UIPushGuard.push(ui);
         });
     }

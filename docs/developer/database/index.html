@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847332989118">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847362255140">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.847332989118" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.847362255140" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847332989118" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847362255140" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847332989118" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.847332989118" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847362255140" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.847362255140" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -647,7 +647,7 @@ INSERT INTO bookmarks_SEQ (next_val) VALUES (1);</code></pre>
 <code translate="no" v-pre>is_deleted</code>, <code translate="no" v-pre>modification</code>, <code translate="no" v-pre>uuid</code>, <code translate="no" v-pre>userId</code> (owner), <code translate="no" v-pre>extendedContent</code> and <code translate="no" v-pre>_fulltext</code>. Then list the class in
 <code translate="no" v-pre>persistence.xml</code>. For joined inheritance (a subtype of <code translate="no" v-pre>AI</code> or <code translate="no" v-pre>Protocol</code>), the subtype table has only <code translate="no" v-pre>id</code> plus its
 own columns.
-A subtype of <code translate="no" v-pre>Setting</code> is single table (<code translate="no" v-pre>@DiscriminatorValue</code>, the <code translate="no" v-pre>settings</code> table): <code translate="no" v-pre>StylesSetting</code> and <code translate="no" v-pre>ExportSettings</code> are only
+A subtype of <code translate="no" v-pre>Setting</code> is single table (<code translate="no" v-pre>@DiscriminatorValue</code>, the <code translate="no" v-pre>settings</code> table): <code translate="no" v-pre>StylesSetting</code>, <code translate="no" v-pre>ExportSettings</code> and <code translate="no" v-pre>NotificationSettings</code> are only
 listed in <code translate="no" v-pre>persistence.xml</code> and keep everything in <code translate="no" v-pre>extendedContent</code>, so they need no migration.</p>
 <h3 id="changing-or-removing-a-column">Changing or removing a column</h3>
 <p>SQLite can rename a column (<code translate="no" v-pre>ALTER TABLE ... RENAME COLUMN</code>) and, since 3.35, drop a simple one
@@ -965,7 +965,7 @@ A backup restored on another installation loses them unless <code translate="no"
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (340c8ccaa).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (b0fb889e3).</p></div>
             </footer>
         </div>
     </div>

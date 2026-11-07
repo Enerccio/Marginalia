@@ -2,11 +2,13 @@ package com.github.enerccio.marginalia.extensions.betareaders.ui;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.domain.service.CancellationToken;
+import com.github.enerccio.marginalia.extensions.betareaders.BetaReadersExtension;
 import com.github.enerccio.marginalia.extensions.betareaders.model.Persona;
 import com.github.enerccio.marginalia.extensions.betareaders.service.NoModelException;
 import com.github.enerccio.marginalia.extensions.betareaders.service.PersonaIcons;
 import com.github.enerccio.marginalia.extensions.betareaders.service.PersonaWriter;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
+import com.github.enerccio.marginalia.ui.widgets.DesktopNotifier;
 import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
 import com.github.enerccio.marginalia.ui.widgets.DialogShortcuts;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
@@ -159,6 +161,11 @@ public class PersonaDialog extends Dialog {
         setWriting(false);
         if (outcome.cancelled()) {
             return;
+        }
+        if (outcome.error() != null || outcome.written() == null) {
+            new DesktopNotifier(UI.getCurrent()).failed(BetaReadersExtension.NOTIFY_PERSONA, false, null);
+        } else {
+            new DesktopNotifier(UI.getCurrent()).finished(BetaReadersExtension.NOTIFY_PERSONA, false, null);
         }
         if (outcome.error() != null) {
             Notification.warning(T.localized(CANT_ASK_THE_MODEL).formatted(outcome.error().getMessage() != null

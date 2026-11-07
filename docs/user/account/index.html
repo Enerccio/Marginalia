@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847332989118">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847362255140">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.847332989118" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.847362255140" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847332989118" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847362255140" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847332989118" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847362255140" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -620,6 +620,37 @@ settings and apply at once in the open stories.</p>
     <img src="../../images/settings-shortcuts.png" alt="Settings, Keyboard shortcuts" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1612" height="900" />
     <figcaption class="caption">Settings, Keyboard shortcuts</figcaption>
 </figure>
+<h3 id="notifications">Notifications</h3>
+<p>A desktop notification of the browser when a model is done, so you can leave the tab while it works. The tab has a check box
+<strong>Use desktop notifications</strong>, the buttons below and a list of what notifies:</p>
+<ul>
+<li>
+<p><strong>Story generation</strong>, <strong>Annotate with AI</strong>, <strong>Annotate with AI (automatic)</strong>, <strong>Redraft</strong>, <strong>Redraft (automatic)</strong>, <strong>Draft Instructions</strong>,
+<strong>Summary</strong>, <strong>Resummarize all summaries</strong> and <strong>Help assistant</strong>, and what <a href="../extensions/">extensions</a> add, named after the extension
+(<em>Reviewer: generate a review</em>, <em>Lore Generator: generate lore</em>, <em>Image Generator: generate the image</em>, <em>Arc Outline: generate chapters</em>...).
+The <em>Manga Generator</em> entries marked <em>(automatic)</em> are its continuous mode.</p>
+</li>
+<li>
+<p>The entries marked <em>(automatic)</em> are the runs the book starts by itself, the <a href="../books/story-editor/">automatic annotation</a> after a generation
+and the redraft that follows it. They are chosen apart from the dialog you open yourself: with <strong>Annotate with AI</strong> checked and
+<strong>Annotate with AI (automatic)</strong> not, the automatic annotation is silent; with only the automatic entry checked, only the automatic
+annotation notifies.</p>
+</li>
+<li>
+<p>A run that ends with an error notifies too (<em>… failed</em>), one you stop yourself does not.</p>
+</li>
+</ul>
+<p>The check box turns notifications on for your account and enables two buttons. <strong>Register this browser</strong> asks the browser for the
+permission (from that click); the line under the buttons tells what this browser says: allowed, blocked (allow it in the site settings
+of the browser), or not asked yet. The permission belongs to the browser, not to your account: every browser or device you want
+notifications in has to be registered once, the check box and the list are the same everywhere. <strong>Send a test notification</strong> shows one at
+once, also while the page is in front.</p>
+<p>The <strong>Filter</strong> field narrows the list by name, <strong>Check shown</strong> and <strong>Uncheck shown</strong> act on the entries it shows and leave the others as
+they are. A notification is shown only while you are not looking at the page (another tab, or the window is not in front); clicking it
+brings the page back.</p>
+<p>Notifications need an <code translate="no" v-pre>https://</code> address or <code translate="no" v-pre>localhost</code>: on a plain <code translate="no" v-pre>http://</code> address of a server in your network the browser does not
+offer them, and the tab says so. A tab the browser has put to sleep (usually on a phone) can&#x27;t show them either. The tab is saved with the
+<strong>Save</strong> of the settings, like the others.</p>
 <h3 id="extension-settings">Extension Settings</h3>
 <p>Settings of the installed <a href="../extensions/">extensions</a>, one section per extension (for example <em>Reviewer Settings</em>
 and <em>SideQuery Settings</em>). They are saved with the same <strong>Save</strong> button. The tab is empty when no extension with
@@ -665,7 +696,7 @@ settings is installed.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (340c8ccaa).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (b0fb889e3).</p></div>
             </footer>
         </div>
     </div>

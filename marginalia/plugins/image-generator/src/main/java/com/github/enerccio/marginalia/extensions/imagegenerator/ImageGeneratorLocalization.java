@@ -76,6 +76,8 @@ public class ImageGeneratorLocalization extends PluginLocalizationBundle {
     public static final String WHAT_THE_PICTURE_MUST_SHOW = "What the picture must show or how it must look; the prompt writer follows it (for example: at night, close up on her face, the red dress)";
     public static final String LORE_ENTRIES_DID_NOT_FIT = "%d lorebook entries did not fit into the context of the model and were left out";
     public static final String LORE_ENTRIES_SENT = "%d lorebook entries sent";
+    public static final String IMAGE_GENERATOR_WRITE_THE_PROMPT = "Image Generator: write the prompt";
+    public static final String IMAGE_GENERATOR_GENERATE_THE_IMAGE = "Image Generator: generate the image";
 
     @Override
     protected void loadKeys() {
@@ -274,5 +276,11 @@ public class ImageGeneratorLocalization extends PluginLocalizationBundle {
         zh(LORE_ENTRIES_DID_NOT_FIT, "有 %d 个设定集条目放不进模型的上下文，已被省略");
         ja(LORE_ENTRIES_SENT, "ロアブックのエントリを %d 件送信しました");
         zh(LORE_ENTRIES_SENT, "已发送 %d 个设定集条目");
+
+        ja(IMAGE_GENERATOR_WRITE_THE_PROMPT, "画像ジェネレーター: プロンプトを作成");
+        zh(IMAGE_GENERATOR_WRITE_THE_PROMPT, "图像生成器：撰写提示词");
+
+        ja(IMAGE_GENERATOR_GENERATE_THE_IMAGE, "画像ジェネレーター: 画像を生成");
+        zh(IMAGE_GENERATOR_GENERATE_THE_IMAGE, "图像生成器：生成图像");
     }
 }

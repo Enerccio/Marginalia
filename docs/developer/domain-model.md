@@ -23,7 +23,7 @@ Some entities kept their early names. The UI and this manual use the names on th
 | `ManuscriptStatistic`, `ActivityInterval`, `ManuscriptSize` | `manuscript_statistics`, `activity_intervals`, `manuscript_sizes` | The writing statistics of a book per day: counts, time, size, see [Writing statistics](#writing-statistics-manuscriptstatistic-activityinterval-manuscriptsize) |
 | `Protocol`, `ChatCompletionProtocol` | `protocols`, `protocols_chatcompletion` | Protocol |
 | `Tag`, `TagRelation` | `tags`, `t2e` | Tag |
-| `Setting`, `AppSettings`, `UserSetting`, `StylesSetting`, `ExportSettings` | `settings` | Settings page, admin settings; `StylesSetting` holds the text styles of a user (see [Text styles](ui.md#text-styles)); `ExportSettings` the style and the changed templates of each export format (see [Story export](services.md#story-export)) |
+| `Setting`, `AppSettings`, `UserSetting`, `StylesSetting`, `ExportSettings`, `NotificationSettings` | `settings` | Settings page, admin settings; `StylesSetting` holds the text styles of a user (see [Text styles](ui.md#text-styles)); `ExportSettings` the style and the changed templates of each export format (see [Story export](services.md#story-export)); `NotificationSettings` the switch and the chosen entries of the desktop notifications (see [Desktop notifications](plugins/notifications.md)) |
 | `User` | `users` | User |
 | `Permission` | `permissions` | What an administrator allowed a user to do, see [Permission](#permission-what-a-user-was-allowed) |
 | `Agent`, `AgentRun`, `AgentMessage` | `agents`, `agent_runs`, `agent_messages` | Agents, see [Agent and AgentRun](#agent-and-agentrun-agents) |

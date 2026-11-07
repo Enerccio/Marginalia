@@ -5,14 +5,14 @@ import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.components.TokenLimits;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
-import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.agent.CommandFunctions;
 import com.github.enerccio.marginalia.domain.service.function.FunctionSet;
-import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMToolCall;
-import com.github.enerccio.marginalia.domain.service.tool.ToolSet;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
+import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMToolCall;
+import com.github.enerccio.marginalia.domain.service.tool.ToolSet;
+import com.github.enerccio.marginalia.extensions.arcoutline.ArcOutlineExtension;
 import com.github.enerccio.marginalia.extensions.arcoutline.model.*;
 import com.github.enerccio.marginalia.extensions.arcoutline.model.WizardOptions.Mode;
 import com.github.enerccio.marginalia.extensions.arcoutline.model.WizardOptions.OutlineDetail;
@@ -51,12 +51,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
 import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.EnumMap;
-import java.util.EnumSet;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -947,6 +943,7 @@ public class PlotWizardDialog extends Dialog {
             @Override
             public void onCompletion() {
                 finish(ui, answer, text, reasoning, calls, null);
+                ui.access(() -> new DesktopNotifier(ui).finished(ArcOutlineExtension.NOTIFY_WIZARD, false, manuscript.getName()));
             }
 
             @Override
@@ -957,6 +954,7 @@ public class PlotWizardDialog extends Dialog {
             @Override
             public void onError(Throwable exception) {
                 finish(ui, answer, text, reasoning, calls, exception);
+                ui.access(() -> new DesktopNotifier(ui).failed(ArcOutlineExtension.NOTIFY_WIZARD, false, manuscript.getName()));
             }
 
             @Override

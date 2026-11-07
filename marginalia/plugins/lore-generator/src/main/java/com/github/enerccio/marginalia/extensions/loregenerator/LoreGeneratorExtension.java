@@ -9,6 +9,7 @@ import com.github.enerccio.marginalia.domain.service.CommandService;
 import com.github.enerccio.marginalia.domain.service.ExtensionService;
 import com.github.enerccio.marginalia.domain.service.ExtensionService.ExtendableMethodContext;
 import com.github.enerccio.marginalia.domain.service.ExtensionService.ExtensionDecorator;
+import com.github.enerccio.marginalia.domain.service.NotificationService;
 import com.github.enerccio.marginalia.domain.service.OsgiService;
 import com.github.enerccio.marginalia.extensions.MarginaliaExtension;
 import com.github.enerccio.marginalia.extensions.loregenerator.commands.LoreGeneratorCommands;
@@ -57,10 +58,17 @@ public class LoreGeneratorExtension implements MarginaliaExtension {
     /** The logger of this extension, its lines go to the extension log (Admin → Extensions → Log). */
     private Logger log;
 
+    /** The sources of the notifications that a generation or a compaction is over, see {@code NotificationService}. */
+    public static final String NOTIFY_GENERATE = LoreGeneratorData.KEY + ".generate";
+    public static final String NOTIFY_COMPACT = LoreGeneratorData.KEY + ".compact";
+
     private final LoreGeneratorService loreGeneratorService = new LoreGeneratorService();
 
     @Autowired
     private CommandService commandService;
+
+    @Autowired
+    private NotificationService notificationService;
 
     /** Kept to unregister it, the service takes the object. */
     private LoreGeneratorCommands commands;
@@ -80,6 +88,8 @@ public class LoreGeneratorExtension implements MarginaliaExtension {
         log = parentService.createLogger(bundle);
         loreGeneratorService.setLogger(log);
         loreGeneratorService.setBundle(bundle);
+        notificationService.register(bundle.getSymbolicName(), new NotificationService.Source(NOTIFY_GENERATE, () -> T.localized(LORE_GENERATOR_GENERATE_LORE)));
+        notificationService.register(bundle.getSymbolicName(), new NotificationService.Source(NOTIFY_COMPACT, () -> T.localized(LORE_GENERATOR_COMPACT_LORE)));
         try {
             // the Lore Generator section in the extension settings of the user settings
             userPartDecorator = new ExtensionDecorator() {

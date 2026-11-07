@@ -5,11 +5,13 @@ import com.github.enerccio.marginalia.domain.components.SummaryNode;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.CancellationToken;
+import com.github.enerccio.marginalia.domain.service.NotificationService;
 import com.github.enerccio.marginalia.domain.service.SummaryService;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
+import com.github.enerccio.marginalia.ui.widgets.DesktopNotifier;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.ui.widgets.ScrollPanel;
 import com.github.enerccio.marginalia.utils.UIUtils;
@@ -192,6 +194,7 @@ public class ResummarizeDialog extends Dialog {
                 ui.access(() -> {
                     setRunning(false);
                     Notification.success(String.format(loc.getValue(L.MSG_RESUMMARIZE_FINISHED), count));
+                    new DesktopNotifier(ui).finished(NotificationService.RESUMMARIZE, false, manuscript.getName());
                     close();
                     UIPushGuard.push(ui);
                 });
@@ -212,6 +215,7 @@ public class ResummarizeDialog extends Dialog {
                     setRunning(false);
                     progress.setText(loc.getValue(L.LABEL_SUMMARY_ERROR));
                     UIUtils.inferenceError(loc, throwable);
+                    new DesktopNotifier(ui).failed(NotificationService.RESUMMARIZE, false, manuscript.getName());
                     UIPushGuard.push(ui);
                 });
             }

@@ -7,12 +7,14 @@ import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.service.CancellationToken;
+import com.github.enerccio.marginalia.extensions.imagegenerator.ImageGeneratorExtension;
 import com.github.enerccio.marginalia.extensions.imagegenerator.ImageGeneratorLog;
 import com.github.enerccio.marginalia.extensions.imagegenerator.model.BackendConfig;
 import com.github.enerccio.marginalia.extensions.imagegenerator.model.ImageSettings;
 import com.github.enerccio.marginalia.extensions.imagegenerator.service.*;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
+import com.github.enerccio.marginalia.ui.widgets.DesktopNotifier;
 import com.github.enerccio.marginalia.ui.widgets.DialogShortcuts;
 import com.github.enerccio.marginalia.ui.widgets.ModelProtocolPicker;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
@@ -275,6 +277,11 @@ public class ImageGeneratorDialog extends Dialog {
                             ImageGeneratorLog.get().warn("Writing the prompt failed: {}", error.getMessage(), error);
                             Notification.error(T.localized(THE_MODEL_FAILED).formatted(error.getMessage()));
                         }
+                        if (error != null) {
+                            new DesktopNotifier(ui).failed(ImageGeneratorExtension.NOTIFY_PROMPT, false, manuscript.getName());
+                        } else if (!cancelled) {
+                            new DesktopNotifier(ui).finished(ImageGeneratorExtension.NOTIFY_PROMPT, false, manuscript.getName());
+                        }
                         updateButtons();
                         UIPushGuard.push(ui);
                     });
@@ -358,6 +365,11 @@ public class ImageGeneratorDialog extends Dialog {
                     Notification.error(T.localized(GENERATING_FAILED).formatted(message));
                 } else if (result != null) {
                     showImage(result);
+                }
+                if (message != null) {
+                    new DesktopNotifier(ui).failed(ImageGeneratorExtension.NOTIFY_IMAGE, false, manuscript.getName());
+                } else if (result != null) {
+                    new DesktopNotifier(ui).finished(ImageGeneratorExtension.NOTIFY_IMAGE, false, manuscript.getName());
                 }
                 updateButtons();
                 UIPushGuard.push(ui);

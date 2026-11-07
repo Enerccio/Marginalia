@@ -1253,6 +1253,80 @@ public final class JavascriptLibrary {
                 """, element, textArea);
     }
 
+    // --- desktop notifications ---
+
+    /**
+     * Tells the element, with the event {@code marginalia-notification-permission} (the detail is {@code {state, requested}}), what the
+     * browser lets the page do with notifications: now, and when the element is clicked ({@code state}: {@code granted},
+     * {@code denied}, {@code default} when the browser has not been asked, or {@code unsupported} when the browser has no
+     * notifications or the page is not served over HTTPS or from localhost). A click on the element (a button) asks the browser for the
+     * permission when it has not been asked yet, from this very click, which browsers require ({@code requested} is true for the events
+     * that follow a click). The permission belongs to the browser, not to the user. Calling it again replaces the earlier watch.
+     */
+    public static void watchNotificationPermission(Element element) {
+        element.executeJs("""
+                var el = $0;
+                if (el.__notificationWatch) { el.__notificationWatch(); }
+                var state = function () {
+                    if (!('Notification' in window) || !window.isSecureContext) { return 'unsupported'; }
+                    return Notification.permission;
+                };
+                var send = function (requested) {
+                    el.dispatchEvent(new CustomEvent('marginalia-notification-permission',
+                        { detail: { state: state(), requested: requested } }));
+                };
+                var onClick = function () {
+                    if (state() !== 'default') { send(true); return; }
+                    var done = function () { send(true); };
+                    var result = Notification.requestPermission(done);
+                    if (result && result.then) { result.then(done); }
+                };
+                el.addEventListener('click', onClick);
+                el.__notificationWatch = function () {
+                    el.removeEventListener('click', onClick);
+                    el.__notificationWatch = null;
+                };
+                send(false);
+                """, element);
+    }
+
+    /**
+     * Stops {@link #watchNotificationPermission}.
+     */
+    public static void unwatchNotificationPermission(Element element) {
+        element.executeJs("if ($0.__notificationWatch) { $0.__notificationWatch(); }", element);
+    }
+
+    /**
+     * Shows a desktop notification of the browser. Nothing is shown unless the browser allows it and the user is not looking at
+     * the page (the tab is hidden or the window has no focus), a notification about what is on the screen is noise. Clicking it brings the
+     * page to the front.
+     *
+     * @param tag   a notification with the same tag replaces the earlier one
+     * @param force show it also when the page is in front (the test button)
+     * @return what happened: {@code shown}, {@code focused} (the user is looking at the page), or why nothing was shown:
+     * {@code denied}, {@code default} (the browser was not asked), {@code unsupported} or {@code error}
+     */
+    public static PendingJavaScriptResult showDesktopNotification(Page page, String title, String body, String tag, boolean force) {
+        return page.executeJs("""
+                var title = $0, body = $1, tag = $2, force = $3;
+                if (!('Notification' in window) || !window.isSecureContext) { return 'unsupported'; }
+                if (Notification.permission !== 'granted') { return Notification.permission; }
+                if (!force && !document.hidden && document.hasFocus()) { return 'focused'; }
+                try {
+                    var n = new Notification(title, { body: body, tag: tag });
+                    n.onclick = function () { window.focus(); n.close(); };
+                } catch (e) {
+                    // browsers on phones only show them through a service worker
+                    if (!navigator.serviceWorker) { return 'error'; }
+                    navigator.serviceWorker.getRegistration().then(function (registration) {
+                        if (registration) { registration.showNotification(title, { body: body, tag: tag }); }
+                    });
+                }
+                return 'shown';
+                """, title, body, tag, force);
+    }
+
     // --- help assistant ---
 
     /** The sessionStorage key of the problems the browser keeps for the help assistant. */

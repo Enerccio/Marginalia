@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847332989118">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847362255140">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.847332989118" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.847362255140" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847332989118" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847362255140" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847332989118" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.847332989118" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847362255140" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.847362255140" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -1432,6 +1432,9 @@ the page. <code translate="no" v-pre>exportJson()</code> is the selected style a
 <p><strong>Where the images of a part are</strong> is decided in <code translate="no" v-pre>domain.model.PartLayout</code> (<code translate="no" v-pre>layout(markdown, images)</code>: the text cut at the boundaries of its top level blocks, found with commonmark source spans, and the images put at the cuts of their <code translate="no" v-pre>ImageAnchor</code> rows) and drawn by <code translate="no" v-pre>ui.components.PartView</code>, one <code translate="no" v-pre>Markdown</code> per piece of text (each with <code translate="no" v-pre>CHAT_MESSAGE_MARKDOWN</code>, so the text style applies to all of them) and a <code translate="no" v-pre>div.part-pictures</code> per group of pictures (a flex row, aligned by the column; floats of their own, <code translate="no" v-pre>part-picture-float-left|right</code>, when the text flows beside them), or a <code translate="no" v-pre>div.part-band</code> for pictures with text on both sides (<code translate="no" v-pre>PartLayout.Surrounded</code>: a grid with the column widths set on the element, the text of the band split in two <code translate="no" v-pre>Markdown</code>s at the sides and the pictures in the middle). <code translate="no" v-pre>.part-view</code> is <code translate="no" v-pre>display: flow-root</code> (a float stays in its part) and a container (<code translate="no" v-pre>@container (max-width: 30em)</code> turns a float into a block, a phone). <code translate="no" v-pre>Viewer.createPart</code> and <code translate="no" v-pre>PartPreviewDialog</code> (the <strong>Preview as in the viewer</strong> entry of the part menu, <code translate="no" v-pre>StoryCard.openImagePreview</code>, with the text of the editor as it is, saved or not, the style of the book, and a narrow switch) build the part with <code translate="no" v-pre>PartView</code>; the story editor keeps <code translate="no" v-pre>MessageImages</code> (the list after the text). <code translate="no" v-pre>ImagesDialog</code> edits the position (<code translate="no" v-pre>layoutControls</code>: the 3x3 picker, the wrap checkbox, the width) and saves with <code translate="no" v-pre>ChatMessageService.save</code> on every change.</p>
 </li>
 <li>
+<p>The <strong>Notifications</strong> tab of the settings (<code translate="no" v-pre>createNotificationsTab</code> of <code translate="no" v-pre>UserPart</code>) is the <code translate="no" v-pre>ui.notifications.NotificationSettingsEditor</code>: a check box (the switch of the user, <code translate="no" v-pre>NotificationSettings.enabled</code>) that enables the buttons <strong>Register this browser</strong> (watched by <code translate="no" v-pre>JavascriptLibrary.watchNotificationPermission</code>, which asks the browser for the permission from the click and answers with the event <code translate="no" v-pre>marginalia-notification-permission</code>; the permission belongs to the browser, so the check box never asks) and the test button, a status line, and a <code translate="no" v-pre>Grid</code> with multi selection of the <code translate="no" v-pre>NotificationService.Entry</code>s with a filter field; <strong>Check shown</strong> / <strong>Uncheck shown</strong> (<code translate="no" v-pre>checkShown</code>, <code translate="no" v-pre>uncheckShown</code>) act on the entries the filter shows (the select-all header is hidden on purpose, it would not say what it checks). It reports its changes with <code translate="no" v-pre>setOnChange</code>, <code translate="no" v-pre>save()</code> and <code translate="no" v-pre>reload()</code> are called by <code translate="no" v-pre>UserPart.save</code> / <code translate="no" v-pre>refresh</code>, <code translate="no" v-pre>trackChanges</code> skips it. The end of a run is reported by <code translate="no" v-pre>ui.widgets.DesktopNotifier</code>, see <a href="../plugins/notifications/">Desktop notifications</a>.</p>
+</li>
+<li>
 <p>The <strong>Exports</strong> tab of the settings (<code translate="no" v-pre>createExportsTab</code> of <code translate="no" v-pre>UserPart</code>) is the <code translate="no" v-pre>ui.exports.ExportSettingsEditor</code>, built like the styles editor: a <code translate="no" v-pre>Details</code> per <code translate="no" v-pre>Exporter</code> that supports styles or has templates, with a <code translate="no" v-pre>Select</code> of the styles for exports and a <code translate="no" v-pre>TextAreaPopoverComponent</code> per <code translate="no" v-pre>ExportTemplate</code>. Its edits only fill the fields and call <code translate="no" v-pre>setOnChange</code>; <code translate="no" v-pre>validate()</code> (template syntax), <code translate="no" v-pre>save()</code> (what differs from the stored; the default style of the format and the default template are not stored) and <code translate="no" v-pre>reload()</code> are called by <code translate="no" v-pre>UserPart.save</code> (after the styles editor) and <code translate="no" v-pre>refresh</code>, and <code translate="no" v-pre>trackChanges</code> skips it.</p>
 </li>
 </ul>
@@ -1776,7 +1779,7 @@ the buttons a dialog has in its bottom right corner). The server accepts their e
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (340c8ccaa).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (b0fb889e3).</p></div>
             </footer>
         </div>
     </div>

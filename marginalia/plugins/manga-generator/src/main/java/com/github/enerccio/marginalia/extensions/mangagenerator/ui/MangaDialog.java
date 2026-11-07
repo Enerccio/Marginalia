@@ -3,6 +3,7 @@ package com.github.enerccio.marginalia.extensions.mangagenerator.ui;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
+import com.github.enerccio.marginalia.extensions.mangagenerator.MangaGeneratorExtension;
 import com.github.enerccio.marginalia.extensions.mangagenerator.MangaGeneratorLog;
 import com.github.enerccio.marginalia.extensions.mangagenerator.model.Manga;
 import com.github.enerccio.marginalia.extensions.mangagenerator.model.MangaData;
@@ -12,11 +13,7 @@ import com.github.enerccio.marginalia.extensions.mangagenerator.service.Defaults
 import com.github.enerccio.marginalia.extensions.mangagenerator.service.MangaService;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
-import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
-import com.github.enerccio.marginalia.ui.widgets.DialogShortcuts;
-import com.github.enerccio.marginalia.ui.widgets.ModelProtocolPicker;
-import com.github.enerccio.marginalia.ui.widgets.Notification;
-import com.github.enerccio.marginalia.ui.widgets.ScrollPanel;
+import com.github.enerccio.marginalia.ui.widgets.*;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.UI;
@@ -618,14 +615,30 @@ public class MangaDialog extends Dialog {
                 }
             }
             if (tags) {
+                continuousOver(false);
                 stopContinuous(T.localized(CONTINUOUS_MODE_IS_FINISHED));
                 return;
             }
             MangaSectionCard added = addNextSection(true);
             if (added == null) {
+                continuousOver(false);
                 stopContinuous(T.localized(CONTINUOUS_MODE_IS_FINISHED_THERE));
                 return;
             }
+        }
+    }
+
+    /**
+     * The continuous mode ended by itself (it ran out of work, or a step failed; the user stopping it is silent): tells the user, the
+     * automatic run of the source of what it wrote.
+     */
+    private void continuousOver(boolean failed) {
+        DesktopNotifier notifier = new DesktopNotifier(UI.getCurrent());
+        String source = continuousWhat.getValue() ? MangaGeneratorExtension.NOTIFY_TAGS : MangaGeneratorExtension.NOTIFY_SCRIPT;
+        if (failed) {
+            notifier.failed(source, true, manuscript.getName());
+        } else {
+            notifier.finished(source, true, manuscript.getName());
         }
     }
 
@@ -633,6 +646,9 @@ public class MangaDialog extends Dialog {
         card.scrollIntoView();
         boolean started = card.generate(tags, outcome -> {
             if (outcome != MangaService.Outcome.COMPLETED) {
+                if (outcome == MangaService.Outcome.FAILED) {
+                    continuousOver(true);
+                }
                 stopContinuous(T.localized(CONTINUOUS_MODE_STOPPED));
             } else if (!card.hasText(tags)) {
                 // an empty answer would be asked for again and again

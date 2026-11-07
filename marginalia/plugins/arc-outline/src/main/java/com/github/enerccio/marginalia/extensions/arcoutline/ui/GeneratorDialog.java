@@ -110,6 +110,9 @@ public abstract class GeneratorDialog extends Dialog {
         return true;
     }
 
+    /** The id of the source of the notification that the model is done, one of the {@code NOTIFY_} constants of {@code ArcOutlineExtension}. */
+    protected abstract String notificationSource();
+
     /**
      * The prompt field or the model has changed. For a subclass that shows something that depends on them, like the
      * size of the prompt.
@@ -375,6 +378,7 @@ public abstract class GeneratorDialog extends Dialog {
             @Override
             public void onCompletion() {
                 finish(ui, null);
+                ended(ui, false);
             }
 
             @Override
@@ -385,6 +389,7 @@ public abstract class GeneratorDialog extends Dialog {
             @Override
             public void onError(Throwable exception) {
                 finish(ui, exception);
+                ended(ui, true);
             }
 
             @Override
@@ -408,6 +413,18 @@ public abstract class GeneratorDialog extends Dialog {
                 showPartial(partial);
             }
         }
+    }
+
+    /** The run ended by itself (not stopped): tells the user, see {@code NotificationService}. */
+    private void ended(UI ui, boolean failed) {
+        ui.access(() -> {
+            DesktopNotifier notifier = new DesktopNotifier(ui);
+            if (failed) {
+                notifier.failed(notificationSource(), false, manuscript.getName());
+            } else {
+                notifier.finished(notificationSource(), false, manuscript.getName());
+            }
+        });
     }
 
     private void finish(UI ui, Throwable error) {

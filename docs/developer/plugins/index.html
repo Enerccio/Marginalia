@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847332989118">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847362255140">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.847332989118" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.847362255140" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847332989118" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847362255140" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847332989118" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.847332989118" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847362255140" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.847362255140" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -200,6 +200,7 @@ gets general mechanisms and the whole application to use them on:</p>
 | **Bundles** | Loading, unloading, the `MarginaliaExtension` lifecycle, access to every Spring service through `@Configurable`. | [Plugin basics](overview.md) |
 | **`@Extendable` hooks** | Code that runs before and after *any* method of an instrumented UI class, with access to its arguments, local variables and fields, and the possibility to replace the return value. | [@Extendable hooks](extendable.md) |
 | **Extended attributes** | A JSON object on every data entity where a plugin keeps its data - saved with the entity, included in backups, no schema change. | [Extended attributes](extended-attributes.md) |
+| **Desktop notifications** | List a run of the plugin in *Settings → Notifications* (`NotificationService.register`) and tell the user in the browser when it is over (`DesktopNotifier.finished` / `failed`), with a separate entry for a run that starts by itself. | [Desktop notifications](notifications.md) |
 | **Inherited settings** | A setting of the plugin that books and folders inherit like the prompts: a field in the *Prompts* tab and the folder dialog, `ManuscriptService.resolveExtension` for the value (`InheritedSettingRegistry`). | [Inherited settings](inherited-settings.md) |
 | **The text a model reads** | Give the model another form of the story than the one that is stored (a translation, a redaction): a transformer in the `PartTextRegistry`, the offset map of `ModelText`, `ChatMessageService.replaceText` to store the other form. | [The text a model reads](part-text.md) |
 | **The text of an export** | Change what the export of a book holds for a passage (the English instead of a translation, a footnote with the other text) without touching the exporters, together with other plugins: a contributor in the `ExportTextRegistry`, edits as ranges of the stored text. | [The text of an export](export-text.md) |
@@ -234,6 +235,11 @@ gets general mechanisms and the whole application to use them on:</p>
 <td><strong>Extended attributes</strong></td>
 <td>A JSON object on every data entity where a plugin keeps its data - saved with the entity, included in backups, no schema change.</td>
 <td><a href="extended-attributes/">Extended attributes</a></td>
+</tr>
+<tr>
+<td><strong>Desktop notifications</strong></td>
+<td>List a run of the plugin in <em>Settings → Notifications</em> (<code translate="no" v-pre>NotificationService.register</code>) and tell the user in the browser when it is over (<code translate="no" v-pre>DesktopNotifier.finished</code> / <code translate="no" v-pre>failed</code>), with a separate entry for a run that starts by itself.</td>
+<td><a href="notifications/">Desktop notifications</a></td>
 </tr>
 <tr>
 <td><strong>Inherited settings</strong></td>
@@ -673,7 +679,7 @@ the model gets after every other extension has changed it.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (340c8ccaa).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (b0fb889e3).</p></div>
             </footer>
         </div>
     </div>
