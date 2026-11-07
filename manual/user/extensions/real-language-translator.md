@@ -78,7 +78,7 @@ The **Prompts** tab of the book window, under *Extension Settings*, has the fiel
 
 The story window has a **Real language** tab (in the same dock as the chapters and the lorebook) for the language of *this* book, with **Refresh** to read it again.
 
-![The Real language tab of the story](../../images/plugin-reallang-tab.png)
+![The Real language tab of the story, with the speakers and their understanding](../../images/plugin-reallang-tab.png)
 
 **Speakers.** Who speaks the language **in this book** (a book with [more than one language](#more-than-one-language-in-a-book) has a *Speakers* tab for each). By default everybody speaks it except the listed characters (or only the listed ones). The text overrides this ("she said in English",
 "the guard could not understand a word"). For each character note the **gender** and the **voice**: the level of speech follows it. Write the age, the rank and how the character talks to
@@ -111,11 +111,19 @@ Without a glossary the model chooses again in every part how a name is written: 
 
 **What the translation does with it.** The glossary is part of the request, so the model writes the words as listed. A glossary of up to 100 entries goes whole in every request (a server that caches the prompt reads it once); a bigger one goes with the entries the part has. After the answer the plugin **checks** it: a speech whose English has a word of the glossary but whose translation does not write it as the glossary says is kept and **reported** (the author decides). A name the model **had to choose** a written form for, that the glossary does not list, is added to the book's glossary as a **proposal** (the *Status* column says *Proposed*): the model uses it from then on, and *Accept* says you looked at it, or *Edit* changes it. A word that any level has already (even switched off) is never proposed again.
 
+![The glossary of the book: the entries of the three levels, a name the model proposed waits to be accepted](../../images/plugin-reallang-glossary.png)
+
+![An entry of the glossary](../../images/plugin-reallang-glossary-entry.png)
+
+![The glossary at the end of the editor of a language](../../images/plugin-reallang-editor-glossary.png)
+
 The commands for it are in the table below. A part that a book translated before the glossary existed keeps its translation; translate it again to use the glossary.
 
 ## Extracting the words by model
 
 Writing the glossary by hand is slow for a long book. The **Word extraction** tab (next to the glossary tabs of the *Real language* tab) has the model read a **range of parts** and list the names and special words it finds, with the form each has in the language. Everything it finds that the glossary does not have yet is added to the glossary of the book as a **proposal**: the model uses it from the next request on, and you accept, edit or delete it in the *Glossary* tab. Nothing in the story changes.
+
+![The Word extraction tab after a run: the terms the model found are in the glossary as proposals](../../images/plugin-reallang-extraction.png)
 
 - **Language.** With more than one language in the book, the language the glossary is for.
 - **Prompt.** Instructions for the model: what to look for and how each kind of word is written in the language. Choose one from the library, or *None: only my specification*. The plugin comes with a prompt for Japanese (real-world places and organizations in their usual Japanese form, made-up foreign names in katakana, Japanese names in kanji with the reading, coined terms of the world as kanji with a katakana reading, *gikun*); it is marked *built-in* and is always there.
@@ -125,6 +133,8 @@ Writing the glossary by hand is slow for a long book. The **Word extraction** ta
 The words the glossary has already (at any level, even switched off) are told to the model and are not proposed again, so a second run over the same range adds only what is new. The *category* the model put a term in ("Fictional coined term / gikun") is written into the note of the entry. You do not describe the output: the plugin asks for a fixed format, whatever the prompt says.
 
 **The library of prompts.** *Settings → Extension Settings → Real Language Translator* has the **Extraction prompts** list: your own prompts with a name and the instructions, to add, edit, delete and reorder. **Copy a built-in prompt** puts a copy of the built-in one in your list to change. The prompts belong to you, not to a book; a book remembers which one it chose and its specification.
+
+![The library of extraction prompts in the settings](../../images/plugin-reallang-prompts.png)
 
 ## More than one language in a book
 
@@ -168,6 +178,10 @@ to (the red note goes away) and the models read the new English in its place. Th
 
 **Search and replace in the sources** (the button with the arrows at the top of the *Real language* tab) opens the application's search and replace window over the English sources of the translated speeches
 of the active branch (plain text or a regular expression). Only the sources change; the words of the translation itself are replaced with the search and replace of the book.
+
+![The window that edits the source of a speech](../../images/plugin-reallang-source.png)
+
+![Search and replace over the English sources of the speeches](../../images/plugin-reallang-search-replace.png)
 
 ![A translated speech with the English in a popover](../../images/plugin-reallang-story.png)
 

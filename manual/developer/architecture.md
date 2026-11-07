@@ -426,7 +426,8 @@ sequenceDiagram
 - **The help chat.** `SessionPoint` (the session-scoped bean with the language and the workspace of the page) also keeps the conversation with the help
   assistant (`getHelpChat()`, a synchronized list of messages) and the problems the user was shown (`getProblems()`, see
   [What went wrong](ui.md#what-went-wrong-the-problem-log)); `Main` attaches that log to the Vaadin session after login so that code on
-  threads without a request can write to it. Logout invalidates the session, which ends both.
+  threads without a request can write to it. Logout invalidates the session, which ends both. An extension that wants something to live as long as the session
+  (the Prompt History keeps the last requests of the user there) uses `getPluginData(key, create)`: a map of the session, never saved, one key named like the extension.
 - **Open UIs.** After login `Main` and `Viewer` register their UI in `ApplicationPoint` (bean `applicationPoint`)
   with the workspace (`Main` only) and a copy of the user. `SessionInformation.getUI(workspaceClass, applicationPoint)`
   / `getWorkspace(...)` find the session's UI showing a given workspace type.
@@ -490,6 +491,11 @@ sequenceDiagram
   use one particular extension (the name generator) the others find it among `OsgiService.getLoadedExtensions()` and
   call it by reflection ([Sharing data between extensions](plugins/ipc.md)).
 - **Inherited settings.** An extension registers a line, a text area or a choice with `InheritedSettingRegistry` (`InheritedSetting`); the *Prompts* tab of a book and the folder window show them with the other prompts and the values live in the `attributes` of the book or folder (`InheritedSettingValues`), resolved through the folders ([Inherited settings](plugins/inherited-settings.md)).
+- **The text of the story.** An extension that stores the story in one form and wants the model, the export or the annotation reviewer to read another registers with
+  `PartTextRegistry` (what a model reads, [Text a model reads](plugins/part-text.md)), `ExportTextRegistry` (what an export holds, [The text of an export](plugins/export-text.md))
+  or `AnnotationFactsRegistry` (facts for the model that annotates a part, [Facts for the annotation](plugins/annotation-facts.md)); the registries are beans of the core, the
+  contributors are removed when the extension is unloaded. A passage of a part that an extension attaches data to is an `AnchoredPassage` of the annotations table, created through
+  `PassageService`, with a kind registered in `PassageKinds` ([Anchored passages](plugins/anchored-passages.md)).
 - **Styles.** An extension that implements `ExtensionHasCss` gets its CSS put into every open page: `CssRegistry`
   (owned by `Main` and `Viewer`) reads the loaded extensions when its page is attached and listens to the
   loaded/unloaded events of `OsgiService` afterwards ([Styles of a plugin](plugins/ui-extensions.md#styles-of-a-plugin)).

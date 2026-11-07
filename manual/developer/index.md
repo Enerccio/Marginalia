@@ -46,7 +46,8 @@ Marginalia/
 │   ├── src/main/frontend  CSS and JS used by the Vaadin frontend
 │   ├── src/desktop        desktop launcher (tray icon, starts Jetty) and launch scripts
 │   ├── src/test           tests
-│   └── plugins/           the nineteen bundled extensions, each a separate Maven project
+│   ├── libs/              code that plugins share, embedded in their bundles (`translator-common`)
+│   └── plugins/           the twenty-six bundled extensions, each a separate Maven project
 ├── manual/                this manual (Retype sources); manual/user is also packed into the WAR for the help assistant
 ├── docs/                  generated manual, served by GitHub Pages
 ├── Dockerfile, docker-compose.yml

@@ -152,7 +152,9 @@ several steps, one arc for each range.
 
 **Develop the plot** in the menu of the wand opens a chat with the model about the plot. Nothing in the book changes by talking: the model sees what you choose to send, answers, and when you have agreed on something you hand it to the arc generator with one click.
 
-On the left you choose what the model sees and how it helps (the choices are remembered for the next time):
+On the left you choose what the model sees and how it helps (the choices are remembered for the next time), on the right is the chat:
+
+![The plot wizard: the options on the left, the conversation on the right](../../images/plugin-arcoutline-wizard.png)
 
 | | |
 |---|---|
@@ -190,12 +192,18 @@ when you ask or agree; it is told to look before it adds, to prefer adding to re
 - What the tools cost: their descriptions are part of every request, so a model that is short of context has less room. Only models that can call functions work with it; the dialog says so when one
   can't.
 
+![The model added two scenes to the planner; its calls are listed under the answer](../../images/plugin-arcoutline-wizard-tools.png)
+
 ### Chats, branches and summaries
 
 A book has any number of chats; pick one in the list above the messages, **+** starts a new one, the pen renames it (it is named after your first message until then) and the trash can deletes it. They are stored with the book.
 
 - **Branch** copies the chat as it is into a new chat; the branch button on a message copies it up to and including that message, to take the talk another way from there. The copy has nothing to do with the original afterwards.
 - **Summarize the chat** first asks what the summary should keep or stress (optional, for example "keep the twist about the traitor and the ending we rejected"; empty: the model decides), then asks the model for a summary of the chat (what you decided, what you rejected, what is still open, the names that were fixed) and adds it as a message. From then on the model gets that summary and the messages after it, **not** the messages above it, which stay on the screen, dimmed. Use it when the chat has grown too long for the model, or to start from a clean state without losing the decisions. Summarize again later and the new summary covers the old one. Branch first when you want to keep the whole chat for the model.
+
+![The question what the summary should keep](../../images/plugin-arcoutline-wizard-summarize.png)
+
+![The chat after the summary: the messages above it stay on the screen, dimmed](../../images/plugin-arcoutline-wizard-summary.png)
 
 ## Generating chapters
 

@@ -1,6 +1,6 @@
 // Screenshots of the workspace tabs (Books, Protocols, Inference Providers, Settings, Lorebooks, Resources, Trash,
 // Language). Run on step 13-db-backup or later. Nothing stays changed (dialogs are cancelled, the language is reset).
-import {CONTENT, dialog, fill, idle, login, main, openTab, pick, press, section, sleep, snap, snapDialog, rowIconButton} from '../lib/shot.mjs';
+import {CONTENT, DESKTOP, dialog, fill, idle, login, main, openTab, pick, press, section, sleep, snap, snapDialog, rowIconButton} from '../lib/shot.mjs';
 
 await main(async ({ page }) => {
   await login(page);
@@ -109,6 +109,9 @@ await main(async ({ page }) => {
     await sleep(1000);
     await page.evaluate(() => document.activeElement && document.activeElement.blur());
     await snap(page, 'lorebook');
+    // a taller window for the entry with its details alone: the Condition is a row more than before
+    await page.setViewportSize({ width: DESKTOP.width, height: 1200 });
+    await idle(page, 800);
     // the entry with its details alone
     await page.evaluate(() => {
       const f = [...document.querySelectorAll('vaadin-text-field')].find(x => x.value === 'Mizuki Hayashida');
@@ -119,7 +122,9 @@ await main(async ({ page }) => {
       const f = [...document.querySelectorAll('vaadin-text-field')].find(x => x.value === 'Mizuki Hayashida');
       return f.getBoundingClientRect().y;
     });
-    await snap(page, 'lorebook-entry', { clip: { x: 292, y: Math.max(0, top - 18), width: 1599, height: 591 } });
+    await snap(page, 'lorebook-entry', { clip: { x: 292, y: Math.max(0, top - 18), width: 1599, height: 700 } });
+    await page.setViewportSize(DESKTOP);
+    await idle(page, 600);
   });
 
   await section(page, 'resources', async () => {

@@ -62,6 +62,7 @@ parameters (`{{#if name}}`) are not checked.
 |---|---|---|---|
 | User prompt | `PrepareConstantsStep` | `UserPromptData` | `povCharacter`, `sceneSetting`, `presentCharacters`, `instructions` |
 | Lorebook entry payload | `ProcessLorebookStep` (one data object for all active entries) | `LorebookTemplateData` | the four above + `narrativePov`, `narrativeTense`, `style` |
+| Condition of a lorebook entry | `LoreConditions` (`domain.components`), before the filter of the entry | a `LorebookTemplateData.fork()` | the same variables as the payload; the context is a fork, so a `setvar` in a condition changes nothing, and the result is read as true or false ([A condition for an entry](../user/lorebooks/entries.md#a-condition-for-an-entry)) |
 | Master template | `PrepareContentStep` (twice: token estimate on a fork, then for real) | `MasterTemplateData` | `backgroundLore`, `narrativePov`, `narrativeTense`, `style`, `summaries`, `annotations` (the open annotations marked `sendToPrompt` of the parts in the prompt; only the final render has them) |
 | Summary prompt | `SummaryServiceImpl.createSummaryPayload` | `SummaryTemplateData` | `backgroundLore`, `text` (the parts to summarize) |
 | Meta summary prompt | `SummaryServiceImpl.createMetaSummaryPayload` | `MetaSummaryTemplateData` | `backgroundLore`, `summaryBlocks` (the summaries to merge, oldest first) |

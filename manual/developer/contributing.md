@@ -126,6 +126,10 @@ There is no formatter configuration in the repository; match the code around you
   of the bundle class, named after its words, never a literal at the call site (`T.localized(EXPORT_INSTRUCTIONS)`); the Japanese and Chinese
   texts are `ja(...)` / `zh(...)` calls in `loadKeys()` that take the constant as the key (see
   [Texts in several languages](plugins/ui-extensions.md#texts-in-several-languages)).
+- **Dialogs that take input** put the cursor into the first field when they open (`DialogFocus.onOpen`) and send from the keyboard with
+  `DialogShortcuts.submitWith(mainButton, fields...)`: Enter in a single line field, Ctrl/Cmd+Enter in a text area (Enter there is a new
+  line); a prompt dialog (a call to the model) always gets the Ctrl+Enter send. List every input field of the dialog; bulk dialogs and read
+  only text areas are left out. Never write your own `addKeyDownListener(Key.ENTER)` (see [User interface](ui.md)).
 - **Threads**: long work runs off the UI thread, and UI updates go through `ui.access(...)` (see
   [Background work and push](ui.md#background-work-and-push)).
 - **Extension points**: methods that extensions decorate are `@Extendable`, and each of them declares its signature
@@ -140,6 +144,11 @@ There is no formatter configuration in the repository; match the code around you
 
 Use JUnit Jupiter and AssertJ, the [test bases](testing.md#test-bases) and the fake LLM server; no real network calls.
 See the [checklist for a new test](testing.md#checklist-for-a-new-test).
+
+To try a **prompt on a real model** (a reasoning model needs a big output budget: its thinking counts against `max_tokens`), `tools/LocalLlm.java` (one file, JDK and `sqlite3` only,
+no build) sends one chat completion to the AI set up in your dev database `~/.marginalia/marginalia.sqlite`, reading the key from there and never printing it:
+`java tools/LocalLlm.java --list`, then for example `java tools/LocalLlm.java --system-file sys.txt --user-file scene.txt --samples 3`. The other options (`--json-schema`,
+`--reasoning` to show the thinking, `--extra` for more raw JSON members of the request) are listed at the top of the file. Say "3 of 3 samples", not rates, and write down the model and the token numbers with the result.
 
 ## Documentation
 

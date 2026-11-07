@@ -423,6 +423,10 @@ the import of an exported file, `exportSummaries` / `analyzeImport` / `applyImpo
 parts and of the summaries a meta summary stands in for, never of the text of the summary at its head. The summaries inside a meta
 summary are the ones that must not be edited.
 
+`SummaryService.resummarize` (*Resummarize all summaries* of the overview, [`ResummarizeDialog`](ui.md)) asks the model for every summary of the active branch again, oldest first, and meta summaries after the summaries they cover (inner ones first): each
+summary keeps its `uuid` and its place, only its text and its hash are written, so a meta summary stays linked and an outdated summary is valid afterwards. A stop or an empty answer changes
+nothing: the new texts are written together at the end, in one transaction.
+
 Deleting a meta summary (`SummaryService.removeSummary(part, unwind)`) with `unwind` restores the summary from
 `replacedSummary`: it is deserialized into a new `Summary`. Because that summary can be a meta summary with its own
 `replacedSummary`, unwinding nests. A meta summary takes over the `uuid` of the summary it replaces
@@ -562,6 +566,7 @@ Both use joined inheritance: a base table with the common fields and one table p
 | `extensionId` | column (`ais_extension`, `ExtensionAI` only) | The extension that provides the AI, the id of its `ExtensionAIFactory`. The settings of the provider are in `getSettings()`, the object under that id in the dynamic attributes (`attributes_<id>`); secrets in it are encrypted with `InferenceServices.protectSecret`. See [Inference providers from a plugin](plugins/ai-providers.md). |
 | `additionalParameters` | JSON (`additionalParameters_*`) | Extra fields added to every request; they win over the protocol's settings. |
 | `requestTimeoutSeconds`, `maxRetries` | JSON | Wait for the API (read timeout) and retries of a request; `null` = the defaults of `OpenAICompatibleInferenceService` (300 s, 2 retries). |
+| `reasoningPassthrough` | JSON (`OpenAICompatible` only) | `ReasoningPassthrough` (`domain.collections`): `NONE` (the default, stored as nothing), `TOOL_CALLS` or `ALWAYS`. Whether the thinking of an answer goes back to the model as `reasoning_content` of its message: with `TOOL_CALLS` only while the tool calls of one answer go on, with `ALWAYS` also with earlier answers that have it. Read by `OpenAICompatibleInferenceService.toAssistantMessage`; cloned with the AI; the AI dialog shows it in the per type tab. |
 
 ### `Usage` (tokens used with an AI)
 

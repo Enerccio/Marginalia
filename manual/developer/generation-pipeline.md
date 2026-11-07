@@ -234,7 +234,7 @@ reserved   = PrePromptData.reservedTokens            (set by extensions, 0 by de
 If `baseTokens + reserved ≥ limit`, the generation stops with *Contextual limit not sufficient.* Otherwise parts are taken from the
 newest backwards - skipping the part being regenerated, stopping at the stop part - starting from
 `baseTokens + reserved` and counting each part as its `tokenCount + 100`. A part is added only if the running total with it stays within `limit − 256`; the first part that
-doesn't fit ends the loop. The chosen texts, oldest first, become `MANUSCRIPT_CHRONICLE`.
+doesn't fit ends the loop. The chosen texts, oldest first, become `MANUSCRIPT_CHRONICLE`. The text of a part is what `PartTextRegistry.forModel` gives for the whole branch at once: the stored text, unless an extension keeps the story in another form and shows the model another ([Text a model reads](plugins/part-text.md), `ModelText`); the token count is still the one of the stored part.
 
 **Token breakdown.** When the budget is computed, the step creates a `PromptTokenBreakdown` (`domain.components`) and
 puts it into the `TOKEN_BREAKDOWN` property. It holds the raw counts of each section - context, response and prompt
@@ -275,7 +275,7 @@ compatible provider sends those of a user message as content parts. This step ad
 `AFTER_PREPARE_PAYLOAD` can put them on a user message. A message can also carry function calls (`toolCalls`, an
 assistant message) or be the result of one (`LLMRole.TOOL` with `toolCallId`); the pipeline builds none of them, they
 are added by `OpenAICompatibleInferenceService` when the model calls a function, see
-[Function calls](services.md#function-calls).
+[Function calls](services.md#function-calls). A message of the model may also carry its thinking (`reasoning` and `reasoningInTurn`, not stored with the message): only the function call loop and the agents set it, and the OpenAI compatible provider sends it back as `reasoning_content` when the AI's *Send the thinking back* (`reasoningPassthrough`) asks for it.
 
 The payload is stored for the part ([`MessagePrompt`](domain-model.md#messageprompt)) and can be inspected in the story editor with *View prompt*:
 
@@ -310,7 +310,7 @@ Events: `BEFORE_GENERATE_NEW_MESSAGE`, `AFTER_GENERATE_NEW_MESSAGE` (the part is
 
 `InferenceStep` fires `BEFORE_INFERENCE` first and, when the listeners are done, looks at the `CancellationToken`: a generation that was cancelled while they ran (one that asked the user through `accessUI` and got *no*) jumps to `CLEANUP`, no request is sent and the part started for it is removed, see [Generation events](plugins/generation-events.md). Otherwise:
 
-Counts the prompt tokens (when the prompt plus the response limit still exceeds the context, the UI gets
+Counts the prompt tokens (`countPromptTokens`: the content of each message and the calls of its tools with the book's `InferenceService`, a text that repeats - the "generate more" placeholders - once, not the JSON the payload is sent in, whose escapes never reach the model and whose attached media is not text; when the prompt plus the response limit still exceeds the context, the UI gets
 `GenerationListener.onWarning`; the request is sent anyway), then calls `InferenceService.stream(payload, protocol, callback)` inside an `InferenceSession` of the kind `GENERATION` (a new part, a regeneration and a swipe share it, so the provider's cache is that of the story; the service sends it as the header `X-Session-ID`). For each chunk:
 
 - **reasoning** chunks are appended to `responseReasoning` (`REASONING_CHUNK_RECEIVED`, the text in

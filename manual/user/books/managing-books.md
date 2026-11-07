@@ -178,6 +178,8 @@ LM Studio keeps each conversation in a file `<number>.conversation.json` in the 
    it off so that every message is a part of its own.
 4. Click **Import**.
 
+![The window of the import from LM Studio with one conversation uploaded](../../images/lmstudio-import.png)
+
 The versions of a message that LM Studio keeps (the answers you regenerated, the text you edited) become sibling parts and the version that was
 shown is the one the book opens on; conversations that share their beginning are joined into one tree. The thinking of a reasoning model is kept
 as the reasoning of the part, together with the model name. The system prompt of the conversation, the calls of tools and attached files are not
