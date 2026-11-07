@@ -98,6 +98,8 @@ Only your choice is kept, not the words: a word you change is read as it is now,
 category is offered in the Name generator (the lore generator's and the arc outline's **Tools** dialog, the `generate-names` command, an agent's run) as *Conlang - language - category*.
 It is your own: another user of the installation sees only their categories.
 
+![The Names tab: a category of names, the words it is made of and twenty names from them](../../images/plugin-conlang-names.png)
+
 ### The designer
 
 The **Design with AI** menu of the editor asks the model for help, always with the language **as it is** (its rules, registers, categories, lexicon and the example lorebook), and
@@ -169,6 +171,8 @@ They reach the models in two ways: the **story model** gets a short message with
 messages from the end it goes), and the model that **reviews a part** (*Annotate with AI*) gets them as a section of the facts, so it can flag a character who reacts to words they cannot follow. If you would rather
 place the text yourself, turn the insertion off and use the {%{`{{command::conlang-understanding}}`}%} [macro](../templates/macros.md#commands) in a template; it takes an optional list of characters to keep.
 
+![The Conlang tab: the speakers, and two characters that do not follow the language](../../images/plugin-conlang-tab.png)
+
 ### Languages
 
 The other languages of the book, besides the one its **Language of the speech** field names: see [More than one language in a book](#more-than-one-language-in-a-book).
@@ -236,9 +240,13 @@ the models read. Use it when a native speaker fixed the translation by hand and 
 English, takes the translation as it is now as the one the English belongs to (the red note goes away) and from then on the models read the new English in its place. The text of the part is not
 changed, and *Translate the speech* again replaces both. `conlang-edit-source` does the same from the command line.
 
+![The window that edits the source of a speech](../../images/plugin-conlang-source.png)
+
 **Search and replace in the sources** (the button with the arrows at the top of the Conlang tab) opens the application's search and replace window over the English sources of the translated speeches of the
 active branch (plain text or a regular expression, with or without case; the table lists the speeches that have a match by part and speech number). Use it for a name that was spelled two ways in the English.
 Only the sources change; to change the words of the translation itself use the search and replace of the book. A speech whose source was changed after the search is left as it is and counted.
+
+![Search and replace over the English sources of the speeches](../../images/plugin-conlang-search-replace.png)
 
 ![The English behind a translated speech](../../images/plugin-conlang-story.png)
 

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847320413879">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847332947429">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.847320413879" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.847332947429" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847320413879" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847332947429" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847320413879" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.847320413879" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847332947429" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.847332947429" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -508,7 +508,7 @@ reserved   = PrePromptData.reservedTokens            (set by extensions, 0 by de
 <p>If <code translate="no" v-pre>baseTokens + reserved ≥ limit</code>, the generation stops with <em>Contextual limit not sufficient.</em> Otherwise parts are taken from the
 newest backwards - skipping the part being regenerated, stopping at the stop part - starting from
 <code translate="no" v-pre>baseTokens + reserved</code> and counting each part as its <code translate="no" v-pre>tokenCount + 100</code>. A part is added only if the running total with it stays within <code translate="no" v-pre>limit − 256</code>; the first part that
-doesn&#x27;t fit ends the loop. The chosen texts, oldest first, become <code translate="no" v-pre>MANUSCRIPT_CHRONICLE</code>.</p>
+doesn&#x27;t fit ends the loop. The chosen texts, oldest first, become <code translate="no" v-pre>MANUSCRIPT_CHRONICLE</code>. The text of a part is what <code translate="no" v-pre>PartTextRegistry.forModel</code> gives for the whole branch at once: the stored text, unless an extension keeps the story in another form and shows the model another (<a href="../plugins/part-text/">Text a model reads</a>, <code translate="no" v-pre>ModelText</code>); the token count is still the one of the stored part.</p>
 <p><strong>Token breakdown.</strong> When the budget is computed, the step creates a <code translate="no" v-pre>PromptTokenBreakdown</code> (<code translate="no" v-pre>domain.components</code>) and
 puts it into the <code translate="no" v-pre>TOKEN_BREAKDOWN</code> property. It holds the raw counts of each section - context, response and prompt
 limit, jailbreak, system template (the system prompt without lore and summaries), lore, summaries, story, lore in the
@@ -540,7 +540,7 @@ compatible provider sends those of a user message as content parts. This step ad
 <code translate="no" v-pre>AFTER_PREPARE_PAYLOAD</code> can put them on a user message. A message can also carry function calls (<code translate="no" v-pre>toolCalls</code>, an
 assistant message) or be the result of one (<code translate="no" v-pre>LLMRole.TOOL</code> with <code translate="no" v-pre>toolCallId</code>); the pipeline builds none of them, they
 are added by <code translate="no" v-pre>OpenAICompatibleInferenceService</code> when the model calls a function, see
-<a href="../services/#function-calls">Function calls</a>.</p>
+<a href="../services/#function-calls">Function calls</a>. A message of the model may also carry its thinking (<code translate="no" v-pre>reasoning</code> and <code translate="no" v-pre>reasoningInTurn</code>, not stored with the message): only the function call loop and the agents set it, and the OpenAI compatible provider sends it back as <code translate="no" v-pre>reasoning_content</code> when the AI&#x27;s <em>Send the thinking back</em> (<code translate="no" v-pre>reasoningPassthrough</code>) asks for it.</p>
 <p>The payload is stored for the part (<a href="../domain-model/#messageprompt"><code translate="no" v-pre>MessagePrompt</code></a>) and can be inspected in the story editor with <em>View prompt</em>:</p>
 <figure class="content-center">
     <img src="../../images/dev-view-prompt.png" alt="The prompt of a part in the View prompt dialog" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="850" height="650" />
@@ -592,7 +592,7 @@ part is only a placeholder that cleanup removes or restores.</p>
 <p>Events: <code translate="no" v-pre>BEFORE_GENERATE_NEW_MESSAGE</code>, <code translate="no" v-pre>AFTER_GENERATE_NEW_MESSAGE</code> (the part is available as <code translate="no" v-pre>getMessage()</code>).</p>
 <h3 id="7-inference---inferencestep">7. <code translate="no" v-pre>INFERENCE</code> - <code translate="no" v-pre>InferenceStep</code></h3>
 <p><code translate="no" v-pre>InferenceStep</code> fires <code translate="no" v-pre>BEFORE_INFERENCE</code> first and, when the listeners are done, looks at the <code translate="no" v-pre>CancellationToken</code>: a generation that was cancelled while they ran (one that asked the user through <code translate="no" v-pre>accessUI</code> and got <em>no</em>) jumps to <code translate="no" v-pre>CLEANUP</code>, no request is sent and the part started for it is removed, see <a href="../plugins/generation-events/">Generation events</a>. Otherwise:</p>
-<p>Counts the prompt tokens (when the prompt plus the response limit still exceeds the context, the UI gets
+<p>Counts the prompt tokens (<code translate="no" v-pre>countPromptTokens</code>: the content of each message and the calls of its tools with the book&#x27;s <code translate="no" v-pre>InferenceService</code>, a text that repeats - the &quot;generate more&quot; placeholders - once, not the JSON the payload is sent in, whose escapes never reach the model and whose attached media is not text; when the prompt plus the response limit still exceeds the context, the UI gets
 <code translate="no" v-pre>GenerationListener.onWarning</code>; the request is sent anyway), then calls <code translate="no" v-pre>InferenceService.stream(payload, protocol, callback)</code> inside an <code translate="no" v-pre>InferenceSession</code> of the kind <code translate="no" v-pre>GENERATION</code> (a new part, a regeneration and a swipe share it, so the provider&#x27;s cache is that of the story; the service sends it as the header <code translate="no" v-pre>X-Session-ID</code>). For each chunk:</p>
 <ul>
 <li>
@@ -1040,7 +1040,7 @@ wait for it to finish. See <a href="../testing/">Testing</a>.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (d359423b6).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (d7738b569).</p></div>
             </footer>
         </div>
     </div>

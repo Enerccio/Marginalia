@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847320413879">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847332947429">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.847320413879" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.847332947429" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847320413879" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847332947429" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847320413879" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847332947429" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -332,7 +332,7 @@ the story is at (see <doc-anchor-trigger to="#drafting-the-instructions-for-the-
 <h2 id="generating-an-arc">Generating an arc</h2>
 <p>The wand button next to <strong>Add new arc</strong> opens a menu with three items: <strong>Generate an arc</strong> asks the model to write a new arc, <strong>Import from story</strong> summarizes what you have already written, see <doc-anchor-trigger to="#importing-an-arc-from-the-story">below</doc-anchor-trigger>, and <strong>Develop the plot</strong> is a conversation with the model about where the story goes, see <doc-anchor-trigger to="#developing-the-plot-in-a-conversation">below</doc-anchor-trigger>.</p>
 <figure class="content-center">
-    <img src="../../../images/plugin-arcoutline-menu.png" alt="The menu of the wand" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="640" height="190" />
+    <img src="../../../images/plugin-arcoutline-menu.png" alt="The menu of the wand" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="640" height="240" />
     <figcaption class="caption">The menu of the wand</figcaption>
 </figure>
 <p>The dialog of <strong>Generate an arc</strong> has two halves.</p>
@@ -450,7 +450,11 @@ of them keeps the reasoning and the answer of the model and has its own robot bu
 several steps, one arc for each range.</p>
 <h2 id="developing-the-plot-in-a-conversation">Developing the plot in a conversation</h2>
 <p><strong>Develop the plot</strong> in the menu of the wand opens a chat with the model about the plot. Nothing in the book changes by talking: the model sees what you choose to send, answers, and when you have agreed on something you hand it to the arc generator with one click.</p>
-<p>On the left you choose what the model sees and how it helps (the choices are remembered for the next time):</p>
+<p>On the left you choose what the model sees and how it helps (the choices are remembered for the next time), on the right is the chat:</p>
+<figure class="content-center">
+    <img src="../../../images/plugin-arcoutline-wizard.png" alt="The plot wizard: the options on the left, the conversation on the right" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1728" height="838" />
+    <figcaption class="caption">The plot wizard: the options on the left, the conversation on the right</figcaption>
+</figure>
 <retype-table copy-text="| | |
 |---|---|
 | Model, Protocols | Start as the model and protocol of the book. Changing them applies to this conversation only. |
@@ -566,12 +570,24 @@ The next messages carry the calls the model made and what they returned (a long 
 can&#x27;t.</p>
 </li>
 </ul>
+<figure class="content-center">
+    <img src="../../../images/plugin-arcoutline-wizard-tools.png" alt="The model added two scenes to the planner; its calls are listed under the answer" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1728" height="838" />
+    <figcaption class="caption">The model added two scenes to the planner; its calls are listed under the answer</figcaption>
+</figure>
 <h3 id="chats-branches-and-summaries">Chats, branches and summaries</h3>
 <p>A book has any number of chats; pick one in the list above the messages, <strong>+</strong> starts a new one, the pen renames it (it is named after your first message until then) and the trash can deletes it. They are stored with the book.</p>
 <ul>
 <li><strong>Branch</strong> copies the chat as it is into a new chat; the branch button on a message copies it up to and including that message, to take the talk another way from there. The copy has nothing to do with the original afterwards.</li>
 <li><strong>Summarize the chat</strong> first asks what the summary should keep or stress (optional, for example &quot;keep the twist about the traitor and the ending we rejected&quot;; empty: the model decides), then asks the model for a summary of the chat (what you decided, what you rejected, what is still open, the names that were fixed) and adds it as a message. From then on the model gets that summary and the messages after it, <strong>not</strong> the messages above it, which stay on the screen, dimmed. Use it when the chat has grown too long for the model, or to start from a clean state without losing the decisions. Summarize again later and the new summary covers the old one. Branch first when you want to keep the whole chat for the model.</li>
 </ul>
+<figure class="content-center">
+    <img src="../../../images/plugin-arcoutline-wizard-summarize.png" alt="The question what the summary should keep" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="600" height="286" />
+    <figcaption class="caption">The question what the summary should keep</figcaption>
+</figure>
+<figure class="content-center">
+    <img src="../../../images/plugin-arcoutline-wizard-summary.png" alt="The chat after the summary: the messages above it stay on the screen, dimmed" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1728" height="838" />
+    <figcaption class="caption">The chat after the summary: the messages above it stay on the screen, dimmed</figcaption>
+</figure>
 <h2 id="generating-chapters">Generating chapters</h2>
 <p>The wand button on an arc asks the model to divide that arc into chapters. The dialog is like the one for arcs, with
 these choices on the left:</p>
@@ -749,7 +765,7 @@ chapters at the end of the arc) and the answer has their numbers. A story that i
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (d359423b6).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (d7738b569).</p></div>
             </footer>
         </div>
     </div>

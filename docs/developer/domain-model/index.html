@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847320413879">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847332947429">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.847320413879" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.847332947429" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847320413879" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847332947429" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847320413879" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.847320413879" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847332947429" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.847332947429" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -1034,6 +1034,9 @@ the hash was made). A normal block has no other summaries in it, so its hash is 
 the import of an exported file, <code translate="no" v-pre>exportSummaries</code> / <code translate="no" v-pre>analyzeImport</code> / <code translate="no" v-pre>applyImport</code>): the hash of a block is made of the texts of its
 parts and of the summaries a meta summary stands in for, never of the text of the summary at its head. The summaries inside a meta
 summary are the ones that must not be edited.</p>
+<p><code translate="no" v-pre>SummaryService.resummarize</code> (<em>Resummarize all summaries</em> of the overview, <a href="../ui/"><code translate="no" v-pre>ResummarizeDialog</code></a>) asks the model for every summary of the active branch again, oldest first, and meta summaries after the summaries they cover (inner ones first): each
+summary keeps its <code translate="no" v-pre>uuid</code> and its place, only its text and its hash are written, so a meta summary stays linked and an outdated summary is valid afterwards. A stop or an empty answer changes
+nothing: the new texts are written together at the end, in one transaction.</p>
 <p>Deleting a meta summary (<code translate="no" v-pre>SummaryService.removeSummary(part, unwind)</code>) with <code translate="no" v-pre>unwind</code> restores the summary from
 <code translate="no" v-pre>replacedSummary</code>: it is deserialized into a new <code translate="no" v-pre>Summary</code>. Because that summary can be a meta summary with its own
 <code translate="no" v-pre>replacedSummary</code>, unwinding nests. A meta summary takes over the <code translate="no" v-pre>uuid</code> of the summary it replaces
@@ -1343,7 +1346,8 @@ through <code translate="no" v-pre>@CleanupReference(targetClassField = &quot;cl
 | `uri`, `model`, `modelName`, `apiKey` | columns (`ais_openaicompat`) | Base URL, the model id sent to the API, its label in the model list, the API key (encrypted, see [Encrypted columns](database.md#encrypted-columns)). |
 | `extensionId` | column (`ais_extension`, `ExtensionAI` only) | The extension that provides the AI, the id of its `ExtensionAIFactory`. The settings of the provider are in `getSettings()`, the object under that id in the dynamic attributes (`attributes_&lt;id&gt;`); secrets in it are encrypted with `InferenceServices.protectSecret`. See [Inference providers from a plugin](plugins/ai-providers.md). |
 | `additionalParameters` | JSON (`additionalParameters_*`) | Extra fields added to every request; they win over the protocol's settings. |
-| `requestTimeoutSeconds`, `maxRetries` | JSON | Wait for the API (read timeout) and retries of a request; `null` = the defaults of `OpenAICompatibleInferenceService` (300 s, 2 retries). |">
+| `requestTimeoutSeconds`, `maxRetries` | JSON | Wait for the API (read timeout) and retries of a request; `null` = the defaults of `OpenAICompatibleInferenceService` (300 s, 2 retries). |
+| `reasoningPassthrough` | JSON (`OpenAICompatible` only) | `ReasoningPassthrough` (`domain.collections`): `NONE` (the default, stored as nothing), `TOOL_CALLS` or `ALWAYS`. Whether the thinking of an answer goes back to the model as `reasoning_content` of its message: with `TOOL_CALLS` only while the tool calls of one answer go on, with `ALWAYS` also with earlier answers that have it. Read by `OpenAICompatibleInferenceService.toAssistantMessage`; cloned with the AI; the AI dialog shows it in the per type tab. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
 <thead>
@@ -1403,6 +1407,11 @@ through <code translate="no" v-pre>@CleanupReference(targetClassField = &quot;cl
 <td><code translate="no" v-pre>requestTimeoutSeconds</code>, <code translate="no" v-pre>maxRetries</code></td>
 <td>JSON</td>
 <td>Wait for the API (read timeout) and retries of a request; <code translate="no" v-pre>null</code> = the defaults of <code translate="no" v-pre>OpenAICompatibleInferenceService</code> (300 s, 2 retries).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>reasoningPassthrough</code></td>
+<td>JSON (<code translate="no" v-pre>OpenAICompatible</code> only)</td>
+<td><code translate="no" v-pre>ReasoningPassthrough</code> (<code translate="no" v-pre>domain.collections</code>): <code translate="no" v-pre>NONE</code> (the default, stored as nothing), <code translate="no" v-pre>TOOL_CALLS</code> or <code translate="no" v-pre>ALWAYS</code>. Whether the thinking of an answer goes back to the model as <code translate="no" v-pre>reasoning_content</code> of its message: with <code translate="no" v-pre>TOOL_CALLS</code> only while the tool calls of one answer go on, with <code translate="no" v-pre>ALWAYS</code> also with earlier answers that have it. Read by <code translate="no" v-pre>OpenAICompatibleInferenceService.toAssistantMessage</code>; cloned with the AI; the AI dialog shows it in the per type tab.</td>
 </tr>
 </tbody>
 </table>
@@ -2112,7 +2121,7 @@ define both beans in <code translate="no" v-pre>services-config.xml</code>.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (d359423b6).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (d7738b569).</p></div>
             </footer>
         </div>
     </div>

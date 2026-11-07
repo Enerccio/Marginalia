@@ -353,6 +353,11 @@ register it in the `InheritedSettingRegistry` and the *Prompts* tab and the fold
 Plugin dialogs and components are ordinary Vaadin classes in the bundle. Annotate them `@Configurable` to inject
 services. Follow the application's conventions ([User interface → Conventions](../ui.md#conventions)).
 
+A dialog with an input follows the keyboard conventions of the application: `DialogFocus.onOpen(dialog, firstField)` puts the cursor into the first field, and
+`DialogShortcuts.submitWith(mainButton, fields...)` (`ui.widgets`) sends with <kbd>Enter</kbd> in a single line field and <kbd>Ctrl/Cmd+Enter</kbd> in a text area; list
+every input field, call it after the fields and the button exist (a null field is skipped) and never write an `addKeyDownListener(Key.ENTER)` yourself. A dialog
+that asks the model for something (a prompt, instructions) always gets the Ctrl+Enter send.
+
 What plugins can't do:
 
 - **Add frontend resources.** The browser side of Marginalia is one bundle built with the WAR. A plugin can use every
@@ -535,6 +540,12 @@ Anything slow - calling the model, large imports - belongs on another thread, wi
 application ([Background work and push](../ui.md#background-work-and-push)): capture `UI.getCurrent()` on the UI
 thread, change components only inside `ui.access(...)`, push with `UIPushGuard.push(ui)`, and wrap service calls that
 need the current user in the request scope.
+
+Work that has to outlive the page (the translation of a range, the extraction of words, a request to the model that is saved at the end)
+takes the request context with it: on the thread of the page `RequestAttributes attributes = ThreadCopyRequestAttributes.create()`, and on the worker
+`try (ThreadCopyRequestAttributes.InRequestScope scope = new ThreadCopyRequestAttributes.InRequestScope(attributes)) { ... }`. The copy holds the
+attributes of the session as they were (the `user` bean above all), so the worker can still write its result when the last page of the browser was
+closed meanwhile and the session was invalidated; showing it is another matter (`ui.access` and `UIDetachedException`).
 
 A **generation listener** runs on the worker thread of the generation, where there is no page to capture. To show the user
 something from there (a dialog the generation waits for), use `GenerationControllerEvent.accessUI(action)`: it runs the action on

@@ -105,6 +105,8 @@ After you change the summary prompt (or the meta summary prompt) the summaries y
 **Resummarize all summaries** writes all of them again with the book's model, so that they all look the same. It asks first
 and says how many summaries it is going to write: one request each.
 
+![The question before the summaries are written again](../../images/summaries-resummarize-confirm.png)
+
 - It starts with the **oldest** summary and goes on to the newest.
 - A **meta summary** is written after the summaries it stands in for (the ones shown under it, the inner meta summaries
   before the outer), from their **new** texts, so a meta summary is never made of old text.
@@ -113,6 +115,8 @@ and says how many summaries it is going to write: one request each.
 - The window shows the number of the summary being written and the text as it comes in. The new texts are stored only when
   the **last** one is done: if you press **Stop**, or a request fails (the prompt does not fit into the context, the model
   answers nothing), every summary stays as it was.
+
+![The window while the summaries are written](../../images/summaries-resummarize.png)
 
 The summaries of other branches are not changed. Make sure the model is not busy and that the book is not worked on by an
 agent. The edits you made to the texts by hand are replaced, export the summaries first if you want to keep them.

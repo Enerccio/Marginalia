@@ -69,6 +69,8 @@ The **Planner** tab is a list of the scenes you want the story to go through, in
 writes it: a **title** for the list, the **scene setting**, the **POV character**, the **present characters** and the **instructions**, the same four
 fields as the new turn form.
 
+![The Planner tab with four scenes, the first one written](../../images/planner-tab.png)
+
 - **Add scene** opens a form for a new scene; it goes to the end of the list. The pen edits a scene, the arrows move it up or down, the trash can deletes it.
 - The box in front of a scene says it is **done** (written): the title is struck through and the scene is dimmed. Nothing checks it for you, tick it
   when you have written the scene. The line above the list counts how many are done.
@@ -77,6 +79,10 @@ fields as the new turn form.
 - The scenes are saved with the book, so they are in its backups and copies. A model can add scenes too: the [plot wizard](../extensions/arc-outline.md#developing-the-plot-in-a-conversation)
   of the Arc Outline extension and an [agent](../agents.md) can read and change the planner with [commands](../commands/index.md#the-planner); the list
   shows what they added at once.
+
+![The form for a new scene](../../images/planner-scene-dialog.png)
+
+![A click on a scene fills the new turn form with its details](../../images/planner-new-turn.png)
 
 Like every tab of the editor it can be dragged out into a panel of its own, see below.
 

@@ -239,6 +239,10 @@ cd marginalia && mvn install -DskipTests
 cd plugins/reviewer && mvn package        # target/reviewer-1.7.0.jar
 ```
 
+A plugin that uses a shared library (the two translators, which embed `translator-common`) needs the library installed first:
+`cd marginalia/libs/translator-common && mvn install -DskipTests`. The workflows and the plugins `Dockerfile` do that for every folder of `marginalia/libs/`
+before they build the plugins ([Libraries for plugins](plugins/libraries/index.md)).
+
 `server.yml` builds all the plugins against the freshly installed application and attaches the JARs to the release
 of a `v*` tag; the Docker image doesn't contain them (server users put them into `<data folder>/extensions` or install
 them in Admin → Extensions). When you change application classes that a plugin
@@ -250,11 +254,11 @@ application. See [Plugin development](plugins/index.md).
 `marginalia/plugins/Dockerfile` is a separate build environment for the plugins, used by servers that build from
 source (and by anyone without a local JDK/Maven). Its `builder` stage (Maven + JDK 25, like the main `Dockerfile`)
 installs the application into the image's local Maven repository (with `-Dvaadin.skip=true`: the plugins need only the
-classes JAR, so the frontend is not built, see [Building](building.md)) and builds every plugin against it; the final
+classes JAR, so the frontend is not built, see [Building](building.md)), installs the libraries of `marginalia/libs` and builds every plugin against them; the final
 stage is a small Alpine image that holds the JARs in `/jars`. Its command copies them to `/output`, replacing the
 `*.jar` files there, so the compose file (`marginalia/plugins/docker-compose.yml`, build context `../..`) mounts
 `marginalia/plugins/build` as `/output`. The plugins are built one after the other and none of them needs another one
-installed first (the Lore Generator finds the Name generator at run time, not at build time). The Name generator's
+installed first (the Lore Generator finds the Name generator at run time, not at build time); only the libraries come before them. The Name generator's
 build clones the sources of its names from GitHub (the Maven image has `git`); without network it keeps the tables
 committed in the repository, see its [README](https://github.com/Enerccio/Marginalia/blob/master/marginalia/plugins/name-generator/README.md):
 
@@ -296,7 +300,7 @@ flowchart LR
 | Job | Runs on | Does |
 |---|---|---|
 | `test` | `ubuntu-latest` | For `v*` tags, checks that the tag matches the POM version; `mvn test`; uploads `surefire-reports/` when a test fails. |
-| `plugins` | `ubuntu-latest` | Installs the application (`-Dvaadin.skip=true`: the plugins need only its classes JAR) and builds every plugin; uploads the JARs, which are the same on every platform (kept 14 days). |
+| `plugins` | `ubuntu-latest` | Installs the application (`-Dvaadin.skip=true`: the plugins need only its classes JAR), installs the libraries of `marginalia/libs` and builds every plugin; uploads the JARs, which are the same on every platform (kept 14 days). |
 | `desktop` | one runner per platform | downloads the plugin JARs to `target/desktop-plugins`, `mvn -Pdesktop -DskipTests -Ddesktop.installerRequired=true -Ddesktop.skipFull=false package`, a smoke test, uploads the archives and the installer (kept 14 days). |
 | `release` | `ubuntu-latest`, `v*` tags only | Downloads all archives and attaches them to the GitHub release of the tag. |
 
@@ -319,7 +323,7 @@ flowchart LR
 
 | Job | Runs on | Does |
 |---|---|---|
-| `build` | `ubuntu-latest` | For `v*` tags, checks the tag against the POM version; `mvn -DskipTests install` (tests run in `desktop.yml`), then `mvn package` in every plugin; uploads the WAR and the plugin JARs (kept 14 days). |
+| `build` | `ubuntu-latest` | For `v*` tags, checks the tag against the POM version; `mvn -DskipTests install` (tests run in `desktop.yml`), then `mvn install` in every folder of `marginalia/libs`, then `mvn package` in every plugin; uploads the WAR and the plugin JARs (kept 14 days). |
 | `docker` | one native runner per platform | Builds the image from the `Dockerfile` (natively, because the Maven stage is too slow under emulation), starts a container with a root-owned bind-mounted data folder and waits for the start page, then (not for pull requests) pushes the image by digest. |
 | `publish` | `ubuntu-latest`, not for pull requests | Joins both digests into one multi-platform manifest and tags it: `edge` for `master`, `<version>`, `<major>.<minor>` and `latest` for `v*` tags. |
 | `release` | `ubuntu-latest`, `v*` tags only | Attaches the WAR and the plugin JARs to the GitHub release of the tag. |

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847320413879">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847332947429">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.847320413879" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.847332947429" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847320413879" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847332947429" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847320413879" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.847320413879" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847332947429" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.847332947429" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -512,6 +512,9 @@ one exact version of the application:</p>
 cd marginalia &amp;&amp; mvn install -DskipTests
 cd plugins/reviewer &amp;&amp; mvn package        # target/reviewer-1.7.0.jar</code></pre>
 </doc-codeblock></div>
+<p>A plugin that uses a shared library (the two translators, which embed <code translate="no" v-pre>translator-common</code>) needs the library installed first:
+<code translate="no" v-pre>cd marginalia/libs/translator-common &amp;&amp; mvn install -DskipTests</code>. The workflows and the plugins <code translate="no" v-pre>Dockerfile</code> do that for every folder of <code translate="no" v-pre>marginalia/libs/</code>
+before they build the plugins (<a href="../plugins/libraries/">Libraries for plugins</a>).</p>
 <p><code translate="no" v-pre>server.yml</code> builds all the plugins against the freshly installed application and attaches the JARs to the release
 of a <code translate="no" v-pre>v*</code> tag; the Docker image doesn&#x27;t contain them (server users put them into <code translate="no" v-pre>&lt;data folder&gt;/extensions</code> or install
 them in Admin → Extensions). When you change application classes that a plugin
@@ -521,11 +524,11 @@ application. See <a href="../plugins/">Plugin development</a>.</p>
 <p><code translate="no" v-pre>marginalia/plugins/Dockerfile</code> is a separate build environment for the plugins, used by servers that build from
 source (and by anyone without a local JDK/Maven). Its <code translate="no" v-pre>builder</code> stage (Maven + JDK 25, like the main <code translate="no" v-pre>Dockerfile</code>)
 installs the application into the image&#x27;s local Maven repository (with <code translate="no" v-pre>-Dvaadin.skip=true</code>: the plugins need only the
-classes JAR, so the frontend is not built, see <a href="../building/">Building</a>) and builds every plugin against it; the final
+classes JAR, so the frontend is not built, see <a href="../building/">Building</a>), installs the libraries of <code translate="no" v-pre>marginalia/libs</code> and builds every plugin against them; the final
 stage is a small Alpine image that holds the JARs in <code translate="no" v-pre>/jars</code>. Its command copies them to <code translate="no" v-pre>/output</code>, replacing the
 <code translate="no" v-pre>*.jar</code> files there, so the compose file (<code translate="no" v-pre>marginalia/plugins/docker-compose.yml</code>, build context <code translate="no" v-pre>../..</code>) mounts
 <code translate="no" v-pre>marginalia/plugins/build</code> as <code translate="no" v-pre>/output</code>. The plugins are built one after the other and none of them needs another one
-installed first (the Lore Generator finds the Name generator at run time, not at build time). The Name generator&#x27;s
+installed first (the Lore Generator finds the Name generator at run time, not at build time); only the libraries come before them. The Name generator&#x27;s
 build clones the sources of its names from GitHub (the Maven image has <code translate="no" v-pre>git</code>); without network it keeps the tables
 committed in the repository, see its <a href="https://github.com/Enerccio/Marginalia/blob/master/marginalia/plugins/name-generator/README.md">README</a>:</p>
 <div id="building-the-plugins-in-docker-code-1" class="codeblock-wrapper"><doc-codeblock>
@@ -557,7 +560,7 @@ on pushes to <code translate="no" v-pre>master</code>, on <code translate="no" v
 <retype-table copy-text="| Job | Runs on | Does |
 |---|---|---|
 | `test` | `ubuntu-latest` | For `v*` tags, checks that the tag matches the POM version; `mvn test`; uploads `surefire-reports/` when a test fails. |
-| `plugins` | `ubuntu-latest` | Installs the application (`-Dvaadin.skip=true`: the plugins need only its classes JAR) and builds every plugin; uploads the JARs, which are the same on every platform (kept 14 days). |
+| `plugins` | `ubuntu-latest` | Installs the application (`-Dvaadin.skip=true`: the plugins need only its classes JAR), installs the libraries of `marginalia/libs` and builds every plugin; uploads the JARs, which are the same on every platform (kept 14 days). |
 | `desktop` | one runner per platform | downloads the plugin JARs to `target/desktop-plugins`, `mvn -Pdesktop -DskipTests -Ddesktop.installerRequired=true -Ddesktop.skipFull=false package`, a smoke test, uploads the archives and the installer (kept 14 days). |
 | `release` | `ubuntu-latest`, `v*` tags only | Downloads all archives and attaches them to the GitHub release of the tag. |">
 <div class="table-wrapper scrollbar overflow-hidden">
@@ -578,7 +581,7 @@ on pushes to <code translate="no" v-pre>master</code>, on <code translate="no" v
 <tr>
 <td><code translate="no" v-pre>plugins</code></td>
 <td><code translate="no" v-pre>ubuntu-latest</code></td>
-<td>Installs the application (<code translate="no" v-pre>-Dvaadin.skip=true</code>: the plugins need only its classes JAR) and builds every plugin; uploads the JARs, which are the same on every platform (kept 14 days).</td>
+<td>Installs the application (<code translate="no" v-pre>-Dvaadin.skip=true</code>: the plugins need only its classes JAR), installs the libraries of <code translate="no" v-pre>marginalia/libs</code> and builds every plugin; uploads the JARs, which are the same on every platform (kept 14 days).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>desktop</code></td>
@@ -607,7 +610,7 @@ JDK module, a launcher that can&#x27;t find <code translate="no" v-pre>server/</
     publish --&gt; release[&quot;release&lt;br/&gt;(v* tags only)&quot;]</pre></div>
 <retype-table copy-text="| Job | Runs on | Does |
 |---|---|---|
-| `build` | `ubuntu-latest` | For `v*` tags, checks the tag against the POM version; `mvn -DskipTests install` (tests run in `desktop.yml`), then `mvn package` in every plugin; uploads the WAR and the plugin JARs (kept 14 days). |
+| `build` | `ubuntu-latest` | For `v*` tags, checks the tag against the POM version; `mvn -DskipTests install` (tests run in `desktop.yml`), then `mvn install` in every folder of `marginalia/libs`, then `mvn package` in every plugin; uploads the WAR and the plugin JARs (kept 14 days). |
 | `docker` | one native runner per platform | Builds the image from the `Dockerfile` (natively, because the Maven stage is too slow under emulation), starts a container with a root-owned bind-mounted data folder and waits for the start page, then (not for pull requests) pushes the image by digest. |
 | `publish` | `ubuntu-latest`, not for pull requests | Joins both digests into one multi-platform manifest and tags it: `edge` for `master`, `&lt;version&gt;`, `&lt;major&gt;.&lt;minor&gt;` and `latest` for `v*` tags. |
 | `release` | `ubuntu-latest`, `v*` tags only | Attaches the WAR and the plugin JARs to the GitHub release of the tag. |">
@@ -624,7 +627,7 @@ JDK module, a launcher that can&#x27;t find <code translate="no" v-pre>server/</
 <tr>
 <td><code translate="no" v-pre>build</code></td>
 <td><code translate="no" v-pre>ubuntu-latest</code></td>
-<td>For <code translate="no" v-pre>v*</code> tags, checks the tag against the POM version; <code translate="no" v-pre>mvn -DskipTests install</code> (tests run in <code translate="no" v-pre>desktop.yml</code>), then <code translate="no" v-pre>mvn package</code> in every plugin; uploads the WAR and the plugin JARs (kept 14 days).</td>
+<td>For <code translate="no" v-pre>v*</code> tags, checks the tag against the POM version; <code translate="no" v-pre>mvn -DskipTests install</code> (tests run in <code translate="no" v-pre>desktop.yml</code>), then <code translate="no" v-pre>mvn install</code> in every folder of <code translate="no" v-pre>marginalia/libs</code>, then <code translate="no" v-pre>mvn package</code> in every plugin; uploads the WAR and the plugin JARs (kept 14 days).</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>docker</code></td>
@@ -719,7 +722,7 @@ with a new <code translate="no" v-pre>docs/</code> reaches <code translate="no" 
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (d359423b6).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (d7738b569).</p></div>
             </footer>
         </div>
     </div>

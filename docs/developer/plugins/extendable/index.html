@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847320413879">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847332947429">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.847320413879" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.847332947429" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847320413879" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847332947429" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847320413879" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.847320413879" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847332947429" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.847332947429" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -585,6 +585,8 @@ stores them.</p>
 | `ManuscriptStoryPart` | `renderStoryContent()` | fields `leftBar` (a `TabDock`), `currentManuscript`, `lazyLoader` (a `StoryLazyLoader`) | Add a tab next to the story outline (Side Query). Runs on every redraw of the story. Arc Outline also reaches the loader to find the part the reader sees (`mostVisible`) and to scroll the story to a part (`scrollTo`); on the phone the field `layout` (an `AppLayout`, the desktop part has none) is the drawer that is closed first. |
 | `ManuscriptStoryPart` | `populateMenuBar(bar)` / `createCogsMenuItem(bar)` | argument `bar`; local `cogs` | Add items to the menu bar of the story editor / to its settings menu. For an item of the settings menu register a `StoryMenuItem` instead (see [UI extensions](ui-extensions.md#menu-items-of-the-story-editor)). |
 | `ManuscriptStoryPart` | `createCommandBox()` (from 1.4.0) | return value (a `Component`, the `CommandBar`) | Replace or wrap the command line (`CommandBar` with its `CommandResultView` popover), for example to put another `CommandResultTarget` on the bar. |
+| `ManuscriptStoryPart` | `scrollToMessage(messageId)` (from 1.7.0) | argument `messageId` | Shows a part: the story scrolls to it (the parts before it are loaded first when they are not yet). `PhoneManuscriptStoryPart` has the same method. The Knowledge Tracker's links to the parts call it. |
+| `ChatMessageCard` (inner class of `ManuscriptStoryPart` and `PhoneManuscriptStoryPart`) | `withSelection(action)` (from 1.7.0) | argument `action` | Gives the action the range `[start, end)` of the text the author selected in the part, in the stored text (the edit is saved first, the author is told when nothing is selected). The translators' item of the right click menu uses it. |
 | `SummariesDialog` | `populateMenuBar(bar)` | argument `bar` | Add tools to the menu bar of the summaries overview, which has *Search and Replace*, *Resummarize all summaries*, *Export Summaries*, *Import Summaries* and *Revalidate all summaries* of the application (`PhoneSummariesDialog` has the same method). Not used by a bundled plugin yet. |
 | `ManuscriptStoryPart$ChatMessageCard` | `createMenuItems()` | fields `hamburgerMenu`, `message` | Add other things to a part's menu; runs when the menu of the part is first opened, after the items of the `StoryMenuRegistry`. Items are better registered there (Reviewer does). |
 | `ManuscriptStoryPart$ChatMessageCard` | `refreshSummaryMenuItems()` | fields `hamburgerMenu`, `message` | Runs each time the menu of the part is about to open, after it reloaded `message` (before the registry refreshes its items). |
@@ -633,6 +635,18 @@ stores them.</p>
 <td><code translate="no" v-pre>createCommandBox()</code> (from 1.4.0)</td>
 <td>return value (a <code translate="no" v-pre>Component</code>, the <code translate="no" v-pre>CommandBar</code>)</td>
 <td>Replace or wrap the command line (<code translate="no" v-pre>CommandBar</code> with its <code translate="no" v-pre>CommandResultView</code> popover), for example to put another <code translate="no" v-pre>CommandResultTarget</code> on the bar.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>ManuscriptStoryPart</code></td>
+<td><code translate="no" v-pre>scrollToMessage(messageId)</code> (from 1.7.0)</td>
+<td>argument <code translate="no" v-pre>messageId</code></td>
+<td>Shows a part: the story scrolls to it (the parts before it are loaded first when they are not yet). <code translate="no" v-pre>PhoneManuscriptStoryPart</code> has the same method. The Knowledge Tracker&#x27;s links to the parts call it.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>ChatMessageCard</code> (inner class of <code translate="no" v-pre>ManuscriptStoryPart</code> and <code translate="no" v-pre>PhoneManuscriptStoryPart</code>)</td>
+<td><code translate="no" v-pre>withSelection(action)</code> (from 1.7.0)</td>
+<td>argument <code translate="no" v-pre>action</code></td>
+<td>Gives the action the range <code translate="no" v-pre>[start, end)</code> of the text the author selected in the part, in the stored text (the edit is saved first, the author is told when nothing is selected). The translators&#x27; item of the right click menu uses it.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>SummariesDialog</code></td>
@@ -958,7 +972,7 @@ enough) and to mention the change in the release notes. Do not make the test pas
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (d359423b6).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (d7738b569).</p></div>
             </footer>
         </div>
     </div>

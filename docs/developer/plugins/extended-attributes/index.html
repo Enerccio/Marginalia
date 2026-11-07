@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847320413879">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847332947429">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.847320413879" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.847332947429" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847320413879" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847332947429" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847320413879" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.847320413879" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847332947429" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.847332947429" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -174,14 +174,15 @@ entity, loaded with it, and travels with it into backups.</p>
 <p>All data entities extend <code translate="no" v-pre>ExtendableEntity</code> (<a href="../../domain-model/">Domain model</a>):</p>
 <retype-table copy-text="| Entity | Typical plugin data |
 |---|---|
-| `Manuscript` (book) | Per-book state and settings - Side Query keeps its chat sessions here. |
+| `Manuscript` (book) | Per-book state and settings - Side Query keeps its chat sessions here. (Marginalia itself keeps the scenes of the planner in its `@ExtendedAttribute` field `plan`, a list of `PlannedScene`, see [Domain model](../domain-model.md).) |
 | `ChatMessage` (story part) | Data about one part - Reviewer keeps the reviews of the part here. |
 | `Folder` (1.6.0) | A folder of books: its own data goes in its `attributes`. Marginalia keeps the description and the settings the books below inherit in `@ExtendedAttribute` fields, see [Folders](../folders.md#the-data). |
 | `MessageRevision` (1.6.0) | A version of the text of a part: its `response` and `responseReasoning` are `@ExtendedAttribute` fields (gzipped with the rest), see [Version history](../version-history.md). Marginalia also keeps `historyMaxVersions` (the limit of the history) as an `@ExtendedAttribute` of `Manuscript`, `Folder`, `UserSetting` and `Permission`. |
 | `Summary` | Data about a summary. |
 | `MessagePrompt` (1.7.0) | The prompt a part was generated from: Marginalia keeps the lore entries it used (`loreUsage`) in its `@ExtendedAttribute` fields, see [Domain model](../domain-model.md#messageprompt). |
-| `Lorebook`, `LorebookEntry` | Lore metadata - Lorebook VCS keeps the revision history in the lorebook. |
-| `AI` (inference provider), `Protocol`, `Tag` | Per-provider or per-protocol options. (Marginalia itself keeps the per-user limits of a shared AI in the `@ExtendedAttribute` field `AI.limits`, see [Domain model](../domain-model.md#limits-of-the-users-of-a-shared-ai).) |
+| `Lorebook`, `LorebookEntry` | Lore metadata - Lorebook VCS keeps the revision history in the lorebook. (Marginalia itself keeps the condition of an entry in its `@ExtendedAttribute` field `activationCondition`, see [Domain model](../domain-model.md).) |
+| `Annotation`, `AnchoredPassage` (1.7.0) | A passage of a part that an extension attached data to (a `passageKind` of its own): the data is in `getAttributes()`, see [Anchored passages](anchored-passages.md). |
+| `AI` (inference provider), `Protocol`, `Tag` | Per-provider or per-protocol options. (Marginalia itself keeps the per-user limits of a shared AI in the `@ExtendedAttribute` field `AI.limits`, see [Domain model](../domain-model.md#limits-of-the-users-of-a-shared-ai), and whether an OpenAI-compatible AI gets its thinking back in `OpenAICompatible.reasoningPassthrough`.) |
 | `UserSetting` | Per-user plugin settings - Reviewer and Side Query keep theirs here. (Marginalia itself keeps the autosaved state of the workspace in its `@ExtendedAttribute` field `workspaceState`, the favorite books in `favoriteBooks`, the default arrangement of the story in `defaultStoryLayout` and the opt-in of the help assistant in `helpAssistantBooks`, the day the time of the statistics is recorded from in `statisticsSince` and the daily goals of the calendar in `dailyGoalWords` and `dailyGoalMinutes`.) |
 | `AppSettings` | Settings for the whole installation (administrators). |
 | `Agent`, `AgentRun`, `AgentMessage` | The agents of 1.4.0, their runs and the messages of a run: the data an extension wants to keep with one of them. Marginalia keeps the settings of the agent itself in `@ExtendedAttribute` fields (the models for sub-agents, the allowed commands, the prompts...), see [Agents](../agents.md). |">
@@ -196,7 +197,7 @@ entity, loaded with it, and travels with it into backups.</p>
 <tbody>
 <tr>
 <td><code translate="no" v-pre>Manuscript</code> (book)</td>
-<td>Per-book state and settings - Side Query keeps its chat sessions here.</td>
+<td>Per-book state and settings - Side Query keeps its chat sessions here. (Marginalia itself keeps the scenes of the planner in its <code translate="no" v-pre>@ExtendedAttribute</code> field <code translate="no" v-pre>plan</code>, a list of <code translate="no" v-pre>PlannedScene</code>, see <a href="../../domain-model/">Domain model</a>.)</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>ChatMessage</code> (story part)</td>
@@ -220,11 +221,15 @@ entity, loaded with it, and travels with it into backups.</p>
 </tr>
 <tr>
 <td><code translate="no" v-pre>Lorebook</code>, <code translate="no" v-pre>LorebookEntry</code></td>
-<td>Lore metadata - Lorebook VCS keeps the revision history in the lorebook.</td>
+<td>Lore metadata - Lorebook VCS keeps the revision history in the lorebook. (Marginalia itself keeps the condition of an entry in its <code translate="no" v-pre>@ExtendedAttribute</code> field <code translate="no" v-pre>activationCondition</code>, see <a href="../../domain-model/">Domain model</a>.)</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>Annotation</code>, <code translate="no" v-pre>AnchoredPassage</code> (1.7.0)</td>
+<td>A passage of a part that an extension attached data to (a <code translate="no" v-pre>passageKind</code> of its own): the data is in <code translate="no" v-pre>getAttributes()</code>, see <a href="../anchored-passages/">Anchored passages</a>.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>AI</code> (inference provider), <code translate="no" v-pre>Protocol</code>, <code translate="no" v-pre>Tag</code></td>
-<td>Per-provider or per-protocol options. (Marginalia itself keeps the per-user limits of a shared AI in the <code translate="no" v-pre>@ExtendedAttribute</code> field <code translate="no" v-pre>AI.limits</code>, see <a href="../../domain-model/#limits-of-the-users-of-a-shared-ai">Domain model</a>.)</td>
+<td>Per-provider or per-protocol options. (Marginalia itself keeps the per-user limits of a shared AI in the <code translate="no" v-pre>@ExtendedAttribute</code> field <code translate="no" v-pre>AI.limits</code>, see <a href="../../domain-model/#limits-of-the-users-of-a-shared-ai">Domain model</a>, and whether an OpenAI-compatible AI gets its thinking back in <code translate="no" v-pre>OpenAICompatible.reasoningPassthrough</code>.)</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>UserSetting</code></td>
@@ -536,7 +541,7 @@ data can&#x27;t point a plugin at another user&#x27;s entity.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (d359423b6).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (d7738b569).</p></div>
             </footer>
         </div>
     </div>

@@ -168,6 +168,8 @@ each part. The entry is used only when the result is **true**: anything except a
 (any case). It sees the same things as the content: the point of view character, the present characters, the scene, the
 instructions of the turn, the story so far and the variables.
 
+![An entry with a condition: the entry is used only when Tomáš is the point of view and Mizuki is present](../../images/lorebook-condition.png)
+
 | Condition | The entry is used when |
 |---|---|
 | `{{#if presentCharacters}}yes{{/if}}` | the turn has present characters |
@@ -187,6 +189,9 @@ How it works:
   the ones that only read.
 - It is rendered once for each entry and part, so `{{random::yes::no}}` does not change its mind between the first pass and
   the passes of the scan depth.
+- The [preview](#preview-activation) names the entries whose condition is false: *Not used: condition is false*.
+
+  ![The preview of the activation: the entry of Mizuki is not used because its condition is false](../../images/lorebook-condition-preview.png)
 - All the conditions of one part share **60 seconds**. When they are used up, the conditions that are left count as false
   (*condition failed*, timeout). A condition that is running is not stopped, the time is checked before the next one.
 - Lorebook import and export, cloning and the Lorebook VCS extension keep the condition.

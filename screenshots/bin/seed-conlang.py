@@ -52,6 +52,15 @@ def draft(language):
     return copy
 
 
+def names_of(language):
+    """Two categories of names for the Name generator, made of the words of two categories of the lexicon."""
+    categories = {category['name']: category['id'] for category in language['categories']}
+    language['nameCategories'] = [
+        {'id': 'f0c5b0a2-7d1e-4a3e-9d6a-000000000001', 'name': 'People', 'entries': [e['id'] for e in language['lexicon'] if e['category'] == categories['People and society']]},
+        {'id': 'f0c5b0a2-7d1e-4a3e-9d6a-000000000002', 'name': 'Places', 'entries': [e['id'] for e in language['lexicon'] if e['category'] in (categories['Places and objects'], categories['Nature'])]},
+    ]
+
+
 def main(path):
     db = sqlite3.connect(path)
     language = json.loads((DATASET / 'conlang-vrakht.json').read_text())
@@ -59,6 +68,7 @@ def main(path):
     admin = db.execute("select id from users where login = 'admin'").fetchone()[0]
     row = db.execute("select id, extendedContent from settings where DTYPE = 'UserSetting' and userId = ?", (admin,)).fetchone()
     settings = load(row[1])
+    names_of(language)
     settings['attributes_' + LIBRARY] = [language, draft(language)]
     db.execute('update settings set extendedContent = ? where id = ?', (dump(settings), row[0]))
 

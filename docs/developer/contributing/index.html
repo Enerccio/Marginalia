@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847320413879">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847332947429">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,11 +38,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.847320413879" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.847332947429" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847320413879" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847332947429" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847320413879" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847332947429" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -321,6 +321,12 @@ texts are <code translate="no" v-pre>ja(...)</code> / <code translate="no" v-pre
 <a href="../plugins/ui-extensions/#texts-in-several-languages">Texts in several languages</a>).</p>
 </li>
 <li>
+<p><strong>Dialogs that take input</strong> put the cursor into the first field when they open (<code translate="no" v-pre>DialogFocus.onOpen</code>) and send from the keyboard with
+<code translate="no" v-pre>DialogShortcuts.submitWith(mainButton, fields...)</code>: Enter in a single line field, Ctrl/Cmd+Enter in a text area (Enter there is a new
+line); a prompt dialog (a call to the model) always gets the Ctrl+Enter send. List every input field of the dialog; bulk dialogs and read
+only text areas are left out. Never write your own <code translate="no" v-pre>addKeyDownListener(Key.ENTER)</code> (see <a href="../ui/">User interface</a>).</p>
+</li>
+<li>
 <p><strong>Threads</strong>: long work runs off the UI thread, and UI updates go through <code translate="no" v-pre>ui.access(...)</code> (see
 <a href="../ui/#background-work-and-push">Background work and push</a>).</p>
 </li>
@@ -339,6 +345,10 @@ bundled plugins and mention the change in the pull request (see
 <h3 id="tests">Tests</h3>
 <p>Use JUnit Jupiter and AssertJ, the <a href="../testing/#test-bases">test bases</a> and the fake LLM server; no real network calls.
 See the <a href="../testing/#checklist-for-a-new-test">checklist for a new test</a>.</p>
+<p>To try a <strong>prompt on a real model</strong> (a reasoning model needs a big output budget: its thinking counts against <code translate="no" v-pre>max_tokens</code>), <code translate="no" v-pre>tools/LocalLlm.java</code> (one file, JDK and <code translate="no" v-pre>sqlite3</code> only,
+no build) sends one chat completion to the AI set up in your dev database <code translate="no" v-pre>~/.marginalia/marginalia.sqlite</code>, reading the key from there and never printing it:
+<code translate="no" v-pre>java tools/LocalLlm.java --list</code>, then for example <code translate="no" v-pre>java tools/LocalLlm.java --system-file sys.txt --user-file scene.txt --samples 3</code>. The other options (<code translate="no" v-pre>--json-schema</code>,
+<code translate="no" v-pre>--reasoning</code> to show the thinking, <code translate="no" v-pre>--extra</code> for more raw JSON members of the request) are listed at the top of the file. Say &quot;3 of 3 samples&quot;, not rates, and write down the model and the token numbers with the result.</p>
 <h2 id="documentation">Documentation</h2>
 <p>The manual you are reading is in <code translate="no" v-pre>manual/</code> (Markdown for <a href="https://retype.com">Retype</a>); <code translate="no" v-pre>docs/</code> is the generated site.</p>
 <ul>
@@ -426,7 +436,7 @@ you want it bundled with Marginalia in <code translate="no" v-pre>marginalia/plu
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (d359423b6).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (d7738b569).</p></div>
             </footer>
         </div>
     </div>

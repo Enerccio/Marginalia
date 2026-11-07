@@ -107,6 +107,28 @@
     "gender": "",
     "voice": "Anyone of the Dominion (an officer, an official, an unnamed man or woman of its towns) speaks Vrakht.",
     "listed": true
+   },
+   {
+    "id": "754b04bc-65a3-59f3-8b4a-2ac27196e208",
+    "name": "Mizuki",
+    "aliases": [
+     "Mizuki Hayashida"
+    ],
+    "gender": "female",
+    "voice": "Does not speak the language of the valley.",
+    "listed": false,
+    "level": "NONE"
+   },
+   {
+    "id": "8f853ba8-f56e-5ca2-a122-7769af18eda5",
+    "name": "Tomáš",
+    "aliases": [
+     "Tomáš Hájek"
+    ],
+    "gender": "male",
+    "voice": "Has picked up the greetings and the numbers.",
+    "listed": false,
+    "level": "FEW_WORDS"
    }
   ]
  },

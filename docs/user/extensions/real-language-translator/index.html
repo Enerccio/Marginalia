@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847320413879">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847332947429">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.847320413879" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.847332947429" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847320413879" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847332947429" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847320413879" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847332947429" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -363,8 +363,8 @@ Settings screen to keep your changes.</p>
 <h2 id="the-real-language-tab-of-the-book">The Real language tab of the book</h2>
 <p>The story window has a <strong>Real language</strong> tab (in the same dock as the chapters and the lorebook) for the language of <em>this</em> book, with <strong>Refresh</strong> to read it again.</p>
 <figure class="content-center">
-    <img src="../../../images/plugin-reallang-tab.png" alt="The Real language tab of the story" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="690" height="780" />
-    <figcaption class="caption">The Real language tab of the story</figcaption>
+    <img src="../../../images/plugin-reallang-tab.png" alt="The Real language tab of the story, with the speakers and their understanding" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="690" height="780" />
+    <figcaption class="caption">The Real language tab of the story, with the speakers and their understanding</figcaption>
 </figure>
 <p><strong>Speakers.</strong> Who speaks the language <strong>in this book</strong> (a book with <doc-anchor-trigger to="#more-than-one-language-in-a-book">more than one language</doc-anchor-trigger> has a <em>Speakers</em> tab for each). By default everybody speaks it except the listed characters (or only the listed ones). The text overrides this (&quot;she said in English&quot;,
 &quot;the guard could not understand a word&quot;). For each character note the <strong>gender</strong> and the <strong>voice</strong>: the level of speech follows it. Write the age, the rank and how the character talks to
@@ -389,9 +389,25 @@ which one). Nothing is written into the story; you copy the translation.</p>
 </ul>
 <p><strong>Three levels, merged.</strong> The glossary of a language lives at three levels: the <strong>language</strong> (in its editor, in <em>Settings → Extension Settings</em>: the names and terms of every book in this language), the <strong>folders</strong> the book is in (a series defines the names its books share; the folders nest) and the <strong>book</strong> (its own, the one used most). The model gets the <em>union</em>; for the same word the <strong>nearest level wins</strong>, so a book can write a name another way than its folder does. The <em>Glossary</em> tab of the <em>Real language</em> tab shows all of them with the level each entry comes from and changes an entry where it lives. A word of a higher level that this book should not use is <strong>switched off for this book</strong> (an entry of the book that is off; switch it on again the same way, or delete it to get the higher level&#x27;s word back). An entry of the book can be <strong>moved up</strong> to a folder or to the language when it turns out to be common. The glossary of a folder and of a book is kept <strong>for each language</strong> of the book, because a name is written another way in every language.</p>
 <p><strong>What the translation does with it.</strong> The glossary is part of the request, so the model writes the words as listed. A glossary of up to 100 entries goes whole in every request (a server that caches the prompt reads it once); a bigger one goes with the entries the part has. After the answer the plugin <strong>checks</strong> it: a speech whose English has a word of the glossary but whose translation does not write it as the glossary says is kept and <strong>reported</strong> (the author decides). A name the model <strong>had to choose</strong> a written form for, that the glossary does not list, is added to the book&#x27;s glossary as a <strong>proposal</strong> (the <em>Status</em> column says <em>Proposed</em>): the model uses it from then on, and <em>Accept</em> says you looked at it, or <em>Edit</em> changes it. A word that any level has already (even switched off) is never proposed again.</p>
+<figure class="content-center">
+    <img src="../../../images/plugin-reallang-glossary.png" alt="The glossary of the book: the entries of the three levels, a name the model proposed waits to be accepted" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="690" height="780" />
+    <figcaption class="caption">The glossary of the book: the entries of the three levels, a name the model proposed waits to be accepted</figcaption>
+</figure>
+<figure class="content-center">
+    <img src="../../../images/plugin-reallang-glossary-entry.png" alt="An entry of the glossary" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="640" height="664" />
+    <figcaption class="caption">An entry of the glossary</figcaption>
+</figure>
+<figure class="content-center">
+    <img src="../../../images/plugin-reallang-editor-glossary.png" alt="The glossary at the end of the editor of a language" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="640" height="857" />
+    <figcaption class="caption">The glossary at the end of the editor of a language</figcaption>
+</figure>
 <p>The commands for it are in the table below. A part that a book translated before the glossary existed keeps its translation; translate it again to use the glossary.</p>
 <h2 id="extracting-the-words-by-model">Extracting the words by model</h2>
 <p>Writing the glossary by hand is slow for a long book. The <strong>Word extraction</strong> tab (next to the glossary tabs of the <em>Real language</em> tab) has the model read a <strong>range of parts</strong> and list the names and special words it finds, with the form each has in the language. Everything it finds that the glossary does not have yet is added to the glossary of the book as a <strong>proposal</strong>: the model uses it from the next request on, and you accept, edit or delete it in the <em>Glossary</em> tab. Nothing in the story changes.</p>
+<figure class="content-center">
+    <img src="../../../images/plugin-reallang-extraction.png" alt="The Word extraction tab after a run: the terms the model found are in the glossary as proposals" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="690" height="780" />
+    <figcaption class="caption">The Word extraction tab after a run: the terms the model found are in the glossary as proposals</figcaption>
+</figure>
 <ul>
 <li><strong>Language.</strong> With more than one language in the book, the language the glossary is for.</li>
 <li><strong>Prompt.</strong> Instructions for the model: what to look for and how each kind of word is written in the language. Choose one from the library, or <em>None: only my specification</em>. The plugin comes with a prompt for Japanese (real-world places and organizations in their usual Japanese form, made-up foreign names in katakana, Japanese names in kanji with the reading, coined terms of the world as kanji with a katakana reading, <em>gikun</em>); it is marked <em>built-in</em> and is always there.</li>
@@ -400,6 +416,10 @@ which one). Nothing is written into the story; you copy the translation.</p>
 </ul>
 <p>The words the glossary has already (at any level, even switched off) are told to the model and are not proposed again, so a second run over the same range adds only what is new. The <em>category</em> the model put a term in (&quot;Fictional coined term / gikun&quot;) is written into the note of the entry. You do not describe the output: the plugin asks for a fixed format, whatever the prompt says.</p>
 <p><strong>The library of prompts.</strong> <em>Settings → Extension Settings → Real Language Translator</em> has the <strong>Extraction prompts</strong> list: your own prompts with a name and the instructions, to add, edit, delete and reorder. <strong>Copy a built-in prompt</strong> puts a copy of the built-in one in your list to change. The prompts belong to you, not to a book; a book remembers which one it chose and its specification.</p>
+<figure class="content-center">
+    <img src="../../../images/plugin-reallang-prompts.png" alt="The library of extraction prompts in the settings" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1612" height="900" />
+    <figcaption class="caption">The library of extraction prompts in the settings</figcaption>
+</figure>
 <h2 id="more-than-one-language-in-a-book">More than one language in a book</h2>
 <p>A story with Japanese and Korean speakers needs both. A book names <strong>one language first</strong> (the field above, which a folder or your settings may also give) and the <strong>Languages</strong> tab adds <strong>other languages</strong>
 from your library, one by one, and takes them away again.</p>
@@ -457,6 +477,14 @@ Japanese by hand and the English says something else now, or when the model got 
 to (the red note goes away) and the models read the new English in its place. The text of the part is not changed. <code translate="no" v-pre>reallang-edit-source</code> does the same from the command line.</p>
 <p><strong>Search and replace in the sources</strong> (the button with the arrows at the top of the <em>Real language</em> tab) opens the application&#x27;s search and replace window over the English sources of the translated speeches
 of the active branch (plain text or a regular expression). Only the sources change; the words of the translation itself are replaced with the search and replace of the book.</p>
+<figure class="content-center">
+    <img src="../../../images/plugin-reallang-source.png" alt="The window that edits the source of a speech" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="640" height="423" />
+    <figcaption class="caption">The window that edits the source of a speech</figcaption>
+</figure>
+<figure class="content-center">
+    <img src="../../../images/plugin-reallang-search-replace.png" alt="Search and replace over the English sources of the speeches" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1200" height="792" />
+    <figcaption class="caption">Search and replace over the English sources of the speeches</figcaption>
+</figure>
 <figure class="content-center">
     <img src="../../../images/plugin-reallang-story.png" alt="A translated speech with the English in a popover" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1000" height="330" />
     <figcaption class="caption">A translated speech with the English in a popover</figcaption>
@@ -618,7 +646,7 @@ listed; the text of the part decides inside a request.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (d359423b6).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (d7738b569).</p></div>
             </footer>
         </div>
     </div>

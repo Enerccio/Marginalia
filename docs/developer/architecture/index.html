@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847320413879">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847332947429">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,12 +44,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.847320413879" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.847332947429" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847320413879" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847332947429" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847320413879" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.847320413879" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847332947429" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.847332947429" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -876,7 +876,8 @@ user whose password changed - a user changing their own password stays logged in
 <p><strong>The help chat.</strong> <code translate="no" v-pre>SessionPoint</code> (the session-scoped bean with the language and the workspace of the page) also keeps the conversation with the help
 assistant (<code translate="no" v-pre>getHelpChat()</code>, a synchronized list of messages) and the problems the user was shown (<code translate="no" v-pre>getProblems()</code>, see
 <a href="../ui/#what-went-wrong-the-problem-log">What went wrong</a>); <code translate="no" v-pre>Main</code> attaches that log to the Vaadin session after login so that code on
-threads without a request can write to it. Logout invalidates the session, which ends both.</p>
+threads without a request can write to it. Logout invalidates the session, which ends both. An extension that wants something to live as long as the session
+(the Prompt History keeps the last requests of the user there) uses <code translate="no" v-pre>getPluginData(key, create)</code>: a map of the session, never saved, one key named like the extension.</p>
 </li>
 <li>
 <p><strong>Open UIs.</strong> After login <code translate="no" v-pre>Main</code> and <code translate="no" v-pre>Viewer</code> register their UI in <code translate="no" v-pre>ApplicationPoint</code> (bean <code translate="no" v-pre>applicationPoint</code>)
@@ -961,6 +962,13 @@ call it by reflection (<a href="../plugins/ipc/">Sharing data between extensions
 </li>
 <li>
 <p><strong>Inherited settings.</strong> An extension registers a line, a text area or a choice with <code translate="no" v-pre>InheritedSettingRegistry</code> (<code translate="no" v-pre>InheritedSetting</code>); the <em>Prompts</em> tab of a book and the folder window show them with the other prompts and the values live in the <code translate="no" v-pre>attributes</code> of the book or folder (<code translate="no" v-pre>InheritedSettingValues</code>), resolved through the folders (<a href="../plugins/inherited-settings/">Inherited settings</a>).</p>
+</li>
+<li>
+<p><strong>The text of the story.</strong> An extension that stores the story in one form and wants the model, the export or the annotation reviewer to read another registers with
+<code translate="no" v-pre>PartTextRegistry</code> (what a model reads, <a href="../plugins/part-text/">Text a model reads</a>), <code translate="no" v-pre>ExportTextRegistry</code> (what an export holds, <a href="../plugins/export-text/">The text of an export</a>)
+or <code translate="no" v-pre>AnnotationFactsRegistry</code> (facts for the model that annotates a part, <a href="../plugins/annotation-facts/">Facts for the annotation</a>); the registries are beans of the core, the
+contributors are removed when the extension is unloaded. A passage of a part that an extension attaches data to is an <code translate="no" v-pre>AnchoredPassage</code> of the annotations table, created through
+<code translate="no" v-pre>PassageService</code>, with a kind registered in <code translate="no" v-pre>PassageKinds</code> (<a href="../plugins/anchored-passages/">Anchored passages</a>).</p>
 </li>
 <li>
 <p><strong>Styles.</strong> An extension that implements <code translate="no" v-pre>ExtensionHasCss</code> gets its CSS put into every open page: <code translate="no" v-pre>CssRegistry</code>
@@ -1110,7 +1118,7 @@ refused, so an extension can&#x27;t replace English.</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (d359423b6).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (d7738b569).</p></div>
             </footer>
         </div>
     </div>

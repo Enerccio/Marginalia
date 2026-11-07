@@ -33,7 +33,14 @@ POLITENESS = ("Choose the level of speech from the relationship of the speaker a
 NAMES = ("Names of people and places keep their identity: a Japanese name is written the way a Japanese text would write it, a foreign name in katakana (or in "
          "Latin letters when the script is romaji). Family name first for Japanese characters unless the story orders the names otherwise.")
 JAPANESE = {'id': 'b24a015e-fb7c-47a1-b590-8663e2c6fa27', 'name': 'Japanese', 'tongue': 'Japanese', 'script': 'KANA_KANJI', 'honorifics': True, 'reading': True,
-            'politeness': POLITENESS, 'names': NAMES, 'rules': ''}
+            'politeness': POLITENESS, 'names': NAMES, 'rules': '',
+            # the glossary of the language level: what every book in Japanese shares
+            'glossary': [
+                {'id': 'c1c0a6a4-6b53-4a52-9a4e-5b3c0a1e0001', 'source': 'witch', 'kind': 'WRITTEN', 'written': '魔女', 'reading': 'ウィッチ',
+                 'note': 'A gikun: the kanji of a witch read with the English word.', 'enabled': True, 'proposed': False},
+                {'id': 'c1c0a6a4-6b53-4a52-9a4e-5b3c0a1e0002', 'source': 'Prague', 'kind': 'WRITTEN', 'written': 'プラハ', 'reading': '', 'note': '', 'enabled': True,
+                 'proposed': False},
+            ]}
 CZECH = {'id': 'dab63a83-21f5-4bd0-927c-8a99a88fae9d', 'name': 'Czech', 'tongue': 'Czech', 'script': 'NATIVE', 'honorifics': False, 'reading': False,
          'politeness': 'Informal and short: it is the private language of a man who mutters when he is stressed.', 'names': 'Names stay as they are, with their diacritics.',
          'rules': ''}

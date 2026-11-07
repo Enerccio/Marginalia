@@ -6,7 +6,9 @@ import {
   bookTab,
   closeDialog,
   CONTENT,
+  DESKTOP,
   dialog,
+  fill,
   goto,
   idle,
   login,
@@ -20,7 +22,7 @@ import {
   snap,
   snapDialog,
 } from '../lib/shot.mjs';
-import {openStoryMenu} from '../lib/story.mjs';
+import {openStoryMenu, sideTab, widenSidebar} from '../lib/story.mjs';
 
 await main(async ({ page }) => {
   await login(page);
@@ -44,6 +46,21 @@ await main(async ({ page }) => {
     await dialog(page).getByRole('tab', { name: 'Lexicon', exact: true }).click();
     await sleep(1000);
     await snapDialog(page, 'plugin-conlang-lexicon', -1);
+    // the Names tab: the words a category of names is made of, and twenty names made of them
+    // a taller window, so that the grid shows more than three words
+    await page.setViewportSize({ width: DESKTOP.width, height: 1180 });
+    await sleep(900);
+    await dialog(page).getByRole('tab', { name: 'Names', exact: true }).click();
+    await sleep(900);
+    // only the words of the category that the names are made of
+    await dialog(page).locator('input[placeholder="All categories"]').last().click({ force: true });
+    await page.getByRole('option', { name: 'People and society', exact: true }).click();
+    await sleep(600);
+    await dialog(page).getByRole('button', { name: 'Preview names', exact: true }).click();
+    await sleep(1500);
+    await snapDialog(page, 'plugin-conlang-names', -1);
+    await page.setViewportSize(DESKTOP);
+    await sleep(600);
     await closeDialog(page);
   });
 
@@ -128,6 +145,50 @@ await main(async ({ page }) => {
     await snapAround('plugin-conlang-story', mark);
     await page.keyboard.press('Escape');
     await sleep(300);
+  });
+
+  await section(page, 'source', async () => {
+    await bookTab(page, 'Story');
+    await idle(page, 1200);
+    const mark = page.locator('mark.conlang-passage').first();
+    await center(mark);
+    await sleep(500);
+    await mark.click();
+    await page.locator('.translator-source-box').first().waitFor({ timeout: 10000 });
+    await page.getByRole('button', { name: 'Edit the source', exact: true }).click();
+    await idle(page, 900);
+    await snapDialog(page, 'plugin-conlang-source');
+    await closeDialog(page);
+    await page.keyboard.press('Escape');
+    await sleep(300);
+  });
+
+  // the Conlang tab of the story: the speakers with the understanding of the characters that do not speak the language
+  await section(page, 'tab', async () => {
+    await bookTab(page, 'Story');
+    await widenSidebar(page, 700);
+    await sideTab(page, 'Conlang');
+    await idle(page, 1000);
+    await snap(page, 'plugin-conlang-tab', { clip: { x: 16, y: 130, width: 690, height: 780 } });
+  });
+
+  await section(page, 'search-replace', async () => {
+    await bookTab(page, 'Story');
+    await widenSidebar(page, 700);
+    await sideTab(page, 'Conlang');
+    await idle(page, 800);
+    await page.getByRole('button', { name: 'Search and replace in the sources', exact: true }).click();
+    await idle(page, 900);
+    await fill(page, 'Search for', 'Paskal');
+    await fill(page, 'Replace with', 'Paskel');
+    await dialog(page).getByRole('button', { name: 'Search', exact: true }).click();
+    await page.getByText('Found ', { exact: false }).first().waitFor({ timeout: 30000 }).catch(() => {});
+    await idle(page, 1200);
+    // the row of the first speech opens: the matches in it
+    await dialog(page).locator('vaadin-grid-tree-toggle').first().click().catch(() => {});
+    await idle(page, 900);
+    await snapDialog(page, 'plugin-conlang-search-replace');
+    await closeDialog(page);
   });
 
   await section(page, 'range', async () => {

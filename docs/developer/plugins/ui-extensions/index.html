@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847320413879">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847332947429">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.847320413879" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.847332947429" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847320413879" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847332947429" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847320413879" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.847320413879" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847332947429" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.847332947429" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -507,6 +507,10 @@ register it in the <code translate="no" v-pre>InheritedSettingRegistry</code> an
 <h3 id="dialogs-and-own-components">Dialogs and own components</h3>
 <p>Plugin dialogs and components are ordinary Vaadin classes in the bundle. Annotate them <code translate="no" v-pre>@Configurable</code> to inject
 services. Follow the application&#x27;s conventions (<a href="../../ui/#conventions">User interface → Conventions</a>).</p>
+<p>A dialog with an input follows the keyboard conventions of the application: <code translate="no" v-pre>DialogFocus.onOpen(dialog, firstField)</code> puts the cursor into the first field, and
+<code translate="no" v-pre>DialogShortcuts.submitWith(mainButton, fields...)</code> (<code translate="no" v-pre>ui.widgets</code>) sends with <kbd>Enter</kbd> in a single line field and <kbd>Ctrl/Cmd+Enter</kbd> in a text area; list
+every input field, call it after the fields and the button exist (a null field is skipped) and never write an <code translate="no" v-pre>addKeyDownListener(Key.ENTER)</code> yourself. A dialog
+that asks the model for something (a prompt, instructions) always gets the Ctrl+Enter send.</p>
 <p>What plugins can&#x27;t do:</p>
 <ul>
 <li>
@@ -722,6 +726,11 @@ Vaadin session lock, so decorators can change components directly and services s
 application (<a href="../../ui/#background-work-and-push">Background work and push</a>): capture <code translate="no" v-pre>UI.getCurrent()</code> on the UI
 thread, change components only inside <code translate="no" v-pre>ui.access(...)</code>, push with <code translate="no" v-pre>UIPushGuard.push(ui)</code>, and wrap service calls that
 need the current user in the request scope.</p>
+<p>Work that has to outlive the page (the translation of a range, the extraction of words, a request to the model that is saved at the end)
+takes the request context with it: on the thread of the page <code translate="no" v-pre>RequestAttributes attributes = ThreadCopyRequestAttributes.create()</code>, and on the worker
+<code translate="no" v-pre>try (ThreadCopyRequestAttributes.InRequestScope scope = new ThreadCopyRequestAttributes.InRequestScope(attributes)) { ... }</code>. The copy holds the
+attributes of the session as they were (the <code translate="no" v-pre>user</code> bean above all), so the worker can still write its result when the last page of the browser was
+closed meanwhile and the session was invalidated; showing it is another matter (<code translate="no" v-pre>ui.access</code> and <code translate="no" v-pre>UIDetachedException</code>).</p>
 <p>A <strong>generation listener</strong> runs on the worker thread of the generation, where there is no page to capture. To show the user
 something from there (a dialog the generation waits for), use <code translate="no" v-pre>GenerationControllerEvent.accessUI(action)</code>: it runs the action on
 the UI that started the generation, with <code translate="no" v-pre>ui.access</code> and a push done for you, and returns <code translate="no" v-pre>false</code> when the generation has no UI.
@@ -890,7 +899,7 @@ uninstalled for good, its data stays in the database (and in backups) - harmless
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (d359423b6).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (d7738b569).</p></div>
             </footer>
         </div>
     </div>

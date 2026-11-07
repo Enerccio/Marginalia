@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847320413879">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847332947429">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -38,12 +38,12 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../resources/css/retype.css?v=4.6.0.847320413879" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.847332947429" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847320413879" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.847332947429" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847320413879" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.847320413879" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.847332947429" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.847332947429" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -341,6 +341,12 @@ fake is the model server.</p>
 | `cleanup` | `CleanupServiceTest`, `TrashServiceTest`, `SoftDeleteCascadeTest`, `PermanentDeleteTest`, `AgentCleanupTest` | Purging soft-deleted data (also an AI with usage rows), owned data, strong and weak references; the trash: own objects only, administrator sees all, restore refused while a deleted parent is not restored with it, extended content; `SoftDeleteCascadeTest`: a soft delete takes the owned objects with it and a restore brings them back (the purge tests there log in as administrator); `PermanentDeleteTest`: deleting parts and entries for good, children moved to the parent, active leaf, blocked deletes roll back. |
 | `instruct` | `ExtendableMethodVisitorTest`, `RuntimeInstrumentationTest`, `ExtensionVerifierTest`, `PublicAPISignatureTest` | The bytecode instrumentation of `@Extendable` methods and the runtime agent; the verification of extensions against the application; the `@PublicAPI` declarations of the `@Extendable` classes. |
 | `utils`, `generation` (1.7.0) | `AppClockTest`, `StoredTimesFollowAppClockTest` | `AppClock`, the one clock the application stores times from: it follows the system clock until a test sets another, every reader sees the set clock; a generation run &quot;on&quot; another day stores the times of the part (creation, modification, the stamps of the history) from it. The dataset build moves it day by day. |
+| `planner`, `command` (1.7.0) | `PlannerServiceTest`, `PlannerCommandsTest` | The planner of a book: a scene is added at the end with a new uuid and never as done, the texts are stripped and a title is required, done and not done, an update keeps the place, moves stop at the ends, a missing scene is ignored on delete and an error elsewhere, the list is a copy, the listeners are told of every change until they are removed, the scenes travel with a backup, the limit of scenes; the commands add, update (only what is given), mark done and move by the number in the list, delete. |
+| `utils`, `manuscript` (1.7.0) | `LmStudioChatsTest`, `LmStudioImportTest` | The conversations of LM Studio: the messages, the thinking and the model, the name of the file when there is no name, the versions of a message as alternatives with the selected one shown, the system prompt and the tools that are not messages, conversations that share their beginning joined into one tree, the user message as the instructions with *merge*, a file that is not a conversation refused; the import makes the tree of a new book. |
+| `inference` (1.7.0) | `InferenceListenerTest`, `ReasoningPassthroughTest`, `StructuredOutputsParseTest` | `InferenceListenerTest`: a listener is told of a request (kind, model, protocol, a copy of the messages), of each chunk and of the end (result, error, cancel), a failing listener does not break the request, a removed one sees nothing and the service is not wrapped. `ReasoningPassthroughTest`: with the fake server, *None* (the default) sends no thinking, *Between tool calls* sends the thinking of the calls of this turn only and *Always* the thinking of every answer that has it, as `reasoning_content` of the assistant message. `StructuredOutputsParseTest`: the lenient reading of a structured answer (a markdown block, a sentence before the JSON, a trailing comma, a repeated key) and what stays strict. |
+| `annotation`, `domain`, `extensions`, `generation` (the text of the story, 1.7.0) | `PassageServiceTest`, `ModelTextTest`, `PartTextRegistryTest`, `ExportTextRegistryTest`, `PartTextGenerationTest`, `ReplaceTextTest`, `StoredTextReadersTest`, `ResummarizeTest` | Anchored passages of an extension (the kind, the range and the data, a quote anchored, kept apart from the notes, moved by an edit, orphaned and back, copied to a branch, kept by a backup, deleted with the part); the map between the stored text and what the model reads; the registries (one preparation for all parts, the first of two overlapping edits wins, a failing contributor is left out, the footnotes of an export numbered across the parts); a generation reads what the model reads (prompt, `closest-message`, `current-message`, the lorebook scan); replacing the text of a part without flagging it as edited (tokens of what the model reads, summaries stay valid, a version in the history); every class that reads the stored text of a part is on the list in `stored-text-readers.txt`; the re-summarizing of all summaries (oldest first, uuids kept, meta summaries inner first, a stop changes nothing). |
+| `export` (1.7.0) | `LatexExporterTest`, `ExporterFootnotesTest`, `PdfExporterNotesTest` | The LaTeX project (a zip, the preamble and metadata, special characters, chapters from the shallowest heading, CJK text, footnotes), the footnotes in every format (kept, listed after the text, linked, real footnotes in Word numbered across parts) and the notes at the foot of the page in the PDF with Japanese text drawn. |
+| `ui.components` (1.7.0) | `ThreadCopyRequestAttributesTest` | A worker thread resolves the session scoped beans after the page is gone, the copy locks the same mutex as the page and never fails on an invalid session, a copy of a copy is the same copy. |
 | `workset` (1.7.0) | `LargeWorksetTest`, `LargeWorksetMigrationTest`, `LargeWorksetSoakTest`, `ExportRoundTripCheck` (only with `-Dworkset.roundtrip=true`) | A book of a real size, the [dataset book](#the-dataset-book): restored and checked (100 parts and a branch of 3, 31 summaries, 1,697 annotations and passages, 360 versions, the stored prompts, the data of four plugins, the lorebook, the picture); `PartRevisionMigration` and `StatisticsBackfillMigration` over it (the result and the time); two users on long books (one of 400 parts) with generations in flight on a slow mock model while backups, edits and statistics reads run on other threads. |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="comfortable">
@@ -551,6 +557,36 @@ fake is the model server.</p>
 <td><code translate="no" v-pre>utils</code>, <code translate="no" v-pre>generation</code> (1.7.0)</td>
 <td><code translate="no" v-pre>AppClockTest</code>, <code translate="no" v-pre>StoredTimesFollowAppClockTest</code></td>
 <td><code translate="no" v-pre>AppClock</code>, the one clock the application stores times from: it follows the system clock until a test sets another, every reader sees the set clock; a generation run &quot;on&quot; another day stores the times of the part (creation, modification, the stamps of the history) from it. The dataset build moves it day by day.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>planner</code>, <code translate="no" v-pre>command</code> (1.7.0)</td>
+<td><code translate="no" v-pre>PlannerServiceTest</code>, <code translate="no" v-pre>PlannerCommandsTest</code></td>
+<td>The planner of a book: a scene is added at the end with a new uuid and never as done, the texts are stripped and a title is required, done and not done, an update keeps the place, moves stop at the ends, a missing scene is ignored on delete and an error elsewhere, the list is a copy, the listeners are told of every change until they are removed, the scenes travel with a backup, the limit of scenes; the commands add, update (only what is given), mark done and move by the number in the list, delete.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>utils</code>, <code translate="no" v-pre>manuscript</code> (1.7.0)</td>
+<td><code translate="no" v-pre>LmStudioChatsTest</code>, <code translate="no" v-pre>LmStudioImportTest</code></td>
+<td>The conversations of LM Studio: the messages, the thinking and the model, the name of the file when there is no name, the versions of a message as alternatives with the selected one shown, the system prompt and the tools that are not messages, conversations that share their beginning joined into one tree, the user message as the instructions with <em>merge</em>, a file that is not a conversation refused; the import makes the tree of a new book.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>inference</code> (1.7.0)</td>
+<td><code translate="no" v-pre>InferenceListenerTest</code>, <code translate="no" v-pre>ReasoningPassthroughTest</code>, <code translate="no" v-pre>StructuredOutputsParseTest</code></td>
+<td><code translate="no" v-pre>InferenceListenerTest</code>: a listener is told of a request (kind, model, protocol, a copy of the messages), of each chunk and of the end (result, error, cancel), a failing listener does not break the request, a removed one sees nothing and the service is not wrapped. <code translate="no" v-pre>ReasoningPassthroughTest</code>: with the fake server, <em>None</em> (the default) sends no thinking, <em>Between tool calls</em> sends the thinking of the calls of this turn only and <em>Always</em> the thinking of every answer that has it, as <code translate="no" v-pre>reasoning_content</code> of the assistant message. <code translate="no" v-pre>StructuredOutputsParseTest</code>: the lenient reading of a structured answer (a markdown block, a sentence before the JSON, a trailing comma, a repeated key) and what stays strict.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>annotation</code>, <code translate="no" v-pre>domain</code>, <code translate="no" v-pre>extensions</code>, <code translate="no" v-pre>generation</code> (the text of the story, 1.7.0)</td>
+<td><code translate="no" v-pre>PassageServiceTest</code>, <code translate="no" v-pre>ModelTextTest</code>, <code translate="no" v-pre>PartTextRegistryTest</code>, <code translate="no" v-pre>ExportTextRegistryTest</code>, <code translate="no" v-pre>PartTextGenerationTest</code>, <code translate="no" v-pre>ReplaceTextTest</code>, <code translate="no" v-pre>StoredTextReadersTest</code>, <code translate="no" v-pre>ResummarizeTest</code></td>
+<td>Anchored passages of an extension (the kind, the range and the data, a quote anchored, kept apart from the notes, moved by an edit, orphaned and back, copied to a branch, kept by a backup, deleted with the part); the map between the stored text and what the model reads; the registries (one preparation for all parts, the first of two overlapping edits wins, a failing contributor is left out, the footnotes of an export numbered across the parts); a generation reads what the model reads (prompt, <code translate="no" v-pre>closest-message</code>, <code translate="no" v-pre>current-message</code>, the lorebook scan); replacing the text of a part without flagging it as edited (tokens of what the model reads, summaries stay valid, a version in the history); every class that reads the stored text of a part is on the list in <code translate="no" v-pre>stored-text-readers.txt</code>; the re-summarizing of all summaries (oldest first, uuids kept, meta summaries inner first, a stop changes nothing).</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>export</code> (1.7.0)</td>
+<td><code translate="no" v-pre>LatexExporterTest</code>, <code translate="no" v-pre>ExporterFootnotesTest</code>, <code translate="no" v-pre>PdfExporterNotesTest</code></td>
+<td>The LaTeX project (a zip, the preamble and metadata, special characters, chapters from the shallowest heading, CJK text, footnotes), the footnotes in every format (kept, listed after the text, linked, real footnotes in Word numbered across parts) and the notes at the foot of the page in the PDF with Japanese text drawn.</td>
+</tr>
+<tr>
+<td><code translate="no" v-pre>ui.components</code> (1.7.0)</td>
+<td><code translate="no" v-pre>ThreadCopyRequestAttributesTest</code></td>
+<td>A worker thread resolves the session scoped beans after the page is gone, the copy locks the same mutex as the page and never fails on an invalid session, a copy of a copy is the same copy.</td>
 </tr>
 <tr>
 <td><code translate="no" v-pre>workset</code> (1.7.0)</td>
@@ -1113,7 +1149,7 @@ all migrations and validates the schema against the entities).</p>
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (d359423b6).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (d7738b569).</p></div>
             </footer>
         </div>
     </div>

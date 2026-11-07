@@ -8,6 +8,7 @@ something. [Architecture](architecture.md) explains how the parts work together;
 ```
 Marginalia/
 ├── marginalia/              the application - a Maven project (see below)
+│   ├── libs/                code that plugins share, one Maven project each (`translator-common`, embedded in the bundles that use it)
 │   └── plugins/             bundled extensions, one Maven project each
 ├── manual/                  sources of this manual (Retype, Markdown)
 │   └── images/              screenshots used by the manual and the READMEs
@@ -329,7 +330,7 @@ Each plugin is a Maven project with `bundle` packaging and the same layout:
 
 ```
 plugins/<name>/
-├── pom.xml          depends on io.github.enerccio:marginalia:1.5.0:classes (provided)
+├── pom.xml          depends on io.github.enerccio:marginalia:1.7.0:classes (provided)
 ├── README.md        user documentation
 └── src/main/java/com/github/enerccio/marginalia/extensions/<name>/
     ├── <Name>Activator.java   OSGi BundleActivator - registers the extension service
@@ -342,7 +343,7 @@ plugins/<name>/
 | Plugin | Package | Size |
 |---|---|---|
 | Anthropic Claude | `extensions.anthropic` | Activator and extension, `AnthropicFactory` (the `ExtensionAIFactory`), the settings form, the inference service over the Anthropic Java SDK (embedded in the JAR) and helpers for the messages, the errors and the settings; has unit tests and a test against a fake Messages API. |
-| Arc Outline | `extensions.arcoutline` | Model (arcs, chapters, the in-memory `ArcOutline`, settings, the schema of a generated arc and `GeneratedMappedStoryArc` for the import of a story, whose chapters say the message they begin in; `OutlineNode.part` links an arc or chapter to a part of the active branch), service (outline, prompt building, `mapPart`), a sidebar tab, dialogs (arc, the generators of arcs and chapters on a common `GeneratorDialog`, `StoryImportDialog`), a settings form, `LegacyNameTools` (reads the name categories saved before the tool dialog) and `arcoutline.css`. |
+| Arc Outline | `extensions.arcoutline` | Model (arcs, chapters, the in-memory `ArcOutline`, settings, the schema of a generated arc and `GeneratedMappedStoryArc` for the import of a story, whose chapters say the message they begin in; `OutlineNode.part` links an arc or chapter to a part of the active branch), service (outline, prompt building, `mapPart`), a sidebar tab, dialogs (arc, the generators of arcs and chapters on a common `GeneratorDialog`, `StoryImportDialog`, `PlotWizardDialog`), the plot wizard (`WizardChat` with its `WizardMessage`s and `WizardCall`s and the `WizardOptions` of the chats of a book, kept in the attributes of the book; `WizardContext` builds the request of a message: what the model sees, earlier tool calls with their results, the summary of a long chat; `PlotWizardTemplateData` for its prompt), a settings form, `LegacyNameTools` (reads the name categories saved before the tool dialog) and `arcoutline.css`. |
 | Author's Note | `extensions.authorsnote` | Model, service, a sidebar panel, a generation listener and a macro command (`authors-note`). |
 | Beta Readers | `extensions.betareaders` | Model (`BetaChat` with its `BetaMessage`s and `ChatPersona`s, the `Persona` library and the `Medium`s, the settings and the data a book keeps, the kinds of a message: said, scene, presence), service (`BetaReadersService` with the store, `ChatRunner` that asks the model, `PromptBuilder` for the system prompt and the story it sends, `PartsTracker` for what the personas have read, `ReplyReader` / `BetaSchemas` / `TextFormat` for the answer in a schema or as text, `PersonaWriter`, `BetaReadersInherited` for the settings a book and a folder inherit), UI (the tab `BetaReadersView`, `ChatPanel` and its message cards, the dialogs of a new chat, of its settings, of the persona and medium libraries and of who is present). |
 | Chapter Marker | `extensions.chaptermarking` | Activator and extension only - the smallest example. |
@@ -362,6 +363,9 @@ plugins/<name>/
 | Place provider | `extensions.placeprovider` | The extension, the `@LLMFunction` interface and its implementation, `PlaceIndex` (the places read from `places.json`: search, nearby, distance), the records of the answers, `PlaceProviderToolProvider` (the suite for `ToolService`) and `PlaceProviderCommands`. `src/build` holds the two Java programs that download Natural Earth and reduce it to `places.json` (profile `import-places`), see its README. |
 | Reviewer | `extensions.reviewer` | Model (`ReviewerProfile` with a stable uuid), service, dialogs, a settings form and `ManuscriptProfileSelect`, the profile picker of a book's info tab. |
 | Side Query | `extensions.sidequery` | Model, service, a chat panel and a settings form; `SideQueryLog` holds its logger for classes the extension class does not create. |
+| Conlang Translator | `extensions.conlangtranslator` | Model (`Language` with its rule sections, categories, registers, the lexicon of `LexiconEntry`s and the `NameCategory`s offered to the Name generator, the settings of a book and of a user), `store` (`ConlangStore`, the library of languages in the user settings), `diff` (`LanguageDiff`, `ChangeSet`, `Conflict`: the comparison and merge of two versions of a language), `designer` (the AI designer: prompts, the answer, `Proposal` and its builder), `translate` (prompt, schema and checks of a translation, the quick translation), `service` (translation runs, the designer, the library, `NameGeneratorBridge`, `LanguageAccess` for agent runs), `commands`, `text` (`ConlangKind`, its passage kind) and `ui` (the editor with the lexicon and names tabs, the designer and its wizard, the review of changes, the book view). Shares [`translator-common`](plugins/libraries/translator-common.md). |
+| Real Language Translator | `extensions.reallangtranslator` | Model (`RealLanguage` with its `Script`, the `Presets`, the glossary of `GlossaryEntry`s merged from the language, the folders and the book by `Glossary`, the extraction prompts and the settings of a book and of a user), `translate` (prompt, schema and checks of a translation, `ScriptCheck`, `TermExtraction`, the quick translation), `service` (translation and glossary services, the word extraction and its runs, the library, `RealInherited`), `commands`, `ui` (the editor, the book view with the glossary and extraction panels) and `ReallangKind`. Shares [`translator-common`](plugins/libraries/translator-common.md). |
+| Prompt History | `extensions.prompthistory` | Activator, extension (an `InferenceListener` and a panel in the user settings), `PromptHistory` (where the histories are: the session's plugin data, the latest runs of agents), `HistoryStore` (the last requests of one session), `Packing` (a request as gzipped JSON) and `PromptHistoryDialog`. |
 | Converter (`sillytavern-converter`) | `extensions.stconverter` | Model (the chat, the turn items, the schema of the answer, and `BookSource`, the parts of a book to redraft), service (storage in the attributes of the book, the prompt, the pure functions that read and merge the answer, `BookSourceReader` that strips a backup or a book to a `BookSource` resource), `ConverterView` (the tab) and its CSS; `STConverterLog` holds the logger. |
 | Chinese localization | `extensions.chineselocalization` | Activator, extension and one `LocalizationBundle` - a language, no UI code. |
 
@@ -374,8 +378,8 @@ See [Plugin development](plugins/index.md).
 
 | Path | |
 |---|---|
-| `marginalia-1.5.0.war`, `marginalia-1.5.0/` | The WAR and its exploded form. |
-| `marginalia-1.5.0-classes.jar` | Classes for plugin builds. |
+| `marginalia-1.7.0.war`, `marginalia-1.7.0/` | The WAR and its exploded form. |
+| `marginalia-1.7.0-classes.jar` | Classes for plugin builds. |
 | `classes/`, `test-classes/` | Woven classes. |
 | `dev-bundle/`, `sw.ts`, `vaadin-dev-server-settings.json` | Vaadin frontend build files. |
 | `surefire-reports/`, `test-home/` | Test reports and test data folders. |

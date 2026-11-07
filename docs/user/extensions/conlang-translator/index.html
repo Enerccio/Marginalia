@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/Marginalia">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847320413879">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.847332947429">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -44,11 +44,11 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../../resources/css/retype.css?v=4.6.0.847320413879" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.847332947429" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847320413879" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.847332947429" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847320413879" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.847332947429" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -375,6 +375,10 @@ words, so a category needs a few words (a dozen or more gives better names).</p>
 <p>Only your choice is kept, not the words: a word you change is read as it is now, and one you delete, or retire, is left out when the names are made. After you save the settings, the
 category is offered in the Name generator (the lore generator&#x27;s and the arc outline&#x27;s <strong>Tools</strong> dialog, the <code translate="no" v-pre>generate-names</code> command, an agent&#x27;s run) as <em>Conlang - language - category</em>.
 It is your own: another user of the installation sees only their categories.</p>
+<figure class="content-center">
+    <img src="../../../images/plugin-conlang-names.png" alt="The Names tab: a category of names, the words it is made of and twenty names from them" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1180" height="967" />
+    <figcaption class="caption">The Names tab: a category of names, the words it is made of and twenty names from them</figcaption>
+</figure>
 <h3 id="the-designer">The designer</h3>
 <p>The <strong>Design with AI</strong> menu of the editor asks the model for help, always with the language <strong>as it is</strong> (its rules, registers, categories, lexicon and the example lorebook), and
 always as a <strong>proposal</strong>: nothing is written before you review it.</p>
@@ -499,6 +503,10 @@ models are told nothing. Use it for the people who hear the language without spe
 They reach the models in two ways: the <strong>story model</strong> gets a short message with the levels (inserted into the prompt like the Author&#x27;s Note; the checkbox above the list turns it off and the number says how many
 messages from the end it goes), and the model that <strong>reviews a part</strong> (<em>Annotate with AI</em>) gets them as a section of the facts, so it can flag a character who reacts to words they cannot follow. If you would rather
 place the text yourself, turn the insertion off and use the <code translate="no" v-pre>{{command::conlang-understanding}}</code> <a href="../../templates/macros/#commands">macro</a> in a template; it takes an optional list of characters to keep.</p>
+<figure class="content-center">
+    <img src="../../../images/plugin-conlang-tab.png" alt="The Conlang tab: the speakers, and two characters that do not follow the language" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="690" height="780" />
+    <figcaption class="caption">The Conlang tab: the speakers, and two characters that do not follow the language</figcaption>
+</figure>
 <h3 id="languages-1">Languages</h3>
 <p>The other languages of the book, besides the one its <strong>Language of the speech</strong> field names: see <doc-anchor-trigger to="#more-than-one-language-in-a-book">More than one language in a book</doc-anchor-trigger>.</p>
 <h3 id="quick-translate">Quick translate</h3>
@@ -585,9 +593,17 @@ language; a red note says that you edited the conlang text after the translation
 the models read. Use it when a native speaker fixed the translation by hand and the English says something else now, or when the model got the English wrong. Saving gives the speech its new
 English, takes the translation as it is now as the one the English belongs to (the red note goes away) and from then on the models read the new English in its place. The text of the part is not
 changed, and <em>Translate the speech</em> again replaces both. <code translate="no" v-pre>conlang-edit-source</code> does the same from the command line.</p>
+<figure class="content-center">
+    <img src="../../../images/plugin-conlang-source.png" alt="The window that edits the source of a speech" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="640" height="423" />
+    <figcaption class="caption">The window that edits the source of a speech</figcaption>
+</figure>
 <p><strong>Search and replace in the sources</strong> (the button with the arrows at the top of the Conlang tab) opens the application&#x27;s search and replace window over the English sources of the translated speeches of the
 active branch (plain text or a regular expression, with or without case; the table lists the speeches that have a match by part and speech number). Use it for a name that was spelled two ways in the English.
 Only the sources change; to change the words of the translation itself use the search and replace of the book. A speech whose source was changed after the search is left as it is and counted.</p>
+<figure class="content-center">
+    <img src="../../../images/plugin-conlang-search-replace.png" alt="Search and replace over the English sources of the speeches" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1200" height="1003" />
+    <figcaption class="caption">Search and replace over the English sources of the speeches</figcaption>
+</figure>
 <figure class="content-center">
     <img src="../../../images/plugin-conlang-story.png" alt="The English behind a translated speech" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1000" height="330" />
     <figcaption class="caption">The English behind a translated speech</figcaption>
@@ -873,7 +889,7 @@ compounds and affixes) and reports the rest; it does not check your grammar. Try
                     <ul class="flex flex-wrap items-center text-sm">
                     </ul>
                 </div>
-                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (d359423b6).</p></div>
+                <div id="retype-copyright" class="print:justify-center py-2 text-footer-text font-footer-link text-sm leading-relaxed"><p>© Copyright 2026. MIT License. Version 1.7.0 (d7738b569).</p></div>
             </footer>
         </div>
     </div>
