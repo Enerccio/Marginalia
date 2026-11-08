@@ -24,6 +24,7 @@ class FakeDocker(socketserver.ThreadingMixIn, socketserver.UnixStreamServer):
     def __init__(self, path):
         self.containers = {"chatterbox": {"status": "exited", "ready_at": 0.0}}
         self.calls = []
+        self.inspect_forbidden = False
         super().__init__(path, FakeDockerHandler)
 
 
@@ -42,6 +43,8 @@ class FakeDockerHandler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         self.server.calls.append(("GET", self.path))
+        if self.server.inspect_forbidden:
+            return self.answer(403, {"message": "forbidden"})
         name = self.path.split("/")[2]
         c = self.server.containers.get(name)
         if c is None:
@@ -112,6 +115,7 @@ class GpuControlTest(unittest.TestCase):
     def setUp(self):
         self.docker.containers["chatterbox"].update(status="exited", ready_at=0.0)
         self.docker.calls.clear()
+        self.docker.inspect_forbidden = False
 
     def test_start_waits_until_the_service_answers(self):
         started = time.monotonic()
@@ -160,6 +164,16 @@ class GpuControlTest(unittest.TestCase):
             gpu_control.START_TIMEOUT = old
             gpu_control.answers = original
         self.assertEqual(504, code)
+
+    def test_a_proxy_that_does_not_show_containers_still_starts_and_stops(self):
+        self.docker.inspect_forbidden = True               # the safe socket proxy: POST start / stop allowed, GET /containers/... denied
+        started = time.monotonic()
+        code, body = self.call("POST", "/chatterbox/start")
+        self.assertEqual(200, code)
+        self.assertGreaterEqual(time.monotonic() - started, 0.4)      # the health address of the service decided
+        self.assertEqual("running", self.docker.containers["chatterbox"]["status"])
+        self.assertEqual(200, self.call("POST", "/chatterbox/stop")[0])
+        self.assertEqual("exited", self.docker.containers["chatterbox"]["status"])
 
     def test_docker_down_is_a_502(self):
         old = gpu_control.DOCKER_SOCKET

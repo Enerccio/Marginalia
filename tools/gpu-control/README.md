@@ -22,9 +22,13 @@ The Docker socket is **root on the host**. Keep this service on the internal net
 
 ## Running it (compose)
 
-`docker-compose.yml` here runs the controller and a **socket proxy** (`tecnativa/docker-socket-proxy`) that lets it do only what it needs: list and inspect containers, start
-and stop them (`CONTAINERS=1`, `ALLOW_START=1`, `ALLOW_STOP=1`, `POST=0`), and nothing else. Nothing is published on the host. Its YAML parses, but it has **not been run
-against a Docker daemon**: check the proxy's variable names against its README, and check that it refuses the dangerous calls (this should print `403`):
+`docker-compose.yml` here runs the controller and a **socket proxy** (`tecnativa/docker-socket-proxy`) that lets it do only what it needs: start and stop containers
+by name (`POST=1`, `ALLOW_START=1`, `ALLOW_STOP=1`) and nothing else. The settings are not obvious, from the proxy's `haproxy.cfg`: a POST is refused unless `POST=1` (so
+`POST=0` with `ALLOW_STOP=1` refuses the stop: the first version of this file did, and the controller got a 403), and `CONTAINERS=1` would allow **every** `/containers/...`
+path, create and exec included, which is root on the host, so it stays `0`. The controller therefore cannot inspect a container: it waits for the **health address** of the
+service (`GPU_CONTROL_CONTAINERS`, `name=address`) after a start, and `status` reports the state as unknown. Nothing is published on the host. Checked against a stand-in
+Docker daemon (`test_gpu_control.py`, including one that refuses inspect); the first version of the compose file was run on the author's server (that is where the 403 came from), this one is not yet confirmed there. Check that the proxy refuses the dangerous
+calls (this should print `403`):
 
 ```sh
 docker run --rm --network gpu-control_control curlimages/curl -s -o /dev/null -w '%{http_code}\n' -X POST http://docker-socket-proxy:2375/containers/create

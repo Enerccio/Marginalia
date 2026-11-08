@@ -13,7 +13,7 @@ Environment:
   GPU_CONTROL_TOKEN       the secret of the callers (required; LiteLLM sends it with `headers` of its pass_through_endpoints entry)
   GPU_CONTROL_CONTAINERS  comma separated, `name` or `name=http://host:port/health`: the address that answers 200 when the
                           service in it is ready (without one, the health check of the container is used, else it is ready
-                          when it runs)
+                          when it runs). Give every container one when the socket proxy does not allow inspect (the safe setting).
   GPU_CONTROL_PORT        default 8000
   START_TIMEOUT           seconds to wait for a start, default 180
   STOP_TIMEOUT            seconds Docker waits before it kills the container, default 30
@@ -84,6 +84,10 @@ def inspect(name):
     status, body = docker("GET", f"/containers/{name}/json")
     if status == 404:
         return None
+    if status == 403:
+        # a socket proxy without CONTAINERS=1 (the safe setting: that one also lets a caller create containers) does not show the
+        # containers: the state is unknown and the health address decides when a container is ready
+        return {"status": "unknown", "health": None}
     if status != 200 or not isinstance(body, dict):
         raise RuntimeError(f"docker answered {status} for {name}")
     state = body.get("State") or {}
@@ -101,11 +105,11 @@ def answers(url):
 
 def ready(name, health_url):
     info = inspect(name)
-    if info is None or info["status"] != "running":
+    if info is None or info["status"] not in ("running", "unknown"):
         return False
     if health_url:
         return answers(health_url)
-    return info["health"] in (None, "healthy")
+    return info["health"] in (None, "healthy")      # without a health address and without inspect: ready as soon as it was started
 
 
 def start(name, health_url):

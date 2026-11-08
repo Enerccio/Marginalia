@@ -13,10 +13,12 @@ services:
     image: tecnativa/docker-socket-proxy
     restart: unless-stopped
     environment:
-      CONTAINERS: 1          # the /containers section (GET: list, inspect) ...
-      ALLOW_START: 1         # ... and only these two writes:
+      # How the proxy decides (its haproxy.cfg): POST is refused unless POST=1; then the first matching rule wins. CONTAINERS=1 would allow every
+      # /containers/... path, create and exec included (root on the host), so it stays off and only start and stop are allowed by name.
+      POST: 1
+      ALLOW_START: 1
       ALLOW_STOP: 1
-      POST: 0                # no other POST (no create, kill, exec)
+      CONTAINERS: 0          # no inspect: the controller waits for the health address of a container instead
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     networks: [control]
