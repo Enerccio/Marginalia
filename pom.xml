@@ -14,9 +14,11 @@
 
   <modules>
     <module>marginalia</module>
+    <module>marginalia/libs/http-hooks</module>
     <module>marginalia/libs/translator-common</module>
     <module>marginalia/plugins/anthropic</module>
     <module>marginalia/plugins/arc-outline</module>
+    <module>marginalia/plugins/audiobook</module>
     <module>marginalia/plugins/authorsnote</module>
     <module>marginalia/plugins/beta-readers</module>
     <module>marginalia/plugins/book-description-generator</module>
@@ -41,5 +43,6 @@
     <module>marginalia/plugins/reviewer</module>
     <module>marginalia/plugins/sidequery</module>
     <module>marginalia/plugins/sillytavern-converter</module>
+    <module>marginalia/plugins/tts-reader</module>
   </modules>
 </project>

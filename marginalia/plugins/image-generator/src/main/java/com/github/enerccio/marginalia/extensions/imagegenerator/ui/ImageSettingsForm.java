@@ -2,10 +2,11 @@ package com.github.enerccio.marginalia.extensions.imagegenerator.ui;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.extensions.httphooks.BackendException;
+import com.github.enerccio.marginalia.extensions.httphooks.ui.HookListEditor;
 import com.github.enerccio.marginalia.extensions.imagegenerator.ImageGeneratorLog;
 import com.github.enerccio.marginalia.extensions.imagegenerator.model.BackendConfig;
 import com.github.enerccio.marginalia.extensions.imagegenerator.model.BackendType;
-import com.github.enerccio.marginalia.extensions.imagegenerator.model.HttpHook;
 import com.github.enerccio.marginalia.extensions.imagegenerator.model.ImageSettings;
 import com.github.enerccio.marginalia.extensions.imagegenerator.service.ImageBackend;
 import com.github.enerccio.marginalia.extensions.imagegenerator.service.ImageGeneratorService;
@@ -65,8 +66,8 @@ public class ImageSettingsForm extends VerticalLayout {
     private final TextArea negative = new TextArea(T.localized(NEGATIVE_PROMPT));
     private final IntegerField timeout = new IntegerField(T.localized(TIMEOUT_SECONDS));
     private final IntegerField idle = new IntegerField(T.localized(RELEASE_AFTER_IDLE_SECONDS));
-    private final HookFields before = new HookFields();
-    private final HookFields after = new HookFields();
+    private final HookListEditor before = new HookListEditor(hookLabels(), ImageStyles.SECTION);
+    private final HookListEditor after = new HookListEditor(hookLabels(), ImageStyles.SECTION);
     private final Button test = new Button(T.localized(TEST_CONNECTION), Solid.PLUG.create(), e -> testConnection());
 
     public ImageSettingsForm(ImageGeneratorService service) {
@@ -248,8 +249,8 @@ public class ImageSettingsForm extends VerticalLayout {
             negative.setValue(config.getNegativePrompt());
             timeout.setValue(config.getTimeoutSeconds());
             idle.setValue(config.getIdleSeconds());
-            before.show(config.getBefore());
-            after.show(config.getAfter());
+            before.show(config.getBeforeHooks(), service::reveal);
+            after.show(config.getAfterHooks(), service::reveal);
         } finally {
             binding = false;
         }
@@ -277,9 +278,15 @@ public class ImageSettingsForm extends VerticalLayout {
         current.setNegativePrompt(negative.getValue());
         current.setTimeoutSeconds(valueOr(timeout, BackendConfig.DEFAULT_TIMEOUT_SECONDS));
         current.setIdleSeconds(idle.getValue() == null ? 0 : Math.max(0, idle.getValue()));
-        current.setBefore(before.read());
-        current.setAfter(after.read());
+        current.setBeforeHooks(before.read(service::protect));
+        current.setAfterHooks(after.read(service::protect));
         updateKeyState();
+    }
+
+    private static HookListEditor.Labels hookLabels() {
+        return new HookListEditor.Labels(T.localized(ADDRESS), T.localized(METHOD), T.localized(HEADERS_NAME_VALUE_ONE_PER_LINE), T.localized(BODY),
+                T.localized(TIMEOUT_SECONDS), T.localized(WAIT_AFTERWARDS_SECONDS), T.localized(REQUEST), T.localized(ADD_A_REQUEST),
+                T.localized(REMOVE_THE_REQUEST));
     }
 
     private static int valueOr(IntegerField field, int fallback) {
@@ -312,7 +319,7 @@ public class ImageSettingsForm extends VerticalLayout {
             String error = null;
             try {
                 backend.test();
-            } catch (ImageBackend.ImageException e) {
+            } catch (BackendException e) {
                 error = e.getMessage();
             } catch (RuntimeException e) {
                 ImageGeneratorLog.get().warn("Testing the connection failed: {}", e.getMessage(), e);
@@ -328,42 +335,5 @@ public class ImageSettingsForm extends VerticalLayout {
                 }
             });
         });
-    }
-
-    /** The fields of a hook. */
-    private static class HookFields extends VerticalLayout {
-
-        private final TextField url = new TextField(T.localized(ADDRESS));
-        private final TextField method = new TextField(T.localized(METHOD));
-        private final TextArea headers = new TextArea(T.localized(HEADERS_NAME_VALUE_ONE_PER_LINE));
-        private final TextArea body = new TextArea(T.localized(BODY));
-
-        HookFields() {
-            setPadding(false);
-            setSpacing(true);
-            url.setWidthFull();
-            method.setWidth("8em");
-            headers.setWidthFull();
-            headers.setMinHeight("4em");
-            body.setWidthFull();
-            body.setMinHeight("4em");
-            add(url, method, headers, body);
-        }
-
-        void show(HttpHook hook) {
-            url.setValue(StringUtils.defaultString(hook.getUrl()));
-            method.setValue(hook.getMethod());
-            headers.setValue(StringUtils.defaultString(hook.getHeaders()));
-            body.setValue(StringUtils.defaultString(hook.getBody()));
-        }
-
-        HttpHook read() {
-            HttpHook hook = new HttpHook();
-            hook.setUrl(StringUtils.defaultIfBlank(url.getValue().strip(), null));
-            hook.setMethod(StringUtils.defaultIfBlank(method.getValue().strip(), "POST"));
-            hook.setHeaders(StringUtils.defaultIfBlank(headers.getValue(), null));
-            hook.setBody(StringUtils.defaultIfBlank(body.getValue(), null));
-            return hook;
-        }
     }
 }

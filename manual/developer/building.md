@@ -283,13 +283,13 @@ mvn -N install                    # in the repository root
 cd marginalia
 mvn install -DskipTests
 
-cd plugins/chaptermarker          # or anthropic, arc-outline, authorsnote, beta-readers, book-description-generator, character-tracker, conlang-translator, gemma4toolsfix, google-genai, image-generator, instructionexporter, knowledge-tracker, lore-generator, lorebookvcs, manga-generator, name-generator, name-provider, place-provider, prompt-history, prompt-inspector, reallang-translator, reviewer, sidequery, sillytavern-converter, chineselocalization
+cd plugins/chaptermarker          # or anthropic, arc-outline, audiobook, authorsnote, beta-readers, book-description-generator, character-tracker, conlang-translator, gemma4toolsfix, google-genai, image-generator, instructionexporter, knowledge-tracker, lore-generator, lorebookvcs, manga-generator, name-generator, name-provider, place-provider, prompt-history, prompt-inspector, reallang-translator, reviewer, sidequery, sillytavern-converter, tts-reader, chineselocalization
 mvn package                       # target/chaptermarker-1.7.0.jar
 ```
 
 ### Shared libraries
 
-Code that two plugins share lives in `marginalia/libs/` (see [Libraries for plugins](plugins/libraries/index.md)) (today `translator-common`, used by the Conlang Translator and the Real Language Translator). A library is a plain
+Code that two plugins share lives in `marginalia/libs/` (see [Libraries for plugins](plugins/libraries/index.md)) (today `translator-common`, used by the Conlang Translator and the Real Language Translator, and `http-hooks`, used by the Image Generator). A library is a plain
 Maven jar that **each plugin embeds** in its bundle (`<Embed-Dependency>translator-common;inline=true</Embed-Dependency>`): plugins do not see each other's classes, so this is
 shared source, not shared runtime, and a library holds no state the plugins would have to share. It is **not** an extension and never goes into the extensions folder (that is why it
 is not under `marginalia/plugins/`, the folder every script and workflow loops over to collect the JARs). A plugin that uses a library needs it in the local Maven repository before it

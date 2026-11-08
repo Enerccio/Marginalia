@@ -12,6 +12,9 @@ import com.github.enerccio.marginalia.domain.templates.LorebookTemplateData;
 import com.github.enerccio.marginalia.domain.templates.TemplateContext;
 import com.github.enerccio.marginalia.domain.templates.TemplateVariables;
 import com.github.enerccio.marginalia.extensions.PartTextRegistry;
+import com.github.enerccio.marginalia.extensions.httphooks.BackendException;
+import com.github.enerccio.marginalia.extensions.httphooks.GpuGate;
+import com.github.enerccio.marginalia.extensions.httphooks.HookRunner;
 import com.github.enerccio.marginalia.extensions.imagegenerator.model.BackendConfig;
 import com.github.enerccio.marginalia.extensions.imagegenerator.model.ImageSettings;
 import com.google.gson.Gson;
@@ -25,6 +28,7 @@ import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Consumer;
+import java.util.function.UnaryOperator;
 
 /**
  * What the image generator does with the book: keeps the backends of the user, asks the language model for the prompt of a part,
@@ -120,6 +124,11 @@ public class ImageGeneratorService {
 
     public String protect(String apiKey) {
         return StringUtils.isBlank(apiKey) ? null : inferenceServices.protectSecret(apiKey);
+    }
+
+    /** Opens a text made by {@link #protect}; null when it was protected by another installation. */
+    public String reveal(String protectedText) {
+        return StringUtils.isBlank(protectedText) ? null : inferenceServices.revealSecret(protectedText);
     }
 
     /** The api key of the backend, null when there is none or it was protected by another installation. */
@@ -409,12 +418,23 @@ public class ImageGeneratorService {
         };
     }
 
-    /** A session of the backend; {@code onIdleEnd} is told when the idle time ended it. */
+    /**
+     * A session of the backend; {@code onIdleEnd} is told when the idle time ended it. The sessions of everyone who calls the same
+     * server go through one {@link GpuGate}: the hooks run for the first and the last of them, and the images are made one at a time.
+     */
     public ImageSession createSession(BackendConfig config, Consumer<String> onIdleEnd) {
+        UnaryOperator<String> reveal = this::reveal;
         return new ImageSession(createBackend(config),
-                () -> HookRunner.run(config.getBefore(), config.isLocal()),
-                () -> HookRunner.run(config.getAfter(), config.isLocal()),
-                config.getIdleSeconds(), scheduler, onIdleEnd);
+                // before: in order, the first failure stops the image (the next request must not load a model on a full GPU)
+                () -> HookRunner.runAll(config.getBeforeHooks(), config.isLocal(), reveal),
+                // after: every request is made, also when one failed (every container must be stopped); the first failure is reported
+                () -> {
+                    String error = HookRunner.runAllRegardless(config.getAfterHooks(), config.isLocal(), reveal);
+                    if (error != null) {
+                        throw new BackendException(error);
+                    }
+                },
+                config.getIdleSeconds(), scheduler, onIdleEnd, GpuGate.forAddress(config.getBaseUrl()));
     }
 
     public void shutdown() {

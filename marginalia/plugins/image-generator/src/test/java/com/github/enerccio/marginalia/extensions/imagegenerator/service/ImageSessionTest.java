@@ -1,5 +1,7 @@
 package com.github.enerccio.marginalia.extensions.imagegenerator.service;
 
+import com.github.enerccio.marginalia.extensions.httphooks.BackendException;
+import com.github.enerccio.marginalia.extensions.httphooks.GpuGate;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
@@ -78,11 +80,11 @@ class ImageSessionTest {
         int[] calls = {0};
         ImageSession session = new ImageSession(backend(), () -> {
             if (calls[0]++ == 0) {
-                throw new ImageBackend.ImageException("no gpu");
+                throw new BackendException("no gpu");
             }
         }, () -> events.add("after"), 0, scheduler, null);
 
-        var e = assertThrows(ImageBackend.ImageException.class, () -> session.generate(REQUEST, () -> false));
+        var e = assertThrows(BackendException.class, () -> session.generate(REQUEST, () -> false));
         assertEquals("no gpu", e.getMessage());
         assertFalse(session.isLeased());
         assertEquals(List.of(), events);
@@ -95,7 +97,7 @@ class ImageSessionTest {
     void aFailingAfterIsReportedNotThrown() throws Exception {
         ImageSession session = new ImageSession(backend(), () -> {
         }, () -> {
-            throw new ImageBackend.ImageException("hook down");
+            throw new BackendException("hook down");
         }, 0, scheduler, null);
         session.generate(REQUEST, () -> false);
 
@@ -159,7 +161,7 @@ class ImageSessionTest {
         Thread worker = new Thread(() -> {
             try {
                 session.generate(REQUEST, () -> false);
-            } catch (ImageBackend.ImageException ignored) {
+            } catch (BackendException ignored) {
             }
         });
         worker.start();
@@ -172,5 +174,61 @@ class ImageSessionTest {
         worker.join(5000);
 
         assertEquals(List.of("before", "image", "after"), events);
+    }
+
+    @Test
+    void sessionsOnOneGpuShareTheHooks() throws Exception {
+        GpuGate gate = new GpuGate();
+        ImageSession first = new ImageSession(backend(), () -> events.add("before"), () -> events.add("after"), 0, scheduler, null, gate);
+        ImageSession second = new ImageSession(backend(), () -> events.add("before"), () -> events.add("after"), 0, scheduler, null, gate);
+
+        first.generate(REQUEST, () -> false);
+        second.generate(REQUEST, () -> false);
+        assertNull(first.end());
+
+        assertEquals(List.of("before", "image", "image"), events);
+        assertNull(second.end());
+        assertEquals(List.of("before", "image", "image", "after"), events);
+    }
+
+    @Test
+    void imagesOfSessionsOnOneGpuAreMadeOneAtATime() throws Exception {
+        GpuGate gate = new GpuGate();
+        java.util.concurrent.atomic.AtomicInteger inside = new java.util.concurrent.atomic.AtomicInteger();
+        java.util.concurrent.atomic.AtomicInteger most = new java.util.concurrent.atomic.AtomicInteger();
+        ImageBackend slow = new ImageBackend() {
+            @Override
+            public byte[] generate(ImageRequest request, Cancel cancel) {
+                most.accumulateAndGet(inside.incrementAndGet(), Math::max);
+                try {
+                    Thread.sleep(50);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+                inside.decrementAndGet();
+                return new byte[]{1};
+            }
+
+            @Override
+            public void test() {
+            }
+        };
+        List<Thread> workers = new java.util.ArrayList<>();
+        for (int i = 0; i < 3; i++) {
+            ImageSession session = new ImageSession(slow, () -> { }, () -> { }, 0, scheduler, null, gate);
+            Thread worker = new Thread(() -> {
+                try {
+                    session.generate(REQUEST, () -> false);
+                } catch (BackendException ignored) {
+                }
+            });
+            workers.add(worker);
+            worker.start();
+        }
+        for (Thread worker : workers) {
+            worker.join(5000);
+        }
+
+        assertEquals(1, most.get());
     }
 }

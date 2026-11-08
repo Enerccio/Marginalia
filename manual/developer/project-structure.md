@@ -22,7 +22,7 @@ something. [Architecture](architecture.md) explains how the parts work together;
 ```
 Marginalia/
 ├── marginalia/              the application - a Maven project (see below)
-│   ├── libs/                code that plugins share, one Maven project each (`translator-common`, embedded in the bundles that use it)
+│   ├── libs/                code that plugins share, one Maven project each (`translator-common` and `http-hooks`, embedded in the bundles that use them)
 │   └── plugins/             bundled extensions, one Maven project each
 ├── manual/                  sources of this manual (Retype, Markdown)
 │   └── images/              screenshots used by the manual and the READMEs
@@ -381,6 +381,7 @@ plugins/<name>/
 | Real Language Translator | `extensions.reallangtranslator` | Model (`RealLanguage` with its `Script`, the `Presets`, the glossary of `GlossaryEntry`s merged from the language, the folders and the book by `Glossary`, the extraction prompts and the settings of a book and of a user), `translate` (prompt, schema and checks of a translation, `ScriptCheck`, `TermExtraction`, the quick translation), `service` (translation and glossary services, the word extraction and its runs, the library, `RealInherited`), `commands`, `ui` (the editor, the book view with the glossary and extraction panels) and `ReallangKind`. Shares [`translator-common`](plugins/libraries/translator-common.md). |
 | Prompt History | `extensions.prompthistory` | Activator, extension (an `InferenceListener` and a panel in the user settings), `PromptHistory` (where the histories are: the session's plugin data, the latest runs of agents), `HistoryStore` (the last requests of one session), `Packing` (a request as gzipped JSON) and `PromptHistoryDialog`. |
 | Converter (`sillytavern-converter`) | `extensions.stconverter` | Model (the chat, the turn items, the schema of the answer, and `BookSource`, the parts of a book to redraft), service (storage in the attributes of the book, the prompt, the pure functions that read and merge the answer, `BookSourceReader` that strips a backup or a book to a `BookSource` resource), `ConverterView` (the tab) and its CSS; `STConverterLog` holds the logger. |
+| Read Aloud (`tts-reader`) | `extensions.ttsreader` | Activator, extension (one decorator of `Viewer.renderManuscriptReadingView`), the control component `TtsControl`, `tts-reader.js` (the reading, in the browser) and `tts-reader.css`. |
 | Chinese localization | `extensions.chineselocalization` | Activator, extension and one `LocalizationBundle` - a language, no UI code. |
 
 `plugins/Dockerfile` and `plugins/docker-compose.yml` build all of them in a container (JARs end up in `plugins/build/`,

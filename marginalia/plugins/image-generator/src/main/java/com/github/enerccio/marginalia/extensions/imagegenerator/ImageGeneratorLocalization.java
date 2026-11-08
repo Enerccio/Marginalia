@@ -63,7 +63,11 @@ public class ImageGeneratorLocalization extends PluginLocalizationBundle {
     public static final String THE_REQUEST_AFTER_THE_IMAGES_RUNS = "The request after the images runs this many seconds after the last image; 0 never";
     public static final String BEFORE_THE_FIRST_IMAGE = "Before the first image";
     public static final String AFTER_THE_LAST_IMAGE = "After the last image";
-    public static final String A_REQUEST_MADE_AROUND_THE_IMAGES = "A request made around the images, for example to free the memory of the GPU. Empty does nothing.";
+    public static final String A_REQUEST_MADE_AROUND_THE_IMAGES = "Requests made around the images, one after the other, for example to free the memory of the GPU. None does nothing.";
+    public static final String ADD_A_REQUEST = "Add a request";
+    public static final String REMOVE_THE_REQUEST = "Remove the request";
+    public static final String REQUEST = "Request";
+    public static final String WAIT_AFTERWARDS_SECONDS = "Wait afterwards (s)";
     public static final String METHOD = "Method";
     public static final String HEADERS_NAME_VALUE_ONE_PER_LINE = "Headers (Name: value, one per line)";
     public static final String BODY = "Body";
@@ -243,8 +247,20 @@ public class ImageGeneratorLocalization extends PluginLocalizationBundle {
         ja(AFTER_THE_LAST_IMAGE, "最後の画像の後");
         zh(AFTER_THE_LAST_IMAGE, "最后一张图像之后");
 
-        ja(A_REQUEST_MADE_AROUND_THE_IMAGES, "画像の前後に行うリクエスト (例: GPU のメモリを解放する)。空の場合は何もしません。");
-        zh(A_REQUEST_MADE_AROUND_THE_IMAGES, "在图像前后发出的请求（例如释放 GPU 显存）。留空则不执行任何操作。");
+        ja(A_REQUEST_MADE_AROUND_THE_IMAGES, "画像の前後に順番に行うリクエスト (例: GPU のメモリを解放する)。なければ何もしません。");
+        zh(A_REQUEST_MADE_AROUND_THE_IMAGES, "在图像前后按顺序发出的请求（例如释放 GPU 显存）。没有则不执行任何操作。");
+
+        ja(ADD_A_REQUEST, "リクエストを追加");
+        zh(ADD_A_REQUEST, "添加请求");
+
+        ja(REMOVE_THE_REQUEST, "リクエストを削除");
+        zh(REMOVE_THE_REQUEST, "删除请求");
+
+        ja(REQUEST, "リクエスト");
+        zh(REQUEST, "请求");
+
+        ja(WAIT_AFTERWARDS_SECONDS, "その後の待機 (秒)");
+        zh(WAIT_AFTERWARDS_SECONDS, "之后等待（秒）");
 
         ja(METHOD, "メソッド");
         zh(METHOD, "方法");

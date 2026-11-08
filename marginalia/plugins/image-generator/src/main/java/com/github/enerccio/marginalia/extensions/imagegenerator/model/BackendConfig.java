@@ -1,5 +1,9 @@
 package com.github.enerccio.marginalia.extensions.imagegenerator.model;
 
+import com.github.enerccio.marginalia.extensions.httphooks.HttpHook;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -30,10 +34,13 @@ public class BackendConfig {
     private int height = DEFAULT_HEIGHT;
     private String negativePrompt = "";
     private int timeoutSeconds = DEFAULT_TIMEOUT_SECONDS;
-    /** Called before the first image of a session. */
-    private HttpHook before = new HttpHook();
-    /** Called when the session is over (accepted, discarded, closed or idle). */
-    private HttpHook after = new HttpHook();
+    /** Made in order before the first image of a session (unload the language model, start the image server...). */
+    private List<HttpHook> beforeHooks;
+    /** Made in order when the session is over (accepted, discarded, closed or idle): all of them, whatever happens to one. */
+    private List<HttpHook> afterHooks;
+    /** The one request of the settings saved before the lists: read when there is no list, dropped when the list is set. */
+    private HttpHook before;
+    private HttpHook after;
     /** The session is over this many seconds after the last image; 0 for never (it ends with the window). */
     private int idleSeconds = DEFAULT_IDLE_SECONDS;
 
@@ -133,20 +140,31 @@ public class BackendConfig {
         this.timeoutSeconds = timeoutSeconds;
     }
 
-    public HttpHook getBefore() {
-        return before == null ? new HttpHook() : before;
+    /** The requests before the first image, in order (a copy). */
+    public List<HttpHook> getBeforeHooks() {
+        return hooks(beforeHooks, before);
     }
 
-    public void setBefore(HttpHook before) {
-        this.before = before;
+    public void setBeforeHooks(List<HttpHook> hooks) {
+        this.beforeHooks = new ArrayList<>(hooks);
+        this.before = null;
     }
 
-    public HttpHook getAfter() {
-        return after == null ? new HttpHook() : after;
+    /** The requests after the last image, in order (a copy). */
+    public List<HttpHook> getAfterHooks() {
+        return hooks(afterHooks, after);
     }
 
-    public void setAfter(HttpHook after) {
-        this.after = after;
+    public void setAfterHooks(List<HttpHook> hooks) {
+        this.afterHooks = new ArrayList<>(hooks);
+        this.after = null;
+    }
+
+    private static List<HttpHook> hooks(List<HttpHook> list, HttpHook legacy) {
+        if (list != null) {
+            return new ArrayList<>(list);
+        }
+        return legacy == null || legacy.isEmpty() ? new ArrayList<>() : new ArrayList<>(List.of(legacy));
     }
 
     public int getIdleSeconds() {

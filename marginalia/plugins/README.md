@@ -7,6 +7,7 @@ a restart.
 |---|---|
 | [Anthropic Claude](anthropic/README.md) | Anthropic's Claude models as an inference provider (type *Extension*), over the Anthropic Java SDK: thinking summaries as reasoning, adaptive thinking and effort, exact usage. |
 | [Arc Outline](arc-outline/README.md) | The arcs of the book and their chapters, each planned, current or finished, in the story sidebar; the model can write an arc from the lore. |
+| [Audiobook](audiobook/README.md) | Stub. Will turn a book into an audiobook part by part with a text-to-speech server and a voice per character. |
 | [Author's Note](authorsnote/README.md) | A per-book note inserted into the prompt of every generation, at a chosen depth and role. |
 | [Beta Readers](beta-readers/README.md) | Personas you define and a chat about the book with them, alone or in a group: replies that stream, the story sent as it changes, a spoiler limit. |
 | [Book Description Generator](book-description-generator/README.md) | Writes the name and the description of a book with the model from a range of its story (notes first when it is too long, optional summaries), from a button on the About tab. |
@@ -16,7 +17,7 @@ a restart.
 | [Conlang Translator](conlang-translator/README.md) | The speech of the characters in a constructed language (rules and a lexicon, edited with the model's help), the English kept as the source every model reads; a click shows it in the story and in the viewer, the exports can print it as footnotes. |
 | [Gemma 4 tools fix](gemma4toolsfix/README.md) | Sends the results of function calls to Gemma 4 models with the role `tool_responses`. |
 | [Google Gemini](google-genai/README.md) | Google's Gemini models as an inference provider (type *Extension*), over the Google Gen AI Java SDK: thinking summaries as reasoning, safety filters, exact usage. |
-| [Image Generator](image-generator/README.md) | "Generate image" in the menu of a part: the model writes the prompt, ComfyUI or an OpenAI-style images API makes the picture, you reroll and accept it as an image of the part. Hooks free the GPU memory around it. |
+| [Image Generator](image-generator/README.md) | "Generate image" in the menu of a part: the model writes the prompt, ComfyUI or an OpenAI-style images API makes the picture, you reroll and accept it as an image of the part. Hooks free the GPU memory around it (shared by the users of one GPU); the HTTP code is the library `http-hooks`. |
 | [Instruction Exporter](instructionexporter/README.md) | "Export instructions" in the story settings menu: copies the instructions, scene settings and characters of the active branch to the clipboard. |
 | [Knowledge Tracker](knowledge-tracker/README.md) | What the characters you choose know and do not know, tracked per part and put into the prompt (and given to the annotation as facts), so the model stops giving them knowledge they cannot have; the Knowledge tab of the story sidebar. |
 | [Lore Generator](lore-generator/README.md) | Writes the content of a lorebook entry with the model from the existing lore (generation, compaction, attachments), from a button in the lorebook editor. |
@@ -31,6 +32,7 @@ a restart.
 | [Reviewer](reviewer/README.md) | AI-written reviews of a story part, with configurable reviewer profiles. |
 | [Side Query](sidequery/README.md) | A chat panel next to the story for asking the model questions about the book, its lore and recent parts. |
 | [SillyTavern Converter](sillytavern-converter/README.md) | A tab next to the story with a SillyTavern chat to review and the turn details the model prepares from it, to put into the new turn form. |
+| [Read Aloud](tts-reader/README.md) | Reads a published book aloud in the viewer, with the speech synthesis of the browser. |
 
 ## Installing
 
@@ -54,7 +56,7 @@ mvn -N install                   # in the repository root: installs the parent P
 cd marginalia
 mvn install -DskipTests          # installs the application (and its classes JAR used by plugins)
 
-cd plugins/chaptermarker          # or anthropic, arc-outline, authorsnote, beta-readers, book-description-generator, character-tracker, chineselocalization, conlang-translator, gemma4toolsfix, google-genai, image-generator, instructionexporter, knowledge-tracker, lore-generator, lorebookvcs, manga-generator, name-generator, name-provider, place-provider, prompt-history, prompt-inspector, reallang-translator, reviewer, sidequery, sillytavern-converter
+cd plugins/chaptermarker          # or anthropic, arc-outline, audiobook, authorsnote, beta-readers, book-description-generator, character-tracker, chineselocalization, conlang-translator, gemma4toolsfix, google-genai, image-generator, instructionexporter, knowledge-tracker, lore-generator, lorebookvcs, manga-generator, name-generator, name-provider, place-provider, prompt-history, prompt-inspector, reallang-translator, reviewer, sidequery, sillytavern-converter, tts-reader
 mvn package                       # target/chaptermarker-1.4.0.jar
 ```
 

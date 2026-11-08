@@ -486,6 +486,14 @@ class SlotCacheHook(CustomLogger):
                 if r == root and m == gone:
                     await switcher.release(api_key)
 
+    async def release_server(self, root, api_key=None):
+        """For another hook that is about to unload the models of the server at `root` (see gpu_unload.py): saves the cache
+        of every slot kept for it and forgets what was in them, so the next request restores its cache into the reloaded model."""
+        for (r, _model, _slot), switcher in list(self.switchers.items()):
+            if r == root:
+                await switcher.release(api_key)
+        self.loaded.pop(root, None)
+
     # runs after the router chose the deployment (so its api_base is known) and before the request is sent
     async def async_pre_call_deployment_hook(self, kwargs, call_type):
         headers = (kwargs.get("proxy_server_request") or {}).get("headers") or {}
@@ -670,3 +678,207 @@ Things to know:
   the version you run. A proxy that swaps models behind one address by restarting a single server (llama-swap) is not
   supported: the slot calls would reach whichever model is loaded. None of this was run against a real `llama-server`
   router; the tests use a stand-in that checks the calls the hook makes.
+
+## Freeing the GPU for another model
+
+A GPU that holds the language model has no room for an image or a speech model next to it. With `llama-server` in router mode a second
+hook can unload the models on request, so a plugin that needs the GPU (the [Image Generator](extensions/image-generator.md#one-gpu-for-the-model-and-the-images),
+the Audiobook) asks for it with a request to the proxy, with the same key it uses for everything else:
+
+```sh
+curl http://litellm:4000/v1/chat/completions \
+  -H "Authorization: Bearer $LITELLM_KEY" \
+  -H "X-Llama-Unload: all" \
+  -H "Content-Type: application/json" \
+  -d '{"model": "qwen3-32b", "messages": [{"role": "user", "content": "unload"}]}'
+```
+
+A request with the header `X-Llama-Unload` is answered by the hook itself (HTTP 200, the text `unloaded: <names>`) and never reaches a
+model. The hook lists the models of the router (`GET /models`), unloads the ones that are loaded (`POST /models/unload` with the name) and
+waits until the router reports that none is in memory any more (`loaded`, `loading` and `unloading` hold the memory), at most
+`LLAMA_UNLOAD_WAIT_SECONDS` (120). If the server can't be reached, answers with an error, or the models are still there after the wait, the answer is an
+error (HTTP 502), so a plugin that sends this as its *before* request does not start the other model on a full GPU. The model comes back by
+itself: the next ordinary request makes the router load it, so the *after* request of a plugin can be empty for the language model. The model name in
+the body only has to be one that a route accepts (with the route `openai/*` it starts with `openai/`, for example `openai/unload`); the header is what counts.
+A name that no route accepts is answered with a 400 *after* the models were unloaded, because the hook runs before LiteLLM looks at the name. The unload goes to every server whose route has `unload`, not to one model.
+
+The hook is a script of its own, `gpu_unload.py`, next to `slot_cache.py` and chained with it. They are independent: `gpu_unload.py` works
+without the cache hook. When both are chained, `gpu_unload.py` finds the cache hook among the callbacks of LiteLLM and calls its
+`release_server`, which **saves the cache of every slot first and forgets what was in it**, so that the next request restores the cache of its session into
+the reloaded model. (Without that call the cache hook would still believe the session is in the slot and restore nothing: the whole prompt
+would be read again after every swap.)
+
+```python
+"""LiteLLM hook: frees the GPU on request, so that another model (images, speech) can use it.
+
+A request with the header `X-Llama-Unload: all` (any chat completion body; the model only has to be a route) is answered
+by this hook with HTTP 200 and never reaches a model. The hook unloads every model that a `llama-server` in router mode
+reports as loaded and returns when the router says none is in memory any more (at most LLAMA_UNLOAD_WAIT_SECONDS, default
+120; then the answer is an error, so that what follows does not start on a full GPU). The next ordinary request makes the
+router load the model again.
+
+It is independent of slot_cache.py. When that hook is chained too, this one asks it to save the caches of the slots first and
+to forget them (its `release_server`), so the cache of a session is restored into the reloaded model; without it nothing is saved.
+
+Switch it on for the servers to be unloaded with `unload` in the `model_info` of their route (one wildcard entry covers a
+router), and chain it with the other hooks:
+
+    model_list:
+      - model_name: "*"
+        litellm_params: {model: "openai/*", api_base: "http://llama-server:8080/v1", api_key: none}
+        model_info:
+          unload: true
+    litellm_settings:
+      callbacks: [slot_cache.proxy_handler_instance, gpu_unload.proxy_handler_instance]
+"""
+import asyncio
+import logging
+import os
+
+import httpx
+import litellm
+from litellm.integrations.custom_logger import CustomLogger
+
+try:
+    from litellm._logging import verbose_proxy_logger as log
+except ImportError:
+    log = logging.getLogger("gpu_unload")
+
+UNLOAD_HEADER = "x-llama-unload"
+WAIT_SECONDS = float(os.environ.get("LLAMA_UNLOAD_WAIT_SECONDS", "120"))
+# the states of a model in the router's /models that still hold its memory
+IN_MEMORY = ("loaded", "loading", "unloading")
+
+
+def server_root(api_base):
+    """The router's own endpoints are at the root of llama-server, the API address of the model ends in /v1."""
+    base = api_base.rstrip("/")
+    return base[:-len("/v1")] if base.endswith("/v1") else base
+
+
+def status_of(model):
+    """The state a router reports for a model: `{"status": {"value": "loaded"}}` (or a plain string); "unknown" without one."""
+    raw = model.get("status") if isinstance(model, dict) else None
+    return str(raw.get("value", "unknown") if isinstance(raw, dict) else raw or "unknown")
+
+
+def servers():
+    """(server root, api key) of every deployment of the config that has `unload` in its model_info, once per server."""
+    try:
+        from litellm.proxy.proxy_server import llm_router
+    except ImportError:
+        return {}
+    found = {}
+    for deployment in (llm_router.model_list if llm_router else []):
+        params = deployment.get("litellm_params") or {}
+        if (deployment.get("model_info") or {}).get("unload") and params.get("api_base"):
+            key = params.get("api_key")
+            if isinstance(key, str) and key.startswith("os.environ/"):
+                key = os.environ.get(key[len("os.environ/"):])
+            found.setdefault(server_root(params["api_base"]), key)
+    return found
+
+
+class GpuUnloadHook(CustomLogger):
+    def __init__(self):
+        super().__init__()
+        self.client = httpx.AsyncClient(timeout=None)
+
+    async def models(self, root, headers):
+        response = await self.client.get(f"{root}/models", headers=headers, timeout=15)
+        response.raise_for_status()
+        body = response.json()
+        listed = body.get("data", []) if isinstance(body, dict) else body
+        return [m for m in listed if isinstance(m, dict) and m.get("id")]
+
+    async def release_caches(self, root, api_key):
+        """Lets the hooks that keep a cache of the slots (slot_cache.py) save it: they are found among the callbacks of LiteLLM."""
+        for callback in litellm.callbacks:
+            release = getattr(callback, "release_server", None)
+            if callable(release):
+                await release(root, api_key)
+
+    async def unload_all(self, root, api_key):
+        """Unloads every model of the router at `root` that is in memory and waits for the memory. Returns their names."""
+        headers = {"Authorization": "Bearer " + api_key} if api_key and api_key != "none" else {}
+        await self.release_caches(root, api_key)
+        names = [m["id"] for m in await self.models(root, headers) if status_of(m) in ("loaded", "loading", "unknown")]
+        for name in names:
+            response = await self.client.post(f"{root}/models/unload", json={"model": name}, headers=headers, timeout=WAIT_SECONDS)
+            response.raise_for_status()
+        deadline = asyncio.get_running_loop().time() + WAIT_SECONDS
+        while any(status_of(m) in IN_MEMORY for m in await self.models(root, headers)):
+            if asyncio.get_running_loop().time() > deadline:
+                raise RuntimeError(f"{root}: still in memory after {WAIT_SECONDS:.0f} s")
+            await asyncio.sleep(1)
+        return names
+
+    # runs before the router looks at the request
+    async def async_pre_call_hook(self, user_api_key_dict, cache, data, call_type):
+        headers = (data.get("proxy_server_request") or {}).get("headers") or {}
+        if not any(str(name).lower() == UNLOAD_HEADER for name in headers):
+            return None
+        from fastapi import HTTPException
+        found = servers()
+        if not found:
+            raise HTTPException(status_code=404, detail="gpu_unload: no deployment with model_info.unload")
+        unloaded = []
+        try:
+            for root, key in found.items():
+                unloaded += await self.unload_all(root, key)
+        except Exception as e:
+            log.warning("gpu_unload: failed: %s", e)
+            raise HTTPException(status_code=502, detail=f"gpu_unload: {e}")
+        log.info("gpu_unload: unloaded %s", ", ".join(unloaded) or "nothing")
+        # a mock answer: LiteLLM answers the request itself (HTTP 200) and never calls a model, which would load one again
+        data["mock_response"] = "unloaded: " + (", ".join(unloaded) or "nothing")
+        return data
+
+
+proxy_handler_instance = GpuUnloadHook()
+```
+
+In Docker the file must be in the container like `slot_cache.py` is: add `- ./gpu_unload.py:/app/gpu_unload.py:ro` to the `volumes` of the proxy,
+next to the line of `slot_cache.py`. A file that is not there shows at start as `ImportError: Could not import proxy_handler_instance from gpu_unload`
+(the real reason, `FileNotFoundError` or an error of the script itself, is a few lines above it in the log).
+
+Chain the two in `litellm_config.yml` and mark the route with `unload`:
+
+```yaml
+model_list:
+  - model_name: "*"
+    litellm_params: {model: "openai/*", api_base: "http://llama-server:8080/v1", api_key: none}
+    model_info:
+      slot_cache: true
+      unload: true
+
+litellm_settings:
+  callbacks: [slot_cache.proxy_handler_instance, gpu_unload.proxy_handler_instance]
+```
+
+In the Image Generator (or any plugin that has the two requests) set the *before* request to `POST` the address above with the headers
+`Authorization: Bearer <key>` and `X-Llama-Unload: all` and the body of the example; the headers are stored encrypted.
+
+The other model's server can be controlled through the same proxy. LiteLLM relays a path to another address
+(`general_settings: pass_through_endpoints`, `path`, `target` and `include_subpath: true`; the key of the proxy is checked, and
+the `Authorization` header of the client is **not** passed on, so the target has its own secret in `headers`). A small
+service next to the speech or image server that stops and starts its container is such a target: [`tools/gpu-control`](https://github.com/Enerccio/Marginalia/tree/master/tools/gpu-control)
+(`POST /<container>/start` answers when the service in it is ready, `stop` when it has exited; its README has the compose example and the LiteLLM
+route for the speech server, `/v1/audio/speech`).
+
+```yaml
+general_settings:
+  pass_through_endpoints:
+    - path: "/gpu"
+      target: "http://gpu-control:8000"
+      include_subpath: true
+      headers: {X-Control-Token: os.environ/GPU_CONTROL_TOKEN}
+```
+
+What was checked: LiteLLM 1.108.3 with a stand-in router that reports `loaded`, `unloading` and `unloaded` (the wait held the answer until the
+state was `unloaded`, a server that was down gave 502, with both hooks chained the slot was saved before the unload and restored by the next request, with only
+`gpu_unload.py` nothing else was called, and the pass-through reached its target, added its own `headers` value in place of one sent by the client, and refused a request without the key). It was also run against a real
+`llama-server` router behind LiteLLM (one 31B model): the request returned `unloaded: <model>` after 1 to 2 seconds, the router logged
+`stopping model instance` and `exited with status 0` (the process is gone, so the memory is free), a second request with nothing loaded
+returned `unloaded: nothing` at once, and the next ordinary request took about a minute because the router loaded the model again. If your
+`GET /models` names the states differently, change `IN_MEMORY` in the script.

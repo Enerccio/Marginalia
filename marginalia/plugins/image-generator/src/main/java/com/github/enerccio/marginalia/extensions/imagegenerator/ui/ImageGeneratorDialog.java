@@ -7,11 +7,15 @@ import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.service.CancellationToken;
+import com.github.enerccio.marginalia.extensions.httphooks.BackendException;
 import com.github.enerccio.marginalia.extensions.imagegenerator.ImageGeneratorExtension;
 import com.github.enerccio.marginalia.extensions.imagegenerator.ImageGeneratorLog;
 import com.github.enerccio.marginalia.extensions.imagegenerator.model.BackendConfig;
 import com.github.enerccio.marginalia.extensions.imagegenerator.model.ImageSettings;
-import com.github.enerccio.marginalia.extensions.imagegenerator.service.*;
+import com.github.enerccio.marginalia.extensions.imagegenerator.service.ImageFormats;
+import com.github.enerccio.marginalia.extensions.imagegenerator.service.ImageGeneratorService;
+import com.github.enerccio.marginalia.extensions.imagegenerator.service.ImageRequest;
+import com.github.enerccio.marginalia.extensions.imagegenerator.service.ImageSession;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
 import com.github.enerccio.marginalia.ui.widgets.DesktopNotifier;
@@ -347,7 +351,7 @@ public class ImageGeneratorDialog extends Dialog {
                     bytes = null;
                     error = T.localized(THE_IMAGE_IS_NOT_VALID);
                 }
-            } catch (ImageBackend.ImageException e) {
+            } catch (BackendException e) {
                 error = cancel.get() ? null : e.getMessage();
                 if (error != null) {
                     ImageGeneratorLog.get().warn("Generating the image failed: {}", e.getMessage());

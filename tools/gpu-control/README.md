@@ -43,7 +43,7 @@ docker compose up -d --build
 What the other containers need so that the controller and LiteLLM can reach them by name (their own compose files):
 
 ```yaml
-# ComfyUI (container_name comfyui-amd already): join the network, and merge the two CLI_ARGS (the later one replaces the earlier)
+# ComfyUI (container_name comfyui-amd already): join the network, and merge the two CLI_ARGS (the later one replaces the earlier); a complete file: comfyui.docker-compose.example.yml
 services:
   comfyui:
     networks: [default, ai]

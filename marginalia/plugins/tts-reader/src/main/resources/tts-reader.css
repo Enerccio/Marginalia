@@ -1,0 +1,82 @@
+/* The controls sit next to the style button of the reader (fixed, top right); the button is shown only when the
+   browser can speak. */
+.tts-reader-bar {
+    position: fixed;
+    top: 16px;
+    right: 80px;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    gap: var(--lumo-space-xs);
+    padding: var(--lumo-space-xs);
+    background: var(--lumo-base-color);
+    border-radius: var(--lumo-border-radius-l);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.tts-reader-bar.tts-reader-unsupported {
+    display: none;
+}
+
+/* play and pause take turns; stop only while something is read */
+.tts-reader-bar .tts-reader-pause,
+.tts-reader-bar .tts-reader-stop {
+    display: none;
+}
+
+.tts-reader-bar.tts-reader-playing .tts-reader-play {
+    display: none;
+}
+
+.tts-reader-bar.tts-reader-playing .tts-reader-pause {
+    display: inline-flex;
+}
+
+.tts-reader-bar.tts-reader-active .tts-reader-stop {
+    display: inline-flex;
+}
+
+.tts-reader-panel {
+    display: none;
+    position: absolute;
+    top: calc(100% + var(--lumo-space-xs));
+    right: 0;
+    box-sizing: border-box;
+    width: min(18rem, calc(100vw - 2 * var(--lumo-space-m)));
+    flex-direction: column;
+    gap: var(--lumo-space-s);
+    padding: var(--lumo-space-m);
+    background: var(--lumo-base-color);
+    color: var(--lumo-body-text-color);
+    border-radius: var(--lumo-border-radius-l);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.tts-reader-panel.tts-reader-open {
+    display: flex;
+}
+
+.tts-reader-field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--lumo-space-xs);
+    font-size: var(--lumo-font-size-s);
+    color: var(--lumo-secondary-text-color);
+}
+
+.tts-reader-field select {
+    min-width: 0;
+    padding: var(--lumo-space-xs);
+    font: inherit;
+    color: var(--lumo-body-text-color);
+    background: var(--lumo-contrast-5pct);
+    border: 1px solid var(--lumo-contrast-20pct);
+    border-radius: var(--lumo-border-radius-m);
+}
+
+/* the part that is read */
+.tts-reader-reading {
+    background: var(--lumo-primary-color-10pct);
+    border-radius: var(--lumo-border-radius-m);
+    box-shadow: -4px 0 0 var(--lumo-primary-color);
+}

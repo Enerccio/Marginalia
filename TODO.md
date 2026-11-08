@@ -331,13 +331,13 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
       with a click). Works on a phone since 1.6.0 (a tab in the story drawer, the range chosen with two taps). Not done: editing the turn details in the tab, the converter wand as a command for the
       command bar and agents, running the wand on a long chat in chunks automatically, an automated test of the tab (only the
       logic has unit tests, the UI was checked by hand).
-35. **Image generation / illustrations** for scenes. 🧩 ✅ Partly: the `image-generator` plugin makes an image for a part (the model writes the prompt, ComfyUI and OpenAI images API, hooks around the images for a single GPU, reroll, accept as an image of the part; not done there: a generic HTTP template backend for other hosted services, manga tags as the prompt source). Attaching images by hand is done, see
+35. **Image generation / illustrations** for scenes. 🧩 ✅ Partly: the `image-generator` plugin makes an image for a part (the model writes the prompt, ComfyUI and OpenAI images API, hooks around the images for a single GPU, reroll, accept as an image of the part; not done there: a generic HTTP template backend for other hosted services, manga tags as the prompt source; the gate that shares one GPU between users lives in each plugin, so the Image Generator and the Audiobook on one GPU do not see each other's; the address guard resolves the host twice, protected only by the JVM's lookup cache). Attaching images by hand is done, see
     *Images* in the part menu; agents can look at images (`view_image`). Not done: sending the images of the story to vision models in a
     generation, and showing them to the readers of a
     published book in the Viewer (the Viewer deliberately shows them to the owner only). Files of deleted
     resources and of replaced content stay in the data folder until the administrator removes them in *Admin → Resource Files*
     (garbage collection: scan, ZIP download, delete; done). 🧩
-36. **Text-to-speech read-aloud** in the Viewer. 🧩
+36. **Text-to-speech read-aloud** in the Viewer. 🧩 ✅ Partly: the `tts-reader` plugin reads with the browser's speech synthesis (play / pause / stop, voice, speed and pitch in the browser). Missing: a server side engine (an OpenAI-compatible `/audio/speech`, Kokoro, Piper) with cached audio, highlighting the sentence that is read. The server side one with several voices is the `audiobook` plugin (stub, see its `TODO.md`).
 37. **Health and metrics endpoint.** ✅ `GET /health` (`HealthServlet`, no login): 200 when the context runs and the database
     answers, else 503; the Dockerfile `HEALTHCHECK` uses it. ✅ Tokens per provider and user are counted since 1.2.0 (`Usage`,
     Inference Providers tab and *Usage per user* in the administration). Tokens per book and day are counted

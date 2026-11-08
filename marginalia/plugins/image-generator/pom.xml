@@ -33,6 +33,13 @@
             <classifier>classes</classifier>
         </dependency>
 
+        <!-- the HTTP calls, the guard for private addresses, the hooks and the GPU gate; embedded in the bundle (plugins do not see each other's classes) -->
+        <dependency>
+            <groupId>com.github.enerccio.marginalia.extensions</groupId>
+            <artifactId>http-hooks</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <!-- OSGi Framework -->
         <dependency>
             <groupId>org.apache.felix</groupId>
@@ -152,6 +159,7 @@
                             !com.github.enerccio.marginalia.extensions.imagegenerator.*
                         </Import-Package>
                         <Export-Package>com.github.enerccio.marginalia.extensions.imagegenerator.*</Export-Package>
+                        <Embed-Dependency>http-hooks;inline=true</Embed-Dependency>
                     </instructions>
                 </configuration>
             </plugin>

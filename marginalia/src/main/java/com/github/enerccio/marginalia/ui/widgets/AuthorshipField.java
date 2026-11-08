@@ -19,7 +19,7 @@ import java.util.function.Supplier;
  * (see {@code MessageRevisionService#authorship}), which reads all the versions of all the parts, so it is done when the button is
  * pressed, not whenever the tab is shown.
  */
-@Configurable
+@Configurable(preConstruction = true)
 public class AuthorshipField extends TextField {
 
     @Autowired

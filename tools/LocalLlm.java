@@ -28,6 +28,8 @@ import java.util.concurrent.TimeUnit;
  *   java tools/LocalLlm.java --models                      # what the server offers
  *   java tools/LocalLlm.java --extra '"chat_template_kwargs":{"enable_thinking":false}' ...   # raw JSON members added to the request
  *   java tools/LocalLlm.java --model ID ...                # another model of the same server, the database stays as it is
+ *   java tools/LocalLlm.java --header "X-Llama-Unload: all" ...   # an extra request header (repeatable), for a hook of the proxy
+ *   java tools/LocalLlm.java --request POST /v1/audio/speech --body-file b.json --out speech.mp3   # any other call to the same server and key
  *   java tools/LocalLlm.java --system-file sys.txt --user-file scene.txt --samples 3 > answers.txt
  *   echo "Say ok" | java tools/LocalLlm.java --reasoning
  * </pre>
@@ -68,12 +70,28 @@ public class LocalLlm {
         int maxTokens = 16000, samples = 1, timeoutMinutes = 20;
         Double temperature = null;
         boolean list = false, listModels = false, showReasoning = false, raw = false;
+        List<String[]> extraHeaders = new ArrayList<>();
+        String requestMethod = null, requestPath = null, bodyFile = null, outFile = null;
 
         for (int i = 0; i < args.length; i++) {
             switch (args[i]) {
                 case "--list" -> list = true;
                 case "--models" -> listModels = true;
                 case "--extra" -> extra = args[++i];
+                case "--request" -> {
+                    requestMethod = args[++i];
+                    requestPath = args[++i];
+                }
+                case "--body-file" -> bodyFile = args[++i];
+                case "--out" -> outFile = args[++i];
+                case "--header" -> {
+                    String line = args[++i];
+                    int colon = line.indexOf(':');
+                    if (colon < 1) {
+                        die("--header wants \"Name: value\"");
+                    }
+                    extraHeaders.add(new String[]{line.substring(0, colon).strip(), line.substring(colon + 1).strip()});
+                }
                 case "--model" -> modelOverride = args[++i];
                 case "--ai" -> aiName = args[++i];
                 case "--home" -> home = Path.of(args[++i]);
@@ -90,7 +108,7 @@ public class LocalLlm {
                 case "--raw" -> raw = true;
                 default -> die("Unknown option " + args[i] + "\nOptions: --list --models --model ID --ai NAME --home DIR --max-tokens N --temperature T "
                         + "--system TEXT|--system-file F --user TEXT|--user-file F (default stdin) --json-schema F --extra JSON-MEMBERS --samples N "
-                        + "--timeout-minutes N --reasoning (thinking to stderr) --raw (whole JSON answer)");
+                        + "--timeout-minutes N --header \"Name: value\" --request METHOD PATH [--body-file F] [--out F] --reasoning (thinking to stderr) --raw (whole JSON answer)");
             }
         }
 
@@ -108,6 +126,36 @@ public class LocalLlm {
                 request.header("Authorization", "Bearer " + ai.key);
             }
             System.out.println(HttpClient.newHttpClient().send(request.build(), HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8)).body());
+            return;
+        }
+        if (requestPath != null) {
+            // any other call to the same server with the same key: PATH is relative to the root of the server (without /v1)
+            String root = ai.uri.replaceAll("/+$", "");
+            root = root.endsWith("/v1") ? root.substring(0, root.length() - 3) : root;
+            byte[] payload = bodyFile == null ? new byte[0] : Files.readAllBytes(Path.of(bodyFile));
+            HttpRequest.Builder request = HttpRequest.newBuilder(URI.create(root + requestPath))
+                    .timeout(Duration.ofMinutes(timeoutMinutes))
+                    .method(requestMethod.toUpperCase(), payload.length == 0 ? HttpRequest.BodyPublishers.noBody()
+                            : HttpRequest.BodyPublishers.ofByteArray(payload));
+            if (payload.length > 0) {
+                request.header("Content-Type", "application/json");
+            }
+            if (!ai.key.isEmpty()) {
+                request.header("Authorization", "Bearer " + ai.key);
+            }
+            extraHeaders.forEach(h -> request.header(h[0], h[1]));
+            long started = System.nanoTime();
+            HttpResponse<byte[]> response = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(20)).build()
+                    .send(request.build(), HttpResponse.BodyHandlers.ofByteArray());
+            System.err.printf("[Local LLM] %s %s -> HTTP %d, %d bytes, %s, %.1f s%n", requestMethod.toUpperCase(), requestPath,
+                    response.statusCode(), response.body().length, response.headers().firstValue("content-type").orElse("-"),
+                    (System.nanoTime() - started) / 1e9);
+            if (outFile != null && response.statusCode() / 100 == 2) {
+                Files.write(Path.of(outFile), response.body());
+            } else {
+                String text = new String(response.body(), StandardCharsets.UTF_8);
+                System.out.println(text.length() > 2000 ? text.substring(0, 2000) + "..." : text);
+            }
             return;
         }
         if (modelOverride != null) {
@@ -138,6 +186,7 @@ public class LocalLlm {
             if (!ai.key.isEmpty()) {
                 request.header("Authorization", "Bearer " + ai.key);
             }
+            extraHeaders.forEach(h -> request.header(h[0], h[1]));
             HttpResponse<String> response = client.send(request.build(), HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
             double seconds = (System.nanoTime() - started) / 1e9;
             if (response.statusCode() / 100 != 2) {

@@ -1,5 +1,8 @@
 package com.github.enerccio.marginalia.extensions.imagegenerator.service;
 
+import com.github.enerccio.marginalia.extensions.httphooks.BackendException;
+import com.github.enerccio.marginalia.extensions.httphooks.Http;
+import com.github.enerccio.marginalia.extensions.httphooks.UrlGuard;
 import com.github.enerccio.marginalia.extensions.imagegenerator.model.BackendConfig;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -36,7 +39,7 @@ public class ComfyUiBackend implements ImageBackend {
     }
 
     @Override
-    public byte[] generate(ImageRequest request, Cancel cancel) throws ImageException {
+    public byte[] generate(ImageRequest request, Cancel cancel) throws BackendException {
         JsonObject workflow = WorkflowTemplate.fill(config.getWorkflow(), request);
         JsonObject body = new JsonObject();
         body.add("prompt", workflow);
@@ -49,18 +52,18 @@ public class ComfyUiBackend implements ImageBackend {
         String promptId = parse(queued).getAsJsonObject().has("prompt_id")
                 ? parse(queued).getAsJsonObject().get("prompt_id").getAsString() : null;
         if (promptId == null) {
-            throw new ImageException("ComfyUI did not return a prompt id: " + Http.excerpt(queued));
+            throw new BackendException("ComfyUI did not return a prompt id: " + Http.excerpt(queued));
         }
 
         long deadline = System.nanoTime() + config.getTimeoutSeconds() * 1_000_000_000L;
         while (true) {
             if (cancel.isCancelled()) {
                 interrupt();
-                throw new ImageException("Cancelled");
+                throw new BackendException("Cancelled");
             }
             if (System.nanoTime() > deadline) {
                 interrupt();
-                throw new ImageException("ComfyUI did not finish in " + config.getTimeoutSeconds() + " s");
+                throw new BackendException("ComfyUI did not finish in " + config.getTimeoutSeconds() + " s");
             }
             HttpResponse<byte[]> history = Http.send(builder("/history/" + promptId).GET().build());
             Http.requireOk(history, "Reading the history");
@@ -72,20 +75,20 @@ public class ComfyUiBackend implements ImageBackend {
                     return fetch(image);
                 }
                 if (isFinished(entry)) {
-                    throw new ImageException("The workflow finished without an image" + errorOf(entry));
+                    throw new BackendException("The workflow finished without an image" + errorOf(entry));
                 }
             }
             try {
                 Thread.sleep(pollMillis);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-                throw new ImageException("Interrupted", e);
+                throw new BackendException("Interrupted", e);
             }
         }
     }
 
     @Override
-    public void test() throws ImageException {
+    public void test() throws BackendException {
         Http.requireOk(Http.send(builder("/system_stats").GET().build()), "Connecting to ComfyUI");
     }
 
@@ -140,7 +143,7 @@ public class ComfyUiBackend implements ImageBackend {
         return "";
     }
 
-    private byte[] fetch(JsonObject image) throws ImageException {
+    private byte[] fetch(JsonObject image) throws BackendException {
         String query = "filename=" + enc(image.get("filename").getAsString())
                 + "&subfolder=" + enc(image.has("subfolder") ? image.get("subfolder").getAsString() : "")
                 + "&type=" + enc(image.has("type") ? image.get("type").getAsString() : "output");
@@ -152,12 +155,12 @@ public class ComfyUiBackend implements ImageBackend {
     private void interrupt() {
         try {
             Http.send(builder("/interrupt").POST(HttpRequest.BodyPublishers.noBody()).build());
-        } catch (ImageException e) {
+        } catch (BackendException e) {
             ImageGeneratorLogs.warn("Could not interrupt ComfyUI: {}", e.getMessage());
         }
     }
 
-    private HttpRequest.Builder builder(String path) throws ImageException {
+    private HttpRequest.Builder builder(String path) throws BackendException {
         String base = config.getBaseUrl().replaceAll("/+$", "");
         URI uri = UrlGuard.check(base + path, config.isLocal());
         HttpRequest.Builder builder = Http.request(uri, 30);
@@ -167,11 +170,11 @@ public class ComfyUiBackend implements ImageBackend {
         return builder;
     }
 
-    private static JsonElement parse(HttpResponse<byte[]> response) throws ImageException {
+    private static JsonElement parse(HttpResponse<byte[]> response) throws BackendException {
         try {
             return JsonParser.parseString(new String(response.body(), StandardCharsets.UTF_8));
         } catch (RuntimeException e) {
-            throw new ImageException("ComfyUI answered with something that is not JSON: " + Http.excerpt(response), e);
+            throw new BackendException("ComfyUI answered with something that is not JSON: " + Http.excerpt(response), e);
         }
     }
 
