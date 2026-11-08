@@ -116,11 +116,12 @@ How a part is made, so you know what to expect:
   part, kept with the part.
 - While a generation of yours runs, the speech waits, so the language model is not unloaded under it.
 - A part that you marked **final** in the studio is left alone, and the dialog says how many were.
+- **The whole audiobook** joins every part that has up to date audio into one mp3 with a chapter mark for each part and shows a download link under the list (the parts left out are named). The same file is the export format *one mp3 with chapter marks*.
 - **Stop all** cancels the waiting parts and stops the running one after the piece it is speaking. **Download** gives the mp3 of a done part.
 
 ## The Audiobook studio
 
-*Tools menu → **Audiobook studio*** is where the final audiobook is made, a part at a time: you see the script, change it, listen to a
+*Tools menu → **Audiobook studio*** (the voice of the selected piece, with a preview, is beside its speaker) is where the final audiobook is made, a part at a time: you see the script, change it, listen to a
 piece and make the part.
 
 ![The studio with a speech selected](../../images/plugin-audiobook-studio.png)

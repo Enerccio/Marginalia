@@ -115,8 +115,10 @@ public class StudioDialog extends Dialog {
         this.voice = new VoiceField(T.localized(VOICE), voiceChoices);
 
         setHeaderTitle(T.localized(AUDIOBOOK_STUDIO));
-        setWidth("min(1500px, 96vw)");
-        setHeight("92vh");
+        setWidth("min(1500px, 98vw)");
+        setHeight("94vh");
+        // no padding of the dialog and no footer: the close button is in the header, the rest of the height is the work
+        addThemeVariants(com.vaadin.flow.component.dialog.DialogVariant.LUMO_NO_PADDING);
 
         try {
             parts.addAll(service.speakableParts(manuscript));
@@ -153,9 +155,17 @@ public class StudioDialog extends Dialog {
 
         pronunciation.setThemeName("tertiary");
         pronunciation.addClickListener(e -> new SpokenFormDialog(service, manuscript, () -> Notification.success(T.localized(THE_PRONUNCIATION_IS_STORED))).open());
-        HorizontalLayout top = new HorizontalLayout(partBox, status, annotate, label, modelPicker, pronunciation);
-        top.setAlignItems(FlexComponent.Alignment.END);
-        top.setWrap(true);
+        // two rows: the part and what is done with it, then the model that labels (model and protocol side by side)
+        partBox.setWidth("24em");
+        HorizontalLayout partRow = new HorizontalLayout(partBox, status, annotate, pronunciation);
+        partRow.setAlignItems(FlexComponent.Alignment.END);
+        partRow.setWrap(true);
+        HorizontalLayout labelRow = new HorizontalLayout(label, modelPicker);
+        labelRow.setAlignItems(FlexComponent.Alignment.END);
+        labelRow.setWrap(true);
+        VerticalLayout top = new VerticalLayout(partRow, labelRow);
+        top.setPadding(false);
+        top.setSpacing(false);
 
         grid.addThemeVariants(GridVariant.LUMO_COMPACT, GridVariant.LUMO_NO_BORDER);
         grid.addColumn(i -> i + 1).setHeader("#").setAutoWidth(true).setFlexGrow(0);
@@ -188,10 +198,14 @@ public class StudioDialog extends Dialog {
         VerticalLayout content = new VerticalLayout(top, body, partBar, message, working, player);
         content.setSizeFull();
         content.setPadding(false);
+        content.setSpacing(false);
+        content.addClassName(AudiobookStyles.STUDIO);
         content.setFlexGrow(1, body);
         add(content);
 
-        getFooter().add(new Button(T.localized(CLOSE), e -> close()));
+        Button close = new Button(T.localized(CLOSE), e -> close());
+        close.setThemeName("tertiary");
+        getHeader().add(close);
         if (!parts.isEmpty()) {
             partBox.setValue(parts.getFirst());
         } else {
@@ -220,14 +234,13 @@ public class StudioDialog extends Dialog {
         text.setMinHeight("7em");
         speaker.setWidth("12em");
         language.setWidth("6em");
-        voice.setWidthFull();
-        takes.setLabel(T.localized(TAKE));
+                takes.setLabel(T.localized(TAKE));
         takes.setItemLabelGenerator(s -> T.localized(SEED_X).formatted(s) + (hasAudio(s) ? " ✓" : ""));
         takes.setWidth("14em");
         request.setReadOnly(true);
         request.setWidthFull();
-        request.setMinHeight("11em");
-        request.setMaxHeight("16em");
+        request.setMinHeight("7em");
+        request.setMaxHeight("12em");
         locked.addClassName(CssStyles.HINT_TEXT);
         bookWords.addClassName(CssStyles.HINT_TEXT);
 
@@ -251,9 +264,14 @@ public class StudioDialog extends Dialog {
         HorizontalLayout takeRow = new HorizontalLayout(takes, hearTake, unlock);
         takeRow.setAlignItems(FlexComponent.Alignment.END);
 
-        VerticalLayout editor = new VerticalLayout(new HorizontalLayout(speaker, locked), bookWords, text, voice, numbers, main, takeRow, request);
+        voice.setWidth("auto");
+        HorizontalLayout who = new HorizontalLayout(speaker, voice, locked);
+        who.setAlignItems(FlexComponent.Alignment.END);
+        who.setWrap(true);
+        VerticalLayout editor = new VerticalLayout(who, bookWords, text, numbers, main, takeRow, request);
         editor.setPadding(false);
-        editor.setSpacing(true);
+        editor.setSpacing(false);
+        editor.addThemeName("spacing-xs");
         editor.setHeight("100%");
         editor.getStyle().set("overflow-y", "auto");
         return editor;

@@ -3,6 +3,7 @@ package com.github.enerccio.marginalia.extensions.audiobook.export;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.service.ExporterService;
 import com.github.enerccio.marginalia.extensions.audiobook.AudiobookLog;
+import com.github.enerccio.marginalia.extensions.httphooks.BackendException;
 import com.github.enerccio.marginalia.ui.dialogs.ProgressBarDialog;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 
@@ -77,6 +78,17 @@ public final class AudiobookExporter implements ExporterService.Exporter {
 
     /** The chapters of the parts that have audio, and the parts that were left out with the reason. */
     record Gathered(List<AudiobookFiles.Chapter> chapters, List<String> left) {
+    }
+
+    /** The whole audiobook, one mp3 with the chapters marked; {@code audio} is null when no part has audio, {@code left} says which parts were left out and why. */
+    public record Whole(byte[] audio, List<String> left) {
+    }
+
+    /** Joins the audio of the parts into one file (the parts without up to date audio are left out and named). */
+    public static Whole wholeBook(List<ChatMessage> parts, Function<ChatMessage, PartAudio> source, String book, String author) throws BackendException {
+        Gathered gathered = gather(parts, source, () -> {
+        });
+        return new Whole(gathered.chapters().isEmpty() ? null : AudiobookFiles.oneFile(gathered.chapters(), book, author), gathered.left());
     }
 
     static Gathered gather(List<ChatMessage> parts, Function<ChatMessage, PartAudio> source, Runnable tick) {

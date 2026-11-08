@@ -750,6 +750,33 @@ public class AudiobookService {
         }
     }
 
+    /**
+     * The whole book as one mp3 with a chapter for each part (the ID3 chapter marks): the parts of the active branch that have audio made from their
+     * text and script as they are now. Can take a while for a long book, call it from a thread of its own.
+     */
+    public AudiobookExporter.Whole wholeAudiobook(Manuscript manuscript) throws Exception {
+        String author = "";
+        try {
+            var owner = settingService.getOrCreate(UserSetting.class).getOwner();
+            author = StringUtils.defaultIfBlank(owner.getFullName(), owner.getLogin());
+        } catch (Exception e) {
+            AudiobookLog.get().debug("The author of the audiobook could not be read: {}", e.getMessage());
+        }
+        return AudiobookExporter.wholeBook(speakableParts(manuscript), part -> exportableAudio(part.getUuid()), manuscript.getName(), author);
+    }
+
+    /** {@link #wholeAudiobook} on a thread of its own; {@code done} is called from it with the result or the message of what failed. */
+    public void wholeAudiobookInBackground(Manuscript manuscript, BiConsumer<AudiobookExporter.Whole, String> done) {
+        inBackground("audiobook-whole", () -> {
+            try {
+                done.accept(wholeAudiobook(manuscript), null);
+            } catch (Exception e) {
+                AudiobookLog.get().warn("The whole audiobook could not be made: {}", e.getMessage(), e);
+                done.accept(null, String.valueOf(e.getMessage()));
+            }
+        });
+    }
+
     /** The audio of one piece of a part by its cache key, null when it is not made. */
     public byte[] segmentAudio(String partUuid, String key) {
         return new ResourceAudioStore(resourceService, chatMessageService).segment(partUuid, key);

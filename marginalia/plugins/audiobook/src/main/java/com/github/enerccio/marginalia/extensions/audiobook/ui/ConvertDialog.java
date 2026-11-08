@@ -4,6 +4,7 @@ import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.extensions.audiobook.AudiobookLog;
+import com.github.enerccio.marginalia.extensions.audiobook.export.AudiobookFiles;
 import com.github.enerccio.marginalia.extensions.audiobook.model.AudiobookSettings;
 import com.github.enerccio.marginalia.extensions.audiobook.model.BackendConfig;
 import com.github.enerccio.marginalia.extensions.audiobook.queue.ConversionJob;
@@ -22,6 +23,7 @@ import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Anchor;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -57,6 +59,7 @@ public class ConvertDialog extends Dialog {
     private final ModelProtocolPicker modelPicker = new ModelProtocolPicker();
     private final Button start = new Button(T.localized(START), Solid.PLAY.create(), e -> start());
     private final Grid<ConversionJob.Snapshot> grid = new Grid<>();
+    private final Div wholeLink = new Div();
     private int parts;
 
     public ConvertDialog(Manuscript manuscript, AudiobookService service) {
@@ -125,7 +128,7 @@ public class ConvertDialog extends Dialog {
         labelling.setAlignItems(FlexComponent.Alignment.CENTER);
         labelling.setWrap(true);
 
-        VerticalLayout content = new VerticalLayout(hint, form, labelling, labelHint, grid);
+        VerticalLayout content = new VerticalLayout(hint, form, labelling, labelHint, grid, wholeLink);
         content.setPadding(false);
         add(content);
 
@@ -134,8 +137,10 @@ public class ConvertDialog extends Dialog {
             queue.clearFinished();
             refresh();
         });
+        Button whole = new Button(T.localized(DOWNLOAD_THE_AUDIOBOOK), Solid.FILE_AUDIO.create(), e -> downloadWhole());
+        whole.setTooltipText(T.localized(DOWNLOAD_THE_AUDIOBOOK_HELP));
         Button close = new Button(T.localized(CLOSE), e -> close());
-        getFooter().add(stop, clear, close);
+        getFooter().add(whole, stop, clear, close);
         refresh();
     }
 
@@ -174,6 +179,31 @@ public class ConvertDialog extends Dialog {
             Notification.error(T.localized(THE_CONVERSION_COULD_NOT_BE_STARTED).formatted(e.getMessage()));
         }
         refresh();
+    }
+
+    /** Joins the parts that have up to date audio into one mp3 with a chapter for each, and offers it for download (a link in the window). */
+    private void downloadWhole() {
+        UI ui = UI.getCurrent();
+        Notification.success(T.localized(THE_AUDIOBOOK_IS_BEING_JOINED));
+        service.wholeAudiobookInBackground(manuscript, (whole, error) -> ui.access(() -> {
+            if (error != null) {
+                Notification.error(T.localized(THE_CONVERSION_COULD_NOT_BE_STARTED).formatted(error));
+                return;
+            }
+            if (whole.audio() == null) {
+                Notification.error(T.localized(NO_PART_HAS_UP_TO_DATE_AUDIO).formatted(String.join(", ", whole.left())));
+                return;
+            }
+            if (!whole.left().isEmpty()) {
+                Notification.warning(T.localized(PARTS_LEFT_OUT_OF_THE_AUDIOBOOK).formatted(String.join(", ", whole.left())));
+            }
+            StreamResource resource = new StreamResource(AudiobookFiles.fileSafe(manuscript.getName()) + ".mp3", () -> new ByteArrayInputStream(whole.audio()));
+            resource.setContentType("audio/mpeg");
+            Anchor link = new Anchor(resource, T.localized(DOWNLOAD_THE_AUDIOBOOK_FILE).formatted(whole.audio().length / (1024 * 1024) + 1));
+            link.getElement().setAttribute("download", true);
+            wholeLink.removeAll();
+            wholeLink.add(link);
+        }));
     }
 
     /** What can be done with a job: take its audio, try it again, or stop it. */

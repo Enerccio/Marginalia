@@ -87,7 +87,7 @@ public final class AudiobookFiles {
         return String.format(fallback, number);
     }
 
-    static String fileSafe(String title) {
+    public static String fileSafe(String title) {
         String safe = title.replaceAll("[\\\\/:*?\"<>|\\p{Cntrl}]", "_").strip();
         if (safe.length() > 80) {
             safe = safe.substring(0, 80).strip();

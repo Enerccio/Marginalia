@@ -12,6 +12,7 @@ import java.nio.charset.StandardCharsets;
 public final class AudiobookStyles {
 
     public static final String SECTION = "audiobook-section";
+    public static final String STUDIO = "audiobook-studio";
     public static final String PLAYER = "audiobook-player";
     public static final String PLAYER_PLAY = "audiobook-player-play";
     public static final String PLAYER_PAUSE = "audiobook-player-pause";

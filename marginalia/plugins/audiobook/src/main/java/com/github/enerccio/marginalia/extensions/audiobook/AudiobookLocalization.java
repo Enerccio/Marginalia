@@ -219,6 +219,11 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
     public static final String THE_REQUESTS_AROUND_THE_TEST_RAN = "The requests before and after the test were made. ";
     public static final String TEST_HELP = "The test makes the requests before a batch (they start a server that is stopped), asks the server, and makes the requests after it.";
 
+    public static final String DOWNLOAD_THE_AUDIOBOOK = "The whole audiobook";
+    public static final String DOWNLOAD_THE_AUDIOBOOK_HELP = "Joins all the parts that have up to date audio into one mp3 with a chapter for each part, and offers it for download";
+    public static final String THE_AUDIOBOOK_IS_BEING_JOINED = "The audiobook is being joined ...";
+    public static final String DOWNLOAD_THE_AUDIOBOOK_FILE = "Download the audiobook (about %s MB)";
+
     @Override
     protected void loadKeys() {
         ja(AUDIOBOOK, "オーディオブック");
@@ -829,5 +834,17 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
 
         ja(TEST_HELP, "テストはバッチ前のリクエスト（停止中のサーバーを起動）を実行し、サーバーに問い合わせ、バッチ後のリクエストを実行します。");
         zh(TEST_HELP, "测试会先执行批处理前的请求（启动已停止的服务器），再询问服务器，最后执行批处理后的请求。");
+
+        ja(DOWNLOAD_THE_AUDIOBOOK, "オーディオブック全体");
+        zh(DOWNLOAD_THE_AUDIOBOOK, "整本有声书");
+
+        ja(DOWNLOAD_THE_AUDIOBOOK_HELP, "最新の音声があるパートをすべて、パートごとの章を付けた1つのmp3にまとめ、ダウンロードできるようにします");
+        zh(DOWNLOAD_THE_AUDIOBOOK_HELP, "把所有音频最新的章节合并为一个 mp3（每个章节一个章节标记），并提供下载");
+
+        ja(THE_AUDIOBOOK_IS_BEING_JOINED, "オーディオブックを結合しています ...");
+        zh(THE_AUDIOBOOK_IS_BEING_JOINED, "正在合并有声书 ...");
+
+        ja(DOWNLOAD_THE_AUDIOBOOK_FILE, "オーディオブックをダウンロード（約 %s MB）");
+        zh(DOWNLOAD_THE_AUDIOBOOK_FILE, "下载有声书（约 %s MB）");
     }
 }
