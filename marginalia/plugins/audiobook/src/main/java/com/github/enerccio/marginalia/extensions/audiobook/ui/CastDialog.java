@@ -51,6 +51,8 @@ public class CastDialog extends Dialog {
 
         setHeaderTitle(T.localized(CAST));
         setWidth("min(64em, 95vw)");
+        // the characters make it long: the content scrolls between the header and the buttons
+        setMaxHeight("92vh");
         setCloseOnOutsideClick(false);
 
         Span help = new Span(T.localized(THE_CAST_HELP));
@@ -68,7 +70,8 @@ public class CastDialog extends Dialog {
         reloadActors();
         narrator.setValue(service.getSettings().findActor(cast.getNarratorActorId()));
         fallback.setValue(service.getSettings().findActor(cast.getFallbackActorId()));
-        HorizontalLayout special = new HorizontalLayout(narrator, fallback);
+        HorizontalLayout special = new HorizontalLayout(narrator, previewOf(narrator), fallback, previewOf(fallback));
+        special.setAlignItems(FlexComponent.Alignment.END);
         special.setWrap(true);
 
         VerticalLayout content = new VerticalLayout(help, new HorizontalLayout(newActor), special, fallbackHelp, new H4(T.localized(CHARACTERS)),
@@ -78,6 +81,11 @@ public class CastDialog extends Dialog {
 
         save.addThemeName("primary");
         getFooter().add(new Button(T.localized(CANCEL), e -> close()), save);
+    }
+
+    /** A button that has the voice of the actor of the box spoken. */
+    private VoicePreview previewOf(Select<Actor> select) {
+        return new VoicePreview(service, () -> select.getValue() == null ? "" : select.getValue().getVoice(), () -> null);
     }
 
     private static Select<Actor> actorSelect(String label) {
@@ -190,7 +198,7 @@ public class CastDialog extends Dialog {
             Button newActor = new Button(Solid.PLUS.create(), e -> newActor(actor));
             newActor.setThemeName("tertiary icon");
             newActor.setTooltipText(T.localized(NEW_ACTOR));
-            layout = new HorizontalLayout(name, aliases, actor, newActor, remove);
+            layout = new HorizontalLayout(name, aliases, actor, previewOf(actor), newActor, remove);
             layout.setAlignItems(FlexComponent.Alignment.END);
             layout.setWrap(true);
             DialogShortcuts.submitWith(save, name, aliases);

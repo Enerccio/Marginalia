@@ -145,12 +145,15 @@ async function chat(req, res, body) {
   res.end();
 }
 
+const speechClips = [];
+
 http.createServer(async (req, res) => {
   try {
     const url = new URL(req.url, 'http://x');
     const p = url.pathname.replace(/^\/v1/, '');
     const raw = req.method === 'POST' ? await readBody(req) : '';
-    const body = raw ? JSON.parse(raw) : {};
+    let body = {};
+    try { body = raw ? JSON.parse(raw) : {}; } catch { body = {}; }   // a multipart upload (/upload_reference) is not JSON
     if (req.method === 'GET' && p === '/models') {
       return sendJson(res, 200, { object: 'list', data: MODELS.map(id => ({ id, object: 'model', created: 0, owned_by: 'demo' })) });
     }
@@ -161,6 +164,23 @@ http.createServer(async (req, res) => {
       await new Promise(r => setTimeout(r, Number(body.n) > 1 ? 0 : 1500));
       const png = fs.readFileSync(path.join(here, '..', 'dataset', 'generated-image.png'));
       return sendJson(res, 200, { created: Math.floor(Date.now() / 1000), data: [{ b64_json: png.toString('base64') }] });
+    }
+    // Chatterbox-TTS-Server (Audiobook): the endpoints the plugin uses, /tts answers with the same short mp3 (dataset/speech.mp3) after a moment
+    if (req.method === 'GET' && p === '/api/model-info') return sendJson(res, 200, { loaded: true, type: 'turbo', class_name: 'ChatterboxTurboTTS' });
+    if (req.method === 'GET' && p === '/get_reference_files') return sendJson(res, 200, speechClips);
+    if (req.method === 'GET' && p === '/get_predefined_voices') {
+      return sendJson(res, 200, ['Henry', 'Tomas', 'TomasCalm', 'Mizuki', 'Stranger'].map(n => ({ display_name: n, filename: n + '.wav' })));
+    }
+    if (req.method === 'POST' && p === '/tts') {
+      log.push({ path: p, text: body.text, voice: body.predefined_voice_id || body.reference_audio_filename, model: body.model });
+      await new Promise(r => setTimeout(r, 250));
+      res.writeHead(200, { 'Content-Type': 'audio/mpeg' });
+      return res.end(fs.readFileSync(path.join(here, '..', 'dataset', 'speech.mp3')));
+    }
+    if (req.method === 'POST' && p === '/upload_reference') {
+      const name = /filename="([^"]+)"/.exec(raw)?.[1] || 'clip.wav';
+      speechClips.push(name);
+      return sendJson(res, 200, { uploaded_files: [name], errors: [] });
     }
     if (req.method === 'POST' && p === '/_queue') { queue.push(body); return sendJson(res, 200, { queued: queue.length }); }
     if (req.method === 'POST' && p === '/_mode') { mode = body.mode ?? null; return sendJson(res, 200, { mode }); }

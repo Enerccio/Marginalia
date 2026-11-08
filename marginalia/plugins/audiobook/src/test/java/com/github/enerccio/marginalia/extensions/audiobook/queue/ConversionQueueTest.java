@@ -490,4 +490,34 @@ class ConversionQueueTest {
         assertEquals(State.DONE, seen.getLast().state());
         assertTrue(seen.stream().anyMatch(s -> s.state() == State.RUNNING && s.done() == 1 && s.total() == 2), seen.toString());
     }
+
+    @Test
+    void aBatchIsOverOnceWhenItsLastJobEnds() throws Exception {
+        queue(Set.of(BackendConfig.MODEL_TURBO));
+        failing.add("Two.");
+        List<List<ConversionJob.Snapshot>> calls = new CopyOnWriteArrayList<>();
+
+        List<ConversionJob> jobs = queue.submitAll(List.of(
+                new ConversionQueue.Task("p1", "Part 1", () -> script("One.")),
+                new ConversionQueue.Task("p2", "Part 2", () -> script("Two."))));
+        com.github.enerccio.marginalia.extensions.audiobook.ui.BatchNotifier.whenOver(queue, jobs, calls::add);
+        assertTrue(queue.awaitIdle(10, TimeUnit.SECONDS));
+        Thread.sleep(50);
+
+        assertEquals(1, calls.size(), "told once, when both are over");
+        assertEquals(List.of(State.DONE, State.FAILED), calls.getFirst().stream().map(ConversionJob.Snapshot::state).toList());
+    }
+
+    @Test
+    void aBatchThatIsOverAlreadyIsToldAtOnce() throws Exception {
+        queue(Set.of(BackendConfig.MODEL_TURBO));
+        List<ConversionJob> jobs = queue.submitAll(List.of(new ConversionQueue.Task("p1", "Part 1", () -> script("One."))));
+        assertTrue(queue.awaitIdle(10, TimeUnit.SECONDS));
+        List<List<ConversionJob.Snapshot>> calls = new CopyOnWriteArrayList<>();
+
+        com.github.enerccio.marginalia.extensions.audiobook.ui.BatchNotifier.whenOver(queue, jobs, calls::add);
+
+        assertEquals(1, calls.size());
+        assertEquals(State.DONE, calls.getFirst().getFirst().state());
+    }
 }

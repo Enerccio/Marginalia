@@ -17,6 +17,10 @@ public class VoiceChoices {
         this.clips = new ArrayList<>(service.clips());
     }
 
+    public AudiobookService service() {
+        return service;
+    }
+
     public List<AudiobookService.Clip> clips() {
         return List.copyOf(clips);
     }

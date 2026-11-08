@@ -137,7 +137,7 @@ public class ChatterboxBackend implements SpeechBackend {
         if (audio == null || audio.length == 0 || audio.length > MAX_CLIP_BYTES) {
             throw new BackendException("A reference clip must be between 1 byte and " + MAX_CLIP_BYTES / (1024 * 1024) + " MB");
         }
-        String name = "m-" + hash(audio) + "." + ext;
+        String name = referenceName(audio, ext);
         if (referenceFiles().contains(name)) {
             return name;
         }
@@ -156,6 +156,11 @@ public class ChatterboxBackend implements SpeechBackend {
             throw new BackendException("The server did not keep the reference clip: " + Http.excerpt(response));
         }
         return name;
+    }
+
+    /** The name a clip has on the server: made from its bytes, so the same clip is the same file and no two users collide. */
+    public static String referenceName(byte[] audio, String ext) {
+        return "m-" + hash(audio) + "." + ext;
     }
 
     private static String hash(byte[] audio) {

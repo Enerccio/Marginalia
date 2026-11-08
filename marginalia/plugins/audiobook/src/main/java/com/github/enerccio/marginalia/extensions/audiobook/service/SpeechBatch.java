@@ -44,7 +44,10 @@ public final class SpeechBatch {
         try {
             value = gate.exclusive(cancelled, () -> {
                 backend.prepare();
-                return work.run(backend);
+                AudiobookLog.get().info("The batch starts: the pieces are spoken");
+                T made = work.run(backend);
+                AudiobookLog.get().info("The batch is over: the requests after it follow");
+                return made;
             });
         } catch (BackendException | RuntimeException e) {
             String error = gate.release(after);

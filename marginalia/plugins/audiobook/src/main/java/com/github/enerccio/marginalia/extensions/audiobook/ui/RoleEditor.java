@@ -96,6 +96,7 @@ class RoleEditor extends VerticalLayout {
             key.setItemLabelGenerator(RoleEditor::keyLabel);
             key.setValue(keyValue);
             voice.setValue(voiceText);
+            voice.setLanguageSupplier(() -> key.getValue() != null && key.getValue().startsWith("lang:") ? key.getValue().substring("lang:".length()) : null);
             Button remove = new Button(Solid.TRASH.create(), e -> {
                 variantRows.remove(this);
                 rows.remove(this.layout);

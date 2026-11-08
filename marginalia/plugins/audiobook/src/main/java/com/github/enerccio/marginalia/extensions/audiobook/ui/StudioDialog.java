@@ -32,6 +32,7 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.progressbar.ProgressBar;
 import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.NumberField;
@@ -74,6 +75,10 @@ public class StudioDialog extends Dialog {
     private final Button make = new Button(T.localized(MAKE_THE_PART), Solid.PLAY.create(), e -> makePart());
     private final Button hearPart = new Button(T.localized(HEAR_THE_PART), Solid.HEADPHONES.create(), e -> hearPart());
     private final Span message = new Span();
+    /** Shown while a job of the part waits or runs: the annotation takes a while and must not be started twice. */
+    private final ProgressBar working = new ProgressBar();
+    /** The buttons that start work on the selected segment. */
+    private final List<Button> segmentButtons = new ArrayList<>();
     private final Grid<Integer> grid = new Grid<>();
 
     private final TextField speaker = new TextField(T.localized(SPEAKER));
@@ -178,7 +183,9 @@ public class StudioDialog extends Dialog {
         HorizontalLayout partBar = new HorizontalLayout(make, hearPart);
         partBar.setAlignItems(FlexComponent.Alignment.CENTER);
 
-        VerticalLayout content = new VerticalLayout(top, body, partBar, message, player);
+        working.setIndeterminate(true);
+        working.setVisible(false);
+        VerticalLayout content = new VerticalLayout(top, body, partBar, message, working, player);
         content.setSizeFull();
         content.setPadding(false);
         content.setFlexGrow(1, body);
@@ -238,6 +245,7 @@ public class StudioDialog extends Dialog {
         for (Button b : List.of(hear, another, lower, longer, unlock, hearTake)) {
             b.setThemeName("tertiary small");
         }
+        segmentButtons.addAll(List.of(hear, another));
         HorizontalLayout main = new HorizontalLayout(apply, hear, another, lower, longer);
         main.setWrap(true);
         HorizontalLayout takeRow = new HorizontalLayout(takes, hearTake, unlock);
@@ -302,7 +310,7 @@ public class StudioDialog extends Dialog {
             takes.setItems(segment.takes());
             takes.setValue(entry.seed());
             locked.setText(segment.locked() ? T.localized(CHANGED_BY_HAND_KEPT_BY_A_NEW_ANNOTATION) : T.localized(AS_THE_ANNOTATION_MADE_IT));
-            request.setValue(service.requestOf(entry, uuid -> voiceChoices.label("clip:" + uuid)));
+            request.setValue(service.requestOf(entry, service::serverNameOfClip));
         } finally {
             filling = false;
         }
@@ -392,7 +400,7 @@ public class StudioDialog extends Dialog {
     }
 
     private void anotherTake() {
-        if (selected < 0) {
+        if (selected < 0 || busy()) {
             return;
         }
         store(segment(selected).anotherTake(ThreadLocalRandom.current().nextInt(1, 1_000_000)));
@@ -467,10 +475,18 @@ public class StudioDialog extends Dialog {
     private void updateButtons() {
         boolean haveScript = script != null && !script.segments().isEmpty();
         boolean isFinal = script != null && script.status() == Status.FINAL;
-        annotate.setEnabled(part != null && !isFinal);
-        make.setEnabled(haveScript);
+        boolean busy = busy();
+        annotate.setEnabled(part != null && !isFinal && !busy);
+        make.setEnabled(haveScript && !busy);
         hearPart.setEnabled(part != null);
         status.setEnabled(script != null);
+        segmentButtons.forEach(b -> b.setEnabled(!busy));
+        working.setVisible(busy);
+    }
+
+    /** Whether a job of the selected part waits or runs (the annotation, the making of the part, the hearing of a segment). */
+    private boolean busy() {
+        return part != null && queue.jobs().stream().anyMatch(j -> j.partId().equals(part.getUuid()) && !j.finished());
     }
 
     private BackendConfig backend() {
@@ -483,7 +499,7 @@ public class StudioDialog extends Dialog {
 
     private void annotate() {
         BackendConfig backend = backend();
-        if (backend == null || part == null) {
+        if (backend == null || part == null || busy()) {
             return;
         }
         try {
@@ -491,6 +507,7 @@ public class StudioDialog extends Dialog {
             var options = label.getValue() ? new AudiobookService.LabelOptions(modelPicker.getAi(), modelPicker.getProtocol()) : null;
             var jobs = service.convert(manuscript, backend, number, number, options, ConversionJob.Mode.SCRIPT_ONLY);
             message.setText(jobs.isEmpty() ? T.localized(A_FINAL_PART_IS_NOT_ANNOTATED) : T.localized(ANNOTATING));
+            updateButtons();
         } catch (Exception e) {
             AudiobookLog.get().warn("The annotation could not be started: {}", e.getMessage(), e);
             Notification.error(T.localized(THE_CONVERSION_COULD_NOT_BE_STARTED).formatted(e.getMessage()));
@@ -498,10 +515,14 @@ public class StudioDialog extends Dialog {
     }
 
     private void makePart() {
+        if (busy()) {
+            return;
+        }
         try {
             service.render(part.getUuid(), "Part " + (parts.indexOf(part) + 1));
             playWhenDone = "part";
             message.setText(T.localized(MAKING_THE_PART));
+            updateButtons();
         } catch (IllegalArgumentException e) {
             Notification.error(e.getMessage());
         } catch (Exception e) {
@@ -521,7 +542,7 @@ public class StudioDialog extends Dialog {
 
     /** Plays the selected segment (or the take with the given seed): at once when its audio is there, else after the job that makes it. */
     private void hear(Integer takeSeed) {
-        if (selected < 0) {
+        if (selected < 0 || busy()) {
             return;
         }
         ScriptEntry entry = takeSeed == null ? segment(selected).entry() : segment(selected).entryOfTake(takeSeed);
@@ -533,6 +554,7 @@ public class StudioDialog extends Dialog {
         service.hear(part.getUuid(), "Part " + (parts.indexOf(part) + 1) + ", segment " + (selected + 1), List.of(entry), script.sourceHash());
         playWhenDone = "segment:" + entry.key();
         message.setText(T.localized(MAKING_THE_SEGMENT));
+        updateButtons();
     }
 
     private void play(byte[] bytes) {
@@ -543,17 +565,24 @@ public class StudioDialog extends Dialog {
     }
 
     private void onJob(ConversionJob.Snapshot job) {
-        if (part == null || !job.partId().equals(part.getUuid()) || !job.finished()) {
+        if (part == null || !job.partId().equals(part.getUuid())) {
+            return;
+        }
+        if (!job.finished()) {
+            // a job of this part (also one started from the dialog of the conversion): the buttons wait for it
+            updateButtons();
             return;
         }
         if (job.state() == ConversionJob.State.FAILED) {
             message.setText(T.localized(THE_JOB_FAILED).formatted(job.message()));
             playWhenDone = null;
+            updateButtons();
             return;
         }
         if (job.state() == ConversionJob.State.CANCELLED) {
             message.setText("");
             playWhenDone = null;
+            updateButtons();
             return;
         }
         int keep = selected;

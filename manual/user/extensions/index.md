@@ -6,12 +6,13 @@ icon: plug
 
 # Extensions
 
-Extensions add features to Marginalia without changing the application itself. Twenty-two extensions come with Marginalia:
+Extensions add features to Marginalia without changing the application itself. Twenty-three extensions come with Marginalia:
 
 | Extension | What it adds |
 |---|---|
 | [Arc Outline](arc-outline.md) | The arcs of the book and their chapters, with their state, in the sidebar; the model can write an arc for you. |
 | [Anthropic Claude](anthropic.md) | Anthropic's Claude models as an inference provider, over Anthropic's own API, with the thinking summaries shown as reasoning. |
+| [Audiobook](audiobook.md) | Turns a book into an audiobook with a speech server: a voice for the narrator and each character, a studio for the final version, export as mp3 with chapter marks. [Setting up the speech server](audiobook-server.md). |
 | [Author's Note](authors-note.md) | A note to the model, inserted into every generation of the book. |
 | [Beta Readers](beta-readers.md) | Readers you invent (personas) and a chat with them about the book, alone or in a group. |
 | [Book Description Generator](book-description-generator.md) | Writes the name and the description of the book with the model from a range of its story, with the About tab's button. |

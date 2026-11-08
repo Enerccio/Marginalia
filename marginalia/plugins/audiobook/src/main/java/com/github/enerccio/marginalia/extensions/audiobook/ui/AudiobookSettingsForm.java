@@ -2,14 +2,11 @@ package com.github.enerccio.marginalia.extensions.audiobook.ui;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
-import com.github.enerccio.marginalia.extensions.audiobook.AudiobookLog;
 import com.github.enerccio.marginalia.extensions.audiobook.model.Actor;
 import com.github.enerccio.marginalia.extensions.audiobook.model.AudiobookSettings;
 import com.github.enerccio.marginalia.extensions.audiobook.model.AutoMode;
 import com.github.enerccio.marginalia.extensions.audiobook.model.BackendConfig;
 import com.github.enerccio.marginalia.extensions.audiobook.service.AudiobookService;
-import com.github.enerccio.marginalia.extensions.audiobook.service.ServerCheck;
-import com.github.enerccio.marginalia.extensions.httphooks.BackendException;
 import com.github.enerccio.marginalia.extensions.httphooks.ui.HookListEditor;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.vaadin.flow.component.UI;
@@ -62,6 +59,8 @@ public class AudiobookSettingsForm extends VerticalLayout {
     private final TextField baseUrl = new TextField(T.localized(ADDRESS));
     private final PasswordField apiKey = new PasswordField(T.localized(API_KEY));
     private final Button removeKey = new Button(T.localized(REMOVE_THE_KEY), e -> removeKey());
+    private final PasswordField hooksKey = new PasswordField(T.localized(KEY_OF_THE_REQUESTS));
+    private final Button removeHooksKey = new Button(T.localized(REMOVE_THE_KEY), e -> removeHooksKey());
     private final Select<String> model = new Select<>();
     private final Checkbox local = new Checkbox(T.localized(THE_SERVER_IS_LOCAL));
     private final VoiceChoices voiceChoices;
@@ -109,11 +108,16 @@ public class AudiobookSettingsForm extends VerticalLayout {
         apiKey.setWidth("20em");
         apiKey.setRevealButtonVisible(false);
         removeKey.setThemeName("tertiary small");
+        hooksKey.setWidth("20em");
+        hooksKey.setRevealButtonVisible(false);
+        hooksKey.setHelperText(T.localized(KEY_OF_THE_REQUESTS_HELP));
+        removeHooksKey.setThemeName("tertiary small");
         model.setLabel(T.localized(SPEECH_MODEL));
         model.setItems(BackendConfig.MODELS);
         model.setItemLabelGenerator(AudiobookSettingsForm::modelLabel);
         model.setWidth("22em");
         model.setHelperText(T.localized(THE_MODEL_THE_SERVER_IS_ASKED_TO_LOAD));
+        test.setTooltipText(T.localized(TEST_HELP));
         local.getElement().setProperty("title", T.localized(ALLOWS_ADDRESSES_OF_THE_LOCAL_NETWORK));
         narratorVoice.setWidthFull();
         narratorVoice.setHelperText(T.localized(NARRATOR_VOICE_HELP));
@@ -145,10 +149,13 @@ public class AudiobookSettingsForm extends VerticalLayout {
         Details afterDetails = new Details(T.localized(AFTER_A_BATCH), after);
         Span hookHint = new Span(T.localized(REQUESTS_MADE_AROUND_A_BATCH));
         hookHint.addClassName(CssStyles.HINT_TEXT);
+        HorizontalLayout hooksCredentials = new HorizontalLayout(hooksKey, removeHooksKey);
+        hooksCredentials.setWrap(true);
+        hooksCredentials.setAlignItems(FlexComponent.Alignment.START);
 
         editor.setPadding(false);
         editor.setSpacing(true);
-        editor.add(identity, baseUrl, credentials, narratorVoice, local, requestOptions, defaultsDetails, hookHint, beforeDetails, afterDetails, test);
+        editor.add(identity, baseUrl, credentials, narratorVoice, local, requestOptions, defaultsDetails, hookHint, hooksCredentials, beforeDetails, afterDetails, test);
         editor.addClassName(AudiobookStyles.SECTION);
 
         actorPicker.setLabel(T.localized(ACTORS));
@@ -303,6 +310,14 @@ public class AudiobookSettingsForm extends VerticalLayout {
         show(current);
     }
 
+    private void removeHooksKey() {
+        if (current != null) {
+            current.setProtectedHooksKey(null);
+            hooksKey.clear();
+            updateKeyState();
+        }
+    }
+
     private void removeKey() {
         if (current != null) {
             current.setProtectedApiKey(null);
@@ -324,6 +339,7 @@ public class AudiobookSettingsForm extends VerticalLayout {
             name.setValue(config.getName());
             baseUrl.setValue(config.getBaseUrl());
             apiKey.clear();
+            hooksKey.clear();
             model.setValue(config.getModel());
             narratorVoice.setValue(config.getNarratorVoice());
             local.setValue(config.isLocal());
@@ -350,6 +366,10 @@ public class AudiobookSettingsForm extends VerticalLayout {
         if (!apiKey.isEmpty()) {
             current.setProtectedApiKey(service.protect(apiKey.getValue().strip()));
             apiKey.clear();
+        }
+        if (!hooksKey.isEmpty()) {
+            current.setProtectedHooksKey(service.protect(hooksKey.getValue().strip()));
+            hooksKey.clear();
         }
         current.setModel(model.getValue() == null ? BackendConfig.MODEL_TURBO : model.getValue());
         current.setNarratorVoice(narratorVoice.getValue().strip());
@@ -378,6 +398,9 @@ public class AudiobookSettingsForm extends VerticalLayout {
         boolean stored = current != null && current.getProtectedApiKey() != null;
         apiKey.setPlaceholder(stored ? T.localized(STORED_TYPE_TO_REPLACE) : "");
         removeKey.setVisible(stored);
+        boolean hooksStored = current != null && current.getProtectedHooksKey() != null;
+        hooksKey.setPlaceholder(hooksStored ? T.localized(STORED_TYPE_TO_REPLACE) : "");
+        removeHooksKey.setVisible(hooksStored);
     }
 
     private void testConnection() {
@@ -388,29 +411,20 @@ public class AudiobookSettingsForm extends VerticalLayout {
         }
         UI ui = UI.getCurrent();
         test.setEnabled(false);
-        Thread.ofVirtual().name("audiobook-test").start(() -> {
-            String error = null;
-            ServerCheck.Result result = null;
-            try {
-                result = ServerCheck.check(config, service::reveal);
-            } catch (BackendException e) {
-                error = e.getMessage();
-            } catch (RuntimeException e) {
-                AudiobookLog.get().warn("Testing the connection failed: {}", e.getMessage(), e);
-                error = String.valueOf(e.getMessage());
+        boolean around = config.getBeforeHooks().stream().anyMatch(h -> h != null && !h.isEmpty())
+                || config.getAfterHooks().stream().anyMatch(h -> h != null && !h.isEmpty());
+        service.test(config, (answer, error) -> ui.access(() -> {
+            test.setEnabled(true);
+            String ran = around ? T.localized(THE_REQUESTS_AROUND_THE_TEST_RAN) : "";
+            if (answer == null) {
+                Notification.error(T.localized(CONNECTION_FAILED).formatted(error));
+            } else if (error != null) {
+                Notification.warning(error);
+            } else if (answer.modelLoaded()) {
+                Notification.success(ran + T.localized(THE_SERVER_ANSWERS_THE_MODEL_IS_LOADED).formatted(StringUtils.defaultString(answer.model())));
+            } else {
+                Notification.success(ran + T.localized(THE_SERVER_ANSWERS_NO_MODEL));
             }
-            String message = error;
-            ServerCheck.Result answer = result;
-            ui.access(() -> {
-                test.setEnabled(true);
-                if (message != null) {
-                    Notification.error(T.localized(CONNECTION_FAILED).formatted(message));
-                } else if (answer.modelLoaded()) {
-                    Notification.success(T.localized(THE_SERVER_ANSWERS_THE_MODEL_IS_LOADED).formatted(StringUtils.defaultString(answer.model())));
-                } else {
-                    Notification.success(T.localized(THE_SERVER_ANSWERS_NO_MODEL));
-                }
-            });
-        });
+        }));
     }
 }

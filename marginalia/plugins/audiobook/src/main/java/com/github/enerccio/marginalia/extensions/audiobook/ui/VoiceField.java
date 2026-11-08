@@ -26,6 +26,7 @@ public class VoiceField extends CustomField<String> {
     private final ComboBox<String> box = new ComboBox<>();
     private final Runnable reload = this::reloadItems;
     private boolean updating;
+    private java.util.function.Supplier<String> language = () -> null;
 
     public VoiceField(String label, VoiceChoices choices) {
         this.choices = choices;
@@ -62,11 +63,17 @@ public class VoiceField extends CustomField<String> {
         upload.setMaxFiles(1);
         upload.setUploadButton(new Button(T.localized(ADD_A_CLIP), Solid.UPLOAD.create()));
 
-        HorizontalLayout row = new HorizontalLayout(box, upload);
+        VoicePreview preview = new VoicePreview(choices.service(), this::getValue, () -> language.get());
+        HorizontalLayout row = new HorizontalLayout(box, upload, preview);
         row.setAlignItems(FlexComponent.Alignment.CENTER);
         row.setPadding(false);
         add(row);
         reloadItems();
+    }
+
+    /** The language the sample sentence is in (a voice for a language): the code, null for the language of the book. */
+    public void setLanguageSupplier(java.util.function.Supplier<String> language) {
+        this.language = language;
     }
 
     @Override

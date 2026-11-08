@@ -15,6 +15,7 @@ import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.DetachEvent;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.dialog.Dialog;
@@ -160,6 +161,9 @@ public class ConvertDialog extends Dialog {
             var jobs = service.convert(manuscript, chosen, first, last,
                     label.getValue() ? new AudiobookService.LabelOptions(modelPicker.getAi(), modelPicker.getProtocol()) : null);
             Notification.success(T.localized(THE_PARTS_ARE_IN_THE_QUEUE).formatted(jobs.size()));
+            UI ui = UI.getCurrent();
+            String book = manuscript.getName();
+            BatchNotifier.whenOver(queue, jobs, done -> BatchNotifier.tell(ui, false, book, done));
             if (jobs.size() < last - first + 1) {
                 Notification.success(T.localized(FINAL_PARTS_ARE_LEFT_ALONE).formatted(last - first + 1 - jobs.size()));
             }

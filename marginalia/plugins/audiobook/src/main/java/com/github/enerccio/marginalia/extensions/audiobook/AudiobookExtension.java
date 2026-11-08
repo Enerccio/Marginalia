@@ -4,15 +4,14 @@ import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
-import com.github.enerccio.marginalia.domain.service.ExporterService;
-import com.github.enerccio.marginalia.domain.service.ExtensionService;
+import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.ExtensionService.ExtendableMethodContext;
 import com.github.enerccio.marginalia.domain.service.ExtensionService.ExtensionDecorator;
-import com.github.enerccio.marginalia.domain.service.OsgiService;
 import com.github.enerccio.marginalia.extensions.ExtensionHasCss;
 import com.github.enerccio.marginalia.extensions.InheritedSetting;
 import com.github.enerccio.marginalia.extensions.InheritedSettingRegistry;
 import com.github.enerccio.marginalia.extensions.MarginaliaExtension;
+import com.github.enerccio.marginalia.extensions.audiobook.commands.AudiobookCommands;
 import com.github.enerccio.marginalia.extensions.audiobook.export.AudiobookExporter;
 import com.github.enerccio.marginalia.extensions.audiobook.model.AudiobookSettings;
 import com.github.enerccio.marginalia.extensions.audiobook.model.AutoMode;
@@ -63,6 +62,12 @@ public class AudiobookExtension implements MarginaliaExtension, ExtensionHasCss 
     @Autowired
     private InheritedSettingRegistry inheritedSettings;
 
+    @Autowired
+    private CommandService commandService;
+
+    @Autowired
+    private NotificationService notificationService;
+
     private static final String SETTINGS_PANEL_KEY = AudiobookSettings.KEY + ".settingsPanel";
 
     private final AudiobookService audiobookService = new AudiobookService();
@@ -73,6 +78,7 @@ public class AudiobookExtension implements MarginaliaExtension, ExtensionHasCss 
     private ExtensionDecorator exportFieldsDecorator;
     private ExtensionDecorator exportDecorator;
     private ExtensionDecorator partFinishedDecorator;
+    private AudiobookCommands commands;
     private final List<AudiobookExporter> exporters = new java.util.ArrayList<>();
     /** The check box of each open export dialog. */
     private final Map<Object, Checkbox> finalOnly = Collections.synchronizedMap(new WeakHashMap<>());
@@ -258,6 +264,12 @@ public class AudiobookExtension implements MarginaliaExtension, ExtensionHasCss 
         } catch (Exception e) {
             throw new IllegalStateException("Failed to load the Audiobook extension", e);
         }
+        // the end of a batch of conversions (a click or a command) and of the automatic conversion of a new part
+        notificationService.register(bundle.getSymbolicName(),
+                new NotificationService.Source(BatchNotifier.SOURCE, () -> T.localized(CONVERT_TO_AUDIO), true));
+        // the command bar, templates and agents
+        commands = new AudiobookCommands(audiobookService);
+        commandService.registerCommands(commands);
         AudiobookLog.get().info("Audiobook loaded");
     }
 
@@ -268,7 +280,8 @@ public class AudiobookExtension implements MarginaliaExtension, ExtensionHasCss 
                 return;
             }
             UI ui = UI.getCurrent();
-            switch (audiobookService.convertFinishedPart(manuscript, part, snapshot -> reportAutoJob(ui, snapshot))) {
+            String book = manuscript.getName();
+            switch (audiobookService.convertFinishedPart(manuscript, part, snapshot -> reportAutoJob(ui, book, snapshot))) {
                 case QUEUED -> Notification.success(T.localized(THE_NEW_PART_IS_BEING_MADE_INTO_AUDIO));
                 case QUEUED_PLAIN -> Notification.warning(T.localized(THE_BOOK_HAS_NO_MODEL_THE_NARRATOR_READS_THE_NEW_PART));
                 case NO_BACKEND -> Notification.error(T.localized(NO_BACKEND_YET));
@@ -283,10 +296,11 @@ public class AudiobookExtension implements MarginaliaExtension, ExtensionHasCss 
     }
 
     /** From the worker thread: tells the author in the page that started it, if the page is still there. */
-    private static void reportAutoJob(UI ui, ConversionJob.Snapshot job) {
+    private static void reportAutoJob(UI ui, String book, ConversionJob.Snapshot job) {
         if (ui == null || job.state() == ConversionJob.State.CANCELLED) {
             return;
         }
+        BatchNotifier.tell(ui, true, book, List.of(job));
         try {
             ui.access(() -> {
                 if (job.state() == ConversionJob.State.DONE) {
@@ -312,6 +326,11 @@ public class AudiobookExtension implements MarginaliaExtension, ExtensionHasCss 
         AudiobookLog.get().info("Audiobook unloaded");
         AudiobookLog.reset();
         menuRegistry.unregisterAll(bundle.getSymbolicName());
+        notificationService.unregisterAll(bundle.getSymbolicName());
+        if (commands != null) {
+            commandService.unregisterCommands(commands);
+            commands = null;
+        }
         audiobookService.shutdown();
         if (userPartDecorator != null) {
             extensionService.unregisterDecorator(userPartDecorator);

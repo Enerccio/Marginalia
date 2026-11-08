@@ -13,12 +13,14 @@ import com.github.enerccio.marginalia.extensions.audiobook.model.*;
 import com.github.enerccio.marginalia.extensions.audiobook.queue.AudioStore;
 import com.github.enerccio.marginalia.extensions.audiobook.queue.ConversionJob;
 import com.github.enerccio.marginalia.extensions.audiobook.queue.ConversionQueue;
+import com.github.enerccio.marginalia.extensions.audiobook.queue.Voices;
 import com.github.enerccio.marginalia.extensions.audiobook.script.*;
 import com.github.enerccio.marginalia.extensions.audiobook.studio.StudioScript;
 import com.github.enerccio.marginalia.extensions.audiobook.studio.StudioStore;
 import com.github.enerccio.marginalia.extensions.httphooks.BackendException;
 import com.github.enerccio.marginalia.extensions.httphooks.GpuGate;
 import com.github.enerccio.marginalia.extensions.httphooks.HookRunner;
+import com.github.enerccio.marginalia.extensions.httphooks.HttpHook;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -34,9 +36,9 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.function.BiConsumer;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
-import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
 import static com.github.enerccio.marginalia.extensions.audiobook.AudiobookLocalization.*;
@@ -245,18 +247,184 @@ public class AudiobookService {
      * address go through one {@link GpuGate}, whoever's they are.
      */
     public <T> SpeechBatch.Outcome<T> runBatch(BackendConfig config, BooleanSupplier cancelled, SpeechBatch.Work<T> work) throws BackendException {
-        UnaryOperator<String> reveal = this::reveal;
-        return SpeechBatch.run(createBackend(config), GpuGate.forAddress(config.getBaseUrl()),
-                // before: in order, the first failure stops the batch
-                () -> HookRunner.runAll(config.getBeforeHooks(), config.isLocal(), reveal),
-                // after: every request is made, also when one failed (every container must be stopped); the first failure is reported
-                () -> {
-                    String error = HookRunner.runAllRegardless(config.getAfterHooks(), config.isLocal(), reveal);
-                    if (error != null) {
-                        throw new BackendException(error);
+        return SpeechBatch.run(createBackend(config), GpuGate.forAddress(config.getBaseUrl()), before(config), after(config), cancelled, work);
+    }
+
+    /** The requests before a batch: in order, the first failure stops the batch. */
+    private GpuGate.Step before(BackendConfig config) {
+        return () -> {
+            String error = runHooks("before a batch", withKey(config.getBeforeHooks(), config), config.isLocal(), true);
+            if (error != null) {
+                throw new BackendException(error);
+            }
+        };
+    }
+
+    /** The requests after a batch: every request is made, also when one failed (every container must be stopped); the first failure is reported. */
+    private GpuGate.Step after(BackendConfig config) {
+        return () -> {
+            String error = runHooks("after a batch", withKey(config.getAfterHooks(), config), config.isLocal(), false);
+            if (error != null) {
+                throw new BackendException(error);
+            }
+        };
+    }
+
+    /**
+     * Makes the requests of a list in order and writes each into the log of the extension (what was sent, when and how it was answered), so a
+     * server that does something at the wrong time can be compared with it.
+     *
+     * @param stopAtFirstFailure true for the requests before a batch (the next one must not start a model on a full GPU)
+     * @return the message of the first failure, null when all went well
+     */
+    private String runHooks(String phase, List<HttpHook> hooks, boolean local, boolean stopAtFirstFailure) {
+        List<HttpHook> todo = hooks == null ? List.of() : hooks.stream().filter(h -> h != null && !h.isEmpty()).toList();
+        String first = null;
+        for (int i = 0; i < todo.size(); i++) {
+            HttpHook hook = todo.get(i);
+            long started = System.currentTimeMillis();
+            AudiobookLog.get().info("Request {} of {} {}: {} {}", i + 1, todo.size(), phase, hook.getMethod(), hook.getUrl());
+            try {
+                HookRunner.run(hook, local, this::reveal);
+                AudiobookLog.get().info("Request {} of {} {} answered in {} ms", i + 1, todo.size(), phase, System.currentTimeMillis() - started);
+            } catch (BackendException e) {
+                String message = todo.size() == 1 ? e.getMessage() : "Request " + (i + 1) + " of " + todo.size() + ": " + e.getMessage();
+                AudiobookLog.get().warn("Request {} of {} {} failed after {} ms: {}", i + 1, todo.size(), phase, System.currentTimeMillis() - started, e.getMessage());
+                if (stopAtFirstFailure) {
+                    return message;
+                }
+                if (first == null) {
+                    first = message;
+                }
+            }
+        }
+        return first;
+    }
+
+    /**
+     * The requests with the key of the backend as {@code Authorization: Bearer} unless one has an {@code Authorization} header of its own: the key
+     * of the requests, else the api key (one key for a proxy that serves everything). The copies live only for the batch.
+     */
+    private List<HttpHook> withKey(List<HttpHook> hooks, BackendConfig config) {
+        String protectedKey = config.getProtectedHooksKey() != null && !config.getProtectedHooksKey().isBlank() ? config.getProtectedHooksKey() : config.getProtectedApiKey();
+        String key = protectedKey == null ? null : reveal(protectedKey);
+        if (hooks == null || key == null || key.isBlank()) {
+            return hooks;
+        }
+        List<HttpHook> copies = new ArrayList<>();
+        for (HttpHook hook : hooks) {
+            if (hook == null || hook.isEmpty()) {
+                continue;
+            }
+            String headers = hook.headersText(this::reveal);
+            if (headers != null && headers.lines().anyMatch(line -> line.strip().toLowerCase(java.util.Locale.ROOT).startsWith("authorization:"))) {
+                copies.add(hook);
+                continue;
+            }
+            HttpHook copy = new HttpHook();
+            copy.setUrl(hook.getUrl());
+            copy.setMethod(hook.getMethod());
+            copy.setBody(hook.getBody());
+            copy.setTimeoutSeconds(hook.getTimeoutSeconds());
+            copy.setWaitSeconds(hook.getWaitSeconds());
+            copy.setHeaders((headers == null || headers.isBlank() ? "" : headers + "\n") + "Authorization: Bearer " + key.strip());
+            copies.add(copy);
+        }
+        return copies;
+    }
+
+    /** Runs {@code work} on a thread of its own in the request context of the caller (the services work for the user who asked). */
+    private void inBackground(String name, Runnable work) {
+        RequestAttributes scope = ThreadCopyRequestAttributes.create();
+        Thread.ofVirtual().name(name).start(() -> {
+            try (ThreadCopyRequestAttributes.InRequestScope ignored = new ThreadCopyRequestAttributes.InRequestScope(scope)) {
+                work.run();
+            }
+        });
+    }
+
+    /**
+     * Tries a backend as it is in the form: the requests before a batch (which start a server that is stopped), the question whether the server is
+     * there and has a model, the requests after the batch. Nothing is spoken. The answer is given from a thread of its own.
+     *
+     * @param done called with the answer, or with the message of what failed
+     */
+    public void test(BackendConfig config, BiConsumer<ServerCheck.Result, String> done) {
+        inBackground("audiobook-test", () -> {
+            ServerCheck.Result result = null;
+            String error = null;
+            GpuGate gate = GpuGate.forAddress(config.getBaseUrl());
+            try {
+                gate.acquire(before(config));
+                try {
+                    result = gate.exclusive(null, () -> ServerCheck.check(config, this::reveal));
+                } finally {
+                    String afterError = gate.release(after(config));
+                    if (afterError != null) {
+                        AudiobookLog.get().warn("The request after the test failed: {}", afterError);
+                        if (result != null) {
+                            error = T.localized(THE_REQUEST_AFTER_THE_TEST_FAILED).formatted(afterError);
+                        }
                     }
-                },
-                cancelled, work);
+                }
+            } catch (BackendException e) {
+                result = null;
+                error = e.getMessage();
+            } catch (RuntimeException e) {
+                AudiobookLog.get().warn("Testing the connection failed: {}", e.getMessage(), e);
+                result = null;
+                error = String.valueOf(e.getMessage());
+            }
+            done.accept(result, error);
+        });
+    }
+
+    private static final java.util.Map<String, String> SAMPLES = java.util.Map.of(
+            "ja", "こんにちは、この本の声です。こんなふうに話します。",
+            "zh", "你好，我是这本书的声音。我就是这样说话的。",
+            "ko", "안녕하세요, 이 책의 목소리입니다. 이렇게 말합니다.",
+            "ru", "Здравствуйте, я голос этой книги. Вот так я говорю.",
+            "el", "Γεια σας, είμαι η φωνή αυτού του βιβλίου. Έτσι μιλάω.",
+            "he", "שלום, אני הקול של הספר הזה. ככה אני מדבר.",
+            "ar", "مرحبًا، أنا صوت هذا الكتاب. هكذا أتحدث.",
+            "hi", "नमस्ते, मैं इस किताब की आवाज़ हूँ। मैं ऐसे बोलता हूँ।");
+    private static final String SAMPLE = "Hello, I am a voice of this book. This is how I sound when I read to you.";
+
+    /**
+     * Speaks a short sentence with a voice so the user can hear it before using it (the requests around a batch start and stop the server, so it
+     * takes a while when the server is stopped). A voice for a language speaks a sentence in it, with the multilingual backend when there is one.
+     *
+     * @param voice    {@code clip:<uuid>} or {@code predefined:<file>}
+     * @param language the code, null for the language of the book
+     * @param done     called from a thread of its own with the mp3, or with the message of what failed
+     */
+    public void preview(String voice, String language, BiConsumer<byte[], String> done) {
+        inBackground("audiobook-preview", () -> {
+            try {
+                BackendConfig multilingual = language == null ? null : backendForModel(BackendConfig.MODEL_MULTILINGUAL);
+                BackendConfig backend = multilingual != null ? multilingual : getSettings().selected();
+                String code = multilingual != null ? language : null;
+                if (backend == null) {
+                    done.accept(null, T.localized(NO_BACKEND_YET));
+                    return;
+                }
+                VoiceRef ref = VoiceRef.parse(voice);
+                String sentence = code == null ? SAMPLE : SAMPLES.getOrDefault(code, SAMPLE);
+                ClipVoices clips = new ClipVoices(resourceService);
+                byte[] audio = runBatch(backend, null, speaker -> {
+                    Voices.Resolved resolved = clips.resolve(speaker, ref);
+                    SpeechRequest request = new SpeechRequest(sentence, resolved.mode(), resolved.name(), code, 0.5, backend.getCfgWeight(),
+                            backend.getTemperature(), backend.getSpeed(), SEED, "mp3", backend.getChunkSize());
+                    return speaker.synthesize(request, () -> false);
+                }).value();
+                done.accept(audio, null);
+            } catch (IllegalArgumentException | BackendException e) {
+                done.accept(null, e.getMessage());
+            } catch (RuntimeException e) {
+                AudiobookLog.get().warn("A voice could not be heard: {}", e.getMessage(), e);
+                done.accept(null, String.valueOf(e.getMessage()));
+            }
+        });
     }
 
     // --- the conversion ---
@@ -536,26 +704,45 @@ public class AudiobookService {
         return script != null && script.status() == StudioScript.Status.FINAL;
     }
 
+    /** What the audio of a part is worth: there is none, it was made from an older text or script, or it is what the part says now. */
+    public enum AudioState {
+        MISSING, OLDER_THAN_THE_TEXT, OLDER_THAN_THE_SCRIPT, READY
+    }
+
+    /** Whether the part has audio and whether it is still the audio of the text and of the script of the studio. For the current user. */
+    public AudioState audioState(String partUuid) throws Exception {
+        ChatMessage stored = chatMessageService.findForUser(partUuid);
+        AudioStore.PartAudio made = stored == null ? null : new ResourceAudioStore(resourceService, chatMessageService).partAudio(partUuid);
+        if (made == null) {
+            return AudioState.MISSING;
+        }
+        if (PartScript.stale(made.sourceHash(), stored.getResponse())) {
+            return AudioState.OLDER_THAN_THE_TEXT;
+        }
+        StudioScript script = studioStore().find(partUuid);
+        if (script != null && !script.toPartScript().joinKey().equals(made.joinKey())) {
+            return AudioState.OLDER_THAN_THE_SCRIPT;
+        }
+        return AudioState.READY;
+    }
+
     /**
      * The joined audio of a part for the export, or why there is none: not converted, made from an older text, or older than the script of the studio
      * (a segment was changed and the part not made again). For the current user.
      */
     public AudiobookExporter.PartAudio exportableAudio(String partUuid) {
         try {
-            ChatMessage stored = chatMessageService.findForUser(partUuid);
-            ResourceAudioStore store = new ResourceAudioStore(resourceService, chatMessageService);
-            AudioStore.PartAudio made = stored == null ? null : store.partAudio(partUuid);
-            if (made == null) {
+            AudioState state = audioState(partUuid);
+            if (state == AudioState.MISSING) {
                 return AudiobookExporter.PartAudio.missing(T.localized(NO_AUDIO));
             }
-            if (PartScript.stale(made.sourceHash(), stored.getResponse())) {
+            if (state == AudioState.OLDER_THAN_THE_TEXT) {
                 return AudiobookExporter.PartAudio.missing(T.localized(AUDIO_OLDER_THAN_THE_TEXT));
             }
-            StudioScript script = studioStore().find(partUuid);
-            if (script != null && !script.toPartScript().joinKey().equals(made.joinKey())) {
+            if (state == AudioState.OLDER_THAN_THE_SCRIPT) {
                 return AudiobookExporter.PartAudio.missing(T.localized(AUDIO_OLDER_THAN_THE_SCRIPT));
             }
-            byte[] bytes = store.partBytes(partUuid);
+            byte[] bytes = new ResourceAudioStore(resourceService, chatMessageService).partBytes(partUuid);
             return bytes == null ? AudiobookExporter.PartAudio.missing(T.localized(NO_AUDIO)) : AudiobookExporter.PartAudio.of(bytes);
         } catch (Exception e) {
             AudiobookLog.get().warn("The audio of a part could not be read for the export: {}", e.getMessage(), e);
@@ -568,13 +755,28 @@ public class AudiobookService {
         return new ResourceAudioStore(resourceService, chatMessageService).segment(partUuid, key);
     }
 
+    /** The name a clip of the user has on the speech server (what a request carries), for showing; the name of the clip when it can't be read. */
+    public String serverNameOfClip(String resourceUuid) {
+        try {
+            var clip = resourceService.findForUser(resourceUuid);
+            byte[] bytes = clip == null ? null : resourceService.getResourceData(clip);
+            if (bytes == null) {
+                return resourceUuid;
+            }
+            String name = clip.getOriginalName() == null ? "" : clip.getOriginalName().toLowerCase(java.util.Locale.ROOT);
+            return ChatterboxBackend.referenceName(bytes, name.endsWith(".mp3") ? "mp3" : "wav");
+        } catch (Exception e) {
+            return resourceUuid;
+        }
+    }
+
     /** The request the speech server gets for the entry, as readable JSON: a clip is shown by its name (the server's name for it is made when it is uploaded). */
     public String requestOf(ScriptEntry entry, java.util.function.UnaryOperator<String> clipName) {
         boolean clip = entry.voice().kind() == VoiceRef.Kind.CLIP;
         SpeechRequest request = new SpeechRequest(entry.text(), clip ? SpeechRequest.VoiceMode.CLONE : SpeechRequest.VoiceMode.PREDEFINED,
-                clip ? "<" + clipName.apply(entry.voice().id()) + ">" : entry.voice().id(), entry.language(), entry.exaggeration(), entry.cfgWeight(),
+                clip ? clipName.apply(entry.voice().id()) : entry.voice().id(), entry.language(), entry.exaggeration(), entry.cfgWeight(),
                 entry.temperature(), entry.speed(), entry.seed(), entry.format(), entry.chunkSize());
-        return new com.google.gson.GsonBuilder().setPrettyPrinting().create().toJson(com.google.gson.JsonParser.parseString(
+        return new com.google.gson.GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create().toJson(com.google.gson.JsonParser.parseString(
                 ChatterboxBackend.bodyOf(request, entry.model())));
     }
 

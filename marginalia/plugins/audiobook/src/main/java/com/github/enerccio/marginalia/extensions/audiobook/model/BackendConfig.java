@@ -35,6 +35,8 @@ public class BackendConfig {
     private String baseUrl = "";
     /** Protected with the key of the installation. */
     private String protectedApiKey;
+    /** The key the requests before and after a batch carry as {@code Authorization: Bearer}, protected the same way; empty: the api key is used. */
+    private String protectedHooksKey;
     /** One of {@link #MODELS}: the model the server is asked to have loaded. */
     private String model = MODEL_TURBO;
     /** True when the server is on this machine or the local network: the private addresses are allowed. */
@@ -88,6 +90,14 @@ public class BackendConfig {
 
     public void setProtectedApiKey(String protectedApiKey) {
         this.protectedApiKey = protectedApiKey;
+    }
+
+    public String getProtectedHooksKey() {
+        return protectedHooksKey;
+    }
+
+    public void setProtectedHooksKey(String protectedHooksKey) {
+        this.protectedHooksKey = protectedHooksKey;
     }
 
     public String getModel() {

@@ -3,13 +3,13 @@
 // A rule answers with `reply` (string, or function(ctx) returning a string or {reply, reasoning, status, message}),
 // optionally `reasoning` and `delayMs`.
 import {
-  arcOutline,
-  betaPersona,
-  betaReaders,
-  loreCompaction,
-  loreGeneration,
-  review,
-  sideQuery
+    arcOutline,
+    betaPersona,
+    betaReaders,
+    loreCompaction,
+    loreGeneration,
+    review,
+    sideQuery
 } from '../dataset/plugins.mjs';
 import {metaSummary, readerTurn, readerTurn2, summaryReasoning, turns} from '../dataset/story.mjs';
 
@@ -107,7 +107,32 @@ const imagePromptRule = {
   reply: 'watercolor, a reed field at night under an enormous low moon, a young man with a cracked headlamp and a young woman in a grey jacket walking along a black river, tall reeds, a long broken road of moonlight on the water, cold blue and green, small warm light, quiet mood',
 };
 
+// Audiobook: the labelling of a part. The pieces come as lines `[id] N: narration` / `[id] D: speech`; narration is the Narrator, the speeches alternate
+// between two characters of the book, a speech with "low" or "murmur" in it is a whisper, the first speech gets a valid sound tag.
+const audiobookLabelsRule = {
+  name: 'audiobook-labels',
+  when: ctx => /^\[\d+\] [ND]: /m.test(ctx.last),
+  reply: ctx => {
+    let speeches = 0;
+    const labels = [];
+    for (const line of ctx.last.split('\n')) {
+      const m = /^\[(\d+)\] (N|D): (.*)$/.exec(line);
+      if (!m) continue;
+      const id = Number(m[1]);
+      if (m[2] === 'N') {
+        labels.push({ id, speaker: 'Narrator', delivery: 'NEUTRAL', intensity: 0.5, tagged_text: '' });
+      } else {
+        labels.push({ id, speaker: speeches % 2 === 0 ? 'Tomáš' : 'Mizuki', delivery: /low|murmur/.test(m[3]) ? 'WHISPER' : 'CALM', intensity: 0.3,
+          tagged_text: speeches === 0 ? '[sigh] ' + m[3] : '' });
+        speeches++;
+      }
+    }
+    return JSON.stringify({ labels });
+  },
+};
+
 export default [
+  audiobookLabelsRule,
   imagePromptRule,
   betaPersonaRule,
   betaRule,

@@ -46,6 +46,10 @@ public class AudiobookSettings {
         if (actors == null) {
             actors = new ArrayList<>();
         }
+        // by name, as the user reads them (the case and the accents do not count)
+        java.text.Collator collator = java.text.Collator.getInstance();
+        collator.setStrength(java.text.Collator.PRIMARY);
+        actors.sort((a, b) -> collator.compare(a.getName() == null ? "" : a.getName(), b.getName() == null ? "" : b.getName()));
         return actors;
     }
 

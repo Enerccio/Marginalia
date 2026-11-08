@@ -209,6 +209,16 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
     public static final String THE_AUDIO_OF_THE_NEW_PART_COULD_NOT_BE_MADE = "The audio of the new part could not be made: %s";
     public static final String AUTOMATIC_CONVERSION_OF_NEW_PARTS = "Convert new parts by itself, for the books that say nothing";
 
+    public static final String PREVIEW = "Preview";
+    public static final String MAKING_THE_SAMPLE = "Making the sample ...";
+    public static final String PICK_A_VOICE_FIRST = "Pick a voice first";
+    public static final String THE_VOICE_COULD_NOT_BE_HEARD = "The voice could not be heard: %s";
+    public static final String KEY_OF_THE_REQUESTS = "Key of the requests around a batch";
+    public static final String KEY_OF_THE_REQUESTS_HELP = "Sent as Authorization: Bearer with every request before and after a batch, stored encrypted and never shown again, so it does not have to be written into their headers. Empty: the api key above is used.";
+    public static final String THE_REQUEST_AFTER_THE_TEST_FAILED = "The server answers, but the request after the test failed: %s";
+    public static final String THE_REQUESTS_AROUND_THE_TEST_RAN = "The requests before and after the test were made. ";
+    public static final String TEST_HELP = "The test makes the requests before a batch (they start a server that is stopped), asks the server, and makes the requests after it.";
+
     @Override
     protected void loadKeys() {
         ja(AUDIOBOOK, "オーディオブック");
@@ -792,5 +802,32 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
 
         ja(AUTOMATIC_CONVERSION_OF_NEW_PARTS, "指定のない本の新しいパートを自動変換");
         zh(AUTOMATIC_CONVERSION_OF_NEW_PARTS, "未指定的书自动转换新章节");
+
+        ja(PREVIEW, "試聴");
+        zh(PREVIEW, "试听");
+
+        ja(MAKING_THE_SAMPLE, "サンプルを作成中 ...");
+        zh(MAKING_THE_SAMPLE, "正在生成样本 ...");
+
+        ja(PICK_A_VOICE_FIRST, "先に声を選んでください");
+        zh(PICK_A_VOICE_FIRST, "请先选择声音");
+
+        ja(THE_VOICE_COULD_NOT_BE_HEARD, "声を再生できませんでした: %s");
+        zh(THE_VOICE_COULD_NOT_BE_HEARD, "无法试听该声音：%s");
+
+        ja(KEY_OF_THE_REQUESTS, "バッチ前後のリクエストのキー");
+        zh(KEY_OF_THE_REQUESTS, "批处理前后请求的密钥");
+
+        ja(KEY_OF_THE_REQUESTS_HELP, "バッチの前後のすべてのリクエストに Authorization: Bearer として付けられます。暗号化して保存され、再表示されないので、ヘッダーに書く必要はありません。空: 上の API キーを使います。");
+        zh(KEY_OF_THE_REQUESTS_HELP, "作为 Authorization: Bearer 附加到批处理前后的每个请求，加密保存且不再显示，因此无需写入请求头。留空：使用上面的 API 密钥。");
+
+        ja(THE_REQUEST_AFTER_THE_TEST_FAILED, "サーバーは応答しましたが、テスト後のリクエストが失敗しました: %s");
+        zh(THE_REQUEST_AFTER_THE_TEST_FAILED, "服务器有响应，但测试后的请求失败：%s");
+
+        ja(THE_REQUESTS_AROUND_THE_TEST_RAN, "テストの前後のリクエストを実行しました。");
+        zh(THE_REQUESTS_AROUND_THE_TEST_RAN, "已执行测试前后的请求。");
+
+        ja(TEST_HELP, "テストはバッチ前のリクエスト（停止中のサーバーを起動）を実行し、サーバーに問い合わせ、バッチ後のリクエストを実行します。");
+        zh(TEST_HELP, "测试会先执行批处理前的请求（启动已停止的服务器），再询问服务器，最后执行批处理后的请求。");
     }
 }

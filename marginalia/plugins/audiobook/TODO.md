@@ -354,8 +354,20 @@ audiobook can also read the English source of a speech (dubbing) as a per-langua
    works in VLC, Audiobookshelf and players that read ID3 chapters, not in all; no cover picture; the file name of the one file is the name of the book; no loudness levelling between parts (see the
    findings), no Xing header in the one file (a player estimates the length from the bitrate, which is constant); the part number in "Part n" and in the report is the place in the export, not in the book;
    a part list with more than a few hundred megabytes is held in memory.
-12. **Commands** for agents and the command bar (convert a range, status), notifications when a batch is over (`NotificationService`), a user manual page and screenshots, **and the how-to for the server side**
-    (LiteLLM routes and pass-throughs, the two hook scripts, the controller and its socket proxy, the Chatterbox container with `pykakasi`, ComfyUI with the graph, the `ai` network).
+12. ✅/◐ **Commands, notifications, the manual and the server how-to.** *Commands* (`commands/AudiobookCommands`): `audiobook-status`, `-convert` (from, to, labelling, what = audio | script, wait: an async command with progress that
+    cancels its jobs when stopped), `-stop`, `-set-part-status`, `-cast`; the forms are a ladder (the command line binds the exact number of arguments). An agent's working copy has no audio and its changes are
+    thrown away, so an agent may only read the cast (the rest refuse it, saying the user has to run them). Checked in the application at the command line (status, convert with wait, final parts left alone, a range outside the book, stop).
+    *Notifications*: the source `audiobook.convert` (with its automatic entry) in the notification list; `ui/BatchNotifier` tells when all the jobs of a click, a command or an automatic conversion are over (a stopped batch says nothing);
+    `AudiobookService.audioState` (none / ready / older than the text / older than the script) is what the status and the export share. *Manual*: `manual/user/extensions/audiobook.md` and `audiobook-server.md` (which setup
+    needs the requests before and after a batch, the requests with LiteLLM, the controller, the gotchas), 12 pictures by `screenshots/flows/plugin-audiobook.mjs` (the fake model answers the speech server and the labelling).
+    **Found by the author's first real run and fixed:** the annotation could be started again and again with no sign of work (the studio now shows a bar and holds the buttons while a job of the part waits or runs);
+    the cast window did not scroll; the test of the connection failed for a server that is stopped (it now makes the requests before and after a batch around the question, like a batch does); the actors were not sorted;
+    the *request the server gets* showed `<♪ name>` for a clip (it shows the name the clip has on the server now); a **voice preview** (button in the voice field and the cast) speaks a sentence in the voice (in the language
+    of a voice for a language, with the multilingual backend when there is one); the **key of the requests around a batch** is a field of its own (encrypted, never shown; empty: the api key) so the Bearer is not typed into the headers.
+    **Not done:** the plugin unit tests do not cover the commands (they need the application's services; they were run by hand); the preview, the test with requests and the key were not run against a real server
+    by me (the author's run showed *Model not loaded* after the first piece: the server log has `/api/unload`, which Marginalia never sends: a startup wrapper of the container unloads the model once the server answers and its wait
+    ended after the first request: the how-to says so); a `/v1/audio/speech` mode for a LiteLLM route that carries the speech without the pass-throughs of `/tts` (no exaggeration, no upload of clips); the sound effects (step 9b).
+    (LiteLLM routes and pass-throughs, the two hook scripts, the controller and its socket proxy and the Chatterbox container with `pykakasi` are in the how-to; ComfyUI with the graph waits for the sound effects.)
 
 ## Notes
 
