@@ -3,6 +3,7 @@ package com.github.enerccio.marginalia.domain.repository;
 import com.github.enerccio.marginalia.domain.model.impl.Resource;
 import com.github.enerccio.marginalia.domain.security.model.User;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -16,6 +17,35 @@ public interface ResourceRepository extends OwnedRepository<Resource> {
     List<Resource> findPage(User owner, int offset, int limit, String sortProperty, boolean ascending) throws Exception;
 
     long count(User owner) throws Exception;
+
+    /**
+     * Resources of one object, see {@link Resource#getClazz()}.
+     *
+     * @param count   number of the not deleted resources of the user
+     * @param size    sum of their sizes
+     * @param newest  creation of the newest
+     * @param clazz   null for the resources that are not linked to anything
+     */
+    record ResourceGroup(String clazz, Long objectId, long count, long size, Date newest) {
+    }
+
+    /**
+     * The not deleted resources of the user grouped by the object that uses them (one group for all that are linked
+     * to nothing).
+     *
+     * @param sortProperty one of creation (newest resource of the group), size (sum), anything else sorts by the class
+     *                     and id of the object
+     */
+    List<ResourceGroup> findGroupPage(User owner, int offset, int limit, String sortProperty, boolean ascending) throws Exception;
+
+    long countGroups(User owner) throws Exception;
+
+    /**
+     * Same as {@link #findPage} for the resources of one group, null class and id are the resources linked to nothing.
+     */
+    List<Resource> findPageOfGroup(User owner, String clazz, Long objectId, int offset, int limit, String sortProperty, boolean ascending) throws Exception;
+
+    long countOfGroup(User owner, String clazz, Long objectId) throws Exception;
 
     /**
      * @return the stored file names of all resources of all users, the soft deleted ones included

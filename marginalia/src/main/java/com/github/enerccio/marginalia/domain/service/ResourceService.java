@@ -82,6 +82,27 @@ public interface ResourceService extends OwnedService<Resource, ResourceReposito
     long countForUser() throws Exception;
 
     /**
+     * The resources of the current user grouped by the object that uses them, for the table of resources.
+     *
+     * @param sortProperty one of creation, size, originalName (by the object)
+     */
+    List<ResourceRepository.ResourceGroup> findGroupPageForUser(int offset, int limit, String sortProperty, boolean ascending) throws Exception;
+
+    long countGroupsForUser() throws Exception;
+
+    /**
+     * Same as {@link #findPageForUser} for the resources of one group (null class and id: linked to nothing).
+     */
+    List<Resource> findPageOfGroupForUser(ResourceRepository.ResourceGroup group, int offset, int limit, String sortProperty, boolean ascending) throws Exception;
+
+    long countOfGroupForUser(ResourceRepository.ResourceGroup group) throws Exception;
+
+    /**
+     * @return the object the group of resources belongs to, null for the group of the resources linked to nothing
+     */
+    ResourceLink describeGroup(ResourceRepository.ResourceGroup group) throws Exception;
+
+    /**
      * Replaces the content of the resource of the current user: the new content is written as a new file and the
      * resource points to it, so everything that references the resource keeps working. The old file stays in the
      * folder. An image can be replaced only by an image (see {@link #uploadImage}).

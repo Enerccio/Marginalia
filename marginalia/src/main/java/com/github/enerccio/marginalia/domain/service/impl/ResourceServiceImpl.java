@@ -131,11 +131,45 @@ public class ResourceServiceImpl extends OwnedServiceImpl<Resource, ResourceRepo
     @Override
     @CommonTxReadOnly
     public ResourceLink describeLink(Resource resource) throws Exception {
-        if (resource.getClazz() == null || resource.getObjectId() == null) {
+        return describe(resource.getClazz(), resource.getObjectId());
+    }
+
+    private ResourceLink describe(String clazz, Long objectId) {
+        if (clazz == null || objectId == null) {
             return null;
         }
-        String name = resource.getClazz().substring(resource.getClazz().lastIndexOf('.') + 1);
-        return new ResourceLink(name + " #" + resource.getObjectId(), getRepository().entityExists(resource.getClazz(), resource.getObjectId()));
+        String name = clazz.substring(clazz.lastIndexOf('.') + 1);
+        return new ResourceLink(name + " #" + objectId, getRepository().entityExists(clazz, objectId));
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public ResourceLink describeGroup(ResourceRepository.ResourceGroup group) throws Exception {
+        return describe(group.clazz(), group.objectId());
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public List<ResourceRepository.ResourceGroup> findGroupPageForUser(int offset, int limit, String sortProperty, boolean ascending) throws Exception {
+        return getRepository().findGroupPage(currentUser, offset, limit, sortProperty, ascending);
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public long countGroupsForUser() throws Exception {
+        return getRepository().countGroups(currentUser);
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public List<Resource> findPageOfGroupForUser(ResourceRepository.ResourceGroup group, int offset, int limit, String sortProperty, boolean ascending) throws Exception {
+        return getRepository().findPageOfGroup(currentUser, group.clazz(), group.objectId(), offset, limit, sortProperty, ascending);
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public long countOfGroupForUser(ResourceRepository.ResourceGroup group) throws Exception {
+        return getRepository().countOfGroup(currentUser, group.clazz(), group.objectId());
     }
 
     @Override

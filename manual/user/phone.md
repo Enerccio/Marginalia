@@ -106,8 +106,8 @@ The button next to the *Enabled* check box opens **Search and replace** for the 
 - **Protocols** and **Inference Providers** list each entry as text with the buttons next to it (below it, for providers, which have more of them). The
   editing dialogs are the desktop ones, so a protocol can be [shared](protocols.md#sharing-a-protocol) from the phone, and the
   **Import from other user** button above the list imports a protocol that another user shares.
-- **Resources** shows each file as a card (a picture, the name, type, size, date, the object it belongs to and the buttons to download, replace and delete), with
-  a check box for *Delete selected*.
+- **Resources** groups the files by the object that uses them (open a group with its arrow), each file is a card (a picture, the name, type, size, date and the buttons to download, replace and delete), with
+  a check box for *Delete selected*; ticking a group deletes all its files.
 - **Trash** shows each deleted object as a card (name, type, when it was deleted). The explanation of the trash is
   behind the *i* button; the buttons of the filters wrap to a second line. Restoring works as described in [Trash](trash.md).
 

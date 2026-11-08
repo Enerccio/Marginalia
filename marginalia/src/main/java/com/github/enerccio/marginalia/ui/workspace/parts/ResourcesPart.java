@@ -3,6 +3,7 @@ package com.github.enerccio.marginalia.ui.workspace.parts;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.Resource;
+import com.github.enerccio.marginalia.domain.repository.ResourceRepository.ResourceGroup;
 import com.github.enerccio.marginalia.domain.service.ResourceService;
 import com.github.enerccio.marginalia.domain.service.ResourceService.ResourceLink;
 import com.github.enerccio.marginalia.domain.traits.*;
@@ -25,10 +26,12 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.treegrid.TreeGrid;
 import com.vaadin.flow.component.upload.Upload;
-import com.vaadin.flow.data.provider.CallbackDataProvider;
 import com.vaadin.flow.data.provider.QuerySortOrder;
 import com.vaadin.flow.data.provider.SortDirection;
+import com.vaadin.flow.data.provider.hierarchy.AbstractBackEndHierarchicalDataProvider;
+import com.vaadin.flow.data.provider.hierarchy.HierarchicalQuery;
 import com.vaadin.flow.server.streams.DownloadResponse;
 import com.vaadin.flow.server.streams.InMemoryUploadHandler;
 import com.vaadin.flow.server.streams.InputStreamDownloadCallback;
@@ -40,12 +43,16 @@ import org.springframework.beans.factory.annotation.Configurable;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 
 /**
- * All files of the user (pictures of the parts for now) in a lazy table: download, replace the content, delete. A
- * deleted resource is only marked as deleted, cleanup removes it later and the file stays in the data folder.
+ * All files of the user (pictures of the parts for now) in a lazy table grouped by the object that uses them (Used by):
+ * a row of a group opens to the resources of the object. Download, replace the content, delete; ticking a group deletes
+ * all its resources. A deleted resource is only marked as deleted, cleanup removes it later and the file stays in the
+ * data folder.
  */
 @Configurable
 @Extendable
@@ -60,9 +67,24 @@ public class ResourcesPart implements WorkspaceComponent {
     private final Workspace workspace;
     // the phone layout: one card for each resource (picture, name, details, buttons) next to the check box
     private final boolean phone;
-    private Grid<Resource> grid;
+    private TreeGrid<Row> grid;
     private Button deleteSelectedButton;
     private MessageImages thumbnails;
+
+    /**
+     * A row of the table: a group of the resources of one object (the resource is null) or one resource of it.
+     *
+     * @param group the group the row is or belongs to
+     */
+    record Row(ResourceGroup group, Resource resource) {
+        boolean isGroup() {
+            return resource == null;
+        }
+
+        String id() {
+            return resource != null ? resource.getUuid() : "group:" + group.clazz() + ":" + group.objectId();
+        }
+    }
 
     public ResourcesPart(Workspace workspace) {
         this(workspace, false);
@@ -117,44 +139,38 @@ public class ResourcesPart implements WorkspaceComponent {
         headerLayout.setFlexGrow(1, titleSpan);
         headerLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
 
-        grid = new Grid<>(Resource.class, false);
+        grid = new TreeGrid<>();
         grid.setSizeFull();
-        GridMultiSelectionModel<Resource> selection = (GridMultiSelectionModel<Resource>) grid.setSelectionMode(Grid.SelectionMode.MULTI);
+        GridMultiSelectionModel<Row> selection = (GridMultiSelectionModel<Row>) grid.setSelectionMode(Grid.SelectionMode.MULTI);
         selection.setSelectAllCheckboxVisibility(GridMultiSelectionModel.SelectAllCheckboxVisibility.VISIBLE);
         grid.setEmptyStateText(loc.getValue(L.MSG_RESOURCES_EMPTY));
         grid.setMultiSort(false);
         // selection survives loading other pages of the lazy table
-        grid.setItems(new CallbackDataProvider<Resource, Void>(this::fetch, query -> count(), Resource::getUuid));
+        grid.setDataProvider(new RowProvider());
         grid.addSelectionListener(event -> deleteSelectedButton.setEnabled(!event.getAllSelectedItems().isEmpty()));
 
         if (phone) {
             grid.addThemeVariants(GridVariant.LUMO_WRAP_CELL_CONTENT);
-            grid.addComponentColumn(this::cardOf).setFlexGrow(1);
+            grid.addComponentHierarchyColumn(this::cardOf).setFlexGrow(1);
             mainLayout.add(headerLayout, grid);
             mainLayout.setFlexGrow(1, grid);
             return mainLayout;
         }
 
-        grid.addComponentColumn(resource -> resource.getMimeType() != null && resource.getMimeType().startsWith("image/")
-                        ? thumbnails.figure(resource, "", "48px") : new Span())
-                .setHeader("").setFlexGrow(0).setWidth("90px");
+        // the group (the object that uses the resources) opens to its resources: the picture and name of each
+        grid.addComponentHierarchyColumn(this::nameOf)
+                .setHeader(loc.getValue(L.LABEL_LINKED_OBJECT)).setSortProperty("originalName").setFlexGrow(3);
 
-        grid.addColumn(Resource::getOriginalName)
-                .setHeader(loc.getValue(L.LABEL_NAME)).setSortProperty("originalName").setFlexGrow(2);
-
-        grid.addColumn(Resource::getMimeType)
+        grid.addColumn(row -> row.isGroup() ? "" : StringUtils.defaultString(row.resource().getMimeType()))
                 .setHeader(loc.getValue(L.LABEL_TYPE)).setSortProperty("mimeType").setFlexGrow(1);
 
-        grid.addColumn(resource -> FileUtils.byteCountToDisplaySize(resource.getSize()))
+        grid.addColumn(row -> FileUtils.byteCountToDisplaySize(row.isGroup() ? row.group().size() : row.resource().getSize()))
                 .setHeader(loc.getValue(L.LABEL_SIZE)).setSortProperty("size").setFlexGrow(0).setWidth("110px");
 
-        grid.addColumn(resource -> loc.getDateHourFormat().format(resource.getCreation()))
+        grid.addColumn(row -> loc.getDateHourFormat().format(row.isGroup() ? row.group().newest() : row.resource().getCreation()))
                 .setHeader(loc.getValue(L.LABEL_CREATED)).setSortProperty("creation").setFlexGrow(1);
 
-        grid.addComponentColumn(this::linkOf)
-                .setHeader(loc.getValue(L.LABEL_LINKED_OBJECT)).setFlexGrow(1);
-
-        grid.addComponentColumn(this::actionsOf)
+        grid.addComponentColumn(row -> row.isGroup() ? new Span() : actionsOf(row.resource()))
                 .setHeader("").setFlexGrow(0).setWidth("190px");
 
         mainLayout.add(headerLayout, grid);
@@ -163,31 +179,104 @@ public class ResourcesPart implements WorkspaceComponent {
     }
 
     /**
-     * A resource on a phone: the picture (if it is one) and the name with the type, size and date below it, the object it
-     * belongs to, and the buttons in a row under them.
+     * The first column: the object that uses the resources of a group with the number of them, or the picture (if it
+     * is one) and the name of a resource.
      */
     @PublicAPI(from = "1.7.0",
             returns = @APIReturn(type = Component.class),
-            parameters = {@APIParameter(name = "resource", type = Resource.class)},
-            locals = {@APILocals(name = "name", type = Span.class),
+            parameters = {@APIParameter(name = "row", type = Row.class)},
+            locals = {@APILocals(name = "resource", type = Resource.class),
+                    @APILocals(name = "name", type = Span.class),
+                    @APILocals(name = "layout", type = HorizontalLayout.class)})
+    private Component nameOf(Row row) {
+        if (row.isGroup()) {
+            return groupOf(row.group());
+        }
+        Resource resource = row.resource();
+        Span name = new Span(StringUtils.defaultString(resource.getOriginalName()));
+        name.addClassName(CssStyles.WRAP_ANYWHERE);
+        HorizontalLayout layout = new HorizontalLayout();
+        layout.setAlignItems(FlexComponent.Alignment.CENTER);
+        layout.setPadding(false);
+        if (isImage(resource)) {
+            layout.add(thumbnails.figure(resource, "", "48px"));
+        }
+        layout.add(name);
+        return layout;
+    }
+
+    private static boolean isImage(Resource resource) {
+        return resource.getMimeType() != null && resource.getMimeType().startsWith("image/");
+    }
+
+    /**
+     * The object that uses the resources of the group and how many there are; nothing for the resources that are
+     * not used, in red the object that is gone (the resources are probably not needed any more).
+     */
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = Component.class),
+            parameters = {@APIParameter(name = "group", type = ResourceGroup.class)},
+            locals = {@APILocals(name = "title", type = Span.class),
+                    @APILocals(name = "link", type = ResourceLink.class),
+                    @APILocals(name = "e", type = Exception.class),
+                    @APILocals(name = "count", type = Span.class),
+                    @APILocals(name = "layout", type = HorizontalLayout.class)})
+    private Component groupOf(ResourceGroup group) {
+        Span title;
+        try {
+            ResourceLink link = resourceService.describeGroup(group);
+            if (link == null) {
+                title = new Span(loc.getValue(L.MSG_RESOURCE_NOT_LINKED));
+                title.addClassName(CssStyles.TEXT_SECONDARY);
+            } else if (link.present()) {
+                title = new Span(link.description());
+            } else {
+                title = new Span(String.format(loc.getValue(L.MSG_RESOURCE_LINK_MISSING), link.description()));
+                title.addClassName(CssStyles.TEXT_ERROR);
+            }
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+            title = new Span();
+        }
+        title.addClassNames(CssStyles.TEXT_SEMIBOLD, CssStyles.WRAP_ANYWHERE);
+        Span count = new Span("(" + group.count() + ")");
+        count.addClassName(CssStyles.TEXT_SECONDARY);
+        HorizontalLayout layout = new HorizontalLayout(title, count);
+        layout.setPadding(false);
+        return layout;
+    }
+
+    /**
+     * A row on a phone: a group as the object with the number and size of its resources, a resource as the picture
+     * (if it is one) and the name with the type, size and date below it, and the buttons in a row under them.
+     */
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = Component.class),
+            parameters = {@APIParameter(name = "row", type = Row.class)},
+            locals = {@APILocals(name = "resource", type = Resource.class),
+                    @APILocals(name = "name", type = Span.class),
                     @APILocals(name = "details", type = Span.class),
                     @APILocals(name = "texts", type = VerticalLayout.class),
                     @APILocals(name = "top", type = HorizontalLayout.class),
                     @APILocals(name = "card", type = VerticalLayout.class)})
-    private Component cardOf(Resource resource) {
+    private Component cardOf(Row row) {
+        if (row.isGroup()) {
+            return groupOf(row.group());
+        }
+        Resource resource = row.resource();
         Span name = new Span(StringUtils.defaultString(resource.getOriginalName()));
         name.addClassNames(CssStyles.TEXT_SEMIBOLD, CssStyles.WRAP_ANYWHERE);
         Span details = new Span(StringUtils.defaultString(resource.getMimeType()) + " · "
                 + FileUtils.byteCountToDisplaySize(resource.getSize()) + " · "
                 + loc.getDateHourFormat().format(resource.getCreation()));
         details.addClassNames(CssStyles.TEXT_SECONDARY, CssStyles.WRAP_ANYWHERE);
-        VerticalLayout texts = new VerticalLayout(name, details, linkOf(resource));
+        VerticalLayout texts = new VerticalLayout(name, details);
         texts.setPadding(false);
         texts.setSpacing(false);
         texts.addClassName(CssStyles.MIN_WIDTH_0);
         HorizontalLayout top = new HorizontalLayout();
         top.setWidthFull();
-        if (resource.getMimeType() != null && resource.getMimeType().startsWith("image/")) {
+        if (isImage(resource)) {
             top.add(thumbnails.figure(resource, "", "48px"));
         }
         top.add(texts);
@@ -199,62 +288,52 @@ public class ResourcesPart implements WorkspaceComponent {
         return card;
     }
 
-    @PublicAPI(from = "1.1.0",
-            returns = @APIReturn(type = Stream.class),
-            parameters = {@APIParameter(name = "query", type = com.vaadin.flow.data.provider.Query.class)},
-            locals = {@APILocals(name = "orders", type = List.class),
-                    @APILocals(name = "property", type = String.class),
-                    @APILocals(name = "e", type = Exception.class)})
-    private Stream<Resource> fetch(com.vaadin.flow.data.provider.Query<Resource, Void> query) {
-        try {
-            List<QuerySortOrder> orders = query.getSortOrders() == null ? List.of() : query.getSortOrders();
-            // without a sort the newest are first
-            String property = orders.isEmpty() ? "creation" : orders.getFirst().getSorted();
-            boolean ascending = !orders.isEmpty() && orders.getFirst().getDirection() == SortDirection.ASCENDING;
-            return resourceService.findPageForUser(query.getOffset(), query.getLimit(), property, ascending).stream();
-        } catch (Exception e) {
-            UIUtils.internalServerError(loc, e);
-            return Stream.empty();
-        }
-    }
+    /**
+     * The groups of the table and the resources of each, sorted as the user clicked; without a sort the newest are
+     * first.
+     */
+    private final class RowProvider extends AbstractBackEndHierarchicalDataProvider<Row, Void> {
 
-    @PublicAPI(from = "1.1.0",
-            returns = @APIReturn(type = int.class),
-            locals = {@APILocals(name = "e", type = Exception.class)})
-    private int count() {
-        try {
-            return (int) Math.min(Integer.MAX_VALUE, resourceService.countForUser());
-        } catch (Exception e) {
-            UIUtils.internalServerError(loc, e);
-            return 0;
+        @Override
+        public int getChildCount(HierarchicalQuery<Row, Void> query) {
+            try {
+                Row parent = query.getParent();
+                long count = parent == null ? resourceService.countGroupsForUser()
+                        : resourceService.countOfGroupForUser(parent.group());
+                return (int) Math.min(Integer.MAX_VALUE, count);
+            } catch (Exception e) {
+                UIUtils.internalServerError(loc, e);
+                return 0;
+            }
         }
-    }
 
-    @PublicAPI(from = "1.1.0",
-            returns = @APIReturn(type = Component.class),
-            parameters = {@APIParameter(name = "resource", type = Resource.class)},
-            locals = {@APILocals(name = "link", type = ResourceService.ResourceLink.class),
-                    @APILocals(name = "none", type = Span.class),
-                    @APILocals(name = "missing", type = Span.class),
-                    @APILocals(name = "e", type = Exception.class)})
-    private Component linkOf(Resource resource) {
-        try {
-            ResourceLink link = resourceService.describeLink(resource);
-            if (link == null) {
-                Span none = new Span(loc.getValue(L.MSG_RESOURCE_NOT_LINKED));
-                none.addClassName(CssStyles.TEXT_SECONDARY);
-                return none;
+        @Override
+        protected Stream<Row> fetchChildrenFromBackEnd(HierarchicalQuery<Row, Void> query) {
+            try {
+                List<QuerySortOrder> orders = query.getSortOrders() == null ? List.of() : query.getSortOrders();
+                String property = orders.isEmpty() ? "creation" : orders.getFirst().getSorted();
+                boolean ascending = !orders.isEmpty() && orders.getFirst().getDirection() == SortDirection.ASCENDING;
+                Row parent = query.getParent();
+                if (parent == null) {
+                    return resourceService.findGroupPageForUser(query.getOffset(), query.getLimit(), property, ascending)
+                            .stream().map(group -> new Row(group, null));
+                }
+                return resourceService.findPageOfGroupForUser(parent.group(), query.getOffset(), query.getLimit(), property, ascending)
+                        .stream().map(resource -> new Row(parent.group(), resource));
+            } catch (Exception e) {
+                UIUtils.internalServerError(loc, e);
+                return Stream.empty();
             }
-            if (link.present()) {
-                return new Span(link.description());
-            }
-            // the object was deleted, the resource is probably not needed any more
-            Span missing = new Span(String.format(loc.getValue(L.MSG_RESOURCE_LINK_MISSING), link.description()));
-            missing.addClassName(CssStyles.TEXT_ERROR);
-            return missing;
-        } catch (Exception e) {
-            UIUtils.internalServerError(loc, e);
-            return new Span();
+        }
+
+        @Override
+        public boolean hasChildren(Row row) {
+            return row.isGroup();
+        }
+
+        @Override
+        public Object getId(Row row) {
+            return row.id();
         }
     }
 
@@ -302,15 +381,34 @@ public class ResourcesPart implements WorkspaceComponent {
         return actions;
     }
 
+    /**
+     * Deletes the ticked resources and all the resources of the ticked groups.
+     */
     @PublicAPI(from = "1.1.0",
             returns = @APIReturn(type = void.class),
-            locals = {@APILocals(name = "selected", type = List.class)})
+            locals = {@APILocals(name = "selected", type = Set.class),
+                    @APILocals(name = "row", type = Row.class),
+                    @APILocals(name = "e", type = Exception.class),
+                    @APILocals(name = "resources", type = List.class)})
     private void deleteSelected() {
-        List<Resource> selected = List.copyOf(grid.getSelectedItems());
+        Set<Resource> selected = new LinkedHashSet<>();
+        try {
+            for (Row row : grid.getSelectedItems()) {
+                if (row.isGroup()) {
+                    selected.addAll(resourceService.findPageOfGroupForUser(row.group(), 0, Integer.MAX_VALUE, "creation", false));
+                } else {
+                    selected.add(row.resource());
+                }
+            }
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+            return;
+        }
         if (selected.isEmpty()) {
             return;
         }
-        ConfirmDialog.show(String.format(loc.getValue(L.MSG_CONFIRM_DELETE_RESOURCES), selected.size()), () -> delete(selected));
+        List<Resource> resources = List.copyOf(selected);
+        ConfirmDialog.show(String.format(loc.getValue(L.MSG_CONFIRM_DELETE_RESOURCES), resources.size()), () -> delete(resources));
     }
 
     @PublicAPI(from = "1.1.0",
