@@ -186,7 +186,7 @@ public class ManuscriptBackupPart implements ManuscriptDialogPart {
                 .setWidth("120px");
 
         grid.addColumn(ManuscriptBackup::getImageCount)
-                .setHeader(loc.getValue(L.LABEL_IMAGES))
+                .setHeader(loc.getValue(L.LABEL_RESOURCES))
                 .setFlexGrow(0)
                 .setWidth("100px");
 
@@ -351,18 +351,18 @@ public class ManuscriptBackupPart implements ManuscriptDialogPart {
         dialog.setHeaderTitle(loc.getValue(L.LABEL_EXPORT_BACKUP));
         dialog.setWidth("500px");
 
-        Button withImages = new Button(loc.getValue(L.LABEL_WITH_IMAGES), Solid.IMAGES.create(), event -> {
+        Button withImages = new Button(loc.getValue(L.LABEL_WITH_RESOURCES), Solid.IMAGES.create(), event -> {
             dialog.close();
             packWithImages(backup);
         });
         withImages.setThemeName("primary");
 
-        Button without = new Button(loc.getValue(L.LABEL_WITHOUT_IMAGES), Solid.FILE_CODE.create());
+        Button without = new Button(loc.getValue(L.LABEL_WITHOUT_RESOURCES), Solid.FILE_CODE.create());
         // the download starts with the click, the dialog closes with it
         Anchor withoutImages = downloadOf(backup, without);
         without.addClickListener(event -> dialog.close());
 
-        VerticalLayout content = new VerticalLayout(new Span(String.format(loc.getValue(L.MSG_BACKUP_EXPORT_IMAGES), backup.getImageCount())));
+        VerticalLayout content = new VerticalLayout(new Span(String.format(loc.getValue(L.MSG_BACKUP_EXPORT_RESOURCES), backup.getImageCount())));
         content.setPadding(false);
         dialog.add(content);
         dialog.getFooter().add(new Button(loc.getValue(L.LABEL_CANCEL), event -> dialog.close()), withoutImages, withImages);
@@ -429,7 +429,7 @@ public class ManuscriptBackupPart implements ManuscriptDialogPart {
 
         VerticalLayout content = new VerticalLayout(new Span(String.format(loc.getValue(L.MSG_BACKUP_READY), export.fileName())), download);
         if (export.missingImages() > 0) {
-            Span missing = new Span(String.format(loc.getValue(L.MSG_BACKUP_IMAGES_MISSING), export.missingImages()));
+            Span missing = new Span(String.format(loc.getValue(L.MSG_BACKUP_RESOURCES_MISSING), export.missingImages()));
             missing.addClassName(CssStyles.TEXT_ERROR);
             content.add(missing);
         }
@@ -604,8 +604,8 @@ public class ManuscriptBackupPart implements ManuscriptDialogPart {
                 cloneBackup(backup, newName, false);
                 return;
             }
-            ConfirmDialog.show(String.format(loc.getValue(L.MSG_CLONE_BACKUP_IMAGES), backup.getImageCount()),
-                    loc.getValue(L.LABEL_WITH_IMAGES), loc.getValue(L.LABEL_WITHOUT_IMAGES),
+            ConfirmDialog.show(String.format(loc.getValue(L.MSG_CLONE_BACKUP_RESOURCES), backup.getImageCount()),
+                    loc.getValue(L.LABEL_WITH_RESOURCES), loc.getValue(L.LABEL_WITHOUT_RESOURCES),
                     () -> cloneBackup(backup, newName, true), () -> cloneBackup(backup, newName, false), true);
         }).messageRequired().showCancel(true).build();
         dialog.open();

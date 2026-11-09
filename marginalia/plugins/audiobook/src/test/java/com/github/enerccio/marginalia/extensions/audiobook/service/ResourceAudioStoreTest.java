@@ -99,6 +99,21 @@ class ResourceAudioStoreTest {
     }
 
     @Test
+    void anIndexWhoseAudioIsGoneIsNoAudio() {
+        ResourceAudioStore store = store();
+        store.putPart(part.getUuid(), "join-1", "source-1", new byte[]{9}, List.of());
+        store.flush(part.getUuid());
+        String resource = part.getAttributes().getAsJsonObject(ResourceAudioStore.KEY).getAsJsonObject("part").get("resource").getAsString();
+        assertNotNull(store().partAudio(part.getUuid()));
+
+        // a book restored from a backup without the resources has the index but not the files
+        softDeleted.add(resource);
+
+        assertNull(store().partAudio(part.getUuid()));
+        assertNull(store().partBytes(part.getUuid()));
+    }
+
+    @Test
     void aFlushWithNothingPendingSavesNothing() {
         store().flush(part.getUuid());
         assertEquals(0, saves);

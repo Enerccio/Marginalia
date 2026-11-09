@@ -64,9 +64,9 @@ Take a backup of the current state first if you might want it back.
 
 The book window closes and opens again with the restored book.
 
-The pictures of the restored parts are the ones the backup lists, as long as you still have them in
-[Resources](../resources.md). A picture you deleted since is gone from the part. Restoring does not bring back deleted
-picture files, unless the backup comes from an export with pictures that you [imported](#importing-a-backup).
+The pictures of the restored parts, and any other file the parts point to (the audio of an [audiobook](../extensions/audiobook.md), for example), are the ones the backup
+lists, as long as you still have them in [Resources](../resources.md). A resource you deleted since is gone from the part. Restoring does not bring back deleted
+files, unless the backup comes from an export with the resources that you [imported](#importing-a-backup).
 
 **Model and protocol** are looked up among your inference providers and protocols: first the exact one from the
 backup, then one with the same name. If neither exists, the book keeps its current model or protocol.
@@ -82,12 +82,12 @@ you don't have at all can be imported (**Import**) or left out (**Don't import**
 **Clone Backup** creates a new book from the backup, under a name you enter. The original book is not changed. Use it
 to try something radical with a copy of the book, or to start a new book from the same opening.
 
-If the backup uses pictures, Marginalia asks **With images** or **Without images**:
+If the backup points to resources (pictures, the audio of an audiobook, other files), Marginalia asks **With resources** or **Without resources**:
 
-- *With images* gives the new book **its own copies** of the pictures (the same files, new entries in
-  [Resources](../resources.md)), so deleting or replacing a picture in one book does not touch the other. Pictures you
+- *With resources* gives the new book **its own copies** of them (the same files, new entries in
+  [Resources](../resources.md)), so deleting or replacing a picture in one book does not touch the other. Resources you
   have deleted since the backup was taken are left out.
-- *Without images* clones the text only.
+- *Without resources* clones the text only.
 
 ![Clone with or without images](../../images/backup-clone-images.png)
 
@@ -96,17 +96,17 @@ If the backup uses pictures, Marginalia asks **With images** or **Without images
 **Export** downloads the backup as a JSON file (`<book name>_backup.json`). Keep it as an extra copy, or take it to
 another installation.
 
-If the backup uses pictures, Marginalia asks whether to pack them:
+If the backup points to resources, Marginalia asks whether to pack them (the pictures of the parts and every other file their data names, such as the audio of an audiobook):
 
 ![Exporting a backup that has pictures](../../images/backup-export-images.png)
 
-- **Without images** downloads the JSON right away, as above. The pictures are only listed in it.
-- **With images** packs the backup and all its pictures into a **ZIP file** (`<book name>_backup.zip`). A progress
-  bar shows how many pictures are done; the file is built on disk one picture at a time, so even a book with many
-  large pictures does not use much memory. When it is ready, click **Download**. The file is kept only until you close
+- **Without resources** downloads the JSON right away, as above. The resources are only referred to in it.
+- **With resources** packs the backup and all its resources into a **ZIP file** (`<book name>_backup.zip`). A progress
+  bar shows how many are done; the file is built on disk one file at a time, so even a book with many
+  large files does not use much memory. An audiobook of a long book is hundreds of megabytes: pack it only when you need it. When it is ready, click **Download**. The file is kept only until you close
   that dialog.
 
-If a picture can't be packed because you deleted it or its file is missing, the dialog tells how many were left out.
+If a resource can't be packed because you deleted it or its file is missing, the dialog tells how many were left out.
 
 The check box **Include inherited settings in the export** (on by default, next to the export buttons) decides what the file
 says about the settings the book gets from its [folders](folders.md#where-the-settings-of-a-book-come-from). On, the language,
@@ -116,7 +116,7 @@ book reads the same in an installation or an account that has no such folders an
 Off, the file has only what the book sets itself. The file never says which folder the book is in: where a book is filed is a
 local choice. (The story export, [Exporting a book](export.md), writes the text only and has no settings.)
 
-The ZIP contains `backup.json` (the same JSON), `resources.json` (the list of the pictures) and the pictures. You don't
+The ZIP contains `backup.json` (the same JSON), `resources.json` (the list of the resources) and the files. You don't
 have to unpack it: both ways of bringing a backup back accept the `.zip` as well as the `.json`.
 
 There are two ways to bring a backup file back:

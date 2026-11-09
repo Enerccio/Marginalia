@@ -266,8 +266,8 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_LINKED_OBJECT, "使用元");
         setValue(L.LABEL_REPLACE_CONTENT, "内容を置き換え");
         setValue(L.LABEL_DELETE_SELECTED, "選択したものを削除");
-        setValue(L.LABEL_WITH_IMAGES, "画像あり");
-        setValue(L.LABEL_WITHOUT_IMAGES, "画像なし");
+        setValue(L.LABEL_WITH_RESOURCES, "リソースあり");
+        setValue(L.LABEL_WITHOUT_RESOURCES, "リソースなし");
         setValue(L.LABEL_REQUEST_TIMEOUT, "タイムアウト（秒）");
         setValue(L.LABEL_MAX_RETRIES, "再試行回数");
         setValue(L.LABEL_TEST_CONNECTION, "接続テスト");
@@ -1356,11 +1356,11 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_RESOURCE_REPLACED, "内容を置き換えました。");
         setValue(L.MSG_CONFIRM_DELETE_RESOURCES, "選択した %s 件のリソースを削除しますか？これらを使用しているものからも失われます。ファイルはデータフォルダに残ります。");
         setValue(L.MSG_RESOURCES_EMPTY, "リソースはまだありません。本の各部分に追加した画像がここに一覧表示されます。");
-        setValue(L.MSG_BACKUP_EXPORT_IMAGES, "このバックアップは %s 枚の画像を使用しています。画像はバックアップには保存されず、一覧のみが含まれます。ダウンロードするファイルに画像をまとめますか？ファイルは .zip になり、かなり大きくなる場合があります。");
-        setValue(L.MSG_CLONE_BACKUP_IMAGES, "このバックアップは %s 枚の画像を使用しています。複製に画像の独自のコピーを持たせますか？その後に削除した画像は含まれません。");
+        setValue(L.MSG_BACKUP_EXPORT_RESOURCES, "このバックアップは %s 個のリソース（画像、音声、その他のファイル）を参照しています。リソースはバックアップには保存されず、参照のみが含まれます。ダウンロードするファイルにまとめますか？ファイルは .zip になり、かなり大きくなる場合があります。");
+        setValue(L.MSG_CLONE_BACKUP_RESOURCES, "このバックアップは %s 個のリソース（画像、音声、その他のファイル）を参照しています。複製にリソースの独自のコピーを持たせますか？その後に削除したリソースは含まれません。");
         setValue(L.MSG_PACKING_BACKUP, "バックアップをまとめています");
         setValue(L.MSG_BACKUP_READY, "バックアップの準備ができました：%s");
-        setValue(L.MSG_BACKUP_IMAGES_MISSING, "%s 枚の画像は、削除されたかファイルが見つからないため、まとめられませんでした。");
+        setValue(L.MSG_BACKUP_RESOURCES_MISSING, "%s 個のリソースは、削除されたかファイルが見つからないため、まとめられませんでした。");
         setValue(L.MSG_CONNECTION_OK, "接続できました：利用可能なモデルは %s 個で、モデルが応答しました。");
         setValue(L.MSG_CONNECTION_OK_NO_MODELS, "接続できました：モデルが応答しました（プロバイダーはモデル一覧を提供していません）。");
         setValue(L.MSG_PROMPT_MAY_OVERFLOW, "プロンプトは約 %s トークンで、応答用に %s が確保されており、コンテキストサイズは %s です。プロバイダーがリクエストを拒否するか、プロンプトを切り詰める可能性があります。");

@@ -274,8 +274,8 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_LINKED_OBJECT, "使用方");
         setValue(L.LABEL_REPLACE_CONTENT, "替换内容");
         setValue(L.LABEL_DELETE_SELECTED, "删除所选");
-        setValue(L.LABEL_WITH_IMAGES, "含图片");
-        setValue(L.LABEL_WITHOUT_IMAGES, "不含图片");
+        setValue(L.LABEL_WITH_RESOURCES, "含资源");
+        setValue(L.LABEL_WITHOUT_RESOURCES, "不含资源");
         setValue(L.LABEL_REQUEST_TIMEOUT, "超时（秒）");
         setValue(L.LABEL_MAX_RETRIES, "重试次数");
         setValue(L.LABEL_TEST_CONNECTION, "测试连接");
@@ -1364,11 +1364,11 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_RESOURCE_REPLACED, "内容已替换。");
         setValue(L.MSG_CONFIRM_DELETE_RESOURCES, "删除所选的 %s 个资源吗？使用它们的内容将失去这些资源。文件仍保留在数据文件夹中。");
         setValue(L.MSG_RESOURCES_EMPTY, "还没有资源。你添加到书籍各部分的图片会列在这里。");
-        setValue(L.MSG_BACKUP_EXPORT_IMAGES, "此备份使用了 %s 张图片。备份中并未存储图片本身，只有它们的列表。是否将图片打包进下载的文件？文件会变成 .zip，体积可能大得多。");
-        setValue(L.MSG_CLONE_BACKUP_IMAGES, "此备份使用了 %s 张图片。是否让克隆拥有这些图片各自的副本？此后已被你删除的图片将不会包含在内。");
+        setValue(L.MSG_BACKUP_EXPORT_RESOURCES, "此备份引用了 %s 个资源（图片、音频及其他文件）。备份中并未存储资源本身，只有对它们的引用。是否将资源打包进下载的文件？文件会变成 .zip，体积可能大得多。");
+        setValue(L.MSG_CLONE_BACKUP_RESOURCES, "此备份引用了 %s 个资源（图片、音频及其他文件）。是否让克隆拥有这些资源各自的副本？此后已被你删除的资源将不会包含在内。");
         setValue(L.MSG_PACKING_BACKUP, "正在打包备份");
         setValue(L.MSG_BACKUP_READY, "备份已完成：%s");
-        setValue(L.MSG_BACKUP_IMAGES_MISSING, "有 %s 张图片无法打包，因为它们已被删除或文件丢失。");
+        setValue(L.MSG_BACKUP_RESOURCES_MISSING, "有 %s 个资源无法打包，因为它们已被删除或文件丢失。");
         setValue(L.MSG_CONNECTION_OK, "连接正常：有 %s 个可用模型，模型已作出响应。");
         setValue(L.MSG_CONNECTION_OK_NO_MODELS, "连接正常：模型已作出响应（提供方未列出其模型）。");
         setValue(L.MSG_PROMPT_MAY_OVERFLOW, "提示词约 %s 个 Token，为响应预留了 %s，上下文大小为 %s。提供方可能会拒绝请求或截断提示词。");

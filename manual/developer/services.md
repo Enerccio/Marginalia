@@ -157,21 +157,26 @@ without any user and only use installation-wide data (`getOrCreateApp`).
 | `NotificationService` | The desktop notifications of the browser: the registry of what can notify (`register(owner, Source)`, `unregister`, `unregisterAll`, `sources`; the built in sources `GENERATION`, `ANNOTATE`, `REDRAFT`, `IMPERSONATE`, `SUMMARY`, `RESUMMARIZE`, `HELP_ASSISTANT`, the ones of extensions are removed with them by `OsgiServiceImpl`), the list of the settings (`entries()`: a source with an automatic run has two, the key of the automatic one ends in `.auto`) and what the current user chose, kept in their `NotificationSettings` (`isEnabled`, `getChosen`, `save`: keys of sources that are not registered stay). `prepare(source, automatic, outcome, detail)` is the notice to show for the end of a run or `null` (off, not chosen, unknown source); only the entry of the kind of the run decides. Showing it is `ui.widgets.DesktopNotifier`. See [Desktop notifications](plugins/notifications.md). |
 | `BackupService` | Book backups as JSON files in `data/<login>/backups/manuscripts/<book id>/`: `takeBackup`, `getBackups`, `importBackup`, `applyBackup` (restore, optionally messages only), `cloneBackup` / `restoreAsNewManuscript`, `analyzeLorebooks` + `LorebookDecision`s for lorebooks found in the backup, `exportBackup` (see below; the file can carry the settings the book inherits, and the stored backup remembers the folder of the book, see [Folders](folders.md#other-places-that-know-about-folders)). Import and restore read a `File` (the UI uploads to a temp file, the `byte[]` overloads are for small payloads and tests). |
 
-**Images in backups.** A stored backup is JSON and never contains image files, only the `imageAttachments` of the
-parts (resource uuids) in their `extendedContent`. `ManuscriptBackup.imageCount` is a header field (read by
+**Resources in backups.** A stored backup is JSON and never contains the files of resources, only references: the `imageAttachments` of the
+parts (resource uuids) in their `extendedContent`, and any other uuid of a resource of the user that the `extendedContent` of the book or of a part holds
+anywhere in its text (the `attributes` of an extension: the audio of the Audiobook, a file of a plugin). `BackupResources` finds them (`collect`: every uuid
+in those texts that is the uuid of a resource, the uuids of the parts and the book are not looked at) and rewrites them (`replace`). `ManuscriptBackup.imageCount` is a header field (read by
 `parseMetadataOnly` without loading the backup) so the UI knows whether to ask. `BackupImages` reads and rewrites the
 attachments inside the backup JSON (`collect`, `remap` where returning null drops the image).
-`exportBackup(backup, withImages, onImage)` writes to a temp file and returns a `BackupExport`; with images it is a ZIP:
+`exportBackup(backup, withResources, onResource)` writes to a temp file and returns a `BackupExport`; with the resources it is a ZIP of all of them, the images and the other ones:
 `backup.json` (the stored file, streamed), `resources.json` (`{"version":1,"resources":[{uuid, entry, name, mimeType, hash,
 size}]}`) and `resources/<n>.<ext>`, one image at a time with `Files.copy`, so nothing but the JSON tree is in memory.
 Import, restore and `analyzeLorebooks` detect a ZIP by its first bytes (`openSource`) and read entries only by the names
-the manifest lists under `resources/` (no extraction to disk). Each image is read bounded by `MAX_IMAGE_BYTES` and goes
-through `ResourceService.uploadImage`, so it is validated again and the hash dedupe reuses an existing file.
+the manifest lists under `resources/` (no extraction to disk). An image is read bounded by `MAX_IMAGE_BYTES` and goes
+through `ResourceService.uploadImage`, so it is validated again and the hash dedupe reuses an existing file; any other file (by the `mimeType` of the manifest) is read
+bounded by 256 MB and goes through `ResourceService.upload`.
 Resources are not shared by books, so: `importBackup` keeps a uuid the user already has with the same hash and otherwise
-adds the image (`adopting`), `restoreAsNewManuscript` and `cloneBackup(..., withImages)` make a new `Resource` for every
+adds the resource (`adopting`), `restoreAsNewManuscript`, `cloneManuscript` and `cloneBackup(..., withImages)` make a new `Resource` for every
 use (from the archive, or `ResourceService.copy` of the user's own resource, which points to the same file); images that
-can't be found are dropped from the parts. After every restore `linkImages` notes the new parts in the resources whose
-link is empty or stale. The ZIP is only a transfer format, a stored backup stays a JSON file.
+can't be found are dropped from the parts, any other reference that can't be found stays as it is (an extension that finds its resource gone treats it as not
+there). The new uuids are written into the data of the parts by `BackupResources.replace`. After every restore `linkImages` notes the new parts (and the
+book) in the resources whose link is empty or stale, also those that only the data of a part names (`linkOtherResources`). `ManuscriptBackup.imageCount` counts
+all the resources a backup points to. The ZIP is only a transfer format, a stored backup stays a JSON file.
 
 The automatic book backups (`BackupStrategy.AFTER_N_MESSAGES` / `AFTER_N_MINUTES`) are triggered by the story editor
 after a part is generated (`ManuscriptStoryPart`), not by a service - code that generates parts without the editor

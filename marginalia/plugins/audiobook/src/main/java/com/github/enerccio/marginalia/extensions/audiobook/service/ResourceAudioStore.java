@@ -67,6 +67,10 @@ public class ResourceAudioStore implements AudioStore {
         if (part == null || !part.has("joinKey") || !part.has("sourceHash")) {
             return null;
         }
+        // the index of a book that came without its files (a backup without the resources) names audio that is not there: there is no audio
+        if (part.has("resource") && !exists(part.get("resource").getAsString())) {
+            return null;
+        }
         return new PartAudio(part.get("joinKey").getAsString(), part.get("sourceHash").getAsString());
     }
 
@@ -147,6 +151,16 @@ public class ResourceAudioStore implements AudioStore {
                 partIds.put(partId, id);
             }
             return resources.link(resource, ChatMessage.class, id);
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new IllegalStateException(e.getMessage(), e);
+        }
+    }
+
+    private boolean exists(String uuid) {
+        try {
+            return resources.findForUser(uuid) != null;
         } catch (RuntimeException e) {
             throw e;
         } catch (Exception e) {

@@ -266,8 +266,8 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_LINKED_OBJECT, "Used by");
         setValue(L.LABEL_REPLACE_CONTENT, "Replace content");
         setValue(L.LABEL_DELETE_SELECTED, "Delete selected");
-        setValue(L.LABEL_WITH_IMAGES, "With images");
-        setValue(L.LABEL_WITHOUT_IMAGES, "Without images");
+        setValue(L.LABEL_WITH_RESOURCES, "With resources");
+        setValue(L.LABEL_WITHOUT_RESOURCES, "Without resources");
         setValue(L.LABEL_REQUEST_TIMEOUT, "Timeout (seconds)");
         setValue(L.LABEL_MAX_RETRIES, "Retries");
         setValue(L.LABEL_TEST_CONNECTION, "Test Connection");
@@ -1356,11 +1356,11 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_RESOURCE_REPLACED, "The content was replaced.");
         setValue(L.MSG_CONFIRM_DELETE_RESOURCES, "Delete %s selected resources? Whatever uses them will lose them. The files stay in the data folder.");
         setValue(L.MSG_RESOURCES_EMPTY, "There are no resources yet. Pictures you add to a part of a book are listed here.");
-        setValue(L.MSG_BACKUP_EXPORT_IMAGES, "This backup uses %s images. They are not stored in the backup, only their list. Pack them into the downloaded file? It becomes a .zip and can be much larger.");
-        setValue(L.MSG_CLONE_BACKUP_IMAGES, "This backup uses %s images. Give the clone its own copies of them? Images you have deleted since are left out.");
+        setValue(L.MSG_BACKUP_EXPORT_RESOURCES, "This backup points to %s resources (images, audio and other files). They are not stored in the backup, only the references to them. Pack them into the downloaded file? It becomes a .zip and can be much larger.");
+        setValue(L.MSG_CLONE_BACKUP_RESOURCES, "This backup points to %s resources (images, audio and other files). Give the clone its own copies of them? Resources you have deleted since are left out.");
         setValue(L.MSG_PACKING_BACKUP, "Packing the backup");
         setValue(L.MSG_BACKUP_READY, "The backup is ready: %s");
-        setValue(L.MSG_BACKUP_IMAGES_MISSING, "%s images could not be packed, because they were deleted or their files are missing.");
+        setValue(L.MSG_BACKUP_RESOURCES_MISSING, "%s resources could not be packed, because they were deleted or their files are missing.");
         setValue(L.MSG_CONNECTION_OK, "Connection works: %s models available and the model answered.");
         setValue(L.MSG_CONNECTION_OK_NO_MODELS, "Connection works: the model answered (the provider does not list its models).");
         setValue(L.MSG_PROMPT_MAY_OVERFLOW, "The prompt has about %s tokens and %s are kept for the response, the context size is %s. The provider may reject the request or cut the prompt.");
