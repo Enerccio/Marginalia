@@ -15,6 +15,18 @@ class GpuGateTest {
     private final GpuGate.Step before = () -> events.add("before");
     private final GpuGate.Step after = () -> events.add("after");
 
+    /** Whether the two are the same gate: what one holds, the other sees. */
+    private static boolean sameGate(GpuGate one, GpuGate other) {
+        try {
+            one.acquire(null);
+            boolean same = other.holders() == 1;
+            one.release(null);
+            return same;
+        } catch (BackendException e) {
+            throw new AssertionError(e);
+        }
+    }
+
     @Test
     void theFirstOneLoadsAndTheLastOneFrees() throws Exception {
         GpuGate gate = new GpuGate();
@@ -65,8 +77,8 @@ class GpuGateTest {
 
     @Test
     void theSameServerHasTheSameGate() {
-        assertSame(GpuGate.forAddress("http://gate-test.lan:8188/prompt"), GpuGate.forAddress("HTTP://Gate-Test.LAN:8188/other"));
-        assertNotSame(GpuGate.forAddress("http://gate-test.lan:8188"), GpuGate.forAddress("http://gate-test.lan:8189"));
+        assertTrue(sameGate(GpuGate.forAddress("http://gate-test.lan:8188/prompt"), GpuGate.forAddress("HTTP://Gate-Test.LAN:8188/other")));
+        assertFalse(sameGate(GpuGate.forAddress("http://gate-test.lan:8188"), GpuGate.forAddress("http://gate-test.lan:8189")));
     }
 
     @Test
@@ -145,6 +157,38 @@ class GpuGateTest {
                 }
                 action.run();
             });
+        }
+    }
+
+    @Test
+    void aNamedGpuIsOneGateForServersOnDifferentAddresses() {
+        assertTrue(sameGate(GpuGate.forBackend("Main GPU", "http://speech.lan:8004"), GpuGate.forBackend("main gpu ", "http://images.lan:8188")));
+        // no name: the server decides, as before
+        assertTrue(sameGate(GpuGate.forBackend("", "http://gate-test2.lan:8188"), GpuGate.forAddress("http://gate-test2.lan:8188/x")));
+        assertFalse(sameGate(GpuGate.forBackend("main gpu", "http://speech.lan:8004"), GpuGate.forAddress("http://speech.lan:8004")));
+    }
+
+    @Test
+    void anotherModeWaitsForTheHoldersAndCanBeCancelled() throws Exception {
+        GpuGate gate = new GpuGate();
+        gate.acquire("speech", null, before);
+        AtomicBoolean cancelled = new AtomicBoolean();
+        ExecutorService pool = Executors.newSingleThreadExecutor();
+        try {
+            Future<?> waiter = pool.submit(() -> {
+                gate.acquire("image", cancelled::get, () -> events.add("before image"));
+                return null;
+            });
+            Thread.sleep(300);
+            assertFalse(waiter.isDone());
+            cancelled.set(true);
+
+            ExecutionException failure = assertThrows(ExecutionException.class, () -> waiter.get(5, TimeUnit.SECONDS));
+            assertInstanceOf(BackendException.class, failure.getCause());
+            assertEquals(List.of("before"), events);
+            assertEquals("speech", gate.mode());
+        } finally {
+            pool.shutdownNow();
         }
     }
 }

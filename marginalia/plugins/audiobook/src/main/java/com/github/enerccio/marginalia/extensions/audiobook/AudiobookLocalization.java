@@ -247,6 +247,9 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
 
     public static final String READ_THIS_PART_WITH_THE_BROWSER_VOICE = "Read this part (and the next ones without audio) with the voice of the browser";
 
+    public static final String GPU_NAME = "GPU (name)";
+    public static final String GPU_NAME_HELP = "Optional. Name the GPU when this server shares it with other servers (an image server, another speech server), and give the same name there: they then wait for each other instead of unloading each other's model. Empty: only requests to this address wait for each other.";
+
     @Override
     protected void loadKeys() {
         ja(AUDIOBOOK, "オーディオブック");
@@ -925,5 +928,11 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
 
         ja(READ_THIS_PART_WITH_THE_BROWSER_VOICE, "このパート (と音声のない次のパート) をブラウザの音声で読み上げる");
         zh(READ_THIS_PART_WITH_THE_BROWSER_VOICE, "用浏览器的语音朗读此章节（以及之后没有音频的章节）");
+
+        ja(GPU_NAME, "GPU（名前）");
+        zh(GPU_NAME, "GPU（名称）");
+
+        ja(GPU_NAME_HELP, "任意。このサーバーが他のサーバー (画像サーバーなど) とGPUを共有している場合に名前を付け、他にも同じ名前を指定します。互いのモデルを解放せず、順番に待ちます。空の場合は、このアドレスへのリクエスト同士だけが待ち合います。");
+        zh(GPU_NAME_HELP, "可选。如果此服务器与其他服务器（如图像服务器）共用一块 GPU，请给它起个名字，并在其他服务器上填写相同的名字：它们会互相等待，而不是卸载对方的模型。留空：只有发往此地址的请求会互相等待。");
     }
 }

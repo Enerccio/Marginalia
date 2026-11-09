@@ -154,4 +154,63 @@ class SpeechBatchTest {
         assertEquals("after", events.getLast());
         assertEquals(0, gate.holders());
     }
+
+    @Test
+    void aBatchOfAnotherModeOnTheSameGpuWaitsForTheFirstAndMakesItsOwnRequests() throws Exception {
+        GpuGate gate = new GpuGate();
+        java.util.concurrent.CountDownLatch inside = new java.util.concurrent.CountDownLatch(1);
+        java.util.concurrent.CountDownLatch go = new java.util.concurrent.CountDownLatch(1);
+        java.util.concurrent.ExecutorService pool = java.util.concurrent.Executors.newFixedThreadPool(2);
+        try {
+            java.util.concurrent.Future<?> turbo = pool.submit(() -> SpeechBatch.run(backend(true), gate, "turbo", () -> events.add("before turbo"),
+                    () -> events.add("after turbo"), null, b -> {
+                        events.add("turbo work");
+                        inside.countDown();
+                        try {
+                            go.await();
+                        } catch (InterruptedException e) {
+                            throw new BackendException("interrupted");
+                        }
+                        return "t";
+                    }));
+            inside.await();
+            java.util.concurrent.Future<?> multilingual = pool.submit(() -> SpeechBatch.run(backend(true), gate, "multilingual",
+                    () -> events.add("before multilingual"), () -> events.add("after multilingual"), null, b -> {
+                        events.add("multilingual work");
+                        return "m";
+                    }));
+            Thread.sleep(400);
+            assertFalse(multilingual.isDone());
+            assertFalse(events.contains("before multilingual"));
+
+            go.countDown();
+            turbo.get(5, java.util.concurrent.TimeUnit.SECONDS);
+            multilingual.get(5, java.util.concurrent.TimeUnit.SECONDS);
+
+            assertEquals(List.of("before turbo", "prepare", "turbo work", "after turbo", "before multilingual", "prepare", "multilingual work",
+                    "after multilingual"), events.stream().filter(e -> !e.isEmpty()).toList());
+        } finally {
+            pool.shutdownNow();
+        }
+    }
+
+    @Test
+    void aBatchStoppedWhileItWaitsForTheGpuTouchesNothing() throws Exception {
+        GpuGate gate = new GpuGate();
+        gate.acquire("turbo", null, null);
+        java.util.concurrent.atomic.AtomicBoolean stop = new java.util.concurrent.atomic.AtomicBoolean();
+        java.util.concurrent.ExecutorService pool = java.util.concurrent.Executors.newSingleThreadExecutor();
+        try {
+            java.util.concurrent.Future<?> waiting = pool.submit(() -> SpeechBatch.run(backend(true), gate, "multilingual",
+                    () -> events.add("before"), () -> events.add("after"), stop::get, b -> "x"));
+            Thread.sleep(300);
+            stop.set(true);
+
+            assertThrows(java.util.concurrent.ExecutionException.class, () -> waiting.get(5, java.util.concurrent.TimeUnit.SECONDS));
+            assertEquals(1, gate.holders());
+            assertTrue(events.isEmpty());
+        } finally {
+            pool.shutdownNow();
+        }
+    }
 }

@@ -410,10 +410,10 @@ public class AudiobookService {
 
     /**
      * Runs a batch of pieces on the server of the backend: the requests before it, the work, the requests after it. Batches on one server
-     * address go through one {@link GpuGate}, whoever's they are.
+     * address (or GPU name, whatever extension) go through one {@link GpuGate}, whoever's they are.
      */
     public <T> SpeechBatch.Outcome<T> runBatch(BackendConfig config, BooleanSupplier cancelled, SpeechBatch.Work<T> work) throws BackendException {
-        return SpeechBatch.run(createBackend(config), GpuGate.forAddress(config.getBaseUrl()), before(config), after(config), cancelled, work);
+        return SpeechBatch.run(createBackend(config), config.gate(), config.gateMode(), before(config), after(config), cancelled, work);
     }
 
     /** The requests before a batch: in order, the first failure stops the batch. */
@@ -519,9 +519,9 @@ public class AudiobookService {
         inBackground("audiobook-test", () -> {
             ServerCheck.Result result = null;
             String error = null;
-            GpuGate gate = GpuGate.forAddress(config.getBaseUrl());
+            GpuGate gate = config.gate();
             try {
-                gate.acquire(before(config));
+                gate.acquire(config.gateMode(), null, before(config));
                 try {
                     result = gate.exclusive(null, () -> ServerCheck.check(config, this::reveal));
                 } finally {

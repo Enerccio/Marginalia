@@ -420,7 +420,7 @@ public class ImageGeneratorService {
 
     /**
      * A session of the backend; {@code onIdleEnd} is told when the idle time ended it. The sessions of everyone who calls the same
-     * server go through one {@link GpuGate}: the hooks run for the first and the last of them, and the images are made one at a time.
+     * server (or GPU name, whatever extension) go through one {@link GpuGate}: the hooks run for the first and the last of them, and the images are made one at a time.
      */
     public ImageSession createSession(BackendConfig config, Consumer<String> onIdleEnd) {
         UnaryOperator<String> reveal = this::reveal;
@@ -434,7 +434,7 @@ public class ImageGeneratorService {
                         throw new BackendException(error);
                     }
                 },
-                config.getIdleSeconds(), scheduler, onIdleEnd, GpuGate.forAddress(config.getBaseUrl()));
+                config.getIdleSeconds(), scheduler, onIdleEnd, config.gate(), config.gateMode());
     }
 
     public void shutdown() {

@@ -83,6 +83,9 @@ public class ImageGeneratorLocalization extends PluginLocalizationBundle {
     public static final String IMAGE_GENERATOR_WRITE_THE_PROMPT = "Image Generator: write the prompt";
     public static final String IMAGE_GENERATOR_GENERATE_THE_IMAGE = "Image Generator: generate the image";
 
+    public static final String GPU_NAME = "GPU (name)";
+    public static final String GPU_NAME_HELP = "Optional. Name the GPU when this server shares it with other servers (a speech server, another image server), and give the same name there: they then wait for each other instead of unloading each other's model. Empty: only requests to this address wait for each other.";
+
     @Override
     protected void loadKeys() {
         ja(IMAGE_GENERATOR, "画像ジェネレーター");
@@ -298,5 +301,11 @@ public class ImageGeneratorLocalization extends PluginLocalizationBundle {
 
         ja(IMAGE_GENERATOR_GENERATE_THE_IMAGE, "画像ジェネレーター: 画像を生成");
         zh(IMAGE_GENERATOR_GENERATE_THE_IMAGE, "图像生成器：生成图像");
+
+        ja(GPU_NAME, "GPU（名前）");
+        zh(GPU_NAME, "GPU（名称）");
+
+        ja(GPU_NAME_HELP, "任意。このサーバーが他のサーバー (音声サーバーなど) とGPUを共有している場合に名前を付け、他にも同じ名前を指定します。互いのモデルを解放せず、順番に待ちます。空の場合は、このアドレスへのリクエスト同士だけが待ち合います。");
+        zh(GPU_NAME_HELP, "可选。如果此服务器与其他服务器（如语音服务器）共用一块 GPU，请给它起个名字，并在其他服务器上填写相同的名字：它们会互相等待，而不是卸载对方的模型。留空：只有发往此地址的请求会互相等待。");
     }
 }

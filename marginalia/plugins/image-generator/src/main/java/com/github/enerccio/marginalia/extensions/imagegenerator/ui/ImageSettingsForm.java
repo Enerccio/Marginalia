@@ -60,6 +60,7 @@ public class ImageSettingsForm extends VerticalLayout {
     private final Button removeKey = new Button(T.localized(REMOVE_THE_KEY), e -> removeKey());
     private final TextField model = new TextField(T.localized(MODEL));
     private final TextArea workflow = new TextArea(T.localized(WORKFLOW));
+    private final TextField gpu = new TextField(T.localized(GPU_NAME));
     private final Checkbox local = new Checkbox(T.localized(THE_SERVER_IS_LOCAL));
     private final IntegerField width = new IntegerField(T.localized(WIDTH));
     private final IntegerField height = new IntegerField(T.localized(HEIGHT));
@@ -143,7 +144,9 @@ public class ImageSettingsForm extends VerticalLayout {
 
         editor.setPadding(false);
         editor.setSpacing(true);
-        editor.add(identity, baseUrl, credentials, workflow, local, numbers, negative, hookHint, beforeDetails, afterDetails, test);
+        gpu.setWidth("14em");
+        gpu.setHelperText(T.localized(GPU_NAME_HELP));
+        editor.add(identity, baseUrl, gpu, credentials, workflow, local, numbers, negative, hookHint, beforeDetails, afterDetails, test);
         editor.addClassName(ImageStyles.SECTION);
 
         add(style, instruction, bar, editor);
@@ -243,6 +246,7 @@ public class ImageSettingsForm extends VerticalLayout {
             apiKey.clear();
             model.setValue(StringUtils.defaultString(config.getModel()));
             workflow.setValue(StringUtils.defaultString(config.getWorkflow()));
+            gpu.setValue(config.getGpu());
             local.setValue(config.isLocal());
             width.setValue(config.getWidth());
             height.setValue(config.getHeight());
@@ -272,6 +276,7 @@ public class ImageSettingsForm extends VerticalLayout {
         }
         current.setModel(StringUtils.defaultIfBlank(model.getValue().strip(), null));
         current.setWorkflow(StringUtils.defaultIfBlank(workflow.getValue(), null));
+        current.setGpu(gpu.getValue().strip());
         current.setLocal(local.getValue());
         current.setWidth(valueOr(width, BackendConfig.DEFAULT_WIDTH));
         current.setHeight(valueOr(height, BackendConfig.DEFAULT_HEIGHT));

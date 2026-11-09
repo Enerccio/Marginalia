@@ -39,6 +39,11 @@ public class BackendConfig implements Cloneable {
     private String protectedHooksKey;
     /** One of {@link #MODELS}: the model the server is asked to have loaded. */
     private String model = MODEL_TURBO;
+    /**
+     * The name of the GPU the server runs on, when other servers (of this or another extension) use the same one: backends with the same name wait
+     * for each other. Empty: the address of the server says it.
+     */
+    private String gpu = "";
     /** True when the server is on this machine or the local network: the private addresses are allowed. */
     private boolean local = true;
     /** How long one speech request may take, in seconds. */
@@ -106,6 +111,27 @@ public class BackendConfig implements Cloneable {
 
     public void setModel(String model) {
         this.model = model;
+    }
+
+    public String getGpu() {
+        return gpu == null ? "" : gpu;
+    }
+
+    public void setGpu(String gpu) {
+        this.gpu = gpu;
+    }
+
+    /** The gate of the GPU the server uses, see {@link #getGpu()}. */
+    public com.github.enerccio.marginalia.extensions.httphooks.GpuGate gate() {
+        return com.github.enerccio.marginalia.extensions.httphooks.GpuGate.forBackend(getGpu(), getBaseUrl());
+    }
+
+    /**
+     * What the requests before a batch leave loaded on the GPU: this extension's speech model of this server. Batches with the same mode share the
+     * load, a batch with another one (another model, or another extension's) waits for them.
+     */
+    public String gateMode() {
+        return "audiobook:" + com.github.enerccio.marginalia.extensions.httphooks.UrlGuard.origin(getBaseUrl()) + "|" + getModel();
     }
 
     public boolean isLocal() {

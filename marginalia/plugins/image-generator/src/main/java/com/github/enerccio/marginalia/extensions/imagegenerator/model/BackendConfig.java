@@ -30,6 +30,11 @@ public class BackendConfig {
     private String workflow;
     /** True when the server is on this machine or the local network: the private addresses are allowed. */
     private boolean local = true;
+    /**
+     * The name of the GPU the server runs on, when other servers (of this or another extension) use the same one: backends with the same name wait
+     * for each other. Empty: the address of the server says it.
+     */
+    private String gpu = "";
     private int width = DEFAULT_WIDTH;
     private int height = DEFAULT_HEIGHT;
     private String negativePrompt = "";
@@ -98,6 +103,27 @@ public class BackendConfig {
 
     public void setWorkflow(String workflow) {
         this.workflow = workflow;
+    }
+
+    public String getGpu() {
+        return gpu == null ? "" : gpu;
+    }
+
+    public void setGpu(String gpu) {
+        this.gpu = gpu;
+    }
+
+    /** The gate of the GPU the server uses, see {@link #getGpu()}. */
+    public com.github.enerccio.marginalia.extensions.httphooks.GpuGate gate() {
+        return com.github.enerccio.marginalia.extensions.httphooks.GpuGate.forBackend(getGpu(), getBaseUrl());
+    }
+
+    /**
+     * What the requests before an image leave loaded on the GPU: this server with this model and workflow. Sessions with the same mode share the
+     * load; one with another mode (another model, or another extension's) waits for them to end.
+     */
+    public String gateMode() {
+        return "image:" + com.github.enerccio.marginalia.extensions.httphooks.UrlGuard.origin(getBaseUrl()) + "|" + type + "|" + model + "|" + workflow;
     }
 
     public boolean isLocal() {

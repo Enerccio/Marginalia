@@ -39,11 +39,19 @@ public final class SpeechBatch {
      */
     public static <T> Outcome<T> run(SpeechBackend backend, GpuGate gate, GpuGate.Step before, GpuGate.Step after, BooleanSupplier cancelled,
                                      Work<T> work) throws BackendException {
+        return run(backend, gate, "", before, after, cancelled, work);
+    }
+
+    /**
+     * @param mode what the requests before the batch leave loaded; a batch with another mode waits for the others to be done
+     */
+    public static <T> Outcome<T> run(SpeechBackend backend, GpuGate gate, String mode, GpuGate.Step before, GpuGate.Step after,
+                                     BooleanSupplier cancelled, Work<T> work) throws BackendException {
         // a batch that was stopped before it began must not touch the GPU: the requests before it unload the language model
         if (cancelled != null && cancelled.getAsBoolean()) {
             throw new BackendException("Cancelled");
         }
-        gate.acquire(before);
+        gate.acquire(mode, cancelled, before);
         T value;
         try {
             value = gate.exclusive(cancelled, () -> {

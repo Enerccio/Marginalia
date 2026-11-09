@@ -41,6 +41,14 @@
             <version>6.0.1</version>
             <scope>provided</scope>
         </dependency>
+        <!-- SharedGate: the gates live in the application, so that two extensions on one GPU find the same one -->
+        <dependency>
+            <groupId>io.github.enerccio</groupId>
+            <artifactId>marginalia</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+            <classifier>classes</classifier>
+        </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>

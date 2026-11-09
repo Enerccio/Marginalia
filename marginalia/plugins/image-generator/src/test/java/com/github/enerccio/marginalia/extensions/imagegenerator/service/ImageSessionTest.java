@@ -192,6 +192,60 @@ class ImageSessionTest {
     }
 
     @Test
+    void aSessionWithAnotherModeWaitsUntilTheFirstEndsAndLoadsItsOwn() throws Exception {
+        GpuGate gate = new GpuGate();
+        ImageSession first = new ImageSession(backend(), () -> events.add("before a"), () -> events.add("after a"), 0, scheduler, null, gate, "a");
+        ImageSession second = new ImageSession(backend(), () -> events.add("before b"), () -> events.add("after b"), 0, scheduler, null, gate, "b");
+        first.generate(REQUEST, () -> false);
+
+        java.util.concurrent.CompletableFuture<byte[]> other = java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+            try {
+                return second.generate(REQUEST, () -> false);
+            } catch (Exception e) {
+                throw new IllegalStateException(e);
+            }
+        });
+        Thread.sleep(400);
+        assertFalse(other.isDone());
+        // the session that waits does not block asking about it or ending it
+        assertFalse(second.isLeased());
+        assertNull(second.end());
+        assertEquals(List.of("before a", "image"), events);
+
+        assertNull(first.end());
+        other.get(5, java.util.concurrent.TimeUnit.SECONDS);
+
+        // the end that was asked for while it waited happens when its image is done
+        assertEquals(List.of("before a", "image", "after a", "before b", "image", "after b"), events);
+        assertFalse(second.isLeased());
+    }
+
+    @Test
+    void aSessionThatIsCancelledWhileItWaitsForTheGpuHoldsNothing() throws Exception {
+        GpuGate gate = new GpuGate();
+        ImageSession first = new ImageSession(backend(), () -> events.add("before a"), () -> events.add("after a"), 0, scheduler, null, gate, "a");
+        ImageSession second = new ImageSession(backend(), () -> events.add("before b"), () -> events.add("after b"), 0, scheduler, null, gate, "b");
+        first.generate(REQUEST, () -> false);
+        java.util.concurrent.atomic.AtomicBoolean cancelled = new java.util.concurrent.atomic.AtomicBoolean();
+
+        java.util.concurrent.CompletableFuture<Object> other = java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+            try {
+                return second.generate(REQUEST, cancelled::get);
+            } catch (Exception e) {
+                return e;
+            }
+        });
+        Thread.sleep(300);
+        cancelled.set(true);
+
+        assertInstanceOf(com.github.enerccio.marginalia.extensions.httphooks.BackendException.class, other.get(5, java.util.concurrent.TimeUnit.SECONDS));
+        assertFalse(second.isLeased());
+        assertEquals(1, gate.holders());
+        assertNull(first.end());
+        assertEquals(List.of("before a", "image", "after a"), events);
+    }
+
+    @Test
     void imagesOfSessionsOnOneGpuAreMadeOneAtATime() throws Exception {
         GpuGate gate = new GpuGate();
         java.util.concurrent.atomic.AtomicInteger inside = new java.util.concurrent.atomic.AtomicInteger();

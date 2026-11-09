@@ -61,10 +61,10 @@ drops the old one).
 ## The gate: `GpuGate`
 
 With one GPU, a hook of one user must not run in the middle of the work of another: the *after* hook of a window that closed unloads the model, and the image of the other user
-fails. `GpuGate.forAddress(url)` returns the gate of the server (the same `scheme://host:port` gives the same gate, however many users' settings name it):
+fails. `GpuGate.forBackend(gpuName, url)` returns the gate of the GPU: the one the backend names in its *GPU* setting (the same name, case aside, gives the same gate in every plugin), else the gate of the server (`GpuGate.forAddress(url)`: the same `scheme://host:port` gives the same gate, however many users' settings name it):
 
 ```java
-gate.acquire(before);          // the first holder runs the before hook; the others wait for it, then run none
+gate.acquire(mode, cancelled, before);   // the first holder runs the before hook; the others of the same mode wait for it, then run none; another mode waits for the holders to be gone
 try {
     gate.exclusive(cancelled, () -> backend.generate(...));   // one piece of work at a time, in the order they came
 } finally {
@@ -73,8 +73,9 @@ try {
 ```
 
 `acquire` that fails holds nothing; a failed `release` hook is returned as the message (the GPU is free anyway). `exclusive` takes a `BooleanSupplier` that is asked while it waits,
-so a user who aborts does not wait for the others. The hooks that run are those of the user who comes first and last. The gates live in the plugin (a copy of the class per
-plugin), so two plugins on one GPU do not see each other's gate; that is a limit, not a feature.
+so a user who aborts does not wait for the others. The hooks that run are those of the user who comes first and last.
+
+The **mode** is what the before hook leaves loaded (the Audiobook: its address and speech model; the Image Generator: address, type, model and workflow), written with the name of the plugin so that two plugins never share a load. Holders of one mode share it; somebody who needs another waits until they are gone and runs their own before hook. The line is fair: once somebody waits for another mode, nobody else joins the holders. The gates are kept by the application (`SharedGate`, in `com.github.enerccio.marginalia.extensions`), not by the class that each plugin embeds, so two plugins on one GPU find the same gate when their backends name the same GPU.
 
 In the Image Generator the `ImageSession` (one per window: it holds the backend while the user rerolls, and ends on accept, close or idle time) calls `acquire` before its first
 image and `release` when it ends; every image is made in `exclusive`.

@@ -24,6 +24,8 @@ public class ImageSession {
     private final ScheduledExecutorService scheduler;
     private final Consumer<String> onIdleEnd;
     private final GpuGate gate;
+    private final String mode;
+    private final Object leaseLock = new Object();
 
     private boolean leased;
     private int running;
@@ -43,7 +45,16 @@ public class ImageSession {
      */
     public ImageSession(ImageBackend backend, GpuGate.Step before, GpuGate.Step after, int idleSeconds, ScheduledExecutorService scheduler,
                         Consumer<String> onIdleEnd, GpuGate gate) {
+        this(backend, before, after, idleSeconds, scheduler, onIdleEnd, gate, "");
+    }
+
+    /**
+     * @param mode what the before hook leaves loaded; a session with another mode waits for the others on the gate to end
+     */
+    public ImageSession(ImageBackend backend, GpuGate.Step before, GpuGate.Step after, int idleSeconds, ScheduledExecutorService scheduler,
+                        Consumer<String> onIdleEnd, GpuGate gate, String mode) {
         this.gate = gate;
+        this.mode = mode;
         this.backend = backend;
         this.before = before;
         this.after = after;
@@ -60,15 +71,21 @@ public class ImageSession {
             cancelIdle();
             endRequested = false;
             running++;
-            if (!leased) {
-                try {
-                    gate.acquire(before);
-                } catch (BackendException e) {
-                    running--;
-                    throw e;
-                }
-                leased = true;
+        }
+        try {
+            // the wait for the GPU (another model may be using it) is not under the lock of the session, so ending it or asking whether it is held
+            // does not wait with it; running > 0 makes an end wait for the image
+            takeGpu(cancel);
+        } catch (BackendException e) {
+            boolean finish;
+            synchronized (this) {
+                running--;
+                finish = endRequested && running == 0;
             }
+            if (finish) {
+                end();
+            }
+            throw e;
         }
         try {
             return gate.exclusive(cancel == null ? null : cancel::isCancelled, () -> backend.generate(request, cancel));
@@ -83,6 +100,18 @@ public class ImageSession {
             }
             if (finish) {
                 end();
+            }
+        }
+    }
+
+    private void takeGpu(ImageBackend.Cancel cancel) throws BackendException {
+        synchronized (leaseLock) {
+            if (isLeased()) {
+                return;
+            }
+            gate.acquire(mode, cancel == null ? null : cancel::isCancelled, before);
+            synchronized (this) {
+                leased = true;
             }
         }
     }

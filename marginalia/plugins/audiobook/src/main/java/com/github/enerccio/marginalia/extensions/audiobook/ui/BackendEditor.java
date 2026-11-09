@@ -42,6 +42,7 @@ public class BackendEditor extends VerticalLayout {
     private final PasswordField hooksKey = new PasswordField(T.localized(KEY_OF_THE_REQUESTS));
     private final Button removeHooksKey = new Button(T.localized(REMOVE_THE_KEY), e -> removeHooksKey());
     private final Select<String> model = new Select<>();
+    private final TextField gpu = new TextField(T.localized(GPU_NAME));
     private final Checkbox local = new Checkbox(T.localized(THE_SERVER_IS_LOCAL));
     private final VoiceChoices voiceChoices;
     private final VoiceField narratorVoice;
@@ -113,7 +114,9 @@ public class BackendEditor extends VerticalLayout {
         hooksCredentials.setWrap(true);
         hooksCredentials.setAlignItems(FlexComponent.Alignment.START);
 
-        add(identity, baseUrl, credentials, narratorVoice, local, requestOptions, defaultsDetails, hookHint, hooksCredentials, beforeDetails, afterDetails, test);
+        gpu.setWidth("14em");
+        gpu.setHelperText(T.localized(GPU_NAME_HELP));
+        add(identity, baseUrl, gpu, credentials, narratorVoice, local, requestOptions, defaultsDetails, hookHint, hooksCredentials, beforeDetails, afterDetails, test);
         addClassName(AudiobookStyles.SECTION);
     }
 
@@ -175,6 +178,7 @@ public class BackendEditor extends VerticalLayout {
         hooksKey.clear();
         model.setValue(config.getModel());
         narratorVoice.setValue(config.getNarratorVoice());
+        gpu.setValue(config.getGpu());
         local.setValue(config.isLocal());
         timeout.setValue(config.getTimeoutSeconds());
         temperature.setValue(config.getTemperature());
@@ -203,6 +207,7 @@ public class BackendEditor extends VerticalLayout {
         }
         current.setModel(model.getValue() == null ? BackendConfig.MODEL_TURBO : model.getValue());
         current.setNarratorVoice(narratorVoice.getValue().strip());
+        current.setGpu(gpu.getValue().strip());
         current.setLocal(local.getValue());
         current.setTimeoutSeconds(positive(timeout, BackendConfig.DEFAULT_TIMEOUT_SECONDS));
         current.setTemperature(positive(temperature, BackendConfig.DEFAULT_TEMPERATURE));

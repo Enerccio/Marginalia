@@ -91,6 +91,8 @@ earlier version shows it as the first request of the list.
 does not unload the model under the image of another, and the images are made one at a time (a second window waits its turn).
 The requests are those of the user who comes first and last.
 
+A backend can also name the GPU it runs on (**GPU (name)**). Backends that name the same GPU wait for each other even when their addresses differ, and that includes the backends of the [Audiobook](audiobook.md) (a speech server and an image server on one card): a user whose backend needs another model waits until the others are done and then runs their own requests, instead of joining a load that is not theirs. Leave it empty and only requests to the same address wait for each other.
+
 ## What is not done
 
 - Backends are per user, not per book.
