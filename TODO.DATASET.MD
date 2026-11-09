@@ -1,5 +1,12 @@
 # TODO.DATASET - a large test workset (book backup JSON)
 
+## Status (2026-11-09)
+
+**Done.** The book *Unregistered* (103 parts on the main branch and a branch of 3, 31 summaries, 1,697 annotations and passages, 360 versions, the stored prompts, the data of the Knowledge Tracker, both translators and Arc Outline, the lorebook and the picture) was built by the real generation loop and is committed as the test fixture `marginalia/src/test/resources/workset/book.zip` + `lorebook.json` (e981e7b8d). `LargeWorksetTest`, `LargeWorksetMigrationTest` and `LargeWorksetSoakTest` use it, `manual/developer/testing.md` (*The dataset book*) describes it, and the screenshots and the manual's example book come from it (817b4bf52). The sections below are the design notes and the history of the build; where they say "not done", read the list here:
+
+- not made: the statistics companion (the screenshots seed a year of history with `screenshots/bin/seed-statistics.py`), a `--redo` for the harness, a second author for the local reasoning model, a smaller 20-part variant;
+- not covered: agents in the soak test.
+
 ## Goal
 
 One complete, realistic **workset** for tests: a book with a lorebook, about 100 parts on the main branch, one small
@@ -347,7 +354,7 @@ The summaries and chapters are not made "every few parts": they follow how the a
 This replaces "meta summaries after 25/50/75" and the idea of a summary stage every few parts. Meta summaries stay optional for later. The block-end step needs the Arc Outline plugin in the
 harness, with the Knowledge Tracker and the two translators: one shared way to run plugins in the harness (decided: no OSGi; the plugins' compiled classes on the harness classpath and `onExtensionLoad` called by hand, then drive the steps through their commands; see the harness README) is the next piece of work after the first real run. Timeline: the block-end step is done on the day after the last part of the block.
 
-## Harness status (2026-11-05)
+## Harness status (2026-11-05, history: the harness is finished, see *Status*)
 
 How the harness is organised, how to run it, what each file in `work/harness/` is: `marginalia/src/test/java/com/github/enerccio/marginalia/workset/README.md`.
 
@@ -357,7 +364,7 @@ Done and checked with the fixed-text author: the real generation loop over the s
 protocol, lorebook and book are found again, the next part is the length of the active branch plus one; a second run continued at part 6), the answer cache by request
 hash, `prompts/`, `usage.jsonl`, `review/run-N.md`, `export/book.json`, the timeline through the shared `AppClock` (request and ttft carry the day of the part), the branch
 (48 messages after 45 parts, one part with two children, the active branch intact). **Not done:** the `claude` author (written, never run), summaries and meta summaries,
-annotation / redraft passes (done later), the plugin passes (Knowledge Tracker; the translators are done, see below), the statistics companion.
+annotation / redraft passes, the plugin passes and the block-end step (all done later, see the *Status* at the top), the statistics companion (still not made).
 Style findings of the first real runs (Haiku through the `claude` CLI, 3 redos of parts 1-5, kept in `work/harness-run1`, `-run2`): left to itself the model wrote Japanese in romaji with an italic gloss,
 a Czech thought in italics, indirect speech ("murmured something in Japanese", which no translator can pick up) and "he said in English" after every line; the *Style* lorebook entry (before the
 user prompt) now says: all speech in plain English in quotation marks, never a foreign word or gloss, thoughts in English, muttering is quoted speech, and **the language is named only when it
@@ -371,7 +378,7 @@ the four languages (Vrakht and Aethel-Vael by import into the Conlang Translator
 the redraft, only the languages the beat has. Checked with the fixed author and on Haiku (Japanese, Czech and the knowledge step over parts 1-5; Vrakht and Aethel-Vael only as a false-positive test on part 1, which found and fixed a prompt bug in the Conlang Translator; no real Vrakht or Aethel-Vael translation has been seen yet). The knowledge step is written too (`KnowledgePass`; checked on Haiku over parts 1-5, run 3: start items entered by hand, the block in the next prompt). Arc Outline loads in the host, its block-end step is not written.
 Details and commands: the harness README, `tools/workset_run.sh`.
 
-## Open questions
+## Open questions (all settled by the build; kept as the record)
 
 - ~~What the story is about~~ Decided (see Decisions). Step 1 (skeleton) is written; it waits for the user's read of `outline.md`.
 - **Language set-up of the book:** Japanese = only Mizuki and Tomáš; Czech = only Tomáš; Vrakht and Aethel-Vael through the conlang plugin (19 parts have Aethel-Vael speech, all of them also Vrakht). `tools/aethel_vael_to_json.py` had a missing comma (line 25, fixed); it now gives 247 words, 5 rule sections, 16 categories and warns that `Vaistas` (line 208) disagrees with the rule `vaisthas`. The language file has exactly one vulgar entry (`Tits`, the slang-register example, line 193) besides plain body and action words; decided: the file and the dataset's copy keep it unchanged (it is the register example of the plugin; the story simply does not use it). Not tried on a real model:
@@ -394,7 +401,7 @@ Details and commands: the harness README, `tools/workset_run.sh`.
   Default: commit both, because tests must run offline.
 - Do we also want a second, smaller variant (20 parts) for slow tests? Cheap to cut from the same data.
 
-## Follow-ups when done
+## Follow-ups when done (done: `manual/developer/testing.md`, *The dataset book*, `check_dev_docs.py`; no changelog entry)
 
 - Mention the dataset in `manual/developer/testing.md` (how to load it, how to rebuild it).
 - `python3 tools/check_dev_docs.py` after the doc change; no `CHANGELOG.MD` entry (internal test data).

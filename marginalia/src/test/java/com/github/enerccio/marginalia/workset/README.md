@@ -111,8 +111,7 @@ Everything needed to continue is on disk; nothing depends on a conversation. **T
    or romaji is ever written by the model (the translator plugins create them afterwards, and only translate quoted speech); thoughts are in English; muttering is quoted; names come from Markov chains
    trained on the lexicons (`work/dataset/names.py`), not from a model; the chapters are numbered I to N over the whole book (not per arc), headings are `# IV. Name`; a summary is made at the end
    of each chapter except a very short one and except the last chapter of the block, which stays whole.
-7. **Next, in this order** (the author decides): parts 6 to 25 (the rest of block 1); then the shared way to run plugins in the harness (Arc Outline import, Knowledge Tracker, the translators), the block-end
-   step, blocks 2 to 4; the workflow passes; the statistics companion; `LargeWorksetTest`.
+7. **Next:** nothing is pending; the dataset was built and committed. To rebuild it for a reason (the prompts or the story changed) see *The book as a test fixture*.
 
 ## The plugin host and the translation pass (2026-11-05, second session)
 
@@ -158,13 +157,9 @@ tools/workset_run.sh -Dworkset.parts=20 -Dworkset.author=claude -Dworkset.model=
 ```
 (about 25 calls per 5 parts, 6.5 minutes per 5 parts; the Vrakht and Aethel-Vael passes carry the lexicon, ~5k tokens in, and only run on parts whose beat has them; the first part has all four as a smoke test.)
 `tools/workset_check.py` reads the stored text, which now has the translations in it: it flags the Japanese as foreign text (to be changed to read the English source).
-## Not done yet
+## Not done
 
-**The harness does the whole loop of a part: generate -> annotations -> redraft -> knowledge -> translations** (checked with the fixed author: a `GENERATE` and a `REDRAFT` revision, the annotation `RESOLVED`, the redrafted text in the prompt of the next part). Knowledge and conlang/reallang follow when the plugins can run in the harness; see `TODO.DATASET.MD`, *The author's writing loop, per part*. Parts built before a step existed are rebuilt.
-
-Summaries and the author's block-end step (Arc Outline import, chapter headings, a summary at the end of each chapter), annotation and redraft passes, the plugin passes (Knowledge Tracker while the
-story is generated, the Vrakht, Aethel-Vael and Japanese translators), the statistics companion, `--redo`, a second author for the local reasoning model. The plan, the decisions and the
-findings are in `TODO.DATASET.MD`.
+The harness is finished: the whole loop of a part (generate -> annotations -> redraft -> knowledge -> translations), the block-end step (Arc Outline import, chapter headings, summaries) and the plugin passes ran, and the book is the fixture below. Not made: the statistics companion, `--redo`, a second author for the local reasoning model. The plan, the decisions and the findings are in `TODO.DATASET.MD`.
 
 
 ## The book as a test fixture

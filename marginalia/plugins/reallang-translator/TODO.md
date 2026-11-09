@@ -51,7 +51,7 @@ The plugin was installed in a copy of the screenshot environment (the *Unregiste
 
 ## Not tried
 - **Level of understanding (2026-11-06, shared with the Conlang Translator, see its TODO, *The POV character does not understand*):** built in `translator-common` and registered here (facts for the annotation, the message inserted into the prompt, the `reallang-understanding` macro, the column in the *Speakers* tab); unit tests only, not tried in the real app or on the real model.
-- **The screens and the app:** the tab, the glossary, the part menu, the selection and the commands were run in the real app (trial 2); the settings panel and the language editor, the range window, the viewer and the export of a real book were not.
+- **The screens and the app:** the tab, the glossary, the part menu, the selection and the commands were run in the real app (trial 2); the settings panel, the language editor, the range window and the export were run on the dataset book for the 1.7.0 pictures (`plugin-reallang-settings`, `-editor`, `-range`, `-export`, `shoot-reallang.sh`); the viewer of a published book was not looked at. The dataset book itself holds Japanese and Czech translations made by the plugin through the real pipeline (`TranslationPass`).
 
 - **Language cues in the narration (idea, from the dataset build, 2026-11-05).** The English source has to say which language a speech is in ("she said in Japanese") because that is what the
   classifier reads; after the translation the cue stays in the narration next to the translated speech, which reads redundant or odd (`"..." she said in Japanese`, with the speech in Japanese).

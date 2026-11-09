@@ -1,7 +1,7 @@
 # Audiobook - TODO
 
 Status: **working, not finished**: steps 1 to 8, 10, 11 and 12 below are built and were checked in the application and on the author's server (queue, player, labelling, cast, studio,
-spoken form, automatic conversion, export, commands, manual); missing are the sound effects (9b), other engines (9), the admin side of the backends (2) and the items listed as *Not done*
+spoken form, automatic conversion, export, commands, manual); missing are the sound effects (9b), other engines (9) and the items listed as *Not done*
 under each step. What stands below was tried on the author's own server on 2026-11-08 (an AMD R9700 Pro, LiteLLM in front
 of everything); a line says **Decided** when it is, **Not tried** / **Open** when it is not. Numbers are one listener, one machine, few samples.
 
@@ -174,9 +174,7 @@ audiobook can also read the English source of a speech (dubbing) as a per-langua
 
 ## Open
 
-- **The audio as a `Resource`:** `ResourceService.upload(filename, content, contentType)` stores by content in the user's `resources` folder, `link(resource, clazz, objectId)` ties it to the part,
-  `getResourceFile` gives the `File`. To check: no size cap like `MAX_IMAGE_BYTES` for non-images, how the Resources tab and a backup treat a non-image file, how a part finds its audio (a hash key in the part's
-  `attributes` under the plugin's key, pointing at the resource uuid), that a replaced audio is soft deleted (files stay until the *Resource Files* garbage collection). The viewer's player streams with a `StreamResource` per part; the readers of a published book are served by `ResourceService.readForReader` (the book is viewable by the user at every request, the resource is the owner's and linked to a part of that book; the content type is told from the bytes).
+- **The audio as a `Resource` (done):** `ResourceAudioStore` stores every piece and every joined part as a `Resource` linked to its part; the index (cache key -> resource uuid) is in the part's `attributes` under the plugin's key, so the audio travels with the book; a replaced audio is soft deleted (the files stay until the *Resource Files* garbage collection); wav is stored as well as mp3. The readers of a published book are served by `ResourceService.readForReader` (the book is viewable by the user at every request, the resource is the owner's and linked to a part of that book; the content type is told from the bytes). Still to check by hand: how the Resources tab shows a non-image file and how a backup of a long audiobook behaves (size).
 - **Gates (done):** the gates live in the application (`SharedGate`), `GpuGate.forBackend(gpu, url)` of `http-hooks` is the way to them, so the Audiobook and the Image Generator on one GPU find the same gate when their backends name the same **GPU (name)** (default: the address). A *mode* (`BackendConfig.gateMode()`: address + speech model) makes a batch for another model wait until the holders are gone and run its own before requests; the line is fair. Tested with fakes (`SharedGateTest`, `GpuGateTest`, `SpeechBatchTest`, `ImageSessionTest`); not on a real GPU. Not done: the gate does not know the language model that the before requests unload (a plugin that does not use `GpuGate` can still race it).
 - The ComfyUI backend of the Image Generator reads `images` only; sound needs `audio`.
 - Upload of a reference clip through LiteLLM (multipart through `pass_through_endpoints`: untested), cleanup of clips on the server.
