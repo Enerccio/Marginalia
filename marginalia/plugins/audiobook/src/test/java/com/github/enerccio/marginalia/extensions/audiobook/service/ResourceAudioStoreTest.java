@@ -99,6 +99,20 @@ class ResourceAudioStoreTest {
     }
 
     @Test
+    void theLoudnessThePartWasLevelledToIsKeptWithIt() {
+        ResourceAudioStore store = store();
+        store.putPart(part.getUuid(), "join-1", "source-1", new byte[]{9}, List.of(), -18.0);
+        assertEquals(-18.0, store.partAudio(part.getUuid()).loudness(), "before the flush");
+        store.flush(part.getUuid());
+
+        assertEquals(new AudioStore.PartAudio("join-1", "source-1", -18.0), store().partAudio(part.getUuid()));
+        ResourceAudioStore again = store();
+        again.putPart(part.getUuid(), "join-1", "source-1", new byte[]{9}, List.of());
+        again.flush(part.getUuid());
+        assertNull(store().partAudio(part.getUuid()).loudness(), "audio that was not levelled says so");
+    }
+
+    @Test
     void anIndexWhoseAudioIsGoneIsNoAudio() {
         ResourceAudioStore store = store();
         store.putPart(part.getUuid(), "join-1", "source-1", new byte[]{9}, List.of());

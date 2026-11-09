@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.extensions.audiobook.queue;
 
 import com.github.enerccio.marginalia.extensions.audiobook.AudiobookLog;
 import com.github.enerccio.marginalia.extensions.audiobook.audio.AudioKind;
+import com.github.enerccio.marginalia.extensions.audiobook.audio.Ffmpeg;
 import com.github.enerccio.marginalia.extensions.audiobook.model.BackendConfig;
 import com.github.enerccio.marginalia.extensions.audiobook.queue.ConversionJob.ScriptSource;
 import com.github.enerccio.marginalia.extensions.audiobook.queue.ConversionJob.State;
@@ -23,6 +24,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * The conversion of parts to audio, one user's queue: jobs wait, and one worker takes <b>all</b> that wait as one run. A run makes the pieces
@@ -46,9 +48,29 @@ public class ConversionQueue implements AutoCloseable {
      * @param backends  the backend that makes a model, null when the user has none for it
      * @param paused    true while a generation of the user runs: the language model would be loaded again under the speech server, so a batch waits
      * @param pollMillis how often a waiting batch looks at {@code paused}
+     * @param loudness  the loudness in LUFS the joined audio of a part is levelled to, null for none (the user turned it off, or there is no ffmpeg)
+     * @param leveller  what levels the audio
      */
     public record Environment(AudioStore store, Voices voices, Function<String, BackendConfig> backends, BatchRunner runner, BooleanSupplier paused,
-                              long pollMillis) {
+                              long pollMillis, Supplier<Double> loudness, Leveller leveller) {
+
+        /** An environment that does not level the loudness. */
+        public Environment(AudioStore store, Voices voices, Function<String, BackendConfig> backends, BatchRunner runner, BooleanSupplier paused,
+                           long pollMillis) {
+            this(store, voices, backends, runner, paused, pollMillis, () -> null, Ffmpeg::normalizeLoudness);
+        }
+
+        /** An environment that levels the loudness with ffmpeg when the supplier gives a target. */
+        public Environment(AudioStore store, Voices voices, Function<String, BackendConfig> backends, BatchRunner runner, BooleanSupplier paused,
+                           long pollMillis, Supplier<Double> loudness) {
+            this(store, voices, backends, runner, paused, pollMillis, loudness, Ffmpeg::normalizeLoudness);
+        }
+    }
+
+    /** Levels the joined audio of a part to a loudness in LUFS (it needs ffmpeg). */
+    @FunctionalInterface
+    public interface Leveller {
+        byte[] level(byte[] audio, double lufs) throws BackendException;
     }
 
     private final Environment env;
@@ -263,7 +285,11 @@ public class ConversionQueue implements AutoCloseable {
                 continue;
             }
             AudioStore.PartAudio stored = env.store().partAudio(job.partId());
-            if (job.mode() == ConversionJob.Mode.PART && stored != null && stored.joinKey().equals(script.joinKey()) && stored.sourceHash().equals(script.sourceHash())) {
+            // up to date: the same pieces of the same text and, when the user wants the loudness levelled, levelled to it (a part made before is joined again from
+            // its stored pieces and levelled, which asks nothing of the speech server); turning the levelling off leaves the parts as they are
+            Double wanted = env.loudness().get();
+            if (job.mode() == ConversionJob.Mode.PART && stored != null && stored.joinKey().equals(script.joinKey()) && stored.sourceHash().equals(script.sourceHash())
+                    && (wanted == null || wanted.equals(stored.loudness()))) {
                 job.progress(distinct(script), distinct(script));
                 finish(job, State.DONE, "Up to date");
                 continue;
@@ -400,9 +426,22 @@ public class ConversionQueue implements AutoCloseable {
         }
         try {
             byte[] joined = AudioKind.join(pieces, pauses);
+            Double wanted = env.loudness().get();
+            Double levelled = null;
+            String note = "";
+            if (wanted != null) {
+                try {
+                    joined = env.leveller().level(joined, wanted);
+                    levelled = wanted;
+                } catch (BackendException e) {
+                    // the audio is good without it: it is kept as it is, and the part is asked to be levelled again the next time
+                    note = "not levelled: " + e.getMessage();
+                }
+            }
             env.store().putPart(job.partId(), plan.script().joinKey(), plan.script().sourceHash(), joined,
-                    plan.script().liveKeys());
+                    plan.script().liveKeys(), levelled);
             String warning = job.snapshot().message();      // a request after the batch that failed, noted by speak()
+            warning = warning.isEmpty() ? note : note.isEmpty() ? warning : warning + "; " + note;
             finish(job, State.DONE, plan.script().entries().size() + " pieces, " + Math.round(AudioKind.seconds(joined)) + " s"
                     + (warning.isEmpty() ? "" : " (" + warning + ")"));
         } catch (BackendException | RuntimeException e) {

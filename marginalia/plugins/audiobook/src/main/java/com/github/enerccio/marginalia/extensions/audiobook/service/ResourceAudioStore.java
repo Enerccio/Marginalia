@@ -29,7 +29,7 @@ public class ResourceAudioStore implements AudioStore {
     private final ResourceService resources;
     private final ChatMessageService messages;
 
-    private record PendingPart(String joinKey, String sourceHash, String resource, Set<String> liveKeys) {
+    private record PendingPart(String joinKey, String sourceHash, String resource, Set<String> liveKeys, Double loudness) {
     }
 
     private final Map<String, Map<String, String>> pendingSegments = new HashMap<>();
@@ -61,7 +61,7 @@ public class ResourceAudioStore implements AudioStore {
     public synchronized PartAudio partAudio(String partId) {
         PendingPart pending = pendingParts.get(partId);
         if (pending != null) {
-            return new PartAudio(pending.joinKey(), pending.sourceHash());
+            return new PartAudio(pending.joinKey(), pending.sourceHash(), pending.loudness());
         }
         JsonObject part = index(partId).getAsJsonObject("part");
         if (part == null || !part.has("joinKey") || !part.has("sourceHash")) {
@@ -71,13 +71,19 @@ public class ResourceAudioStore implements AudioStore {
         if (part.has("resource") && !exists(part.get("resource").getAsString())) {
             return null;
         }
-        return new PartAudio(part.get("joinKey").getAsString(), part.get("sourceHash").getAsString());
+        return new PartAudio(part.get("joinKey").getAsString(), part.get("sourceHash").getAsString(),
+                part.has("loudness") && part.get("loudness").isJsonPrimitive() ? part.get("loudness").getAsDouble() : null);
     }
 
     @Override
     public synchronized void putPart(String partId, String joinKey, String sourceHash, byte[] audio, Collection<String> liveKeys) {
+        putPart(partId, joinKey, sourceHash, audio, liveKeys, null);
+    }
+
+    @Override
+    public synchronized void putPart(String partId, String joinKey, String sourceHash, byte[] audio, Collection<String> liveKeys, Double loudness) {
         Resource resource = upload(FILE_PREFIX + "part." + AudioKind.of(audio).extension(), audio, partId);
-        pendingParts.put(partId, new PendingPart(joinKey, sourceHash, resource.getUuid(), new HashSet<>(liveKeys)));
+        pendingParts.put(partId, new PendingPart(joinKey, sourceHash, resource.getUuid(), new HashSet<>(liveKeys), loudness));
     }
 
     @Override
@@ -112,6 +118,9 @@ public class ResourceAudioStore implements AudioStore {
                 partIndex.addProperty("joinKey", part.joinKey());
                 partIndex.addProperty("sourceHash", part.sourceHash());
                 partIndex.addProperty("resource", part.resource());
+                if (part.loudness() != null) {
+                    partIndex.addProperty("loudness", part.loudness());
+                }
                 index.add("part", partIndex);
             }
             index.add("segments", stored);

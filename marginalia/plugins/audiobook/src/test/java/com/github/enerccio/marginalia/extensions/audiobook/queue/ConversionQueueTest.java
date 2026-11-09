@@ -70,6 +70,11 @@ class ConversionQueueTest {
             segments.keySet().removeIf(k -> k.startsWith(partId + "/") && !liveKeys.contains(k.substring(partId.length() + 1)));
         }
 
+        public synchronized void putPart(String partId, String joinKey, String sourceHash, byte[] audio, java.util.Collection<String> liveKeys, Double loudness) {
+            putPart(partId, joinKey, sourceHash, audio, liveKeys);
+            parts.put(partId, new PartAudio(joinKey, sourceHash, loudness));
+        }
+
         public void flush(String partId) {
             flushed.add(partId);
         }
@@ -126,6 +131,11 @@ class ConversionQueueTest {
     };
 
     private ConversionQueue queue(Set<String> models) {
+        return queue(models, () -> null, (audio, lufs) -> audio);
+    }
+
+    /** A queue that levels the loudness to what {@code loudness} says with {@code leveller}. */
+    private ConversionQueue queue(Set<String> models, java.util.function.Supplier<Double> loudness, ConversionQueue.Leveller leveller) {
         Voices voices = (backend, voice) -> new Voices.Resolved(voice.kind() == VoiceRef.Kind.CLIP ? VoiceMode.CLONE : VoiceMode.PREDEFINED,
                 voice.kind() == VoiceRef.Kind.CLIP ? "m-" + voice.id() + ".wav" : voice.id());
         queue = new ConversionQueue(new ConversionQueue.Environment(store, voices, model -> {
@@ -135,7 +145,7 @@ class ConversionQueueTest {
             BackendConfig config = new BackendConfig();
             config.setModel(model);
             return config;
-        }, runner, paused::get, 10));
+        }, runner, paused::get, 10, loudness, leveller));
         return queue;
     }
 
@@ -539,5 +549,80 @@ class ConversionQueueTest {
 
         assertEquals(1, calls.size());
         assertEquals(State.DONE, calls.getFirst().getFirst().state());
+    }
+
+    // --- the loudness ---
+
+    private static byte[] levelled(byte[] audio) {
+        byte[] out = java.util.Arrays.copyOf(audio, audio.length + 1);
+        out[audio.length] = 7;
+        return out;
+    }
+
+    @Test
+    void aJoinedPartIsLevelledWhenTheUserWantsItAndItsLoudnessIsKept() throws Exception {
+        queue(Set.of(BackendConfig.MODEL_TURBO), () -> -18.0, (audio, lufs) -> {
+            assertEquals(-18.0, lufs);
+            return levelled(audio);
+        });
+        PartScript script = script("One.\n\nTwo.");
+
+        ConversionJob.Snapshot done = finished(queue.submit("p1", "Part 1", () -> script));
+
+        assertEquals(State.DONE, done.state(), done.message());
+        assertEquals(-18.0, parts.get("p1").loudness());
+        assertEquals(7, partBytes.get("p1")[partBytes.get("p1").length - 1], "what the leveller made is what is stored");
+    }
+
+    @Test
+    void aPartMadeBeforeIsLevelledFromItsStoredPiecesWithoutTheSpeechServer() throws Exception {
+        queue(Set.of(BackendConfig.MODEL_TURBO));
+        PartScript script = script("One.\n\nTwo.");
+        finished(queue.submit("p1", "Part 1", () -> script));
+        assertNull(parts.get("p1").loudness());
+        queue.close();
+        spoken.clear();
+        batches.clear();
+
+        queue(Set.of(BackendConfig.MODEL_TURBO), () -> -18.0, (audio, lufs) -> levelled(audio));
+        ConversionJob.Snapshot again = finished(queue.submit("p1", "Part 1", () -> script));
+
+        assertEquals(State.DONE, again.state(), again.message());
+        assertNotEquals("Up to date", again.message(), "the loudness is not the wanted one: the part is joined again");
+        assertTrue(spoken.isEmpty(), "the pieces are kept, nothing is spoken again");
+        assertTrue(batches.isEmpty(), "no swap of the language model for a join");
+        assertEquals(-18.0, parts.get("p1").loudness());
+
+        ConversionJob.Snapshot third = finished(queue.submit("p1", "Part 1", () -> script));
+        assertEquals("Up to date", third.message(), "levelled to the wanted loudness: nothing to do");
+    }
+
+    @Test
+    void turningTheLevellingOffLeavesTheLevelledPartsAsTheyAre() throws Exception {
+        queue(Set.of(BackendConfig.MODEL_TURBO), () -> -18.0, (audio, lufs) -> levelled(audio));
+        PartScript script = script("One.");
+        finished(queue.submit("p1", "Part 1", () -> script));
+        queue.close();
+
+        queue(Set.of(BackendConfig.MODEL_TURBO));
+        ConversionJob.Snapshot again = finished(queue.submit("p1", "Part 1", () -> script));
+
+        assertEquals("Up to date", again.message());
+        assertEquals(-18.0, parts.get("p1").loudness());
+    }
+
+    @Test
+    void aLevellerThatFailsKeepsTheAudioAsItIsAndAsksAgainNextTime() throws Exception {
+        queue(Set.of(BackendConfig.MODEL_TURBO), () -> -18.0, (audio, lufs) -> {
+            throw new BackendException("ffmpeg failed");
+        });
+        PartScript script = script("One.");
+
+        ConversionJob.Snapshot done = finished(queue.submit("p1", "Part 1", () -> script));
+
+        assertEquals(State.DONE, done.state(), done.message());
+        assertTrue(done.message().contains("not levelled: ffmpeg failed"), done.message());
+        assertNull(parts.get("p1").loudness());
+        assertTrue(partBytes.get("p1").length > 0);
     }
 }

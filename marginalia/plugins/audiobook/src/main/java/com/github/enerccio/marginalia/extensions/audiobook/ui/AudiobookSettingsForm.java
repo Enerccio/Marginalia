@@ -17,12 +17,14 @@ import com.github.enerccio.marginalia.ui.widgets.ResizableTextArea;
 import com.github.enerccio.marginalia.ui.widgets.TemplateHints;
 import com.github.enerccio.marginalia.ui.widgets.TextAreaPopoverComponent;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.select.Select;
+import com.vaadin.flow.component.textfield.NumberField;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
@@ -59,6 +61,8 @@ public class AudiobookSettingsForm extends VerticalLayout {
     private final Button deleteActor = new Button(Solid.TRASH.create(), e -> confirmDeleteActor());
 
     private final Select<AutoMode> autoMode = new Select<>();
+    private final Checkbox normalize = new Checkbox(T.localized(EVEN_OUT_THE_LOUDNESS_OF_THE_PARTS));
+    private final NumberField targetLufs = new NumberField(T.localized(TARGET_LOUDNESS_LUFS));
     private final TextAreaPopoverComponent labelPrompt = new TextAreaPopoverComponent(T.localized(LABELLING_PROMPT));
 
     private final BackendEditor editor;
@@ -127,6 +131,19 @@ public class AudiobookSettingsForm extends VerticalLayout {
         autoSection.setPadding(false);
         autoSection.addClassName(AudiobookStyles.SECTION);
 
+        targetLufs.setMin(AudiobookSettings.MIN_TARGET_LUFS);
+        targetLufs.setMax(AudiobookSettings.MAX_TARGET_LUFS);
+        targetLufs.setStep(1);
+        targetLufs.setStepButtonsVisible(true);
+        targetLufs.setWidth("14em");
+        Span normalizeHelp = new Span(Ffmpeg.available() ? T.localized(THE_JOINED_AUDIO_OF_EACH_PART_IS_LEVELLED) : T.localized(FFMPEG_WAS_NOT_FOUND_THE_AUDIO_IS_NOT_LEVELLED));
+        normalizeHelp.addClassName(CssStyles.HINT_TEXT);
+        normalize.setEnabled(Ffmpeg.available());
+        targetLufs.setEnabled(Ffmpeg.available());
+        VerticalLayout normalizeSection = new VerticalLayout(normalize, targetLufs, normalizeHelp);
+        normalizeSection.setPadding(false);
+        normalizeSection.addClassName(AudiobookStyles.SECTION);
+
         labelPrompt.setWidthFull();
         labelPrompt.setPlaceholder(LabelPrompt.DEFAULT_TEMPLATE);
         labelPrompt.setHelperText(T.localized(THE_INSTRUCTION_THAT_TELLS_THE_MODEL_WHO_SPEAKS_EACH_PIECE));
@@ -146,7 +163,7 @@ public class AudiobookSettingsForm extends VerticalLayout {
         ownSection.setSpacing(true);
         ownSection.add(bar, editor);
 
-        add(help, inUse, ownSection, ownDisabled, actorSection, autoSection, labelSection);
+        add(help, inUse, ownSection, ownDisabled, actorSection, autoSection, normalizeSection, labelSection);
         if (service.isAdmin()) {
             add(sharedSection(), storageSection());
         }
@@ -213,6 +230,8 @@ public class AudiobookSettingsForm extends VerticalLayout {
         showActors(settings, actorPicker.getValue() == null ? null : actorPicker.getValue().getId());
         autoMode.setValue(settings.getAutoMode());
         labelPrompt.setValue(StringUtils.defaultString(settings.getLabelPrompt()));
+        normalize.setValue(settings.isNormalizeLoudness());
+        targetLufs.setValue(settings.getTargetLufs());
     }
 
     /** Fills the box of the backend in use: the shared ones the user may use and their own (those on the form, saved or not). */
@@ -274,6 +293,8 @@ public class AudiobookSettingsForm extends VerticalLayout {
         stored.setAutoMode(autoMode.getValue());
         // empty means the built-in instruction is used
         stored.setLabelPrompt(labelPrompt.getValue());
+        stored.setNormalizeLoudness(normalize.getValue());
+        stored.setTargetLufs(targetLufs.getValue());
         stored.setSelectedBackendId(inUse.getValue() == null ? null : inUse.getValue().getId());
         return stored;
     }

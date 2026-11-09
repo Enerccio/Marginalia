@@ -12,6 +12,10 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
     public static final String AUDIOBOOK = "Audiobook";
     public static final String AUDIOBOOK_SETTINGS = "Audiobook Settings";
     public static final String LABELLING_PROMPT = "Labelling prompt";
+    public static final String EVEN_OUT_THE_LOUDNESS_OF_THE_PARTS = "Even out the loudness of the parts";
+    public static final String TARGET_LOUDNESS_LUFS = "Target loudness (LUFS)";
+    public static final String THE_JOINED_AUDIO_OF_EACH_PART_IS_LEVELLED = "The joined audio of each part is levelled to this loudness with ffmpeg (EBU R128), so the parts sit at the same level. A part made before is levelled the next time you convert it; its pieces are kept, so the speech server is not asked.";
+    public static final String FFMPEG_WAS_NOT_FOUND_THE_AUDIO_IS_NOT_LEVELLED = "ffmpeg was not found: the audio is not levelled.";
     public static final String THE_INSTRUCTION_THAT_TELLS_THE_MODEL_WHO_SPEAKS_EACH_PIECE = "The instruction that tells the language model who speaks each piece of a part and how it is read (a template). Empty: the built-in one.";
     public static final String SPEECH_SERVERS_HELP = "The speech servers the audiobook is made by. The requests around a batch make room for the server on the GPU and stop it again.";
     public static final String BACKENDS = "Backends";
@@ -930,6 +934,18 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
 
         ja(READ_THIS_PART_WITH_THE_BROWSER_VOICE, "このパート (と音声のない次のパート) をブラウザの音声で読み上げる");
         zh(READ_THIS_PART_WITH_THE_BROWSER_VOICE, "用浏览器的语音朗读此章节（以及之后没有音频的章节）");
+
+        ja(EVEN_OUT_THE_LOUDNESS_OF_THE_PARTS, "パートの音量をそろえる");
+        zh(EVEN_OUT_THE_LOUDNESS_OF_THE_PARTS, "统一各章节的响度");
+
+        ja(TARGET_LOUDNESS_LUFS, "目標音量 (LUFS)");
+        zh(TARGET_LOUDNESS_LUFS, "目标响度 (LUFS)");
+
+        ja(THE_JOINED_AUDIO_OF_EACH_PART_IS_LEVELLED, "各パートの結合した音声を ffmpeg (EBU R128) でこの音量にそろえ、パート間の音量差をなくします。以前に作ったパートは、次に変換するときにそろえられます。部分ごとの音声は残っているため、音声サーバーには問い合わせません。");
+        zh(THE_JOINED_AUDIO_OF_EACH_PART_IS_LEVELLED, "用 ffmpeg (EBU R128) 把每个章节合并后的音频调到这一响度，使各章节音量一致。之前制作的章节会在下次转换时调整；各段音频已保存，因此不会请求语音服务器。");
+
+        ja(FFMPEG_WAS_NOT_FOUND_THE_AUDIO_IS_NOT_LEVELLED, "ffmpeg が見つかりません。音量はそろえられません。");
+        zh(FFMPEG_WAS_NOT_FOUND_THE_AUDIO_IS_NOT_LEVELLED, "未找到 ffmpeg：不会统一音频响度。");
 
         ja(LABELLING_PROMPT, "ラベル付けのプロンプト");
         zh(LABELLING_PROMPT, "标注提示词");

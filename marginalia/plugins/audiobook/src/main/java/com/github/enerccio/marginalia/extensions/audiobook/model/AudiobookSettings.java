@@ -14,6 +14,10 @@ public class AudiobookSettings {
     private String autoMode;
     /** The labelling instruction of the user (a template, see {@code LabelPrompt}), the user level of the inherited setting; blank: the built-in one. */
     private String labelPrompt;
+    /** Whether the joined audio of a part is levelled to one loudness (needs ffmpeg); null: yes, the default. */
+    private Boolean normalizeLoudness;
+    /** The loudness in LUFS the parts are levelled to; null: the default. */
+    private Double targetLufs;
     /** The voices of the user; the cast of a book names them by id. */
     private List<Actor> actors = new ArrayList<>();
 
@@ -34,6 +38,27 @@ public class AudiobookSettings {
 
     public void setSelectedBackendId(String selectedBackendId) {
         this.selectedBackendId = selectedBackendId;
+    }
+
+    /** The loudness of an audiobook (EBU R128) that players and the platforms aim at: speech at about -18 LUFS. */
+    public static final double DEFAULT_TARGET_LUFS = -18;
+    public static final double MIN_TARGET_LUFS = -30;
+    public static final double MAX_TARGET_LUFS = -10;
+
+    public boolean isNormalizeLoudness() {
+        return normalizeLoudness == null || normalizeLoudness;
+    }
+
+    public void setNormalizeLoudness(boolean normalizeLoudness) {
+        this.normalizeLoudness = normalizeLoudness;
+    }
+
+    public double getTargetLufs() {
+        return targetLufs == null ? DEFAULT_TARGET_LUFS : Math.max(MIN_TARGET_LUFS, Math.min(MAX_TARGET_LUFS, targetLufs));
+    }
+
+    public void setTargetLufs(Double targetLufs) {
+        this.targetLufs = targetLufs;
     }
 
     public String getLabelPrompt() {

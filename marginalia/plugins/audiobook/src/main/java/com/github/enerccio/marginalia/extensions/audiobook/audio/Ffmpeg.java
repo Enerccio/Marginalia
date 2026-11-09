@@ -136,8 +136,98 @@ public final class Ffmpeg {
                 List.of("-map", "0:a", "-map_metadata", "-1", "-c:a", "pcm_s16le", "-ar", String.valueOf(format.sampleRate()), "-ac", String.valueOf(format.channels())));
     }
 
-    /** Runs ffmpeg on one input (and a metadata file when there is text for it) and reads the output file. */
+    /** The loudness target of a part is a level a listener does not notice being missed by this much: such audio is left as it is (no second encoding). */
+    static final double TOLERANCE_LU = 0.5;
+
+    /** The mp3 of a part that was levelled: speech does not need more, and the pieces were 32 kbps. */
+    static final String LEVELLED_MP3_BITRATE = "64k";
+
+    /**
+     * What ffmpeg measured of a piece of audio (EBU R128, the first pass of {@code loudnorm}).
+     *
+     * @param integrated the loudness of the whole in LUFS
+     * @param truePeak   the highest peak in dBTP
+     * @param range      the loudness range in LU
+     * @param threshold  the gate of the measurement in LUFS
+     * @param offset     the gain {@code loudnorm} suggests for the target it was asked
+     * @param sampleRate the sample rate of the audio in Hz
+     */
+    public record Loudness(double integrated, double truePeak, double range, double threshold, double offset, int sampleRate) {
+    }
+
+    private static final java.util.regex.Pattern SAMPLE_RATE = java.util.regex.Pattern.compile("Audio: [^,]+, (\\d+) Hz");
+
+    /**
+     * Measures the loudness of the audio.
+     *
+     * @param targetLufs the target the suggested offset is worked out for
+     * @return the measurement, null when there is nothing to measure (silence, or audio too short to have a loudness)
+     * @throws BackendException when ffmpeg is not there or fails
+     */
+    public static Loudness measure(byte[] audio, double targetLufs) throws BackendException {
+        String log = execute(audio, AudioKind.of(audio).extension(), null, null,
+                List.of("-map", "0:a", "-af", "loudnorm=I=" + targetLufs + ":TP=-1.5:LRA=11:print_format=json", "-f", "null")).log();
+        Double integrated = number(log, "input_i");
+        Double peak = number(log, "input_tp");
+        Double range = number(log, "input_lra");
+        Double threshold = number(log, "input_thresh");
+        Double offset = number(log, "target_offset");
+        java.util.regex.Matcher rate = SAMPLE_RATE.matcher(log);
+        if (integrated == null || peak == null || range == null || threshold == null || offset == null || !rate.find()) {
+            return null;
+        }
+        return new Loudness(integrated, peak, range, threshold, offset, Integer.parseInt(rate.group(1)));
+    }
+
+    /** A number of the JSON that {@code loudnorm} prints, null when it is missing or is not a finite number ({@code -inf} for silence). */
+    private static Double number(String log, String name) {
+        java.util.regex.Matcher m = java.util.regex.Pattern.compile("\"" + name + "\"\\s*:\\s*\"([^\"]+)\"").matcher(log);
+        if (!m.find()) {
+            return null;
+        }
+        try {
+            double value = Double.parseDouble(m.group(1));
+            return Double.isFinite(value) ? value : null;
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    /**
+     * Levels the audio to the target loudness (EBU R128 {@code loudnorm} in two passes, linear: the dynamics are kept, only the level changes; true peak
+     * -1.5 dB), in the kind it is (an mp3 is encoded again, a wav stays PCM) and at its sample rate. Audio that is within {@link #TOLERANCE_LU} of the target
+     * and silence are returned as they are.
+     *
+     * @param targetLufs the loudness to reach, -30 to -10
+     * @throws BackendException when ffmpeg is not there or fails
+     */
+    public static byte[] normalizeLoudness(byte[] audio, double targetLufs) throws BackendException {
+        Loudness measured = measure(audio, targetLufs);
+        if (measured == null || Math.abs(measured.integrated() - targetLufs) < TOLERANCE_LU) {
+            return audio;
+        }
+        String filter = "loudnorm=I=" + targetLufs + ":TP=-1.5:LRA=11:measured_I=" + measured.integrated() + ":measured_TP=" + measured.truePeak()
+                + ":measured_LRA=" + measured.range() + ":measured_thresh=" + measured.threshold() + ":offset=" + measured.offset() + ":linear=true";
+        AudioKind kind = AudioKind.of(audio);
+        List<String> encoder = kind == AudioKind.WAV ? List.of("-c:a", "pcm_s16le") : List.of("-c:a", "libmp3lame", "-b:a", LEVELLED_MP3_BITRATE);
+        List<String> options = new ArrayList<>(List.of("-map", "0:a", "-map_metadata", "-1", "-af", filter, "-ar", String.valueOf(measured.sampleRate())));
+        options.addAll(encoder);
+        return run(audio, kind.extension(), kind.extension(), null, options);
+    }
+
+    /** What an ffmpeg run gave: the output file (null when the output was discarded) and its log, which has the measurements. */
+    private record Executed(byte[] output, String log) {
+    }
+
     private static byte[] run(byte[] input, String inputExtension, String outputExtension, String metadata, List<String> options) throws BackendException {
+        return execute(input, inputExtension, outputExtension, metadata, options).output();
+    }
+
+    /**
+     * Runs ffmpeg on one input (and a metadata file when there is text for it) and reads the output file; with no output extension the output is
+     * discarded ({@code -f null}, the options must say the format) and only the log is read.
+     */
+    private static Executed execute(byte[] input, String inputExtension, String outputExtension, String metadata, List<String> options) throws BackendException {
         Path program = locate();
         if (program == null) {
             throw new BackendException("ffmpeg is not installed");
@@ -146,7 +236,7 @@ public final class Ffmpeg {
         try {
             folder = Files.createTempDirectory("audiobook-ffmpeg");
             Path in = folder.resolve("in." + inputExtension);
-            Path out = folder.resolve("out." + outputExtension);
+            Path out = outputExtension == null ? null : folder.resolve("out." + outputExtension);
             Path log = folder.resolve("ffmpeg.log");
             Files.write(in, input);
             List<String> command = new ArrayList<>(List.of(program.toString(), "-nostdin", "-hide_banner", "-y", "-i", in.toString()));
@@ -156,16 +246,16 @@ public final class Ffmpeg {
                 command.addAll(List.of("-i", meta.toString()));
             }
             command.addAll(options);
-            command.add(out.toString());
+            command.add(out == null ? "-" : out.toString());
             Process process = new ProcessBuilder(command).redirectErrorStream(true).redirectOutput(log.toFile()).start();
             if (!process.waitFor(TIMEOUT_MINUTES, TimeUnit.MINUTES)) {
                 process.destroyForcibly();
                 throw new BackendException("ffmpeg did not finish in " + TIMEOUT_MINUTES + " minutes");
             }
-            if (process.exitValue() != 0 || !Files.isRegularFile(out)) {
+            if (process.exitValue() != 0 || (out != null && !Files.isRegularFile(out))) {
                 throw new BackendException("ffmpeg failed: " + tail(log));
             }
-            return Files.readAllBytes(out);
+            return new Executed(out == null ? null : Files.readAllBytes(out), Files.readString(log, StandardCharsets.UTF_8));
         } catch (IOException e) {
             throw new BackendException("ffmpeg could not be run: " + e.getMessage(), e);
         } catch (InterruptedException e) {

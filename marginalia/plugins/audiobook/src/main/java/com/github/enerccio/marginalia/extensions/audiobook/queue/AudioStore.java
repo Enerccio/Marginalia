@@ -16,8 +16,13 @@ public interface AudioStore {
      *
      * @param joinKey    the key of the script it was joined from ({@code PartScript.joinKey})
      * @param sourceHash the hash of the text of the part it was made from
+     * @param loudness   the loudness in LUFS it was levelled to, null when it was not (audio made before the levelling existed, or without ffmpeg)
      */
-    record PartAudio(String joinKey, String sourceHash) {
+    record PartAudio(String joinKey, String sourceHash, Double loudness) {
+
+        public PartAudio(String joinKey, String sourceHash) {
+            this(joinKey, sourceHash, null);
+        }
     }
 
     /** @return the joined audio of the part (without its bytes), null when there is none */
@@ -30,6 +35,14 @@ public interface AudioStore {
      * @param liveKeys the cache keys of the pieces of the script that was joined
      */
     void putPart(String partId, String joinKey, String sourceHash, byte[] audio, java.util.Collection<String> liveKeys);
+
+    /**
+     * Like {@link #putPart(String, String, String, byte[], java.util.Collection)} for audio that was levelled to {@code loudness} LUFS (null: it was not); a store
+     * that does not keep it forgets it, and the part is then asked to be levelled again.
+     */
+    default void putPart(String partId, String joinKey, String sourceHash, byte[] audio, java.util.Collection<String> liveKeys, Double loudness) {
+        putPart(partId, joinKey, sourceHash, audio, liveKeys);
+    }
 
     /** Called when a job of the part is over, whatever became of it: what was put since is made permanent (the pieces of a failed job are kept for a retry). */
     default void flush(String partId) {

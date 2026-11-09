@@ -130,6 +130,11 @@ How a part is made, so you know what to expect:
   *Extension Settings* → *Audiobook*) or a folder can have its own. Empty means the one of the folder above, then yours, then the built-in one. It is written like the other
   [prompts](../books/prompts.md): the variables are `{{characters}}`, `{{deliveries}}`, `{{tags}}` and `{{wordsPerTag}}`, and the hints popover has **Insert Default Template**. A changed
   instruction makes the labels of the parts to be asked again the next time they are made.
+- **The loudness of the parts is levelled** when the program ffmpeg is installed (the same one that makes the `.m4b`): the joined audio of every part is brought to one loudness
+  (EBU R128, linear, so the dynamics stay; **-18 LUFS** unless you change it in *Settings → Extension Settings → Audiobook Settings*, where you can also turn it off). The pieces
+  are kept as the server made them, only the joined part is levelled, so an audiobook does not jump in level from part to part. **Parts that were made before** are not touched until
+  you convert them again: that joins them again from the stored pieces and levels them, and asks the speech server for nothing (no unloading of the language model either). Turning the
+  levelling off leaves the parts that were levelled as they are. If ffmpeg fails for a part, it keeps its audio as it was and the result says so.
 - All the parts of one click are made in **one batch per speech model**: the requests before the batch run once, then all the pieces
   are spoken, then the requests after the batch run once. This is what keeps the graphics card from swapping models for every part.
 - Every piece is **kept by its content** (text, voice, model, language, settings, seed). A part that is already up to date costs

@@ -633,7 +633,8 @@ public class AudiobookService {
                 return thread;
             });
             return new ConversionQueue(new ConversionQueue.Environment(new ResourceAudioStore(resourceService, chatMessageService),
-                    new ClipVoices(resourceService), this::backendForModel, this::runBatch, () -> tracker != null && tracker.isRunning(id), 1000), worker);
+                    new ClipVoices(resourceService), this::backendForModel, this::runBatch, () -> tracker != null && tracker.isRunning(id), 1000,
+                    this::loudnessTarget), worker);
         });
     }
 
@@ -643,6 +644,14 @@ public class AudiobookService {
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    /**
+     * The loudness in LUFS the parts of the user are levelled to when they are joined, null when they are not: the user turned it off, or ffmpeg is not there.
+     */
+    private Double loudnessTarget() {
+        AudiobookSettings user = getSettings();
+        return user.isNormalizeLoudness() && Ffmpeg.available() ? user.getTargetLufs() : null;
     }
 
     /** The backend that makes a model: the one the user picked when it has that model, else the first one that has. */
