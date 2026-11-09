@@ -8,7 +8,7 @@ covers:
 
 # http-hooks
 
-`marginalia/libs/http-hooks` is what the plugins that call a **server of the user** share: today the **Image Generator**, next the Audiobook (text to speech). Read
+`marginalia/libs/http-hooks` is what the plugins that call a **server of the user** share: the **Image Generator** and the **Audiobook** (text to speech). Read
 [Libraries for plugins](index.md) first for how a library is embedded and what that implies (a copy per plugin, no shared state). This one depends on the JDK only (but for the settings form `HookListEditor` in the `ui` package, which uses Vaadin from the application), not on the
 application, and has its own tests (a fake HTTP server).
 

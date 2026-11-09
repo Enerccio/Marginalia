@@ -291,6 +291,7 @@ joins on is a real column: relations, `name`, `enabled`, `ordinal`, `published`,
 | `showBookStyles` | JSON | Legacy story display option (the Book style on or off). Read only while `partStyle` is not set, never written any more. |
 | `partStyle` | JSON | The id of the text style the author chose for this book (a built in style or one of the user, see [Text styles](ui.md#text-styles)); empty follows the default style of the user. |
 | `autoAnnotate`, `autoAnnotateInstructions`, `autoAnnotateModel`, `autoAnnotateProtocol`, `autoAnnotateAccept`, `autoAnnotateRedraft`, `autoAnnotateAcceptRedraft` | JSON | The automatic annotation of a generated part (Tools menu of the story, `AutoAnnotateDialog`; run by `AutoAnnotate`). The getters of the flags return `false` when unset. The model and the protocol are the **uuids** of an AI and a protocol, not ids (a restored backup can't point at somebody else's model: they are looked up among the ones the user can use, `AutoAnnotate.byUuid`, and an unknown or deleted one means the model of the book). |
+| `showImagesToReaders` | Boolean | Whether the readers of the published book see the images of its parts (the owner always does); not set means yes. The check box *Show the images to readers* of the *About* tab. |
 | `backupStrategy`, `backupStrategyValue`, `backupStrategyCurrentValue` | JSON | Per-book backup override and its progress counter. |
 
 Tags of a book are `TagRelation`s (see [Tags](#tags)).
@@ -778,15 +779,17 @@ for good and cloning an agent take care of them, see [Files of an agent](agents.
 
 ## Resources
 
-`Resource` (`resources`, an `OwnedEntity`) is an uploaded file; today the files are the images attached to parts
-(`ChatMessage.getImages()`, see [Extended attributes](#extendableentity---extended-attributes)).
+`Resource` (`resources`, an `OwnedEntity`) is an uploaded file: the images attached to parts
+(`ChatMessage.getImages()`, see [Extended attributes](#extendableentity---extended-attributes)) and the files that extensions keep with a part (the audio of the Audiobook, linked to the part). A backup
+carries the uuids of both and the export packs the files, see [Resources in backups](services.md#resources-in-backups).
 
 | Field | |
 |---|---|
 | `path` | File name in the user's `images` folder (images) or `resources` folder (other files) of the data folder. The files are stored by content: uploading the same bytes again reuses the file. |
 | `hash` | Hash of the content; with the owner it is the key for that deduplication (`ix_resources_user_hash`). |
 | `mimeType`, `originalName` | Detected content type and the name the file was uploaded with. |
-| `objectId`, `clazz` | Loose link to the object that uses the file (class name and id, like `TagRelation`). Bookkeeping for the Resources tab only - not a cleanup reference, the object may be gone. |
+| `objectId`, `clazz` | Loose link to the object that uses the file (class name and id, like `TagRelation`). Bookkeeping for the Resources tab (which groups the files by it) - not a cleanup reference, the object may be gone. |
+| `servedFrom` | Not stored. Set by `ResourceService` on a file it gives to a reader of somebody else's published book: the owner, whose folder holds the file (`findImageForReader`, `readForReader`). |
 
 Deleting a resource is a soft delete like any other; files are never deleted from disk.
 

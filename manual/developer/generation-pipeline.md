@@ -251,6 +251,8 @@ user prompt, the user prompt and `reserved` - and what was cut: the parts that d
 `cutTokens`), without the parts a summary replaces. The counts are measured separately, so they need not add up exactly
 to the payload.
 
+**Authorship.** The generation records who made each text (`RevisionOrigin`, see [Version history](version-history.md)); `PartAuthorship` and `BookAuthorship` (`domain.components`) are what is worked out from those versions afterwards, which words of a part a model wrote and the sum of a branch ([Who wrote the words](version-history.md#who-wrote-the-words)). The pipeline does not use them.
+
 **Notes of the author.** The open [annotations](domain-model.md#annotation) with `sendToPrompt` are read once for the book (`flaggedAnnotations`). A part that is taken into the story brings its notes (`AnnotationTexts.promptNotes`: the passage in quotes, or the first words of the part for a note about the whole part, and the note), their tokens count against the room like the part itself, so a part whose notes do not fit is cut; the notes of the parts that made it become `MasterTemplateData.annotations` for the final render (the estimation render has none).
 
 **System prompt.** The master template is rendered with `MasterTemplateData` (`backgroundLore`, `summaries`, `annotations`,

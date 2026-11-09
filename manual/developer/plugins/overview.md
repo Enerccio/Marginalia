@@ -308,7 +308,7 @@ first: Marginalia's own classes, Vaadin, Spring, Hibernate, Gson, everything in 
 - Plugins use the application's classes directly - no imports, no service lookups, `instanceof` and casts work.
 - A plugin can't override or replace a library of the application, and can't use a different version of one.
 - Plugins don't see each other's classes through imports either; if two plugins need to cooperate, do it through
-  shared data (attributes) or through the application's components (the registries of the core, such as `PartTextRegistry`, `ExportTextRegistry` and `AnnotationFactsRegistry`). A plugin that uses the objects of another one
+  shared data (attributes) or through the application's components (the registries of the core, such as `PartTextRegistry`, `ExportTextRegistry` and `AnnotationFactsRegistry`, and the gates of `SharedGate` that let two plugins share one GPU, see [http-hooks](libraries/http-hooks.md#the-gate-gpugate)). A plugin that uses the objects of another one
   (which may be missing, or unloaded and installed again) finds it among `OsgiService.getLoadedExtensions()` by the
   *name* of its class and calls it by reflection, taking the types it needs from `extension.getClass().getClassLoader()`.
   Do not import its packages (`Import-Package`, `DynamicImport-Package`) or name its classes in your code: the
