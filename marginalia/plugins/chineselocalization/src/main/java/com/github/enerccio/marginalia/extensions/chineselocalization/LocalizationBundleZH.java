@@ -1013,6 +1013,13 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_CALCULATE, "计算");
         setValue(L.LABEL_PLAY, "播放");
         setValue(L.LABEL_SHOW_IMAGES_TO_READERS, "向读者显示图片");
+        setValue(L.LABEL_STATISTICS_CLEAR_BOOK, "清除本书的统计");
+        setValue(L.LABEL_STATISTICS_CLEAR_ALL, "清除所有统计");
+        setValue(L.LABEL_STATISTICS_FORGET, "忘记");
+        setValue(L.LABEL_STATISTICS_RECORD, "记录写作统计");
+        setValue(L.LABEL_STATISTICS_KEEP_MONTHS, "统计保留时间（月数，0 = 永久）");
+        setValue(L.LABEL_STATISTICS_CLEAR_USER, "清除用户的统计");
+        setValue(L.LABEL_STATISTICS_CLEAR_EVERYONE, "清除所有人的统计");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -1719,6 +1726,13 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_NOTIFICATION_TEST, "此浏览器中的通知可正常工作。");
         setValue(L.MSG_AUTHORSHIP_RATIO, "%1$d%% 由你撰写，%2$d%% 由模型生成（共 %3$d 词）");
         setValue(L.MSG_SHOW_IMAGES_TO_READERS_HELP, "已发布书籍的读者可以看到各章节的图片。关闭后只显示文字；你自己始终能看到图片。");
+        setValue(L.MSG_CONFIRM_STATISTICS_CLEAR_BOOK, "要永久删除本书的所有统计吗？书本身不会改变。");
+        setValue(L.MSG_CONFIRM_STATISTICS_CLEAR_ALL, "要永久删除您所有书籍的统计吗？书本身不会改变。");
+        setValue(L.MSG_CONFIRM_STATISTICS_FORGET, "要永久删除“%s”的统计吗？");
+        setValue(L.MSG_CONFIRM_STATISTICS_CLEAR_USER, "要永久删除 %s 的所有统计吗？");
+        setValue(L.MSG_CONFIRM_STATISTICS_CLEAR_EVERYONE, "要永久删除所有用户的统计吗？任何人的书都不会改变。");
+        setValue(L.MSG_STATISTICS_CLEARED, "统计已删除。");
+        setValue(L.MSG_STATISTICS_RECORDING_OFF, "统计记录已关闭：不会再统计新的内容。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");
@@ -1834,6 +1848,9 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.HELP_OWN_SCAN_DEPTH, "该世界书作为另一个世界书的子世界书时，其条目的扫描深度（0 = 不会被其他条目的内容找到）。留空 = 书籍所用世界书的扫描深度。");
         setValue(L.HELP_AUTHORSHIP, "根据当前分支每个部分的历史记录计算：模型或代理写的词，以及你输入或修改的词。它会读取所有版本，因此长篇书籍需要一些时间。");
         setValue(L.HELP_INCLUDE_AUTHORSHIP, "在导出文本末尾添加说明：你写了多少词、模型生成了多少词。措辞是导出设置中的模板。");
+        setValue(L.HELP_STATISTICS_RECORD, "关闭后，不再为您的书记录新的数量、时间和大小。已记录的内容会保留，直到您清除。管理员也可能已为所有人关闭记录。");
+        setValue(L.HELP_STATISTICS_KEEP_MONTHS, "较早的日期每天永久删除一次。0 表示全部保留。管理员可能设置了更短的期限。");
+        setValue(L.HELP_STATISTICS_ADMIN, "统计会保留用户何时处理书籍、用了多长时间，以及书名和文件夹（包括已删除的书）。您可以关闭记录或限制保留时间；用户可以为自己选择更短的时间。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景设定与世界观。");

@@ -188,4 +188,18 @@ public class JpaManuscriptStatisticRepository extends JpaOwnedRepository<Manuscr
         }
         return new StatisticCounts(v[0], v[1], v[2], v[3], v[4], v[5], v[6], v[7], v[8]);
     }
+
+    @Override
+    public int deleteBefore(User owner, LocalDate day) {
+        return entityManager
+                .createQuery("DELETE FROM ManuscriptStatistic s WHERE s.owner.id = :owner AND s.day < :day")
+                .setParameter("owner", owner.getId())
+                .setParameter("day", day)
+                .executeUpdate();
+    }
+
+    @Override
+    public int deleteEverything() {
+        return entityManager.createQuery("DELETE FROM ManuscriptStatistic s").executeUpdate();
+    }
 }

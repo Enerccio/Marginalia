@@ -6,14 +6,20 @@ import com.github.enerccio.marginalia.domain.collections.StatisticSide;
 import com.github.enerccio.marginalia.domain.components.*;
 import com.github.enerccio.marginalia.domain.components.StatisticReport.BookLine;
 import com.github.enerccio.marginalia.domain.components.StatisticReport.DayLine;
+import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.service.ManuscriptStatisticService;
 import com.github.enerccio.marginalia.domain.service.StatisticReportService;
+import com.github.enerccio.marginalia.domain.service.StatisticsPolicyService;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.widgets.ChartJs;
+import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.google.gson.Gson;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.datepicker.DatePicker;
@@ -23,6 +29,7 @@ import com.vaadin.flow.component.grid.GridSortOrder;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.FlexLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.radiobutton.RadioButtonGroup;
@@ -60,6 +67,12 @@ public class StatisticsView extends VerticalLayout {
 
     @Autowired
     private ManuscriptStatisticService statisticService;
+
+    @Autowired
+    private StatisticsPolicyService policyService;
+
+    @Autowired
+    private User currentUser;
 
     private final String bookUuid;
     private final boolean compact;
@@ -219,9 +232,32 @@ public class StatisticsView extends VerticalLayout {
         side.setValue(StatisticSide.ALL);
         side.addValueChangeListener(_ -> reload());
 
-        FlexLayout controls = new FlexLayout(range, from, to, side);
+        Button clear = new Button(loc.getValue(bookUuid == null ? L.LABEL_STATISTICS_CLEAR_ALL : L.LABEL_STATISTICS_CLEAR_BOOK),
+                _ -> ConfirmDialog.show(loc.getValue(bookUuid == null ? L.MSG_CONFIRM_STATISTICS_CLEAR_ALL
+                        : L.MSG_CONFIRM_STATISTICS_CLEAR_BOOK), () -> clear(bookUuid)));
+        clear.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_ERROR);
+
+        FlexLayout controls = new FlexLayout(range, from, to, side, clear);
         controls.addClassNames(CssStyles.FLEX_WRAP, CssStyles.GAP_S);
+        controls.setAlignItems(FlexComponent.Alignment.END);
         return controls;
+    }
+
+    /**
+     * Deletes for good the statistics of the book (all of them when null), after the user said yes.
+     */
+    void clear(String uuid) {
+        try {
+            if (uuid == null) {
+                statisticService.clearAll();
+            } else {
+                statisticService.clearBook(uuid);
+            }
+            Notification.success(loc.getValue(L.MSG_STATISTICS_CLEARED));
+            reload();
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
     }
 
     // ---------------------------------------------------------------------------------------------------------------
@@ -315,6 +351,7 @@ public class StatisticsView extends VerticalLayout {
                 .setTextAlign(ColumnTextAlign.END).setAutoWidth(true).setFlexGrow(0)
                 .setComparator(Comparator.comparingLong(line -> line.book().counts().wordsAdded()));
         booksGrid.sort(List.of(new GridSortOrder<>(share, SortDirection.DESCENDING)));
+        booksGrid.addComponentColumn(this::forgetButton).setAutoWidth(true).setFlexGrow(0);
         booksGrid.addItemClickListener(event -> {
             BookLine line = event.getItem();
             if (onOpenBook != null && !line.book().deleted()) {
@@ -403,6 +440,21 @@ public class StatisticsView extends VerticalLayout {
         return cell;
     }
 
+    /**
+     * The button that deletes the statistics of a book that is in the trash or gone; the other books are cleared in their own window.
+     */
+    Component forgetButton(BookLine line) {
+        if (!line.book().deleted()) {
+            return new Span();
+        }
+        Button forget = new Button(loc.getValue(L.LABEL_STATISTICS_FORGET), _ -> {
+            String name = line.book().bookName().isEmpty() ? line.book().bookUuid() : line.book().bookName();
+            ConfirmDialog.show(String.format(loc.getValue(L.MSG_CONFIRM_STATISTICS_FORGET), name), () -> clear(line.book().bookUuid()));
+        });
+        forget.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_ERROR);
+        return forget;
+    }
+
     private String share(BookLine line) {
         long all = report == null ? 0 : report.total().wordsAdded();
         return all <= 0 ? "" : Math.round(100.0 * line.book().counts().wordsAdded() / all) + " %";
@@ -453,6 +505,9 @@ public class StatisticsView extends VerticalLayout {
 
         notes.removeAll();
         List<String> lines = new ArrayList<>();
+        if (!policyService.isRecording(currentUser)) {
+            lines.add(loc.getValue(L.MSG_STATISTICS_RECORDING_OFF));
+        }
         if (report.isEmpty()) {
             lines.add(loc.getValue(L.MSG_STATISTICS_EMPTY));
         }

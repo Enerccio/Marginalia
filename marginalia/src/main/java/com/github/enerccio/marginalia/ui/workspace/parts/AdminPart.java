@@ -84,6 +84,7 @@ public class AdminPart implements WorkspaceComponent {
     private final ResourceGarbagePanel resourceGarbagePanel;
     private final HelpAssistantPanel helpAssistantPanel = new HelpAssistantPanel();
     private final AgentSettingsPanel agentSettingsPanel = new AgentSettingsPanel();
+    private final StatisticsPanel statisticsPanel = new StatisticsPanel();
 
     public AdminPart(Workspace workspace) {
         this(workspace, false);
@@ -107,6 +108,7 @@ public class AdminPart implements WorkspaceComponent {
                     @APILocals(name = "resourceFilesTab", type = Tab.class),
                     @APILocals(name = "helpTab", type = Tab.class),
                     @APILocals(name = "agentsTab", type = Tab.class),
+                    @APILocals(name = "statisticsTab", type = Tab.class),
                     @APILocals(name = "extensionsTab", type = Tab.class),
                     @APILocals(name = "extensionsContent", type = Component.class),
                     @APILocals(name = "container", type = Div.class)})
@@ -134,12 +136,16 @@ public class AdminPart implements WorkspaceComponent {
         Tab agentsTab = new Tab(loc.getValue(L.LABEL_AGENTS));
         tabSheet.add(agentsTab, agentSettingsPanel.create());
 
+        Tab statisticsTab = new Tab(loc.getValue(L.LABEL_STATISTICS));
+        tabSheet.add(statisticsTab, statisticsPanel.create());
+
         adminTabs = tabSheet;
         adminPanels.put(databaseTab, databaseBackupPanel);
         adminPanels.put(cleanupTab, cleanupPanel);
         adminPanels.put(resourceFilesTab, resourceGarbagePanel);
         adminPanels.put(helpTab, helpAssistantPanel);
         adminPanels.put(agentsTab, agentSettingsPanel);
+        adminPanels.put(statisticsTab, statisticsPanel);
 
         Tab extensionsTab = new Tab(loc.getValue(L.LABEL_EXTENSIONS));
         shownExtensionsTab = extensionsTab;
@@ -163,7 +169,7 @@ public class AdminPart implements WorkspaceComponent {
             return "";
         }
         Tab selected = adminTabs.getSelectedTab();
-        return "The Admin page, for administrators. Its tabs: Users, Database Backups, Cleanup, Resource Files, Help assistant, Agents, Extensions. "
+        return "The Admin page, for administrators. Its tabs: Users, Database Backups, Cleanup, Resource Files, Help assistant, Agents, Statistics, Extensions. "
                 + "The open tab is **" + (selected == null ? "" : selected.getLabel()) + "**."
                 + (selected != null && !adminPanels.containsKey(selected)
                 ? " (The user and extension lists are tables with buttons to add, edit and delete.)" : "");

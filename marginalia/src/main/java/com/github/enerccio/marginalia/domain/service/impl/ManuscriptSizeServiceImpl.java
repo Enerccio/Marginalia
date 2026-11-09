@@ -6,11 +6,8 @@ import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.ManuscriptSize;
 import com.github.enerccio.marginalia.domain.repository.ManuscriptSizeRepository;
 import com.github.enerccio.marginalia.domain.security.model.User;
-import com.github.enerccio.marginalia.domain.service.ChatMessageService;
+import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService.BranchSize;
-import com.github.enerccio.marginalia.domain.service.ManuscriptService;
-import com.github.enerccio.marginalia.domain.service.ManuscriptSizeService;
-import com.github.enerccio.marginalia.domain.service.ManuscriptStatisticService;
 import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
 import com.github.enerccio.marginalia.utils.AppClock;
@@ -24,7 +21,10 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.Clock;
 import java.time.LocalDate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -47,6 +47,10 @@ public class ManuscriptSizeServiceImpl extends OwnedServiceImpl<ManuscriptSize, 
     @Autowired
     @Lazy
     private ChatMessageService chatMessageService;
+
+    @Autowired
+    @Lazy
+    private StatisticsPolicyService policyService;
 
     @Autowired
     @Qualifier("common")
@@ -72,6 +76,9 @@ public class ManuscriptSizeServiceImpl extends OwnedServiceImpl<ManuscriptSize, 
     public void set(Manuscript book, LocalDate day, long bookWords, long bookTokens, long branchWords, long branchTokens,
                     String leafUuid, boolean baseline) {
         if (book == null || book.getUuid() == null || book.getOwner() == null || day == null) {
+            return;
+        }
+        if (!policyService.isRecording(book.getOwner())) {
             return;
         }
         try {
@@ -192,7 +199,8 @@ public class ManuscriptSizeServiceImpl extends OwnedServiceImpl<ManuscriptSize, 
     private void measure(Long bookId, boolean born) {
         try {
             Manuscript book = manuscriptService.find(bookId);
-            if (book == null || book.isDeleted() || book.isAgentic() || book.getOwner() == null) {
+            if (book == null || book.isDeleted() || book.isAgentic() || book.getOwner() == null
+                    || !policyService.isRecording(book.getOwner())) {
                 return;
             }
             long words = chatMessageService.getTotalWordCount(book);

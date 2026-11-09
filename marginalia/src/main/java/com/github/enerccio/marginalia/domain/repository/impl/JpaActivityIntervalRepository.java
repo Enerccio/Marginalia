@@ -9,6 +9,7 @@ import com.github.enerccio.marginalia.domain.security.model.User;
 import jakarta.persistence.Query;
 import jakarta.persistence.TypedQuery;
 
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -76,5 +77,19 @@ public class JpaActivityIntervalRepository extends JpaOwnedRepository<ActivityIn
                 .createQuery("DELETE FROM ActivityInterval i WHERE i.owner.id = :owner")
                 .setParameter("owner", owner.getId())
                 .executeUpdate();
+    }
+
+    @Override
+    public int deleteBefore(User owner, LocalDate day) {
+        return entityManager
+                .createQuery("DELETE FROM ActivityInterval i WHERE i.owner.id = :owner AND i.day < :day")
+                .setParameter("owner", owner.getId())
+                .setParameter("day", day)
+                .executeUpdate();
+    }
+
+    @Override
+    public int deleteEverything() {
+        return entityManager.createQuery("DELETE FROM ActivityInterval i").executeUpdate();
     }
 }

@@ -50,6 +50,10 @@ public class ManuscriptStatisticServiceImpl extends OwnedServiceImpl<ManuscriptS
 
     @Autowired
     @Lazy
+    private StatisticsPolicyService policyService;
+
+    @Autowired
+    @Lazy
     private ManuscriptRepository manuscriptRepository;
 
     @Autowired
@@ -91,6 +95,9 @@ public class ManuscriptStatisticServiceImpl extends OwnedServiceImpl<ManuscriptS
                 if (target == null || target.getOwner() == null) {
                     return;
                 }
+            }
+            if (!policyService.isRecording(target.getOwner())) {
+                return;
             }
             Date now = new Date(clock.millis());
             LocalDate day = LocalDate.now(clock);

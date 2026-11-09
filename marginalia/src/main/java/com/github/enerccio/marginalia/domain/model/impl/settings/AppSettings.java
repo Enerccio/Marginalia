@@ -161,6 +161,39 @@ public class AppSettings extends Setting {
     @ExtendedAttribute
     private String defaultAgentCompactionPrompt;
 
+    // writing statistics
+
+    /**
+     * Whether the writing statistics are recorded at all; null (the default) is on. Off stops it for every user, whatever they chose.
+     */
+    @Transient
+    @ExtendedAttribute
+    private Boolean statisticsRecording;
+
+    /**
+     * How many months of the writing statistics are kept for every user, older days are deleted for good; null or zero keeps everything.
+     * A user may choose a shorter time, never a longer one.
+     */
+    @Transient
+    @ExtendedAttribute
+    private Integer statisticsKeepMonths;
+
+    public boolean isStatisticsRecording() {
+        return statisticsRecording == null || statisticsRecording;
+    }
+
+    public void setStatisticsRecording(Boolean statisticsRecording) {
+        this.statisticsRecording = statisticsRecording;
+    }
+
+    public Integer getStatisticsKeepMonths() {
+        return statisticsKeepMonths;
+    }
+
+    public void setStatisticsKeepMonths(Integer statisticsKeepMonths) {
+        this.statisticsKeepMonths = statisticsKeepMonths;
+    }
+
     public Integer getDbVersion() {
         return dbVersion;
     }

@@ -104,6 +104,10 @@ public class ActivityTrackerImpl implements ActivityTracker {
 
     @Autowired
     @Lazy
+    private StatisticsPolicyService policyService;
+
+    @Autowired
+    @Lazy
     private ManuscriptSizeService sizeService;
 
     private final Object lock = new Object();
@@ -536,6 +540,11 @@ public class ActivityTrackerImpl implements ActivityTracker {
         Manuscript[] book = new Manuscript[1];
         boolean gone = false;
 
+        if (!recording(job, book)) {
+            // recording is off for the owner: nothing is written, and what comes after starts a stretch of its own
+            finished(job, end, null);
+            return;
+        }
         if (rowId == null && end == start && job.finishing()) {
             // opened and closed in the same instant: nothing to record
             finished(job, start, null);
@@ -575,6 +584,14 @@ public class ActivityTrackerImpl implements ActivityTracker {
             return;
         }
         finished(job, start, rowId);
+    }
+
+    /** Whether the owner of the book records the statistics; true for a book that can't be found, the writing below deals with it. */
+    private boolean recording(Snapshot job, Manuscript[] book) throws Exception {
+        if (book[0] == null) {
+            book[0] = manuscriptService.find(job.stretch().bookId);
+        }
+        return book[0] == null || book[0].getOwner() == null || policyService.isRecording(book[0].getOwner());
     }
 
     private Long insert(Snapshot job, Manuscript[] book, long start) throws Exception {

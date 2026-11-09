@@ -531,7 +531,7 @@ transaction, retried on a lock; it runs once and writes nothing for a book that 
   author's side; the agents' side and opening the book do not make a day (a rule of the widget, one place to change). Needs only
   the day queries of the *Global statistics* and a new component with CSS classes, so it can be added at any time after the
   first version without touching what is stored.
-- **Retention and privacy (later, not in the first version).** The size of the data is not a concern (a count row is some 150
+- **Retention and privacy (done, `StatisticsPolicyService`; only the last point below is open).** The size of the data is not a concern (a count row is some 150
   bytes a day, an interval or a size row some 100: megabytes over years), **privacy is**: the tables keep when the author worked,
   for how long, and the name and folder path of every book, also of the books that were deleted. What exists in the design is the
   user's own *Clear statistics* and *Forget* (a book, a deleted book, all). What is left for a longer item of the TODO, to be
@@ -541,3 +541,5 @@ transaction, retried on a lock; it runs once and writes nothing for a book that 
   instance); whether a purged book should lose its name in the rows (keep only the `uuid` and numbers, show *Deleted book*) instead
   of keeping the name for the list; and whether the statistics should be in the database backup and its restore (they are, as part of
   the database; the per-book backup does not carry them).
+
+Open from the privacy item: a purged book still keeps its name and folder path in the rows (the user can *Forget* it, the administrator can clear the user); losing the name on purge (keeping only the `uuid` and numbers, showing *Deleted book*) was not done.

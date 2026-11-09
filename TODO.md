@@ -288,9 +288,7 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
     (`StatisticsBackfillMigration`, shown marked `~`; the time cannot be rebuilt). *Statistics* in the settings menu of the story and in the book list (desktop
     and phone, `StatisticsDialog`, `GlobalStatisticsDialog` and the phone twins): ranges, All / Me / Agents, a grid by day, charts, a list and a chart by book,
     a *Calendar* tab with streaks and the daily goals (words written, minutes of editing; set in the user settings). Commands `get-book-statistics` and
-    `get-statistics` (agents may use them). Plugins that ask a model about a book open `UsageContext`. Not done: the privacy side (the user's own *Clear
-    statistics* / *Forget* a book, an administrator action to clear the history of a user or of everybody, keep only the last N months, a switch to turn
-    recording off per user and per instance, losing the name of a purged book in the rows); the per-book backup does not carry the statistics (the database
+    `get-statistics` (agents may use them). Plugins that ask a model about a book open `UsageContext`. The privacy side is done (*Clear statistics* and *Forget* for the user, a switch to turn recording off and a limit of months to keep per user and per instance, an administrator action to clear a user or everybody; `StatisticsPolicyService`). Not done: losing the name of a purged book in the rows; the per-book backup does not carry the statistics (the database
     backup does); compacting `activity_intervals` if the *All time* union gets slow; a goal per book; the price of the tokens (see 65).
 30. ✅ **Undo for edits** — done in 1.6.0 as the *version history of a part* (`MessageRevision`, migration `V22`; *History (n)* in the part menu, desktop and
     phone): every text of a part is kept with who wrote it (model with reasoning, author, mass action, agent, extension, merge, restore), versions can be compared

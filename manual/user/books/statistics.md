@@ -122,6 +122,24 @@ the tokens of a rebuilt day are only a floor. The **time** cannot be rebuilt, be
 day it is recorded (*The time is recorded from ...*), the days before it show a dash and are left out of the time chart. The
 **calendar** counts a rebuilt day as worked on, like any other.
 
+## Privacy: clearing, not recording, keeping less
+
+The statistics say when you worked on a book, for how long, and keep the name and folder of every book, also of the books you
+deleted. They are yours, and you decide what is left of them.
+
+- **Clear the statistics of this book** (button in the window of a book) and **Clear all statistics** (in the window of all
+  books) delete the counts, the times and the sizes for good, after a question. The books are not changed. The counting goes on
+  afterwards, from nothing.
+- In the list of books, a book that is in the trash or gone has **Forget**, which deletes only its statistics.
+- **Record writing statistics** in the [settings](../account.md) turns the counting off for your books. What was recorded stays until
+  you clear it; the window says that nothing new is counted. An administrator can also turn the recording off for everybody, with the
+  same note.
+- **Keep statistics for (months)** in the settings deletes the days older than that, once a day and when you save. Empty or 0 keeps
+  everything. The administrator can set a limit for everybody, and the shorter of the two is used. Of the sizes of a book the last one
+  before the limit stays, so that the growth of the first day that is kept can still be worked out.
+
+The [administrator](../administration/statistics.md) can clear the statistics of one user or of all users.
+
 ## Commands
 
 Two [commands](../commands/index.md) read the same numbers: `/get-book-statistics [range] [side]` for the open book, day by day, and

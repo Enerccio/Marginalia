@@ -1005,6 +1005,13 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_CALCULATE, "Calculate");
         setValue(L.LABEL_PLAY, "Play");
         setValue(L.LABEL_SHOW_IMAGES_TO_READERS, "Show the images to readers");
+        setValue(L.LABEL_STATISTICS_CLEAR_BOOK, "Clear the statistics of this book");
+        setValue(L.LABEL_STATISTICS_CLEAR_ALL, "Clear all statistics");
+        setValue(L.LABEL_STATISTICS_FORGET, "Forget");
+        setValue(L.LABEL_STATISTICS_RECORD, "Record writing statistics");
+        setValue(L.LABEL_STATISTICS_KEEP_MONTHS, "Keep statistics for (months, 0 = always)");
+        setValue(L.LABEL_STATISTICS_CLEAR_USER, "Clear the statistics of the user");
+        setValue(L.LABEL_STATISTICS_CLEAR_EVERYONE, "Clear the statistics of everybody");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -1711,6 +1718,13 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_NOTIFICATION_TEST, "Notifications work in this browser.");
         setValue(L.MSG_AUTHORSHIP_RATIO, "%1$d%% written by you, %2$d%% generated (%3$d words)");
         setValue(L.MSG_SHOW_IMAGES_TO_READERS_HELP, "Readers of a published book see the images of its parts. Turn it off to show them the text only; you always see your images.");
+        setValue(L.MSG_CONFIRM_STATISTICS_CLEAR_BOOK, "Delete all the statistics of this book for good? The book itself is not changed.");
+        setValue(L.MSG_CONFIRM_STATISTICS_CLEAR_ALL, "Delete all your statistics, of all books, for good? Your books are not changed.");
+        setValue(L.MSG_CONFIRM_STATISTICS_FORGET, "Delete the statistics of \"%s\" for good?");
+        setValue(L.MSG_CONFIRM_STATISTICS_CLEAR_USER, "Delete all the statistics of %s for good?");
+        setValue(L.MSG_CONFIRM_STATISTICS_CLEAR_EVERYONE, "Delete the statistics of all users for good? Nobody's books are changed.");
+        setValue(L.MSG_STATISTICS_CLEARED, "The statistics were deleted.");
+        setValue(L.MSG_STATISTICS_RECORDING_OFF, "Recording of statistics is turned off: nothing new is counted.");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");
@@ -1826,6 +1840,9 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_OWN_SCAN_DEPTH, "The scan depth of the entries of this lorebook while it is a sub lorebook of another one (0 = never found by the content of other entries). Empty = the scan depth of the lorebook the book uses.");
         setValue(L.HELP_AUTHORSHIP, "Worked out from the history of every part of the active branch: the words a model or an agent wrote, and the words you typed or changed. It reads all the versions, so it takes a while on a long book.");
         setValue(L.HELP_INCLUDE_AUTHORSHIP, "Adds a statement at the end of the exported text: how many words you wrote and how many a model generated. The wording is a template in the export settings.");
+        setValue(L.HELP_STATISTICS_RECORD, "When off, no new counts, times or sizes are recorded for your books. What was recorded stays until you clear it. An administrator may have turned recording off for everybody.");
+        setValue(L.HELP_STATISTICS_KEEP_MONTHS, "Older days are deleted for good once a day. 0 keeps everything. The administrator may keep less.");
+        setValue(L.HELP_STATISTICS_ADMIN, "The statistics keep when users worked on their books, for how long, and the names and folders of their books, also of deleted ones. Turn recording off or limit how long it is kept; users may choose a shorter time for themselves.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Background lore and world context.");

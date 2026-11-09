@@ -1005,6 +1005,13 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_CALCULATE, "計算");
         setValue(L.LABEL_PLAY, "再生");
         setValue(L.LABEL_SHOW_IMAGES_TO_READERS, "読者に画像を表示");
+        setValue(L.LABEL_STATISTICS_CLEAR_BOOK, "この本の統計を消去");
+        setValue(L.LABEL_STATISTICS_CLEAR_ALL, "すべての統計を消去");
+        setValue(L.LABEL_STATISTICS_FORGET, "忘れる");
+        setValue(L.LABEL_STATISTICS_RECORD, "執筆統計を記録する");
+        setValue(L.LABEL_STATISTICS_KEEP_MONTHS, "統計を保存する期間（月数、0 = 無期限）");
+        setValue(L.LABEL_STATISTICS_CLEAR_USER, "ユーザーの統計を消去");
+        setValue(L.LABEL_STATISTICS_CLEAR_EVERYONE, "全員の統計を消去");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -1711,6 +1718,13 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_NOTIFICATION_TEST, "このブラウザで通知は動作しています。");
         setValue(L.MSG_AUTHORSHIP_RATIO, "%1$d%%が自分で執筆、%2$d%%が生成（%3$d語）");
         setValue(L.MSG_SHOW_IMAGES_TO_READERS_HELP, "公開した本の読者にパートの画像を表示します。オフにすると本文だけが表示されます。自分には常に画像が表示されます。");
+        setValue(L.MSG_CONFIRM_STATISTICS_CLEAR_BOOK, "この本の統計をすべて完全に削除しますか？本そのものは変更されません。");
+        setValue(L.MSG_CONFIRM_STATISTICS_CLEAR_ALL, "すべての本の統計を完全に削除しますか？本は変更されません。");
+        setValue(L.MSG_CONFIRM_STATISTICS_FORGET, "「%s」の統計を完全に削除しますか？");
+        setValue(L.MSG_CONFIRM_STATISTICS_CLEAR_USER, "%s の統計をすべて完全に削除しますか？");
+        setValue(L.MSG_CONFIRM_STATISTICS_CLEAR_EVERYONE, "全ユーザーの統計を完全に削除しますか？誰の本も変更されません。");
+        setValue(L.MSG_STATISTICS_CLEARED, "統計を削除しました。");
+        setValue(L.MSG_STATISTICS_RECORDING_OFF, "統計の記録はオフです。新しい記録は取られません。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");
@@ -1826,6 +1840,9 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_OWN_SCAN_DEPTH, "このロアブックが別のロアブックのサブとして使われるときの、そのエントリのスキャン深度（0 = 他のエントリの内容では見つからない）。空 = 本が使うロアブックのスキャン深度。");
         setValue(L.HELP_AUTHORSHIP, "有効なブランチの各パートの履歴から求めます：モデルまたはエージェントが書いた単語と、自分で入力または変更した単語。すべてのバージョンを読むため、長い本では時間がかかります。");
         setValue(L.HELP_INCLUDE_AUTHORSHIP, "エクスポートしたテキストの末尾に、自分で書いた単語数とモデルが生成した単語数の説明を加えます。文面はエクスポート設定のテンプレートです。");
+        setValue(L.HELP_STATISTICS_RECORD, "オフにすると、あなたの本の新しい件数・時間・サイズは記録されません。すでに記録されたものは消去するまで残ります。管理者が全員の記録をオフにしている場合もあります。");
+        setValue(L.HELP_STATISTICS_KEEP_MONTHS, "古い日は1日に1回、完全に削除されます。0 ですべて保存します。管理者がより短く設定している場合があります。");
+        setValue(L.HELP_STATISTICS_ADMIN, "統計には、ユーザーがいつ本に取り組んだか、どれだけの時間か、本の名前とフォルダー（削除した本も）が残ります。記録をオフにするか、保存期間を制限できます。ユーザーは自分用にさらに短く設定できます。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景設定と世界観の文脈。");

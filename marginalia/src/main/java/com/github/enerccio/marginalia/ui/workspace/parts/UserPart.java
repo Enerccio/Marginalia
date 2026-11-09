@@ -110,6 +110,9 @@ public class UserPart implements WorkspaceComponent {
     private NotificationService notificationService;
 
     @Autowired
+    private StatisticsPolicyService statisticsPolicyService;
+
+    @Autowired
     private User currentUser;
 
     private final Workspace workspace;
@@ -129,6 +132,8 @@ public class UserPart implements WorkspaceComponent {
     private IntegerField storyPartsLimitField;
     private IntegerField dailyGoalWordsField;
     private IntegerField dailyGoalMinutesField;
+    private Checkbox statisticsRecordingBox;
+    private IntegerField statisticsKeepMonthsField;
     private HistoryLimitField historyLimitField;
     // the message to a URL when an agent needs the user, for users who may use agents
     private TextField agentWebhookUrlField;
@@ -216,6 +221,7 @@ public class UserPart implements WorkspaceComponent {
         defaultsFormLayout.add(storyPartsLimitField);
         defaultsFormLayout.add(historyLimitField);
         defaultsFormLayout.add(dailyGoalWordsField, dailyGoalMinutesField);
+        defaultsFormLayout.add(statisticsRecordingBox, statisticsKeepMonthsField);
         defaultsFormLayout.add(agentWebhookUrlField, 2);
         defaultsFormLayout.add(agentWebhookFormatCombo, agentWebhookAlwaysBox);
         defaultsFormLayout.add(agentWebhookTestButton, 2);
@@ -503,6 +509,14 @@ public class UserPart implements WorkspaceComponent {
         // one help text for the two goals
         dailyGoalMinutesField.setHelperText(null);
 
+        statisticsRecordingBox = new Checkbox(loc.getValue(L.LABEL_STATISTICS_RECORD));
+        statisticsRecordingBox.setHelperText(loc.getValue(L.HELP_STATISTICS_RECORD));
+        statisticsKeepMonthsField = new IntegerField(loc.getValue(L.LABEL_STATISTICS_KEEP_MONTHS));
+        statisticsKeepMonthsField.setWidthFull();
+        statisticsKeepMonthsField.setMin(0);
+        statisticsKeepMonthsField.setStepButtonsVisible(true);
+        statisticsKeepMonthsField.setHelperText(loc.getValue(L.HELP_STATISTICS_KEEP_MONTHS));
+
         agentWebhookUrlField = new TextField(loc.getValue(L.LABEL_AGENT_WEBHOOK_URL));
         agentWebhookUrlField.setWidthFull();
         agentWebhookUrlField.setClearButtonVisible(true);
@@ -655,6 +669,10 @@ public class UserPart implements WorkspaceComponent {
     /**
      * Sends a message to the address as it stands in the field, saved or not, and tells what the service answered.
      */
+    private static Integer positiveOrNull(Integer value) {
+        return value != null && value > 0 ? value : null;
+    }
+
     /**
      * The address, its format and the wish for the message while the application is open, into the setting. Only for a user who
      * sees them: they are hidden where the administrator turned the messages off, and what was set stays then.
@@ -812,6 +830,8 @@ public class UserPart implements WorkspaceComponent {
             historyLimitField.load(userSetting.getHistoryMaxVersions(), manuscriptService.resolvePermissionHistoryLimit());
             dailyGoalWordsField.setValue(userSetting.getDailyGoalWords());
             dailyGoalMinutesField.setValue(userSetting.getDailyGoalMinutes());
+            statisticsRecordingBox.setValue(userSetting.isStatisticsRecording());
+            statisticsKeepMonthsField.setValue(userSetting.getStatisticsKeepMonths());
             masterTemplateField.setValue(StringUtils.defaultString(userSetting.getMasterTemplate()));
             defaultPovField.setValue(StringUtils.defaultString(userSetting.getDefaultPov()));
             defaultTenseField.setValue(StringUtils.defaultString(userSetting.getDefaultTense()));
@@ -1004,6 +1024,8 @@ public class UserPart implements WorkspaceComponent {
             userSetting.setHistoryMaxVersions(historyLimitField.getValue());
             userSetting.setDailyGoalWords(dailyGoalWordsField.getValue());
             userSetting.setDailyGoalMinutes(dailyGoalMinutesField.getValue());
+            userSetting.setStatisticsRecording(statisticsRecordingBox.getValue() ? null : Boolean.FALSE);
+            userSetting.setStatisticsKeepMonths(positiveOrNull(statisticsKeepMonthsField.getValue()));
 
             userSetting.setMasterTemplate(masterTemplate);
             userSetting.setDefaultPov(defaultPov);
@@ -1029,6 +1051,8 @@ public class UserPart implements WorkspaceComponent {
             userSetting.setKeyBindings(KeyBindings.toStored(userSetting.getKeyBindings(), keyBindingsEditor.getValue()));
 
             settingService.save(userSetting);
+            statisticsPolicyService.invalidate();
+            statisticsPolicyService.prune(currentUser);
             if (stylesEditor != null) {
                 stylesEditor.save();
             }
