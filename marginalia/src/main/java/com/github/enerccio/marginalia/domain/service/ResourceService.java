@@ -124,4 +124,23 @@ public interface ResourceService extends OwnedService<Resource, ResourceReposito
      */
     Resource findImage(String uuid) throws Exception;
 
+    /**
+     * An image of the current user, or an image linked to a part of a book they may view: a published one, when its
+     * {@link com.github.enerccio.marginalia.domain.model.impl.Manuscript#isShowImagesToReaders() setting} lets readers see the images.
+     * The content of the returned resource can be read with {@link #getResourceData} either way.
+     *
+     * @return the image, null when it is none of these
+     */
+    Resource findImageForReader(String uuid, String manuscriptUuid) throws Exception;
+
+    /**
+     * The content of a resource that is linked to a part of a book the current user may view: their own book, or a published
+     * one, whoever owns it (the resource is read from its owner's folder). This is how the readers of a published book get the
+     * files its parts carry (the audio of the Audiobook extension). Images are not read this way, see {@link #findImageForReader}.
+     *
+     * @return the bytes, null when the book can't be viewed by the user, or the resource is deleted, belongs to somebody else
+     * than the owner of the book, is an image, or is not linked to a part of the book
+     */
+    byte[] readForReader(String resourceUuid, String manuscriptUuid) throws Exception;
+
 }

@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.domain.repository.impl;
 
 import com.github.enerccio.marginalia.domain.model.BaseEntity;
+import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Resource;
 import com.github.enerccio.marginalia.domain.repository.ResourceRepository;
 import com.github.enerccio.marginalia.domain.security.model.User;
@@ -21,6 +22,21 @@ public class JpaResourceRepository extends JpaOwnedRepository<Resource> implemen
                 .createQuery("SELECT r FROM Resource r WHERE r.hash = :hash AND r.owner.id = :owner", Resource.class)
                 .setParameter("owner", owner.getId())
                 .setParameter("hash", hash)
+                .getResultList();
+        return resources.isEmpty() ? null : resources.getFirst();
+    }
+
+    @Override
+    public Resource findOfViewableBook(String uuid, String manuscriptUuid, User reader) throws Exception {
+        List<Resource> resources = getEntityManager()
+                .createQuery("SELECT r FROM Resource r, Manuscript m WHERE r.uuid = :uuid AND r.deleted = false AND m.uuid = :book AND m.deleted = false"
+                        + " AND (m.owner.id = :reader OR m.published = true) AND r.owner.id = m.owner.id AND r.clazz = :clazz"
+                        + " AND r.objectId IN (SELECT c.id FROM ChatMessage c WHERE c.parentScript.id = m.id AND c.deleted = false)", Resource.class)
+                .setParameter("uuid", uuid)
+                .setParameter("book", manuscriptUuid)
+                .setParameter("reader", reader.getId())
+                .setParameter("clazz", ChatMessage.class.getName())
+                .setMaxResults(1)
                 .getResultList();
         return resources.isEmpty() ? null : resources.getFirst();
     }

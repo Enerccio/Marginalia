@@ -175,7 +175,7 @@ public class AudiobookExtension implements MarginaliaExtension, ExtensionHasCss 
                 }
                 Map<Long, String> playable = PlayableParts.of(branch);
                 if (!playable.isEmpty()) {
-                    container.add(new AudioPlayer(scrollPanel, contentWrapper, manuscript.getName(), playable, audiobookService));
+                    container.add(new AudioPlayer(scrollPanel, contentWrapper, manuscript.getName(), manuscript.getUuid(), playable, audiobookService));
                 }
             }
         };

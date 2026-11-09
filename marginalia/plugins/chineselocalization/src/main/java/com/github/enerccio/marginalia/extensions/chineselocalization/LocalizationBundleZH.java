@@ -1012,6 +1012,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_AUTHORSHIP, "分支的创作比例");
         setValue(L.LABEL_CALCULATE, "计算");
         setValue(L.LABEL_PLAY, "播放");
+        setValue(L.LABEL_SHOW_IMAGES_TO_READERS, "向读者显示图片");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -1717,6 +1718,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_NOTIFICATION_FAILED, "%s 失败");
         setValue(L.MSG_NOTIFICATION_TEST, "此浏览器中的通知可正常工作。");
         setValue(L.MSG_AUTHORSHIP_RATIO, "%1$d%% 由你撰写，%2$d%% 由模型生成（共 %3$d 词）");
+        setValue(L.MSG_SHOW_IMAGES_TO_READERS_HELP, "已发布书籍的读者可以看到各章节的图片。关闭后只显示文字；你自己始终能看到图片。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");

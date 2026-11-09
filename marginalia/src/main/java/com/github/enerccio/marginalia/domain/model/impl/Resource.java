@@ -1,10 +1,8 @@
 package com.github.enerccio.marginalia.domain.model.impl;
 
 import com.github.enerccio.marginalia.domain.model.OwnedEntity;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Lob;
-import jakarta.persistence.Table;
+import com.github.enerccio.marginalia.domain.security.model.User;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "resources")
@@ -33,6 +31,21 @@ public class Resource extends OwnedEntity {
      */
     @Column(length = 255)
     private String clazz;
+
+    /**
+     * Set only on a resource that {@code ResourceService} gave to a reader of somebody else's published book: the owner, whose folder holds the
+     * file. Never stored.
+     */
+    @Transient
+    private User servedFrom;
+
+    public User getServedFrom() {
+        return servedFrom;
+    }
+
+    public void setServedFrom(User servedFrom) {
+        this.servedFrom = servedFrom;
+    }
 
     public String getMimeType() {
         return mimeType;

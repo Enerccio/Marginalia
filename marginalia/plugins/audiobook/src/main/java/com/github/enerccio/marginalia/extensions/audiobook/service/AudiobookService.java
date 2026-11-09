@@ -1059,21 +1059,19 @@ public class AudiobookService {
         return merged.toPartScript();
     }
 
-    /** The kind of audio a resource of the user is (by the type it was stored with), mp3 when it is not known. */
-    public AudioKind audioKindOf(String resourceUuid) {
+    /**
+     * The bytes of the audio of a part, read for the user who listens: the owner of the book hears their own resource, any other user the audio of
+     * a published book (the core checks that the book can be viewed and that the resource is linked to a part of it, at every request).
+     *
+     * @param manuscriptUuid the book the player is shown for
+     */
+    public byte[] audioBytes(String resourceUuid, String manuscriptUuid) {
         try {
             com.github.enerccio.marginalia.domain.model.impl.Resource resource = resourceService.findForUser(resourceUuid);
-            return resource != null && AudioKind.WAV.mime().equals(resource.getMimeType()) ? AudioKind.WAV : AudioKind.MP3;
-        } catch (Exception e) {
-            return AudioKind.MP3;
-        }
-    }
-
-    /** The bytes of a resource of the user (a joined audio found by {@link PlayableParts}), null when it is not theirs or gone. */
-    public byte[] audioBytes(String resourceUuid) {
-        try {
-            com.github.enerccio.marginalia.domain.model.impl.Resource resource = resourceService.findForUser(resourceUuid);
-            return resource == null ? null : resourceService.getResourceData(resource);
+            if (resource != null) {
+                return resourceService.getResourceData(resource);
+            }
+            return resourceService.readForReader(resourceUuid, manuscriptUuid);
         } catch (RuntimeException e) {
             throw e;
         } catch (Exception e) {

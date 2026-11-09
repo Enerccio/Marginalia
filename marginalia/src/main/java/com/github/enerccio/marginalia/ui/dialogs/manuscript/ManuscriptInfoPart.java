@@ -63,6 +63,7 @@ public class ManuscriptInfoPart implements ManuscriptDialogPart {
     private ComboBox<AI> aiCombo;
     private ComboBox<Protocol> protocolCombo;
     private Checkbox publishedCheckbox;
+    private Checkbox showImagesCheckbox;
 
     private IntegerField totalWordCountField;
     private IntegerField totalTokenCountField;
@@ -95,8 +96,9 @@ public class ManuscriptInfoPart implements ManuscriptDialogPart {
         formLayout.setWidthFull();
         formLayout.add(nameField, tags, descriptionField);
         formLayout.setColspan(descriptionField, 2);
-        formLayout.add(languageCombo, historyLimitField, aiCombo, protocolCombo, publishedCheckbox);
+        formLayout.add(languageCombo, historyLimitField, aiCombo, protocolCombo, publishedCheckbox, showImagesCheckbox);
         formLayout.setColspan(publishedCheckbox, 2);
+        formLayout.setColspan(showImagesCheckbox, 2);
 
         FormLayout syntheticFormLayout = new FormLayout();
         syntheticFormLayout.setWidthFull();
@@ -172,6 +174,13 @@ public class ManuscriptInfoPart implements ManuscriptDialogPart {
             }
         });
 
+        showImagesCheckbox = new Checkbox(loc.getValue(L.LABEL_SHOW_IMAGES_TO_READERS));
+        showImagesCheckbox.setHelperComponent(new Span(loc.getValue(L.MSG_SHOW_IMAGES_TO_READERS_HELP)));
+        showImagesCheckbox.addValueChangeListener(e -> {
+            if (e.isFromClient()) {
+                autosave();
+            }
+        });
         publishedCheckbox = new Checkbox(loc.getValue(L.LABEL_PUBLISHED));
         publishedCheckbox.setHelperComponent(new Span(loc.getValue(L.MSG_PUBLISHED_HELP)));
         publishedCheckbox.addValueChangeListener(e -> {
@@ -252,6 +261,7 @@ public class ManuscriptInfoPart implements ManuscriptDialogPart {
             manuscript.setAi(aiCombo.getValue());
             manuscript.setProtocol(protocolCombo.getValue());
             manuscript.setPublished(Boolean.TRUE.equals(publishedCheckbox.getValue()));
+            manuscript.setShowImagesToReaders(Boolean.TRUE.equals(showImagesCheckbox.getValue()));
 
             manuscript = parent.save();
             parent.setHeaderTitle(manuscript.getName());
@@ -313,6 +323,7 @@ public class ManuscriptInfoPart implements ManuscriptDialogPart {
 
             nameField.setValue(StringUtils.defaultString(manuscript.getName()));
             publishedCheckbox.setValue(manuscript.isPublished());
+            showImagesCheckbox.setValue(manuscript.isShowImagesToReaders());
             descriptionField.setValue(StringUtils.defaultString(manuscript.getDescription()));
             languageCombo.load(manuscript.getOwnLanguage(), manuscript.getFolder());
             historyLimitField.load(manuscript.getHistoryMaxVersions(), manuscriptService.resolveInheritedHistoryLimit(manuscript.getFolder()));

@@ -20,6 +20,7 @@ import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static com.github.enerccio.marginalia.extensions.audiobook.AudiobookLocalization.*;
 
@@ -34,6 +35,7 @@ public class AudioPlayer extends Div {
     private final Component scroller;
     private final Component content;
     private final String title;
+    private final String manuscriptUuid;
     private final Map<Long, String> audio;
     private final AudiobookService service;
     private final List<StreamRegistration> registrations = new ArrayList<>();
@@ -50,12 +52,14 @@ public class AudioPlayer extends Div {
      * @param scroller the scrolling panel of the reader
      * @param content  the layout whose children are the parts (the elements with {@code data-message-id})
      * @param title    the title of the book, for the media controls of the device
+     * @param manuscriptUuid the book (the audio is served to its owner, and to everybody while it is published)
      * @param audio    the resource of the audio of each part that has some, by the id of the part ({@code PlayableParts.of})
      */
-    public AudioPlayer(Component scroller, Component content, String title, Map<Long, String> audio, AudiobookService service) {
+    public AudioPlayer(Component scroller, Component content, String title, String manuscriptUuid, Map<Long, String> audio, AudiobookService service) {
         this.scroller = scroller;
         this.content = content;
         this.title = title == null ? "" : title;
+        this.manuscriptUuid = manuscriptUuid;
         this.audio = audio;
         this.service = service;
         addClassName(AudiobookStyles.PLAYER);
@@ -71,13 +75,23 @@ public class AudioPlayer extends Div {
         UI ui = attachEvent.getUI();
         for (Map.Entry<Long, String> entry : audio.entrySet()) {
             String resource = entry.getValue();
-            // the audio of a part is mp3 or wav, depending on the storage of the installation when it was made
-            AudioKind kind = service.audioKindOf(resource);
-            StreamResource stream = new StreamResource("part-" + entry.getKey() + "." + kind.extension(), () -> {
-                byte[] bytes = service.audioBytes(resource);
+            // the audio of a part is mp3 or wav, depending on the storage of the installation when it was made: told by the bytes, when the
+            // page asks for them (a reader can't look at the resource, it is the owner's)
+            AtomicReference<AudioKind> kind = new AtomicReference<>();
+            StreamResource stream = new StreamResource("part-" + entry.getKey(), () -> {
+                byte[] bytes = service.audioBytes(resource, manuscriptUuid);
+                if (bytes != null) {
+                    kind.set(AudioKind.of(bytes));
+                }
                 return new ByteArrayInputStream(bytes == null ? new byte[0] : bytes);
             });
-            stream.setContentType(kind.mime());
+            stream.setContentTypeResolver((res, context) -> {
+                if (kind.get() == null) {
+                    byte[] bytes = service.audioBytes(resource, manuscriptUuid);
+                    kind.set(bytes == null ? AudioKind.MP3 : AudioKind.of(bytes));
+                }
+                return kind.get().mime();
+            });
             StreamRegistration registration = ui.getSession().getResourceRegistry().registerResource(stream);
             registrations.add(registration);
             urls.addProperty(String.valueOf(entry.getKey()), registration.getResourceUri().toString());

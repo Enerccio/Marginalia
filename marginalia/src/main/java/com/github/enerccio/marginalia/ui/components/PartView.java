@@ -29,8 +29,18 @@ public class PartView extends Div {
     private ResourceService resourceService;
 
     private final MessageImages renderer = new MessageImages(List.of());
+    // the published book the part is read in, null for the author's own windows; the images of a book that is not the reader's are found through it
+    private final String manuscriptUuid;
 
     public PartView(String markdown, List<ImageAttachment> images) {
+        this(markdown, images, null);
+    }
+
+    /**
+     * @param manuscriptUuid the book the part belongs to when it is shown to a reader, who may see the images of a published book
+     */
+    public PartView(String markdown, List<ImageAttachment> images, String manuscriptUuid) {
+        this.manuscriptUuid = manuscriptUuid;
         addClassName(CssStyles.PART_VIEW);
         setContent(markdown, images);
     }
@@ -60,7 +70,7 @@ public class PartView extends Div {
      */
     private Div picture(ImageAttachment attachment, Integer width) {
         try {
-            Resource resource = resourceService.findImage(attachment.resource());
+            Resource resource = resourceService.findImageForReader(attachment.resource(), manuscriptUuid);
             if (resource == null) {
                 return null;
             }

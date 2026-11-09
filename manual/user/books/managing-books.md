@@ -202,6 +202,7 @@ To start a book from a backup file, use **Import Backup as New Book** in the *Se
 | **Protocols** | The [protocol](../protocols.md) with the generation settings. |
 | **Versions kept per part** | How many earlier versions of the text of a part the [history](version-history.md) keeps. Empty means *inherit*: the grey number in the box is the limit that applies and the line under it says which folder, your settings or the administrator sets it. **0** keeps no history. |
 | **Published** | Lets other users read the book, see [Publishing & viewer](publishing.md). Once checked, the reader link of the book (`<address of Marginalia>/view/<book ID>`) is shown under the checkbox; copy it and send it to the readers. |
+| **Show the images to readers** | Checked by default. Readers of a published book see the pictures of its parts; uncheck it to show them the text only. You always see your own pictures. |
 
 Changes are saved as you type.
 

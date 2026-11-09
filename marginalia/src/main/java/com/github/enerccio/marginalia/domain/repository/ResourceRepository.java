@@ -12,6 +12,14 @@ public interface ResourceRepository extends OwnedRepository<Resource> {
     Resource findByHash(String hash, User owner) throws Exception;
 
     /**
+     * A resource that is linked to a part of a book the reader may view (their own, or a published one), whoever owns the book.
+     *
+     * @return the not deleted resource with the uuid that belongs to the owner of the book and is linked to a not deleted part of the book, null
+     * when the book can't be viewed by the reader or the resource is none of these
+     */
+    Resource findOfViewableBook(String uuid, String manuscriptUuid, User reader) throws Exception;
+
+    /**
      * @param sortProperty one of creation, originalName, mimeType, size; anything else sorts by creation
      */
     List<Resource> findPage(User owner, int offset, int limit, String sortProperty, boolean ascending) throws Exception;

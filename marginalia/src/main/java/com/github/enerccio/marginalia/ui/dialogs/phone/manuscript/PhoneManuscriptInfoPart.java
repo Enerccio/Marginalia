@@ -65,6 +65,7 @@ public class PhoneManuscriptInfoPart implements PhoneManuscriptDialogPart {
     private ComboBox<AI> aiCombo;
     private ComboBox<Protocol> protocolCombo;
     private Checkbox publishedCheckbox;
+    private Checkbox showImagesCheckbox;
 
     private Span totalWordCountSpan;
     private Span totalTokenCountSpan;
@@ -98,7 +99,7 @@ public class PhoneManuscriptInfoPart implements PhoneManuscriptDialogPart {
         statistics.setSpacing(false);
         statistics.addClassName(CssStyles.SUBTLE_BOX);
 
-        mainLayout.add(nameField, tags, descriptionField, languageCombo, historyLimitField, aiCombo, protocolCombo, publishedCheckbox, statistics, authorshipField);
+        mainLayout.add(nameField, tags, descriptionField, languageCombo, historyLimitField, aiCombo, protocolCombo, publishedCheckbox, showImagesCheckbox, statistics, authorshipField);
         return mainLayout;
     }
 
@@ -165,6 +166,13 @@ public class PhoneManuscriptInfoPart implements PhoneManuscriptDialogPart {
             }
         });
 
+        showImagesCheckbox = new Checkbox(loc.getValue(L.LABEL_SHOW_IMAGES_TO_READERS));
+        showImagesCheckbox.setHelperComponent(new Span(loc.getValue(L.MSG_SHOW_IMAGES_TO_READERS_HELP)));
+        showImagesCheckbox.addValueChangeListener(e -> {
+            if (e.isFromClient()) {
+                autosave();
+            }
+        });
         publishedCheckbox = new Checkbox(loc.getValue(L.LABEL_PUBLISHED));
         publishedCheckbox.setHelperComponent(new Span(loc.getValue(L.MSG_PUBLISHED_HELP)));
         publishedCheckbox.addValueChangeListener(e -> {
@@ -234,6 +242,7 @@ public class PhoneManuscriptInfoPart implements PhoneManuscriptDialogPart {
             manuscript.setAi(aiCombo.getValue());
             manuscript.setProtocol(protocolCombo.getValue());
             manuscript.setPublished(Boolean.TRUE.equals(publishedCheckbox.getValue()));
+            manuscript.setShowImagesToReaders(Boolean.TRUE.equals(showImagesCheckbox.getValue()));
 
             manuscript = parent.save();
             parent.setHeaderTitle(manuscript.getName());
@@ -293,6 +302,7 @@ public class PhoneManuscriptInfoPart implements PhoneManuscriptDialogPart {
 
             nameField.setValue(StringUtils.defaultString(manuscript.getName()));
             publishedCheckbox.setValue(manuscript.isPublished());
+            showImagesCheckbox.setValue(manuscript.isShowImagesToReaders());
             descriptionField.setValue(StringUtils.defaultString(manuscript.getDescription()));
             languageCombo.load(manuscript.getOwnLanguage(), manuscript.getFolder());
             historyLimitField.load(manuscript.getHistoryMaxVersions(), manuscriptService.resolveInheritedHistoryLimit(manuscript.getFolder()));

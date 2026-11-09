@@ -47,6 +47,11 @@ public class Manuscript extends ExtendableEntity {
 
     private boolean published = false;
 
+    // whether the readers of the published book see the images of its parts (the owner always does); not set: yes
+    @ExtendedAttribute
+    @Transient
+    private Boolean showImagesToReaders;
+
     // the working copy of an agent, never listed with the books of the user
     private boolean agentic = false;
 
@@ -328,6 +333,14 @@ public class Manuscript extends ExtendableEntity {
 
     public void setPublished(boolean published) {
         this.published = published;
+    }
+
+    public boolean isShowImagesToReaders() {
+        return showImagesToReaders == null || showImagesToReaders;
+    }
+
+    public void setShowImagesToReaders(Boolean showImagesToReaders) {
+        this.showImagesToReaders = showImagesToReaders;
     }
 
     public Date getLastOpened() {

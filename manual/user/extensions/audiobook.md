@@ -196,7 +196,7 @@ audio is ready or failed; they show only in the page that started the generation
 
 A published book (or the reader) that has parts with audio gets a player bar: play, pause, stop, the speed, the part that is heard marked in the text. It starts from the selection or
 from the first part in view, plays the parts in order and fetches the next one while the current plays, and the device's media controls know the book. Audio made from an older text of a part is
-not offered.
+not offered. The audio is served to the owner of the book and, while the book is published, to everybody who can open it; a book that is taken back from publication stops being served at once (at the next part the player loads).
 
 ![The player in the reader](../../images/plugin-audiobook-player.png)
 

@@ -1004,6 +1004,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_AUTHORSHIP, "Authorship of the branch");
         setValue(L.LABEL_CALCULATE, "Calculate");
         setValue(L.LABEL_PLAY, "Play");
+        setValue(L.LABEL_SHOW_IMAGES_TO_READERS, "Show the images to readers");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -1709,6 +1710,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_NOTIFICATION_FAILED, "%s failed");
         setValue(L.MSG_NOTIFICATION_TEST, "Notifications work in this browser.");
         setValue(L.MSG_AUTHORSHIP_RATIO, "%1$d%% written by you, %2$d%% generated (%3$d words)");
+        setValue(L.MSG_SHOW_IMAGES_TO_READERS_HELP, "Readers of a published book see the images of its parts. Turn it off to show them the text only; you always see your images.");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");

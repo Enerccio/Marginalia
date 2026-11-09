@@ -1004,6 +1004,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_AUTHORSHIP, "ブランチの執筆の内訳");
         setValue(L.LABEL_CALCULATE, "計算");
         setValue(L.LABEL_PLAY, "再生");
+        setValue(L.LABEL_SHOW_IMAGES_TO_READERS, "読者に画像を表示");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -1709,6 +1710,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_NOTIFICATION_FAILED, "%s が失敗しました");
         setValue(L.MSG_NOTIFICATION_TEST, "このブラウザで通知は動作しています。");
         setValue(L.MSG_AUTHORSHIP_RATIO, "%1$d%%が自分で執筆、%2$d%%が生成（%3$d語）");
+        setValue(L.MSG_SHOW_IMAGES_TO_READERS_HELP, "公開した本の読者にパートの画像を表示します。オフにすると本文だけが表示されます。自分には常に画像が表示されます。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");

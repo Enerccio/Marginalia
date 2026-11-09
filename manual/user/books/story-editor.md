@@ -460,8 +460,8 @@ Good to know:
 
 - **Regenerate** keeps the pictures of the part, also when the generation fails. **Swipe** writes a new part
   (a new version next to the old one), which starts without pictures. **Branch Story** copies the pictures to the new part.
-- Pictures belong to your account. In the [viewer](publishing.md) only you see them; readers of a published book see
-  the text only. A book is published as it is: pictures are not made public with it.
+- Pictures belong to your account. In the [viewer](publishing.md) readers of a published book see them too, unless you uncheck
+  **Show the images to readers** in the book's *About* tab.
 - A [backup](backups.md) remembers which pictures a part has, but not the picture files. Restoring a backup into
   another account or another installation gives parts without their pictures.
 - Removing a picture from a part only takes it off the part. The file stays and is still listed in

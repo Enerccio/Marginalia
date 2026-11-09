@@ -1,6 +1,8 @@
 package com.github.enerccio.marginalia.domain.service.impl;
 
+import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Resource;
+import com.github.enerccio.marginalia.domain.repository.ManuscriptRepository;
 import com.github.enerccio.marginalia.domain.repository.ResourceRepository;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.service.ResourceService;
@@ -11,6 +13,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
@@ -24,6 +27,9 @@ import java.util.*;
 public class ResourceServiceImpl extends OwnedServiceImpl<Resource, ResourceRepository> implements ResourceService {
 
     private static final long MAX_IMAGE_PIXELS = 50_000_000L;
+
+    @Autowired
+    private ManuscriptRepository manuscriptRepository;
 
     @Override
     @CommonTx
@@ -289,10 +295,49 @@ public class ResourceServiceImpl extends OwnedServiceImpl<Resource, ResourceRepo
     @Override
     @NoTx
     public File getResourceFile(Resource resource) throws Exception {
+        return fileOf(resource, resource.getServedFrom() != null ? resource.getServedFrom() : currentUser);
+    }
+
+    private File fileOf(Resource resource, User owner) {
         if (resource.getMimeType().startsWith("image/")) {
-            return new File(configuration.getImagesFolder(currentUser), resource.getPath());
+            return new File(configuration.getImagesFolder(owner), resource.getPath());
         }
-        return new File(configuration.getResourcesFolder(currentUser), resource.getPath());
+        return new File(configuration.getResourcesFolder(owner), resource.getPath());
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public Resource findImageForReader(String uuid, String manuscriptUuid) throws Exception {
+        Resource own = findImage(uuid);
+        if (own != null || StringUtils.isAnyBlank(uuid, manuscriptUuid)) {
+            return own;
+        }
+        Resource resource = getRepository().findOfViewableBook(uuid, manuscriptUuid, currentUser);
+        if (resource == null || resource.getMimeType() == null || !resource.getMimeType().startsWith("image/")) {
+            return null;
+        }
+        Manuscript book = manuscriptRepository.findViewable(manuscriptUuid, currentUser);
+        if (book == null || !book.isShowImagesToReaders()) {
+            return null;
+        }
+        // the reader's request, not the owner's, asks for the file later: tell where it is
+        resource.setServedFrom(resource.getOwner());
+        resource.getServedFrom().getLogin();
+        return resource;
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public byte[] readForReader(String resourceUuid, String manuscriptUuid) throws Exception {
+        if (StringUtils.isAnyBlank(resourceUuid, manuscriptUuid)) {
+            return null;
+        }
+        Resource resource = getRepository().findOfViewableBook(resourceUuid, manuscriptUuid, currentUser);
+        // the images have their own way, which looks at the setting of the book
+        if (resource == null || resource.getPath() == null || resource.getMimeType() == null || resource.getMimeType().startsWith("image/")) {
+            return null;
+        }
+        return FileUtils.readFileToByteArray(fileOf(resource, resource.getOwner()));
     }
 
     @Override
