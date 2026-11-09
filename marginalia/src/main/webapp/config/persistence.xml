@@ -25,6 +25,7 @@
         <class>com.github.enerccio.marginalia.domain.model.impl.Tag</class>
         <class>com.github.enerccio.marginalia.domain.model.impl.TagRelation</class>
         <class>com.github.enerccio.marginalia.domain.model.impl.Summary</class>
+        <class>com.github.enerccio.marginalia.domain.model.impl.AnchoredPassage</class>
         <class>com.github.enerccio.marginalia.domain.model.impl.Annotation</class>
         <class>com.github.enerccio.marginalia.domain.model.impl.MessagePrompt</class>
         <class>com.github.enerccio.marginalia.domain.model.impl.MessageRevision</class>
@@ -47,6 +48,7 @@
         <class>com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting</class>
         <class>com.github.enerccio.marginalia.domain.model.impl.settings.StylesSetting</class>
         <class>com.github.enerccio.marginalia.domain.model.impl.settings.ExportSettings</class>
+        <class>com.github.enerccio.marginalia.domain.model.impl.settings.NotificationSettings</class>
 
         <exclude-unlisted-classes>true</exclude-unlisted-classes>
 

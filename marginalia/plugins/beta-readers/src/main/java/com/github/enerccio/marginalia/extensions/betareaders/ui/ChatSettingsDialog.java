@@ -33,7 +33,7 @@ public class ChatSettingsDialog extends Dialog {
         setMaxWidth("96vw");
         setCloseOnOutsideClick(false);
 
-        options = new ChatOptionsForm(mediums, ais, protocols, inherited);
+        options = new ChatOptionsForm(mediums, ais, protocols, inherited).withoutPartRange();
         options.load(chat);
         add(options);
 

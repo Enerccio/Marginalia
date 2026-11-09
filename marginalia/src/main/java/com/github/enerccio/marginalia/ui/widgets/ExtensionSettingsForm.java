@@ -11,8 +11,9 @@ import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.accordion.Accordion;
+import com.vaadin.flow.component.accordion.AccordionPanel;
 import com.vaadin.flow.component.combobox.ComboBox;
-import com.vaadin.flow.component.html.H4;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
@@ -20,6 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -62,7 +64,10 @@ public class ExtensionSettingsForm {
     private final String areaHeight;
     private final Runnable onChange;
 
+    private final Map<AccordionPanel, List<String>> panels = new LinkedHashMap<>();
+
     private VerticalLayout layout;
+    private Accordion accordion;
     private boolean loading = false;
 
     /**
@@ -90,13 +95,25 @@ public class ExtensionSettingsForm {
             title.addClassName(CssStyles.SECTION_TITLE);
             layout.add(title);
         }
+        // one closed panel per extension: with many extensions the settings of all of them in a row are a long page
+        accordion = new Accordion();
+        accordion.setWidthFull();
+        accordion.close();
         for (InheritedSettingRegistry.Group group : groups) {
-            layout.add(new H4(group.title()));
+            VerticalLayout content = new VerticalLayout();
+            content.setPadding(false);
+            content.setWidthFull();
+            List<String> keys = new ArrayList<>();
             for (InheritedSetting setting : group.settings()) {
                 Editor editor = createEditor(setting);
                 editors.put(setting.getKey(), editor);
-                layout.add(editor.component());
+                keys.add(setting.getKey());
+                content.add(editor.component());
             }
+            panels.put(accordion.add(group.title(), content), keys);
+        }
+        if (!groups.isEmpty()) {
+            layout.add(accordion);
         }
         return this;
     }
@@ -111,7 +128,7 @@ public class ExtensionSettingsForm {
                 ResizableTextArea.install(loc, area, areaHeight);
                 area.addValueChangeListener(this::changed);
                 return new Editor(setting, area, area::getValue, area::setValue, area::setPlaceholder, area::setHelperText,
-                        text -> area.setPopoverContent(TemplateHints.create(loc, area, area.getPopover(), null, text)));
+                        text -> area.setPopoverContent(TemplateHints.create(loc, area, area.getPopover(), setting.variables(), text)));
             }
             case CHOICE -> {
                 ComboBox<Choice> combo = new ComboBox<>(label);
@@ -180,10 +197,24 @@ public class ExtensionSettingsForm {
                 editor.setValue().accept(StringUtils.defaultString(own.apply(key)));
                 refreshHelper(editor);
             }
+            openFirstPanelThatIsSet(own);
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         } finally {
             loading = false;
+        }
+    }
+
+    /**
+     * Opens the first extension that has something set here (the others stay closed), so a value the user put in is not hidden; none set: all closed.
+     */
+    private void openFirstPanelThatIsSet(Function<String, String> own) {
+        accordion.close();
+        for (Map.Entry<AccordionPanel, List<String>> panel : panels.entrySet()) {
+            if (panel.getValue().stream().anyMatch(key -> StringUtils.isNotBlank(own.apply(key)))) {
+                accordion.open(panel.getKey());
+                return;
+            }
         }
     }
 

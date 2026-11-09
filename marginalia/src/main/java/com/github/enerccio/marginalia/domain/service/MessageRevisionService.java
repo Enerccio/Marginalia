@@ -1,16 +1,13 @@
 package com.github.enerccio.marginalia.domain.service;
 
 import com.github.enerccio.marginalia.domain.collections.RevisionSource;
-import com.github.enerccio.marginalia.domain.components.RevisionClearing;
-import com.github.enerccio.marginalia.domain.components.RevisionData;
-import com.github.enerccio.marginalia.domain.components.RevisionRow;
+import com.github.enerccio.marginalia.domain.components.*;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.MessageRevision;
 import com.github.enerccio.marginalia.domain.repository.MessageRevisionRepository;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService.PartEdit;
 import com.github.enerccio.marginalia.domain.service.search.FulltextHit;
-
 import com.google.gson.JsonArray;
 
 import java.util.Collection;
@@ -70,6 +67,21 @@ public interface MessageRevisionService extends ExtendableService<MessageRevisio
      * @param includeDeleted whether the versions in the trash are listed too
      */
     List<RevisionRow> list(ChatMessage part, boolean includeDeleted) throws Exception;
+
+    /**
+     * Who wrote the words of the part. The versions of its history are applied one on top of the other like a merge: the words a version
+     * has in common with the one before keep who wrote them, the other words are the work of the author of the version (a model for the
+     * {@link RevisionSource#isModel() model sources} and for what an agent did, a person for the rest). A part without a history (it is
+     * switched off) is told apart from the text the model generated ({@code originalResponse}).
+     *
+     * @return the ranges of the words of a model and the word counts; a part of another user has no history to read here and is treated like one without
+     */
+    PartAuthorship authorship(ChatMessage part) throws Exception;
+
+    /**
+     * Who wrote the words of the parts, see {@link #authorship(ChatMessage)}: the parts that have no text are not counted.
+     */
+    BookAuthorship authorship(List<ChatMessage> parts) throws Exception;
 
     /**
      * How many versions that are not in the trash each of the parts has, by the id of the part; the parts without one are

@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.extensions.imagegenerator.service;
 
+import com.github.enerccio.marginalia.extensions.httphooks.BackendException;
 import com.github.enerccio.marginalia.extensions.imagegenerator.model.BackendConfig;
 import com.github.enerccio.marginalia.extensions.imagegenerator.model.BackendType;
 import com.google.gson.JsonObject;
@@ -74,18 +75,18 @@ class OpenAiImagesBackendTest {
     void errorsAndEmptyAnswersAreExplained() throws Exception {
         try (FakeServer server = new FakeServer()) {
             server.json("/v1/images/generations", 401, "{\"error\": {\"message\": \"bad key\"}}");
-            var e = assertThrows(ImageBackend.ImageException.class,
+            var e = assertThrows(BackendException.class,
                     () -> new OpenAiImagesBackend(config(server, ""), "x").generate(REQUEST, () -> false));
             assertTrue(e.getMessage().contains("401") && e.getMessage().contains("bad key"));
         }
         try (FakeServer server = new FakeServer()) {
             server.json("/v1/images/generations", 200, "{\"data\": []}");
-            assertThrows(ImageBackend.ImageException.class,
+            assertThrows(BackendException.class,
                     () -> new OpenAiImagesBackend(config(server, ""), null).generate(REQUEST, () -> false));
         }
         try (FakeServer server = new FakeServer()) {
             server.json("/v1/images/generations", 200, "<html>");
-            assertThrows(ImageBackend.ImageException.class,
+            assertThrows(BackendException.class,
                     () -> new OpenAiImagesBackend(config(server, ""), null).generate(REQUEST, () -> false));
         }
     }

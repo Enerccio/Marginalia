@@ -4,6 +4,7 @@ import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.Usage;
 import com.github.enerccio.marginalia.domain.repository.UsageRepository;
 import com.github.enerccio.marginalia.domain.security.model.User;
+import com.github.enerccio.marginalia.utils.AppClock;
 
 import java.util.Date;
 import java.util.List;
@@ -43,7 +44,7 @@ public class JpaUsageRepository extends JpaOwnedRepository<Usage> implements Usa
 
     @Override
     public int add(AI ai, User user, long prefillTokens, long generatedTokens, boolean limited) {
-        Date now = new Date();
+        Date now = AppClock.now();
         String period = limited
                 ? "u.periodPrefillTokens = u.periodPrefillTokens + :prefill, u.periodGeneratedTokens = u.periodGeneratedTokens + :generated, "
                 : "u.periodPrefillTokens = 0, u.periodGeneratedTokens = 0, ";

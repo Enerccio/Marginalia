@@ -81,6 +81,14 @@ public class Folder extends ExtendableEntity {
     @Transient
     private String annotatePrompt;
 
+    /**
+     * What the model looks for when it annotates a part ("flag continuity errors"); blank is the default task of the annotate
+     * prompt. Part of the inherited text settings, see {@code PromptField.ANNOTATE_INSTRUCTIONS}.
+     */
+    @ExtendedAttribute
+    @Transient
+    private String annotateInstructions;
+
     @ExtendedAttribute
     @Transient
     private String impersonatePrompt;
@@ -215,6 +223,14 @@ public class Folder extends ExtendableEntity {
 
     public void setAnnotatePrompt(String annotatePrompt) {
         this.annotatePrompt = annotatePrompt;
+    }
+
+    public String getAnnotateInstructions() {
+        return annotateInstructions;
+    }
+
+    public void setAnnotateInstructions(String annotateInstructions) {
+        this.annotateInstructions = annotateInstructions;
     }
 
     public String getImpersonatePrompt() {

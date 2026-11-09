@@ -84,8 +84,7 @@ public class AgentCopyServiceImpl implements AgentCopyService {
             Summary summary = message.getSummary() == null ? null : summaryService.find(message.getSummary());
             parts.add(new CopyPart(message.getUuid(), ++position, alternatives.indexOf(message) + 1, alternatives.size(),
                     message.getResponse(), message.getInstructions(), message.getSceneSetting(), message.getPovCharacter(),
-                    message.getPresentCharacters(), summary == null ? null : summary.getSummary(), message.isEdited(),
-                    message.getWordCount()));
+                    message.getPresentCharacters(), summary == null ? null : summary.getSummary(), message.getWordCount()));
         }
         return parts;
     }

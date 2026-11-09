@@ -8,6 +8,7 @@ import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
+import com.github.enerccio.marginalia.ui.widgets.DialogShortcuts;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.ModalityMode;
@@ -50,6 +51,7 @@ public class UserDialog extends Dialog implements LLMInteract {
     private PasswordField passwordRepeatField;
     private Checkbox clearPasswordCheckbox;
     private Checkbox unlockCheckbox;
+    private Checkbox clearSavedLoginsCheckbox;
     private Checkbox isAdminCheckbox;
     private final boolean openedFromUser;
 
@@ -121,6 +123,11 @@ public class UserDialog extends Dialog implements LLMInteract {
         unlockCheckbox.setVisible(!openedFromUser && !firstTime && user.getId() != null
                 && (user.getFailedLogins() > 0 || user.getLockedUntil() > 0));
 
+        // offered only while the account has saved logins on record
+        clearSavedLoginsCheckbox = new Checkbox(loc.getValue(L.LABEL_CLEAR_SAVED_LOGINS));
+        clearSavedLoginsCheckbox.setVisible(!openedFromUser && !firstTime && user.getId() != null
+                && StringUtils.isNotBlank(user.getSavedLogins()));
+
         isAdminCheckbox = new Checkbox(loc.getValue(L.LABEL_ADMINISTRATOR));
 
         if (firstTime) {
@@ -139,7 +146,7 @@ public class UserDialog extends Dialog implements LLMInteract {
         if (openedFromUser)
             formLayout.add(loginField, fullNameField, currentPassword, passwordField, passwordRepeatField, isAdminCheckbox);
         else
-            formLayout.add(loginField, fullNameField, passwordField, passwordRepeatField, clearPasswordCheckbox, unlockCheckbox, isAdminCheckbox);
+            formLayout.add(loginField, fullNameField, passwordField, passwordRepeatField, clearPasswordCheckbox, unlockCheckbox, clearSavedLoginsCheckbox, isAdminCheckbox);
         add(formLayout);
 
         Button saveButton = new Button(loc.getValue(L.LABEL_OK), event -> save());
@@ -156,6 +163,10 @@ public class UserDialog extends Dialog implements LLMInteract {
 
         buttons.add(saveButton);
         getFooter().add(buttons);
+        DialogShortcuts.submitWith(saveButton, loginField, fullNameField, passwordField, passwordRepeatField);
+        if (currentPassword != null) {
+            DialogShortcuts.submitWith(saveButton, currentPassword);
+        }
     }
 
     @PublicAPI(from = "1.1.0",
@@ -229,6 +240,11 @@ public class UserDialog extends Dialog implements LLMInteract {
 
                     if (unlockCheckbox.getValue()) {
                         userService.unlock(user);
+                    }
+
+                    // clearPassword and changePassword drop the saved logins already
+                    if (clearSavedLoginsCheckbox.getValue() && !clearPassword && StringUtils.isBlank(password)) {
+                        userService.clearSavedLogins(user);
                     }
 
                     close();

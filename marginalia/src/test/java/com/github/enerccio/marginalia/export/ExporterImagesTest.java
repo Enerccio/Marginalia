@@ -122,6 +122,18 @@ class ExporterImagesTest extends MarginaliaTestBase {
     }
 
     @Test
+    void latexProjectHasTheImageFilesAndIncludesThem() throws Exception {
+        Exporter exporter = exporterService.getExporters().stream().filter(e -> e.getId().equals("latex")).findFirst().orElseThrow();
+        Map<String, byte[]> project = unzip(exporter.export(new ExportOptions("Book", "Author", true, "en"), story, new ProgressBarDialog(false)));
+
+        assertThat(project).containsOnlyKeys("Book/main.tex", "Book/images/image-1.png", "Book/images/image-2.png");
+        String tex = new String(project.get("Book/main.tex"), StandardCharsets.UTF_8);
+        assertThat(tex).contains("\\includegraphics[width=1\\textwidth,keepaspectratio]{images/image-1.png}")
+                .contains("{images/image-2.png}").contains("\\caption*{A map \\& a \\textless{}legend\\textgreater{}}");
+        assertThat(ImageIO.read(new ByteArrayInputStream(project.get("Book/images/image-1.png")))).isNotNull();
+    }
+
+    @Test
     void docxContainsThePictures() throws Exception {
         try (XWPFDocument document = new XWPFDocument(new ByteArrayInputStream(export("docx")))) {
             assertThat(document.getAllPictures()).isNotEmpty();

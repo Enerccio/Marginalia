@@ -1,6 +1,6 @@
 ---
 label: Image Generator
-order: 97
+order: 13
 ---
 
 # Image Generator
@@ -63,7 +63,7 @@ The open part shows the new image under its text at once.
 ## One GPU for the model and the images
 
 With one small GPU, the language model and the image model cannot be loaded together. The extension does not manage the memory;
-each backend can have two requests that you set up:
+each backend can have two lists of requests that you set up:
 
 - **Before the first image** - made once, when the window starts to use the backend. For example a request to your proxy that
   unloads the language model and loads the image model.
@@ -71,9 +71,27 @@ each backend can have two requests that you set up:
   the last image (so a forgotten window does not keep the GPU; 0 turns it off). For ComfyUI this can be `POST <address>/free` with the
   body `{"unload_models": true, "free_memory": true}`; for a proxy a request that loads the language model again.
 
-Each request has an address, a method (`POST` by default), headers (`Name: value`, one per line) and a body. The backend stays held
-while you reroll, so only the first image pays for the swap. If a proxy in front of the models swaps them by the model name, leave
-both empty. A request that fails stops the image (before) or shows a warning (after).
+With `llama-server` in router mode behind LiteLLM, the *before* request can unload the language model through the proxy: see
+[Freeing the GPU for another model](../prompt-cache.md#freeing-the-gpu-for-another-model).
+
+Both moments take a **list of requests**, made one after the other (**Add a request** adds one, the bin removes one). A swap often needs
+several: unload the language model, then start the image server, and after the images stop it. Each request has an address, a method
+(`POST` by default), headers (`Name: value`, one per line), a body, a **timeout** (empty: 60 seconds, at most 600; give a server that
+loads a big model more) and **Wait afterwards** (seconds to pause after the answer, for a server that is still busy after it said yes).
+The headers are stored encrypted, like the api key (a request often carries `Authorization: Bearer ...`). The backend stays held while
+you reroll, so only the first image pays for the swap. If a proxy in front of the models swaps them by the model name, leave both empty.
+
+When a request of the *before* list fails, the rest is not made and the image stops (the message says which request failed: *Request 2
+of 3: ...*), so that nothing is loaded on a GPU that is still full. The *after* list is made **completely** whatever happens to one of
+its requests (every server must be stopped), and the first failure is shown as a warning. A backend saved with the single request of an
+earlier version shows it as the first request of the list.
+
+**Several people on one GPU.** Everyone whose backend has the same server address (`http://host:port`) goes through one gate: the
+*before* request is made for the first window that starts and the *after* request when the last one is done, so closing one window
+does not unload the model under the image of another, and the images are made one at a time (a second window waits its turn).
+The requests are those of the user who comes first and last.
+
+A backend can also name the GPU it runs on (**GPU (name)**). Backends that name the same GPU wait for each other even when their addresses differ, and that includes the backends of the [Audiobook](audiobook.md) (a speech server and an image server on one card): a user whose backend needs another model waits until the others are done and then runs their own requests, instead of joining a load that is not theirs. Leave it empty and only requests to the same address wait for each other.
 
 ## What is not done
 

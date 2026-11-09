@@ -4,6 +4,7 @@ import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.ExtensionService;
 import com.github.enerccio.marginalia.domain.service.ExtensionService.ExtendableMethodContext;
 import com.github.enerccio.marginalia.domain.service.ExtensionService.ExtensionDecorator;
+import com.github.enerccio.marginalia.domain.service.NotificationService;
 import com.github.enerccio.marginalia.domain.service.OsgiService;
 import com.github.enerccio.marginalia.extensions.ExtensionHasCss;
 import com.github.enerccio.marginalia.extensions.MarginaliaExtension;
@@ -24,6 +25,7 @@ import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.popover.Popover;
 import org.apache.commons.lang3.StringUtils;
 import org.osgi.framework.Bundle;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
 import java.util.Collections;
@@ -47,6 +49,11 @@ public class STConverterExtension implements MarginaliaExtension, ExtensionHasCs
 
     private static final String VIEW_KEY = ConverterData.KEY + ".view";
     private static final String TAB_ID = "stconverter";
+    /** The source of the notification that a conversion is over, see {@code NotificationService}. */
+    public static final String NOTIFY_CONVERT = ConverterData.KEY + ".convert";
+
+    @Autowired
+    private NotificationService notificationService;
 
     private final ConverterService converterService = new ConverterService();
 
@@ -57,6 +64,7 @@ public class STConverterExtension implements MarginaliaExtension, ExtensionHasCs
     @Override
     public void onExtensionLoad(Bundle bundle, OsgiService parentService, ExtensionService extensionService) {
         STConverterLog.install(parentService.createLogger(bundle));
+        notificationService.register(bundle.getSymbolicName(), new NotificationService.Source(NOTIFY_CONVERT, () -> T.localized(STConverterLocalization.CONVERTER_CONVERT_THE_CHAT)));
         try {
             storyPartDecorator = new ExtensionDecorator() {
                 @Override

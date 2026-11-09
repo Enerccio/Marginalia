@@ -35,7 +35,6 @@ public class PrepareContentStep extends GenerationStepBase {
             InferenceService inferenceService = inferenceServices.forAIOrThrow(controller.getAi());
             PrePromptData data = controller.getPrePromptData();
             List<ChatMessage> fromRoot = null;
-            List<ChatMessage> invalidatedSummaries = new ArrayList<>();
             Pointer<ChatMessage> stopMessage = new Pointer<>();
             if (activeMessage != null) {
                 fromRoot = new ArrayList<>(chatMessageService.getBranchFromLeaf(activeMessage));
@@ -44,14 +43,12 @@ public class PrepareContentStep extends GenerationStepBase {
                     // the active leaf is the part being replaced - it is neither story so far nor a valid summary point
                     fromRoot.removeLast();
                 }
-                List<String> currentSummaries = gatherSummaries(fromRoot, invalidatedSummaries, stopMessage);
-                controller.getProperties().put(GenerationProperties.SUMMARIES, currentSummaries);
-            } else {
-                controller.getProperties().put(GenerationProperties.SUMMARIES, new ArrayList<>());
             }
 
             List<ChatMessage> finalFromRoot = fromRoot;
-            FromEventCallback callback = () -> {
+            // the outdated summaries are only found here, they are deleted when the author agrees (gatherSummaries)
+            List<ChatMessage> outdatedSummaries = fromRoot == null ? List.of() : findOutdatedSummaries(fromRoot);
+            FromEventCallback afterSummaries = () -> {
                 controller.emitEvent(Events.BEFORE_SUMMARIES, () -> {
                     // room for the response is reserved, the prompt gets the rest of the context
                     int limit = TokenLimits.promptTokens(controller.getAi(), controller.getProtocol());
@@ -94,6 +91,12 @@ public class PrepareContentStep extends GenerationStepBase {
                         List<ChatMessage> chain = finalFromRoot;
                         Collections.reverse(chain);
                         Iterator<ChatMessage> iterator = chain.iterator();
+                        // what the model reads of each part (an extension may keep the story in another form), all at once
+                        Map<Long, String> readByModel = new HashMap<>();
+                        List<String> modelTexts = partTextRegistry.forModel(chain);
+                        for (int i = 0; i < chain.size(); i++) {
+                            readByModel.put(chain.get(i).getId(), modelTexts.get(i));
+                        }
 
                         long tokens = baseTokens + reservedTokens;
                         List<String> storyText = new ArrayList<>();
@@ -115,7 +118,8 @@ public class PrepareContentStep extends GenerationStepBase {
                                 if (stopMessage.fastGet().getId().equals(message.getId()))
                                     break;
                             }
-                            if (StringUtils.isNotBlank(message.getResponse())) {
+                            String modelText = readByModel.getOrDefault(message.getId(), message.getResponse());
+                            if (StringUtils.isNotBlank(modelText)) {
                                 if (tokens + message.getTokenCount() + 100 > limit - 256) {
                                     outOfRoom = true;
                                     // the message that did not fit is cut as well
@@ -136,7 +140,7 @@ public class PrepareContentStep extends GenerationStepBase {
                                     storyNotes.add(notes);
                                     tokens += noteTokens;
                                 }
-                                storyText.add(message.getResponse());
+                                storyText.add(modelText);
                                 historyTokens += message.getTokenCount();
                                 tokens += message.getTokenCount() + 100; /* Buffer for dummy messages */
                             }
@@ -181,8 +185,16 @@ public class PrepareContentStep extends GenerationStepBase {
                 });
             };
 
-            if (!invalidatedSummaries.isEmpty()) {
-                controller.getUIListener().askQuestion(String.format(loc.getValue(L.MSG_SUMMARY_FAILURE), invalidatedSummaries.stream().map(ChatMessage::getId).map(x -> "#" + x.toString()).collect(Collectors.joining(", "))),
+            FromEventCallback callback = () -> {
+                // removes the outdated summaries (a meta summary is unwound), only now that generation goes on
+                List<String> currentSummaries = finalFromRoot == null ? new ArrayList<>() : gatherSummaries(finalFromRoot, stopMessage);
+                controller.getProperties().put(GenerationProperties.SUMMARIES, currentSummaries);
+                afterSummaries.returnFromEvent();
+            };
+
+            if (!outdatedSummaries.isEmpty()) {
+                // No leaves the summaries as they are: they can be revalidated in the summaries overview
+                controller.getUIListener().askQuestion(String.format(loc.getValue(L.MSG_SUMMARY_FAILURE), outdatedSummaries.stream().map(ChatMessage::getId).map(x -> "#" + x.toString()).collect(Collectors.joining(", "))),
                         controller.wrapCallback(callback), controller.wrapCallback(() -> controller.jumpTo(GenerationStepType.CLEANUP)));
             } else {
                 callback.returnFromEvent();
@@ -232,12 +244,25 @@ public class PrepareContentStep extends GenerationStepBase {
     }
 
     /**
+     * The parts whose summary no longer matches the story, oldest first. Changes nothing.
+     */
+    private List<ChatMessage> findOutdatedSummaries(List<ChatMessage> fromRoot) throws Exception {
+        List<ChatMessage> outdated = new ArrayList<>();
+        for (SummaryService.SummaryBlock block : summaryService.collectBlocks(new ArrayList<>(fromRoot.reversed()))) {
+            if (!block.isValid()) {
+                outdated.add(block.head());
+            }
+        }
+        return outdated.reversed();
+    }
+
+    /**
      * Summaries to put into the prompt, oldest first. A summary (block) whose story changed since it was made is removed
-     * (a meta summary is unwound to the summary it replaced) and reported in invalidatedSummaries.
+     * (a meta summary is unwound to the summary it replaced), the author was asked before.
      *
      * @param firstSummaryFound set to the message of the newest summary, the story text goes from the end to it
      */
-    private List<String> gatherSummaries(List<ChatMessage> fromRoot, List<ChatMessage> invalidatedSummaries, Pointer<ChatMessage> firstSummaryFound) throws Exception {
+    private List<String> gatherSummaries(List<ChatMessage> fromRoot, Pointer<ChatMessage> firstSummaryFound) throws Exception {
         List<ChatMessage> newestFirst = new ArrayList<>(fromRoot.reversed());
 
         while (true) {
@@ -256,7 +281,6 @@ public class PrepareContentStep extends GenerationStepBase {
 
             ChatMessage updated = summaryService.removeSummary(invalid.head(), true);
             log.info("Summary invalidated");
-            invalidatedSummaries.add(updated);
             // restored summary has to be checked as well
             newestFirst.replaceAll(message -> message.getId().equals(updated.getId()) ? updated : message);
         }

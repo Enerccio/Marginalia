@@ -11,10 +11,15 @@ import com.github.enerccio.marginalia.domain.service.ExporterService.ExportTempl
 import com.github.enerccio.marginalia.domain.service.ExporterService.Exporter;
 import com.github.enerccio.marginalia.domain.service.ResourceService;
 import com.github.enerccio.marginalia.domain.service.TemplateService;
+import com.github.enerccio.marginalia.domain.templates.ExportAuthorshipTemplateData;
 import com.github.enerccio.marginalia.domain.templates.ExportFrontMatterTemplateData;
 import com.github.enerccio.marginalia.domain.templates.ExportHeaderTemplateData;
 import com.github.enerccio.marginalia.ui.dialogs.ProgressBarDialog;
 import org.apache.commons.lang3.StringUtils;
+import org.commonmark.Extension;
+import org.commonmark.ext.footnotes.FootnoteDefinition;
+import org.commonmark.ext.footnotes.FootnoteReference;
+import org.commonmark.ext.footnotes.FootnotesExtension;
 import org.commonmark.node.*;
 import org.commonmark.parser.Parser;
 import org.commonmark.renderer.html.HtmlRenderer;
@@ -25,7 +30,9 @@ import org.springframework.beans.factory.annotation.Configurable;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -38,8 +45,10 @@ import java.util.regex.Pattern;
  */
 @Configurable(preConstruction = true)
 public abstract class ExporterBase implements Exporter {
-    private static final Parser PARSER = Parser.builder().build();
-    private static final HtmlRenderer HTML = HtmlRenderer.builder().escapeHtml(true).sanitizeUrls(true).build();
+    // footnotes: [^1] in the text and [^1]: the note, parsed for every format (see the block walker for the formats that have no own notes)
+    private static final List<Extension> EXTENSIONS = List.of(FootnotesExtension.create());
+    private static final Parser PARSER = Parser.builder().extensions(EXTENSIONS).build();
+    private static final HtmlRenderer HTML = HtmlRenderer.builder().extensions(EXTENSIONS).escapeHtml(true).sanitizeUrls(true).build();
     // the first heading of a message is its chapter title, the same rule the Chapter Marker plugin uses in the sidebar
     private static final Pattern HEADER_PATTERN = Pattern.compile("(?m)^\\s*#+\\s*(.+)$");
 
@@ -51,6 +60,13 @@ public abstract class ExporterBase implements Exporter {
      */
     public static final ExportTemplate TITLE_PAGE_TEMPLATE = new ExportTemplate("titlePage", "Title page",
             Defaults.DEFAULT_EXPORT_HEADER_TEMPLATE, ExportHeaderTemplateData.class);
+
+    /**
+     * The statement at the end of the text of who wrote the words of it (the author, a model), which the export dialog offers; the user can
+     * change the template in the settings.
+     */
+    public static final ExportTemplate AUTHORSHIP_TEMPLATE = new ExportTemplate("authorship", "Authorship statement",
+            Defaults.DEFAULT_EXPORT_AUTHORSHIP_TEMPLATE, ExportAuthorshipTemplateData.class);
 
     /**
      * The YAML front matter of the formats that have one (Markdown for static site generators, the Obsidian vault); the user can change the
@@ -186,8 +202,13 @@ public abstract class ExporterBase implements Exporter {
     }
 
     @Override
+    public boolean usesAuthorship() {
+        return true;
+    }
+
+    @Override
     public List<ExportTemplate> getTemplates() {
-        return List.of(TITLE_PAGE_TEMPLATE);
+        return List.of(TITLE_PAGE_TEMPLATE, AUTHORSHIP_TEMPLATE);
     }
 
     protected abstract ExportWriter open(ExportOptions options) throws Exception;
@@ -225,6 +246,9 @@ public abstract class ExporterBase implements Exporter {
         for (int i = 0; i < partsOf.size(); i++) {
             writer.message(partsOf.get(i), chapterOf.get(i));
             progress.updateProgress();
+        }
+        if (options.authorship() != null) {
+            writer.message(buildAuthorship(options), null);
         }
         return writer.finish();
     }
@@ -308,6 +332,14 @@ public abstract class ExporterBase implements Exporter {
     protected String buildHeader(ExportOptions options) throws Exception {
         return templateService.processTemplate(options.templateText(TITLE_PAGE_TEMPLATE), "exportHeader",
                 new ExportHeaderTemplateData(options.bookName(), StringUtils.trimToNull(options.author())));
+    }
+
+    /**
+     * @return the Markdown of the statement of who wrote the words of the text, the template of the export rendered
+     */
+    protected String buildAuthorship(ExportOptions options) throws Exception {
+        return templateService.processTemplate(options.templateText(AUTHORSHIP_TEMPLATE), "exportAuthorship",
+                new ExportAuthorshipTemplateData(options.bookName(), StringUtils.trimToNull(options.author()), options.authorship()));
     }
 
     /**
@@ -435,7 +467,25 @@ public abstract class ExporterBase implements Exporter {
      * @return XHTML compatible HTML of the markdown, raw HTML in the markdown is escaped
      */
     protected static String toHtml(String markdown) {
-        return HTML.render(parse(markdown));
+        return wellFormed(HTML.render(parse(markdown)));
+    }
+
+    // the footnote markup has attributes without a value (data-footnotes), which XHTML (the EPUB) does not allow
+    private static final Pattern BARE_ATTRIBUTE = Pattern.compile("(?<=\\s)(data-footnote[a-z-]*)(?=[\\s>])");
+
+    /**
+     * @return the HTML with the attributes that have no value written as {@code name=""}, which is the same in HTML and valid in XHTML; only
+     * the footnote markup of the renderer has such attributes (the text is escaped, so no tag is made of it)
+     */
+    protected static String wellFormed(String html) {
+        return BARE_ATTRIBUTE.matcher(html).replaceAll("$1=\"\"");
+    }
+
+    /**
+     * @return the HTML of the markdown in the HTML renderer of the exporter, which must have the footnotes extension ({@link #EXTENSIONS})
+     */
+    protected static List<Extension> extensions() {
+        return EXTENSIONS;
     }
 
     protected static String escapeXml(String text) {
@@ -450,9 +500,13 @@ public abstract class ExporterBase implements Exporter {
     /**
      * Piece of text with the same style.
      */
-    protected record Run(String text, boolean bold, boolean italic, boolean code, boolean lineBreak) {
+    protected record Run(String text, boolean bold, boolean italic, boolean code, boolean lineBreak, String note) {
 
         static final Run LINE_BREAK = new Run("\n", false, false, false, true);
+
+        Run(String text, boolean bold, boolean italic, boolean code, boolean lineBreak) {
+            this(text, bold, italic, code, lineBreak, null);
+        }
     }
 
     /**
@@ -476,10 +530,38 @@ public abstract class ExporterBase implements Exporter {
         void code(BlockContext context, String code) throws Exception;
 
         void rule() throws Exception;
+
+        /**
+         * The notes of a text (footnotes: label, then the paragraphs of the note), given before the text that refers to them ({@link Run#note()} is the label).
+         * A sink that sets them where they belong (the bottom of the page) keeps them and answers true: they are then not walked as blocks at the end of the text.
+         * The others answer false and get each note as the last block of the text, an item of a list whose marker is its label (an endnote).
+         */
+        default boolean notes(Map<String, List<List<Run>>> notes) throws Exception {
+            return false;
+        }
     }
 
     protected static void walk(String markdown, BlockSink sink) throws Exception {
-        walk(parse(markdown), BlockContext.ROOT, sink);
+        Node document = parse(markdown);
+        Map<String, List<List<Run>>> notes = new LinkedHashMap<>();
+        List<Node> definitions = new ArrayList<>();
+        for (Node node = document.getFirstChild(); node != null; node = node.getNext()) {
+            if (node instanceof FootnoteDefinition d) {
+                List<List<Run>> paragraphs = new ArrayList<>();
+                for (Node block = d.getFirstChild(); block != null; block = block.getNext()) {
+                    List<Run> runs = runs(block);
+                    if (!runs.isEmpty()) {
+                        paragraphs.add(runs);
+                    }
+                }
+                notes.put(d.getLabel(), paragraphs);
+                definitions.add(d);
+            }
+        }
+        if (!notes.isEmpty() && sink.notes(notes)) {
+            definitions.forEach(Node::unlink);
+        }
+        walk(document, BlockContext.ROOT, sink);
     }
 
     private static void walk(Node parent, BlockContext context, BlockSink sink) throws Exception {
@@ -493,6 +575,8 @@ public abstract class ExporterBase implements Exporter {
                 case FencedCodeBlock c -> sink.code(context, c.getLiteral());
                 case IndentedCodeBlock c -> sink.code(context, c.getLiteral());
                 case ThematicBreak _ -> sink.rule();
+                // a note is a block at the end of its part, an item of a list whose marker is its label: an endnote
+                case FootnoteDefinition d -> walk(d, new BlockContext(context.quoteDepth(), context.listDepth() + 1, "[" + d.getLabel() + "]"), sink);
                 case HtmlBlock b -> sink.paragraph(context, List.of(new Run(b.getLiteral().trim(), false, false, false, false)));
                 default -> walk(node, context, sink);
             }
@@ -522,6 +606,7 @@ public abstract class ExporterBase implements Exporter {
                 case HtmlInline h -> result.add(new Run(h.getLiteral(), bold, italic, code, false));
                 case SoftLineBreak _ -> result.add(new Run(" ", bold, italic, code, false));
                 case HardLineBreak _ -> result.add(Run.LINE_BREAK);
+                case FootnoteReference r -> result.add(new Run("[" + r.getLabel() + "]", bold, italic, code, false, r.getLabel()));
                 case Emphasis e -> collectRuns(e, bold, true, code, result);
                 case StrongEmphasis s -> collectRuns(s, true, italic, code, result);
                 default -> collectRuns(node, bold, italic, code, result);

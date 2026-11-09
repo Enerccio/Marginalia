@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.extensions.imagegenerator.service;
 
+import com.github.enerccio.marginalia.extensions.httphooks.BackendException;
 import com.google.gson.*;
 
 import java.util.Map;
@@ -24,11 +25,11 @@ public final class WorkflowTemplate {
 
     /**
      * @return the workflow as a JSON object ready to be posted as {@code prompt}
-     * @throws ImageBackend.ImageException when the workflow is not a JSON object
+     * @throws BackendException when the workflow is not a JSON object
      */
-    public static JsonObject fill(String workflow, ImageRequest request) throws ImageBackend.ImageException {
+    public static JsonObject fill(String workflow, ImageRequest request) throws BackendException {
         if (workflow == null || workflow.isBlank()) {
-            throw new ImageBackend.ImageException("The backend has no workflow");
+            throw new BackendException("The backend has no workflow");
         }
         Map<String, Long> numbers = Map.of("seed", request.seed(), "width", (long) request.width(), "height", (long) request.height());
         String prepared = BARE_NUMBER.matcher(workflow).replaceAll(m -> Matcher.quoteReplacement(String.valueOf(numbers.get(m.group(1)))));
@@ -36,13 +37,13 @@ public final class WorkflowTemplate {
         try {
             parsed = GSON.fromJson(prepared, JsonElement.class);
         } catch (JsonParseException e) {
-            throw new ImageBackend.ImageException("The workflow is not valid JSON: " + e.getMessage(), e);
+            throw new BackendException("The workflow is not valid JSON: " + e.getMessage(), e);
         }
         if (parsed == null || !parsed.isJsonObject()) {
-            throw new ImageBackend.ImageException("The workflow must be a JSON object (Save (API Format) in ComfyUI)");
+            throw new BackendException("The workflow must be a JSON object (Save (API Format) in ComfyUI)");
         }
         if (parsed.getAsJsonObject().has("nodes") && !parsed.getAsJsonObject().has("prompt")) {
-            throw new ImageBackend.ImageException("This is the editor format of the workflow; export it with Save (API Format)");
+            throw new BackendException("This is the editor format of the workflow; export it with Save (API Format)");
         }
         // some tools export {"prompt": {...}}
         JsonObject root = parsed.getAsJsonObject();

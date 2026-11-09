@@ -8,10 +8,13 @@ import com.github.enerccio.marginalia.domain.components.StatisticFilter;
 import com.github.enerccio.marginalia.domain.model.impl.Agent;
 import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
+import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.service.ActivityIntervalService;
 import com.github.enerccio.marginalia.domain.service.ActivityTracker;
 import com.github.enerccio.marginalia.domain.service.ActivityTracker.BookPresence;
 import com.github.enerccio.marginalia.domain.service.ActivityTracker.Registration;
+import com.github.enerccio.marginalia.domain.service.SettingService;
+import com.github.enerccio.marginalia.domain.service.StatisticsPolicyService;
 import com.github.enerccio.marginalia.domain.service.impl.ActivityTrackerImpl;
 import com.github.enerccio.marginalia.test.AgentTestBase;
 import org.junit.jupiter.api.AfterEach;
@@ -74,6 +77,12 @@ class ActivityTrackerTest extends AgentTestBase {
     @Autowired
     private ActivityIntervalService intervalService;
 
+    @Autowired
+    private StatisticsPolicyService policyService;
+
+    @Autowired
+    private SettingService settingService;
+
     private ActivityTrackerImpl impl;
     private TestClock clock;
     private Manuscript book;
@@ -128,6 +137,33 @@ class ActivityTrackerTest extends AgentTestBase {
         assertThat(rows.getFirst().startTime().getTime()).isEqualTo(t0);
         assertThat(length(rows.getFirst())).as("the close, not the next tick").isEqualTo(3500);
         assertThat(rows.getFirst().agent()).isFalse();
+    }
+
+    @Test
+    void nothingIsWrittenWhileRecordingIsOffAndTheTimeAfterItStartsAFreshStretch() throws Exception {
+        UserSetting setting = settingService.getOrCreate(UserSetting.class, book.getOwner());
+        setting.setStatisticsRecording(Boolean.FALSE);
+        settingService.save(setting);
+        policyService.invalidate();
+        try {
+            Registration off = tracker.generate(book.getId());
+            clock.advance(5 * SECOND);
+            off.close();
+            assertThat(rows(book, ActivityKind.GENERATE)).isEmpty();
+        } finally {
+            setting.setStatisticsRecording(null);
+            settingService.save(setting);
+            policyService.invalidate();
+        }
+
+        clock.advance(10 * SECOND);
+        Registration on = tracker.generate(book.getId());
+        clock.advance(3 * SECOND);
+        on.close();
+
+        List<ActivityRow> rows = rows(book, ActivityKind.GENERATE);
+        assertThat(rows).hasSize(1);
+        assertThat(length(rows.getFirst())).isEqualTo(3 * SECOND);
     }
 
     @Test

@@ -282,6 +282,42 @@ public final class JavascriptLibrary {
     }
 
     /**
+     * Opens a list at its end: scrolls to the bottom and keeps it there while the content settles (its Markdown is rendered after it
+     * is in the page, so its height is not final when the first scroll runs), until the user scrolls on their own or a
+     * moment has passed. Sticks to the bottom afterwards like {@link #scrollToBottom}.
+     *
+     * @param element the scroll element
+     * @param content the element whose size changes while the content settles
+     */
+    public static void scrollToBottomWhileSettling(Element element, Element content) {
+        element.executeJs(INSTALL_STICKY_SCROLL + """
+                const el = $0;
+                const content = $1;
+                installSticky(el);
+                el._stick = true;
+                if (el._settleStop) el._settleStop();
+                const apply = () => {
+                  if (!el._stick) return;
+                  el.scrollTop = el.scrollHeight;
+                  el._lastTop = el.scrollTop;
+                };
+                const observer = new ResizeObserver(apply);
+                const events = ['wheel', 'touchstart', 'pointerdown', 'keydown'];
+                const stop = () => {
+                  observer.disconnect();
+                  clearTimeout(el._settleTimer);
+                  events.forEach(name => el.removeEventListener(name, stop));
+                  el._settleStop = null;
+                };
+                el._settleStop = stop;
+                events.forEach(name => el.addEventListener(name, stop, {passive: true}));
+                observer.observe(content);
+                el._settleTimer = setTimeout(stop, 1500);
+                requestAnimationFrame(() => requestAnimationFrame(apply));
+                """, element, content);
+    }
+
+    /**
      * Scrolls to the bottom while the element is stuck to it, i.e. until the user scrolls up; reaching the bottom again
      * sticks it again.
      */
@@ -1217,6 +1253,80 @@ public final class JavascriptLibrary {
                 """, element, textArea);
     }
 
+    // --- desktop notifications ---
+
+    /**
+     * Tells the element, with the event {@code marginalia-notification-permission} (the detail is {@code {state, requested}}), what the
+     * browser lets the page do with notifications: now, and when the element is clicked ({@code state}: {@code granted},
+     * {@code denied}, {@code default} when the browser has not been asked, or {@code unsupported} when the browser has no
+     * notifications or the page is not served over HTTPS or from localhost). A click on the element (a button) asks the browser for the
+     * permission when it has not been asked yet, from this very click, which browsers require ({@code requested} is true for the events
+     * that follow a click). The permission belongs to the browser, not to the user. Calling it again replaces the earlier watch.
+     */
+    public static void watchNotificationPermission(Element element) {
+        element.executeJs("""
+                var el = $0;
+                if (el.__notificationWatch) { el.__notificationWatch(); }
+                var state = function () {
+                    if (!('Notification' in window) || !window.isSecureContext) { return 'unsupported'; }
+                    return Notification.permission;
+                };
+                var send = function (requested) {
+                    el.dispatchEvent(new CustomEvent('marginalia-notification-permission',
+                        { detail: { state: state(), requested: requested } }));
+                };
+                var onClick = function () {
+                    if (state() !== 'default') { send(true); return; }
+                    var done = function () { send(true); };
+                    var result = Notification.requestPermission(done);
+                    if (result && result.then) { result.then(done); }
+                };
+                el.addEventListener('click', onClick);
+                el.__notificationWatch = function () {
+                    el.removeEventListener('click', onClick);
+                    el.__notificationWatch = null;
+                };
+                send(false);
+                """, element);
+    }
+
+    /**
+     * Stops {@link #watchNotificationPermission}.
+     */
+    public static void unwatchNotificationPermission(Element element) {
+        element.executeJs("if ($0.__notificationWatch) { $0.__notificationWatch(); }", element);
+    }
+
+    /**
+     * Shows a desktop notification of the browser. Nothing is shown unless the browser allows it and the user is not looking at
+     * the page (the tab is hidden or the window has no focus), a notification about what is on the screen is noise. Clicking it brings the
+     * page to the front.
+     *
+     * @param tag   a notification with the same tag replaces the earlier one
+     * @param force show it also when the page is in front (the test button)
+     * @return what happened: {@code shown}, {@code focused} (the user is looking at the page), or why nothing was shown:
+     * {@code denied}, {@code default} (the browser was not asked), {@code unsupported} or {@code error}
+     */
+    public static PendingJavaScriptResult showDesktopNotification(Page page, String title, String body, String tag, boolean force) {
+        return page.executeJs("""
+                var title = $0, body = $1, tag = $2, force = $3;
+                if (!('Notification' in window) || !window.isSecureContext) { return 'unsupported'; }
+                if (Notification.permission !== 'granted') { return Notification.permission; }
+                if (!force && !document.hidden && document.hasFocus()) { return 'focused'; }
+                try {
+                    var n = new Notification(title, { body: body, tag: tag });
+                    n.onclick = function () { window.focus(); n.close(); };
+                } catch (e) {
+                    // browsers on phones only show them through a service worker
+                    if (!navigator.serviceWorker) { return 'error'; }
+                    navigator.serviceWorker.getRegistration().then(function (registration) {
+                        if (registration) { registration.showNotification(title, { body: body, tag: tag }); }
+                    });
+                }
+                return 'shown';
+                """, title, body, tag, force);
+    }
+
     // --- help assistant ---
 
     /** The sessionStorage key of the problems the browser keeps for the help assistant. */
@@ -1287,8 +1397,21 @@ public final class JavascriptLibrary {
                 };
                 // the overlay of a dialog is shown a moment after it is marked as opened
                 const later = () => { sync(); setTimeout(sync, 100); };
-                new MutationObserver(later).observe(document.body,
-                    { subtree: true, attributes: true, attributeFilter: ['opened'] });
+                // a notification (also marked 'opened') is in the top layer too, and the container of the notifications stays there
+                // from the first one, so it would be below the button put there later: raise it above the button again
+                const raiseNotifications = () => {
+                  for (const c of document.querySelectorAll('vaadin-notification-container')) {
+                    try { if (c.matches(':popover-open')) { c.hidePopover(); c.showPopover(); } } catch (e) {}
+                  }
+                };
+                new MutationObserver(records => {
+                  if (records.some(r => r.target.localName === 'vaadin-dialog' || r.target.localName === 'vaadin-confirm-dialog')) {
+                    later();
+                    setTimeout(raiseNotifications, 150);
+                  } else if (records.some(r => r.target.localName === 'vaadin-notification' && r.target.opened) && dialogOpen()) {
+                    raiseNotifications();
+                  }
+                }).observe(document.body, { subtree: true, attributes: true, attributeFilter: ['opened'] });
                 new MutationObserver(records => { if (records.some(r => r.target.parentElement === root)) later(); })
                     .observe(root, { subtree: true, attributes: true, attributeFilter: ['hidden'] });
                 later();

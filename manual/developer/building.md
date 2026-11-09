@@ -1,7 +1,7 @@
 ---
 label: Building from source
 order: 990
-verified: 6b9a70d37
+verified: 817e5239b
 covers:
   - pom.xml
   - marginalia/pom.xml
@@ -9,6 +9,8 @@ covers:
   - Dockerfile
   - marginalia/plugins/Dockerfile
   - marginalia/plugins/docker-compose.yml
+  - install-plugins.sh
+  - marginalia/libs
 ---
 
 # Building from source
@@ -40,7 +42,7 @@ application is the Maven project in `marginalia/`:
 
 ```sh
 cd marginalia
-mvn package                  # builds and tests, WAR in target/marginalia-1.6.0.war
+mvn package                  # builds and tests, WAR in target/marginalia-1.7.0.war
 mvn package -DskipTests      # the same without tests
 mvn install -DskipTests      # also installs the WAR and the classes JAR into ~/.m2 (needed by plugins)
 mvn -N install                                # (repository root, once) installs the parent POM, the installed POMs refer to it
@@ -63,16 +65,16 @@ What a build does, in order:
    `target/classes` are the ones that get packaged.
 4. Tests run (`maven-surefire-plugin`), see [Running the tests](#running-the-tests).
 5. `vaadin-maven-plugin` builds the frontend bundle (`build-frontend`).
-6. `maven-war-plugin` packages `target/marginalia-1.6.0.war` (about 185 MB) and, because of `attachClasses`, also
-   `target/marginalia-1.6.0-classes.jar` - the application classes that plugins compile against.
+6. `maven-war-plugin` packages `target/marginalia-1.7.0.war` (about 185 MB) and, because of `attachClasses`, also
+   `target/marginalia-1.7.0-classes.jar` - the application classes that plugins compile against.
 
 Outputs in `marginalia/target/`:
 
 | Path | |
 |---|---|
-| `marginalia-1.6.0.war` | The web application. |
-| `marginalia-1.6.0/` | The same WAR, exploded (production mode). |
-| `marginalia-1.6.0-classes.jar` | Application classes, the compile dependency of plugins. |
+| `marginalia-1.7.0.war` | The web application. |
+| `marginalia-1.7.0/` | The same WAR, exploded (production mode). |
+| `marginalia-1.7.0-classes.jar` | Application classes, the compile dependency of plugins. |
 | `surefire-reports/` | Test reports. |
 | `test-home/` | Data folders created by tests (safe to delete). |
 
@@ -104,7 +106,7 @@ the classpath or the working directory.
 To check a WAR:
 
 ```sh
-unzip -p target/marginalia-1.6.0.war WEB-INF/classes/META-INF/VAADIN/config/flow-build-info.json   # "productionMode" : true
+unzip -p target/marginalia-1.7.0.war WEB-INF/classes/META-INF/VAADIN/config/flow-build-info.json   # "productionMode" : true
 ```
 
 ### AspectJ weaving
@@ -179,7 +181,7 @@ IntelliJ builds the exploded WAR itself, without the Vaadin plugin, so the appli
   `target/classes/META-INF/VAADIN/config/flow-build-info.json` to the same path under `src/main/resources/`
   (ignored by Git and never packaged into the WAR, but IntelliJ copies it into the exploded WAR on every build).
 
-Don't deploy `target/marginalia-1.6.0/` (the exploded WAR from `mvn package`) from the IDE - it is a production build.
+Don't deploy `target/marginalia-1.7.0/` (the exploded WAR from `mvn package`) from the IDE - it is a production build.
 
 ![IntelliJ IDEA Tomcat run configuration](../images/dev-intellij-tomcat.png)
 
@@ -200,7 +202,7 @@ export JETTY_HOME=/path/to/jetty-home-12.1.10
 mkdir -p ~/jetty-marginalia && cd ~/jetty-marginalia
 java -jar $JETTY_HOME/start.jar --create-startd \
      --add-modules=server,http,ee11-deploy,ee11-websocket-jakarta,ee11-webapp,ee11-jsp
-cp /path/to/Marginalia/marginalia/target/marginalia-1.6.0.war webapps/ROOT.war
+cp /path/to/Marginalia/marginalia/target/marginalia-1.7.0.war webapps/ROOT.war
 java -XX:+EnableDynamicAgentLoading -Djdk.attach.allowAttachSelf=true -Duser.home=/path/to/dev-home \
      -jar $JETTY_HOME/start.jar jetty.http.port=8080
 ```
@@ -273,7 +275,7 @@ options. [Testing](testing.md) describes the test base and how to write tests.
 
 ## Building the plugins
 
-The nineteen bundled extensions in `marginalia/plugins/` are separate Maven projects. They compile against the classes
+The bundled extensions in `marginalia/plugins/` are separate Maven projects. They compile against the classes
 JAR of the application, so install the parent POM and the application first:
 
 ```sh
@@ -281,9 +283,17 @@ mvn -N install                    # in the repository root
 cd marginalia
 mvn install -DskipTests
 
-cd plugins/chaptermarker          # or anthropic, arc-outline, authorsnote, beta-readers, character-tracker, gemma4toolsfix, google-genai, image-generator, instructionexporter, lore-generator, lorebookvcs, manga-generator, name-generator, name-provider, place-provider, reviewer, sidequery, sillytavern-converter, chineselocalization
-mvn package                       # target/chaptermarker-1.6.0.jar
+cd plugins/chaptermarker          # or anthropic, arc-outline, audiobook, authorsnote, beta-readers, book-description-generator, character-tracker, conlang-translator, gemma4toolsfix, google-genai, image-generator, instructionexporter, knowledge-tracker, lore-generator, lorebookvcs, manga-generator, name-generator, name-provider, place-provider, prompt-history, prompt-inspector, reallang-translator, reviewer, sidequery, sillytavern-converter, story-notes, tts-reader, chineselocalization
+mvn package                       # target/chaptermarker-1.7.0.jar
 ```
+
+### Shared libraries
+
+Code that two plugins share lives in `marginalia/libs/` (see [Libraries for plugins](plugins/libraries/index.md)) (today `translator-common`, used by the Conlang Translator and the Real Language Translator, and `http-hooks`, used by the Image Generator and the Audiobook). A library is a plain
+Maven jar that **each plugin embeds** in its bundle (`<Embed-Dependency>translator-common;inline=true</Embed-Dependency>`): plugins do not see each other's classes, so this is
+shared source, not shared runtime, and a library holds no state the plugins would have to share. It is **not** an extension and never goes into the extensions folder (that is why it
+is not under `marginalia/plugins/`, the folder every script and workflow loops over to collect the JARs). A plugin that uses a library needs it in the local Maven repository before it
+builds: `mvn install -DskipTests` in `marginalia/libs/<library>`. The scripts (`install-plugins.sh`, `marginalia/plugins/Dockerfile`, the workflows `server.yml` and `desktop.yml`) do this.
 
 Load the JAR in *Admin → Extensions* of your running instance, or copy it into `.marginalia/extensions` of your
 development home before starting. Rebuild the plugins whenever you change classes they use - they are built for one
@@ -293,8 +303,8 @@ exact version of the application. See [Plugin development](plugins/index.md).
 
 `marginalia/plugins/Dockerfile` and `docker-compose.yml` build everything in a container, so no local JDK or Maven is
 needed (this is how the Docker server is updated, see [Packaging](packaging.md#plugins)). The build context is the
-repository root; the image copies `pom.xml`, `marginalia/pom.xml`, `marginalia/src`, `manual/user` (packed into the application's classes, so a plugin build against it sees the same manual), `.git` and `marginalia/plugins`, runs
-`mvn install -DskipTests -Dvaadin.skip=true` for the application, `mvn install -N` for the parent POM and `mvn package` in every folder of `plugins/` that has a `pom.xml`.
+repository root; the image copies `pom.xml`, `marginalia/pom.xml`, `marginalia/src`, `manual/user` (packed into the application's classes, so a plugin build against it sees the same manual), `.git`, `marginalia/libs` and `marginalia/plugins`, runs
+`mvn install -DskipTests -Dvaadin.skip=true` for the application, `mvn install -N` for the parent POM, `mvn install -DskipTests` in every folder of `libs/` and `mvn package` in every folder of `plugins/` that has a `pom.xml`.
 The JARs are copied out when the container runs, because they go into a bind mount:
 
 ```sh

@@ -4,6 +4,7 @@ import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.collections.SummaryType;
 import com.github.enerccio.marginalia.domain.components.SummaryNode;
+import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Summary;
 import com.github.enerccio.marginalia.domain.service.SummaryService;
@@ -11,6 +12,8 @@ import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
+import com.github.enerccio.marginalia.ui.dialogs.manuscript.ResummarizeDialog;
+import com.github.enerccio.marginalia.ui.dialogs.manuscript.SummariesImportDialog;
 import com.github.enerccio.marginalia.ui.dialogs.manuscript.SummaryDialog;
 import com.github.enerccio.marginalia.ui.dialogs.manuscript.SummaryRemoval;
 import com.github.enerccio.marginalia.ui.dialogs.search.ManuscriptSearchReplaceDialog;
@@ -85,8 +88,9 @@ public class PhoneSummariesDialog extends Dialog implements LLMInteract {
 
         menuBar = new MenuBar();
         populateMenuBar(menuBar);
-        layout.add(createToolbar());
-        layout.add(createGrid());
+        // the menu bar has a row of its own: next to the tokens and the button it was squeezed to nothing on a phone
+        menuBar.setWidthFull();
+        layout.add(menuBar, createToolbar(), createGrid());
         layout.setFlexGrow(1, treeGrid);
         add(layout);
 
@@ -120,6 +124,9 @@ public class PhoneSummariesDialog extends Dialog implements LLMInteract {
             parameters = {@APIParameter(name = "bar", type = MenuBar.class)})
     private void populateMenuBar(MenuBar bar) {
         bar.addItem(loc.getValue(L.LABEL_SEARCH_AND_REPLACE), _ -> openSearchReplaceDialog());
+        bar.addItem(loc.getValue(L.LABEL_REVALIDATE_ALL_SUMMARIES), _ -> revalidate(null));
+        ResummarizeDialog.addMenuItem(bar, manuscript, loc, summaryService, this::refresh);
+        SummariesImportDialog.addMenuItems(bar, manuscript, loc, summaryService, this::refresh);
     }
 
     /**
@@ -146,10 +153,10 @@ public class PhoneSummariesDialog extends Dialog implements LLMInteract {
         Button createMetaButton = new Button(loc.getValue(L.LABEL_CREATE_META_SUMMARY), Solid.LAYER_GROUP.create(), _ -> createMetaSummary());
         createMetaButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_SMALL);
 
-        HorizontalLayout toolbar = new HorizontalLayout(menuBar, tokensSpan, createMetaButton);
+        HorizontalLayout toolbar = new HorizontalLayout(tokensSpan, createMetaButton);
         toolbar.setWidthFull();
         toolbar.setAlignItems(FlexComponent.Alignment.CENTER);
-        toolbar.expand(menuBar);
+        toolbar.expand(tokensSpan);
         return toolbar;
     }
 
@@ -172,7 +179,10 @@ public class PhoneSummariesDialog extends Dialog implements LLMInteract {
                 .setHeader(loc.getValue(L.LABEL_TOKENS)).setAutoWidth(true).setFlexGrow(0);
         treeGrid.addComponentColumn(this::createCheckbox)
                 .setHeader(loc.getValue(L.LABEL_SELECT)).setAutoWidth(true).setFlexGrow(0);
+        treeGrid.addComponentColumn(this::createRevalidateButton).setAutoWidth(true).setFlexGrow(0);
         treeGrid.addComponentColumn(this::createDeleteButton).setAutoWidth(true).setFlexGrow(0);
+        // the summaries that no longer describe the story have another background
+        treeGrid.setPartNameGenerator(node -> node.isValid() ? null : CssStyles.SUMMARY_OUTDATED);
         return treeGrid;
     }
 
@@ -200,6 +210,41 @@ public class PhoneSummariesDialog extends Dialog implements LLMInteract {
             }
         });
         return checkbox;
+    }
+
+    /**
+     * The button that says that an outdated summary still describes the story, none for a valid one.
+     */
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = Component.class),
+            parameters = {@APIParameter(name = "node", type = SummaryNode.class)},
+            locals = {@APILocals(name = "revalidate", type = Button.class)})
+    private Component createRevalidateButton(SummaryNode node) {
+        if (!isTopLevel(node) || node.isValid()) {
+            return new Span();
+        }
+        Button revalidate = new Button(Solid.CHECK.create(), _ -> revalidate(node.getMessage()));
+        revalidate.addThemeVariants(ButtonVariant.LUMO_ICON, ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SUCCESS);
+        UIUtils.addTooltip(revalidate, loc.getValue(L.LABEL_REVALIDATE));
+        return revalidate;
+    }
+
+    /**
+     * Stores the hash of the story again for the summary of the part, for all the outdated summaries when null: the author
+     * says that they still describe the story.
+     */
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "only", type = ChatMessage.class)},
+            locals = {@APILocals(name = "e", type = Exception.class)})
+    private void revalidate(ChatMessage only) {
+        try {
+            int count = summaryService.revalidateActiveBranch(manuscript, only).size();
+            Notification.success(String.format(loc.getValue(L.MSG_SUMMARIES_REVALIDATED), count));
+            refresh();
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
     }
 
     @PublicAPI(from = "1.1.0",
@@ -250,7 +295,7 @@ public class PhoneSummariesDialog extends Dialog implements LLMInteract {
             checked.clear();
             roots = summaryService.collectTree(manuscript);
             treeGrid.setItems(roots, SummaryNode::getChildren);
-            long tokens = roots.stream().mapToLong(SummaryNode::getTokens).sum();
+            long tokens = roots.stream().filter(SummaryNode::isValid).mapToLong(SummaryNode::getTokens).sum();
             tokensSpan.setText(String.format(loc.getValue(L.MSG_ACTIVE_SUMMARIES_TOKENS), tokens));
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
@@ -284,6 +329,9 @@ public class PhoneSummariesDialog extends Dialog implements LLMInteract {
 
             HorizontalLayout badges = new HorizontalLayout();
             badges.setSpacing(true);
+            if (!node.isValid()) {
+                badges.add(badge(loc.getValue(L.LABEL_OUTDATED)));
+            }
             if (node.isReplaced()) {
                 badges.add(badge(loc.getValue(L.LABEL_REPLACED_SUMMARY)));
             }

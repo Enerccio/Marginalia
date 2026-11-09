@@ -8,7 +8,7 @@ covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/command/CommandScope.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/CommandScopes.java
   - marginalia/src/test/java/com/github/enerccio/marginalia/command
-verified: 6b9a70d37
+verified: d163441bd
 ---
 
 # Writing commands
@@ -113,6 +113,17 @@ annotation attribute needs an enum constant, so use `L.X` directly there, not a 
 `@Command(readOnly = true)` declares that the command changes nothing (no book, lorebook, or data of an extension); the default is `false`, so a command that does not say is taken to change data. The runner of an agent takes an
 automatic checkpoint before a round in which a call may change something, and a round of read only commands needs none. All forms of one command share the value (`registerCommands` throws when they differ),
 `CommandDefinition.readOnly()` returns it. All the read commands of the app and the `get-` / `list-` commands of the Arc Outline and the Character Tracker declare it.
+
+### Commands in macros
+
+`@Command(availableInMacros = true)` lets a template run the command with the {%{`{{command::name::argument}}`}%} macro (see
+[Templating & macros](../templating.md#macros-that-run-commands)). It is a promise that the command only reads and answers
+at once with text, so `registerCommands` refuses it unless `readOnly` is set too: a template can come from an imported
+lorebook and must never change data. All forms of one command share the value, `CommandDefinition.availableInMacros()`
+returns it. The command gets the book of the generation as its scope (`CommandScopes.forManuscript`, nothing can be asked: a
+`confirm` answers no), and what it sets with `setReturn` is the text of the macro (a JSON element is printed as it is; `null`
+prints nothing). An `async` command is waited for, up to two minutes. The Character Tracker's `character-tracker-map` is the
+example.
 
 ### Batch policy
 

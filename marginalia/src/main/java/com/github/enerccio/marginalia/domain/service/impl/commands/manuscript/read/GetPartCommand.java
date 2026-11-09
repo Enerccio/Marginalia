@@ -104,7 +104,6 @@ public class GetPartCommand extends ManuscriptReadSupport {
         slice(result, text, offset, length);
         result.addProperty("words", message.getWordCount());
         result.addProperty("tokens", message.getTokenCount());
-        result.addProperty("edited", message.isEdited());
         result.addProperty("hasOriginalResponse", message.getOriginalResponse() != null);
         result.addProperty("model", message.getModelUsed());
         result.addProperty("protocol", message.getProtocolUsed());

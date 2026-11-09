@@ -7,12 +7,19 @@ import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.service.CancellationToken;
+import com.github.enerccio.marginalia.extensions.httphooks.BackendException;
+import com.github.enerccio.marginalia.extensions.imagegenerator.ImageGeneratorExtension;
 import com.github.enerccio.marginalia.extensions.imagegenerator.ImageGeneratorLog;
 import com.github.enerccio.marginalia.extensions.imagegenerator.model.BackendConfig;
 import com.github.enerccio.marginalia.extensions.imagegenerator.model.ImageSettings;
-import com.github.enerccio.marginalia.extensions.imagegenerator.service.*;
+import com.github.enerccio.marginalia.extensions.imagegenerator.service.ImageFormats;
+import com.github.enerccio.marginalia.extensions.imagegenerator.service.ImageGeneratorService;
+import com.github.enerccio.marginalia.extensions.imagegenerator.service.ImageRequest;
+import com.github.enerccio.marginalia.extensions.imagegenerator.service.ImageSession;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
+import com.github.enerccio.marginalia.ui.widgets.DesktopNotifier;
+import com.github.enerccio.marginalia.ui.widgets.DialogShortcuts;
 import com.github.enerccio.marginalia.ui.widgets.ModelProtocolPicker;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.utils.UIUtils;
@@ -165,6 +172,8 @@ public class ImageGeneratorDialog extends Dialog {
         add(content);
 
         getFooter().add(new Button(T.localized(CLOSE), e -> close()), discard, accept, generate);
+        DialogShortcuts.submitWith(writePrompt, details);
+        DialogShortcuts.submitWith(generate, prompt, negative, width, height);
 
         applyBackendDefaults(selected);
         updateButtons();
@@ -272,6 +281,11 @@ public class ImageGeneratorDialog extends Dialog {
                             ImageGeneratorLog.get().warn("Writing the prompt failed: {}", error.getMessage(), error);
                             Notification.error(T.localized(THE_MODEL_FAILED).formatted(error.getMessage()));
                         }
+                        if (error != null) {
+                            new DesktopNotifier(ui).failed(ImageGeneratorExtension.NOTIFY_PROMPT, false, manuscript.getName());
+                        } else if (!cancelled) {
+                            new DesktopNotifier(ui).finished(ImageGeneratorExtension.NOTIFY_PROMPT, false, manuscript.getName());
+                        }
                         updateButtons();
                         UIPushGuard.push(ui);
                     });
@@ -337,7 +351,7 @@ public class ImageGeneratorDialog extends Dialog {
                     bytes = null;
                     error = T.localized(THE_IMAGE_IS_NOT_VALID);
                 }
-            } catch (ImageBackend.ImageException e) {
+            } catch (BackendException e) {
                 error = cancel.get() ? null : e.getMessage();
                 if (error != null) {
                     ImageGeneratorLog.get().warn("Generating the image failed: {}", e.getMessage());
@@ -355,6 +369,11 @@ public class ImageGeneratorDialog extends Dialog {
                     Notification.error(T.localized(GENERATING_FAILED).formatted(message));
                 } else if (result != null) {
                     showImage(result);
+                }
+                if (message != null) {
+                    new DesktopNotifier(ui).failed(ImageGeneratorExtension.NOTIFY_IMAGE, false, manuscript.getName());
+                } else if (result != null) {
+                    new DesktopNotifier(ui).finished(ImageGeneratorExtension.NOTIFY_IMAGE, false, manuscript.getName());
                 }
                 updateButtons();
                 UIPushGuard.push(ui);

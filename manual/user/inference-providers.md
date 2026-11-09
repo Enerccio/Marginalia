@@ -80,6 +80,7 @@ The tab is taller than the dialog and scrolls. The lower fields:
 | **Timeout (seconds)** | How long to wait for the API to answer, and for more text once it started writing. The default is 300. Reasoning models may need minutes before the first text; a request that hears nothing for this long fails with a timeout message (the thinking of a model counts as text, so a model that keeps thinking is not cut). A change is used by the next request, also of an agent that is working. |
 | **Retries** | How often a request is repeated when the API answers with a rate limit (429) or a server error (5xx), or cannot be reached. The wait between attempts grows, and a `Retry-After` header of the API is respected. The default is 2, 0 turns retrying off. Only the start of a request is retried, text that already arrived is never written twice. |
 | **Tokenizer** | How Marginalia counts the tokens of the texts for this provider. **Automatic** (the default) tries the tokenizer endpoints of the server one after the other (OpenAI, llama.cpp, LiteLLM) and uses the first that answers, and a local estimate when none does. Choose one to use only that, or **LOCAL_TOKKIT** for the local estimate that never calls the server (useful when counting would make the server load another model). A tokenizer from a plugin is listed here too; it gets the address, the model and the text, never the API key, and only when you choose it. **Test tokenizer** counts a sample text with what the provider would try and shows what each answered. When you create a provider, a plugin tokenizer that fits the address is preselected until you choose yourself. |
+| **Send the thinking back** | Whether the model gets its own thinking back in the next request, see [Send the thinking back](#send-the-thinking-back). Only for OpenAI-compatible providers: the Anthropic and Google providers send what their APIs need by themselves. |
 | **Additional Parameters** | A JSON object with extra fields for every request to this provider, e.g. `{"top_k": 40, "min_p": 0.05}` for a local server, or `{"provider": {"order": ["anthropic"]}}` for OpenRouter. A field set here wins over the same setting from the [protocol](protocols.md) (e.g. `temperature`) or the response limit (`max_completion_tokens`). Must be a valid JSON object or empty. |
 
 When you edit an existing provider, the API key is not shown again. It is kept as it is unless you click
@@ -152,7 +153,24 @@ fail with reasoning enabled, turn it off.
 
 When the model returns its reasoning (as `reasoning_content` or `reasoning`, depending on the server), it is shown
 above the generated part under **View Reasoning**. The reasoning is not part of the story and is not sent back to the
-model.
+model, unless you set **Send the thinking back** (below).
+
+### Send the thinking back
+
+**Send the thinking back** (in *Per Type Settings* of an OpenAI-compatible provider) says whether the thinking of the model goes back to it, as the `reasoning_content` of its
+earlier message, in the next request:
+
+| Value | |
+|---|---|
+| **None** (default) | Never. Right for most models and servers, and for APIs that refuse an unknown field. |
+| **Between tool calls** | Only while the tool calls of one answer go on: the model that called a tool gets its own thinking back with the result. A new message of yours starts without the old thinking. This is what Google asks for Gemma 4 (*thoughts must not be removed between the function calls*, but removed between turns). |
+| **Always** | Also with the earlier answers that have thinking, where the chat keeps it (the plot wizard of the Arc Outline does). A server whose template drops old thinking by itself, like the one of Gemma 4, ignores it. |
+
+It applies to the tool loop (the plot wizard, the generators that use tools) and to agents: an agent gets the thinking of
+its earlier rounds back as long as the tool calls of one turn go on (the thinking is kept with the message in the
+console, not in the stored message). The server has to take the field: llama.cpp does (it reads
+`reasoning_content`, not `reasoning`), also behind LiteLLM; a provider that rejects unknown message fields fails, then
+leave it on *None*.
 
 ![Reasoning of a generated part](../images/reasoning-view.png)
 

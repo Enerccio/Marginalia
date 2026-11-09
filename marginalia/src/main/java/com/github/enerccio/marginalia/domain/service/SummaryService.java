@@ -50,6 +50,21 @@ public interface SummaryService extends ExtendableService<Summary, SummaryReposi
     Summary copySummary(Summary summary) throws Exception;
 
     /**
+     * Writes every summary the active branch has again with the model, for when the summary prompts changed and the
+     * summaries should follow them. Starts with the oldest and goes on one request at a time; a meta summary is made
+     * after the summaries it stands in for (the inner ones first, a meta summary of meta summaries last), from their new
+     * texts. Each summary keeps its place, its uuid and what points to it, and gets the hash of the story it covers, so
+     * the ones that were outdated are valid afterwards.
+     * <p>
+     * Nothing is stored until the last summary is written: a stop or an error leaves every summary as it was.
+     *
+     * @return null when the book has no model or no summaries
+     * @throws ManuscriptLockedException when an agent works on the book
+     */
+    CancellationToken resummarize(Manuscript manuscript, ResummaryCallback callback) throws Exception;
+
+
+    /**
      * Says that the summaries of the branch still describe the story: works out their hash again from the story as it is
      * now, the way a search and replace does for the texts it changed. For the author (or an agent) who edited a part
      * and knows that what the summary says is still true.
@@ -60,6 +75,15 @@ public interface SummaryService extends ExtendableService<Summary, SummaryReposi
      * @throws ManuscriptLockedException when an agent works on the book
      */
     List<SummaryBlock> revalidate(Manuscript manuscript, List<ChatMessage> newestFirst, ChatMessage only) throws Exception;
+
+    /**
+     * {@link #revalidate(Manuscript, List, ChatMessage)} on the active branch of the book, for the summaries overview.
+     *
+     * @param only the part whose summary is revalidated, all the outdated summaries of the branch when null
+     * @return the summaries that were outdated and are valid now, oldest first, empty when the book has no story
+     * @throws ManuscriptLockedException when an agent works on the book
+     */
+    List<SummaryBlock> revalidateActiveBranch(Manuscript manuscript, ChatMessage only) throws Exception;
 
     /**
      * Says that the given summaries still describe the story: stores the hash of their block as it was collected (so they must
@@ -76,6 +100,59 @@ public interface SummaryService extends ExtendableService<Summary, SummaryReposi
      * Only for summaries that no meta summary stands in for: the text of those is a part of the hash of the meta summary.
      */
     Summary updateSummaryText(Manuscript manuscript, Summary summary, String text) throws Exception;
+
+    /**
+     * The summaries generation uses on the active branch of the book, as a text file to edit and import again
+     * ({@link com.github.enerccio.marginalia.utils.SummaryTransfer}): the oldest first, meta summaries as one summary each.
+     * The summaries a meta summary stands in for are not in it, they are part of its hash and are never changed.
+     */
+    String exportSummaries(Manuscript manuscript) throws Exception;
+
+    /**
+     * Matches the summaries of an exported file to the summaries generation uses on the active branch of the book, changes
+     * nothing. A summary belongs to the part with the uuid it names; with {@code byPosition} one whose part is not in the
+     * branch (a file of another book, a copy has other uuids) goes to the summary on the part at the same position.
+     *
+     * @throws IllegalArgumentException when the text is not a file made by {@link #exportSummaries}
+     */
+    List<ImportEntry> analyzeImport(Manuscript manuscript, String text, boolean byPosition) throws Exception;
+
+    /**
+     * Writes the texts of the entries that are {@link ImportStatus#isChange() changes}, all or none.
+     *
+     * @return how many summaries were changed
+     * @throws ManuscriptLockedException when an agent works on the book
+     */
+    int applyImport(Manuscript manuscript, List<ImportEntry> entries) throws Exception;
+
+    /**
+     * What an import does to one summary.
+     */
+    enum ImportStatus {
+        /** The part of the summary was found and the text differs. */
+        CHANGED,
+        /** The part is not in the branch, the summary at the same position gets the text. */
+        CHANGED_BY_POSITION,
+        /** The text is the one the summary has. */
+        UNCHANGED,
+        /** No summary of the branch to put the text on (also when another entry of the file took it). */
+        NOT_FOUND,
+        /** The text of the file is empty, it would leave the part without a summary text. */
+        EMPTY;
+
+        public boolean isChange() {
+            return this == CHANGED || this == CHANGED_BY_POSITION;
+        }
+    }
+
+    /**
+     * @param part   uuid of the part in the file
+     * @param order  position of the part in the file
+     * @param text   the text of the file
+     * @param target the summary of the branch the text goes to, null when {@link ImportStatus#NOT_FOUND}
+     */
+    record ImportEntry(String part, int order, String text, ImportStatus status, SummaryNode target) {
+    }
 
     /**
      * The summaries of the branch as {@link #collectBlocks} finds them, with the summaries a meta summary stands in for
@@ -100,6 +177,12 @@ public interface SummaryService extends ExtendableService<Summary, SummaryReposi
      * @return blocks newest first, messages newer than the first summary are not in any block
      */
     List<SummaryBlock> collectBlocks(List<ChatMessage> newestFirst) throws Exception;
+
+    /**
+     * As {@link #collectBlocks(List)} with the hashes the blocks would have if the story had the texts of {@code texts}: tells
+     * which summaries a change of the story would make outdated before the change is made.
+     */
+    List<SummaryBlock> collectBlocks(List<ChatMessage> newestFirst, BlockTexts texts) throws Exception;
 
     /**
      * The first block of a branch that is given from the message with the summary down to the root, with the hash the
@@ -146,6 +229,34 @@ public interface SummaryService extends ExtendableService<Summary, SummaryReposi
         public boolean isValid() {
             return hash.equals(summary.getSummaryMessageHash());
         }
+
+    }
+
+    /**
+     * What {@link #resummarize} reports, on the threads the model answers on.
+     */
+    interface ResummaryCallback {
+
+        /**
+         * The next summary is being written.
+         *
+         * @param number 1 based number of the summary, of {@code total}
+         * @param part   the part the summary belongs to
+         * @param meta   whether it is a meta summary
+         */
+        void onStep(int number, int total, ChatMessage part, boolean meta) throws Exception;
+
+        /** The reasoning and the text of the summary being written, as far as they arrived. */
+        void onSummaryProgress(String reasoning, String summary) throws Exception;
+
+        /** Every summary was written and stored. */
+        void onFinished(int count) throws Exception;
+
+        /** Stopped, nothing was changed. */
+        void onTerminated() throws Exception;
+
+        /** Failed (the prompt does not fit, the model failed or answered nothing), nothing was changed. */
+        void onError(Throwable throwable) throws Exception;
 
     }
 

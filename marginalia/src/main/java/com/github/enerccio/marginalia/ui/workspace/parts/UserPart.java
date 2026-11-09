@@ -20,6 +20,7 @@ import com.github.enerccio.marginalia.ui.LLMInteraction;
 import com.github.enerccio.marginalia.ui.components.TagsView;
 import com.github.enerccio.marginalia.ui.dialogs.LorebookImportDialog;
 import com.github.enerccio.marginalia.ui.exports.ExportSettingsEditor;
+import com.github.enerccio.marginalia.ui.notifications.NotificationSettingsEditor;
 import com.github.enerccio.marginalia.ui.shortcuts.KeyBindings;
 import com.github.enerccio.marginalia.ui.shortcuts.KeyBindingsEditor;
 import com.github.enerccio.marginalia.ui.styles.PartStyleEditor;
@@ -106,6 +107,12 @@ public class UserPart implements WorkspaceComponent {
     private ExportSettingsService exportSettingsService;
 
     @Autowired
+    private NotificationService notificationService;
+
+    @Autowired
+    private StatisticsPolicyService statisticsPolicyService;
+
+    @Autowired
     private User currentUser;
 
     private final Workspace workspace;
@@ -125,6 +132,8 @@ public class UserPart implements WorkspaceComponent {
     private IntegerField storyPartsLimitField;
     private IntegerField dailyGoalWordsField;
     private IntegerField dailyGoalMinutesField;
+    private Checkbox statisticsRecordingBox;
+    private IntegerField statisticsKeepMonthsField;
     private HistoryLimitField historyLimitField;
     // the message to a URL when an agent needs the user, for users who may use agents
     private TextField agentWebhookUrlField;
@@ -145,6 +154,7 @@ public class UserPart implements WorkspaceComponent {
     private TextAreaPopoverComponent defaultAnnotateSystemPromptField;
     private TextAreaPopoverComponent defaultAnnotatePromptField;
     private TextAreaPopoverComponent defaultImpersonatePromptField;
+    private TextArea defaultAnnotateInstructionsField;
     private TextAreaPopoverComponent defaultAgentPromptField;
     private TextArea defaultAgentInstructionsField;
     private TextAreaPopoverComponent defaultAgentCompactionPromptField;
@@ -160,6 +170,9 @@ public class UserPart implements WorkspaceComponent {
 
     // Exports: the style and the templates of each format, saved and discarded with the page like the styles
     private ExportSettingsEditor exportsEditor;
+
+    // Notifications: the switch and the list of what notifies, saved and discarded with the page like the styles
+    private NotificationSettingsEditor notificationsEditor;
 
     // Tab 5 Extensions
     private Accordion extensionSettings;
@@ -208,6 +221,7 @@ public class UserPart implements WorkspaceComponent {
         defaultsFormLayout.add(storyPartsLimitField);
         defaultsFormLayout.add(historyLimitField);
         defaultsFormLayout.add(dailyGoalWordsField, dailyGoalMinutesField);
+        defaultsFormLayout.add(statisticsRecordingBox, statisticsKeepMonthsField);
         defaultsFormLayout.add(agentWebhookUrlField, 2);
         defaultsFormLayout.add(agentWebhookFormatCombo, agentWebhookAlwaysBox);
         defaultsFormLayout.add(agentWebhookTestButton, 2);
@@ -243,6 +257,8 @@ public class UserPart implements WorkspaceComponent {
         templatesFormLayout.setColspan(defaultAnnotateSystemPromptField, 2);
         templatesFormLayout.add(defaultAnnotatePromptField);
         templatesFormLayout.setColspan(defaultAnnotatePromptField, 2);
+        templatesFormLayout.add(defaultAnnotateInstructionsField);
+        templatesFormLayout.setColspan(defaultAnnotateInstructionsField, 2);
         templatesFormLayout.add(defaultImpersonatePromptField);
         templatesFormLayout.setColspan(defaultImpersonatePromptField, 2);
 
@@ -265,6 +281,8 @@ public class UserPart implements WorkspaceComponent {
         tabSheet.add(loc.getValue(L.LABEL_TAGS), tagsView);
 
         tabSheet.add(loc.getValue(L.LABEL_KEYBOARD_SHORTCUTS), createShortcutsTab());
+
+        tabSheet.add(loc.getValue(L.LABEL_NOTIFICATIONS), createNotificationsTab());
 
         extensionSettings = new Accordion();
         extensionSettings.setSizeFull();
@@ -332,6 +350,24 @@ public class UserPart implements WorkspaceComponent {
         exportsEditor = editor;
         layout.add(help, editor);
         return layout;
+    }
+
+    /**
+     * The desktop notifications: whether the browser tells the user a run of a model is over and for which runs. Like the styles it keeps its
+     * changes in its fields and tells this part; {@link #save} stores them and {@link #refresh} reloads them.
+     */
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = Component.class),
+            locals = {@APILocals(name = "editor", type = NotificationSettingsEditor.class)})
+    private Component createNotificationsTab() {
+        NotificationSettingsEditor editor = new NotificationSettingsEditor(loc, notificationService);
+        editor.setOnChange(() -> {
+            if (!loading) {
+                setChanged(true);
+            }
+        });
+        notificationsEditor = editor;
+        return editor;
     }
 
     /**
@@ -473,6 +509,14 @@ public class UserPart implements WorkspaceComponent {
         // one help text for the two goals
         dailyGoalMinutesField.setHelperText(null);
 
+        statisticsRecordingBox = new Checkbox(loc.getValue(L.LABEL_STATISTICS_RECORD));
+        statisticsRecordingBox.setHelperText(loc.getValue(L.HELP_STATISTICS_RECORD));
+        statisticsKeepMonthsField = new IntegerField(loc.getValue(L.LABEL_STATISTICS_KEEP_MONTHS));
+        statisticsKeepMonthsField.setWidthFull();
+        statisticsKeepMonthsField.setMin(0);
+        statisticsKeepMonthsField.setStepButtonsVisible(true);
+        statisticsKeepMonthsField.setHelperText(loc.getValue(L.HELP_STATISTICS_KEEP_MONTHS));
+
         agentWebhookUrlField = new TextField(loc.getValue(L.LABEL_AGENT_WEBHOOK_URL));
         agentWebhookUrlField.setWidthFull();
         agentWebhookUrlField.setClearButtonVisible(true);
@@ -550,6 +594,12 @@ public class UserPart implements WorkspaceComponent {
         defaultAnnotatePromptField.setPopoverContent(createTemplateHintPopoverContent(
                 defaultAnnotatePromptField, defaultAnnotatePromptField.getPopover(), AnnotateTemplateData.class, Defaults.DEFAULT_ANNOTATE_PROMPT));
 
+        defaultAnnotateInstructionsField = new TextArea(loc.getValue(L.LABEL_ANNOTATE_INSTRUCTIONS));
+        defaultAnnotateInstructionsField.setWidthFull();
+        defaultAnnotateInstructionsField.setHelperText(loc.getValue(L.HELP_ANNOTATE_INSTRUCTIONS));
+        defaultAnnotateInstructionsField.setPlaceholder(loc.getValue(L.MSG_ANNOTATE_PLACEHOLDER));
+        ResizableTextArea.install(loc, defaultAnnotateInstructionsField, "100px");
+
         defaultImpersonatePromptField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_IMPERSONATE_PROMPT));
         defaultImpersonatePromptField.setWidthFull();
         ResizableTextArea.install(loc, defaultImpersonatePromptField, "160px");
@@ -619,6 +669,10 @@ public class UserPart implements WorkspaceComponent {
     /**
      * Sends a message to the address as it stands in the field, saved or not, and tells what the service answered.
      */
+    private static Integer positiveOrNull(Integer value) {
+        return value != null && value > 0 ? value : null;
+    }
+
     /**
      * The address, its format and the wish for the message while the application is open, into the setting. Only for a user who
      * sees them: they are hidden where the administrator turned the messages off, and what was set stays then.
@@ -720,6 +774,9 @@ public class UserPart implements WorkspaceComponent {
             if (exportsEditor != null) {
                 exportsEditor.reload();
             }
+            if (notificationsEditor != null) {
+                notificationsEditor.reload();
+            }
 
             List<AI> allModels = aiService.findAllForUser();
             defaultModelCombo.setItems(allModels);
@@ -773,6 +830,8 @@ public class UserPart implements WorkspaceComponent {
             historyLimitField.load(userSetting.getHistoryMaxVersions(), manuscriptService.resolvePermissionHistoryLimit());
             dailyGoalWordsField.setValue(userSetting.getDailyGoalWords());
             dailyGoalMinutesField.setValue(userSetting.getDailyGoalMinutes());
+            statisticsRecordingBox.setValue(userSetting.isStatisticsRecording());
+            statisticsKeepMonthsField.setValue(userSetting.getStatisticsKeepMonths());
             masterTemplateField.setValue(StringUtils.defaultString(userSetting.getMasterTemplate()));
             defaultPovField.setValue(StringUtils.defaultString(userSetting.getDefaultPov()));
             defaultTenseField.setValue(StringUtils.defaultString(userSetting.getDefaultTense()));
@@ -784,6 +843,7 @@ public class UserPart implements WorkspaceComponent {
             defaultRedraftPromptField.setValue(StringUtils.defaultString(userSetting.getDefaultRedraftPrompt()));
             defaultAnnotateSystemPromptField.setValue(StringUtils.defaultString(userSetting.getDefaultAnnotateSystemPrompt()));
             defaultAnnotatePromptField.setValue(StringUtils.defaultString(userSetting.getDefaultAnnotatePrompt()));
+            defaultAnnotateInstructionsField.setValue(StringUtils.defaultString(userSetting.getDefaultAnnotateInstructions()));
             defaultImpersonatePromptField.setValue(StringUtils.defaultString(userSetting.getDefaultImpersonatePrompt()));
             defaultAgentPromptField.setValue(StringUtils.defaultString(userSetting.getDefaultAgentPrompt()));
             defaultAgentInstructionsField.setValue(StringUtils.defaultString(userSetting.getDefaultAgentInstructions()));
@@ -838,8 +898,9 @@ public class UserPart implements WorkspaceComponent {
             parameters = {@APIParameter(name = "component", type = Component.class)},
             locals = {@APILocals(name = "field", type = HasValue.class)})
     private void trackChanges(Component component) {
-        if (component instanceof PartStyleEditor || component instanceof ExportSettingsEditor) {
-            // reports its changes itself, see createStylesTab and createExportsTab
+        if (component instanceof PartStyleEditor || component instanceof ExportSettingsEditor
+                || component instanceof NotificationSettingsEditor) {
+            // reports its changes itself, see createStylesTab, createExportsTab and createNotificationsTab
             return;
         }
         if (component instanceof HasValue<?, ?> field && ComponentUtil.getData(component, CHANGE_TRACKED_KEY) == null) {
@@ -888,6 +949,7 @@ public class UserPart implements WorkspaceComponent {
                     @APILocals(name = "redraftPrompt", type = String.class),
                     @APILocals(name = "annotateSystemPrompt", type = String.class),
                     @APILocals(name = "annotatePrompt", type = String.class),
+                    @APILocals(name = "annotateInstructions", type = String.class),
                     @APILocals(name = "impersonatePrompt", type = String.class),
                     @APILocals(name = "defaultPov", type = String.class),
                     @APILocals(name = "defaultTense", type = String.class),
@@ -934,6 +996,7 @@ public class UserPart implements WorkspaceComponent {
         String redraftPrompt = defaultRedraftPromptField.getValue();
         String annotateSystemPrompt = defaultAnnotateSystemPromptField.getValue();
         String annotatePrompt = defaultAnnotatePromptField.getValue();
+        String annotateInstructions = defaultAnnotateInstructionsField.getValue();
         String impersonatePrompt = defaultImpersonatePromptField.getValue();
 
         String defaultPov = defaultPovField.getValue();
@@ -961,6 +1024,8 @@ public class UserPart implements WorkspaceComponent {
             userSetting.setHistoryMaxVersions(historyLimitField.getValue());
             userSetting.setDailyGoalWords(dailyGoalWordsField.getValue());
             userSetting.setDailyGoalMinutes(dailyGoalMinutesField.getValue());
+            userSetting.setStatisticsRecording(statisticsRecordingBox.getValue() ? null : Boolean.FALSE);
+            userSetting.setStatisticsKeepMonths(positiveOrNull(statisticsKeepMonthsField.getValue()));
 
             userSetting.setMasterTemplate(masterTemplate);
             userSetting.setDefaultPov(defaultPov);
@@ -973,6 +1038,7 @@ public class UserPart implements WorkspaceComponent {
             userSetting.setDefaultRedraftPrompt(redraftPrompt);
             userSetting.setDefaultAnnotateSystemPrompt(annotateSystemPrompt);
             userSetting.setDefaultAnnotatePrompt(annotatePrompt);
+            userSetting.setDefaultAnnotateInstructions(annotateInstructions);
             userSetting.setDefaultImpersonatePrompt(impersonatePrompt);
             saveWebhook(userSetting);
             if (defaultAgentPromptField.isVisible()) {
@@ -985,12 +1051,17 @@ public class UserPart implements WorkspaceComponent {
             userSetting.setKeyBindings(KeyBindings.toStored(userSetting.getKeyBindings(), keyBindingsEditor.getValue()));
 
             settingService.save(userSetting);
+            statisticsPolicyService.invalidate();
+            statisticsPolicyService.prune(currentUser);
             if (stylesEditor != null) {
                 stylesEditor.save();
             }
             if (exportsEditor != null) {
                 // after the styles: it chooses among them, and a style deleted just now counts as none
                 exportsEditor.save();
+            }
+            if (notificationsEditor != null) {
+                notificationsEditor.save();
             }
             // the open story tabs use the new keys from the next key press
             JavascriptLibrary.setShortcutKeys(UI.getCurrent().getPage(), KeyBindings.of(userSetting).toJson());
@@ -1040,10 +1111,11 @@ public class UserPart implements WorkspaceComponent {
                     @APILocals(name = "uploaded", type = AtomicReference.class),
                     @APILocals(name = "upload", type = Upload.class),
                     @APILocals(name = "cancelBtn", type = Button.class)})
-    private void openImportBackupAsNewDialog() {
+    protected void openImportBackupAsNewDialog() {
         Dialog dialog = new Dialog();
         dialog.setHeaderTitle(loc.getValue(L.LABEL_IMPORT_BACKUP_AS_NEW));
         dialog.setWidth("450px");
+        UIUtils.fitPhone(dialog, false);
 
         VerticalLayout layout = new VerticalLayout();
         layout.setPadding(true);
@@ -1053,6 +1125,7 @@ public class UserPart implements WorkspaceComponent {
         nameField.setRequired(true);
         nameField.setWidthFull();
         nameField.setValueChangeMode(ValueChangeMode.EAGER);
+        DialogFocus.onOpen(dialog, nameField);
 
         // the backup is read from a file, it can be big and have images; the file is needed until the lorebooks are
         // resolved (a dialog), so it's deleted when the restore is done or the dialog is closed

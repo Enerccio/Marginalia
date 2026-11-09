@@ -117,6 +117,16 @@ public @interface Command {
     boolean readOnly() default false;
 
     /**
+     * Whether a template can run the command with the {@code {{command::name::argument}}} macro and put what it returns
+     * into the prompt. It is for a command that only reads and answers quickly with text, so it requires
+     * {@link #readOnly()}: a template (a lorebook entry from the internet, for one) must never be able to change data.
+     * The answer is kept with the part the generation continues from, so the command is not run again for every
+     * template and every generation from there until the part is regenerated or swiped. The same for all the overloads of
+     * a command. {@code false} by default.
+     */
+    boolean availableInMacros() default false;
+
+    /**
      * How the command is used among the calls of one answer of an agent: with others ({@link BatchPolicy#BATCHABLE}, the default) or
      * alone ({@link BatchPolicy#SINGLE}), for a command that makes a call to a model, for example. A policy is advice about use,
      * and an agent can be set to ignore it. Declare it on every overload of the command (the runner takes the command as single when

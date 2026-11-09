@@ -37,6 +37,8 @@ public class AnnotateTemplateData extends TemplateData {
     private String annotateInstructions;
     @LocalizedTemplateDescription(loc = L.DESC_TEMPLATE_ANNOTATIONS)
     private String annotations;
+    @LocalizedTemplateDescription(loc = L.DESC_TEMPLATE_FACTS)
+    private String facts;
     @LocalizedTemplateDescription(loc = L.DESC_TEMPLATE_OUTPUT_FORMAT)
     private String outputFormat;
 
@@ -150,6 +152,14 @@ public class AnnotateTemplateData extends TemplateData {
 
     public void setAnnotations(String annotations) {
         this.annotations = annotations;
+    }
+
+    public String getFacts() {
+        return facts;
+    }
+
+    public void setFacts(String facts) {
+        this.facts = facts;
     }
 
     public String getOutputFormat() {

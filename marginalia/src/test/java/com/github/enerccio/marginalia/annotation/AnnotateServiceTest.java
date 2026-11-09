@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.annotation;
 
 import com.github.enerccio.marginalia.domain.collections.AnnotationSource;
 import com.github.enerccio.marginalia.domain.collections.AnnotationStatus;
+import com.github.enerccio.marginalia.domain.components.ModelText.Substitution;
 import com.github.enerccio.marginalia.domain.model.impl.Annotation;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
@@ -16,11 +17,14 @@ import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.SettingService;
 import com.github.enerccio.marginalia.domain.service.impl.AnnotateServiceImpl;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationOptions;
+import com.github.enerccio.marginalia.extensions.AnnotationFactsRegistry;
+import com.github.enerccio.marginalia.extensions.PartTextRegistry;
 import com.github.enerccio.marginalia.test.GenerationTestBase;
 import com.github.enerccio.marginalia.test.llm.MockLLMRequest;
 import com.github.enerccio.marginalia.test.llm.MockLLMResponse;
 import com.github.enerccio.marginalia.test.llm.MockLLMScenario;
 import com.github.enerccio.marginalia.test.llm.MockLLMServer;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,6 +55,12 @@ class AnnotateServiceTest extends GenerationTestBase {
     private AnnotateService annotateService;
 
     @Autowired
+    private PartTextRegistry partTextRegistry;
+
+    @Autowired
+    private AnnotationFactsRegistry annotationFacts;
+
+    @Autowired
     private SettingService settingService;
 
     @Autowired
@@ -62,6 +72,15 @@ class AnnotateServiceTest extends GenerationTestBase {
     private Manuscript manuscript;
     private ChatMessage before;
     private ChatMessage part;
+
+    private static final String PART_TEXT_OWNER = "annotate-service-test";
+
+    /** The registry is one bean for every test of the JVM: whatever a test registers is taken away. */
+    @AfterEach
+    void unregisterTransformers() {
+        partTextRegistry.unregisterAll(PART_TEXT_OWNER);
+        annotationFacts.unregisterAll(PART_TEXT_OWNER);
+    }
 
     @BeforeEach
     void createStory() throws Exception {
@@ -169,6 +188,50 @@ class AnnotateServiceTest extends GenerationTestBase {
         assertThat(first.located()).isTrue();
         assertThat(TEXT.substring(first.start(), first.end())).isEqualTo("They talked for hours.");
         assertThat(result.proposals().get(1).type()).isNull();
+    }
+
+    // ------------------------------------------------------------------------------------------------ facts of extensions
+
+    @Test
+    void theFactsOfAnExtensionAreGivenToTheModelWithTheBranchUpToThePart() throws Exception {
+        List<List<String>> asked = new java.util.concurrent.CopyOnWriteArrayList<>();
+        annotationFacts.register(PART_TEXT_OWNER, (book, target, branch) -> {
+            asked.add(branch.stream().map(ChatMessage::getResponse).toList());
+            return List.of(new AnnotationFactsRegistry.Section("What Anna knows:", "Anna has never met John."));
+        });
+        llm.enqueue(MockLLMResponse.text("{\"findings\": []}"));
+
+        done(request("flag continuity errors", Mode.STRUCTURED));
+
+        String prompt = llm.lastCompletionRequest().getPromptText();
+        assertThat(prompt).contains("ESTABLISHED FACTS START").contains("What Anna knows:\nAnna has never met John.")
+                .contains("ESTABLISHED FACTS END").contains("Established facts");
+        // the provider is told the part and everything before it, the part last
+        assertThat(asked).containsExactly(List.of("Anna sailed to the harbour.", TEXT));
+    }
+
+    @Test
+    void withoutFactsThePromptHasNoFactsBlock() throws Exception {
+        annotationFacts.register(PART_TEXT_OWNER, (book, target, branch) -> List.of());
+        llm.enqueue(MockLLMResponse.text("{\"findings\": []}"));
+
+        done(request("flag continuity errors", Mode.STRUCTURED));
+
+        assertThat(llm.lastCompletionRequest().getPromptText()).doesNotContain("ESTABLISHED FACTS").doesNotContain("Established facts");
+    }
+
+    @Test
+    void aProviderThatFailsDoesNotBreakTheAnnotation() throws Exception {
+        annotationFacts.register(PART_TEXT_OWNER, (book, target, branch) -> {
+            throw new IllegalStateException("broken extension");
+        });
+        annotationFacts.register(PART_TEXT_OWNER, (book, target, branch) ->
+                List.of(new AnnotationFactsRegistry.Section(null, "The harbour is closed.")));
+        llm.enqueue(MockLLMResponse.text("{\"findings\": []}"));
+
+        done(request("flag continuity errors", Mode.STRUCTURED));
+
+        assertThat(llm.lastCompletionRequest().getPromptText()).contains("The harbour is closed.");
     }
 
     @Test
@@ -372,6 +435,35 @@ class AnnotateServiceTest extends GenerationTestBase {
             assertThat(llm.lastCompletionRequest().getPromptText()).contains("BOOK PROMPT " + TEXT).doesNotContain("USER PROMPT");
         } finally {
             setting.setDefaultAnnotatePrompt(null);
+            settingService.save(setting);
+        }
+    }
+
+    @Test
+    void whatToLookForIsInheritedFromTheBookTheFolderAndTheUser() throws Exception {
+        UserSetting setting = settingService.getOrCreate(UserSetting.class);
+        setting.setDefaultAnnotateInstructions("USER LOOKS FOR pacing");
+        settingService.save(setting);
+        llm.enqueue(MockLLMResponse.text("{\"findings\": []}"), MockLLMResponse.text("{\"findings\": []}"),
+                MockLLMResponse.text("{\"findings\": []}"));
+
+        try {
+            // nothing is asked, the setting of the user is what the model is told
+            done(request(null, Mode.STRUCTURED));
+            assertThat(llm.lastCompletionRequest().getPromptText()).contains("USER LOOKS FOR pacing");
+
+            // the book sets its own
+            Manuscript loaded = manuscriptService.find(manuscript.getId());
+            loaded.setAnnotateInstructions("BOOK LOOKS FOR names");
+            manuscript = manuscriptService.save(loaded);
+            done(request(null, Mode.STRUCTURED));
+            assertThat(llm.lastCompletionRequest().getPromptText()).contains("BOOK LOOKS FOR names").doesNotContain("USER LOOKS FOR");
+
+            // what the run asks for comes first
+            done(request("RUN LOOKS FOR dialogue", Mode.STRUCTURED));
+            assertThat(llm.lastCompletionRequest().getPromptText()).contains("RUN LOOKS FOR dialogue").doesNotContain("BOOK LOOKS FOR");
+        } finally {
+            setting.setDefaultAnnotateInstructions(null);
             settingService.save(setting);
         }
     }
@@ -649,6 +741,58 @@ class AnnotateServiceTest extends GenerationTestBase {
         assertThat(second.hasRange()).isFalse();
         assertThat(second.isNotLocated()).isTrue();
         assertThat(second.getText()).isEqualTo("Contradicts the lore");
+    }
+
+    // ------------------------------------------------------------------------------------------------ a story kept in another form
+
+    private static final String STORED_SPEECH = "Da ek se za skag.";
+    private static final String ENGLISH_SPEECH = "I see the enemy.";
+
+    /** The part holds speech in a made-up language; the "extension" gives the model the English it was made from. */
+    private ChatMessage translatedPart() throws Exception {
+        chatMessageService.updateResponse(manuscript, part, "Anna met John at the bar. \"" + STORED_SPEECH + "\" Then she left.");
+        partTextRegistry.register(PART_TEXT_OWNER, new PartTextRegistry.Transformer() {
+            @Override
+            public List<Substitution> substitutions(ChatMessage message) {
+                int at = message.getResponse().indexOf(STORED_SPEECH);
+                return at < 0 ? List.of() : List.of(new Substitution(at, at + STORED_SPEECH.length(), ENGLISH_SPEECH));
+            }
+        });
+        return chatMessageService.find(part.getId());
+    }
+
+    @Test
+    void theModelIsShownWhatItReadsAndItsQuoteIsFoundInTheStoredPassage() throws Exception {
+        ChatMessage stored = translatedPart();
+        llm.enqueue(MockLLMResponse.text("{\"findings\": [{\"quote\": \"" + ENGLISH_SPEECH + "\", \"note\": \"An odd thing to say\"}]}"));
+
+        Done result = done(new Request("", null, GenerationOptions.defaults(), Mode.STRUCTURED, null, null));
+
+        // the model read the English, not the made-up language
+        assertThat(llm.lastCompletionRequest().getPromptText()).contains(ENGLISH_SPEECH).doesNotContain(STORED_SPEECH);
+        // its quote is tied to the passage of the stored text that the English stands for, which the author sees
+        assertThat(result.proposals()).hasSize(1);
+        Proposal proposal = result.proposals().getFirst();
+        assertThat(proposal.located()).isTrue();
+        assertThat(stored.getResponse().substring(proposal.start(), proposal.end())).isEqualTo(STORED_SPEECH);
+
+        // and accepting it makes a note on that passage, not a note about the whole part
+        List<Annotation> made = annotateService.accept(manuscript, stored, result.proposals(), "mock-model");
+        Annotation note = annotationService.find(made.getFirst().getId());
+        assertThat(note.hasRange()).isTrue();
+        assertThat(note.isNotLocated()).isFalse();
+        assertThat(stored.getResponse().substring(note.getStart(), note.getEnd())).isEqualTo(STORED_SPEECH);
+    }
+
+    @Test
+    void aQuoteOutsideTheTranslatedPassageIsFoundAsBefore() throws Exception {
+        ChatMessage stored = translatedPart();
+        Proposal proposal = new Proposal("Then she left.", "Abrupt", null, null, null);
+
+        List<Annotation> made = annotateService.accept(manuscript, stored, List.of(proposal), "mock-model");
+
+        Annotation note = annotationService.find(made.getFirst().getId());
+        assertThat(stored.getResponse().substring(note.getStart(), note.getEnd())).isEqualTo("Then she left.");
     }
 
     // ------------------------------------------------------------------------------------------------ the model

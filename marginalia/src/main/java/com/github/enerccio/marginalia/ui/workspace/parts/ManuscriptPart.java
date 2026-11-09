@@ -94,7 +94,6 @@ public class ManuscriptPart implements ManuscriptSection {
     private boolean organiseTargetKnown;
     // the list shows the favorite books (the virtual folder at the top level) instead of a folder
     private boolean inFavorites;
-    private Button tagBooksButton;
     private Button searchButton;
     private VerticalLayout mainLayout;
 
@@ -125,17 +124,16 @@ public class ManuscriptPart implements ManuscriptSection {
         return loc.getValue(L.LABEL_BOOKS);
     }
 
-    @PublicAPI(from = "1.6.0",
+    @PublicAPI(from = "1.7.0",
             returns = @APIReturn(type = Component.class),
             locals = {@APILocals(name = "headerLayout", type = HorizontalLayout.class),
                     @APILocals(name = "titleSpan", type = Span.class),
                     @APILocals(name = "addBookButton", type = Button.class),
-                    @APILocals(name = "organiseButton", type = Button.class),
-                    @APILocals(name = "statisticsButton", type = Button.class),
-                    @APILocals(name = "importArchiveButton", type = Button.class),
-                    @APILocals(name = "importSillyTavernButton", type = Button.class),
-                    @APILocals(name = "massChangesBar", type = MenuBar.class),
+                    @APILocals(name = "manageBar", type = MenuBar.class),
+                    @APILocals(name = "manageItem", type = MenuItem.class),
                     @APILocals(name = "massChangesItem", type = MenuItem.class),
+                    @APILocals(name = "importBar", type = MenuBar.class),
+                    @APILocals(name = "importItem", type = MenuItem.class),
                     @APILocals(name = "navigationLayout", type = HorizontalLayout.class),
                     @APILocals(name = "toolColumn", type = Grid.Column.class),
                     @APILocals(name = "filterRow", type = HeaderRow.class),
@@ -161,24 +159,28 @@ public class ManuscriptPart implements ManuscriptSection {
 
         newFolderButton = new Button(loc.getValue(L.LABEL_NEW_FOLDER), Solid.FOLDER_PLUS.create(),
                 event -> new FolderActions().create(currentFolder, _ -> refreshGrid()));
-        Button organiseButton = new Button(loc.getValue(L.LABEL_ORGANISE), Solid.COLUMNS.create(), event -> openOrganiseDialog());
-        tagBooksButton = new Button(loc.getValue(L.LABEL_TAG_BOOKS), Solid.TAGS.create(), event -> openTagDialog());
-        Button statisticsButton = new Button(loc.getValue(L.LABEL_STATISTICS), Solid.CHART_LINE.create(), event -> openStatisticsDialog());
-        Button importArchiveButton = new Button(Solid.FILE_IMPORT.create(),
-                event -> new NewBookAction(this::openManuscript, currentFolder).runFromArchive());
-        importArchiveButton.setTooltipText(loc.getValue(L.LABEL_IMPORT_FROM_ARCHIVE));
-        Button importSillyTavernButton = new Button(Solid.COMMENTS.create(),
-                event -> new NewBookAction(this::openManuscript, currentFolder).runFromSillyTavern());
-        importSillyTavernButton.setTooltipText(loc.getValue(L.LABEL_IMPORT_FROM_SILLYTAVERN));
         searchButton = new Button(loc.getValue(L.LABEL_SEARCH), Solid.SEARCH.create(), event -> openSearchDialog());
-        MenuBar massChangesBar = new MenuBar();
-        MenuItem massChangesItem = massChangesBar.addItem(loc.getValue(L.LABEL_MASS_CHANGES));
+        // Manage: the windows that work on many books, with the mass changes one level down
+        MenuBar manageBar = new MenuBar();
+        MenuItem manageItem = manageBar.addItem(loc.getValue(L.LABEL_MANAGE));
+        manageItem.getSubMenu().addItem(loc.getValue(L.LABEL_ORGANISE), _ -> openOrganiseDialog());
+        manageItem.getSubMenu().addItem(loc.getValue(L.LABEL_TAG_BOOKS), _ -> openTagDialog());
+        manageItem.getSubMenu().addItem(loc.getValue(L.LABEL_STATISTICS), _ -> openStatisticsDialog());
+        manageItem.getSubMenu().addSeparator();
+        MenuItem massChangesItem = manageItem.getSubMenu().addItem(loc.getValue(L.LABEL_MASS_CHANGES));
         massChangesItem.getSubMenu().addItem(loc.getValue(L.LABEL_MASS_CHANGE_MODEL_PROTOCOL), _ -> openMassChangeDialog());
         massChangesItem.getSubMenu().addItem(loc.getValue(L.LABEL_MASS_CHANGE_LANGUAGE), _ -> openMassChangeLanguageDialog());
         massChangesItem.getSubMenu().addItem(loc.getValue(L.LABEL_MASS_RENAME), _ -> openMassRenameDialog());
         massChangesItem.getSubMenu().addItem(loc.getValue(L.LABEL_TAG_FOLDERS), _ -> openTagFoldersDialog());
-        headerLayout.add(titleSpan, searchButton, organiseButton, tagBooksButton, statisticsButton, massChangesBar, importArchiveButton, importSillyTavernButton,
-                newFolderButton, addBookButton);
+        MenuBar importBar = new MenuBar();
+        MenuItem importItem = importBar.addItem(loc.getValue(L.LABEL_IMPORT));
+        importItem.getSubMenu().addItem(loc.getValue(L.LABEL_IMPORT_FROM_ARCHIVE),
+                _ -> new NewBookAction(this::openManuscript, currentFolder).runFromArchive());
+        importItem.getSubMenu().addItem(loc.getValue(L.LABEL_IMPORT_FROM_SILLYTAVERN),
+                _ -> new NewBookAction(this::openManuscript, currentFolder).runFromSillyTavern());
+        importItem.getSubMenu().addItem(loc.getValue(L.LABEL_IMPORT_FROM_LMSTUDIO),
+                _ -> new NewBookAction(this::openManuscript, currentFolder).runFromLmStudio());
+        headerLayout.add(titleSpan, searchButton, manageBar, importBar, newFolderButton, addBookButton);
         headerLayout.setFlexGrow(1, titleSpan);
         headerLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
 

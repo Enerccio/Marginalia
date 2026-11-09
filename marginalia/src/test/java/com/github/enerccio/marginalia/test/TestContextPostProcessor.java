@@ -60,8 +60,20 @@ public class TestContextPostProcessor implements BeanDefinitionRegistryPostProce
     public void postProcessBeanFactory(@NonNull ConfigurableListableBeanFactory beanFactory) throws BeansException {
     }
 
+    /**
+     * When set, the context uses exactly this folder (created if missing) instead of a fresh one: a build that must continue on the
+     * database of an earlier run, the dataset workset builder ({@code WorksetBuilder}), sets it.
+     */
+    public static final String FIXED_HOME_PROPERTY = "marginalia.test.fixedHome";
+
     private static File createTestFolder() {
         try {
+            String fixed = System.getProperty(FIXED_HOME_PROPERTY);
+            if (fixed != null && !fixed.isBlank()) {
+                Path folder = Path.of(fixed);
+                Files.createDirectories(folder);
+                return folder.toFile();
+            }
             Path root = Path.of(System.getProperty(TEST_HOME_PROPERTY, "target/test-home"));
             Files.createDirectories(root);
             return Files.createTempDirectory(root, "ctx-").toFile();

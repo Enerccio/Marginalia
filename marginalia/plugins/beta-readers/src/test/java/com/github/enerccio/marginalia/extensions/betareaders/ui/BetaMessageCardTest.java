@@ -91,6 +91,17 @@ class BetaMessageCardTest {
     }
 
     @Test
+    void aMessageOfTheUserShowsTheNameOfTheChatInsteadOfYou() {
+        BetaChat chat = chat();
+        chat.setUserName("  Petr ");
+
+        String shown = text(BetaMessageCard.create(chat, BetaMessage.user("Hi")));
+
+        assertTrue(shown.contains("Petr"));
+        assertFalse(shown.contains("You"));
+    }
+
+    @Test
     void aMessageThatSentNothingHasNoLineAboutIt() {
         String shown = text(BetaMessageCard.create(chat(), BetaMessage.user("Hi")));
 
@@ -195,6 +206,23 @@ class BetaMessageCardTest {
         assertTrue(text(turn).contains("thinking more"));
         assertFalse(text(turn).contains("thinking thinking"));
         assertEquals(1, all(turn).filter(Image.class::isInstance).count());
+    }
+
+    @Test
+    void theSectionOfTheReasoningIsTheSameComponentWhileTheTurnStreams() {
+        BetaMessageCard.Turn turn = new BetaMessageCard.Turn(chat());
+        turn.show("thinking", List.of(), "");
+        Details first = all(turn).filter(Details.class::isInstance).map(Details.class::cast).findFirst().orElseThrow();
+
+        turn.show("thinking more", List.of(spoken("Athena", PartType.SPEECH, "Hi")), "");
+        turn.show("thinking even more", List.of(spoken("Athena", PartType.SPEECH, "Hi"), spoken("Vesper", PartType.SPEECH, "Hm")), "");
+
+        // a section that is replaced loses the click of the user that opens it
+        assertEquals(1, all(turn).filter(Details.class::isInstance).count());
+        assertSame(first, all(turn).filter(Details.class::isInstance).findFirst().orElseThrow());
+        assertSame(first, turn.getChildren().findFirst().orElseThrow(), "and it stays above the messages");
+        assertTrue(text(first).contains("thinking even more"));
+        assertEquals(2, all(turn).filter(Image.class::isInstance).count());
     }
 
     @Test

@@ -1,12 +1,18 @@
 package com.github.enerccio.marginalia.domain.service.impl;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.enerccio.marginalia.domain.collections.FilteringMode;
+import com.github.enerccio.marginalia.domain.components.LoreConditions;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LorebookEntryVerdict;
 import com.github.enerccio.marginalia.domain.templates.LorebookTemplateData;
+import com.github.enerccio.marginalia.domain.templates.TemplateData;
+import com.github.enerccio.marginalia.domain.templates.macros.MacroHelpers;
+import com.github.enerccio.marginalia.extensions.PartTextRegistry;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 import org.slf4j.Logger;
@@ -31,7 +37,21 @@ public class LorebookActivationServiceImpl implements LorebookActivationService 
     private ChatMessageService chatMessageService;
 
     @Autowired
+    private PartTextRegistry partTextRegistry;
+
+    @Autowired
     private TemplateService templateService;
+
+    @Autowired
+    private SummaryService summaryService;
+
+    /**
+     * Whether a condition is a valid template without names that do not exist, by its text: the same conditions are
+     * checked for every turn.
+     */
+    private final Cache<String, TemplateService.ValidationResult> conditionChecks = Caffeine.newBuilder()
+            .maximumSize(1000)
+            .build();
 
     @Override
     public List<Lorebook> collectLorebooks(Lorebook root) throws Exception {
@@ -92,6 +112,25 @@ public class LorebookActivationServiceImpl implements LorebookActivationService 
 
     @Override
     public Verdict evaluate(LorebookEntry entry, List<String> manuscriptTags, String instructions, List<String> parts, Integer position) {
+        return evaluate(entry, manuscriptTags, instructions, parts, position, null);
+    }
+
+    @Override
+    public Verdict evaluate(LorebookEntry entry, List<String> manuscriptTags, String instructions, List<String> parts, Integer position, LoreConditions conditions) {
+        return evaluate(entry, manuscriptTags, instructions, StoryText.ofParts(parts), position, conditions);
+    }
+
+    @Override
+    public Verdict evaluate(LorebookEntry entry, List<String> manuscriptTags, String instructions, StoryText story, Integer position, LoreConditions conditions) {
+        return evaluate(entry, manuscriptTags, instructions, story, position, conditions, false);
+    }
+
+    /**
+     * @param viaContent the text is the content of an entry that was used, not the turn: an entry that is used only that way
+     *                   (recursion only) may match it
+     */
+    private Verdict evaluate(LorebookEntry entry, List<String> manuscriptTags, String instructions, StoryText story, Integer position,
+                             LoreConditions conditions, boolean viaContent) {
         if (!entry.isEnabled()) {
             return new Verdict(Reason.DISABLED, null);
         }
@@ -105,11 +144,82 @@ public class LorebookActivationServiceImpl implements LorebookActivationService 
         if (!entry.getCachedTags().isEmpty() && firstShared(entry.getCachedTags(), manuscriptTags) == null) {
             return new Verdict(Reason.MISSING_TAG, String.join(", ", entry.getCachedTags()));
         }
+        Verdict condition = checkCondition(entry, conditions);
+        if (condition != null) {
+            return condition;
+        }
+        if (entry.isRecursionOnly() && (!viaContent || StringUtils.isBlank(entry.getFiltering()))) {
+            // only the content of other entries can use it (an entry without a filter has nothing to be found by)
+            return new Verdict(Reason.RECURSION_ONLY, entry.getFiltering());
+        }
         if (StringUtils.isBlank(entry.getFiltering())) {
             return new Verdict(Reason.CONSTANT, null);
         }
-        return filterMatches(entry, contextOf(entry, instructions, parts)) ? new Verdict(Reason.FILTER_MATCHED, entry.getFiltering())
+        return filterMatches(entry, contextOf(entry, instructions, story)) ? new Verdict(Reason.FILTER_MATCHED, entry.getFiltering())
                 : new Verdict(Reason.FILTER_NOT_MATCHED, entry.getFiltering());
+    }
+
+    /**
+     * The verdict that stops the entry because of its condition, null when it has none or it is true. Decided once per
+     * entry for the {@code conditions}.
+     */
+    private Verdict checkCondition(LorebookEntry entry, LoreConditions conditions) {
+        if (!entry.hasActivationCondition()) {
+            return null;
+        }
+        LoreConditions scope = conditions == null ? new LoreConditions(null) : conditions;
+        Verdict kept = scope.decision(entry);
+        if (kept == null) {
+            kept = decideCondition(entry, scope);
+            scope.keep(entry, kept);
+        }
+        return kept == CONDITION_TRUE ? null : kept;
+    }
+
+    private static final Verdict CONDITION_TRUE = new Verdict(Reason.CONSTANT, null);
+
+    private Verdict decideCondition(LorebookEntry entry, LoreConditions scope) {
+        String condition = entry.getActivationCondition();
+        if (scope.exhausted()) {
+            log.warn("The time for the conditions of the lorebook entries is spent, the condition of '{}' counts as false", entry.getName());
+            return new Verdict(Reason.CONDITION_ERROR, "timeout");
+        }
+        long started = System.nanoTime();
+        try {
+            TemplateService.ValidationResult check = conditionChecks.get(condition, this::validateCondition);
+            if (!check.isValid()) {
+                return new Verdict(Reason.CONDITION_ERROR, check.errorMessage());
+            }
+            if (check.hasWarnings()) {
+                return new Verdict(Reason.CONDITION_ERROR, "unknown: " + String.join(", ", check.unknownNames()));
+            }
+            LorebookTemplateData data = scope.forCondition();
+            String result = StringUtils.trimToEmpty(templateService.processTemplate(condition, "lorebookCondition", data));
+            if (MacroHelpers.MISSING_VALUE.equals(result)) {
+                // a name or a command that does not exist renders as this
+                return new Verdict(Reason.CONDITION_ERROR, result);
+            }
+            return TemplateData.isTruthy(result) ? CONDITION_TRUE : new Verdict(Reason.CONDITION_FALSE, condition);
+        } catch (Exception e) {
+            log.warn("The condition of the lorebook entry '{}' failed, it counts as false: {}", entry.getName(), e.getMessage());
+            log.debug(e.getMessage(), e);
+            return new Verdict(Reason.CONDITION_ERROR, StringUtils.defaultIfBlank(e.getMessage(), e.getClass().getSimpleName()));
+        } finally {
+            scope.spend(System.nanoTime() - started);
+        }
+    }
+
+    private TemplateService.ValidationResult validateCondition(String condition) {
+        try {
+            return templateService.isValidTemplate(condition, "lorebookCondition", LorebookTemplateData.class);
+        } catch (Exception e) {
+            return new TemplateService.ValidationResult(false, StringUtils.defaultIfBlank(e.getMessage(), e.getClass().getSimpleName()));
+        }
+    }
+
+    @Override
+    public boolean conditionsNeeded(List<LorebookEntry> entries) {
+        return entries.stream().anyMatch(entry -> entry.isEnabled() && entry.hasActivationCondition());
     }
 
     private static String rangeOf(LorebookEntry entry) {
@@ -136,19 +246,49 @@ public class LorebookActivationServiceImpl implements LorebookActivationService 
     }
 
     /**
-     * What the filter of the entry is looked for in: the instructions, with the newest parts of the story in front of
-     * them when the entry asks for any.
+     * What the filter of the entry is looked for in: the instructions, with the summaries of the story (when the entry asks for
+     * them) and the newest parts of the story (as many as the entry asks for) in front of them.
      */
-    private static String contextOf(LorebookEntry entry, String instructions, List<String> parts) {
-        int wanted = Math.min(entry.partsInContext(), parts == null ? 0 : parts.size());
-        if (wanted == 0) {
+    private static String contextOf(LorebookEntry entry, String instructions, StoryText story) {
+        List<String> parts = story.parts();
+        int wanted = Math.min(entry.partsInContext(), parts.size());
+        boolean summaries = entry.isActivationSummaries() && !story.summaries().isBlank();
+        if (wanted == 0 && !summaries) {
             return instructions;
         }
         StringBuilder text = new StringBuilder();
+        if (summaries) {
+            text.append(story.summaries()).append("\n\n");
+        }
         for (String part : parts.subList(parts.size() - wanted, parts.size())) {
             text.append(part).append("\n\n");
         }
         return text.append(Objects.toString(instructions, "")).toString();
+    }
+
+    @Override
+    public StoryText storyText(List<LorebookEntry> entries, ChatMessage leaf, boolean excludeLeaf) throws Exception {
+        List<String> parts = recentParts(leaf, partsNeeded(entries), excludeLeaf);
+        if (!summariesNeeded(entries) || leaf == null) {
+            return StoryText.ofParts(parts);
+        }
+        List<ChatMessage> branch = new ArrayList<>(chatMessageService.getBranchFromLeaf(leaf));
+        if (excludeLeaf && !branch.isEmpty()) {
+            branch.removeLast();
+        }
+        List<String> texts = new ArrayList<>();
+        for (SummaryService.SummaryBlock block : summaryService.collectBlocks(new ArrayList<>(branch.reversed()))) {
+            // a summary that no longer matches its story is not read by the prompt either
+            if (block.isValid() && block.summary() != null && StringUtils.isNotBlank(block.summary().getSummary())) {
+                texts.add(block.summary().getSummary());
+            }
+        }
+        return new StoryText(parts, String.join("\n\n", texts.reversed()));
+    }
+
+    @Override
+    public boolean summariesNeeded(List<LorebookEntry> entries) {
+        return entries.stream().anyMatch(entry -> entry.isEnabled() && entry.isActivationSummaries());
     }
 
     @Override
@@ -160,21 +300,39 @@ public class LorebookActivationServiceImpl implements LorebookActivationService 
         if (excludeLeaf && !branch.isEmpty()) {
             branch.removeLast();
         }
-        List<String> parts = new ArrayList<>();
+        List<ChatMessage> picked = new ArrayList<>();
         for (ChatMessage message : branch.reversed()) {
             if (StringUtils.isNotBlank(message.getResponse())) {
-                parts.add(message.getResponse());
-                if (parts.size() == count) {
+                picked.add(message);
+                if (picked.size() == count) {
                     break;
                 }
             }
         }
-        return parts.reversed();
+        // the scan reads what the model reads (an extension may keep the story in another form)
+        return partTextRegistry.forModel(picked).reversed();
     }
 
     @Override
     public int scanDepth(Lorebook root) {
         return root == null ? 0 : Math.max(0, Math.min(MAX_SCAN_DEPTH, root.getScanDepth()));
+    }
+
+    @Override
+    public int scanDepth(Lorebook root, Lorebook book) {
+        if (book == null || root == null || Objects.equals(book.getId(), root.getId()) || book.getOwnScanDepth() == null) {
+            return scanDepth(root);
+        }
+        return Math.max(0, Math.min(MAX_SCAN_DEPTH, book.getOwnScanDepth()));
+    }
+
+    @Override
+    public Map<Long, Integer> scanDepths(Lorebook root, List<Lorebook> lorebooks) {
+        Map<Long, Integer> depths = new HashMap<>();
+        for (Lorebook book : lorebooks) {
+            depths.put(book.getId(), scanDepth(root, book));
+        }
+        return depths;
     }
 
     @Override
@@ -184,13 +342,19 @@ public class LorebookActivationServiceImpl implements LorebookActivationService 
 
     @Override
     public Verdict evaluateInContent(LorebookEntry entry, List<String> manuscriptTags, List<LorebookEntry> sources) {
+        return evaluateInContent(entry, manuscriptTags, sources, null);
+    }
+
+    @Override
+    public Verdict evaluateInContent(LorebookEntry entry, List<String> manuscriptTags, List<LorebookEntry> sources, LoreConditions conditions) {
         Verdict all = evaluate(entry, manuscriptTags,
-                sources.stream().map(LorebookEntry::getPayload).collect(java.util.stream.Collectors.joining("\n\n")));
+                sources.stream().map(LorebookEntry::getPayload).collect(java.util.stream.Collectors.joining("\n\n")),
+                StoryText.NONE, null, conditions, true);
         if (all.reason() != Reason.FILTER_MATCHED) {
             return all;
         }
         for (LorebookEntry source : sources) {
-            if (evaluate(entry, manuscriptTags, source.getPayload()).activated()) {
+            if (evaluate(entry, manuscriptTags, source.getPayload(), StoryText.NONE, null, conditions, true).activated()) {
                 return new Verdict(Reason.LORE_MATCHED, entry.getFiltering() + " <- " + source.getName());
             }
         }
@@ -209,16 +373,30 @@ public class LorebookActivationServiceImpl implements LorebookActivationService 
 
     @Override
     public List<LorebookEntryVerdict> evaluateAll(Lorebook root, List<Lorebook> lorebooks, List<String> manuscriptTags, String text, List<String> parts, Integer position) {
+        return evaluateAll(root, lorebooks, manuscriptTags, text, parts, position, null);
+    }
+
+    @Override
+    public List<LorebookEntryVerdict> evaluateAll(Lorebook root, List<Lorebook> lorebooks, List<String> manuscriptTags, String text, List<String> parts, Integer position, LoreConditions conditions) {
+        return evaluateAll(root, lorebooks, manuscriptTags, text, StoryText.ofParts(parts), position, conditions);
+    }
+
+    @Override
+    public List<LorebookEntryVerdict> evaluateAll(Lorebook root, List<Lorebook> lorebooks, List<String> manuscriptTags, String text, StoryText story, Integer position, LoreConditions conditions) {
         List<LorebookEntry> entries = orderedEntries(lorebooks);
+        // one scope for all the entries: the condition of an entry is decided once, whatever the scan depth does
+        LoreConditions scope = conditions != null ? conditions : conditionsNeeded(entries) ? new LoreConditions(null) : null;
         LorebookEntryVerdict[] verdicts = new LorebookEntryVerdict[entries.size()];
         List<LorebookEntry> pass = new ArrayList<>();
         for (int i = 0; i < verdicts.length; i++) {
-            verdicts[i] = new LorebookEntryVerdict(entries.get(i), evaluate(entries.get(i), manuscriptTags, text, parts, position), 0);
+            verdicts[i] = new LorebookEntryVerdict(entries.get(i), evaluate(entries.get(i), manuscriptTags, text, story, position, scope), 0);
             if (verdicts[i].verdict().activated()) {
                 pass.add(entries.get(i));
             }
         }
-        int depth = scanDepth(root);
+        // every lorebook of the tree has its own depth: its entries are found by content only in the passes up to it
+        Map<Long, Integer> depths = scanDepths(root, lorebooks);
+        int depth = deepestScan(depths);
         for (int d = 1; d <= depth; d++) {
             List<LorebookEntry> sources = scannable(pass);
             if (sources.isEmpty()) {
@@ -226,10 +404,10 @@ public class LorebookActivationServiceImpl implements LorebookActivationService 
             }
             pass = new ArrayList<>();
             for (int i = 0; i < verdicts.length; i++) {
-                if (verdicts[i].verdict().reason() != Reason.FILTER_NOT_MATCHED) {
+                if (!verdicts[i].verdict().reason().isScannable() || d > scanDepthOf(depths, entries.get(i))) {
                     continue;
                 }
-                Verdict verdict = evaluateInContent(entries.get(i), manuscriptTags, sources);
+                Verdict verdict = evaluateInContent(entries.get(i), manuscriptTags, sources, scope);
                 if (verdict.activated()) {
                     verdicts[i] = new LorebookEntryVerdict(entries.get(i), verdict, d);
                     pass.add(entries.get(i));

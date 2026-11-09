@@ -10,12 +10,12 @@ Administrators manage the Marginalia installation: user accounts, database backu
 extensions. The first account, created on the [first start](../getting-started/first-start.md), is an administrator;
 it can make other users administrators too.
 
-Administrators are also normal users with their own books - they don't see other users' books, lorebooks or settings.
+Administrators are also normal users with their own books - they don't see other users' books, lorebooks or settings, only the lorebooks and protocols those users share with everybody.
 
 ## The Admin page
 
-Administrators have an **Admin** button at the bottom of the workspace. It is only in the normal layout: the
-[phone layout](../phone.md) (a window narrower than 768 pixels) has no Admin page, so open Marginalia in a wider window (and reload the page) for administration. It opens the admin page with these tabs:
+Administrators have an **Admin** button at the bottom of the workspace. In the [phone layout](../phone.md#administration) (a window
+narrower than 768 pixels) it is the tab **Admin** of the drawer. It opens the admin page with these tabs:
 
 | Tab | |
 |---|---|
@@ -25,6 +25,7 @@ Administrators have an **Admin** button at the bottom of the workspace. It is on
 | **Resource Files** | Finding the files of resources that nothing uses any more, downloading them as a ZIP and deleting them from the disk. See [Resource Files](resource-files.md). |
 | **Help assistant** | The chat that answers questions from the manual: the model, the prompts and who pays for it. See [Help assistant](help-assistant.md). |
 | **Agents** | The system prompt and the compaction prompt that agents follow when neither they nor their user have one of their own. Empty is the built-in prompt; the info icon has **Insert Default Template**, which fills it in so you can edit a copy. What users may do with agents is their [permission](permissions.md). Also **Agents may send messages to the webhooks of users**: the server calls the address a user typed in their settings when an agent needs them and they have the application closed ([When you are not there](../agents.md#when-you-are-not-there)); turn it off where that is not acceptable. |
+| **Statistics** | Whether the [writing statistics](../books/statistics.md) are recorded at all, how long they are kept, and clearing the statistics of a user or of everybody. See [Statistics](statistics.md). |
 | **Extensions** | Installing and removing extensions. See [Managing extensions](extensions.md). |
 
 ![The Agents tab of the Admin page](../../images/admin-agents.png)

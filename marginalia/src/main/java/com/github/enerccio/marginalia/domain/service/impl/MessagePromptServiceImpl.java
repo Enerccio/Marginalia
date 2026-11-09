@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.service.impl;
 
+import com.github.enerccio.marginalia.domain.components.LoreUsage;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.MessagePrompt;
@@ -14,7 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class MessagePromptServiceImpl extends OwnedServiceImpl<MessagePrompt, MessagePromptRepository> implements MessagePromptService {
+public class MessagePromptServiceImpl extends ExtendableServiceImpl<MessagePrompt, MessagePromptRepository> implements MessagePromptService {
 
     @Override
     @CommonTxReadOnly
@@ -48,13 +49,39 @@ public class MessagePromptServiceImpl extends OwnedServiceImpl<MessagePrompt, Me
     }
 
     @Override
+    @CommonTxReadOnly
+    public LoreUsage getLoreUsage(ChatMessage part) throws Exception {
+        MessagePrompt prompt = findFor(part);
+        return prompt == null ? null : prompt.getLoreUsage();
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public Map<Long, LoreUsage> findLoreUsage(Collection<Long> partIds) throws Exception {
+        Map<Long, LoreUsage> usages = new HashMap<>();
+        for (Object[] row : getRepository().findExtendedContentByPartIds(partIds)) {
+            LoreUsage usage = MessagePrompt.loreUsageOf((byte[]) row[1]);
+            if (usage != null) {
+                usages.putIfAbsent((Long) row[0], usage);
+            }
+        }
+        return usages;
+    }
+
+    @Override
     @CommonTx
     public void store(ChatMessage part, String builtPrompt, String backgroundLore) throws Exception {
+        store(part, builtPrompt, backgroundLore, null);
+    }
+
+    @Override
+    @CommonTx
+    public void store(ChatMessage part, String builtPrompt, String backgroundLore, LoreUsage loreUsage) throws Exception {
         if (part == null || part.getId() == null) {
             throw new IllegalArgumentException("The part is not saved");
         }
         MessagePrompt prompt = getRepository().findByPart(part);
-        if (StringUtils.isEmpty(builtPrompt) && StringUtils.isEmpty(backgroundLore)) {
+        if (StringUtils.isEmpty(builtPrompt) && StringUtils.isEmpty(backgroundLore) && loreUsage == null) {
             getRepository().hardDeleteByPartIds(List.of(part.getId()));
             return;
         }
@@ -66,6 +93,7 @@ public class MessagePromptServiceImpl extends OwnedServiceImpl<MessagePrompt, Me
         }
         prompt.setBuiltPrompt(builtPrompt);
         prompt.setBackgroundLore(backgroundLore);
+        prompt.setLoreUsage(loreUsage);
         save(prompt);
     }
 
@@ -76,7 +104,8 @@ public class MessagePromptServiceImpl extends OwnedServiceImpl<MessagePrompt, Me
             return;
         }
         MessagePrompt source = from == null || from.getId() == null ? null : getRepository().findByPart(from);
-        store(to, source == null ? null : source.getBuiltPrompt(), source == null ? null : source.getBackgroundLore());
+        store(to, source == null ? null : source.getBuiltPrompt(), source == null ? null : source.getBackgroundLore(),
+                source == null ? null : source.getLoreUsage());
     }
 
     @Override

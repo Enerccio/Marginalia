@@ -14,6 +14,7 @@ import com.github.enerccio.marginalia.extensions.lorebookvcs.ui.LoreEntryRevisio
 import com.github.enerccio.marginalia.extensions.lorebookvcs.ui.LorebookVCSGlobalPanel;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.components.LorebookView;
+import com.github.enerccio.marginalia.ui.components.PhoneLorebookView;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.ComponentUtil;
 import com.vaadin.flow.component.grid.Grid;
@@ -43,7 +44,8 @@ public class LorebookVCSExtension implements MarginaliaExtension {
     private ExtensionDecorator viewCreateDecorator;
     private ExtensionDecorator detailLayoutDecorator;
 
-    private final Set<LorebookView> activeViews = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
+    // the desktop LorebookView and the PhoneLorebookView
+    private final Set<VerticalLayout> activeViews = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
     private final Set<VerticalLayout> activeDetailLayouts = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
 
     @Override
@@ -55,24 +57,27 @@ public class LorebookVCSExtension implements MarginaliaExtension {
 
                 @Override
                 public void onMethodLeave(Object instrumented, ExtendableMethodContext context, Throwable throwing) throws Exception {
-                    if (instrumented instanceof LorebookView lorebookView) {
+                    if (instrumented instanceof VerticalLayout lorebookView && isLorebookView(lorebookView)) {
                         if (ComponentUtil.getData(lorebookView, GLOBAL_PANEL_KEY) != null) return;
 
-                        HorizontalLayout lorebookHeaderLayout = context.getLocalVariable("lorebookHeaderLayout", HorizontalLayout.class);
+                        // the desktop panel goes above the header of the lorebook, the phone one under the row of the
+                        // check box (the phone view has no header row)
+                        boolean phone = lorebookView instanceof PhoneLorebookView;
+                        HorizontalLayout anchor = context.getLocalVariable(phone ? "enabledLayout" : "lorebookHeaderLayout", HorizontalLayout.class);
 
-                        if (lorebookHeaderLayout != null) {
+                        if (anchor != null) {
                             // the panel reads the selected lorebook on every action, so it follows the lorebook combo box
-                            LorebookVCSGlobalPanel globalPanel = new LorebookVCSGlobalPanel(vcsService, lorebookView::getCurrentLorebook, () -> {
+                            LorebookVCSGlobalPanel globalPanel = new LorebookVCSGlobalPanel(vcsService, () -> currentLorebookOf(lorebookView), () -> {
                                 try {
-                                    syncAndRefreshView(lorebookView, context, lorebookView.getCurrentLorebook());
+                                    syncAndRefreshView(lorebookView, context, currentLorebookOf(lorebookView));
                                 } catch (Exception e) {
                                     UIUtils.internalServerError(loc, e);
                                 }
                             });
 
-                            int index = lorebookView.indexOf(lorebookHeaderLayout);
+                            int index = lorebookView.indexOf(anchor);
                             if (index >= 0) {
-                                lorebookView.addComponentAtIndex(index, globalPanel);
+                                lorebookView.addComponentAtIndex(phone ? index + 1 : index, globalPanel);
                             } else {
                                 lorebookView.addComponentAsFirst(globalPanel);
                             }
@@ -89,6 +94,11 @@ public class LorebookVCSExtension implements MarginaliaExtension {
                     "com.github.enerccio.marginalia.ui.components.LorebookView",
                     "create"
             );
+            extensionService.registerDecorator(
+                    viewCreateDecorator,
+                    "com.github.enerccio.marginalia.ui.components.PhoneLorebookView",
+                    "create"
+            );
 
             detailLayoutDecorator = new ExtensionDecorator() {
                 @Override
@@ -96,10 +106,10 @@ public class LorebookVCSExtension implements MarginaliaExtension {
 
                 @Override
                 public void onMethodLeave(Object instrumented, ExtendableMethodContext context, Throwable throwing) throws Exception {
-                    if (instrumented instanceof LorebookView lorebookView) {
+                    if (instrumented instanceof VerticalLayout lorebookView && isLorebookView(lorebookView)) {
                         LorebookEntry entry = context.getMethodArgument("entry", LorebookEntry.class);
                         VerticalLayout detailsLayout = context.getLocalVariable("detailsLayout", VerticalLayout.class);
-                        Lorebook currentLorebook = lorebookView.getCurrentLorebook();
+                        Lorebook currentLorebook = currentLorebookOf(lorebookView);
 
                         if (entry != null && detailsLayout != null && currentLorebook != null) {
                             if (ComponentUtil.getData(detailsLayout, REVISION_PANEL_KEY) != null) return;
@@ -125,6 +135,11 @@ public class LorebookVCSExtension implements MarginaliaExtension {
                     "com.github.enerccio.marginalia.ui.components.LorebookView",
                     "createEntryDetailLayout"
             );
+            extensionService.registerDecorator(
+                    detailLayoutDecorator,
+                    "com.github.enerccio.marginalia.ui.components.PhoneLorebookView",
+                    "createEntryDetailLayout"
+            );
 
         } catch (Exception e) {
             // there may be no UI (loading at startup), the extension service logs it and skips the extension
@@ -137,23 +152,39 @@ public class LorebookVCSExtension implements MarginaliaExtension {
      * would close the details of all the other entries.
      */
     @SuppressWarnings("unchecked")
-    private void refreshEntryRow(LorebookView lorebookView, ExtendableMethodContext context, LorebookEntry entry) {
+    private void refreshEntryRow(VerticalLayout lorebookView, ExtendableMethodContext context, LorebookEntry entry) {
         Grid<LorebookEntry> grid = context.getReflectiveFieldValue(lorebookView, "grid", Grid.class);
         if (grid == null) {
-            lorebookView.refreshEntries();
+            if (lorebookView instanceof LorebookView desktop) {
+                desktop.refreshEntries();
+            } else if (lorebookView instanceof PhoneLorebookView phone) {
+                phone.refreshEntries();
+            }
             return;
         }
         grid.getDataProvider().refreshItem(entry);
     }
 
-    private void syncAndRefreshView(LorebookView lorebookView, ExtendableMethodContext context, Lorebook currentLorebook) throws Exception {
+    private static boolean isLorebookView(VerticalLayout view) {
+        return view instanceof LorebookView || view instanceof PhoneLorebookView;
+    }
+
+    private static Lorebook currentLorebookOf(VerticalLayout view) {
+        return view instanceof PhoneLorebookView phone ? phone.getCurrentLorebook() : ((LorebookView) view).getCurrentLorebook();
+    }
+
+    private void syncAndRefreshView(VerticalLayout lorebookView, ExtendableMethodContext context, Lorebook currentLorebook) throws Exception {
         if (currentLorebook != null && currentLorebook.getId() != null) {
             Lorebook fresh = lorebookService.find(currentLorebook);
             if (fresh != null) {
                 context.setReflectiveFieldValue(lorebookView, "currentLorebook", fresh, Lorebook.class);
             }
         }
-        lorebookView.refresh();
+        if (lorebookView instanceof PhoneLorebookView phone) {
+            phone.refresh();
+        } else {
+            ((LorebookView) lorebookView).refresh();
+        }
     }
 
     @Override
@@ -167,7 +198,7 @@ public class LorebookVCSExtension implements MarginaliaExtension {
 
         // Remove the panels from the lorebook views of all users - change each one in its own session
         synchronized (activeViews) {
-            for (LorebookView lorebookView : activeViews) {
+            for (VerticalLayout lorebookView : activeViews) {
                 UIUtils.accessComponent(lorebookView, () -> {
                     LorebookVCSGlobalPanel globalPanel = (LorebookVCSGlobalPanel) ComponentUtil.getData(lorebookView, GLOBAL_PANEL_KEY);
                     if (globalPanel != null) {

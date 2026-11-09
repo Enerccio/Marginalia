@@ -7,6 +7,8 @@ import com.github.enerccio.marginalia.domain.traits.PublicAPI;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
+import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
+import com.github.enerccio.marginalia.ui.widgets.DialogShortcuts;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
@@ -66,6 +68,8 @@ public class AgentResumeDialog extends Dialog implements LLMInteract {
         footer.setWrap(true);
         footer.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
         getFooter().add(footer);
+        DialogShortcuts.submitWith(resumeButton, noteField);
+        DialogFocus.onOpen(this, noteField);
     }
 
     // for the tests of the dialog

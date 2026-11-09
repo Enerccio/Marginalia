@@ -1,6 +1,6 @@
 // Step 10-users -> 11-limits: a token limit of the regular user on the shared provider; usage and the user's info.
 import {fillTurn, generate} from '../lib/story.mjs';
-import {ginnyBook, ginnyTurn2} from '../dataset/story.mjs';
+import {readerBook, readerTurn2} from '../dataset/story.mjs';
 import {
     bookTab,
     CONTENT,
@@ -63,10 +63,10 @@ await main(async ({ page }) => {
   // the user's side: shared provider as a read-only row, the info dialog
   await login(page, users.reader);
   // she writes a second part, so that the limit has numbers
-  await openBook(page, ginnyBook);
+  await openBook(page, readerBook);
   await bookTab(page, 'Story');
-  await fillTurn(page, ginnyTurn2);
-  await generate(page, ginnyTurn2);
+  await fillTurn(page, readerTurn2);
+  await generate(page, readerTurn2);
   await press(page, 'Exit');
   await idle(page, 800);
   await openTab(page, 'Inference Providers');

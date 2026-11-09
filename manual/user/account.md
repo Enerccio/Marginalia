@@ -101,6 +101,7 @@ unlock them.
 | **Versions kept per part** | How many earlier versions of the text of a part the [history](books/version-history.md#how-many-versions-are-kept) keeps for all your books, unless a folder, a book or the administrator limits it more. Empty sets no limit here; **0** keeps no history. |
 | **Parts loaded at once in the story** | How many parts of a book the [story](books/story-editor.md) and the [viewer](books/publishing.md) keep loaded. The story starts with the last parts, the viewer where you stopped reading (or the first parts); the parts before and after are loaded as you scroll and the ones far from you are dropped again. Empty loads all the parts at once. |
 | **Daily goal: words written**, **Daily goal: minutes of editing** | The goal of a day for the calendar of the [writing statistics](books/statistics.md#the-daily-goal): the words you write yourself and the minutes you edit, over all your books. Empty is no goal. |
+| **Record writing statistics**, **Keep statistics for (months)** | Whether your [writing statistics](books/statistics.md#privacy-clearing-not-recording-keeping-less) are counted, and how many months of them are kept (empty or 0: all). An administrator can turn the recording off for everybody and set a shorter time. |
 
 *Default Model* and *Default Protocol* are used only when a book is created; changing them doesn't change existing
 books. The [Lore Generator](extensions/lore-generator.md) extension has no book and generates with them. The backup strategy applies to all books without a *Per manuscript override*, from their next generated part.
@@ -119,6 +120,7 @@ The defaults for the [book prompts](books/prompts.md):
 | **Default Meta Summary Prompt** | The request for a [meta summary](books/summaries.md#the-meta-summary-prompt), which merges summaries. |
 | **Redraft System Prompt**, **Redraft Prompt** | The system message and the last message of a [redraft](books/story-editor.md#redrafting-a-part) of a part, see [Redraft prompt](books/prompts.md#redraft-prompt). |
 | **Annotate System Prompt**, **Annotate Prompt** | The system message and the last message of the request for a model to [annotate](books/annotations.md#letting-a-model-annotate) a part, see [Annotate prompt](books/prompts.md#annotate-prompt). |
+| **Annotate Instructions** | What the model looks for when it annotates, for the books and folders that set nothing, see [Annotate prompt](books/prompts.md#annotate-prompt). |
 | **Impersonate Prompt** | The request for a model to [draft the instructions](books/story-editor.md#drafting-the-instructions) of the next turn in your place, see [Impersonate prompt](books/prompts.md#impersonate-prompt). |
 | **Compaction prompt of agents** | Only for users who may use [agents](agents.md). What your agents are asked when you [`/compact`](agents.md#running-a-command-yourself) them, if their own compaction prompt is empty; empty here is the one your administrator set, else the built-in one. |
 | **Instructions of agents (agents.md)** | Only for users who may use [agents](agents.md). Your instructions for the agents that have none of their own, added to their prompt in every run. Empty is none. |
@@ -198,8 +200,11 @@ What each file format is exported with: the tab has a section for every format t
 - **Title page** (every format but the ones for other tools; the Obsidian vault has it in the note of the book) - the template of the title page, a Handlebars template that writes Markdown, with `{{title}}` and
   `{{author}}` (the info icon in the field lists them). Empty is the default one: the title as a heading and the author in italics under it.
   **Fill default** in the info popover starts you from the default.
+- **Authorship statement** (every format but the SillyTavern chat) - the text that the check box *Include authorship statement* of the export
+  adds at the end: `{{title}}`, `{{author}}`, `{{totalWords}}`, `{{writtenWords}}`, `{{generatedWords}}`, `{{writtenPercent}}`,
+  `{{generatedPercent}}` and `{{models}}` (the models separated by commas, empty when there is none). Empty is the default text.
 
-The tab is saved with the **Save** of the settings and **Discard Changes** throws its changes away, like the others. A template that is not valid
+These are your versions: a book or a folder can have its own, see [Title page template](books/export.md#title-page-template). The tab is saved with the **Save** of the settings and **Discard Changes** throws its changes away, like the others. A template that is not valid
 is refused when you save. A style you make in the Styles tab can be chosen here after you save.
 
 ![The Exports tab, with the HTML section opened](../images/settings-exports.png)
@@ -242,6 +247,35 @@ the page never gets them) and `Alt` with a letter (types a character on some key
 settings and apply at once in the open stories.
 
 ![Settings, Keyboard shortcuts](../images/settings-shortcuts.png)
+
+### Notifications
+
+A desktop notification of the browser when a model is done, so you can leave the tab while it works. The tab has a check box
+**Use desktop notifications**, the buttons below and a list of what notifies:
+
+- **Story generation**, **Annotate with AI**, **Annotate with AI (automatic)**, **Redraft**, **Redraft (automatic)**, **Draft Instructions**,
+  **Summary**, **Resummarize all summaries** and **Help assistant**, and what [extensions](extensions/index.md) add, named after the extension
+  (*Reviewer: generate a review*, *Lore Generator: generate lore*, *Image Generator: generate the image*, *Arc Outline: generate chapters*...).
+  The *Manga Generator* entries marked *(automatic)* are its continuous mode.
+- The entries marked *(automatic)* are the runs the book starts by itself, the [automatic annotation](books/story-editor.md) after a generation
+  and the redraft that follows it. They are chosen apart from the dialog you open yourself: with **Annotate with AI** checked and
+  **Annotate with AI (automatic)** not, the automatic annotation is silent; with only the automatic entry checked, only the automatic
+  annotation notifies.
+- A run that ends with an error notifies too (*… failed*), one you stop yourself does not.
+
+The check box turns notifications on for your account and enables two buttons. **Register this browser** asks the browser for the
+permission (from that click); the line under the buttons tells what this browser says: allowed, blocked (allow it in the site settings
+of the browser), or not asked yet. The permission belongs to the browser, not to your account: every browser or device you want
+notifications in has to be registered once, the check box and the list are the same everywhere. **Send a test notification** shows one at
+once, also while the page is in front.
+
+The **Filter** field narrows the list by name, **Check shown** and **Uncheck shown** act on the entries it shows and leave the others as
+they are. A notification is shown only while you are not looking at the page (another tab, or the window is not in front); clicking it
+brings the page back.
+
+Notifications need an `https://` address or `localhost`: on a plain `http://` address of a server in your network the browser does not
+offer them, and the tab says so. A tab the browser has put to sleep (usually on a phone) can't show them either. The tab is saved with the
+**Save** of the settings, like the others.
 
 ### Extension Settings
 

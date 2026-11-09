@@ -1,0 +1,149 @@
+{
+ "auto": false,
+ "contextParts": 2,
+ "speakers": {
+  "mode": "ONLY",
+  "characters": [
+   {
+    "id": "334a1db6-f0c6-437d-ab51-2b1ae7e0cee4",
+    "name": "Mizuki",
+    "aliases": [
+     "Mizuki Hayashida"
+    ],
+    "gender": "female",
+    "voice": "Nurse of twenty-seven from Sendai. Natural, everyday Japanese, a little teasing with Tomáš; polite with strangers. Mutters in Japanese when alone.",
+    "listed": true
+   },
+   {
+    "id": "5e5fc703-d444-467c-9a69-2924cd3579fc",
+    "name": "Tomáš",
+    "aliases": [
+     "Tomáš Hájek",
+     "Tomas"
+    ],
+    "gender": "male",
+    "voice": "Czech guide of twenty-nine who learned Japanese from novels and subtitles: stiff, bookish, over-polite at the wrong moment, sometimes boyish or anime-sounding.",
+    "listed": true
+   },
+   {
+    "id": "4faeb8d9-967a-5f29-8008-8730ad272d2c",
+    "name": "Saellen",
+    "aliases": [],
+    "gender": "female",
+    "voice": "Does not speak Japanese.",
+    "listed": false,
+    "level": "NONE"
+   },
+   {
+    "id": "5f577204-30c1-54c2-bb36-42b8e8f33bd7",
+    "name": "Villagers",
+    "aliases": [
+     "villager"
+    ],
+    "gender": "",
+    "voice": "The people of the ferry landing; they have heard foreigners before.",
+    "listed": false,
+    "level": "FOLLOWS_MOST"
+   }
+  ]
+ },
+ "otherLanguages": [
+  {
+   "languageId": "dab63a83-21f5-4bd0-927c-8a99a88fae9d",
+   "speakers": {
+    "mode": "ONLY",
+    "characters": [
+     {
+      "id": "c6709d00-87da-46dc-b4e0-0c0988ef0d93",
+      "name": "Tomáš",
+      "aliases": [
+       "Tomáš Hájek",
+       "Tomas"
+      ],
+      "gender": "male",
+      "voice": "Czech is his private language: he speaks it ONLY when the text says he mutters, swears, thinks aloud or speaks Czech (informal, short). A line of his that the text does not mark is English (with Mizuki or the locals) or Japanese (with Mizuki), never Czech; a name he repeats is not translated.",
+      "listed": true
+     }
+    ]
+   }
+  }
+ ],
+ "glossary": {
+  "b24a015e-fb7c-47a1-b590-8663e2c6fa27": [
+   {
+    "id": "ad2c9752-ce27-5f12-9132-1aa7fe2a09b3",
+    "source": "Lyrasil",
+    "kind": "WRITTEN",
+    "written": "リラシル",
+    "reading": "",
+    "note": "The valley. Katakana, always.",
+    "enabled": true,
+    "proposed": false
+   },
+   {
+    "id": "07ea6761-3a94-5ca2-a8f1-ce96a38a411f",
+    "source": "Saellen",
+    "kind": "WRITTEN",
+    "written": "サエレン",
+    "reading": "",
+    "note": "The ferrywoman; Mizuki adds san when she is polite.",
+    "enabled": true,
+    "proposed": false
+   },
+   {
+    "id": "9393229a-f634-53d1-9362-33716920982c",
+    "source": "Vrakht",
+    "kind": "WRITTEN",
+    "written": "ヴラクト",
+    "reading": "",
+    "note": "The language of the empire.",
+    "enabled": true,
+    "proposed": false
+   },
+   {
+    "id": "81d2fd06-973c-5eb9-ac38-119964acca0c",
+    "source": "Dominion",
+    "kind": "WRITTEN",
+    "written": "公国",
+    "reading": "こうこく",
+    "note": "The empire of the valley.",
+    "enabled": true,
+    "proposed": false
+   },
+   {
+    "id": "3a4a73b5-315a-5cf6-a3db-63d88585a429",
+    "source": "lantern",
+    "kind": "WRITTEN",
+    "written": "提灯",
+    "reading": "ちょうちん",
+    "note": "The light on the pole.",
+    "enabled": true,
+    "proposed": false
+   },
+   {
+    "id": "613296db-800c-5659-9046-025ad323e393",
+    "source": "Tomáš",
+    "kind": "WRITTEN",
+    "written": "トマーシュ",
+    "reading": "",
+    "note": "Never トマシュ.",
+    "enabled": true,
+    "proposed": false
+   },
+   {
+    "id": "34d2699c-b429-5b83-8a60-17feeda138e4",
+    "source": "Sendai",
+    "kind": "KEEP",
+    "written": "",
+    "reading": "",
+    "note": "Mizuki's home town: written in kanji as the text does.",
+    "enabled": true,
+    "proposed": true
+   }
+  ]
+ },
+ "extraction": {
+  "promptId": null,
+  "specification": "Leave out the soldiers and the nameless villagers. A place of the valley is written in katakana."
+ }
+}

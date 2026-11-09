@@ -1,6 +1,6 @@
 ---
 label: Lorebook VCS
-order: 90
+order: 9
 ---
 
 # Lorebook VCS
@@ -10,7 +10,7 @@ between them - for example the state of the world before and after a war, or a c
 story.
 
 !!!
-Lorebook VCS is not available in the [phone layout](../phone.md#extensions).
+Lorebook VCS works in the [phone layout](../phone.md#extensions): the panel is under the *Enabled* row of the lorebook, the revisions of an entry are at the top of its form.
 !!!
 
 A revision is a snapshot of the whole entry: name, content, note, enabled, order, filter and filtering mode, insertion

@@ -28,6 +28,7 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -55,6 +56,8 @@ public class AdminPart implements WorkspaceComponent {
     private static final Logger log = LoggerFactory.getLogger(AdminPart.class);
 
     private final Workspace workspace;
+    // the phone layout: the lists of users and extensions are one card for each entry, no columns
+    private final boolean phone;
 
     @Autowired
     private OsgiService osgiService;
@@ -74,15 +77,25 @@ public class AdminPart implements WorkspaceComponent {
     private TabSheet adminTabs;
     private final Map<Tab, LLMInteract> adminPanels = new LinkedHashMap<>();
     private Grid<Bundle> extensionsGrid;
+    private Tab shownExtensionsTab;
     private Grid<User> usersGrid;
-    private final DatabaseBackupPanel databaseBackupPanel = new DatabaseBackupPanel();
-    private final CleanupPanel cleanupPanel = new CleanupPanel();
-    private final ResourceGarbagePanel resourceGarbagePanel = new ResourceGarbagePanel();
+    private final DatabaseBackupPanel databaseBackupPanel;
+    private final CleanupPanel cleanupPanel;
+    private final ResourceGarbagePanel resourceGarbagePanel;
     private final HelpAssistantPanel helpAssistantPanel = new HelpAssistantPanel();
     private final AgentSettingsPanel agentSettingsPanel = new AgentSettingsPanel();
+    private final StatisticsPanel statisticsPanel = new StatisticsPanel();
 
     public AdminPart(Workspace workspace) {
+        this(workspace, false);
+    }
+
+    public AdminPart(Workspace workspace, boolean phone) {
         this.workspace = workspace;
+        this.phone = phone;
+        this.databaseBackupPanel = new DatabaseBackupPanel(phone);
+        this.cleanupPanel = new CleanupPanel(phone);
+        this.resourceGarbagePanel = new ResourceGarbagePanel(phone);
     }
 
     @PublicAPI(from = "1.1.0",
@@ -95,6 +108,7 @@ public class AdminPart implements WorkspaceComponent {
                     @APILocals(name = "resourceFilesTab", type = Tab.class),
                     @APILocals(name = "helpTab", type = Tab.class),
                     @APILocals(name = "agentsTab", type = Tab.class),
+                    @APILocals(name = "statisticsTab", type = Tab.class),
                     @APILocals(name = "extensionsTab", type = Tab.class),
                     @APILocals(name = "extensionsContent", type = Component.class),
                     @APILocals(name = "container", type = Div.class)})
@@ -122,19 +136,27 @@ public class AdminPart implements WorkspaceComponent {
         Tab agentsTab = new Tab(loc.getValue(L.LABEL_AGENTS));
         tabSheet.add(agentsTab, agentSettingsPanel.create());
 
+        Tab statisticsTab = new Tab(loc.getValue(L.LABEL_STATISTICS));
+        tabSheet.add(statisticsTab, statisticsPanel.create());
+
         adminTabs = tabSheet;
         adminPanels.put(databaseTab, databaseBackupPanel);
         adminPanels.put(cleanupTab, cleanupPanel);
         adminPanels.put(resourceFilesTab, resourceGarbagePanel);
         adminPanels.put(helpTab, helpAssistantPanel);
         adminPanels.put(agentsTab, agentSettingsPanel);
+        adminPanels.put(statisticsTab, statisticsPanel);
 
         Tab extensionsTab = new Tab(loc.getValue(L.LABEL_EXTENSIONS));
+        shownExtensionsTab = extensionsTab;
         Component extensionsContent = createExtensionsTab();
         tabSheet.add(extensionsTab, extensionsContent);
 
         Div container = new Div(tabSheet);
         container.setSizeFull();
+        if (phone) {
+            container.addClassName(CssStyles.PHONE_PAGE);
+        }
         return container;
     }
 
@@ -147,7 +169,7 @@ public class AdminPart implements WorkspaceComponent {
             return "";
         }
         Tab selected = adminTabs.getSelectedTab();
-        return "The Admin page, for administrators. Its tabs: Users, Database Backups, Cleanup, Resource Files, Help assistant, Agents, Extensions. "
+        return "The Admin page, for administrators. Its tabs: Users, Database Backups, Cleanup, Resource Files, Help assistant, Agents, Statistics, Extensions. "
                 + "The open tab is **" + (selected == null ? "" : selected.getLabel()) + "**."
                 + (selected != null && !adminPanels.containsKey(selected)
                 ? " (The user and extension lists are tables with buttons to add, edit and delete.)" : "");
@@ -203,44 +225,93 @@ public class AdminPart implements WorkspaceComponent {
         usersGrid = new Grid<>(User.class, false);
         usersGrid.setSizeFull();
 
-        usersGrid.addColumn(User::getLogin)
-                .setHeader(loc.getValue(L.LABEL_USERNAME))
-                .setFlexGrow(1);
+        if (phone) {
+            usersGrid.addThemeVariants(GridVariant.LUMO_NO_BORDER, GridVariant.LUMO_ROW_STRIPES);
+            usersGrid.addComponentColumn(this::createUserCard);
+        } else {
+            usersGrid.addColumn(User::getLogin)
+                    .setHeader(loc.getValue(L.LABEL_USERNAME))
+                    .setFlexGrow(1);
 
-        usersGrid.addColumn(User::getFullName)
-                .setHeader(loc.getValue(L.LABEL_USER_FULLNAME))
-                .setFlexGrow(1);
+            usersGrid.addColumn(User::getFullName)
+                    .setHeader(loc.getValue(L.LABEL_USER_FULLNAME))
+                    .setFlexGrow(1);
 
-        usersGrid.addColumn(user -> loc.getValue(user.isAdmin() ? L.LABEL_YES : L.LABEL_NO))
-                .setHeader(loc.getValue(L.LABEL_ADMINISTRATOR))
-                .setFlexGrow(0)
-                .setWidth("150px");
+            usersGrid.addColumn(user -> loc.getValue(user.isAdmin() ? L.LABEL_YES : L.LABEL_NO))
+                    .setHeader(loc.getValue(L.LABEL_ADMINISTRATOR))
+                    .setFlexGrow(0)
+                    .setWidth("150px");
 
-        usersGrid.addComponentColumn(user -> {
-                    HorizontalLayout actions = new HorizontalLayout();
-                    actions.setSpacing(true);
-
-                    Button editButton = new Button(Solid.PEN.create(), e -> openUserDialog(user));
-
-                    Button permissionsButton = new Button(Solid.KEY.create(), e -> openPermissionsDialog(user));
-                    permissionsButton.setTooltipText(loc.getValue(L.LABEL_PERMISSIONS));
-
-                    Button deleteButton = new Button(Solid.TRASH.create(), e -> deleteUser(user));
-                    deleteButton.setThemeName("error tertiary");
-                    deleteButton.setEnabled(!user.getId().equals(currentUser.getId()));
-
-                    actions.add(editButton, permissionsButton, deleteButton);
-                    return actions;
-                })
-                .setHeader("")
-                .setFlexGrow(0)
-                .setWidth(UIConstants.TOOL_COLUMN_SIZE_GIANT);
+            usersGrid.addComponentColumn(this::createUserActions)
+                    .setHeader("")
+                    .setFlexGrow(0)
+                    .setWidth(UIConstants.TOOL_COLUMN_SIZE_GIANT);
+        }
 
         layout.add(toolbar, usersGrid);
         layout.setFlexGrow(1, usersGrid);
         refreshUsersGrid();
 
         return layout;
+    }
+
+    /**
+     * The buttons of a user: edit, permissions and delete (not for the user themself).
+     */
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = HorizontalLayout.class),
+            parameters = {@APIParameter(name = "user", type = User.class)},
+            locals = {@APILocals(name = "actions", type = HorizontalLayout.class),
+                    @APILocals(name = "editButton", type = Button.class),
+                    @APILocals(name = "permissionsButton", type = Button.class),
+                    @APILocals(name = "deleteButton", type = Button.class)})
+    private HorizontalLayout createUserActions(User user) {
+        HorizontalLayout actions = new HorizontalLayout();
+        actions.setSpacing(true);
+
+        Button editButton = new Button(Solid.PEN.create(), e -> openUserDialog(user));
+
+        Button permissionsButton = new Button(Solid.KEY.create(), e -> openPermissionsDialog(user));
+        permissionsButton.setTooltipText(loc.getValue(L.LABEL_PERMISSIONS));
+
+        Button deleteButton = new Button(Solid.TRASH.create(), e -> deleteUser(user));
+        deleteButton.setThemeName("error tertiary");
+        deleteButton.setEnabled(!user.getId().equals(currentUser.getId()));
+
+        actions.add(editButton, permissionsButton, deleteButton);
+        return actions;
+    }
+
+    /**
+     * A user on a phone: the login and the full name with the administrator badge, the buttons beside them.
+     */
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = Component.class),
+            parameters = {@APIParameter(name = "user", type = User.class)},
+            locals = {@APILocals(name = "name", type = Span.class),
+                    @APILocals(name = "full", type = Span.class),
+                    @APILocals(name = "texts", type = VerticalLayout.class),
+                    @APILocals(name = "badge", type = Span.class),
+                    @APILocals(name = "card", type = HorizontalLayout.class)})
+    private Component createUserCard(User user) {
+        Span name = new Span(user.getLogin());
+        name.addClassNames(CssStyles.TEXT_SEMIBOLD, CssStyles.WRAP_ANYWHERE);
+        Span full = new Span(user.getFullName() == null ? "" : user.getFullName());
+        full.addClassNames(CssStyles.TEXT_SECONDARY, CssStyles.WRAP_ANYWHERE);
+        VerticalLayout texts = new VerticalLayout(name, full);
+        texts.setPadding(false);
+        texts.setSpacing(false);
+        if (user.isAdmin()) {
+            Span badge = new Span(loc.getValue(L.LABEL_ADMINISTRATOR));
+            badge.getElement().getThemeList().add("badge");
+            texts.add(badge);
+        }
+        HorizontalLayout card = new HorizontalLayout(texts, createUserActions(user));
+        card.setWidthFull();
+        card.setAlignItems(HorizontalLayout.Alignment.CENTER);
+        card.setFlexGrow(1, texts);
+        texts.addClassName(CssStyles.MIN_WIDTH_0);
+        return card;
     }
 
     @PublicAPI(from = "1.1.0",
@@ -361,6 +432,14 @@ public class AdminPart implements WorkspaceComponent {
         extensionsGrid = new Grid<>();
         extensionsGrid.setSizeFull();
 
+        if (phone) {
+            extensionsGrid.addThemeVariants(GridVariant.LUMO_NO_BORDER, GridVariant.LUMO_ROW_STRIPES, GridVariant.LUMO_WRAP_CELL_CONTENT);
+            extensionsGrid.addComponentColumn(this::createExtensionCard);
+            layout.add(toolbar, extensionsGrid);
+            refreshGrid();
+            return layout;
+        }
+
         extensionsGrid.addColumn(Bundle::getBundleId)
                 .setHeader(loc.getValue(L.LABEL_BUNDLE_ID))
                 .setFlexGrow(0)
@@ -421,23 +500,7 @@ public class AdminPart implements WorkspaceComponent {
                 .setFlexGrow(0)
                 .setWidth("140px");
 
-        extensionsGrid.addComponentColumn(bundle -> {
-                    boolean stopped = osgiService.isStopped(bundle);
-                    Button toggleButton = stopped
-                            ? new Button(loc.getValue(L.LABEL_START), VaadinIcon.PLAY.create())
-                            : new Button(loc.getValue(L.LABEL_STOP), VaadinIcon.STOP.create());
-                    toggleButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
-                    toggleButton.addClickListener(e -> toggleExtension(bundle, stopped));
-
-                    Button logButton = new Button(loc.getValue(L.LABEL_LOG), VaadinIcon.FILE_TEXT_O.create());
-                    logButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
-                    logButton.addClickListener(e -> ExtensionLogDialog.show(bundle, extensionName(bundle)));
-
-                    Button unloadButton = new Button(loc.getValue(L.LABEL_UNLOAD_EXTENSION), VaadinIcon.TRASH.create());
-                    unloadButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_SMALL);
-                    unloadButton.addClickListener(e -> unloadExtension(bundle));
-                    return new HorizontalLayout(toggleButton, logButton, unloadButton);
-                })
+        extensionsGrid.addComponentColumn(this::createExtensionActions)
                 .setHeader(loc.getValue(L.LABEL_ACTIONS))
                 .setFlexGrow(0)
                 .setWidth("400px");
@@ -446,6 +509,93 @@ public class AdminPart implements WorkspaceComponent {
         refreshGrid();
 
         return layout;
+    }
+
+    /**
+     * An extension on a phone: its name and version, the state and the verification result under them, the buttons of the
+     * actions (start or stop, log, unload) in a row below.
+     */
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = Component.class),
+            parameters = {@APIParameter(name = "bundle", type = Bundle.class)},
+            locals = {@APILocals(name = "name", type = Span.class),
+                    @APILocals(name = "version", type = Span.class),
+                    @APILocals(name = "state", type = Span.class),
+                    @APILocals(name = "details", type = HorizontalLayout.class),
+                    @APILocals(name = "report", type = OsgiService.ExtensionReport.class),
+                    @APILocals(name = "reportButton", type = Button.class),
+                    @APILocals(name = "sha256", type = String.class),
+                    @APILocals(name = "hashButton", type = Button.class),
+                    @APILocals(name = "e", type = IOException.class),
+                    @APILocals(name = "card", type = VerticalLayout.class)})
+    private Component createExtensionCard(Bundle bundle) {
+        Span name = new Span(extensionName(bundle));
+        name.addClassNames(CssStyles.TEXT_SEMIBOLD, CssStyles.WRAP_ANYWHERE);
+        Span version = new Span(bundle.getVersion().toString());
+        Span state = new Span(osgiService.isStopped(bundle)
+                ? loc.getValue(L.ENUM_BUNDLE_STATE_STOPPED)
+                : formatBundleState(bundle.getState()));
+        state.addClassName(CssStyles.TEXT_SECONDARY);
+        HorizontalLayout details = new HorizontalLayout(version, state);
+        details.setAlignItems(HorizontalLayout.Alignment.CENTER);
+        details.addClassName(CssStyles.FLEX_WRAP);
+
+        ExtensionReport report = osgiService.getVerificationReport(bundle);
+        if (report != null) {
+            Button reportButton = new Button(loc.getValue(report.valid() ? L.LABEL_VALID : L.LABEL_INVALID));
+            reportButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
+            if (!report.valid()) {
+                reportButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
+            }
+            reportButton.addClickListener(e -> showReport(report.text()));
+            details.add(reportButton);
+        }
+        try {
+            String sha256 = osgiService.getSha256(bundle);
+            Button hashButton = new Button("#");
+            hashButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE, ButtonVariant.LUMO_SMALL);
+            hashButton.setAriaLabel(loc.getValue(L.LABEL_SHA256));
+            hashButton.addClickListener(e -> {
+                JavascriptLibrary.copyToClipboard(e.getSource().getUI().orElseThrow().getPage(), sha256);
+                Notification.show(loc.getValue(L.MSG_COPIED_TO_CLIPBOARD));
+            });
+            details.add(hashButton);
+        } catch (IOException e) {
+            log.warn("Failed to compute SHA-256 of extension {}", extensionName(bundle), e);
+        }
+
+        VerticalLayout card = new VerticalLayout(name, details, createExtensionActions(bundle));
+        card.setPadding(false);
+        card.setSpacing(false);
+        card.setWidthFull();
+        return card;
+    }
+
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = HorizontalLayout.class),
+            parameters = {@APIParameter(name = "bundle", type = Bundle.class)},
+            locals = {@APILocals(name = "toggleButton", type = Button.class),
+                    @APILocals(name = "logButton", type = Button.class),
+                    @APILocals(name = "unloadButton", type = Button.class),
+                    @APILocals(name = "actions", type = HorizontalLayout.class)})
+    private HorizontalLayout createExtensionActions(Bundle bundle) {
+        boolean stopped = osgiService.isStopped(bundle);
+        Button toggleButton = stopped
+                ? new Button(loc.getValue(L.LABEL_START), VaadinIcon.PLAY.create())
+                : new Button(loc.getValue(L.LABEL_STOP), VaadinIcon.STOP.create());
+        toggleButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
+        toggleButton.addClickListener(e -> toggleExtension(bundle, stopped));
+
+        Button logButton = new Button(loc.getValue(L.LABEL_LOG), VaadinIcon.FILE_TEXT_O.create());
+        logButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
+        logButton.addClickListener(e -> ExtensionLogDialog.show(bundle, extensionName(bundle)));
+
+        Button unloadButton = new Button(loc.getValue(L.LABEL_UNLOAD_EXTENSION), VaadinIcon.TRASH.create());
+        unloadButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_SMALL);
+        unloadButton.addClickListener(e -> unloadExtension(bundle));
+        HorizontalLayout actions = new HorizontalLayout(toggleButton, logButton, unloadButton);
+        actions.addClassName(CssStyles.FLEX_WRAP);
+        return actions;
     }
 
     @PublicAPI(from = "1.1.0",
@@ -458,6 +608,7 @@ public class AdminPart implements WorkspaceComponent {
         Dialog dialog = new Dialog();
         dialog.setHeaderTitle(loc.getValue(L.LABEL_VERIFICATION_REPORT));
         dialog.setWidth("900px");
+        UIUtils.fitPhone(dialog, true);
 
         TextArea text = new TextArea();
         text.setValue(report);
@@ -568,6 +719,17 @@ public class AdminPart implements WorkspaceComponent {
     @Override
     public void onTabSwitched() throws Exception {
         refresh();
+    }
+
+    /**
+     * Selects the Extensions tab, what the red bar of invalid extensions asks for.
+     */
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = void.class))
+    public void showExtensions() {
+        if (adminTabs != null && shownExtensionsTab != null) {
+            adminTabs.setSelectedTab(shownExtensionsTab);
+        }
     }
 
     @PublicAPI(from = "1.1.0",

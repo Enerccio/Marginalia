@@ -75,7 +75,6 @@ class SillyTavernImportTest extends MarginaliaTestBase {
         assertThat(b1.getModelUsed()).isEqualTo("m");
         assertThat(b1.getResponseReasoning()).isEqualTo("r");
         assertThat(b1.getWordCount()).isEqualTo(1);
-        assertThat(b1.isEdited()).isFalse();
         assertThat(chatMessageService.getSwipesForMessage(shown.get(2))).extracting(ChatMessage::getResponse).containsExactly("u2", "other");
     }
 

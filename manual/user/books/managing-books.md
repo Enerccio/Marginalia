@@ -31,12 +31,13 @@ The row below the headers filters the list:
 The refresh button at the end of the filter row reloads the list.
 
 Each row has buttons: the star makes the book a [favorite](folders.md#favorites), the pen opens it, **Move to folder** puts it
-into a [folder](folders.md), the clone button makes a copy of it and the trash button deletes it. The header has **New folder**
-and **Organise** (the window to [move and copy](folders.md#organise) books and folders), and the **Mass changes** menu.
+into a [folder](folders.md), the clone button makes a copy of it and the trash button deletes it. The header has **New folder**,
+the **Manage** menu (**Organise**, the window to [move and copy](folders.md#organise) books and folders, **Tag books**,
+**Statistics** and the **Mass changes** sub menu) and the **Import** menu (**Import from archive**, **Import from SillyTavern**, **Import from LM Studio**).
 
 ### Advanced search
 
-**Search** (next to **Tag books**; the magnifier in the header on a phone) opens a window that finds books by more than
+**Search** (in the header, next to **Manage**; the magnifier in the header on a phone) opens a window that finds books by more than
 the filter row can. Fill in what you want to check, leave the rest empty, and press **Search** (or Enter in a text field):
 
 | Field | Finds books... |
@@ -78,7 +79,7 @@ The clone is not published, even if the original is. The original is not changed
 
 ### Tagging many books at once
 
-**Tag books** (next to **Add Book**) opens a window that puts one tag on many books, or takes it off them, without opening
+**Tag books** (in the **Manage** menu of the header) opens a window that puts one tag on many books, or takes it off them, without opening
 each. Pick the **Tag** (or type a new one and press Enter) and the list shows every book with its tags; the books that have
 the picked tag come first and show it highlighted. Each row has a **+** button that applies the tag to that book and a
 **-** button that removes it. To do the same for several books, tick their check boxes (the box in the header ticks all)
@@ -90,7 +91,7 @@ grayed out: it is locked, so it can not be ticked or changed until the run is pa
 
 ### Changing the model and protocol of many books
 
-The **Mass changes** menu (next to **Tag books**) has the item **Mass Change Model/Protocol**. It opens a window that puts one
+The **Mass changes** sub menu of the **Manage** menu has the item **Mass Change Model/Protocol**. It opens a window that puts one
 **Model** and/or one **Protocol** on many books without opening each. Leave a box empty (it shows *Do not replace*) and that
 part of the books stays as it is: pick only a model to change the models and keep the protocols. The table lists the books of
 the current [folder](folders.md) by name with the model and protocol they have now; **Include subfolders** adds the books
@@ -138,16 +139,15 @@ from SillyTavern. It opens right away. It starts with your **Default Model** and
 (see [Account & settings](../account.md)), if you have set them; otherwise select them on the *About* tab before
 generating.
 
-To start a book from a folder of text files, use the **import** button (file icon, *Import from archive*) next to
-**Add Book**: upload a `.zip` of `.md` files and the new book, named after the archive, gets a part for each file, see
+To start a book from a folder of text files, use **Import → Import from archive** in the header of the list: upload a `.zip` of `.md` files and the new book, named after the archive, gets a part for each file, see
 [Importing text files](story-editor.md#importing-text-files).
 
 ![Importing a zip of text files as a new book](../../images/archive-upload.png)
 
 ### Importing from SillyTavern
 
-To continue a roleplay or story you started in [SillyTavern](https://github.com/SillyTavern/SillyTavern), use the
-**import** button with the speech bubbles (*Import from SillyTavern*) next to **Add Book**. In SillyTavern, export the chat
+To continue a roleplay or story you started in [SillyTavern](https://github.com/SillyTavern/SillyTavern), use
+**Import → Import from SillyTavern** in the header of the list. In SillyTavern, export the chat
 (*Manage chat files*, or take the `.jsonl` files from `data/<user>/chats/<character>/`), then:
 
 1. Upload **one or more** `.jsonl` chats. A file that is not a SillyTavern chat is refused, the others stay.
@@ -166,6 +166,25 @@ branches of one tree, which you can walk in the [tree view](story-editor.md). Th
 last message). Chats that don't begin with the same message become separate first parts. Hidden (system) messages are
 skipped, and so are swipes that are empty. The reasoning and the model name of an answer are kept with the part.
 
+### Importing from LM Studio
+
+To continue a conversation you had in [LM Studio](https://lmstudio.ai), use **Import → Import from LM Studio** in the header of the list.
+LM Studio keeps each conversation in a file `<number>.conversation.json` in the folder `.lmstudio/conversations` of your home folder (on Windows
+`%USERPROFILE%\.lmstudio\conversations`). It works like [Importing from SillyTavern](#importing-from-sillytavern):
+
+1. Upload **one or more** conversations. A file that is not a conversation of LM Studio is refused, the others stay.
+2. Give the book a name (it is filled with the name of the conversation, or the name of the file when it has none).
+3. Tick **Merge user and assistant messages into one part** for one part per turn (your message is the *instructions* of the part), or leave
+   it off so that every message is a part of its own.
+4. Click **Import**.
+
+![The window of the import from LM Studio with one conversation uploaded](../../images/lmstudio-import.png)
+
+The versions of a message that LM Studio keeps (the answers you regenerated, the text you edited) become sibling parts and the version that was
+shown is the one the book opens on; conversations that share their beginning are joined into one tree. The thinking of a reasoning model is kept
+as the reasoning of the part, together with the model name. The system prompt of the conversation, the calls of tools and attached files are not
+imported.
+
 To start a book from a backup file, use **Import Backup as New Book** in the *Settings* tab, see
 [Book backups](backups.md#importing-a-backup-as-a-new-book).
 
@@ -183,6 +202,7 @@ To start a book from a backup file, use **Import Backup as New Book** in the *Se
 | **Protocols** | The [protocol](../protocols.md) with the generation settings. |
 | **Versions kept per part** | How many earlier versions of the text of a part the [history](version-history.md) keeps. Empty means *inherit*: the grey number in the box is the limit that applies and the line under it says which folder, your settings or the administrator sets it. **0** keeps no history. |
 | **Published** | Lets other users read the book, see [Publishing & viewer](publishing.md). Once checked, the reader link of the book (`<address of Marginalia>/view/<book ID>`) is shown under the checkbox; copy it and send it to the readers. |
+| **Show the images to readers** | Checked by default. Readers of a published book see the pictures of its parts; uncheck it to show them the text only. You always see your own pictures. |
 
 Changes are saved as you type.
 
@@ -192,6 +212,7 @@ Below are read-only counts:
 |---|---|
 | **Total Word Count**, **Total Token Count** | All parts of the book, in all branches. |
 | **Active Branch Word Count**, **Active Branch Token Count** | Only the parts of the [active branch](branches-and-story-tree.md). |
+| **Authorship of the branch** | Press **Calculate**: how many percent of the words of the active branch you wrote and how many a model generated, and the number of words. It is worked out from the [version history](version-history.md) of every part, so it takes a while on a long book, and a part whose history is switched off is compared with the text the model generated first. See [Highlighting generated text](story-editor.md#highlighting-generated-text). |
 
 A book needs a model and a protocol to generate. Without them, generating stops with *Book is missing model.* or
 *Book is missing protocol.*

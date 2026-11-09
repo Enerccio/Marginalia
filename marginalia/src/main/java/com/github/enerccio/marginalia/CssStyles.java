@@ -33,6 +33,8 @@ public final class CssStyles {
     public static final String WHITE_SPACE_NORMAL = "white-space-normal";
     public static final String PRE_WRAP = "pre-wrap";
     public static final String WRAP_ANYWHERE = "wrap-anywhere";
+    /** One line, cut with an ellipsis; the whole text belongs in the tooltip. */
+    public static final String CLIPPED_LINE = "clipped-line";
 
     // --- Layout helpers ---
     public static final String FULL_WIDTH = "full-width";
@@ -91,6 +93,8 @@ public final class CssStyles {
     public static final String TAB_DOCK_AT_RIGHT = "tab-dock-at-right";
     public static final String TAB_DOCK_AT_TOP = "tab-dock-at-top";
     public static final String TAB_DOCK_AT_BOTTOM = "tab-dock-at-bottom";
+    /** The icon in front of the caption of a part (tab) of the desktop workspace, see {@code PartIcon}. */
+    public static final String WORKSPACE_PART_ICON = "workspace-part-icon";
     public static final String STORY_SCROLL_PANEL = "story-scroll-panel";
     public static final String READER_SCROLL_PANEL = "reader-scroll-panel";
     public static final String LAZY_LOAD_INDICATOR = "lazy-load-indicator";
@@ -115,6 +119,8 @@ public final class CssStyles {
     public static final String PART_BAND_MIDDLE = "part-band-middle";
     public static final String PART_BAND_TEXT = "part-band-text";
     public static final String IMAGE_ANCHOR_PICKER = "image-anchor-picker";
+    public static final String IMAGE_ANCHOR_DOT = "image-anchor-dot";
+    public static final String IMAGE_ANCHOR_DOT_SELECTED = "image-anchor-dot-selected";
     public static final String PART_PREVIEW_FRAME = "part-preview-frame";
     public static final String PART_PREVIEW_PHONE = "part-preview-phone";
 
@@ -148,6 +154,8 @@ public final class CssStyles {
     public static final String ANNOTATION_LIT = "annotation-lit";
     public static final String SUMMARY_CONTENT = "summary-content";
     public static final String SUMMARY_ACTIONS = "summary-actions";
+    /** Row of the summaries overview of a summary that no longer describes the story. */
+    public static final String SUMMARY_OUTDATED = "summary-outdated";
 
     // --- graph ---
     public static final String GRAPH_VIEW = "graph-view";
@@ -180,6 +188,14 @@ public final class CssStyles {
     // --- Resizable text area toggle icon ---
     public static final String RESIZABLE_TEXT_AREA_ICON = "resizable-text-area-icon";
     public static final String RESIZABLE_TEXT_AREA_FIELD = "resizable-text-area-field";
+
+    // --- Manuscript dialog ---
+    /** The dialog of a manuscript: its footer (the Exit button) takes little room. */
+    public static final String MANUSCRIPT_DIALOG = "manuscript-dialog";
+
+    // --- Phone workspace ---
+    /** A page of the phone workspace made of layouts, grids and fields: nothing in it is wider than the screen. */
+    public static final String PHONE_PAGE = "phone-page";
 
     // --- Phone manuscript dialog ---
     public static final String PHONE_DIALOG = "phone-dialog";
@@ -272,6 +288,12 @@ public final class CssStyles {
     public static final String STYLE_EDITOR_LIST = "style-editor-list";
     public static final String STYLE_EDITOR_PREVIEW = "style-editor-preview";
     public static final String STYLE_EDITOR_CSS = "style-editor-css";
+
+    // --- Planner tab of the story editor (ui.dialogs.story.PlannerPanel) ---
+    public static final String PLANNER_SCENE = "planner-scene";
+    public static final String PLANNER_SCENE_DONE = "planner-scene-done";
+    public static final String PLANNER_SCENE_MAIN = "planner-scene-main";
+    public static final String PLANNER_SCENE_TEXT = "planner-scene-text";
 
     private CssStyles() {
     }

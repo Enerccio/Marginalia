@@ -18,6 +18,7 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.details.Details;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
@@ -49,6 +50,9 @@ public class DatabaseBackupPanel implements LLMInteract {
     @Autowired
     private DatabaseBackupService databaseBackupService;
 
+    // the phone layout: a card for each backup instead of the columns, and the toolbar wraps
+    private final boolean phone;
+
     private Span databaseSizeSpan;
     private HorizontalLayout pendingRestoreLayout;
     private Grid<DatabaseBackup> grid;
@@ -57,6 +61,14 @@ public class DatabaseBackupPanel implements LLMInteract {
     private IntegerField scheduleKeep;
     private Span schedulePreview;
     private Span scheduleStatus;
+
+    public DatabaseBackupPanel() {
+        this(false);
+    }
+
+    public DatabaseBackupPanel(boolean phone) {
+        this.phone = phone;
+    }
 
     @PublicAPI(from = "1.1.0",
             returns = @APIReturn(type = Component.class),
@@ -122,29 +134,35 @@ public class DatabaseBackupPanel implements LLMInteract {
         grid = new Grid<>();
         grid.setSizeFull();
 
-        grid.addColumn(DatabaseBackup::getName)
-                .setHeader(loc.getValue(L.LABEL_NAME))
-                .setFlexGrow(1);
+        if (phone) {
+            toolbar.addClassName(CssStyles.FLEX_WRAP);
+            grid.addThemeVariants(GridVariant.LUMO_NO_BORDER, GridVariant.LUMO_ROW_STRIPES, GridVariant.LUMO_WRAP_CELL_CONTENT);
+            grid.addComponentColumn(this::createCard);
+        } else {
+            grid.addColumn(DatabaseBackup::getName)
+                    .setHeader(loc.getValue(L.LABEL_NAME))
+                    .setFlexGrow(1);
 
-        grid.addColumn(backup -> loc.getDateHourFormat().format(backup.getCreation()))
-                .setHeader(loc.getValue(L.LABEL_CREATED))
-                .setFlexGrow(0)
-                .setWidth("200px");
+            grid.addColumn(backup -> loc.getDateHourFormat().format(backup.getCreation()))
+                    .setHeader(loc.getValue(L.LABEL_CREATED))
+                    .setFlexGrow(0)
+                    .setWidth("200px");
 
-        grid.addColumn(backup -> loc.getValue(backup.isScheduled() ? L.LABEL_BACKUP_SCHEDULED : L.LABEL_BACKUP_MANUAL))
-                .setHeader(loc.getValue(L.LABEL_TYPE))
-                .setFlexGrow(0)
-                .setWidth("120px");
+            grid.addColumn(backup -> loc.getValue(backup.isScheduled() ? L.LABEL_BACKUP_SCHEDULED : L.LABEL_BACKUP_MANUAL))
+                    .setHeader(loc.getValue(L.LABEL_TYPE))
+                    .setFlexGrow(0)
+                    .setWidth("120px");
 
-        grid.addColumn(backup -> FileUtils.byteCountToDisplaySize(backup.getSize()))
-                .setHeader(loc.getValue(L.LABEL_SIZE))
-                .setFlexGrow(0)
-                .setWidth("120px");
+            grid.addColumn(backup -> FileUtils.byteCountToDisplaySize(backup.getSize()))
+                    .setHeader(loc.getValue(L.LABEL_SIZE))
+                    .setFlexGrow(0)
+                    .setWidth("120px");
 
-        grid.addComponentColumn(this::createActions)
-                .setHeader("")
-                .setFlexGrow(0)
-                .setWidth("420px");
+            grid.addComponentColumn(this::createActions)
+                    .setHeader("")
+                    .setFlexGrow(0)
+                    .setWidth("420px");
+        }
 
         layout.add(toolbar, pendingRestoreLayout, createSchedule(), grid);
         layout.setFlexGrow(1, grid);
@@ -171,6 +189,7 @@ public class DatabaseBackupPanel implements LLMInteract {
         scheduleCron = new TextField(loc.getValue(L.LABEL_BACKUP_SCHEDULE));
         scheduleCron.setHelperText(loc.getValue(L.HELP_BACKUP_SCHEDULE));
         scheduleCron.setWidth("26em");
+        scheduleCron.setMaxWidth("100%");
         scheduleCron.setValueChangeMode(ValueChangeMode.LAZY);
         scheduleCron.addValueChangeListener(e -> previewSchedule());
         scheduleEnabled.addValueChangeListener(e -> previewSchedule());
@@ -180,6 +199,7 @@ public class DatabaseBackupPanel implements LLMInteract {
         scheduleKeep.setMin(0);
         scheduleKeep.setStepButtonsVisible(true);
         scheduleKeep.setWidth("14em");
+        scheduleKeep.setMaxWidth("100%");
 
         Button saveButton = new Button(loc.getValue(L.LABEL_SAVE_SCHEDULE), Solid.SAVE.create(), e -> saveSchedule());
         saveButton.setThemeName("primary");
@@ -187,6 +207,7 @@ public class DatabaseBackupPanel implements LLMInteract {
         HorizontalLayout fields = new HorizontalLayout(scheduleEnabled, scheduleCron, scheduleKeep, saveButton);
         fields.setAlignItems(FlexComponent.Alignment.BASELINE);
         fields.setWrap(true);
+        fields.setWidthFull();
 
         schedulePreview = new Span();
         schedulePreview.addClassName(CssStyles.TEXT_SECONDARY);
@@ -285,6 +306,29 @@ public class DatabaseBackupPanel implements LLMInteract {
         }
     }
 
+    /**
+     * A backup on a phone: its name, when it was made with the type and the size under it, and the buttons below.
+     */
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = Component.class),
+            parameters = {@APIParameter(name = "backup", type = DatabaseBackupService.DatabaseBackup.class)},
+            locals = {@APILocals(name = "name", type = Span.class),
+                    @APILocals(name = "details", type = Span.class),
+                    @APILocals(name = "card", type = VerticalLayout.class)})
+    private Component createCard(DatabaseBackup backup) {
+        Span name = new Span(backup.getName());
+        name.addClassNames(CssStyles.TEXT_SEMIBOLD, CssStyles.WRAP_ANYWHERE);
+        Span details = new Span(loc.getDateHourFormat().format(backup.getCreation()) + " · "
+                + loc.getValue(backup.isScheduled() ? L.LABEL_BACKUP_SCHEDULED : L.LABEL_BACKUP_MANUAL) + " · "
+                + FileUtils.byteCountToDisplaySize(backup.getSize()));
+        details.addClassNames(CssStyles.TEXT_SECONDARY, CssStyles.WRAP_ANYWHERE);
+        VerticalLayout card = new VerticalLayout(name, details, createActions(backup));
+        card.setPadding(false);
+        card.setSpacing(false);
+        card.setWidthFull();
+        return card;
+    }
+
     @PublicAPI(from = "1.1.0",
             returns = @APIReturn(type = Component.class),
             parameters = {@APIParameter(name = "backup", type = DatabaseBackupService.DatabaseBackup.class)},
@@ -297,6 +341,7 @@ public class DatabaseBackupPanel implements LLMInteract {
     private Component createActions(DatabaseBackup backup) {
         HorizontalLayout actions = new HorizontalLayout();
         actions.setSpacing(true);
+        actions.addClassName(CssStyles.FLEX_WRAP);
 
         Anchor downloadAnchor;
         try {

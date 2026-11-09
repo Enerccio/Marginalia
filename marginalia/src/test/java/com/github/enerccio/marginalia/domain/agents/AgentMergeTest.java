@@ -505,7 +505,6 @@ class AgentMergeTest extends AgentTestBase {
 
         assertThat(inBook("there was a small dragon").getUuid()).as("the part is the same one").isEqualTo(uuid);
         assertThat(bookTexts()).containsExactly("Once upon a time", "and a castle", "there was a small dragon");
-        assertThat(inBook("there was a small dragon").isEdited()).isTrue();
         assertThat(result.run().getStatus()).isEqualTo(AgentRunStatus.APPLIED);
         assertThat(result.run().getWorkingCopy()).as("the copy is gone").isNull();
         assertThat(result.applied()).containsEntry(Kind.MESSAGE, 1);

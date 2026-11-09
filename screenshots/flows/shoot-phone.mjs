@@ -39,8 +39,8 @@ await main(async ({ page }) => {
     await sleep(500);
     await menuItem(page, 'Search and replace').click();
     await idle(page, 800);
-    await fill(page, 'Search for', 'Draconia');
-    await fill(page, 'Replace with', 'Dracona');
+    await fill(page, 'Search for', 'Mizuki');
+    await fill(page, 'Replace with', 'Mizuko');
     await page.getByRole('button', { name: 'Search', exact: true }).click();
     await page.getByText('Found ', { exact: false }).first().waitFor({ timeout: 30000 });
     await idle(page, 1200);
@@ -58,14 +58,53 @@ await main(async ({ page }) => {
     // the search and replace window of the lorebook (the icon button next to the Enabled check box)
     await page.mouse.click(227, 171);                        // the button next to the Enabled check box
     await idle(page, 800);
-    await fill(page, 'Search for', 'Draconia');
-    await fill(page, 'Replace with', 'Dracona');
+    await fill(page, 'Search for', 'Mizuki');
+    await fill(page, 'Replace with', 'Mizuko');
     await page.getByRole('button', { name: 'Search', exact: true }).click();
     await page.getByText('Found ', { exact: false }).first().waitFor({ timeout: 30000 });
     await idle(page, 1200);
     await page.evaluate(() => document.activeElement && document.activeElement.blur());
     await snap(page, 'phone-lorebook-search-replace');
     await closeDialog(page);
+    // the menu of the lorebook, its settings and the form of an entry (nothing is changed)
+    await page.locator('vaadin-button:has(vaadin-icon[icon$=":ellipsis-v"])').first().click();
+    await sleep(600);
+    await snap(page, 'phone-lorebook-menu');
+    await page.keyboard.press('Escape');
+    await sleep(300);
+    await page.getByText('Settings', { exact: true }).last().click();
+    await sleep(600);
+    await snap(page, 'phone-lorebook-settings');
+    await page.getByText('Settings', { exact: true }).last().click();
+    await sleep(300);
+    await page.locator('vaadin-grid vaadin-button:has(vaadin-icon[icon$=":angle-down"])').first().click();
+    await idle(page, 800);
+    await snap(page, 'phone-lorebook-entry');
+  });
+
+  await section(page, 'books-menu', async () => {
+    await drawer(page, 'Books');
+    await sleep(500);
+    await page.locator('vaadin-button:has(vaadin-icon[icon$=":ellipsis-v"])').first().click();
+    await sleep(600);
+    await snap(page, 'phone-books-menu');
+    await page.keyboard.press('Escape');
+    await sleep(300);
+  });
+
+  await section(page, 'resources', async () => {
+    await drawer(page, 'Resources');
+    await sleep(800);
+    await snap(page, 'phone-resources');
+  });
+
+  await section(page, 'admin', async () => {
+    await drawer(page, 'Admin');
+    await sleep(800);
+    await snap(page, 'phone-admin-users');
+    await page.getByRole('tab', { name: 'Database Backups', exact: true }).click();
+    await idle(page, 900);
+    await snap(page, 'phone-admin-backups');
   });
 
   await section(page, 'trash', async () => {
@@ -77,7 +116,7 @@ await main(async ({ page }) => {
   await section(page, 'viewer', async () => {
     await login(page, users.admin, '/view');                // the viewer has a login of its own
     await sleep(1200);
-    await page.getByText('Harry Potter and Half Blood Prince - FDM', { exact: false }).first().click();
+    await page.getByText('Unregistered', { exact: false }).first().click();
     await idle(page, 2000);
     await snap(page, 'viewer-reading');
   });
@@ -90,6 +129,8 @@ await main(async ({ page }) => {
     await login(page, users.reader);
     await drawer(page, 'Inference Providers');
     await sleep(600);
+    await page.mouse.click(390, 400);                        // the tab can be the one the workspace restored: then the drawer stays open
+    await sleep(500);
     await snap(page, 'phone-providers');
   });
 }, { phone: true });

@@ -62,6 +62,8 @@ public class LoreEntryRevisionPanel extends HorizontalLayout {
 
         setWidthFull();
         setAlignItems(Alignment.CENTER);
+        // on a phone the controls go under the label
+        setWrap(true);
         addClassNames(CssStyles.BORDERED_PANEL, CssStyles.PADDING_COMPACT_NARROW);
 
         buildUI();
@@ -100,6 +102,7 @@ public class LoreEntryRevisionPanel extends HorizontalLayout {
 
         revSelectCombo = new ComboBox<>();
         revSelectCombo.setWidth("220px");
+        revSelectCombo.setMaxWidth("100%");
         revSelectCombo.setItemLabelGenerator(idx -> {
             if (entryVcsData == null || idx < 0 || idx >= entryVcsData.getRevisions().size()) return "";
             LoreEntryRevision r = entryVcsData.getRevisions().get(idx);
@@ -121,6 +124,7 @@ public class LoreEntryRevisionPanel extends HorizontalLayout {
 
         HorizontalLayout controls = new HorizontalLayout(deleteBtn, prevBtn, revSelectCombo, nextBtn, addBtn);
         controls.setAlignItems(Alignment.CENTER);
+        controls.setWrap(true);
         controls.addClassName(CssStyles.MARGIN_LEFT_AUTO);
 
         add(leftGroup, controls);
@@ -188,10 +192,13 @@ public class LoreEntryRevisionPanel extends HorizontalLayout {
         target.setFiltering(source.getFiltering());
         target.setInsertionMode(source.getInsertionMode());
         target.setPreventRecursion(source.isPreventRecursion());
+        target.setRecursionOnly(source.isRecursionOnly());
+        target.setActivationSummaries(source.isActivationSummaries());
         target.setActivationContext(source.getActivationContext());
         target.setActivationParts(source.getActivationParts());
         target.setFromMessage(source.getFromMessage());
         target.setToMessage(source.getToMessage());
+        target.setActivationCondition(source.getActivationCondition());
         target.setPositiveTags(source.getPositiveTags());
         target.setNegativeTags(source.getNegativeTags());
         target.setLastModified(System.currentTimeMillis());

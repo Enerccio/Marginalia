@@ -7,7 +7,7 @@
     <parent>
         <groupId>io.github.enerccio</groupId>
         <artifactId>marginalia-parent</artifactId>
-        <version>1.6.0</version>
+        <version>1.7.0</version>
         <relativePath>../../../pom.xml</relativePath>
     </parent>
 
@@ -31,6 +31,13 @@
             <version>${project.version}</version>
             <scope>provided</scope>
             <classifier>classes</classifier>
+        </dependency>
+
+        <!-- the HTTP calls, the guard for private addresses, the hooks and the GPU gate; embedded in the bundle (plugins do not see each other's classes) -->
+        <dependency>
+            <groupId>com.github.enerccio.marginalia.extensions</groupId>
+            <artifactId>http-hooks</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
         <!-- OSGi Framework -->
@@ -152,6 +159,7 @@
                             !com.github.enerccio.marginalia.extensions.imagegenerator.*
                         </Import-Package>
                         <Export-Package>com.github.enerccio.marginalia.extensions.imagegenerator.*</Export-Package>
+                        <Embed-Dependency>http-hooks;inline=true</Embed-Dependency>
                     </instructions>
                 </configuration>
             </plugin>

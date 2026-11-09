@@ -122,6 +122,75 @@ public class ArcOutlineLocalization extends PluginLocalizationBundle {
     public static final String THE_ACTIVE_BRANCH_HAS_NO = "The active branch has no part %d";
     public static final String GO_TO_PART = "Go to part %d of the story";
 
+    public static final String DEVELOP_THE_PLOT = "Develop the plot";
+    public static final String CHAT = "Chat";
+    public static final String NEW_CHAT = "New chat";
+    public static final String BRANCH_THIS_CHAT = "Branch this chat (a copy)";
+    public static final String BRANCH_FROM_HERE = "Branch from here (a copy up to this message)";
+    public static final String BRANCH_OF = "%s (branch)";
+    public static final String RENAME_THE_CHAT = "Rename the chat";
+    public static final String NAME = "Name";
+    public static final String DELETE_THE_CHAT_BUTTON = "Delete the chat";
+    public static final String DELETE_THE_CHAT = "Delete the chat %s?";
+    public static final String SUMMARIZE_THE_CHAT = "Summarize the chat (the model then gets the summary instead of the earlier messages)";
+    public static final String SUMMARY_OF_THE_CHAT = "Summary of the chat";
+    public static final String THE_MODEL_GETS_THIS_SUMMARY = "The model gets this summary and the messages after it, not the ones above.";
+    public static final String NOTHING_TO_SUMMARIZE = "There is nothing to summarize yet";
+    public static final String YOU = "You";
+    public static final String MODEL = "Model";
+    public static final String SEND = "Send";
+    public static final String COPY = "Copy";
+    public static final String COPIED_TO_THE_CLIPBOARD = "Copied to the clipboard";
+    public static final String DELETE_THE_MESSAGE = "Delete the message";
+    public static final String GENERATE_AN_ARC_FROM_THIS = "Generate an arc from this message";
+    public static final String TALK_ABOUT_THE_PLOT = "Talk about the plot...";
+    public static final String HOW_THE_MODEL_HELPS = "How the model helps";
+    public static final String MODE_FREE_TALK = "Free talk";
+    public static final String MODE_EXPLORE_DIRECTIONS = "Explore directions";
+    public static final String MODE_FIND_THE_PROBLEMS = "Find the problems";
+    public static final String MODE_EXPAND_AN_IDEA = "Expand an idea";
+    public static final String SEND_THE_LOREBOOK = "Send the lorebook";
+    public static final String SEND_THE_OUTLINE = "Send the outline";
+    public static final String NOT_SENT = "Not sent";
+    public static final String DESCRIPTIONS_ONLY = "Descriptions only";
+    public static final String WITH_THE_NOTES = "With the notes";
+    public static final String SEND_THE_SUMMARIES = "Send the summaries of the story";
+    public static final String THE_SUMMARIES_STAND_IN = "The summaries stand in for the story up to the newest of them, the way a generation sends them.";
+    public static final String SEND_THE_LATEST_PARTS = "Send the latest parts of the story";
+    public static final String THE_NEWEST_PARTS_THAT_FIT = "The parts after the newest summary (all of them without summaries), the newest ones that fit the limit below.";
+    public static final String TOKENS_OF_THE_STORY = "Tokens of the story";
+    public static final String EMPTY_A_THIRD_OF_WHAT_THE_MODEL_TAKES = "Empty: a third of what the model takes";
+    public static final String THE_MODEL_GETS = "The model gets %d summaries and %d parts of the story.";
+    public static final String PROMPT_SENT_TO_THE_MODEL_DOES_NOT_FIT = "Prompt sent to the model: about %s tokens of %s the model takes - it does not fit, send less or summarize the chat.";
+    public static final String SUMMARIZE_THE_CHAT_TITLE = "Summarize the chat";
+    public static final String WHAT_THE_SUMMARY_SHOULD_KEEP = "What the summary should keep or stress";
+    public static final String THE_SUMMARY_KEEPS_PLACEHOLDER = "For example: keep the twist about the traitor and the ending we rejected";
+    public static final String EMPTY_THE_MODEL_DECIDES = "Optional. Empty: the model decides what matters.";
+    public static final String SUMMARIZE = "Summarize";
+    public static final String WHAT_THE_MODEL_MAY_DO = "What the model may do";
+    public static final String TOOLS_PLANNER = "Planner: read and change the scenes";
+    public static final String TOOLS_PLANNER_TIP = "The scenes you plan to write: it can list them, add, change, move and mark them done.";
+    public static final String TOOLS_LOREBOOK = "Lorebook: read, add and change entries";
+    public static final String TOOLS_LOREBOOK_TIP = "It can search and read the lore, create entries and change the text of existing ones.";
+    public static final String TOOLS_OUTLINE = "Outline: read and change arcs and chapters";
+    public static final String TOOLS_OUTLINE_TIP = "It can read the outline, add arcs and chapters, change them and move them.";
+    public static final String TOOLS_NOTES = "Notes: read, add and change pages";
+    public static final String TOOLS_NOTES_TIP = "Your notes (Story Notes): it can search and read the pages, add a page or add to one, and change text in one. Pages hidden from assistants are out of reach.";
+    public static final String SEND_THE_NOTES = "Send the notes";
+    public static final String TITLES_AND_FIRST_LINES = "Titles and first lines";
+    public static final String FULL_TEXT = "Full text";
+    public static final String TOOLS_GENERATORS = "Generators: arc, chapters, lore entry";
+    public static final String TOOLS_GENERATORS_TIP = "It can call the arc and chapter generators and the Lore Generator. They return a draft; it saves one only when told to.";
+    public static final String ASK_BEFORE_IT_CHANGES_ANYTHING = "Ask me before it changes or deletes something";
+    public static final String ADDING_IS_NOT_ASKED = "Adding a scene, an entry or an arc is not asked, you see it in the chat and can delete it. Changing and deleting what exists is.";
+    public static final String THE_MODEL_WANTS_TO_RUN = "The model wants to run %s";
+    public static final String ALLOW = "Allow";
+    public static final String REFUSE = "Refuse";
+    public static final String ARC_OUTLINE_GENERATE_AN_ARC = "Arc Outline: generate an arc";
+    public static final String ARC_OUTLINE_GENERATE_CHAPTERS = "Arc Outline: generate chapters";
+    public static final String ARC_OUTLINE_IMPORT_FROM_STORY = "Arc Outline: import from the story";
+    public static final String ARC_OUTLINE_PLOT_WIZARD = "Arc Outline: plot wizard answer";
+
     @Override
     protected void loadKeys() {
         ja(ARCS, "アーク");
@@ -458,5 +527,209 @@ public class ArcOutlineLocalization extends PluginLocalizationBundle {
 
         ja(GO_TO_PART, "物語のパート %d へ移動");
         zh(GO_TO_PART, "转到故事的第 %d 段");
+
+        ja(DEVELOP_THE_PLOT, "プロットを練る");
+        zh(DEVELOP_THE_PLOT, "讨论情节");
+
+        ja(CHAT, "チャット");
+        zh(CHAT, "对话");
+
+        ja(NEW_CHAT, "新しいチャット");
+        zh(NEW_CHAT, "新对话");
+
+        ja(BRANCH_THIS_CHAT, "このチャットを分岐（コピー）");
+        zh(BRANCH_THIS_CHAT, "分支此对话（复制）");
+
+        ja(BRANCH_FROM_HERE, "ここから分岐（このメッセージまでのコピー）");
+        zh(BRANCH_FROM_HERE, "从此处分支（复制到这条消息）");
+
+        ja(BRANCH_OF, "%s（分岐）");
+        zh(BRANCH_OF, "%s（分支）");
+
+        ja(RENAME_THE_CHAT, "チャット名を変更");
+        zh(RENAME_THE_CHAT, "重命名对话");
+
+        ja(NAME, "名前");
+        zh(NAME, "名称");
+
+        ja(DELETE_THE_CHAT_BUTTON, "チャットを削除");
+        zh(DELETE_THE_CHAT_BUTTON, "删除对话");
+
+        ja(DELETE_THE_CHAT, "チャット「%s」を削除しますか？");
+        zh(DELETE_THE_CHAT, "删除对话“%s”？");
+
+        ja(SUMMARIZE_THE_CHAT, "チャットを要約（以降モデルには以前のメッセージの代わりに要約が渡されます）");
+        zh(SUMMARIZE_THE_CHAT, "总结对话（之后模型收到的是总结，而不是之前的消息）");
+
+        ja(SUMMARY_OF_THE_CHAT, "チャットの要約");
+        zh(SUMMARY_OF_THE_CHAT, "对话总结");
+
+        ja(THE_MODEL_GETS_THIS_SUMMARY, "モデルにはこの要約とそれ以降のメッセージが渡され、これより上のメッセージは渡されません。");
+        zh(THE_MODEL_GETS_THIS_SUMMARY, "模型收到这份总结及其后的消息，不再收到上面的消息。");
+
+        ja(NOTHING_TO_SUMMARIZE, "まだ要約するものがありません");
+        zh(NOTHING_TO_SUMMARIZE, "还没有可总结的内容");
+
+        ja(YOU, "あなた");
+        zh(YOU, "你");
+
+        ja(MODEL, "モデル");
+        zh(MODEL, "模型");
+
+        ja(SEND, "送信");
+        zh(SEND, "发送");
+
+        ja(COPY, "コピー");
+        zh(COPY, "复制");
+
+        ja(COPIED_TO_THE_CLIPBOARD, "クリップボードにコピーしました");
+        zh(COPIED_TO_THE_CLIPBOARD, "已复制到剪贴板");
+
+        ja(DELETE_THE_MESSAGE, "メッセージを削除");
+        zh(DELETE_THE_MESSAGE, "删除消息");
+
+        ja(GENERATE_AN_ARC_FROM_THIS, "このメッセージからアークを生成");
+        zh(GENERATE_AN_ARC_FROM_THIS, "根据这条消息生成故事弧");
+
+        ja(TALK_ABOUT_THE_PLOT, "プロットについて話しましょう…");
+        zh(TALK_ABOUT_THE_PLOT, "聊聊情节……");
+
+        ja(HOW_THE_MODEL_HELPS, "モデルの手伝い方");
+        zh(HOW_THE_MODEL_HELPS, "模型如何协助");
+
+        ja(MODE_FREE_TALK, "自由な会話");
+        zh(MODE_FREE_TALK, "自由交谈");
+
+        ja(MODE_EXPLORE_DIRECTIONS, "方向性を探る");
+        zh(MODE_EXPLORE_DIRECTIONS, "探索方向");
+
+        ja(MODE_FIND_THE_PROBLEMS, "問題点を探す");
+        zh(MODE_FIND_THE_PROBLEMS, "找出问题");
+
+        ja(MODE_EXPAND_AN_IDEA, "アイデアを広げる");
+        zh(MODE_EXPAND_AN_IDEA, "展开想法");
+
+        ja(SEND_THE_LOREBOOK, "ロアブックを送る");
+        zh(SEND_THE_LOREBOOK, "发送设定集");
+
+        ja(SEND_THE_OUTLINE, "アウトラインを送る");
+        zh(SEND_THE_OUTLINE, "发送大纲");
+
+        ja(NOT_SENT, "送らない");
+        zh(NOT_SENT, "不发送");
+
+        ja(DESCRIPTIONS_ONLY, "説明のみ");
+        zh(DESCRIPTIONS_ONLY, "仅描述");
+
+        ja(WITH_THE_NOTES, "メモ付き");
+        zh(WITH_THE_NOTES, "含备注");
+
+        ja(SEND_THE_SUMMARIES, "物語の要約を送る");
+        zh(SEND_THE_SUMMARIES, "发送故事的总结");
+
+        ja(THE_SUMMARIES_STAND_IN, "要約は、生成時と同様に、最新の要約までの物語の代わりとして送られます。");
+        zh(THE_SUMMARIES_STAND_IN, "总结代替其中最新一条之前的故事，与生成时的发送方式相同。");
+
+        ja(SEND_THE_LATEST_PARTS, "物語の最新パートを送る");
+        zh(SEND_THE_LATEST_PARTS, "发送故事的最新段落");
+
+        ja(THE_NEWEST_PARTS_THAT_FIT, "最新の要約より後のパート（要約なしの場合はすべて）のうち、下の上限に収まる最新のもの。");
+        zh(THE_NEWEST_PARTS_THAT_FIT, "最新总结之后的段落（不发送总结时为全部），取符合下方上限的最新几段。");
+
+        ja(TOKENS_OF_THE_STORY, "物語のトークン数");
+        zh(TOKENS_OF_THE_STORY, "故事的词元数");
+
+        ja(EMPTY_A_THIRD_OF_WHAT_THE_MODEL_TAKES, "空欄: モデルが受け付ける量の3分の1");
+        zh(EMPTY_A_THIRD_OF_WHAT_THE_MODEL_TAKES, "留空：模型可接受量的三分之一");
+
+        ja(THE_MODEL_GETS, "モデルに渡すもの: 要約%d件、物語のパート%d件。");
+        zh(THE_MODEL_GETS, "模型收到：%d 条总结、%d 个故事段落。");
+
+        ja(PROMPT_SENT_TO_THE_MODEL_DOES_NOT_FIT, "モデルに送信されるプロンプト: 約%sトークン（モデルが受け付ける%s中）- 収まりません。送る量を減らすかチャットを要約してください。");
+        zh(PROMPT_SENT_TO_THE_MODEL_DOES_NOT_FIT, "发送给模型的提示词：约 %s 个词元（模型可接受 %s 个）- 放不下，请少发送一些或总结对话。");
+
+        ja(SUMMARIZE_THE_CHAT_TITLE, "チャットを要約");
+        zh(SUMMARIZE_THE_CHAT_TITLE, "总结对话");
+
+        ja(WHAT_THE_SUMMARY_SHOULD_KEEP, "要約で残す・強調すること");
+        zh(WHAT_THE_SUMMARY_SHOULD_KEEP, "总结应保留或强调的内容");
+
+        ja(THE_SUMMARY_KEEPS_PLACEHOLDER, "例: 裏切り者に関するどんでん返しと、却下した結末を残す");
+        zh(THE_SUMMARY_KEEPS_PLACEHOLDER, "例如：保留关于叛徒的反转以及我们否决的结局");
+
+        ja(EMPTY_THE_MODEL_DECIDES, "任意。空欄: モデルが重要なことを判断します。");
+        zh(EMPTY_THE_MODEL_DECIDES, "可选。留空：由模型判断什么重要。");
+
+        ja(SUMMARIZE, "要約する");
+        zh(SUMMARIZE, "总结");
+
+        ja(WHAT_THE_MODEL_MAY_DO, "モデルができること");
+        zh(WHAT_THE_MODEL_MAY_DO, "模型可以做什么");
+
+        ja(TOOLS_PLANNER, "プランナー: シーンの読み取りと変更");
+        zh(TOOLS_PLANNER, "规划器：读取和修改场景");
+
+        ja(TOOLS_PLANNER_TIP, "書く予定のシーン: 一覧、追加、変更、移動、完了の設定ができます。");
+        zh(TOOLS_PLANNER_TIP, "你计划要写的场景：可以列出、添加、修改、移动并标记为已完成。");
+
+        ja(TOOLS_LOREBOOK, "ロアブック: エントリの読み取り、追加、変更");
+        zh(TOOLS_LOREBOOK, "设定集：读取、添加和修改条目");
+
+        ja(TOOLS_LOREBOOK_TIP, "設定を検索・閲覧し、エントリを作成し、既存のエントリの本文を変更できます。");
+        zh(TOOLS_LOREBOOK_TIP, "可以搜索和阅读设定，创建条目并修改现有条目的文本。");
+
+        ja(TOOLS_OUTLINE, "アウトライン: アークと章の読み取りと変更");
+        zh(TOOLS_OUTLINE, "大纲：读取和修改故事弧与章节");
+
+        ja(TOOLS_OUTLINE_TIP, "アウトラインを読み、アークと章の追加、変更、移動ができます。");
+        zh(TOOLS_OUTLINE_TIP, "可以读取大纲，添加、修改和移动故事弧与章节。");
+
+        ja(TOOLS_NOTES, "ノート: ページの読み取り、追加、変更");
+        zh(TOOLS_NOTES, "笔记：读取、添加和修改页面");
+
+        ja(TOOLS_NOTES_TIP, "あなたのノート（ストーリーノート）を検索・閲覧し、ページの追加や追記、ページ内の文章の変更ができます。アシスタントに非公開のページには触れません。");
+        zh(TOOLS_NOTES_TIP, "您的笔记（故事笔记）：可以搜索和阅读页面，添加页面或向页面追加内容，并修改页面中的文字。对助手隐藏的页面无法访问。");
+
+        ja(SEND_THE_NOTES, "ノートを送る");
+        zh(SEND_THE_NOTES, "发送笔记");
+
+        ja(TITLES_AND_FIRST_LINES, "タイトルと最初の行");
+        zh(TITLES_AND_FIRST_LINES, "标题和首行");
+
+        ja(FULL_TEXT, "全文");
+        zh(FULL_TEXT, "全文");
+
+        ja(TOOLS_GENERATORS, "ジェネレーター: アーク、章、設定エントリ");
+        zh(TOOLS_GENERATORS, "生成器：故事弧、章节、设定条目");
+
+        ja(TOOLS_GENERATORS_TIP, "アークと章のジェネレーターおよびロアジェネレーターを呼び出せます。下書きを返し、指示があったときだけ保存します。");
+        zh(TOOLS_GENERATORS_TIP, "可以调用故事弧和章节生成器以及设定生成器。它们返回草稿，只有被告知时才保存。");
+
+        ja(ASK_BEFORE_IT_CHANGES_ANYTHING, "変更や削除の前に確認する");
+        zh(ASK_BEFORE_IT_CHANGES_ANYTHING, "修改或删除前先询问我");
+
+        ja(ADDING_IS_NOT_ASKED, "シーン、エントリ、アークの追加は確認しません（チャットに表示され、削除できます）。既存のものの変更と削除は確認します。");
+        zh(ADDING_IS_NOT_ASKED, "添加场景、条目或故事弧不会询问（会显示在对话中，可以删除）。修改和删除已有内容则会询问。");
+
+        ja(THE_MODEL_WANTS_TO_RUN, "モデルが %s を実行しようとしています");
+        zh(THE_MODEL_WANTS_TO_RUN, "模型想要运行 %s");
+
+        ja(ALLOW, "許可");
+        zh(ALLOW, "允许");
+
+        ja(REFUSE, "拒否");
+        zh(REFUSE, "拒绝");
+
+        ja(ARC_OUTLINE_GENERATE_AN_ARC, "アークアウトライン: アークを生成");
+        zh(ARC_OUTLINE_GENERATE_AN_ARC, "故事弧大纲：生成故事弧");
+
+        ja(ARC_OUTLINE_GENERATE_CHAPTERS, "アークアウトライン: 章を生成");
+        zh(ARC_OUTLINE_GENERATE_CHAPTERS, "故事弧大纲：生成章节");
+
+        ja(ARC_OUTLINE_IMPORT_FROM_STORY, "アークアウトライン: 物語からインポート");
+        zh(ARC_OUTLINE_IMPORT_FROM_STORY, "故事弧大纲：从故事导入");
+
+        ja(ARC_OUTLINE_PLOT_WIZARD, "アークアウトライン: プロットウィザードの回答");
+        zh(ARC_OUTLINE_PLOT_WIZARD, "故事弧大纲：情节向导的回答");
     }
 }

@@ -160,7 +160,7 @@ public interface ChatMessageService extends ExtendableService<ChatMessage, ChatM
 
     /**
      * Stores the text of a part the author (or an agent) edited: counts its tokens (with the tokenizer of the book's AI, a
-     * generic one when it has none) and words, flags the part as edited and saves it.
+     * generic one when it has none) and words and saves it.
      *
      * @return the saved part and the summaries the edit made outdated (the ones that described the story before and no
      * longer do, not the ones that were outdated already)
@@ -173,6 +173,37 @@ public interface ChatMessageService extends ExtendableService<ChatMessage, ChatM
      * history the edit makes has the source, the detail, the agent flag and the reasoning of the origin.
      */
     PartEdit updateResponse(Manuscript manuscript, ChatMessage message, String text, RevisionOrigin origin) throws Exception;
+
+    /**
+     * Stores a text that says what the stored one says in other words: a translation that an extension made. The way of
+     * {@link #updateResponse(Manuscript, ChatMessage, String, RevisionOrigin)}, with these differences, because nothing was said
+     * that was not said before:
+     * <ul>
+     *     <li>its tokens are those of {@code modelText}, what a model reads of the new text (the context is made of what a model is
+     *     sent), not of the stored text;</li>
+     *     <li>{@code generatedText} becomes the text the model generated ({@code originalResponse}), so what the author changed is
+     *     still found by comparing the two; null leaves it as it is;</li>
+     *     <li>the summaries that described the story before still do, so their hash is worked out again; the ones that were
+     *     outdated already stay so.</li>
+     * </ul>
+     * The history gets a version, as for any edit; give it {@code RevisionOrigin.automatic(RevisionDetail.TRANSLATION, false)}
+     * or an origin of the extension. The passages of the annotations move with the text.
+     *
+     * @param modelText     what a model reads of the new text, null reads the text itself
+     * @param generatedText the text as the model generated it with the same change, null for none
+     * @return the saved part
+     * @throws IllegalArgumentException when the part is not a part of the manuscript, or the manuscript is not the user's
+     */
+    ChatMessage replaceText(Manuscript manuscript, ChatMessage message, String text, String modelText, String generatedText,
+                            RevisionOrigin origin) throws Exception;
+
+    /**
+     * The summaries that saving {@code text} as the text of the part would make outdated, without saving anything: what
+     * {@link PartEdit#outdated()} of {@link #updateResponse(Manuscript, ChatMessage, String)} would hold, oldest first. The blocks
+     * have the hash of the story with the new text, so they can be given to {@link SummaryService#revalidate(Manuscript, java.util.Collection)}
+     * after the text is saved.
+     */
+    List<SummaryBlock> outdatedByEdit(Manuscript manuscript, ChatMessage message, String text) throws Exception;
 
     /**
      * Whether a summary describes the text of the part, so that an edit of the part can make it outdated: the part has a summary
@@ -200,8 +231,7 @@ public interface ChatMessageService extends ExtendableService<ChatMessage, ChatM
 
     /**
      * Adds a part the author (or an agent) wrote as a child of {@code parent}, or as the first part of an empty book when
-     * the parent is null: counts its tokens and words and makes it the active leaf of the book, which is saved. The part is
-     * not flagged as edited, nobody changed a text of the model.
+     * the parent is null: counts its tokens and words and makes it the active leaf of the book, which is saved.
      *
      * @param input what the turn the part stands for was made from; null for none
      * @throws IllegalArgumentException when the parent is not a part of the manuscript, the manuscript is not the user's,
@@ -236,8 +266,7 @@ public interface ChatMessageService extends ExtendableService<ChatMessage, ChatM
      * Inserts a part into the story, between a part and what follows it: the new part becomes the only child of {@code after},
      * and everything that followed {@code after} (all its continuations, the swipes of the next part with their own
      * continuations) follows the new part now. No part is deleted or made again, so their uuids, summaries and the data
-     * kept on them stay; every part below the new one is one place deeper. As {@link #createPart}, the text is counted and
-     * the part is not flagged as edited. The active leaf stays where it is, unless {@code after} was the leaf: the new
+     * kept on them stay; every part below the new one is one place deeper. As {@link #createPart}, the text is counted. The active leaf stays where it is, unless {@code after} was the leaf: the new
      * part is the end of the branch then, as with {@link #createPart}. The summaries of the parts below that covered
      * {@code after} are outdated, as they describe the story without the new part.
      *

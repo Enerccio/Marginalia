@@ -1,5 +1,8 @@
 package com.github.enerccio.marginalia.extensions.imagegenerator.service;
 
+import com.github.enerccio.marginalia.extensions.httphooks.BackendException;
+import com.github.enerccio.marginalia.extensions.httphooks.Http;
+import com.github.enerccio.marginalia.extensions.httphooks.UrlGuard;
 import com.github.enerccio.marginalia.extensions.imagegenerator.model.BackendConfig;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -28,7 +31,7 @@ public class OpenAiImagesBackend implements ImageBackend {
     }
 
     @Override
-    public byte[] generate(ImageRequest request, Cancel cancel) throws ImageException {
+    public byte[] generate(ImageRequest request, Cancel cancel) throws BackendException {
         JsonObject body = new JsonObject();
         if (StringUtils.isNotBlank(config.getModel())) {
             body.addProperty("model", config.getModel());
@@ -41,7 +44,7 @@ public class OpenAiImagesBackend implements ImageBackend {
             body.addProperty("negative_prompt", request.negative());
         }
         if (cancel.isCancelled()) {
-            throw new ImageException("Cancelled");
+            throw new BackendException("Cancelled");
         }
         HttpResponse<byte[]> response = Http.send(builder(endpoint("/images/generations"), config.getTimeoutSeconds())
                 .header("Content-Type", "application/json")
@@ -52,18 +55,18 @@ public class OpenAiImagesBackend implements ImageBackend {
         try {
             answer = JsonParser.parseString(new String(response.body(), StandardCharsets.UTF_8)).getAsJsonObject();
         } catch (RuntimeException e) {
-            throw new ImageException("The server answered with something that is not JSON: " + Http.excerpt(response), e);
+            throw new BackendException("The server answered with something that is not JSON: " + Http.excerpt(response), e);
         }
         JsonArray data = answer.has("data") && answer.get("data").isJsonArray() ? answer.getAsJsonArray("data") : null;
         if (data == null || data.isEmpty() || !data.get(0).isJsonObject()) {
-            throw new ImageException("The answer has no image: " + Http.excerpt(response));
+            throw new BackendException("The answer has no image: " + Http.excerpt(response));
         }
         JsonObject first = data.get(0).getAsJsonObject();
         if (isText(first, "b64_json")) {
             try {
                 return Base64.getMimeDecoder().decode(first.get("b64_json").getAsString());
             } catch (IllegalArgumentException e) {
-                throw new ImageException("The image is not valid base64", e);
+                throw new BackendException("The image is not valid base64", e);
             }
         }
         if (isText(first, "url")) {
@@ -72,11 +75,11 @@ public class OpenAiImagesBackend implements ImageBackend {
             Http.requireOk(image, "Downloading the image");
             return image.body();
         }
-        throw new ImageException("The answer has neither b64_json nor url: " + Http.excerpt(response));
+        throw new BackendException("The answer has neither b64_json nor url: " + Http.excerpt(response));
     }
 
     @Override
-    public void test() throws ImageException {
+    public void test() throws BackendException {
         Http.requireOk(Http.send(builder(endpoint("/models"), 30).GET().build()), "Connecting to the server");
     }
 
@@ -86,7 +89,7 @@ public class OpenAiImagesBackend implements ImageBackend {
     }
 
     /** {@code <base>/v1<path>}, with the {@code /v1} of the base address taken as it is. */
-    private URI endpoint(String path) throws ImageException {
+    private URI endpoint(String path) throws BackendException {
         String base = config.getBaseUrl().replaceAll("/+$", "");
         if (!base.matches(".*/v\\d+$")) {
             base += "/v1";

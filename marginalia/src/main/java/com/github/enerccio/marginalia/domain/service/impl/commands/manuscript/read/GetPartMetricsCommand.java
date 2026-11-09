@@ -6,8 +6,6 @@ import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.google.gson.JsonObject;
 
-import java.util.List;
-
 /**
  * {@code /get-part-metrics part [branch]}: tokens, timings, model and protocol of a part.
  * Changes nothing; the answer is JSON text, see {@link ManuscriptReadSupport}.
@@ -59,7 +57,6 @@ public class GetPartMetricsCommand extends ManuscriptReadSupport {
         if (message.getTtft() != null && message.getReasoningEnd() != null) {
             result.addProperty("millisOfReasoning", message.getReasoningEnd().getTime() - message.getTtft().getTime());
         }
-        result.addProperty("edited", message.isEdited());
         answer(context, result);
     }
 }

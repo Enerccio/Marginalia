@@ -3,6 +3,9 @@ package com.github.enerccio.marginalia.domain.service.impl.generation;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.service.GenerationListener;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.GenerationFailure;
+import com.vaadin.flow.component.UI;
+
+import java.util.function.Consumer;
 
 /**
  * Passes everything on to the listener of the caller and remembers the first error, so the end of the generation can
@@ -83,5 +86,10 @@ public class FailureTrackingListener implements GenerationListener {
     @Override
     public void askQuestion(String question, Runnable yes, Runnable no) {
         delegate.askQuestion(question, yes, no);
+    }
+
+    @Override
+    public boolean accessUI(Consumer<UI> action) {
+        return delegate.accessUI(action);
     }
 }

@@ -3,6 +3,7 @@ package com.github.enerccio.marginalia.domain.service.impl;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.enerccio.marginalia.domain.collections.AnnotationSource;
 import com.github.enerccio.marginalia.domain.components.AnnotationTexts;
+import com.github.enerccio.marginalia.domain.components.ModelText;
 import com.github.enerccio.marginalia.domain.components.TokenLimits;
 import com.github.enerccio.marginalia.domain.model.impl.*;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
@@ -23,6 +24,8 @@ import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
 import com.github.enerccio.marginalia.domain.traits.LLMField;
 import com.github.enerccio.marginalia.domain.traits.LLMSchema;
+import com.github.enerccio.marginalia.extensions.AnnotationFactsRegistry;
+import com.github.enerccio.marginalia.extensions.PartTextRegistry;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes.InRequestScope;
 import com.github.enerccio.marginalia.utils.QuoteFinder;
@@ -99,6 +102,12 @@ public class AnnotateServiceImpl implements AnnotateService {
 
     @Autowired
     private ChatMessageService chatMessageService;
+
+    @Autowired
+    private PartTextRegistry partTextRegistry;
+
+    @Autowired
+    private AnnotationFactsRegistry annotationFacts;
 
     @Autowired
     private MessagePromptService messagePromptService;
@@ -188,10 +197,11 @@ public class AnnotateServiceImpl implements AnnotateService {
             case DELIMITED -> DELIMITED_FORMAT;
             default -> STRUCTURED_FORMAT;
         };
-        List<LLMChatMessage> payload = createPayload(book, stored, StringUtils.trimToEmpty(asked.instructions()), asked.prompt(), format,
+        List<LLMChatMessage> payload = createPayload(book, stored, instructionsOf(book, asked), asked.prompt(), format,
                 ai, protocol, inference);
 
-        Run run = new Run(stored.getResponse(), callback);
+        // the model reads the part as an extension keeps it for models, and quotes it that way: the run maps its quotes back
+        Run run = new Run(partTextRegistry.modelText(stored), callback);
         run.attributes = ThreadCopyRequestAttributes.create();
         run.book = book.getId();
         try {
@@ -220,10 +230,31 @@ public class AnnotateServiceImpl implements AnnotateService {
             if (StringUtils.isBlank(proposal.note())) {
                 continue;
             }
-            made.add(annotationService.createFromQuote(manuscript, part, proposal.quote(), null, null, proposal.note(),
-                    AnnotationSource.AI, proposal.type(), label));
+            made.add(annotateQuote(manuscript, part, proposal, label));
         }
         return made;
+    }
+
+    /**
+     * The note of one proposal. The quote is the model's, in the text the model read: when an extension keeps the story in another
+     * form than the model reads, the quote is not in the stored text (inside a replaced passage), so it is looked up in the text of
+     * the model and its range is mapped to the stored text; otherwise, or when it is not found there, the quote is looked up in
+     * the stored text as always.
+     */
+    private Annotation annotateQuote(Manuscript manuscript, ChatMessage part, Proposal proposal, String label) throws Exception {
+        if (partTextRegistry.isActive() && StringUtils.isNotBlank(proposal.quote())) {
+            ModelText read = partTextRegistry.modelText(part);
+            if (read.changed()) {
+                QuoteFinder.Match match = QuoteFinder.find(read.text(), proposal.quote(), null, null, -1);
+                if (match != null) {
+                    int[] range = read.storedRange(match.start(), match.end());
+                    return annotationService.create(manuscript, part, range[0], range[1], proposal.note(), AnnotationSource.AI,
+                            proposal.type(), label);
+                }
+            }
+        }
+        return annotationService.createFromQuote(manuscript, part, proposal.quote(), null, null, proposal.note(),
+                AnnotationSource.AI, proposal.type(), label);
     }
 
     // ---- one run
@@ -238,7 +269,8 @@ public class AnnotateServiceImpl implements AnnotateService {
      */
     private class Run {
 
-        private final String text;
+        // what the model reads of the part; its offsets are mapped to the stored text
+        private final ModelText read;
         private final Callback callback;
         private final CancellationToken token = new CancellationToken();
         // the run reports its end once: Stop ends it at once, what the model answers later is dropped
@@ -249,8 +281,8 @@ public class AnnotateServiceImpl implements AnnotateService {
         // the book the model calls of the run are made for
         private Long book;
 
-        Run(String text, Callback callback) {
-            this.text = text;
+        Run(ModelText read, Callback callback) {
+            this.read = read;
             this.callback = callback;
             // the flag of the token is only looked at between the pieces of an answer, and the model may think for minutes before
             // the first one: the author is told at once that the run is over
@@ -436,7 +468,7 @@ public class AnnotateServiceImpl implements AnnotateService {
             InferenceService inference = inferenceServices.forAIOrThrow(ai);
             List<LLMChatMessage> payload = List.of(
                     LLMChatMessage.of(LLMRole.SYSTEM, EXTRACT_PROMPT),
-                    LLMChatMessage.of(LLMRole.USER, "=== PART START ===\n" + text + "\n=== PART END ===\n\n=== CRITIQUE START ===\n"
+                    LLMChatMessage.of(LLMRole.USER, "=== PART START ===\n" + read.text() + "\n=== PART END ===\n\n=== CRITIQUE START ===\n"
                             + critique + "\n=== CRITIQUE END ==="));
             partial = () -> critique;
             try {
@@ -510,9 +542,11 @@ public class AnnotateServiceImpl implements AnnotateService {
         }
 
         private Proposal anchored(String quote, String note, String type) {
-            QuoteFinder.Match match = StringUtils.isBlank(quote) ? null : QuoteFinder.find(text, quote, null, null, -1);
+            QuoteFinder.Match match = StringUtils.isBlank(quote) ? null : QuoteFinder.find(read.text(), quote, null, null, -1);
+            // the offsets of a proposal are those of the stored text, the one the author sees
+            int[] stored = match == null ? null : read.storedRange(match.start(), match.end());
             return new Proposal(StringUtils.defaultString(quote), StringUtils.defaultString(note).strip(), StringUtils.trimToNull(type),
-                    match == null ? null : match.start(), match == null ? null : match.end());
+                    stored == null ? null : stored[0], stored == null ? null : stored[1]);
         }
 
         private void progress(String reasoning, String answer) throws Exception {
@@ -660,6 +694,15 @@ public class AnnotateServiceImpl implements AnnotateService {
 
     // ---- the prompt
 
+    /**
+     * What to look for: what the run asks for, else what the book inherits (its own, its folders', the user's), blank for the
+     * default task of the prompt.
+     */
+    private String instructionsOf(Manuscript book, Request asked) throws Exception {
+        String own = StringUtils.trimToEmpty(asked.instructions());
+        return own.isEmpty() ? StringUtils.trimToEmpty(manuscriptService.getAnnotateInstructions(book)) : own;
+    }
+
     private List<LLMChatMessage> createPayload(Manuscript book, ChatMessage part, String instructions, String prompt, String outputFormat,
                                                AI ai, Protocol protocol, InferenceService inferenceService) throws Exception {
         List<ChatMessage> upToPart = new ArrayList<>(chatMessageService.getBranchFromLeaf(part));
@@ -680,15 +723,16 @@ public class AnnotateServiceImpl implements AnnotateService {
         data.setSceneSetting(StringUtils.defaultString(part.getSceneSetting()));
         data.setPresentCharacters(StringUtils.defaultString(part.getPresentCharacters()));
         data.setInstructions(StringUtils.defaultString(part.getInstructions()));
-        data.setText(part.getResponse());
+        data.setText(partTextRegistry.forModel(part));
         data.setAnnotateInstructions(instructions);
         data.setAnnotations(AnnotationTexts.openAnnotations(annotationService.listForPart(book, part)));
+        data.setFacts(annotationFacts.facts(book, part, upToPart));
         data.setOutputFormat(outputFormat);
         data.setSummaries("");
         data.setPreviousStory("");
         data.setFollowingStory("");
 
-        TemplateContext context = SummaryServiceImpl.createTemplateContext(book, part, ai, protocol, new ArrayList<>(before.reversed()));
+        TemplateContext context = SummaryServiceImpl.createTemplateContext(book, partTextRegistry, part, ai, protocol, new ArrayList<>(before.reversed()));
         // estimation render must not change variables or the real render would apply them twice
         data.setTemplateContext(context.fork());
 
@@ -704,7 +748,7 @@ public class AnnotateServiceImpl implements AnnotateService {
             throw new ContextInsufficient(base, maxTokens);
         }
         // the same story for the same part, whatever the length of the part and of its notes is now; it goes in as messages
-        StoryAround.Around around = StoryAround.collect(summaryService, inferenceService, before, after,
+        StoryAround.Around around = StoryAround.collect(summaryService, inferenceService, partTextRegistry, before, after,
                 StoryAround.stableRoom(room, maxTokens), true);
         data.setSummaries(around.summaries());
         data.setPreviousStory(around.previousParts().isEmpty() ? "" : StoryAround.STORY_IN_MESSAGES);

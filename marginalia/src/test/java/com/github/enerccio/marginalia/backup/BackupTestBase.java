@@ -157,9 +157,6 @@ abstract class BackupTestBase extends MarginaliaTestBase {
         ChatMessage twoA = message(manuscript, one, "chapter 2a");
         message(manuscript, one, "chapter 2b");
         summarize(twoA, "summary up to 2a");
-        ChatMessage edited = chatMessageService.find(one.getId());
-        edited.setEdited(true);
-        chatMessageService.save(edited);
         return setActiveLeaf(manuscript, twoA);
     }
 

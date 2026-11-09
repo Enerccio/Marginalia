@@ -10,6 +10,7 @@ import org.commonmark.renderer.html.HtmlRenderer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 /**
  * HTML for the editor of Archive of Our Own. AO3 has its own fields for the title, the author and the chapter titles, and its sanitizer
@@ -21,7 +22,20 @@ import java.util.List;
 public class Ao3HtmlExporter extends ExporterBase {
     // AO3 turns a line break inside the pasted text into a <br>, so the soft breaks of the paragraphs become spaces and no line break
     // is left between the tags
-    private static final HtmlRenderer HTML = HtmlRenderer.builder().escapeHtml(true).sanitizeUrls(true).softbreak(" ").build();
+    private static final HtmlRenderer HTML = HtmlRenderer.builder().extensions(extensions()).escapeHtml(true).sanitizeUrls(true).softbreak(" ").build();
+    // what AO3 would cut from the footnotes of the renderer: the ids, classes and data attributes, the section around the notes and the way back
+    private static final Pattern NOTE_ATTRIBUTES = Pattern.compile("\\s(?:data-[a-z-]+|aria-label|class|id)(?:=\"[^\"]*\")?(?=[\\s>/])");
+    private static final Pattern NOTE_BACKLINK = Pattern.compile("\\s*<a href=\"#fnref-[^\"]*\"[^>]*>[^<]*</a>");
+
+    private static String plainNotes(String html) {
+        if (!html.contains("footnote")) {
+            return html;
+        }
+        String cleaned = NOTE_BACKLINK.matcher(html).replaceAll("");
+        cleaned = NOTE_ATTRIBUTES.matcher(cleaned).replaceAll("");
+        return cleaned.replace("<section>\n", "<hr />\n").replace("</section>\n", "");
+    }
+
     private static final String AFTER_TAG = "(</p>|</h[1-6]>|</blockquote>|</ul>|</ol>|</li>|</pre>|<hr />|<br />|<ul>|<ol>|<blockquote>)\\n";
 
     private static final String PREVIEW_STYLE = """
@@ -53,11 +67,11 @@ public class Ao3HtmlExporter extends ExporterBase {
     }
 
     /**
-     * The title page is not written: AO3 asks for the title and the author in fields of its own.
+     * The title page is not written: AO3 asks for the title and the author in fields of its own. The authorship statement is.
      */
     @Override
     public List<ExportTemplate> getTemplates() {
-        return List.of();
+        return List.of(AUTHORSHIP_TEMPLATE);
     }
 
     @Override
@@ -94,7 +108,7 @@ public class Ao3HtmlExporter extends ExporterBase {
                     }
                 }
             }
-            texts.getLast().append(HTML.render(document));
+            texts.getLast().append(plainNotes(HTML.render(document)));
         }
 
         @Override

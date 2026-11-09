@@ -16,7 +16,9 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class DocxExporter extends ExporterBase {
     private static final String CODE_FONT = "Courier New";
@@ -101,6 +103,9 @@ public class DocxExporter extends ExporterBase {
         // the next paragraph starts a page, the title page and the contents are pages of their own
         private boolean pageBreakPending;
         private int bookmarks;
+        // the notes of the text that is being written (label, paragraphs), and whether a note is being written (its own marks are plain text)
+        private final Map<String, List<List<Run>>> partNotes = new HashMap<>();
+        private boolean inNote;
 
         private DocxWriter(ExportOptions options) {
             print = PrintStyle.of(options.style() != null ? options.style() : PartStyleRegistry.docxExportStyle());
@@ -421,6 +426,10 @@ public class DocxExporter extends ExporterBase {
          */
         private void addRuns(XWPFParagraph paragraph, List<Run> runs, int size, boolean heading, Integer quoteRgb) {
             for (Run run : runs) {
+                if (run.note() != null && !heading && !inNote && partNotes.containsKey(run.note())) {
+                    footnote(paragraph, partNotes.get(run.note()), size);
+                    continue;
+                }
                 XWPFRun r = paragraph.createRun();
                 r.setFontSize(size);
                 r.setFontFamily(run.code() ? CODE_FONT : heading ? headingFont : font);
@@ -447,6 +456,37 @@ public class DocxExporter extends ExporterBase {
             }
         }
 
+        /**
+         * A real Word footnote: the mark in the paragraph (Word numbers the notes itself) and the note at the foot of the page of the mark.
+         */
+        private void footnote(XWPFParagraph paragraph, List<List<Run>> blocks, int size) {
+            XWPFFootnote footnote = document.createFootnote();
+            inNote = true;
+            try {
+                boolean first = true;
+                for (List<Run> block : blocks) {
+                    XWPFParagraph note = footnote.createParagraph();
+                    note.setSpacingAfter(0);
+                    if (first) {
+                        footnote.ensureFootnoteRef(note);
+                        for (XWPFRun mark : note.getRuns()) {
+                            mark.setSubscript(VerticalAlign.SUPERSCRIPT);
+                            mark.setFontSize(size - 2);
+                        }
+                        XWPFRun space = note.createRun();
+                        space.setFontSize(size - 2);
+                        space.setText(" ");
+                        first = false;
+                    }
+                    addRuns(note, block, size - 2, false, null);
+                }
+            } finally {
+                inNote = false;
+            }
+            paragraph.addFootnoteReference(footnote);
+            new XWPFRun(paragraph.getCTP().getRList().getLast(), paragraph).setSubscript(VerticalAlign.SUPERSCRIPT);
+        }
+
         private class DocxSink implements BlockSink {
             private final boolean centered;
             // the first paragraph of the text, and the first one after a heading or a scene break, has no indent
@@ -454,6 +494,17 @@ public class DocxExporter extends ExporterBase {
 
             private DocxSink(boolean centered) {
                 this.centered = centered;
+            }
+
+            @Override
+            public boolean notes(Map<String, List<List<Run>>> notes) {
+                // the title page has no notes of its own: they stay endnotes there
+                if (centered) {
+                    return false;
+                }
+                partNotes.clear();
+                partNotes.putAll(notes);
+                return true;
             }
 
             @Override

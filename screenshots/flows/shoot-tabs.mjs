@@ -27,7 +27,7 @@ await main(async ({ page }) => {
   await login(page);
   await openBook(page);
   await bookTab(page, 'Story');
-  await widenSidebar(page, 900);
+  await widenSidebar(page, 1300);                      // nine tabs (1.7.0): the sidebar must be this wide for all of them to show
 
   // Side Query first, while it is still visible: it goes under the sheet, in a row of its own (with the six tabs
   // of the sidebar, Side Query is hidden behind the arrow of a sheet of the width that is left after the next drag)
@@ -48,6 +48,7 @@ await main(async ({ page }) => {
     return zones.nth(n - 1).boundingBox();
   });
   await sideTab(page, 'Arcs');
+  await widenSidebar(page, 900);
   await sleep(500);
   await snap(page, 'story-editor-tabs');
 });

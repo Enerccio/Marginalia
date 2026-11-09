@@ -3,6 +3,7 @@ package com.github.enerccio.marginalia.ui.dialogs;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.collections.AIType;
 import com.github.enerccio.marginalia.domain.collections.ReasoningEffort;
+import com.github.enerccio.marginalia.domain.collections.ReasoningPassthrough;
 import com.github.enerccio.marginalia.domain.components.TokenizerChoice;
 import com.github.enerccio.marginalia.domain.components.TokenizerProbe;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
@@ -18,6 +19,7 @@ import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
+import com.github.enerccio.marginalia.ui.widgets.DialogShortcuts;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.ui.widgets.ResizableTextArea;
 import com.github.enerccio.marginalia.utils.UIUtils;
@@ -84,6 +86,7 @@ public class AIDialog extends Dialog implements LLMInteract {
     private TextArea jailbreakField;
     private Checkbox enabledReasoningCheckbox;
     private ComboBox<ReasoningEffort> reasoningEffortCombo;
+    private ComboBox<ReasoningPassthrough> reasoningPassthroughCombo;
 
     // Per type fields (in tab 2)
     private FormLayout dynamicFormLayout;
@@ -212,6 +215,8 @@ public class AIDialog extends Dialog implements LLMInteract {
 
         footerLayout.add(cancelButton, saveButton);
         getFooter().add(footerLayout);
+        DialogShortcuts.submitWith(saveButton, nameField, maxContextField, maxResponseField, maxConcurrentField, jailbreakField,
+                urlField, apiKeyField, additionalParametersField, requestTimeoutField, maxRetriesField);
     }
 
     /**
@@ -319,6 +324,14 @@ public class AIDialog extends Dialog implements LLMInteract {
         reasoningEffortCombo.setEnabled(false);
         enabledReasoningCheckbox.addValueChangeListener(event -> reasoningEffortCombo.setEnabled(Boolean.TRUE.equals(event.getValue())));
 
+        reasoningPassthroughCombo = new ComboBox<>(loc.getValue(L.LABEL_REASONING_PASSTHROUGH));
+        reasoningPassthroughCombo.setItems(ReasoningPassthrough.values());
+        reasoningPassthroughCombo.setItemLabelGenerator(mode -> loc.getValue(loc.getReasoningPassthrough(mode)));
+        reasoningPassthroughCombo.setHelperText(loc.getValue(L.HELP_REASONING_PASSTHROUGH));
+        reasoningPassthroughCombo.setAllowCustomValue(false);
+        reasoningPassthroughCombo.setValue(ReasoningPassthrough.NONE);
+        reasoningPassthroughCombo.setWidthFull();
+
         urlField = new TextField(loc.getValue(L.LABEL_URL));
         urlField.setRequired(true);
         urlField.setWidthFull();
@@ -398,7 +411,8 @@ public class AIDialog extends Dialog implements LLMInteract {
             modelLayout.setFlexGrow(1, modelCombo);
 
             dynamicFormLayout.add(urlField, apiKeyLayout, modelLayout, requestTimeoutField, maxRetriesField,
-                    tokenizerCombo, additionalParametersField, testConnectionButton, testTokenizerButton);
+                    tokenizerCombo, reasoningPassthroughCombo, additionalParametersField, testConnectionButton, testTokenizerButton);
+            dynamicFormLayout.setColspan(reasoningPassthroughCombo, 2);
             dynamicFormLayout.setColspan(tokenizerCombo, 2);
             dynamicFormLayout.setColspan(urlField, 2);
             dynamicFormLayout.setColspan(apiKeyLayout, 2);
@@ -500,6 +514,7 @@ public class AIDialog extends Dialog implements LLMInteract {
         reasoningEffortCombo.setEnabled(Boolean.TRUE.equals(ai.getEnabledReasoning()));
 
         if (ai.getAiType() == AIType.OPEN_AI_COMPATIBLE && ai instanceof OpenAICompatible compatible) {
+            reasoningPassthroughCombo.setValue(compatible.getReasoningPassthrough());
             urlField.setValue(StringUtils.defaultString(compatible.getUri()));
 
             apiKeyField.setValue("");
@@ -899,6 +914,7 @@ public class AIDialog extends Dialog implements LLMInteract {
             ai.setReasoningEffort(reasoningEffortCombo.getValue());
 
             if (type == AIType.OPEN_AI_COMPATIBLE && ai instanceof OpenAICompatible compatible) {
+                compatible.setReasoningPassthrough(reasoningPassthroughCombo.getValue());
                 compatible.setUri(urlField.getValue().trim());
 
                 if (apiKeyEditable) {

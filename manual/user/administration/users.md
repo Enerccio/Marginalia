@@ -37,6 +37,9 @@ The pen button opens the same dialog for an existing user:
 - to **clear the password**, tick **Clear password** (the password fields are disabled) and confirm. The account then
   has no password.
 
+- to make the user's browsers log in again, tick **Clear saved logins (remember me)**; it is shown only while the user
+  has saved logins. A session that is open stays open, but the "remember me" cookies of the user stop working.
+
 You don't need the user's current password for any of this. A new or cleared password ends all the user's saved
 logins.
 

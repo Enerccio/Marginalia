@@ -50,6 +50,8 @@ public class LoreGeneratorLocalization extends PluginLocalizationBundle {
     public static final String COMPACTION_PROMPT = "Compaction prompt";
     public static final String GENERATING_THE_TEXT = "Generating the text of a lore entry";
     public static final String COMPACTING_THE_TEXT = "Compacting the text of a lore entry";
+    public static final String LORE_GENERATOR_GENERATE_LORE = "Lore Generator: generate lore";
+    public static final String LORE_GENERATOR_COMPACT_LORE = "Lore Generator: compact lore";
 
     @Override
     protected void loadKeys() {
@@ -175,5 +177,11 @@ public class LoreGeneratorLocalization extends PluginLocalizationBundle {
 
         ja(COMPACTING_THE_TEXT, "ロアエントリのテキストを圧縮しています");
         zh(COMPACTING_THE_TEXT, "正在压缩世界书条目的文本");
+
+        ja(LORE_GENERATOR_GENERATE_LORE, "ロアジェネレーター: ロアを生成");
+        zh(LORE_GENERATOR_GENERATE_LORE, "设定生成器：生成设定");
+
+        ja(LORE_GENERATOR_COMPACT_LORE, "ロアジェネレーター: ロアを圧縮");
+        zh(LORE_GENERATOR_COMPACT_LORE, "设定生成器：压缩设定");
     }
 }

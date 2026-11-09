@@ -16,6 +16,7 @@ import com.github.enerccio.marginalia.domain.service.InferenceException.Type;
 import com.github.enerccio.marginalia.domain.service.UsageService;
 import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
+import com.github.enerccio.marginalia.utils.AppClock;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
@@ -96,7 +97,7 @@ public class AILimitServiceImpl implements AILimitService {
         if (limit.getStrategy() != LimitStrategy.TOKEN_LIMIT) {
             return new LimitStatus(limit, 0, 0, null);
         }
-        Date now = new Date();
+        Date now = AppClock.now();
         Date periodStart = limit.getResetStrategy().periodStart(now);
         Date resetsAt = limit.getResetStrategy().nextReset(now);
         Usage usage = usageService.findForUser(stored);

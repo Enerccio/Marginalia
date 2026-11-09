@@ -1,7 +1,7 @@
 ---
 label: Extending the UI
 order: 70
-verified: 6b9a70d37
+verified: 817e5239b
 covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/ui
   - marginalia/src/main/java/com/github/enerccio/marginalia/instruct
@@ -84,12 +84,12 @@ copies the text with `navigator.clipboard.writeText` (plugins keep their own scr
 ### Tools in the summaries overview
 
 `SummariesDialog` (the overview of the summaries, opened from the **Summaries** item) has a menu bar above its
-grid, with the item *Search and Replace* of the application in it. Decorate `populateMenuBar(bar)` on leave and add items to the argument `bar`. A new dialog (and menu bar) is
+grid, with the items *Search and Replace*, *Resummarize all summaries*, *Export Summaries*, *Import Summaries* and *Revalidate all summaries* (from 1.7.0) of the application in it; a summary that no longer describes the story has another background and a *Revalidate* button in its row. Decorate `populateMenuBar(bar)` on leave and add items to the argument `bar`. A new dialog (and menu bar) is
 created every time the overview opens, so the decorator runs for each of them. The dialog's fields (`manuscript`,
 `treeGrid`) are reachable by reflection; to reload the grid after your tool changed the summaries, close and reopen
 the dialog, or call its private `refresh()` with `callReflectiveMethod`.
 
-Changes to summaries should go through `SummaryService` (`updateSummaryText`, `removeSummary`, `createMetaSummary`):
+Changes to summaries should go through `SummaryService` (`updateSummaryText`, `removeSummary`, `createMetaSummary`, `revalidateActiveBranch`):
 it keeps the token counts, the hashes of the summaries and the meta summaries that merged them consistent. In
 particular, don't edit the text of a summary a meta summary stands in for (shown under it in the overview) - its text
 is part of the hash of the meta summary and it would be dropped as outdated.
@@ -142,6 +142,11 @@ HorizontalLayout header = context.getLocalVariable("lorebookHeaderLayout", Horiz
 int index = lorebookView.indexOf(header);
 lorebookView.addComponentAtIndex(Math.max(index, 0), panel);
 ```
+
+`PhoneLorebookView` (the phone twin, decorated by registering the same decorator for its class name) has no header row: its
+`create()` has the locals `controlsLayout`, `enabledLayout` and `entriesLayout`, and Lorebook VCS puts its panel after
+`enabledLayout`. Both views have `grid`, `getCurrentLorebook()`, `refresh()` and `refreshEntries()` and are `VerticalLayout`s, so a plugin
+that decorates both can hold them as `VerticalLayout` and tell them apart with `instanceof`.
 
 A component created once for a view must not hold on to things that change in it: `LorebookView` stays the same
 when the user picks another lorebook, so a panel bound to the lorebook it was created with ends up acting on the
@@ -246,9 +251,9 @@ Registering a key again replaces the item. Instruction Exporter is the whole of 
 name of the action in the key bindings table, so make it say what the action does.
 
 `StoryEditor` is the story tab (the desktop or the phone one): `getCurrentManuscript()` (the book it shows **now**, read it when the action runs, the tab loads other
-books into the same instance), `openSearchReplaceDialog()`, `openExportDialog()`, `getPartStyleChoices()` (the entries of the *Change Styles For Text* menu)... `StoryCard` is the card of the part the menu is of:
+books into the same instance), `openSearchReplaceDialog()`, `openExportDialog()`, `openLoreUsageDialog()` (the lore usage report of the book), `getPartStyleChoices()` (the entries of the *Change Styles For Text* menu), `scrollToMessage(Long)` (shows the story, on a phone closes the drawer, scrolls to the part with that database id and flashes it; the part has to be on the active branch)... `StoryCard` is the card of the part the menu is of:
 `getMessage()` (the `ChatMessage`, the card replaces it with the saved copy, so read it each time), `isEditing()`, `isLast()`, and the actions of the part
-(`toggleEdit()`, `swipe()`, `branch()`, `annotatePart()`...). The callback runs on the UI thread of the user, in a request, as any click listener.
+(`toggleEdit()`, `swipe()`, `branch()`, `annotatePart()`, `showLoreUsage()`...). The callback runs on the UI thread of the user, in a request, as any click listener.
 
 **3. Describe when it shows.** All of these are optional and are asked again each time the menu opens (and after an item of the settings menu ran):
 
@@ -357,6 +362,11 @@ register it in the `InheritedSettingRegistry` and the *Prompts* tab and the fold
 
 Plugin dialogs and components are ordinary Vaadin classes in the bundle. Annotate them `@Configurable` to inject
 services. Follow the application's conventions ([User interface → Conventions](../ui.md#conventions)).
+
+A dialog with an input follows the keyboard conventions of the application: `DialogFocus.onOpen(dialog, firstField)` puts the cursor into the first field, and
+`DialogShortcuts.submitWith(mainButton, fields...)` (`ui.widgets`) sends with <kbd>Enter</kbd> in a single line field and <kbd>Ctrl/Cmd+Enter</kbd> in a text area; list
+every input field, call it after the fields and the button exist (a null field is skipped) and never write an `addKeyDownListener(Key.ENTER)` yourself. A dialog
+that asks the model for something (a prompt, instructions) always gets the Ctrl+Enter send.
 
 What plugins can't do:
 
@@ -540,6 +550,18 @@ Anything slow - calling the model, large imports - belongs on another thread, wi
 application ([Background work and push](../ui.md#background-work-and-push)): capture `UI.getCurrent()` on the UI
 thread, change components only inside `ui.access(...)`, push with `UIPushGuard.push(ui)`, and wrap service calls that
 need the current user in the request scope.
+
+Work that has to outlive the page (the translation of a range, the extraction of words, a request to the model that is saved at the end)
+takes the request context with it: on the thread of the page `RequestAttributes attributes = ThreadCopyRequestAttributes.create()`, and on the worker
+`try (ThreadCopyRequestAttributes.InRequestScope scope = new ThreadCopyRequestAttributes.InRequestScope(attributes)) { ... }`. The copy holds the
+attributes of the session as they were (the `user` bean above all), so the worker can still write its result when the last page of the browser was
+closed meanwhile and the session was invalidated; showing it is another matter (`ui.access` and `UIDetachedException`).
+
+A **generation listener** runs on the worker thread of the generation, where there is no page to capture. To show the user
+something from there (a dialog the generation waits for), use `GenerationControllerEvent.accessUI(action)`: it runs the action on
+the UI that started the generation, with `ui.access` and a push done for you, and returns `false` when the generation has no UI.
+The Prompt Inspector does this, see
+[Plugin development → Asking the user in the middle of a generation](index.md#asking-the-user-in-the-middle-of-a-generation).
 
 ### Calling the model
 

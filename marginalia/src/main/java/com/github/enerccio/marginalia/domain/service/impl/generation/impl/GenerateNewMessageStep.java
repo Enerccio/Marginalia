@@ -9,6 +9,7 @@ import com.github.enerccio.marginalia.domain.service.InferenceService;
 import com.github.enerccio.marginalia.domain.service.impl.generation.*;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.templates.TemplateVariables;
+import com.github.enerccio.marginalia.utils.AppClock;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.slf4j.Logger;
@@ -66,7 +67,7 @@ public class GenerateNewMessageStep extends GenerationStepBase {
             String builtPrompt = gson.toJson(payload);
             initialNode.setBuiltPromptTokens(inferenceService.countTokens(builtPrompt));
             initialNode.setTokenBreakdown(createTokenBreakdown(controller, inferenceService, payload));
-            initialNode.setRequest(new Date());
+            initialNode.setRequest(AppClock.now());
 
             // persist template variables - local ones follow the branch, global ones belong to the manuscript
             TemplateVariables variables = getTemplateContext(controller).getVariables();
@@ -103,7 +104,8 @@ public class GenerateNewMessageStep extends GenerationStepBase {
             log.debug("ChatMessage created: {}", node.getId());
             // set right away, so cleanup removes (or restores) the part if anything below fails
             controller.setMessage(node);
-            messagePromptService.store(node, builtPrompt, controller.getPrePromptData().getBackgroundLore());
+            messagePromptService.store(node, builtPrompt, controller.getPrePromptData().getBackgroundLore(),
+                    controller.getPrePromptData().getLoreUsage());
 
             // the book is loaded again: only the global variables and the active leaf are written, not what the generation
             // started with (the user may have changed the settings or moved the book since)

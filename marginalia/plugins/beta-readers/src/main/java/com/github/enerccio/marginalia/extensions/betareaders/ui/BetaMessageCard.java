@@ -59,7 +59,7 @@ public final class BetaMessageCard {
      */
     public static Component create(BetaChat chat, BetaMessage message, Actions actions, boolean last) {
         return switch (message.getKind()) {
-            case USER -> user(message, actions, T.localized(YOU));
+            case USER -> user(message, actions, chat.getUserName().isBlank() ? T.localized(YOU) : chat.getUserName());
             case SCENE_MESSAGE -> user(message, actions, T.localized(SCENE));
             case JOIN -> note(T.localized(JOINED_THE_CONVERSATION).formatted(name(message)), message, actions);
             case LEAVE -> note(T.localized(LEFT_THE_CONVERSATION).formatted(name(message)), message, actions);
@@ -151,9 +151,10 @@ public final class BetaMessageCard {
     public static final class Turn extends Div {
 
         private final BetaChat chat;
-        /** The section of the reasoning is rebuilt with the turn, so what the user did with it is remembered here. */
+        /** Whether the user has the reasoning open; the section is kept between the redraws, this is for the one that replaces the turn. */
         private boolean reasoningOpen;
         private Details reasoningSection;
+        private Div reasoningText;
 
         public Turn(BetaChat chat) {
             this.chat = chat;
@@ -188,16 +189,26 @@ public final class BetaMessageCard {
          * @param last    the turn can be asked for again
          */
         public void show(String reasoning, List<BetaSpoken> messages, String rawText, BetaMessage owner, Actions actions, boolean last) {
-            removeAll();
-            reasoningSection = null;
+            // the section of the reasoning is kept and only its text changes: a section that is replaced while the reply streams
+            // would take the click of the user that opens it with it (the event of a component that is gone is lost)
+            getChildren().filter(child -> child != reasoningSection).toList().forEach(this::remove);
             if (reasoning != null && !reasoning.isBlank()) {
-                Div text = new Div(reasoning.strip());
-                text.addClassNames(BetaReadersStyles.TEXT, BetaReadersStyles.HINT);
-                Details section = new Details(T.localized(REASONING), text);
-                section.setOpened(reasoningOpen);
-                section.addOpenedChangeListener(e -> reasoningOpen = e.isOpened());
-                reasoningSection = section;
-                add(section);
+                if (reasoningSection == null) {
+                    reasoningText = new Div();
+                    reasoningText.addClassNames(BetaReadersStyles.TEXT, BetaReadersStyles.HINT);
+                    Details section = new Details(T.localized(REASONING), reasoningText);
+                    section.setOpened(reasoningOpen);
+                    section.addOpenedChangeListener(e -> reasoningOpen = e.isOpened());
+                    reasoningSection = section;
+                }
+                reasoningText.setText(reasoning.strip());
+                if (reasoningSection.getParent().isEmpty()) {
+                    addComponentAsFirst(reasoningSection);
+                }
+            } else if (reasoningSection != null) {
+                remove(reasoningSection);
+                reasoningSection = null;
+                reasoningText = null;
             }
             for (int i = 0; i < messages.size(); i++) {
                 add(spoken(messages.get(i), i, owner, actions));

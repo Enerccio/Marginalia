@@ -59,13 +59,6 @@ public class CheckSummariesCommand extends ManuscriptReadSupport {
                 row.addProperty("handle", block.head().getUuid());
                 row.addProperty("position", head);
                 row.addProperty("covers", (previous + 1) + "-" + head);
-                JsonArray edited = new JsonArray();
-                for (int i = previous; i < head; i++) {
-                    if (path.get(i).isEdited()) {
-                        edited.add(i + 1);
-                    }
-                }
-                row.add("editedParts", edited);
                 outdated.add(row);
             }
             previous = head;

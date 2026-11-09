@@ -10,6 +10,7 @@ import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.PrePromptData;
 import com.github.enerccio.marginalia.domain.templates.TemplateContext;
 import com.github.enerccio.marginalia.domain.templates.TemplateVariables;
+import com.github.enerccio.marginalia.extensions.PartTextRegistry;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes.InRequestScope;
@@ -35,6 +36,12 @@ public abstract class GenerationStepBase implements GenerationStep {
 
     @Autowired
     protected TemplateService templateService;
+
+    @Autowired
+    protected CommandService commandService;
+
+    @Autowired
+    protected CommandScopes commandScopes;
 
     @Autowired
     protected InferenceServices inferenceServices;
@@ -65,6 +72,10 @@ public abstract class GenerationStepBase implements GenerationStep {
 
     @Autowired
     protected MessageRevisionService messageRevisionService;
+
+    /** The text of a part as the model reads it (an extension may keep the story in another form than the model should read). */
+    @Autowired
+    protected PartTextRegistry partTextRegistry;
 
     protected abstract void onStep(GenerationController controller) throws Exception;
 
@@ -150,6 +161,7 @@ public abstract class GenerationStepBase implements GenerationStep {
         });
 
         // story so far, the same branch PrepareContentStep uses
+        ChatMessage anchor = null;
         ChatMessage activeMessage = chatMessageService.find(manuscript.getActiveLeaf());
         if (activeMessage != null) {
             List<ChatMessage> branch = new ArrayList<>(chatMessageService.getBranchFromLeaf(activeMessage));
@@ -159,20 +171,43 @@ public abstract class GenerationStepBase implements GenerationStep {
             }
 
             List<String> story = new ArrayList<>();
-            for (ChatMessage message : branch) {
-                if (message.getResponse() != null && !message.getResponse().isBlank()) {
-                    story.add(message.getResponse());
+            List<String> readByModel = partTextRegistry.forModel(branch);
+            for (String text : readByModel) {
+                if (text != null && !text.isBlank()) {
+                    story.add(text);
                 }
             }
             context.setStoryMessages(story);
 
             if (!branch.isEmpty()) {
                 ChatMessage last = branch.getLast();
+                anchor = last;
                 context.setLastInstructions(last.getInstructions());
                 context.setLastMessageTime(last.getRequest());
                 // local variables follow the story branch
                 context.getVariables().loadFrom(TemplateVariables.Scope.LOCAL, last.getAttributes());
             }
+
+            // closest-summary::n: looked up when a template asks, the branch can have many summaries
+            List<ChatMessage> summarized = List.copyOf(branch);
+            context.setSummaryLookup(position -> {
+                int seen = 0;
+                for (ChatMessage message : summarized.reversed()) {
+                    if (message.getSummary() == null) {
+                        continue;
+                    }
+                    if (++seen == position) {
+                        try {
+                            Summary summary = summaryService.find(message.getSummary());
+                            return summary == null ? "" : summary.getSummary();
+                        } catch (Exception e) {
+                            log.warn("Can't read the summary of a part for closest-summary: {}", e.getMessage(), e);
+                            return "";
+                        }
+                    }
+                }
+                return "";
+            });
 
             for (ChatMessage message : branch.reversed()) {
                 if (message.getSummary() != null) {
@@ -186,6 +221,16 @@ public abstract class GenerationStepBase implements GenerationStep {
         }
 
         context.getVariables().loadFrom(TemplateVariables.Scope.GLOBAL, manuscript.getAttributes());
+        // current-message: the part a regenerate or a swipe replaces
+        ChatMessage replaced = controller.getRequest().getNode();
+        if (replaced != null) {
+            ChatMessage stored = chatMessageService.find(replaced.getId());
+            context.setCurrentMessage(partTextRegistry.forModel(stored != null ? stored : replaced));
+        }
+        // {{command::...}}: the answers are kept with the part this one continues from, a regenerate and a swipe ask again
+        GenerationRequestType requestType = controller.getRequest().getRequestType();
+        context.setCommandRunner(new CommandMacros(commandService, commandScopes, chatMessageService, manuscript, anchor,
+                requestType == GenerationRequestType.REGENERATE || requestType == GenerationRequestType.SWIPE));
         log.debug("Template context created, variables: {}", context.getVariables());
         return context;
     }

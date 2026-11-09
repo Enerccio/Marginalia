@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.extensions.imagegenerator.service;
 
+import com.github.enerccio.marginalia.extensions.httphooks.BackendException;
 import com.google.gson.JsonObject;
 import org.junit.jupiter.api.Test;
 
@@ -59,16 +60,16 @@ class WorkflowTemplateTest {
 
     @Test
     void theEditorFormatIsRefused() {
-        var e = assertThrows(ImageBackend.ImageException.class,
+        var e = assertThrows(BackendException.class,
                 () -> WorkflowTemplate.fill("{\"nodes\": [], \"links\": []}", REQUEST));
         assertTrue(e.getMessage().contains("API Format"));
     }
 
     @Test
     void notJsonAndEmptyAreRefused() {
-        assertThrows(ImageBackend.ImageException.class, () -> WorkflowTemplate.fill("{not json", REQUEST));
-        assertThrows(ImageBackend.ImageException.class, () -> WorkflowTemplate.fill("[1,2]", REQUEST));
-        assertThrows(ImageBackend.ImageException.class, () -> WorkflowTemplate.fill("  ", REQUEST));
-        assertThrows(ImageBackend.ImageException.class, () -> WorkflowTemplate.fill(null, REQUEST));
+        assertThrows(BackendException.class, () -> WorkflowTemplate.fill("{not json", REQUEST));
+        assertThrows(BackendException.class, () -> WorkflowTemplate.fill("[1,2]", REQUEST));
+        assertThrows(BackendException.class, () -> WorkflowTemplate.fill("  ", REQUEST));
+        assertThrows(BackendException.class, () -> WorkflowTemplate.fill(null, REQUEST));
     }
 }

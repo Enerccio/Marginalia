@@ -33,10 +33,10 @@ await main(async ({ page }) => {
     await bookTab(page, 'Story');
     await clickPlus(page);
     await idle(page, 600);
-    await fill(page, 'Scene Setting', 'Hogsmeade evening, in front of the Three Broomsticks');
-    await fill(page, 'POV Character', 'Harry');
-    await fill(page, 'Present Characters', 'Harry; Hermione, Ron; Ginny; Draconia, Crabbe, Goyle');
-    await fill(page, 'Instructions', 'Harry, Ron and Hermione walk out of the pub after a few butterbeers, Ron hiccuping. Hermione shakes her head: Ron drank too much, but she is not really angry. Ginny walks towards them and tries to get Harry to join her for a visit of Weasleys\' Wizard Wheezes, being very pushy. Harry turns her down gently, his eyes sweeping the street. His worry comes true when he sees Draconia with Crabbe and Goyle on the other side. Draconia stops and sees Harry with Ginny. She starts to walk towards them, furious.');
+    await fill(page, 'Scene Setting', 'Cellar, closing time');
+    await fill(page, 'POV Character', 'Tomáš');
+    await fill(page, 'Present Characters', 'Tomáš; Mizuki; eleven tourists');
+    await fill(page, 'Instructions', 'Tomáš counts the last tourists out of the cellar, eleven heads, then coats, then the iron ring. Mizuki hangs back at the bricked archway. He tells her, a little too kindly, that the tour is over and the door will be locked. She says she knows, and does not move. His worry comes true when she lays her palm on the brick and says something in Japanese.');
     await page.evaluate(() => document.activeElement && document.activeElement.blur());
     await snap(page, 'quick-start-first-part');
     // an error of the model: the answer is a 401, the dialog tells what to fix
@@ -60,10 +60,10 @@ await main(async ({ page }) => {
     await bookTab(page, 'Story');
     await clickPlus(page);
     await idle(page, 600);
-    await fill(page, 'Scene Setting', 'Hogsmeade evening');
-    await fill(page, 'POV Character', 'Harry');
-    await fill(page, 'Present Characters', 'Harry');
-    await fill(page, 'Instructions', 'Harry stands alone in the fog and listens to the bell.');
+    await fill(page, 'Scene Setting', 'Reed fields, night');
+    await fill(page, 'POV Character', 'Mizuki');
+    await fill(page, 'Present Characters', 'Mizuki');
+    await fill(page, 'Instructions', 'Mizuki stands alone in the reeds and listens to the wind.');
     await showToasts(page);
     await press(page, 'Generate', { exact: false, wait: 800 });
     await sleep(2500);
@@ -86,7 +86,7 @@ await main(async ({ page }) => {
     await idle(page, 1500);
     await press(page, 'Admin');
     await openTab(page, 'Extensions');
-    await page.locator('vaadin-upload input[type=file]').setInputFiles(path.join(root, 'out/broken/authorsnote-1.6.0.jar'));
+    await page.locator('vaadin-upload input[type=file]').setInputFiles(path.join(root, 'out/broken/authorsnote-1.7.0.jar'));
     await page.getByText('Verification Report', { exact: true }).waitFor({ timeout: 20000 });
     await sleep(500);
     await snap(page, 'extension-verification');

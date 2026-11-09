@@ -686,6 +686,26 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
         return inTx(false, () -> updateResponse(manuscript, message, text, tokens, origin));
     }
 
+    @Override
+    public ChatMessage replaceText(Manuscript manuscript, ChatMessage message, String text, String modelText, String generatedText,
+                                   RevisionOrigin origin) throws Exception {
+        long tokens = counted(manuscript, modelText != null ? modelText : text);
+        return inTx(false, () -> {
+            Manuscript book = ownBook(manuscript);
+            ChatMessage stored = ownPart(book, message);
+            // the summaries of the branch the part is on that are outdated already stay outdated
+            ChatMessage leaf = findLeafFor(book, stored);
+            List<ChatMessage> newestFirst = leaf == null ? List.of() : new ArrayList<>(getBranchFromLeaf(leaf).reversed());
+            Set<Long> outdatedBefore = outdatedHeads(newestFirst);
+
+            ChatMessage saved = storeResponse(book, stored, text == null ? "" : text, tokens, origin, generatedText);
+
+            // what the text says is the same, so the summaries that described the story before still do
+            summaryService.revalidate(book, newlyOutdated(summaryService.collectBlocks(newestFirst), outdatedBefore));
+            return saved;
+        });
+    }
+
     private PartEdit updateResponse(Manuscript manuscript, ChatMessage message, String text, long tokens, RevisionOrigin origin) throws Exception {
         Manuscript book = ownBook(manuscript);
         ChatMessage stored = ownPart(book, message);
@@ -698,14 +718,49 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
 
         ChatMessage saved = storeResponse(book, stored, newText, tokens, origin);
 
+        return new PartEdit(saved, newlyOutdated(summaryService.collectBlocks(newestFirst), outdatedBefore));
+    }
+
+    @Override
+    public List<SummaryBlock> outdatedByEdit(Manuscript manuscript, ChatMessage message, String text) throws Exception {
+        return inTx(true, () -> {
+            Manuscript book = ownBook(manuscript);
+            ChatMessage stored = ownPart(book, message);
+            ChatMessage leaf = findLeafFor(book, stored);
+            if (leaf == null) {
+                return List.of();
+            }
+            List<ChatMessage> newestFirst = new ArrayList<>(getBranchFromLeaf(leaf).reversed());
+            String newText = text == null ? "" : text;
+            SummaryService.BlockTexts edited = new SummaryService.BlockTexts() {
+                @Override
+                public String response(ChatMessage branchPart) {
+                    return branchPart.getId().equals(stored.getId()) ? newText : branchPart.getResponse();
+                }
+
+                @Override
+                public String summary(Summary summary) {
+                    return summary.getSummary();
+                }
+            };
+            return newlyOutdated(summaryService.collectBlocks(newestFirst, edited), outdatedHeads(newestFirst));
+        });
+    }
+
+    /**
+     * @param blocks         the blocks of the branch, newest first
+     * @param outdatedBefore heads of the summaries that were outdated already, they are not made so by the edit
+     * @return the outdated blocks that were not, oldest first
+     */
+    private static List<SummaryBlock> newlyOutdated(List<SummaryBlock> blocks, Set<Long> outdatedBefore) {
         List<SummaryBlock> outdated = new ArrayList<>();
-        for (SummaryBlock block : summaryService.collectBlocks(newestFirst)) {
+        for (SummaryBlock block : blocks) {
             if (!block.isValid() && !outdatedBefore.contains(block.head().getId())) {
                 outdated.add(block);
             }
         }
         Collections.reverse(outdated);
-        return new PartEdit(saved, outdated);
+        return outdated;
     }
 
     @Override
@@ -742,6 +797,14 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
     }
 
     private ChatMessage storeResponse(Manuscript manuscript, ChatMessage message, String text, long tokens, RevisionOrigin origin) throws Exception {
+        return storeResponse(manuscript, message, text, tokens, origin, null);
+    }
+
+    /**
+     * @param generated  the new text of the model's generation ({@code originalResponse}), null leaves it as it is
+     */
+    private ChatMessage storeResponse(Manuscript manuscript, ChatMessage message, String text, long tokens, RevisionOrigin origin,
+                                      String generated) throws Exception {
         Manuscript book = ownBook(manuscript);
         ChatMessage stored = ownPart(book, message);
         String newText = text == null ? "" : text;
@@ -753,7 +816,9 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
         stored.setResponse(newText);
         stored.setTokenCount(tokens);
         stored.setWordCount(countWords(newText));
-        stored.setEdited(true);
+        if (generated != null) {
+            stored.setOriginalResponse(generated);
+        }
         ChatMessage saved = save(stored);
         if (origin.isRecorded()) {
             messageRevisionService.record(saved, origin.data(saved));
@@ -798,7 +863,6 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
         previous.setResponse(text);
         previous.setTokenCount(countTokens(book, text));
         previous.setWordCount(countWords(text));
-        previous.setEdited(previous.isEdited() || later.isEdited());
         previous.setResponseReasoning(blankToNull(PartMerge.join(previous.getResponseReasoning(), later.getResponseReasoning(), PartMerge.Join.PARAGRAPH)));
         if (previous.getTokenReasoningCount() != null || later.getTokenReasoningCount() != null) {
             previous.setTokenReasoningCount((previous.getTokenReasoningCount() == null ? 0 : previous.getTokenReasoningCount())

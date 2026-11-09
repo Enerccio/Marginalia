@@ -81,7 +81,7 @@ await main(async ({ page }) => {
     await snapDialog(page, 'export-dialog');
     // a PDF: the dialog that offers the finished file
     await pickSelect(dialog(page), 'PDF (.pdf)');
-    await fill(dialog(page), 'File name', 'Harry Potter and Half Blood Prince - FDM');
+    await fill(dialog(page), 'File name', 'Unregistered');
     await press(dialog(page), 'Export', { exact: false });
     await page.getByText('The export is ready', { exact: false }).waitFor({ timeout: 30000 });
     await sleep(500);

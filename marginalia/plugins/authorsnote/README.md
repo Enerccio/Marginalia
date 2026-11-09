@@ -18,6 +18,12 @@ The story view gets an *Author's Note* tab in its left sidebar (next to the outl
 
 Changes are saved as you type and used by the next generation.
 
+## As a macro
+
+The command `authors-note` (read only, made for macros) gives the text of the note, so a template can place it with
+`{{command::authors-note}}` instead of the automatic insertion; switch *Insert into prompt* off then, the macro prints the
+note whether or not it is on.
+
 ## How it works
 
 In the `BEFORE_PREPARE_CONTENT` generation event the plugin reads the note from the book and reserves its tokens

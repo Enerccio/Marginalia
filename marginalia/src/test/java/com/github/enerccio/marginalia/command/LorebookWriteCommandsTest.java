@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.command;
 
 import com.github.enerccio.marginalia.bound.AgenticSessionPoint;
+import com.github.enerccio.marginalia.domain.collections.ActivationContext;
 import com.github.enerccio.marginalia.domain.collections.FilteringMode;
 import com.github.enerccio.marginalia.domain.collections.InsertionMode;
 import com.github.enerccio.marginalia.domain.model.impl.*;
@@ -263,6 +264,54 @@ class LorebookWriteCommandsTest extends GenerationTestBase {
         assertThat(tags(anna, true)).isEmpty();
         assertThat(result.getAsJsonArray("tags")).hasSize(2);
         assertThatThrownBy(() -> run("/set-lore-entry-tags " + anna.getUuid())).isInstanceOf(ExecutionException.class);
+    }
+
+    @Test
+    void theActivationOfAnEntryIsChangedAndRead() throws Exception {
+        JsonObject before = run("/get-lore-entry " + anna.getUuid());
+        assertThat(before.get("preventRecursion").getAsBoolean()).isFalse();
+        assertThat(before.get("activationContext").getAsString()).isEqualTo("INSTRUCTIONS");
+        assertThat(before.get("fromMessage").getAsInt()).isZero();
+        assertThat(before.get("condition").getAsString()).isEmpty();
+
+        JsonObject result = run("/set-lore-entry-activation " + anna.getUuid() + " true true include_parts 3 true 2 8 \"{{eval::povCharacter == 'Anna'}}\"");
+        LorebookEntry changed = reload(anna);
+        assertThat(changed.isPreventRecursion()).isTrue();
+        assertThat(changed.isRecursionOnly()).isTrue();
+        assertThat(changed.isActivationSummaries()).isTrue();
+        assertThat(changed.getActivationContext()).isEqualTo(ActivationContext.INCLUDE_PARTS);
+        assertThat(changed.getActivationParts()).isEqualTo(3);
+        assertThat(changed.getFromMessage()).isEqualTo(2);
+        assertThat(changed.getToMessage()).isEqualTo(8);
+        assertThat(changed.getActivationCondition()).isEqualTo("{{eval::povCharacter == 'Anna'}}");
+        assertThat(result.get("activationContext").getAsString()).isEqualTo("INCLUDE_PARTS");
+        assertThat(run("/get-lore-entry " + anna.getUuid()).get("toMessage").getAsInt()).isEqualTo(8);
+        // the fields that are not touched stay (the name, the payload)
+        assertThat(changed.getName()).isEqualTo("Anna");
+
+        // empty text leaves a field as it is, 0 removes a limit, an empty condition removes it
+        run("/set-lore-entry-activation " + anna.getUuid() + " false \"\" \"\" \"\" \"\" 0 \"\" \"\"");
+        LorebookEntry cleared = reload(anna);
+        assertThat(cleared.isPreventRecursion()).isFalse();
+        // empty text left them as they were
+        assertThat(cleared.isRecursionOnly()).isTrue();
+        assertThat(cleared.isActivationSummaries()).isTrue();
+        assertThat(cleared.getActivationContext()).isEqualTo(ActivationContext.INCLUDE_PARTS);
+        assertThat(cleared.getActivationParts()).isEqualTo(3);
+        assertThat(cleared.getFromMessage()).isNull();
+        assertThat(cleared.getToMessage()).isEqualTo(8);
+        assertThat(cleared.getActivationCondition()).isNull();
+    }
+
+    @Test
+    void theActivationOfAnEntryRefusesNothingToChangeAndBadValues() throws Exception {
+        assertThatThrownBy(() -> run("/set-lore-entry-activation " + anna.getUuid())).isInstanceOf(ExecutionException.class);
+        assertThatThrownBy(() -> run("/set-lore-entry-activation " + anna.getUuid() + " maybe")).isInstanceOf(ExecutionException.class);
+        assertThatThrownBy(() -> run("/set-lore-entry-activation " + anna.getUuid() + " \"\" sideways")).isInstanceOf(ExecutionException.class);
+        assertThatThrownBy(() -> run("/set-lore-entry-activation " + anna.getUuid() + " \"\" \"\" \"\" \"\" \"\" 9 4")).isInstanceOf(ExecutionException.class);
+        LorebookEntry unchanged = reload(anna);
+        assertThat(unchanged.isPreventRecursion()).isFalse();
+        assertThat(unchanged.getFromMessage()).isNull();
     }
 
     @Test

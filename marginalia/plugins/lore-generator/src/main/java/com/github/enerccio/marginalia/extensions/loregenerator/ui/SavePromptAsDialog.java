@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.extensions.loregenerator.ui;
 
+import com.github.enerccio.marginalia.ui.widgets.DialogShortcuts;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.textfield.TextField;
@@ -30,6 +31,7 @@ public class SavePromptAsDialog extends Dialog {
         });
         save.setThemeName("primary");
         getFooter().add(new Button(T.localized(CANCEL), e -> close()), save);
+        DialogShortcuts.submitWith(save, name);
         addOpenedChangeListener(e -> {
             if (e.isOpened()) {
                 name.focus();

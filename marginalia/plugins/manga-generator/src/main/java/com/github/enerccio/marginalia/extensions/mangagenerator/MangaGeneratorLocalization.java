@@ -102,6 +102,8 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
     public static final String THE_STORY_HAS_NO_TEXT = "The story has no text in the parts of this section";
     public static final String GENERATE_OR_WRITE_THE_SCRIPT = "Generate or write the script of the section first";
     public static final String MANGA_GENERATOR_SETTINGS = "Manga Generator Settings";
+    public static final String MANGA_GENERATOR_WRITE_A_SCRIPT = "Manga Generator: write a script";
+    public static final String MANGA_GENERATOR_WRITE_THE_IMAGE_TAGS = "Manga Generator: write the image tags";
 
     @Override
     protected void loadKeys() {
@@ -383,5 +385,11 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
 
         ja(MANGA_GENERATOR_SETTINGS, "マンガジェネレーター設定");
         zh(MANGA_GENERATOR_SETTINGS, "漫画生成器设置");
+
+        ja(MANGA_GENERATOR_WRITE_A_SCRIPT, "マンガジェネレーター: スクリプトを作成");
+        zh(MANGA_GENERATOR_WRITE_A_SCRIPT, "漫画生成器：撰写脚本");
+
+        ja(MANGA_GENERATOR_WRITE_THE_IMAGE_TAGS, "マンガジェネレーター: 画像タグを作成");
+        zh(MANGA_GENERATOR_WRITE_THE_IMAGE_TAGS, "漫画生成器：撰写图像标签");
     }
 }

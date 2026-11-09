@@ -157,7 +157,8 @@ public final class StatisticsReconstruction {
      */
     private static boolean counts(VersionRow version) {
         RevisionDetail detail = RevisionDetail.parse(version.detail());
-        if (detail == RevisionDetail.ARCHIVE_IMPORT || detail == RevisionDetail.SILLYTAVERN_IMPORT) {
+        if (detail == RevisionDetail.ARCHIVE_IMPORT || detail == RevisionDetail.SILLYTAVERN_IMPORT
+                || detail == RevisionDetail.LMSTUDIO_IMPORT) {
             return false;
         }
         return !(version.source() == RevisionSource.PLUGIN && (version.detail() == null || version.detail().isBlank()));

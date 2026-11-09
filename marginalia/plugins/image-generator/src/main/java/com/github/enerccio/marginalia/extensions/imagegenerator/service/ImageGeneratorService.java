@@ -11,6 +11,10 @@ import com.github.enerccio.marginalia.domain.service.impl.generation.dto.Loreboo
 import com.github.enerccio.marginalia.domain.templates.LorebookTemplateData;
 import com.github.enerccio.marginalia.domain.templates.TemplateContext;
 import com.github.enerccio.marginalia.domain.templates.TemplateVariables;
+import com.github.enerccio.marginalia.extensions.PartTextRegistry;
+import com.github.enerccio.marginalia.extensions.httphooks.BackendException;
+import com.github.enerccio.marginalia.extensions.httphooks.GpuGate;
+import com.github.enerccio.marginalia.extensions.httphooks.HookRunner;
 import com.github.enerccio.marginalia.extensions.imagegenerator.model.BackendConfig;
 import com.github.enerccio.marginalia.extensions.imagegenerator.model.ImageSettings;
 import com.google.gson.Gson;
@@ -24,6 +28,7 @@ import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Consumer;
+import java.util.function.UnaryOperator;
 
 /**
  * What the image generator does with the book: keeps the backends of the user, asks the language model for the prompt of a part,
@@ -49,6 +54,9 @@ public class ImageGeneratorService {
 
     @Autowired
     private ChatMessageService chatMessageService;
+
+    @Autowired
+    private PartTextRegistry partTexts;
 
     @Autowired
     private ManuscriptService manuscriptService;
@@ -118,6 +126,11 @@ public class ImageGeneratorService {
         return StringUtils.isBlank(apiKey) ? null : inferenceServices.protectSecret(apiKey);
     }
 
+    /** Opens a text made by {@link #protect}; null when it was protected by another installation. */
+    public String reveal(String protectedText) {
+        return StringUtils.isBlank(protectedText) ? null : inferenceServices.revealSecret(protectedText);
+    }
+
     /** The api key of the backend, null when there is none or it was protected by another installation. */
     public String reveal(BackendConfig config) {
         return config.getProtectedApiKey() == null ? null : inferenceServices.revealSecret(config.getProtectedApiKey());
@@ -163,7 +176,7 @@ public class ImageGeneratorService {
      */
     public PromptRequest buildPromptRequest(ImageSettings settings, Manuscript manuscript, ChatMessage message, AI ai, Protocol protocol,
                                             boolean withLore, String details) throws Exception {
-        String scene = sceneText(message);
+        String scene = sceneText(message, partTexts.forModel(message));
         Lore lore = new Lore("", 0, 0);
         if (withLore) {
             InferenceService service = inferenceServices.forAIOrThrow(ai);
@@ -177,18 +190,23 @@ public class ImageGeneratorService {
                 }
                 budget = Math.max(0, limit - fixed);
             }
-            lore = buildLore(manuscript, message, matchedText(message, details), budget, service);
+            lore = buildLore(manuscript, message, matchedText(message, details, partTexts.forModel(message)), budget, service);
         }
         return new PromptRequest(compose(settings.getPromptInstruction(), lore.text(), scene, details), lore.used(), lore.skipped());
     }
 
     /** The scene of the part as the prompt writer reads it. */
     static String sceneText(ChatMessage message) {
+        return sceneText(message, message.getResponse());
+    }
+
+    /** As {@link #sceneText(ChatMessage)}, with the text of the part as a model reads it. */
+    static String sceneText(ChatMessage message, String text) {
         StringBuilder scene = new StringBuilder();
         append(scene, "Scene setting", message.getSceneSetting());
         append(scene, "Point of view", message.getPovCharacter());
         append(scene, "Characters present", message.getPresentCharacters());
-        append(scene, "Text", message.getResponse());
+        append(scene, "Text", text);
         return scene.toString().strip();
     }
 
@@ -197,8 +215,13 @@ public class ImageGeneratorService {
      * view and characters present, and the details of the user.
      */
     static String matchedText(ChatMessage message, String details) {
+        return matchedText(message, details, message.getResponse());
+    }
+
+    /** As {@link #matchedText(ChatMessage, String)}, with the text of the part as a model reads it. */
+    static String matchedText(ChatMessage message, String details, String partText) {
         StringBuilder text = new StringBuilder();
-        for (String piece : new String[]{message.getResponse(), message.getInstructions(), message.getSceneSetting(),
+        for (String piece : new String[]{partText, message.getInstructions(), message.getSceneSetting(),
                 message.getPovCharacter(), message.getPresentCharacters(), details}) {
             if (StringUtils.isNotBlank(piece)) {
                 text.append(piece.strip()).append('\n');
@@ -302,8 +325,9 @@ public class ImageGeneratorService {
 
         List<String> story = new ArrayList<>();
         for (ChatMessage message : branch) {
-            if (StringUtils.isNotBlank(message.getResponse())) {
-                story.add(message.getResponse());
+            String text = partTexts.forModel(message);
+            if (StringUtils.isNotBlank(text)) {
+                story.add(text);
             }
         }
         context.setStoryMessages(story);
@@ -394,12 +418,23 @@ public class ImageGeneratorService {
         };
     }
 
-    /** A session of the backend; {@code onIdleEnd} is told when the idle time ended it. */
+    /**
+     * A session of the backend; {@code onIdleEnd} is told when the idle time ended it. The sessions of everyone who calls the same
+     * server (or GPU name, whatever extension) go through one {@link GpuGate}: the hooks run for the first and the last of them, and the images are made one at a time.
+     */
     public ImageSession createSession(BackendConfig config, Consumer<String> onIdleEnd) {
+        UnaryOperator<String> reveal = this::reveal;
         return new ImageSession(createBackend(config),
-                () -> HookRunner.run(config.getBefore(), config.isLocal()),
-                () -> HookRunner.run(config.getAfter(), config.isLocal()),
-                config.getIdleSeconds(), scheduler, onIdleEnd);
+                // before: in order, the first failure stops the image (the next request must not load a model on a full GPU)
+                () -> HookRunner.runAll(config.getBeforeHooks(), config.isLocal(), reveal),
+                // after: every request is made, also when one failed (every container must be stopped); the first failure is reported
+                () -> {
+                    String error = HookRunner.runAllRegardless(config.getAfterHooks(), config.isLocal(), reveal);
+                    if (error != null) {
+                        throw new BackendException(error);
+                    }
+                },
+                config.getIdleSeconds(), scheduler, onIdleEnd, config.gate(), config.gateMode());
     }
 
     public void shutdown() {

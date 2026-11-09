@@ -63,7 +63,11 @@ public class ImageGeneratorLocalization extends PluginLocalizationBundle {
     public static final String THE_REQUEST_AFTER_THE_IMAGES_RUNS = "The request after the images runs this many seconds after the last image; 0 never";
     public static final String BEFORE_THE_FIRST_IMAGE = "Before the first image";
     public static final String AFTER_THE_LAST_IMAGE = "After the last image";
-    public static final String A_REQUEST_MADE_AROUND_THE_IMAGES = "A request made around the images, for example to free the memory of the GPU. Empty does nothing.";
+    public static final String A_REQUEST_MADE_AROUND_THE_IMAGES = "Requests made around the images, one after the other, for example to free the memory of the GPU. None does nothing.";
+    public static final String ADD_A_REQUEST = "Add a request";
+    public static final String REMOVE_THE_REQUEST = "Remove the request";
+    public static final String REQUEST = "Request";
+    public static final String WAIT_AFTERWARDS_SECONDS = "Wait afterwards (s)";
     public static final String METHOD = "Method";
     public static final String HEADERS_NAME_VALUE_ONE_PER_LINE = "Headers (Name: value, one per line)";
     public static final String BODY = "Body";
@@ -76,6 +80,11 @@ public class ImageGeneratorLocalization extends PluginLocalizationBundle {
     public static final String WHAT_THE_PICTURE_MUST_SHOW = "What the picture must show or how it must look; the prompt writer follows it (for example: at night, close up on her face, the red dress)";
     public static final String LORE_ENTRIES_DID_NOT_FIT = "%d lorebook entries did not fit into the context of the model and were left out";
     public static final String LORE_ENTRIES_SENT = "%d lorebook entries sent";
+    public static final String IMAGE_GENERATOR_WRITE_THE_PROMPT = "Image Generator: write the prompt";
+    public static final String IMAGE_GENERATOR_GENERATE_THE_IMAGE = "Image Generator: generate the image";
+
+    public static final String GPU_NAME = "GPU (name)";
+    public static final String GPU_NAME_HELP = "Optional. Name the GPU when this server shares it with other servers (a speech server, another image server), and give the same name there: they then wait for each other instead of unloading each other's model. Empty: only requests to this address wait for each other.";
 
     @Override
     protected void loadKeys() {
@@ -241,8 +250,20 @@ public class ImageGeneratorLocalization extends PluginLocalizationBundle {
         ja(AFTER_THE_LAST_IMAGE, "最後の画像の後");
         zh(AFTER_THE_LAST_IMAGE, "最后一张图像之后");
 
-        ja(A_REQUEST_MADE_AROUND_THE_IMAGES, "画像の前後に行うリクエスト (例: GPU のメモリを解放する)。空の場合は何もしません。");
-        zh(A_REQUEST_MADE_AROUND_THE_IMAGES, "在图像前后发出的请求（例如释放 GPU 显存）。留空则不执行任何操作。");
+        ja(A_REQUEST_MADE_AROUND_THE_IMAGES, "画像の前後に順番に行うリクエスト (例: GPU のメモリを解放する)。なければ何もしません。");
+        zh(A_REQUEST_MADE_AROUND_THE_IMAGES, "在图像前后按顺序发出的请求（例如释放 GPU 显存）。没有则不执行任何操作。");
+
+        ja(ADD_A_REQUEST, "リクエストを追加");
+        zh(ADD_A_REQUEST, "添加请求");
+
+        ja(REMOVE_THE_REQUEST, "リクエストを削除");
+        zh(REMOVE_THE_REQUEST, "删除请求");
+
+        ja(REQUEST, "リクエスト");
+        zh(REQUEST, "请求");
+
+        ja(WAIT_AFTERWARDS_SECONDS, "その後の待機 (秒)");
+        zh(WAIT_AFTERWARDS_SECONDS, "之后等待（秒）");
 
         ja(METHOD, "メソッド");
         zh(METHOD, "方法");
@@ -274,5 +295,17 @@ public class ImageGeneratorLocalization extends PluginLocalizationBundle {
         zh(LORE_ENTRIES_DID_NOT_FIT, "有 %d 个设定集条目放不进模型的上下文，已被省略");
         ja(LORE_ENTRIES_SENT, "ロアブックのエントリを %d 件送信しました");
         zh(LORE_ENTRIES_SENT, "已发送 %d 个设定集条目");
+
+        ja(IMAGE_GENERATOR_WRITE_THE_PROMPT, "画像ジェネレーター: プロンプトを作成");
+        zh(IMAGE_GENERATOR_WRITE_THE_PROMPT, "图像生成器：撰写提示词");
+
+        ja(IMAGE_GENERATOR_GENERATE_THE_IMAGE, "画像ジェネレーター: 画像を生成");
+        zh(IMAGE_GENERATOR_GENERATE_THE_IMAGE, "图像生成器：生成图像");
+
+        ja(GPU_NAME, "GPU（名前）");
+        zh(GPU_NAME, "GPU（名称）");
+
+        ja(GPU_NAME_HELP, "任意。このサーバーが他のサーバー (音声サーバーなど) とGPUを共有している場合に名前を付け、他にも同じ名前を指定します。互いのモデルを解放せず、順番に待ちます。空の場合は、このアドレスへのリクエスト同士だけが待ち合います。");
+        zh(GPU_NAME_HELP, "可选。如果此服务器与其他服务器（如语音服务器）共用一块 GPU，请给它起个名字，并在其他服务器上填写相同的名字：它们会互相等待，而不是卸载对方的模型。留空：只有发往此地址的请求会互相等待。");
     }
 }

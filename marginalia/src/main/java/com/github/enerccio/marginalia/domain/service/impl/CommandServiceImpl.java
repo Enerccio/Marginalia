@@ -8,6 +8,7 @@ import com.github.enerccio.marginalia.domain.service.impl.commands.SearchReplace
 import com.github.enerccio.marginalia.domain.service.impl.commands.SearchReplaceLoreEntryCommand;
 import com.github.enerccio.marginalia.domain.service.impl.commands.lorebook.read.*;
 import com.github.enerccio.marginalia.domain.service.impl.commands.lorebook.write.LoreEntryWriteCommands;
+import com.github.enerccio.marginalia.domain.service.impl.commands.manuscript.write.PlannerCommands;
 import com.github.enerccio.marginalia.domain.service.impl.commands.lorebook.write.LorebookWriteCommands;
 import com.github.enerccio.marginalia.domain.service.impl.commands.manuscript.read.*;
 import com.github.enerccio.marginalia.domain.service.impl.commands.manuscript.write.*;
@@ -92,6 +93,7 @@ public class CommandServiceImpl implements CommandService, InitializingBean, Dis
         registerCommands(new ImpersonateCommands());
         registerCommands(new LoreEntryWriteCommands());
         registerCommands(new LorebookWriteCommands());
+        registerCommands(new PlannerCommands());
     }
 
     private void registerLorebookReadCommands() {
@@ -207,10 +209,13 @@ public class CommandServiceImpl implements CommandService, InitializingBean, Dis
                         + ", it must be the name of another command");
             }
         }
+        if (meta.availableInMacros() && !meta.readOnly()) {
+            throw new IllegalArgumentException("Command " + name + " in " + where + " is available in macros, so it has to be readOnly");
+        }
         return new CommandDefinition(name, CommandText.of(where, "humanName", meta.humanName(), meta.humanNameText(), true),
                 CommandText.of(where, "description", meta.description(), meta.descriptionText(), false),
                 CommandText.of(where, "llmDescription", meta.llmDescription(), meta.llmDescriptionText(), false), meta.async(),
-                meta.dataSeverity(), meta.availableForAgent(), meta.readOnly(), meta.batch(), linked, suite, signature.any(), List.copyOf(parameters),
+                meta.dataSeverity(), meta.availableForAgent(), meta.readOnly(), meta.availableInMacros(), meta.batch(), linked, suite, signature.any(), List.copyOf(parameters),
                 new CommandReturnDefinition(returns.name(), returns.type(),
                         CommandText.of(where, "description of the return value", returns.description(), returns.descriptionText(), false)));
     }
@@ -232,6 +237,10 @@ public class CommandServiceImpl implements CommandService, InitializingBean, Dis
             if (definition.readOnly() != overloads.getFirst().definition().readOnly()) {
                 throw new IllegalArgumentException("The overloads of command " + name + " in " + type.getName()
                         + " differ in readOnly");
+            }
+            if (definition.availableInMacros() != overloads.getFirst().definition().availableInMacros()) {
+                throw new IllegalArgumentException("The overloads of command " + name + " in " + type.getName()
+                        + " differ in availableInMacros");
             }
             if (definition.availableForAgent() != overloads.getFirst().definition().availableForAgent()) {
                 throw new IllegalArgumentException("The overloads of command " + name + " in " + type.getName()

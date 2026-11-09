@@ -20,7 +20,7 @@ covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/commands/lorebook/write
   - marginalia/src/main/java/com/github/enerccio/marginalia/bound/AgenticSessionPoint.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/utils/TextDiff.java
-verified: 6b9a70d37
+verified: d163441bd
 ---
 
 # Commands
@@ -47,7 +47,7 @@ flowchart LR
 | **Suite**           | Any object whose class has methods annotated with `@Command`. Registering the object registers all of them.                                                                                |
 | **Command method**  | `public void name(CommandContext context)`: the only parameter is the context, nothing is returned from the method itself.                                                                  |
 | **Command**         | A name (`commandName`: letters, digits, `_`, `-`, `.`) with a `humanName` for the user, a `description`, an `llmDescription` for agents (each as an `L` key or, for extensions, a plain `...Text`, see [Texts](writing-commands.md#texts)), a `signature`, a return declaration, `async`, the `dataSeverity` and `availableForAgent` (`false` keeps the command from agents, see [Available for agents](writing-commands.md#available-for-agents)).   |
-| **Form** (overload) | Methods of a suite that share a `commandName` are forms of one command. They must have the same `humanName` and `dataSeverity` and each its own `signature`. One `CommandDefinition` exists per form.          |
+| **Form** (overload) | Methods of a suite that share a `commandName` are forms of one command. They must have the same `humanName`, `dataSeverity` and `availableInMacros` and each its own `signature`. One `CommandDefinition` exists per form.          |
 | **Signature**       | `@CommandParameterSignature(@CommandParameter(name, type, description), ...)`: the arguments of one form. An empty signature is a form without arguments; `any = true` is "any arguments".    |
 | **Context**         | `CommandContext`: the arguments (`get`, `getPositional`), the answer (`setReturn`, `fail`), the two lines of status (`setStatus`, `setSubStatus`) and `isTerminated()`. It belongs to one run. |
 | **Run**             | One call, which returns a `CommandRun` (a `CompletableFuture<Object>`) that completes with the value given to `setReturn` and holds the status the command reports.                       |
@@ -283,6 +283,14 @@ parts as a tree, with the numbers of the branches). All are `NON_DESTRUCTIVE`, s
 Tests: `ManuscriptReadCommandsTest` runs them in an agent session (`AgenticRequestAttributes` in the test sources puts an
 `AgenticSessionPoint` into the session scope of the logged in test user).
 
+### Commands for the planner
+
+`PlannerCommands` (package `commands.manuscript.write`, on `ManuscriptReadSupport`) is `get-planned-scenes` (read only) and `add-planned-scene`, `update-planned-scene`,
+`set-planned-scene-done`, `move-planned-scene`, `delete-planned-scene` over `PlannerService` (see [The planner](../domain-model.md#plannedscene-the-planner-of-a-book)). A scene is
+addressed by its number in the list, not by its uuid, so no handle leaves the service; every change reads the list again, so a number that was right when it was read may be
+another scene by the time it is written. `update-planned-scene` and `delete-planned-scene` are `DESTRUCTIVE`, the others `NON_DESTRUCTIVE`. The forms are a ladder (one method
+per number of arguments, the later ones add optional details), as in the other command classes.
+
 ### Commands for annotations
 
 `ListAnnotationsCommand` (`list-annotations [status [part [offset [limit]]]]`) and `GetAnnotationCommand` (`get-annotation`) read, `AnnotationWriteCommands`
@@ -308,7 +316,7 @@ name and tag in Java and keeps the numbers of the whole lorebook; `search-lore` 
 
 `preview-lore-activation` asks `LorebookActivationService` (`domain.service`), the rules the generation step `ProcessLorebookStep` uses too: `collectLorebooks` (the enabled
 tree with the entries filled in), `orderedEntries` (by `order`, the older first), `evaluate(entry, bookTags, text, parts)` (`parts`: the story before the turn, from `recentParts` with `partsNeeded` as the count - the active branch of the book, or the parts in front of the given part - for the entries that look into it; a `Verdict` with a `Reason`: `CONSTANT`,
-`FILTER_MATCHED`, `LORE_MATCHED`, `DISABLED`, `OUT_OF_RANGE`, `NEGATIVE_TAG`, `MISSING_TAG`, `FILTER_NOT_MATCHED`; `OUT_OF_RANGE`: the entry is limited to some parts and the turn - the next part of the branch, or the given part - is outside them), `evaluateAll` (all the entries and the same `parts` and the position of the turn, with the passes of the scan depth of the root
+`FILTER_MATCHED`, `LORE_MATCHED`, `DISABLED`, `OUT_OF_RANGE`, `NEGATIVE_TAG`, `MISSING_TAG`, `FILTER_NOT_MATCHED`, `RECURSION_ONLY`; the story passed is a `StoryText` from `storyText(entries, leaf, excludeLeaf)` (the parts and, for the entries that ask, the summaries); the activation settings of an entry are read by `get-lore-entry` (`LorebookReadSupport.addActivation`) and changed by `set-lore-entry-activation` (`LoreEntryWriteCommands`); `OUT_OF_RANGE`: the entry is limited to some parts and the turn - the next part of the branch, or the given part - is outside them), `evaluateAll` (all the entries and the same `parts` and the position of the turn, with the passes of the scan depth of the root
 lorebook: an entry found by the content of others is `LORE_MATCHED`, its row has `scanDepth`, the pass) and `renderPayload`. The step only adds its events around them, so what the command
 shows is what a generation does. With a part the filters are looked for in the user prompt of the book rendered from the turn input stored with the part, in a
 fresh `TemplateContext` (the book, the narration settings, the variables of the book and of the part; not the story), so a payload that reads the story renders

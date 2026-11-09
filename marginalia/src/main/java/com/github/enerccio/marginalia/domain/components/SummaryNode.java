@@ -15,6 +15,7 @@ public final class SummaryNode {
     private final int order;
     private final Summary summary;
     private final boolean replaced;
+    private final boolean valid;
     private final List<SummaryNode> children;
 
     /**
@@ -25,10 +26,19 @@ public final class SummaryNode {
      *                 (it has no id)
      */
     public SummaryNode(ChatMessage message, int order, Summary summary, boolean replaced, List<SummaryNode> children) {
+        this(message, order, summary, replaced, true, children);
+    }
+
+    /**
+     * @param valid false for a summary that no longer describes the story (a part it covers was changed), generation would
+     *              drop it; the summaries a meta summary stands in for are always valid, they are part of its hash
+     */
+    public SummaryNode(ChatMessage message, int order, Summary summary, boolean replaced, boolean valid, List<SummaryNode> children) {
         this.message = message;
         this.order = order;
         this.summary = summary;
         this.replaced = replaced;
+        this.valid = valid;
         this.children = children;
     }
 
@@ -48,8 +58,23 @@ public final class SummaryNode {
         return replaced;
     }
 
+    public boolean isValid() {
+        return valid;
+    }
+
     public List<SummaryNode> getChildren() {
         return children;
+    }
+
+    /**
+     * @return this summary and all those under it
+     */
+    public int countAll() {
+        int count = 1;
+        for (SummaryNode child : children) {
+            count += child.countAll();
+        }
+        return count;
     }
 
     public long getTokens() {

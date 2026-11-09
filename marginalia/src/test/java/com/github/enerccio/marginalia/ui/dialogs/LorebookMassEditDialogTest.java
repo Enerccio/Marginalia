@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.ui.dialogs;
 
+import com.github.enerccio.marginalia.domain.collections.ActivationContext;
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
@@ -7,7 +8,8 @@ import com.github.enerccio.marginalia.domain.service.LorebookEntryService;
 import com.github.enerccio.marginalia.domain.service.LorebookLockedException;
 import com.github.enerccio.marginalia.domain.service.LorebookService;
 import com.github.enerccio.marginalia.test.AgentTestBase;
-import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.*;
+import com.vaadin.flow.data.renderer.ComponentRenderer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -230,6 +232,64 @@ class LorebookMassEditDialogTest extends AgentTestBase {
         LorebookMassEditDialog dialog = open(root, null);
 
         assertThat(dialog.getGrid().getColumns()).as("check, enabled, name, order, lorebook, tags, filtering mode, filtering, "
-                + "insertion mode, negative tags, note, content").hasSize(12);
+                + "insertion mode, negative tags, activation context, parts, from, to, note, content").hasSize(16);
+    }
+
+    /**
+     * Changes the cell of the column the way the user does: sets the value of the field and fires the change as from the browser.
+     */
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private static void edit(LorebookMassEditDialog dialog, int column, LorebookMassEditDialog.Row row, Object value) {
+        Component field = ((ComponentRenderer<Component, LorebookMassEditDialog.Row>) dialog.getGrid().getColumns().get(column)
+                .getRenderer()).createComponent(row);
+        ((HasValue) field).setValue(value);
+        ComponentUtil.fireEvent(field, new AbstractField.ComponentValueChangeEvent(field, (HasValue) field, null, true));
+    }
+
+    @Test
+    void theActivationContextAndTheRangeOfPartsAreEditedInTheGrid() throws Exception {
+        Lorebook root = lorebook("Root");
+        LorebookEntry a = entry(root, "A", 100);
+        LorebookMassEditDialog dialog = open(root, null);
+        LorebookMassEditDialog.Row row = row(dialog, "A");
+        assertThat(a.getActivationContext()).isEqualTo(ActivationContext.INSTRUCTIONS);
+
+        edit(dialog, 10, row, ActivationContext.INCLUDE_PARTS);
+        edit(dialog, 11, row, 4);
+        edit(dialog, 12, row, 2);
+        edit(dialog, 13, row, 9);
+
+        LorebookEntry saved = entryService.find(a.getId());
+        assertThat(saved.getActivationContext()).isEqualTo(ActivationContext.INCLUDE_PARTS);
+        assertThat(saved.getActivationParts()).isEqualTo(4);
+        assertThat(saved.getFromMessage()).isEqualTo(2);
+        assertThat(saved.getToMessage()).isEqualTo(9);
+
+        edit(dialog, 12, row, null);
+        assertThat(entryService.find(a.getId()).getFromMessage()).as("empty = no limit").isNull();
+        assertThat(entryService.find(a.getId()).getToMessage()).isEqualTo(9);
+    }
+
+    @Test
+    void theCheckedEntriesAreDeletedButNotTheOnesOfALockedLorebook() throws Exception {
+        Lorebook root = lorebook("Root");
+        Lorebook used = lorebook("Used");
+        lorebookService.addSubbook(root, used);
+        entry(root, "A", 100);
+        entry(root, "B", 200);
+        entry(root, "C", 300);
+        entry(used, "InUsed", 400);
+        lock(used);
+        LorebookMassEditDialog dialog = open(root, null);
+        assertThat(dialog.getDeleteChecked().isEnabled()).as("nothing is checked").isFalse();
+
+        dialog.check(row(dialog, "A"), true);
+        dialog.check(row(dialog, "C"), true);
+        assertThat(dialog.getDeleteChecked().isEnabled()).isTrue();
+        dialog.check(row(dialog, "InUsed"), true);
+        dialog.deleteCheckedNow();
+
+        assertThat(namesIn(root)).containsExactly("B");
+        assertThat(namesIn(used)).as("an agent works on it").containsExactly("InUsed");
     }
 }

@@ -28,11 +28,13 @@ done
 on 13-db-backup
 run shoot-commands.mjs                           # /take-backup adds a backup to the book: a copy, discarded
 on 13-db-backup
+run shoot-summaries-transfer.mjs                  # exports the summaries and chooses the edited file in the import window, nothing is imported: a copy, discarded
+on 13-db-backup
 run shoot-search-replace.mjs                     # looks only, but leaves the workspace on the Lorebooks tab: a copy, discarded
 on 13-db-backup
 run shoot-help.mjs                               # chooses the model of the help assistant (installation wide), a permission for the administrator: a copy, discarded
 on 13-db-backup
-run shoot-permissions.mjs                        # changes the permissions of ginny: a copy, discarded
+run shoot-permissions.mjs                        # changes the permissions of jana: a copy, discarded
 on 13-db-backup
 run plugin-googlegenai.mjs                       # installs the Gemini plugin: a copy, discarded
 on 13-db-backup
@@ -60,16 +62,20 @@ on 13-db-backup
 run plugin-imagegenerator.mjs                     # installs the Image Generator, adds a backend (the fake model draws one fixed picture), makes an image of the last part: a copy, discarded
 on 13-db-backup
 run shoot-books-extra.mjs                        # imports a lorebook with subbooks and a book from a zip: a copy, discarded
+on 13-db-backup
+run shoot-new.mjs                                 # installs three plugins, a generation, an edited part under a summary: a copy, discarded
 on 22-arcoutline
 run shoot-agents.mjs                             # four agents with runs (the fake model answers from its queue), three more books: a copy, discarded
 on 22-arcoutline
 run shoot-tabs.mjs                               # drags the sidebar tabs apart (saved with the book): a copy, discarded
+on 22-arcoutline
+run plugin-arcoutline-wizard.mjs                  # the plot wizard: a conversation, the planner tools, the approval, the summary (the fake model answers from its queue): a copy, discarded
 # the red bar for invalid extensions: the Author's Note JAR is replaced by the broken one and its report is deleted, so that the
 # application verifies it again at the start
 on 13-db-backup
 "$SHOT_ROOT/bin/stop-app.sh" >/dev/null
-cp out/broken/authorsnote-1.6.0.jar "$SHOT_HOME/.marginalia/extensions/authorsnote-1.6.0.jar"
-rm -f "$SHOT_HOME/.marginalia/extensions/authorsnote-1.6.0.valid"
+cp out/broken/authorsnote-1.7.0.jar "$SHOT_HOME/.marginalia/extensions/authorsnote-1.7.0.jar"
+rm -f "$SHOT_HOME/.marginalia/extensions/authorsnote-1.7.0.valid"
 "$SHOT_ROOT/bin/start-app.sh" >/dev/null
 run shoot-invalid-extensions.mjs                  # a copy, discarded
 # plugin screens

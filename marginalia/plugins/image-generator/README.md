@@ -20,8 +20,10 @@ part menu.
 | **ComfyUI** | A ComfyUI server. Paste a workflow saved with *Save (API Format)* and write `{{prompt}}`, `{{negative}}`, `{{seed}}`, `{{width}}` and `{{height}}` where they go (`"seed": {{seed}}` and `"seed": "{{seed}}"` both work). The workflow is posted to `/prompt`, `/history/<id>` is polled and the image is fetched from `/view`. **Abort** interrupts the job. |
 | **OpenAI images API** | `POST <address>/v1/images/generations` (an address that ends with `/v1` is used as it is). Answers with `b64_json` or an `url` are both accepted. Also served by stable-diffusion.cpp, LiteLLM and many hosted services; the api key is sent as a bearer token. |
 
-The api key is stored encrypted. A backend marked **The server is on this machine or on my network** may use local addresses;
-a backend that is not refuses them (and so do its hooks and image links).
+The api key and the headers of the hooks are stored encrypted. A backend marked **The server is on this machine or on my network**
+may use local addresses; a backend that is not refuses them (and so do its hooks and image links): loopback, private, link-local,
+shared (100.64.0.0/10) and unique-local IPv6 addresses. Redirects are never followed and an answer is read only up to a limit.
+The HTTP code (the call, the guard, the hooks, the GPU gate) is the library [`http-hooks`](../../libs/http-hooks/README.md).
 
 ## One GPU for the model and the images
 
@@ -34,8 +36,9 @@ makes requests you configure around the images of a window:
   passed since the last image (so a forgotten window doesn't keep the GPU). The ComfyUI example: `POST <address>/free` with the body
   `{"unload_models": true, "free_memory": true}`.
 
-The backend stays held while you reroll, so only the first image pays for the swap. If a proxy in front of the models swaps them
-by the model name, leave both empty.
+Both moments take a list of requests, made in order (each with its own timeout and an optional wait after it): the *before* list stops at the first failure, the *after* list is made completely and the first failure is reported. The backend stays held while you reroll, so only the first image pays for the swap. If a proxy in front of the models swaps them
+by the model name, leave both empty. Windows of several users on the same server address share one gate: the first request runs for
+the first window, the last one for the last window, and the images are made one at a time.
 
 ## Not done
 

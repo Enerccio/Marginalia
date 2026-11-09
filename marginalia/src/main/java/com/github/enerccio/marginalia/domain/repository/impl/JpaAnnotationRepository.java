@@ -7,7 +7,6 @@ import com.github.enerccio.marginalia.domain.repository.AnnotationRepository;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 
 public class JpaAnnotationRepository extends JpaExtendableRepository<Annotation> implements AnnotationRepository {
@@ -57,44 +56,6 @@ public class JpaAnnotationRepository extends JpaExtendableRepository<Annotation>
             hydrate(annotation);
         }
         return annotations;
-    }
-
-    @Override
-    public int softDeleteByManuscript(Manuscript manuscript) throws Exception {
-        if (manuscript == null || manuscript.getId() == null) {
-            return 0;
-        }
-        return entityManager.createQuery(
-                        "UPDATE Annotation a SET a.deleted = true, a.modification = :now WHERE a.deleted = false "
-                                + "AND a.part.id IN (SELECT m.id FROM ChatMessage m WHERE m.parentScript.id = :manuscript)")
-                .setParameter("now", new Date())
-                .setParameter("manuscript", manuscript.getId())
-                .executeUpdate();
-    }
-
-    @Override
-    public int softDeleteByPartIds(Collection<Long> partIds) throws Exception {
-        int deleted = 0;
-        Date now = new Date();
-        for (List<Long> chunk : chunks(partIds)) {
-            deleted += entityManager.createQuery(
-                            "UPDATE Annotation a SET a.deleted = true, a.modification = :now WHERE a.deleted = false AND a.part.id IN :ids")
-                    .setParameter("now", now)
-                    .setParameter("ids", chunk)
-                    .executeUpdate();
-        }
-        return deleted;
-    }
-
-    @Override
-    public int hardDeleteByPartIds(Collection<Long> partIds) throws Exception {
-        int deleted = 0;
-        for (List<Long> chunk : chunks(partIds)) {
-            deleted += entityManager.createQuery("DELETE FROM Annotation a WHERE a.part.id IN :ids")
-                    .setParameter("ids", chunk)
-                    .executeUpdate();
-        }
-        return deleted;
     }
 
 }

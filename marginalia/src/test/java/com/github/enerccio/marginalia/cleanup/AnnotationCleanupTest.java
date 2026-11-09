@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.cleanup;
 
 import com.github.enerccio.marginalia.domain.collections.AnnotationSource;
+import com.github.enerccio.marginalia.domain.model.impl.AnchoredPassage;
 import com.github.enerccio.marginalia.domain.model.impl.Annotation;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
@@ -62,7 +63,8 @@ class AnnotationCleanupTest extends MarginaliaTestBase {
     }
 
     private static EntityKey key(Annotation annotation) {
-        return new EntityKey(Annotation.class, annotation.getId());
+        // the trash and the cleanup know the root of a hierarchy of entities
+        return new EntityKey(AnchoredPassage.class, annotation.getId());
     }
 
     private boolean isDeleted(Annotation annotation) throws Exception {

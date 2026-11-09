@@ -2,9 +2,13 @@ package com.github.enerccio.marginalia.extensions.arcoutline.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.github.enerccio.marginalia.domain.collections.DestructiveCommandMode;
 import com.github.enerccio.marginalia.domain.model.impl.*;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.service.*;
+import com.github.enerccio.marginalia.domain.service.agent.CommandCage;
+import com.github.enerccio.marginalia.domain.service.agent.CommandFunctions;
+import com.github.enerccio.marginalia.domain.service.function.FunctionSet;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
 import com.github.enerccio.marginalia.domain.service.structured.SchemaCheck;
@@ -13,6 +17,7 @@ import com.github.enerccio.marginalia.domain.service.tool.ToolRequest;
 import com.github.enerccio.marginalia.domain.service.tool.ToolSelection;
 import com.github.enerccio.marginalia.domain.service.tool.ToolSet;
 import com.github.enerccio.marginalia.domain.templates.LorebookTemplateData;
+import com.github.enerccio.marginalia.extensions.PartTextRegistry;
 import com.github.enerccio.marginalia.extensions.arcoutline.model.*;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -52,6 +57,25 @@ public class ArcOutlineService {
     public record Generated<T>(T value, String answer) {
     }
 
+    /**
+     * What of the story the plot wizard can send.
+     *
+     * @param summaries the summaries of the story, oldest first, empty when there are none or they were not asked for
+     * @param parts     the parts with text after the newest summary (all of them without summaries), oldest first
+     */
+    public record StoryState(List<String> summaries, List<StoryMessage> parts) {
+    }
+
+    /**
+     * The system prompt of the plot wizard and what went into it.
+     *
+     * @param system        the prompt
+     * @param summaries     how many summaries it holds
+     * @param storyParts    how many parts of the story it holds
+     */
+    public record WizardPrompt(String system, int summaries, int storyParts) {
+    }
+
     /** The logger of the extension (Admin → Extensions → Log), set when the extension loads. */
     private Logger log;
 
@@ -71,7 +95,13 @@ public class ArcOutlineService {
     private ChatMessageService chatMessageService;
 
     @Autowired
+    private PartTextRegistry partTexts;
+
+    @Autowired
     private TokenizerService tokenizerService;
+
+    @Autowired
+    private SummaryService summaryService;
 
     @Autowired
     private LorebookService lorebookService;
@@ -87,6 +117,18 @@ public class ArcOutlineService {
 
     @Autowired
     private ToolService toolService;
+
+    @Autowired
+    private CommandService commandService;
+
+    @Autowired
+    private CommandScopes commandScopes;
+
+    @Autowired
+    private IPCService ipcService;
+
+    @Autowired
+    private com.github.enerccio.marginalia.loc.Localization loc;
 
     /** Set when the extension loads, to tell the tool providers who asks. */
     private Bundle bundle;
@@ -272,6 +314,195 @@ public class ArcOutlineService {
      */
     public String importPrompt(ArcOutlineSettings settings) {
         return StringUtils.defaultIfBlank(settings.getImportPrompt(), Defaults.IMPORT_PROMPT);
+    }
+
+    // --- the plot wizard ---
+
+    public String wizardPrompt(WizardOptions options) {
+        return StringUtils.defaultIfBlank(options.getPrompt(), Defaults.WIZARD_PROMPT);
+    }
+
+    /** The conversations of the book as they are stored now. */
+    public WizardData loadWizard(Manuscript manuscript) throws Exception {
+        Manuscript current = manuscriptService.find(manuscript);
+        JsonObject attrs = (current != null ? current : manuscript).getAttributes();
+        WizardData data = attrs != null && attrs.has(WizardData.KEY) ? gson.fromJson(attrs.get(WizardData.KEY), WizardData.class) : null;
+        return data != null ? data : new WizardData();
+    }
+
+    /** Stores the conversations with the book; none removes them. */
+    public void saveWizard(Manuscript manuscript, WizardData data) throws Exception {
+        manuscript = manuscriptService.find(manuscript);
+        JsonObject attrs = manuscript.getAttributes();
+        if (attrs == null) {
+            attrs = new JsonObject();
+            manuscript.setAttributes(attrs);
+        }
+        if (data.getChats().isEmpty()) {
+            attrs.remove(WizardData.KEY);
+        } else {
+            attrs.add(WizardData.KEY, gson.toJsonTree(data));
+        }
+        manuscriptService.save(manuscript);
+    }
+
+    /**
+     * The summaries of the active branch as a generation gathers them, oldest first (a meta summary in place of the
+     * summaries it merged; a summary whose story was changed since it was made is left out), and the parts with text
+     * after the newest of them. The summaries stand in for the story up to their part.
+     *
+     * @param withSummaries false: no summaries, all the parts
+     */
+    public StoryState storyState(Manuscript manuscript, boolean withSummaries) throws Exception {
+        Manuscript current = manuscriptService.find(manuscript);
+        ChatMessage leaf = (current != null ? current : manuscript).getActiveLeaf();
+        if (leaf == null) {
+            return new StoryState(List.of(), List.of());
+        }
+        List<ChatMessage> branch = chatMessageService.getBranchFromLeaf(leaf);
+        List<String> summaries = new ArrayList<>();
+        Long stopId = null;
+        if (withSummaries) {
+            List<SummaryService.SummaryBlock> blocks = summaryService.collectBlocks(new ArrayList<>(branch.reversed())).stream()
+                    .filter(SummaryService.SummaryBlock::isValid).toList();
+            if (!blocks.isEmpty()) {
+                blocks.reversed().forEach(block -> summaries.add(StringUtils.defaultString(block.summary().getSummary())));
+                stopId = blocks.getFirst().head().getId();
+            }
+        }
+        // the parts after the part with the newest summary
+        int from = 0;
+        if (stopId != null) {
+            for (int i = 0; i < branch.size(); i++) {
+                if (stopId.equals(branch.get(i).getId())) {
+                    from = i + 1;
+                    break;
+                }
+            }
+        }
+        List<StoryMessage> parts = new ArrayList<>();
+        for (int i = from; i < branch.size(); i++) {
+            String text = partTexts.forModel(branch.get(i));
+            if (StringUtils.isNotBlank(text)) {
+                long tokens = branch.get(i).getTokenCount() > 0 ? branch.get(i).getTokenCount() : countTokens(text);
+                // the place among all the parts of the branch, the number the outline of the story shows
+                parts.add(new StoryMessage(parts.size() + 1, i + 1, text, tokens));
+            }
+        }
+        return new StoryState(summaries, parts);
+    }
+
+    /**
+     * The system prompt of the plot wizard: the template with what the options say to send put in.
+     *
+     * @param promptCapacity what the model takes of a prompt ({@code TokenLimits.promptTokens}), the story parts get
+     *                       their share of it unless the options give a limit
+     * @throws Exception when the template is not valid
+     */
+    public WizardPrompt buildWizardPrompt(Manuscript manuscript, ArcOutline outline, WizardOptions options, String template,
+                                          long promptCapacity) throws Exception {
+        PlotWizardTemplateData data = new PlotWizardTemplateData();
+        if (options.isLorebook()) {
+            data.setBackgroundLore(buildBackgroundLore(manuscript));
+        }
+        if (options.getOutline() != WizardOptions.OutlineDetail.NONE && !outline.arcs().isEmpty()) {
+            data.setOutline(describe(outline, null, ChapterContext.EVERYTHING, options.getOutline() == WizardOptions.OutlineDetail.FULL));
+        }
+        data.setNotes(notesText(manuscript, options.getNotes()));
+        int summaryCount = 0;
+        int partCount = 0;
+        if (options.isSummaries() || options.isStory()) {
+            StoryState state = storyState(manuscript, options.isSummaries());
+            if (options.isSummaries()) {
+                data.setSummaries(WizardContext.summariesText(state.summaries()));
+                summaryCount = state.summaries().size();
+            }
+            if (options.isStory()) {
+                long budget = options.getStoryTokens() != null ? options.getStoryTokens() : WizardContext.defaultStoryTokens(promptCapacity);
+                List<StoryMessage> chosen = WizardContext.newestThatFit(state.parts(), budget);
+                data.setStory(WizardContext.storyText(chosen));
+                partCount = chosen.size();
+            }
+        }
+        data.setMode(switch (options.getMode()) {
+            case EXPLORE -> Defaults.MODE_EXPLORE;
+            case CHALLENGE -> Defaults.MODE_CHALLENGE;
+            case EXPAND -> Defaults.MODE_EXPAND;
+            case FREE -> "";
+        });
+        return new WizardPrompt(templateService.processTemplate(template, "plotWizard", data), summaryCount, partCount);
+    }
+
+    // --- the tools of the plot wizard ---
+
+    /**
+     * The names of the commands a group of tools is made of. The commands that are not there (a plugin that is not installed) are skipped
+     * by the function set. Deleting commands are left out: they ask a question that nobody can answer there.
+     */
+    public static List<String> toolNames(WizardOptions.ToolGroup group) {
+        return switch (group) {
+            case PLANNER -> List.of("get-planned-scenes", "add-planned-scene", "update-planned-scene", "set-planned-scene-done", "move-planned-scene",
+                    "delete-planned-scene");
+            case LORE -> List.of("list-lorebooks", "list-lore-entries", "get-lore-entry", "search-lore", "create-lore-entry", "update-lore-entry",
+                    "set-lore-entry-tags", "set-lore-entry-activation");
+            case OUTLINE -> List.of("get-arc-outline", "add-arc", "update-arc", "move-arc", "add-outline-chapter", "update-outline-chapter",
+                    "move-outline-chapter");
+            // the commands of the Story Notes plugin, not imported: found by name, skipped when it is not installed (delete-note is left out)
+            case NOTES -> List.of("list-notes", "get-note", "search-notes", "create-note", "update-note", "append-to-note", "edit-note");
+            case GENERATE -> List.of("generate-arc", "generate-outline-chapters", "list-lore-templates", "generate-lore-entry");
+        };
+    }
+
+    /** The bundle of the Story Notes plugin and the keys of its sources of data, see {@code IPCService}; the plugin is found by them, not imported. */
+    public static final String NOTES_BUNDLE = "story-notes";
+    public static final String NOTES_INDEX_SOURCE = "notes-index";
+    public static final String NOTES_FULL_SOURCE = "notes";
+
+    /** Whether the Story Notes plugin is installed and loaded. */
+    public boolean notesAvailable() {
+        return ipcService.getManuscriptProviders().containsKey(NOTES_BUNDLE);
+    }
+
+    /**
+     * The notes of the author the plugin offers (it leaves out the pages the author hid from assistants), as much as the options say;
+     * empty when none is asked for, the plugin is not installed or the book has no notes.
+     */
+    public String notesText(Manuscript manuscript, WizardOptions.NotesDetail detail) throws Exception {
+        if (detail == WizardOptions.NotesDetail.NONE) {
+            return "";
+        }
+        String text = ipcService.getManuscriptData(NOTES_BUNDLE,
+                detail == WizardOptions.NotesDetail.FULL ? NOTES_FULL_SOURCE : NOTES_INDEX_SOURCE,
+                manuscript, bundle, ArcOutlineService.class.getName());
+        return text == null ? "" : text;
+    }
+
+    /**
+     * The functions the model of the plot wizard may call: the commands of the chosen groups, run on the book, and the functions of the
+     * tools the author chose (names...).
+     *
+     * @param approval who decides about a command that changes or removes what exists, null when nobody can be asked (such a command is then
+     *                 refused)
+     * @param names    the tools the author chose in the tool dialog, {@link ToolSet#NONE} for none
+     */
+    public FunctionSet wizardFunctions(Manuscript book, WizardOptions options, CommandFunctions.Approval approval, ToolSet names) {
+        FunctionSet functions = toolFunctions(names);
+        Set<String> allowed = new LinkedHashSet<>();
+        options.getToolGroups().forEach(group -> allowed.addAll(toolNames(group)));
+        if (!allowed.isEmpty()) {
+            DestructiveCommandMode mode = options.isAskBeforeChanging() ? DestructiveCommandMode.ASK : DestructiveCommandMode.AUTO;
+            functions = functions.and(CommandFunctions.create(commandService, allowed, mode, loc::getValue, approval, null, null, null,
+                    new CommandCage(commandScopes.forManuscript(book), null)));
+        }
+        return functions;
+    }
+
+    /**
+     * The functions of the tools the author chose in the tool dialog; none for {@link ToolSet#NONE} (a set without functions has
+     * {@code null} for them, which is not a {@link FunctionSet} to add to).
+     */
+    public static FunctionSet toolFunctions(ToolSet names) {
+        return names == null || names.isEmpty() ? FunctionSet.empty() : names.functions();
     }
 
     // --- tools ---
@@ -575,7 +806,7 @@ public class ArcOutlineService {
         int order = 0;
         for (ChatMessage message : chatMessageService.getBranchFromLeaf(leaf)) {
             order++;
-            String text = message.getResponse();
+            String text = partTexts.forModel(message);
             if (StringUtils.isNotBlank(text)) {
                 long tokens = message.getTokenCount() > 0 ? message.getTokenCount() : countTokens(text);
                 messages.add(new StoryMessage(messages.size() + 1, order, text, tokens));

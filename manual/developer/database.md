@@ -1,7 +1,7 @@
 ---
 label: Database & migrations
 order: 950
-verified: 6b9a70d37
+verified: d163441bd
 covers:
   - marginalia/src/main/resources/migration
   - marginalia/src/main/java/com/github/enerccio/marginalia/bound/migration
@@ -155,6 +155,10 @@ To add one: implement `Migration`, register the bean in the `migrations` list of
 | V21 | `V21__folders.sql` | New table `folders` (`name`, `parent_id` nullable, the standard columns and extended content: the description and the settings the books inherit) with its `_SEQ` table and the indexes `(parent_id, is_deleted)` and `(userId, is_deleted)`: the entity `Folder`; and `manuscripts.folder_id` (null is the top level) with the index `(folder_id, is_deleted)`. See [Folders](folders.md#the-data). |
 | V22 | `V22__message_revisions.sql` | New table `message_revisions` (`message_id` nullable like the other owned references, `source`, `is_agent`, `sourceDetail`, `label`, `wordCount`, `tokenCount`, the standard columns with `_fulltext` and extended content: the text and the reasoning of the version) with its `_SEQ` table and the indexes `(message_id, is_deleted, creation)` and `(userId, is_deleted)`: the entity `MessageRevision`, see [Version history](version-history.md). |
 | V23 | `V23__statistics.sql` | New tables `manuscript_statistics` (the counts per book, day and side: `bookUuid`, `bookName`, `folderPath`, `day` as ISO text, `is_agent`, the nine counters, `reconstructed`, `lastChange`; unique `(bookUuid, day, is_agent)`), `activity_intervals` (the time: `kind`, `is_agent`, `day`, `startTime`, `endTime`) and `manuscript_sizes` (the size of a book at the end of a day: `bookWords`, `bookTokens`, `branchWords`, `branchTokens`, `leafUuid`, `baseline`, `reconstructed`; unique `(bookUuid, day)`), each with its `_SEQ` table and an index `(userId, day)`; the entities `ManuscriptStatistic`, `ActivityInterval` and `ManuscriptSize`, see [Writing statistics](domain-model.md#writing-statistics-manuscriptstatistic-activityinterval-manuscriptsize). The book is a plain `bookUuid`, not a foreign key, on purpose: the rows outlive the book. |
+| V24 | `V24__message_prompt_extended.sql` | `message_prompts` gets the columns `extendedContent` and `_fulltext`: `MessagePrompt` is an `ExtendableEntity` now (the lore entries a generation used, `loreUsage`, are an extended attribute), see [`MessagePrompt`](domain-model.md#messageprompt). Existing rows stay as they are, with no content. |
+| V25 | `V25__lorebook_protocol_sharing.sql` | `lorebooks` and `protocols` get `shared boolean not null default false` and an index on `(shared, is_deleted)`: other users find a shared lorebook or protocol in *Import from other user* and import a copy, see [`Lorebook`](domain-model.md#lorebook) and [`Protocol`](domain-model.md#protocol--chatcompletionprotocol). Nothing is shared until its owner says so. |
+| V26 | `V26__anchored_passages.sql` | `annotations` is rebuilt (SQLite cannot drop `NOT NULL`): `kind` (discriminator, existing rows `EDITORIAL`) and `passageKind` are added, `status` and `source` allow `NULL`, the two indexes are made again and `ix_annotations_kind (passageKind, part_id, is_deleted)` is new. `Annotation` extends the new `AnchoredPassage`, see [`AnchoredPassage`](domain-model.md#anchoredpassage). Data stays as it is. |
+| V27 | `V27__drop_message_edited.sql` | `messages.edited` is dropped: whether the author touched a part is no longer a flag, it is worked out from the versions of the part's history (`MessageRevisionService.authorship`), see [Who wrote the words](version-history.md#who-wrote-the-words). |
 
 ### Rules
 
@@ -219,7 +223,7 @@ The columns of `BaseEntity` / `OwnedEntity` / `ExtendableEntity` are always the 
 `is_deleted`, `modification`, `uuid`, `userId` (owner), `extendedContent` and `_fulltext`. Then list the class in
 `persistence.xml`. For joined inheritance (a subtype of `AI` or `Protocol`), the subtype table has only `id` plus its
 own columns.
-A subtype of `Setting` is single table (`@DiscriminatorValue`, the `settings` table): `StylesSetting` and `ExportSettings` are only
+A subtype of `Setting` is single table (`@DiscriminatorValue`, the `settings` table): `StylesSetting`, `ExportSettings` and `NotificationSettings` are only
 listed in `persistence.xml` and keep everything in `extendedContent`, so they need no migration.
 
 ### Changing or removing a column
@@ -263,11 +267,13 @@ development home whose database is at the current schema version. Treat the outp
 - an empty database migrates through all versions and the schema validates against `persistence.xml`,
 - migrating twice is a no-op,
 - a database at V1 with data upgrades to the latest version, keeping the data,
-- a pre-Flyway database (V1 schema, no history table) is baselined and upgraded.
+- a pre-Flyway database (V1 schema, no history table) is baselined and upgraded,
+- a database at V12 with `usages` rows goes through the `V13` table rebuild (rows, defaults, nullable `ai_id`, both indexes).
 
 New migrations are picked up automatically by the first two tests. When a migration converts data, add rows to
 `insertV1Data()` and assertions to `assertUpgradedData()`, like the existing ones for V2-V5 and V9 (the `description`
-of three manuscripts: only in the column, merged into other JSON keys, and in both). A Java migration (`Migration` bean)
+of three manuscripts: only in the column, merged into other JSON keys, and in both). A migration that rebuilds a table (create, copy, drop, rename) needs its own test that migrates to the version
+before it, inserts rows and checks them afterwards, like `upgradesV12UsagesThroughTheV13TableRebuild`. A Java migration (`Migration` bean)
 needs the Spring context: see `db/FulltextMigrationTest`. Run it with
 `mvn test -Dtest=FlywayMigrationTest`.
 

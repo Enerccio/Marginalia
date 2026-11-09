@@ -6,28 +6,36 @@ icon: image
 
 # Resources
 
-The **Resources** tab lists the files you have uploaded to Marginalia. For now these are the
-[pictures of the parts](books/story-editor.md#images) of your books. The tab is the place to find a picture again, to
-download it, to swap it for a better one without touching the books that use it, and to throw away what you no
+The **Resources** tab lists the files you have uploaded to Marginalia: the
+[pictures of the parts](books/story-editor.md#images) of your books and the audio that extensions such as the
+[Audiobook](extensions/audiobook.md) store with them. The tab is the place to find a file again, to listen to audio,
+to download it, to swap it for a better one without touching the books that use it, and to throw away what you no
 longer need.
 
 ![The Resources tab](../images/resources-tab.png)
 
-The table loads as you scroll, so it stays fast with thousands of files. Click a column header to sort by it; the
-newest files are first by default.
+The files are grouped by what uses them: each row of the table is an object (for example a part of a book,
+`ChatMessage #123`) with the number of its files, their total size and the date of the newest. Click the arrow in the
+row to open the object and see its files. The table loads as you scroll and as you open a group, so it stays fast
+with thousands of files. Click a column header to sort by it, the groups and the files in them follow; the newest
+are first by default.
 
-| Column | |
+| Row / column | |
 |---|---|
-| (picture) | A small preview of images. |
-| **Name** | The name of the file as it was uploaded. |
+| **Used by** | The object the files were added to. *nothing* groups the files that are not used by anything. *(gone)* behind the name means that the object was deleted or no longer exists, the files are probably not needed any more. Inside a group: a small preview of an image and the name of the file as it was uploaded. |
 | **Type** | The type of the file, e.g. `image/png`. |
-| **Size** | The size of the file. |
-| **Created** | When the file was uploaded. |
-| **Used by** | The part or other object the file was added to, e.g. `ChatMessage #123`. *nothing* means that the file is not used by anything. *(gone)* behind the name means that the object was deleted or no longer exists, the file is probably not needed any more. |
+| **Size** | The size of the file, for a group the sum of its files. |
+| **Created** | When the file was uploaded, for a group the newest file. |
 
 This is only a note kept for you. Marginalia does not enforce it: a picture still works after the part it was added
 to is gone, and the same picture can be used by more parts (for example after you [branch](books/branches-and-story-tree.md)
 the story, the branch has the same pictures as the part it was made from).
+
+## Play
+
+A file of an audio type (`audio/mpeg`, `audio/wav`...) has a **Play** button (triangle) in front of the other buttons.
+It plays the file in the page; the button turns into **Pause** while it plays and back into Play when you stop it or
+the audio ends. Only one file plays at a time: starting another stops the one that was playing.
 
 ## Download
 
@@ -49,7 +57,7 @@ the parts. Use it to swap a picture for a better version or to fix a wrong uploa
 ## Deleting
 
 The trash button in the row deletes one file. To delete several, tick them in the first column and choose
-**Delete selected** above the table. The tick box in the header selects all files. Marginalia asks before it deletes.
+**Delete selected** above the table. Ticking a group (a row of an object) deletes all its files. The tick box in the header selects all groups. Marginalia asks before it deletes.
 
 ### What delete does
 

@@ -79,6 +79,7 @@ public class GetLoreEntryCommand extends LorebookReadSupport {
         result.addProperty("insertion", entry.getInsertionMode().name());
         result.addProperty("filtering", entry.getFilteringMode().name());
         result.addProperty("keys", entry.getFiltering());
+        addActivation(result, entry);
         result.add("tags", names(tagRelationService.getTagsForObject(entry)));
         result.add("negativeTags", names(tagRelationService.getTagsForObject(entry, true)));
         JsonObject comment = new JsonObject();

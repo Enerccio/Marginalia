@@ -138,7 +138,7 @@ changes the book; **No** leaves everything as it was. The question stays until y
 | `/get-template-variables <scope> [part] [branch]` | The template variables of the book (`global`) or of a part (`part`). |
 | `/list-lorebooks` | The lorebooks of the open book (the root and its subbooks) with their numbers, entry counts, tags and subbooks. |
 | `/list-lore-entries [lorebook] [filter] [offset] [limit]` | The entries of a lorebook with their settings and a preview; the filter keeps the entries whose name or tag contains it. |
-| `/get-lore-entry <entry> [lorebook] [offset] [length]` | One entry: settings, keys, tags, comment and its text in slices. |
+| `/get-lore-entry <entry> [lorebook] [offset] [length]` | One entry: settings, keys, activation (recursion, context, range of parts, condition), tags, comment and its text in slices. |
 | `/search-lore <query> [regex] [limit]` | The entries of all the lorebooks of the book whose name, text or comment contain the query, with snippets. |
 | `/preview-lore-activation <text> [limit]`, `/preview-lore-activation <part> <branch> <limit>` | Which entries a generation would use for a text, or for a turn like the one that made a part, and why (no filter, filter found - in the text, or in the content of another entry when the lorebook has a [scan depth](../lorebooks/entries.md#entries-brought-in-by-other-entries) - or not used because it is switched off, a tag of the book decides, or the filter is not in the text), with the lore text and its tokens. The text may be the handle of a part. |
 | `/list-annotations [status [part [offset [limit]]]]` | The [annotations](../books/annotations.md) of the book or of a part: the open ones unless `status` says `resolved`, `dismissed`, `orphaned` or `all`. |
@@ -201,6 +201,7 @@ describes): the answer lists them and says what to do, `/revalidate-summaries` i
 | `/delete-lore-entry <entry>` | Deletes an entry. Asks first. |
 | `/move-lore-entry <entry> <lorebook>` | Moves an entry to another lorebook of the book. |
 | `/set-lore-entry-tags <entry> [add] [remove] [addNegative] [removeNegative]` | Changes the tags and negative tags of an entry (comma separated). |
+| `/set-lore-entry-activation <entry> [preventRecursion] [recursionOnly] [activationContext] [activationParts] [activationSummaries] [fromMessage] [toMessage] [condition]` | Changes when an entry is used: `preventRecursion`, `recursionOnly` and `activationSummaries` (`true` / `false`), `activationContext` (`INSTRUCTIONS` or `INCLUDE_PARTS`) with `activationParts`, the range of parts `fromMessage` / `toMessage` (0 removes a limit) and the `condition` template (empty text removes it). A value given as empty text is left as it is (except `condition`). |
 | `/create-lorebook <name> [parent]` | Makes a lorebook that is a subbook of `parent` (the root when none is given; a book that has no lorebook gets one first). |
 | `/set-lorebook <lorebook> [name] [enabled]` | Renames a lorebook or switches it on or off. |
 | `/add-subbook <lorebook> <subbook>`, `/remove-subbook <lorebook> <subbook>` | Changes which lorebooks a lorebook contains; a lorebook can't contain itself. For an [agent](../agents.md), `/add-subbook` also brings back a lorebook it deleted or took out of its parent earlier (it names it by the handle it had), with its entries. |
@@ -220,6 +221,22 @@ never the story, so only the delete asks first. An agent can use all of them; it
 | `/reattach-annotation <annotation> [quote]` | Moves a note to the passage the quote finds in its part; without a quote the note is about the whole part. |
 | `/delete-annotation <annotation>` | Deletes a note (it can be restored from the trash). Asks first. |
 | `/generate-annotation <part> [profile]` | Has the model review the part like [Annotate with AI](../books/annotations.md#letting-a-model-annotate) and adds everything it finds as notes (source *AI*; a quote that is not in the text makes a note about the whole part). Nothing is asked: the notes are the only change, and they can be resolved, edited or deleted. It reviews with the model of the book; an agent uses its own model when *Write the book with the model of the agent* is on (as the Lore Generator commands do), `profile` is a model profile of an agent. Runs alone, takes time, costs tokens. |
+
+### The planner
+
+The commands for the [planner](../books/story-editor.md#the-planner-tab) of the book. A scene is given by its **number** in the list (from 1, `/get-planned-scenes`
+shows them); the numbers change when a scene is moved or deleted, so read the list again after changing it. They change only the planner, never the story. Adding,
+moving and marking a scene done are not asked; changing the text of a scene and deleting one are destructive (an [agent](../agents.md) is asked as for other
+destructive commands).
+
+| Command | What it does |
+|---------|--------------|
+| `/get-planned-scenes` | The scenes with their number, title, scene setting, POV character, present characters, instructions and whether they are done. |
+| `/add-planned-scene <title> [instructions [sceneSetting [povCharacter [presentCharacters]]]]` | Adds a scene at the end of the list. |
+| `/update-planned-scene <scene> <title> [instructions [sceneSetting [povCharacter [presentCharacters]]]]` | Changes the title and the details that are given; what is left out stays, an empty text clears it. |
+| `/set-planned-scene-done <scene> [done]` | Marks the scene as written (`done` is `true` by default) or not written. |
+| `/move-planned-scene <scene> <to>` | Moves the scene to the place `to` (1 is the first, the last place when it is too large). |
+| `/delete-planned-scene <scene>` | Deletes the scene. |
 
 The commands that have the model write or review (`/next`, `/swipe`, `/regenerate`, `/generate-annotation`, the two summaries) take time and show the **Stop** window.
 
@@ -242,10 +259,13 @@ You see these in the list as long as the extension is loaded; each is described 
 | `/list-characters`, `/get-character <character>` | [Character Tracker](../extensions/character-tracker.md) | The characters of the book, and one with its note and relationships. |
 | `/create-character`, `/update-character`, `/delete-character` | [Character Tracker](../extensions/character-tracker.md) | Add, change and delete a character. |
 | `/list-character-relations`, `/add-character-relation`, `/update-character-relation`, `/delete-character-relation` | [Character Tracker](../extensions/character-tracker.md) | The relationships between characters. |
+| `/list-notes`, `/get-note <note>`, `/search-notes <query>` | [Story Notes](../extensions/story-notes.md) | The pages of the notes of the book (not the ones hidden from assistants), one with its text and links, and a search. |
+| `/create-note`, `/append-to-note`, `/update-note`, `/edit-note`, `/delete-note`, `/note-text <note>` | [Story Notes](../extensions/story-notes.md) | Add, add to, change, edit and delete a page; `note-text` is made for the {%{`{{command::note-text::Title}}`}%} macro. |
 
 The commands of the Lore Generator, the Name generator, the Name provider and the Place provider only read: the generating ones return text and
 leave it to you, or to the agent that called them, to put it into an entry. The commands of the Arc Outline and the
-Character Tracker also change the outline and the characters of the open book; only their `delete` commands are destructive.
+Character Tracker also change the outline and the characters of the open book; only their `delete` commands are destructive. The Story Notes
+change the pages of the open book too; there `update-note` and `edit-note` are destructive as well, since they replace text that exists.
 
 ## Limits
 

@@ -112,3 +112,18 @@
     max-height: 14rem;
     overflow-y: auto;
 }
+
+/* The first and the last part the personas read, beside the checkbox under the box to write in */
+.beta-readers-part-field {
+    width: 7rem;
+    flex: none;
+}
+
+/* The panel sits in a narrow sidebar: little padding, little space between its parts */
+.beta-readers-compact {
+    padding: var(--lumo-space-xs) var(--lumo-space-s);
+}
+
+.beta-readers-gaps {
+    gap: var(--lumo-space-xs);
+}

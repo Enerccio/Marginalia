@@ -6,6 +6,7 @@ import com.github.enerccio.marginalia.domain.components.StatisticFilter;
 import com.github.enerccio.marginalia.domain.model.impl.ActivityInterval;
 import com.github.enerccio.marginalia.domain.security.model.User;
 
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -39,4 +40,18 @@ public interface ActivityIntervalRepository extends OwnedRepository<ActivityInte
 
     int deleteAll(User owner) throws Exception;
 
+
+    /**
+     * Deletes (for good) the rows of the days before the day, of one user.
+     *
+     * @return number of deleted rows
+     */
+    int deleteBefore(User owner, LocalDate day) throws Exception;
+
+    /**
+     * Deletes (for good) the rows of all the users.
+     *
+     * @return number of deleted rows
+     */
+    int deleteEverything() throws Exception;
 }

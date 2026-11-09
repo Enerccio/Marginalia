@@ -113,16 +113,35 @@ public final class StructuredOutputs {
     }
 
     /**
-     * Reads the answer into the class.
+     * Reads the answer into the class. Strict JSON first; when that fails, the answer is read as {@link PartialJson}
+     * reads it (a repeated key: the last one wins, a trailing comma, an object that is not closed), after a word or
+     * a sentence before the JSON is dropped. It is {@link #validate} that tells whether the answer is complete.
      *
      * @throws StructuredOutputException when the answer is not JSON of that class
      */
     public static <T> T parse(String text, Class<T> type) throws StructuredOutputException {
+        String json = cleanJson(text);
         try {
-            return MAPPER.readValue(cleanJson(text), type);
-        } catch (Exception e) {
-            throw new StructuredOutputException(text, List.of(e.getMessage()), e);
+            return MAPPER.readValue(json, type);
+        } catch (Exception strict) {
+            try {
+                JsonNode tree = PartialJson.parse(fromFirstBracket(json));
+                if (tree != null) {
+                    return MAPPER.treeToValue(tree, type);
+                }
+            } catch (Exception ignored) {
+                // not even leniently: the strict error is the one to report
+            }
+            throw new StructuredOutputException(text, List.of(strict.getMessage()), strict);
         }
+    }
+
+    /** The text from its first {@code {} or {@code [}, the model may introduce the JSON with a sentence. */
+    private static String fromFirstBracket(String json) {
+        int object = json.indexOf('{');
+        int array = json.indexOf('[');
+        int start = object < 0 ? array : array < 0 ? object : Math.min(object, array);
+        return start <= 0 ? json : json.substring(start);
     }
 
     /** The text without the markdown block around it. */

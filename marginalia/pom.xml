@@ -6,7 +6,7 @@
   <parent>
     <groupId>io.github.enerccio</groupId>
     <artifactId>marginalia-parent</artifactId>
-    <version>1.6.0</version>
+    <version>1.7.0</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
@@ -25,6 +25,8 @@
     <spring.version>7.0.8</spring.version>
     <junit.version>6.0.3</junit.version>
     <test.forks>3</test.forks>
+    <!-- the heap of each test JVM: without it the JVM takes a quarter of the RAM (4 GB on 16 GB) and keeps it, three forks and Maven fill the machine; -Dtest.heap=-Xmx3g for a test that needs more -->
+    <test.heap>-Xmx1536m</test.heap>
     <!-- where everything is built: classes, woven classes, test home, WAR. -Dbuild.dir=/some/folder builds elsewhere, so a run does not
          share target/ with the IDE, which compiles into it too -->
     <build.dir>${project.basedir}/target</build.dir>
@@ -261,6 +263,12 @@
       <artifactId>commonmark</artifactId>
       <version>0.28.0</version>
     </dependency>
+    <!-- footnotes ([^1] and [^1]: text) in the exported text: the notes of the Conlang Translator, and the ones an author writes -->
+    <dependency>
+      <groupId>org.commonmark</groupId>
+      <artifactId>commonmark-ext-footnotes</artifactId>
+      <version>0.28.0</version>
+    </dependency>
 
     <!-- image attachments: the JDK can't read WebP, uploads of it are converted to PNG (pure Java, read only) -->
     <dependency>
@@ -381,6 +389,11 @@
       <resource>
         <directory>src/main/resources</directory>
       </resource>
+      <!-- binary files that must never be filtered (the font of the PDF export); the WAR copies the folder as it is, see the webResources of the war plugin -->
+      <resource>
+        <directory>src/main/resources-raw</directory>
+        <filtering>false</filtering>
+      </resource>
       <!-- the user manual (Markdown only, no pictures) is packed as classpath:/manual/ for the in-app help;
            never filtered, the pages contain ${...} and {{...}} examples -->
       <resource>
@@ -467,7 +480,7 @@
           <reuseForks>true</reuseForks>
           <!-- RuntimeInstrumentationTest installs the ByteBuddy agent into the test JVM. The headless flags keep AWT
                (ImageIO/Graphics2D in the image tests) from putting a Java icon in the macOS Dock and stealing focus -->
-          <argLine>-XX:+EnableDynamicAgentLoading -Djdk.attach.allowAttachSelf=true -Djava.awt.headless=true -Dapple.awt.UIElement=true</argLine>
+          <argLine>${test.heap} -XX:+EnableDynamicAgentLoading -Djdk.attach.allowAttachSelf=true -Djava.awt.headless=true -Dapple.awt.UIElement=true</argLine>
           <systemPropertyVariables>
             <marginalia.test.home>${project.build.directory}/test-home</marginalia.test.home>
           </systemPropertyVariables>

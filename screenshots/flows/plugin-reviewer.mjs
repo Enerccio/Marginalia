@@ -19,7 +19,7 @@ await main(async ({ page }) => {
 
   await section(page, 'review', async () => {
     await reviewMenu(page, 'View / Generate Review');
-    await page.getByText('He followed her in book six', { exact: false }).first().waitFor({ timeout: 40000 });
+    await page.getByText('Have you met a tour guide', { exact: false }).first().waitFor({ timeout: 40000 });
     await page.getByRole('button', { name: 'Stop generating' }).waitFor({ state: 'detached', timeout: 20000 }).catch(() => {});
     await sleep(800);
     await snapDialog(page, 'plugin-reviewer');

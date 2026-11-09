@@ -65,6 +65,11 @@ public class GenerationPane extends VerticalLayout {
         setAlignSelf(FlexComponent.Alignment.END, runButton);
     }
 
+    /** Makes Ctrl+Enter in the fields press the run button, see {@link com.github.enerccio.marginalia.ui.widgets.DialogShortcuts}. */
+    public void runOnShortcut(com.vaadin.flow.component.Component... fields) {
+        com.github.enerccio.marginalia.ui.widgets.DialogShortcuts.submitWith(runButton, fields);
+    }
+
     public boolean isRunning() {
         return running;
     }

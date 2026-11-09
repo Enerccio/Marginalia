@@ -82,6 +82,27 @@ public interface ResourceService extends OwnedService<Resource, ResourceReposito
     long countForUser() throws Exception;
 
     /**
+     * The resources of the current user grouped by the object that uses them, for the table of resources.
+     *
+     * @param sortProperty one of creation, size, originalName (by the object)
+     */
+    List<ResourceRepository.ResourceGroup> findGroupPageForUser(int offset, int limit, String sortProperty, boolean ascending) throws Exception;
+
+    long countGroupsForUser() throws Exception;
+
+    /**
+     * Same as {@link #findPageForUser} for the resources of one group (null class and id: linked to nothing).
+     */
+    List<Resource> findPageOfGroupForUser(ResourceRepository.ResourceGroup group, int offset, int limit, String sortProperty, boolean ascending) throws Exception;
+
+    long countOfGroupForUser(ResourceRepository.ResourceGroup group) throws Exception;
+
+    /**
+     * @return the object the group of resources belongs to, null for the group of the resources linked to nothing
+     */
+    ResourceLink describeGroup(ResourceRepository.ResourceGroup group) throws Exception;
+
+    /**
      * Replaces the content of the resource of the current user: the new content is written as a new file and the
      * resource points to it, so everything that references the resource keeps working. The old file stays in the
      * folder. An image can be replaced only by an image (see {@link #uploadImage}).
@@ -102,5 +123,24 @@ public interface ResourceService extends OwnedService<Resource, ResourceReposito
      * @return image of the current user, null if there is none with such uuid (or it is not an image, or not theirs)
      */
     Resource findImage(String uuid) throws Exception;
+
+    /**
+     * An image of the current user, or an image linked to a part of a book they may view: a published one, when its
+     * {@link com.github.enerccio.marginalia.domain.model.impl.Manuscript#isShowImagesToReaders() setting} lets readers see the images.
+     * The content of the returned resource can be read with {@link #getResourceData} either way.
+     *
+     * @return the image, null when it is none of these
+     */
+    Resource findImageForReader(String uuid, String manuscriptUuid) throws Exception;
+
+    /**
+     * The content of a resource that is linked to a part of a book the current user may view: their own book, or a published
+     * one, whoever owns it (the resource is read from its owner's folder). This is how the readers of a published book get the
+     * files its parts carry (the audio of the Audiobook extension). Images are not read this way, see {@link #findImageForReader}.
+     *
+     * @return the bytes, null when the book can't be viewed by the user, or the resource is deleted, belongs to somebody else
+     * than the owner of the book, is an image, or is not linked to a part of the book
+     */
+    byte[] readForReader(String resourceUuid, String manuscriptUuid) throws Exception;
 
 }

@@ -38,11 +38,23 @@ public class InvalidExtensionsWarning extends HorizontalLayout {
 
     private final boolean administrator;
 
+    // what a click on the bar of an administrator does (opens Admin → Extensions); null = the bar is not clickable
+    private final Runnable openExtensions;
+
     /**
      * @param administrator whether the current user is an administrator, who gets the names of the extensions
      */
     public InvalidExtensionsWarning(boolean administrator) {
+        this(administrator, null);
+    }
+
+    /**
+     * @param administrator  whether the current user is an administrator, who gets the names of the extensions
+     * @param openExtensions what a click on the bar does for an administrator (shows Admin → Extensions), may be null
+     */
+    public InvalidExtensionsWarning(boolean administrator, Runnable openExtensions) {
         this.administrator = administrator;
+        this.openExtensions = openExtensions;
     }
 
     /**
@@ -57,6 +69,10 @@ public class InvalidExtensionsWarning extends HorizontalLayout {
         setAlignItems(FlexComponent.Alignment.CENTER);
         addClassNames(CssStyles.NOTICE_ERROR, CssStyles.FLEX_SHRINK_0);
         add(Solid.EXCLAMATION_TRIANGLE.create(), new Span());
+        if (administrator && openExtensions != null) {
+            addClassName(CssStyles.CURSOR_POINTER);
+            addClickListener(e -> openExtensions.run());
+        }
         refresh();
         return this;
     }

@@ -10,6 +10,12 @@ covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/components/RevisionData.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/components/RevisionOrigin.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/components/RevisionRow.java
+  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/components/PartAuthorship.java
+  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/components/BookAuthorship.java
+  - marginalia/src/main/java/com/github/enerccio/marginalia/utils/AuthorshipTracker.java
+  - marginalia/src/main/java/com/github/enerccio/marginalia/utils/WordAlignment.java
+  - marginalia/src/main/java/com/github/enerccio/marginalia/ui/dialogs/story/CardAuthorship.java
+  - marginalia/src/main/java/com/github/enerccio/marginalia/ui/widgets/AuthorshipField.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/repository/MessageRevisionRepository.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/repository/impl/JpaMessageRevisionRepository.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/MessageRevisionService.java
@@ -23,7 +29,7 @@ covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/ui/dialogs/story/BookHistoryActions.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/ui/widgets/HistoryLimitField.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/ui/dialogs/permissions/VersionHistoryPermissionComponent.java
-verified: 6b9a70d37
+verified: d163441bd
 ---
 
 # Version history
@@ -85,7 +91,8 @@ state the part had, then changes it, then records.
 | `RedraftServiceImpl` (dialog and command) | `REDRAFT` with the reasoning the redraft got |
 | the editor, `storeResponse` | `HUMAN` |
 | manuscript commands (`ManuscriptWriteSupport`), `AgentMergeServiceImpl`, Replace | `AUTOMATIC` with `RevisionDetail.COMMAND`, `AGENT_MERGE`, `REPLACE` (agent flag set for the first two) |
-| archive and SillyTavern import | `HUMAN` with `ARCHIVE_IMPORT` / `SILLYTAVERN_IMPORT`, `GENERATE` for a chat that has a model |
+| archive, SillyTavern and LM Studio import | `HUMAN` with `ARCHIVE_IMPORT` / `SILLYTAVERN_IMPORT` / `LMSTUDIO_IMPORT`, `GENERATE` for a chat that has a model |
+| `ChatMessageService.replaceText` (an extension puts the text of a part into another language: the part is not flagged as edited, the summaries stay valid) | the origin the caller gives, `RevisionOrigin.automatic(RevisionDetail.TRANSLATION, false)` for a translation |
 | a branch (`ChatMessageService` copy) | `DUPLICATE` with `BRANCH` |
 | `mergeIntoPrevious` | `MERGE` on the surviving part; the merged part's history goes with it |
 | restore, snapshot | `RESTORE`, `SNAPSHOT` |
@@ -128,6 +135,38 @@ part (`mergeIntoPrevious`) counts the part only, its words live on in the previo
 false)` keeps a delete out of the statistics, which the agent merge uses (the delete was counted when the agent did it).
 
 The same place also tells the **size** of the book that its text may have changed (`ManuscriptSizeService.touch`, before the exit for a book whose history is off: the size is not the work, so the repair of a version and the merge of an agent, which count nothing, change it too).
+
+## Who wrote the words
+
+Which words of a part a model wrote and which a person did is not stored anywhere (the part has no `edited` flag, V27 dropped the column);
+it is worked out from the versions, because every version says who made it (`RevisionSource`, the `agent` flag). `MessageRevisionService.authorship(part)`
+walks the live versions oldest first with an `AuthorshipTracker` and applies each one on top of the one before it, like a merge:
+
+- the words a version has in common with the text before it (`WordAlignment`: the common start and end, then the longest common
+  subsequence of the words, white space not compared) keep who wrote them; the other words belong to the maker of the version, a model for
+  a `RevisionSource.isModel()` source and for anything an agent did (`agent`), a person for the rest;
+- `GENERATE` and `REGENERATE` replace the text: nothing is kept from the old one (the words the new text shares with it, "the", "and",
+  are not the author's);
+- `RESTORE` loads the state the restored version had (found by `restoredFrom`) when the text is that of it;
+- a version with the detail `RevisionDetail.TRANSLATION` (a text in another language, see `ChatMessageService.replaceText`) is compared to
+  `originalResponse`, which the extension keeps as the generated text in the same language: what differs from it is the author's;
+- the start is `originalResponse` as the text of a model, so a branch (`DUPLICATE`) or a part whose first version is a repair
+  (`ensureCurrent`) keeps what it was generated as;
+- if the text of the part is not the text of the newest version (a writer that did not record), the difference is a person's edit;
+- a part without versions (the history of the book is switched off, or the part is being generated) is told apart from `originalResponse`
+  alone, a part with neither is a person's, or a model's when `modelUsed` is set.
+
+The result is `PartAuthorship` (the ranges of the model's words, the counts of words: letters and digits runs). `authorship(List)` sums
+a branch into `BookAuthorship` (parts, parts with generated text, the words of both, the models of the parts). Both read the text of every
+version (`getRepository().find`), so they are meant to be asked for on demand (the *Calculate* button of the Info tab, the export, the
+highlight of a card, which keeps the ranges for the text they were worked out for in `CardAuthorship`), not for every part on every
+render.
+
+**The export.** `ExportOptions.authorship` (`withAuthorship`) is set by the `ExportDialog` (check box *Include authorship statement*, shown
+for exporters with `usesAuthorship()`, which `ExporterBase` returns true for) to the `BookAuthorship` of the exported range of the stored
+parts, computed before `ExportTextRegistry` changes the texts. `ExporterBase.export` ends with `writer.message(buildAuthorship(options), null)`:
+the Markdown of the `AUTHORSHIP_TEMPLATE` (`Defaults.DEFAULT_EXPORT_AUTHORSHIP_TEMPLATE`, the values of `ExportAuthorshipTemplateData`),
+a template of the export settings like the title page.
 
 ## The limit and the pruning
 

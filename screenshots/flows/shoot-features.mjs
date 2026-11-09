@@ -8,7 +8,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {execFileSync} from 'node:child_process';
 import {
-  bookTab, CONTENT, dialog, fill, idle, llm, login, main, menuItem, openBook, openTab, pick, press, root, section,
+  bookListMenu, bookTab, CONTENT, dialog, fill, idle, llm, login, main, menuItem, openBook, openTab, pick, press, root, section,
   sleep, snap, snapDialog, snapPopover
 } from '../lib/shot.mjs';
 import {clickCogs, clickPlus, partAction, parts, sideTab} from '../lib/story.mjs';
@@ -57,11 +57,11 @@ await main(async ({ page }) => {
 
   // ---------------------------------------------------------------- annotations
   await section(page, 'annotation-dialog', async () => {
-    await selectText(page, 'How little you know');
+    await selectText(page, 'There was no arch.');
     await page.keyboard.press('a');
     await idle(page, 700);
     const d = dialog(page);
-    await fill(d, 'Note', 'Draconia never explains how she knew about the map. Pay this off in the next part.');
+    await fill(d, 'Note', 'The arch is never explained. Pay this off: what is on the other side of it?');
     await fill(d, 'Type', 'continuity');
     await page.evaluate(() => document.activeElement && document.activeElement.blur());
     await snapDialog(page, 'annotation-dialog');
@@ -72,7 +72,7 @@ await main(async ({ page }) => {
   await section(page, 'annotation-part', async () => {
     await partAction(page, -1, 'Annotate part');
     const d = dialog(page);
-    await fill(d, 'Note', 'The ending is abrupt: give Harry a beat to react before the scene closes.');
+    await fill(d, 'Note', 'The ending is abrupt: give Tomáš a beat to react before they walk on.');
     await fill(d, 'Type', 'pacing');
     await press(d, 'Save');
     await idle(page, 800);
@@ -106,7 +106,7 @@ await main(async ({ page }) => {
 
   // the right click menu of the text of a part: the selection is the passage the items work on
   await section(page, 'text-menu', async () => {
-    await selectText(page, 'hold hands with every Weasley');
+    await selectText(page, 'a moon so large and low');
     const sel = await page.evaluate(() => { const r = window.getSelection().getRangeAt(0).getBoundingClientRect(); return { x: r.x, y: r.y, width: r.width, height: r.height }; });
     await page.mouse.click(sel.x + sel.width / 2, sel.y + sel.height / 2, { button: 'right' });
     await idle(page, 900);
@@ -131,8 +131,8 @@ await main(async ({ page }) => {
     await fill(d, 'What to look for', 'Flag anything that contradicts the lorebook, and dialogue that sounds modern.');
     await page.evaluate(() => document.activeElement && document.activeElement.blur());
     await llm('/_queue', { reply: JSON.stringify({ findings: [
-      { quote: 'a hiccup', note: 'Ron is tipsy only in the first part; here the hiccup comes out of nowhere.', type: 'continuity' },
-      { quote: 'good time', note: 'Slightly modern phrasing for Draconia; the lore asks for formal, cutting speech.', type: 'style' },
+      { quote: 'no iron ring', note: 'The iron ring is a detail of the first part; here it is used as if it were already explained.', type: 'continuity' },
+      { quote: 'a slow, stubborn beat', note: 'Slightly modern phrasing for a nurse counting a pulse; the lore asks for plain, physical description.', type: 'style' },
     ] }) });
     await press(d, 'Annotate', { wait: 600 });
     await d.getByText('Proposed annotations', { exact: false }).first().waitFor({ timeout: 30000 });
@@ -156,14 +156,14 @@ await main(async ({ page }) => {
     await fill(d, 'What to look for', 'Flag anything that contradicts the lorebook, and dialogue that sounds modern.');
     await page.evaluate(() => document.activeElement && document.activeElement.blur());
     await llm('/_queue', { reply: JSON.stringify({ findings: [
-      { quote: 'two Aurors by the post office', note: 'The lore puts the Aurors at the school gates after the attack; check where they are on this street.', type: 'lore' },
+      { quote: 'the iron ring that always made someone reach for it', note: 'The lore puts the iron ring in the second cellar; check which cellar this is.', type: 'lore' },
     ] }) });
     await llm('/_queue', { reply: JSON.stringify({ findings: [
-      { quote: 'a hiccup', note: 'Ron is tipsy only in the first part; here the hiccup comes out of nowhere.', type: 'continuity' },
-      { quote: 'good time', note: 'Slightly modern phrasing for Draconia; the lore asks for formal, cutting speech.', type: 'style' },
+      { quote: 'no iron ring', note: 'The iron ring is a detail of the first part; here it is used as if it were already explained.', type: 'continuity' },
+      { quote: 'a slow, stubborn beat', note: 'Slightly modern phrasing for a nurse counting a pulse; the lore asks for plain, physical description.', type: 'style' },
     ] }) });
     await press(d, 'Annotate', { wait: 600 });
-    await d.getByText('comes out of nowhere', { exact: false }).first().waitFor({ timeout: 60000 });
+    await d.getByText('as if it were already explained', { exact: false }).first().waitFor({ timeout: 60000 });
     // the window is 85% of the height: taller, so that the range and the proposals of both parts are in the picture
     await page.setViewportSize({ width: 1920, height: 1400 });
     await idle(page, 1200);
@@ -194,8 +194,8 @@ await main(async ({ page }) => {
   await section(page, 'redraft', async () => {
     await partAction(page, 1, 'Redraft');
     const d = dialog(page);
-    await fill(d, 'Instructions for the redraft', 'Make Draconia colder and shorter; keep her last line about hiding.');
-    await llm('/_queue', { reply: 'A cold voice cut through the fog. "How touching. Does the Boy Who Lived hold hands with every Weasley?"\n\nDraconia Malfoy stood under the nearest lamp, hands in the pockets of her long green coat. Behind her Crabbe and Goyle studied the cobbles.\n\n"Get lost, Malfoy," Ron said, with great dignity and a hiccup.\n\n"Hiding?" For a heartbeat something moved behind Draconia\'s face, quick and ugly, and was gone. "How little you know."' });
+    await fill(d, 'Instructions for the redraft', 'Make it colder and shorter; keep the moon.');
+    await llm('/_queue', { reply: 'The cold woke her first. It came up through her cheek and the sleeve of her grey jacket, and Mizuki lay still while her eyes opened on black-green stalks taller than her head. Above them hung a moon so large and low that it seemed to rest on the reeds.\n\nThere was no arch. No cellar. No iron ring.\n\n"Tomáš," she said in Japanese. "Where are we?"\n\nHe lay face down a few steps away, one arm over a tussock, his headlamp burning across the black water. She turned him over and found a slow, stubborn pulse.' });
     await press(d, 'Redraft', { wait: 600 });
     await d.getByText('Redrafted text', { exact: false }).first().waitFor({ timeout: 30000 });
     await sleep(2500);
@@ -226,8 +226,8 @@ await main(async ({ page }) => {
     await page.getByRole('button', { name: 'Draft Instructions', exact: true }).click();
     await idle(page, 800);
     const d = dialog(page);
-    await fill(d, 'Guidance', 'Harry follows her to the Shrieking Shack; she turns round and finally tells him one true thing.');
-    await llm('/_queue', { reply: 'Harry keeps three steps behind Draconia all the way up the hill to the Shrieking Shack. At the gate she stops and turns round. She does not threaten him; she tells him one true thing, quickly, as if it cost her: she is not following orders, she is hiding something from the people who gave them. Harry must decide whether to believe her. End on his choice, not on her answer.' });
+    await fill(d, 'Guidance', 'They reach the ferry landing; the woman with the lantern shouts, and Mizuki asks him to translate.');
+    await llm('/_queue', { reply: 'Mizuki and Tomáš follow the lantern to the ferry landing. A broad woman shouts at them from the pole; the tone needs no translation, and Mizuki asks Tomáš to translate anyway. He answers truthfully that he cannot, and she answers that he has understood everything else. End on her look, not on his answer.' });
     await press(d, 'Draft Instructions', { wait: 600 });
     await d.getByText('Draft Again', { exact: false }).first().waitFor({ timeout: 30000 });
     await sleep(1500);
@@ -258,7 +258,7 @@ await main(async ({ page }) => {
 
   await section(page, 'sillytavern-import', async () => {
     await openTab(page, 'Books');
-    await page.locator('vaadin-button:has(vaadin-icon[icon$=":comments"])').first().click();
+    await bookListMenu(page, 'Import', 'Import from SillyTavern');
     await idle(page, 800);
     const d = dialog(page);
     await d.locator('vaadin-upload input[type=file]').setInputFiles(path.join(root, 'dataset/build', CHAT_FILE));
@@ -269,13 +269,13 @@ await main(async ({ page }) => {
 
   await section(page, 'lorebook-preview', async () => {
     await openTab(page, 'Lorebooks');
-    await pick(page, 'Lorebook', 'Harry Potter - Half-Blood Prince');
+    await pick(page, 'Lorebook', 'Unregistered - the valley of the Lyrasil');
     await idle(page, 1500);
     await press(page, 'Preview activation');
     await idle(page, 800);
     const d = dialog(page);
-    await fill(d, 'Text of the turn', 'Harry follows Draconia over the bridge in the fog.');
-    await pick(d, 'Tags of the book', 'Harry Potter and Half Blood Prince - FDM');   // a book: its tags are the ones that count
+    await fill(d, 'Text of the turn', 'Mizuki and Tomáš follow the lantern along the river to the ferry landing, where Saellen shouts at them.');
+    await pick(d, 'Tags of the book', 'Unregistered');   // a book: its tags are the ones that count
     await idle(page, 1500);
     await snapDialog(page, 'lorebook-preview-activation');
     await closeTop(page);
@@ -283,7 +283,7 @@ await main(async ({ page }) => {
 
   await section(page, 'resource-files', async () => {
     // files that no resource points to: what a deleted resource or a replaced picture leaves behind (the scan reads the folders of the users)
-    const strays = [['admin', 'jpeg', 2_400_000], ['admin', 'png', 310_000], ['ginny', 'jpeg', 880_000], ['ginny', 'pdf', 95_000]];
+    const strays = [['admin', 'jpeg', 2_400_000], ['admin', 'png', 310_000], ['jana', 'jpeg', 880_000], ['jana', 'pdf', 95_000]];
     for (const [user, ext, size] of strays) {
       const folder = path.join(process.env.SHOT_HOME ?? path.join(root, '.data'), '.marginalia', 'data', user, 'images');
       fs.mkdirSync(folder, { recursive: true });

@@ -1,7 +1,7 @@
 ---
 label: Domain model
 order: 960
-verified: 6b9a70d37
+verified: 85a73bd53
 covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/model
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/traits
@@ -27,7 +27,8 @@ Some entities kept their early names. The UI and this manual use the names on th
 | `Manuscript` | `manuscripts` | Book |
 | `ChatMessage` | `messages` | Part (of the story) |
 | `Summary` | `summaries` | Summary |
-| `Annotation` | `annotations` | Annotation (a note on a passage of a part) |
+| `Annotation` | `annotations` | Annotation (a note on a passage of a part); a subclass of `AnchoredPassage`, the same table holds the passages of the extensions |
+| `AnchoredPassage` | `annotations` | A passage of a part (range and quote) with a kind of an extension; see [`AnchoredPassage`](#anchoredpassage) |
 | `MessagePrompt` | `message_prompts` | Prompt of a part (*Show Prompt*) |
 | `MessageRevision` | `message_revisions` | A version of the text of a part (*History*), see [Version history](version-history.md) |
 | `Lorebook`, `LorebookEntry` | `lorebooks`, `entries` | Lorebook, entry |
@@ -36,7 +37,7 @@ Some entities kept their early names. The UI and this manual use the names on th
 | `ManuscriptStatistic`, `ActivityInterval`, `ManuscriptSize` | `manuscript_statistics`, `activity_intervals`, `manuscript_sizes` | The writing statistics of a book per day: counts, time, size, see [Writing statistics](#writing-statistics-manuscriptstatistic-activityinterval-manuscriptsize) |
 | `Protocol`, `ChatCompletionProtocol` | `protocols`, `protocols_chatcompletion` | Protocol |
 | `Tag`, `TagRelation` | `tags`, `t2e` | Tag |
-| `Setting`, `AppSettings`, `UserSetting`, `StylesSetting`, `ExportSettings` | `settings` | Settings page, admin settings; `StylesSetting` holds the text styles of a user (see [Text styles](ui.md#text-styles)); `ExportSettings` the style and the changed templates of each export format (see [Story export](services.md#story-export)) |
+| `Setting`, `AppSettings`, `UserSetting`, `StylesSetting`, `ExportSettings`, `NotificationSettings` | `settings` | Settings page, admin settings; `StylesSetting` holds the text styles of a user (see [Text styles](ui.md#text-styles)); `ExportSettings` the style and the changed templates of each export format (see [Story export](services.md#story-export)); `NotificationSettings` the switch and the chosen entries of the desktop notifications (see [Desktop notifications](plugins/notifications.md)) |
 | `User` | `users` | User |
 | `Permission` | `permissions` | What an administrator allowed a user to do, see [Permission](#permission-what-a-user-was-allowed) |
 | `Agent`, `AgentRun`, `AgentMessage` | `agents`, `agent_runs`, `agent_messages` | Agents, see [Agent and AgentRun](#agent-and-agentrun-agents) |
@@ -285,18 +286,31 @@ joins on is a real column: relations, `name`, `enabled`, `ordinal`, `published`,
 | `published` | column | Readable by everyone at `/view/<uuid>`. |
 | `agentic` | column | The working copy of an agent. The lists of the UI leave these books out (`ManuscriptService.findAllRegularForUser`, `searchRegularManuscripts`); `findAllAgenticForUser` and `searchAgenticManuscripts` return only them, `findAllForUser` and `searchManuscripts` both kinds. |
 | `lastOpened` | column | When the owner last opened the book; orders the book lists. |
-| `template`, `pov`, `tense`, `style`, `userPrompt`, `summaryPrompt`, `metaSummaryPrompt`, `redraftSystemPrompt`, `redraftPrompt`, `annotateSystemPrompt`, `annotatePrompt`, `impersonatePrompt` | JSON | The book's prompt overrides (*Prompts* tab); empty means inherited: the folders above the book, then the user's defaults from `UserSetting`, then `Defaults` (see [Folders](folders.md#resolving-a-setting)). |
+| `template`, `pov`, `tense`, `style`, `userPrompt`, `summaryPrompt`, `metaSummaryPrompt`, `redraftSystemPrompt`, `redraftPrompt`, `annotateSystemPrompt`, `annotatePrompt`, `annotateInstructions`, `impersonatePrompt` | JSON | The book's prompt overrides (*Prompts* tab); empty means inherited: the folders above the book, then the user's defaults from `UserSetting`, then `Defaults` (see [Folders](folders.md#resolving-a-setting)). |
 | `language` | JSON | Language of the story (`Language`; null is inherited from the folders, English at the end of the chain; `getLanguage()` still says English then and `getOwnLanguage()` null): the `lang` of the story views, which the browser uses for hyphenation and justification, and the language of the exports. |
 | `showBookStyles` | JSON | Legacy story display option (the Book style on or off). Read only while `partStyle` is not set, never written any more. |
 | `partStyle` | JSON | The id of the text style the author chose for this book (a built in style or one of the user, see [Text styles](ui.md#text-styles)); empty follows the default style of the user. |
 | `autoAnnotate`, `autoAnnotateInstructions`, `autoAnnotateModel`, `autoAnnotateProtocol`, `autoAnnotateAccept`, `autoAnnotateRedraft`, `autoAnnotateAcceptRedraft` | JSON | The automatic annotation of a generated part (Tools menu of the story, `AutoAnnotateDialog`; run by `AutoAnnotate`). The getters of the flags return `false` when unset. The model and the protocol are the **uuids** of an AI and a protocol, not ids (a restored backup can't point at somebody else's model: they are looked up among the ones the user can use, `AutoAnnotate.byUuid`, and an unknown or deleted one means the model of the book). |
+| `showImagesToReaders` | Boolean | Whether the readers of the published book see the images of its parts (the owner always does); not set means yes. The check box *Show the images to readers* of the *About* tab. |
 | `backupStrategy`, `backupStrategyValue`, `backupStrategyCurrentValue` | JSON | Per-book backup override and its progress counter. |
 
 Tags of a book are `TagRelation`s (see [Tags](#tags)).
 
+`plan` (JSON, a list of `PlannedScene`) holds the planner of the book, see [`PlannedScene`](#plannedscene-the-planner-of-a-book).
+
+### `PlannedScene` (the planner of a book)
+
+A scene the author plans to write: `uuid`, `title`, `sceneSetting`, `povCharacter`, `presentCharacters`, `instructions` (the four fields of the new turn form) and `done`. The list is
+the extended attribute `Manuscript.plan` (`@ExtendedAttribute(inject = true, injectPrefix = "plan")`: a list can't be flattened into keys, so it is stored as one JSON value), so there
+is no table and no migration, and the scenes are in the backups and copies of the book. `Manuscript.getPlan()` never returns null; a list that is changed on the entity is stored only
+when the book is saved, so changes go through `PlannerService`, which reads the book again (`ManuscriptService.update`), changes a copy of the list, saves it and tells the listeners
+(`onChange`, by the uuid of the book: the Planner tab and the plot wizard use it). The order of the list is the order of the planner. The tab is `ui.dialogs.story.PlannerPanel`
+(`PlannedSceneDialog` edits a scene), added to the story editor by `createPlannerTab` of `ManuscriptStoryPart` and to the drawer of the phone story part; a click puts the scene into
+`NewTurnForm.restoreState` (`PlannerPanel.toFormState`) and opens the popover of the form.
+
 ### `Folder`
 
-A group of books, nested through `parent` (a column, `OWNED_BY` for the cleanup), with a `name` (column), a `description` and the same twelve text settings and the language as a book, all extended attributes where null means inherit; tags like a book. Described in [Folders](folders.md). Migration V21.
+A group of books, nested through `parent` (a column, `OWNED_BY` for the cleanup), with a `name` (column), a `description` and the same thirteen text settings and the language as a book, all extended attributes where null means inherit; tags like a book. Described in [Folders](folders.md). Migration V21.
 
 ### `ChatMessage` (part) and the story tree
 
@@ -327,9 +341,8 @@ Siblings are ordered by `creation`. The branch from the root to a leaf is read w
 | `parent`, `parentScript` | FK columns | Tree position and book. |
 | `summary` | FK column | Summary covering this part and the parts before it (see below). |
 | `tokenCount`, `wordCount` | columns | Size of the text, summed for the book statistics. |
-| `edited` | column | The user edited the generated text. |
 | `response` | JSON | The text of the part. |
-| `originalResponse` | JSON | The text as the LLM produced it: filled chunk by chunk by `InferenceStep`, cleared by `GenerateNewMessageStep` (regenerate), never changed by editing; `null` for a part that was not generated. The story's *Highlight Generated Text* diffs `response` against it (`GeneratedTextHighlighter`). Existing parts got a copy of `response` from `OriginalResponseMigration`. |
+| `originalResponse` | JSON | The text as the LLM produced it: filled chunk by chunk by `InferenceStep`, cleared by `GenerateNewMessageStep` (regenerate), never changed by editing; `null` for a part that was not generated. The authorship (*Highlight Generated Text*, the ratio, the export statement) is not read from it but from the versions of the history, see [Version history](version-history.md#who-wrote-the-words); it only stands in for a part whose history is switched off. The column `edited` was dropped (V27): the history tells what was edited. Existing parts got a copy of `response` from `OriginalResponseMigration`. |
 | `responseReasoning` | JSON | Reasoning of a reasoning model. |
 | `instructions`, `sceneSetting`, `povCharacter`, `presentCharacters` | JSON | The instruction panel it was generated from (`TurnInput`). |
 | `builtPromptTokens` | JSON | Tokens of the full prompt sent to the model. The prompt itself and the activated lore (*Show Prompt*) are not in the part, see [`MessagePrompt`](#messageprompt). |
@@ -339,6 +352,11 @@ Siblings are ordered by `creation`. The branch from the root to a leaf is read w
 
 Template variables are stored when a part is generated (`GenerateNewMessageStep`): local ones (`setvar`), which
 follow the branch, in the new part's `attributes`, global ones (`setglobalvar`) in the book's `attributes`.
+
+The answers of {%{`{{command::...}}`}%} macros are kept in the `attributes` of the part a generation continues from, under
+`commandMacroCache` (an object: the name and arguments of the call are the key), so that every render of a generation, and a
+later generation from the same part, read the answer instead of running the command again; a regenerate or a swipe drops them
+(see [Templating & macros](templating.md#macros-that-run-commands)).
 
 ### `MessagePrompt`
 
@@ -351,16 +369,19 @@ only `builtPromptTokens`; whoever needs the text asks `MessagePromptService`:
 | Method | |
 |---|---|
 | `getBuiltPrompt(part)`, `getBackgroundLore(part)` | The texts, `null` when the part has none (it was typed by the author, or made before prompts were kept). One query each; the summary, redraft, annotate and impersonate services read the lore this way, the story editor, `/show-prompt` and the reviewer the prompt. |
-| `store(part, prompt, lore)` | Replaces the prompt of the part; two empty texts remove it. Called by `GenerateNewMessageStep` after the part is saved (a regenerated part gets the new prompt; the old one is kept in the `ORIGINAL_PROMPT` property, which `CleanupStep` puts back with `ORIGINAL_MESSAGE` when no text arrived). |
+| `store(part, prompt, lore, loreUsage)` | Replaces the prompt of the part (`store(part, prompt, lore)` is the same with no usage); two empty texts and no usage remove it. Called by `GenerateNewMessageStep` after the part is saved (a regenerated part gets the new prompt; the old one is kept in the `ORIGINAL_PROMPT` property, which `CleanupStep` puts back with `ORIGINAL_MESSAGE` when no text arrived). |
+| `getLoreUsage(part)` | The lore entries the generation of the part used (`LoreUsage`), `null` when none was recorded. See below. |
 | `copy(from, to)` | Branching a part (`ChatMessageService.branch`) and creating a part in the book from a working copy of an agent (`AgentMergeService`) copy the prompt with it. `ChatMessage.copyOf` / `loadFrom` do not. |
 | `findAllFor(parts)` | The prompts of many parts in one query, for the backup. |
+
+**Lore usage.** `MessagePrompt` is an `ExtendableEntity` (V24) and has one extended attribute, `loreUsage`: the JSON of a `LoreUsage`, the lore entries the prompt used, each with its uuid, the tokens of its text and the pass of the scan depth that used it (0 = the prompt). `ProcessLorebookStep` builds it from the activated entries (tokens counted with the model of the book) and puts it into `PrePromptData.loreUsage`; `GenerateNewMessageStep` stores it with the prompt. Only the entries that were used are in it (the others are the entries of the lorebooks minus these). `null` means not recorded: the part was made before V24, or the book has no lorebook; an empty list means the lorebook used nothing. It lives here and not in the part so that loading a branch does not carry it; the lore usage report ([`LoreUsageService`](services.md)) reads it with `MessagePromptService.findLoreUsage`, a query for the `extendedContent` column only, without the texts.
 
 The texts are stored deflated (`byte[]` columns, the accessors of the entity take and give plain text). Deleting a part
 deletes its prompt with it (`softDeleteForParts`, `hardDeleteForParts`, `softDeleteForManuscript`, like the annotations),
 restoring the part from the trash brings it back, and a permanent delete takes it (`CleanupServiceImpl.OWNED_ON_DELETE`).
 
 **Backups.** A backup of a book still has the prompt in the `extendedContent` of the message (`builtPrompt`,
-`backgroundLore`), as it did before the row existed, so backups of all versions have the same format:
+`backgroundLore`, and `loreUsage` when there is one), as it did before the row existed, so backups of all versions have the same format:
 `ManuscriptServiceImpl.createBackup` puts the prompt back there and `restoreMessages` takes it out again and stores the row.
 The data was moved by `ExtendedContentMigration` (app version 6, see [Database](database.md#startup-migrate-then-validate)).
 
@@ -397,6 +418,15 @@ the invalidation check and the overview all use it):
   it has one - except for the head of the block, whose own summary is what the hash checks (it didn't exist yet when
   the hash was made). A normal block has no other summaries in it, so its hash is that of the texts only.
 
+The text of a summary in use can change without touching any hash (`SummaryService.updateSummaryText`, the pencil of the overview and
+the import of an exported file, `exportSummaries` / `analyzeImport` / `applyImport`): the hash of a block is made of the texts of its
+parts and of the summaries a meta summary stands in for, never of the text of the summary at its head. The summaries inside a meta
+summary are the ones that must not be edited.
+
+`SummaryService.resummarize` (*Resummarize all summaries* of the overview, [`ResummarizeDialog`](ui.md)) asks the model for every summary of the active branch again, oldest first, and meta summaries after the summaries they cover (inner ones first): each
+summary keeps its `uuid` and its place, only its text and its hash are written, so a meta summary stays linked and an outdated summary is valid afterwards. A stop or an empty answer changes
+nothing: the new texts are written together at the end, in one transaction.
+
 Deleting a meta summary (`SummaryService.removeSummary(part, unwind)`) with `unwind` restores the summary from
 `replacedSummary`: it is deserialized into a new `Summary`. Because that summary can be a meta summary with its own
 `replacedSummary`, unwinding nests. A meta summary takes over the `uuid` of the summary it replaces
@@ -404,17 +434,35 @@ Deleting a meta summary (`SummaryService.removeSummary(part, unwind)`) with `unw
 valid. Restoring a backup creates all summaries with new `uuid`s, so `ManuscriptServiceImpl.restoreMessages` rewrites
 the `nextSummaryUuid` of the restored meta summaries (also inside `replacedSummary`) to the new ones.
 
+### `AnchoredPassage`
+
+A passage of a part: the range of offsets and what finds it again (`quote`, `contextBefore`, `contextAfter`, below), and nothing else. It
+is the base of `Annotation` (migration V26: `SINGLE_TABLE`, table `annotations`, discriminator column `kind`: `EDITORIAL` for an `Annotation`,
+`PASSAGE` for an `AnchoredPassage`; `status` and `source` are nullable because a passage has none). A **passage of an extension** is a row
+of the base class itself: the column `passageKind` (the id of the `PassageKind` the extension registered, indexed) says whose it is, the extension keeps
+its data in `getAttributes()` (nothing to migrate) and makes and finds its passages with `PassageService` (`create`, `createFromQuote`,
+`listForPart`, `listForManuscript`, `reattach`, `remove`, `save`). A Java subclass is not possible for an extension (`persistence.xml` is the core's).
+`part` is `@CleanupReference(OWNED_BY)`; the root of the hierarchy is `AnchoredPassage`, so the cleanup and the trash name it (`EntityKey(AnchoredPassage.class, id)`).
+
+The anchoring is the same for every kind: `PassageService` does `shift` (an edit of the author), `relocate` (a part generated again),
+`moveToPrevious` (a merge), `copyForBranch` (`AnchoredPassage.copy()`, with the extended data), the soft and hard deletes and the backup (`kind` and
+`passageKind` are in the marshalled object; a backup without `kind` is an editorial note). `AnnotationService` has the same methods and calls
+`PassageService`. A passage that lost its text is `orphan()`ed (`Annotation` through its status, another kind through the extended attribute
+`orphaned`) and found again by its quote (`unorphan()`). The queries of the notes (`AnnotationRepository`) only return `Annotation`s, so **a passage is never
+in the badge, the annotations tab or the margin**; `PassageKinds` is the registry of the kinds (see [Anchored passages](plugins/anchored-passages.md)).
+
 ### `Annotation`
 
 A note of the author, a model, an agent or an extension about a passage of a part (see [Annotations](../user/books/annotations.md)).
 A real table (`annotations`, migration V19: the story view, the panel and the cleanup ask by part and status), the rest is
-extended content. `part` is `@CleanupReference(OWNED_BY)`: the part takes its annotations to the trash and the purge; the
+extended content; since V26 the table is shared with [`AnchoredPassage`](#anchoredpassage), which `Annotation` extends. `part` is
+`@CleanupReference(OWNED_BY)`: the part takes its annotations to the trash and the purge; the
 column `part_id` is also mapped as `partId` (read only), so code without a session (the commands, the UI lists) can tell the
 part without loading the lazy proxy.
 
 | Field | |
 |---|---|
-| `part`, `partId` | The part. Moved by a merge (`AnnotationService.moveToPrevious`) and copied by a branch (`copyForBranch`). |
+| `part`, `partId` | The part (of `AnchoredPassage`). Moved by a merge (`AnnotationService.moveToPrevious`) and copied by a branch (`copyForBranch`). |
 | `status` | `AnnotationStatus`: `OPEN`, `RESOLVED`, `DISMISSED`, `ORPHANED`. Only `OPEN` is marked in the text (`isMarked`); `ORPHANED` is set by the text (the author can not choose it, `setStatus` refuses it). |
 | `source` | `AnnotationSource`: `AUTHOR`, `AI`, `AGENT`, `PLUGIN`. |
 | `start`, `end` | Columns `startOffset`, `endOffset`: the passage as offsets in the **source** text of the part (`ChatMessage.response`, markdown included), `end` exclusive. Both null: a note about the whole part (`hasRange()` is false), also an orphaned one. |
@@ -461,7 +509,10 @@ uuids; the overload with a `Collection<UuidPair>` also reports `ANNOTATION` pair
 | `name`, `enabled` | Columns. A disabled lorebook contributes nothing. |
 | `agentic` | Column. The working copy of an agent; the lists of the UI use `LorebookService.findAllRegularForUser`, `findAllAgenticForUser` returns only these books, `findAllForUser` both kinds. |
 | `subbooks` | Other lorebooks included in this one (join table `lorebooks_lorebooks`). A lorebook can be a sub-lorebook of several lorebooks. |
-| `scanDepth` | JSON (`@ExtendedAttribute`). How many passes search the content of the entries that were used for the filters of the others, `0` = never (the default). Only the lorebook a book uses counts; `LorebookActivationService.scanDepth` clamps it to `MAX_SCAN_DEPTH`. Copied by clone, export and import. |
+| `shared` | Column (`V25`, default `false`). Other users see the lorebook (with its sub lorebooks) in *Import from other user*: `LorebookService.findAllShared` (not the user's own, not deleted, not `agentic`, owner not deleted; `LorebookRepository.findAllShared` / `findShared`) and import a copy with `importShared`, which re-reads the lorebook by uuid and checks the flag (the object the caller passes is only an id), marshals the tree **without the sub lorebooks that are not shared** (and what is below them), gives every lorebook of it a new uuid and imports it with the decision `CREATE` for all. `findUnsharedSubbooks` lists the sub lorebooks (however deep) that are not shared, `share(lorebook, withSubbooks)` shares the lorebook and optionally them; the *Share* check box of `LorebookView` asks first when there are some. `LorebookPreview.setSubbookFilter` keeps the preview in *Import from other user* to the shared ones. The lorebook itself is never reachable for another user by `findForUser`; the copy is not shared. Not copied by clone, export, import or backups. |
+| `description` | JSON (`@ExtendedAttribute`). One line shown under the header of the editor (`LorebookView`), the text next to the name in *Import from other user*. Copied by clone, export (`marshalLorebooks`, only when not blank), import and `importShared`. |
+| `scanDepth` | JSON (`@ExtendedAttribute`). How many passes search the content of the entries that were used for the filters of the others, `0` = never (the default). The lorebook a book uses decides it for its entries and its sub lorebooks, unless a sub lorebook has `ownScanDepth`; `LorebookActivationService.scanDepth` clamps it to `MAX_SCAN_DEPTH`. Copied by clone, export and import. |
+| `ownScanDepth` | JSON (`@ExtendedAttribute`). `Integer`, null = the scan depth of the lorebook the book uses (a negative value is stored as null): the depth for the entries of this lorebook while it is a sub lorebook, `0` = they are never found by the content of others. Copied by clone; exported (`ownScanDepth`, only when set) and imported. |
 | `cachedEntries` | Transient; filled by `LorebookService.fillEntries` for generation and the editor. |
 
 ### `LorebookEntry`
@@ -476,7 +527,10 @@ uuids; the overload with a `Collection<UuidPair>` also reports `ANNOTATION` pair
 | `insertionMode` | JSON | `IN_LORE_BLOCK` or `BEFORE_USER_PROMPT`. |
 | `activationContext`, `activationParts` | JSON | What the filter is looked for in: `ActivationContext.INSTRUCTIONS` (default, the rendered user prompt) or `INCLUDE_PARTS` (the user prompt and the newest `activationParts` parts of the story, at least 1; `partsInContext()` is 0 for `INSTRUCTIONS`). Copied by clone, export (`activationContext`, `activationParts`) and import; the Lorebook VCS plugin keeps both in its revisions. |
 | `fromMessage`, `toMessage` | JSON | `Integer`, null = no limit (a value below 1 is stored as null): the entry is used only for the turns that create a part with a number in the range, both included, numbered like the outline (the first part of the branch is 1). `hasMessageRange()`, `inMessageRange(position)`. The check comes before tags and filter and gives `Reason.OUT_OF_RANGE`. Copied by clone, export (`fromMessage`, `toMessage`) and import; the Lorebook VCS plugin keeps both in its revisions (older ones have none). |
+| `activationCondition` | JSON | `String`, null = no condition (blank is stored as null): a template rendered for the turn, the entry is used only when the result is true. Checked after the tags and before the filter, `Reason.CONDITION_FALSE` / `CONDITION_ERROR`; see [Generation pipeline](generation-pipeline.md). `hasActivationCondition()`. Copied by clone, export (`activationCondition`) and import; the Lorebook VCS plugin keeps it in its revisions (older ones have none). |
 | `preventRecursion` | JSON | The content of the entry is not searched for the filters of other entries (see `Lorebook.scanDepth`); it can still be used itself. Copied by clone, export and import. |
+| `recursionOnly` | JSON | The entry is never used because of the turn itself (`Reason.RECURSION_ONLY`), only when its filter is found in the content of an entry that was used. Copied by clone, export and import; the Lorebook VCS plugin keeps it in its revisions. |
+| `activationSummaries` | JSON | The filter is also looked for in the summaries of the story so far (`StoryText.summaries`). Copied by clone, export and import; the Lorebook VCS plugin keeps it in its revisions. |
 | `cachedTags`, `cachedNegativeTags` | transient | Filled by `fillEntries`: the entry's tags plus the tags of its lorebook, and the entry's negative tags. |
 
 How entries are activated is described in [Lorebooks](../user/lorebooks/entries.md) and
@@ -515,6 +569,7 @@ Both use joined inheritance: a base table with the common fields and one table p
 | `extensionId` | column (`ais_extension`, `ExtensionAI` only) | The extension that provides the AI, the id of its `ExtensionAIFactory`. The settings of the provider are in `getSettings()`, the object under that id in the dynamic attributes (`attributes_<id>`); secrets in it are encrypted with `InferenceServices.protectSecret`. See [Inference providers from a plugin](plugins/ai-providers.md). |
 | `additionalParameters` | JSON (`additionalParameters_*`) | Extra fields added to every request; they win over the protocol's settings. |
 | `requestTimeoutSeconds`, `maxRetries` | JSON | Wait for the API (read timeout) and retries of a request; `null` = the defaults of `OpenAICompatibleInferenceService` (300 s, 2 retries). |
+| `reasoningPassthrough` | JSON (`OpenAICompatible` only) | `ReasoningPassthrough` (`domain.collections`): `NONE` (the default, stored as nothing), `TOOL_CALLS` or `ALWAYS`. Whether the thinking of an answer goes back to the model as `reasoning_content` of its message: with `TOOL_CALLS` only while the tool calls of one answer go on, with `ALWAYS` also with earlier answers that have it. Read by `OpenAICompatibleInferenceService.toAssistantMessage`; cloned with the AI; the AI dialog shows it in the per type tab. |
 
 ### `Usage` (tokens used with an AI)
 
@@ -563,7 +618,7 @@ set, sent plus generated below the total (the total could never be reached).
 What happened to a book, day by day (design and plan: `TODO.USAGE.MD`; not to be confused with `Usage`, which counts what a *user*
 used of an *AI* and knows no book). Three `OwnedEntity`s of the owner of the book. **The book is a plain `bookUuid` column, not a
 reference**, and none of them has a `@CleanupReference` to it: the trash and the purge of the book leave the rows, the user clears
-them (`ManuscriptStatisticService.clearBook` / `clearAll`, a hard delete of all three tables). So `bookName` and `folderPath` are
+them (`ManuscriptStatisticService.clearBook` / `clearAll`, a hard delete of all three tables; see **Privacy** below for the switches and the retention). So `bookName` and `folderPath` are
 copied into every row, to show a book that is gone. The `day` is a `LocalDate` stored as ISO text (`LocalDateConverter`), the day
 of the server's time zone (`ManuscriptStatisticService.today()`; a test sets the clock of `ManuscriptStatisticServiceImpl`).
 
@@ -595,6 +650,8 @@ the author's and the agents' stretches together before the union), `timesByDay` 
 
 **Showing it.** `StatisticReportService.report(filter)` reads the three tables for a filter and returns one `StatisticReport`: the counts and the time of the range, the days that have anything (`DayLine`), the size on every day (`SizeSeries.build`: a day without a row has the size of the last row before it, the growth of a day is the sum of the books' changes, a book first seen as a `baseline` has no growth that day, a book born in the range grows from nothing, a day with another active leaf is marked), the growth of the range (`SizeSeries.perBook`, the same rules as `ManuscriptSizeService.growth`) and, for all the books, a line per book (`BookLine`: the counts of `sumByBook`, the book's own time of `timesByBook`, its growth; a book that only has time or a size row is named from its size rows or the book). The windows (`StatisticsView`, see [User interface](ui.md)) and the commands only format it. `StatisticRange` (`TODAY`, `YESTERDAY`, `LAST_7_DAYS`, `LAST_30_DAYS`, `THIS_MONTH`, `ALL_TIME`, `CUSTOM`) resolves the presets to two days against the date of the server.
 
+**Privacy.** The rows say when someone worked and keep the names of deleted books, so there are three controls, all in `StatisticsPolicyService` (see [Services](services.md)): the switch `statisticsRecording` and the retention `statisticsKeepMonths` of the installation (`AppSettings`, set by an administrator on the *Statistics* tab of the Admin page, `StatisticsPanel`) and the same two of the user (`UserSetting`, *Settings* → *General Settings*, `UserPart`). Both are `@ExtendedAttribute`s (no migration, `null` is on and keeps everything); recording is on only when both switches are, the shorter retention wins, and a user can never keep more than the administrator allows. The gate is checked by every writer (`ManuscriptStatisticService.count`, the size measuring and `ActivityTracker`); what was recorded stays until it is cleared or older than the retention. `prune` / `pruneAll` delete the days before the cutoff from the three tables (the last size row before the cutoff stays so the growth of the first kept day can be worked out), `StatisticsView` has *Clear the statistics of this book* / *Clear all statistics* and *Forget* for a deleted book (`clearBook` / `clearAll`), and the administrator can clear one user or everybody (`clearUser` / `clearEveryone`).
+
 **Rebuilt history.** `StatisticsBackfillMigration` (app 8 → 9, see [Database & migrations](database.md)) writes the rows of the books that existed before the statistics, for the days before the day of the upgrade, with `reconstructed` true; the live counting is the only writer from that day on, and a book that has rows is not touched. `StatisticsReconstruction` holds the rules (the live ones, `StatisticCounts.ofVersion`): the first version of a part is a part created and its words written or generated, a later one is an edit whose change of the word count is written / generated or removed; a copy, a saved version, an import and a repair count nothing; a version of an agent, and the merge of its work, go to the agents' side; a part that was deleted is a delete with its words removed on the day of its last change (not for the parts of a book in the trash); a part without versions is rebuilt from the part itself. The tokens are an estimate: the tokens of the model's versions and the prompt tokens the part saved, on the day of its last generation. The size of the book at the end of each day on which a part changed (a row only when it differs from the day before) is the sum of the newest versions of the parts that existed and were not deleted, whole and along the branch of today's active leaf. The time is not rebuilt: `UserSetting.statisticsSince` (an extended attribute, an ISO date) is the day it is recorded from, `StatisticReport.timeSince` carries it and the windows show a dash for the days before it and leave them out of the chart; a rebuilt day is marked `~` and the notes under the totals say how many there are (`DayLine.reconstructed`). A size row measured live after a rebuilt one is not a baseline: its growth is against the rebuilt size.
 
 **Days worked on, streaks and the goal.** Nothing of it is stored. `StatisticReportService.activity(bookUuid)` reads the author's side (counts per day, the `EDIT` stretches as a union per day, the last change of a count row or the end of the last stretch as the last activity) and returns a `WritingActivity`: the days that were *worked on*, which is `WritingActivity.worked` (words written, an edit, a part created or editing time; the agents' side, generated words alone and opening a book are not a day), the current and longest streak (today not yet worked on does not break the current one) and the shade of a day (`level`: by the goal when there is one, else by the busiest day shown; a day whose time was not recorded is only marked). The daily goal is `UserSetting.dailyGoalWords` / `dailyGoalMinutes` (extended attributes, no migration; the words the author wrote themselves and the minutes of editing, over all the books), read as a `WritingGoal` only for the request of all the books; a day reaches it when every goal that is set is reached, and `currentGoalStreak` / `longestGoalStreak` count those days.
@@ -606,6 +663,7 @@ the author's and the agents' stretches together before the union), `timesByDay` 
 | `name`, `protocolType` | columns | `ProtocolType.CHAT_COMPLETION`. |
 | `maxTokens`, `replyTokens` | columns | Optional limits lower than the provider's context and response limits; `null` = use the provider's, a larger value is capped to the provider's (`TokenLimits`). |
 | `temperature`, `topP`, `frequencyPenalty`, `presencePenalty` and their `...Enabled` flags | JSON | Sampling settings; a disabled setting is not sent. |
+| `shared` | column (`V25`, default `false`) | Other users see the protocol in *Import from other user* (`ProtocolService.findAllShared`, `ProtocolRepository.findAllShared` / `findShared`: not the user's own, not deleted, owner not deleted) and import a copy with `importShared` (checks the flag on the stored protocol, like `cloneProtocol` copies the settings; the copy is private). Not copied by `cloneProtocol`. |
 
 !!!warning Enum columns
 `AI.aiType` and `Protocol.protocolType` are stored as **ordinals**: add new values only at the end of `AIType` and
@@ -620,8 +678,8 @@ values are extended attributes.
 
 | Class | Owner | Contains |
 |---|---|---|
-| `AppSettings` | none (one per installation) | Data versions (`dbVersion`, `appVersion`), the database backup schedule (`backupScheduleEnabled`, `backupSchedule`, `backupKeep`, `lastScheduledBackup`, `backupScheduleChanged`), the help assistant (`helpAiUuid`, `helpAdminData` (may it read the data of the Admin page for an administrator), and the prompts `helpPromptAdmin` / `helpPromptUser`, null = the default; the uuid, not the id; written only by `HelpAssistantService.saveSettings`). The switches `userAisAllowed` and `helpEnabled` and the settings `helpApplyLimits` and `helpInteractions` are replaced by the permissions `CREATE_AI` and `HELPER` with the attributes `helperApplyLimits` and `helperInteractions` (V15 / app version 5); the fields stay, deprecated, only for `PermissionsMigration`. |
-| `UserSetting` | each user | Default model and protocol (ids, `@CleanupReference(WEAK)`), default prompts (`masterTemplate`, `defaultPov`, `defaultTense`, `defaultStyle`, `defaultUserPrompt`, `defaultSummaryPrompt`, `defaultMetaSummaryPrompt`, `defaultRedraftSystemPrompt`, `defaultRedraftPrompt`, `defaultAnnotateSystemPrompt`, `defaultAnnotatePrompt`, `defaultImpersonatePrompt`), default book backup strategy, how many parts the story and the viewer load at a time (`storyPartsLimit`, empty loads all), the code of the language of the UI (`language`, see [Localization](architecture.md#localization)), where the user left the workspace (`workspaceState`, a JSON object written by the workspace autosave, see [User interface](ui.md#remembering-where-the-user-was)), the favorite books (`favoriteBooks`, uuids), the default arrangement of the story tabs (`defaultStoryLayout`) and whether the help assistant may look at the books (`helpAssistantBooks`, false by default). |
+| `AppSettings` | none (one per installation) | Data versions (`dbVersion`, `appVersion`), the database backup schedule (`backupScheduleEnabled`, `backupSchedule`, `backupKeep`, `lastScheduledBackup`, `backupScheduleChanged`), the writing statistics (`statisticsRecording`, `statisticsKeepMonths`, the instance side of the privacy controls, see [Writing statistics](#writing-statistics-manuscriptstatistic-activityinterval-manuscriptsize); extended attributes), the help assistant (`helpAiUuid`, `helpAdminData` (may it read the data of the Admin page for an administrator), and the prompts `helpPromptAdmin` / `helpPromptUser`, null = the default; the uuid, not the id; written only by `HelpAssistantService.saveSettings`). The switches `userAisAllowed` and `helpEnabled` and the settings `helpApplyLimits` and `helpInteractions` are replaced by the permissions `CREATE_AI` and `HELPER` with the attributes `helperApplyLimits` and `helperInteractions` (V15 / app version 5); the fields stay, deprecated, only for `PermissionsMigration`. |
+| `UserSetting` | each user | Default model and protocol (ids, `@CleanupReference(WEAK)`), default prompts (`masterTemplate`, `defaultPov`, `defaultTense`, `defaultStyle`, `defaultUserPrompt`, `defaultSummaryPrompt`, `defaultMetaSummaryPrompt`, `defaultRedraftSystemPrompt`, `defaultRedraftPrompt`, `defaultAnnotateSystemPrompt`, `defaultAnnotatePrompt`, `defaultAnnotateInstructions`, `defaultImpersonatePrompt`), default book backup strategy, how many parts the story and the viewer load at a time (`storyPartsLimit`, empty loads all), the code of the language of the UI (`language`, see [Localization](architecture.md#localization)), where the user left the workspace (`workspaceState`, a JSON object written by the workspace autosave, see [User interface](ui.md#remembering-where-the-user-was)), the favorite books (`favoriteBooks`, uuids), the default arrangement of the story tabs (`defaultStoryLayout`) whether the help assistant may look at the books (`helpAssistantBooks`, false by default) and the user's side of the statistics privacy controls (`statisticsRecording`, `statisticsKeepMonths`, extended attributes). |
 
 `SettingService.getOrCreate(UserSetting.class)` returns the current user's settings, creating them on first use;
 `getOrCreateApp(AppSettings.class)` the installation's. A function that only reads uses `findOrBlank(cls, user)` instead (a missing setting is a blank one that is not stored, so a read-only transaction does not write: creating the row there fails with `SQLITE_BUSY` when another connection wrote in between; `find` returns `null`). Extensions keep their settings in the `attributes` of
@@ -723,15 +781,17 @@ for good and cloning an agent take care of them, see [Files of an agent](agents.
 
 ## Resources
 
-`Resource` (`resources`, an `OwnedEntity`) is an uploaded file; today the files are the images attached to parts
-(`ChatMessage.getImages()`, see [Extended attributes](#extendableentity---extended-attributes)).
+`Resource` (`resources`, an `OwnedEntity`) is an uploaded file: the images attached to parts
+(`ChatMessage.getImages()`, see [Extended attributes](#extendableentity---extended-attributes)) and the files that extensions keep with a part (the audio of the Audiobook, linked to the part). A backup
+carries the uuids of both and the export packs the files, see [Resources in backups](services.md#resources-in-backups).
 
 | Field | |
 |---|---|
 | `path` | File name in the user's `images` folder (images) or `resources` folder (other files) of the data folder. The files are stored by content: uploading the same bytes again reuses the file. |
 | `hash` | Hash of the content; with the owner it is the key for that deduplication (`ix_resources_user_hash`). |
 | `mimeType`, `originalName` | Detected content type and the name the file was uploaded with. |
-| `objectId`, `clazz` | Loose link to the object that uses the file (class name and id, like `TagRelation`). Bookkeeping for the Resources tab only - not a cleanup reference, the object may be gone. |
+| `objectId`, `clazz` | Loose link to the object that uses the file (class name and id, like `TagRelation`). Bookkeeping for the Resources tab (which groups the files by it) - not a cleanup reference, the object may be gone. |
+| `servedFrom` | Not stored. Set by `ResourceService` on a file it gives to a reader of somebody else's published book: the owner, whose folder holds the file (`findImageForReader`, `readForReader`). |
 
 Deleting a resource is a soft delete like any other; files are never deleted from disk.
 

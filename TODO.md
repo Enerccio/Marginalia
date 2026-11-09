@@ -181,24 +181,25 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
 20. ✅ **Lorebook improvements.**
     - ✅ Edit lorebook-level tags in `LorebookView` (generation reads them in `fillEntries`, but there's no UI).
     - Bulk edit: ✅ *Mass edit* (`LorebookMassEditDialog`: all entries of the lorebook and its subbooks in one table, move
-      to another lorebook) and *Tag entries* (`MultiTagDialog`). ✅ entry search (name, content, note, filter) and bulk delete (selection column, *Delete selected*; desktop) in the entry grid. Not done: a filter
-      by tag or by status, bulk delete in the mass edit and on the phone.
+      to another lorebook) and *Tag entries* (`MultiTagDialog`). ✅ entry search (name, content, note, filter), a filter by tag and by status (`LorebookEntryFilter`, desktop and phone) and bulk delete
+      (selection column, *Delete selected*; the mass edit has *Delete checked*; the phone has *Select entries* in the **⋮** menu) in the entry grid.
     - ✅ SillyTavern **export** (`LorebookService.exportToSillytavern`: sub lorebooks merged, filters as keys, tags as the character filter).
     - ✅ Recursive activation / scan depth (`Lorebook.scanDepth`, 0-5, the raw content of used entries is searched for the
       filters of the others; `LorebookEntry.preventRecursion`) and ✅ activation preview (`LorebookActivationPreviewDialog`,
-      `LorebookActivationService.evaluateAll`). Not done: a "only by recursion" entry flag, the flags in the agent commands
-      (`/create-lore-entry`), a scan depth per lorebook of the tree.
+      `LorebookActivationService.evaluateAll`). ✅ `LorebookEntry.recursionOnly` (`Reason.RECURSION_ONLY`) and a scan depth per lorebook of the tree
+      (`Lorebook.ownScanDepth`, empty = the root's). The flags are in the agent commands (`/set-lore-entry-activation`, `/get-lore-entry`).
     - ✅ Activation context (`LorebookEntry.activationContext`: `INSTRUCTIONS`, the default, or `INCLUDE_PARTS` with
       `activationParts` ≥ 1): the filter is also looked for in the newest N parts of the branch; the generation step reads
-      only as many parts as the enabled entries need (`partsNeeded`, `recentParts`). Not done: the context in the agent
-      commands (`/create-lore-entry`, `/update-lore-entry`), searching summaries or the notes of the parts, a context in the
-      mass edit.
+      only as many parts as the enabled entries need (`partsNeeded`, `recentParts`). Agent commands: `/set-lore-entry-activation`. ✅ The context and the parts are columns of the mass edit, and `LorebookEntry.activationSummaries`
+      searches the summaries in use (`LorebookActivationService.storyText`). Not done: searching the notes of the parts (a part has no note of
+      its own; the annotations are for the author and never sent).
     - ✅ Range of parts (`LorebookEntry.fromMessage` / `toMessage`, the numbers of the outline, both included): the entry is
       used only for the turns that create a part inside it (`Reason.OUT_OF_RANGE`, `LorebookActivationService.turnPosition`).
-      Not done: the range in the agent commands (`/create-lore-entry`, `/update-lore-entry`) and in the mass edit.
-    - ✅ A read only *Lorebook* tab in the story editor (desktop) shows the lorebook of the story without leaving it:
-      entries with their activation text and Markdown content, optionally with the sub lorebooks (`LorebookPreview`).
-      Not done: editing from there, a phone twin, search in it.
+      Agent commands: `/set-lore-entry-activation`; the range is in the mass edit.
+    - ✅ The *Lorebook* tab in the story editor (desktop, and the drawer of the phone story) shows the lorebook of the story without leaving it:
+      entries with their activation text and Markdown content, optionally with the sub lorebooks (`LorebookPreview`), with a search box and
+      a pen that edits the text of an entry (`LorebookEntryEditDialog`: name, enabled, filter, content, note). Not done: the tags, the order and the
+      activation settings from there (the book's *Lorebook* tab has them).
 
 21. **Character / persona management.** POV and present characters are free text per turn. A character card
     entity (name, description, avatar via the `Resource` entity (`ResourceService.uploadImage`), linked lorebook entries) with
@@ -214,9 +215,12 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
 
 22. **Sharing between users.** Everything is private except inference providers: ✅ since 1.2.0 an administrator can
     share a provider with all users (read-only for them, the key stays hidden), with per-user token limits and usage
-    numbers (`AIService`, `AILimitService`, `UsageService`, migrations `V10`-`V12`). Still open: read-only sharing of
-    lorebooks/protocols, or an admin-managed "global" library, plus public read-only links for the Viewer (after fixing
-    item 1).
+    numbers (`AIService`, `AILimitService`, `UsageService`, migrations `V10`-`V12`). ✅ Since 1.7.0 lorebooks and protocols have a
+    *Share with other users* flag (migration `V25`); other users read them in *Import from other user* (name, author, description,
+    the entries or settings as text) and import a private copy (`LorebookService.importShared`, `ProtocolService.importShared`,
+    `SharedImportDialog`; protocols on the phone too). Not done: the phone lorebook view (no check box, no import, no description line), sharing with chosen users
+    only, updating a copy when the original changes, an admin-managed "global" library, plus public read-only links for the Viewer
+    (after fixing item 1).
 
 23. ✅ **Localization.** Per-user UI language: `Localization` (`LocalizationImpl`) holds one `LocalizationBundle`
     per `Language` and reads the language of the session from `SessionPoint`; it is set from `UserSetting.language`
@@ -253,7 +257,7 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
     dialog (`OsgiService.createLogger`, `ExtensionLogDialog`). A red bar at the top of the workspace tells everybody (the
     administrator which ones, with a tooltip) that installed extensions are invalid and not running
     (`InvalidExtensionsWarning`, `OsgiService.getInvalidExtensions`); it is built at login, so it does not appear for an
-    extension that turns invalid while the page is open, and it does not link to *Admin → Extensions* yet. Still missing:
+    extension that turns invalid while the page is open; for an administrator a click opens *Admin → Extensions*. Still missing:
     show bundle errors and dependencies. The plugin API is not frozen in 1.0.
     ✅ Extensions can add settings that books and folders inherit (`InheritedSettingRegistry`: a line, a text area or a choice;
     shown as *Extension Settings* in the *Prompts* tab and in the folder window, resolved book -> folders -> user settings -> default;
@@ -264,9 +268,12 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
     - ✅ Search and replace in the summaries (*Search and Replace*, `ManuscriptSearchReplaceDialog` with `summariesOnly`,
       `ManuscriptReplaceService.Options.summariesOnly`): the summaries only, also the ones inside a meta summary, the hashes
       of the meta summaries are worked out again (and, with *Revalidate all summaries*, those of every summary of the book).
-    - Not done 🧩: export and import of the summaries of a branch (e.g. to edit them in an external editor or move them to
-      another book). Editing a summary a meta summary stands in for would invalidate the meta summary (its text is part of
-      the hash); an import must update the hashes of the meta summaries it touches (as the replace does).
+    - ✅ Export and import of the summaries of a branch (*Export Summaries* downloads them as a Markdown file with a
+      `<!-- summary part="uuid" order="n" -->` line before each text, *Import Summaries* shows what would change and then
+      writes the texts; `SummaryService.exportSummaries` / `analyzeImport` / `applyImport`, `utils.SummaryTransfer`,
+      `SummariesImportDialog`). Parts are matched by uuid, optionally by position (a copy has other uuids). Only the
+      summaries in use are exported; the ones a meta summary stands in for are part of its hash and are never changed, so
+      no hash has to be worked out.
 
 ---
 
@@ -281,9 +288,7 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
     (`StatisticsBackfillMigration`, shown marked `~`; the time cannot be rebuilt). *Statistics* in the settings menu of the story and in the book list (desktop
     and phone, `StatisticsDialog`, `GlobalStatisticsDialog` and the phone twins): ranges, All / Me / Agents, a grid by day, charts, a list and a chart by book,
     a *Calendar* tab with streaks and the daily goals (words written, minutes of editing; set in the user settings). Commands `get-book-statistics` and
-    `get-statistics` (agents may use them). Plugins that ask a model about a book open `UsageContext`. Not done: the privacy side (the user's own *Clear
-    statistics* / *Forget* a book, an administrator action to clear the history of a user or of everybody, keep only the last N months, a switch to turn
-    recording off per user and per instance, losing the name of a purged book in the rows); the per-book backup does not carry the statistics (the database
+    `get-statistics` (agents may use them). Plugins that ask a model about a book open `UsageContext`. The privacy side is done (*Clear statistics* and *Forget* for the user, a switch to turn recording off and a limit of months to keep per user and per instance, an administrator action to clear a user or everybody; `StatisticsPolicyService`). Not done: losing the name of a purged book in the rows; the per-book backup does not carry the statistics (the database
     backup does); compacting `activity_intervals` if the *All time* union gets slow; a goal per book; the price of the tokens (see 65).
 30. ✅ **Undo for edits** — done in 1.6.0 as the *version history of a part* (`MessageRevision`, migration `V22`; *History (n)* in the part menu, desktop and
     phone): every text of a part is kept with who wrote it (model with reasoning, author, mass action, agent, extension, merge, restore), versions can be compared
@@ -309,8 +314,9 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
     The story twins share their helpers in `ui.dialogs.story` (generation listener, cards registry, new turn form,
     backup...); the other twins (tree, info, prompt, backup, lorebook parts) still duplicate the desktop classes: move
     shared code out when either is touched next.
-33. **Theming** — ✅ light/dark toggle per user (`ThemeSwitch` next to the language selector, `UserSetting.themeMode`, Vaadin
-    `Page.setColorScheme`). Still open: editor font/size settings; open pages of the user's other sessions change on reload only.
+33. ✅ **Theming** — light/dark toggle per user (`ThemeSwitch` next to the language selector, `UserSetting.themeMode`, Vaadin
+    `Page.setColorScheme`). Font and size of the text are settings of the text styles (74, the *Styles* tab of the settings).
+    Open pages of the user's other sessions change on reload only.
 34. **Import from other tools** — NovelAI/KoboldAI stories still to do. 🧩
     - ✅ SillyTavern chats → book (*Import from SillyTavern* in the book list, `SillyTavernImportService`, `utils.SillyTavernChats`):
       several `.jsonl` files are joined into one tree by their common beginning (branches, checkpoints), swipes become sibling
@@ -323,12 +329,13 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
       with a click). Works on a phone since 1.6.0 (a tab in the story drawer, the range chosen with two taps). Not done: editing the turn details in the tab, the converter wand as a command for the
       command bar and agents, running the wand on a long chat in chunks automatically, an automated test of the tab (only the
       logic has unit tests, the UI was checked by hand).
-35. **Image generation / illustrations** for scenes. 🧩 Started: the `image-generator` plugin (ComfyUI and OpenAI images API, hooks around the images for a single GPU; not done there: a generic HTTP template backend for other hosted services, manga tags as the prompt source). Attaching images by hand is done, see
-    *Images* in the part menu - generation, sending images to vision models and showing them to the readers of a
-    published book in the Viewer are not; the Viewer deliberately shows them to the owner only). Files of deleted
+35. **Image generation / illustrations** for scenes. 🧩 ✅ Partly: the `image-generator` plugin makes an image for a part (the model writes the prompt, ComfyUI and OpenAI images API, hooks around the images for a single GPU, reroll, accept as an image of the part; not done there: a generic HTTP template backend for other hosted services, manga tags as the prompt source; the gate that shares one GPU between users is shared by name across extensions (`SharedGate`, `GpuGate.forBackend`), so the Image Generator and the Audiobook on one GPU wait for each other; the address guard resolves the host twice, protected only by the JVM's lookup cache). Attaching images by hand is done, see
+    *Images* in the part menu; agents can look at images (`view_image`). Not done: sending the images of the story to vision models in a
+    generation, and showing them to the readers of a
+    published book in the Viewer (the Viewer deliberately shows them to the owner only). Files of deleted
     resources and of replaced content stay in the data folder until the administrator removes them in *Admin → Resource Files*
     (garbage collection: scan, ZIP download, delete; done). 🧩
-36. **Text-to-speech read-aloud** in the Viewer. 🧩
+36. **Text-to-speech read-aloud** in the Viewer. 🧩 ✅ Partly: the `tts-reader` plugin reads with the browser's speech synthesis (play / pause / stop, voice, speed and pitch in the browser). Missing: a server side engine (an OpenAI-compatible `/audio/speech`, Kokoro, Piper) with cached audio, highlighting the sentence that is read. The server side one with several voices is the `audiobook` plugin (Chatterbox through a TTS server, cast, studio, player, export; sound effects and other engines not done, see its `TODO.md`).
 37. **Health and metrics endpoint.** ✅ `GET /health` (`HealthServlet`, no login): 200 when the context runs and the database
     answers, else 503; the Dockerfile `HEALTHCHECK` uses it. ✅ Tokens per provider and user are counted since 1.2.0 (`Usage`,
     Inference Providers tab and *Usage per user* in the administration). Tokens per book and day are counted
@@ -372,21 +379,33 @@ Most are 🧩 plugin-sized; the ones that need a core hook say so.
     with one slot): choose another model for it. Not done: a continuity preset for the instructions (free text now), a run after a
     generation made by a command or an agent, a check of the windows on a phone. Not verified: whether the annotate context includes
     the summaries.
-42. **Time-scoped lorebook entries.** An entry valid from part X to part Y of a branch (the character is alive until
-    chapter 12, the secret is public after the reveal), or with variants per story phase. Core: an activation
-    condition that reads the branch position. Avoids the usual "disable the entry by hand and forget".
-43. **Knowledge-aware lore ("who knows this").** Entries tagged with the characters that know them; the entry fires
-    only when the POV character is among them (the turn already has POV and present characters). Prevents the narrator
-    leaking secrets the POV character cannot know.
-44. 🧩 **Beat sheet / outline mode.** The author writes the upcoming beats as a list; each turn gets the next open beat
-    as an instruction, and a side query ticks it off when the generated part covered it (or flags drift). Beats are
-    reorderable, and the unfinished ones survive branching.
+42. ✅ **Time-scoped lorebook entries.** Done: a range of parts per entry (*From message* / *To message*, the numbers of the outline,
+    both included; `Reason.OUT_OF_RANGE`) and, for anything else that depends on the turn or the story so far, the **condition** of an
+    entry (a template that has to give a true value, `activationCondition`, `CONDITION_FALSE` / `CONDITION_ERROR`; it reads the POV, the
+    present characters, the instructions and the variables, so "the secret is public after the reveal" is a variable set by the reveal
+    part and read by `{{getvar::revealed}}`). Not done: variants of one entry per story phase (use several entries with ranges or conditions).
+43. ✅ **Knowledge-aware lore ("who knows this").** Done without a core change to the activation: the **Knowledge Tracker** plugin puts
+    what each tracked character knows and does not know into the prompt (closed world), and an entry can be gated by the POV or the
+    present characters with a condition, e.g. `{{eval::povCharacter == "Fiora" or presentCharacters has "Fiora"}}` (the `{{eval}}` macro,
+    comparisons `== != ~= contains has`, `and` / `or` / `not`). Not done: a list of knowers on the entry itself (the condition is the
+    place for it) and the separators of the characters set per book, which the Knowledge Tracker reads (`has` splits at `,` `;` and line breaks).
+44. ✅ Partly: **Beat sheet / outline mode.** Done in core by the **Planner** tab of the story editor (`PlannerService`, `PlannedScene`, stored
+    in the book's `plan` attribute, so backups and copies carry it): the scenes the author plans, reorderable, each with the turn details
+    (scene setting, POV, present characters, instructions) and a *written* flag; a click puts a scene into the new turn form. Commands
+    `/get-planned-scenes`, `/add-planned-scene`, `/update-planned-scene`, `/set-planned-scene-done`, `/move-planned-scene` and
+    `/delete-planned-scene` let agents, the command bar and the plot wizard of the Arc Outline plugin use it; on the phone it is in the
+    drawer. Not done: the flag is ticked by hand ("nothing checks it for you"), the next open scene is not fed to a turn by itself, no side
+    query ticks a scene off when the generated part covered it or flags drift, and the planner command is not `availableInMacros`, so a
+    template cannot pull the next open scene yet.
 
 ### Prose quality
 
-45. **Repetition and cliché radar.** Detect repeated n-grams across the last N parts of the branch (and a user
-    blacklist: "shivers down her spine", "a mix of X and Y") and highlight them in the editor. Optionally put the
-    offenders into an "avoid" block of the next prompt, or regenerate once automatically. Per-book and per-user lists.
+45. ✅ **Repetition and cliché radar.** Done by the annotations (54, like 41) instead of a detector: *Annotate with AI*, the batch over a range
+    and the *Automatic annotation* after every completed generation (`AutoAnnotate`) take an instruction such as "flag repeated phrases and
+    clichés (shivers down her spine, a mix of X and Y)" and a list of your own offenders can be written into it; the findings are wavy-underlined
+    notes in the editor, and *Redraft* (also automatic) rewrites the part to address the accepted ones. Not done, deliberately left to the model:
+    a deterministic n-gram detector across the last N parts, a stored per-book / per-user blacklist, and an "avoid" block put into the next
+    prompt (`RepeatDetector` is only for agents that loop).
 46. 🧩 **Swipe feedback loop.** Record why a swipe was rejected (one-click tags: too long, out of character, purple,
     repeats) and which one was kept. The tags build the "avoid" block of the next prompt, and the accept rate per
     protocol/template/model (sampler values are on the protocol) answers "is this prompt actually better".
@@ -399,11 +418,11 @@ Most are 🧩 plugin-sized; the ones that need a core hook say so.
     lore around it (not only the paragraph), writes the replacement alone, and the notes whose passage overlaps the
     selection can be given to it. Not done: the `/redraft-part` command and the agent tools take no passage, and the
     menu ☰ of the part does not offer it (it loses the selection). The right click menu was verified in real browsers.
-49. **Authorship provenance.** ✅ Partly (1.2.0): `ChatMessage.originalResponse` keeps what the model wrote and *Highlight
-    Generated Text* shows a word diff of a part against it (desktop story tab only). Since 1.6.0 the version history of a part also records who wrote each text (model, author, agent...). Open: the ratio per book, the
-    phone and exports. Goal: track which spans of a part are human (typed or edited) and which are model output; show
-    the ratio per book, optionally colour the text, and offer it as an export option (some publishers and
-    contests ask for it). `ChatMessage.edited` is a single flag today.
+49. ✅ **Authorship provenance.** Done (1.7.0): which words of a part a model wrote and which the author did is worked out from the version history
+    (`MessageRevisionService.authorship`, the versions are laid over each other like a merge, `AuthorshipTracker`), not from a flag: `ChatMessage.edited`
+    is gone (V27). Used by *Highlight Generated Text* (desktop and phone), the ratio of the active branch in the Info tab (**Calculate**) and the
+    check box *Include authorship statement* of the export (a template, ends the file with the words written / generated and the models). Not done: colouring
+    the generated text in the exported file, the ratio of the whole book (all branches) and per chapter, a stored (cached) result for very long books.
 
 ### Story tree and editing
 
@@ -415,9 +434,11 @@ Most are 🧩 plugin-sized; the ones that need a core hook say so.
 52. **Side-by-side model comparison.** Fan the same turn out to 2-3 providers/protocols in parallel and show the
     results as swipes in columns; the pick is recorded (feeds 46). Needs the generation engine to run several children
     of one prompt without re-running the lorebook step.
-53. 🧩 **Autopilot batch.** "Write the next N parts with these instructions" unattended, with stop conditions (word
-    or token budget, a side-query judge says the scene ended, an error), written to a new branch so the main one stays
-    clean; the result is reviewed and kept or pruned. Needs terminal events for failed/cancelled generations (24).
+53. ✅ Partly: **Autopilot batch.** Done by the agents (`manual/user/agents.md`): the *Drafter* preset writes the next turns with `/next` and
+    `/swipe` unattended in a **working copy** of the book, with limits (rounds, token budget, context cap), loop detection, pause / resume,
+    and a review of the changes before they are merged into the book (the unwanted ones are left out); the terminal events of 24 exist.
+    Not done: it is a book copy and a review, not a new branch of the book; no judge ("the scene ended") and no word-count stop condition of
+    its own; a plain "write N parts with these instructions" dialog without an agent.
 54. ✅ **Annotations (notes anchored to a passage of a part).** Done in 1.5.0 (see the CHANGELOG), also the *margin notes* mode and the annotations
     of agents (review, sync, handles); open: aligning each margin note with the line of its passage (client-side layout, now the notes are stacked in text
     order), (*Annotate selection* has a shortcut, `a`). The marks, the popover, the right click menu, the margin and the selection were verified in
@@ -545,17 +566,18 @@ Most are 🧩 plugin-sized; the ones that need a core hook say so.
     story parts that fell out of context and have no summary) through an OpenAI-compatible `/embeddings` endpoint and
     activate by similarity next to the existing modes; show the score in the activation preview (20). Storage: a blob
     column or `sqlite-vec`; re-embed on change (hash of the content, like the meta summaries).
-57. **Lore usage report.** Per entry: how often it fired in this book, last activation, tokens it cost, and the entries
+57. ✅ **Lore usage report.** Done in 1.7.0: *Lore Usage* in the settings menu of the story (the report of the book over the active branch or all branches and a range of part numbers, with a status filter) and in the *Inspect* part menu (the entries of one part); the generation records the used entries with the prompt of the part (`MessagePrompt.loreUsage`, migration V24). Not done: a command for agents, a link from a row to the entry, why an entry that never fires does not (the activation preview answers that), the tokens of the instruction block. Original idea: Per entry: how often it fired in this book, last activation, tokens it cost, and the entries
     that never fire or always fire (dead weight). Needs the skip reasons from 24. Turns lorebook pruning from guesswork
     into a list.
 58. 🧩 **Lore suggestions from the story.** Scan the branch for proper nouns and recurring noun phrases with no entry and
     propose stubs; a click hands one to the Lore Generator. Also the reverse: entries whose name never appears in the
     book.
 59. 🧩 **Relationship graph.** Draw the lorebook as a graph (entries as nodes, mentions/links as edges, tag colours) to
-    see orphans and hubs; clicking opens the entry.
+    see orphans and hubs; clicking opens the entry. The widget exists (`GraphView`, Cytoscape, used by the relationship map of the
+    Character Tracker); the lorebook graph itself is not made.
 60. 🧩 **Markdown vault mirror.** Two-way sync of a lorebook (and optionally chapters) with a folder of Markdown files with
     front matter (name, tags, mode), so it can live in Obsidian or git. Complements `lorebookvcs`, which versions inside
-    the database.
+    the database. The one-way part exists: the Obsidian vault export (67); the two-way sync is not done.
 
 ### Prompt engineering
 
@@ -566,7 +588,9 @@ Most are 🧩 plugin-sized; the ones that need a core hook say so.
     identical prefix) and why: the active lore set changed, the context window slid, a summary or a note changed.
     ✅ Partly (1.6.0): *Compare Prompt* in the part menu (`PromptComparisonDialog`, `PromptComparison`) diffs the stored prompt of a
     part with an earlier part or a swipe, marks the first differing message and says why (system message, story shifted, edited
-    part, last message only). Open: the dry run (building the next payload without sending it), a word diff inside the message
+    part, last message only). ✅ Partly (1.7.0): the **Prompt Inspector** plugin shows the final payload of a generation and asks before it is
+    sent (*No* stops the generation, `GenerationControllerEvent.askQuestion`); it is not a dry run, the pipeline runs up to the request (a
+    part is started and removed again; no request to a model is made). Open: the dry run (building the next payload without sending it), a word diff inside the message
     (now both texts are shown from the first difference), naming which block of the system message changed (lore / summaries /
     notes; the system message is one text), a `/compare-prompts` command, and the model, tools and sampler (not in the stored prompt).
 62. ~~**Cache-friendly prompt ordering.**~~ Scratched, not planned. A prefix cache miss is inherent to lore chosen per
@@ -598,8 +622,10 @@ Most are 🧩 plugin-sized; the ones that need a core hook say so.
 
 ### Operations and integration
 
-70. 🧩 **Notifications when a generation ends.** Slow local models take minutes: webhook (ntfy, Discord, Pushover) and, in
-    the desktop app, a tray notification when a generation finishes, fails or a batch (53) is done.
+70. ✅ Partly: **Notifications when a generation ends.** Slow local models take minutes. Done: browser desktop notifications when a
+    run ends (generation, annotate, redraft, impersonate, summaries, help assistant, plugin runs; *Notifications* tab of the settings,
+    `NotificationService`, plugins register sources) and a webhook (ntfy, Gotify, Discord) for agents only (`AgentWebhookService`).
+    Not done: the same webhook for generations and other runs, a tray notification in the desktop app (`DesktopLauncher`).
 71. 🧩 **MCP server.** Expose lore search, summaries and the active branch read-only (write behind a per-user token) to
     other tools such as an editor agent or a coding assistant, without adding a REST API to the core.
 72. **Off-site backup target.** Scheduled database backups can only stay in the data folder. Add an upload step (S3,
@@ -650,9 +676,20 @@ Most are 🧩 plugin-sized; the ones that need a core hook say so.
     resolved when the menu is built, `children` / `positionOf` to find a place) and separators (`separatorAfter`); the settings menu is
     grouped into Appearance, Analysis, Import & export, Cleanup and Layout, the menu of a part into Annotations, Summary, Inspect and
     Branch & merge. Left over:
-    - **The header of the book list.** `ManuscriptPart` has nine fixed controls in one row (Search, Organise, Tag books,
-      Statistics, the Mass changes menu, two import icons, New folder, Add book) that wraps in a narrow panel. Fold the two
-      imports into an *Import* menu and Organise, Tag books and Statistics into the Mass changes menu (renamed *Manage*);
-      Search, New folder and Add book stay buttons.
+    - ✅ **The header of the book list.** `ManuscriptPart` has *Search*, the *Manage* menu (Organise, Tag books, Statistics, and
+      Mass changes below a line), the *Import* menu (from archive, from SillyTavern), *New folder* and *Add book*. The phone list
+      (`PhoneManuscriptPart`) keeps its icon buttons (it has no Organise or Mass changes).
     - **Screenshots.** `history-part-menu.png`, `history-menu.png` and `story-settings-menu.png` show the menus before the grouping.
-    - **A look in a browser.** The grouped menus, the lines and the nested *Change Styles For Text* are tested without a browser only.
+      Deliberately left for the pre-release screenshot update (the screenshots are retaken in one go before a release, then
+      `tools/retype_build.sh`).
+    - ✅ **A look in a browser.** The grouped menus, the lines, the nested *Change Styles For Text* and the *Manage* / *Import* menus of
+      the book list were checked in Chrome, Firefox and Safari.
+76. **Plugin data off the entity: a 1-N "resource" for the extended content.** Now a plugin keeps its data in `ExtendableEntity.attributes`, which is a part
+    of the gzipped `extendedContent` column of the entity: every load of a `Manuscript` (lists, the workspace, each generation, each `find` of a command)
+    reads and parses the data of every plugin, and saving one note rewrites the row that a generation writes too (`activeLeaf`). Idea: an entity that holds
+    only `extendedContent` (+ `attributes`), keyed by owner type, owner uuid and a plugin key, mapped to any entity and loaded only when asked, one per
+    plugin or per item (a page of the Story Notes). Before it can replace the attributes it has to be part of everything that now works because the data is
+    inside the entity: backups and exports, copies of a book, the working copy an agent runs its commands on, soft delete and `@CleanupReference`, ownership,
+    `@PublicAPI` for plugins and a Flyway migration. `StoryNotesService.read` / `update` are the only place the Story Notes touch the storage, so it can move
+    there first. Measure before: the size of the plugin data of the biggest books and the time of a `Manuscript` load.
+

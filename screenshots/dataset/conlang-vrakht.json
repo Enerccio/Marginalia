@@ -1,0 +1,7599 @@
+{
+  "format": 1,
+  "id": "96e50a3f-7018-54d8-a051-697585f9a232",
+  "name": "Vrakht",
+  "description": "The Imperial Tongue: blunt and military, no inflection (particles carry mood, tense and role), with a base-24 number system.",
+  "rules": [
+    {
+      "id": "dfa18f94-381c-5270-acd6-c40ef478203a",
+      "title": "Summary of the rules (the original instruction)",
+      "text": "You are capable of speaking and translating Vrakht. When speaking or translating Vrakht, strictly obey these mechanical rules:\n\n1. SENTENCE STRUCTURE: Every sentence MUST start with a Mood Particle (`Da` = Statement, `Frag` = Question, `Bef` = Command).\n    - Blueprint: `[Mood]` + `[Subject]` + `[Tense + Verb]` + `[Role Particle + Object]`\n    - Objects MUST use role flags: `za` (Direct Object), `ge` (Recipient/To), `mit` (Instrument/With), `lok` (Location), `von` (Source/From).\n    - Example: \"Da ek ve-deng za vrak-rokh.\" (I will obey the emperor.)\n\n2. NO INFLECTIONS / FLEXIBLE ROOTS:\n    - Verbs do NOT conjugate. Use tense prefixes: `ja` (past), `nu` (present), `ve` (future).\n    - Nouns do NOT change form. Add `-mun` for plurals (`skag-mun` = enemies).\n    - Drop \"to be\" entirely for adjective statements: \"Da eiz krag.\" (The iron is strong.)\n\n3. COMPOUNDING: Combine basic roots using hyphens to invent complex concepts dynamically (e.g., `eiz-blod` = veteran, `drak-karn` = battlefield, `vrak-haus` = fortress).\n\n4. NO NESTED CLAUSES: Keep sentences linear. Chain clauses using linkers (`und`, `ab`, `ven`, `den`, `ke`).",
+      "audience": "DESIGNER"
+    },
+    {
+      "id": "a786c767-27ed-5f6f-a21d-5936c529dec7",
+      "title": "Syntax and grammar",
+      "text": "RULE 1: MASTER SENTENCE BLUEPRINT\nEvery sentence strictly adheres to this linear structure:\n[Mood Particle] + [Subject NP] + [Verb Unit] + [Role Particle 1 + Object NP 1] + [Role Particle 2 + Object NP 2] ...\n- Mood Particle: Mandatory first token (Da, Frag, Bef).\n- Subject NP: Max 1 noun (optionally preceded by adjectives). Uses no role particle.\n- Verb Unit: Contains [Tense] + [Negation] + [Adverbs] + [Verb Stem].\n- Object Stream: Unlimited post-verbal noun phrases. EVERY object MUST be flagged with a Role Particle (za, ge, mit, lok, von).\nRULE 2: NO INFLECTIONS\n- Verbs NEVER conjugate for person, number, or tense (tenses rely strictly on particles: ja, nu, ve).\n- Nouns NEVER declaim for case or gender. Plurals are indicated by adding 'mun' (e.g., skag-mun = enemies).\n- Adjectives NEVER change form.\nRULE 3: MODIFIER-BEFORE-HEAD SYMMETRY\n- Adjectives precede Nouns: [Adj] + [Noun] (e.g., 'krag eiz' = strong iron).\n- Adverbs precede Verbs: [Adv] + [Verb] (e.g., 'krag drak' = fight strongly).\n- Modifier + Head Compounding: Form complex terms by linking roots with hyphens (e.g., 'eiz-blod' = iron-blood / veteran).\nRULE 4: ZERO-COPULA (NO \"TO BE\")\n- Place an adjective directly after a noun to form a full statement without a verb:\n[Noun] + [Adj] = \"[Noun] is [Adj]\".\nExample: \"Da eiz krag\" = The iron is strong.\nRULE 5: COMMAND BREVITY\n- When using the 'Bef' mood particle, the subject (Du/Ek) may be dropped entirely.\nExample: \"Bef deng za rokh\" = Obey the lord!\nRULE 6: LINEAR CLAUSE CHAINING (NO NESTING)\n- Complex sentences link simple SVO blocks using Linkers (und, ab, ven, den, ke).\n- Mood Persistence: The initial Mood Particle governs subsequent linked clauses unless mood changes.\n- Mood Reset: If mood changes between clauses, insert a new Mood Particle immediately after the linker.\n- Relative Clause Flattening: Use 'ke' directly after a noun to link an action clause describing that noun.\nExample: \"Da ek ja-se za skag ke ja-flie\" = I saw the enemy who fled.\nRULE 7: No articles\n- za is strictly a Direct Object flag, NOT the word \"the\". NEVER place za after other role particles (e.g., write ge rokh, NEVER ge za rokh).\nRULE 8: NATURAL GENDER\n- There is no grammatical gender. Nouns never change form for gender. To state natural gender, attach frou- (female) or man- (male) before the noun (e.g., frou-rokh = female commander, frou-drak = female soldier).",
+      "audience": "MODEL"
+    },
+    {
+      "id": "d6e8ca01-d995-580e-8e91-e9fd0d610aa0",
+      "title": "Possessives",
+      "text": "RULE: Attach the corresponding pronoun directly to the front of the possessed noun using a hyphen ([Pronoun]-[Noun]).\n(Note: In casual or fast speech, singular prefixes are frequently used for plurals when context is obvious, e.g., 'ek-haus' for 'our house'.)\nExamples:\nek-magg     - My sword\ndu-vakt     - Your wall / guard\nes-rokh     - His / Her / Its commander\nek-mun-karn - Our land\nes-mun-gold - Their gold",
+      "audience": "MODEL"
+    },
+    {
+      "id": "a1f3b0b4-a97d-5eb3-9291-34bae63a5708",
+      "title": "Numbers (base 24)",
+      "text": "Numbers are written in base 24: the digits nul to elf (0-11), dutz-ein to dutz-elf (13-23), and the powers karg (24), groz-karg (576), vok-karg (13,824).\n[Construction Blueprint]\n[Qty Multiplier] + [Power Unit] + [Remainder Digit]\n\n- Standard quantities of 1 do not require the digit 'ein' before the power unit (e.g., 'karg' = 24).\n- Adjective positions follow normal Vrakht rules: place the full number before the noun.\n\nExamples:\n\n- 25  (Base 10) = (1 x 24) + 1          -> karg ein\n- 48  (Base 10) = (2 x 24)              -> zvei karg\n- 50  (Base 10) = (2 x 24) + 2          -> zvei karg zvei\n- 100 (Base 10) = (4 x 24) + 4          -> vir karg vir\n- 300 (Base 10) = (12 x 24) + 12        -> dutz karg dutz\n- 500 (Base 10) = (20 x 24) + 20        -> dutz-akh karg dutz-akh\n- 600 (Base 10) = (1 x 576) + (1 x 24)  -> groz-karg karg",
+      "audience": "MODEL"
+    },
+    {
+      "id": "c51d803d-1e55-5b99-9aaa-9acdb1906062",
+      "title": "Word formation",
+      "text": "Compounds link roots with hyphens, the modifier first: eiz-blod (iron-blood, a veteran). Kinship is built from frou- (female) or man- (male), par (parent), kind (child) and sib (sibling), e.g. frou-par, mother. Comparative: mar- + the quality (mar-gut, better); superlative: vok- + the quality (vok-gut, best).",
+      "audience": "MODEL"
+    }
+  ],
+  "categories": [
+    {
+      "id": "922331d6-b3c5-5551-889c-9800784b94e6",
+      "name": "Mood particles",
+      "note": "",
+      "alwaysSend": true
+    },
+    {
+      "id": "0378e845-80a3-5b3e-a78a-362658ba70c1",
+      "name": "Attitude particles",
+      "note": "",
+      "alwaysSend": true
+    },
+    {
+      "id": "6b496b9e-45d4-5bdb-9e7d-0798671498f1",
+      "name": "Pronouns",
+      "note": "",
+      "alwaysSend": true
+    },
+    {
+      "id": "a1613c68-f48e-57c9-9304-6ffc99c93981",
+      "name": "Tense particles",
+      "note": "",
+      "alwaysSend": true
+    },
+    {
+      "id": "43197014-7260-561b-8ecb-783194856c0d",
+      "name": "Negation and degree",
+      "note": "",
+      "alwaysSend": true
+    },
+    {
+      "id": "ba06434c-0bcc-500d-ba0b-4d876be95440",
+      "name": "Role particles",
+      "note": "",
+      "alwaysSend": true
+    },
+    {
+      "id": "61ec65c9-9110-5e50-9925-f9b816ce2258",
+      "name": "Clause linkers",
+      "note": "",
+      "alwaysSend": true
+    },
+    {
+      "id": "e229eea7-9a78-548b-997f-3dfbfd71a8c1",
+      "name": "Verbs",
+      "note": "",
+      "alwaysSend": false
+    },
+    {
+      "id": "f7180ed6-e034-53da-9bc0-263f6c7d3004",
+      "name": "People and society",
+      "note": "",
+      "alwaysSend": false
+    },
+    {
+      "id": "c7b19ff6-a6a8-5994-8d6f-c2b2f596c8e9",
+      "name": "Nature",
+      "note": "",
+      "alwaysSend": false
+    },
+    {
+      "id": "206c4b5a-5319-507a-b43d-5674274b4404",
+      "name": "Body and life",
+      "note": "",
+      "alwaysSend": false
+    },
+    {
+      "id": "32abd22e-ac01-585e-8d95-a89c3f740374",
+      "name": "Places and objects",
+      "note": "",
+      "alwaysSend": false
+    },
+    {
+      "id": "3c28f041-fc79-5279-b782-d7d9e14dea2f",
+      "name": "Concepts",
+      "note": "",
+      "alwaysSend": false
+    },
+    {
+      "id": "3cce30ae-7afe-5542-abed-2ffde78a8b69",
+      "name": "Family and kinship",
+      "note": "",
+      "alwaysSend": false
+    },
+    {
+      "id": "35f93534-77b3-5e76-902f-6d1f1bab2f8c",
+      "name": "Language and grammar",
+      "note": "",
+      "alwaysSend": false
+    },
+    {
+      "id": "874b7553-ae4c-5259-9f96-c33dd40059a6",
+      "name": "Qualities",
+      "note": "",
+      "alwaysSend": false
+    },
+    {
+      "id": "b9afb081-909d-538f-8a78-fa9471fb1a1a",
+      "name": "War and empire",
+      "note": "",
+      "alwaysSend": false
+    },
+    {
+      "id": "e699950a-7512-5756-ba6f-3d33f5df0935",
+      "name": "Law and rule",
+      "note": "",
+      "alwaysSend": false
+    },
+    {
+      "id": "2cb436e2-d0a5-5ddd-8b36-3b5af67c4ba8",
+      "name": "Numbers",
+      "note": "",
+      "alwaysSend": true
+    },
+    {
+      "id": "6c6b4360-4103-5e07-b626-b3ce94d44cbf",
+      "name": "Positions",
+      "note": "",
+      "alwaysSend": false
+    },
+    {
+      "id": "8f451597-303e-58c4-a48a-fc26d95e6c0e",
+      "name": "Colors",
+      "note": "",
+      "alwaysSend": false
+    },
+    {
+      "id": "effd2e5f-43b0-587c-9559-d5e228ab99c1",
+      "name": "Tastes",
+      "note": "",
+      "alwaysSend": false
+    },
+    {
+      "id": "2a5c41cd-0240-533d-8b33-9b8d591e07f7",
+      "name": "Mind and emotion",
+      "note": "",
+      "alwaysSend": false
+    },
+    {
+      "id": "4415721d-5e05-558f-8245-2182246fd445",
+      "name": "Compound examples",
+      "note": "",
+      "alwaysSend": false
+    },
+    {
+      "id": "8dd29b35-576b-5c4a-8fbe-52ffa71350fc",
+      "name": "Magic",
+      "note": "",
+      "alwaysSend": false
+    },
+    {
+      "id": "1ec4b303-6f83-54d5-882d-d59444b743c9",
+      "name": "Profanity",
+      "note": "",
+      "alwaysSend": false
+    }
+  ],
+  "registers": [
+    {
+      "id": "9b3a8ed4-1905-5f13-9274-5e3540e212a2",
+      "name": "vulgar",
+      "note": "Profanity and insults."
+    }
+  ],
+  "lexicon": [
+    {
+      "id": "2f5b8d5a-93ab-52ae-8a15-0f4b2d40772a",
+      "word": "da",
+      "script": "",
+      "category": "922331d6-b3c5-5551-889c-9800784b94e6",
+      "kind": "PARTICLE",
+      "senses": [
+        {
+          "gloss": "Statement / Declaration (factual, narrative)",
+          "partOfSpeech": "particle",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "3fceb91a-6cd8-5c9f-981a-44a50e7d5323",
+      "word": "frag",
+      "script": "",
+      "category": "922331d6-b3c5-5551-889c-9800784b94e6",
+      "kind": "PARTICLE",
+      "senses": [
+        {
+          "gloss": "Question / Inquiry (replaces '?')",
+          "partOfSpeech": "particle",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "b51b6097-f619-57ba-b846-7d2782341ad5",
+      "word": "bef",
+      "script": "",
+      "category": "922331d6-b3c5-5551-889c-9800784b94e6",
+      "kind": "PARTICLE",
+      "senses": [
+        {
+          "gloss": "Command / Imperative (subject 'du'/'ek' can be omitted)",
+          "partOfSpeech": "particle",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "7aece87d-3b72-5b53-8632-f9b561e630fc",
+      "word": "gna",
+      "script": "",
+      "category": "0378e845-80a3-5b3e-a78a-362658ba70c1",
+      "kind": "PARTICLE",
+      "senses": [
+        {
+          "gloss": "Polite / Subservient (Used toward superiors or in formal petitions)",
+          "partOfSpeech": "particle",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "a411b679-0410-532b-b580-6d9f87e6dafa",
+      "word": "mok",
+      "script": "",
+      "category": "0378e845-80a3-5b3e-a78a-362658ba70c1",
+      "kind": "PARTICLE",
+      "senses": [
+        {
+          "gloss": "Sarcastic / Mocking (Signals irony, sarcasm, or insincerity)",
+          "partOfSpeech": "particle",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "b9f371de-b4f6-5994-b2ea-1136c28e609d",
+      "word": "hoh",
+      "script": "",
+      "category": "0378e845-80a3-5b3e-a78a-362658ba70c1",
+      "kind": "PARTICLE",
+      "senses": [
+        {
+          "gloss": "Patronizing / Condescending (Used by superiors talking down to thrails/subordinates)",
+          "partOfSpeech": "particle",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "33058f7b-3c62-5a6c-905b-aadec0f9b74c",
+      "word": "fall",
+      "script": "",
+      "category": "0378e845-80a3-5b3e-a78a-362658ba70c1",
+      "kind": "PARTICLE",
+      "senses": [
+        {
+          "gloss": "Dejecting / Resigned (Signals defeat, despair, or reluctant acceptance)",
+          "partOfSpeech": "particle",
+          "note": ""
+        },
+        {
+          "gloss": "Fall / Drop",
+          "partOfSpeech": "verb",
+          "note": ""
+        },
+        {
+          "gloss": "Defeat / Ruin",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "1d61c03b-7902-5d21-a327-b18525623fda",
+      "word": "droh",
+      "script": "",
+      "category": "0378e845-80a3-5b3e-a78a-362658ba70c1",
+      "kind": "PARTICLE",
+      "senses": [
+        {
+          "gloss": "Threatening / Hostile (Signals underlying menace or imminent violent intent)",
+          "partOfSpeech": "particle",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "0e9827af-f5cc-58fe-ab89-86e393a75e75",
+      "word": "acht",
+      "script": "",
+      "category": "0378e845-80a3-5b3e-a78a-362658ba70c1",
+      "kind": "PARTICLE",
+      "senses": [
+        {
+          "gloss": "Urgent / Panic / Warning (Signals immediate danger or battlefield alarm)",
+          "partOfSpeech": "particle",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "88ba76e6-1837-58fa-809f-3be34e06821f",
+      "word": "ek",
+      "script": "",
+      "category": "6b496b9e-45d4-5bdb-9e7d-0798671498f1",
+      "kind": "PARTICLE",
+      "senses": [
+        {
+          "gloss": "I / We / First-person (singular & plural)",
+          "partOfSpeech": "pronoun",
+          "note": ""
+        },
+        {
+          "gloss": "I / Me",
+          "partOfSpeech": "pronoun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "2cd81def-a239-5cf5-8057-9e87ce0a51f1",
+      "word": "du",
+      "script": "",
+      "category": "6b496b9e-45d4-5bdb-9e7d-0798671498f1",
+      "kind": "PARTICLE",
+      "senses": [
+        {
+          "gloss": "You / Second-person (singular & plural)",
+          "partOfSpeech": "pronoun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "6317ec2f-ac26-544a-b59c-2a32bcd7002b",
+      "word": "es",
+      "script": "",
+      "category": "6b496b9e-45d4-5bdb-9e7d-0798671498f1",
+      "kind": "PARTICLE",
+      "senses": [
+        {
+          "gloss": "He / She / It / They / Third-person",
+          "partOfSpeech": "pronoun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "d839f496-ed8d-5a86-b75c-4b27075fa0e2",
+      "word": "ja",
+      "script": "",
+      "category": "a1613c68-f48e-57c9-9304-6ffc99c93981",
+      "kind": "PARTICLE",
+      "senses": [
+        {
+          "gloss": "Past tense",
+          "partOfSpeech": "verb",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "f242c0da-7b26-5a8b-ae72-08b1bccca640",
+      "word": "nu",
+      "script": "",
+      "category": "a1613c68-f48e-57c9-9304-6ffc99c93981",
+      "kind": "PARTICLE",
+      "senses": [
+        {
+          "gloss": "Present tense (optional/default)",
+          "partOfSpeech": "verb",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "a7cee50d-834a-5944-b226-b85781c5e466",
+      "word": "ve",
+      "script": "",
+      "category": "a1613c68-f48e-57c9-9304-6ffc99c93981",
+      "kind": "PARTICLE",
+      "senses": [
+        {
+          "gloss": "Future tense",
+          "partOfSpeech": "verb",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "c6cd375f-edab-5579-9d65-ba2a835eb845",
+      "word": "ne",
+      "script": "",
+      "category": "43197014-7260-561b-8ecb-783194856c0d",
+      "kind": "PARTICLE",
+      "senses": [
+        {
+          "gloss": "Not / Un- / Negation (pre-verb or pre-adjective)",
+          "partOfSpeech": "particle",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "74874bd6-fefb-5e63-a603-67115b846d0f",
+      "word": "mar",
+      "script": "",
+      "category": "43197014-7260-561b-8ecb-783194856c0d",
+      "kind": "PARTICLE",
+      "senses": [
+        {
+          "gloss": "More / -er (comparative prefix)",
+          "partOfSpeech": "particle",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "55ebeb5c-fc73-5740-858e-dd1d9ec3fc79",
+      "word": "vok",
+      "script": "",
+      "category": "43197014-7260-561b-8ecb-783194856c0d",
+      "kind": "PARTICLE",
+      "senses": [
+        {
+          "gloss": "Most / -est / Supreme (superlative prefix)",
+          "partOfSpeech": "particle",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "99cdeda3-637e-5069-b328-296ee2f77843",
+      "word": "za",
+      "script": "",
+      "category": "ba06434c-0bcc-500d-ba0b-4d876be95440",
+      "kind": "PARTICLE",
+      "senses": [
+        {
+          "gloss": "Direct Object (Target / Patient / Accusative)",
+          "partOfSpeech": "verb",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "527d40be-e1c6-5946-8ead-7691bcee990f",
+      "word": "ge",
+      "script": "",
+      "category": "ba06434c-0bcc-500d-ba0b-4d876be95440",
+      "kind": "PARTICLE",
+      "senses": [
+        {
+          "gloss": "Recipient / Destination (To / Towards / Dative / Allative)",
+          "partOfSpeech": "verb",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "d372b042-ecb6-5a0e-b2a6-05728a98114d",
+      "word": "mit",
+      "script": "",
+      "category": "ba06434c-0bcc-500d-ba0b-4d876be95440",
+      "kind": "PARTICLE",
+      "senses": [
+        {
+          "gloss": "Instrument / Means (With / By using / Instrumental)",
+          "partOfSpeech": "verb",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "47f6cba6-b4ce-56fd-bb68-b333b218a55e",
+      "word": "lok",
+      "script": "",
+      "category": "ba06434c-0bcc-500d-ba0b-4d876be95440",
+      "kind": "PARTICLE",
+      "senses": [
+        {
+          "gloss": "Location (At / In / On / Locative)",
+          "partOfSpeech": "verb",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "b2f71d95-827d-5336-b1e4-dc0e7f1896cb",
+      "word": "von",
+      "script": "",
+      "category": "ba06434c-0bcc-500d-ba0b-4d876be95440",
+      "kind": "PARTICLE",
+      "senses": [
+        {
+          "gloss": "Source / Origin (From / Out of / Ablative)",
+          "partOfSpeech": "verb",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "0b9df09c-2db5-582f-a384-f8566d017d76",
+      "word": "und",
+      "script": "",
+      "category": "61ec65c9-9110-5e50-9925-f9b816ce2258",
+      "kind": "PARTICLE",
+      "senses": [
+        {
+          "gloss": "And (addition)",
+          "partOfSpeech": "particle",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "f24ad851-dac0-5ba3-9522-855be704c3d2",
+      "word": "ab",
+      "script": "",
+      "category": "61ec65c9-9110-5e50-9925-f9b816ce2258",
+      "kind": "PARTICLE",
+      "senses": [
+        {
+          "gloss": "But (contrast / resistance)",
+          "partOfSpeech": "particle",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "fe206572-1842-562e-9a57-948a32464e03",
+      "word": "ven",
+      "script": "",
+      "category": "61ec65c9-9110-5e50-9925-f9b816ce2258",
+      "kind": "PARTICLE",
+      "senses": [
+        {
+          "gloss": "If / When (condition)",
+          "partOfSpeech": "particle",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "ef210d08-e56b-50ae-8274-6b8c6e7b73ae",
+      "word": "den",
+      "script": "",
+      "category": "61ec65c9-9110-5e50-9925-f9b816ce2258",
+      "kind": "PARTICLE",
+      "senses": [
+        {
+          "gloss": "Because / Therefore (cause / effect)",
+          "partOfSpeech": "particle",
+          "note": ""
+        },
+        {
+          "gloss": "Think / Consider",
+          "partOfSpeech": "verb",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "5092a675-fb68-57b5-a344-9878fae63dea",
+      "word": "ke",
+      "script": "",
+      "category": "61ec65c9-9110-5e50-9925-f9b816ce2258",
+      "kind": "PARTICLE",
+      "senses": [
+        {
+          "gloss": "Who / Which / That (relative clause operator)",
+          "partOfSpeech": "particle",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "51e37573-61a3-5d98-b33a-f7738cf1f6c9",
+      "word": "hab",
+      "script": "",
+      "category": "e229eea7-9a78-548b-997f-3dfbfd71a8c1",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Have / Possess",
+          "partOfSpeech": "verb",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "b9efbb87-383f-51f0-bc1e-9e8c341a4405",
+      "word": "mak",
+      "script": "",
+      "category": "e229eea7-9a78-548b-997f-3dfbfd71a8c1",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Do / Make / Perform",
+          "partOfSpeech": "verb",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "f5df7ddf-bb87-55a2-856c-61c542079d43",
+      "word": "gab",
+      "script": "",
+      "category": "e229eea7-9a78-548b-997f-3dfbfd71a8c1",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Give / Offer",
+          "partOfSpeech": "verb",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "ca5aae38-5d9b-517f-91c2-1744bdb0439c",
+      "word": "deng",
+      "script": "",
+      "category": "e229eea7-9a78-548b-997f-3dfbfd71a8c1",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Obey / Serve / Follow",
+          "partOfSpeech": "verb",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "a33da96d-9777-5423-9228-e77380b2f8a8",
+      "word": "se",
+      "script": "",
+      "category": "e229eea7-9a78-548b-997f-3dfbfd71a8c1",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "See / Observe",
+          "partOfSpeech": "verb",
+          "note": ""
+        },
+        {
+          "gloss": "See / Look",
+          "partOfSpeech": "verb",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "fa232f0c-4b90-5bdd-b22f-2e8486ea50e6",
+      "word": "marsh",
+      "script": "",
+      "category": "e229eea7-9a78-548b-997f-3dfbfd71a8c1",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Go / March / Move",
+          "partOfSpeech": "verb",
+          "note": ""
+        },
+        {
+          "gloss": "March / Walk / Move",
+          "partOfSpeech": "verb",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "6eaed38f-4554-5d86-a4bb-c68016371a35",
+      "word": "drak",
+      "script": "",
+      "category": "e229eea7-9a78-548b-997f-3dfbfd71a8c1",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Fight / Attack / Conflict",
+          "partOfSpeech": "verb",
+          "note": ""
+        },
+        {
+          "gloss": "War / Battle / Conflict",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "9deb1d39-af96-5c8f-89b1-e061aaabfb5f",
+      "word": "ek-mun",
+      "script": "",
+      "category": "6b496b9e-45d4-5bdb-9e7d-0798671498f1",
+      "kind": "PARTICLE",
+      "senses": [
+        {
+          "gloss": "We / Us",
+          "partOfSpeech": "pronoun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "031d25d3-0a6d-5351-9e95-13f737bd698e",
+      "word": "du-mun",
+      "script": "",
+      "category": "6b496b9e-45d4-5bdb-9e7d-0798671498f1",
+      "kind": "PARTICLE",
+      "senses": [
+        {
+          "gloss": "You (Plural)",
+          "partOfSpeech": "pronoun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "b559ef21-6ea2-56d9-86cd-7cd585b6b33f",
+      "word": "es-mun",
+      "script": "",
+      "category": "6b496b9e-45d4-5bdb-9e7d-0798671498f1",
+      "kind": "PARTICLE",
+      "senses": [
+        {
+          "gloss": "They / Them",
+          "partOfSpeech": "pronoun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "5db43250-adf8-5249-872b-0fab9e8c4ba5",
+      "word": "ek-",
+      "script": "",
+      "category": "6b496b9e-45d4-5bdb-9e7d-0798671498f1",
+      "kind": "AFFIX",
+      "senses": [
+        {
+          "gloss": "My",
+          "partOfSpeech": "pronoun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "ec5f67d4-5ba8-584a-aadb-4df8a78b09b7",
+      "word": "ek-mun-",
+      "script": "",
+      "category": "6b496b9e-45d4-5bdb-9e7d-0798671498f1",
+      "kind": "AFFIX",
+      "senses": [
+        {
+          "gloss": "Our",
+          "partOfSpeech": "pronoun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "9e90afcb-703f-5816-a37a-50866e18c346",
+      "word": "du-",
+      "script": "",
+      "category": "6b496b9e-45d4-5bdb-9e7d-0798671498f1",
+      "kind": "AFFIX",
+      "senses": [
+        {
+          "gloss": "Your (Singular)",
+          "partOfSpeech": "pronoun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "98b8a3f3-a89f-54e4-a9c8-b7fdb24b5ba3",
+      "word": "du-mun-",
+      "script": "",
+      "category": "6b496b9e-45d4-5bdb-9e7d-0798671498f1",
+      "kind": "AFFIX",
+      "senses": [
+        {
+          "gloss": "Your (Plural)",
+          "partOfSpeech": "pronoun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "693f20e3-fe59-5c65-a722-a4b4dfb8fc45",
+      "word": "es-",
+      "script": "",
+      "category": "6b496b9e-45d4-5bdb-9e7d-0798671498f1",
+      "kind": "AFFIX",
+      "senses": [
+        {
+          "gloss": "His / Her / Its",
+          "partOfSpeech": "pronoun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "cd7e58de-3081-537e-92c1-6c108e0acdf9",
+      "word": "es-mun-",
+      "script": "",
+      "category": "6b496b9e-45d4-5bdb-9e7d-0798671498f1",
+      "kind": "AFFIX",
+      "senses": [
+        {
+          "gloss": "Their",
+          "partOfSpeech": "pronoun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "a05f1a19-9e78-536a-9cd0-b8efd82cbfa7",
+      "word": "man",
+      "script": "",
+      "category": "f7180ed6-e034-53da-9bc0-263f6c7d3004",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Man / Adult male",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "305e6bd8-adb4-5a4d-84df-c44f8ba86217",
+      "word": "frou",
+      "script": "",
+      "category": "f7180ed6-e034-53da-9bc0-263f6c7d3004",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Woman / Adult female",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "64ef4624-42b4-5aad-8786-07d718fa8649",
+      "word": "kind",
+      "script": "",
+      "category": "f7180ed6-e034-53da-9bc0-263f6c7d3004",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Child / Young one",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "17510d7d-2563-5794-bf13-d2e0191ef092",
+      "word": "kith",
+      "script": "",
+      "category": "f7180ed6-e034-53da-9bc0-263f6c7d3004",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Friend / Ally",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "79c66651-8437-5441-a940-990c46a8013c",
+      "word": "folk",
+      "script": "",
+      "category": "f7180ed6-e034-53da-9bc0-263f6c7d3004",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "People / Clan / Tribe",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "09e258f2-885f-57ab-b380-a18a13d95166",
+      "word": "haus",
+      "script": "",
+      "category": "f7180ed6-e034-53da-9bc0-263f6c7d3004",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "House / Home / Shelter",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "077a75fd-ccaa-5902-802f-b6d8438c9dbf",
+      "word": "nam",
+      "script": "",
+      "category": "f7180ed6-e034-53da-9bc0-263f6c7d3004",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Name",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "a2cab2e3-59cb-5d03-a934-fd34bcd961b4",
+      "word": "mosh",
+      "script": "",
+      "category": "f7180ed6-e034-53da-9bc0-263f6c7d3004",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Food / Meal",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "90be2b12-1a8e-5ce1-bf22-8559330c4130",
+      "word": "vat",
+      "script": "",
+      "category": "f7180ed6-e034-53da-9bc0-263f6c7d3004",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Water / Drinkable liquid",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "575ba3c8-e5a5-5bbb-aee5-d079a8703256",
+      "word": "gild",
+      "script": "",
+      "category": "f7180ed6-e034-53da-9bc0-263f6c7d3004",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Trade / Craft / Guild",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "a66bee42-814b-58c8-aecd-b999b0f1313b",
+      "word": "dag",
+      "script": "",
+      "category": "c7b19ff6-a6a8-5994-8d6f-c2b2f596c8e9",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Day / Daylight",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "f327dd23-920a-5164-99c7-bc9e316216cd",
+      "word": "nakht",
+      "script": "",
+      "category": "c7b19ff6-a6a8-5994-8d6f-c2b2f596c8e9",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Night",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "ac49061e-a1a9-54a3-a578-47990357873f",
+      "word": "sol",
+      "script": "",
+      "category": "c7b19ff6-a6a8-5994-8d6f-c2b2f596c8e9",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Sun",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "d59348e2-67bc-5b72-8812-da35a16d86fa",
+      "word": "lun",
+      "script": "",
+      "category": "c7b19ff6-a6a8-5994-8d6f-c2b2f596c8e9",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Moon",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "fdb1b458-da29-51d3-809b-e67dfbb03947",
+      "word": "him",
+      "script": "",
+      "category": "c7b19ff6-a6a8-5994-8d6f-c2b2f596c8e9",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Sky / Open air",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "f3da153f-7747-539f-bef9-8e87d728e36c",
+      "word": "karn",
+      "script": "",
+      "category": "c7b19ff6-a6a8-5994-8d6f-c2b2f596c8e9",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Earth / Soil / Ground",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "9b0d26b0-f96c-504a-b680-57b215219209",
+      "word": "stein",
+      "script": "",
+      "category": "c7b19ff6-a6a8-5994-8d6f-c2b2f596c8e9",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Stone / Rock",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "6d1b0a91-5f0d-593e-8626-d4c1bf9be389",
+      "word": "holtz",
+      "script": "",
+      "category": "c7b19ff6-a6a8-5994-8d6f-c2b2f596c8e9",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Wood / Timber",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "5d515f37-7bd0-52f5-9889-6425a1551c30",
+      "word": "ast",
+      "script": "",
+      "category": "c7b19ff6-a6a8-5994-8d6f-c2b2f596c8e9",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Tree / Plant",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "a541f2d3-6b2c-5411-a6f9-8e1c8cca8679",
+      "word": "vint",
+      "script": "",
+      "category": "c7b19ff6-a6a8-5994-8d6f-c2b2f596c8e9",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Wind / Air",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "09e9e8ef-76e3-508b-9823-4e277de7c9aa",
+      "word": "leib",
+      "script": "",
+      "category": "206c4b5a-5319-507a-b43d-5674274b4404",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Body / Physical frame",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "bc7dc7a5-4902-56c4-b572-863439188da1",
+      "word": "kop",
+      "script": "",
+      "category": "206c4b5a-5319-507a-b43d-5674274b4404",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Head / Mind",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "73a37c50-ef7d-5c4d-8fd2-63e0e92b1470",
+      "word": "aug",
+      "script": "",
+      "category": "206c4b5a-5319-507a-b43d-5674274b4404",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Eye",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "0dd62ba8-3a91-5fc2-846c-a7b585d5c1cd",
+      "word": "han",
+      "script": "",
+      "category": "206c4b5a-5319-507a-b43d-5674274b4404",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Hand",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "197addf1-a3da-56fc-a538-9f6067d5005a",
+      "word": "stim",
+      "script": "",
+      "category": "206c4b5a-5319-507a-b43d-5674274b4404",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Voice",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "3091eded-d96b-51c9-a0f4-67dadc630cc9",
+      "word": "liv",
+      "script": "",
+      "category": "206c4b5a-5319-507a-b43d-5674274b4404",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Life",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "cda22957-ea58-589f-9567-4c64ecef5b9c",
+      "word": "tod",
+      "script": "",
+      "category": "206c4b5a-5319-507a-b43d-5674274b4404",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Death",
+          "partOfSpeech": "noun",
+          "note": ""
+        },
+        {
+          "gloss": "Kill / Slay",
+          "partOfSpeech": "verb",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "fa780f8d-6e06-5842-bb0e-8dfc9b38c354",
+      "word": "kort",
+      "script": "",
+      "category": "206c4b5a-5319-507a-b43d-5674274b4404",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Heart / Center / Core",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "e7f86bd6-1526-5470-92bd-e6017a6a97e5",
+      "word": "slaf",
+      "script": "",
+      "category": "206c4b5a-5319-507a-b43d-5674274b4404",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Sleep / Rest",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "c115f094-fa47-5f6a-abb9-9de7d5dc8754",
+      "word": "wort",
+      "script": "",
+      "category": "206c4b5a-5319-507a-b43d-5674274b4404",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Word / Speech",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "139be390-1859-5d1a-b28e-9519aaa598e6",
+      "word": "raum",
+      "script": "",
+      "category": "32abd22e-ac01-585e-8d95-a89c3f740374",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Room / Chamber",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "7b4c489a-a18b-5179-adcc-fffd1d738765",
+      "word": "dor",
+      "script": "",
+      "category": "32abd22e-ac01-585e-8d95-a89c3f740374",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Door / Gate / Passage",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "224c3c3a-98a2-5e3e-b633-8cfd884bb171",
+      "word": "bett",
+      "script": "",
+      "category": "32abd22e-ac01-585e-8d95-a89c3f740374",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Bed / Resting spot",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "fdd8144d-79a7-548d-8dc2-c979eef0a815",
+      "word": "werk",
+      "script": "",
+      "category": "32abd22e-ac01-585e-8d95-a89c3f740374",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Tool / Instrument",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "412108f0-341a-5c80-b598-2ceb95fb8162",
+      "word": "veg",
+      "script": "",
+      "category": "32abd22e-ac01-585e-8d95-a89c3f740374",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Road / Path / Route",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "f5a60cdf-a65b-5429-9d5e-7643147e1d69",
+      "word": "ort",
+      "script": "",
+      "category": "32abd22e-ac01-585e-8d95-a89c3f740374",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Place / Location",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "a9278d09-4d39-5092-a942-ee69bc7c7410",
+      "word": "zeit",
+      "script": "",
+      "category": "32abd22e-ac01-585e-8d95-a89c3f740374",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Time",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "b57b67cb-4bd6-5396-8a51-2cf4516f4adb",
+      "word": "likht",
+      "script": "",
+      "category": "32abd22e-ac01-585e-8d95-a89c3f740374",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Light",
+          "partOfSpeech": "noun",
+          "note": ""
+        },
+        {
+          "gloss": "Light / Bright",
+          "partOfSpeech": "adjective",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "09e1b631-36fc-5d77-ac42-310ca149bbf5",
+      "word": "dunk",
+      "script": "",
+      "category": "32abd22e-ac01-585e-8d95-a89c3f740374",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Dark / Darkness",
+          "partOfSpeech": "noun",
+          "note": ""
+        },
+        {
+          "gloss": "Dark / Shadowy",
+          "partOfSpeech": "adjective",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "2a1c98cf-5180-5272-ba86-f22285794f9d",
+      "word": "brand",
+      "script": "",
+      "category": "32abd22e-ac01-585e-8d95-a89c3f740374",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Fire / Flame",
+          "partOfSpeech": "noun",
+          "note": ""
+        },
+        {
+          "gloss": "Burn / Ignite",
+          "partOfSpeech": "verb",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "b0fe60c3-6064-5348-8005-3ca53d0775a0",
+      "word": "fakt",
+      "script": "",
+      "category": "3c28f041-fc79-5279-b782-d7d9e14dea2f",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Truth / Reality",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "f208047b-44f4-543b-aaca-8c4d26f09860",
+      "word": "lug",
+      "script": "",
+      "category": "3c28f041-fc79-5279-b782-d7d9e14dea2f",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Lie / Deceit",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "21a8ccd8-cbac-50bc-82d9-c26896e53e36",
+      "word": "kling",
+      "script": "",
+      "category": "3c28f041-fc79-5279-b782-d7d9e14dea2f",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Sound / Noise",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "d15555a2-a9e5-5ea8-87b5-831567799448",
+      "word": "ding",
+      "script": "",
+      "category": "3c28f041-fc79-5279-b782-d7d9e14dea2f",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Thing / Object",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "4760b5c9-9e3a-52f3-a417-dd2a4f096ea1",
+      "word": "jahr",
+      "script": "",
+      "category": "3c28f041-fc79-5279-b782-d7d9e14dea2f",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Year",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "0d8de8c5-40cd-5b44-bfff-07a42be21335",
+      "word": "seit",
+      "script": "",
+      "category": "3c28f041-fc79-5279-b782-d7d9e14dea2f",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Side / Direction",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "b967f27e-e554-55c6-88f8-8e130e670bb9",
+      "word": "end",
+      "script": "",
+      "category": "3c28f041-fc79-5279-b782-d7d9e14dea2f",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "End / Limit / Boundary",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "92fe0781-52c6-5d5b-8f77-e73aa01c7274",
+      "word": "groz",
+      "script": "",
+      "category": "3c28f041-fc79-5279-b782-d7d9e14dea2f",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Goods / Property / Cargo",
+          "partOfSpeech": "noun",
+          "note": ""
+        },
+        {
+          "gloss": "Great / Large",
+          "partOfSpeech": "adjective",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "cab08115-401f-5826-a0fe-f3db21250d16",
+      "word": "pakt",
+      "script": "",
+      "category": "3c28f041-fc79-5279-b782-d7d9e14dea2f",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Treaty / Agreement",
+          "partOfSpeech": "noun",
+          "note": ""
+        },
+        {
+          "gloss": "Bind / Agree",
+          "partOfSpeech": "verb",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "b383c3b2-2d86-5198-b06b-05a3d424541b",
+      "word": "last",
+      "script": "",
+      "category": "3c28f041-fc79-5279-b782-d7d9e14dea2f",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Burden / Weight",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "24091e57-8c76-5ea9-9de0-cc6784a8d451",
+      "word": "par",
+      "script": "",
+      "category": "3cce30ae-7afe-5542-abed-2ffde78a8b69",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Parent",
+          "partOfSpeech": "",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "11dd9d95-340c-568f-a0b2-fdb3441d8414",
+      "word": "sib",
+      "script": "",
+      "category": "3cce30ae-7afe-5542-abed-2ffde78a8b69",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Sibling",
+          "partOfSpeech": "",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "b11afc72-736f-5177-9230-b0753b8b424e",
+      "word": "eh",
+      "script": "",
+      "category": "3cce30ae-7afe-5542-abed-2ffde78a8b69",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Oath / Marriage bond",
+          "partOfSpeech": "",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "d0133c45-8005-5786-8d4c-7bddb5f71b1a",
+      "word": "stamm",
+      "script": "",
+      "category": "3cce30ae-7afe-5542-abed-2ffde78a8b69",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Lineage / Clan / House",
+          "partOfSpeech": "",
+          "note": ""
+        },
+        {
+          "gloss": "Root / Base word",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "d74e9ca1-c06d-5a8b-a740-588027bba66d",
+      "word": "blod",
+      "script": "",
+      "category": "3cce30ae-7afe-5542-abed-2ffde78a8b69",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Blood / Kin",
+          "partOfSpeech": "",
+          "note": ""
+        },
+        {
+          "gloss": "Bleed / Wound",
+          "partOfSpeech": "verb",
+          "note": ""
+        },
+        {
+          "gloss": "Blood / Lineage",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "254ac40a-9a5e-5935-bdf4-6832583a7352",
+      "word": "frou-par",
+      "script": "",
+      "category": "3cce30ae-7afe-5542-abed-2ffde78a8b69",
+      "kind": "COMPOUND",
+      "senses": [
+        {
+          "gloss": "Mother (female-parent)",
+          "partOfSpeech": "",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "41357d3b-3b29-56f3-878d-f879f35cb98a",
+      "word": "man-par",
+      "script": "",
+      "category": "3cce30ae-7afe-5542-abed-2ffde78a8b69",
+      "kind": "COMPOUND",
+      "senses": [
+        {
+          "gloss": "Father (male-parent)",
+          "partOfSpeech": "",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "6222d4fd-6bef-58b1-922e-ddc4a0ebd0ea",
+      "word": "frou-kind",
+      "script": "",
+      "category": "3cce30ae-7afe-5542-abed-2ffde78a8b69",
+      "kind": "COMPOUND",
+      "senses": [
+        {
+          "gloss": "Daughter (female-child)",
+          "partOfSpeech": "",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "2bcafcab-2f24-541d-aed1-ffd2b04e03bc",
+      "word": "man-kind",
+      "script": "",
+      "category": "3cce30ae-7afe-5542-abed-2ffde78a8b69",
+      "kind": "COMPOUND",
+      "senses": [
+        {
+          "gloss": "Son (male-child)",
+          "partOfSpeech": "",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "456770eb-9dfb-5dad-b999-37bc7f02b941",
+      "word": "frou-sib",
+      "script": "",
+      "category": "3cce30ae-7afe-5542-abed-2ffde78a8b69",
+      "kind": "COMPOUND",
+      "senses": [
+        {
+          "gloss": "Sister (female-sibling)",
+          "partOfSpeech": "",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "26a7c419-8312-52b6-adea-efb5a745bbb2",
+      "word": "man-sib",
+      "script": "",
+      "category": "3cce30ae-7afe-5542-abed-2ffde78a8b69",
+      "kind": "COMPOUND",
+      "senses": [
+        {
+          "gloss": "Brother (male-sibling)",
+          "partOfSpeech": "",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "6b2a51d4-19b2-5944-b5ef-8922fe6374e3",
+      "word": "frou-alt-par",
+      "script": "",
+      "category": "3cce30ae-7afe-5542-abed-2ffde78a8b69",
+      "kind": "COMPOUND",
+      "senses": [
+        {
+          "gloss": "Grandmother (female-old-parent)",
+          "partOfSpeech": "",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "bbe2d850-c5c4-582d-95be-46d568e6cfec",
+      "word": "man-alt-par",
+      "script": "",
+      "category": "3cce30ae-7afe-5542-abed-2ffde78a8b69",
+      "kind": "COMPOUND",
+      "senses": [
+        {
+          "gloss": "Grandfather (male-old-parent)",
+          "partOfSpeech": "",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "787ac7c8-d2a4-5868-beb9-a13fd4fc7311",
+      "word": "frou-par-sib",
+      "script": "",
+      "category": "3cce30ae-7afe-5542-abed-2ffde78a8b69",
+      "kind": "COMPOUND",
+      "senses": [
+        {
+          "gloss": "Aunt (female-parent-sibling)",
+          "partOfSpeech": "",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "7a7ff5f3-d4c4-534f-a425-7c74ac344a47",
+      "word": "man-par-sib",
+      "script": "",
+      "category": "3cce30ae-7afe-5542-abed-2ffde78a8b69",
+      "kind": "COMPOUND",
+      "senses": [
+        {
+          "gloss": "Uncle (male-parent-sibling)",
+          "partOfSpeech": "",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "9d30d566-3b93-5a53-a0cd-c65cbbfb0fe9",
+      "word": "blod-sib",
+      "script": "",
+      "category": "3cce30ae-7afe-5542-abed-2ffde78a8b69",
+      "kind": "COMPOUND",
+      "senses": [
+        {
+          "gloss": "Cousin (blood-sibling)",
+          "partOfSpeech": "",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "747a726a-24c3-5ceb-a6dd-275bce530363",
+      "word": "eh-frou",
+      "script": "",
+      "category": "3cce30ae-7afe-5542-abed-2ffde78a8b69",
+      "kind": "COMPOUND",
+      "senses": [
+        {
+          "gloss": "Wife (oath-woman)",
+          "partOfSpeech": "",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "d761654f-6f44-53b7-8399-3101f3075582",
+      "word": "eh-man",
+      "script": "",
+      "category": "3cce30ae-7afe-5542-abed-2ffde78a8b69",
+      "kind": "COMPOUND",
+      "senses": [
+        {
+          "gloss": "Husband (oath-man)",
+          "partOfSpeech": "",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "66a5d06c-5442-51fb-81f4-8dc29af4c57a",
+      "word": "frou-stamm",
+      "script": "",
+      "category": "3cce30ae-7afe-5542-abed-2ffde78a8b69",
+      "kind": "COMPOUND",
+      "senses": [
+        {
+          "gloss": "Clan Matriarch / High Mother",
+          "partOfSpeech": "",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "30a1d856-e930-5294-a3e7-c254f1636a81",
+      "word": "stamm-rokh",
+      "script": "",
+      "category": "3cce30ae-7afe-5542-abed-2ffde78a8b69",
+      "kind": "COMPOUND",
+      "senses": [
+        {
+          "gloss": "Head of House / Lineage Leader",
+          "partOfSpeech": "",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "b33c9259-a9c1-53de-9381-7201f6648db6",
+      "word": "lauf",
+      "script": "",
+      "category": "e229eea7-9a78-548b-997f-3dfbfd71a8c1",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Run / Sprint",
+          "partOfSpeech": "verb",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "10284965-0fcb-5e11-81d9-a6e41da7dc0e",
+      "word": "komm",
+      "script": "",
+      "category": "e229eea7-9a78-548b-997f-3dfbfd71a8c1",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Come / Arrive",
+          "partOfSpeech": "verb",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "c30e793b-7a82-5744-b9ab-4b6fb1b987d0",
+      "word": "stigg",
+      "script": "",
+      "category": "e229eea7-9a78-548b-997f-3dfbfd71a8c1",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Climb / Rise",
+          "partOfSpeech": "verb",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "41b73175-58c2-52ce-8c90-830ab58298b8",
+      "word": "flie",
+      "script": "",
+      "category": "e229eea7-9a78-548b-997f-3dfbfd71a8c1",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Flee / Retreat",
+          "partOfSpeech": "verb",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "5b399480-500c-515a-9d15-41869bd9a693",
+      "word": "kehr",
+      "script": "",
+      "category": "e229eea7-9a78-548b-997f-3dfbfd71a8c1",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Turn / Return",
+          "partOfSpeech": "verb",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "dc279f01-809a-5dff-8178-78c46542fc8f",
+      "word": "trit",
+      "script": "",
+      "category": "e229eea7-9a78-548b-997f-3dfbfd71a8c1",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Step / Tread",
+          "partOfSpeech": "verb",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "ad3a81fe-363a-52e5-a7fe-d1003293c1ad",
+      "word": "spring",
+      "script": "",
+      "category": "e229eea7-9a78-548b-997f-3dfbfd71a8c1",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Jump / Leap",
+          "partOfSpeech": "verb",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "2eca775f-fdba-5623-8c74-6d12242dfd9c",
+      "word": "sint",
+      "script": "",
+      "category": "e229eea7-9a78-548b-997f-3dfbfd71a8c1",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Sink / Descend",
+          "partOfSpeech": "verb",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "7313da13-58a2-5afb-b237-3a70eb666ca2",
+      "word": "hor",
+      "script": "",
+      "category": "e229eea7-9a78-548b-997f-3dfbfd71a8c1",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Hear / Listen",
+          "partOfSpeech": "verb",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "7ff9a72e-d240-5126-9aaf-fb30981932eb",
+      "word": "vis",
+      "script": "",
+      "category": "e229eea7-9a78-548b-997f-3dfbfd71a8c1",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Know / Understand",
+          "partOfSpeech": "verb",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "bcb1f969-90eb-51bb-a8b1-4b54110ea57f",
+      "word": "ful",
+      "script": "",
+      "category": "e229eea7-9a78-548b-997f-3dfbfd71a8c1",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Feel / Sense",
+          "partOfSpeech": "verb",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "36e7d0f7-ed58-5356-bd42-f2d6e31f57b6",
+      "word": "farkt",
+      "script": "",
+      "category": "e229eea7-9a78-548b-997f-3dfbfd71a8c1",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Fear / Dread",
+          "partOfSpeech": "verb",
+          "note": ""
+        },
+        {
+          "gloss": "Fearful / Afraid",
+          "partOfSpeech": "adjective",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "f2bf5425-a2f3-5bf8-8d56-33be319cfae6",
+      "word": "vold",
+      "script": "",
+      "category": "e229eea7-9a78-548b-997f-3dfbfd71a8c1",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Want / Desire",
+          "partOfSpeech": "verb",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "f752b10a-badc-54c8-bc35-75e4a0f69381",
+      "word": "mus",
+      "script": "",
+      "category": "e229eea7-9a78-548b-997f-3dfbfd71a8c1",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Need / Must",
+          "partOfSpeech": "verb",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "c69b5764-b693-5818-894d-b4af36c09ad6",
+      "word": "trau",
+      "script": "",
+      "category": "e229eea7-9a78-548b-997f-3dfbfd71a8c1",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Trust / Rely",
+          "partOfSpeech": "verb",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "61f85d13-f8a5-5ef2-b809-7355c459efb3",
+      "word": "merkt",
+      "script": "",
+      "category": "e229eea7-9a78-548b-997f-3dfbfd71a8c1",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Notice / Mark",
+          "partOfSpeech": "verb",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "1d815618-f11a-585a-98f7-f6a797b414e9",
+      "word": "sprech",
+      "script": "",
+      "category": "e229eea7-9a78-548b-997f-3dfbfd71a8c1",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Speak / Talk",
+          "partOfSpeech": "verb",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "99451a3b-9e8e-5679-89b6-d1e8362250a1",
+      "word": "ruf",
+      "script": "",
+      "category": "e229eea7-9a78-548b-997f-3dfbfd71a8c1",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Call / Shout",
+          "partOfSpeech": "verb",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "d2db6a69-8708-5d7c-9e25-9dc650117c58",
+      "word": "nehm",
+      "script": "",
+      "category": "e229eea7-9a78-548b-997f-3dfbfd71a8c1",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Take / Seize",
+          "partOfSpeech": "verb",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "86b89232-5254-5d3c-aa9c-fd1f4d32a080",
+      "word": "fra",
+      "script": "",
+      "category": "e229eea7-9a78-548b-997f-3dfbfd71a8c1",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Ask / Question",
+          "partOfSpeech": "verb",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "300b5e56-0741-5ba0-9641-af06f492a4ef",
+      "word": "saz",
+      "script": "",
+      "category": "e229eea7-9a78-548b-997f-3dfbfd71a8c1",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Say / Tell",
+          "partOfSpeech": "verb",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "5f3ea6d0-c123-5f8f-bc91-bfd71cd26c7f",
+      "word": "zeig",
+      "script": "",
+      "category": "e229eea7-9a78-548b-997f-3dfbfd71a8c1",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Show / Display",
+          "partOfSpeech": "verb",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "f8931eeb-c338-5aee-8c64-6d775b34ba04",
+      "word": "lohn",
+      "script": "",
+      "category": "e229eea7-9a78-548b-997f-3dfbfd71a8c1",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Reward / Pay",
+          "partOfSpeech": "verb",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "a118aff0-5d13-5118-a25e-589ffc199bfe",
+      "word": "ess",
+      "script": "",
+      "category": "e229eea7-9a78-548b-997f-3dfbfd71a8c1",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Eat / Consume",
+          "partOfSpeech": "verb",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "d39dbd65-749e-5fb4-8a21-12407eae7341",
+      "word": "trink",
+      "script": "",
+      "category": "e229eea7-9a78-548b-997f-3dfbfd71a8c1",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Drink / Swallow",
+          "partOfSpeech": "verb",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "b17cffd7-80ba-539b-b47d-9b10a91e6032",
+      "word": "bau",
+      "script": "",
+      "category": "e229eea7-9a78-548b-997f-3dfbfd71a8c1",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Build / Construct",
+          "partOfSpeech": "verb",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "e8105c90-46ee-5182-a604-dc73f9194d86",
+      "word": "trag",
+      "script": "",
+      "category": "e229eea7-9a78-548b-997f-3dfbfd71a8c1",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Carry / Bear",
+          "partOfSpeech": "verb",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "ad13c381-8fa1-509e-9640-442d267a40f6",
+      "word": "kauf",
+      "script": "",
+      "category": "e229eea7-9a78-548b-997f-3dfbfd71a8c1",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Buy / Trade",
+          "partOfSpeech": "verb",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "dd5b7fad-78a1-5e6e-a74e-2e74f48ea29f",
+      "word": "fend",
+      "script": "",
+      "category": "e229eea7-9a78-548b-997f-3dfbfd71a8c1",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Find / Discover",
+          "partOfSpeech": "verb",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "779ee35e-bffb-5c7f-a73f-8324cb24db92",
+      "word": "hal",
+      "script": "",
+      "category": "e229eea7-9a78-548b-997f-3dfbfd71a8c1",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Hold / Keep",
+          "partOfSpeech": "verb",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "a2346817-c398-5b92-9f5f-c3545a671156",
+      "word": "hakk",
+      "script": "",
+      "category": "e229eea7-9a78-548b-997f-3dfbfd71a8c1",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Chop / Cut / Strike",
+          "partOfSpeech": "verb",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "e5a3a41e-d399-5f87-917d-43cfcd23dfde",
+      "word": "brik",
+      "script": "",
+      "category": "e229eea7-9a78-548b-997f-3dfbfd71a8c1",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Break / Breach",
+          "partOfSpeech": "verb",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "6b6e28cf-f5f5-55a0-b39f-9d3865662b80",
+      "word": "vakt",
+      "script": "",
+      "category": "e229eea7-9a78-548b-997f-3dfbfd71a8c1",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Guard / Watch",
+          "partOfSpeech": "verb",
+          "note": ""
+        },
+        {
+          "gloss": "Wall / Guard / Fortification",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "5410989b-f7d8-54da-a158-42fbfb124cce",
+      "word": "sperr",
+      "script": "",
+      "category": "e229eea7-9a78-548b-997f-3dfbfd71a8c1",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Block / Seal",
+          "partOfSpeech": "verb",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "b9785a32-037e-5bc4-86a6-6eb67f879d0f",
+      "word": "jagd",
+      "script": "",
+      "category": "e229eea7-9a78-548b-997f-3dfbfd71a8c1",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Hunt / Pursue",
+          "partOfSpeech": "verb",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "571f4de3-973a-5806-abf8-b0e73bdd66c4",
+      "word": "grift",
+      "script": "",
+      "category": "e229eea7-9a78-548b-997f-3dfbfd71a8c1",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Seize / Grab",
+          "partOfSpeech": "verb",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "60f9a577-915e-552c-a419-43447815eb7c",
+      "word": "satz",
+      "script": "",
+      "category": "35f93534-77b3-5e76-902f-6d1f1bab2f8c",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Sentence / Complete clause",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "41d7a464-49df-5c00-8ddf-aa9f8fa5b689",
+      "word": "zeik",
+      "script": "",
+      "category": "35f93534-77b3-5e76-902f-6d1f1bab2f8c",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Character / Token / Written sign",
+          "partOfSpeech": "noun",
+          "note": ""
+        },
+        {
+          "gloss": "Rune / Sigil / Brand",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "18c45098-e9d8-55e2-9d7b-84b4bb370209",
+      "word": "sinn",
+      "script": "",
+      "category": "35f93534-77b3-5e76-902f-6d1f1bab2f8c",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Meaning / Definition / Sense",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "5bb021e9-cc8e-5e20-99b8-523c5464d7af",
+      "word": "ord",
+      "script": "",
+      "category": "35f93534-77b3-5e76-902f-6d1f1bab2f8c",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Grammar / Rule system / Structure",
+          "partOfSpeech": "noun",
+          "note": ""
+        },
+        {
+          "gloss": "Order / Law / Discipline",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "9ae198b2-d8bf-5ac0-90b6-540232200433",
+      "word": "ding-wort",
+      "script": "",
+      "category": "35f93534-77b3-5e76-902f-6d1f1bab2f8c",
+      "kind": "COMPOUND",
+      "senses": [
+        {
+          "gloss": "Noun (Thing-word)",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "cf42c0ea-86b0-540e-a107-667992009cd6",
+      "word": "mak-wort",
+      "script": "",
+      "category": "35f93534-77b3-5e76-902f-6d1f1bab2f8c",
+      "kind": "COMPOUND",
+      "senses": [
+        {
+          "gloss": "Verb (Action-word)",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "d3d8f6eb-7363-5d98-ad99-2af5fadadd96",
+      "word": "art-wort",
+      "script": "",
+      "category": "35f93534-77b3-5e76-902f-6d1f1bab2f8c",
+      "kind": "COMPOUND",
+      "senses": [
+        {
+          "gloss": "Adjective / Adverb (Quality/manner-word)",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "1938039e-0544-58a9-a060-a325b0908077",
+      "word": "stel-wort",
+      "script": "",
+      "category": "35f93534-77b3-5e76-902f-6d1f1bab2f8c",
+      "kind": "COMPOUND",
+      "senses": [
+        {
+          "gloss": "Pronoun (Stand-in word)",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "1ee3dc14-c7b0-5962-8a29-a2dc76a61367",
+      "word": "flag",
+      "script": "",
+      "category": "35f93534-77b3-5e76-902f-6d1f1bab2f8c",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Particle / Marker / Flag",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "ea4852b3-2f30-57d8-8222-045b1287c9a6",
+      "word": "sinn-flag",
+      "script": "",
+      "category": "35f93534-77b3-5e76-902f-6d1f1bab2f8c",
+      "kind": "COMPOUND",
+      "senses": [
+        {
+          "gloss": "Mood Particle (Intent/Sentence-type prefix: Da, Frag, Bef)",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "4465695c-3071-5856-9708-081ac1a00d83",
+      "word": "zeit-flag",
+      "script": "",
+      "category": "35f93534-77b3-5e76-902f-6d1f1bab2f8c",
+      "kind": "COMPOUND",
+      "senses": [
+        {
+          "gloss": "Tense Particle (Time marker: ja, nu, ve)",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "4ab41c55-11d1-5c38-bccf-27fd650a59cc",
+      "word": "rol-flag",
+      "script": "",
+      "category": "35f93534-77b3-5e76-902f-6d1f1bab2f8c",
+      "kind": "COMPOUND",
+      "senses": [
+        {
+          "gloss": "Role Particle (Object case marker: za, ge, mit, lok, von)",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "b81a036d-ca8a-5646-a684-a8a7d508191b",
+      "word": "band-wort",
+      "script": "",
+      "category": "35f93534-77b3-5e76-902f-6d1f1bab2f8c",
+      "kind": "COMPOUND",
+      "senses": [
+        {
+          "gloss": "Conjunction / Linker (und, ab, ven, den, ke)",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "be6569c8-f779-5e47-a68f-797895f8942e",
+      "word": "stuer",
+      "script": "",
+      "category": "35f93534-77b3-5e76-902f-6d1f1bab2f8c",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Subject (Initiator / Lead position)",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "b0c238fa-9630-56c4-8ec3-6e9d5cd5866d",
+      "word": "ziel",
+      "script": "",
+      "category": "35f93534-77b3-5e76-902f-6d1f1bab2f8c",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Object (Target / Recipient position)",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "7a118790-2a92-585c-a235-c0da26e8d52d",
+      "word": "gut",
+      "script": "",
+      "category": "874b7553-ae4c-5259-9f96-c33dd40059a6",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Good / Proper / Effective",
+          "partOfSpeech": "adjective",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "2fe15bbb-7480-5d90-9c78-6426161eba47",
+      "word": "bos",
+      "script": "",
+      "category": "874b7553-ae4c-5259-9f96-c33dd40059a6",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Bad / Corrupt / Evil",
+          "partOfSpeech": "adjective",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "410a9e43-bdfa-5197-84b1-5581fd22467b",
+      "word": "foul",
+      "script": "",
+      "category": "874b7553-ae4c-5259-9f96-c33dd40059a6",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Rotten / Inferior / Worthless",
+          "partOfSpeech": "adjective",
+          "note": ""
+        },
+        {
+          "gloss": "Rotten / Corrupt",
+          "partOfSpeech": "adjective",
+          "note": ""
+        },
+        {
+          "gloss": "Rotten / Off / Foul",
+          "partOfSpeech": "adjective",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "96d6bfb4-3c9b-5ce7-ad87-06e59533a601",
+      "word": "mar-gut",
+      "script": "",
+      "category": "874b7553-ae4c-5259-9f96-c33dd40059a6",
+      "kind": "COMPOUND",
+      "senses": [
+        {
+          "gloss": "Better (more-good)",
+          "partOfSpeech": "adjective",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "fd992735-88ad-589b-8ab5-8a403e8ee274",
+      "word": "mar-bos",
+      "script": "",
+      "category": "874b7553-ae4c-5259-9f96-c33dd40059a6",
+      "kind": "COMPOUND",
+      "senses": [
+        {
+          "gloss": "Worse (more-bad)",
+          "partOfSpeech": "adjective",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "47b1184b-0f67-530b-a145-942e74043b32",
+      "word": "mar-foul",
+      "script": "",
+      "category": "874b7553-ae4c-5259-9f96-c33dd40059a6",
+      "kind": "COMPOUND",
+      "senses": [
+        {
+          "gloss": "Worse / More rotten",
+          "partOfSpeech": "adjective",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "a7a5a1dc-3fbb-5be6-bb6e-c633274fae46",
+      "word": "vok-gut",
+      "script": "",
+      "category": "874b7553-ae4c-5259-9f96-c33dd40059a6",
+      "kind": "COMPOUND",
+      "senses": [
+        {
+          "gloss": "Best (supreme-good)",
+          "partOfSpeech": "adjective",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "54eb0b78-e9f0-52d4-9dad-cef64f88e2ed",
+      "word": "vok-bos",
+      "script": "",
+      "category": "874b7553-ae4c-5259-9f96-c33dd40059a6",
+      "kind": "COMPOUND",
+      "senses": [
+        {
+          "gloss": "Worst / Most evil (supreme-bad)",
+          "partOfSpeech": "adjective",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "bcb43c85-cf26-595e-817a-51ff747ba62b",
+      "word": "vok-foul",
+      "script": "",
+      "category": "874b7553-ae4c-5259-9f96-c33dd40059a6",
+      "kind": "COMPOUND",
+      "senses": [
+        {
+          "gloss": "Worst / Most inferior (supreme-rotten)",
+          "partOfSpeech": "adjective",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "3aaac9d3-1043-50a6-90bd-83fc8bc4813b",
+      "word": "krag",
+      "script": "",
+      "category": "874b7553-ae4c-5259-9f96-c33dd40059a6",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Strong / Mighty",
+          "partOfSpeech": "adjective",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "cc0f2cf1-ed87-5144-8876-bcd0bae19187",
+      "word": "kal",
+      "script": "",
+      "category": "874b7553-ae4c-5259-9f96-c33dd40059a6",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Cold / Frozen",
+          "partOfSpeech": "adjective",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "bda7fe85-70c0-5d6c-981f-8cb141ee8b68",
+      "word": "heiz",
+      "script": "",
+      "category": "874b7553-ae4c-5259-9f96-c33dd40059a6",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Hot / Burning",
+          "partOfSpeech": "adjective",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "3717f926-296b-58ba-88ed-0657e9184b3e",
+      "word": "hart",
+      "script": "",
+      "category": "874b7553-ae4c-5259-9f96-c33dd40059a6",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Hard / Tough",
+          "partOfSpeech": "adjective",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "46a3d146-1b28-5001-82f2-7af394b59c51",
+      "word": "vekh",
+      "script": "",
+      "category": "874b7553-ae4c-5259-9f96-c33dd40059a6",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Soft / Weak",
+          "partOfSpeech": "adjective",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "54d76b08-c573-5a68-82eb-b54cd0572bc7",
+      "word": "klein",
+      "script": "",
+      "category": "874b7553-ae4c-5259-9f96-c33dd40059a6",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Small / Little",
+          "partOfSpeech": "adjective",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "76e2ce01-8fd0-59a5-ad37-d2e28a34cdcc",
+      "word": "schnel",
+      "script": "",
+      "category": "874b7553-ae4c-5259-9f96-c33dd40059a6",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Fast / Swift",
+          "partOfSpeech": "adjective",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "27577e77-2425-58f9-9102-c356fde82d91",
+      "word": "lang",
+      "script": "",
+      "category": "874b7553-ae4c-5259-9f96-c33dd40059a6",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Long / Slow",
+          "partOfSpeech": "adjective",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "60e2545b-d096-5772-91c8-25b2dc3ced26",
+      "word": "rot",
+      "script": "",
+      "category": "874b7553-ae4c-5259-9f96-c33dd40059a6",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Red / Bloody",
+          "partOfSpeech": "adjective",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "fe54328d-3003-5d28-b011-298380b2ac3f",
+      "word": "scharf",
+      "script": "",
+      "category": "874b7553-ae4c-5259-9f96-c33dd40059a6",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Sharp / Keen",
+          "partOfSpeech": "adjective",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "1e74ad7b-4c9f-5e4e-8042-08b622bebb21",
+      "word": "stump",
+      "script": "",
+      "category": "874b7553-ae4c-5259-9f96-c33dd40059a6",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Dull / Blunt",
+          "partOfSpeech": "adjective",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "5a821c4a-1b79-5098-9eac-fe2a271bb67e",
+      "word": "ne-krag",
+      "script": "",
+      "category": "874b7553-ae4c-5259-9f96-c33dd40059a6",
+      "kind": "COMPOUND",
+      "senses": [
+        {
+          "gloss": "Weak / Fragile",
+          "partOfSpeech": "adjective",
+          "note": ""
+        },
+        {
+          "gloss": "Flaccid / Soft-gut / Weakling (ne [not] + krag [strong])",
+          "partOfSpeech": "",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "89630fe5-4dd2-5bfe-a84c-b45179ff05be",
+      "word": "rein",
+      "script": "",
+      "category": "874b7553-ae4c-5259-9f96-c33dd40059a6",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Pure / Clean",
+          "partOfSpeech": "adjective",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "cb8195b5-bfe7-5396-983c-04480e6f0e34",
+      "word": "alt",
+      "script": "",
+      "category": "874b7553-ae4c-5259-9f96-c33dd40059a6",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Old / Ancient",
+          "partOfSpeech": "adjective",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "e868bb95-2e33-55dd-8d27-19e1081c249d",
+      "word": "neu",
+      "script": "",
+      "category": "874b7553-ae4c-5259-9f96-c33dd40059a6",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "New / Fresh",
+          "partOfSpeech": "adjective",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "b2a47b1d-1d8a-524d-86d5-00645cf1b68c",
+      "word": "tot",
+      "script": "",
+      "category": "874b7553-ae4c-5259-9f96-c33dd40059a6",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Dead / Lifeless",
+          "partOfSpeech": "adjective",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "76f11c2c-6b46-5bab-8436-4afbcee2dec4",
+      "word": "liv-lig",
+      "script": "",
+      "category": "874b7553-ae4c-5259-9f96-c33dd40059a6",
+      "kind": "COMPOUND",
+      "senses": [
+        {
+          "gloss": "Alive / Living",
+          "partOfSpeech": "adjective",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "9aa5669b-77f5-5266-91dc-6f8e204e4452",
+      "word": "voll",
+      "script": "",
+      "category": "874b7553-ae4c-5259-9f96-c33dd40059a6",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Full / Filled",
+          "partOfSpeech": "adjective",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "909ae2bc-63ae-5852-95ec-29f3dc98c968",
+      "word": "leer",
+      "script": "",
+      "category": "874b7553-ae4c-5259-9f96-c33dd40059a6",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Empty / Void",
+          "partOfSpeech": "adjective",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "468c01c6-c8a8-5985-9d27-22b5327d7960",
+      "word": "ord-lig",
+      "script": "",
+      "category": "874b7553-ae4c-5259-9f96-c33dd40059a6",
+      "kind": "COMPOUND",
+      "senses": [
+        {
+          "gloss": "Orderly / Disciplined",
+          "partOfSpeech": "adjective",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "53dbc468-d5f9-5375-8666-78f651184d4d",
+      "word": "wild",
+      "script": "",
+      "category": "874b7553-ae4c-5259-9f96-c33dd40059a6",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Savage / Wild",
+          "partOfSpeech": "adjective",
+          "note": ""
+        },
+        {
+          "gloss": "Savage / Wild / Uncontrolled",
+          "partOfSpeech": "adjective",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "0926b659-b90d-5998-a989-6956e24650ab",
+      "word": "vrak-lig",
+      "script": "",
+      "category": "874b7553-ae4c-5259-9f96-c33dd40059a6",
+      "kind": "COMPOUND",
+      "senses": [
+        {
+          "gloss": "Imperial / Sovereign",
+          "partOfSpeech": "adjective",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "961a9429-6a27-5f27-b6e6-d1d343106090",
+      "word": "skag-lig",
+      "script": "",
+      "category": "874b7553-ae4c-5259-9f96-c33dd40059a6",
+      "kind": "COMPOUND",
+      "senses": [
+        {
+          "gloss": "Hostile / Enemy-like",
+          "partOfSpeech": "adjective",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "3637062b-7e44-56e4-ae16-0b75ef0a5af7",
+      "word": "skag",
+      "script": "",
+      "category": "b9afb081-909d-538f-8a78-fa9471fb1a1a",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Enemy / Opponent / Subordinate",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "c6fc24e7-9bd7-54bd-a63b-2dbf6d8d31f0",
+      "word": "eiz",
+      "script": "",
+      "category": "b9afb081-909d-538f-8a78-fa9471fb1a1a",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Iron / Steel / Armor",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "eb14620d-559e-5343-9c48-952eb6227fe6",
+      "word": "magg",
+      "script": "",
+      "category": "b9afb081-909d-538f-8a78-fa9471fb1a1a",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Blade / Sword",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "1cb4a2cd-a502-5ac8-9165-274b1ed32109",
+      "word": "schi",
+      "script": "",
+      "category": "b9afb081-909d-538f-8a78-fa9471fb1a1a",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Shield / Protection",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "4454f232-b2d4-5779-903d-5899e367f675",
+      "word": "pfeil",
+      "script": "",
+      "category": "b9afb081-909d-538f-8a78-fa9471fb1a1a",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Arrow / Missile",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "a5c7b567-84a3-5abc-9b26-5a060653ad63",
+      "word": "rokh",
+      "script": "",
+      "category": "b9afb081-909d-538f-8a78-fa9471fb1a1a",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Commander / Lord / High Leader",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "d0d4e2d2-cfc5-5611-84b9-af582b574adf",
+      "word": "vrak",
+      "script": "",
+      "category": "b9afb081-909d-538f-8a78-fa9471fb1a1a",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Imperium / Empire / Supreme Rule",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "7435c626-d5e1-51d2-be43-619a6235dd4a",
+      "word": "thron",
+      "script": "",
+      "category": "e699950a-7512-5756-ba6f-3d33f5df0935",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Throne / Seat of Power",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "65601346-ed15-5c54-b832-ddab82d0b688",
+      "word": "kett",
+      "script": "",
+      "category": "e699950a-7512-5756-ba6f-3d33f5df0935",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Chain / Bondage",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "5e0203ce-4539-5385-8eed-f4763f6d180e",
+      "word": "slav",
+      "script": "",
+      "category": "e699950a-7512-5756-ba6f-3d33f5df0935",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Slave / Servitude",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "87092d5b-6e6b-54d2-a8a5-52c9bcbaba56",
+      "word": "reich",
+      "script": "",
+      "category": "e699950a-7512-5756-ba6f-3d33f5df0935",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Realm / Territory",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "9a577e56-acee-5a7d-b0fa-3ebc684071bb",
+      "word": "sieg",
+      "script": "",
+      "category": "e699950a-7512-5756-ba6f-3d33f5df0935",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Victory / Triumph",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "8347b7b7-233f-5c6a-9f0b-445074a75956",
+      "word": "zint",
+      "script": "",
+      "category": "e699950a-7512-5756-ba6f-3d33f5df0935",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Tax / Tribute",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "4a4c1930-ecbb-5b2c-8483-446b733849ae",
+      "word": "bann",
+      "script": "",
+      "category": "e699950a-7512-5756-ba6f-3d33f5df0935",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Edict / Ban / Sentence",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "f5acf2ce-1a8c-5cd9-b4db-f3feae30d6c3",
+      "word": "gold",
+      "script": "",
+      "category": "e699950a-7512-5756-ba6f-3d33f5df0935",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Wealth / Gold / Spoils",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "27e973bd-096c-50c7-a301-38313bd5be2b",
+      "word": "ein",
+      "script": "",
+      "category": "2cb436e2-d0a5-5ddd-8b36-3b5af67c4ba8",
+      "kind": "NUMBER",
+      "senses": [
+        {
+          "gloss": "One / Single",
+          "partOfSpeech": "",
+          "note": ""
+        },
+        {
+          "gloss": "the number 1",
+          "partOfSpeech": "numeral",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "366ac7d0-fe0e-581c-90c9-3d0ae5d61c2b",
+      "word": "zvei",
+      "script": "",
+      "category": "2cb436e2-d0a5-5ddd-8b36-3b5af67c4ba8",
+      "kind": "NUMBER",
+      "senses": [
+        {
+          "gloss": "Two / Pair",
+          "partOfSpeech": "",
+          "note": ""
+        },
+        {
+          "gloss": "the number 2",
+          "partOfSpeech": "numeral",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "8c9c9548-9414-53bf-8449-f8be70db9898",
+      "word": "drei",
+      "script": "",
+      "category": "2cb436e2-d0a5-5ddd-8b36-3b5af67c4ba8",
+      "kind": "NUMBER",
+      "senses": [
+        {
+          "gloss": "Three",
+          "partOfSpeech": "",
+          "note": ""
+        },
+        {
+          "gloss": "the number 3",
+          "partOfSpeech": "numeral",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "8b3f2e2a-893b-531e-8ebe-58aaeced29fd",
+      "word": "mun",
+      "script": "",
+      "category": "2cb436e2-d0a5-5ddd-8b36-3b5af67c4ba8",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Many / Plural marker",
+          "partOfSpeech": "",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "4aa07b52-3bdc-5e74-a4e6-ba8ae8931fd3",
+      "word": "al",
+      "script": "",
+      "category": "2cb436e2-d0a5-5ddd-8b36-3b5af67c4ba8",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "All / Every",
+          "partOfSpeech": "",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "d7ce3b76-80e6-52de-b62c-fc4ae36e7f07",
+      "word": "ne-ein",
+      "script": "",
+      "category": "2cb436e2-d0a5-5ddd-8b36-3b5af67c4ba8",
+      "kind": "COMPOUND",
+      "senses": [
+        {
+          "gloss": "None / Zero",
+          "partOfSpeech": "",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "2069e79a-64e1-5252-b96a-992ce5551c07",
+      "word": "teil",
+      "script": "",
+      "category": "2cb436e2-d0a5-5ddd-8b36-3b5af67c4ba8",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Some / Part",
+          "partOfSpeech": "",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "0986c725-8a31-5d0a-a73d-99b969f35dd2",
+      "word": "ob",
+      "script": "",
+      "category": "6c6b4360-4103-5e07-b626-b3ce94d44cbf",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "High / Upper / Above",
+          "partOfSpeech": "",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "09bdb898-ea83-5ca5-ae90-b9ab40d98f16",
+      "word": "un",
+      "script": "",
+      "category": "6c6b4360-4103-5e07-b626-b3ce94d44cbf",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Low / Under / Below",
+          "partOfSpeech": "",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "71d6af69-963c-50b3-ad13-87c564f108e4",
+      "word": "in",
+      "script": "",
+      "category": "6c6b4360-4103-5e07-b626-b3ce94d44cbf",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "In / Inside",
+          "partOfSpeech": "",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "4201fa0b-5d3a-5f3a-9e65-d6755649ed49",
+      "word": "aus",
+      "script": "",
+      "category": "6c6b4360-4103-5e07-b626-b3ce94d44cbf",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Out / Outside",
+          "partOfSpeech": "",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "8c489d96-0865-5e65-a34e-acf2028a7ca6",
+      "word": "for",
+      "script": "",
+      "category": "6c6b4360-4103-5e07-b626-b3ce94d44cbf",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Front / Before",
+          "partOfSpeech": "",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "800ded37-d4b5-5866-b0b7-0327d775b2c9",
+      "word": "hintr",
+      "script": "",
+      "category": "6c6b4360-4103-5e07-b626-b3ce94d44cbf",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Back / Behind",
+          "partOfSpeech": "",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "214b3565-2737-56cf-b97b-0a584e0b8a4e",
+      "word": "veis",
+      "script": "",
+      "category": "8f451597-303e-58c4-a48a-fc26d95e6c0e",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "White / Pale",
+          "partOfSpeech": "adjective",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "58f18583-10bf-5afc-be7d-80823efbb1e9",
+      "word": "blak",
+      "script": "",
+      "category": "8f451597-303e-58c4-a48a-fc26d95e6c0e",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Black / Dark / Pitch",
+          "partOfSpeech": "adjective",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "f533f328-0f00-5f97-b437-398a8ea14dde",
+      "word": "grau",
+      "script": "",
+      "category": "8f451597-303e-58c4-a48a-fc26d95e6c0e",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Gray / Ash",
+          "partOfSpeech": "adjective",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "d6755b08-40b2-528c-bbf6-5a146d272b2b",
+      "word": "blau",
+      "script": "",
+      "category": "8f451597-303e-58c4-a48a-fc26d95e6c0e",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Blue / Sky-colored",
+          "partOfSpeech": "adjective",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "5ab0d679-e86f-5f63-8238-7acee98971d1",
+      "word": "grun",
+      "script": "",
+      "category": "8f451597-303e-58c4-a48a-fc26d95e6c0e",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Green / Leaf-colored",
+          "partOfSpeech": "adjective",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "9f558f79-de01-5463-ba65-129c762770c2",
+      "word": "gel",
+      "script": "",
+      "category": "8f451597-303e-58c4-a48a-fc26d95e6c0e",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Yellow",
+          "partOfSpeech": "adjective",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "2e658b6e-3605-5578-b7b5-bb5969b015cf",
+      "word": "bron",
+      "script": "",
+      "category": "8f451597-303e-58c4-a48a-fc26d95e6c0e",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Brown / Earth-colored",
+          "partOfSpeech": "adjective",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "8bbad9ff-0137-5afb-b455-20b6f22aca59",
+      "word": "suez",
+      "script": "",
+      "category": "effd2e5f-43b0-587c-9559-d5e228ab99c1",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Sweet",
+          "partOfSpeech": "adjective",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "49c7eabf-4f57-5aa0-a15f-99f2a5515397",
+      "word": "bit",
+      "script": "",
+      "category": "effd2e5f-43b0-587c-9559-d5e228ab99c1",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Bitter",
+          "partOfSpeech": "adjective",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "6a6904a0-4ccf-5554-a421-e9c6ba53f1ce",
+      "word": "sur",
+      "script": "",
+      "category": "effd2e5f-43b0-587c-9559-d5e228ab99c1",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Sour",
+          "partOfSpeech": "adjective",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "1d80c5e5-62fc-521b-9fdb-94686a59d8a7",
+      "word": "sal",
+      "script": "",
+      "category": "effd2e5f-43b0-587c-9559-d5e228ab99c1",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Salty / Briny",
+          "partOfSpeech": "adjective",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "cc00aca0-36e6-549f-b274-583e07cf1ce1",
+      "word": "zorn",
+      "script": "",
+      "category": "2a5c41cd-0240-533d-8b33-9b8d591e07f7",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Angry / Enraged / Wrathful",
+          "partOfSpeech": "adjective",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "fad78784-491f-53a9-8120-85fd6a19ffe6",
+      "word": "reiz",
+      "script": "",
+      "category": "2a5c41cd-0240-533d-8b33-9b8d591e07f7",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Annoyed / Irritated / Provoked",
+          "partOfSpeech": "adjective",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "045464b4-a99f-5e9d-ae31-c568d68f5f66",
+      "word": "froid",
+      "script": "",
+      "category": "2a5c41cd-0240-533d-8b33-9b8d591e07f7",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Joyful / Pleased",
+          "partOfSpeech": "adjective",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "ac8c7b84-b400-501f-a21c-043483ae3fbe",
+      "word": "stolz",
+      "script": "",
+      "category": "2a5c41cd-0240-533d-8b33-9b8d591e07f7",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Proud / Arrogant",
+          "partOfSpeech": "adjective",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "ecd6906b-1fde-5fd6-9cde-4eded374bdc6",
+      "word": "grim",
+      "script": "",
+      "category": "2a5c41cd-0240-533d-8b33-9b8d591e07f7",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Stern / Grim / Fierce",
+          "partOfSpeech": "adjective",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "9c584018-a783-5677-9825-b1a3f3840cb6",
+      "word": "sor",
+      "script": "",
+      "category": "2a5c41cd-0240-533d-8b33-9b8d591e07f7",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Sorrowful / Grieving",
+          "partOfSpeech": "adjective",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "bc576406-1ae5-5694-8f8e-379cfeb9a5cb",
+      "word": "stil",
+      "script": "",
+      "category": "2a5c41cd-0240-533d-8b33-9b8d591e07f7",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Calm / Quiet / Peaceful",
+          "partOfSpeech": "adjective",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "5acf01ec-a2b2-572a-93b4-bc22421d2caf",
+      "word": "zorn-frou-rokh",
+      "script": "",
+      "category": "4415721d-5e05-558f-8245-2182246fd445",
+      "kind": "COMPOUND",
+      "senses": [
+        {
+          "gloss": "Enraged female commander (Anger-female-leader)",
+          "partOfSpeech": "adjective",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "89c1a9fc-e665-5d5e-938a-9f3ef6ddf5cf",
+      "word": "reiz-skag",
+      "script": "",
+      "category": "4415721d-5e05-558f-8245-2182246fd445",
+      "kind": "COMPOUND",
+      "senses": [
+        {
+          "gloss": "Annoyed enemy / Irritated subordinate",
+          "partOfSpeech": "adjective",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "159b27f8-7356-503e-a49c-c65559afe758",
+      "word": "veis-eiz",
+      "script": "",
+      "category": "4415721d-5e05-558f-8245-2182246fd445",
+      "kind": "COMPOUND",
+      "senses": [
+        {
+          "gloss": "White steel / Silver",
+          "partOfSpeech": "adjective",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "b053a147-f6af-524d-8018-a383dd3167f9",
+      "word": "suez-vat",
+      "script": "",
+      "category": "4415721d-5e05-558f-8245-2182246fd445",
+      "kind": "COMPOUND",
+      "senses": [
+        {
+          "gloss": "Sweet drink / Wine",
+          "partOfSpeech": "adjective",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "b52813e8-14d1-51a6-b238-dc80418b34e2",
+      "word": "nul",
+      "script": "",
+      "category": "2cb436e2-d0a5-5ddd-8b36-3b5af67c4ba8",
+      "kind": "NUMBER",
+      "senses": [
+        {
+          "gloss": "0 (Zero / Empty)",
+          "partOfSpeech": "numeral",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "53310308-c338-5ee7-b819-a6687d3019a7",
+      "word": "vir",
+      "script": "",
+      "category": "2cb436e2-d0a5-5ddd-8b36-3b5af67c4ba8",
+      "kind": "NUMBER",
+      "senses": [
+        {
+          "gloss": "the number 4",
+          "partOfSpeech": "numeral",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "ea06da4d-4fac-5f73-83c5-5cf269d705b5",
+      "word": "finf",
+      "script": "",
+      "category": "2cb436e2-d0a5-5ddd-8b36-3b5af67c4ba8",
+      "kind": "NUMBER",
+      "senses": [
+        {
+          "gloss": "the number 5",
+          "partOfSpeech": "numeral",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "d6e980ba-a945-5359-86f3-12fa3622f64d",
+      "word": "seks",
+      "script": "",
+      "category": "2cb436e2-d0a5-5ddd-8b36-3b5af67c4ba8",
+      "kind": "NUMBER",
+      "senses": [
+        {
+          "gloss": "the number 6",
+          "partOfSpeech": "numeral",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "da7f33f0-1609-5276-8b59-f1710e784a9b",
+      "word": "siv",
+      "script": "",
+      "category": "2cb436e2-d0a5-5ddd-8b36-3b5af67c4ba8",
+      "kind": "NUMBER",
+      "senses": [
+        {
+          "gloss": "the number 7",
+          "partOfSpeech": "numeral",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "b0fc7619-8729-5d2a-bff6-c3ca150a10a5",
+      "word": "akh",
+      "script": "",
+      "category": "2cb436e2-d0a5-5ddd-8b36-3b5af67c4ba8",
+      "kind": "NUMBER",
+      "senses": [
+        {
+          "gloss": "the number 8",
+          "partOfSpeech": "numeral",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "11be0d9c-ecda-551a-9e33-8c9c600f6dd7",
+      "word": "neun",
+      "script": "",
+      "category": "2cb436e2-d0a5-5ddd-8b36-3b5af67c4ba8",
+      "kind": "NUMBER",
+      "senses": [
+        {
+          "gloss": "the number 9",
+          "partOfSpeech": "numeral",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "886c7e17-a21e-5c6c-9f80-4b0b8dfc79e7",
+      "word": "zehn",
+      "script": "",
+      "category": "2cb436e2-d0a5-5ddd-8b36-3b5af67c4ba8",
+      "kind": "NUMBER",
+      "senses": [
+        {
+          "gloss": "the number 10",
+          "partOfSpeech": "numeral",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "b660473f-d5a3-5120-83de-5c1b03390b98",
+      "word": "elf",
+      "script": "",
+      "category": "2cb436e2-d0a5-5ddd-8b36-3b5af67c4ba8",
+      "kind": "NUMBER",
+      "senses": [
+        {
+          "gloss": "the number 11",
+          "partOfSpeech": "numeral",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "574ef42a-6220-5a89-b10e-6c46a713c3f1",
+      "word": "dutz",
+      "script": "",
+      "category": "2cb436e2-d0a5-5ddd-8b36-3b5af67c4ba8",
+      "kind": "NUMBER",
+      "senses": [
+        {
+          "gloss": "the number 12",
+          "partOfSpeech": "numeral",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "e6f9f9eb-ad26-5242-8d29-8797e68b4438",
+      "word": "dutz-ein",
+      "script": "",
+      "category": "2cb436e2-d0a5-5ddd-8b36-3b5af67c4ba8",
+      "kind": "NUMBER",
+      "senses": [
+        {
+          "gloss": "13 (12 + 1)",
+          "partOfSpeech": "numeral",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "e0967515-c53f-5612-b8ab-72b4cb28abdb",
+      "word": "dutz-zvei",
+      "script": "",
+      "category": "2cb436e2-d0a5-5ddd-8b36-3b5af67c4ba8",
+      "kind": "NUMBER",
+      "senses": [
+        {
+          "gloss": "14 (12 + 2)",
+          "partOfSpeech": "numeral",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "8980fb89-454f-59dc-8242-c874adb86fcb",
+      "word": "dutz-drei",
+      "script": "",
+      "category": "2cb436e2-d0a5-5ddd-8b36-3b5af67c4ba8",
+      "kind": "NUMBER",
+      "senses": [
+        {
+          "gloss": "15 (12 + 3)",
+          "partOfSpeech": "numeral",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "5229efb4-ce26-56ef-8495-f8ce6aa5fd63",
+      "word": "dutz-vir",
+      "script": "",
+      "category": "2cb436e2-d0a5-5ddd-8b36-3b5af67c4ba8",
+      "kind": "NUMBER",
+      "senses": [
+        {
+          "gloss": "16 (12 + 4)",
+          "partOfSpeech": "numeral",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "c59de1d0-7b5c-5834-b742-b8602f63cb14",
+      "word": "dutz-finf",
+      "script": "",
+      "category": "2cb436e2-d0a5-5ddd-8b36-3b5af67c4ba8",
+      "kind": "NUMBER",
+      "senses": [
+        {
+          "gloss": "17 (12 + 5)",
+          "partOfSpeech": "numeral",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "f1054c6a-d785-50f0-bfc6-db5a0e841cf4",
+      "word": "dutz-seks",
+      "script": "",
+      "category": "2cb436e2-d0a5-5ddd-8b36-3b5af67c4ba8",
+      "kind": "NUMBER",
+      "senses": [
+        {
+          "gloss": "18 (12 + 6)",
+          "partOfSpeech": "numeral",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "1c2823b0-6781-5c6d-a17f-4171c1282c20",
+      "word": "dutz-siv",
+      "script": "",
+      "category": "2cb436e2-d0a5-5ddd-8b36-3b5af67c4ba8",
+      "kind": "NUMBER",
+      "senses": [
+        {
+          "gloss": "19 (12 + 7)",
+          "partOfSpeech": "numeral",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "3b710353-c3e7-5fd8-891b-06b6ca0e508d",
+      "word": "dutz-akh",
+      "script": "",
+      "category": "2cb436e2-d0a5-5ddd-8b36-3b5af67c4ba8",
+      "kind": "NUMBER",
+      "senses": [
+        {
+          "gloss": "20 (12 + 8)",
+          "partOfSpeech": "numeral",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "a84521c1-97c2-5753-a289-e67a702b1140",
+      "word": "dutz-neun",
+      "script": "",
+      "category": "2cb436e2-d0a5-5ddd-8b36-3b5af67c4ba8",
+      "kind": "NUMBER",
+      "senses": [
+        {
+          "gloss": "21 (12 + 9)",
+          "partOfSpeech": "numeral",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "4c0442a1-d6c8-5457-9c9d-c6803657b44b",
+      "word": "dutz-zehn",
+      "script": "",
+      "category": "2cb436e2-d0a5-5ddd-8b36-3b5af67c4ba8",
+      "kind": "NUMBER",
+      "senses": [
+        {
+          "gloss": "22 (12 + 10)",
+          "partOfSpeech": "numeral",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "a4308650-b9fa-52af-83d8-c95b6ca22b86",
+      "word": "dutz-elf",
+      "script": "",
+      "category": "2cb436e2-d0a5-5ddd-8b36-3b5af67c4ba8",
+      "kind": "NUMBER",
+      "senses": [
+        {
+          "gloss": "23 (12 + 11)",
+          "partOfSpeech": "numeral",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "8850980a-a234-5101-b712-4f73b59362f3",
+      "word": "karg",
+      "script": "",
+      "category": "2cb436e2-d0a5-5ddd-8b36-3b5af67c4ba8",
+      "kind": "NUMBER",
+      "senses": [
+        {
+          "gloss": "Standard unit / Imperial block (24^1 (24))",
+          "partOfSpeech": "numeral",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "8598270e-5a93-5f78-87c7-19467fa45915",
+      "word": "groz-karg",
+      "script": "",
+      "category": "2cb436e2-d0a5-5ddd-8b36-3b5af67c4ba8",
+      "kind": "NUMBER",
+      "senses": [
+        {
+          "gloss": "Great block (24^2 (576))",
+          "partOfSpeech": "numeral",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "07fff442-7865-5da9-8728-69c146231104",
+      "word": "vok-karg",
+      "script": "",
+      "category": "2cb436e2-d0a5-5ddd-8b36-3b5af67c4ba8",
+      "kind": "NUMBER",
+      "senses": [
+        {
+          "gloss": "Supreme block (24^3 (13,824))",
+          "partOfSpeech": "numeral",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "271144b6-2b54-5dce-beac-a1ab7b49b4e3",
+      "word": "sulk",
+      "script": "",
+      "category": "b9afb081-909d-538f-8a78-fa9471fb1a1a",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "spear / shaft",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "f677a1f4-6e21-564c-828b-13cfb6860e85",
+      "word": "grom",
+      "script": "",
+      "category": "b9afb081-909d-538f-8a78-fa9471fb1a1a",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "shock / impact",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "f1579c96-b293-5343-b242-061b2f324c81",
+      "word": "krog",
+      "script": "",
+      "category": "b9afb081-909d-538f-8a78-fa9471fb1a1a",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "bastion / fort",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "3d882fcd-ca03-513e-a0c6-f5e4f85bcc45",
+      "word": "pulk",
+      "script": "",
+      "category": "b9afb081-909d-538f-8a78-fa9471fb1a1a",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "unit / company",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "7474623e-d9a0-53d1-9bba-069599b1c7c7",
+      "word": "strah",
+      "script": "",
+      "category": "b9afb081-909d-538f-8a78-fa9471fb1a1a",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "piercing / bolt",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "d5e9bc96-a04b-5196-971c-923648af06c5",
+      "word": "vorg",
+      "script": "",
+      "category": "b9afb081-909d-538f-8a78-fa9471fb1a1a",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "advance / front",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "f3f23566-7a96-595e-aae1-af304440b1f1",
+      "word": "tranz",
+      "script": "",
+      "category": "b9afb081-909d-538f-8a78-fa9471fb1a1a",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "trench / pit",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "258ea75e-82f8-5756-b1d7-955e9b35b42c",
+      "word": "kest",
+      "script": "",
+      "category": "b9afb081-909d-538f-8a78-fa9471fb1a1a",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "crate / supply box",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "c2aa8f93-5e78-56c8-b885-5a6c9b270b28",
+      "word": "dram",
+      "script": "",
+      "category": "b9afb081-909d-538f-8a78-fa9471fb1a1a",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "war drum / signal",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "0d199e0f-ca54-522b-8c6d-502dcae0c78b",
+      "word": "skalf",
+      "script": "",
+      "category": "b9afb081-909d-538f-8a78-fa9471fb1a1a",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "plate armor / scale",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "37146a50-2e3f-56cc-ac14-efebd016c3da",
+      "word": "zorg",
+      "script": "",
+      "category": "b9afb081-909d-538f-8a78-fa9471fb1a1a",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "provisions / rations",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "5442112e-c50d-54a0-a14b-78b5dca83666",
+      "word": "veng",
+      "script": "",
+      "category": "b9afb081-909d-538f-8a78-fa9471fb1a1a",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "flank / wing",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "2c014e11-8c4e-535f-8c04-923d384a0342",
+      "word": "fret",
+      "script": "",
+      "category": "b9afb081-909d-538f-8a78-fa9471fb1a1a",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "cord / tether",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "3a2a295e-bfc4-5435-933d-8391f0632d78",
+      "word": "bork",
+      "script": "",
+      "category": "b9afb081-909d-538f-8a78-fa9471fb1a1a",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "coarse / wooden",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "38aaeaae-8480-5988-a35f-efaaf51b0c60",
+      "word": "vrak-rokh",
+      "script": "",
+      "category": "b9afb081-909d-538f-8a78-fa9471fb1a1a",
+      "kind": "COMPOUND",
+      "senses": [
+        {
+          "gloss": "Emperor (Imperium-commander)",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "0ed4b2ce-3e69-5361-8a98-1dc86dbde43a",
+      "word": "vrak-pulk",
+      "script": "",
+      "category": "b9afb081-909d-538f-8a78-fa9471fb1a1a",
+      "kind": "COMPOUND",
+      "senses": [
+        {
+          "gloss": "Imperial Legion (Imperium-unit)",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "ce260b8f-5a4c-5216-ba4d-32e52f3d5c65",
+      "word": "vrak-sulk",
+      "script": "",
+      "category": "b9afb081-909d-538f-8a78-fa9471fb1a1a",
+      "kind": "COMPOUND",
+      "senses": [
+        {
+          "gloss": "Imperial Spear (Imperium-spear)",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "097a6799-a490-543f-9121-b709df50af29",
+      "word": "vrak-skalf",
+      "script": "",
+      "category": "b9afb081-909d-538f-8a78-fa9471fb1a1a",
+      "kind": "COMPOUND",
+      "senses": [
+        {
+          "gloss": "Imperial Armor (Imperium-plate)",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "050ce07c-0649-53da-810b-cdac2cf4a2f3",
+      "word": "vrak-zorg",
+      "script": "",
+      "category": "b9afb081-909d-538f-8a78-fa9471fb1a1a",
+      "kind": "COMPOUND",
+      "senses": [
+        {
+          "gloss": "Imperial Quartermaster (Imperium-provision)",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "5be7f301-92b8-5531-a269-08f33e3fd546",
+      "word": "vrak-vorg",
+      "script": "",
+      "category": "b9afb081-909d-538f-8a78-fa9471fb1a1a",
+      "kind": "COMPOUND",
+      "senses": [
+        {
+          "gloss": "Imperial Vanguard (Imperium-advance)",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "851612f4-fdab-51c1-9964-4b486cd0bb6d",
+      "word": "vrak-tranz",
+      "script": "",
+      "category": "b9afb081-909d-538f-8a78-fa9471fb1a1a",
+      "kind": "COMPOUND",
+      "senses": [
+        {
+          "gloss": "Imperial Fortification (Imperium-trench)",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "40192e88-37fe-5303-b3a8-a7afaee0753d",
+      "word": "vrak-ord",
+      "script": "",
+      "category": "b9afb081-909d-538f-8a78-fa9471fb1a1a",
+      "kind": "COMPOUND",
+      "senses": [
+        {
+          "gloss": "Imperial Military Code (Imperium-law)",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "1fc7427b-34c9-555b-b343-bb46df399620",
+      "word": "pulk-pakt",
+      "script": "",
+      "category": "b9afb081-909d-538f-8a78-fa9471fb1a1a",
+      "kind": "COMPOUND",
+      "senses": [
+        {
+          "gloss": "Unit Oath (unit-treaty)",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "5b13d7ea-d1e7-5336-9d45-c514738f2e4a",
+      "word": "grom-sulk",
+      "script": "",
+      "category": "b9afb081-909d-538f-8a78-fa9471fb1a1a",
+      "kind": "COMPOUND",
+      "senses": [
+        {
+          "gloss": "Heavy Shock Spear (shock-spear)",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "d8d5dce2-3cce-57b4-aab6-2b2e8889107c",
+      "word": "laff-skalf",
+      "script": "",
+      "category": "b9afb081-909d-538f-8a78-fa9471fb1a1a",
+      "kind": "COMPOUND",
+      "senses": [
+        {
+          "gloss": "Greaves (thigh-plate)",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "1622dafa-469f-5d21-b4d7-b5b4de57d0be",
+      "word": "zil",
+      "script": "",
+      "category": "8dd29b35-576b-5c4a-8fbe-52ffa71350fc",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Magic / Spell / Spoken Force",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "f50a9bd9-8f39-5cfe-9d67-755b4dda7890",
+      "word": "hexe",
+      "script": "",
+      "category": "8dd29b35-576b-5c4a-8fbe-52ffa71350fc",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Sorceress (inherently female role)",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "5f7a7f91-7cd3-5b1b-9fc5-2628112ae1ea",
+      "word": "siph",
+      "script": "",
+      "category": "8dd29b35-576b-5c4a-8fbe-52ffa71350fc",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Siphon / Drain / Extract",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "7f74a6a4-0ff6-5262-b0b5-99fe5be31e84",
+      "word": "bann-zil",
+      "script": "",
+      "category": "8dd29b35-576b-5c4a-8fbe-52ffa71350fc",
+      "kind": "COMPOUND",
+      "senses": [
+        {
+          "gloss": "Edict Spell (binding vocal command)",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "2005e061-7c0b-55de-a3eb-05c7675f505f",
+      "word": "liv-zint",
+      "script": "",
+      "category": "8dd29b35-576b-5c4a-8fbe-52ffa71350fc",
+      "kind": "COMPOUND",
+      "senses": [
+        {
+          "gloss": "Life-Tax (draining male vitality)",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "5c3abd89-e2c3-5451-962e-7571126c2219",
+      "word": "eiz-zeik",
+      "script": "",
+      "category": "8dd29b35-576b-5c4a-8fbe-52ffa71350fc",
+      "kind": "COMPOUND",
+      "senses": [
+        {
+          "gloss": "Iron-Rune (enchanted brand)",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "8063661d-f733-53bc-964f-412ad29e606e",
+      "word": "krag-zil",
+      "script": "",
+      "category": "8dd29b35-576b-5c4a-8fbe-52ffa71350fc",
+      "kind": "COMPOUND",
+      "senses": [
+        {
+          "gloss": "Force-Spell (kinetic/destructive magic)",
+          "partOfSpeech": "noun",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "b5f7b15f-21b4-5d14-96ad-aa768fa436a1",
+      "word": "kot",
+      "script": "",
+      "category": "1ec4b303-6f83-54d5-882d-d59444b743c9",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Shit / Excrement / Filth (Core vulgar root)",
+          "partOfSpeech": "",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": [],
+      "register": "9b3a8ed4-1905-5f13-9274-5e3540e212a2"
+    },
+    {
+      "id": "ed2bdee6-0026-5fc8-8853-c235086be8c6",
+      "word": "hund",
+      "script": "",
+      "category": "1ec4b303-6f83-54d5-882d-d59444b743c9",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Cur / Dog (Sub-human creature)",
+          "partOfSpeech": "",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": [],
+      "register": "9b3a8ed4-1905-5f13-9274-5e3540e212a2"
+    },
+    {
+      "id": "8920fa22-35ad-553b-9d90-e43a9ea3335a",
+      "word": "hoh-kop",
+      "script": "",
+      "category": "1ec4b303-6f83-54d5-882d-d59444b743c9",
+      "kind": "COMPOUND",
+      "senses": [
+        {
+          "gloss": "Hollow-head / Brainless idiot (hoh [hollow] + kop [head])",
+          "partOfSpeech": "",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": [],
+      "register": "9b3a8ed4-1905-5f13-9274-5e3540e212a2"
+    },
+    {
+      "id": "3cab4494-3e91-512d-b1e2-4eff895746a0",
+      "word": "skag-foul",
+      "script": "",
+      "category": "1ec4b303-6f83-54d5-882d-d59444b743c9",
+      "kind": "COMPOUND",
+      "senses": [
+        {
+          "gloss": "Scum / Rotten outsider (skag [enemy] + foul [rotten])",
+          "partOfSpeech": "",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": [],
+      "register": "9b3a8ed4-1905-5f13-9274-5e3540e212a2"
+    },
+    {
+      "id": "e5b8d085-2e40-5639-89cc-2544ff622ee5",
+      "word": "slav-blod",
+      "script": "",
+      "category": "1ec4b303-6f83-54d5-882d-d59444b743c9",
+      "kind": "COMPOUND",
+      "senses": [
+        {
+          "gloss": "Slave-blooded / Lowborn trash (slav [slave] + blod [blood])",
+          "partOfSpeech": "",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": [],
+      "register": "9b3a8ed4-1905-5f13-9274-5e3540e212a2"
+    },
+    {
+      "id": "fa759917-beed-5f34-8f08-1da3ec6774c3",
+      "word": "blod-foul",
+      "script": "",
+      "category": "1ec4b303-6f83-54d5-882d-d59444b743c9",
+      "kind": "COMPOUND",
+      "senses": [
+        {
+          "gloss": "Bastard / Corrupt lineage (blod [blood] + foul [rotten])",
+          "partOfSpeech": "",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": [],
+      "register": "9b3a8ed4-1905-5f13-9274-5e3540e212a2"
+    },
+    {
+      "id": "9fd90dff-574e-575f-b345-8cd38c0df8a5",
+      "word": "skup-foul",
+      "script": "",
+      "category": "1ec4b303-6f83-54d5-882d-d59444b743c9",
+      "kind": "COMPOUND",
+      "senses": [
+        {
+          "gloss": "Ass-rot / Garbage rear (skup [ass] + foul [rotten])",
+          "partOfSpeech": "",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": [],
+      "register": "9b3a8ed4-1905-5f13-9274-5e3540e212a2"
+    },
+    {
+      "id": "27cd472f-126b-5287-8e11-aa4bda057a40",
+      "word": "lug-zunge",
+      "script": "",
+      "category": "1ec4b303-6f83-54d5-882d-d59444b743c9",
+      "kind": "COMPOUND",
+      "senses": [
+        {
+          "gloss": "Snake-tongue / Liar (lug [lie] + zunge [tongue])",
+          "partOfSpeech": "",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": [],
+      "register": "9b3a8ed4-1905-5f13-9274-5e3540e212a2"
+    },
+    {
+      "id": "9bb1e41f-1207-571f-9e2f-d26d0a61dc19",
+      "word": "vrak-foul",
+      "script": "",
+      "category": "1ec4b303-6f83-54d5-882d-d59444b743c9",
+      "kind": "COMPOUND",
+      "senses": [
+        {
+          "gloss": "Traitor / Imperial disgrace (vrak [empire] + foul [rotten])",
+          "partOfSpeech": "",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": [],
+      "register": "9b3a8ed4-1905-5f13-9274-5e3540e212a2"
+    },
+    {
+      "id": "3fd149d3-0c9f-5a1e-a1ad-4c9c8f6bf898",
+      "word": "skup",
+      "script": "",
+      "category": "8dd29b35-576b-5c4a-8fbe-52ffa71350fc",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Ass / Bottom (New Monosyllabic Root)",
+          "partOfSpeech": "",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "de360e9e-bb44-5748-b158-12a950b285d8",
+      "word": "vong",
+      "script": "",
+      "category": "8dd29b35-576b-5c4a-8fbe-52ffa71350fc",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Drunk / Intoxicated (New Monosyllabic Root)",
+          "partOfSpeech": "",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    },
+    {
+      "id": "9f2a0a9c-b6d2-5473-b950-35a5c54a429f",
+      "word": "pask",
+      "script": "",
+      "category": "8dd29b35-576b-5c4a-8fbe-52ffa71350fc",
+      "kind": "ROOT",
+      "senses": [
+        {
+          "gloss": "Lash / Strike / Blow (New Monosyllabic Root)",
+          "partOfSpeech": "",
+          "note": ""
+        }
+      ],
+      "rationale": "",
+      "rule": "",
+      "notes": "",
+      "origin": {
+        "kind": "AUTHOR",
+        "time": 0
+      },
+      "status": "ACCEPTED",
+      "variants": []
+    }
+  ],
+  "speakers": {
+    "mode": "EVERYONE_EXCEPT",
+    "characters": []
+  },
+  "hyphenStructural": true
+}

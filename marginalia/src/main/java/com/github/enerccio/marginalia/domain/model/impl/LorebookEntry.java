@@ -62,6 +62,17 @@ public class LorebookEntry extends ExtendableEntity {
     @ExtendedAttribute
     private boolean preventRecursion = false;
 
+    // the entry is used only because of the content of other entries (see Lorebook#getScanDepth), never by the instructions
+    // or the story of the turn itself
+    @Transient
+    @ExtendedAttribute
+    private boolean recursionOnly = false;
+
+    // the filter is also looked for in the summaries of the story so far
+    @Transient
+    @ExtendedAttribute
+    private boolean activationSummaries = false;
+
     // what the filter is looked for in: the instructions of the turn, or the instructions and the last activationParts parts
     @Transient
     @ExtendedAttribute
@@ -82,6 +93,12 @@ public class LorebookEntry extends ExtendableEntity {
     @Transient
     @ExtendedAttribute
     private Integer toMessage;
+
+    // a template (macros and Handlebars, like the content) rendered for the turn; the entry is used only when the result
+    // is true (see LorebookActivationService); null = no condition
+    @Transient
+    @ExtendedAttribute
+    private String activationCondition;
 
     public Lorebook getLorebook() {
         return lorebook;
@@ -179,6 +196,22 @@ public class LorebookEntry extends ExtendableEntity {
         this.preventRecursion = preventRecursion;
     }
 
+    public boolean isRecursionOnly() {
+        return recursionOnly;
+    }
+
+    public void setRecursionOnly(boolean recursionOnly) {
+        this.recursionOnly = recursionOnly;
+    }
+
+    public boolean isActivationSummaries() {
+        return activationSummaries;
+    }
+
+    public void setActivationSummaries(boolean activationSummaries) {
+        this.activationSummaries = activationSummaries;
+    }
+
     public ActivationContext getActivationContext() {
         return activationContext == null ? ActivationContext.INSTRUCTIONS : activationContext;
     }
@@ -209,6 +242,21 @@ public class LorebookEntry extends ExtendableEntity {
 
     public void setToMessage(Integer toMessage) {
         this.toMessage = toMessage == null || toMessage < 1 ? null : toMessage;
+    }
+
+    public String getActivationCondition() {
+        return activationCondition;
+    }
+
+    public void setActivationCondition(String activationCondition) {
+        this.activationCondition = activationCondition == null || activationCondition.isBlank() ? null : activationCondition;
+    }
+
+    /**
+     * Whether the entry has a condition (a template that has to give a true value for the turn).
+     */
+    public boolean hasActivationCondition() {
+        return activationCondition != null;
     }
 
     /**

@@ -357,6 +357,72 @@ class MetaSummaryTest extends GenerationTestBase {
     }
 
     @Test
+    void generationDeletesOutdatedSummariesOnlyWhenTheAuthorAgrees() throws Exception {
+        summarize(2, "S2");
+        summarize(4, "S4");
+        ChatMessage edited = m(3);
+        edited.setResponse("part 3 rewritten");
+        chatMessageService.save(edited);
+        AtomicReference<List<String>> summaries = new AtomicReference<>();
+        onEvent(Events.BEFORE_SUMMARIES, manuscript, e -> {
+            @SuppressWarnings("unchecked")
+            List<String> used = (List<String>) e.getProperty(GenerationProperties.SUMMARIES);
+            summaries.set(List.copyOf(used));
+        });
+
+        GenerationRun run = generate(manuscript, "continue", true);
+
+        assertThat(run.await(TIMEOUT)).isEqualTo(GenerationRun.Outcome.COMPLETED);
+        assertThat(run.getQuestions()).hasSize(1).first().asString().contains("#" + m(4).getId());
+        assertThat(summaries.get()).containsExactly("S2");
+        assertThat(summaryOf(4)).isNull();
+    }
+
+    @Test
+    void generationKeepsOutdatedSummariesWhenTheAuthorDeclines() throws Exception {
+        summarize(2, "S2");
+        summarize(4, "S4");
+        ChatMessage edited = m(3);
+        edited.setResponse("part 3 rewritten");
+        chatMessageService.save(edited);
+        AtomicReference<Boolean> summariesEvent = new AtomicReference<>(false);
+        onEvent(Events.BEFORE_SUMMARIES, manuscript, e -> summariesEvent.set(true));
+
+        GenerationRun run = generate(manuscript, "continue", false);
+
+        assertThat(run.await(TIMEOUT)).isEqualTo(GenerationRun.Outcome.CANCELLED);
+        assertThat(run.getQuestions()).hasSize(1);
+        assertThat(summariesEvent.get()).isFalse();
+        // nothing was deleted: the summary is still there, outdated, and can be revalidated
+        assertThat(summaryOf(4)).isNotNull();
+        assertThat(blocks()).extracting(b -> b.summary().getSummary() + ":" + b.isValid())
+                .containsExactly("S4:false", "S2:true");
+    }
+
+    @Test
+    void treeMarksOutdatedSummariesAndTheyCanBeRevalidated() throws Exception {
+        summarize(2, "S2");
+        summarize(4, "S4");
+        summarize(6, "S6");
+        ChatMessage edited = m(3);
+        edited.setResponse("part 3 rewritten");
+        chatMessageService.save(edited);
+        Manuscript book = manuscriptService.find(manuscript.getId());
+
+        assertThat(summaryService.collectTree(book)).extracting(n -> n.getSummary().getSummary() + ":" + n.isValid())
+                .containsExactly("S2:true", "S4:false", "S6:true");
+
+        // one summary only
+        assertThat(summaryService.revalidateActiveBranch(book, m(2))).isEmpty();
+        assertThat(summaryService.collectTree(book)).extracting(SummaryNode::isValid).containsExactly(true, false, true);
+        assertThat(summaryService.revalidateActiveBranch(book, m(4))).hasSize(1);
+
+        assertThat(summaryService.collectTree(book)).allMatch(SummaryNode::isValid);
+        assertThat(blocks()).allMatch(SummaryBlock::isValid);
+        assertThat(summaryService.revalidateActiveBranch(book, null)).isEmpty();
+    }
+
+    @Test
     void generationUsesOnlyTheMetaSummary() throws Exception {
         summarize(2, "S2");
         summarize(4, "S4");

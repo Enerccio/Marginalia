@@ -1,0 +1,72 @@
+.audiobook-section {
+    width: 100%;
+    padding: var(--lumo-space-s);
+    border: 1px solid var(--lumo-contrast-10pct);
+    border-radius: var(--lumo-border-radius-m);
+}
+
+/* The content of the studio: the dialog has no padding of its own, this is all there is around it */
+.audiobook-studio {
+    padding: var(--lumo-space-xs) var(--lumo-space-s) var(--lumo-space-s) var(--lumo-space-s);
+}
+
+/* The player in the viewer: next to the controls of the style button (fixed, top right, left of the read-aloud of the browser when it is there). */
+.audiobook-player {
+    position: fixed;
+    top: 16px;
+    right: 290px;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    gap: var(--lumo-space-xs);
+    padding: var(--lumo-space-xs);
+    background: var(--lumo-base-color);
+    border-radius: var(--lumo-border-radius-l);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* play and pause take turns; stop, the speed and the status only while something is played */
+.audiobook-player .audiobook-player-pause,
+.audiobook-player .audiobook-player-stop,
+.audiobook-player .audiobook-player-speed,
+.audiobook-player .audiobook-player-status,
+.audiobook-player .audiobook-player-offer {
+    display: none;
+}
+
+/* at a part without audio, when the read-aloud of the browser can read it */
+.audiobook-player.audiobook-offer .audiobook-player-offer {
+    display: inline-flex;
+}
+
+.audiobook-player.audiobook-playing .audiobook-player-play {
+    display: none;
+}
+
+.audiobook-player.audiobook-playing .audiobook-player-pause {
+    display: inline-flex;
+}
+
+.audiobook-player.audiobook-active .audiobook-player-stop {
+    display: inline-flex;
+}
+
+.audiobook-player.audiobook-active .audiobook-player-speed {
+    display: inline-block;
+    width: 6rem;
+}
+
+.audiobook-player.audiobook-notice .audiobook-player-status {
+    display: inline;
+    max-width: 14rem;
+    padding: 0 var(--lumo-space-s);
+    font-size: var(--lumo-font-size-s);
+    color: var(--lumo-secondary-text-color);
+}
+
+/* the part that is heard */
+.audiobook-heard {
+    background: var(--lumo-primary-color-10pct);
+    border-radius: var(--lumo-border-radius-m);
+    box-shadow: -4px 0 0 var(--lumo-primary-color);
+}

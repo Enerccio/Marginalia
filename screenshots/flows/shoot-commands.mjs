@@ -29,7 +29,7 @@ await main(async ({ page }) => {
 
   await section(page, 'help', async () => {
     await input.click();
-    await input.pressSequentially('/search-replace-lore-entries Draconia ', { delay: 15 });
+    await input.pressSequentially('/search-replace-lore-entries Mizuki ', { delay: 15 });
     await sleep(800);
     await snap(page, 'command-help', { clip: LOWER });
     await clear();
@@ -49,7 +49,7 @@ await main(async ({ page }) => {
 
   await section(page, 'confirm', async () => {
     await input.click();
-    await input.pressSequentially('/search-replace-parts Draconia Dracona', { delay: 10 });
+    await input.pressSequentially('/search-replace-parts Mizuki Mizuko', { delay: 10 });
     await input.press('Enter');
     await page.getByRole('button', { name: 'Yes', exact: true }).waitFor({ timeout: 20000 });
     await idle(page, 600);

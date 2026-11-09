@@ -40,7 +40,7 @@ export async function generate(page, t, { waitFor = null, timeout = 60000 } = {}
 export const parts = page => page.locator('.chat-message');
 
 /** Opens the menu of the n-th part (0 based, negative counts from the end) and clicks the item. */
-export async function partAction(page, index, item) {
+export async function partAction(page, index, item, { askAboutSummaries = false } = {}) {
   const all = parts(page);
   const n = await all.count();
   const part = all.nth(index < 0 ? n + index : index);
@@ -49,6 +49,14 @@ export async function partAction(page, index, item) {
   await idle(page, 400);
   await menuItem(page, item).click();
   await idle(page, 600);
+  // a save that makes summaries outdated asks first (1.7.0): the flows go on with the summaries still valid
+  if (item === 'Save' && !askAboutSummaries) {
+    const keep = page.getByRole('button', { name: 'Save and revalidate summaries', exact: true });
+    if (await keep.isVisible({ timeout: 1500 }).catch(() => false)) {
+      await keep.click();
+      await idle(page, 600);
+    }
+  }
 }
 
 /** Switches the story text to the serif reading style (the menu item toggles it) when it is not on yet. */

@@ -99,6 +99,7 @@ public class PhoneTrashGrid extends TrashGrid {
         HorizontalLayout buttons = new HorizontalLayout(refreshButton, deleteButton, restoreButton, infoButton);
         buttons.setWidthFull();
         buttons.setPadding(false);
+        buttons.addClassName(CssStyles.FLEX_WRAP);
         toolbar.add(buttons);
         return toolbar;
     }

@@ -14,10 +14,7 @@ import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.phone.PhoneManuscriptDialog;
 import com.github.enerccio.marginalia.ui.dialogs.phone.PhoneManuscriptDialogPart;
 import com.github.enerccio.marginalia.ui.main.Viewer;
-import com.github.enerccio.marginalia.ui.widgets.HistoryLimitField;
-import com.github.enerccio.marginalia.ui.widgets.InheritedLanguageCombo;
-import com.github.enerccio.marginalia.ui.widgets.ResizableTextArea;
-import com.github.enerccio.marginalia.ui.widgets.TagMultiComboBox;
+import com.github.enerccio.marginalia.ui.widgets.*;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
@@ -68,11 +65,13 @@ public class PhoneManuscriptInfoPart implements PhoneManuscriptDialogPart {
     private ComboBox<AI> aiCombo;
     private ComboBox<Protocol> protocolCombo;
     private Checkbox publishedCheckbox;
+    private Checkbox showImagesCheckbox;
 
     private Span totalWordCountSpan;
     private Span totalTokenCountSpan;
     private Span branchWordCountSpan;
     private Span branchTokenCountSpan;
+    private AuthorshipField authorshipField;
 
     private boolean loading = false;
 
@@ -100,7 +99,7 @@ public class PhoneManuscriptInfoPart implements PhoneManuscriptDialogPart {
         statistics.setSpacing(false);
         statistics.addClassName(CssStyles.SUBTLE_BOX);
 
-        mainLayout.add(nameField, tags, descriptionField, languageCombo, historyLimitField, aiCombo, protocolCombo, publishedCheckbox, statistics);
+        mainLayout.add(nameField, tags, descriptionField, languageCombo, historyLimitField, aiCombo, protocolCombo, publishedCheckbox, showImagesCheckbox, statistics, authorshipField);
         return mainLayout;
     }
 
@@ -167,6 +166,13 @@ public class PhoneManuscriptInfoPart implements PhoneManuscriptDialogPart {
             }
         });
 
+        showImagesCheckbox = new Checkbox(loc.getValue(L.LABEL_SHOW_IMAGES_TO_READERS));
+        showImagesCheckbox.setHelperComponent(new Span(loc.getValue(L.MSG_SHOW_IMAGES_TO_READERS_HELP)));
+        showImagesCheckbox.addValueChangeListener(e -> {
+            if (e.isFromClient()) {
+                autosave();
+            }
+        });
         publishedCheckbox = new Checkbox(loc.getValue(L.LABEL_PUBLISHED));
         publishedCheckbox.setHelperComponent(new Span(loc.getValue(L.MSG_PUBLISHED_HELP)));
         publishedCheckbox.addValueChangeListener(e -> {
@@ -197,6 +203,15 @@ public class PhoneManuscriptInfoPart implements PhoneManuscriptDialogPart {
         totalTokenCountSpan = new Span();
         branchWordCountSpan = new Span();
         branchTokenCountSpan = new Span();
+
+        authorshipField = new AuthorshipField(() -> {
+            try {
+                return refreshModel();
+            } catch (Exception e) {
+                UIUtils.internalServerError(loc, e);
+                return null;
+            }
+        });
     }
 
     @PublicAPI(from = "1.1.0",
@@ -227,6 +242,7 @@ public class PhoneManuscriptInfoPart implements PhoneManuscriptDialogPart {
             manuscript.setAi(aiCombo.getValue());
             manuscript.setProtocol(protocolCombo.getValue());
             manuscript.setPublished(Boolean.TRUE.equals(publishedCheckbox.getValue()));
+            manuscript.setShowImagesToReaders(Boolean.TRUE.equals(showImagesCheckbox.getValue()));
 
             manuscript = parent.save();
             parent.setHeaderTitle(manuscript.getName());
@@ -286,6 +302,7 @@ public class PhoneManuscriptInfoPart implements PhoneManuscriptDialogPart {
 
             nameField.setValue(StringUtils.defaultString(manuscript.getName()));
             publishedCheckbox.setValue(manuscript.isPublished());
+            showImagesCheckbox.setValue(manuscript.isShowImagesToReaders());
             descriptionField.setValue(StringUtils.defaultString(manuscript.getDescription()));
             languageCombo.load(manuscript.getOwnLanguage(), manuscript.getFolder());
             historyLimitField.load(manuscript.getHistoryMaxVersions(), manuscriptService.resolveInheritedHistoryLimit(manuscript.getFolder()));
@@ -312,6 +329,7 @@ public class PhoneManuscriptInfoPart implements PhoneManuscriptDialogPart {
             returns = @APIReturn(type = void.class))
     @Override
     public void onTabEnter() throws Exception {
+        authorshipField.reset();
         updateSyntheticFields(parent.getManuscript());
     }
 }

@@ -26,14 +26,14 @@ public class FrontMatterMarkdownExporter extends MarkdownExporter {
 
     @Override
     public List<ExportTemplate> getTemplates() {
-        return List.of(FRONT_MATTER_TEMPLATE);
+        return List.of(FRONT_MATTER_TEMPLATE, AUTHORSHIP_TEMPLATE);
     }
 
     @Override
     public byte[] export(ExportOptions options, List<ChatMessage> chatMessages, ProgressBarDialog progress) throws Exception {
         // the front matter is the title page of this format
         ExportOptions withoutTitlePage = new ExportOptions(options.bookName(), options.author(), false, options.language(), options.style(),
-                options.templates(), options.lore());
+                options.templates(), options.lore(), options.authorship());
         String body = new String(super.export(withoutTitlePage, chatMessages, progress), StandardCharsets.UTF_8);
         String frontMatter = buildFrontMatter(options).strip();
         return (frontMatter + "\n\n" + body).stripTrailing().concat("\n").getBytes(StandardCharsets.UTF_8);

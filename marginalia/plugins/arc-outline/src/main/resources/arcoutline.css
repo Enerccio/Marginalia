@@ -160,3 +160,46 @@
     max-height: 25vh;
     overflow: auto;
 }
+
+/* The plot wizard: the messages of a chat */
+.arc-outline-wizard-messages {
+    flex: 1 1 0;
+    min-height: 0;
+}
+
+.arc-outline-wizard-message {
+    box-sizing: border-box;
+    width: 100%;
+    margin-bottom: var(--lumo-space-s);
+    padding: var(--lumo-space-s) var(--lumo-space-m);
+    border-radius: var(--lumo-border-radius-m);
+    border: 1px solid var(--lumo-contrast-10pct);
+    background: var(--lumo-base-color);
+}
+
+.arc-outline-wizard-user {
+    background: var(--lumo-primary-color-10pct);
+    border-color: var(--lumo-primary-color-50pct);
+}
+
+.arc-outline-wizard-summary {
+    background: var(--lumo-contrast-5pct);
+    border-style: dashed;
+}
+
+/* Before the newest summary: the model does not get these any more */
+.arc-outline-wizard-old {
+    opacity: 0.55;
+}
+
+/* A tool the model called: small, under the answer it belongs to */
+.arc-outline-wizard-call {
+    font-size: var(--lumo-font-size-xs);
+    color: var(--lumo-secondary-text-color);
+    margin-bottom: var(--lumo-space-xs);
+}
+
+.arc-outline-wizard-call-failed {
+    color: var(--lumo-error-text-color);
+}
+

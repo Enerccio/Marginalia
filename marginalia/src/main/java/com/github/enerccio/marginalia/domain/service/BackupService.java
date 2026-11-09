@@ -87,10 +87,13 @@ public interface BackupService {
 
     /**
      * Writes a backup to a temporary file to be downloaded, nothing of it is kept in memory. A backup is a JSON, the
-     * files of its images are not in it. With images the file is a ZIP of the JSON ({@code backup.json}), a list of the
-     * images ({@code resources.json}) and the images, import and restore accept both.
+     * files of the resources it points to are not in it: the images of its parts, and every other resource that the data of the
+     * book or of a part names by its uuid (the audio of an audiobook, the files of an extension). With resources the file is a
+     * ZIP of the JSON ({@code backup.json}), a list of the resources ({@code resources.json}) and their files, import and
+     * restore accept both.
      *
-     * @param imagePacked called after each image is dealt with, to show the progress ({@link ManuscriptBackup#getImageCount()}
+     * @param withImages  whether to pack the resources (the name is the one of the version when only images were packed)
+     * @param imagePacked called after each resource is dealt with, to show the progress ({@link ManuscriptBackup#getImageCount()}
      *                    times)
      * @return the file, the caller deletes it when it's done with it
      */
@@ -129,7 +132,7 @@ public interface BackupService {
         private Date backupCreationDate;
         private String ownerName;
         private int totalMessagesCount;
-        // images the parts use, the files are not in the backup; header only, so it can be listed without loading it
+        // resources the book and its parts point to (images, the audio of an audiobook...), the files are not in the backup; header only, so it can be listed without loading it
         private int imageCount;
 
         private JsonObject backup;

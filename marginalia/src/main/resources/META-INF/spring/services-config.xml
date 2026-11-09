@@ -93,6 +93,8 @@
 
     <bean class="com.github.enerccio.marginalia.domain.service.impl.StatisticReportServiceImpl" />
 
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.StatisticsPolicyServiceImpl" />
+
     <bean class="com.github.enerccio.marginalia.domain.service.impl.AILimitServiceImpl" />
 
     <bean id="protocolRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaProtocolRepository">
@@ -153,6 +155,8 @@
 
     <bean class="com.github.enerccio.marginalia.domain.service.impl.LorebookActivationServiceImpl" />
 
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.LoreUsageServiceImpl" />
+
     <bean id="lorebookEntryRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaLorebookEntryRepository">
         <property name="entityManager" ref="em"/>
     </bean>
@@ -172,6 +176,16 @@
     <bean id="annotationRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaAnnotationRepository">
         <property name="entityManager" ref="em"/>
     </bean>
+
+    <bean id="passageRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaPassageRepository">
+        <property name="entityManager" ref="em"/>
+    </bean>
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.PassageServiceImpl">
+        <property name="repository" ref="passageRepository" />
+    </bean>
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.PassageKindsImpl" />
 
     <bean class="com.github.enerccio.marginalia.domain.service.impl.AnnotationServiceImpl">
         <property name="repository" ref="annotationRepository" />
@@ -196,6 +210,7 @@
     <bean class="com.github.enerccio.marginalia.domain.service.impl.RedraftServiceImpl" />
     <bean class="com.github.enerccio.marginalia.domain.service.impl.ImpersonateServiceImpl" />
     <bean class="com.github.enerccio.marginalia.domain.service.impl.AnnotateServiceImpl" />
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.PlannerServiceImpl" />
 
     <bean id="agentRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaAgentRepository">
         <property name="entityManager" ref="em"/>
@@ -290,7 +305,16 @@
     <!-- the default style and the changed templates of the user's exports, see ExportSettings -->
     <bean class="com.github.enerccio.marginalia.domain.service.impl.ExportSettingsServiceImpl" />
 
+    <!-- the desktop notifications of the browser: what can notify (the sources, extensions add theirs) and what the user chose -->
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.NotificationServiceImpl" />
+
     <bean class="com.github.enerccio.marginalia.extensions.InheritedSettingRegistry" />
+
+    <!-- where the code that gives the story to a model asks for the text of a part, and where an extension says how to turn it back -->
+    <bean class="com.github.enerccio.marginalia.extensions.PartTextRegistry" />
+    <!-- where an extension offers the facts it knows about the story to the annotation (what the characters know at the part...) -->
+    <bean class="com.github.enerccio.marginalia.extensions.AnnotationFactsRegistry" />
+    <bean class="com.github.enerccio.marginalia.extensions.ExportTextRegistry" />
 
     <bean class="com.github.enerccio.marginalia.domain.service.impl.OsgiServiceImpl" />
 

@@ -40,9 +40,26 @@ public interface StoryEditor {
     void openBranchTokensDialog();
 
     /**
+     * Shows which lorebook entries the generations of the book used and which never did.
+     */
+    void openLoreUsageDialog();
+
+    /**
      * Shows what was done to the book day by day: words, tokens, time and size.
      */
     void openStatisticsDialog();
+
+    /**
+     * Draws the story again from the database: for what changed the text of parts behind the editor's back (an extension that translated a
+     * range, a command).
+     */
+    void reloadStory();
+
+    /**
+     * Shows the story (on the phone: closes the drawer) and scrolls to the part and flashes it. The part has to be on the active branch,
+     * nothing happens otherwise. For the tabs of extensions that point at a part ({@code messageId} is the database id of the part).
+     */
+    void scrollToMessage(Long messageId);
 
     /**
      * Opens the dialog that lets a model annotate a range of the parts of the story, the story is shown again when annotations were added.
@@ -75,14 +92,14 @@ public interface StoryEditor {
     boolean isMassDelete();
 
     /**
-     * Whether the text of the parts that is still the model's is highlighted (desktop only).
+     * Whether the text of the parts that a model wrote is highlighted.
      */
     default boolean isShowGeneratedDiff() {
         return false;
     }
 
     /**
-     * Highlights the text of the parts that is still the model's, or not (desktop only).
+     * Highlights the text of the parts that a model wrote, or not.
      */
     default void setShowGeneratedDiff(boolean show) {
     }

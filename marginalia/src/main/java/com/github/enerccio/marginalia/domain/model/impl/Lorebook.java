@@ -33,11 +33,25 @@ public class Lorebook extends ExtendableEntity {
     // the working copy of an agent, never listed with the books of the user
     private boolean agentic = false;
 
+    // other users see the lorebook (with its sub lorebooks) in "Import from other user" and can import a copy of it
+    private boolean shared = false;
+
+    // what the lorebook is about, one line under its name in the lorebook editor
+    @Transient
+    @ExtendedAttribute
+    private String description;
+
     // how many times the content of the entries that were used is searched for the filters of the others, 0 = never; read
     // from the lorebook the book uses (the root), not from its subbooks
     @Transient
     @ExtendedAttribute
     private int scanDepth = 0;
+
+    // the scan depth of the entries of this lorebook while it is a sub lorebook of the one the book uses; null = the scan depth of
+    // that lorebook. 0 = the entries of this lorebook are never found by the content of other entries
+    @Transient
+    @ExtendedAttribute
+    private Integer ownScanDepth;
 
     public String getName() {
         return name;
@@ -45,6 +59,22 @@ public class Lorebook extends ExtendableEntity {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public boolean isShared() {
+        return shared;
+    }
+
+    public void setShared(boolean shared) {
+        this.shared = shared;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public boolean isAgentic() {
@@ -61,6 +91,14 @@ public class Lorebook extends ExtendableEntity {
 
     public void setScanDepth(int scanDepth) {
         this.scanDepth = scanDepth;
+    }
+
+    public Integer getOwnScanDepth() {
+        return ownScanDepth;
+    }
+
+    public void setOwnScanDepth(Integer ownScanDepth) {
+        this.ownScanDepth = ownScanDepth == null || ownScanDepth < 0 ? null : ownScanDepth;
     }
 
     public boolean isEnabled() {

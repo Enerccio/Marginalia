@@ -55,12 +55,23 @@ public class ResourceGarbagePanel implements LLMInteract {
     private Anchor zipAnchor;
     private Button zipButton;
     private Button deleteButton;
+    // the phone layout: the toolbar wraps and the table has fewer, narrower columns
+    private final boolean phone;
+
     private Button selectAllButton;
     private Button selectNoneButton;
     private Button closeButton;
     private List<StoredFile> unused = List.of();
     private int scanned;
     private String found = "";
+
+    public ResourceGarbagePanel() {
+        this(false);
+    }
+
+    public ResourceGarbagePanel(boolean phone) {
+        this.phone = phone;
+    }
 
     /**
      * The checked files for the download, which runs in a request of its own and must not touch the grid.
@@ -84,6 +95,7 @@ public class ResourceGarbagePanel implements LLMInteract {
         HorizontalLayout toolbar = new HorizontalLayout();
         toolbar.setWidthFull();
         toolbar.setAlignItems(FlexComponent.Alignment.CENTER);
+        toolbar.addClassName(CssStyles.FLEX_WRAP);
 
         Button scanButton = new Button(loc.getValue(L.LABEL_SCAN_FILES), Solid.SEARCH.create(), e -> scan());
         scanButton.setThemeName("primary");
@@ -119,16 +131,19 @@ public class ResourceGarbagePanel implements LLMInteract {
                 .setHeader(loc.getValue(L.LABEL_SIZE))
                 .setComparator(StoredFile::size)
                 .setFlexGrow(0)
-                .setWidth("120px");
-        grid.addColumn(file -> new SimpleDateFormat("dd.MM.yyyy HH:mm").format(new Date(file.lastModified())))
-                .setHeader(loc.getValue(L.LABEL_LAST_MODIFIED))
-                .setComparator(StoredFile::lastModified)
-                .setFlexGrow(0)
-                .setWidth("180px");
+                .setWidth(phone ? "90px" : "120px");
+        if (!phone) {
+            // the date is left out on a phone, there is no room for it
+            grid.addColumn(file -> new SimpleDateFormat("dd.MM.yyyy HH:mm").format(new Date(file.lastModified())))
+                    .setHeader(loc.getValue(L.LABEL_LAST_MODIFIED))
+                    .setComparator(StoredFile::lastModified)
+                    .setFlexGrow(0)
+                    .setWidth("180px");
+        }
         grid.addComponentColumn(this::createDownload)
                 .setHeader("")
                 .setFlexGrow(0)
-                .setWidth("100px");
+                .setWidth(phone ? "70px" : "100px");
 
         layout.add(description, toolbar, grid);
         layout.setFlexGrow(1, grid);

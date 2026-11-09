@@ -1,7 +1,7 @@
 ---
 label: Architecture
 order: 980
-verified: 6b9a70d37
+verified: 85a73bd53
 covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/bound
   - marginalia/src/main/java/com/github/enerccio/marginalia/Configuration.java
@@ -369,7 +369,11 @@ summaries - updates the UI with `ui.access(...)`, and the change reaches the bro
 Background threads have no HTTP request, so session-scoped beans (the current `user`) would not resolve.
 `generateNextTurn` therefore captures the request attributes in a `ThreadCopyRequestAttributes` and the engine wraps
 its work in `ThreadCopyRequestAttributes.InRequestScope`, which makes the session of the user who started the
-generation current on the worker thread.
+generation current on the worker thread. The session scope of the copy is a **copy of the session's attributes**
+taken when the copy is made (a bean the worker adds goes to the copy and, while the session lives, to the session
+too), because the session may be invalid when the worker is done: the last page of a browser that is closed while
+the model works closes the session. The UI is a different matter: a worker that shows its result calls `ui.access`
+and catches `UIDetachedException` (the result is written, only the page does not see it).
 
 An [agent](agents.md) run is not started by a request at all: `AgentRunner` works it in a background worker of its own
 (a thread pool, one round of the model at a time) and sets up the request context from the run, not from a browser:
@@ -422,7 +426,8 @@ sequenceDiagram
 - **The help chat.** `SessionPoint` (the session-scoped bean with the language and the workspace of the page) also keeps the conversation with the help
   assistant (`getHelpChat()`, a synchronized list of messages) and the problems the user was shown (`getProblems()`, see
   [What went wrong](ui.md#what-went-wrong-the-problem-log)); `Main` attaches that log to the Vaadin session after login so that code on
-  threads without a request can write to it. Logout invalidates the session, which ends both.
+  threads without a request can write to it. Logout invalidates the session, which ends both. An extension that wants something to live as long as the session
+  (the Prompt History keeps the last requests of the user there) uses `getPluginData(key, create)`: a map of the session, never saved, one key named like the extension.
 - **Open UIs.** After login `Main` and `Viewer` register their UI in `ApplicationPoint` (bean `applicationPoint`)
   with the workspace (`Main` only) and a copy of the user. `SessionInformation.getUI(workspaceClass, applicationPoint)`
   / `getWorkspace(...)` find the session's UI showing a given workspace type.
@@ -485,7 +490,13 @@ sequenceDiagram
   book or a story part under their bundle's symbolic name (removed when the extension is unloaded) and ask for it; to
   use one particular extension (the name generator) the others find it among `OsgiService.getLoadedExtensions()` and
   call it by reflection ([Sharing data between extensions](plugins/ipc.md)).
-- **Inherited settings.** An extension registers a line, a text area or a choice with `InheritedSettingRegistry` (`InheritedSetting`); the *Prompts* tab of a book and the folder window show them with the other prompts and the values live in the `attributes` of the book or folder (`InheritedSettingValues`), resolved through the folders ([Inherited settings](plugins/inherited-settings.md)).
+- **Inherited settings.** An extension registers a line, a text area or a choice with `InheritedSettingRegistry` (`InheritedSetting`); the *Prompts* tab of a book and the folder window show them with the other prompts and the values live in the `attributes` of the book or folder (`InheritedSettingValues`), resolved through the folders ([Inherited settings](plugins/inherited-settings.md)). They are shown as one collapsible panel per extension, and the core registers the templates of every exporter in the same registry (`ExportInheritedSettings`), so the title page and the front matter of an export can be set per book and per folder.
+- **One GPU for several extensions.** A server that can hold one thing at a time (a speech server and an image server on one card) is shared through `SharedGate`, kept by the application; the plugins reach it through `GpuGate` of the `http-hooks` library ([the gate](plugins/libraries/http-hooks.md#the-gate-gpugate)), which is why the registry is in the core and not in a class every bundle embeds.
+- **The text of the story.** An extension that stores the story in one form and wants the model, the export or the annotation reviewer to read another registers with
+  `PartTextRegistry` (what a model reads, [Text a model reads](plugins/part-text.md)), `ExportTextRegistry` (what an export holds, [The text of an export](plugins/export-text.md))
+  or `AnnotationFactsRegistry` (facts for the model that annotates a part, [Facts for the annotation](plugins/annotation-facts.md)); the registries are beans of the core, the
+  contributors are removed when the extension is unloaded. A passage of a part that an extension attaches data to is an `AnchoredPassage` of the annotations table, created through
+  `PassageService`, with a kind registered in `PassageKinds` ([Anchored passages](plugins/anchored-passages.md)).
 - **Styles.** An extension that implements `ExtensionHasCss` gets its CSS put into every open page: `CssRegistry`
   (owned by `Main` and `Viewer`) reads the loaded extensions when its page is attached and listens to the
   loaded/unloaded events of `OsgiService` afterwards ([Styles of a plugin](plugins/ui-extensions.md#styles-of-a-plugin)).

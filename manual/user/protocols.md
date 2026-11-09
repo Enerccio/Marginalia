@@ -10,7 +10,7 @@ A protocol is a set of generation settings: the sampling parameters (temperature
 optionally, its own context and reply limits. The [inference provider](inference-providers.md) says *which* model writes; the protocol says *how*.
 
 Protocols are separate from providers, so you can keep a few of them, such as a cautious one and a creative one, and
-switch a book between them without touching the connection. Like providers, protocols belong to your account.
+switch a book between them without touching the connection. Like providers, protocols belong to your account; you can [share](#sharing-a-protocol) one so that other users can import a copy.
 
 ![The Protocols tab](../images/protocols-list.png)
 
@@ -19,6 +19,8 @@ switch a book between them without touching the connection. Like providers, prot
 Open the **Protocols** tab and click **Add Protocol**. Existing protocols are edited with the pen button and deleted
 with the trash button. The clone button (two sheets) makes a copy of a protocol, with all its settings, under a name you
 confirm (the original's with *(Copy)*), handy for trying other sampling settings without losing the ones that work.
+
+**Import from other user** (above the list) shows the protocols other users [share](#sharing-a-protocol) and imports a copy of one.
 
 ![The protocol dialog](../images/protocol-dialog.png)
 
@@ -32,9 +34,14 @@ confirm (the original's with *(Copy)*), handy for trying other sampling settings
 | **Top P** | Nucleus sampling: the model picks only from the most likely words whose probabilities add up to this value (`0`-`1`). `0.9`-`0.95` is a common choice. |
 | **Frequency Penalty** | Penalizes words by how often they already appeared, which reduces repetition. Usually `0`-`1`. |
 | **Presence Penalty** | Penalizes words that already appeared at all, which pushes the model to new topics. Usually `0`-`1`. |
+| **Share with other users** | When checked, other users can look at the protocol and import a copy, see [below](#sharing-a-protocol). Off for a new protocol. |
 
 Every sampling parameter has an **Enable** checkbox. A parameter that is not enabled is not set by Marginalia, and the
 model uses its own default. Enable only what you want to change.
+
+## Sharing a protocol
+
+Check **Share with other users** in the protocol dialog and every other user of this installation sees the protocol in **Import from other user** (the button next to **Add Protocol**), with its name and its author (your full name, or your login when you have none). They can open a row to see its settings and click **Import**, which makes a protocol of their own with the same settings and name. Sharing is reading only: nobody else can change, delete or use your protocol, and the copy is private and not connected to yours - what either of you changes afterwards does not reach the other. Uncheck it and the protocol is gone from their list; copies they already made stay theirs.
 
 ## Limits
 

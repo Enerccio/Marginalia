@@ -1,0 +1,43 @@
+# The container controller of tools/gpu-control: stops and starts the containers that share the GPU (ComfyUI, the Chatterbox TTS server), on request.
+# Used through LiteLLM (pass_through_endpoints, see README.md); nothing here is published on the host.
+#
+#   docker network create ai                  # once: the network that LiteLLM, ComfyUI, the TTS server and this controller share
+#   cp .env.example .env  && edit .env        # the token and the containers
+#   docker compose up -d --build
+#
+# Not run against a real Docker daemon: check the socket proxy settings against its README (see the test in README.md).
+
+services:
+  # Only the container calls the controller needs reach the Docker socket (the socket is root on the host).
+  docker-socket-proxy:
+    image: tecnativa/docker-socket-proxy
+    restart: unless-stopped
+    environment:
+      # How the proxy decides (its haproxy.cfg): POST is refused unless POST=1; then the first matching rule wins. CONTAINERS=1 would allow every
+      # /containers/... path, create and exec included (root on the host), so it stays off and only start and stop are allowed by name.
+      POST: 1
+      ALLOW_START: 1
+      ALLOW_STOP: 1
+      CONTAINERS: 0          # no inspect: the controller waits for the health address of a container instead
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks: [control]
+
+  gpu-control:
+    build: .
+    restart: unless-stopped
+    depends_on: [docker-socket-proxy]
+    environment:
+      GPU_CONTROL_TOKEN: ${GPU_CONTROL_TOKEN:?set GPU_CONTROL_TOKEN in .env}
+      # name=health address, the address that answers 200 when the service in the container is ready
+      GPU_CONTROL_CONTAINERS: ${GPU_CONTROL_CONTAINERS:-comfyui-amd=http://comfyui-amd:8188/system_stats,chatterbox=http://chatterbox:8004/api/model-info}
+      DOCKER_HOST: http://docker-socket-proxy:2375
+      START_TIMEOUT: ${START_TIMEOUT:-180}
+      STOP_TIMEOUT: ${STOP_TIMEOUT:-30}
+    networks: [control, ai]
+
+networks:
+  control:
+    internal: true           # only between the controller and the socket proxy
+  ai:
+    external: true           # shared with LiteLLM, ComfyUI and the TTS server

@@ -8,9 +8,11 @@ import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.service.CancellationToken;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.PrePromptData;
+import com.vaadin.flow.component.UI;
 
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 public interface GenerationControllerEvent {
 
@@ -69,6 +71,20 @@ public interface GenerationControllerEvent {
     }
 
     CancellationToken getCancellationToken();
+
+    /**
+     * Runs the action bound to the UI that started the generation ({@code ui.access} and a push afterwards), so that a listener can
+     * show its own component to the user of the generation (a dialog). The listener that waits for the user holds the chain: it calls
+     * {@link EventChain#next()} when the user answered, and to stop the generation it cancels first
+     * ({@code getCancellationToken().cancel()}, then {@code chain.next()}; the request is not sent and the part started for it is
+     * removed). It also goes on when the token is cancelled some other way ({@code getCancellationToken().onCancel(...)}), or the
+     * generation waits for ever. The action and what it starts run on the thread of the UI, not in the request scope of the
+     * generation: hand the work on through the chain.
+     *
+     * @return whether the action was scheduled; false when the generation has no UI (an agent or a command started it), then the
+     * action never runs and the listener must not wait. Throws {@code UIDetachedException} when the user closed the page.
+     */
+    boolean accessUI(Consumer<UI> action);
 
     void terminateEvents();
 

@@ -411,4 +411,21 @@ class FunctionRegistryTest {
 
         assertThat(told).containsExactly("after the cancel");
     }
+
+    @Test
+    void whenCalledTellsTheNameAndArgumentsBeforeTheFunctionRuns() {
+        StoryImpl story = new StoryImpl();
+        List<String> started = new ArrayList<>();
+        FunctionSet functions = registry.bind(Story.class, story)
+                .whenCalled((name, arguments) -> started.add(name + " " + arguments + " calls=" + story.calls.size()));
+
+        assertThat(call(functions, "clear", "{}")).isEqualTo("OK");
+        // the observer is kept when the set is combined with another one, and one that throws does not break the call
+        FunctionSet combined = functions.and(FunctionSet.empty().whenCalled((name, arguments) -> {
+            throw new IllegalStateException("observer failed");
+        }));
+        assertThat(call(combined, "clear", "{}")).isEqualTo("OK");
+
+        assertThat(started).containsExactly("clear {} calls=0", "clear {} calls=0");
+    }
 }

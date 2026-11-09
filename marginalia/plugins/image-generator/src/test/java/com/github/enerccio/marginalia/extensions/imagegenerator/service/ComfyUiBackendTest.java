@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.extensions.imagegenerator.service;
 
+import com.github.enerccio.marginalia.extensions.httphooks.BackendException;
 import com.github.enerccio.marginalia.extensions.imagegenerator.model.BackendConfig;
 import com.github.enerccio.marginalia.extensions.imagegenerator.model.BackendType;
 import com.google.gson.JsonObject;
@@ -60,7 +61,7 @@ class ComfyUiBackendTest {
         try (FakeServer server = new FakeServer()) {
             server.json("/prompt", 400, "{\"error\": {\"message\": \"Prompt outputs failed validation\"}}");
 
-            var e = assertThrows(ImageBackend.ImageException.class,
+            var e = assertThrows(BackendException.class,
                     () -> new ComfyUiBackend(config(server), null, 10).generate(REQUEST, () -> false));
 
             assertTrue(e.getMessage().contains("400"));
@@ -76,7 +77,7 @@ class ComfyUiBackendTest {
                     {"abc": {"outputs": {}, "status": {"status_str": "error", "completed": false, "messages": [
                       ["execution_error", {"exception_message": "Out of memory"}]]}}}""");
 
-            var e = assertThrows(ImageBackend.ImageException.class,
+            var e = assertThrows(BackendException.class,
                     () -> new ComfyUiBackend(config(server), null, 10).generate(REQUEST, () -> false));
 
             assertTrue(e.getMessage().contains("Out of memory"), e.getMessage());
@@ -94,7 +95,7 @@ class ComfyUiBackendTest {
             });
             server.json("/interrupt", 200, "{}");
 
-            var e = assertThrows(ImageBackend.ImageException.class,
+            var e = assertThrows(BackendException.class,
                     () -> new ComfyUiBackend(config(server), null, 10).generate(REQUEST, cancelled::get));
 
             assertEquals("Cancelled", e.getMessage());
@@ -111,7 +112,7 @@ class ComfyUiBackendTest {
             BackendConfig config = config(server);
             config.setTimeoutSeconds(1);
 
-            var e = assertThrows(ImageBackend.ImageException.class,
+            var e = assertThrows(BackendException.class,
                     () -> new ComfyUiBackend(config, null, 100).generate(REQUEST, () -> false));
 
             assertTrue(e.getMessage().contains("did not finish"));
@@ -127,7 +128,7 @@ class ComfyUiBackendTest {
         }
         BackendConfig down = new BackendConfig();
         down.setBaseUrl("http://127.0.0.1:1");
-        assertThrows(ImageBackend.ImageException.class, () -> new ComfyUiBackend(down, null, 10).test());
+        assertThrows(BackendException.class, () -> new ComfyUiBackend(down, null, 10).test());
     }
 
     @Test
@@ -136,7 +137,7 @@ class ComfyUiBackendTest {
             BackendConfig config = config(server);
             config.setLocal(false);
 
-            var e = assertThrows(ImageBackend.ImageException.class,
+            var e = assertThrows(BackendException.class,
                     () -> new ComfyUiBackend(config, null, 10).generate(REQUEST, () -> false));
 
             assertTrue(e.getMessage().contains("local"));

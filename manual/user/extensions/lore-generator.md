@@ -1,6 +1,6 @@
 ---
 label: Lore Generator
-order: 85
+order: 10
 ---
 
 # Lore Generator
@@ -9,7 +9,7 @@ Lets the model write the content of a [lorebook entry](../lorebooks/entries.md) 
 have, so the new entry fits the world, and compacts the result into the short, dense form lore entries work best in.
 
 !!!
-Lore Generator is not available in the [phone layout](../phone.md#extensions).
+Lore Generator works in the [phone layout](../phone.md#extensions): the wand button is in the row of an entry, and the window has the prompt above the result.
 !!!
 
 ## Opening the generator

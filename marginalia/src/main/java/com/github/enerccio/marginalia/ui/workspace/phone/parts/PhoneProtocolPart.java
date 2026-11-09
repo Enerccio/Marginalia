@@ -12,6 +12,7 @@ import com.github.enerccio.marginalia.ui.LLMInteraction;
 import com.github.enerccio.marginalia.ui.dialogs.CloneNameDialog;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.dialogs.ProtocolDialog;
+import com.github.enerccio.marginalia.ui.dialogs.SharedImportDialog;
 import com.github.enerccio.marginalia.ui.workspace.Workspace;
 import com.github.enerccio.marginalia.ui.workspace.WorkspaceComponent;
 import com.github.enerccio.marginalia.ui.workspace.WorkspaceLLMSupport;
@@ -59,10 +60,11 @@ public class PhoneProtocolPart implements WorkspaceComponent {
         return loc.getValue(L.LABEL_PROTOCOLS);
     }
 
-    @PublicAPI(from = "1.1.0",
+    @PublicAPI(from = "1.7.0",
             returns = @APIReturn(type = Component.class),
             locals = {@APILocals(name = "mainLayout", type = VerticalLayout.class),
-                    @APILocals(name = "addProtocolButton", type = Button.class)})
+                    @APILocals(name = "addProtocolButton", type = Button.class),
+                    @APILocals(name = "importFromOtherUserButton", type = Button.class)})
     @Override
     public Component create() throws Exception {
         VerticalLayout mainLayout = new VerticalLayout();
@@ -80,6 +82,10 @@ public class PhoneProtocolPart implements WorkspaceComponent {
         this.addProtocolButton = addProtocolButton;
         addProtocolButton.setWidthFull();
 
+        Button importFromOtherUserButton = new Button(loc.getValue(L.LABEL_IMPORT_FROM_OTHER_USER), Solid.FILE_IMPORT.create(),
+                event -> SharedImportDialog.forProtocols(loc, protocolService, imported -> refreshGrid()).open());
+        importFromOtherUserButton.setWidthFull();
+
         grid = new Grid<>();
         grid.setSizeFull();
         // rows grow with their content, so a long name breaks into lines instead of running under the buttons
@@ -87,7 +93,7 @@ public class PhoneProtocolPart implements WorkspaceComponent {
         grid.addComponentColumn(this::createText).setFlexGrow(1);
         grid.addComponentColumn(this::createActions).setFlexGrow(0).setAutoWidth(true);
 
-        mainLayout.add(addProtocolButton, grid);
+        mainLayout.add(addProtocolButton, importFromOtherUserButton, grid);
         mainLayout.setFlexGrow(1, grid);
 
         refreshGrid();

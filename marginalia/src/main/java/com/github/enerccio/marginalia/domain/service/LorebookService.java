@@ -90,6 +90,44 @@ public interface LorebookService extends ExtendableService<Lorebook, LorebookRep
      */
     Lorebook cloneLorebook(Lorebook source, String name) throws Exception;
 
+    /**
+     * The lorebooks that other users share (the flag {@link Lorebook#isShared()}), what "Import from other user" lists: not
+     * the user's own, not deleted, not working copies of agents. They are for reading and for {@link #importShared}, the
+     * current user can't change them. The owner of each is {@link Lorebook#getOwner()}.
+     */
+    List<Lorebook> findAllShared() throws Exception;
+
+    /**
+     * Makes a copy of a lorebook another user shares: new lorebooks of the current user with the entries (their settings, tags
+     * and negative tags), the tags, the description and the attributes of the lorebook and of its sub lorebooks, however deep,
+     * the structure kept. Only the sub lorebooks that are shared themselves are copied (the other user's lorebooks can't be
+     * linked), a sub lorebook that is not shared is left out together with everything below it. The copies are private and
+     * enabled as the originals are, with new uuids.
+     *
+     * @param name the name of the copy of the lorebook, the name of the lorebook when blank
+     * @return the copy of the lorebook
+     * @throws IllegalArgumentException when the lorebook is not shared (any more), is the user's own or does not exist
+     */
+    Lorebook importShared(Lorebook source, String name) throws Exception;
+
+    /**
+     * The sub lorebooks of the lorebook, however deep, that are not shared (not the lorebook itself): what
+     * {@link #importShared} leaves out when the lorebook is shared and these are not.
+     *
+     * @throws IllegalArgumentException when the lorebook is not the user's
+     */
+    List<Lorebook> findUnsharedSubbooks(Lorebook lorebook) throws Exception;
+
+    /**
+     * Shares the lorebook, and its sub lorebooks too when asked: all of them, however deep, that are not shared yet. Unsharing
+     * is a plain {@code setShared(false)} and {@code save}, it does not touch the sub lorebooks.
+     *
+     * @param withSubbooks whether to share the sub lorebooks as well
+     * @return the saved lorebook
+     * @throws IllegalArgumentException when the lorebook is not the user's or is a working copy of an agent
+     */
+    Lorebook share(Lorebook lorebook, boolean withSubbooks) throws Exception;
+
     Lorebook importFromSillytavern(String json, String name) throws Exception;
 
     String exportLorebook(Lorebook lorebook) throws Exception;

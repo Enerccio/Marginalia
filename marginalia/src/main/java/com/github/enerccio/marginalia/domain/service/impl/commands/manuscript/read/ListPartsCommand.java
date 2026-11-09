@@ -76,7 +76,6 @@ public class ListPartsCommand extends ManuscriptReadSupport {
             part.addProperty("swipes", chatMessageService.getSwipesForMessage(message).size());
             part.addProperty("words", message.getWordCount());
             part.addProperty("tokens", message.getTokenCount());
-            part.addProperty("edited", message.isEdited());
             part.addProperty("summary", summaryState(message, validSummaries));
             part.addProperty("preview", preview(message.getResponse(), PREVIEW_LENGTH));
             parts.add(part);

@@ -9,6 +9,7 @@ import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
+import com.github.enerccio.marginalia.ui.widgets.DialogShortcuts;
 import com.vaadin.flow.component.Html;
 import com.vaadin.flow.component.ModalityMode;
 import com.vaadin.flow.component.button.Button;
@@ -67,6 +68,7 @@ public class TextInputDialog extends Dialog implements LLMInteract {
 		inputMessage = new TextField(inputMessageLabel);
 		inputMessage.setWidthFull();
 		DialogFocus.onOpen(this, inputMessage);
+		DialogShortcuts.submitWith(yesButton, inputMessage);
 		if (initialValue != null)
 			inputMessage.setValue(initialValue);
 		vl.add(inputMessage);

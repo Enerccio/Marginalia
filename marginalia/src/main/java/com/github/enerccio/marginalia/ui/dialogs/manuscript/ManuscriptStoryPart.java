@@ -30,7 +30,6 @@ import com.github.enerccio.marginalia.ui.shortcuts.ShortcutActions;
 import com.github.enerccio.marginalia.ui.shortcuts.ShortcutRegistry;
 import com.github.enerccio.marginalia.ui.styles.PartStyleApplier;
 import com.github.enerccio.marginalia.ui.widgets.*;
-import com.github.enerccio.marginalia.utils.GeneratedTextHighlighter;
 import com.github.enerccio.marginalia.utils.MarkdownArchive;
 import com.github.enerccio.marginalia.utils.TextMarkup;
 import com.github.enerccio.marginalia.utils.UIUtils;
@@ -58,6 +57,7 @@ import org.springframework.beans.factory.annotation.Configurable;
 import org.vaadin.firitin.layouts.VTabSheet;
 
 import java.util.*;
+import java.util.function.Consumer;
 
 @Configurable
 @Extendable
@@ -96,6 +96,11 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
      * Id of the tab with the annotations of the book in the layout of the tabs.
      */
     public static final String ANNOTATIONS_TAB = "annotations";
+
+    /**
+     * Id of the Planner tab (the scenes the author plans to write) in the layout of the tabs.
+     */
+    public static final String PLANNER_TAB = "planner";
 
     @Autowired
     private Localization loc;
@@ -168,6 +173,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
     private StoryBranchSearch branchSearch;
     private StoryAnnotations annotations;
     private AnnotationsPanel annotationsPanel;
+    private PlannerPanel plannerPanel;
     private final StoryBackup backup = new StoryBackup();
     private final StoryMassDelete massDelete;
     private Long scrollToMessageId;
@@ -194,10 +200,11 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
             }
         });
         // the default arrangement from the start: the tabs added below find their place in it
-        leftBar.setLayout(StoryDockLayout.defaultLayout(STORY_TAB, null, CHAPTERS_TAB, LOREBOOK_TAB, ANNOTATIONS_TAB));
+        leftBar.setLayout(StoryDockLayout.defaultLayout(STORY_TAB, null, CHAPTERS_TAB, LOREBOOK_TAB, ANNOTATIONS_TAB, PLANNER_TAB));
         createStoryOutlineTab();
         createLorebookTab();
         createAnnotationsTab();
+        createPlannerTab();
 
         centerLayout = new VerticalLayout();
         centerLayout.setSizeFull();
@@ -305,7 +312,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
                 }
             }
             case ShortcutActions.STORY_SAVE_EDIT -> cards.values().stream().filter(ChatMessageCard::isEditing)
-                    .forEach(ChatMessageCard::autosaveAndSwapToMarkdown);
+                    .forEach(ChatMessageCard::saveEdit);
             case ShortcutActions.STORY_COMMAND_BAR -> {
                 leftBar.select(STORY_TAB);
                 commandBar.focusInput();
@@ -688,11 +695,26 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
     @PublicAPI(from = "1.6.0",
             returns = @APIReturn(type = void.class),
             locals = {@APILocals(name = "e", type = Exception.class)})
-    private void reloadStory() {
+    @Override
+    public void reloadStory() {
         try {
             load(parent.refreshManuscript());
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
+        }
+    }
+
+    /**
+     * Shows the story and scrolls to the part and flashes it, nothing happens when the part is not on the branch.
+     */
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "messageId", type = Long.class)})
+    @Override
+    public void scrollToMessage(Long messageId) {
+        if (messageId != null) {
+            showStory();
+            lazyLoader.scrollTo(messageId);
         }
     }
 
@@ -765,6 +787,24 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
     }
 
     /**
+     * Shows which lorebook entries the generations of the book used and which never did, over a branch or the whole tree.
+     */
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "dialog", type = BookLoreUsageDialog.class),
+                    @APILocals(name = "e", type = Exception.class)})
+    @Override
+    public void openLoreUsageDialog() {
+        try {
+            BookLoreUsageDialog dialog = new BookLoreUsageDialog(parent.refreshManuscript());
+            dialog.create();
+            dialog.open();
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+    }
+
+    /**
      * Shows what was done to the book day by day: words, tokens, time and size.
      */
     @PublicAPI(from = "1.6.0",
@@ -808,7 +848,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
             return;
         }
         try {
-            long tokens = summaryService.collectTree(currentManuscript).stream().mapToLong(SummaryNode::getTokens).sum();
+            long tokens = summaryService.collectTree(currentManuscript).stream().filter(SummaryNode::isValid).mapToLong(SummaryNode::getTokens).sum();
             UIUtils.addTooltip(summariesMenuItem, loc.getValue(L.LABEL_SUMMARIES) + "\n"
                     + String.format(loc.getValue(L.MSG_ACTIVE_SUMMARIES_TOKENS), tokens));
         } catch (Exception e) {
@@ -922,6 +962,8 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
         Set<Long> openedReasonings = cards.collectOpenedReasonings();
         // the texts may have changed since the annotations were read
         annotations.invalidate();
+        // the book may be another one than before
+        plannerPanel.refresh();
 
         centerContentPanel.removeAll();
         sidebarList.removeAll();
@@ -1039,6 +1081,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
             returns = @APIReturn(type = void.class))
     private void createLorebookTab() {
         lorebookPreview = new LorebookPreview().create();
+        lorebookPreview.setEditable(true);
         leftBar.add(LOREBOOK_TAB, loc.getValue(L.LABEL_LOREBOOK), TabDockIcon.LOREBOOK, lorebookPreview);
     }
 
@@ -1080,6 +1123,23 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
             }
         });
         leftBar.add(ANNOTATIONS_TAB, loc.getValue(L.LABEL_ANNOTATIONS), TabDockIcon.ANNOTATIONS, annotationsPanel);
+    }
+
+    /**
+     * The Planner tab: the scenes the author plans to write. A click on a scene puts its details into the new turn form.
+     */
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = void.class))
+    private void createPlannerTab() {
+        plannerPanel = new PlannerPanel(() -> currentManuscript, scene -> {
+            if (newTurnForm == null || newTurnPopover == null) {
+                return false;
+            }
+            newTurnForm.restoreState(PlannerPanel.toFormState(scene));
+            newTurnPopover.setOpened(true);
+            return true;
+        });
+        leftBar.add(PLANNER_TAB, loc.getValue(L.LABEL_PLANNER), TabDockIcon.PLANNER, plannerPanel);
     }
 
     /**
@@ -1261,7 +1321,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
         }
         leftBar.setLayout(StoryDockLayout.migrate(stored,
                 position != null && position.isJsonPrimitive() && position.getAsJsonPrimitive().isNumber() ? position.getAsDouble() : null,
-                STORY_TAB, CHAPTERS_TAB, LOREBOOK_TAB, ANNOTATIONS_TAB));
+                STORY_TAB, CHAPTERS_TAB, LOREBOOK_TAB, ANNOTATIONS_TAB, PLANNER_TAB));
     }
 
     /**
@@ -1440,8 +1500,12 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
         private MessageImages messageImages;
         private TextArea responseTextArea;
         private boolean editing = false;
+        // set by the dialog about outdated summaries: the save marks the summaries the edit made outdated as valid
+        private boolean revalidateSummariesOnSave = false;
 
         private CardAnnotations cardAnnotations;
+        // who wrote the words of the text, read from the history of the part
+        private final CardAuthorship authorship = new CardAuthorship(messageRevisionService, loc);
         // the text is being generated again: the passages of the annotations are not in it yet
         private boolean generating = false;
 
@@ -1914,6 +1978,17 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
             cardAnnotations.redraftSelection();
         }
 
+        /**
+         * Gives the action the range of the text the author selected, see {@link CardAnnotations#withSelection}.
+         */
+        @PublicAPI(from = "1.7.0",
+                returns = @APIReturn(type = void.class),
+                parameters = {@APIParameter(name = "action", type = Consumer.class)})
+        @Override
+        public void withSelection(Consumer<int[]> action) {
+            cardAnnotations.withSelection(action);
+        }
+
         @PublicAPI(from = "1.5.0",
                 returns = @APIReturn(type = void.class))
         @Override
@@ -1951,7 +2026,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
         @Override
         public void toggleEdit() {
             if (editing) {
-                autosaveAndSwapToMarkdown();
+                saveEdit();
             } else {
                 editing = true;
                 // created only while a part is edited: a text area measures its height in the browser as soon as it
@@ -1998,6 +2073,33 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
             editing = false;
         }
 
+        /**
+         * Saves the edit the author made. When the new text would make summaries outdated the author is asked first: back to
+         * the editor, save anyway, or save and revalidate the summaries.
+         */
+        @PublicAPI(from = "1.7.0",
+                returns = @APIReturn(type = void.class),
+                locals = {@APILocals(name = "e", type = Exception.class)})
+        @Override
+        public void saveEdit() {
+            if (!editing) {
+                return;
+            }
+            try {
+                int outdated = support.outdatedSummaries(currentManuscript, message, responseTextArea.getValue()).size();
+                if (outdated == 0) {
+                    autosaveAndSwapToMarkdown();
+                    return;
+                }
+                OutdatedSummariesDialog.open(outdated, this::autosaveAndSwapToMarkdown, () -> {
+                    revalidateSummariesOnSave = true;
+                    autosaveAndSwapToMarkdown();
+                });
+            } catch (Exception e) {
+                UIUtils.internalServerError(loc, e);
+            }
+        }
+
         @PublicAPI(from = "1.1.0",
                 returns = @APIReturn(type = void.class),
                 locals = {@APILocals(name = "newResponse", type = String.class),
@@ -2006,7 +2108,9 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
             if (editing) {
                 try {
                     String newResponse = responseTextArea.getValue();
-                    message = support.saveEditedResponse(currentManuscript, message, newResponse);
+                    boolean revalidate = revalidateSummariesOnSave;
+                    revalidateSummariesOnSave = false;
+                    message = support.saveEditedResponse(currentManuscript, message, newResponse, revalidate);
                     // the passages of the annotations moved with the edit
                     annotationsChanged();
                     renderResponse();
@@ -2056,16 +2160,13 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
         @PublicAPI(from = "1.2.0",
                 returns = @APIReturn(type = void.class),
                 locals = {@APILocals(name = "response", type = String.class),
-                        @APILocals(name = "marks", type = List.class),
-                        @APILocals(name = "range", type = int[].class)})
+                        @APILocals(name = "marks", type = List.class)})
         public void renderResponse() {
             String response = StringUtils.defaultString(message.getResponse());
             // all the layers are ranges of the text as it is, put in at once (see TextMarkup)
             List<TextMarkup.Mark> marks = new ArrayList<>();
             if (showGeneratedDiff) {
-                for (int[] range : GeneratedTextHighlighter.ranges(response, message.getOriginalResponse())) {
-                    marks.add(new TextMarkup.Mark(range[0], range[1], CssStyles.GENERATED_TEXT));
-                }
+                marks.addAll(authorship.marks(message, response, generating));
             }
             marks.addAll(branchSearch.marks(message.getId(), response));
             if (!generating) {
@@ -2179,6 +2280,21 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
             TokenUsageDialog dialog = new TokenUsageDialog(message.getTokenBreakdown());
             dialog.create();
             dialog.open();
+        }
+
+        @PublicAPI(from = "1.7.0",
+                returns = @APIReturn(type = void.class),
+                locals = {@APILocals(name = "dialog", type = LoreUsageDialog.class),
+                        @APILocals(name = "e", type = Exception.class)})
+        @Override
+        public void showLoreUsage() {
+            try {
+                LoreUsageDialog dialog = new LoreUsageDialog(message);
+                dialog.create();
+                dialog.open();
+            } catch (Exception e) {
+                UIUtils.internalServerError(loc, e);
+            }
         }
 
         @PublicAPI(from = "1.5.0",

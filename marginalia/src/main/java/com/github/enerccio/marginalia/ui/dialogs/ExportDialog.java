@@ -11,13 +11,16 @@ import com.github.enerccio.marginalia.domain.service.ExporterService.ExportOptio
 import com.github.enerccio.marginalia.domain.service.ExporterService.Exporter;
 import com.github.enerccio.marginalia.domain.styles.PartStyle;
 import com.github.enerccio.marginalia.domain.traits.*;
+import com.github.enerccio.marginalia.extensions.ExportTextRegistry;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.styles.PartStyleApplier;
 import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
+import com.github.enerccio.marginalia.ui.widgets.DialogShortcuts;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.utils.UIUtils;
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ModalityMode;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
@@ -57,7 +60,13 @@ public class ExportDialog extends Dialog implements LLMInteract {
     private ExporterService exporterService;
 
     @Autowired
+    private ExportTextRegistry exportTexts;
+
+    @Autowired
     private ChatMessageService chatMessageService;
+
+    @Autowired
+    private MessageRevisionService messageRevisionService;
 
     @Autowired
     private ManuscriptService manuscriptService;
@@ -87,6 +96,7 @@ public class ExportDialog extends Dialog implements LLMInteract {
     private IntegerField from;
     private IntegerField to;
     private Checkbox includeHeaders;
+    private Checkbox includeAuthorship;
 
     /**
      * @param manuscript the book with the up to date active leaf, which is the end of the exported branch
@@ -133,9 +143,15 @@ public class ExportDialog extends Dialog implements LLMInteract {
 
         includeHeaders = new Checkbox(loc.getValue(L.LABEL_INCLUDE_TITLE_PAGE), true);
 
+        includeAuthorship = new Checkbox(loc.getValue(L.LABEL_INCLUDE_AUTHORSHIP), false);
+        includeAuthorship.setHelperText(loc.getValue(L.HELP_INCLUDE_AUTHORSHIP));
+        includeAuthorship.setVisible(format.getValue() != null && format.getValue().usesAuthorship());
+        format.addValueChangeListener(event -> includeAuthorship.setVisible(event.getValue() != null && event.getValue().usesAuthorship()));
+
         FormLayout form = new FormLayout();
         form.setResponsiveSteps(new FormLayout.ResponsiveStep("0", 1));
-        form.add(format, styleChoice, fileName, bookTitle, author, from, to, includeHeaders);
+        form.add(format, styleChoice, fileName, bookTitle, author, from, to, includeHeaders, includeAuthorship);
+        createExtensionFields().forEach(form::add);
         form.getChildren().forEach(c -> c.getElement().getClassList().add(CssStyles.FULL_WIDTH));
         add(form);
 
@@ -143,6 +159,19 @@ public class ExportDialog extends Dialog implements LLMInteract {
         export.setThemeName("primary");
         export.setEnabled(!exporters.isEmpty());
         getFooter().add(new Button(loc.getValue(L.LABEL_CANCEL), event -> close()), export);
+        DialogShortcuts.submitWith(export, fileName, bookTitle, author, from, to);
+    }
+
+    /**
+     * The fields an extension adds to the dialog, after the title page check box (empty here: a decorator of this method adds components to
+     * the list it returns, and reads them when it decorates {@code export} to change what is exported).
+     */
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = List.class),
+            locals = {@APILocals(name = "fields", type = List.class)})
+    private List<Component> createExtensionFields() {
+        List<Component> fields = new ArrayList<>();
+        return fields;
     }
 
     /**
@@ -235,7 +264,7 @@ public class ExportDialog extends Dialog implements LLMInteract {
         List<ExportLoreEntry> lore;
         try {
             languageCode = manuscriptService.getLanguage(manuscript).getCode();
-            templates = exportSettingsService.getTemplates(exporter.getId());
+            templates = exportSettingsService.getTemplates(exporter, manuscript);
             lore = exporter.usesLore() ? exporterService.collectLore(manuscript) : List.of();
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
@@ -285,9 +314,41 @@ public class ExportDialog extends Dialog implements LLMInteract {
                 Notification.warning(loc.getValue(L.MSG_EXPORT_NOTHING));
                 return;
             }
-            export(exporter, options, file, all.subList(first - 1, toIndex));
+            List<ChatMessage> range = all.subList(first - 1, toIndex);
+            ExportOptions withStatement = options;
+            if (exporter.usesAuthorship() && includeAuthorship.getValue()) {
+                try {
+                    // worked out on the stored parts: their history is what tells who wrote the words
+                    withStatement = options.withAuthorship(messageRevisionService.authorship(range));
+                } catch (Exception e) {
+                    UIUtils.internalServerError(loc, e);
+                    return;
+                }
+            }
+            export(exporter, withStatement, file, applyExportTexts(range));
         });
         collecting.open();
+    }
+
+    /**
+     * The parts as the exporters get them: what the extensions registered in the {@link ExportTextRegistry} changed in the text (a passage
+     * replaced, with a footnote), all of them at once on the stored text. The stored parts are not changed.
+     */
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = List.class),
+            parameters = {@APIParameter(name = "messages", type = List.class)})
+    private List<ChatMessage> applyExportTexts(List<ChatMessage> messages) {
+        return exportTexts.apply(messages, new ExportTextRegistry.Session() {
+            @Override
+            public Object source() {
+                return ExportDialog.this;
+            }
+
+            @Override
+            public Manuscript manuscript() {
+                return manuscript;
+            }
+        });
     }
 
     @PublicAPI(from = "1.1.0",

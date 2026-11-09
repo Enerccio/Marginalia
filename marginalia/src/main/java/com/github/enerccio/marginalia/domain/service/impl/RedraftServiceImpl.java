@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.domain.service.impl;
 
 import com.github.enerccio.marginalia.domain.components.AnnotationTexts;
+import com.github.enerccio.marginalia.domain.components.ModelText;
 import com.github.enerccio.marginalia.domain.components.TokenLimits;
 import com.github.enerccio.marginalia.domain.model.impl.*;
 import com.github.enerccio.marginalia.domain.service.*;
@@ -12,6 +13,7 @@ import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChat
 import com.github.enerccio.marginalia.domain.templates.RedraftTemplateData;
 import com.github.enerccio.marginalia.domain.templates.TemplateContext;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
+import com.github.enerccio.marginalia.extensions.PartTextRegistry;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes.InRequestScope;
 import org.apache.commons.lang3.StringUtils;
@@ -42,6 +44,9 @@ public class RedraftServiceImpl implements RedraftService {
 
     @Autowired
     private ChatMessageService chatMessageService;
+
+    @Autowired
+    private PartTextRegistry partTextRegistry;
 
     @Autowired
     private MessagePromptService messagePromptService;
@@ -107,7 +112,7 @@ public class RedraftServiceImpl implements RedraftService {
         }
         InferenceService inferenceService = inferenceServices.forAIOrThrow(ai);
 
-        List<LLMChatMessage> payload = createPayload(book, stored, StringUtils.trimToEmpty(instructions), prompt, withAnnotations, passage, ai, protocol, inferenceService);
+        List<LLMChatMessage> payload = createPayload(book, stored, StringUtils.trimToEmpty(instructions), prompt, withAnnotations, widen(stored, passage), ai, protocol, inferenceService);
 
         CancellationToken cancellationToken = new CancellationToken();
         InferenceAsyncCallback inferenceCallback = new InferenceAsyncCallback() {
@@ -157,12 +162,32 @@ public class RedraftServiceImpl implements RedraftService {
         };
 
         try (InferenceSession _ = InferenceSession.open(InferenceSession.REDRAFT); UsageContext _ = UsageContext.open(book)) {
-            inferenceService.stream(payload, protocol, inferenceCallback);
+            // a stop reaches the request also while the server still reads the prompt
+            cancellationToken.onCancel(inferenceService.stream(payload, protocol, inferenceCallback)::cancel);
         } catch (Exception e) {
             log.error("Failed to start the redraft inference", e);
             inferenceCallback.onError(e);
         }
         return cancellationToken;
+    }
+
+    @Override
+    public Passage widen(ChatMessage part, Passage passage) {
+        if (passage == null || part == null || !partTextRegistry.isActive()) {
+            return passage;
+        }
+        ModelText read = partTextRegistry.modelText(part);
+        if (!read.changed()) {
+            return passage;
+        }
+        try {
+            int[] model = read.modelRange(passage.start(), passage.end());
+            int[] stored = read.storedRange(model[0], model[1]);
+            return new Passage(stored[0], stored[1]);
+        } catch (IllegalArgumentException e) {
+            // not a range of the text: the redraft says so itself
+            return passage;
+        }
     }
 
     /**
@@ -199,11 +224,14 @@ public class RedraftServiceImpl implements RedraftService {
         data.setSceneSetting(StringUtils.defaultString(part.getSceneSetting()));
         data.setPresentCharacters(StringUtils.defaultString(part.getPresentCharacters()));
         data.setInstructions(StringUtils.defaultString(part.getInstructions()));
-        data.setText(part.getResponse());
+        // the model reads the part as an extension keeps it for models; the passage is a range of the stored text
+        ModelText read = partTextRegistry.modelText(part);
+        data.setText(read.text());
         if (passage != null) {
-            data.setSelection(part.getResponse().substring(passage.start(), passage.end()));
-            data.setSelectionBefore(part.getResponse().substring(0, passage.start()));
-            data.setSelectionAfter(part.getResponse().substring(passage.end()));
+            int[] model = read.modelRange(passage.start(), passage.end());
+            data.setSelection(read.text().substring(model[0], model[1]));
+            data.setSelectionBefore(read.text().substring(0, model[0]));
+            data.setSelectionAfter(read.text().substring(model[1]));
         }
         data.setRedraftInstructions(instructions);
         data.setAnnotations(withAnnotations ? AnnotationTexts.openAnnotations(annotationsIn(annotationService.listForPart(book, part), passage)) : "");
@@ -211,7 +239,7 @@ public class RedraftServiceImpl implements RedraftService {
         data.setPreviousStory("");
         data.setFollowingStory("");
 
-        TemplateContext context = SummaryServiceImpl.createTemplateContext(book, part, ai, protocol, new ArrayList<>(before.reversed()));
+        TemplateContext context = SummaryServiceImpl.createTemplateContext(book, partTextRegistry, part, ai, protocol, new ArrayList<>(before.reversed()));
         // estimation render must not change variables or the real render would apply them twice
         data.setTemplateContext(context.fork());
 
@@ -227,7 +255,7 @@ public class RedraftServiceImpl implements RedraftService {
             throw new ContextInsufficient(base, maxTokens);
         }
         // the same story for the same part, whatever the length of the part and of its notes is now; it goes in as messages
-        StoryAround.Around around = StoryAround.collect(summaryService, inferenceService, before, after,
+        StoryAround.Around around = StoryAround.collect(summaryService, inferenceService, partTextRegistry, before, after,
                 StoryAround.stableRoom(room, maxTokens), true);
         data.setSummaries(around.summaries());
         data.setPreviousStory(around.previousParts().isEmpty() ? "" : StoryAround.STORY_IN_MESSAGES);

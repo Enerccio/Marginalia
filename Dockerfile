@@ -25,6 +25,12 @@ RUN java -jar "$JETTY_HOME/start.jar" --create-startd \
 COPY --from=builder /build/marginalia/target/*.war $JETTY_BASE/webapps/ROOT.war
 
 USER root
+# ffmpeg is optional: the Audiobook plugin offers the m4b export and the wav storage only when it finds the program. Build without it (about 200 MB
+# smaller) with --build-arg WITH_FFMPEG=false
+ARG WITH_FFMPEG=true
+RUN if [ "$WITH_FFMPEG" = "true" ]; then \
+        apt-get update && apt-get install -y --no-install-recommends ffmpeg && rm -rf /var/lib/apt/lists/*; \
+    fi
 RUN mkdir -p /var/marginalia/.marginalia && chown -R jetty:jetty /var/marginalia
 # no COPY --chmod: it needs BuildKit, which the classic builder of older docker/docker-compose v1 lacks
 COPY docker-entrypoint.sh /usr/local/bin/marginalia-entrypoint.sh

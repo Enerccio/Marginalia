@@ -14,6 +14,7 @@ import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.RestorableState;
+import com.github.enerccio.marginalia.ui.components.LorebookPreview;
 import com.github.enerccio.marginalia.ui.components.MessageImages;
 import com.github.enerccio.marginalia.ui.dialogs.*;
 import com.github.enerccio.marginalia.ui.dialogs.manuscript.*;
@@ -58,6 +59,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
 import java.util.*;
+import java.util.function.Consumer;
 
 /**
  * The story tab of the {@link PhoneManuscriptDialog}. One column: the parts of the story fill the screen and the
@@ -130,11 +132,15 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
     private boolean isFrozen = false;
 
     private final StoryCards<ChatMessageCard> cards = new StoryCards<>();
+    // not stored: the text a model wrote is highlighted in the cards
+    private boolean showGeneratedDiff = false;
     private final StorySupport support = new StorySupport();
     private StoryLazyLoader<ChatMessageCard> lazyLoader;
     private StoryBranchSearch branchSearch;
     private StoryAnnotations annotations;
     private AnnotationsPanel annotationsPanel;
+    private PlannerPanel plannerPanel;
+    private LorebookPreview lorebookPreview;
     private final StoryBackup backup = new StoryBackup();
     private final StoryMassDelete massDelete;
     private Long scrollToMessageId;
@@ -377,6 +383,28 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
         massDelete.toggle();
     }
 
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = boolean.class))
+    @Override
+    public boolean isShowGeneratedDiff() {
+        return showGeneratedDiff;
+    }
+
+    /**
+     * Switches the highlight of the text a model wrote: the response of every card is drawn again.
+     */
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "show", type = boolean.class)},
+            locals = {@APILocals(name = "card", type = PhoneManuscriptStoryPart.ChatMessageCard.class)})
+    @Override
+    public void setShowGeneratedDiff(boolean show) {
+        showGeneratedDiff = show;
+        for (ChatMessageCard card : cards.values()) {
+            card.renderResponse();
+        }
+    }
+
     @PublicAPI(from = "1.6.0",
             returns = @APIReturn(type = boolean.class))
     @Override
@@ -402,11 +430,26 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
     @PublicAPI(from = "1.6.0",
             returns = @APIReturn(type = void.class),
             locals = {@APILocals(name = "e", type = Exception.class)})
-    private void reloadStory() {
+    @Override
+    public void reloadStory() {
         try {
             load(parent.refreshManuscript());
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
+        }
+    }
+
+    /**
+     * Closes the drawer and scrolls to the part and flashes it, nothing happens when the part is not on the branch.
+     */
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "messageId", type = Long.class)})
+    @Override
+    public void scrollToMessage(Long messageId) {
+        if (messageId != null) {
+            layout.setDrawerOpened(false);
+            lazyLoader.scrollTo(messageId);
         }
     }
 
@@ -479,6 +522,24 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
     }
 
     /**
+     * Shows which lorebook entries the generations of the book used and which never did, over a branch or the whole tree.
+     */
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "dialog", type = BookLoreUsageDialog.class),
+                    @APILocals(name = "e", type = Exception.class)})
+    @Override
+    public void openLoreUsageDialog() {
+        try {
+            BookLoreUsageDialog dialog = new BookLoreUsageDialog(parent.refreshManuscript());
+            dialog.create();
+            dialog.open();
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+    }
+
+    /**
      * Shows what was done to the book day by day: words, tokens, time and size.
      */
     @PublicAPI(from = "1.6.0",
@@ -522,7 +583,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
             return;
         }
         try {
-            long tokens = summaryService.collectTree(currentManuscript).stream().mapToLong(SummaryNode::getTokens).sum();
+            long tokens = summaryService.collectTree(currentManuscript).stream().filter(SummaryNode::isValid).mapToLong(SummaryNode::getTokens).sum();
             UIUtils.addTooltip(summariesMenuItem, loc.getValue(L.LABEL_SUMMARIES) + "\n"
                     + String.format(loc.getValue(L.MSG_ACTIVE_SUMMARIES_TOKENS), tokens));
         } catch (Exception e) {
@@ -628,6 +689,10 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
         Set<Long> openedReasonings = cards.collectOpenedReasonings();
         // the texts may have changed since the annotations were read
         annotations.invalidate();
+        // the book may be another one than before
+        plannerPanel.refresh();
+        // the user may have changed the lore in the other tabs
+        lorebookPreview.refresh(currentManuscript == null ? null : currentManuscript.getLorebook());
 
         centerContentPanel.removeAll();
         sidebarList.removeAll();
@@ -767,6 +832,23 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
             }
         });
         leftBar.add(ManuscriptStoryPart.ANNOTATIONS_TAB, loc.getValue(L.LABEL_ANNOTATIONS), annotationsPanel);
+
+        plannerPanel = new PlannerPanel(() -> currentManuscript, scene -> {
+            if (newTurnForm == null || newTurnPopover == null) {
+                return false;
+            }
+            newTurnForm.restoreState(PlannerPanel.toFormState(scene));
+            // the drawer covers the story and the button the form opens from
+            layout.setDrawerOpened(false);
+            newTurnPopover.setOpened(true);
+            return true;
+        });
+        leftBar.add(ManuscriptStoryPart.PLANNER_TAB, loc.getValue(L.LABEL_PLANNER), plannerPanel);
+
+        // the lore of the story: look at the entries and fix their text without leaving the story
+        lorebookPreview = new LorebookPreview().create();
+        lorebookPreview.setEditable(true);
+        leftBar.add(ManuscriptStoryPart.LOREBOOK_TAB, loc.getValue(L.LABEL_LOREBOOK), lorebookPreview);
 
         VerticalLayout outline = new VerticalLayout(leftBar);
         outline.setSizeFull();
@@ -995,8 +1077,12 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
         private MessageImages messageImages;
         private TextArea responseTextArea;
         private boolean editing = false;
+        // set by the dialog about outdated summaries: the save marks the summaries the edit made outdated as valid
+        private boolean revalidateSummariesOnSave = false;
 
         private CardAnnotations cardAnnotations;
+        // who wrote the words of the text, read from the history of the part
+        private final CardAuthorship authorship = new CardAuthorship(messageRevisionService, loc);
         // the text is being generated again: the passages of the annotations are not in it yet
         private boolean generating = false;
 
@@ -1447,6 +1533,17 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
             cardAnnotations.redraftSelection();
         }
 
+        /**
+         * Gives the action the range of the text the author selected, see {@link CardAnnotations#withSelection}.
+         */
+        @PublicAPI(from = "1.7.0",
+                returns = @APIReturn(type = void.class),
+                parameters = {@APIParameter(name = "action", type = Consumer.class)})
+        @Override
+        public void withSelection(Consumer<int[]> action) {
+            cardAnnotations.withSelection(action);
+        }
+
         @PublicAPI(from = "1.5.0",
                 returns = @APIReturn(type = void.class))
         @Override
@@ -1484,7 +1581,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
         @Override
         public void toggleEdit() {
             if (editing) {
-                autosaveAndSwapToMarkdown();
+                saveEdit();
             } else {
                 editing = true;
                 // created only while a part is edited: a text area measures its height in the browser as soon as it
@@ -1530,6 +1627,33 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
             editing = false;
         }
 
+        /**
+         * Saves the edit the author made. When the new text would make summaries outdated the author is asked first: back to
+         * the editor, save anyway, or save and revalidate the summaries.
+         */
+        @PublicAPI(from = "1.7.0",
+                returns = @APIReturn(type = void.class),
+                locals = {@APILocals(name = "e", type = Exception.class)})
+        @Override
+        public void saveEdit() {
+            if (!editing) {
+                return;
+            }
+            try {
+                int outdated = support.outdatedSummaries(currentManuscript, message, responseTextArea.getValue()).size();
+                if (outdated == 0) {
+                    autosaveAndSwapToMarkdown();
+                    return;
+                }
+                OutdatedSummariesDialog.open(outdated, this::autosaveAndSwapToMarkdown, () -> {
+                    revalidateSummariesOnSave = true;
+                    autosaveAndSwapToMarkdown();
+                });
+            } catch (Exception e) {
+                UIUtils.internalServerError(loc, e);
+            }
+        }
+
         @PublicAPI(from = "1.1.0",
                 returns = @APIReturn(type = void.class),
                 locals = {@APILocals(name = "newResponse", type = String.class),
@@ -1538,7 +1662,9 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
             if (editing) {
                 try {
                     String newResponse = responseTextArea.getValue();
-                    message = support.saveEditedResponse(currentManuscript, message, newResponse);
+                    boolean revalidate = revalidateSummariesOnSave;
+                    revalidateSummariesOnSave = false;
+                    message = support.saveEditedResponse(currentManuscript, message, newResponse, revalidate);
                     // the passages of the annotations moved with the edit
                     annotationsChanged();
                     renderResponse();
@@ -1601,7 +1727,11 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
         @Override
         public void renderResponse() {
             String response = StringUtils.defaultString(message.getResponse());
-            List<TextMarkup.Mark> marks = new ArrayList<>(branchSearch.marks(message.getId(), response));
+            List<TextMarkup.Mark> marks = new ArrayList<>();
+            if (showGeneratedDiff) {
+                marks.addAll(authorship.marks(message, response, generating));
+            }
+            marks.addAll(branchSearch.marks(message.getId(), response));
             if (!generating) {
                 marks.addAll(annotations.marks(message, response));
             }
@@ -1675,6 +1805,21 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
             TokenUsageDialog dialog = new TokenUsageDialog(message.getTokenBreakdown());
             dialog.create();
             dialog.open();
+        }
+
+        @PublicAPI(from = "1.7.0",
+                returns = @APIReturn(type = void.class),
+                locals = {@APILocals(name = "dialog", type = LoreUsageDialog.class),
+                        @APILocals(name = "e", type = Exception.class)})
+        @Override
+        public void showLoreUsage() {
+            try {
+                LoreUsageDialog dialog = new LoreUsageDialog(message);
+                dialog.create();
+                dialog.open();
+            } catch (Exception e) {
+                UIUtils.internalServerError(loc, e);
+            }
         }
 
         @PublicAPI(from = "1.5.0",

@@ -17,6 +17,7 @@ import com.github.enerccio.marginalia.ui.dialogs.UserDialog;
 import com.github.enerccio.marginalia.ui.widgets.LanguageSelector;
 import com.github.enerccio.marginalia.ui.widgets.ThemeSwitch;
 import com.github.enerccio.marginalia.ui.workspace.*;
+import com.github.enerccio.marginalia.ui.workspace.parts.AdminPart;
 import com.github.enerccio.marginalia.ui.workspace.parts.AgentPart;
 import com.github.enerccio.marginalia.ui.workspace.parts.ResourcesPart;
 import com.github.enerccio.marginalia.ui.workspace.phone.parts.*;
@@ -64,10 +65,12 @@ public class PhoneWorkspace implements Workspace {
     private final PhoneSettingsPart settingsPart = new PhoneSettingsPart(this);
     private final PhoneProtocolPart protocolPart = new PhoneProtocolPart(this);
     private final PhoneAIPart aiPart = new PhoneAIPart(this);
-    private final ResourcesPart resourcesPart = new ResourcesPart(this);
+    private final ResourcesPart resourcesPart = new ResourcesPart(this, true);
     private final PhoneTrashPart trashPart = new PhoneTrashPart(this);
     // the tab exists only for users who may use agents
     private AgentPart agentPart;
+    // the tab exists only for administrators
+    private AdminPart adminPart;
 
     // names of the parts in the stored state, the same as in the desktop workspace
     private final Map<String, WorkspaceComponent> partsByKey = new LinkedHashMap<>();
@@ -131,6 +134,7 @@ public class PhoneWorkspace implements Workspace {
         addAgentsTab();
         addTab(L.LABEL_RESOURCES, resourcesPart);
         addTab(L.LABEL_TRASH, trashPart);
+        addAdminTab();
 
         tabs.addSelectedChangeListener(e -> {
             Tab selected = e.getSelectedTab();
@@ -211,7 +215,7 @@ public class PhoneWorkspace implements Workspace {
             locals = {@APILocals(name = "user", type = User.class)})
     private Component createInvalidExtensionsWarning() throws Exception {
         User user = userService.find(currentUser.getId());
-        return new InvalidExtensionsWarning(user != null && user.isAdmin()).create();
+        return new InvalidExtensionsWarning(user != null && user.isAdmin(), this::showAdminExtensions).create();
     }
 
     @PublicAPI(from = "1.1.0",
@@ -227,6 +231,47 @@ public class PhoneWorkspace implements Workspace {
         tabToComponent.put(tab, part);
         tabToContent.put(tab, part.create());
         tabToTitle.put(tab, name);
+    }
+
+    /**
+     * Shows Admin → Extensions, what a click on the bar of invalid extensions does.
+     */
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = void.class))
+    private void showAdminExtensions() {
+        if (adminPart == null) {
+            return;
+        }
+        tabToComponent.forEach((tab, part) -> {
+            if (part == adminPart) {
+                tabs.setSelectedTab(tab);
+            }
+        });
+        adminPart.showExtensions();
+    }
+
+    /**
+     * The tab of the administration, for an administrator only: the part is the desktop's {@link AdminPart} (its tabs
+     * scroll sideways, the lists of users and extensions are cards on a phone). Other users do not get the part at all.
+     */
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "user", type = User.class),
+                    @APILocals(name = "name", type = String.class),
+                    @APILocals(name = "tab", type = Tab.class)})
+    private void addAdminTab() throws Exception {
+        User user = userService.find(currentUser.getId());
+        if (user == null || !user.isAdmin()) {
+            return;
+        }
+        adminPart = new AdminPart(this, true);
+        String name = loc.getValue(L.LABEL_ADMIN);
+        Tab tab = new Tab(name);
+        tabs.add(tab);
+        tabToComponent.put(tab, adminPart);
+        tabToContent.put(tab, adminPart.create());
+        tabToTitle.put(tab, name);
+        partsByKey.put("admin", adminPart);
     }
 
     /**
@@ -385,6 +430,9 @@ public class PhoneWorkspace implements Workspace {
         trashPart.refresh();
         if (agentPart != null) {
             agentPart.refresh();
+        }
+        if (adminPart != null) {
+            adminPart.refresh();
         }
     }
 

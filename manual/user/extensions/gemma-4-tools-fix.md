@@ -1,6 +1,6 @@
 ---
 label: Gemma 4 tools fix
-order: 94
+order: 15
 ---
 
 # Gemma 4 tools fix

@@ -54,7 +54,6 @@ import com.vaadin.flow.server.streams.InMemoryUploadHandler;
 import com.vaadin.flow.server.streams.InputStreamDownloadCallback;
 import com.vaadin.flow.server.streams.InputStreamDownloadHandler;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
@@ -64,7 +63,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Configurable
 @Extendable
@@ -88,6 +86,9 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
     @Autowired
     private AgentRunService agentRunService;
 
+    @Autowired
+    private TagRelationService tagRelationService;
+
     private Lorebook currentLorebook;
     private boolean pinnedLorebook = false;
 
@@ -100,9 +101,13 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
     private Button tagLorebooksButton;
     private Button tagEntriesButton;
     private Button exportLorebookButton;
+    private Button descriptionButton;
 
     private TextField lorebookNameField;
     private Checkbox lorebookEnabledCheckbox;
+    private Checkbox lorebookSharedCheckbox;
+    // one line under the header, the whole description is its tooltip
+    private Span lorebookDescriptionLine;
     private MultiSelectComboBox<Lorebook> subLorebooksCombo;
     private TagMultiComboBox tagMultiComboBox;
 
@@ -112,7 +117,11 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
     private Button previewActivationButton;
     private Button deleteSelectedButton;
     private TextField entrySearchField;
+    private ComboBox<String> entryTagFilter;
+    private ComboBox<LorebookEntryFilter.Status> entryStatusFilter;
+    private final LorebookEntryFilter entryFilter = new LorebookEntryFilter();
     private IntegerField scanDepthField;
+    private IntegerField ownScanDepthField;
     private ListDataProvider<LorebookEntry> entryProvider;
     private Consumer<Lorebook> onOpenSubbook;
     private Button refreshButton;
@@ -215,6 +224,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
         importMenu.addItem(loc.getValue(L.LABEL_IMPORT_FROM_SILLYTAVERN), event ->
                 openImportDialog(loc.getValue(L.LABEL_IMPORT_FROM_SILLYTAVERN), lorebookService::importFromSillytavern));
         importMenu.addItem(loc.getValue(L.LABEL_IMPORT_FROM_ARCHIVE), event -> openArchiveImportDialog());
+        importMenu.addItem(loc.getValue(L.LABEL_IMPORT_FROM_OTHER_USER), event -> openImportFromOtherUser());
 
         exportLorebookButton = new Button(Solid.FILE_EXPORT.create());
         exportLorebookButton.setTooltipText(loc.getValue(L.LABEL_EXPORT_LOREBOOK));
@@ -228,6 +238,9 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
         tagLorebooksButton = new Button(Solid.TAGS.create(), event -> openTagDialog(false));
         tagLorebooksButton.setTooltipText(loc.getValue(L.LABEL_TAG_LOREBOOKS));
         tagLorebooksButton.setVisible(!pinnedLorebook);
+
+        descriptionButton = new Button(Solid.ALIGN_LEFT.create(), event -> editDescription());
+        descriptionButton.setTooltipText(loc.getValue(L.LABEL_EDIT_DESCRIPTION));
 
         tagEntriesButton = new Button(Solid.TAGS.create(), event -> openTagDialog(true));
         tagEntriesButton.setTooltipText(loc.getValue(L.LABEL_TAG_ENTRIES));
@@ -252,6 +265,14 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
         entrySearchField.setValueChangeMode(ValueChangeMode.LAZY);
         entrySearchField.addValueChangeListener(event -> applyEntrySearch());
 
+        entryTagFilter = LorebookEntryFilter.createTagBox(loc);
+        entryTagFilter.setWidth("180px");
+        entryTagFilter.addValueChangeListener(event -> applyEntrySearch());
+
+        entryStatusFilter = LorebookEntryFilter.createStatusBox(loc);
+        entryStatusFilter.setWidth("160px");
+        entryStatusFilter.addValueChangeListener(event -> applyEntrySearch());
+
         refreshButton = new Button(loc.getValue(L.LABEL_REFRESH), Solid.REFRESH.create(), event -> {
             try {
                 refreshEntries();
@@ -260,13 +281,13 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
             }
         });
 
-        controlsLayout.add(lorebookCombo, rootOnlyCheckbox, addLorebookButton, cloneLorebookButton, deleteLorebookButton, importLorebookButton, exportLorebookButton, tagLorebooksButton);
+        controlsLayout.add(lorebookCombo, rootOnlyCheckbox, addLorebookButton, cloneLorebookButton, deleteLorebookButton, importLorebookButton, exportLorebookButton, tagLorebooksButton, descriptionButton);
         controlsLayout.setAlignItems(Alignment.END);
         // the buttons are many: in a narrow window (a book, a small screen) they go to the next line instead of off the edge
         controlsLayout.setWrap(true);
 
         // what is done with the entries of the selected lorebook is a row of its own, apart from what is done with the lorebooks
-        entriesRow = new HorizontalLayout(addEntryButton, searchReplaceButton, massEditButton, tagEntriesButton, previewActivationButton, refreshButton, entrySearchField, deleteSelectedButton);
+        entriesRow = new HorizontalLayout(addEntryButton, searchReplaceButton, massEditButton, tagEntriesButton, previewActivationButton, refreshButton, entrySearchField, entryTagFilter, entryStatusFilter, deleteSelectedButton);
         entriesRow.setWidthFull();
         entriesRow.setAlignItems(Alignment.END);
         entriesRow.setWrap(true);
@@ -342,6 +363,14 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
             }
         });
 
+        lorebookSharedCheckbox = new Checkbox(loc.getValue(L.LABEL_SHARE_WITH_OTHER_USERS));
+        UIUtils.addTooltip(lorebookSharedCheckbox, loc.getValue(L.HELP_LOREBOOK_SHARED));
+        lorebookSharedCheckbox.addValueChangeListener(e -> {
+            if (currentLorebook != null && e.isFromClient()) {
+                changeShared(Boolean.TRUE.equals(e.getValue()));
+            }
+        });
+
         scanDepthField = new IntegerField(loc.getValue(L.LABEL_SCAN_DEPTH));
         scanDepthField.setMin(0);
         scanDepthField.setMax(LorebookActivationService.MAX_SCAN_DEPTH);
@@ -359,10 +388,34 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
             }
         });
 
-        lorebookHeaderLayout.add(lorebookNameField, subLorebooksCombo, tagMultiComboBox, scanDepthField, lorebookEnabledCheckbox);
+        // empty = the scan depth of the lorebook the book uses; only counts while this lorebook is a sub lorebook of another
+        ownScanDepthField = new IntegerField(loc.getValue(L.LABEL_OWN_SCAN_DEPTH));
+        ownScanDepthField.setMin(0);
+        ownScanDepthField.setMax(LorebookActivationService.MAX_SCAN_DEPTH);
+        ownScanDepthField.setStepButtonsVisible(true);
+        ownScanDepthField.setClearButtonVisible(true);
+        ownScanDepthField.setWidth("150px");
+        UIUtils.addTooltip(ownScanDepthField, loc.getValue(L.HELP_OWN_SCAN_DEPTH));
+        ownScanDepthField.addValueChangeListener(e -> {
+            if (currentLorebook != null && e.isFromClient()) {
+                try {
+                    currentLorebook.setOwnScanDepth(e.getValue() == null ? null
+                            : Math.max(0, Math.min(LorebookActivationService.MAX_SCAN_DEPTH, e.getValue())));
+                    currentLorebook = lorebookService.save(currentLorebook);
+                } catch (Exception ex) {
+                    UIUtils.internalServerError(loc, ex);
+                }
+            }
+        });
+
+        lorebookHeaderLayout.add(lorebookNameField, subLorebooksCombo, tagMultiComboBox, scanDepthField, ownScanDepthField, lorebookEnabledCheckbox, lorebookSharedCheckbox);
         lorebookHeaderLayout.setFlexGrow(1, lorebookNameField);
         lorebookHeaderLayout.setFlexGrow(1, subLorebooksCombo);
         lorebookHeaderLayout.setFlexGrow(1, tagMultiComboBox);
+
+        lorebookDescriptionLine = new Span();
+        lorebookDescriptionLine.addClassNames(CssStyles.CLIPPED_LINE, CssStyles.TEXT_SECONDARY);
+        lorebookDescriptionLine.setVisible(false);
 
         lorebookTokensSpan = createTokensSpan();
         allTokensSpan = createTokensSpan();
@@ -374,7 +427,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
 
         setupGrid();
 
-        add(controlsLayout, entriesRow, lorebookHeaderLayout, tokensRow, grid);
+        add(controlsLayout, entriesRow, lorebookHeaderLayout, lorebookDescriptionLine, tokensRow, grid);
         setFlexGrow(1, grid);
         controlsRow = controlsLayout;
 
@@ -484,6 +537,94 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
                 });
     }
 
+    /**
+     * Shows what the lorebooks of the other users share, to import a copy of one of them.
+     */
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = void.class))
+    private void openImportFromOtherUser() {
+        SharedImportDialog.forLorebooks(loc, lorebookService, this::showImported).open();
+    }
+
+    /**
+     * Shares the lorebook or stops sharing it. Sharing a lorebook with sub lorebooks that are not shared asks first whether to
+     * share them too (others only get the sub lorebooks that are shared); the box stays unchecked until it is answered, and
+     * stays so when the question is cancelled.
+     */
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "shared", type = boolean.class)},
+            locals = {@APILocals(name = "unshared", type = List.class),
+                    @APILocals(name = "e", type = Exception.class)})
+    private void changeShared(boolean shared) {
+        try {
+            if (!shared) {
+                currentLorebook.setShared(false);
+                currentLorebook = lorebookService.save(currentLorebook);
+                return;
+            }
+            List<Lorebook> unshared = lorebookService.findUnsharedSubbooks(currentLorebook);
+            if (unshared.isEmpty()) {
+                shareLorebook(false);
+                return;
+            }
+            lorebookSharedCheckbox.setValue(false);
+            ConfirmDialog.show(String.format(loc.getValue(L.MSG_SHARE_SUB_LOREBOOKS), unshared.size()),
+                    () -> shareLorebook(true), () -> shareLorebook(false), true);
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+    }
+
+    /**
+     * Shares the lorebook, and the sub lorebooks that are not shared yet when asked.
+     */
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "withSubbooks", type = boolean.class)},
+            locals = {@APILocals(name = "e", type = Exception.class)})
+    private void shareLorebook(boolean withSubbooks) {
+        try {
+            currentLorebook = lorebookService.share(currentLorebook, withSubbooks);
+            lorebookSharedCheckbox.setValue(true);
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+    }
+
+    /**
+     * Asks for the description of the lorebook.
+     */
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = void.class))
+    private void editDescription() {
+        if (currentLorebook == null) {
+            return;
+        }
+        DescriptionDialog.show(loc, loc.getValue(L.LABEL_EDIT_DESCRIPTION), currentLorebook.getDescription(), text -> {
+            try {
+                currentLorebook.setDescription(StringUtils.trimToNull(text));
+                currentLorebook = lorebookService.save(currentLorebook);
+                showDescription();
+            } catch (Exception e) {
+                UIUtils.internalServerError(loc, e);
+            }
+        });
+    }
+
+    /**
+     * The description of the lorebook on one line under its header, hidden when it has none.
+     */
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "description", type = String.class)})
+    private void showDescription() {
+        String description = currentLorebook == null ? null : StringUtils.trimToNull(currentLorebook.getDescription());
+        lorebookDescriptionLine.setText(description == null ? "" : description);
+        lorebookDescriptionLine.getElement().setAttribute("title", description == null ? "" : description);
+        lorebookDescriptionLine.setVisible(description != null);
+    }
+
     @PublicAPI(from = "1.4.0",
             returns = @APIReturn(type = void.class),
             parameters = {@APIParameter(name = "importedLorebook", type = Lorebook.class)})
@@ -587,7 +728,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
         grid.setItemDetailsRenderer(new ComponentRenderer<>(this::createEntryDetailLayout));
     }
 
-    @PublicAPI(from = "1.1.0",
+    @PublicAPI(from = "1.7.0",
             returns = @APIReturn(type = Component.class),
             parameters = {@APIParameter(name = "entry", type = LorebookEntry.class)},
             locals = {@APILocals(name = "detailsLayout", type = VerticalLayout.class),
@@ -602,7 +743,10 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
                     @APILocals(name = "activationContextCombo", type = ComboBox.class),
                     @APILocals(name = "fromMessageField", type = IntegerField.class),
                     @APILocals(name = "toMessageField", type = IntegerField.class),
+                    @APILocals(name = "conditionField", type = TextArea.class),
                     @APILocals(name = "preventRecursionCheckbox", type = Checkbox.class),
+                    @APILocals(name = "recursionOnlyCheckbox", type = Checkbox.class),
+                    @APILocals(name = "activationSummariesCheckbox", type = Checkbox.class),
                     @APILocals(name = "commentField", type = TextArea.class)})
     public Component createEntryDetailLayout(LorebookEntry entry) {
         VerticalLayout detailsLayout = new VerticalLayout();
@@ -730,11 +874,31 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
             }
         });
 
+        TextArea conditionField = LoreConditionField.create(loc, templateService, entry, () -> saveEntry(entry));
+
         Checkbox preventRecursionCheckbox = new Checkbox(loc.getValue(L.LABEL_PREVENT_RECURSION), entry.isPreventRecursion());
         UIUtils.addTooltip(preventRecursionCheckbox, loc.getValue(L.HELP_PREVENT_RECURSION));
         preventRecursionCheckbox.addValueChangeListener(e -> {
             if (e.isFromClient()) {
                 entry.setPreventRecursion(Boolean.TRUE.equals(e.getValue()));
+                saveEntry(entry);
+            }
+        });
+
+        Checkbox recursionOnlyCheckbox = new Checkbox(loc.getValue(L.LABEL_RECURSION_ONLY), entry.isRecursionOnly());
+        UIUtils.addTooltip(recursionOnlyCheckbox, loc.getValue(L.HELP_RECURSION_ONLY));
+        recursionOnlyCheckbox.addValueChangeListener(e -> {
+            if (e.isFromClient()) {
+                entry.setRecursionOnly(Boolean.TRUE.equals(e.getValue()));
+                saveEntry(entry);
+            }
+        });
+
+        Checkbox activationSummariesCheckbox = new Checkbox(loc.getValue(L.LABEL_ACTIVATION_SUMMARIES), entry.isActivationSummaries());
+        UIUtils.addTooltip(activationSummariesCheckbox, loc.getValue(L.HELP_ACTIVATION_SUMMARIES));
+        activationSummariesCheckbox.addValueChangeListener(e -> {
+            if (e.isFromClient()) {
+                entry.setActivationSummaries(Boolean.TRUE.equals(e.getValue()));
                 saveEntry(entry);
             }
         });
@@ -750,9 +914,9 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
             }
         });
 
-        settingsForm.add(filteringModeCombo, filteringField, insertionModeCombo, negativeTagCombo, activationContextCombo, activationPartsField, fromMessageField, toMessageField, preventRecursionCheckbox);
+        settingsForm.add(filteringModeCombo, filteringField, insertionModeCombo, negativeTagCombo, activationContextCombo, activationPartsField, fromMessageField, toMessageField, activationSummariesCheckbox, preventRecursionCheckbox, recursionOnlyCheckbox);
 
-        detailsLayout.add(payloadField, payloadTokensSpan, settingsForm, commentField);
+        detailsLayout.add(payloadField, payloadTokensSpan, settingsForm, conditionField, commentField);
         return detailsLayout;
     }
 
@@ -978,12 +1142,15 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
         boolean hasLorebook = currentLorebook != null;
         lorebookNameField.setEnabled(hasLorebook);
         lorebookEnabledCheckbox.setEnabled(hasLorebook);
+        lorebookSharedCheckbox.setEnabled(hasLorebook);
+        descriptionButton.setEnabled(hasLorebook);
         subLorebooksCombo.setEnabled(hasLorebook);
         addEntryButton.setEnabled(hasLorebook);
         searchReplaceButton.setEnabled(hasLorebook);
         massEditButton.setEnabled(hasLorebook);
         previewActivationButton.setEnabled(hasLorebook);
         scanDepthField.setEnabled(hasLorebook);
+        ownScanDepthField.setEnabled(hasLorebook);
         tagEntriesButton.setEnabled(hasLorebook);
         cloneLorebookButton.setEnabled(hasLorebook);
         deleteLorebookButton.setEnabled(hasLorebook);
@@ -992,10 +1159,13 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
         tagMultiComboBox.setEnabled(hasLorebook);
         tagMultiComboBox.setForEntity(currentLorebook);
 
+        showDescription();
         if (hasLorebook) {
             lorebookNameField.setValue(StringUtils.defaultString(currentLorebook.getName()));
             lorebookEnabledCheckbox.setValue(currentLorebook.isEnabled());
+            lorebookSharedCheckbox.setValue(currentLorebook.isShared());
             scanDepthField.setValue(currentLorebook.getScanDepth());
+            ownScanDepthField.setValue(currentLorebook.getOwnScanDepth());
 
             try {
                 List<Lorebook> allLorebooks = lorebookService.findAllRegularForUser();
@@ -1025,7 +1195,9 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
         } else {
             lorebookNameField.setValue("");
             lorebookEnabledCheckbox.setValue(false);
+            lorebookSharedCheckbox.setValue(false);
             scanDepthField.setValue(0);
+            ownScanDepthField.clear();
             subLorebooksCombo.setValue(Collections.emptySet());
             // the grid keeps its own record of the opened details over setItems: close them, openEntries decides what opens again
             currentEntries.forEach(old -> grid.setDetailsVisible(old, false));
@@ -1064,6 +1236,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
         addLorebookButton.setVisible(!pinnedLorebook);
         cloneLorebookButton.setVisible(!pinnedLorebook);
         importLorebookButton.setVisible(!pinnedLorebook);
+        descriptionButton.setVisible(!locked);
         deleteLorebookButton.setVisible(!locked && !pinnedLorebook);
         addEntryButton.setVisible(!locked);
         searchReplaceButton.setVisible(!locked);
@@ -1071,6 +1244,8 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
         tagEntriesButton.setVisible(!locked);
         previewActivationButton.setVisible(!locked);
         entrySearchField.setVisible(!locked);
+        entryTagFilter.setVisible(!locked);
+        entryStatusFilter.setVisible(!locked);
         if (!locked) {
             return;
         }
@@ -1094,6 +1269,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
     @PublicAPI(from = "1.1.0",
             returns = @APIReturn(type = void.class),
             locals = {@APILocals(name = "entries", type = List.class),
+                    @APILocals(name = "tagNames", type = List.class),
                     @APILocals(name = "e", type = Exception.class)})
     public void refreshEntries() {
         if (lockedView != null) {
@@ -1113,6 +1289,12 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
             List<LorebookEntry> entries = lorebookEntryService.getEntriesForLorebook(currentLorebook.getId());
             currentEntries.forEach(old -> grid.setDetailsVisible(old, false));
             grid.deselectAll();
+            entryFilter.setTags(LorebookEntryFilter.loadTags(tagRelationService, entries));
+            List<String> tagNames = LorebookEntryFilter.tagNames(tagRelationService, entries);
+            entryTagFilter.setItems(tagNames);
+            if (entryTagFilter.getValue() != null && !tagNames.contains(entryTagFilter.getValue())) {
+                entryTagFilter.clear();
+            }
             entryProvider = new ListDataProvider<>(entries);
             entryProvider.setFilter(this::matchesEntrySearch);
             grid.setItems(entryProvider);
@@ -1209,12 +1391,15 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
     }
 
     /**
-     * Shows only the entries whose name, content, note or filter has the text of the search box in it (case does not
-     * matter); all of them when the box is empty.
+     * Shows only the entries that fit the search box (name, content, note or filter has its text in it, case does not
+     * matter), the tag and the status that are picked; an empty one lets everything through.
      */
     @PublicAPI(from = "1.5.0",
             returns = @APIReturn(type = void.class))
     private void applyEntrySearch() {
+        entryFilter.setText(entrySearchField.getValue());
+        entryFilter.setTag(entryTagFilter.getValue());
+        entryFilter.setStatus(entryStatusFilter.getValue());
         if (entryProvider != null) {
             entryProvider.setFilter(this::matchesEntrySearch);
         }
@@ -1222,15 +1407,9 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
 
     @PublicAPI(from = "1.5.0",
             returns = @APIReturn(type = boolean.class),
-            parameters = {@APIParameter(name = "entry", type = LorebookEntry.class)},
-            locals = {@APILocals(name = "search", type = String.class)})
+            parameters = {@APIParameter(name = "entry", type = LorebookEntry.class)})
     private boolean matchesEntrySearch(LorebookEntry entry) {
-        String search = entrySearchField == null ? null : entrySearchField.getValue();
-        if (StringUtils.isBlank(search)) {
-            return true;
-        }
-        return Stream.of(entry.getName(), entry.getPayload(), entry.getComment(), entry.getFiltering())
-                .anyMatch(text -> Strings.CI.contains(text, search.strip()));
+        return entryFilter.matches(entry);
     }
 
     /**

@@ -4,6 +4,8 @@ import com.github.enerccio.marginalia.domain.service.FolderService.Choice;
 import com.github.enerccio.marginalia.domain.service.FolderService.Resolution;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
+import com.github.enerccio.marginalia.ui.widgets.DialogShortcuts;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
@@ -84,6 +86,8 @@ public class FolderClashDialog extends Dialog {
         footer.setWidthFull();
         footer.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
         getFooter().add(footer);
+        DialogShortcuts.submitWith(rename, newName);
+        DialogFocus.onOpen(this, newName);
 
         addOpenedChangeListener(e -> {
             if (!e.isOpened() && !answered) {

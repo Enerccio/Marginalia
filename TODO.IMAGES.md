@@ -1,13 +1,23 @@
 # Screenshots still to be made
 
 Almost all pictures of the manual are taken by the scripted environment in [`screenshots/`](screenshots/SCREENSHOTS.md):
-one dataset (the Harry Potter book), 1920x932 dark theme, all plugins installed, the same footer with the Language
+one dataset (the example book *Unregistered*), 1920x932 dark theme, all plugins installed, the same footer with the Language
 selector everywhere. Retake a picture there (`bin/rebuild.sh`, `bin/shoot-all.sh`, `bin/publish.sh`) instead of by hand,
 so that all of them keep matching. The table of the pictures, with the flow that takes each one, is in
 [`screenshots/SCREENSHOTS.md`](screenshots/SCREENSHOTS.md#pictures).
 
-Screenshots that show the photograph from Wikimedia Commons (*Harry Potter.jpg*, CC BY-SA 4.0) must stay listed on
+Screenshots that show the painting (*Interior of a Cottage in Scheveningen* by W. A. A. Liernur, public domain, Rawpixel) must stay listed on
 `manual/credits.md`. If another third-party picture is used, add it there too (author, source, license, changes).
+
+## 1.7.0
+
+Every picture of the manual was retaken from a new dataset: the example book *Unregistered* (the first five parts and the lorebook of the dataset book of
+the tests, see [`SCREENSHOTS.md`](screenshots/SCREENSHOTS.md)), replacing the Harry Potter story. New pictures: the plugins Real Language Translator
+(`plugin-reallang-settings`, `-editor`, `-book`, `-tab`, `-story`, `-range`, `-export`; `shoot-reallang.sh`), Book Description Generator
+(`plugin-book-description`), Prompt Inspector (`plugin-prompt-inspector`) and Prompt History (`plugin-prompt-history`); the Lore Usage window (`lore-usage`), the
+description of a lorebook (`lorebook-description`) and the summaries that a save outdates (`summaries-save-warning`, `summaries-outdated`), all from `shoot-new`.
+Not taken: the *Clear saved logins* check box of the user dialog (needs a user with a saved login), the Name provider and Place provider (no screen of their own),
+the PDF export with footnotes at the foot of the page (`export-result` shows the first two pages of the book, which have none), the Word export.
 
 ## 1.6.0
 

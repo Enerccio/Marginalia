@@ -43,7 +43,7 @@ public class STConverterLocalization extends PluginLocalizationBundle {
     public static final String CHAT_LOWERCASE = "chat";
     public static final String MESSAGES_CHECKED = "%d messages, %d checked";
     public static final String MESSAGES_LOADED = "%d messages loaded";
-    public static final String NOT_A_SILLYTAVERN_CHAT = "Not a SillyTavern chat";
+    public static final String NOT_A_SILLYTAVERN_OR_LM_STUDIO_CHAT = "Not a SillyTavern or LM Studio chat";
     public static final String THE_CHAT_HAS_NO_MESSAGES = "The chat has no messages";
     public static final String GO_TO_THE_NEXT_UNCHECKED = "Go to the next unchecked row";
     public static final String ALL_MESSAGES_ARE_CHECKED = "All messages are checked";
@@ -83,7 +83,7 @@ public class STConverterLocalization extends PluginLocalizationBundle {
     public static final String UPLOAD_A_CHAT = "Upload a chat";
     public static final String LOAD_A_BACKUP = "Load a backup";
     public static final String PICK_A_BOOK = "Pick a book";
-    public static final String A_SILLYTAVERN_CHAT_JSONL_WITHOUT = "A SillyTavern chat (.jsonl, without branches), to rewrite as a story with the model.";
+    public static final String A_SILLYTAVERN_CHAT_JSONL_OR_AN_LM_STUDIO = "A SillyTavern chat (.jsonl) or an LM Studio conversation (.conversation.json), without branches, to rewrite as a story with the model.";
     public static final String OR_THE_PARTS = "Or the parts of a book of yours, from a backup file or the book itself: their instructions, and the text to redraft.";
     public static final String ONLY_THE_INSTRUCTIONS = "Only the instructions and the text are kept with this book. Remove the source to load another.";
     public static final String PARTS_LOADED = "%d parts loaded";
@@ -99,6 +99,7 @@ public class STConverterLocalization extends PluginLocalizationBundle {
     public static final String THE_BACKUP_IS_DAMAGED = "The backup is damaged: the parts do not lead to the first part";
     public static final String THE_STORED_SOURCE = "The stored source of the book can't be read";
     public static final String THE_STORED_SOURCE_OF_THE_BOOK = "The stored source of the book is from a newer version of the plugin";
+    public static final String CONVERTER_CONVERT_THE_CHAT = "Converter: convert the chat into turn details";
 
     @Override
     protected void loadKeys() {
@@ -204,8 +205,8 @@ public class STConverterLocalization extends PluginLocalizationBundle {
         ja(MESSAGES_LOADED, "%d件のメッセージを読み込みました");
         zh(MESSAGES_LOADED, "已加载 %d 条消息");
 
-        ja(NOT_A_SILLYTAVERN_CHAT, "SillyTavernのチャットではありません");
-        zh(NOT_A_SILLYTAVERN_CHAT, "不是 SillyTavern 聊天记录");
+        ja(NOT_A_SILLYTAVERN_OR_LM_STUDIO_CHAT, "SillyTavernまたはLM Studioのチャットではありません");
+        zh(NOT_A_SILLYTAVERN_OR_LM_STUDIO_CHAT, "不是 SillyTavern 或 LM Studio 聊天记录");
 
         ja(THE_CHAT_HAS_NO_MESSAGES, "チャットにメッセージがありません");
         zh(THE_CHAT_HAS_NO_MESSAGES, "聊天记录中没有消息");
@@ -324,8 +325,8 @@ public class STConverterLocalization extends PluginLocalizationBundle {
         ja(PICK_A_BOOK, "ブックを選ぶ");
         zh(PICK_A_BOOK, "选择书籍");
 
-        ja(A_SILLYTAVERN_CHAT_JSONL_WITHOUT, "SillyTavernのチャット（.jsonl、分岐なし）。モデルとともにストーリーとして書き直します。");
-        zh(A_SILLYTAVERN_CHAT_JSONL_WITHOUT, "SillyTavern 聊天记录（.jsonl，不含分支），与模型一起改写为故事。");
+        ja(A_SILLYTAVERN_CHAT_JSONL_OR_AN_LM_STUDIO, "SillyTavernのチャット（.jsonl）またはLM Studioの会話（.conversation.json）。分岐なし。モデルとともにストーリーとして書き直します。");
+        zh(A_SILLYTAVERN_CHAT_JSONL_OR_AN_LM_STUDIO, "SillyTavern 聊天记录（.jsonl）或 LM Studio 对话（.conversation.json），不含分支，与模型一起改写为故事。");
 
         ja(OR_THE_PARTS, "または、バックアップファイルまたはブックそのものから、あなたのブックのパート（その指示と、書き直す本文）。");
         zh(OR_THE_PARTS, "或者你的某本书的各个部分，来自备份文件或书籍本身：它们的指令，以及要重写的文本。");
@@ -371,5 +372,8 @@ public class STConverterLocalization extends PluginLocalizationBundle {
 
         ja(THE_STORED_SOURCE_OF_THE_BOOK, "保存されているブックのソースは、より新しいバージョンのプラグインのものです");
         zh(THE_STORED_SOURCE_OF_THE_BOOK, "已保存的书籍来源来自更新版本的插件");
+
+        ja(CONVERTER_CONVERT_THE_CHAT, "コンバーター: チャットをターン詳細に変換");
+        zh(CONVERTER_CONVERT_THE_CHAT, "转换器：将聊天转换为回合详情");
     }
 }

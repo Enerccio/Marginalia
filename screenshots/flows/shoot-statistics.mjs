@@ -2,7 +2,7 @@
 // calendar) and of all books (the calendar with the goal), and the phone layout.
 // Run on a COPY of 13-db-backup that bin/seed-statistics.py has given a year of history (the application stopped for it, see
 // bin/shoot-all.sh): the dataset itself has a day or two of statistics. The goals are set here, through the Settings tab.
-import {bookTab, closeDialog, dialog, fill, idle, launch, login, main, openBook, openTab, press, section, sleep, snap, snapDialog, menuItem} from '../lib/shot.mjs';
+import {bookListMenu, bookTab, closeDialog, dialog, fill, idle, launch, login, main, openBook, openTab, press, section, sleep, snap, snapDialog, menuItem} from '../lib/shot.mjs';
 import {openStoryMenu} from '../lib/story.mjs';
 
 // the tab of the open statistics window
@@ -28,6 +28,12 @@ await main(async ({ page }) => {
     const top = await words.evaluate(e => e.closest('vaadin-integer-field').getBoundingClientRect().y);
     const bottom = await minutes.evaluate(e => e.closest('vaadin-integer-field').getBoundingClientRect().bottom);
     await snap(page, 'settings-daily-goal', { clip: { x: 300, y: Math.min(top, bottom - 150) - 34, width: 1590, height: Math.abs(bottom - top) + 130 } });
+    // the privacy fields below the goals: recording on or off, how long the statistics are kept
+    const keep = page.getByLabel('Keep statistics for', { exact: false }).first();
+    await keep.scrollIntoViewIfNeeded();
+    const minutesTop = await minutes.evaluate(e => e.closest('vaadin-integer-field').getBoundingClientRect().y);
+    const keepBottom = await keep.evaluate(e => e.closest('vaadin-integer-field').getBoundingClientRect().bottom);
+    await snap(page, 'settings-statistics-privacy', { clip: { x: 300, y: Math.max(0, minutesTop - 34), width: 1590, height: keepBottom - minutesTop + 100 } });
   });
 
   await section(page, 'book', async () => {
@@ -55,7 +61,7 @@ await main(async ({ page }) => {
     await idle(page, 800);
     await openTab(page, 'Books');
     await idle(page, 600);
-    await page.getByRole('button', { name: 'Statistics', exact: true }).first().click();
+    await bookListMenu(page, 'Manage', 'Statistics');
     await idle(page, 1500);
     await snapDialog(page, 'statistics-global', 0);
     await statTab(page, 'Calendar').click();

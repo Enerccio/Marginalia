@@ -488,6 +488,25 @@ class LorebookReadCommandsTest extends GenerationTestBase {
     }
 
     @Test
+    void theConditionOfAnEntryIsRenderedWithTheTextAsTheInstructions() throws Exception {
+        Lorebook conditional = lorebookService.save(lorebook("Conditional"));
+        entry(conditional, "Asked", 10, e -> {
+            e.setPayload("Asked for.");
+            e.setActivationCondition("{{instructions}}");
+        });
+        Manuscript book = newManuscript();
+        book.setLorebook(conditional);
+        sessionPoint.setManuscript(manuscriptService.save(book));
+
+        JsonObject yes = run("/preview-lore-activation dragon");
+        JsonObject no = run("/preview-lore-activation no");
+
+        assertThat(names(yes.getAsJsonArray("activated"))).containsExactly("Asked");
+        assertThat(names(no.getAsJsonArray("notActivated"))).containsExactly("Asked");
+        assertThat(no.getAsJsonObject("notActivatedByReason").get("CONDITION_FALSE").getAsInt()).isEqualTo(1);
+    }
+
+    @Test
     void theLimitCutsTheListsNotTheCounts() throws Exception {
         sessionPoint.setManuscript(filteredBook());
 

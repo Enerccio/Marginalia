@@ -16,8 +16,9 @@ This page describes the desktop layout. On a phone the story is one column with 
 | Area | |
 |---|---|
 | **Outline** (left) | One entry per part, `#1`, `#2`... with the part's database ID. Click an entry to scroll to the part (the parts before it are loaded first when it is not loaded yet). The header shows how many parts the branch has. A part that has a [summary](summaries.md) has a small document icon after its entry. The [Chapter Marker](../extensions/chapter-marker.md) extension shows chapter titles here. |
-| **Lorebook** (left, next to the Outline) | A read only look at the lore of the book, see [The lorebook tab](#the-lorebook-tab). |
+| **Lorebook** (left, next to the Outline) | A look at the lore of the book, with a search box and a quick edit of the text of an entry, see [The lorebook tab](#the-lorebook-tab). |
 | **Annotations** (left, next to the Outline) | The [notes](annotations.md) on passages of the story, for the whole book. |
+| **Planner** (left, next to the Outline) | The scenes you plan to write, a list you fill by hand, see [The planner tab](#the-planner-tab). |
 | **Story** (center) | The text of each part, with its menu (☰) and its metadata on the right, and under it the bottom bar. |
 | **Bottom bar** | The **Summaries** button (list icon) and the settings menu (⚙) on the left, the command line, and the **+** button on the right. |
 
@@ -53,10 +54,15 @@ On the phone the search is in the outline drawer; the drawer closes when it show
 ### The lorebook tab
 
 The **Lorebook** tab of the sidebar shows the lore of the book's lorebook without leaving the story, so you do not have to
-swap tabs to check what an entry says. It is a preview: nothing can be changed here, change the lore in the book's
-*Lorebook* tab. It is read again every time you come back to the *Story* tab, so changes you made there show at once.
+swap tabs to check what an entry says, or to fix a word in it. It is read again every time you come back to the *Story* tab, so
+changes you made in the book's *Lorebook* tab show at once.
 
-- Every entry is a row with its name; the arrow opens it to show its **content** (rendered as Markdown) and the **text that activates it** (the
+- The **search box** at the top shows only the entries that have the text in their name, content, note or filter (the case does not matter).
+- The **pen** of an entry opens a small window with its name, whether it is used, the filter and how it is looked for, the content
+  and the note; **Save** writes them (the tags, the order and the activation settings are changed in the book's *Lorebook* tab). Nothing
+  can be changed while an agent works on the lorebook.
+
+- Every entry is a row with its name and the pen; the arrow opens it to show its **content** (rendered as Markdown) and the **text that activates it** (the
   *Filtering Text/Pattern*, with a note when it is a regular expression).
 - **Include sub lorebooks** shows the lorebook and each of its sub lorebooks (and theirs, however deep) as rows of their own, with their entries
   under them; click the arrow of a lorebook to hide its entries. Without it only the entries of the book's lorebook are listed.
@@ -64,6 +70,29 @@ swap tabs to check what an entry says. It is a preview: nothing can be changed h
 - A book without a lorebook shows a note instead.
 
 ![The Lorebook tab with two entries opened](../../images/story-lorebook-tab.png)
+
+Like every tab of the editor it can be dragged out into a panel of its own, see below.
+
+### The planner tab
+
+The **Planner** tab is a list of the scenes you want the story to go through, in the order you want them. Each scene is the details of a turn that
+writes it: a **title** for the list, the **scene setting**, the **POV character**, the **present characters** and the **instructions**, the same four
+fields as the new turn form.
+
+![The Planner tab with four scenes, the first one written](../../images/planner-tab.png)
+
+- **Add scene** opens a form for a new scene; it goes to the end of the list. The pen edits a scene, the arrows move it up or down, the trash can deletes it.
+- The box in front of a scene says it is **done** (written): the title is struck through and the scene is dimmed. Nothing checks it for you, tick it
+  when you have written the scene. The line above the list counts how many are done.
+- **Click a scene** to put its details into the **new turn form** (the form opens, with the scene setting, POV, present characters and instructions of the
+  scene in it; what was there is replaced) and press **Generate** when you are happy with it. On the phone the drawer closes first.
+- The scenes are saved with the book, so they are in its backups and copies. A model can add scenes too: the [plot wizard](../extensions/arc-outline.md#developing-the-plot-in-a-conversation)
+  of the Arc Outline extension and an [agent](../agents.md) can read and change the planner with [commands](../commands/index.md#the-planner); the list
+  shows what they added at once.
+
+![The form for a new scene](../../images/planner-scene-dialog.png)
+
+![A click on a scene fills the new turn form with its details](../../images/planner-new-turn.png)
 
 Like every tab of the editor it can be dragged out into a panel of its own, see below.
 
@@ -196,8 +225,8 @@ The settings menu (⚙) in the bottom bar groups what acts on the whole story. *
 
 | Sub menu | Items |
 |---|---|
-| **Appearance** | **Change Styles For Text**, **Highlight Generated Text** and **Annotations in the margin** (desktop only, the last two) |
-| **Analysis** | **Annotate a range of parts with AI**, **Automatic annotation**, **Branch Tokens**, **Statistics** |
+| **Appearance** | **Change Styles For Text**, **Highlight Generated Text** and **Annotations in the margin** (desktop only, the last one) |
+| **Analysis** | **Annotate a range of parts with AI**, **Automatic annotation**, **Branch Tokens**, **Lore Usage**, **Statistics** |
 | **Import & export** | **Import from archive**, **Export story** (and the items of extensions that import or export, such as **Export instructions**) |
 | **Cleanup** | **Clear history of the book**, **Empty trash of the history**, **Mass delete** |
 | **Layout** (desktop only) | **Save layout as my default**, **Restore default layout** |
@@ -209,7 +238,7 @@ Items that [extensions](../extensions/index.md) bring are in the sub menu that f
 
 Every part has a menu (☰) in its top right corner. **Edit**, **Discard Changes**, **Regenerate**, **Swipe**, **Redraft**, **History** and **Images** are in the
 menu itself, **Delete** is its last item, and the rest is in four sub menus: **Annotations** (*Annotate part*, *Annotate with AI*), **Summary**
-(*Generate summary* / *View summary*, *Delete summary*), **Inspect** (*Show Prompt*, *Compare Prompt*, *Token Usage*) and **Branch & merge** (*Branch Story*,
+(*Generate summary* / *View summary*, *Delete summary*), **Inspect** (*Show Prompt*, *Compare Prompt*, *Token Usage*, *Lore Usage*) and **Branch & merge** (*Branch Story*,
 *Merge into previous part*). A sub menu with nothing in it for the part is not shown. The Reviewer adds its **Review** sub menu after *Summary*. The items:
 
 | Item | |
@@ -226,6 +255,7 @@ menu itself, **Delete** is its last item, and the rest is in four sub menus: **A
 | **Merge into previous part** | Adds the text of this part to the part before it, see [below](#merging-a-part-into-the-previous-one). Not on the first part. |
 | **Show Prompt** | Shows the exact prompt that was sent to the model for this part. |
 | **Token Usage** | Shows how the context of the model was used for this part: a chart of the sections of the prompt (instructions of the model, lore, summaries, story so far, your instructions, room kept for the response) and the size of each message sent to the model. If part of the story did not fit, it says how many parts were left out. Parts written before this was recorded have no chart. |
+| **Lore Usage** | Lists the [lorebook](../lorebooks/index.md) entries that went into the prompt of this part, with the tokens each one cost and what found it (the prompt, or the content of another entry when the lorebook scans deeper). Parts that were typed by hand, written before this was recorded, or written for a book without a lorebook say that nothing was recorded. For the whole book use **Lore Usage** in the settings menu (⚙), see [below](#which-lore-entries-were-used). |
 | **Images** | Attaches pictures to the part, see [Images](#images). |
 | **Generate summary** / **View summary** | Summarizes the story up to this part, or shows the summary, see [Summaries](summaries.md). |
 | **Delete summary** | Removes the summary of this part. For a [meta summary](summaries.md#meta-summaries) it asks whether to unwind it or delete it completely. |
@@ -264,7 +294,12 @@ Generated text is yours to change. Choose **Edit** in the part menu, change the 
 parts are sent to the model as you edited them.
 
 Editing a part that a [summary](summaries.md) covers makes that summary outdated; Marginalia notices it at the next
-generation and drops the summary.
+generation and drops the summary. So that this doesn't happen by surprise, **Save** checks the new text first: when it
+would make summaries outdated, a window says how many and offers **Back to editing** (nothing is saved, the editor stays
+open with your text), **Save anyway** (the summaries become outdated) and **Save and revalidate summaries** (the text is
+saved and the summaries stay valid, for a change that doesn't alter what they say, like a typo). The check is made for
+**Save** (the menu, the shortcut and the editor button); the automatic saves, for example when you start a generation
+with the editor open, don't ask.
 
 ## Keyboard shortcuts
 
@@ -425,8 +460,8 @@ Good to know:
 
 - **Regenerate** keeps the pictures of the part, also when the generation fails. **Swipe** writes a new part
   (a new version next to the old one), which starts without pictures. **Branch Story** copies the pictures to the new part.
-- Pictures belong to your account. In the [viewer](publishing.md) only you see them; readers of a published book see
-  the text only. A book is published as it is: pictures are not made public with it.
+- Pictures belong to your account. In the [viewer](publishing.md) readers of a published book see them too, unless you uncheck
+  **Show the images to readers** in the book's *About* tab.
 - A [backup](backups.md) remembers which pictures a part has, but not the picture files. Restoring a backup into
   another account or another installation gives parts without their pictures.
 - Removing a picture from a part only takes it off the part. The file stays and is still listed in
@@ -449,6 +484,28 @@ the ones that no longer match are named, they are dropped when a part is generat
 instructions of the turn take room from the same budget. Without a model with a context size the table has no shares.
 
 ![Branch Tokens](../../images/branch-tokens.png)
+
+## Which lore entries were used
+
+**Lore Usage** in the settings menu (⚙, **Analysis**) tells which entries of the book's lorebook the generations used and which never were,
+so a lorebook can be pruned by what it does and not by guessing. Every generation records which entries went into its prompt
+(and the tokens of each); the window adds that up over the parts:
+
+- **Parts** chooses what is counted: the **Active branch**, or **All branches**, every branch and every swipe of the book.
+- **From part** and **To part** limit the range, numbered as in the outline (the first part of a branch is 1, in all branches the number is how
+  deep the part is in the tree); leave them empty for the start and the end.
+- **Show** keeps the entries that were **Never used**, **Sometimes used** or **Always used** in the counted parts.
+
+![The Lore Usage window](../../images/lore-usage.png)
+
+The table has one line for every entry of the lorebooks of the book, the most used first: its lorebook, whether it was never, sometimes or always
+used, in how many parts (of the parts that have a record, with the percent), the tokens it cost in all of them and per use, and the first and
+last part that used it. Click a header to sort. An entry that was used earlier but is not in the lorebooks of the book now (deleted, moved, or
+its lorebook is switched off or not the book's any more) stays in the list marked *not in the lorebook now*; a deleted one has no name.
+
+Only the parts that have a record are counted: a part typed by hand, written before Marginalia kept this record, or written when the book had no
+lorebook has none, and the window says how many. *Always used* entries could be constant entries, *never used* ones are candidates for removal or
+for a better filter; [**Preview activation**](../lorebooks/entries.md#preview-activation) in the lorebook editor shows why an entry does not fire now.
 
 ## Text styles
 
@@ -474,14 +531,19 @@ Books that had the old *Change Styles For Text* switch on keep showing the Book 
 
 ## Highlighting generated text
 
-The settings menu (⚙) also has the checkable **Highlight Generated Text**. While it is on, the text that is still the
-way the model wrote it is highlighted in every part, so what you added or rewrote stands out. Marginalia keeps the
-original text of each part and compares it with the current one word by word. A part you never edited is highlighted
-whole; a part you wrote yourself has nothing highlighted. The switch is not saved: it is off again when the page is
-opened anew.
+The settings menu (⚙) also has the checkable **Highlight Generated Text**. While it is on, the words a model wrote are
+highlighted in every part, so what you added or rewrote stands out. Marginalia follows the text through the
+[versions of the part](version-history.md): each version is laid over the one before it, and the words they have in common keep
+whoever wrote them, so a sentence you typed into a generated text stays yours however many times the model rewrites the rest. A part
+you never edited is highlighted whole; a part you wrote yourself has nothing highlighted. What an agent wrote counts as the
+model's. The switch is not saved: it is off again when the page is opened anew.
 
-Parts that existed before this feature count wholly as generated, because the original text was not kept for them.
-The highlight is available in the desktop view only, not in the [phone view](../phone.md).
+A part whose [history is switched off](version-history.md) has no versions to follow: it is compared with the text the model generated
+first. The highlight works on the [phone](../phone.md) too.
+
+The same count gives the ratio: the **Info** tab of the book has **Authorship of the branch** with a **Calculate** button, which tells
+how many percent of the words of the active branch you wrote and how many a model generated, and
+[the export](export.md) can end the file with a statement of it.
 
 ![Highlighted generated text and the settings menu](../../images/highlight-generated.png)
 

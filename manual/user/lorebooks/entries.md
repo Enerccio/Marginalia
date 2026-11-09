@@ -26,10 +26,18 @@ The box with the magnifier next to the buttons shows only the entries that have 
 filter (the case does not matter); clear it to see all of them again. It looks only at the entries of the selected
 lorebook, not at the sub lorebooks. The phone layout has the box above the list.
 
+Next to the box are two more boxes that limit the list. **Tags** shows the entries that have the tag (it lists the tags that
+at least one entry of the lorebook has; the *negative* tags are not looked at). **Status** shows **All**, **Enabled**,
+**Disabled** or **Constant (no keys)** - the entries that are enabled and have no filter, so they are used for every part.
+The search, the tag and the status are combined: an entry has to fit all of them. The phone layout has the two boxes under the
+search box.
+
 The checkbox column at the left selects entries (the one in the header selects all that are shown, so a search and then
 the header box selects the matches). When something is selected, **Delete selected** appears in the toolbar with the number
-of the entries; it asks once and then moves them to the [trash](../trash.md). The phone layout does not delete many entries
-at once.
+of the entries; it asks once and then moves them to the [trash](../trash.md). The [mass edit](lorebooks.md#mass-edit) has a
+**Delete checked** button too. On the phone, the **⋮** menu of the entries has **Select entries**: check boxes appear in
+front of the entries, and **Delete selected** appears with the number of the checked ones (an entry has its own **Delete
+entry** button there as well).
 
 
 ## Search and replace
@@ -62,8 +70,11 @@ The ⌄ button opens the details:
 | **Parts** | With *Instructions and parts of the story*: how many of the newest parts of the story are searched together with the request, at least 1. |
 | **From message** | The entry is used only from the part with this number on, see [Limiting an entry to some parts](#limiting-an-entry-to-some-parts). Empty: from the start. |
 | **To message** | The entry is used only up to the part with this number. Empty: to the end. |
+| **Condition** | A template that has to give a true value for the entry to be used, see [A condition for an entry](#a-condition-for-an-entry). Empty: no condition. |
 | **Negative Tags (Exclusion)** | Tags that switch the entry off, see [Tags](#tags). |
-| **Do not search its content for other entries** | When ticked, the words in this entry's content never bring other entries in, see [Entries brought in by other entries](#entries-brought-in-by-other-entries). The phone layout shows it when it is ticked. |
+| **Also search the summaries** | When ticked, the filter is also looked for in the [summaries](../books/summaries.md) of the story so far, the ones the next request would send (a summary that no longer matches its story is left out). Needs a filter. |
+| **Do not search its content for other entries** | When ticked, the words in this entry's content never bring other entries in, see [Entries brought in by other entries](#entries-brought-in-by-other-entries). |
+| **Only through other entries** | When ticked, the entry is never used because of the request or the story itself; only when its filter is found in the content of another entry that was used, see [Entries brought in by other entries](#entries-brought-in-by-other-entries). |
 | **Note** | Your notes. Not sent to the model. Entries imported from SillyTavern list the settings that couldn't be imported here. |
 
 Write the content as you want the model to read it - a short, factual description works best:
@@ -80,7 +91,8 @@ Before each generated part, Marginalia goes through the entries of the book's lo
 2. the part being written is inside its range of parts, if it has one (**From message**, **To message**);
 3. none of its **negative tags** is a tag of the book;
 4. it has no **tags**, or at least one of them is a tag of the book;
-5. it has no **filter**, or the filter matches the instructions for the part (or, with **Activation Context** *Instructions and parts of the story*, the instructions and the newest parts of the story).
+5. its **condition**, if it has one, is true, see [A condition for an entry](#a-condition-for-an-entry);
+6. it has no **filter**, or the filter matches the instructions for the part (or, with **Activation Context** *Instructions and parts of the story*, the instructions and the newest parts of the story).
 
 All conditions must hold. An entry without tags and filter is always active.
 
@@ -165,6 +177,41 @@ a number inside the range, whatever its filter says - an entry without a filter 
 - The [Lorebook VCS](../extensions/index.md) extension keeps the range in the versions of an entry; import, export and cloning of a
   lorebook keep it.
 
+### A condition for an entry
+
+The **Condition** is a template, written like the [content of an entry](#templates-in-entries), that Marginalia renders before
+each part. The entry is used only when the result is **true**: anything except an empty result, `0`, `false`, `no` and `off`
+(any case). It sees the same things as the content: the point of view character, the present characters, the scene, the
+instructions of the turn, the story so far and the variables.
+
+![An entry with a condition: the entry is used only when Tomáš is the point of view and Mizuki is present](../../images/lorebook-condition.png)
+
+| Condition | The entry is used when |
+|---|---|
+| `{%{{{#if presentCharacters}}yes{{/if}}}%}` | the turn has present characters |
+| `{%{{{eval::povCharacter == "Fiora"}}}%}` | the point of view is Fiora (see [Expressions](../templates/macros.md#expressions)) |
+| `{%{{{eval::povCharacter == "Fiora" and presentCharacters has "Mara"}}}%}` | Fiora is the point of view and Mara is present |
+| `{%{{{getvar::revealed}}}%}` | the variable `revealed` has a value (set by an earlier part, see [Macro reference](../templates/macros.md#variables)) |
+| `{%{{{command::authors-note}}}%}` | the [command](../commands/index.md) answers with something (only a command that is made for macros can be used) |
+
+How it works:
+
+- It is checked after the enabled switch, the range of parts and the tags, and **before the filter**: an entry whose condition is
+  false is not used even when its filter matches, and it is not brought in by [other entries](#entries-brought-in-by-other-entries) either.
+- A condition that **cannot be decided** counts as false and the [preview](#preview-activation) says why: it is not a valid template,
+  it uses a name that does not exist (a typo), a command that does not exist or is not made for macros, or the time ran out.
+  The field turns red for the first two while you type.
+- It only reads. A `{%{{{setvar}}}%}` in a condition changes nothing, for the prompt or for the other entries, and the commands are
+  the ones that only read.
+- It is rendered once for each entry and part, so `{%{{{random::yes::no}}}%}` does not change its mind between the first pass and
+  the passes of the scan depth.
+- The [preview](#preview-activation) names the entries whose condition is false: *Not used: condition is false*.
+
+  ![The preview of the activation: the entry of Mizuki is not used because its condition is false](../../images/lorebook-condition-preview.png)
+- All the conditions of one part share **60 seconds**. When they are used up, the conditions that are left count as false
+  (*condition failed*, timeout). A condition that is running is not stopped, the time is checked before the next one.
+- Lorebook import and export, cloning and the Lorebook VCS extension keep the condition.
+
 ### Entries brought in by other entries
 
 Normally only the request for the part activates entries. With a **scan depth** (the field of the
@@ -180,8 +227,15 @@ mentions the city. With a scan depth of `2`, the entry *Ostra* would in turn bri
 - Only **filters** count: an entry that is already used because it has no filter needs nothing, and an entry that is
   switched off, or excluded by its tags, is not brought in.
 - The content that is searched is the text of the entry as written, the templates in it are not run.
-- The setting of the lorebook the **book uses** counts; the scan depth of a sub lorebook is ignored.
+- The **scan depth** of the lorebook the **book uses** counts for its own entries and for the entries of its sub lorebooks. A sub
+  lorebook can have a depth of its own (**Scan depth as a sub lorebook** in its settings, empty: the one of the lorebook the book
+  uses): its entries are then found by the content of others only in the passes up to that depth, `0` never. The passes that are made
+  are as many as the greatest depth says. The field of a sub lorebook counts only while it is a sub lorebook; when a book uses it
+  directly, its normal **Scan depth** counts.
 - An entry with **Do not search its content for other entries** ticked can be activated, but it brings nobody in.
+- An entry with **Only through other entries** ticked is never found by the request: it is used only when the content of an entry
+  that was used has its filter. Without a scan depth, or without a filter, it is never used at all; the
+  [preview](#preview-activation) says *Not used: used only through the content of other entries*.
 - The order in the prompt does not depend on how an entry was found, see [Order and insertion](#order-and-insertion).
 - Extensions that change which entries are used (see [Extensions](../extensions/index.md)) are asked about the entries
   that are brought in too.
@@ -197,11 +251,13 @@ of the lorebook and of its sub lorebooks, in the order they are used:
 - the lorebook of the entry, its **Order**, the **Pass** (empty for the entries the text activated, `1`, `2`... for the entries
   brought in by [other entries](#entries-brought-in-by-other-entries));
 - the **Reason**: no filter, filter found in the text, filter found in the content of another entry (with the filter and the
-  entry), or why not: switched off, the part is outside its range, a negative tag of the book, the book lacks a tag of the entry, the filter was not found.
+  entry), or why not: switched off, the part is outside its range, a negative tag of the book, the book lacks a tag of the entry, the condition is false or could not be decided, the filter was not found.
 
 The tags decide too, so pick a book in **Tags of the book** to use its tags (without one, no tags count). That book also
 gives the parts of its story for the entries that [look into the story](#looking-into-the-story) (without one, they search the text only)
-and the number of the next part for the entries [limited to some parts](#limiting-an-entry-to-some-parts) (without one, their range is not checked). Below the text, a line says how many entries
+and the number of the next part for the entries [limited to some parts](#limiting-an-entry-to-some-parts) (without one, their range is not checked).
+The text you type is the instructions of the turn for the [conditions](#a-condition-for-an-entry); with a book, its variables and the point of view,
+the present characters and the scene of its last part are used too (the commands of a condition are not run in the preview). Below the text, a line says how many entries
 would be used and about how many tokens of lore that is. The scan depth of the lorebook is used.
 
 ![Preview activation of a lorebook](../../images/lorebook-preview-activation.png)

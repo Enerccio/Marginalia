@@ -1,10 +1,11 @@
 // What 1.6.0 added around the books: folders (the list, their settings, the Organise window), the mass changes, the settings a book
 // inherits from its folders, the minimized tabs and the mass delete of the story, the phone list with folders, and the help
 // assistant that may look at the books. Run on a COPY of 13-db-backup, it is discarded: the folders are made through the real UI
-// (Fan fiction / Harry Potter, Originals, a second book) and the book is moved into the folder with the style.
+// (Novels / Portal fantasy, Short stories, a second book) and the book is moved into the folder with the style.
 // Pictures: books-folders, folder-settings, mass-change-model-protocol, mass-change-language, mass-rename, organise-dialog,
 // book-prompts-inherited, story-minimized-tabs, story-mass-delete, phone-folders, help-assistant-books, viewer-list, viewer-folder.
 import {
+    bookListMenu,
     bookTab,
     closeDialog,
     dialog,
@@ -26,7 +27,7 @@ import {
 } from '../lib/shot.mjs';
 import {openStoryMenu} from '../lib/story.mjs';
 
-const BOOK = 'Harry Potter and Half Blood Prince - FDM';
+const BOOK = 'Unregistered';
 const SECOND = 'The Lantern Road';
 
 /** The button with this icon (`cog`, `pencil`, `folder-open`, `star-o`...) in the grid row that has this text. */
@@ -64,10 +65,10 @@ await main(async ({ page }) => {
   await openTab(page, 'Books');
 
   await section(page, 'make', async () => {
-    await newFolder(page, 'Fan fiction');
-    await newFolder(page, 'Originals');
-    await enter(page, 'Fan fiction');
-    await newFolder(page, 'Harry Potter');
+    await newFolder(page, 'Novels');
+    await newFolder(page, 'Short stories');
+    await enter(page, 'Novels');
+    await newFolder(page, 'Portal fantasy');
     await toTop(page);
     // a second book, at the top level
     await press(page, 'Add Book');
@@ -77,14 +78,14 @@ await main(async ({ page }) => {
     await idle(page, 800);
     await press(page, 'Exit');
     await idle(page, 900);
-    // the story book goes into Fan fiction / Harry Potter
+    // the story book goes into Novels / Portal fantasy
     await (await rowButton(page, BOOK, 'folder-open')).click();
     await idle(page, 900);
     await snap(page, '_move-to-folder');
     const target = dialog(page).getByLabel('Folder', { exact: true }).first();
     await target.click();
-    await target.fill('Harry Potter');
-    await page.getByRole('option').filter({ hasText: 'Harry Potter' }).first().click();
+    await target.fill('Portal fantasy');
+    await page.getByRole('option').filter({ hasText: 'Portal fantasy' }).first().click();
     await sleep(300);
     await press(dialog(page), 'OK');
     await idle(page, 900);
@@ -94,7 +95,7 @@ await main(async ({ page }) => {
   });
 
   await section(page, 'folder-settings', async () => {
-    await (await rowButton(page, 'Fan fiction', 'cog')).click();
+    await (await rowButton(page, 'Novels', 'cog')).click();
     await idle(page, 1200);
     await fill(dialog(page), 'Style', 'Close and unhurried. Long sentences that take their time, concrete details, no summarizing of feelings: show what the character does.');
     await fill(dialog(page), 'Tense', 'Past tense');
@@ -112,22 +113,16 @@ await main(async ({ page }) => {
   });
 
   await section(page, 'mass-changes', async () => {
-    await page.locator('vaadin-menu-bar-button').filter({ hasText: 'Mass changes' }).first().click();
-    await idle(page, 500);
-    await page.getByRole('menuitem', { name: 'Mass Change Model/Protocol' }).click();
+    await bookListMenu(page, 'Manage', 'Mass changes', 'Mass Change Model/Protocol');
     await idle(page, 1500);
     await snapDialog(page, 'mass-change-model-protocol', -1);
     await closeDialog(page);
-    await page.locator('vaadin-menu-bar-button').filter({ hasText: 'Mass changes' }).first().click();
-    await idle(page, 500);
-    await page.getByRole('menuitem', { name: 'Mass Change Language' }).click();
+    await bookListMenu(page, 'Manage', 'Mass changes', 'Mass Change Language');
     await idle(page, 1500);
     await snapDialog(page, 'mass-change-language', -1);
     await closeDialog(page);
     // the rename: numbering the books of every folder, with the names they would get
-    await page.locator('vaadin-menu-bar-button').filter({ hasText: 'Mass changes' }).first().click();
-    await idle(page, 500);
-    await page.getByRole('menuitem', { name: 'Mass Rename' }).click();
+    await bookListMenu(page, 'Manage', 'Mass changes', 'Mass Rename');
     await idle(page, 1500);
     await dialog(page).getByText('Include subfolders', { exact: true }).click();
     await idle(page, 900);
@@ -142,12 +137,12 @@ await main(async ({ page }) => {
   });
 
   await section(page, 'organise', async () => {
-    await press(page, 'Organise');
+    await bookListMenu(page, 'Manage', 'Organise');
     await idle(page, 1800);
     await snapDialog(page, '_organise-open', -1);
-    // the right pane goes into Fan fiction (a double click opens a folder), the second book of the left pane is marked
+    // the right pane goes into Novels (a double click opens a folder), the second book of the left pane is marked
     const panes = dialog(page).locator('vaadin-grid');
-    await panes.nth(1).locator('vaadin-grid-cell-content').filter({ hasText: 'Fan fiction' }).first().dblclick();
+    await panes.nth(1).locator('vaadin-grid-cell-content').filter({ hasText: 'Novels' }).first().dblclick();
     await idle(page, 900);
     await panes.first().locator('vaadin-grid-cell-content').filter({ hasText: SECOND }).first().click();
     await sleep(300);
@@ -157,11 +152,11 @@ await main(async ({ page }) => {
     await closeDialog(page);
   });
 
-  // the book of the story, now in Fan fiction / Harry Potter: it inherits the style of the folder
+  // the book of the story, now in Novels / Portal fantasy: it inherits the style of the folder
   await section(page, 'inherited', async () => {
     await toTop(page).catch(() => {});
-    await enter(page, 'Fan fiction');
-    await enter(page, 'Harry Potter');
+    await enter(page, 'Novels');
+    await enter(page, 'Portal fantasy');
     await (await rowButton(page, BOOK, 'pencil')).click();
     await page.getByText('Branch view', { exact: true }).first().waitFor();
     await idle(page, 1000);
@@ -223,10 +218,10 @@ await main(async ({ page }) => {
     await idle(page, 800);
     await page.getByText('Let the assistant look at my books', { exact: true }).click();
     await idle(page, 700);
-    await llm('/_queue', { toolCalls: [{ name: 'search_books', arguments: { query: 'Draconia' } }] });
-    await llm('/_queue', { reply: 'I found it: **Harry Potter and Half Blood Prince - FDM**, in the folder **Fan fiction / Harry Potter**. The words are in the text of the story.' });
+    await llm('/_queue', { toolCalls: [{ name: 'search_books', arguments: { query: 'Mizuki' } }] });
+    await llm('/_queue', { reply: 'I found it: **Unregistered**, in the folder **Novels / Portal fantasy**. The words are in the text of the story.' });
     const ask = page.locator('.help-panel input[type="text"]');
-    await ask.fill('Which of my books mentions Draconia?');
+    await ask.fill('Which of my books mentions Mizuki?');
     await ask.press('Enter');
     await page.locator('.help-message').getByText('I found it').waitFor();
     await idle(page, 1500);
@@ -256,9 +251,9 @@ await main(async ({ page }) => {
       await login(p, users.admin, '/view');                  // the viewer has a login of its own
       await sleep(1200);
       await snap(p, 'viewer-list');
-      await p.getByText('Fan fiction', { exact: true }).first().click();
+      await p.getByText('Novels', { exact: true }).first().click();
       await idle(p, 900);
-      await p.getByText('Harry Potter', { exact: true }).first().click();
+      await p.getByText('Portal fantasy', { exact: true }).first().click();
       await idle(p, 900);
       await snap(p, 'viewer-folder');
       // reading a book and returning lands in the same folder (it is kept in a cookie of the browser)

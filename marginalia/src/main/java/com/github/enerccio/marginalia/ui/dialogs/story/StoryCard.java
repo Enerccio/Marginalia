@@ -22,6 +22,12 @@ public interface StoryCard {
 
     void autosaveAndSwapToMarkdown();
 
+    /**
+     * Saves the edit like {@link #autosaveAndSwapToMarkdown()}, after asking the author what to do when the new text would
+     * make summaries outdated. For the save the author asked for; the automatic saves never ask.
+     */
+    void saveEdit();
+
     void updateReasoning(String reasoningText);
 
     void updateResponse(String responseText);
@@ -87,6 +93,14 @@ public interface StoryCard {
     void copySelection();
 
     /**
+     * Finds out what the author selected in the part and gives the action its range, {@code [start, end)} in the stored text of
+     * the part (the response of its message); the right click on the text remembers the selection for the menu item that
+     * follows. When the part is being edited the edit is saved first. Tells the author when nothing is selected or the selection is
+     * not in the text, and then the action is not called. The action runs later, on the page, not before this method returns.
+     */
+    void withSelection(java.util.function.Consumer<int[]> action);
+
+    /**
      * Opens the version history of the part, see {@link PartHistoryDialog}. The card shows the text the author chose.
      */
     void openHistory();
@@ -108,6 +122,11 @@ public interface StoryCard {
     void comparePrompt();
 
     void showTokenUsage();
+
+    /**
+     * Shows the lorebook entries the prompt of the part used.
+     */
+    void showLoreUsage();
 
     void openImagesDialog();
 

@@ -1,6 +1,6 @@
 ---
 label: Arc Outline
-order: 106
+order: 24
 ---
 
 # Arc Outline
@@ -96,7 +96,7 @@ the story is at (see [Drafting the instructions for the current chapter](#drafti
 
 ## Generating an arc
 
-The wand button next to **Add new arc** opens a menu with two items: **Generate an arc** asks the model to write a new arc, **Import from story** summarizes what you have already written, see [below](#importing-an-arc-from-the-story).
+The wand button next to **Add new arc** opens a menu with three items: **Generate an arc** asks the model to write a new arc, **Import from story** summarizes what you have already written, see [below](#importing-an-arc-from-the-story), and **Develop the plot** is a conversation with the model about where the story goes, see [below](#developing-the-plot-in-a-conversation).
 
 ![The menu of the wand](../../images/plugin-arcoutline-menu.png)
 
@@ -148,6 +148,65 @@ chapters as the model writes them. **Save as arc** adds the arc with its chapter
 of them keeps the reasoning and the answer of the model and has its own robot button. A long story is best imported in
 several steps, one arc for each range.
 
+## Developing the plot in a conversation
+
+**Develop the plot** in the menu of the wand opens a chat with the model about the plot. Nothing in the book changes by talking: the model sees what you choose to send, answers, and when you have agreed on something you hand it to the arc generator with one click.
+
+On the left you choose what the model sees and how it helps (the choices are remembered for the next time), on the right is the chat:
+
+![The plot wizard: the options on the left, the conversation on the right](../../images/plugin-arcoutline-wizard.png)
+
+| | |
+|---|---|
+| Model, Protocols | Start as the model and protocol of the book. Changing them applies to this conversation only. |
+| How the model helps | **Free talk** (you lead), **Explore directions** (several distinct ways the story can go next), **Find the problems** (threads never resolved, promises nobody keeps, contradictions with the lore, pacing) or **Expand an idea** (your idea grown into a premise, turning points, an ending and chapters that fit after your arcs). |
+| Send the lorebook | The entries of the book's lorebook and its sub lorebooks. |
+| Send the outline | **Not sent**, **Descriptions only**, or **With the notes** (your private notes too). |
+| Send the notes | Only when [Story Notes](story-notes.md) is installed: **Not sent**, **Titles and first lines** (the default) or **Full text** of your notes, without the pages you hid from assistants. |
+| Send the summaries of the story | The summaries stand in for the story up to the newest of them, the way a generation sends them. |
+| Send the latest parts of the story | The parts after the newest summary (all of them when summaries are off), the newest ones that fit **Tokens of the story**. Each part is shown to the model under its number in the outline of the story. |
+| Tokens of the story | The most tokens of story parts. Empty: a third of what the model takes. |
+| Prompt | The instructions for the model, with the variables `{{backgroundLore}}`, `{{outline}}`, `{{notes}}`, `{{summaries}}`, `{{story}}` and `{{mode}}`. The change is remembered. |
+
+Under the options a line tells how many summaries and story parts the model gets, and how many tokens the request has of what the model takes. It turns into a warning when it does not fit; send less or [summarize the chat](#chats-branches-and-summaries). The book is read again for every message, so a change of the outline or the story is seen by the next answer.
+
+On the right is the chat. Type a message and press **Send** (it is **Stop** while the model writes; what has arrived is kept). Each message has buttons: copy, **branch from here**, delete, and on an answer of the model also a wand, **Generate an arc from this message**, which opens the arc generator with the message as the specification. Ask the model to summarize what you decided as a specification first if the discussion was long.
+
+### Letting the model change the book
+
+Under the options is **What the model may do**. With none of these ticked the chat is only a talk. Tick a group and the model gets tools for it, and can use them
+when you ask or agree; it is told to look before it adds, to prefer adding to replacing, and to say what it did:
+
+| Group | The model can |
+|---|---|
+| **Planner** | list the scenes of the [planner](../books/story-editor.md#the-planner-tab), add, change, move, delete them and mark them done. |
+| **Lorebook** | search and read the lore, create entries and change existing ones (not delete them). |
+| **Outline** | read the outline, add arcs and chapters, change and move them (not delete them). |
+| **Notes** (when [Story Notes](story-notes.md) is installed) | search and read your notes and follow their links, add a page or add to one when you ask it to keep something, and change text in one (not delete a page). Pages you hid from assistants are out of reach. |
+| **Generators** | call the arc and chapter generators and, when the [Lore Generator](lore-generator.md) is installed, generate a lore entry. They return a draft and save nothing unless the model is told to; it shows you the draft and saves it when you agree. |
+| **Tools** (button, when a [tool suite](tools.md) is installed) | the name tools (names, places), as in the generators, so it can offer you real names. |
+
+- **Ask me before it changes or deletes something** (on by default): changing the text of what exists (a lore entry, a scene, an arc) and deleting are shown to you first, with
+  what the model wants to pass, and the model waits for **Allow** or **Refuse**. Adding a scene, an entry or an arc is not asked: you see it in the chat and in the planner,
+  the lorebook or the outline, and can delete it.
+- Every tool the model called is listed under its answer (a line with the name and a mark: ✓ worked, ✗ failed; open it to see what was passed and what came back).
+  The next messages carry the calls the model made and what they returned (a long result is cut), so it knows what it already did and does not make the same entry again; they count against the token limit of the chat.
+- What the tools cost: their descriptions are part of every request, so a model that is short of context has less room. Only models that can call functions work with it; the dialog says so when one
+  can't.
+
+![The model added two scenes to the planner; its calls are listed under the answer](../../images/plugin-arcoutline-wizard-tools.png)
+
+### Chats, branches and summaries
+
+A book has any number of chats; pick one in the list above the messages, **+** starts a new one, the pen renames it (it is named after your first message until then) and the trash can deletes it. They are stored with the book.
+
+- **Branch** copies the chat as it is into a new chat; the branch button on a message copies it up to and including that message, to take the talk another way from there. The copy has nothing to do with the original afterwards.
+- **Summarize the chat** first asks what the summary should keep or stress (optional, for example "keep the twist about the traitor and the ending we rejected"; empty: the model decides), then asks the model for a summary of the chat (what you decided, what you rejected, what is still open, the names that were fixed) and adds it as a message. From then on the model gets that summary and the messages after it, **not** the messages above it, which stay on the screen, dimmed. Use it when the chat has grown too long for the model, or to start from a clean state without losing the decisions. Summarize again later and the new summary covers the old one. Branch first when you want to keep the whole chat for the model.
+
+![The question what the summary should keep](../../images/plugin-arcoutline-wizard-summarize.png)
+
+![The chat after the summary: the messages above it stay on the screen, dimmed](../../images/plugin-arcoutline-wizard-summary.png)
+
 ## Generating chapters
 
 The wand button on an arc asks the model to divide that arc into chapters. The dialog is like the one for arcs, with
@@ -192,7 +251,7 @@ changes an arc or a chapter takes only the fields you give it; an empty text cle
 | `/delete-outline-chapter arc chapter` | Deletes a chapter, after a confirmation. |
 | `/generate-arc [specification [save]]` | Asks the model for a new arc, as *Generate an arc* does. |
 | `/generate-outline-chapters arc [specification [count [context [save]]]]` | Asks the model for the chapters of an arc, as the wand of the arc does. `count` is an exact number of chapters, `context` is `EVERYTHING` (the default), `ARCS_ONLY` or `ARCS_AND_FINISHED`, as the choice *What the model knows of the story*. |
-| `/import-arc-from-story [from [to [count [state [save]]]]]` | Asks the model to summarize the messages `from` to `to` of the active branch (numbered among the messages with text, as in *Import from story*) as an arc with chapters. `state` (default `FINISHED`) is the state of the saved arc and its chapters. |
+| `/import-arc-from-story [from [to [count [state [save [mapParts]]]]]]` | Asks the model to summarize the messages `from` to `to` of the active branch (numbered among the messages with text, as in *Import from story*) as an arc with chapters. `state` (default `FINISHED`) is the state of the saved arc and its chapters. With `mapParts` `true` every chapter is linked to the message it begins in (its *Linked part*, as the check box *Map parts* of the dialog does), and the answer has the part of each chapter. |
 
 The three generating commands use the same prompts as the dialogs (your *Extension Settings → Arc Outline*, or the
 defaults), the model and protocol of the book (your default model when the book has none) and no tools: a caller that

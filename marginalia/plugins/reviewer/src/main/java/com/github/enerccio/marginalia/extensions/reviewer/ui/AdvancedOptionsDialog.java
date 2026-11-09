@@ -11,6 +11,7 @@ import com.github.enerccio.marginalia.extensions.reviewer.model.ReviewerSettings
 import com.github.enerccio.marginalia.extensions.reviewer.service.ReviewerService;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
+import com.github.enerccio.marginalia.ui.widgets.DialogShortcuts;
 import com.github.enerccio.marginalia.ui.widgets.ResizableTextArea;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.google.gson.Gson;
@@ -158,6 +159,7 @@ public class AdvancedOptionsDialog extends Dialog {
         Button cancelBtn = new Button(T.localized(CANCEL), e -> close());
 
         getFooter().add(cancelBtn, generateBtn);
+        DialogShortcuts.submitWith(generateBtn, promptArea, tokenLimitField);
     }
 
     private void refreshCount() {

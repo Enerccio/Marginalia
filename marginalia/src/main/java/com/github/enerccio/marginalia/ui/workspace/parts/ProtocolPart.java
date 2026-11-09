@@ -13,6 +13,7 @@ import com.github.enerccio.marginalia.ui.LLMInteraction;
 import com.github.enerccio.marginalia.ui.dialogs.CloneNameDialog;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.dialogs.ProtocolDialog;
+import com.github.enerccio.marginalia.ui.dialogs.SharedImportDialog;
 import com.github.enerccio.marginalia.ui.workspace.Workspace;
 import com.github.enerccio.marginalia.ui.workspace.WorkspaceComponent;
 import com.github.enerccio.marginalia.ui.workspace.WorkspaceLLMSupport;
@@ -56,11 +57,12 @@ public class ProtocolPart implements WorkspaceComponent {
         return loc.getValue(L.LABEL_PROTOCOLS);
     }
 
-    @PublicAPI(from = "1.1.0",
+    @PublicAPI(from = "1.7.0",
             returns = @APIReturn(type = Component.class),
             locals = {@APILocals(name = "headerLayout", type = HorizontalLayout.class),
                     @APILocals(name = "titleSpan", type = Span.class),
-                    @APILocals(name = "addProtocolButton", type = Button.class)})
+                    @APILocals(name = "addProtocolButton", type = Button.class),
+                    @APILocals(name = "importFromOtherUserButton", type = Button.class)})
     @Override
     public Component create() throws Exception {
         mainLayout = new VerticalLayout();
@@ -84,7 +86,10 @@ public class ProtocolPart implements WorkspaceComponent {
         addProtocolButton.setThemeName("primary");
         this.addProtocolButton = addProtocolButton;
 
-        headerLayout.add(titleSpan, addProtocolButton);
+        Button importFromOtherUserButton = new Button(loc.getValue(L.LABEL_IMPORT_FROM_OTHER_USER), Solid.FILE_IMPORT.create(),
+                event -> SharedImportDialog.forProtocols(loc, protocolService, imported -> refreshGrid()).open());
+
+        headerLayout.add(titleSpan, importFromOtherUserButton, addProtocolButton);
         headerLayout.setFlexGrow(1, titleSpan);
         headerLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
 

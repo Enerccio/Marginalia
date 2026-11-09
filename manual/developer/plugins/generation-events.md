@@ -1,7 +1,7 @@
 ---
 label: Generation events
 order: 65
-verified: 6b9a70d37
+verified: d163441bd
 covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/generation
   - marginalia/plugins/authorsnote
@@ -22,7 +22,7 @@ inserts a per-book note into the prompt of every generation.
 
 ## Author's Note
 
-The plugin has three parts:
+The plugin has these parts:
 
 | Part | Class | Mechanism |
 |---|---|---|
@@ -30,6 +30,7 @@ The plugin has three parts:
 | An *Author's Note* tab next to the story outline | `AuthorsNoteView`, added on leave of `ManuscriptStoryPart.renderStoryContent` | [@Extendable hooks](extendable.md), [A tab next to the story](ui-extensions.md#a-tab-next-to-the-story) |
 | Reserving room for the note in the context | a listener on `Events.BEFORE_PREPARE_CONTENT` | generation events (this page) |
 | Inserting the note into the prompt | a listener on `Events.AFTER_PREPARE_PAYLOAD` | generation events (this page) |
+| The note as a macro | `AuthorsNoteCommands` (the read only command `authors-note`, `availableInMacros`), registered with `CommandService.registerCommands` when the extension loads and unregistered when it unloads | [Commands in macros](../commands/writing-commands.md#commands-in-macros) |
 
 The data is a plain class serialized with Gson:
 
@@ -224,5 +225,6 @@ Points worth copying:
 | Post-process the answer as it streams | `CHUNK_RECEIVED` | replace the `CHUNK` property |
 | Only watch the answer as it streams (live counter, mirror, log) | `CHUNK_RECEIVED`, `REASONING_CHUNK_RECEIVED` | an observer: `storyGenerationService.addEventObserver(event, observation -> ...)` runs synchronously on the stream's thread with no hop and no `chain.next()`, gets a read-only `GenerationObservation` and cannot change anything; keep it fast and hand slow work to another thread |
 | Act on the finished part | `AFTER_INFERENCE` | read `event.getMessage()` |
+| Show the user something and let them stop the generation | `BEFORE_INFERENCE` | `event.accessUI(ui -> ...)` runs the action bound to the UI that started the generation (`ui.access` and a push), so the listener can open its own dialog; it returns `false`, and never runs the action, when the generation has no UI (an agent or a command started it), then do not wait. The chain waits for the user: `chain.next()` when they answered, and to stop the generation `event.getCancellationToken().cancel()` and then `chain.next()` - the request is not sent and the part started for it is removed. Also go on when the token is cancelled some other way (`getCancellationToken().onCancel(...)`), or the generation waits for ever; the same when the user's page goes away with the question open (treat the dialog being detached unanswered as a refusal, see the walkthrough on the [plugin development page](index.md#asking-the-user-in-the-middle-of-a-generation)). The action runs on the thread of the UI: do the work through the chain. The [Prompt Inspector](https://github.com/Enerccio/Marginalia/tree/master/marginalia/plugins/prompt-inspector) plugin is the example |
 
 `GenerationProperties` documents each property and when it is available.

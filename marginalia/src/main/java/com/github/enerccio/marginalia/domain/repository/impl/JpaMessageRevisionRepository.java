@@ -5,6 +5,7 @@ import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.MessageRevision;
 import com.github.enerccio.marginalia.domain.repository.MessageRevisionRepository;
+import com.github.enerccio.marginalia.utils.AppClock;
 
 import jakarta.persistence.TypedQuery;
 
@@ -105,7 +106,7 @@ public class JpaMessageRevisionRepository extends JpaExtendableRepository<Messag
         return entityManager.createQuery(
                         "UPDATE MessageRevision r SET r.deleted = true, r.modification = :now WHERE r.deleted = false AND r.message.id = :part "
                                 + "AND (r.creation > :creation OR r.creation = :creation AND r.id > :id)")
-                .setParameter("now", new Date())
+                .setParameter("now", AppClock.now())
                 .setParameter("part", revision.getMessageId())
                 .setParameter("creation", revision.getCreation())
                 .setParameter("id", revision.getId())
@@ -141,7 +142,7 @@ public class JpaMessageRevisionRepository extends JpaExtendableRepository<Messag
         return entityManager.createQuery(
                         "UPDATE MessageRevision r SET r.deleted = true, r.modification = :now WHERE r.deleted = false "
                                 + "AND r.message.id IN (SELECT m.id FROM ChatMessage m WHERE m.parentScript.id = :manuscript)")
-                .setParameter("now", new Date())
+                .setParameter("now", AppClock.now())
                 .setParameter("manuscript", manuscript.getId())
                 .executeUpdate();
     }
@@ -149,7 +150,7 @@ public class JpaMessageRevisionRepository extends JpaExtendableRepository<Messag
     @Override
     public int softDeleteByPartIds(Collection<Long> partIds) throws Exception {
         int deleted = 0;
-        Date now = new Date();
+        Date now = AppClock.now();
         for (List<Long> chunk : chunks(partIds)) {
             deleted += entityManager.createQuery(
                             "UPDATE MessageRevision r SET r.deleted = true, r.modification = :now WHERE r.deleted = false AND r.message.id IN :ids")

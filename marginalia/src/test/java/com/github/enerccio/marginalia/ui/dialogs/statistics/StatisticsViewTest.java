@@ -4,11 +4,11 @@ import com.github.enerccio.marginalia.domain.collections.StatisticRange;
 import com.github.enerccio.marginalia.domain.collections.StatisticSide;
 import com.github.enerccio.marginalia.domain.components.StatisticCounts;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
-import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
+import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.domain.service.ManuscriptSizeService;
-import com.github.enerccio.marginalia.domain.service.SettingService;
 import com.github.enerccio.marginalia.domain.service.ManuscriptStatisticService;
+import com.github.enerccio.marginalia.domain.service.SettingService;
 import com.github.enerccio.marginalia.domain.service.impl.ManuscriptSizeServiceImpl;
 import com.github.enerccio.marginalia.test.MarginaliaTestBase;
 import com.github.enerccio.marginalia.ui.dialogs.GlobalStatisticsDialog;
@@ -49,6 +49,9 @@ class StatisticsViewTest extends MarginaliaTestBase {
 
     @Autowired
     private SettingService settingService;
+
+    @Autowired
+    private com.github.enerccio.marginalia.domain.service.StatisticsPolicyService policyService;
 
     // UI.setCurrent keeps a weak reference only
     private UI ui;
@@ -174,6 +177,71 @@ class StatisticsViewTest extends MarginaliaTestBase {
         assertThat(rows(view(dialog).booksGrid())).isEqualTo(2);
         assertThat(textOf(find(dialog, Div.class).stream().filter(d -> d.getClassNames().contains("statistic-totals")).findFirst().orElseThrow()))
                 .contains("150");
+    }
+
+    @Test
+    void clearingABookEmptiesItsWindowAndLeavesTheOtherBooks() throws Exception {
+        StatisticsDialog dialog = new StatisticsDialog(book);
+        dialog.create();
+        assertThat(rows(view(dialog).daysGrid())).isEqualTo(1);
+
+        view(dialog).clear(book.getUuid());
+
+        assertThat(rows(view(dialog).daysGrid())).isZero();
+        assertThat(statisticService.find(other.getUuid(), statisticService.today(), false)).isNotNull();
+    }
+
+    @Test
+    void clearingEverythingFromTheWindowOfAllTheBooks() {
+        GlobalStatisticsDialog dialog = new GlobalStatisticsDialog(_ -> {
+        });
+        dialog.create();
+
+        view(dialog).clear(null);
+
+        assertThat(rows(view(dialog).daysGrid())).isZero();
+        assertThat(rows(view(dialog).booksGrid())).isZero();
+    }
+
+    @Test
+    void onlyABookThatIsGoneHasAForgetButton() throws Exception {
+        manuscriptService.delete(manuscriptService.find(other.getId()), false);
+        GlobalStatisticsDialog dialog = new GlobalStatisticsDialog(_ -> {
+        });
+        dialog.create();
+
+        StatisticsView view = view(dialog);
+        List<com.github.enerccio.marginalia.domain.components.StatisticReport.BookLine> lines =
+                new ArrayList<>(view.booksGrid().getListDataView().getItems().toList());
+
+        assertThat(lines).hasSize(2);
+        for (var line : lines) {
+            Component cell = view.forgetButton(line);
+            if (line.book().bookUuid().equals(other.getUuid())) {
+                assertThat(cell).isInstanceOf(com.vaadin.flow.component.button.Button.class);
+                assertThat(((com.vaadin.flow.component.button.Button) cell).getText()).isEqualTo("Forget");
+            } else {
+                assertThat(cell).as("a present book is cleared in its own window").isNotInstanceOf(com.vaadin.flow.component.button.Button.class);
+            }
+        }
+    }
+
+    @Test
+    void theWindowSaysWhenTheRecordingIsOff() throws Exception {
+        UserSetting setting = settingService.getOrCreate(UserSetting.class);
+        setting.setStatisticsRecording(Boolean.FALSE);
+        settingService.save(setting);
+        policyService.invalidate();
+        try {
+            StatisticsDialog dialog = new StatisticsDialog(book);
+            dialog.create();
+
+            assertThat(textOf(dialog)).contains("nothing new is counted");
+        } finally {
+            setting.setStatisticsRecording(null);
+            settingService.save(setting);
+            policyService.invalidate();
+        }
     }
 
     @Test

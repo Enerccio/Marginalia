@@ -38,6 +38,8 @@ public class BackupServiceImpl implements BackupService {
     // names of the entries of the archive with images, see exportBackup
     private static final String ARCHIVE_BACKUP = "backup.json";
     private static final String ARCHIVE_RESOURCES = "resources.json";
+    /** The biggest file of the archive that is not an image (the audio of a long part is some megabytes) that is read into memory. */
+    private static final int MAX_ARCHIVED_RESOURCE_BYTES = 256 * 1024 * 1024;
     private static final Gson gson = new GsonBuilder().setPrettyPrinting()
             .excludeFieldsWithModifiers(Modifier.TRANSIENT).create();
 
@@ -110,7 +112,7 @@ public class BackupServiceImpl implements BackupService {
             backup.setTotalMessagesCount(0);
         }
 
-        backup.setImageCount(BackupImages.collect(backupJson).size());
+        backup.setImageCount(resourceUuids(backupJson, this::isOwnResource).size());
         backup.setBackup(backupJson);
         backup.setLoaded(true);
 
@@ -234,10 +236,20 @@ public class BackupServiceImpl implements BackupService {
             }
 
             if (source.isArchive()) {
-                // the images of the archive become the user's resources, the backup then uses those
+                // the resources of the archive become the user's resources, the backup then uses those
+                Set<String> others = otherResources(innerBackup, uuid -> source.images().containsKey(uuid) || isOwnResource(uuid));
                 BackupImages.remap(innerBackup, adopting(source));
+                UnaryOperator<String> adopting = adopting(source);
+                Map<String, String> adopted = new HashMap<>();
+                others.forEach(uuid -> {
+                    String own = adopting.apply(uuid);
+                    if (own != null && !own.equals(uuid)) {
+                        adopted.put(uuid, own);
+                    }
+                });
+                BackupResources.replace(innerBackup, adopted);
             }
-            backup.setImageCount(BackupImages.collect(innerBackup).size());
+            backup.setImageCount(resourceUuids(innerBackup, this::isOwnResource).size());
 
             backup.setLoaded(true);
 
@@ -271,19 +283,33 @@ public class BackupServiceImpl implements BackupService {
         try (BackupSource source = openSource(backupFile)) {
             JsonObject backupObj = innerOf(source.root());
 
-            // every use of an image gets a resource of its own, they are not shared by the books
+            // every use of a resource gets a resource of its own, they are not shared by the books
+            Set<String> others = otherResources(backupObj, uuid -> source.images().containsKey(uuid) || isOwnResource(uuid));
             BackupImages.remap(backupObj, uuid -> {
                 try {
                     BundledImage bundled = source.images().get(uuid);
                     if (bundled != null) {
                         return storeBundled(source, bundled);
                     }
-                    return copyOwnImage(uuid);
+                    return copyOwnResource(uuid);
                 } catch (Exception e) {
                     log.warn("Image {} of the backup can't be restored, leaving it out", uuid, e);
                     return null;
                 }
             });
+            Map<String, String> restoredOthers = new HashMap<>();
+            for (String uuid : others) {
+                try {
+                    BundledImage bundled = source.images().get(uuid);
+                    String own = bundled != null ? storeBundled(source, bundled) : copyOwnResource(uuid);
+                    if (own != null) {
+                        restoredOthers.put(uuid, own);
+                    }
+                } catch (Exception e) {
+                    log.warn("Resource {} of the backup can't be restored, the reference stays as it is", uuid, e);
+                }
+            }
+            BackupResources.replace(backupObj, restoredOthers);
             return createFromBackup(backupObj, newName, lorebookDecisions, MissingHistory.FIRST_VERSION);
         }
     }
@@ -302,20 +328,36 @@ public class BackupServiceImpl implements BackupService {
         ensureLoaded(backup);
 
         JsonObject backupObj = innerOf(backup.getBackup());
-        if (backupObj != null && !BackupImages.collect(backupObj).isEmpty()) {
-            // the loaded backup is kept by the caller, the images are changed in a copy
+        if (backupObj != null && !resourceUuids(backupObj, this::isOwnResource).isEmpty()) {
+            // the loaded backup is kept by the caller, the resources are changed in a copy
             backupObj = backupObj.deepCopy();
+            Set<String> others = otherResources(backupObj, this::isOwnResource);
             BackupImages.remap(backupObj, uuid -> {
                 if (!withImages) {
                     return null;
                 }
                 try {
-                    return copyOwnImage(uuid);
+                    return copyOwnResource(uuid);
                 } catch (Exception e) {
                     log.warn("Image {} of the backup can't be cloned, leaving it out", uuid, e);
                     return null;
                 }
             });
+            // what the other data points to is copied too, or left pointing at nothing (an extension finds the resource gone and treats it as not made)
+            Map<String, String> copies = new HashMap<>();
+            if (withImages) {
+                for (String uuid : others) {
+                    try {
+                        String own = copyOwnResource(uuid);
+                        if (own != null) {
+                            copies.put(uuid, own);
+                        }
+                    } catch (Exception e) {
+                        log.warn("Resource {} of the backup can't be cloned, the reference stays as it is", uuid, e);
+                    }
+                }
+            }
+            BackupResources.replace(backupObj, copies);
         }
         return createFromBackup(backupObj, newName, lorebookDecisions, MissingHistory.FIRST_VERSION);
     }
@@ -342,14 +384,28 @@ public class BackupServiceImpl implements BackupService {
             keepCurrentBranch(backupObj);
         }
         // every part gets its own copy of its images, one that can't be copied is left out
+        Set<String> others = otherResources(backupObj, this::isOwnResource);
         BackupImages.remap(backupObj, uuid -> {
             try {
-                return copyOwnImage(uuid);
+                return copyOwnResource(uuid);
             } catch (Exception e) {
                 log.warn("Image {} of the book can't be cloned, leaving it out", uuid, e);
                 return null;
             }
         });
+        // and of the other resources its data points to (the audio of an audiobook, a file of an extension)
+        Map<String, String> copies = new HashMap<>();
+        for (String uuid : others) {
+            try {
+                String own = copyOwnResource(uuid);
+                if (own != null) {
+                    copies.put(uuid, own);
+                }
+            } catch (Exception e) {
+                log.warn("Resource {} of the book can't be cloned, the reference stays as it is", uuid, e);
+            }
+        }
+        BackupResources.replace(backupObj, copies);
         // the lorebook of the backup is linked by cloneFromBackup, not imported
         Manuscript clone = createFromBackup(backupObj, newName, null, MissingHistory.DUPLICATE);
         if (folder != null) {
@@ -480,7 +536,7 @@ public class BackupServiceImpl implements BackupService {
      * @param entry name of the entry of the archive with the file
      * @param hash  hash of the content, as the resource of the exporting user had it
      */
-    private record BundledImage(String uuid, String entry, String name, String hash) {
+    private record BundledImage(String uuid, String entry, String name, String hash, String mimeType) {
     }
 
     /**
@@ -590,7 +646,7 @@ public class BackupServiceImpl implements BackupService {
                     String name = string(image, "entry");
                     // only the images of the archive are read, whatever the entry names say
                     if (uuid != null && name != null && name.startsWith("resources/") && zip.getEntry(name) != null) {
-                        images.put(uuid, new BundledImage(uuid, name, string(image, "name"), string(image, "hash")));
+                        images.put(uuid, new BundledImage(uuid, name, string(image, "name"), string(image, "hash"), string(image, "mimeType")));
                     }
                 }
             }
@@ -632,7 +688,7 @@ public class BackupServiceImpl implements BackupService {
 
     private String adopt(BackupSource source, String uuid) {
         try {
-            Resource own = resourceService.findImage(uuid);
+            Resource own = resourceService.findForUser(uuid);
             BundledImage bundled = source.images().get(uuid);
             if (bundled == null) {
                 return own != null ? uuid : null;
@@ -658,31 +714,57 @@ public class BackupServiceImpl implements BackupService {
         if (entry == null) {
             return null;
         }
+        boolean image = bundled.mimeType() == null || bundled.mimeType().startsWith("image/");
+        // an image is held to the size of an image of ours, any other file to the limit of a resource of the archive; a bigger file is not read to the end
+        int limit = image ? ResourceService.MAX_IMAGE_BYTES : MAX_ARCHIVED_RESOURCE_BYTES;
         byte[] data;
         try (InputStream in = source.zip().getInputStream(entry)) {
-            // a bigger file is not an image of ours, and it is not read to the end
-            data = in.readNBytes(ResourceService.MAX_IMAGE_BYTES + 1);
+            data = in.readNBytes(limit + 1);
         }
-        if (data.length > ResourceService.MAX_IMAGE_BYTES) {
+        if (data.length > limit) {
             return null;
         }
+        String name = StringUtils.defaultIfBlank(bundled.name(), bundled.entry());
         try {
-            return resourceService.uploadImage(StringUtils.defaultIfBlank(bundled.name(), bundled.entry()), data).getUuid();
+            return (image ? resourceService.uploadImage(name, data) : resourceService.upload(name, data, bundled.mimeType())).getUuid();
         } catch (IllegalArgumentException e) {
-            log.warn("Image {} of the archive is not a usable image", bundled.uuid(), e);
+            log.warn("Resource {} of the archive is not usable", bundled.uuid(), e);
             return null;
         }
     }
 
     /**
-     * @return uuid of a new resource for the file of the user's resource, null if the user doesn't have the image (any more)
+     * @return uuid of a new resource for the file of the user's resource, null if the user doesn't have it (any more)
      */
-    private String copyOwnImage(String uuid) throws Exception {
-        Resource own = resourceService.findImage(uuid);
+    private String copyOwnResource(String uuid) throws Exception {
+        Resource own = resourceService.findForUser(uuid);
         if (own == null || !resourceService.getResourceFile(own).isFile()) {
             return null;
         }
         return resourceService.copy(own).getUuid();
+    }
+
+    /** Whether the uuid is the uuid of a resource of the user. */
+    private boolean isOwnResource(String uuid) {
+        try {
+            return resourceService.findForUser(uuid) != null;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    /** The resources the backup points to besides the images of the parts: what the data of the book and of the parts names. */
+    private Set<String> otherResources(JsonObject backup, java.util.function.Predicate<String> isResource) {
+        Set<String> others = BackupResources.collect(backup, isResource);
+        others.removeAll(BackupImages.collect(backup));
+        return others;
+    }
+
+    /** All the resources the backup points to: the images of the parts and what the data of the book and of the parts names. */
+    private Set<String> resourceUuids(JsonObject backup, java.util.function.Predicate<String> isResource) {
+        Set<String> all = new java.util.LinkedHashSet<>(BackupImages.collect(backup));
+        all.addAll(BackupResources.collect(backup, isResource));
+        return all;
     }
 
     /**
@@ -690,6 +772,7 @@ public class BackupServiceImpl implements BackupService {
      * that exists is left as it is.
      */
     private void linkImages(Manuscript manuscript) throws Exception {
+        linkOtherResources(manuscript);
         for (ChatMessage message : chatMessageService.getAllMessages(manuscript)) {
             for (ImageAttachment image : message.getImages()) {
                 Resource resource = resourceService.findImage(image.resource());
@@ -700,6 +783,30 @@ public class BackupServiceImpl implements BackupService {
                 if (link == null || !link.present()) {
                     resourceService.link(resource, ChatMessage.class, message.getId());
                 }
+            }
+        }
+    }
+
+    /**
+     * Notes in the resources that the data of the new parts (and of the book) names that they are used by them, as the extension that made them did
+     * ({@code ResourceService.link}); a resource that is linked to an object that exists is left as it is.
+     */
+    private void linkOtherResources(Manuscript manuscript) throws Exception {
+        for (ChatMessage message : chatMessageService.getAllMessages(manuscript)) {
+            linkNamed(message.getAttributes() == null ? null : message.getAttributes().toString(), ChatMessage.class, message.getId());
+        }
+        linkNamed(manuscript.getAttributes() == null ? null : manuscript.getAttributes().toString(), Manuscript.class, manuscript.getId());
+    }
+
+    private void linkNamed(String data, Class<?> owner, Long id) throws Exception {
+        for (String uuid : BackupResources.uuidsIn(data)) {
+            Resource resource = resourceService.findForUser(uuid);
+            if (resource == null) {
+                continue;
+            }
+            ResourceService.ResourceLink link = resourceService.describeLink(resource);
+            if (link == null || !link.present()) {
+                resourceService.link(resource, owner, id);
             }
         }
     }
@@ -724,7 +831,7 @@ public class BackupServiceImpl implements BackupService {
             }
 
             ensureLoaded(backup);
-            Set<String> uuids = BackupImages.collect(backup.getBackup());
+            Set<String> uuids = resourceUuids(backup.getBackup(), this::isOwnResource);
             JsonArray manifest = new JsonArray();
             int missing = 0;
             try (ZipOutputStream zip = new ZipOutputStream(new BufferedOutputStream(Files.newOutputStream(file.toPath())))) {
@@ -734,7 +841,7 @@ public class BackupServiceImpl implements BackupService {
                 zip.closeEntry();
 
                 for (String uuid : uuids) {
-                    Resource resource = resourceService.findImage(uuid);
+                    Resource resource = resourceService.findForUser(uuid);
                     File image = resource == null ? null : resourceService.getResourceFile(resource);
                     if (image == null || !image.isFile()) {
                         missing++;

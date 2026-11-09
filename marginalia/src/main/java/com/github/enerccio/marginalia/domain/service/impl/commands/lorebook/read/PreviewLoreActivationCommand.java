@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.domain.service.impl.commands.lorebook.read;
 
 import com.github.enerccio.marginalia.domain.collections.InsertionMode;
+import com.github.enerccio.marginalia.domain.components.LoreConditions;
 import com.github.enerccio.marginalia.domain.components.TurnInput;
 import com.github.enerccio.marginalia.domain.model.impl.*;
 import com.github.enerccio.marginalia.domain.service.InferenceService;
@@ -117,6 +118,10 @@ public class PreviewLoreActivationCommand extends LorebookReadSupport {
             data.setSceneSetting(input.sceneSetting());
             data.setPresentCharacters(input.presentCharacters());
             data.setInstructions(input.instructions());
+        } else {
+            // a text without a part is the instructions of the turn
+            data.setInstructions(text);
+            templateContext.setInstructions(text);
         }
         data.setNarrativePov(templateContext.getNarrativePov());
         data.setNarrativeTense(templateContext.getNarrativeTense());
@@ -133,12 +138,11 @@ public class PreviewLoreActivationCommand extends LorebookReadSupport {
         StringBuilder userBlock = new StringBuilder();
         // the story before the turn, as far back as an entry looks: for a part the ones in front of it
         ChatMessage storyEnd = part != null ? part : manuscript.getActiveLeaf();
-        List<String> storyParts = activationService.recentParts(storyEnd,
-                activationService.partsNeeded(activationService.orderedEntries(books)), part != null);
+        LorebookActivationService.StoryText story = activationService.storyText(activationService.orderedEntries(books), storyEnd, part != null);
         // the number of the part the turn creates, for the entries that are limited to some parts
         Integer turnPosition = activationService.positionNeeded(activationService.orderedEntries(books))
                 ? activationService.turnPosition(storyEnd, part != null) : null;
-        for (LorebookEntryVerdict decided : activationService.evaluateAll(root, books, bookTags, matched, storyParts, turnPosition)) {
+        for (LorebookEntryVerdict decided : activationService.evaluateAll(root, books, bookTags, matched, story, turnPosition, new LoreConditions(data))) {
             LorebookEntry entry = decided.entry();
             Verdict verdict = decided.verdict();
             Lorebook owner = bookOf.get(entry.getId());

@@ -65,21 +65,30 @@ Write the next section of **MANUSCRIPT CHRONICLE** using the following specifica
 
     public static final String DEFAULT_SUMMARY_PROMPT = """
 ### OBJECTIVE
-Execute the High-Fidelity Context Ledger Protocol. Generate an exhaustive, information-dense, and chronologically precise event ledger of the MANUSCRIPT CHRONICLE for downstream LLM ingestion.
-Target Length: Aim for high detail retention; do NOT over-summarize.
+Write a compact event ledger of the MANUSCRIPT CHRONICLE, for a language model to read later as the memory of what happened. Chronological, grouped by place.
 
-### CORE DIRECTIVES
-1. **Granular Beat Resolution**: Log every distinct beat, interaction, physical action, information exchange, and state change as an independent entry. If a scene contains multiple turns of dialogue or sequential actions, break them down into separate sequential entries. Never compress an entire scene into a single line.
-2. **State Deltas & Causality**: For every entry, explicitly capture:
-   - Trigger/Cause -> Action/Event -> Direct Outcome/State Change (Delta).
-3. **Lore Integration**: Use the BACKGROUND LORE ARCHIVE strictly as a factual reference for world-building, entities, and terminology. Do NOT summarize the lore archive itself.
-4. **Tone & Notation**: Maintain a narrative or analytical tone appropriate to the manuscript. Use clear, plain text symbols (e.g., `->`, `[Entity]`, `Key: Value`).
+### FORMAT
+Start a group with a location header, then one event per line:
 
-### STRICT NEGATIVE CONSTRAINTS
-* **No Hyper-Compression**: Do NOT collapse sub-events, minor dialogue beats, or intermediate character choices simply to save space. Detail retention > Extreme brevity.
-* **No Meta-Commentary / Intros**: Begin immediately with the processed entries. No intros, preambles, or concluding remarks.
-* **No LaTeX Formatting**: Use standard plain text symbols only (e.g., `->`, `[Entity]`).
-* **No Redundant Bios**: Only detail character/entity attributes if a permanent change or new introduction occurs in this chunk.
+[LOCATION / SCENE: Name of the place]
+* Who does what -> what follows from it (the intent or state of mind only when the text shows it).
+
+Example of the style (another story):
+[LOCATION / SCENE: Sea of Japan / Fishing Boat]
+* Peter takes photos of the Ishikawa coastline -> dawn light turns the horizon purple and orange.
+* Ryouji (Captain) notices Peter's enthusiasm -> questions his Japanese fluency and means.
+* Siberian High shifts -> temperature drops -> mist swallows the coast, visibility under 10 m.
+* Diesel engine coughs, sputters -> total engine failure -> boat spins in the mist, loses its bearing.
+* Fog parts -> 80 m wall of black basalt dead ahead.
+* Ryouji yanks Peter low to the deck -> rogue wave throws the boat forward -> impact -> Peter loses consciousness.
+
+### RULES
+- One event, one line. The subject comes first, causes and results are chained with `->`.
+- Do not title or name events; no numbering, no ids, no labels such as Trigger/Action/Delta.
+- Keep what later parts may need: names, items, injuries, promises, who learned or hid what, who is where, what was said that matters (quote the key words), time and weather only when they change something.
+- Leave out atmosphere, repeated description and how things looked unless it changes what happens.
+- Use the BACKGROUND LORE ARCHIVE only as a reference for names and terminology; do not summarize it.
+- Plain text only (`->`, `[Entity]`), no LaTeX. No intro, no closing remarks.
 
 {{#backgroundLore}}=== BACKGROUND LORE ARCHIVE START ===
 {{.}}
@@ -107,6 +116,8 @@ Execute Level-2 Context Consolidation Protocol. Aggregate sequential event ledge
 * **No Vertical Erasure / Over-Compression**: Do NOT collapse a multi-bullet scene into a single generic bullet point. If a scene contained 8 bullets in Level-1, aim for 3-4 dense, composite bullets in Level-2.
 * **No Format Drift**: Use ONLY standard bullet points under `[LOCATION / SCENE: Name]` headers. Do NOT introduce new bold section labels, key-value wrappers, or sub-headers.
 * **No Inline Metadata Bloat**: Do NOT repeat `[Scene: ...]` or write labels on every line.
+* **No Enumeration / Numbering / Ids**: Never number, index or label events or scenes (no `1.`, `[Event 1]`, `E01`, no ids). One event (or one composite chain) per line, as a plain bullet.
+* **No Event Names**: Do not title or name events or sequences. A line says who does what -> what follows from it, nothing more.
 * **No Meta-Commentary / Intros**: Begin immediately with the raw content. No preambles, titles, or concluding remarks.
 * **No LaTeX Formatting**: Use standard plain text symbols only (e.g., `->`, `[Entity]`).
 
@@ -194,6 +205,8 @@ Review one part of the ongoing narrative "MANUSCRIPT CHRONICLE" as its editor an
 2. **Notes for the author**: Say what is wrong or weak and, when you can, how to fix it, in a sentence or two. Do not rewrite the passage.
 3. **Continuity**: The story before the part is established fact, the story after it relies on the part. Use the lore and the story around the part to find contradictions.
 4. **Only real findings**: No praise and no filler. A part with nothing to flag gets no notes. Do not repeat what the author already noted (see EXISTING NOTES).
+{{#facts}}5. **Established facts**: The ESTABLISHED FACTS are what the author's records say is true at the point of the part, for example what each character knows and does not know. A passage in which a character says, thinks or does what their facts say they cannot know (a person they have never met, a secret they were never told), or that contradicts a fact, is a continuity error: quote that passage and name the fact in the note. A fact that is not listed is not a fact: do not flag what the records are silent about, and do not flag a character for knowing what the part itself shows them learning.
+{{/facts}}
 
 ### NARRATION
 {{#narrativePov}}Narrative Voice: {{.}}{{/narrativePov}}
@@ -217,7 +230,11 @@ Review one part of the ongoing narrative "MANUSCRIPT CHRONICLE" as its editor an
 {{.}}
 === BACKGROUND LORE END ===
 
-{{/backgroundLore}}{{#followingStory}}=== STORY AFTER THE PART START ===
+{{/backgroundLore}}{{#facts}}=== ESTABLISHED FACTS START ===
+{{.}}
+=== ESTABLISHED FACTS END ===
+
+{{/facts}}{{#followingStory}}=== STORY AFTER THE PART START ===
 {{.}}
 === STORY AFTER THE PART END ===
 
@@ -299,8 +316,18 @@ Write the instructions for the next turn of the ongoing narrative "MANUSCRIPT CH
 """;
 
     /**
-     * Markdown of the first (title) page of an exported book, rendered as Handlebars template with
-     * {@link com.github.enerccio.marginalia.domain.templates.ExportHeaderTemplateData}.
+     * Markdown of the authorship statement at the end of an exported book, rendered as Handlebars template with
+     * {@link com.github.enerccio.marginalia.domain.templates.ExportAuthorshipTemplateData}.
+     */
+    public static final String DEFAULT_EXPORT_AUTHORSHIP_TEMPLATE = """
+## Authorship
+
+Of the {{totalWords}} words of this text, {{writtenWords}} ({{writtenPercent}} %) were written by the author{{#author}}, {{.}}{{/author}}, and {{generatedWords}} ({{generatedPercent}} %) were generated by an AI model{{#models}} ({{.}}){{/models}}.
+""";
+
+    /**
+     * The YAML front matter of the formats that have one, rendered as Handlebars template with
+     * {@link com.github.enerccio.marginalia.domain.templates.ExportFrontMatterTemplateData}.
      */
     public static final String DEFAULT_EXPORT_FRONT_MATTER_TEMPLATE = """
 ---

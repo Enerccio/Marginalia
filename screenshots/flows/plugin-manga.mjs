@@ -6,21 +6,21 @@ import {clickCogs} from '../lib/story.mjs';
 
 const SCRIPT = `**Page 1**
 
-**Panel 1** (wide establishing shot): Hogsmeade's main street at dusk, the fog rolling between the lamps like a second village. The Three Broomsticks in the left corner, its windows warm and yellow.
+**Panel 1** (wide establishing shot): A reed field at night, an enormous low moon, a long broken road of light on the black water. The two small figures in the right corner, one with a headlamp.
 
-**Panel 2** (medium): Harry steps out into the cold, collar up, glancing back at his friends laughing behind the glass. *Caption: He should have stayed with them.*
+**Panel 2** (medium): Tomáš on one knee in the mud, the cracked headlamp in his hand, counting his fingers. *Caption: Hands, two. Legs, both working.*
 
-**Panel 3** (close-up): A cold voice out of the fog. Draconia under the lamp, hands in the pockets of a long green coat, half of her face in the light. **Draconia:** "How touching."
+**Panel 3** (close-up): A voice out of the reeds. Mizuki with the strap of her bag wound around her wrist, half of her face in the lamp. **Mizuki:** "Bag is okay. I have bandage."
 
 **Page 2**
 
-**Panel 1** (wide): Ron, red-faced, between Harry and Hermione, one finger raised. **Ron:** "Get lost, Malfoy." A small *hic* floats over his head.
+**Panel 1** (wide): Tomáš, red-eared, one finger raised toward the dark water. **Tomáš:** "Fifty-eight. No signal." A small phone glows in his palm.
 
-**Panel 2** (medium, low angle): Draconia's grey eyes, narrowed. **Draconia:** "Language, Weasley. There are Aurors."`;
+**Panel 2** (medium, low angle): Mizuki's eyes, narrowed. **Mizuki:** "Bad word?"`;
 
-const TAGS = `**Page 1, Panel 1:** masterpiece, best quality, no humans, village, medieval fantasy, dusk, thick fog, street lamps, warm light from windows, pub, wide shot
-**Page 1, Panel 2:** 1boy, black hair, round glasses, scarf, winter coat, collar up, looking back, glass window, laughing friends in background, medium shot
-**Page 1, Panel 3:** 1girl, platinum blonde hair, grey eyes, long green coat, hands in pockets, street lamp, fog, half face in light, close-up, smirk`;
+const TAGS = `**Page 1, Panel 1:** masterpiece, best quality, no humans, reeds, fantasy landscape, night, huge moon, black water, moonlight on the water, wide shot
+**Page 1, Panel 2:** 1boy, short dark hair, coat, kneeling in mud, headlamp, cracked glass, tired, medium shot
+**Page 1, Panel 3:** 1girl, black hair, grey jacket, bag strap around wrist, headlamp light on face, reeds, night, close-up, small smile`;
 
 /** Scrolls the list of the sections back to its top (it follows the text that is written). */
 const toTop = d => d.locator('.manga-card').first().evaluate(card => {

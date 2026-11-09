@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.ui.dialogs.story;
 
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.service.GenerationListener;
+import com.github.enerccio.marginalia.domain.service.NotificationService;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationRequest;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationRequestType;
 import com.github.enerccio.marginalia.domain.traits.*;
@@ -10,12 +11,15 @@ import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
+import com.github.enerccio.marginalia.ui.widgets.DesktopNotifier;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.ui.widgets.ScrollPanel;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.github.enerccio.marginalia.utils.UiProblems;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
+
+import java.util.function.Consumer;
 
 /**
  * Shows a running generation in a story tab: creates and fills the card of the new part as the chunks arrive, and
@@ -213,6 +217,7 @@ public class StoryGenerationListener<C extends Component & StoryCard> implements
             }
             callbacks.renderStory();
             callbacks.partCompleted(message);
+            new DesktopNotifier(ui).finished(NotificationService.GENERATION, false, null);
             UIPushGuard.push(ui);
         });
     }
@@ -261,6 +266,7 @@ public class StoryGenerationListener<C extends Component & StoryCard> implements
     public void onError(Throwable cause) {
         ui.access(() -> {
             UIUtils.showError(loc.getValue(L.ERROR_INTERNAL_SERVER_ERROR), cause);
+            new DesktopNotifier(ui).failed(NotificationService.GENERATION, false, null);
             UIPushGuard.push(ui);
         });
     }
@@ -284,6 +290,7 @@ public class StoryGenerationListener<C extends Component & StoryCard> implements
         ui.access(() -> {
             UiProblems.inference(description, null);
             Notification.error(description);
+            new DesktopNotifier(ui).failed(NotificationService.GENERATION, false, null);
             UIPushGuard.push(ui);
         });
     }
@@ -310,6 +317,18 @@ public class StoryGenerationListener<C extends Component & StoryCard> implements
             ConfirmDialog.show(question, yes, no);
             UIPushGuard.push(ui);
         });
+    }
+
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = boolean.class),
+            parameters = {@APIParameter(name = "action", type = Consumer.class)})
+    @Override
+    public boolean accessUI(Consumer<UI> action) {
+        ui.access(() -> {
+            action.accept(ui);
+            UIPushGuard.push(ui);
+        });
+        return true;
     }
 
 }

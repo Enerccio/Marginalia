@@ -1,6 +1,6 @@
 // Screenshots of the workspace tabs (Books, Protocols, Inference Providers, Settings, Lorebooks, Resources, Trash,
 // Language). Run on step 13-db-backup or later. Nothing stays changed (dialogs are cancelled, the language is reset).
-import {CONTENT, dialog, fill, idle, login, main, openTab, pick, press, section, sleep, snap, snapDialog, rowIconButton} from '../lib/shot.mjs';
+import {CONTENT, DESKTOP, dialog, fill, idle, login, main, openTab, pick, press, section, sleep, snap, snapDialog, rowIconButton} from '../lib/shot.mjs';
 
 await main(async ({ page }) => {
   await login(page);
@@ -63,10 +63,10 @@ await main(async ({ page }) => {
     await page.getByText('Tags', { exact: true }).first().click();
     await idle(page, 800);
     await snap(page, 'settings-tags', { clip: CONTENT });
-    // rename f/m to an existing tag: Marginalia asks whether to merge
+    // rename the first tag to an existing one: Marginalia asks whether to merge
     await page.mouse.click(1788, 227);
     await idle(page, 600);
-    await fill(dialog(page), 'Name', 'genderbend');
+    await fill(dialog(page), 'Name', 'portal fantasy');
     await press(dialog(page), 'Yes');
     await idle(page, 800);
     await snapDialog(page, 'tag-merge');
@@ -94,14 +94,14 @@ await main(async ({ page }) => {
 
   await section(page, 'lorebook', async () => {
     await openTab(page, 'Lorebooks');
-    await pick(page, 'Lorebook', 'Harry Potter - Half-Blood Prince');
+    await pick(page, 'Lorebook', 'Unregistered - the valley of the Lyrasil');
     await sleep(1000);
-    // expand the entry of Draconia (the chevron of its row)
+    // expand the entry of Mizuki (the chevron of its row)
     const cell = page.locator('vaadin-grid-cell-content').filter({ hasText: /^$/ }).first();
     const row = page.locator('vaadin-text-field input').filter({ hasText: '' });
     const nameInput = page.locator('input').filter({ has: page.locator('xpath=.') });
     const y = await page.evaluate(() => {
-      const inp = [...document.querySelectorAll('vaadin-text-field')].find(f => f.value === 'Draconia Malfoy');
+      const inp = [...document.querySelectorAll('vaadin-text-field')].find(f => f.value === 'Mizuki Hayashida');
       return inp ? inp.getBoundingClientRect().y + inp.getBoundingClientRect().height / 2 : null;
     });
     if (y == null) throw new Error('entry row not found');
@@ -109,23 +109,31 @@ await main(async ({ page }) => {
     await sleep(1000);
     await page.evaluate(() => document.activeElement && document.activeElement.blur());
     await snap(page, 'lorebook');
+    // a taller window for the entry with its details alone: the Condition is a row more than before
+    await page.setViewportSize({ width: DESKTOP.width, height: 1200 });
+    await idle(page, 800);
     // the entry with its details alone
     await page.evaluate(() => {
-      const f = [...document.querySelectorAll('vaadin-text-field')].find(x => x.value === 'Draconia Malfoy');
+      const f = [...document.querySelectorAll('vaadin-text-field')].find(x => x.value === 'Mizuki Hayashida');
       f.scrollIntoView({ block: 'start' });
     });
     await sleep(500);
     const top = await page.evaluate(() => {
-      const f = [...document.querySelectorAll('vaadin-text-field')].find(x => x.value === 'Draconia Malfoy');
+      const f = [...document.querySelectorAll('vaadin-text-field')].find(x => x.value === 'Mizuki Hayashida');
       return f.getBoundingClientRect().y;
     });
-    await snap(page, 'lorebook-entry', { clip: { x: 292, y: Math.max(0, top - 18), width: 1599, height: 591 } });
+    await snap(page, 'lorebook-entry', { clip: { x: 292, y: Math.max(0, top - 18), width: 1599, height: 700 } });
+    await page.setViewportSize(DESKTOP);
+    await idle(page, 600);
   });
 
   await section(page, 'resources', async () => {
     await openTab(page, 'Resources');
+    // the rows are the objects that use the files; the one of the part opens to its picture (the files that nothing uses stay closed)
+    await page.locator('vaadin-grid-tree-toggle').filter({ hasText: 'ChatMessage' }).first().click();
+    await idle(page, 1200);
     await snap(page, 'resources-tab');
-    await page.mouse.click(1767, 195);                        // replace content (upload icon) of the first row
+    await page.locator('vaadin-grid vaadin-button:has(vaadin-icon[icon$=":upload"])').first().click();   // replace content of the file
     await idle(page, 700);
     await snap(page, 'resources-replace');
     await press(dialog(page), 'Close');

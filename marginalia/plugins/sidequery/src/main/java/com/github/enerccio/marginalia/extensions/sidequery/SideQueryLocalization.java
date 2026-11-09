@@ -75,6 +75,7 @@ public class SideQueryLocalization extends PluginLocalizationBundle {
     public static final String RENAME_TAB = "Rename Tab";
     public static final String TAB_NAME = "Tab Name";
     public static final String CANNOT_CLOSE_THE_LAST_TAB = "Cannot close the last tab";
+    public static final String SIDEQUERY_ANSWER_A_QUESTION = "SideQuery: answer a question";
 
     @Override
     protected void loadKeys() {
@@ -275,5 +276,8 @@ public class SideQueryLocalization extends PluginLocalizationBundle {
 
         ja(CANNOT_CLOSE_THE_LAST_TAB, "最後のタブは閉じられません");
         zh(CANNOT_CLOSE_THE_LAST_TAB, "无法关闭最后一个标签页");
+
+        ja(SIDEQUERY_ANSWER_A_QUESTION, "SideQuery: 質問に回答");
+        zh(SIDEQUERY_ANSWER_A_QUESTION, "SideQuery：回答问题");
     }
 }

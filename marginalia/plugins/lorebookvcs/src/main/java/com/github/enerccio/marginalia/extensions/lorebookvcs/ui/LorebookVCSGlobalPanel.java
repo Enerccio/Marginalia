@@ -53,6 +53,8 @@ public class LorebookVCSGlobalPanel extends HorizontalLayout {
 
         setWidthFull();
         setAlignItems(Alignment.CENTER);
+        // on a phone the buttons do not fit next to the title
+        setWrap(true);
         addClassNames(CssStyles.BORDERED_PANEL, CssStyles.PADDING_COMPACT);
 
         buildUI();
@@ -110,6 +112,7 @@ public class LorebookVCSGlobalPanel extends HorizontalLayout {
                 ? T.localized(IMPORT_SILLYTAVERN_VCS_HISTORY)
                 : T.localized(IMPORT_LOREBOOK_VCS_HISTORY)).formatted(StringUtils.defaultString(lorebook.getName())));
         dialog.setWidth("450px");
+        UIUtils.fitPhone(dialog, false);
 
         InMemoryUploadHandler handler = new InMemoryUploadHandler((metadata, data) -> {
             try {

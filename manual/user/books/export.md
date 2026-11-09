@@ -31,6 +31,7 @@ another version of the story, switch to that branch first.
 | **Author** | Starts as your full name from your [account](../account.md). Empty means no author. |
 | **From message**, **To message** | Which parts to export. Parts are counted from 1 in the order of the story, parts without text are not counted. Leave **To message** empty to export to the end. |
 | **Include title page** | Starts the file with a first page holding the title and the author. |
+| **Include authorship statement** | Ends the file with a short statement of who wrote the words: how many words you wrote and how many a model generated, in words and percent, with the models. Some publishers and contests ask for it. It is worked out from the [version history](version-history.md) of the exported parts (see [Highlighting generated text](story-editor.md#highlighting-generated-text)). Not offered for the SillyTavern chat. The wording is a template in [Settings → Exports](../account.md#exports). |
 
 ![The finished export, ready to download](../../images/export-download.png)
 
@@ -42,15 +43,20 @@ another version of the story, switch to that branch first.
 | **Markdown** (`.md`) | The text as it is written in the story, for editors such as Obsidian or Typora, a static site or a repository. Emphasis, headings, quotes, lists, code blocks and scene breaks stay Markdown. Raw HTML in the text is kept as typed, the Markdown reader decides whether to show it. |
 | **HTML** (`.html`) | One page with a book-like style included, so it looks the same in every browser. It can be printed and has no external files. |
 | **Word document** (`.docx`) | Opens in Word, LibreOffice and similar programs. Justified text, with the title and author set in the file properties. |
-| **PDF** (`.pdf`) | A5 pages with embedded fonts that cover Latin, Greek and Cyrillic text. |
+| **PDF** (`.pdf`) | A5 pages with embedded fonts that cover Latin, Greek and Cyrillic text, and a bundled Japanese font (Noto Sans JP) for kana, kanji and Japanese punctuation. Text of another script (Chinese-only characters, Korean, Arabic) is not drawn: the PDF has no font for it. |
 | **EPUB** (`.epub`) | An e-book for e-readers and reading apps. Long books are split into several files inside the EPUB so readers stay fast. |
 | **HTML for Archive of Our Own** (`.html`) | For posting on AO3, see [below](#for-other-tools). |
 | **Markdown with front matter** (`.md`) | For static site generators, see [below](#for-other-tools). |
 | **SillyTavern chat** (`.jsonl`) | The story as a chat, see [below](#for-other-tools). |
 | **Obsidian vault** (`.zip`) | The chapters and the lorebook as linked notes, see [below](#for-other-tools). |
+| **LaTeX** (`.zip`) | A LaTeX project of the book (`main.tex` and the images), see [below](#for-other-tools). |
 
 The text of the parts is Markdown. Emphasis, headings, quotes, lists, code blocks and scene breaks (`---`) are kept in
 every format that can show them. Raw HTML in the text is shown as text, never run.
+
+## Footnotes
+
+A footnote is written in the text of a part as `[^1]` where the mark stands and `[^1]: the note` on a line of its own (the label can be any word). Every format has them: **Markdown** keeps the syntax, **HTML**, **EPUB** and **HTML for Archive of Our Own** put a small raised number that links to the notes under the text of the part (AO3 gets the plain markup its editor keeps), **plain text** writes the mark as `[1]` and the notes as lines that start with `[1]` after the text of the part, which is how an endnote looks. **Word** and **PDF** have real footnotes: the mark is a small raised number, and the note stands at the bottom of the same page, in a smaller type (in the PDF under a short rule, and the pages are laid out until every page has the room its notes need; Word numbers and places the notes itself, so they follow if you edit the document). Extensions can use them, too: the Conlang Translator extension writes the English of each speech as a footnote.
 
 ## Images
 
@@ -67,6 +73,7 @@ its size, scaled down to the page). Not every format can put text beside a pictu
 | **Plain text** | Marked with `[Image]` or `[Image: caption]` at their place in the text. |
 | **HTML for Archive of Our Own** | Marked with `[Image: caption]`: AO3 takes images only from links. |
 | **Obsidian vault** | Saved in the `Attachments` folder of the vault and embedded in the note of their chapter at their place, with the caption in italics. |
+| **LaTeX** | Saved in the `images` folder of the project and included in the text at their place (a figure in the width of the picture, never wider than the text) with the caption under it. The text does not flow around them. |
 | **SillyTavern chat** | Left out, a chat has only text. |
 
 ## For other tools
@@ -96,6 +103,16 @@ an entry (a name of at least three characters, whole words, as spelled) is a lin
 chapter. A part with a heading starts a chapter; parts before the first heading are the note *Beginning* (or *Story* when the book has no headings).
 The front matter and the title page are templates you can change in [Settings → Exports](../account.md#exports).
 
+**LaTeX.** A ZIP with a folder named after the book. `main.tex` is a `book` that compiles with `pdflatex`, `xelatex` or `lualatex` and the images of the parts are in `images`. The title page is a `titlepage` made of the
+[title page template](../account.md#exports). The shallowest heading of the story is a chapter, the next level a section and so on; they are not
+numbered (a story names its chapters itself) but they are listed in a table of contents. Emphasis, quotes, lists, code blocks and scene breaks
+become what they are in LaTeX, the footnotes are real footnotes, the characters that mean something to LaTeX are written as text, and the language
+of the book selects the hyphenation (`babel`) when it is one of the common ones. A book with Japanese, Chinese or Korean text needs `xelatex` or `lualatex` (`pdflatex` stops with a message): the file loads `xeCJK` or
+`luatexja` for it, and with `xelatex` you set a font that has your characters (the line to change is in the comment above it, for example
+`\setCJKmainfont{Noto Serif CJK JP}`), otherwise only the Chinese font that comes with `xeCJK` is used. Upload the ZIP to [Overleaf](https://www.overleaf.com) or unpack it
+and run `pdflatex main.tex` (twice, for the table of contents). The print style does not apply: the look is the one of the class, change it in the
+preamble of `main.tex`.
+
 ## Print styles
 
 The export uses the text styles of [Settings → Styles](../account.md#styles) that are marked **For exports**. Styles are either for books
@@ -119,6 +136,10 @@ files.
 The title page is written from a template, one for every format. Change it in [Settings → Exports](../account.md#exports): the template is Markdown
 with `{{title}}` (the book title of the dialog) and `{{author}}`, for example `## {{title}}` and a line `written by {{author}}`. The default is the
 title as a heading and the author in italics.
+
+The same templates (the title page, the front matter, the authorship statement) can be changed **for one book or for a folder**: in the *Prompts* tab of the book and in the
+folder window, the **Extension Settings** has a panel for each export format, with a field for each of its templates. The book's own version is used first, else the one of the
+nearest folder above it, else yours from *Settings → Exports*, else the default, so a series can have its own title page. An empty field is inherited, and says from where.
 
 ## Table of contents
 

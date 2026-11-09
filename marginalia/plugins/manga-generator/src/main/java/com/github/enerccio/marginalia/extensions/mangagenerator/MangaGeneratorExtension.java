@@ -6,6 +6,7 @@ import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.service.ExtensionService;
 import com.github.enerccio.marginalia.domain.service.ExtensionService.ExtendableMethodContext;
 import com.github.enerccio.marginalia.domain.service.ExtensionService.ExtensionDecorator;
+import com.github.enerccio.marginalia.domain.service.NotificationService;
 import com.github.enerccio.marginalia.domain.service.OsgiService;
 import com.github.enerccio.marginalia.extensions.ExtensionHasCss;
 import com.github.enerccio.marginalia.extensions.MarginaliaExtension;
@@ -41,9 +42,15 @@ import static com.github.enerccio.marginalia.extensions.mangagenerator.MangaGene
 public class MangaGeneratorExtension implements MarginaliaExtension, ExtensionHasCss {
 
     private static final String MENU_ITEM_KEY = "mangagenerator.open";
+    /** The sources of the notifications that a script or the tags of a section are written; the continuous mode is their automatic run. */
+    public static final String NOTIFY_SCRIPT = MangaSettings.KEY + ".script";
+    public static final String NOTIFY_TAGS = MangaSettings.KEY + ".tags";
 
     @Autowired
     private StoryMenuRegistry menuRegistry;
+
+    @Autowired
+    private NotificationService notificationService;
 
     private static final String SETTINGS_PANEL_KEY = MangaSettings.KEY + ".settingsPanel";
 
@@ -56,6 +63,8 @@ public class MangaGeneratorExtension implements MarginaliaExtension, ExtensionHa
     @Override
     public void onExtensionLoad(Bundle bundle, OsgiService parentService, ExtensionService extensionService) {
         MangaGeneratorLog.install(parentService.createLogger(bundle));
+        notificationService.register(bundle.getSymbolicName(), new NotificationService.Source(NOTIFY_SCRIPT, () -> T.localized(MANGA_GENERATOR_WRITE_A_SCRIPT), true));
+        notificationService.register(bundle.getSymbolicName(), new NotificationService.Source(NOTIFY_TAGS, () -> T.localized(MANGA_GENERATOR_WRITE_THE_IMAGE_TAGS), true));
         // the story editor loads other books into the same instance, so the book is read when the item is chosen
         menuRegistry.register(bundle.getSymbolicName(),
                 StoryMenuItem.tools(MENU_ITEM_KEY, l -> T.localized(MANGA_GENERATOR), story -> open(story.getCurrentManuscript()))

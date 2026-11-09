@@ -1,0 +1,72 @@
+package com.github.enerccio.marginalia.extensions.knowledgetracker.ui;
+
+import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
+import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.UIDetachedException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * Changes a component from a thread that is not the one of its session (the worker of a run): through
+ * {@code ui.access} and a push, skipped when the page is gone.
+ */
+final class UiAccess {
+
+    private static final Logger log = LoggerFactory.getLogger(UiAccess.class);
+
+    private UiAccess() {
+    }
+
+    static void run(Component component, Runnable change) {
+        component.getUI().ifPresent(ui -> run(ui, change));
+    }
+
+    /**
+     * A trigger for {@code change} that never queues more than one run: while one is waiting for the session (or running), the
+     * calls are dropped, the waiting run reads the latest state itself. A worker that reports faster than the page can show would
+     * otherwise fill the queue of the session and the page would never answer again.
+     */
+    static Runnable coalesced(Component component, Runnable change) {
+        java.util.concurrent.atomic.AtomicBoolean queued = new java.util.concurrent.atomic.AtomicBoolean();
+        return () -> {
+            if (!queued.compareAndSet(false, true)) {
+                return;
+            }
+            UI ui = component.getUI().orElse(null);
+            if (ui == null) {
+                queued.set(false);
+                return;
+            }
+            try {
+                ui.access(() -> {
+                    queued.set(false);
+                    try {
+                        change.run();
+                    } catch (RuntimeException e) {
+                        log.error(e.getMessage(), e);
+                    }
+                    UIPushGuard.push(ui);
+                });
+            } catch (UIDetachedException e) {
+                queued.set(false);
+                log.debug("The page is gone, the change is skipped");
+            }
+        };
+    }
+
+    static void run(UI ui, Runnable change) {
+        try {
+            ui.access(() -> {
+                try {
+                    change.run();
+                } catch (RuntimeException e) {
+                    log.error(e.getMessage(), e);
+                }
+                UIPushGuard.push(ui);
+            });
+        } catch (UIDetachedException e) {
+            log.debug("The page is gone, the change is skipped");
+        }
+    }
+}

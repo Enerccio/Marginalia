@@ -10,6 +10,8 @@ import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService.MergePreview;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
+import com.github.enerccio.marginalia.ui.widgets.DialogShortcuts;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.google.gson.JsonElement;
 import com.vaadin.flow.component.button.Button;
@@ -136,6 +138,8 @@ public class PartMergeDialog extends Dialog {
         Button merge = new Button(loc.getValue(L.LABEL_MERGE), e -> merge());
         merge.setThemeName("primary");
         getFooter().add(new Button(loc.getValue(L.LABEL_CANCEL), e -> close()), merge);
+        DialogShortcuts.submitWith(merge, sceneSetting, povCharacter, presentCharacters, instructions);
+        DialogFocus.onOpen(this, instructions);
     }
 
     private void field(TextArea area, L label, String value) {

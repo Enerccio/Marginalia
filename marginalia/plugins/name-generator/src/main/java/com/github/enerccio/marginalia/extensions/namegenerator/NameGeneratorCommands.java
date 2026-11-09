@@ -42,9 +42,9 @@ public class NameGeneratorCommands {
             + ". Default: the usual one of the category";
     private static final String RESULT = "JSON array of names";
 
-    private final NameTables tables;
+    private final NameCatalog tables;
 
-    public NameGeneratorCommands(NameTables tables) {
+    public NameGeneratorCommands(NameCatalog tables) {
         this.tables = tables;
     }
 

@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.service;
 
+import com.github.enerccio.marginalia.domain.components.LoreConditions;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
@@ -7,6 +8,7 @@ import com.github.enerccio.marginalia.domain.service.impl.generation.dto.Loreboo
 import com.github.enerccio.marginalia.domain.templates.LorebookTemplateData;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Which lorebook entries a generation uses, and why: the rules of the generation step that puts the lore into the
@@ -20,6 +22,15 @@ import java.util.List;
  * numbers of the outline, both included, the first part is 1): it is used only for the turn that creates a part inside
  * them, whatever its filter says ({@link Reason#OUT_OF_RANGE}). {@link #turnPosition} gives the number of the part the turn
  * creates; without it (null) the limits are not checked.
+ * <p>
+ * An entry can also have a condition ({@code activationCondition}): a template, written like the content of an entry
+ * (Handlebars and SillyTavern macros, {@code {{command::...}}} for commands that only read included), that is rendered for
+ * the turn with the POV, the present characters, the instructions and the variables as they are. The entry is used only
+ * when the result is true (not empty, not {@code 0}, {@code false}, {@code no}, {@code off}, any case). It is checked after
+ * the tags and before the filter, so a false condition wins over a filter that matches, also for the scan depth. A
+ * condition that cannot be rendered (not a valid template, a name that does not exist, the result {@code Error}, the time
+ * budget of {@link LoreConditions} spent) is false and says why ({@link Reason#CONDITION_ERROR}). It is rendered on a copy
+ * of the context, so it changes no variable, and at most once per entry and activation.
  * <p>
  * The filter is looked for in the instructions of the turn, or - when the entry's activation context is
  * {@code INCLUDE_PARTS} - in the instructions and the newest N parts of the story (N is the entry's
@@ -56,6 +67,12 @@ public interface LorebookActivationService {
         OUT_OF_RANGE,
         /** Not used, its filter is not in the text (or is a regular expression that is not valid). */
         FILTER_NOT_MATCHED,
+        /** Not used by the turn itself, the entry is used only through the content of other entries (the detail is its filter). */
+        RECURSION_ONLY,
+        /** Not used, its condition is false (the detail is the condition). */
+        CONDITION_FALSE,
+        /** Not used, its condition could not be decided, which counts as false (the detail says why). */
+        CONDITION_ERROR,
         /** Used, its filter is found in the content of an entry that was used (the detail names the filter and the entry). */
         LORE_MATCHED,
         /** Used, an extension changed the verdict (the detail names why). */
@@ -65,6 +82,14 @@ public interface LorebookActivationService {
 
         public boolean isActivated() {
             return this == CONSTANT || this == FILTER_MATCHED || this == LORE_MATCHED || this == EXTENSION_ACTIVATED;
+        }
+
+        /**
+         * Whether the content of the entries that were used can still make the entry used: its filter was not found, or it is
+         * used only that way.
+         */
+        public boolean isScannable() {
+            return this == FILTER_NOT_MATCHED || this == RECURSION_ONLY;
         }
     }
 
@@ -79,6 +104,27 @@ public interface LorebookActivationService {
 
         public boolean activated() {
             return reason.isActivated();
+        }
+    }
+
+    /**
+     * What the filters of the entries are looked for in besides the instructions of the turn: the text of the newest parts of
+     * the story and, for the entries that ask for it ({@code activationSummaries}), the summaries of the story so far.
+     *
+     * @param parts     the text of the parts of the story the turn continues, the oldest first
+     * @param summaries the summaries in use for the story so far, the oldest first, one text; empty when none is needed or there is none
+     */
+    record StoryText(List<String> parts, String summaries) {
+
+        public static final StoryText NONE = new StoryText(List.of(), "");
+
+        public StoryText {
+            parts = parts == null ? List.of() : parts;
+            summaries = summaries == null ? "" : summaries;
+        }
+
+        public static StoryText ofParts(List<String> parts) {
+            return new StoryText(parts, "");
         }
     }
 
@@ -124,6 +170,40 @@ public interface LorebookActivationService {
     Verdict evaluate(LorebookEntry entry, List<String> manuscriptTags, String instructions, List<String> parts, Integer position);
 
     /**
+     * {@link #evaluate(LorebookEntry, List, String, List, Integer)} with the context the condition of the entry is
+     * rendered against.
+     *
+     * @param conditions the turn and the time budget for the conditions of the entries; null renders the conditions with
+     *                   nothing known about the turn (no POV, no instructions...)
+     */
+    Verdict evaluate(LorebookEntry entry, List<String> manuscriptTags, String instructions, List<String> parts, Integer position, LoreConditions conditions);
+
+    /**
+     * {@link #evaluate(LorebookEntry, List, String, List, Integer, LoreConditions)} with the summaries of the story as well: an
+     * entry with {@code activationSummaries} looks for its filter in them too.
+     */
+    Verdict evaluate(LorebookEntry entry, List<String> manuscriptTags, String instructions, StoryText story, Integer position, LoreConditions conditions);
+
+    /**
+     * What the entries look into besides the instructions, for the story that ends in the leaf: the newest parts as far back as
+     * {@link #partsNeeded} says and, when an enabled entry has {@code activationSummaries}, the summaries in use (the ones that
+     * still match the story; nothing is changed or asked).
+     *
+     * @param excludeLeaf see {@link #recentParts}
+     */
+    StoryText storyText(List<LorebookEntry> entries, ChatMessage leaf, boolean excludeLeaf) throws Exception;
+
+    /**
+     * Whether an enabled entry looks for its filter in the summaries.
+     */
+    boolean summariesNeeded(List<LorebookEntry> entries);
+
+    /**
+     * Whether an enabled entry has a condition, so {@link LoreConditions} has to be made for the activation.
+     */
+    boolean conditionsNeeded(List<LorebookEntry> entries);
+
+    /**
      * The number of the part a turn creates, the first part of the branch being 1: one more than the parts of the branch
      * that ends in the leaf, or - with {@code excludeLeaf}, for a swipe, a regeneration or the preview of the turn of a
      * part - the number of the leaf itself. 1 without a leaf.
@@ -159,6 +239,31 @@ public interface LorebookActivationService {
     int scanDepth(Lorebook root);
 
     /**
+     * The scan depth for the entries of one lorebook of the tree: the scan depth of the root for the root itself and for a
+     * sub lorebook without an own one, else the {@code ownScanDepth} of the sub lorebook (0 to {@link #MAX_SCAN_DEPTH}).
+     */
+    int scanDepth(Lorebook root, Lorebook book);
+
+    /**
+     * The scan depth of every lorebook of the tree, by the id of the lorebook.
+     */
+    Map<Long, Integer> scanDepths(Lorebook root, List<Lorebook> lorebooks);
+
+    /**
+     * The most times the content of used entries is searched: the greatest of the scan depths, how many passes are needed.
+     */
+    default int deepestScan(Map<Long, Integer> depths) {
+        return depths.values().stream().mapToInt(Integer::intValue).max().orElse(0);
+    }
+
+    /**
+     * The scan depth that counts for the entry (its lorebook's), 0 when the lorebook is not known.
+     */
+    default int scanDepthOf(Map<Long, Integer> depths, LorebookEntry entry) {
+        return entry.getLorebook() == null ? 0 : depths.getOrDefault(entry.getLorebook().getId(), 0);
+    }
+
+    /**
      * The entries whose content is searched for filters after a pass: the ones that were used, that may be searched
      * ({@code preventRecursion} is off) and that have a content.
      */
@@ -173,6 +278,12 @@ public interface LorebookActivationService {
      * @param sources the entries to search, {@link #scannable} of the last pass
      */
     Verdict evaluateInContent(LorebookEntry entry, List<String> manuscriptTags, List<LorebookEntry> sources);
+
+    /**
+     * {@link #evaluateInContent(LorebookEntry, List, List)} with the context for the conditions: the condition of the entry
+     * counts here too (the answer given in the first pass is used, it is not rendered again).
+     */
+    Verdict evaluateInContent(LorebookEntry entry, List<String> manuscriptTags, List<LorebookEntry> sources, LoreConditions conditions);
 
     /**
      * The decision on every entry of the lorebooks for the text, scan depth included, without the events of a generation
@@ -199,6 +310,16 @@ public interface LorebookActivationService {
      * @param position the number of the part the turn creates ({@link #turnPosition}), null when it is not known
      */
     List<LorebookEntryVerdict> evaluateAll(Lorebook root, List<Lorebook> lorebooks, List<String> manuscriptTags, String text, List<String> parts, Integer position);
+
+    /**
+     * {@link #evaluateAll(Lorebook, List, List, String, List, Integer)} with the context for the conditions of the entries.
+     */
+    List<LorebookEntryVerdict> evaluateAll(Lorebook root, List<Lorebook> lorebooks, List<String> manuscriptTags, String text, List<String> parts, Integer position, LoreConditions conditions);
+
+    /**
+     * {@link #evaluateAll(Lorebook, List, List, String, List, Integer, LoreConditions)} with the summaries of the story as well.
+     */
+    List<LorebookEntryVerdict> evaluateAll(Lorebook root, List<Lorebook> lorebooks, List<String> manuscriptTags, String text, StoryText story, Integer position, LoreConditions conditions);
 
     /**
      * The text of the entry put into the prompt: its payload as a template. A payload that is not a valid template is

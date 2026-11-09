@@ -66,6 +66,9 @@ public class Viewer extends LoginCheckRoute implements HasUrlParameter<String> {
 
     private static final Logger log = LoggerFactory.getLogger(Viewer.class);
 
+    // the book that is read now: its images are shown to a reader through it
+    private String readUuid;
+
     @Autowired
     private User user;
 
@@ -676,6 +679,7 @@ public class Viewer extends LoginCheckRoute implements HasUrlParameter<String> {
                 // the parts around where the reader stopped last time (the browser remembers it, never the server)
                 // or the first ones, the others are loaded as the reader scrolls
                 String manuscriptUuid = String.valueOf(manuscript.getUuid());
+                readUuid = manuscriptUuid;
                 ReaderLazyLoader loader = new ReaderLazyLoader(scrollPanel, contentWrapper, this::createPart, loc);
                 Integer limit = new StorySupport().partsLimit();
                 JavascriptLibrary.rememberReaderPosition(scrollPanel.getElement(), contentWrapper.getElement(), manuscriptUuid);
@@ -702,7 +706,7 @@ public class Viewer extends LoginCheckRoute implements HasUrlParameter<String> {
             parameters = {@APIParameter(name = "msg", type = ChatMessage.class)},
             locals = {@APILocals(name = "part", type = PartView.class)})
     private Component createPart(ChatMessage msg) {
-        PartView part = new PartView(msg.getResponse(), msg.getImages());
+        PartView part = new PartView(msg.getResponse(), msg.getImages(), readUuid);
         return part.getComponentCount() == 0 ? null : part;
     }
 

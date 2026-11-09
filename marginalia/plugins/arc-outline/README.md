@@ -135,6 +135,42 @@ the **end of the arc**, each with the full reasoning and JSON of the request (th
 
 An arc made this way has a robot button (so has a generated chapter) that opens a popover with the reasoning and the JSON the model wrote.
 
+## Developing the plot in a conversation
+
+*Develop the plot* in the menu of the wand opens `PlotWizardDialog`, a chat about the plot. Options on the left (`WizardOptions`, stored
+in the user settings as `wizard`): the mode (`Defaults.MODE_*`, the text goes into `{{mode}}`), the lorebook, the outline (none, descriptions,
+with notes), the summaries, the latest parts of the story with a token limit, and the prompt (`Defaults.WIZARD_PROMPT`; variables
+`{{backgroundLore}}`, `{{outline}}`, `{{summaries}}`, `{{story}}`, `{{mode}}` and the flags `hasLore`, `hasOutline`, `hasSummaries`, `hasStory`,
+`hasMode`). The system prompt is built for every message (`ArcOutlineService.buildWizardPrompt`), so the model sees the outline and the story as
+they are now. The summaries and the story parts come from `ArcOutlineService.storyState`: the valid summaries of the active branch as a
+generation gathers them, and the parts with text after the newest of them. `WizardContext` (pure functions) takes the newest parts that fit
+the limit and the newest messages of the chat that fit what the model takes. The conversation is a normal streaming request without functions
+(`InferenceService.stream`), nothing in the book is changed by it; *Generate an arc from this message* opens the `ArcGeneratorDialog` with the
+text as its specification.
+
+**Tools.** `WizardOptions.toolGroups` (`PLANNER`, `LORE`, `OUTLINE`, `GENERATE`) and `askBeforeChanging` choose what the model may call. `ArcOutlineService.toolNames`
+lists the commands of a group and `wizardFunctions` makes the `FunctionSet` of them with `CommandFunctions.create` (the same bridge agents use), on a `CommandCage` with
+`CommandScopes.forManuscript(book)` and `DestructiveCommandMode.ASK` (or `AUTO`), plus the functions of the name tools of the tool dialog (`ToolSet`). Commands that are
+not registered (the Lore Generator is not installed) are skipped, the delete commands of the lorebook and the outline are left out (they ask a question nobody can answer in
+that scope). The stream is `InferenceService.stream(payload, protocol, functions, callback)`: the inference service runs the loop and the calls on threads that have the request
+context of the user. `onFunctionCall` adds a `WizardCall` to the answer (kept in `WizardMessage.calls`); `Approval` shows a `ConfirmDialog` and the model waits for the answer
+(a stop answers it with no). The instructions for the model are `Defaults.WIZARD_TOOLS_PROMPT` (with the hints of the name tools), added to the system prompt only when
+there are functions.
+
+The chats (`WizardData` > `WizardChat` > `WizardMessage`) are stored with the book under `com.github.enerccio.marginalia.extensions.arcoutline.wizard`.
+A branch (`WizardChat.branch`) is a deep copy. *Summarize the chat* asks the author for an optional note on what to keep (`WizardContext.summaryPrompt` puts it under the instructions), asks the model with `Defaults.WIZARD_SUMMARY_PROMPT` and adds the answer as a
+message with `summary` set; `WizardContext.sinceSummary` and `lastSummary` make the model get the newest summary (in its system prompt) and the
+messages after it only.
+
+## Notes in the plot wizard
+
+When the Story Notes plugin (`story-notes`) is loaded, the plot wizard has a *Send the notes* select (`WizardOptions.notes`: none, titles with first lines (the
+default) or the full text, into the `{{notes}}` variable of the prompt, `hasNotes` is its flag) and a `NOTES` tool group. The plugin is not imported: the text comes from its
+`IPCService` sources `notes-index` and `notes` of the bundle `story-notes` (`ArcOutlineService.notesText`; `notesAvailable()` hides the select and the group when the
+plugin is not there), and the group is the names of its commands (`list-notes`, `get-note`, `search-notes`, `create-note`, `update-note`, `append-to-note`, `edit-note`;
+`delete-note` is left out, like the other deletes). `update-note` and `edit-note` are `DESTRUCTIVE`, so *Ask me before it changes or deletes something* covers them. Pages
+that the author hid from assistants are not in the text and not reachable by the commands. The source keys and the command names are a contract with `story-notes`.
+
 ## Commands
 
 `ArcOutlineCommands` and `ArcGenerationCommands` register the outline and its generators for the command bar and for agents:

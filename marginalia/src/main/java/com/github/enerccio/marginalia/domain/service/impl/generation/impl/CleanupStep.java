@@ -106,7 +106,7 @@ public class CleanupStep extends GenerationStepBase {
             message = chatMessageService.save(message);
             MessagePrompt prompt = (MessagePrompt) controller.getProperties().get(GenerationProperties.ORIGINAL_PROMPT);
             messagePromptService.store(message, prompt == null ? null : prompt.getBuiltPrompt(),
-                    prompt == null ? null : prompt.getBackgroundLore());
+                    prompt == null ? null : prompt.getBackgroundLore(), prompt == null ? null : prompt.getLoreUsage());
             controller.setMessage(message);
         }
         controller.getUIListener().onCancelled(message);

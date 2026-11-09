@@ -5,10 +5,8 @@ import com.github.enerccio.marginalia.domain.collections.AIType;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.ExtensionAI;
 import com.github.enerccio.marginalia.domain.security.model.User;
-import com.github.enerccio.marginalia.domain.service.FunctionRegistry;
-import com.github.enerccio.marginalia.domain.service.InferenceService;
-import com.github.enerccio.marginalia.domain.service.InferenceServices;
-import com.github.enerccio.marginalia.domain.service.InferenceSession;
+import com.github.enerccio.marginalia.domain.service.*;
+import com.github.enerccio.marginalia.domain.service.impl.inference.ObservedInferenceService;
 import com.github.enerccio.marginalia.domain.traits.SupportedAI;
 import com.github.enerccio.marginalia.extensions.ExtensionAIFactory;
 import org.apache.commons.lang3.StringUtils;
@@ -110,6 +108,16 @@ public class InferenceServicesImpl implements InferenceServices, InitializingBea
 
     @Override
     public InferenceService forAI(AI ai) throws Exception {
+        InferenceService service = cachedOrCreate(ai);
+        if (service == null) {
+            return null;
+        }
+        // listeners (see InferenceSession.addListener) see the requests of the wrapper, the cached service stays plain
+        List<InferenceListener> listeners = InferenceSession.listeners();
+        return listeners.isEmpty() ? service : new ObservedInferenceService(service, ai, listeners);
+    }
+
+    private InferenceService cachedOrCreate(AI ai) throws Exception {
         if (ai == null)
             return null;
 

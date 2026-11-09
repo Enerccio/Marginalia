@@ -376,7 +376,6 @@ class ManuscriptReadCommandsTest extends GenerationTestBase {
         summary = summaryService.save(summary);
         ChatMessage loaded = chatMessageService.find(first.getId());
         loaded.setSummary(summary);
-        loaded.setEdited(true);
         chatMessageService.save(loaded);
 
         JsonObject listed = run("/list-summaries").getAsJsonArray("summaries").get(0).getAsJsonObject();
@@ -395,7 +394,7 @@ class ManuscriptReadCommandsTest extends GenerationTestBase {
         assertThat(check.get("outdated").getAsInt()).isEqualTo(1);
         JsonObject row = check.getAsJsonArray("outdatedSummaries").get(0).getAsJsonObject();
         assertThat(row.get("position").getAsInt()).isEqualTo(1);
-        assertThat(row.getAsJsonArray("editedParts").get(0).getAsInt()).isEqualTo(1);
+        assertThat(row.get("covers").getAsString()).isEqualTo("1-1");
     }
 
     @Test

@@ -4,13 +4,14 @@ import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.MessagePrompt;
 import com.github.enerccio.marginalia.domain.repository.MessagePromptRepository;
+import com.github.enerccio.marginalia.utils.AppClock;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
-public class JpaMessagePromptRepository extends JpaOwnedRepository<MessagePrompt> implements MessagePromptRepository {
+public class JpaMessagePromptRepository extends JpaExtendableRepository<MessagePrompt> implements MessagePromptRepository {
 
     @Override
     protected Class<MessagePrompt> getEntityClass() {
@@ -39,6 +40,19 @@ public class JpaMessagePromptRepository extends JpaOwnedRepository<MessagePrompt
     }
 
     @Override
+    @SuppressWarnings("unchecked")
+    public List<Object[]> findExtendedContentByPartIds(Collection<Long> partIds) throws Exception {
+        List<Object[]> rows = new ArrayList<>();
+        for (List<Long> chunk : chunks(partIds)) {
+            rows.addAll(entityManager
+                    .createQuery("SELECT p.message.id, p.extendedContent FROM MessagePrompt p WHERE p.deleted = false AND p.message.id IN :ids")
+                    .setParameter("ids", chunk)
+                    .getResultList());
+        }
+        return rows;
+    }
+
+    @Override
     public int softDeleteByManuscript(Manuscript manuscript) throws Exception {
         if (manuscript == null || manuscript.getId() == null) {
             return 0;
@@ -46,7 +60,7 @@ public class JpaMessagePromptRepository extends JpaOwnedRepository<MessagePrompt
         return entityManager.createQuery(
                         "UPDATE MessagePrompt p SET p.deleted = true, p.modification = :now WHERE p.deleted = false "
                                 + "AND p.message.id IN (SELECT m.id FROM ChatMessage m WHERE m.parentScript.id = :manuscript)")
-                .setParameter("now", new Date())
+                .setParameter("now", AppClock.now())
                 .setParameter("manuscript", manuscript.getId())
                 .executeUpdate();
     }
@@ -54,7 +68,7 @@ public class JpaMessagePromptRepository extends JpaOwnedRepository<MessagePrompt
     @Override
     public int softDeleteByPartIds(Collection<Long> partIds) throws Exception {
         int deleted = 0;
-        Date now = new Date();
+        Date now = AppClock.now();
         for (List<Long> chunk : chunks(partIds)) {
             deleted += entityManager.createQuery(
                             "UPDATE MessagePrompt p SET p.deleted = true, p.modification = :now WHERE p.deleted = false AND p.message.id IN :ids")

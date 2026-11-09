@@ -3,14 +3,19 @@ package com.github.enerccio.marginalia.ui.dialogs.story;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.collections.AnnotationSource;
 import com.github.enerccio.marginalia.domain.collections.AnnotationStatus;
+import com.github.enerccio.marginalia.domain.model.impl.AnchoredPassage;
 import com.github.enerccio.marginalia.domain.model.impl.Annotation;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.AnnotationService;
+import com.github.enerccio.marginalia.domain.service.PassageKind;
+import com.github.enerccio.marginalia.domain.service.PassageKinds;
+import com.github.enerccio.marginalia.domain.service.PassageService;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.utils.QuoteFinder;
 import com.github.enerccio.marginalia.utils.TextMarkup;
 import com.github.enerccio.marginalia.utils.UIUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
@@ -43,11 +48,19 @@ public class StoryAnnotations {
     @Autowired
     private AnnotationService annotationService;
 
+    @Autowired
+    private PassageService passageService;
+
+    @Autowired
+    private PassageKinds passageKinds;
+
     private final Supplier<Manuscript> book;
     private final Consumer<Collection<Long>> redraw;
     private final List<Runnable> listeners = new ArrayList<>();
 
     private Map<Long, List<Annotation>> byPart;
+    // the passages of the kinds the extensions brought, loaded only while some kind is registered
+    private Map<Long, List<AnchoredPassage>> passagesByPart;
 
     /**
      * @param book   the book as it is now
@@ -71,6 +84,40 @@ public class StoryAnnotations {
      */
     public void invalidate() {
         byPart = null;
+        passagesByPart = null;
+    }
+
+    private Map<Long, List<AnchoredPassage>> loadedPassages() {
+        if (passagesByPart == null) {
+            passagesByPart = new HashMap<>();
+            Manuscript manuscript = book.get();
+            if (manuscript != null && !passageKinds.all().isEmpty()) {
+                try {
+                    for (AnchoredPassage passage : passageService.listForManuscript(manuscript, null)) {
+                        passagesByPart.computeIfAbsent(passage.getPartId(), id -> new ArrayList<>()).add(passage);
+                    }
+                } catch (Exception e) {
+                    UIUtils.internalServerError(loc, e);
+                }
+            }
+        }
+        return passagesByPart;
+    }
+
+    /**
+     * The passages of the kinds of the extensions the part has (not the editorial notes), in the order of their ranges; the ones
+     * whose kind is not registered (the extension is not loaded) are not there.
+     */
+    public List<AnchoredPassage> passagesOf(Long partId) {
+        return partId == null ? List.of() : loadedPassages().getOrDefault(partId, List.of()).stream()
+                .filter(passage -> passageKinds.get(passage.getPassageKind()) != null).toList();
+    }
+
+    /**
+     * The passage of an extension's kind with the uuid in the part, null when the part has none.
+     */
+    public AnchoredPassage passageByUuid(Long partId, String uuid) {
+        return passagesOf(partId).stream().filter(passage -> passage.getUuid().equals(uuid)).findFirst().orElse(null);
     }
 
     private Map<Long, List<Annotation>> loaded() {
@@ -122,6 +169,19 @@ public class StoryAnnotations {
     }
 
     /**
+     * Tells the kind of the passage with the uuid, if the part has one, that its mark was clicked.
+     *
+     * @param anchor a component at the mark to open a popover or a dialog from
+     */
+    public void clickPassage(Long partId, String uuid, com.vaadin.flow.component.Component anchor) {
+        AnchoredPassage passage = passageByUuid(partId, uuid);
+        PassageKind kind = passage == null ? null : passageKinds.get(passage.getPassageKind());
+        if (kind != null) {
+            kind.onClick(passage, anchor);
+        }
+    }
+
+    /**
      * The marks of the open annotations of the part that have a passage in its text: the range, the class that tells where the note
      * comes from and the uuid of the annotation, which the click on the mark reports.
      *
@@ -139,6 +199,15 @@ public class StoryAnnotations {
             marks.add(new TextMarkup.Mark(annotation.getStart(), annotation.getEnd(),
                     CssStyles.ANNOTATION_MARK + " " + markClass(annotation.getSource()),
                     " " + MARK_ATTRIBUTE + "=\"" + annotation.getUuid() + "\""));
+        }
+        for (AnchoredPassage passage : passagesOf(message.getId())) {
+            PassageKind kind = passageKinds.get(passage.getPassageKind());
+            String markClass = kind == null || passage.isOrphaned() || !passage.hasRange() || passage.getEnd() > text.length()
+                    ? null : kind.markClass(passage);
+            if (markClass != null) {
+                marks.add(new TextMarkup.Mark(passage.getStart(), passage.getEnd(), markClass,
+                        StringUtils.defaultString(kind.markAttributes(passage)) + " " + MARK_ATTRIBUTE + "=\"" + passage.getUuid() + "\""));
+            }
         }
         return marks;
     }

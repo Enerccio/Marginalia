@@ -1,6 +1,6 @@
 ---
 label: Side Query
-order: 70
+order: 1
 ---
 
 # Side Query
@@ -9,7 +9,7 @@ A chat with the model next to your story: ask about the plot, check continuity, 
 without adding anything to the book.
 
 !!!
-Side Query is not available in the [phone layout](../phone.md#extensions).
+Side Query works in the [phone layout](../phone.md#extensions): its tab is in the outline drawer of the story.
 !!!
 
 ![Side Query next to the story](../../images/plugin-sidequery.png)

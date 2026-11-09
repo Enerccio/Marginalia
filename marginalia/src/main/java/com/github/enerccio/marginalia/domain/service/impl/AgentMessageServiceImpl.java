@@ -301,7 +301,12 @@ public class AgentMessageServiceImpl extends ExtendableServiceImpl<AgentMessage,
         List<LLMChatMessage> messages = new ArrayList<>();
         for (AgentMessage message : getRepository().findAllByRun(ownRun(run))) {
             if (!message.isCompacted() && !message.isRewound()) {
-                messages.add(message.toChatMessage());
+                LLMChatMessage chat = message.toChatMessage();
+                // the thinking is kept apart from the message; it goes with it again for an AI that is set to get it back
+                if (chat.getRole() == LLMRole.ASSISTANT) {
+                    chat.setReasoning(message.getReasoning());
+                }
+                messages.add(chat);
             }
         }
         return messages;

@@ -20,7 +20,8 @@ import static com.github.enerccio.marginalia.extensions.charactertracker.Charact
  * The characters of the book as commands, for the command bar and for agents: {@code list-characters},
  * {@code get-character}, {@code create-character}, {@code update-character}, {@code delete-character} and for the
  * relationships {@code list-character-relations}, {@code add-character-relation}, {@code update-character-relation},
- * {@code delete-character-relation}. They do what the Characters tab does (but for the icon), on the book of the scope of
+ * {@code delete-character-relation}, and {@code character-tracker-map}, the characters as the text of the prompt, for the
+ * {@code {{command::character-tracker-map}}} macro. They do what the Characters tab does (but for the icon), on the book of the scope of
  * the command (the open book, or the working copy of an agent), and the open tab shows the change at once.
  * <p>
  * A character is addressed by its <b>name</b> (the case does not matter), or by its <b>number</b> in
@@ -41,6 +42,7 @@ public class CharacterTrackerCommands extends ManuscriptReadSupport {
     public static final String ADD_RELATION = "add-character-relation";
     public static final String UPDATE_RELATION = "update-character-relation";
     public static final String DELETE_RELATION = "delete-character-relation";
+    public static final String MAP = "character-tracker-map";
 
     private static final String LIST_TEXT = "Lists the characters of the book with their tagline and the number of their relationships. Reads only.";
     private static final String LIST_LLM = "Lists the characters of the book (the cast the author keeps track of) ordered by name, with the tagline, "
@@ -71,6 +73,9 @@ public class CharacterTrackerCommands extends ManuscriptReadSupport {
     private static final String DELETE_RELATION_TEXT = "Deletes a relationship.";
     private static final String DELETE_RELATION_LLM = "Deletes a relationship by its number in list-character-relations. Destructive, the relationships "
             + "after it get lower numbers.";
+
+    private static final String MAP_TEXT = "The characters and their relationships as plain text, the way the prompt gets them. Made for the "
+            + "{{command::character-tracker-map}} macro of a template. Reads only.";
 
     private static final String PARAM_CHARACTER = "Name of the character (the case does not matter), or its number in list-characters";
     private static final String PARAM_NAME = "The name";
@@ -324,6 +329,15 @@ public class CharacterTrackerCommands extends ManuscriptReadSupport {
         JsonObject result = new JsonObject();
         result.add("relationships", list);
         answer(context, result);
+    }
+
+    @Command(commandName = MAP, humanNameText = "Character map", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE, readOnly = true,
+            availableInMacros = true, availableForAgent = false, descriptionText = MAP_TEXT,
+            signature = @CommandParameterSignature,
+            returns = @CommandReturn(name = "result", type = String.class, descriptionText = "Text: the characters, then their relationships; empty when there are none"))
+    public void map(CommandContext context) throws Exception {
+        Book book = new Book(context);
+        context.setReturn(CharacterTrackerService.renderPrompt(service.read(book.manuscript)));
     }
 
     @Command(commandName = ADD_RELATION, linkedCommand = LIST, humanNameText = "Add character relationship", dataSeverity = CommandDataSeverity.NON_DESTRUCTIVE,

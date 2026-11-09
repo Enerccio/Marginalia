@@ -1,0 +1,40 @@
+# ComfyUI (yanwk/comfyui-boot:rocm) for an AMD card, joined to the shared network `ai` so that the container controller and LiteLLM can reach it by name
+# (docker network create ai, once). Rebuilt from the author's own file; compare it with yours before replacing it.
+#   - CLI_ARGS once: a second CLI_ARGS line replaces the first one (--listen would be lost)
+#   - --force-fp32: ComfyUI runs the models in fp16 by default; added while tracking down noisy Stable Audio output (the real cause was the graph, see the audiobook TODO),
+#     remove it to go back to fp16
+#   - restart "no": the container controller starts and stops it (an idle ComfyUI holds about 0.8 GiB of the card and /free does not give it back)
+services:
+  comfyui:
+    image: yanwk/comfyui-boot:rocm
+    container_name: comfyui-amd
+    ports:
+      - "8188:8188"
+    devices:
+      - /dev/kfd:/dev/kfd
+      - /dev/dri:/dev/dri
+    group_add:
+      - video
+      - 989                       # the group id of render on the host
+    security_opt:
+      - seccomp=unconfined
+    ipc: host
+    environment:
+      - CLI_ARGS=--listen 0.0.0.0 --gpu-only --force-fp32
+      - HSA_OVERRIDE_GFX_VERSION=12.0.1
+      - HIP_VISIBLE_DEVICES=0
+      - ROCR_VISIBLE_DEVICES=0
+      - PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+    volumes:
+      - /mnt/storage/ai/sdmodels:/root/ComfyUI/models
+      - ./storage/custom_nodes:/root/ComfyUI/custom_nodes
+      - ./storage/output:/root/ComfyUI/output
+      - ./storage/user:/root/ComfyUI/user
+    restart: "no"
+    networks:
+      - default
+      - ai
+
+networks:
+  ai:
+    external: true

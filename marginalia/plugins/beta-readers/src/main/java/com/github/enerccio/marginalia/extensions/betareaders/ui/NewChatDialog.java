@@ -7,6 +7,7 @@ import com.github.enerccio.marginalia.extensions.betareaders.model.Medium;
 import com.github.enerccio.marginalia.extensions.betareaders.service.BetaReadersStore.Available;
 import com.github.enerccio.marginalia.extensions.betareaders.service.BetaReadersStore.Scope;
 import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
+import com.github.enerccio.marginalia.ui.widgets.DialogShortcuts;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -89,6 +90,7 @@ public class NewChatDialog extends Dialog {
         create.addClickListener(_ -> create());
         create.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         getFooter().add(cancel, create);
+        DialogShortcuts.submitWith(create, title);
         DialogFocus.onOpen(this, title);
     }
 

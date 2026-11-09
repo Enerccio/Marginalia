@@ -1,7 +1,7 @@
 ---
 label: Packaging & releases
 order: 880
-verified: 6b9a70d37
+verified: 817e5239b
 covers:
   - pom.xml
   - Dockerfile
@@ -25,7 +25,7 @@ For everyday builds see [Building from source](building.md).
 
 ```mermaid
 flowchart LR
-    src["marginalia/ sources"] --> war["marginalia-1.6.0.war"]
+    src["marginalia/ sources"] --> war["marginalia-1.7.0.war"]
     war --> docker["Docker image<br/>Jetty 12 + WAR"]
     war --> desktop["Desktop distribution<br/>jlink runtime + Jetty + WAR + launcher"]
     desktop --> portable["portable archive<br/>marginalia-&lt;v&gt;-&lt;os&gt;-&lt;arch&gt;"]
@@ -46,7 +46,7 @@ flowchart LR
 
 ## The WAR
 
-`mvn package` in `marginalia/` produces `target/marginalia-1.6.0.war` (see
+`mvn package` in `marginalia/` produces `target/marginalia-1.7.0.war` (see
 [Building the application](building.md#building-the-application)). The WAR always runs in Vaadin production mode:
 `build-frontend` writes the production `flow-build-info.json` into it, and a development one left in
 `src/main/resources` is never packaged (see [Development and production mode](building.md#development-and-production-mode)).
@@ -166,12 +166,12 @@ Outputs in `target/desktop/`:
 
 | Path | |
 |---|---|
-| `marginalia-1.6.0/` | The portable folder: `bin/marginalia`, `bin/marginalia.bat`, `app/`, `server/`, `runtime/`. |
+| `marginalia-1.7.0/` | The portable folder: `bin/marginalia`, `bin/marginalia.bat`, `app/`, `server/`, `runtime/`. |
 | `package/` | The app image: `Marginalia.app` (macOS), `Marginalia/Marginalia.exe` (Windows), `Marginalia/bin/Marginalia` (Linux). |
-| `marginalia-1.6.0-<os>-<arch>.tar.gz` / `.zip` | Archive of the portable folder (`.zip` on Windows). |
-| `marginalia-1.6.0-<os>-<arch>-app.tar.gz` / `.zip` | Archive of the app image. |
-| `marginalia-1.6.0-<os>-<arch>.deb` / `.dmg` / `.msi` | The installer: `.deb` on Linux, `.dmg` on macOS, `.msi` on Windows. |
-| `marginalia-1.6.0-<os>-<arch>-full.deb` / `.dmg` / `.msi` | The installer with the plugins (only when `desktop.skipFull=false`). |
+| `marginalia-1.7.0-<os>-<arch>.tar.gz` / `.zip` | Archive of the portable folder (`.zip` on Windows). |
+| `marginalia-1.7.0-<os>-<arch>-app.tar.gz` / `.zip` | Archive of the app image. |
+| `marginalia-1.7.0-<os>-<arch>.deb` / `.dmg` / `.msi` | The installer: `.deb` on Linux, `.dmg` on macOS, `.msi` on Windows. |
+| `marginalia-1.7.0-<os>-<arch>-full.deb` / `.dmg` / `.msi` | The installer with the plugins (only when `desktop.skipFull=false`). |
 
 `<os>` is `linux`, `macos` or `windows`, `<arch>` is Java's `os.arch` (`aarch64`...), except that `amd64` is written `x86_64` on every system. Archives are made with
 `tar` so the executable bits of the launchers survive.
@@ -236,8 +236,12 @@ one exact version of the application:
 ```sh
 mvn -N install                            # the parent POM in the repository root
 cd marginalia && mvn install -DskipTests
-cd plugins/reviewer && mvn package        # target/reviewer-1.6.0.jar
+cd plugins/reviewer && mvn package        # target/reviewer-1.7.0.jar
 ```
+
+A plugin that uses a shared library (the two translators, which embed `translator-common`; the Image Generator and the Audiobook, which embed `http-hooks`) needs the library installed first:
+`cd marginalia/libs/translator-common && mvn install -DskipTests`. The workflows and the plugins `Dockerfile` do that for every folder of `marginalia/libs/`
+before they build the plugins ([Libraries for plugins](plugins/libraries/index.md)).
 
 `server.yml` builds all the plugins against the freshly installed application and attaches the JARs to the release
 of a `v*` tag; the Docker image doesn't contain them (server users put them into `<data folder>/extensions` or install
@@ -250,11 +254,11 @@ application. See [Plugin development](plugins/index.md).
 `marginalia/plugins/Dockerfile` is a separate build environment for the plugins, used by servers that build from
 source (and by anyone without a local JDK/Maven). Its `builder` stage (Maven + JDK 25, like the main `Dockerfile`)
 installs the application into the image's local Maven repository (with `-Dvaadin.skip=true`: the plugins need only the
-classes JAR, so the frontend is not built, see [Building](building.md)) and builds every plugin against it; the final
+classes JAR, so the frontend is not built, see [Building](building.md)), installs the libraries of `marginalia/libs` and builds every plugin against them; the final
 stage is a small Alpine image that holds the JARs in `/jars`. Its command copies them to `/output`, replacing the
 `*.jar` files there, so the compose file (`marginalia/plugins/docker-compose.yml`, build context `../..`) mounts
 `marginalia/plugins/build` as `/output`. The plugins are built one after the other and none of them needs another one
-installed first (the Lore Generator finds the Name generator at run time, not at build time). The Name generator's
+installed first (the Lore Generator finds the Name generator at run time, not at build time); only the libraries come before them. The Name generator's
 build clones the sources of its names from GitHub (the Maven image has `git`); without network it keeps the tables
 committed in the repository, see its [README](https://github.com/Enerccio/Marginalia/blob/master/marginalia/plugins/name-generator/README.md):
 
@@ -296,7 +300,7 @@ flowchart LR
 | Job | Runs on | Does |
 |---|---|---|
 | `test` | `ubuntu-latest` | For `v*` tags, checks that the tag matches the POM version; `mvn test`; uploads `surefire-reports/` when a test fails. |
-| `plugins` | `ubuntu-latest` | Installs the application (`-Dvaadin.skip=true`: the plugins need only its classes JAR) and builds every plugin; uploads the JARs, which are the same on every platform (kept 14 days). |
+| `plugins` | `ubuntu-latest` | Installs the application (`-Dvaadin.skip=true`: the plugins need only its classes JAR), installs the libraries of `marginalia/libs` and builds every plugin; uploads the JARs, which are the same on every platform (kept 14 days). |
 | `desktop` | one runner per platform | downloads the plugin JARs to `target/desktop-plugins`, `mvn -Pdesktop -DskipTests -Ddesktop.installerRequired=true -Ddesktop.skipFull=false package`, a smoke test, uploads the archives and the installer (kept 14 days). |
 | `release` | `ubuntu-latest`, `v*` tags only | Downloads all archives and attaches them to the GitHub release of the tag. |
 
@@ -305,7 +309,7 @@ All jobs use Temurin JDK 25 with the Maven cache and check out the full history 
 
 The **smoke test** starts the native app (and on Linux and macOS also the portable `bin/marginalia`) with a temporary
 `--home`, a fixed port, `--no-browser --no-tray`, and waits up to three minutes until the start page contains
-`<title>Marginalia</title>`. On Linux it also installs the `.deb` and then the full `.deb` and starts the installed `/opt/marginalia/bin/Marginalia` each time; the plain package must install no plugin, the full one must have copied its plugins into the extensions folder. It fails and prints the launcher log otherwise. It catches broken packaging - a missing
+`<title>Marginalia</title>`. On Linux it also installs the `.deb` (the package registers its menu entry with `xdg-desktop-menu`, which fails on a runner without a desktop, so the step first creates `/usr/share/desktop-directories`, `/usr/share/applications` and `/etc/xdg/menus/applications-merged`) and then the full `.deb` and starts the installed `/opt/marginalia/bin/Marginalia` each time; the plain package must install no plugin, the full one must have copied its plugins into the extensions folder. It fails and prints the launcher log otherwise. It catches broken packaging - a missing
 JDK module, a launcher that can't find `server/`, a WAR that doesn't deploy - but doesn't test any feature.
 
 ### server.yml
@@ -319,7 +323,7 @@ flowchart LR
 
 | Job | Runs on | Does |
 |---|---|---|
-| `build` | `ubuntu-latest` | For `v*` tags, checks the tag against the POM version; `mvn -DskipTests install` (tests run in `desktop.yml`), then `mvn package` in every plugin; uploads the WAR and the plugin JARs (kept 14 days). |
+| `build` | `ubuntu-latest` | For `v*` tags, checks the tag against the POM version; `mvn -DskipTests install` (tests run in `desktop.yml`), then `mvn install` in every folder of `marginalia/libs`, then `mvn package` in every plugin; uploads the WAR and the plugin JARs (kept 14 days). |
 | `docker` | one native runner per platform | Builds the image from the `Dockerfile` (natively, because the Maven stage is too slow under emulation), starts a container with a root-owned bind-mounted data folder and waits for the start page, then (not for pull requests) pushes the image by digest. |
 | `publish` | `ubuntu-latest`, not for pull requests | Joins both digests into one multi-platform manifest and tags it: `edge` for `master`, `<version>`, `<major>.<minor>` and `latest` for `v*` tags. |
 | `release` | `ubuntu-latest`, `v*` tags only | Attaches the WAR and the plugin JARs to the GitHub release of the tag. |
@@ -343,11 +347,11 @@ the first time it is pushed; make it public in the package settings on GitHub so
 5. **Tag.** Commit, then create and push the tag:
 
    ```sh
-   git tag v1.6.0
-   git push origin master v1.6.0
+   git tag v1.7.0
+   git push origin master v1.7.0
    ```
 
-6. **Release.** Create the GitHub release for the tag (by hand or `gh release create v1.6.0`) with the release
+6. **Release.** Create the GitHub release for the tag (by hand or `gh release create v1.7.0`) with the release
    notes. `desktop.yml` attaches the desktop archives and installers (twenty files) when its matrix finishes, `server.yml` the WAR and the
    plugin JARs and pushes the Docker image - whichever finishes first creates the release if it doesn't exist yet
    (`softprops/action-gh-release`).

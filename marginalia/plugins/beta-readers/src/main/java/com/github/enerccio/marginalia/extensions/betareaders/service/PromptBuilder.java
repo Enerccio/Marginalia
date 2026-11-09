@@ -196,6 +196,9 @@ public final class PromptBuilder {
         }
         text.append("\nA line of the author's messages in square brackets that starts with \"Scene:\" describes what happens now or what "
                 + "the author does (a change of scene, an action); it is not something the author says. React to it as it happens.");
+        if (!chat.getUserName().isBlank()) {
+            text.append("\nThe author you are talking to is called ").append(chat.getUserName().strip()).append(".");
+        }
         if (chat.getKind() == ChatKind.GROUP) {
             text.append("\nThe personas who join or leave the group are announced in the author's messages.");
         }

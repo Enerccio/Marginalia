@@ -2,9 +2,9 @@
 // for the JSON merge), it is discarded: the flow gives the administrator more concurrent runs, clones the book three times
 // and creates four agents with runs that the fake model answers from its queue (`toolCalls`, as in shoot-help):
 //   Continuity editor  (the book)             a conversation: a question, work, findings, edits, a sub-agent, a report; ends Done
-//   Lore keeper        (Harry Potter - Lore pass)    asks a question (ask_user), then paused
-//   Style editor       (Harry Potter - Style pass)   wants to delete a part: waits for the approval
-//   Drafter            (Harry Potter - Draft)        works (the fake model is slow) while the Agents tab is taken
+//   Lore keeper        (Unregistered - Lore pass)    asks a question (ask_user), then paused
+//   Style editor       (Unregistered - Style pass)   wants to delete a part: waits for the approval
+//   Drafter            (Unregistered - Draft)        works (the fake model is slow) while the Agents tab is taken
 // Pictures: agents-tab, agent-start-menu, agent-dialog, agent-dialog-prompts, agent-commands, agent-models, agent-console-*,
 // agent-checkpoints, agent-context, agent-diagnostics, agent-subagents, agent-book-copy, agent-runs, agent-approval, agent-resume,
 // agent-stop, agent-review*, agent-clone, agent-locked-*, book-clone, phone-agents*, admin-agents.
@@ -17,11 +17,11 @@ import {
   clickRow, consoleSend, consoleTab, newAgent, queueRounds, rowButton, startAgent, statusOf, waitDialogText, waitStatus,
 } from '../lib/agents.mjs';
 
-const HP = 'Harry Potter and Half Blood Prince - FDM';
-const LORE_BOOK = 'Harry Potter - Lore pass';
-const STYLE_BOOK = 'Harry Potter - Style pass';
-const DRAFT_BOOK = 'Harry Potter - Draft';
-const FREE_BOOK = 'Harry Potter - Epilogue';          // no agent: the book of a clone of an agent
+const HP = 'Unregistered';
+const LORE_BOOK = 'Unregistered - Lore pass';
+const STYLE_BOOK = 'Unregistered - Style pass';
+const DRAFT_BOOK = 'Unregistered - Draft';
+const FREE_BOOK = 'Unregistered - Epilogue';          // no agent: the book of a clone of an agent
 
 const PLAN = status => ['Read the parts and the lorebook', 'Check the names, ages and places against the entries',
   'Fix what is certain', 'Report what is not', 'Ask a reader for a second opinion'].map((text, i) => ({ text, status: status[i] }));
@@ -140,7 +140,7 @@ await main(async ({ page }) => {
   // ---------------------------------------------------------------- Continuity editor: a conversation in the console
   await section(page, 'run-editor', async () => {
     await queueRounds([
-      { reply: 'Hello. I have read the settings of **Harry Potter and Half Blood Prince - FDM**: five parts on the active branch, one lorebook with eleven entries. What would you like me to do?' },
+      { reply: 'Hello. I have read the settings of **Unregistered**: five parts on the active branch, one lorebook with thirty-one entries. What would you like me to do?' },
     ]);
     await startAgent(page, 'Continuity editor', 'Start in console');
     await waitDialogText(page, 'What would you like me to do?');
@@ -162,7 +162,7 @@ await main(async ({ page }) => {
     await waitDialogText(page, 'Rounds: 2', 30000);
     await sleep(1500);
     // while it works the author may write: the message is queued
-    await consoleSend(page, 'Also look at how Ginny is described in part 1.', 600);
+    await consoleSend(page, 'Also look at how Mizuki is described in part 1.', 600);
     await sleep(1200);
     await snapDialog(page, 'agent-console-run');
   });
@@ -174,39 +174,39 @@ await main(async ({ page }) => {
       { toolCalls: [
           { name: 'get-part', arguments: { part: 'h:m1' } },
           { name: 'get-part', arguments: { part: 'h:m5' } },
-          { name: 'get-lore-entry', arguments: { entry: 'h:e5' } },
+          { name: 'get-lore-entry', arguments: { entry: 'h:e4' } },
         ] },
-      { reasoning: 'Part 1 never says the colour of Ginny\'s hair (fog), the entry says red. That is a note, not an error. Part 5 mentions a map that is in no entry, and calls the lane empty although a door was heard in part 4.',
+      { reasoning: 'Part 1 shows Mizuki only as a grey jacket and hands in pockets, the entry says small and practical. That is a note, not an error. Part 5 has the status window, which the lore only covers in an entry that is not triggered, and part 4 puts the water to her thigh in a hollow although part 2 has her kneeling in mud.',
         toolCalls: [
           { name: 'update_plan', arguments: { items: PLAN(['done', 'done', 'in_progress', 'pending', 'pending']) } },
-          { name: 'report', arguments: { severity: 'note', text: 'Part 1: Ginny is only "her hair darker with fog" - the colour (red, in her entry) is never said. Not a contradiction, but a model reading only the part will not know it.' } },
-          { name: 'report', arguments: { severity: 'warning', text: 'Part 5: Harry says "I\'ve seen the map". The Marauder\'s Map is in no lorebook entry, so the model is never told that it exists.' } },
-          { name: 'report', arguments: { severity: 'problem', text: 'Parts 4 and 5: a door closes and there is lamplight under a doorway behind the Three Broomsticks (part 4), but in part 5 Draconia looks along "the empty stretch of the lane". Either somebody is there or the lane is not empty.' } },
+          { name: 'report', arguments: { severity: 'note', text: 'Part 1: Mizuki is only "a grey jacket, hands in the pockets" - the entry says small, practical, watches before she speaks. Not a contradiction, but a model reading only the part will not know it.' } },
+          { name: 'report', arguments: { severity: 'warning', text: 'Part 5: Tomáš says "Status. Show me status." The entry on isekai tropes exists, but no keyword of it is in the part, so the model is never told how he knows them.' } },
+          { name: 'report', arguments: { severity: 'problem', text: 'Parts 2 and 4: in part 2 the ground gives "like something that had only just decided to hold" and she kneels in mud, in part 4 she goes down "to one knee in a hidden hollow" and the water reaches her thigh. Either the hollow is deep or the water is not.' } },
         ] },
       { toolCalls: [
-          { name: 'edit-part', arguments: { part: 'h:m5', old: '"Walking. It\'s a free village."', new: '"Walking. It is a free village, Potter."' } },
-          { name: 'edit-part', arguments: { part: 'h:m4', old: 'Somewhere ahead a door closed.', new: 'Somewhere ahead a door closed, and a bolt slid home.' } },
-          { name: 'create-lore-entry', arguments: { name: 'The Marauder\'s Map', payload: 'A map of Hogwarts and the grounds that shows every person in it as a moving name. Harry has it from the twins; very few know that it exists.', comment: 'Made by the agent: part 5 mentions the map.' } },
-          { name: 'update-arc', arguments: { arc: 1, description: 'Harry follows Draconia through a foggy Hogsmeade and finds her crying behind the Three Broomsticks; the Marauder\'s Map is mentioned for the first time.' } },
-          { name: 'update-lore-entry', arguments: { entry: 'h:e9', payload: 'Hogsmeade, the only all-wizarding village in Britain, a short walk from the castle. On autumn evenings fog rolls down from the hills; this year Aurors watch the main street and the post office.' } },
-          { name: 'create-part', arguments: { parent: 'h:m5', text: 'The bell had stopped by the time he found his voice again. The lane was empty, and he stayed where he was until his own breath had stopped smoking in the lamplight.' } },
+          { name: 'edit-part', arguments: { part: 'h:m5', old: 'Nothing answered him but the wind and a splash somewhere in the reeds.', new: 'Nothing answered him but the wind and a splash somewhere in the reeds, which he decided was a fish.' } },
+          { name: 'edit-part', arguments: { part: 'h:m4', old: 'Cold water soaked through her trousers to the thigh.', new: 'Cold water soaked through her trousers to the knee.' } },
+          { name: 'create-lore-entry', arguments: { name: 'The Iron Ring', payload: 'An iron ring set into the wall of the cellar by the stairs. Every tourist reaches for it, and the company keeps candle-cups beside it for effect.', comment: 'Made by the agent: part 1 mentions the ring.' } },
+          { name: 'update-arc', arguments: { arc: 1, description: 'Tomáš and Mizuki wake in the reed fields, learn that they share a language and start along the river; the status window is mentioned for the first time.' } },
+          { name: 'update-lore-entry', arguments: { entry: 'h:e12', payload: 'The reed fields - the flood meadow of the Lyrasil above Silvakhor landing: head-high reeds, black water, mud that gives like something that only just decided to hold, and a huge low moon. Where the two wake.' } },
+          { name: 'create-part', arguments: { parent: 'h:m5', text: 'The lamp had begun to flicker by the time the first roofs showed over the reeds. Neither of them said the word village; they both walked faster.' } },
         ] },
       { toolCalls: [
-          { name: 'write_file', arguments: { path: '/notes/continuity.md', content: '# Continuity notes\n\n* Part 1: the colour of Ginny\'s hair is not said (entry: red).\n* Part 5: the map has no entry (made one).\n* Parts 4-5: a door and lamplight, then an "empty" lane (reported).\n* Fixed: a bolt in part 4, "It is" in part 5.\n' } },
+          { name: 'write_file', arguments: { path: '/notes/continuity.md', content: '# Continuity notes\n\n* Part 1: Mizuki is a grey jacket (entry: small, practical).\n* Part 1: the iron ring has no entry (made one).\n* Parts 2 and 4: mud and a hollow, the water at the knee (fixed).\n* Fixed: a fish in part 5.\n' } },
           { name: 'checkpoint', arguments: { label: 'before the second opinion' } },
         ] },
       { toolCalls: [
-          { name: 'spawn_agent', arguments: { profile: 'Reader', task: 'Read parts 4 and 5 of the active branch (list-parts, get-part) and say in three sentences whether somebody could be behind the Three Broomsticks in part 5 when Draconia calls the lane empty.' } },
+          { name: 'spawn_agent', arguments: { profile: 'Reader', task: 'Read parts 2 and 4 of the active branch (list-parts, get-part) and say in three sentences whether the hollow of part 4 can be in the same field as the mud of part 2.' } },
         ] },
       { toolCalls: [
           { name: 'list-parts', arguments: { limit: 10 } },
           { name: 'get-part', arguments: { part: 'h:m4' } },
         ] },
-      { reasoning: 'Part 4 ends with Harry in the shadow one step away from her: nobody else is named.',
-        reply: 'Nobody else is named in either part. In part 4 the door and the lamplight belong to the back of the inn, where Draconia stands; in part 5 she only means that no one is in the lane itself, so the two parts do not really contradict each other. I would soften "empty" to "empty of people" to be safe.' },
+      { reasoning: 'Part 2 says the ground gave like something that had only just decided to hold: a hollow is not far from that.',
+        reply: 'The two parts do not really contradict each other. Part 2 says the mud gave under his hands like something that had only just decided to hold, so a hollow where the water is deeper is the same field. I would put the water at the knee in part 4 to be safe.' },
       { toolCalls: [
           { name: 'update_plan', arguments: { items: PLAN(['done', 'done', 'done', 'done', 'done']) } },
-          { name: 'finish', arguments: { summary: '## Report\n\nI checked the five parts against the lorebook.\n\n**Fixed**\n* part 5: "It\'s" -> "It is ... Potter"\n* part 4: the door now has a bolt\n\n**Added**\n* a lorebook entry for the Marauder\'s Map; a shorter entry for Hogsmeade\n* a closing part after part 5\n\n**Reported** (3 findings): the colour of Ginny\'s hair in part 1, the map, and the lane that is empty in part 5.\n\nThe reader agrees that parts 4 and 5 do not contradict each other.' } },
+          { name: 'finish', arguments: { summary: '## Report\n\nI checked the five parts against the lorebook.\n\n**Fixed**\n* part 5: a fish for the splash\n* part 4: the water reaches the knee, not the thigh\n\n**Added**\n* a lorebook entry for the iron ring; a shorter entry for the reed fields\n* a closing part after part 5\n\n**Reported** (3 findings): how Mizuki is described in part 1, the status window, and the hollow in part 4.\n\nThe reader agrees that parts 2 and 4 do not contradict each other.' } },
         ] },
     ]);
     // Send now (the lightning bolt of the queued bubble)
@@ -242,7 +242,7 @@ await main(async ({ page }) => {
     await consoleTab(page, 'Run', 800);
   });
   await section(page, 'console-command', async () => {
-    await queueRounds([{ reply: '## Summary of my work\n\nTask: check the five parts against the lorebook, fix what is certain, report the rest.\n\nDone: 3 findings reported (hair colour in part 1, the map, the empty lane), two typos fixed, an entry for the Marauder\'s Map and a shorter Hogsmeade entry made, one closing part written; the reader says parts 4 and 5 do not contradict each other.\n\nNotes are in /notes/continuity.md.' }]);
+    await queueRounds([{ reply: '## Summary of my work\n\nTask: check the five parts against the lorebook, fix what is certain, report the rest.\n\nDone: 3 findings reported (Mizuki in part 1, the status window, the hollow), two sentences fixed, an entry for the iron ring and a shorter reed-fields entry made, one closing part written; the reader says parts 2 and 4 do not contradict each other.\n\nNotes are in /notes/continuity.md.' }]);
     const d = dialog(page);
     const line = d.locator('vaadin-combo-box input').first();
     await line.click();
@@ -267,8 +267,8 @@ await main(async ({ page }) => {
     await queueRounds([
       { toolCalls: [{ name: 'list-lorebooks', arguments: {} }, { name: 'list-lore-entries', arguments: { limit: 20 } }] },
       { toolCalls: [{ name: 'ask_user', arguments: {
-          question: 'The lorebook has no entry for **Madam Rosmerta**, who keeps the Three Broomsticks and is in part 1. Shall I write one, and how should she treat Harry?',
-          options: ['Write it, friendly to Harry', 'Write it, neutral', 'Leave it out'] } }] },
+          question: 'The lorebook has no entry for the **candle-cups** that the tour company keeps in the cellar, and part 1 mentions them. Shall I write one, and how much should it say about the company?',
+          options: ['Write it, short', 'Write it, with the company', 'Leave it out'] } }] },
     ]);
     await startAgent(page, 'Lore keeper', 'Start immediately');
     await waitStatus(page, 'Lore keeper', 'Waiting for you', 60000);
@@ -283,7 +283,7 @@ await main(async ({ page }) => {
 
   await section(page, 'resume-stop-dialogs', async () => {
     await clickRow(page, 'Lore keeper', 'play', 900);
-    await fill(dialog(page), 'Note for the agent (optional)', 'Make it neutral, she only serves them.');
+    await fill(dialog(page), 'Note for the agent (optional)', 'Keep it short, it is only a prop.');
     await snapDialog(page, 'agent-resume');
     await press(dialog(page), 'Cancel');
     await clickRow(page, 'Lore keeper', 'stop', 900);
@@ -404,9 +404,9 @@ await main(async ({ page }) => {
     await idle(page, 600);
     const area = parts(page).last().locator('textarea').first();
     const text = await area.inputValue();
-    const from = '"Walking. It\'s a free village."';
+    const from = 'Nothing answered him but the wind and a splash somewhere in the reeds.';
     if (!text.includes(from)) throw new Error('text to edit not found');
-    await area.fill(text.replace(from, '"Walking. It\'s a free village, I\'m told."'));
+    await area.fill(text.replace(from, 'Nothing answered him but the wind and a splash somewhere in the reeds, probably a fish.'));
     await area.dispatchEvent('change');
     await partAction(page, -1, 'Save');
     await idle(page, 1000);
@@ -416,7 +416,7 @@ await main(async ({ page }) => {
     await page.getByRole('button', { name: 'Edit arc', exact: true }).first().click();
     await idle(page, 700);
     const d = dialog(page);
-    await fill(d, 'Description', 'Harry follows Draconia through a foggy Hogsmeade and finds her crying; the church bell ends the evening.');
+    await fill(d, 'Description', 'Tomáš and Mizuki wake in the reeds, share a language by accident and walk down the river toward a light.');
     await press(d, 'Save');
     await idle(page, 1000);
     await press(page, 'Exit');

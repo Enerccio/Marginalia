@@ -1,0 +1,15 @@
+package com.github.enerccio.marginalia.extensions.conlangtranslator.diff;
+
+/**
+ * What kind of thing of a language a {@link Change} is about. The order is the order the changes are applied in (a category before the words that use it).
+ */
+public enum Target {
+    /** The language itself: its name, description and options. There is always exactly one. */
+    LANGUAGE,
+    RULE,
+    CATEGORY,
+    REGISTER,
+    WORD,
+    /** A category of names for the Name generator: its name and the words chosen (it comes after the words it names). */
+    NAME_CATEGORY
+}

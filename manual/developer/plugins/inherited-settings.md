@@ -14,7 +14,7 @@ covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/BackupFolders.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/BackupInheritance.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/OsgiServiceImpl.java
-verified: 6b9a70d37
+verified: d163441bd
 ---
 
 # Inherited settings
@@ -22,7 +22,7 @@ verified: 6b9a70d37
 The text settings of a book (the prompts, the point of view, the style...) are *inherited*: a book uses its own, else the
 nearest [folder](../folders.md) above it that sets one, else the user's, else a default. A plugin can give its own
 settings the same chain. It registers a setting, the *Prompts* tab of every book and the dialog of every folder get an
-**Extension Settings** section with a field for it, and the plugin asks the service for the value that applies to a book.
+**Extension Settings** section (the exporters of the application register their templates there too, see `ExportInheritedSettings`; an accordion, one panel per plugin, the group title is the panel's title) with a field for it, and the plugin asks the service for the value that applies to a book.
 
 The levels of the user are the plugin's business (it has its own panel in the *Settings* screen, see
 [Settings panels](ui-extensions.md#settings-panels)), so the chain the application keeps is *book → folders*; the
@@ -75,6 +75,8 @@ A value is always a text. Anything richer (a list, a number) is the plugin's own
   settings* or *Built-in default*. Both are called from whatever thread resolves a setting, a generation worker included (it has
   the request attributes of the session, like the application's own services), and an exception in a supplier is logged and
   treated as no value.
+- **`variables(Class)`** (a text area that holds a template): the data class the template is rendered with; the hints popover of the field lists its properties as the variables
+  the template can use.
 - A setting registered later than a dialog was built is not in that dialog; a new dialog has it.
 
 ## Reading the value

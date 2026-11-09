@@ -7,15 +7,13 @@ import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
+import com.github.enerccio.marginalia.extensions.sidequery.SideQueryExtension;
 import com.github.enerccio.marginalia.extensions.sidequery.SideQueryLog;
 import com.github.enerccio.marginalia.extensions.sidequery.model.*;
 import com.github.enerccio.marginalia.extensions.sidequery.service.SideQueryService;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
-import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
-import com.github.enerccio.marginalia.ui.widgets.Notification;
-import com.github.enerccio.marginalia.ui.widgets.ResizableTextArea;
-import com.github.enerccio.marginalia.ui.widgets.ScrollPanel;
+import com.github.enerccio.marginalia.ui.widgets.*;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
@@ -188,10 +186,13 @@ public class SideQueryTabContent extends VerticalLayout {
         storagePanel = new HorizontalLayout();
         storagePanel.setWidthFull();
         storagePanel.setAlignItems(Alignment.CENTER);
+        // the tab is narrow in the drawer of a phone
+        storagePanel.setWrap(true);
 
         savedQueriesCombo = new ComboBox<>();
         savedQueriesCombo.setPlaceholder(T.localized(SELECT_SAVED_QUERY));
         savedQueriesCombo.setWidthFull();
+        savedQueriesCombo.setMinWidth("10em");
         refreshSavedQueriesCombo();
 
         savedQueriesCombo.addValueChangeListener(e -> {
@@ -225,9 +226,11 @@ public class SideQueryTabContent extends VerticalLayout {
 
         HorizontalLayout btnRow = new HorizontalLayout();
         btnRow.setWidthFull();
+        btnRow.setWrap(true);
 
         sendBtn = new Button("SEND", e -> handleSend());
         sendBtn.setThemeName("primary");
+        DialogShortcuts.submitWith(sendBtn, userInputArea);
 
         undoBtn = new Button("UNDO", e -> handleUndo());
         generateAgainBtn = new Button("REGENERATE", e -> handleGenerateAgain());
@@ -305,6 +308,7 @@ public class SideQueryTabContent extends VerticalLayout {
 
         dialog.add(new VerticalLayout(nameField));
         dialog.getFooter().add(cancelBtn, saveBtn);
+        DialogShortcuts.submitWith(saveBtn, nameField);
         dialog.open();
     }
 
@@ -472,6 +476,7 @@ public class SideQueryTabContent extends VerticalLayout {
                         triggerSave();
                         setGeneratingState(false);
                         updateTokenCount();
+                        new DesktopNotifier(ui).finished(SideQueryExtension.NOTIFY_QUERY, false, manuscript.getName());
                         UIPushGuard.push(ui);
                         nameTab(ui, profileSetting);
                     });
@@ -496,6 +501,7 @@ public class SideQueryTabContent extends VerticalLayout {
                         triggerSave();
                         setGeneratingState(false);
                         updateTokenCount();
+                        new DesktopNotifier(ui).failed(SideQueryExtension.NOTIFY_QUERY, false, manuscript.getName());
                         UIPushGuard.push(ui);
                     });
                 }

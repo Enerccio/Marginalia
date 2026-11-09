@@ -87,7 +87,6 @@ class ManuscriptRestoreTest extends BackupTestBase {
     private void assertMessagesRestored(Manuscript restored) throws Exception {
         assertThat(tree(restored)).isEqualTo(storyTree());
         assertThat(activeLeafResponse(restored)).isEqualTo("chapter 2a");
-        assertThat(messageByResponse(restored, "chapter 1").isEdited()).isTrue();
         assertThat(messageByResponse(restored, "chapter 1").getInstructions()).isEqualTo("instructions for chapter 1");
         ChatMessage twoA = messageByResponse(restored, "chapter 2a");
         assertThat(summaryService.find(twoA.getSummary().getId()).getSummary()).isEqualTo("summary up to 2a");

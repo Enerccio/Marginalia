@@ -4,6 +4,7 @@ import com.github.enerccio.marginalia.domain.collections.AgentRunPairKind;
 import com.github.enerccio.marginalia.domain.collections.Language;
 import com.github.enerccio.marginalia.domain.collections.RevisionSource;
 import com.github.enerccio.marginalia.domain.collections.SummaryType;
+import com.github.enerccio.marginalia.domain.components.LoreUsage;
 import com.github.enerccio.marginalia.domain.listener.ExtendableEntityListener;
 import com.github.enerccio.marginalia.domain.model.BaseEntity;
 import com.github.enerccio.marginalia.domain.model.OwnedEntity;
@@ -496,6 +497,11 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
     }
 
     @Override
+    public String getAnnotateInstructions(Manuscript manuscript) throws Exception {
+        return resolve(manuscript, PromptField.ANNOTATE_INSTRUCTIONS).value();
+    }
+
+    @Override
     public String getImpersonatePrompt(Manuscript manuscript) throws Exception {
         return resolve(manuscript, PromptField.IMPERSONATE_PROMPT).value();
     }
@@ -619,7 +625,6 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
             msgObj.addProperty("uuid", msg.getUuid());
             msgObj.addProperty("tokenCount", msg.getTokenCount());
             msgObj.addProperty("wordCount", msg.getWordCount());
-            msgObj.addProperty("edited", msg.isEdited());
 
             if (msg.getParent() != null) {
                 msgObj.addProperty("parentUuid", msg.getParent().getUuid());
@@ -646,6 +651,9 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
                 }
                 if (prompt.getBackgroundLore() != null) {
                     ext.addProperty(MessagePrompt.LORE_KEY, prompt.getBackgroundLore());
+                }
+                if (prompt.getLoreUsageJson() != null) {
+                    ext.addProperty(MessagePrompt.LORE_USAGE_KEY, prompt.getLoreUsageJson());
                 }
                 msgObj.add("extendedContent", ext);
             }
@@ -1149,12 +1157,10 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
             if (msgObj.has("wordCount") && !msgObj.get("wordCount").isJsonNull()) {
                 msg.setWordCount(msgObj.get("wordCount").getAsInt());
             }
-            if (msgObj.has("edited") && !msgObj.get("edited").isJsonNull()) {
-                msg.setEdited(msgObj.get("edited").getAsBoolean());
-            }
 
             String restoredPrompt = null;
             String restoredLore = null;
+            LoreUsage restoredUsage = null;
             if (msgObj.has("extendedContent") && !msgObj.get("extendedContent").isJsonNull()) {
                 JsonElement ext = msgObj.get("extendedContent");
                 if (ext.isJsonObject()) {
@@ -1162,6 +1168,7 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
                     JsonObject content = ext.getAsJsonObject().deepCopy();
                     restoredPrompt = takeString(content, MessagePrompt.PROMPT_KEY);
                     restoredLore = takeString(content, MessagePrompt.LORE_KEY);
+                    restoredUsage = LoreUsage.fromJson(takeString(content, MessagePrompt.LORE_USAGE_KEY));
                     ext = content;
                 }
                 msg.setExtendedContent(ext.toString().getBytes(StandardCharsets.UTF_8));
@@ -1186,7 +1193,7 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
             }
 
             msg = chatMessageService.saveWithoutEvent(msg);
-            messagePromptService.store(msg, restoredPrompt, restoredLore);
+            messagePromptService.store(msg, restoredPrompt, restoredLore, restoredUsage);
 
             if (msgObj.has("annotations") && msgObj.get("annotations").isJsonArray()) {
                 annotationService.restoreForPart(msg, msgObj.getAsJsonArray("annotations"), pairs);

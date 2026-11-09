@@ -12,9 +12,7 @@ import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
-import com.github.enerccio.marginalia.ui.widgets.Notification;
-import com.github.enerccio.marginalia.ui.widgets.ResizableTextArea;
-import com.github.enerccio.marginalia.ui.widgets.WordDiffView;
+import com.github.enerccio.marginalia.ui.widgets.*;
 import com.github.enerccio.marginalia.utils.TextMarkup;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.ModalityMode;
@@ -154,9 +152,10 @@ public class RedraftDialog extends Dialog {
                           boolean automatic, boolean applyAutomatically) {
         this.manuscript = manuscript;
         this.part = part;
-        this.passage = passage;
+        // a selection inside a passage that an extension keeps in another form is redrafted, and replaced, as a whole
+        this.passage = passage == null ? null : redraftService.widen(part, passage);
         this.partText = StringUtils.defaultString(part.getResponse());
-        this.selected = passage == null ? partText : partText.substring(passage.start(), passage.end());
+        this.selected = this.passage == null ? partText : partText.substring(this.passage.start(), this.passage.end());
         this.onApplied = onApplied;
         this.automatic = automatic;
         this.applyAutomatically = applyAutomatically;
@@ -258,6 +257,8 @@ public class RedraftDialog extends Dialog {
         apply.addClickListener(_ -> apply());
         Button close = new Button(loc.getValue(L.LABEL_CLOSE), _ -> close());
         getFooter().add(close, apply);
+        DialogShortcuts.submitWith(start, instructions);
+        DialogFocus.onOpen(this, instructions);
 
         addOpenedChangeListener(e -> {
             if (!e.isOpened() && generating && cancellationToken != null) {
@@ -386,6 +387,7 @@ public class RedraftDialog extends Dialog {
             public void onFinished(String reasoning, String text) {
                 ui.access(() -> {
                     completed(reasoning, text);
+                    new DesktopNotifier(ui).finished(NotificationService.REDRAFT, automatic, manuscript.getName());
                     UIPushGuard.push(ui);
                 });
             }
@@ -403,6 +405,7 @@ public class RedraftDialog extends Dialog {
                 ui.access(() -> {
                     showGenerating(false);
                     UIUtils.inferenceError(loc, throwable);
+                    new DesktopNotifier(ui).failed(NotificationService.REDRAFT, automatic, manuscript.getName());
                     UIPushGuard.push(ui);
                 });
             }

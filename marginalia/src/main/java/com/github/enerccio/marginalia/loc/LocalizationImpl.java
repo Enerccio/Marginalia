@@ -35,6 +35,7 @@ public class LocalizationImpl implements Localization, InitializingBean {
     private final Map<AIType, L> aiTypes = new HashMap<>();
     private final Map<ProtocolType, L> protocolTypes = new HashMap<>();
     private final Map<ReasoningEffort, L> reasoningEfforts = new HashMap<>();
+    private final Map<ReasoningPassthrough, L> reasoningPassthroughs = new HashMap<>();
     private final Map<LimitStrategy, L> limitStrategies = new HashMap<>();
     private final Map<ResetStrategy, L> resetStrategies = new HashMap<>();
     private final Map<BackupStrategy, L> backupStrategies = new HashMap<>();
@@ -104,6 +105,9 @@ public class LocalizationImpl implements Localization, InitializingBean {
         reasoningEfforts.put(ReasoningEffort.LOW, L.ENUM_REASONING_LOW);
         reasoningEfforts.put(ReasoningEffort.MEDIUM, L.ENUM_REASONING_MEDIUM);
         reasoningEfforts.put(ReasoningEffort.HIGH, L.ENUM_REASONING_HIGH);
+        reasoningPassthroughs.put(ReasoningPassthrough.NONE, L.ENUM_REASONING_PASSTHROUGH_NONE);
+        reasoningPassthroughs.put(ReasoningPassthrough.TOOL_CALLS, L.ENUM_REASONING_PASSTHROUGH_TOOL_CALLS);
+        reasoningPassthroughs.put(ReasoningPassthrough.ALWAYS, L.ENUM_REASONING_PASSTHROUGH_ALWAYS);
 
         limitStrategies.put(LimitStrategy.UNLIMITED, L.ENUM_LIMIT_UNLIMITED);
         limitStrategies.put(LimitStrategy.TOKEN_LIMIT, L.ENUM_LIMIT_TOKEN_LIMIT);
@@ -133,6 +137,8 @@ public class LocalizationImpl implements Localization, InitializingBean {
         revisionDetails.put(RevisionDetail.BRANCH, L.LABEL_BRANCH);
         revisionDetails.put(RevisionDetail.ARCHIVE_IMPORT, L.LABEL_IMPORT_FROM_ARCHIVE);
         revisionDetails.put(RevisionDetail.SILLYTAVERN_IMPORT, L.LABEL_IMPORT_FROM_SILLYTAVERN);
+        revisionDetails.put(RevisionDetail.LMSTUDIO_IMPORT, L.LABEL_IMPORT_FROM_LMSTUDIO);
+        revisionDetails.put(RevisionDetail.TRANSLATION, L.LABEL_TRANSLATION);
 
         agentRunStatuses.put(AgentRunStatus.RUNNING, L.ENUM_AGENT_RUN_RUNNING);
         agentRunStatuses.put(AgentRunStatus.IDLE, L.ENUM_AGENT_RUN_IDLE);
@@ -192,6 +198,7 @@ public class LocalizationImpl implements Localization, InitializingBean {
         domainObjects.put(ChatMessage.class, L.ENUM_DOMAIN_MESSAGE);
         domainObjects.put(Summary.class, L.LABEL_SUMMARY);
         domainObjects.put(Annotation.class, L.ENUM_DOMAIN_ANNOTATION);
+        domainObjects.put(AnchoredPassage.class, L.ENUM_DOMAIN_ANNOTATION);
         domainObjects.put(MessageRevision.class, L.ENUM_DOMAIN_MESSAGE_REVISION);
         domainObjects.put(AI.class, L.LABEL_MODEL);
         domainObjects.put(Protocol.class, L.ENUM_DOMAIN_PROTOCOL);
@@ -373,6 +380,11 @@ public class LocalizationImpl implements Localization, InitializingBean {
     public L getReasoningEffort(ReasoningEffort type) {
         return reasoningEfforts.get(type);
     }
+    @Override
+    public L getReasoningPassthrough(ReasoningPassthrough type) {
+        return reasoningPassthroughs.get(type);
+    }
+
     @Override
     public L getLimitStrategy(LimitStrategy type) {
         return limitStrategies.get(type);

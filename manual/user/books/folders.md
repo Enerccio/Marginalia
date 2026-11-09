@@ -100,7 +100,7 @@ book would change under the run.
 
 ## Organise
 
-**Organise** (the header of the list) opens a window with two panes, each showing a folder, to move and copy books and
+**Organise** (in the **Manage** menu of the header of the list) opens a window with two panes, each showing a folder, to move and copy books and
 folders from one to the other without opening each. It opens with the left pane on the folder you were in and the right
 pane on the one it showed last time.
 
@@ -160,7 +160,7 @@ Books never clash: their names may repeat.
 
 ## Mass changes
 
-The **Mass changes** menu of the list (and the buttons of Organise) change many books at once. **Mass Change
+The **Manage → Mass changes** menu of the list (and the buttons of Organise) change many books at once. **Mass Change
 Model/Protocol** puts one model and/or one protocol on the books, **Mass Change Language** a language, **Mass Rename**
 adds a prefix or a postfix to their names, replaces a text in them or numbers them, **Tag books**
 and **Tag folders** add or remove a tag. See [Managing books](managing-books.md#tagging-many-books-at-once). From the list they
@@ -174,7 +174,7 @@ the star away removes the book from it, not from its folder. Favorites are kept 
 
 ## Tagging folders
 
-Folders have tags as books do. **Mass changes → Tag folders** tags many folders at once. The tags of a folder do not
+Folders have tags as books do. **Manage → Mass changes → Tag folders** tags many folders at once. The tags of a folder do not
 change the tags of its books, and they are not part of a [backup](backups.md).
 
 ## Folders and other features
@@ -184,5 +184,5 @@ change the tags of its books, and they are not part of a [backup](backups.md).
 - **Agents.** An [agent](../agents.md#agents-and-folders) writes with the settings of the folders of its book.
 - **Help assistant.** If you allow it, the [assistant](../administration/help-assistant.md#your-books) can look up your
   books and folders.
-- **Phone.** The [phone layout](../phone.md#books) shows the same folders as cards.
+- **Phone.** The [phone layout](../phone.md#books) shows the same folders as cards and makes, renames, sets up and deletes them; Organise and the mass changes are in the **⋮** menu of its header.
 - **Viewer.** The [viewer](publishing.md#folders-in-the-list) lists the folders too and opens in the one you left.

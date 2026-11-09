@@ -114,6 +114,20 @@ public class NewBookAction {
         });
     }
 
+    /**
+     * Asks for conversations of LM Studio and opens a new book with their messages as a tree of parts, the same way
+     * {@link #runFromSillyTavern()} does.
+     */
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = void.class))
+    public void runFromLmStudio() {
+        SillyTavernImportDialog.show(ChatImportFormat.LMSTUDIO, (tree, name) -> {
+            Manuscript manuscript = createBook(StringUtils.defaultIfBlank(name, loc.getValue(L.LABEL_NEW_BOOK)));
+            // a stopped import leaves the book with the parts until then, it is opened too
+            new SillyTavernImportRunner().run(ChatImportFormat.LMSTUDIO, manuscript, tree, imported -> opener.open(manuscriptService.find(manuscript)));
+        });
+    }
+
     @PublicAPI(from = "1.4.0",
             returns = @APIReturn(type = Manuscript.class),
             parameters = {@APIParameter(name = "name", type = String.class)},

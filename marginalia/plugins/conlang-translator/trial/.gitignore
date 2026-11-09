@@ -1,0 +1,6 @@
+out/
+design/*.system.txt
+design/*.user.txt
+design/*.out.json
+design/*.err.txt
+design/DONE

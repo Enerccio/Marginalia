@@ -3,6 +3,7 @@ package com.github.enerccio.marginalia.ui.dialogs;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.UIConstants;
+import com.github.enerccio.marginalia.domain.collections.ActivationContext;
 import com.github.enerccio.marginalia.domain.collections.FilteringMode;
 import com.github.enerccio.marginalia.domain.collections.InsertionMode;
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
@@ -39,7 +40,7 @@ import org.springframework.beans.factory.annotation.Configurable;
 import java.util.*;
 
 /**
- * Edits all the entries of a lorebook at once: the entries of the lorebook and of its subbooks (however deep) in one grid,
+ * Edits all the entries of a lorebook at once (the activation context and the range of parts too): the entries of the lorebook and of its subbooks (however deep) in one grid,
  * by their order, a row on one line, the grid scrolls. The enabled box, the name, the order, the tags, the filtering, the
  * insertion mode, the negative tags and the note of an entry are changed in place, the text is only
  * shown, shortened; the lorebook an entry is in is a box in its row, which moves it to the lorebook itself or to one of its
@@ -110,6 +111,7 @@ public class LorebookMassEditDialog extends Dialog {
     private Checkbox allBox;
     private ComboBox<Lorebook> targetBox;
     private Button moveChecked;
+    private Button deleteChecked;
     private Span lockedHint;
 
     // the lorebook and its subbooks, the lorebook first; the ones an agent works on are in lockedBooks
@@ -178,6 +180,14 @@ public class LorebookMassEditDialog extends Dialog {
         grid.addComponentColumn(this::insertionModeBox).setHeader(loc.getValue(L.LABEL_INSERTION_MODE)).setFlexGrow(0)
                 .setWidth(COMBO_COLUMN_SIZE);
         grid.addComponentColumn(this::negativeTagsBox).setHeader(loc.getValue(L.LABEL_NEGATIVE_TAGS)).setFlexGrow(2);
+        grid.addComponentColumn(this::activationContextBox).setHeader(loc.getValue(L.LABEL_ACTIVATION_CONTEXT)).setFlexGrow(0)
+                .setWidth(COMBO_COLUMN_SIZE);
+        grid.addComponentColumn(this::activationPartsField).setHeader(loc.getValue(L.LABEL_PARTS)).setFlexGrow(0)
+                .setWidth(UIConstants.TOOL_COLUMN_SIZE_LARGE);
+        grid.addComponentColumn(row -> messageField(row, true)).setHeader(loc.getValue(L.LABEL_FROM_MESSAGE)).setFlexGrow(0)
+                .setWidth(UIConstants.TOOL_COLUMN_SIZE_LARGE);
+        grid.addComponentColumn(row -> messageField(row, false)).setHeader(loc.getValue(L.LABEL_TO_MESSAGE)).setFlexGrow(0)
+                .setWidth(UIConstants.TOOL_COLUMN_SIZE_LARGE);
         grid.addComponentColumn(this::noteField).setHeader(loc.getValue(L.LABEL_NOTE)).setFlexGrow(1)
                 .setWidth(TEXT_COLUMN_SIZE);
         grid.addComponentColumn(this::contentCell).setHeader(loc.getValue(L.LABEL_CONTENT)).setFlexGrow(4)
@@ -188,9 +198,11 @@ public class LorebookMassEditDialog extends Dialog {
         targetBox.addValueChangeListener(event -> updateButtons());
         moveChecked = new Button(loc.getValue(L.LABEL_MOVE_CHECKED), Solid.EXCHANGE_ALT.create(), event -> moveChecked());
         moveChecked.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        deleteChecked = new Button(loc.getValue(L.LABEL_DELETE_CHECKED), Solid.TRASH.create(), event -> deleteChecked());
+        deleteChecked.addThemeVariants(ButtonVariant.LUMO_ERROR);
         Button refresh = new Button(loc.getValue(L.LABEL_REFRESH), Solid.REFRESH.create(), event -> reload());
         Button close = new Button(loc.getValue(L.LABEL_CLOSE), event -> close());
-        HorizontalLayout moveLayout = new HorizontalLayout(targetBox, moveChecked, refresh);
+        HorizontalLayout moveLayout = new HorizontalLayout(targetBox, moveChecked, deleteChecked, refresh);
         moveLayout.setAlignItems(FlexComponent.Alignment.END);
         moveLayout.setWrap(true);
         HorizontalLayout footer = new HorizontalLayout(moveLayout, close);
@@ -470,6 +482,73 @@ public class LorebookMassEditDialog extends Dialog {
         return dimmed(box, row);
     }
 
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = ComboBox.class),
+            parameters = {@APIParameter(name = "row", type = LorebookMassEditDialog.Row.class)},
+            locals = {@APILocals(name = "box", type = ComboBox.class)})
+    private ComboBox<ActivationContext> activationContextBox(Row row) {
+        ComboBox<ActivationContext> box = new ComboBox<>();
+        box.setWidthFull();
+        box.setItems(ActivationContext.values());
+        box.setItemLabelGenerator(context -> loc.getValue(loc.getActivationContext(context)));
+        box.setValue(row.entry.getActivationContext());
+        box.setAllowCustomValue(false);
+        box.setEnabled(!row.locked);
+        box.addValueChangeListener(event -> {
+            if (event.isFromClient() && event.getValue() != null) {
+                row.entry.setActivationContext(event.getValue());
+                save(row);
+            }
+        });
+        return dimmed(box, row);
+    }
+
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = IntegerField.class),
+            parameters = {@APIParameter(name = "row", type = LorebookMassEditDialog.Row.class)},
+            locals = {@APILocals(name = "field", type = IntegerField.class)})
+    private IntegerField activationPartsField(Row row) {
+        IntegerField field = new IntegerField();
+        field.setWidth("100px");
+        field.setMin(1);
+        field.setValue(row.entry.getActivationParts());
+        field.setReadOnly(row.locked);
+        field.addValueChangeListener(event -> {
+            if (event.isFromClient() && event.getValue() != null) {
+                row.entry.setActivationParts(event.getValue());
+                save(row);
+            }
+        });
+        return dimmed(field, row);
+    }
+
+    /**
+     * The first or the last part (the number of the outline) the entry is used for; empty = no limit.
+     */
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = IntegerField.class),
+            parameters = {@APIParameter(name = "row", type = LorebookMassEditDialog.Row.class),
+                    @APIParameter(name = "from", type = boolean.class)},
+            locals = {@APILocals(name = "field", type = IntegerField.class)})
+    private IntegerField messageField(Row row, boolean from) {
+        IntegerField field = new IntegerField();
+        field.setWidth("100px");
+        field.setMin(1);
+        field.setValue(from ? row.entry.getFromMessage() : row.entry.getToMessage());
+        field.setReadOnly(row.locked);
+        field.addValueChangeListener(event -> {
+            if (event.isFromClient()) {
+                if (from) {
+                    row.entry.setFromMessage(event.getValue());
+                } else {
+                    row.entry.setToMessage(event.getValue());
+                }
+                save(row);
+            }
+        });
+        return dimmed(field, row);
+    }
+
     @PublicAPI(from = "1.4.0",
             returns = @APIReturn(type = TextField.class),
             parameters = {@APIParameter(name = "row", type = LorebookMassEditDialog.Row.class)},
@@ -521,6 +600,9 @@ public class LorebookMassEditDialog extends Dialog {
         if (moveChecked != null) {
             moveChecked.setEnabled(targetBox.getValue() != null && rows.stream().anyMatch(row -> row.checked && !row.locked));
         }
+        if (deleteChecked != null) {
+            deleteChecked.setEnabled(rows.stream().anyMatch(row -> row.checked && !row.locked));
+        }
     }
 
     /**
@@ -555,6 +637,47 @@ public class LorebookMassEditDialog extends Dialog {
             return;
         }
         move(checked, target);
+    }
+
+    /**
+     * Deletes the checked entries (to the trash) after the user confirms; the ones of a lorebook an agent works on stay.
+     */
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "checked", type = List.class)})
+    private void deleteChecked() {
+        List<Row> checked = rows.stream().filter(row -> row.checked && !row.locked).toList();
+        if (checked.isEmpty()) {
+            return;
+        }
+        ConfirmDialog.show(String.format(loc.getValue(L.MSG_CONFIRM_DELETE_ENTRIES), checked.size()), () -> delete(checked));
+    }
+
+    /**
+     * Deletes the entries; the ones of a lorebook an agent works on by now stay.
+     */
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "targets", type = List.class)},
+            locals = {@APILocals(name = "row", type = LorebookMassEditDialog.Row.class),
+                    @APILocals(name = "e", type = Exception.class)})
+    private void delete(List<Row> targets) {
+        int deleted = 0;
+        try {
+            for (Row row : targets) {
+                if (row.locked) {
+                    continue;
+                }
+                lorebookEntryService.delete(row.entry, false);
+                deleted++;
+            }
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+        if (deleted > 0) {
+            changed = true;
+        }
+        reload();
     }
 
     /**
@@ -620,6 +743,12 @@ public class LorebookMassEditDialog extends Dialog {
         return targetBox;
     }
 
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = Button.class))
+    Button getDeleteChecked() {
+        return deleteChecked;
+    }
+
     @PublicAPI(from = "1.4.0",
             returns = @APIReturn(type = Button.class))
     Button getMoveChecked() {
@@ -641,6 +770,16 @@ public class LorebookMassEditDialog extends Dialog {
                     @APIParameter(name = "target", type = Lorebook.class)})
     void moveTo(Row row, Lorebook target) {
         move(List.of(row), target);
+    }
+
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "checked", type = List.class)})
+    void deleteCheckedNow() {
+        List<Row> checked = rows.stream().filter(row -> row.checked && !row.locked).toList();
+        if (!checked.isEmpty()) {
+            delete(checked);
+        }
     }
 
     @PublicAPI(from = "1.4.0",

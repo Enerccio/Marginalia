@@ -6,6 +6,7 @@ import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.service.ExtensionService;
 import com.github.enerccio.marginalia.domain.service.ExtensionService.ExtendableMethodContext;
 import com.github.enerccio.marginalia.domain.service.ExtensionService.ExtensionDecorator;
+import com.github.enerccio.marginalia.domain.service.NotificationService;
 import com.github.enerccio.marginalia.domain.service.OsgiService;
 import com.github.enerccio.marginalia.extensions.ExtensionHasCss;
 import com.github.enerccio.marginalia.extensions.MarginaliaExtension;
@@ -45,7 +46,13 @@ public class ImageGeneratorExtension implements MarginaliaExtension, ExtensionHa
     @Autowired
     private StoryMenuRegistry menuRegistry;
 
+    @Autowired
+    private NotificationService notificationService;
+
     private static final String SETTINGS_PANEL_KEY = ImageSettings.KEY + ".settingsPanel";
+    /** The sources of the notifications that the prompt is written or the image is made, see {@code NotificationService}. */
+    public static final String NOTIFY_PROMPT = ImageSettings.KEY + ".prompt";
+    public static final String NOTIFY_IMAGE = ImageSettings.KEY + ".image";
 
     private final ImageGeneratorService imageService = new ImageGeneratorService();
 
@@ -56,6 +63,8 @@ public class ImageGeneratorExtension implements MarginaliaExtension, ExtensionHa
     @Override
     public void onExtensionLoad(Bundle bundle, OsgiService parentService, ExtensionService extensionService) {
         ImageGeneratorLog.install(parentService.createLogger(bundle));
+        notificationService.register(bundle.getSymbolicName(), new NotificationService.Source(NOTIFY_PROMPT, () -> T.localized(IMAGE_GENERATOR_WRITE_THE_PROMPT)));
+        notificationService.register(bundle.getSymbolicName(), new NotificationService.Source(NOTIFY_IMAGE, () -> T.localized(IMAGE_GENERATOR_GENERATE_THE_IMAGE)));
         // the story editor loads other books into the same instance, so the book is read when the item is chosen
         menuRegistry.register(bundle.getSymbolicName(),
                 StoryMenuItem.card(MENU_ITEM_KEY, l -> T.localized(GENERATE_IMAGE), (story, card) -> open(story.getCurrentManuscript(), card))

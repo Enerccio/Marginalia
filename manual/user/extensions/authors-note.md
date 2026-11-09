@@ -1,6 +1,6 @@
 ---
 label: Author's Note
-order: 110
+order: 23
 ---
 
 # Author's Note
@@ -42,6 +42,15 @@ instructions:
 
 The note's tokens are taken from the room for the story: a longer note means fewer story parts in the prompt. A note
 that doesn't leave room even for the rest of the prompt stops the generation with *Contextual limit not sufficient*.
+
+## The note as a macro
+
+Instead of (or besides) the automatic insertion, you can place the note yourself with the
+[{%{`{{command::authors-note}}`}%} macro](../templates/macros.md#commands): put it into the master template, the user prompt or a
+lorebook entry and it prints the text of the note, wherever you want it in the prompt. It prints the note as it is stored now,
+whether or not **Insert into prompt** is on, so switch that off when you place the note by macro, or the model gets it twice.
+The depth and the role do not apply to the macro (the note is part of the message that contains the macro), and an empty note
+prints nothing.
 
 ## Storage
 

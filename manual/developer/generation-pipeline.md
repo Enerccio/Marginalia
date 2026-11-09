@@ -1,7 +1,7 @@
 ---
 label: Generation pipeline
 order: 930
-verified: 6b9a70d37
+verified: d163441bd
 covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/generation
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/StoryGenerationServiceImpl.java
@@ -159,22 +159,44 @@ Skipped when the book has no lorebook. Otherwise:
    | range of parts | `fromMessage` / `toMessage` are empty, or the number of the part the turn creates is inside them (both included): else `OUT_OF_RANGE`, whatever the rest says - the entry is also never a `FILTER_NOT_MATCHED` candidate of the scan of step 4. Checked only when the position is known (see below) |
    | negative tags | none of the entry's negative tags is a tag of the book |
    | tags | the entry has no tags, or one of them is a tag of the book (the entry's tags include the tags of its lorebook) |
+   | condition | `activationCondition` is empty, or the template renders to a true value (`TemplateData.isTruthy`: not empty, `0`, `false`, `no`, `off`): else `CONDITION_FALSE`; a condition that cannot be decided is `CONDITION_ERROR` (false), see below. An entry with a false condition is never a `FILTER_NOT_MATCHED` candidate of the scan of step 4 |
+   | only through others | `recursionOnly` is off, or the evaluation is of the content of an entry that was used (step 4): else `RECURSION_ONLY` (not a use, but a candidate of the scan; an entry without a filter never leaves it). It comes before the filter |
    | filter | no filter, or the filter matches the **rendered user prompt** (for `activationContext = INCLUDE_PARTS`: the text of the newest `activationParts` parts of the branch, oldest first, then the user prompt, all joined by blank lines; see below): `KEYWORDS_OR` / `KEYWORDS_AND` - the filter split by commas, trimmed, blanks dropped; any / every keyword is a case-insensitive substring (no keyword never matches); `TEXT` - case-insensitive substring; `REGEX` - case-insensitive `find()` (`DOTALL`); an invalid regex never matches |
 
    Before the entries are evaluated the step asks `LorebookActivationService.partsNeeded` (the largest `activationParts` of the
    enabled `INCLUDE_PARTS` entries, 0 when there is none) and reads that many parts with `recentParts(activeLeaf, n,
    excludeLeaf)`: the non-blank `response` of the branch from the root to the active leaf, the newest `n`, oldest first (the leaf is left out
    for a swipe or a regeneration - it is the part being replaced). With 0 the story is not read. Each entry then takes the newest of the
-   parts it asks for (`evaluate(entry, tags, instructions, parts)`); the scan of step 4 does not use the parts.
+   parts it asks for (`evaluate(entry, tags, instructions, parts)`); the scan of step 4 does not use the parts. An entry with
+   `activationSummaries` also looks into the summaries of the story: `summariesNeeded(entries)` says whether to read them, and `storyText(entries,
+   leaf, excludeLeaf)` returns a `StoryText` (the parts and the summaries in use, oldest first, as one text: `SummaryService.collectBlocks` over the
+   branch, only the blocks that are still `isValid()`, nothing is removed or asked - that is the job of the content step), which `evaluate(entry, tags,
+   instructions, StoryText, position, conditions)` and `evaluateAll(..., StoryText, ...)` take; the summaries come before the parts in the text.
+
+   The condition is rendered with a `LoreConditions` (`domain.components`), which the step makes when `conditionsNeeded(entries)` (an
+   enabled entry has one) from `createTemplateData(controller)` and passes to `evaluate(..., position, conditions)` and `evaluateInContent(..., conditions)`:
+   the turn and the shared `TemplateContext`. Each condition is rendered by `TemplateService.processTemplate` with `LorebookTemplateData.fork()`
+   (a copy of the data with `TemplateContext.fork()`, so a `setvar` of a condition does not reach the prompt or the following entries; the
+   `CommandMacroRunner` is shared, and it runs only commands made for macros, which only read, and keeps their answers). The check is
+   after the cheaper rules, so a disabled, out of range or tagged out entry never costs a render. The verdict of an entry is kept in
+   the `LoreConditions` (`decision`/`keep`, by identity): it is decided once per activation, so the scan depth passes and a `random` give
+   the same answer. Before rendering, `isValidTemplate(condition, ..., LorebookTemplateData.class)` (cached by the text in the service)
+   must be valid and without unknown names; a result of `Error` (`MacroHelpers.MISSING_VALUE`: an unknown command) is an error too. All
+   the conditions of an activation share `LoreConditions.TIME_BUDGET_SECONDS` (60) of wall time, measured around each render; once it is spent
+   the remaining conditions are `CONDITION_ERROR` with the detail `timeout`. A render in progress is not interrupted. Without a `LoreConditions`
+   (the overloads without it, tests) a condition is rendered with an empty turn and no command runner.
 
    The position of the turn is `activationService.turnPosition(activeLeaf, excludeLeaf)`: the number of parts of the branch (blank ones
    included, like the outline) plus one, or - for a swipe or a regeneration (`excludeLeaf`) - the number of the leaf itself. The step asks for it
    only when `positionNeeded(entries)` (an enabled entry has a range), else it passes null and no range is checked
    (`evaluate(entry, tags, instructions, parts, position)`).
 4. **Scan** (only with a scan depth): `Lorebook.scanDepth` of the lorebook the book uses (clamped to
-   `LorebookActivationService.MAX_SCAN_DEPTH`, 5; the value of a sub-lorebook is ignored) is how many passes follow.
+   `LorebookActivationService.MAX_SCAN_DEPTH`, 5) is the depth of its entries and of the entries of its sub-lorebooks, unless the
+   sub-lorebook has `ownScanDepth` (null = the root's; `scanDepth(root, book)`, `scanDepths(root, lorebooks)` by lorebook id,
+   `scanDepthOf(depths, entry)`): the passes that follow are the greatest of them (`deepestScan`) and an entry is a candidate of pass n only when n
+   is not above the depth of its own lorebook.
    Pass n takes the entries pass n - 1 activated (pass 0 is step 3), leaves out those with `preventRecursion` or no
-   payload, and evaluates the entries whose verdict is still `FILTER_NOT_MATCHED` against the **raw** payloads of
+   payload, and evaluates the entries whose verdict is still scannable (`Reason.isScannable()`: `FILTER_NOT_MATCHED` or `RECURSION_ONLY`) against the **raw** payloads of
    those (joined; templates are not run): `evaluateInContent` gives `LORE_MATCHED`, the detail being
    `filter <- name of the first entry that has it`. The pass ends the scan when nothing was activated. Each such entry gets
    `PROCESS_LOREBOOK_ENTRY` again (`LOREBOOK_SCAN_DEPTH` = n) and a verdict a listener replaced counts. The activated
@@ -201,8 +223,11 @@ Decides which part of the story goes into the prompt and renders the system prom
 **Summaries.** The branch from the root to the active leaf is read, and the summaries on it are collected (oldest
 first) into `SUMMARIES` with `SummaryService.collectBlocks`: a meta summary replaces the summaries it merged, which are
 skipped, see [the summary chain](domain-model.md#the-summary-chain). Each summary stores a hash of the story it covers;
-when that was changed since, the summary is removed (a meta summary is unwound to the summary it replaced, which is
-checked in turn) and the user is asked whether to continue without it (`listener.askQuestion`). The newest part
+when that was changed since, the summary is outdated. The step first only looks for them (`findOutdatedSummaries`, read
+only) and, when there are any, asks the user whether to continue and delete them (`listener.askQuestion`, `MSG_SUMMARY_FAILURE`
+names the parts). On *Yes* `gatherSummaries` removes them (a meta summary is unwound to the summary it replaced, which is
+checked in turn) and the step goes on; on *No* the generation ends in `CLEANUP` with the summaries untouched, they stay
+outdated in the summaries overview where the author can revalidate them. The newest part
 with a summary is the **stop part**: it and everything before it is represented by the summaries.
 
 **Token budget.** With `TokenLimits`:
@@ -217,7 +242,7 @@ reserved   = PrePromptData.reservedTokens            (set by extensions, 0 by de
 If `baseTokens + reserved ≥ limit`, the generation stops with *Contextual limit not sufficient.* Otherwise parts are taken from the
 newest backwards - skipping the part being regenerated, stopping at the stop part - starting from
 `baseTokens + reserved` and counting each part as its `tokenCount + 100`. A part is added only if the running total with it stays within `limit − 256`; the first part that
-doesn't fit ends the loop. The chosen texts, oldest first, become `MANUSCRIPT_CHRONICLE`.
+doesn't fit ends the loop. The chosen texts, oldest first, become `MANUSCRIPT_CHRONICLE`. The text of a part is what `PartTextRegistry.forModel` gives for the whole branch at once: the stored text, unless an extension keeps the story in another form and shows the model another ([Text a model reads](plugins/part-text.md), `ModelText`); the token count is still the one of the stored part.
 
 **Token breakdown.** When the budget is computed, the step creates a `PromptTokenBreakdown` (`domain.components`) and
 puts it into the `TOKEN_BREAKDOWN` property. It holds the raw counts of each section - context, response and prompt
@@ -225,6 +250,8 @@ limit, jailbreak, system template (the system prompt without lore and summaries)
 user prompt, the user prompt and `reserved` - and what was cut: the parts that didn't fit (`cutMessages`,
 `cutTokens`), without the parts a summary replaces. The counts are measured separately, so they need not add up exactly
 to the payload.
+
+**Authorship.** The generation records who made each text (`RevisionOrigin`, see [Version history](version-history.md)); `PartAuthorship` and `BookAuthorship` (`domain.components`) are what is worked out from those versions afterwards, which words of a part a model wrote and the sum of a branch ([Who wrote the words](version-history.md#who-wrote-the-words)). The pipeline does not use them.
 
 **Notes of the author.** The open [annotations](domain-model.md#annotation) with `sendToPrompt` are read once for the book (`flaggedAnnotations`). A part that is taken into the story brings its notes (`AnnotationTexts.promptNotes`: the passage in quotes, or the first words of the part for a note about the whole part, and the note), their tokens count against the room like the part itself, so a part whose notes do not fit is cut; the notes of the parts that made it become `MasterTemplateData.annotations` for the final render (the estimation render has none).
 
@@ -258,7 +285,7 @@ compatible provider sends those of a user message as content parts. This step ad
 `AFTER_PREPARE_PAYLOAD` can put them on a user message. A message can also carry function calls (`toolCalls`, an
 assistant message) or be the result of one (`LLMRole.TOOL` with `toolCallId`); the pipeline builds none of them, they
 are added by `OpenAICompatibleInferenceService` when the model calls a function, see
-[Function calls](services.md#function-calls).
+[Function calls](services.md#function-calls). A message of the model may also carry its thinking (`reasoning` and `reasoningInTurn`, not stored with the message): only the function call loop and the agents set it, and the OpenAI compatible provider sends it back as `reasoning_content` when the AI's *Send the thinking back* (`reasoningPassthrough`) asks for it.
 
 The payload is stored for the part ([`MessagePrompt`](domain-model.md#messageprompt)) and can be inspected in the story editor with *View prompt*:
 
@@ -278,7 +305,7 @@ Prepares the part that receives the answer:
 | `REGENERATE` | The existing part, cleared (`response` and `originalResponse` both). A full copy of it as it was (`ChatMessage.copyOf`, attributes deep copied) is kept in the `ORIGINAL_MESSAGE` property first, and its prompt row in `ORIGINAL_PROMPT`. |
 
 The part gets the `TurnInput`, the model and protocol names, the payload as JSON (stored as `MessagePrompt.builtPrompt`, shown by *Show
-Prompt*), the activated lore (`MessagePrompt.backgroundLore`) and the request time. The token breakdown gets the tokens of every message of the final
+Prompt*), the activated lore (`MessagePrompt.backgroundLore`) and the entries it came from (`MessagePrompt.loreUsage`, from `PrePromptData.loreUsage`) and the request time. The token breakdown gets the tokens of every message of the final
 payload (as listeners left it, counted with the provider's tokenizer) and is stored as the part's `tokenBreakdown`
 (shown by *Token Usage*, see [UI](ui.md)). Parts generated before it existed have none, `getTokenBreakdown()` is `null`
 for them. *Compare Prompt* (`PromptComparisonDialog`) compares the stored payload of a part with that of an earlier part of the branch or a swipe
@@ -291,7 +318,9 @@ Events: `BEFORE_GENERATE_NEW_MESSAGE`, `AFTER_GENERATE_NEW_MESSAGE` (the part is
 
 ### 7. `INFERENCE` - `InferenceStep`
 
-Counts the prompt tokens (when the prompt plus the response limit still exceeds the context, the UI gets
+`InferenceStep` fires `BEFORE_INFERENCE` first and, when the listeners are done, looks at the `CancellationToken`: a generation that was cancelled while they ran (one that asked the user through `accessUI` and got *no*) jumps to `CLEANUP`, no request is sent and the part started for it is removed, see [Generation events](plugins/generation-events.md). Otherwise:
+
+Counts the prompt tokens (`countPromptTokens`: the content of each message and the calls of its tools with the book's `InferenceService`, a text that repeats - the "generate more" placeholders - once, not the JSON the payload is sent in, whose escapes never reach the model and whose attached media is not text; when the prompt plus the response limit still exceeds the context, the UI gets
 `GenerationListener.onWarning`; the request is sent anyway), then calls `InferenceService.stream(payload, protocol, callback)` inside an `InferenceSession` of the kind `GENERATION` (a new part, a regeneration and a swipe share it, so the provider's cache is that of the story; the service sends it as the header `X-Session-ID`). For each chunk:
 
 - **reasoning** chunks are appended to `responseReasoning` (`REASONING_CHUNK_RECEIVED`, the text in
@@ -388,7 +417,9 @@ what the macros read: the `TurnInput` fields, POV / tense / style, the book's na
 token limits, the generation type (`normal`, `regenerate`, `swipe`), the story so far (`{{lastMessage}}`...), the last
 instructions and time, the latest summary, and the variables - local ones loaded from the last part of the branch,
 global ones from the book. Because it is shared, a variable set in the user prompt is visible in lore entries and the
-master template. See [Templating & macros](templating.md).
+master template. It also holds the `CommandMacros` that run the {%{`{{command::...}}`}%} macros and keep their answers with the part
+the generation continues from, see [Macros that run commands](templating.md#macros-that-run-commands). See
+[Templating & macros](templating.md).
 
 ## Events for extensions
 
@@ -471,13 +502,15 @@ generation key it by this, generations run at the same time.
 
 - **Stop** in the UI calls `CancellationToken.cancel()`. Every step, continuation and chunk checks the token and jumps
   to `CLEANUP`, which keeps what was generated so far (`PARTIAL_SUCCESS`) - or, when nothing arrived yet, removes
-  the new part or restores the regenerated one, like after an error. Only `CLEANUP` reports the end to the listener.
+  the new part or restores the regenerated one, like after an error. Only `CLEANUP` reports the end to the listener. The stop also
+  reaches the request: `InferenceStep` hands the token of the generation the one of the request (`cancellationToken.onCancel(stream(...)::cancel)`),
+  so a stop works while the server still reads a long prompt and nothing arrives to poll (`GenerationEndEventsTest`, `StreamStopTest`).
 - **Errors** - an exception in a step or continuation, a failed request - are reported with
   `GenerationListener.onError` and also end in `CLEANUP`. Validation problems (no provider, context too small) use
   `onSimpleError` with a localized message; failures answered by the provider (wrong key, context too long...) use `onInferenceError`,
   which does the same unless the listener overrides it.
 - **Questions** - `listener.askQuestion(text, yes, no)` lets a step ask the user and continue in one of two
-  continuations (`controller.wrapCallback(...)`); used for invalidated summaries.
+  continuations (`controller.wrapCallback(...)`); used for outdated summaries.
 
 ## Changing the pipeline
 

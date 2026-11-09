@@ -54,11 +54,12 @@ Everything in this picture can be adjusted, and the user guide is organized alon
 | **Agent**              | An LLM that works on one book on its own, through the commands, on a copy of the book; you review what it did and take it over or throw it away.                       | [Agents](agents.md)                                       |
 
 Everything you create belongs to your account. Other users of the same Marginalia don't see your books, lorebooks,
-providers or settings - only books you choose to [publish](books/publishing.md).
+providers or settings - only books you choose to [publish](books/publishing.md), and lorebooks and protocols you choose to
+[share](lorebooks/lorebooks.md#sharing-a-lorebook) (others can import a copy, [protocols](protocols.md#sharing-a-protocol) too).
 
 ## The workspace
 
-After logging in you see the workspace. The tabs on the left are the main areas of Marginalia:
+After logging in you see the workspace. The tabs on the left are the main areas of Marginalia, each marked with a small icon:
 
 ![The workspace](../images/workspace.png)
 
@@ -76,8 +77,8 @@ After logging in you see the workspace. The tabs on the left are the main areas 
 At the bottom are **Change Password**, **Logout** and, for administrators, **Admin**. Extensions may add more tabs
 and buttons.
 
-On a narrow screen (under 768 pixels) you get a simpler [phone layout](phone.md) instead: the tabs are in a drawer, and
-there is no Admin page. The layout is chosen when the page loads: after turning a device or resizing the window,
+On a narrow screen (under 768 pixels) you get a simpler [phone layout](phone.md) instead: the tabs are in a drawer (Admin
+included) and the windows are one column. The layout is chosen when the page loads: after turning a device or resizing the window,
 reload the page to get the other one.
 
 ## Sections of this guide

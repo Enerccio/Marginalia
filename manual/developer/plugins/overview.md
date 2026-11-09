@@ -1,7 +1,7 @@
 ---
 label: Plugin basics
 order: 100
-verified: 6b9a70d37
+verified: d163441bd
 covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/extensions
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/ExtensionService.java
@@ -94,7 +94,8 @@ itself. The important parts:
   application's own UI classes ([AspectJ weaving](../building.md#aspectj-weaving)). Without it, those fields stay
   `null`.
 - Libraries the application doesn't have must be embedded in the bundle (`Embed-Dependency`, commented out in the
-  Reviewer's `pom.xml`) or shaded. Keep this to a minimum.
+  Reviewer's `pom.xml`) or shaded. Keep this to a minimum. Code that **two of your plugins** share is a library of its own, embedded in both:
+  see [Libraries for plugins](libraries/index.md).
 
 Build with `mvn package`; the result is `target/<artifactId>-<version>.jar`. The application must be installed in the
 local Maven repository first (`mvn install -DskipTests` in `marginalia/`), and reinstalled whenever you change
@@ -146,7 +147,7 @@ public interface MarginaliaExtension {
 - `onExtensionUnload` undoes all of it: unregister every decorator and listener, remove the components the plugin
   added to open screens ([Unloading](ui-extensions.md#unloading)), stop background work. Nothing is removed
   automatically - a decorator left registered keeps running, from a bundle that no longer exists. The one exception:
-  the data providers registered with `IPCService`, the tool providers (with their commands) registered with `ToolService` and the settings registered with `InheritedSettingRegistry` ([Inherited settings](inherited-settings.md)) under the symbolic name of the bundle are removed by the
+  the data providers registered with `IPCService`, the tool providers (with their commands) registered with `ToolService` and the settings registered with `InheritedSettingRegistry` ([Inherited settings](inherited-settings.md)) and the sources registered with `NotificationService` ([Desktop notifications](notifications.md)) under the symbolic name of the bundle are removed by the
   application when the extension is unloaded ([Sharing data between extensions](ipc.md)).
 
 Annotate the extension `@Configurable` and inject what you need:
@@ -307,7 +308,7 @@ first: Marginalia's own classes, Vaadin, Spring, Hibernate, Gson, everything in 
 - Plugins use the application's classes directly - no imports, no service lookups, `instanceof` and casts work.
 - A plugin can't override or replace a library of the application, and can't use a different version of one.
 - Plugins don't see each other's classes through imports either; if two plugins need to cooperate, do it through
-  shared data (attributes) or through the application's components. A plugin that uses the objects of another one
+  shared data (attributes) or through the application's components (the registries of the core, such as `PartTextRegistry`, `ExportTextRegistry` and `AnnotationFactsRegistry`, and the gates of `SharedGate` that let two plugins share one GPU, see [http-hooks](libraries/http-hooks.md#the-gate-gpugate)). A plugin that uses the objects of another one
   (which may be missing, or unloaded and installed again) finds it among `OsgiService.getLoadedExtensions()` by the
   *name* of its class and calls it by reflection, taking the types it needs from `extension.getClass().getClassLoader()`.
   Do not import its packages (`Import-Package`, `DynamicImport-Package`) or name its classes in your code: the

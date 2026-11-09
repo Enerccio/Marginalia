@@ -90,7 +90,6 @@ class PartEditServicesTest extends GenerationTestBase {
         ChatMessage part = stored(story.get(3));
         assertThat(edit.message().getId()).isEqualTo(part.getId());
         assertThat(part.getResponse()).isEqualTo("John smiled at the sea");
-        assertThat(part.isEdited()).isTrue();
         assertThat(part.getWordCount()).isEqualTo(5);
         assertThat(part.getTokenCount()).isPositive();
     }
@@ -109,6 +108,35 @@ class PartEditServicesTest extends GenerationTestBase {
 
         PartEdit first = chatMessageService.updateResponse(manuscript, story.get(0), "Anna met Jon");
         assertThat(first.outdated()).extracting(block -> block.head().getId()).containsExactly(story.get(2).getId());
+    }
+
+    @Test
+    void outdatedByEditSaysWhatTheSaveWouldOutdateAndSavesNothing() throws Exception {
+        List<SummaryBlock> preview = chatMessageService.outdatedByEdit(manuscript, story.get(3), "John smiled at the sea");
+
+        assertThat(preview).extracting(block -> block.head().getId()).containsExactly(story.get(4).getId());
+        assertThat(stored(story.get(3)).getResponse()).isEqualTo("John smiled");
+        assertThat(summaryService.collectBlocks(chatMessageService.getBranchFromLeaf(stored(story.getLast())).reversed()))
+                .allMatch(SummaryBlock::isValid);
+
+        // the same text, a part nobody covers and a summary that is outdated already make nothing outdated
+        assertThat(chatMessageService.outdatedByEdit(manuscript, story.get(3), "John smiled")).isEmpty();
+        assertThat(chatMessageService.outdatedByEdit(manuscript, m4b, "John frowned a lot")).isEmpty();
+        chatMessageService.updateResponse(manuscript, story.get(4), "John left the sea");
+        assertThat(chatMessageService.outdatedByEdit(manuscript, story.get(3), "John smiled at the sea")).isEmpty();
+    }
+
+    @Test
+    void theBlocksOfTheSaveCheckRevalidateTheSummariesAfterTheSave() throws Exception {
+        String text = "Anna met Jon";
+        List<SummaryBlock> preview = chatMessageService.outdatedByEdit(manuscript, story.get(0), text);
+        assertThat(preview).extracting(block -> block.head().getId()).containsExactly(story.get(2).getId());
+
+        chatMessageService.updateResponse(manuscript, story.get(0), text);
+        summaryService.revalidate(manuscript, preview);
+
+        assertThat(summaryService.collectBlocks(chatMessageService.getBranchFromLeaf(stored(story.getLast())).reversed()))
+                .allMatch(SummaryBlock::isValid);
     }
 
     @Test

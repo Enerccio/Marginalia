@@ -72,4 +72,18 @@ public interface ManuscriptStatisticRepository extends OwnedRepository<Manuscrip
      */
     int deleteAll(User owner) throws Exception;
 
+
+    /**
+     * Deletes (for good) the rows of the days before the day, of one user.
+     *
+     * @return number of deleted rows
+     */
+    int deleteBefore(User owner, LocalDate day) throws Exception;
+
+    /**
+     * Deletes (for good) the rows of all the users.
+     *
+     * @return number of deleted rows
+     */
+    int deleteEverything() throws Exception;
 }

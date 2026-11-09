@@ -111,4 +111,22 @@ public class JpaManuscriptSizeRepository extends JpaOwnedRepository<ManuscriptSi
                 .setParameter("owner", owner.getId())
                 .executeUpdate();
     }
+
+    /**
+     * The newest row of each book before the day stays: it is the size the growth of the days after it is measured from.
+     */
+    @Override
+    public int deleteBefore(User owner, LocalDate day) {
+        return entityManager
+                .createQuery("DELETE FROM ManuscriptSize s WHERE s.owner.id = :owner AND s.day < :day AND EXISTS "
+                        + "(SELECT 1 FROM ManuscriptSize n WHERE n.owner.id = :owner AND n.bookUuid = s.bookUuid AND n.day > s.day AND n.day < :day)")
+                .setParameter("owner", owner.getId())
+                .setParameter("day", day)
+                .executeUpdate();
+    }
+
+    @Override
+    public int deleteEverything() {
+        return entityManager.createQuery("DELETE FROM ManuscriptSize s").executeUpdate();
+    }
 }

@@ -1,7 +1,7 @@
 ---
 label: Templating & macros
 order: 920
-verified: 6b9a70d37
+verified: d163441bd
 covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/templates
   - marginalia/src/main/java/com/github/enerccio/marginalia/Defaults.java
@@ -51,7 +51,7 @@ they are.
 
 `isValidTemplate(template, name)` only does steps 1-2, so it catches syntax errors. `isValidTemplate(template, name,
 dataClass)` also walks the compiled template (`Template.collect` of variables and sections, in all branches) and
-reports names that would end in *helperMissing* (see [Template data](#template-data)) in
+reports names that would end in *helperMissing* (see [Where templates are rendered](#where-templates-are-rendered): the data class of each template) in
 `ValidationResult.unknownNames()`. They are warnings, `isValid()` stays true; the UI shows them as the field's helper
 text (`TemplateHints.showWarnings`). Names relative to the current context (`this`, `.`, `../x`, `@index`) and
 parameters (`{{#if name}}`) are not checked.
@@ -62,12 +62,62 @@ parameters (`{{#if name}}`) are not checked.
 |---|---|---|---|
 | User prompt | `PrepareConstantsStep` | `UserPromptData` | `povCharacter`, `sceneSetting`, `presentCharacters`, `instructions` |
 | Lorebook entry payload | `ProcessLorebookStep` (one data object for all active entries) | `LorebookTemplateData` | the four above + `narrativePov`, `narrativeTense`, `style` |
+| Condition of a lorebook entry | `LoreConditions` (`domain.components`), before the filter of the entry | a `LorebookTemplateData.fork()` | the same variables as the payload; the context is a fork, so a `setvar` in a condition changes nothing, and the result is read as true or false ([A condition for an entry](../user/lorebooks/entries.md#a-condition-for-an-entry)) |
 | Master template | `PrepareContentStep` (twice: token estimate on a fork, then for real) | `MasterTemplateData` | `backgroundLore`, `narrativePov`, `narrativeTense`, `style`, `summaries`, `annotations` (the open annotations marked `sendToPrompt` of the parts in the prompt; only the final render has them) |
 | Summary prompt | `SummaryServiceImpl.createSummaryPayload` | `SummaryTemplateData` | `backgroundLore`, `text` (the parts to summarize) |
 | Meta summary prompt | `SummaryServiceImpl.createMetaSummaryPayload` | `MetaSummaryTemplateData` | `backgroundLore`, `summaryBlocks` (the summaries to merge, oldest first) |
 | Redraft system prompt and redraft prompt | `RedraftServiceImpl.createPayload` (an estimation render of both on a fork, then for real: the system prompt is the system message, the story before the part follows as the earlier messages, the redraft prompt is the last message) | `RedraftTemplateData` | `text` (the part), `redraftInstructions`, `previousStory` (only a note that the story follows as messages), `summaries`, `followingStory`, `backgroundLore` (stored on the part), `narrativePov`, `narrativeTense`, `style`, and the turn of the part: `povCharacter`, `sceneSetting`, `presentCharacters`, `instructions`, `annotations` (the open annotations of the part when the redraft is asked to deal with them), and for the redraft of a passage `selection`, `selectionBefore`, `selectionAfter` (all `null` for the whole part, so `{{#selection}}` tells the cases apart) |
 | Impersonate prompt | `ImpersonateServiceImpl.createPayload` (an estimation render on a fork, then for real) | `ImpersonateTemplateData` | `impersonateInstructions` (the guidance of the author), `outline` (the plan a caller gives), `previousStory`, `summaries`, `backgroundLore` (stored on the last part), `instructionExamples` (the instructions of the last three parts that have some, oldest first), `narrativePov`, `narrativeTense`, `style`, `sceneSetting`, `povCharacter`, `presentCharacters` (of the request, else of the last part) |
-| Annotate system prompt and annotate prompt | `AnnotateServiceImpl.createPayload` (as the redraft) | `AnnotateTemplateData` | the variables of the redraft prompts with `annotateInstructions` instead of `redraftInstructions`, `annotations` (the open ones the part has) and `outputFormat` (the description of the answer of the mode; the service writes it, a prompt of the author has to print it) |
-| Title page and front matter of an export | `ExporterBase` (the title page of every format that has one, `DEFAULT_EXPORT_HEADER_TEMPLATE`, and the YAML block of *Markdown with front matter* and the Obsidian vault, `DEFAULT_EXPORT_FRONT_MATTER_TEMPLATE`; the text is the user's own from *Settings → Exports* or the default, see [Services](services.md)) | `ExportHeaderTemplateData` / `ExportFrontMatterTemplateData` | the title page: `title`, `author`; the front matter: `title`, `author`, `language` and `exportDate`. Not part of a generation: no context, no macros of the story |
+| Annotate system prompt and annotate prompt | `AnnotateServiceImpl.createPayload` (as the redraft) | `AnnotateTemplateData` | the variables of the redraft prompts with `annotateInstructions` instead of `redraftInstructions`, `annotations` (the open ones the part has), `facts` (what extensions know about the story at the part, from the `AnnotationFactsRegistry`, see [Facts for the annotation](plugins/annotation-facts.md); empty without a provider) and `outputFormat` (the description of the answer of the mode; the service writes it, a prompt of the author has to print it) |
+| Title page and front matter of an export | `ExporterBase` (the title page of every format that has one, `DEFAULT_EXPORT_HEADER_TEMPLATE`, and the YAML block of *Markdown with front matter* and the Obsidian vault, `DEFAULT_EXPORT_FRONT_MATTER_TEMPLATE`; the text is the text of the book, a folder above it, the user's own from *Settings → Exports* or the default, see [Services](services.md)) | `ExportHeaderTemplateData` / `ExportFrontMatterTemplateData` | the title page: `title`, `author`; the front matter: `title`, `author`, `language` and `exportDate`. Not part of a generation: no context, no macros of the story |
+| Authorship statement of an export | `ExporterBase` (the end of every format that `usesAuthorship()`, `DEFAULT_EXPORT_AUTHORSHIP_TEMPLATE`, when *Include authorship statement* is on; the user's own from *Settings → Exports*, or the book's or a folder's, see [Services](services.md)) | `ExportAuthorshipTemplateData` | `title`, `author`, `totalWords`, `writtenWords`, `generatedWords`, `writtenPercent`, `generatedPercent` and `models` (the models of the generated parts, comma separated). Not part of a generation either |
 
 The order of the [generation pipeline]
+## Closest parts and summaries
+
+`closest-message::n`, `closest-summary::n` and `current-message` (`TemplateData.closestMessage` / `closestSummary` /
+`currentMessage`) read the `TemplateContext`: the story messages (the position counts back from the end), `summaryLookup` (an
+`IntFunction` set by `GenerationStepBase.createTemplateContext`, it walks the branch from its end and reads the n-th summary only
+when a template asks, a long branch has many) and `currentMessage` (the stored text of `GenerationRequest.getNode()`, set for a
+regenerate and a swipe only). Their argument may be a macro: the translator turns the nested macro into a sub-expression
+before the helper is called.
+
+## Macros that run commands
+
+`{{command::name::arg::arg}}` (`Macros`, `TemplateData.command`) runs a [command](commands/writing-commands.md#commands-in-macros)
+that is declared `readOnly` and `availableInMacros`; the macro is static, so templates compiled (and cached) before an extension
+brought the command keep working. `TemplateData.command` hands the call to the `CommandMacroRunner` of the
+`TemplateContext`; a render without one (the summaries, the exports) leaves the macro empty. A name that is not such a command
+renders as `Error`, like a variable that does not exist.
+
+The generation sets a `CommandMacros` (`domain/service/impl/generation`) in `GenerationStepBase.createTemplateContext`. It
+runs the command lazily, when the helper is reached, with `CommandService.executePositional` in the scope
+`CommandScopes.forManuscript(book)` and waits for the answer on the worker thread of the generation (120 seconds at most; a
+command that fails or runs out of time renders nothing and is not kept). The answers are kept in the attributes of the part the
+generation continues from (the last part of the branch before the new one, `commandMacroCache`: an object with
+`name`+arguments as the key), so the estimation render of the master template, the real one, the lorebook entries and a second
+generation from the same part run the command once. A regenerate and a swipe (`GenerationRequestType`) do not read what is
+kept, and the first answer they get replaces everything kept before; the first part of a book has nothing to keep it with
+(the answers live for that generation only). Saving the answer is best effort, a failure is logged and the generation goes on.
+`TemplateContext.fork` shares the runner, so a dry render does not run the commands twice.
+
+## Expressions
+
+`{{eval::expression}}` (`Macros`, `TemplateData.eval`) gives `true` or `false` for a small expression language, parsed and evaluated by
+`ExpressionEvaluator` (`domain.templates.macros`): `or` / `||`, `and` / `&&`, `not` / `!`, parentheses, the comparisons `== != < <= > >= ~=
+contains has` and operands that are quoted texts, numbers, `true` / `false`, names, `.local` and `$global` variables. The whole expression
+is read before anything is evaluated and every name is checked then (`Environment.knows`), so an unknown name is an error also in an
+`and` / `or` branch that is not reached. `TemplateData.ExpressionEnvironment` answers the names: a property of the data or of the
+`TemplateContext` (`hasProperty` / `resolveProperty`), else a macro with no arguments (`Macros.find`, `minArgs == 0`, not `if`), and
+the variables through `getVar`. A text is only ever in quotes, on purpose: unlike the plain text of `{{if text}}` (always true), a word
+that is not a name cannot turn a typo into a true result. An `ExpressionException` (syntax, unknown name) is logged at debug level and the
+macro renders `MacroHelpers.MISSING_VALUE` (`Error`), like any name that is not defined; the lorebook condition (`activationCondition`) takes a
+result of `Error` as `CONDITION_ERROR`. `==` / `!=` / `~=` compare numbers by value when both sides are numbers (`BigDecimal`), the
+ordering operators are false for a side that is not a number, `has` splits the list at `,` `;` and line breaks. It is not
+a `Macros.IF` condition: `{{if {{eval::...}} }}` is the way to use it there.
+
+## Joining texts
+
+`{{join::separator::a::b::c}}` (`Macros`, `TemplateData.join`) puts the separator between the texts that follow it, any number of
+them (macros included, they are evaluated first like every argument). Empty texts are left out, so an optional macro such as
+`{{getvar::missing}}` leaves no stray separator; a single text gives itself, a separator alone gives nothing.

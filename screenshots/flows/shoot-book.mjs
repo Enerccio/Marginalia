@@ -50,9 +50,9 @@ await main(async ({ page }) => {
     await scrollStory(page, 'bottom');
     await clickPlus(page);
     await idle(page, 600);
-    await fill(page, 'Scene Setting', 'Hogsmeade evening, behind the Three Broomsticks');
-    await fill(page, 'POV Character', 'Harry');
-    await fill(page, 'Present Characters', 'Harry; Draconia');
+    await fill(page, 'Scene Setting', 'River bank, dusk');
+    await fill(page, 'POV Character', 'Mizuki');
+    await fill(page, 'Present Characters', 'Mizuki; Tomáš');
     await page.evaluate(() => document.activeElement && document.activeElement.blur());
     await snap(page, 'hero-story-editor');
     await snapPopover(page, 'new-turn-instructions');

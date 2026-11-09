@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.extensions.mangagenerator.ui;
 
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
+import com.github.enerccio.marginalia.ui.widgets.DialogShortcuts;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -56,5 +57,6 @@ public class TextEditDialog extends Dialog {
             getFooter().add(reset);
         }
         getFooter().add(cancel, save);
+        DialogShortcuts.submitWith(save, area);
     }
 }

@@ -30,7 +30,7 @@ Click a book to read it.
 
 The list shows your [folders](folders.md) like the phone list of the workspace does: the folders come first, each with
 the number of books beneath it, then the books of the current folder. Click a folder to go into it. The path above the
-filters (`Books / Fan fiction / Harry Potter`) shows where you are, and a click on a part of it goes back there.
+filters (`Books / Novels / Portal fantasy`) shows where you are, and a click on a part of it goes back there.
 
 ![The viewer inside a folder](../../images/viewer-folder.png)
 
@@ -70,8 +70,8 @@ The viewer remembers where you stopped reading each book: it opens the book at t
 kept in the local storage of your browser only (per book), it is not saved on the server, so another browser or a cleared
 browser storage starts at the beginning.
 
-[Pictures of the parts](story-editor.md#images) are shown where the author placed them (after the text unless the author chose another place), but only to you, the owner. Readers of a
-[published](#publishing-a-book) book see the text without the pictures.
+[Pictures of the parts](story-editor.md#images) are shown where the author placed them (after the text unless the author chose another place), to you, and to the readers of a
+[published](#publishing-a-book) book unless you uncheck **Show the images to readers** on the book's *About* tab (it is checked by default). With it unchecked the readers see the text without the pictures. The pictures are read from your account only while the book is published, and not when you unpublish it.
 
 ## Publishing a book
 

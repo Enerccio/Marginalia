@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.enerccio.marginalia.Configuration;
 import com.github.enerccio.marginalia.concurrent.AsyncRunnableWrapper;
 import com.github.enerccio.marginalia.domain.collections.AIType;
+import com.github.enerccio.marginalia.domain.collections.ReasoningPassthrough;
 import com.github.enerccio.marginalia.domain.components.TokenLimits;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.OpenAICompatible;
@@ -222,7 +223,9 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
                 noFunctionCalls, true, null).build();
 
         AsyncRunnableWrapper wrapper = new AsyncRunnableWrapper(configuration);
-        CompletableFuture.runAsync(() -> {
+        // a virtual thread: it waits for the server for as long as the model reads the prompt and thinks, and a stop interrupts that
+        // wait (a platform thread is not interruptible in a socket read)
+        Thread.ofVirtual().name("inference-round").start(() -> {
             try {
                 wrapper.run(() -> {
                     if (callback.isDead() || token.isCancelled()) {
@@ -239,6 +242,7 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
                     RoundStatsCollector stats = new RoundStatsCollector();
                     // only the time of the request counts, not what the caller does with the answer
                     ActivityTracker.Registration generating = metered ? activityTracker.generate(book) : ActivityTracker.NONE;
+                    Runnable endWait = interruptOnCancel(token);
                     try (StreamResponse<ChatCompletionChunk> stream = client.chat().completions().createStreaming(params)) {
                         Iterator<ChatCompletionChunk> chunks = stream.stream().iterator();
                         while (chunks.hasNext()) {
@@ -272,12 +276,17 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
                             }
                         }
                     } catch (RuntimeException e) {
+                        if (token.isCancelled()) {
+                            // the stop interrupted the read: the rest must not run with the flag set
+                            Thread.interrupted();
+                        }
                         if (!received.isEmpty()) {
                             // it answered before it failed, so that was billed; a failure before any text is not counted
                             recordUsage(attributes, conversation, null, received.toString(), metered, book);
                         }
                         throw e;
                     } finally {
+                        endWait.run();
                         generating.close();
                     }
                     TokenUsage counted = recordUsage(attributes, conversation, stopped ? null : reported,
@@ -291,6 +300,16 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
                     }
                 });
             } catch (Throwable e) {
+                if (token.isCancelled()) {
+                    // the read failed because the stop interrupted it: not a failure
+                    Thread.interrupted();
+                    try {
+                        callback.onCancel();
+                    } catch (Exception ex) {
+                        log.error("Error during callback.onCancel", ex);
+                    }
+                    return;
+                }
                 log.error("Failed to ask for a round: {}", e.getMessage(), e);
                 try {
                     callback.onError(translate(e));
@@ -314,7 +333,8 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
                 functionsOffered ? request.functions() : null, finalRound, false, schema).build();
 
         AsyncRunnableWrapper wrapper = new AsyncRunnableWrapper(configuration);
-        CompletableFuture.runAsync(() -> {
+        // a virtual thread, see round: the call returns only when the whole answer is written, a stop must not wait for that
+        Thread.ofVirtual().name("inference-infer").start(() -> {
             try {
                 wrapper.run(() -> {
                     if (outcome.dead().getAsBoolean() || request.cancellationToken().isCancelled()) {
@@ -322,8 +342,11 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
                         return;
                     }
                     ChatCompletion completion;
+                    Runnable endWait = interruptOnCancel(request.cancellationToken());
                     try (ActivityTracker.Registration generating = generating(request)) {
                         completion = request.client().chat().completions().create(params);
+                    } finally {
+                        endWait.run();
                     }
                     ChatCompletionMessage message = completion.choices().stream().findFirst()
                             .map(ChatCompletion.Choice::message).orElse(null);
@@ -346,13 +369,23 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
                     if (outcome.dead().getAsBoolean() || request.cancellationToken().isCancelled()) {
                         callback.onCancel();
                     } else if (!calls.isEmpty()) {
-                        callFunctions(request, outcome, conversation, text, calls,
+                        callFunctions(request, outcome, conversation, text, reasoningOf(message), calls,
                                 next -> inferRound(request, outcome, callback, schema, next, round + 1));
                     } else {
                         callback.onResult(text, schema == null ? SchemaCheck.notChecked() : StructuredOutputs.validate(schema, text));
                     }
                 });
             } catch (Throwable e) {
+                if (request.cancellationToken().isCancelled()) {
+                    // the call failed because the stop interrupted it: not a failure
+                    Thread.interrupted();
+                    try {
+                        callback.onCancel();
+                    } catch (Exception ex) {
+                        log.error("Error during callback.onCancel", ex);
+                    }
+                    return;
+                }
                 log.error("Failed to infer: {}", e.getMessage(), e);
                 try {
                     callback.onError(translate(e));
@@ -440,7 +473,7 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
                                 }
                             },
                             functionsOffered && !finalRound
-                                    ? (text, calls) -> callFunctions(request, request.outcome(), conversation, text, calls,
+                                    ? (text, thought, calls) -> callFunctions(request, request.outcome(), conversation, text, thought, calls,
                                     next -> startRound(request, next, round + 1)) : null);
                     // a stop closes the connection: the server is told, and a read that waits for the next chunk (the model is
                     // still reading the prompt) ends instead of waiting for the first token to see the stop
@@ -456,6 +489,23 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
                 }
             }
         });
+    }
+
+    /**
+     * Has a stop interrupt the calling thread, which has to be a virtual one (the interrupt ends a read of a socket there and the
+     * connection is dropped, so the server is told). Used around a call that waits for the server.
+     *
+     * @return ends it: the interrupt must not reach the work that follows the call, and clears one that already came
+     */
+    private static Runnable interruptOnCancel(CancellationToken token) {
+        Thread waiting = Thread.currentThread();
+        Runnable unregister = token.onCancel(waiting::interrupt);
+        return () -> {
+            unregister.run();
+            if (token.isCancelled()) {
+                Thread.interrupted();
+            }
+        };
     }
 
     /**
@@ -512,7 +562,7 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
                 case SYSTEM -> messages.add(ChatCompletionMessageParam.ofSystem(
                         ChatCompletionSystemMessageParam.builder().content(msg.getContent()).build()));
                 case USER -> messages.add(ChatCompletionMessageParam.ofUser(toUserMessage(msg)));
-                case ASSISTANT -> messages.add(ChatCompletionMessageParam.ofAssistant(toAssistantMessage(msg)));
+                case ASSISTANT -> messages.add(ChatCompletionMessageParam.ofAssistant(toAssistantMessage(msg, ai.getReasoningPassthrough())));
                 case TOOL -> {
                     if (msg.getToolCallId() == null) {
                         throw new IllegalArgumentException("Tool message has no toolCallId");
@@ -610,8 +660,27 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
         return ChatCompletionFunctionTool.builder().function(definition.build()).build();
     }
 
-    private static ChatCompletionAssistantMessageParam toAssistantMessage(LLMChatMessage msg) {
+    /**
+     * Whether the thinking of the message is sent back: never for {@code NONE}; for {@code TOOL_CALLS} only for the calls the model made
+     * in the turn that is going on (the tool calls go on with the thoughts that made them, a later turn starts without them, as the
+     * documentation of Gemma 4 asks); for {@code ALWAYS} for every message that has it.
+     */
+    static boolean sendsReasoning(LLMChatMessage msg, ReasoningPassthrough mode) {
+        if (msg.getReasoning() == null || mode == null) {
+            return false;
+        }
+        return switch (mode) {
+            case NONE -> false;
+            case TOOL_CALLS -> msg.hasToolCalls() && msg.isReasoningInTurn();
+            case ALWAYS -> true;
+        };
+    }
+
+    private static ChatCompletionAssistantMessageParam toAssistantMessage(LLMChatMessage msg, ReasoningPassthrough mode) {
         ChatCompletionAssistantMessageParam.Builder builder = ChatCompletionAssistantMessageParam.builder();
+        if (sendsReasoning(msg, mode)) {
+            builder.putAdditionalProperty("reasoning_content", JsonValue.from(msg.getReasoning()));
+        }
         if (msg.getContent() != null) {
             builder.content(msg.getContent());
         }
@@ -631,10 +700,11 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
      * whichever thread its function says, nothing here waits for it. A call that fails is not an error of the request,
      * the model gets the message and can correct itself.
      */
-    private void callFunctions(Request request, Outcome callback, List<LLMChatMessage> conversation, String text,
+    private void callFunctions(Request request, Outcome callback, List<LLMChatMessage> conversation, String text, String reasoning,
                                List<LLMToolCall> calls, java.util.function.Consumer<List<LLMChatMessage>> nextRound) {
         List<LLMChatMessage> next = new ArrayList<>(conversation);
-        next.add(LLMChatMessage.ofToolCalls(StringUtils.isEmpty(text) ? null : text, calls));
+        // what the model thought goes with its calls, an AI that is set to get it back between the calls does (ReasoningPassthrough)
+        next.add(LLMChatMessage.ofToolCalls(StringUtils.isEmpty(text) ? null : text, calls).withReasoning(reasoning, true));
 
         BooleanSupplier stopped = () -> callback.dead().getAsBoolean() || request.cancellationToken().isCancelled();
         Executor executor = task -> CompletableFuture.runAsync(() -> {
@@ -877,6 +947,19 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
      * {@code reasoning} of the delta, null when there is none.
      */
     @SuppressWarnings("unchecked")
+    private static String reasoningOf(ChatCompletionMessage message) {
+        if (message == null) {
+            return null;
+        }
+        com.openai.core.JsonValue val = message._additionalProperties().get("reasoning_content");
+        if (val == null) {
+            val = message._additionalProperties().get("reasoning");
+        }
+        String reasoning = (val != null && !val.isNull()) ? (String) val.asString().orElse((String) null) : null;
+        return reasoning == null || reasoning.isEmpty() ? null : reasoning;
+    }
+
+    @SuppressWarnings("unchecked")
     private static String reasoningOf(ChatCompletionChunk.Choice.Delta delta) {
         com.openai.core.JsonValue val = delta._additionalProperties().get("reasoning_content");
         if (val == null) {
@@ -1110,10 +1193,11 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
     private interface FunctionCaller {
 
         /**
-         * @param text  what the model wrote before the calls
-         * @param calls the calls, in the order the model made them
+         * @param text      what the model wrote before the calls
+         * @param reasoning what it thought, null for none
+         * @param calls     the calls, in the order the model made them
          */
-        void call(String text, List<LLMToolCall> calls);
+        void call(String text, String reasoning, List<LLMToolCall> calls);
     }
 
     private interface UsageRecorder {
@@ -1146,6 +1230,7 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
         private final FunctionCaller functionCaller;
         private final StringBuilder received = new StringBuilder();
         private final StringBuilder responseText = new StringBuilder();
+        private final StringBuilder reasoningText = new StringBuilder();
         private final SortedMap<Long, PendingToolCall> toolCalls = new TreeMap<>();
         private TokenUsage reportedUsage;
         private final AtomicBoolean usageRecorded = new AtomicBoolean();
@@ -1258,6 +1343,7 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
                             String reasoning = reasoningOf(delta);
                             if (reasoning != null && !reasoning.isEmpty()) {
                                 received.append(reasoning);
+                                reasoningText.append(reasoning);
                                 pendingChunks.add(new PendingChunk(ChunkType.REASONING, reasoning));
                             }
 
@@ -1300,7 +1386,7 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
                     recordUsage();
                     if (!toolCalls.isEmpty()) {
                         try {
-                            functionCaller.call(responseText.toString(), pendingCalls());
+                            functionCaller.call(responseText.toString(), reasoningText.toString(), pendingCalls());
                         } catch (Throwable e) {
                             log.error("Error calling the functions of the model", e);
                             try {

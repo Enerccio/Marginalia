@@ -6,6 +6,7 @@
 /marginalia/src/main/bundles/
 /marginalia/target
 /marginalia/plugins/*/target
+/marginalia/libs/*/target
 retype.manifest
 /marginalia/package.json
 /marginalia/package-lock.json
@@ -31,3 +32,9 @@ retype.manifest
 /screenshots/final/
 /screenshots/dataset/build/
 /screenshots/assets/*.jpg
+/marginalia/vite.config.ts
+/marginalia/vite.generated.ts
+
+# Python bytecode (the screenshot and tool scripts)
+__pycache__/
+*.pyc

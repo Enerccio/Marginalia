@@ -8,31 +8,42 @@
        To release, run `mvn versions:set -DnewVersion=<version> -DgenerateBackupPoms=false` in this folder. -->
   <groupId>io.github.enerccio</groupId>
   <artifactId>marginalia-parent</artifactId>
-  <version>1.6.0</version>
+  <version>1.7.0</version>
   <packaging>pom</packaging>
   <name>marginalia-parent</name>
 
   <modules>
     <module>marginalia</module>
+    <module>marginalia/libs/http-hooks</module>
+    <module>marginalia/libs/translator-common</module>
     <module>marginalia/plugins/anthropic</module>
     <module>marginalia/plugins/arc-outline</module>
+    <module>marginalia/plugins/audiobook</module>
     <module>marginalia/plugins/authorsnote</module>
     <module>marginalia/plugins/beta-readers</module>
+    <module>marginalia/plugins/book-description-generator</module>
     <module>marginalia/plugins/chaptermarker</module>
     <module>marginalia/plugins/character-tracker</module>
     <module>marginalia/plugins/chineselocalization</module>
+    <module>marginalia/plugins/conlang-translator</module>
     <module>marginalia/plugins/image-generator</module>
     <module>marginalia/plugins/instructionexporter</module>
     <module>marginalia/plugins/gemma4toolsfix</module>
     <module>marginalia/plugins/google-genai</module>
+    <module>marginalia/plugins/knowledge-tracker</module>
     <module>marginalia/plugins/lore-generator</module>
     <module>marginalia/plugins/lorebookvcs</module>
     <module>marginalia/plugins/manga-generator</module>
     <module>marginalia/plugins/name-generator</module>
     <module>marginalia/plugins/name-provider</module>
     <module>marginalia/plugins/place-provider</module>
+    <module>marginalia/plugins/prompt-history</module>
+    <module>marginalia/plugins/prompt-inspector</module>
+    <module>marginalia/plugins/reallang-translator</module>
     <module>marginalia/plugins/reviewer</module>
     <module>marginalia/plugins/sidequery</module>
     <module>marginalia/plugins/sillytavern-converter</module>
+    <module>marginalia/plugins/story-notes</module>
+    <module>marginalia/plugins/tts-reader</module>
   </modules>
 </project>

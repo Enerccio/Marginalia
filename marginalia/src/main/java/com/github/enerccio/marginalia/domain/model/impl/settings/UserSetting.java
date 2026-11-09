@@ -85,6 +85,13 @@ public class UserSetting extends Setting {
     @Transient
     private String defaultAnnotatePrompt;
 
+    /**
+     * What the model looks for when it annotates, for the books and folders that set nothing.
+     */
+    @ExtendedAttribute
+    @Transient
+    private String defaultAnnotateInstructions;
+
     @ExtendedAttribute
     @Transient
     private String defaultImpersonatePrompt;
@@ -252,6 +259,38 @@ public class UserSetting extends Setting {
     @Transient
     private Integer dailyGoalMinutes;
 
+    /**
+     * Whether the writing statistics are recorded for this user's books; null (the default) is on. Off stops new counts, times and sizes
+     * (what was recorded stays until the user clears it). The administrator's switch for the whole instance comes first.
+     */
+    @ExtendedAttribute
+    @Transient
+    private Boolean statisticsRecording;
+
+    /**
+     * How many months of the writing statistics are kept, older days are deleted for good; null or zero keeps everything. The shorter of
+     * this and the administrator's limit counts.
+     */
+    @ExtendedAttribute
+    @Transient
+    private Integer statisticsKeepMonths;
+
+    public boolean isStatisticsRecording() {
+        return statisticsRecording == null || statisticsRecording;
+    }
+
+    public void setStatisticsRecording(Boolean statisticsRecording) {
+        this.statisticsRecording = statisticsRecording;
+    }
+
+    public Integer getStatisticsKeepMonths() {
+        return statisticsKeepMonths;
+    }
+
+    public void setStatisticsKeepMonths(Integer statisticsKeepMonths) {
+        this.statisticsKeepMonths = statisticsKeepMonths;
+    }
+
     public Integer getDailyGoalWords() {
         return dailyGoalWords;
     }
@@ -386,6 +425,14 @@ public class UserSetting extends Setting {
 
     public void setDefaultAnnotatePrompt(String defaultAnnotatePrompt) {
         this.defaultAnnotatePrompt = defaultAnnotatePrompt;
+    }
+
+    public String getDefaultAnnotateInstructions() {
+        return defaultAnnotateInstructions;
+    }
+
+    public void setDefaultAnnotateInstructions(String defaultAnnotateInstructions) {
+        this.defaultAnnotateInstructions = defaultAnnotateInstructions;
     }
 
     public String getDefaultImpersonatePrompt() {

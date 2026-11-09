@@ -34,7 +34,7 @@ covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/bound/AgentSession.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/ui/dialogs/agent
   - marginalia/src/main/java/com/github/enerccio/marginalia/ui/workspace/parts/AgentPart.java
-verified: 6b9a70d37
+verified: d163441bd
 ---
 
 # Agents
@@ -352,7 +352,7 @@ agent is told to ask the author at once). A worker (a daemon thread of a cached 
    Then the limits: rounds (`Agent.maxRounds`), `isBudgetExceeded`, and the context (the lowest cap of the agent, the profile and the AI against the tokens of the
    last request, the first one estimated); a limit pauses the run with the reason. The request is `InferenceService.round` with the system message (prompt,
    instructions, `Defaults.AGENT_RUNNER_NOTE`, for a conversation also `Defaults.AGENT_INTERACTIVE_NOTE`, and the limits of the model: the context cap and `TokenLimits.responseTokens`, as `limitsNote`) and the transcript; a failure of it (also the limits of the user's AI) pauses the run. The usage goes to `addUsage`, the answer is
-   appended with its context and its reasoning (`appendAnswer`; the round callback's `onRound(text, reasoning, calls, usage)` brings the reasoning, read from `reasoning_content` / `reasoning` of the message), a reply without calls ends the turn (`IDLE`), otherwise every call runs one after another on a thread in the context of the run and the results are appended
+   appended with its context and its reasoning (`appendAnswer`; the round callback's `onRound(text, reasoning, calls, usage)` brings the reasoning, read from `reasoning_content` / `reasoning` of the message; with **Send the thinking back** set on an OpenAI-compatible AI (`OpenAICompatible.reasoningPassthrough`) the reasoning goes back to the model: `AgentMessageServiceImpl.transcript` puts `AgentMessage.getReasoning()` into `LLMChatMessage.reasoning` of the assistant rows and `AgentRunnerImpl.markCurrentTurn` marks the answers after the last message of a user as `reasoningInTurn`, the ones the *Between tool calls* mode keeps), a reply without calls ends the turn (`IDLE`), otherwise every call runs one after another on a thread in the context of the run and the results are appended
    together (`Error: <message>` for a failure, as the inference service writes it). After the round `finish` makes the run `DONE` (the report is the status reason, cut
    at 2 000 characters) and `ask_user` makes it `IDLE` (the question is the reason).
 4. While it waits for a request or a call the worker looks every second whether the run was thrown away (deleted or `STOPPED_DISCARDED`) and cancels the request
@@ -870,7 +870,7 @@ apply; for an agent these matter most:
 
 Extensions bring commands the same way for the command bar and for agents: register a suite in `onExtensionLoad`, unregister it in `onExtensionUnload`.
 `lore-generator` (`list-lore-templates`, `generate-lore-entry`, `compact-lore-entry`), `name-generator` (`list-name-categories`, `generate-names`)
-`name-provider` (`list-real-name-lists`, `pick-real-names`), `arc-outline` (the outline and its generators) and `character-tracker` (characters and relationships) are examples; the [example plugin](plugins/example.md) shows the registration.
+`name-provider` (`list-real-name-lists`, `pick-real-names`), `arc-outline` (the outline and its generators), `character-tracker` (characters and relationships) and `story-notes` (the pages of the author's notes, some of them hidden from agents) are examples; the [example plugin](plugins/example.md) shows the registration.
 
 ## Logging
 

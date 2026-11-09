@@ -44,6 +44,8 @@ public class ReviewerExtension implements MarginaliaExtension {
     private static final String MENU_ADVANCED = MENU_REVIEW + ".advanced";
     private static final String MENU_DELETE = MENU_REVIEW + ".delete";
     private static final String SETTINGS_PANEL_KEY = ReviewerSettings.KEY + ".settingsPanel";
+    /** The source of the notification that a review is generated, see {@code NotificationService}. */
+    public static final String NOTIFY_REVIEW = ReviewerSettings.KEY + ".review";
 
     @Autowired
     private Localization loc;
@@ -57,6 +59,9 @@ public class ReviewerExtension implements MarginaliaExtension {
     @Autowired
     private StoryMenuRegistry menuRegistry;
 
+    @Autowired
+    private NotificationService notificationService;
+
     private final ReviewerService reviewerService = new ReviewerService();
     private ExtensionDecorator userPartDecorator;
     private ExtensionDecorator userPartSaveDecorator;
@@ -69,6 +74,7 @@ public class ReviewerExtension implements MarginaliaExtension {
     @Override
     public void onExtensionLoad(Bundle bundle, OsgiService parentService, ExtensionService extensionService) {
         String owner = bundle.getSymbolicName();
+        notificationService.register(owner, new NotificationService.Source(NOTIFY_REVIEW, () -> T.localized(REVIEWER_GENERATE_A_REVIEW)));
         try {
             // the Review sub menu of the menu of a part (desktop and phone), next to the summary; its items are shown by the story tab with
             // the keys of the user; what each one needs is read from the part the menu is opened for

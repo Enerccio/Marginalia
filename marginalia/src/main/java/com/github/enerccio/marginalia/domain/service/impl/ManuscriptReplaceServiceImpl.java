@@ -46,7 +46,7 @@ public class ManuscriptReplaceServiceImpl implements ManuscriptReplaceService {
     private SummaryService summaryService;
 
     @Autowired
-    private AnnotationService annotationService;
+    private PassageService passageService;
 
     @Autowired
     private MessageRevisionService messageRevisionService;
@@ -328,11 +328,10 @@ public class ManuscriptReplaceServiceImpl implements ManuscriptReplaceService {
                 String response = message.getResponse();
                 message.setTokenCount(countTokens(owned, response));
                 message.setWordCount(chatMessageService.countWords(response));
-                message.setEdited(true);
                 chatMessageService.save(message);
                 messageRevisionService.record(message, RevisionOrigin.automatic(RevisionDetail.REPLACE, false).data(message));
-                // the passages of the annotations move with the text
-                annotationService.shift(owned, message, responseBefore, response);
+                // the passages (the notes and the kinds of the extensions) move with the text, a kind is told what changed inside its own
+                passageService.shiftReplaced(owned, message, responseBefore, response);
             } else {
                 Summary summary = Hibernate.unproxy(summaryService.find(change.id()), Summary.class);
                 if (!unchanged(summary, change)) {

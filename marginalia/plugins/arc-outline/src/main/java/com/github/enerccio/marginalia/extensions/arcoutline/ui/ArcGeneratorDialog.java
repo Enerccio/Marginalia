@@ -6,6 +6,7 @@ import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.structured.SchemaCheck;
 import com.github.enerccio.marginalia.domain.service.structured.StructuredOutputs;
 import com.github.enerccio.marginalia.domain.service.tool.ToolSet;
+import com.github.enerccio.marginalia.extensions.arcoutline.ArcOutlineExtension;
 import com.github.enerccio.marginalia.extensions.arcoutline.model.*;
 import com.github.enerccio.marginalia.extensions.arcoutline.service.ArcOutlineService;
 import com.github.enerccio.marginalia.extensions.arcoutline.service.Defaults;
@@ -24,6 +25,11 @@ import static com.github.enerccio.marginalia.extensions.arcoutline.ArcOutlineLoc
  */
 public class ArcGeneratorDialog extends GeneratorDialog {
 
+    @Override
+    protected String notificationSource() {
+        return ArcOutlineExtension.NOTIFY_ARC;
+    }
+
     private final ArcOutline outline;
     private final Consumer<Arc> onSave;
 
@@ -36,10 +42,20 @@ public class ArcGeneratorDialog extends GeneratorDialog {
      * @param onSave  gets the new arc (it is not in the outline yet) when the user saves the answer
      */
     public ArcGeneratorDialog(ArcOutlineService service, Manuscript manuscript, ArcOutline outline, Consumer<Arc> onSave) {
+        this(service, manuscript, outline, null, onSave);
+    }
+
+    /**
+     * @param specification what the specification field starts with (the plot wizard hands over what was discussed), null for none
+     */
+    public ArcGeneratorDialog(ArcOutlineService service, Manuscript manuscript, ArcOutline outline, String specification, Consumer<Arc> onSave) {
         super(service, manuscript, T.localized(GENERATE_AN_ARC), T.localized(SAVE_AS_ARC));
         this.outline = outline;
         this.onSave = onSave;
         build();
+        if (specification != null) {
+            specificationArea.setValue(specification);
+        }
     }
 
     @Override
@@ -62,6 +78,7 @@ public class ArcGeneratorDialog extends GeneratorDialog {
         specificationArea = new TextArea(T.localized(SPECIFICATION));
         specificationArea.setWidthFull();
         DialogFocus.onOpen(this, specificationArea);
+        generateOnShortcut(specificationArea);
         specificationArea.setMinHeight("140px");
         specificationArea.setMaxHeight("30vh");
         specificationArea.setPlaceholder(T.localized(WHAT_YOU_WANT_FROM_THE_ARC));
