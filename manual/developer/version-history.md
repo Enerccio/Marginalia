@@ -29,7 +29,7 @@ covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/ui/dialogs/story/BookHistoryActions.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/ui/widgets/HistoryLimitField.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/ui/dialogs/permissions/VersionHistoryPermissionComponent.java
-verified: 340c8ccaa
+verified: d163441bd
 ---
 
 # Version history

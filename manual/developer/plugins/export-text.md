@@ -5,7 +5,7 @@ covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/extensions/ExportTextRegistry.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/ui/dialogs/ExportDialog.java
   - marginalia/src/test/java/com/github/enerccio/marginalia/extensions/ExportTextRegistryTest.java
-verified: 340c8ccaa
+verified: d163441bd
 ---
 
 # The text of an export
