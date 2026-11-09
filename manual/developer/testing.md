@@ -34,13 +34,14 @@ Surefire is configured in `pom.xml` with:
 | `marginalia.test.home=target/test-home` | Folder for the test databases (see [The application folder](#the-application-folder)). |
 | `forkCount=${test.forks}` (default 3), `reuseForks=true` | The test classes are spread over that many JVMs, one class at a time in each. Every JVM has its own Spring context and so its own database: SQLite lets one writer in at a time, and the `@Configurable` aspect (the `@Autowired` fields of the UI classes) is one for the JVM and bound to one Spring context, so threads of one JVM with a context each do not work. `-Dtest.forks=1` runs the classes one after another (times below). |
 
-How long `mvn test` takes (about 3,000 tests), with the machine, as the time depends on it. Add a row for yours: the
-`Total time` line of Maven, once with `-Dtest.forks=1` and once as it is.
+How long `mvn test` takes (about 3,000 tests in the first two rows), with the machine, as the time depends on it. Add a row for yours: the
+`Total time` line of Maven, once with `-Dtest.forks=1` and once as it is. Each fork has a heap of `-Xmx1536m` (`test.heap` in the pom; `-Dtest.heap=-Xmx3g` for a test that needs more): the JVM default is a quarter of the RAM, which three forks and the Maven JVM filled on a 16 GB machine.
 
 | Machine | `-Dtest.forks=1` | 3 JVMs (default) | Memory of the 3 JVMs |
 |---|---|---|---|
 | Intel Core i7-10700K (8 cores, 16 threads), 32 GB RAM, NVMe SSD (btrfs on LUKS), Linux, JDK 26 | 19 min | 7 min | 6.5 GB peak |
 | Apple M4 (10 cores), 16 GB RAM, internal SSD, macOS, JDK 26 | 2 min 20 s | 1 min 27 s | 1.8 GB peak |
+| Apple M4 (10 cores), 16 GB RAM, macOS, JDK 26, 4,651 tests, IntelliJ and a browser open (2026-11-09) | not measured | 7 min 41 s with the heap capped at 1.5 GB per JVM (`-Xmx1536m`); 10 min with no cap | a JVM without a cap went to about 4.5 GB each (four with Maven), with the cap about 1.5 GB each |
 
 After a `mvn install` or `mvn package` that compiled with plain javac, `mvn test` may skip the AspectJ compile of the classes that did not change and leave them unwoven: a `@Configurable` class (a command, a UI class, an anonymous subclass in a test such as `SearchReplaceCommandsTest`) then has `null` in its `@Autowired` fields. `touch` the source of the failing test, or build with `clean`; it is not a bug of the code.
 

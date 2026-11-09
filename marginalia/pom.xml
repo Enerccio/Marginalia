@@ -25,6 +25,8 @@
     <spring.version>7.0.8</spring.version>
     <junit.version>6.0.3</junit.version>
     <test.forks>3</test.forks>
+    <!-- the heap of each test JVM: without it the JVM takes a quarter of the RAM (4 GB on 16 GB) and keeps it, three forks and Maven fill the machine; -Dtest.heap=-Xmx3g for a test that needs more -->
+    <test.heap>-Xmx1536m</test.heap>
     <!-- where everything is built: classes, woven classes, test home, WAR. -Dbuild.dir=/some/folder builds elsewhere, so a run does not
          share target/ with the IDE, which compiles into it too -->
     <build.dir>${project.basedir}/target</build.dir>
@@ -478,7 +480,7 @@
           <reuseForks>true</reuseForks>
           <!-- RuntimeInstrumentationTest installs the ByteBuddy agent into the test JVM. The headless flags keep AWT
                (ImageIO/Graphics2D in the image tests) from putting a Java icon in the macOS Dock and stealing focus -->
-          <argLine>-XX:+EnableDynamicAgentLoading -Djdk.attach.allowAttachSelf=true -Djava.awt.headless=true -Dapple.awt.UIElement=true</argLine>
+          <argLine>${test.heap} -XX:+EnableDynamicAgentLoading -Djdk.attach.allowAttachSelf=true -Djava.awt.headless=true -Dapple.awt.UIElement=true</argLine>
           <systemPropertyVariables>
             <marginalia.test.home>${project.build.directory}/test-home</marginalia.test.home>
           </systemPropertyVariables>
