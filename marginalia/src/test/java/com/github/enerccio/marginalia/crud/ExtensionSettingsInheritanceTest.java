@@ -161,7 +161,8 @@ class ExtensionSettingsInheritanceTest extends MarginaliaTestBase {
         registry.register(OWNER, InheritedSetting.text("test.second", () -> "Second"));
         registry.register("another-extension", InheritedSetting.textArea("another.prompt", () -> "Prompt"));
 
-        List<InheritedSettingRegistry.Group> groups = registry.groups();
+        // the exporters of the application have their templates here too (one group each), they are not what this is about
+        List<InheritedSettingRegistry.Group> groups = registry.groups().stream().filter(group -> !group.owner().startsWith("marginalia.export.")).toList();
 
         assertThat(groups).extracting(InheritedSettingRegistry.Group::owner).containsExactly(OWNER, "another-extension");
         // the first setting that names a group names it, an extension that names none is shown by its own name
@@ -170,7 +171,7 @@ class ExtensionSettingsInheritanceTest extends MarginaliaTestBase {
         assertThat(groups.get(1).title()).isEqualTo("another-extension");
 
         registry.unregisterAll("another-extension");
-        assertThat(registry.groups()).hasSize(1);
+        assertThat(registry.groups().stream().filter(group -> !group.owner().startsWith("marginalia.export.")).toList()).hasSize(1);
     }
 
     @Test

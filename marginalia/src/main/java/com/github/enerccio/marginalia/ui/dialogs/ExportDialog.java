@@ -264,7 +264,7 @@ public class ExportDialog extends Dialog implements LLMInteract {
         List<ExportLoreEntry> lore;
         try {
             languageCode = manuscriptService.getLanguage(manuscript).getCode();
-            templates = exportSettingsService.getTemplates(exporter.getId());
+            templates = exportSettingsService.getTemplates(exporter, manuscript);
             lore = exporter.usesLore() ? exporterService.collectLore(manuscript) : List.of();
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);

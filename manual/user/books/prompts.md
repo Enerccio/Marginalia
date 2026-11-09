@@ -38,10 +38,10 @@ generate.
 
 An [extension](../extensions/index.md) can add settings that books and folders inherit the same way (for example the medium a
 chat about the book treats it as). They are in an **Extension Settings** section below the prompts, in the *Prompts* tab of a book
-and in the settings of a folder, one group per extension. They work like the fields above: an empty field is inherited from the
+and in the settings of a folder, one **collapsible panel per extension** (all closed, except the first one that has something set, so a value you put in is not hidden). They work like the fields above: an empty field is inherited from the
 folders above the book, then from the extension's own settings in *Settings → Extension Settings*, then from its default, and the
-line under the field says which. The section is not shown while no loaded extension has such a setting; a value you set stays with
-the book or the folder when the extension is not loaded.
+line under the field says which. The templates of the [export formats](export.md#title-page-template) (title page, front matter, authorship statement) are in the same section,
+one panel per format. A value you set for an extension stays with the book or the folder when the extension is not loaded.
 
 Each field has a hints popover with **Insert Default Template**, which copies the default into the field as a starting
 point for your own version. The template fields also list the **Available Template Variables** and the

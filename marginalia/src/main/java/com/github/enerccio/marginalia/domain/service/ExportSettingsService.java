@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.service;
 
+import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.ExporterService.ExportTemplate;
 import com.github.enerccio.marginalia.domain.service.ExporterService.Exporter;
 
@@ -44,6 +45,12 @@ public interface ExportSettingsService {
      * the user did not change are not in it.
      */
     Map<String, String> getTemplates(String exporterId) throws Exception;
+
+    /**
+     * The templates of the exporter that apply to the book, for {@link ExporterService.ExportOptions#templates()}: for each template the book's own version,
+     * else the one of the nearest folder above it, else the user's (see {@link #getTemplates(String)}); a template that none of them changed is not in it.
+     */
+    Map<String, String> getTemplates(Exporter exporter, Manuscript manuscript) throws Exception;
 
     /**
      * Stores the user's version of the template; a blank text returns it to the default of the exporter.

@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.extensions;
 
+import com.github.enerccio.marginalia.domain.templates.TemplateData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,6 +50,7 @@ public final class InheritedSetting {
 
     private Supplier<String> group;
     private Supplier<String> help;
+    private Class<? extends TemplateData> variables;
     private Supplier<String> userValue = () -> null;
     private Supplier<String> fallback = () -> "";
     private Supplier<List<Choice>> choices = List::of;
@@ -110,6 +112,15 @@ public final class InheritedSetting {
     }
 
     /**
+     * For a text area that holds a template: the values the template is rendered with, which the hints popover of the field lists as the
+     * variables it can use.
+     */
+    public InheritedSetting variables(Class<? extends TemplateData> variables) {
+        this.variables = variables;
+        return this;
+    }
+
+    /**
      * What the user level of the extension holds, null or blank for nothing: the value a book and a folder inherit when none
      * of the folders above sets one. It is asked from any thread that resolves a setting, including a generation.
      */
@@ -124,6 +135,13 @@ public final class InheritedSetting {
     public InheritedSetting fallback(Supplier<String> fallback) {
         this.fallback = Objects.requireNonNull(fallback, "fallback");
         return this;
+    }
+
+    /**
+     * The values a template setting is rendered with, null when it is not known.
+     */
+    public Class<? extends TemplateData> variables() {
+        return variables;
     }
 
     public String getKey() {

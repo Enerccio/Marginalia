@@ -1,6 +1,9 @@
 package com.github.enerccio.marginalia.domain.service.impl;
 
+import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.settings.ExportSettings;
+import com.github.enerccio.marginalia.domain.service.EffectiveSetting;
+import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.service.ExportSettingsService;
 import com.github.enerccio.marginalia.domain.service.ExporterService.ExportTemplate;
@@ -30,6 +33,9 @@ public class ExportSettingsServiceImpl implements ExportSettingsService {
 
     @Autowired
     private TemplateService templateService;
+
+    @Autowired
+    private ManuscriptService manuscriptService;
 
     @Autowired
     private User currentUser;
@@ -91,6 +97,19 @@ public class ExportSettingsServiceImpl implements ExportSettingsService {
                     changed.put(entry.getKey(), text);
                 }
             });
+        }
+        return changed;
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public Map<String, String> getTemplates(Exporter exporter, Manuscript manuscript) throws Exception {
+        Map<String, String> changed = new LinkedHashMap<>();
+        for (ExportTemplate template : exporter.getTemplates()) {
+            EffectiveSetting<String> setting = manuscriptService.resolveExtension(manuscript, ExportInheritedSettings.key(exporter.getId(), template.key()));
+            if (setting.origin() != EffectiveSetting.Origin.DEFAULT && StringUtils.isNotBlank(setting.value())) {
+                changed.put(template.key(), setting.value());
+            }
         }
         return changed;
     }

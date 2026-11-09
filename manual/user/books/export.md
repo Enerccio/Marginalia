@@ -137,6 +137,10 @@ The title page is written from a template, one for every format. Change it in [S
 with `{{title}}` (the book title of the dialog) and `{{author}}`, for example `## {{title}}` and a line `written by {{author}}`. The default is the
 title as a heading and the author in italics.
 
+The same templates (the title page, the front matter, the authorship statement) can be changed **for one book or for a folder**: in the *Prompts* tab of the book and in the
+folder window, the **Extension Settings** has a panel for each export format, with a field for each of its templates. The book's own version is used first, else the one of the
+nearest folder above it, else yours from *Settings → Exports*, else the default, so a series can have its own title page. An empty field is inherited, and says from where.
+
 ## Table of contents
 
 When the text contains chapters, the file gets a table of contents after the title page. A chapter is a part of the

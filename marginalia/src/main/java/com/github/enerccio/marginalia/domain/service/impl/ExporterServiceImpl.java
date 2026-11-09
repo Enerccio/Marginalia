@@ -3,7 +3,9 @@ package com.github.enerccio.marginalia.domain.service.impl;
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
+import com.github.enerccio.marginalia.domain.service.ExportSettingsService;
 import com.github.enerccio.marginalia.domain.service.ExporterService;
+import com.github.enerccio.marginalia.extensions.InheritedSettingRegistry;
 import com.github.enerccio.marginalia.domain.service.LorebookEntryService;
 import com.github.enerccio.marginalia.domain.service.LorebookService;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
@@ -22,6 +24,12 @@ public class ExporterServiceImpl implements ExporterService, InitializingBean {
 
     @Autowired
     private LorebookEntryService lorebookEntryService;
+
+    @Autowired
+    private InheritedSettingRegistry inheritedSettings;
+
+    @Autowired
+    private ExportSettingsService exportSettings;
 
     private final List<Exporter> exporters = new CopyOnWriteArrayList<>();
 
@@ -43,11 +51,14 @@ public class ExporterServiceImpl implements ExporterService, InitializingBean {
     @Override
     public void registerExporter(Exporter exporter) {
         exporters.add(exporter);
+        // the templates of the exporter are settings that books and folders inherit
+        ExportInheritedSettings.register(inheritedSettings, exporter, exportSettings);
     }
 
     @Override
     public void unregisterExporter(Exporter exporter) {
         exporters.remove(exporter);
+        ExportInheritedSettings.unregister(inheritedSettings, exporter);
     }
 
     @Override

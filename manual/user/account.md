@@ -203,7 +203,7 @@ What each file format is exported with: the tab has a section for every format t
   adds at the end: `{{title}}`, `{{author}}`, `{{totalWords}}`, `{{writtenWords}}`, `{{generatedWords}}`, `{{writtenPercent}}`,
   `{{generatedPercent}}` and `{{models}}` (the models separated by commas, empty when there is none). Empty is the default text.
 
-The tab is saved with the **Save** of the settings and **Discard Changes** throws its changes away, like the others. A template that is not valid
+These are your versions: a book or a folder can have its own, see [Title page template](books/export.md#title-page-template). The tab is saved with the **Save** of the settings and **Discard Changes** throws its changes away, like the others. A template that is not valid
 is refused when you save. A style you make in the Styles tab can be chosen here after you save.
 
 ![The Exports tab, with the HTML section opened](../images/settings-exports.png)
