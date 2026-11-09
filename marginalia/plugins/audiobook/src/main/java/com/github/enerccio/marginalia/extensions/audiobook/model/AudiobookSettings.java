@@ -12,6 +12,8 @@ public class AudiobookSettings {
     private String selectedBackendId;
     /** The id of the {@link AutoMode} for the books that neither they nor a folder say (the user level of the inherited setting). */
     private String autoMode;
+    /** The labelling instruction of the user (a template, see {@code LabelPrompt}), the user level of the inherited setting; blank: the built-in one. */
+    private String labelPrompt;
     /** The voices of the user; the cast of a book names them by id. */
     private List<Actor> actors = new ArrayList<>();
 
@@ -32,6 +34,14 @@ public class AudiobookSettings {
 
     public void setSelectedBackendId(String selectedBackendId) {
         this.selectedBackendId = selectedBackendId;
+    }
+
+    public String getLabelPrompt() {
+        return labelPrompt;
+    }
+
+    public void setLabelPrompt(String labelPrompt) {
+        this.labelPrompt = labelPrompt == null || labelPrompt.isBlank() ? null : labelPrompt;
     }
 
     public AutoMode getAutoMode() {

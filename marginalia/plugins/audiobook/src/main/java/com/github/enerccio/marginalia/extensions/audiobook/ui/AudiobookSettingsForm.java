@@ -7,9 +7,15 @@ import com.github.enerccio.marginalia.extensions.audiobook.audio.Ffmpeg;
 import com.github.enerccio.marginalia.extensions.audiobook.model.Actor;
 import com.github.enerccio.marginalia.extensions.audiobook.model.AudiobookSettings;
 import com.github.enerccio.marginalia.extensions.audiobook.model.AutoMode;
+import com.github.enerccio.marginalia.extensions.audiobook.label.LabelPrompt;
+import com.github.enerccio.marginalia.extensions.audiobook.label.LabelPromptData;
 import com.github.enerccio.marginalia.extensions.audiobook.model.BackendConfig;
 import com.github.enerccio.marginalia.extensions.audiobook.service.AudiobookService;
+import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
+import com.github.enerccio.marginalia.ui.widgets.ResizableTextArea;
+import com.github.enerccio.marginalia.ui.widgets.TemplateHints;
+import com.github.enerccio.marginalia.ui.widgets.TextAreaPopoverComponent;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.html.Span;
@@ -18,6 +24,8 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.select.Select;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Configurable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,7 +37,11 @@ import static com.github.enerccio.marginalia.extensions.audiobook.AudiobookLocal
  * the requests made around a batch. The backends are edited on a copy that {@link #save()} returns; the page stores it with the other
  * settings of the user.
  */
+@Configurable(preConstruction = true)
 public class AudiobookSettingsForm extends VerticalLayout {
+
+    @Autowired
+    private Localization loc;
 
     private final AudiobookService service;
 
@@ -47,6 +59,7 @@ public class AudiobookSettingsForm extends VerticalLayout {
     private final Button deleteActor = new Button(Solid.TRASH.create(), e -> confirmDeleteActor());
 
     private final Select<AutoMode> autoMode = new Select<>();
+    private final TextAreaPopoverComponent labelPrompt = new TextAreaPopoverComponent(T.localized(LABELLING_PROMPT));
 
     private final BackendEditor editor;
     private final VerticalLayout ownSection = new VerticalLayout();
@@ -114,6 +127,15 @@ public class AudiobookSettingsForm extends VerticalLayout {
         autoSection.setPadding(false);
         autoSection.addClassName(AudiobookStyles.SECTION);
 
+        labelPrompt.setWidthFull();
+        labelPrompt.setPlaceholder(LabelPrompt.DEFAULT_TEMPLATE);
+        labelPrompt.setHelperText(T.localized(THE_INSTRUCTION_THAT_TELLS_THE_MODEL_WHO_SPEAKS_EACH_PIECE));
+        ResizableTextArea.install(loc, labelPrompt, "240px");
+        labelPrompt.setPopoverContent(TemplateHints.create(loc, labelPrompt, labelPrompt.getPopover(), LabelPromptData.class, LabelPrompt.DEFAULT_TEMPLATE));
+        VerticalLayout labelSection = new VerticalLayout(labelPrompt);
+        labelSection.setPadding(false);
+        labelSection.addClassName(AudiobookStyles.SECTION);
+
         inUse.setLabel(T.localized(BACKEND_IN_USE));
         inUse.setItemLabelGenerator(b -> StringUtils.defaultIfBlank(b.getName(), T.localized(NEW_BACKEND)) + (service.isShared(b) ? T.localized(SHARED_MARK) : ""));
         inUse.setWidth("24em");
@@ -124,7 +146,7 @@ public class AudiobookSettingsForm extends VerticalLayout {
         ownSection.setSpacing(true);
         ownSection.add(bar, editor);
 
-        add(help, inUse, ownSection, ownDisabled, actorSection, autoSection);
+        add(help, inUse, ownSection, ownDisabled, actorSection, autoSection, labelSection);
         if (service.isAdmin()) {
             add(sharedSection(), storageSection());
         }
@@ -190,6 +212,7 @@ public class AudiobookSettingsForm extends VerticalLayout {
         refreshInUse();
         showActors(settings, actorPicker.getValue() == null ? null : actorPicker.getValue().getId());
         autoMode.setValue(settings.getAutoMode());
+        labelPrompt.setValue(StringUtils.defaultString(settings.getLabelPrompt()));
     }
 
     /** Fills the box of the backend in use: the shared ones the user may use and their own (those on the form, saved or not). */
@@ -249,6 +272,8 @@ public class AudiobookSettingsForm extends VerticalLayout {
         stored.setBackends(new ArrayList<>(backends));
         // the actors are stored at once by their dialog, and stay in the stored settings
         stored.setAutoMode(autoMode.getValue());
+        // empty means the built-in instruction is used
+        stored.setLabelPrompt(labelPrompt.getValue());
         stored.setSelectedBackendId(inUse.getValue() == null ? null : inUse.getValue().getId());
         return stored;
     }

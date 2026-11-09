@@ -51,6 +51,24 @@ class ScriptFromLabelsTest {
     }
 
     @Test
+    void narrationThatTheModelGivesToACharacterIsReadByTheCharacter() {
+        // a letter: no quotation marks, so the code calls it narration; the model knows it is Snape's
+        String text = "The handwriting was unmistakable.\n\n*Albus, you are a liability.*\n\n*S. Snape*\n\nPeter lowered the letter.";
+        List<Piece> pieces = PieceSplitter.split(text);
+        assertTrue(pieces.stream().allMatch(p -> p.kind() == Piece.Kind.NARRATION));
+        assertEquals(4, pieces.size());
+
+        PartScript script = ScriptFromLabels.build(text, pieces, labels(label(1, "Snape", Delivery.CALM, 0.4, ""), label(2, " snape ", Delivery.CALM, 0.3, ""),
+                label(0, "narrator", Delivery.NEUTRAL, 0.2, "")), new BackendConfig(), VOICE, Set.of(), 1);
+
+        assertEquals(List.of("Narrator", "Snape", "snape", "Narrator"), script.entries().stream().map(ScriptEntry::speaker).toList(),
+                "the model's name is kept as it gave it, any case of 'narrator' is the narrator, a missing label is the narrator");
+        assertEquals("Snape.wav", script.entries().get(1).voice().id());
+        // the words are the book's, the asterisks stay for the spoken form to remove
+        assertEquals("*Albus, you are a liability.*", pieces.get(1).text());
+    }
+
+    @Test
     void theChooserIsToldWhoSpeaksHowAndInWhichLanguage() {
         java.util.List<String> asked = new java.util.ArrayList<>();
         ScriptFromLabels.VoiceChooser spy = (speaker, delivery, language) -> {

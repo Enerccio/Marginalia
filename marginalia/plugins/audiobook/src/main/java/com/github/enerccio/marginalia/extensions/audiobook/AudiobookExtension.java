@@ -14,6 +14,7 @@ import com.github.enerccio.marginalia.extensions.MarginaliaExtension;
 import com.github.enerccio.marginalia.extensions.audiobook.audio.Ffmpeg;
 import com.github.enerccio.marginalia.extensions.audiobook.commands.AudiobookCommands;
 import com.github.enerccio.marginalia.extensions.audiobook.export.AudiobookExporter;
+import com.github.enerccio.marginalia.extensions.audiobook.label.LabelPrompt;
 import com.github.enerccio.marginalia.extensions.audiobook.model.AudiobookSettings;
 import com.github.enerccio.marginalia.extensions.audiobook.model.AutoMode;
 import com.github.enerccio.marginalia.extensions.audiobook.queue.ConversionJob;
@@ -251,6 +252,13 @@ public class AudiobookExtension implements MarginaliaExtension, ExtensionHasCss 
                             return mode == AutoMode.NO ? null : mode.id();
                         })
                         .fallback(AutoMode.NO::id));
+        // the instruction the language model labels the pieces with: a template that a book, a folder or the user can change
+        inheritedSettings.register(bundle.getSymbolicName(),
+                InheritedSetting.textArea(LabelPrompt.SETTING, () -> T.localized(LABELLING_PROMPT))
+                        .group(() -> T.localized(AUDIOBOOK))
+                        .help(() -> T.localized(THE_INSTRUCTION_THAT_TELLS_THE_MODEL_WHO_SPEAKS_EACH_PIECE))
+                        .userValue(() -> audiobookService.getSettings().getLabelPrompt())
+                        .fallback(() -> LabelPrompt.DEFAULT_TEMPLATE));
         partFinishedDecorator = new ExtensionDecorator() {
             @Override
             public void onMethodEnter(Object instrumented, ExtendableMethodContext context) {

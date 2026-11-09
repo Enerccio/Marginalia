@@ -122,6 +122,14 @@ How a part is made, so you know what to expect:
 - The text is **split by the program**, never by the model, into pieces of narration and pieces of direct speech (between straight or
   curly double quotation marks or Japanese corner brackets; a heading is narration). The model only *labels* the numbered pieces. A text
   with sound tags is used only when it is the piece with tags added and nothing else changed, so the model can never change your book.
+- **Who speaks a piece is the model's call**, also for narration. A letter, a note, a sign or a character's thoughts has no quotation marks, so the program calls it
+  narration, but the model sees from the context (a signature, "the handwriting was unmistakable") that it is a character's own words and names that character, so the voice
+  of the cast reads it. Italics are only a hint to the model, which also reads emphasis and sounds in italics as narration. When it is in doubt it is the narrator. The words
+  are always yours.
+- **The instruction to the model is a template you can change.** *Settings → Extension Settings → Audiobook Settings → Labelling prompt* is your default; a book (*Prompts* tab →
+  *Extension Settings* → *Audiobook*) or a folder can have its own. Empty means the one of the folder above, then yours, then the built-in one. It is written like the other
+  [prompts](../books/prompts.md): the variables are `{{characters}}`, `{{deliveries}}`, `{{tags}}` and `{{wordsPerTag}}`, and the hints popover has **Insert Default Template**. A changed
+  instruction makes the labels of the parts to be asked again the next time they are made.
 - All the parts of one click are made in **one batch per speech model**: the requests before the batch run once, then all the pieces
   are spoken, then the requests after the batch run once. This is what keeps the graphics card from swapping models for every part.
 - Every piece is **kept by its content** (text, voice, model, language, settings, seed). A part that is already up to date costs

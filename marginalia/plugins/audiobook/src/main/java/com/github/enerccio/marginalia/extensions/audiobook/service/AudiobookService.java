@@ -77,6 +77,9 @@ public class AudiobookService {
     private ManuscriptService manuscriptService;
 
     @Autowired
+    private TemplateService templateService;
+
+    @Autowired
     private com.github.enerccio.marginalia.domain.security.service.UserService userService;
 
     /** The inherited setting (book, folders, user) that says whether a new part is made into audio by itself. */
@@ -1007,6 +1010,16 @@ public class AudiobookService {
         return SpokenForm.of(book == null ? new SpokenSettings() : spokenOf(book));
     }
 
+    /**
+     * The labelling instruction for a book: its own setting, else the nearest folder's, else the user's, else the built-in one
+     * ({@link LabelPrompt#SETTING}), with the characters filled in.
+     */
+    private String labelPrompt(String bookId, List<String> characters) throws Exception {
+        Manuscript book = manuscriptService.findForUser(bookId);
+        String template = book == null ? null : manuscriptService.resolveExtension(book, LabelPrompt.SETTING).value();
+        return LabelPrompt.system(templateService, template, characters);
+    }
+
     /** The cast of the book as it is when a job runs. */
     private Cast castOfBook(String bookId) throws Exception {
         Manuscript book = manuscriptService.findForUser(bookId);
@@ -1045,7 +1058,8 @@ public class AudiobookService {
         if (options == null || pieces.isEmpty()) {
             fresh = ScriptBuilder.studio(text, narrator, backend, SEED, form);
         } else {
-            LabelService.Result labels = LabelService.labels(partUuid, text, pieces, characters,
+            String system = labelPrompt(bookId, characters);
+            LabelService.Result labels = LabelService.labels(partUuid, text, pieces, system,
                     new LlmLabelModel(inferenceServices.forAIOrThrow(options.ai()), options.protocol()), new PartLabelStore(chatMessageService));
             if (labels.missing() > 0) {
                 AudiobookLog.get().warn("The model left {} of {} pieces of a part without a label: the narrator reads them", labels.missing(), pieces.size());

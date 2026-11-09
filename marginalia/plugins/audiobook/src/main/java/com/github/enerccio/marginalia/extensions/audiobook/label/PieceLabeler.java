@@ -29,9 +29,9 @@ public final class PieceLabeler {
     public record Labelled(Map<Integer, PieceLabel> labels, int missing) {
     }
 
-    public static Labelled label(List<Piece> pieces, List<String> characters, LabelModel model) throws Exception {
+    /** @param system the instruction (see {@link LabelPrompt#system}) */
+    public static Labelled label(List<Piece> pieces, String system, LabelModel model) throws Exception {
         Map<Integer, PieceLabel> labels = new LinkedHashMap<>();
-        String system = LabelPrompt.system(characters);
         for (int from = 0; from < pieces.size(); from += WINDOW) {
             window(pieces, from, Math.min(pieces.size(), from + WINDOW), system, model, labels);
         }

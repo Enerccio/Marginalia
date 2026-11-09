@@ -14,7 +14,7 @@ import java.util.regex.Pattern;
 /**
  * Makes the script of a part from its pieces and their labels. This is where the book is protected from the model: the words of a piece are the
  * words of the book, a tagged text is taken only when it is the piece plus allowed tags, and a label that is missing or odd becomes the narrator
- * reading neutrally. What the labelling says is turned into what the engine has: the sound tags only for the Turbo model, the intensity into
+ * reading neutrally. Who speaks a piece is the model's call, also for narration (a letter in its writer's voice). What the labelling says is turned into what the engine has: the sound tags only for the Turbo model, the intensity into
  * {@code exaggeration} only for the models that have one.
  */
 public final class ScriptFromLabels {
@@ -61,8 +61,9 @@ public final class ScriptFromLabels {
         for (int i = 0; i < pieces.size(); i++) {
             Piece piece = pieces.get(i);
             PieceLabel label = labels.get(piece.id());
-            boolean speech = piece.kind() == Piece.Kind.SPEECH;
-            String speaker = speech && label != null && label.speaker() != null && !label.speaker().isBlank() ? label.speaker().strip() : NARRATOR;
+            // the model decides who says a piece: narration is the narrator unless it names somebody (a letter, a note, thoughts), the words stay the book's
+            String speaker = label != null && label.speaker() != null && !label.speaker().isBlank() && !NARRATOR.equalsIgnoreCase(label.speaker().strip())
+                    ? label.speaker().strip() : NARRATOR;
             double intensity = label == null ? 0.5 : Math.max(0, Math.min(1, label.intensity()));
 
             String model = backend.getModel();

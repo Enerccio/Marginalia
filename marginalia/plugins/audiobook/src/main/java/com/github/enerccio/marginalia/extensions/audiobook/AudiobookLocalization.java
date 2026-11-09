@@ -11,6 +11,8 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
 
     public static final String AUDIOBOOK = "Audiobook";
     public static final String AUDIOBOOK_SETTINGS = "Audiobook Settings";
+    public static final String LABELLING_PROMPT = "Labelling prompt";
+    public static final String THE_INSTRUCTION_THAT_TELLS_THE_MODEL_WHO_SPEAKS_EACH_PIECE = "The instruction that tells the language model who speaks each piece of a part and how it is read (a template). Empty: the built-in one.";
     public static final String SPEECH_SERVERS_HELP = "The speech servers the audiobook is made by. The requests around a batch make room for the server on the GPU and stop it again.";
     public static final String BACKENDS = "Backends";
     public static final String ADD_A_BACKEND = "Add a backend";
@@ -928,6 +930,12 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
 
         ja(READ_THIS_PART_WITH_THE_BROWSER_VOICE, "このパート (と音声のない次のパート) をブラウザの音声で読み上げる");
         zh(READ_THIS_PART_WITH_THE_BROWSER_VOICE, "用浏览器的语音朗读此章节（以及之后没有音频的章节）");
+
+        ja(LABELLING_PROMPT, "ラベル付けのプロンプト");
+        zh(LABELLING_PROMPT, "标注提示词");
+
+        ja(THE_INSTRUCTION_THAT_TELLS_THE_MODEL_WHO_SPEAKS_EACH_PIECE, "パートの各部分を誰が話し、どう読むかを言語モデルに伝える指示 (テンプレート)。空の場合は組み込みのものを使います。");
+        zh(THE_INSTRUCTION_THAT_TELLS_THE_MODEL_WHO_SPEAKS_EACH_PIECE, "告诉语言模型章节的每一段由谁说、如何朗读的指令（模板）。留空：使用内置指令。");
 
         ja(GPU_NAME, "GPU（名前）");
         zh(GPU_NAME, "GPU（名称）");

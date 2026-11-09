@@ -13,7 +13,8 @@ import com.github.enerccio.marginalia.domain.traits.LLMSchema;
 @LLMSchema(description = "The label of one piece of the text")
 public record PieceLabel(
         @LLMField(description = "The number of the piece", minimum = 0) int id,
-        @LLMField(description = "Who says it: for narration always Narrator, for direct speech the character who speaks, resolved from the context",
+        @LLMField(description = "Who says it: for direct speech the character who speaks, resolved from the context; for narration Narrator, unless the text is "
+                + "a character's own words (a letter, a note, a sign, thoughts), then that character",
                 minLength = 1) String speaker,
         @LLMField(description = "How it should be read") Delivery delivery,
         @LLMField(description = "How strongly, from 0.0 (flat) to 1.0 (extreme)", minimum = 0, maximum = 1) double intensity,

@@ -16,9 +16,9 @@ public final class LabelService {
     private LabelService() {
     }
 
-    /** What the labels were made from: the words of the part, the characters the model was told and the instruction. */
-    public static String cacheKey(String text, List<String> characters) {
-        return Hashes.sha256(String.join("\u0001", LabelPrompt.VERSION, text == null ? "" : text, String.join("\u0002", characters)));
+    /** What the labels were made from: the words of the part and the instruction (which has the characters the model was told); a changed template asks again. */
+    public static String cacheKey(String text, String system) {
+        return Hashes.sha256(String.join("\u0001", LabelPrompt.VERSION, text == null ? "" : text, system));
     }
 
     /**
@@ -28,15 +28,16 @@ public final class LabelService {
     public record Result(Map<Integer, PieceLabel> labels, boolean fromStore, int missing) {
     }
 
-    public static Result labels(String partId, String text, List<Piece> pieces, List<String> characters, LabelModel model, LabelStore store) throws Exception {
-        String key = cacheKey(text, characters);
+    /** @param system the instruction (see {@link LabelPrompt#system}) */
+    public static Result labels(String partId, String text, List<Piece> pieces, String system, LabelModel model, LabelStore store) throws Exception {
+        String key = cacheKey(text, system);
         List<PieceLabel> stored = store.find(partId, key);
         if (stored != null) {
             Map<Integer, PieceLabel> labels = new LinkedHashMap<>();
             stored.forEach(l -> labels.putIfAbsent(l.id(), l));
             return new Result(labels, true, pieces.size() - labels.size());
         }
-        PieceLabeler.Labelled made = PieceLabeler.label(pieces, characters, model);
+        PieceLabeler.Labelled made = PieceLabeler.label(pieces, system, model);
         if (made.missing() == 0) {
             store.put(partId, key, List.copyOf(made.labels().values()));
         }

@@ -1,5 +1,7 @@
 package com.github.enerccio.marginalia.extensions.audiobook.label;
 
+import com.github.enerccio.marginalia.domain.service.TemplateService;
+import com.github.enerccio.marginalia.domain.service.impl.TemplateServiceImpl;
 import com.github.enerccio.marginalia.domain.service.structured.StructuredOutputs;
 import org.junit.jupiter.api.Test;
 
@@ -12,6 +14,27 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static org.junit.jupiter.api.Assertions.*;
 
 class LabelingTest {
+
+    private static final TemplateService TEMPLATES = templates();
+
+    private static TemplateService templates() {
+        try {
+            TemplateServiceImpl service = new TemplateServiceImpl();
+            service.afterPropertiesSet();
+            return service;
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    /** The built-in instruction for these characters. */
+    private static String sys(String... characters) {
+        try {
+            return LabelPrompt.system(TEMPLATES, null, List.of(characters));
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
+        }
+    }
 
     private static List<Piece> pieces(int n) {
         List<Piece> pieces = new ArrayList<>();
@@ -40,7 +63,7 @@ class LabelingTest {
     void aLongPartGoesInWindowsWithTheLastPiecesAsContext() throws Exception {
         List<String> requests = new ArrayList<>();
 
-        PieceLabeler.Labelled labelled = PieceLabeler.label(pieces(95), List.of("Marta"), answersAll(requests));
+        PieceLabeler.Labelled labelled = PieceLabeler.label(pieces(95), sys("Marta"), answersAll(requests));
 
         assertEquals(6, requests.size(), "16 * 5 + 15");
         assertEquals(95, labelled.labels().size());
@@ -63,7 +86,7 @@ class LabelingTest {
             return answersAll(new ArrayList<>()).ask(system, user);
         };
 
-        PieceLabeler.Labelled labelled = PieceLabeler.label(pieces(16), List.of(), truncating);
+        PieceLabeler.Labelled labelled = PieceLabeler.label(pieces(16), sys(), truncating);
 
         assertEquals(16, labelled.labels().size());
         assertEquals(0, labelled.missing());
@@ -76,7 +99,7 @@ class LabelingTest {
             throw new com.github.enerccio.marginalia.domain.service.structured.StructuredOutputException("junk", List.of("not json"), null);
         };
 
-        var e = assertThrows(Exception.class, () -> PieceLabeler.label(pieces(5), List.of(), never));
+        var e = assertThrows(Exception.class, () -> PieceLabeler.label(pieces(5), sys(), never));
         assertTrue(e.getMessage().contains("not json"), e.getMessage());
     }
 
@@ -88,7 +111,7 @@ class LabelingTest {
             throw new java.io.IOException("the server is down");
         };
 
-        assertThrows(java.io.IOException.class, () -> PieceLabeler.label(pieces(16), List.of(), down));
+        assertThrows(java.io.IOException.class, () -> PieceLabeler.label(pieces(16), sys(), down));
         assertEquals(1, asked.get(), "a server that is down is not helped by smaller requests");
     }
 
@@ -100,7 +123,7 @@ class LabelingTest {
                 new PieceLabel(2, "Marta", Delivery.CALM, 0.4, ""),
                 new PieceLabel(99, "Ghost", Delivery.NEUTRAL, 0.5, "")));  // not a piece of the window
 
-        PieceLabeler.Labelled labelled = PieceLabeler.label(pieces(4), List.of(), sloppy);
+        PieceLabeler.Labelled labelled = PieceLabeler.label(pieces(4), sys(), sloppy);
 
         assertEquals(2, labelled.labels().size());
         assertEquals("Narrator", labelled.labels().get(0).speaker());
@@ -110,11 +133,22 @@ class LabelingTest {
 
     @Test
     void theInstructionNamesTheCharactersAndTheAllowedTags() {
-        String system = LabelPrompt.system(List.of("Marta", "Jonas"));
+        String system = sys("Marta", "Jonas");
         assertTrue(system.contains("Marta, Jonas"));
         assertTrue(system.contains("[clear throat]") && system.contains("[laugh]"));
         assertTrue(system.contains("WHISPER") && system.contains("SHOUT"), "the words of the schema");
-        assertTrue(LabelPrompt.system(List.of()).contains("not known"));
+        assertTrue(sys().contains("not known"));
+        assertFalse(system.contains("{{"), "every variable is filled in");
+        assertFalse(system.contains("not known"));
+    }
+
+    @Test
+    void aChangedTemplateIsUsedAndAskedAgainInsteadOfTheStoredLabels() throws Exception {
+        String custom = "Label the pieces. Known: {{characters}}. Choose from {{deliveries}}.";
+        String system = LabelPrompt.system(TEMPLATES, custom, List.of("Marta"));
+        assertEquals("Label the pieces. Known: Marta. Choose from " + LabelPrompt.data(List.of("Marta")).getDeliveries() + ".", system);
+        assertEquals(sys(), LabelPrompt.system(TEMPLATES, "   ", List.of()), "a blank template is the built-in one");
+        assertNotEquals(LabelService.cacheKey("text", sys("Marta")), LabelService.cacheKey("text", system), "another instruction, other labels");
     }
 
     @Test
@@ -137,8 +171,8 @@ class LabelingTest {
         };
         List<Piece> pieces = pieces(6);
 
-        LabelService.Result first = LabelService.labels("p1", "text", pieces, List.of("Marta"), counting, store);
-        LabelService.Result again = LabelService.labels("p1", "text", pieces, List.of("Marta"), counting, store);
+        LabelService.Result first = LabelService.labels("p1", "text", pieces, sys("Marta"), counting, store);
+        LabelService.Result again = LabelService.labels("p1", "text", pieces, sys("Marta"), counting, store);
 
         assertFalse(first.fromStore());
         assertTrue(again.fromStore());
@@ -146,8 +180,8 @@ class LabelingTest {
         assertEquals(6, again.labels().size());
 
         // another text or another list of characters is another question
-        LabelService.labels("p1", "text changed", pieces, List.of("Marta"), counting, store);
-        LabelService.labels("p1", "text", pieces, List.of("Marta", "Jonas"), counting, store);
+        LabelService.labels("p1", "text changed", pieces, sys("Marta"), counting, store);
+        LabelService.labels("p1", "text", pieces, sys("Marta", "Jonas"), counting, store);
         assertEquals(3, asked.get());
     }
 
@@ -165,7 +199,7 @@ class LabelingTest {
         };
         LabelModel half = (system, user) -> new LabelAnswer(List.of(new PieceLabel(0, "Narrator", Delivery.NEUTRAL, 0.5, "")));
 
-        LabelService.Result result = LabelService.labels("p1", "text", pieces(3), List.of(), half, store);
+        LabelService.Result result = LabelService.labels("p1", "text", pieces(3), sys(), half, store);
 
         assertEquals(2, result.missing());
         assertTrue(stored.isEmpty(), "the next run asks again");
