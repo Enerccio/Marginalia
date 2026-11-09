@@ -684,3 +684,12 @@ Most are 🧩 plugin-sized; the ones that need a core hook say so.
       `tools/retype_build.sh`).
     - ✅ **A look in a browser.** The grouped menus, the lines, the nested *Change Styles For Text* and the *Manage* / *Import* menus of
       the book list were checked in Chrome, Firefox and Safari.
+76. **Plugin data off the entity: a 1-N "resource" for the extended content.** Now a plugin keeps its data in `ExtendableEntity.attributes`, which is a part
+    of the gzipped `extendedContent` column of the entity: every load of a `Manuscript` (lists, the workspace, each generation, each `find` of a command)
+    reads and parses the data of every plugin, and saving one note rewrites the row that a generation writes too (`activeLeaf`). Idea: an entity that holds
+    only `extendedContent` (+ `attributes`), keyed by owner type, owner uuid and a plugin key, mapped to any entity and loaded only when asked, one per
+    plugin or per item (a page of the Story Notes). Before it can replace the attributes it has to be part of everything that now works because the data is
+    inside the entity: backups and exports, copies of a book, the working copy an agent runs its commands on, soft delete and `@CleanupReference`, ownership,
+    `@PublicAPI` for plugins and a Flyway migration. `StoryNotesService.read` / `update` are the only place the Story Notes touch the storage, so it can move
+    there first. Measure before: the size of the plugin data of the biggest books and the time of a `Manuscript` load.
+

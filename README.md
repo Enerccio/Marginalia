@@ -169,6 +169,7 @@ built separately with Maven, or in Docker (see the plugins README):
 - [Reviewer](marginalia/plugins/reviewer/README.md) - AI reviews of story parts,
 - [Side Query](marginalia/plugins/sidequery/README.md) - ask the model about your book without changing it,
 - [SillyTavern Converter](marginalia/plugins/sillytavern-converter/README.md) - rewrite a SillyTavern chat as a story: the chat next to the story, turn details made of it by the model.
+- [Story Notes](marginalia/plugins/story-notes/README.md) - a small wiki of your own pages (tags, `[[links]]`) in the story sidebar; agents and the plot wizard can read and change the pages you allow.
 - [Read Aloud](marginalia/plugins/tts-reader/README.md) - read a published book aloud in the viewer with the voice of the device.
 
 The extension API is not frozen in 1.0: extensions are built for one Marginalia version, and Marginalia refuses to start

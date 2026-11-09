@@ -12,6 +12,8 @@ public class PlotWizardTemplateData extends TemplateData {
     private String backgroundLore = "";
     /** The arcs the book has, with their chapters (and notes when the author wants them). */
     private String outline = "";
+    /** The notes of the author (titles and first lines, or the pages), when the Story Notes plugin has them. */
+    private String notes = "";
     /** The summaries of the story, oldest first. */
     private String summaries = "";
     /** The newest parts of the story after the summaries. */
@@ -25,6 +27,10 @@ public class PlotWizardTemplateData extends TemplateData {
 
     public boolean isHasOutline() {
         return !outline.isBlank();
+    }
+
+    public boolean isHasNotes() {
+        return !notes.isBlank();
     }
 
     public boolean isHasSummaries() {
@@ -53,6 +59,14 @@ public class PlotWizardTemplateData extends TemplateData {
 
     public void setOutline(String outline) {
         this.outline = outline == null ? "" : outline;
+    }
+
+    public String getNotes() {
+        return notes;
+    }
+
+    public void setNotes(String notes) {
+        this.notes = notes == null ? "" : notes;
     }
 
     public String getSummaries() {

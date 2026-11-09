@@ -162,10 +162,11 @@ On the left you choose what the model sees and how it helps (the choices are rem
 | How the model helps | **Free talk** (you lead), **Explore directions** (several distinct ways the story can go next), **Find the problems** (threads never resolved, promises nobody keeps, contradictions with the lore, pacing) or **Expand an idea** (your idea grown into a premise, turning points, an ending and chapters that fit after your arcs). |
 | Send the lorebook | The entries of the book's lorebook and its sub lorebooks. |
 | Send the outline | **Not sent**, **Descriptions only**, or **With the notes** (your private notes too). |
+| Send the notes | Only when [Story Notes](story-notes.md) is installed: **Not sent**, **Titles and first lines** (the default) or **Full text** of your notes, without the pages you hid from assistants. |
 | Send the summaries of the story | The summaries stand in for the story up to the newest of them, the way a generation sends them. |
 | Send the latest parts of the story | The parts after the newest summary (all of them when summaries are off), the newest ones that fit **Tokens of the story**. Each part is shown to the model under its number in the outline of the story. |
 | Tokens of the story | The most tokens of story parts. Empty: a third of what the model takes. |
-| Prompt | The instructions for the model, with the variables `{{backgroundLore}}`, `{{outline}}`, `{{summaries}}`, `{{story}}` and `{{mode}}`. The change is remembered. |
+| Prompt | The instructions for the model, with the variables `{{backgroundLore}}`, `{{outline}}`, `{{notes}}`, `{{summaries}}`, `{{story}}` and `{{mode}}`. The change is remembered. |
 
 Under the options a line tells how many summaries and story parts the model gets, and how many tokens the request has of what the model takes. It turns into a warning when it does not fit; send less or [summarize the chat](#chats-branches-and-summaries). The book is read again for every message, so a change of the outline or the story is seen by the next answer.
 
@@ -181,6 +182,7 @@ when you ask or agree; it is told to look before it adds, to prefer adding to re
 | **Planner** | list the scenes of the [planner](../books/story-editor.md#the-planner-tab), add, change, move, delete them and mark them done. |
 | **Lorebook** | search and read the lore, create entries and change existing ones (not delete them). |
 | **Outline** | read the outline, add arcs and chapters, change and move them (not delete them). |
+| **Notes** (when [Story Notes](story-notes.md) is installed) | search and read your notes and follow their links, add a page or add to one when you ask it to keep something, and change text in one (not delete a page). Pages you hid from assistants are out of reach. |
 | **Generators** | call the arc and chapter generators and, when the [Lore Generator](lore-generator.md) is installed, generate a lore entry. They return a draft and save nothing unless the model is told to; it shows you the draft and saves it when you agree. |
 | **Tools** (button, when a [tool suite](tools.md) is installed) | the name tools (names, places), as in the generators, so it can offer you real names. |
 

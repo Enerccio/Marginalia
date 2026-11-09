@@ -1,12 +1,12 @@
 package com.github.enerccio.marginalia.extensions.arcoutline;
 
+import com.github.enerccio.marginalia.domain.service.function.FunctionSet;
+import com.github.enerccio.marginalia.domain.service.tool.ToolSet;
 import com.github.enerccio.marginalia.extensions.arcoutline.model.WizardChat;
 import com.github.enerccio.marginalia.extensions.arcoutline.model.WizardData;
 import com.github.enerccio.marginalia.extensions.arcoutline.model.WizardMessage;
-import com.github.enerccio.marginalia.extensions.arcoutline.service.ArcOutlineService.StoryMessage;
-import com.github.enerccio.marginalia.domain.service.function.FunctionSet;
-import com.github.enerccio.marginalia.domain.service.tool.ToolSet;
 import com.github.enerccio.marginalia.extensions.arcoutline.service.ArcOutlineService;
+import com.github.enerccio.marginalia.extensions.arcoutline.service.ArcOutlineService.StoryMessage;
 import com.github.enerccio.marginalia.extensions.arcoutline.service.WizardContext;
 import org.junit.jupiter.api.Test;
 
@@ -142,6 +142,28 @@ class PlotWizardTest {
                 names.forEach(name -> assertFalse(name.startsWith("delete-"), name + " asks a question nobody can answer there"));
             }
         }
+    }
+
+    @Test
+    void theNotesGroupReadsAddsAndChangesPagesWithoutDeletingThem() {
+        List<String> names = com.github.enerccio.marginalia.extensions.arcoutline.service.ArcOutlineService.toolNames(
+                com.github.enerccio.marginalia.extensions.arcoutline.model.WizardOptions.ToolGroup.NOTES);
+
+        // the commands of the Story Notes plugin, named here as text: the plugin is not imported
+        assertEquals(List.of("list-notes", "get-note", "search-notes", "create-note", "update-note", "append-to-note", "edit-note"), names);
+    }
+
+    @Test
+    void theNotesAreSentAsTitlesUnlessTheAuthorSaysOtherwise() {
+        var options = new com.github.enerccio.marginalia.extensions.arcoutline.model.WizardOptions();
+        assertEquals(com.github.enerccio.marginalia.extensions.arcoutline.model.WizardOptions.NotesDetail.TITLES, options.getNotes());
+        options.setNotes(null);
+        assertEquals(com.github.enerccio.marginalia.extensions.arcoutline.model.WizardOptions.NotesDetail.TITLES, options.getNotes());
+
+        var data = new com.github.enerccio.marginalia.extensions.arcoutline.model.PlotWizardTemplateData();
+        assertFalse(data.isHasNotes());
+        data.setNotes("- Magic: costs memory");
+        assertTrue(data.isHasNotes());
     }
 
     @Test

@@ -162,6 +162,15 @@ A branch (`WizardChat.branch`) is a deep copy. *Summarize the chat* asks the aut
 message with `summary` set; `WizardContext.sinceSummary` and `lastSummary` make the model get the newest summary (in its system prompt) and the
 messages after it only.
 
+## Notes in the plot wizard
+
+When the Story Notes plugin (`story-notes`) is loaded, the plot wizard has a *Send the notes* select (`WizardOptions.notes`: none, titles with first lines (the
+default) or the full text, into the `{{notes}}` variable of the prompt, `hasNotes` is its flag) and a `NOTES` tool group. The plugin is not imported: the text comes from its
+`IPCService` sources `notes-index` and `notes` of the bundle `story-notes` (`ArcOutlineService.notesText`; `notesAvailable()` hides the select and the group when the
+plugin is not there), and the group is the names of its commands (`list-notes`, `get-note`, `search-notes`, `create-note`, `update-note`, `append-to-note`, `edit-note`;
+`delete-note` is left out, like the other deletes). `update-note` and `edit-note` are `DESTRUCTIVE`, so *Ask me before it changes or deletes something* covers them. Pages
+that the author hid from assistants are not in the text and not reachable by the commands. The source keys and the command names are a contract with `story-notes`.
+
 ## Commands
 
 `ArcOutlineCommands` and `ArcGenerationCommands` register the outline and its generators for the command bar and for agents:

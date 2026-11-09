@@ -32,6 +32,7 @@ a restart.
 | [Reviewer](reviewer/README.md) | AI-written reviews of a story part, with configurable reviewer profiles. |
 | [Side Query](sidequery/README.md) | A chat panel next to the story for asking the model questions about the book, its lore and recent parts. |
 | [SillyTavern Converter](sillytavern-converter/README.md) | A tab next to the story with a SillyTavern chat to review and the turn details the model prepares from it, to put into the new turn form. |
+| [Story Notes](story-notes/README.md) | A small wiki in the story sidebar: pages with tags and `[[links]]` for plots, ideas and rules of the world, that commands, agents and the plot wizard of the Arc Outline can read and change (pages can be hidden from them). |
 | [Read Aloud](tts-reader/README.md) | Reads a published book aloud in the viewer, with the speech synthesis of the browser. |
 
 ## Installing
@@ -56,7 +57,7 @@ mvn -N install                   # in the repository root: installs the parent P
 cd marginalia
 mvn install -DskipTests          # installs the application (and its classes JAR used by plugins)
 
-cd plugins/chaptermarker          # or anthropic, arc-outline, audiobook, authorsnote, beta-readers, book-description-generator, character-tracker, chineselocalization, conlang-translator, gemma4toolsfix, google-genai, image-generator, instructionexporter, knowledge-tracker, lore-generator, lorebookvcs, manga-generator, name-generator, name-provider, place-provider, prompt-history, prompt-inspector, reallang-translator, reviewer, sidequery, sillytavern-converter, tts-reader
+cd plugins/chaptermarker          # or anthropic, arc-outline, audiobook, authorsnote, beta-readers, book-description-generator, character-tracker, chineselocalization, conlang-translator, gemma4toolsfix, google-genai, image-generator, instructionexporter, knowledge-tracker, lore-generator, lorebookvcs, manga-generator, name-generator, name-provider, place-provider, prompt-history, prompt-inspector, reallang-translator, reviewer, sidequery, sillytavern-converter, story-notes, tts-reader
 mvn package                       # target/chaptermarker-1.4.0.jar
 ```
 

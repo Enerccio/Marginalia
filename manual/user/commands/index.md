@@ -259,10 +259,13 @@ You see these in the list as long as the extension is loaded; each is described 
 | `/list-characters`, `/get-character <character>` | [Character Tracker](../extensions/character-tracker.md) | The characters of the book, and one with its note and relationships. |
 | `/create-character`, `/update-character`, `/delete-character` | [Character Tracker](../extensions/character-tracker.md) | Add, change and delete a character. |
 | `/list-character-relations`, `/add-character-relation`, `/update-character-relation`, `/delete-character-relation` | [Character Tracker](../extensions/character-tracker.md) | The relationships between characters. |
+| `/list-notes`, `/get-note <note>`, `/search-notes <query>` | [Story Notes](../extensions/story-notes.md) | The pages of the notes of the book (not the ones hidden from assistants), one with its text and links, and a search. |
+| `/create-note`, `/append-to-note`, `/update-note`, `/edit-note`, `/delete-note`, `/note-text <note>` | [Story Notes](../extensions/story-notes.md) | Add, add to, change, edit and delete a page; `note-text` is made for the {%{`{{command::note-text::Title}}`}%} macro. |
 
 The commands of the Lore Generator, the Name generator, the Name provider and the Place provider only read: the generating ones return text and
 leave it to you, or to the agent that called them, to put it into an entry. The commands of the Arc Outline and the
-Character Tracker also change the outline and the characters of the open book; only their `delete` commands are destructive.
+Character Tracker also change the outline and the characters of the open book; only their `delete` commands are destructive. The Story Notes
+change the pages of the open book too; there `update-note` and `edit-note` are destructive as well, since they replace text that exists.
 
 ## Limits
 

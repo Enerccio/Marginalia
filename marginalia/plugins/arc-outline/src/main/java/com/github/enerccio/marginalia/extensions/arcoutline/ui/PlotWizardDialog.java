@@ -15,6 +15,7 @@ import com.github.enerccio.marginalia.domain.service.tool.ToolSet;
 import com.github.enerccio.marginalia.extensions.arcoutline.ArcOutlineExtension;
 import com.github.enerccio.marginalia.extensions.arcoutline.model.*;
 import com.github.enerccio.marginalia.extensions.arcoutline.model.WizardOptions.Mode;
+import com.github.enerccio.marginalia.extensions.arcoutline.model.WizardOptions.NotesDetail;
 import com.github.enerccio.marginalia.extensions.arcoutline.model.WizardOptions.OutlineDetail;
 import com.github.enerccio.marginalia.extensions.arcoutline.model.WizardOptions.ToolGroup;
 import com.github.enerccio.marginalia.extensions.arcoutline.service.ArcOutlineService;
@@ -91,6 +92,8 @@ public class PlotWizardDialog extends Dialog {
     private Select<Mode> modeSelect;
     private Checkbox lorebookBox;
     private Select<OutlineDetail> outlineSelect;
+    /** The notes of the author: null while the Story Notes plugin is not installed. */
+    private Select<NotesDetail> notesSelect;
     private Checkbox summariesBox;
     private Checkbox storyBox;
     private IntegerField storyTokensField;
@@ -266,6 +269,21 @@ public class PlotWizardDialog extends Dialog {
             }
         });
 
+        if (service.notesAvailable()) {
+            notesSelect = new Select<>();
+            notesSelect.setLabel(T.localized(SEND_THE_NOTES));
+            notesSelect.setItems(NotesDetail.values());
+            notesSelect.setItemLabelGenerator(PlotWizardDialog::label);
+            notesSelect.setWidthFull();
+            notesSelect.setValue(options.getNotes());
+            notesSelect.addValueChangeListener(e -> {
+                if (e.isFromClient()) {
+                    options.setNotes(e.getValue());
+                    optionsChanged();
+                }
+            });
+        }
+
         summariesBox = new Checkbox(T.localized(SEND_THE_SUMMARIES), options.isSummaries());
         summariesBox.setTooltipText(T.localized(THE_SUMMARIES_STAND_IN));
         summariesBox.addValueChangeListener(e -> {
@@ -304,6 +322,10 @@ public class PlotWizardDialog extends Dialog {
         tools.setPadding(false);
         tools.getThemeList().add("spacing-xs");
         for (ToolGroup group : ToolGroup.values()) {
+            if (group == ToolGroup.NOTES && notesSelect == null) {
+                // the commands of the notes are not there
+                continue;
+            }
             Checkbox box = new Checkbox(label(group), options.getToolGroups().contains(group));
             box.setTooltipText(tooltip(group));
             box.addValueChangeListener(e -> {
@@ -366,8 +388,11 @@ public class PlotWizardDialog extends Dialog {
         tokenInfo = new Span();
         tokenInfo.setWidthFull();
 
-        VerticalLayout left = new VerticalLayout(modelPicker, modeSelect, lorebookBox, outlineSelect, summariesBox, storyBox,
-                storyTokensField, tools, tokenInfo, promptArea);
+        VerticalLayout left = new VerticalLayout(modelPicker, modeSelect, lorebookBox, outlineSelect);
+        if (notesSelect != null) {
+            left.add(notesSelect);
+        }
+        left.add(summariesBox, storyBox, storyTokensField, tools, tokenInfo, promptArea);
         left.setPadding(true);
         left.getThemeList().add("spacing-xs");
         left.setSizeFull();
@@ -395,6 +420,7 @@ public class PlotWizardDialog extends Dialog {
             case PLANNER -> T.localized(TOOLS_PLANNER);
             case LORE -> T.localized(TOOLS_LOREBOOK);
             case OUTLINE -> T.localized(TOOLS_OUTLINE);
+            case NOTES -> T.localized(TOOLS_NOTES);
             case GENERATE -> T.localized(TOOLS_GENERATORS);
         };
     }
@@ -404,7 +430,16 @@ public class PlotWizardDialog extends Dialog {
             case PLANNER -> T.localized(TOOLS_PLANNER_TIP);
             case LORE -> T.localized(TOOLS_LOREBOOK_TIP);
             case OUTLINE -> T.localized(TOOLS_OUTLINE_TIP);
+            case NOTES -> T.localized(TOOLS_NOTES_TIP);
             case GENERATE -> T.localized(TOOLS_GENERATORS_TIP);
+        };
+    }
+
+    private static String label(NotesDetail detail) {
+        return switch (detail) {
+            case NONE -> T.localized(NOT_SENT);
+            case TITLES -> T.localized(TITLES_AND_FIRST_LINES);
+            case FULL -> T.localized(FULL_TEXT);
         };
     }
 
@@ -1067,6 +1102,9 @@ public class PlotWizardDialog extends Dialog {
         modeSelect.setEnabled(idle);
         lorebookBox.setEnabled(idle);
         outlineSelect.setEnabled(idle);
+        if (notesSelect != null) {
+            notesSelect.setEnabled(idle);
+        }
         summariesBox.setEnabled(idle);
         storyBox.setEnabled(idle);
         storyTokensField.setEnabled(idle && storyBox.getValue());

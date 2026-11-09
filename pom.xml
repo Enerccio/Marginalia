@@ -43,6 +43,7 @@
     <module>marginalia/plugins/reviewer</module>
     <module>marginalia/plugins/sidequery</module>
     <module>marginalia/plugins/sillytavern-converter</module>
+    <module>marginalia/plugins/story-notes</module>
     <module>marginalia/plugins/tts-reader</module>
   </modules>
 </project>

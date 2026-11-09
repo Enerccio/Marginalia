@@ -125,6 +125,9 @@ public class ArcOutlineService {
     private CommandScopes commandScopes;
 
     @Autowired
+    private IPCService ipcService;
+
+    @Autowired
     private com.github.enerccio.marginalia.loc.Localization loc;
 
     /** Set when the extension loads, to tell the tool providers who asks. */
@@ -405,6 +408,7 @@ public class ArcOutlineService {
         if (options.getOutline() != WizardOptions.OutlineDetail.NONE && !outline.arcs().isEmpty()) {
             data.setOutline(describe(outline, null, ChapterContext.EVERYTHING, options.getOutline() == WizardOptions.OutlineDetail.FULL));
         }
+        data.setNotes(notesText(manuscript, options.getNotes()));
         int summaryCount = 0;
         int partCount = 0;
         if (options.isSummaries() || options.isStory()) {
@@ -443,8 +447,34 @@ public class ArcOutlineService {
                     "set-lore-entry-tags", "set-lore-entry-activation");
             case OUTLINE -> List.of("get-arc-outline", "add-arc", "update-arc", "move-arc", "add-outline-chapter", "update-outline-chapter",
                     "move-outline-chapter");
+            // the commands of the Story Notes plugin, not imported: found by name, skipped when it is not installed (delete-note is left out)
+            case NOTES -> List.of("list-notes", "get-note", "search-notes", "create-note", "update-note", "append-to-note", "edit-note");
             case GENERATE -> List.of("generate-arc", "generate-outline-chapters", "list-lore-templates", "generate-lore-entry");
         };
+    }
+
+    /** The bundle of the Story Notes plugin and the keys of its sources of data, see {@code IPCService}; the plugin is found by them, not imported. */
+    public static final String NOTES_BUNDLE = "story-notes";
+    public static final String NOTES_INDEX_SOURCE = "notes-index";
+    public static final String NOTES_FULL_SOURCE = "notes";
+
+    /** Whether the Story Notes plugin is installed and loaded. */
+    public boolean notesAvailable() {
+        return ipcService.getManuscriptProviders().containsKey(NOTES_BUNDLE);
+    }
+
+    /**
+     * The notes of the author the plugin offers (it leaves out the pages the author hid from assistants), as much as the options say;
+     * empty when none is asked for, the plugin is not installed or the book has no notes.
+     */
+    public String notesText(Manuscript manuscript, WizardOptions.NotesDetail detail) throws Exception {
+        if (detail == WizardOptions.NotesDetail.NONE) {
+            return "";
+        }
+        String text = ipcService.getManuscriptData(NOTES_BUNDLE,
+                detail == WizardOptions.NotesDetail.FULL ? NOTES_FULL_SOURCE : NOTES_INDEX_SOURCE,
+                manuscript, bundle, ArcOutlineService.class.getName());
+        return text == null ? "" : text;
     }
 
     /**

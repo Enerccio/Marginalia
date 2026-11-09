@@ -23,6 +23,11 @@ public class WizardOptions {
         NONE, TERSE, FULL
     }
 
+    /** How much of the author's notes (the Story Notes plugin) is sent. */
+    public enum NotesDetail {
+        NONE, TITLES, FULL
+    }
+
     /** What the model may do through tools; each group is a set of commands (see {@code ArcOutlineService.toolNames}). */
     public enum ToolGroup {
         /** Read and change the scenes of the planner. */
@@ -31,6 +36,8 @@ public class WizardOptions {
         LORE,
         /** Read and change the arcs and chapters of the outline. */
         OUTLINE,
+        /** Read the author's notes (the Story Notes plugin), add pages and change them. Pages the author hid from assistants do not exist for it. */
+        NOTES,
         /** The generators: an arc, the chapters of an arc, a lore entry. They only return a draft until the model is told to save it. */
         GENERATE
     }
@@ -38,6 +45,8 @@ public class WizardOptions {
     private Mode mode = Mode.FREE;
     private boolean lorebook = true;
     private OutlineDetail outline = OutlineDetail.FULL;
+    /** The author's notes: the titles with the first lines, or the pages in full. Nothing is sent when the Story Notes plugin is not installed. */
+    private NotesDetail notes = NotesDetail.TITLES;
     /** The summaries of the story: they stand in for the story up to the newest of them. */
     private boolean summaries = true;
     /** The parts of the story after the newest summary (all of them without summaries), the newest ones that fit. */
@@ -73,6 +82,14 @@ public class WizardOptions {
 
     public void setOutline(OutlineDetail outline) {
         this.outline = outline;
+    }
+
+    public NotesDetail getNotes() {
+        return notes == null ? NotesDetail.TITLES : notes;
+    }
+
+    public void setNotes(NotesDetail notes) {
+        this.notes = notes;
     }
 
     public boolean isSummaries() {

@@ -174,6 +174,11 @@ public class ArcOutlineLocalization extends PluginLocalizationBundle {
     public static final String TOOLS_LOREBOOK_TIP = "It can search and read the lore, create entries and change the text of existing ones.";
     public static final String TOOLS_OUTLINE = "Outline: read and change arcs and chapters";
     public static final String TOOLS_OUTLINE_TIP = "It can read the outline, add arcs and chapters, change them and move them.";
+    public static final String TOOLS_NOTES = "Notes: read, add and change pages";
+    public static final String TOOLS_NOTES_TIP = "Your notes (Story Notes): it can search and read the pages, add a page or add to one, and change text in one. Pages hidden from assistants are out of reach.";
+    public static final String SEND_THE_NOTES = "Send the notes";
+    public static final String TITLES_AND_FIRST_LINES = "Titles and first lines";
+    public static final String FULL_TEXT = "Full text";
     public static final String TOOLS_GENERATORS = "Generators: arc, chapters, lore entry";
     public static final String TOOLS_GENERATORS_TIP = "It can call the arc and chapter generators and the Lore Generator. They return a draft; it saves one only when told to.";
     public static final String ASK_BEFORE_IT_CHANGES_ANYTHING = "Ask me before it changes or deletes something";
@@ -678,6 +683,21 @@ public class ArcOutlineLocalization extends PluginLocalizationBundle {
 
         ja(TOOLS_OUTLINE_TIP, "アウトラインを読み、アークと章の追加、変更、移動ができます。");
         zh(TOOLS_OUTLINE_TIP, "可以读取大纲，添加、修改和移动故事弧与章节。");
+
+        ja(TOOLS_NOTES, "ノート: ページの読み取り、追加、変更");
+        zh(TOOLS_NOTES, "笔记：读取、添加和修改页面");
+
+        ja(TOOLS_NOTES_TIP, "あなたのノート（ストーリーノート）を検索・閲覧し、ページの追加や追記、ページ内の文章の変更ができます。アシスタントに非公開のページには触れません。");
+        zh(TOOLS_NOTES_TIP, "您的笔记（故事笔记）：可以搜索和阅读页面，添加页面或向页面追加内容，并修改页面中的文字。对助手隐藏的页面无法访问。");
+
+        ja(SEND_THE_NOTES, "ノートを送る");
+        zh(SEND_THE_NOTES, "发送笔记");
+
+        ja(TITLES_AND_FIRST_LINES, "タイトルと最初の行");
+        zh(TITLES_AND_FIRST_LINES, "标题和首行");
+
+        ja(FULL_TEXT, "全文");
+        zh(FULL_TEXT, "全文");
 
         ja(TOOLS_GENERATORS, "ジェネレーター: アーク、章、設定エントリ");
         zh(TOOLS_GENERATORS, "生成器：故事弧、章节、设定条目");

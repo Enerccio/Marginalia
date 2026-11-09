@@ -1,0 +1,96 @@
+/* Styles of the Story Notes plugin only. Put into the page by the application while the extension is loaded
+   (StoryNotesExtension.getCss). */
+
+/* A note in the sidebar list: text on the left, buttons on the right */
+.story-notes-card {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--lumo-space-xs);
+    box-sizing: border-box;
+    width: 100%;
+    padding: var(--lumo-space-xs) var(--lumo-space-s);
+    border-radius: var(--lumo-border-radius-m);
+    background-color: var(--lumo-contrast-5pct);
+    cursor: pointer;
+}
+
+.story-notes-card:hover {
+    background-color: var(--lumo-contrast-10pct);
+}
+
+.story-notes-card-body {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.story-notes-card-actions {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+}
+
+.story-notes-title {
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.story-notes-preview {
+    color: var(--lumo-secondary-text-color);
+    font-size: var(--lumo-font-size-s);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.story-notes-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--lumo-space-xs);
+    margin-top: var(--lumo-space-xs);
+}
+
+.story-notes-tag {
+    padding: 0 var(--lumo-space-s);
+    border-radius: var(--lumo-border-radius-l);
+    background-color: var(--lumo-primary-color-10pct);
+    color: var(--lumo-primary-text-color);
+    font-size: var(--lumo-font-size-xs);
+}
+
+.story-notes-flag {
+    color: var(--lumo-secondary-text-color);
+    font-size: var(--lumo-font-size-xs);
+    margin-left: var(--lumo-space-xs);
+}
+
+.story-notes-empty {
+    padding: var(--lumo-space-m);
+    color: var(--lumo-secondary-text-color);
+}
+
+/* The editor dialog */
+.story-notes-links {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--lumo-space-xs);
+}
+
+.story-notes-links-label {
+    color: var(--lumo-secondary-text-color);
+    font-size: var(--lumo-font-size-s);
+}
+
+.story-notes-missing {
+    font-style: italic;
+}
+
+.story-notes-preview-box {
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 260px;
+    padding: var(--lumo-space-s) var(--lumo-space-m);
+    border: 1px solid var(--lumo-contrast-20pct);
+    border-radius: var(--lumo-border-radius-m);
+    overflow: auto;
+}
