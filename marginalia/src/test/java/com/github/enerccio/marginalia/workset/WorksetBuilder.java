@@ -165,7 +165,7 @@ class WorksetBuilder extends MarginaliaTestBase {
         translateAllUntil = Integer.getInteger("workset.translate.allUntil", 1);
         translateAll = ungated.equals("true") ? Set.of("conlang", "reallang") : ungated.equals("false") ? Set.of() : Set.of(ungated.split("\\s*,\\s*"));
         // the plugins: by default the translators when the loop translates, none otherwise (the knowledge tracker is opt-in: it needs its own set-up)
-        String defaultPlugins = (steps.contains("knowledge") ? "knowledge," : "") + (steps.contains("translate") ? "conlang,reallang," : "") + (steps.contains("blockend") ? "arcoutline," : "") + (steps.contains("label") ? "audiobook" : "");
+        String defaultPlugins = (steps.contains("knowledge") ? "knowledge," : "") + (steps.contains("translate") ? "conlang,reallang," : "") + (steps.contains("blockend") ? "arcoutline," : "") + (steps.contains("label") || steps.contains("audio") ? "audiobook" : "");
         List<String> wantedPlugins = List.of(System.getProperty("workset.plugins", defaultPlugins).split(",")).stream()
                 .map(String::strip).filter(name -> !name.isEmpty()).toList();
         int blockSize = Integer.getInteger("workset.blockSize", 25);
@@ -265,12 +265,21 @@ class WorksetBuilder extends MarginaliaTestBase {
             knowledge = new KnowledgePass(commandService, commandScopes, manuscriptService);
             System.out.print("[workset] knowledge set-up:\n" + knowledge.setup(manuscriptService.find(bookId), skeletonDir.resolve("knowledge_seed.json")).indent(2));
         }
-        if (steps.contains("label")) {
+        if (steps.contains("label") || steps.contains("audio")) {
             if (plugins == null || !plugins.isLoaded("audiobook")) {
-                throw new IllegalStateException("workset.steps has label, but the audiobook plugin is not loaded (workset.plugins=" + wantedPlugins + ")");
+                throw new IllegalStateException("workset.steps has label or audio, but the audiobook plugin is not loaded (workset.plugins=" + wantedPlugins + ")");
             }
-            labelPass = new LabelPass(commandService, commandScopes, settingService);
-            System.out.println("[workset] label set-up: " + labelPass.setup());
+            labelPass = new LabelPass(commandService, commandScopes, settingService, manuscriptService);
+            if (steps.contains("audio")) {
+                String url = System.getProperty("workset.audio.url");
+                if (url == null || url.isBlank()) {
+                    throw new IllegalStateException("workset.steps has audio: give the address of the speech server, -Dworkset.audio.url=http://host:8004 (it must be up, the card free)");
+                }
+                System.out.println("[workset] audio set-up: " + labelPass.setupSpeech(url, System.getProperty("workset.audio.model", "chatterbox-turbo"), LabelPass.DEFAULT_VOICES));
+                labelPass.setupCast(manuscriptService.find(bookId), LabelPass.DEFAULT_VOICES);
+            } else {
+                System.out.println("[workset] label set-up: " + labelPass.setup());
+            }
         }
         if (steps.contains("translate")) {
             List<String> order = List.of(System.getProperty("workset.translators", "conlang,reallang").split(",")).stream().map(String::strip)
@@ -328,8 +337,11 @@ class WorksetBuilder extends MarginaliaTestBase {
             }
         }
 
-        if (labelPass != null) {
+        if (labelPass != null && steps.contains("label")) {
             labelBook(bookId);
+        }
+        if (labelPass != null && steps.contains("audio")) {
+            audioBook(bookId);
         }
 
         illustrate(skeletonDir, bookId);
@@ -559,6 +571,35 @@ class WorksetBuilder extends MarginaliaTestBase {
         }
         current = "labels";
         audit("labels", "Audiobook labelling (parts " + first + " to " + last + ")", report + "State of the audiobook:\n\n```\n" + labelPass.status(manuscriptService.find(bookId)) + "\n```\n");
+    }
+
+    /**
+     * The audio of the parts {@code workset.audioFrom..workset.audioTo} (default: part 96 alone) of the finished book, spoken by the speech server at {@code workset.audio.url}
+     * with the voices of {@link LabelPass#DEFAULT_VOICES}; the labels stored with the parts are used. The joined audio of each part is written to {@code audio/part-N.mp3} of
+     * the work folder. The speech server must be up and the card free: this step does not start or stop anything.
+     */
+    private void audioBook(long bookId) throws Exception {
+        int from = Integer.getInteger("workset.audioFrom", 96);
+        int to = Integer.getInteger("workset.audioTo", from);
+        current = "audio " + from + "-" + to;
+        kind = "audio";
+        String answer = labelPass.convertAudio(manuscriptService.find(bookId), from, to);
+        System.out.println("[workset] " + current + ": " + answer.replaceAll("\\s+", " "));
+        Path out = Files.createDirectories(dir.resolve("audio"));
+        List<ChatMessage> parts = chain(manuscriptService.find(bookId));
+        for (int n = from; n <= to; n++) {
+            com.google.gson.JsonObject index = parts.get(n - 1).getAttributes().has("audiobook") ? parts.get(n - 1).getAttributes().getAsJsonObject("audiobook") : null;
+            com.google.gson.JsonObject part = index == null || !index.has("part") ? null : index.getAsJsonObject("part");
+            if (part == null || !part.has("resource")) {
+                System.out.println("[workset] part " + n + " has no audio");
+                continue;
+            }
+            Resource audio = resourceService.findForUser(part.get("resource").getAsString());
+            byte[] bytes = resourceService.getResourceData(audio);
+            Path file = out.resolve("part-" + n + ".mp3");
+            Files.write(file, bytes);
+            System.out.println("[workset] part " + n + ": " + bytes.length + " bytes -> " + file);
+        }
     }
 
     /**

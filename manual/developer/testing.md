@@ -421,9 +421,9 @@ locals.
 ## The dataset book
 
 A test that needs a book of a real size (a long story with summaries, annotations, versions, translations, the data of plugins, a lorebook and a picture) does not build one: the repository has one, *Unregistered*,
-the same book that the user manual offers as the [example book](../user/getting-started/example-book.md). It is two files in `src/test/resources/workset`: `book.zip` (the archive of the app with the picture, 5.7 MB)
+the same book that the user manual offers as the [example book](../user/getting-started/example-book.md). It is two files in `src/test/resources/workset`: `book.zip` (the archive of the app with the picture, 6.1 MB)
 and `lorebook.json` (a backup only links its lorebook, by a fixed uuid, so the lorebook is imported first). It was written by the harness described below, with the real generation loop and a model (Claude Haiku), not by a script that
-imitates one, so it holds what the application leaves behind: prompts of up to 86k tokens, the versions of a redraft, the notes of an annotation, the passages of four translators.
+imitates one, so it holds what the application leaves behind: prompts of up to 86k tokens, the versions of a redraft, the notes of an annotation, the passages of four translators, the audiobook scripts of the 100 parts (who speaks each piece, labelled by Haiku; nothing is spoken).
 
 **Loading it** is `WorksetFixture.restore(backupService, lorebookService, name, true)` as the logged in user (about 5 seconds on an M4, a bit more on slower machines). Restore **once per class**, not per test: the database is shared by the
 classes of a JVM and each test method has a session of its own, so keep the result in `static` fields and let the first test make it (`LargeWorksetTest.restoreOnce`); the tests of the class only read it. A test that changes the book
