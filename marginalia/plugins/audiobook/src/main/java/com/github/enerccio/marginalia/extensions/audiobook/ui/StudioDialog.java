@@ -380,7 +380,7 @@ public class StudioDialog extends Dialog {
         }
         // another delivery asks the cast for the voice of that mood, unless the voice was set by hand in the same go
         if (!newDelivery.name().equals(old.delivery()) && entry.voice().equals(old.entry().voice())) {
-            entry = withVoice(entry, service.voiceFor(manuscript, service.getSettings().selected(), entry.speaker(), newDelivery.name(), entry.language()));
+            entry = withVoice(entry, service.voiceFor(manuscript, service.selectedBackend(), entry.speaker(), newDelivery.name(), entry.language()));
         }
         StudioSegment changed = old;
         if (!entry.equals(old.entry())) {
@@ -520,7 +520,7 @@ public class StudioDialog extends Dialog {
     }
 
     private BackendConfig backend() {
-        BackendConfig backend = service.getSettings().selected();
+        BackendConfig backend = service.selectedBackend();
         if (backend == null) {
             Notification.error(T.localized(NO_BACKEND_YET));
         }

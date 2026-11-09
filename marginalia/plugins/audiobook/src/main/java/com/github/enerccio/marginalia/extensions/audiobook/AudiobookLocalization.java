@@ -231,6 +231,22 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
     public static final String THE_AUDIOBOOK_IS_BEING_JOINED = "The audiobook is being joined ...";
     public static final String DOWNLOAD_THE_AUDIOBOOK_FILE = "Download the audiobook (about %s MB)";
 
+    public static final String BACKEND_IN_USE = "Backend in use";
+    public static final String BACKEND_IN_USE_HELP = "The speech server your conversions use. A shared one belongs to the administrator; its address and keys are not shown to you.";
+    public static final String SHARED_MARK = " (shared)";
+    public static final String OWN_SPEECH_SERVERS_ARE_OFF = "The administrator does not let users use speech servers of their own. The ones you added before are kept and are not used.";
+    public static final String SHARED_SPEECH_SERVERS = "Shared speech servers";
+    public static final String SHARED_SPEECH_SERVERS_HELP = "Only administrators see this. Speech servers that users may use, and whether they may add their own.";
+    public static final String SHARED_SPEECH_SERVERS_DIALOG_HELP = "A user who may use a shared server picks it as the backend in use. They see its name, never its address, its keys or its requests. The narrator voice should be a voice of the server (a clip belongs to one user).";
+    public static final String ALL_USERS_MAY_USE_IT = "All users may use it";
+    public static final String THESE_USERS_MAY_USE_IT = "These users may use it";
+    public static final String USERS_MAY_ADD_THEIR_OWN_SPEECH_SERVERS = "Users may add speech servers of their own";
+    public static final String USERS_MAY_ADD_THEIR_OWN_SPEECH_SERVERS_HELP = "When this is off, users can only use the shared servers; the servers they added before are kept and are not used.";
+    public static final String A_SHARED_SPEECH_SERVER_NEEDS_AN_ADDRESS = "The shared speech server \"%s\" has no address";
+    public static final String THE_SHARED_SPEECH_SERVERS_ARE_SAVED = "The shared speech servers are saved";
+
+    public static final String READ_THIS_PART_WITH_THE_BROWSER_VOICE = "Read this part (and the next ones without audio) with the voice of the browser";
+
     @Override
     protected void loadKeys() {
         ja(AUDIOBOOK, "オーディオブック");
@@ -867,5 +883,47 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
 
         ja(DOWNLOAD_THE_AUDIOBOOK_FILE, "オーディオブックをダウンロード（約 %s MB）");
         zh(DOWNLOAD_THE_AUDIOBOOK_FILE, "下载有声书（约 %s MB）");
+
+        ja(BACKEND_IN_USE, "使用するバックエンド");
+        zh(BACKEND_IN_USE, "使用的后端");
+
+        ja(BACKEND_IN_USE_HELP, "変換に使う音声サーバー。共有のものは管理者のもので、アドレスやキーは表示されません。");
+        zh(BACKEND_IN_USE_HELP, "转换所用的语音服务器。共享的服务器属于管理员，其地址和密钥不会显示给你。");
+
+        ja(SHARED_MARK, "（共有）");
+        zh(SHARED_MARK, "（共享）");
+
+        ja(OWN_SPEECH_SERVERS_ARE_OFF, "管理者はユーザー自身の音声サーバーの使用を許可していません。以前に追加したものは保持されますが、使われません。");
+        zh(OWN_SPEECH_SERVERS_ARE_OFF, "管理员不允许用户使用自己的语音服务器。你之前添加的会保留，但不会被使用。");
+
+        ja(SHARED_SPEECH_SERVERS, "共有の音声サーバー");
+        zh(SHARED_SPEECH_SERVERS, "共享语音服务器");
+
+        ja(SHARED_SPEECH_SERVERS_HELP, "管理者のみに表示されます。ユーザーが使える音声サーバーと、ユーザー自身のサーバーを追加できるかどうか。");
+        zh(SHARED_SPEECH_SERVERS_HELP, "仅管理员可见。用户可以使用的语音服务器，以及用户是否可以添加自己的服务器。");
+
+        ja(SHARED_SPEECH_SERVERS_DIALOG_HELP, "共有サーバーを使えるユーザーは、使用するバックエンドとしてそれを選べます。見えるのは名前だけで、アドレス、キー、リクエストは見えません。ナレーターの声はサーバーの声にしてください (クリップは 1 人のユーザーのものです)。");
+        zh(SHARED_SPEECH_SERVERS_DIALOG_HELP, "可以使用共享服务器的用户把它选为所用后端。他们只能看到名称，看不到地址、密钥和请求。旁白声音应使用服务器自带的声音（参考音频属于某一个用户）。");
+
+        ja(ALL_USERS_MAY_USE_IT, "すべてのユーザーが使用可能");
+        zh(ALL_USERS_MAY_USE_IT, "所有用户都可以使用");
+
+        ja(THESE_USERS_MAY_USE_IT, "使用できるユーザー");
+        zh(THESE_USERS_MAY_USE_IT, "可以使用的用户");
+
+        ja(USERS_MAY_ADD_THEIR_OWN_SPEECH_SERVERS, "ユーザーが自分の音声サーバーを追加可能");
+        zh(USERS_MAY_ADD_THEIR_OWN_SPEECH_SERVERS, "用户可以添加自己的语音服务器");
+
+        ja(USERS_MAY_ADD_THEIR_OWN_SPEECH_SERVERS_HELP, "オフの場合、ユーザーは共有サーバーのみ使用できます。以前に追加したサーバーは保持されますが、使われません。");
+        zh(USERS_MAY_ADD_THEIR_OWN_SPEECH_SERVERS_HELP, "关闭后，用户只能使用共享服务器；他们之前添加的服务器会保留，但不会被使用。");
+
+        ja(A_SHARED_SPEECH_SERVER_NEEDS_AN_ADDRESS, "共有の音声サーバー「%s」にアドレスがありません");
+        zh(A_SHARED_SPEECH_SERVER_NEEDS_AN_ADDRESS, "共享语音服务器“%s”没有地址");
+
+        ja(THE_SHARED_SPEECH_SERVERS_ARE_SAVED, "共有の音声サーバーを保存しました");
+        zh(THE_SHARED_SPEECH_SERVERS_ARE_SAVED, "共享语音服务器已保存");
+
+        ja(READ_THIS_PART_WITH_THE_BROWSER_VOICE, "このパート (と音声のない次のパート) をブラウザの音声で読み上げる");
+        zh(READ_THIS_PART_WITH_THE_BROWSER_VOICE, "用浏览器的语音朗读此章节（以及之后没有音频的章节）");
     }
 }

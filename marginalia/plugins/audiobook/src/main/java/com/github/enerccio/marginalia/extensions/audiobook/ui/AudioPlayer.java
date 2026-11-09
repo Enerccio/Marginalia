@@ -43,6 +43,7 @@ public class AudioPlayer extends Div {
     private final Button stop = button(Solid.STOP, STOP, AudiobookStyles.PLAYER_STOP);
     private final Element speed = new Element("input").setAttribute("type", "range").setAttribute("min", "0.75")
             .setAttribute("max", "2").setAttribute("step", "0.05").setAttribute("title", T.localized(SPEED));
+    private final Button offer = button(Solid.VOLUME_HIGH, READ_THIS_PART_WITH_THE_BROWSER_VOICE, AudiobookStyles.PLAYER_OFFER);
     private final Span status = new Span();
 
     /**
@@ -61,7 +62,7 @@ public class AudioPlayer extends Div {
         status.addClassName(AudiobookStyles.PLAYER_STATUS);
         speed.getClassList().add(AudiobookStyles.PLAYER_SPEED);
         getElement().appendChild(speed);
-        add(play, pause, stop, status);
+        add(play, pause, stop, status, offer);
     }
 
     @Override
@@ -83,7 +84,7 @@ public class AudioPlayer extends Div {
         }
         getElement().executeJs(AudiobookStyles.playerScript(), getElement(), scroller.getElement(), content.getElement(), play.getElement(),
                 pause.getElement(), stop.getElement(), speed, status.getElement(), urls.toString(), title,
-                T.localized(THIS_PART_HAS_NO_AUDIO), T.localized(THE_AUDIO_COULD_NOT_BE_LOADED));
+                T.localized(THIS_PART_HAS_NO_AUDIO), T.localized(THE_AUDIO_COULD_NOT_BE_LOADED), offer.getElement());
     }
 
     @Override

@@ -2,6 +2,7 @@
 //   $0 bar (the element of the controls)  $1 scroller (the scrolling panel)  $2 content (its children are the parts)
 //   $3 play button  $4 pause button  $5 stop button  $6 speed input  $7 status element
 //   $8 JSON {id of a part: address of its audio}  $9 title of the book  $10 text "no audio"  $11 text "could not be loaded"
+//   $12 the button that offers the voice of the browser at a part without audio
 // Everything happens in the browser: the audio of a part is fetched into memory (a blob), the next one while this one plays; the speed stays in
 // the browser's localStorage.
 const bar = $0, scroller = $1, content = $2;
@@ -9,6 +10,7 @@ const playBtn = $3, pauseBtn = $4, stopBtn = $5, speedIn = $6, statusEl = $7;
 const urls = JSON.parse($8 || '{}');
 const bookTitle = $9 || '';
 const noAudioText = $10, loadErrorText = $11;
+const offerBtn = $12;
 
 if (bar._abDispose) {
   bar._abDispose();
@@ -19,6 +21,7 @@ const HEARD = 'audiobook-heard';
 const PLAYING = 'audiobook-playing';
 const ACTIVE = 'audiobook-active';
 const NOTICE = 'audiobook-notice';
+const OFFER = 'audiobook-offer';
 const LOAD_WAIT_MS = 4000;
 
 let prefs = { rate: 1 };
@@ -39,6 +42,11 @@ let token = 0;           // a callback of something that was stopped sees anothe
 let part = null;         // the element of the part that is heard
 let waiting = null;      // the observer that waits for the next parts to be loaded
 const blobs = new Map(); // id -> promise of the address of the blob
+// A part without audio: the read-aloud of the browser (the extension tts-reader, when it is there) can read it. It is offered, never started
+// unasked; once the listener accepted it in a run, the later parts without audio in that run are read the same way.
+let offer = null;        // {element, reader} while the offer is shown
+let reader = null;       // the reader that reads a part for us now
+let fallbackOk = false;
 
 function setState(next) {
   state = next;
@@ -103,9 +111,20 @@ function stopWaiting() {
   }
 }
 
+function stopFallback() {
+  offer = null;
+  bar.classList.remove(OFFER);
+  if (reader) {
+    const active = reader;
+    reader = null;
+    active.stop();
+  }
+}
+
 function halt(message) {
   token++;
   stopWaiting();
+  stopFallback();
   audio.pause();
   audio.removeAttribute('src');
   audio.load();
@@ -122,7 +141,12 @@ function playPart(element, myToken) {
     // a part without audio: what is heard would skip a part of the story, so it stops here and says why
     mark(element);
     halt(noAudioText);
-    bar.dispatchEvent(new CustomEvent('marginalia-audio-gap', { bubbles: true, detail: { messageId: id } }));
+    const detail = { messageId: id, reader: null };
+    bar.dispatchEvent(new CustomEvent('marginalia-audio-gap', { bubbles: true, detail }));
+    if (detail.reader) {
+      if (fallbackOk) startFallback(element, detail.reader);
+      else { offer = { element, reader: detail.reader }; bar.classList.add(OFFER); }
+    }
     return;
   }
   notice('');
@@ -142,6 +166,21 @@ function playPart(element, myToken) {
     if (following && urls[idOf(following)]) load(idOf(following));
   }).catch(() => {
     if (myToken === token) halt(loadErrorText);
+  });
+}
+
+// the browser reads the parts without audio and hands back at the first one that has some
+function startFallback(element, active) {
+  fallbackOk = true;
+  offer = null;
+  bar.classList.remove(OFFER);
+  notice('');
+  reader = active;
+  active.readFrom(element, e => !!urls[idOf(e)], resume => {
+    reader = null;
+    token++;
+    setState('playing');
+    playPart(resume, token);
   });
 }
 
@@ -192,6 +231,7 @@ function play() {
   }
   const first = startPart();
   if (!first) return;
+  fallbackOk = false;
   halt();
   setState('playing');
   playPart(first, token);
@@ -230,6 +270,7 @@ if ('mediaSession' in navigator) {
 playBtn.addEventListener('click', play);
 pauseBtn.addEventListener('click', pause);
 stopBtn.addEventListener('click', () => halt());
+offerBtn.addEventListener('click', () => { if (offer) startFallback(offer.element, offer.reader); });
 speedIn.value = prefs.rate;
 speedIn.addEventListener('input', () => { prefs.rate = +speedIn.value; savePrefs(); audio.playbackRate = prefs.rate; });
 const onHide = () => audio.pause();

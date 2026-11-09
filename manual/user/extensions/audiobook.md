@@ -53,6 +53,18 @@ and makes the requests after the batch. Without any requests it only asks.
 A book that has pieces in another script (Japanese in an English book) sends them to the multilingual model, if you have a backend
 for it, with their language; they stay on the model of the book when you have none.
 
+### Shared speech servers
+
+On an installation with several users the administrator can keep speech servers for everybody, so that one GPU machine is set up once and nobody needs an address or a key. The administrator does it in the same panel (the last sections, seen only by administrators): **Shared speech servers** opens a window with the same fields as a backend of your own, plus who may use it: **all users**, or the users picked in the list. A switch there, **Users may add speech servers of their own**, decides whether the backends below are still allowed.
+
+What you get:
+
+- **Backend in use** at the top of the panel lists the shared servers you may use (marked *(shared)*) and your own. The *Convert to audio* window and the studio use the one you pick; the commands use it too.
+- You see only the name of a shared server, never its address, keys or requests. The batches of all users on one server address wait for each other, so two users cannot start the same GPU twice.
+- When the administrator takes a server away from you, a job that still names it is refused; pick another one.
+- When the administrator turns your own servers off, the panel says so. The ones you added are kept and are used again if the switch is turned back on.
+- A shared server's *Narrator voice* should be a voice file of the server (`predefined:Henry.wav`): a reference clip is a resource of one user and cannot be read by the others. Voices of your actors work as always.
+
 ### Actors
 
 An **actor** is a voice of yours: a reference clip (one of your audio [resources](../resources.md), or a new one uploaded here) or a
@@ -188,6 +200,10 @@ not offered.
 
 ![The player in the reader](../../images/plugin-audiobook-player.png)
 
+### A part without audio
+
+The player stops at a part that has no audio, so that a part of the story is not skipped, and says so. When the extension [Read Aloud](tts-reader.md) is installed the bar also shows a speaker button, **Read this part (and the next ones without audio) with the voice of the browser**. Nothing is read with a machine voice unless you press it. It then reads that part and the following parts that have no audio with the voice of your device, and when it reaches a part that has audio the player takes over again. Later parts without audio in the same listening are read the same way without asking again; **Stop** silences it, and starting the player anew asks again. The voice, speed and pitch are those of Read Aloud.
+
 ## Commands
 
 The same things as [commands](../commands/index.md) (the command line of the story editor, the `command` macro of a template, an agent). Parts are numbered as the Convert dialog
@@ -218,5 +234,5 @@ list of the *Settings* page there are two lines: **Convert to audio** (the batch
 - Mp3 and wav only (no opus); the loudness of the pieces is what the voices give.
 - No sound effects or ambience.
 - One speech engine, Chatterbox. Other engines are the next step.
-- The audition of a voice outside a segment, shared (administrator's) speech servers: every user brings their own.
+- The audition of a voice outside a segment.
 - The cast is not part of a book's backup of your *actors*: a restored book keeps its cast, but names actors that must exist in your account.

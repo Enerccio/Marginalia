@@ -76,6 +76,9 @@ public class AudiobookService {
     @Autowired
     private ManuscriptService manuscriptService;
 
+    @Autowired
+    private com.github.enerccio.marginalia.domain.security.service.UserService userService;
+
     /** The inherited setting (book, folders, user) that says whether a new part is made into audio by itself. */
     public static final String AUTO_SETTING = "audiobook.auto";
 
@@ -121,6 +124,8 @@ public class AudiobookService {
 
     /** The key of the plugin in the settings of the installation; the storage is under {@code storage}. */
     private static final String APP_KEY = "audiobook";
+    /** Under {@link #APP_KEY}: the speech servers of the administrator ({@link SharedSettings}). */
+    private static final String SHARED_KEY = "shared";
 
     /** Whether the current user is an administrator (the storage of the audio is theirs to change). */
     public boolean isAdmin() {
@@ -166,6 +171,111 @@ public class AudiobookService {
         } catch (Exception e) {
             throw new IllegalStateException(e.getMessage(), e);
         }
+    }
+
+    // --- the backends: the shared ones of the administrator, then the user's own ---
+
+    /** The section of the plugin in the settings of the installation, null when there is none. */
+    private JsonObject appSection() throws Exception {
+        JsonObject attrs = settingService.findOrBlank(com.github.enerccio.marginalia.domain.model.impl.settings.AppSettings.class, null).getAttributes();
+        return attrs != null && attrs.has(APP_KEY) && attrs.get(APP_KEY).isJsonObject() ? attrs.getAsJsonObject(APP_KEY) : null;
+    }
+
+    /** What the administrator decided about the speech servers; readable by every user (it is what decides what they may use). */
+    public SharedSettings sharedSettings() {
+        try {
+            JsonObject mine = appSection();
+            if (mine != null && mine.has(SHARED_KEY)) {
+                SharedSettings shared = gson.fromJson(mine.get(SHARED_KEY), SharedSettings.class);
+                if (shared != null) {
+                    return shared;
+                }
+            }
+        } catch (Exception e) {
+            AudiobookLog.get().warn("The shared speech servers could not be read: {}", e.getMessage());
+        }
+        return new SharedSettings();
+    }
+
+    /** Stores the shared speech servers and who may use them; only for an administrator. */
+    public void saveSharedSettings(SharedSettings shared) {
+        try {
+            adminGuard.requireAdmin();
+            var app = settingService.getOrCreateApp(com.github.enerccio.marginalia.domain.model.impl.settings.AppSettings.class);
+            JsonObject attrs = app.getAttributes();
+            if (attrs == null) {
+                attrs = new JsonObject();
+                app.setAttributes(attrs);
+            }
+            JsonObject mine = attrs.has(APP_KEY) ? attrs.getAsJsonObject(APP_KEY) : new JsonObject();
+            mine.add(SHARED_KEY, gson.toJsonTree(shared));
+            attrs.add(APP_KEY, mine);
+            settingService.save(app);
+        } catch (Exception e) {
+            throw new IllegalStateException(e.getMessage(), e);
+        }
+    }
+
+    /** The users an administrator can give a speech server to (the ones that are not deleted). */
+    public List<com.github.enerccio.marginalia.domain.security.model.User> usersToShareWith() {
+        try {
+            adminGuard.requireAdmin();
+            return userService.findAll();
+        } catch (Exception e) {
+            throw new IllegalStateException(e.getMessage(), e);
+        }
+    }
+
+    /** The uuid of the current user, null when there is none. */
+    public String currentUserUuid() {
+        try {
+            var owner = settingService.getOrCreate(UserSetting.class).getOwner();
+            return owner == null ? null : owner.getUuid();
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    /** Whether the user may use the speech servers they added themselves. */
+    public boolean usersMayAddOwn() {
+        return sharedSettings().isUsersMayAddOwn();
+    }
+
+    /**
+     * The speech servers the current user may use now: the shared ones they are allowed, then their own while the administrator lets users have
+     * their own. A server whose access was taken away is not here, and so can't be used by a job that names it.
+     */
+    public List<BackendConfig> backends() {
+        SharedSettings shared = sharedSettings();
+        List<BackendConfig> available = new ArrayList<>(shared.availableTo(currentUserUuid()));
+        if (shared.isUsersMayAddOwn()) {
+            available.addAll(getSettings().getBackends());
+        }
+        return available;
+    }
+
+    /** The backend of the id among {@link #backends()}, null when there is none or it is not for the user. */
+    public BackendConfig findBackend(String id) {
+        if (id == null) {
+            return null;
+        }
+        return backends().stream().filter(b -> id.equals(b.getId())).findFirst().orElse(null);
+    }
+
+    /** The backend the user picked, else the first they may use, null when they have none. */
+    public BackendConfig selectedBackend() {
+        List<BackendConfig> available = backends();
+        BackendConfig picked = findIn(available, getSettings().getSelectedBackendId());
+        return picked != null ? picked : available.stream().findFirst().orElse(null);
+    }
+
+    private static BackendConfig findIn(List<BackendConfig> backends, String id) {
+        return id == null ? null : backends.stream().filter(b -> id.equals(b.getId())).findFirst().orElse(null);
+    }
+
+    /** Whether the backend is one of the administrator's (its address, keys and requests are not the user's to see). */
+    public boolean isShared(BackendConfig backend) {
+        return backend != null && sharedSettings().find(backend.getId()) != null;
     }
 
     public String protect(String secret) {
@@ -458,7 +568,7 @@ public class AudiobookService {
         inBackground("audiobook-preview", () -> {
             try {
                 BackendConfig multilingual = language == null ? null : backendForModel(BackendConfig.MODEL_MULTILINGUAL);
-                BackendConfig backend = multilingual != null ? multilingual : getSettings().selected();
+                BackendConfig backend = multilingual != null ? multilingual : selectedBackend();
                 String code = multilingual != null ? language : null;
                 if (backend == null) {
                     done.accept(null, T.localized(NO_BACKEND_YET));
@@ -534,12 +644,11 @@ public class AudiobookService {
 
     /** The backend that makes a model: the one the user picked when it has that model, else the first one that has. */
     private BackendConfig backendForModel(String model) {
-        AudiobookSettings settings = getSettings();
-        BackendConfig picked = settings.selected();
+        BackendConfig picked = selectedBackend();
         if (picked != null && picked.getModel().equals(model)) {
             return picked;
         }
-        return settings.getBackends().stream().filter(b -> b.getModel().equals(model)).findFirst().orElse(null);
+        return backends().stream().filter(b -> b.getModel().equals(model)).findFirst().orElse(null);
     }
 
     /** The parts of the active branch of the book that have text, in order: what {@link #convert} counts. */
@@ -663,7 +772,7 @@ public class AudiobookService {
         if (mode == AutoMode.NO || part == null || part.getResponse() == null || part.getResponse().isBlank()) {
             return AutoResult.NOTHING;
         }
-        BackendConfig backend = getSettings().selected();
+        BackendConfig backend = selectedBackend();
         if (backend == null) {
             return AutoResult.NO_BACKEND;
         }
@@ -912,7 +1021,7 @@ public class AudiobookService {
     private PartScript annotatedScript(String partUuid, String backendId, String bookId, LabelOptions options, List<String> characters) throws Exception {
         ChatMessage part = chatMessageService.findForUser(partUuid);
         AudiobookSettings settings = getSettings();
-        BackendConfig backend = settings.find(backendId);
+        BackendConfig backend = findBackend(backendId);
         if (part == null) {
             throw new IllegalStateException("The part is gone");
         }
@@ -941,7 +1050,7 @@ public class AudiobookService {
             if (labels.missing() > 0) {
                 AudiobookLog.get().warn("The model left {} of {} pieces of a part without a label: the narrator reads them", labels.missing(), pieces.size());
             }
-            Set<String> models = settings.getBackends().stream().map(BackendConfig::getModel).collect(Collectors.toSet());
+            Set<String> models = backends().stream().map(BackendConfig::getModel).collect(Collectors.toSet());
             fresh = ScriptFromLabels.studio(text, pieces, labels.labels(), backend,
                     (speaker, delivery, language) -> cast.voice(speaker, delivery.name(), language, actors, narrator), models, SEED, form);
         }

@@ -91,7 +91,7 @@ public class AudiobookCommands {
         int from = number(context, "from", parts, 1);
         int to = number(context, "to", parts, parts.size());
         AudiobookSettings settings = service.getSettings();
-        BackendConfig backend = settings.selected();
+        BackendConfig backend = service.selectedBackend();
         Cast cast = service.castOf(book);
 
         JsonObject result = new JsonObject();
@@ -253,7 +253,7 @@ public class AudiobookCommands {
         boolean singlePart = context.has("from") && context.get("from") != null && !context.has("to");
         int from = number(context, "from", parts, 1);
         int to = singlePart ? from : number(context, "to", parts, parts.size());
-        BackendConfig backend = service.getSettings().selected();
+        BackendConfig backend = service.selectedBackend();
         if (backend == null) {
             throw new IllegalStateException("No speech server is set up: add one in the audiobook settings first");
         }

@@ -44,6 +44,7 @@ let part = null;          // the element of the part that is read
 let chunks = [];
 let chunkIndex = 0;
 let waiting = null;       // the observer that waits for the next parts to be loaded
+let handoff = null;       // {until, done}: reading started by another player stops before the part `until` says it takes over, and `done` gets that part
 
 function setState(next) {
   state = next;
@@ -146,6 +147,7 @@ function stopWaiting() {
 
 function halt() {
   token++;
+  handoff = null;
   stopWaiting();
   synth.cancel();
   mark(null);
@@ -191,6 +193,17 @@ function readPart(element, myToken) {
   speakChunk(myToken);
 }
 
+// goes on with the part, unless another player takes over from it (see the audio gap below)
+function proceed(element, myToken) {
+  if (handoff && handoff.until(element)) {
+    const done = handoff.done;
+    halt();
+    done(element);
+    return;
+  }
+  readPart(element, myToken);
+}
+
 function nextPart(myToken) {
   if (!part || !part.isConnected) { halt(); return; }
   const next = element => {
@@ -201,7 +214,7 @@ function nextPart(myToken) {
   };
   const following = next(part);
   if (following) {
-    readPart(following, myToken);
+    proceed(following, myToken);
     return;
   }
   // the end of what is loaded: reaching the bottom makes the reader load the next parts, wait for them
@@ -211,13 +224,29 @@ function nextPart(myToken) {
     const more = next(last);
     if (more && myToken === token) {
       stopWaiting();
-      readPart(more, myToken);
+      proceed(more, myToken);
     }
   });
   observer.observe(content, { childList: true });
   waiting = { observer, timer: setTimeout(() => { if (myToken === token) halt(); }, LOAD_WAIT_MS) };
   last.scrollIntoView({ block: 'end', behavior: 'smooth' });
 }
+
+// --- the audiobook player has a part without audio ---
+// The player (the Audiobook extension) fires `marginalia-audio-gap` at such a part and offers the reader a button. It is offered a way
+// to read through the event: `detail.reader.readFrom(element, until, done)` reads the part and the ones after it with the voice of the
+// device until `until(part)` is true (a part that has audio), then stops and calls `done(part)`; `stop()` silences it.
+const audioReader = {
+  readFrom(element, until, done) {
+    halt();
+    handoff = { until, done };
+    setState('playing');
+    readPart(element, token);
+  },
+  stop() { halt(); }
+};
+const onAudioGap = event => { if (event.detail) event.detail.reader = audioReader; };
+document.addEventListener('marginalia-audio-gap', onAudioGap);
 
 // where to start: the part with the selection, else the first one in view
 function startPart() {
@@ -271,6 +300,7 @@ window.addEventListener('pagehide', onHide);
 
 bar._ttsDispose = () => {
   synth.removeEventListener('voiceschanged', onVoices);
+  document.removeEventListener('marginalia-audio-gap', onAudioGap);
   window.removeEventListener('pagehide', onHide);
   halt();
   delete bar._ttsDispose;

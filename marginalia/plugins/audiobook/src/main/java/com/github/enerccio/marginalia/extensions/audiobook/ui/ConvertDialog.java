@@ -6,7 +6,6 @@ import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.extensions.audiobook.AudiobookLog;
 import com.github.enerccio.marginalia.extensions.audiobook.audio.AudioKind;
 import com.github.enerccio.marginalia.extensions.audiobook.export.AudiobookFiles;
-import com.github.enerccio.marginalia.extensions.audiobook.model.AudiobookSettings;
 import com.github.enerccio.marginalia.extensions.audiobook.model.BackendConfig;
 import com.github.enerccio.marginalia.extensions.audiobook.queue.ConversionJob;
 import com.github.enerccio.marginalia.extensions.audiobook.queue.ConversionJob.State;
@@ -72,12 +71,11 @@ public class ConvertDialog extends Dialog {
         setWidth("min(900px, 95vw)");
         setMaxHeight("92vh");
 
-        AudiobookSettings settings = service.getSettings();
         backend.setLabel(T.localized(BACKEND));
-        backend.setItems(settings.getBackends());
+        backend.setItems(service.backends());
         backend.setItemLabelGenerator(b -> StringUtils.defaultIfBlank(b.getName(), T.localized(NEW_BACKEND)));
         backend.setWidth("16em");
-        backend.setValue(settings.selected());
+        backend.setValue(service.selectedBackend());
 
         Span hint = new Span();
         hint.addClassName(CssStyles.HINT_TEXT);
@@ -96,7 +94,7 @@ public class ConvertDialog extends Dialog {
         from.setValue(1);
         to.setValue(Math.max(parts, 1));
         start.addThemeName("primary");
-        start.setEnabled(parts > 0 && !settings.getBackends().isEmpty());
+        start.setEnabled(parts > 0 && !service.backends().isEmpty());
 
         editCast.setThemeName("tertiary");
         pronunciation.setThemeName("tertiary");

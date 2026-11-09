@@ -24,4 +24,5 @@ The reader has a small control next to the style button, top right:
 - What is read is the text on the page: the translated speech of the [Conlang](conlang-translator.md) and
   [Real Language](real-language-translator.md) translators is read the way the book shows it.
 - Pause does not work on every phone; there the reading stops where it was.
+- With the [Audiobook](audiobook.md#a-part-without-audio) extension, the voice of the browser can read the parts that have no audio yet, when you press the button its player offers there.
 - Leaving the book stops the reading. The control is hidden when the browser can not speak.

@@ -29,8 +29,14 @@
 .audiobook-player .audiobook-player-pause,
 .audiobook-player .audiobook-player-stop,
 .audiobook-player .audiobook-player-speed,
-.audiobook-player .audiobook-player-status {
+.audiobook-player .audiobook-player-status,
+.audiobook-player .audiobook-player-offer {
     display: none;
+}
+
+/* at a part without audio, when the read-aloud of the browser can read it */
+.audiobook-player.audiobook-offer .audiobook-player-offer {
+    display: inline-flex;
 }
 
 .audiobook-player.audiobook-playing .audiobook-player-play {
