@@ -7,6 +7,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.7.0] - 2026-11-09
+
+Everything below is new since 1.6.0. Migrations `V24`, `V25`, `V26` and `V27`; plugins have to be rebuilt with the application.
+
 ### Added
 
 - **New plugin Story Notes** (`marginalia/plugins/story-notes`). A small wiki per book in the **Notes** tab of the story sidebar: pages with a title, tags and Markdown text, `[[links]]` between them with the pages that link back, a search and a filter by tag. The pages are your own thinking (plots, ideas, rules of the world) and are not sent with a generation; the commands `list-notes`, `get-note`, `search-notes`, `create-note`, `append-to-note`, `update-note`, `edit-note`, `delete-note` and `note-text` (for the macro `{{command::note-text::Title}}`) let agents and macros read and change them, and a page can be hidden from all of them (**Visible to assistants**). The **plot wizard** of the Arc Outline has a **Send the notes** option and a **Notes** group of tools (read, add, change, not delete). See the [manual](manual/user/extensions/story-notes.md).
@@ -708,7 +712,8 @@ Initial release.
   Side Query plugins.
 - Docker image (amd64, arm64), WAR and desktop archives for five targets.
 
-[Unreleased]: https://github.com/Enerccio/Marginalia/compare/v1.6.0...HEAD
+[Unreleased]: https://github.com/Enerccio/Marginalia/compare/v1.7.0...HEAD
+[1.7.0]: https://github.com/Enerccio/Marginalia/compare/v1.6.0...v1.7.0
 [1.6.0]: https://github.com/Enerccio/Marginalia/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/Enerccio/Marginalia/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/Enerccio/Marginalia/compare/v1.3.0...v1.4.0
