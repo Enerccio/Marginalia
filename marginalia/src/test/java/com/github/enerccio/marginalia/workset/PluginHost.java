@@ -34,6 +34,7 @@ public class PluginHost {
         KNOWN.put("knowledge", "com.github.enerccio.marginalia.extensions.knowledgetracker.KnowledgeTrackerExtension");
         KNOWN.put("reallang", "com.github.enerccio.marginalia.extensions.reallangtranslator.ReallangTranslatorExtension");
         KNOWN.put("conlang", "com.github.enerccio.marginalia.extensions.conlangtranslator.ConlangTranslatorExtension");
+        KNOWN.put("audiobook", "com.github.enerccio.marginalia.extensions.audiobook.AudiobookExtension");
         KNOWN.put("arcoutline", "com.github.enerccio.marginalia.extensions.arcoutline.ArcOutlineExtension");
     }
 

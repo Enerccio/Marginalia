@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
  * message of the application as the system prompt (the tool's own is replaced), no tools, no session, none of the tool's settings, skills or
  * CLAUDE.md files (it runs in an empty folder). The user message goes to the standard input.
  * <p>
- * Not tried against the real tool yet: the first run of a few parts is the test of the flags and of the JSON the tool prints.
+ * A request with a JSON schema ({@code response_format}) goes with {@code --json-schema}, so the answer has the shape the application asked for.
  */
 public class ClaudeCliAuthor implements Author {
 
@@ -39,6 +39,11 @@ public class ClaudeCliAuthor implements Author {
 
     @Override
     public Answer answer(List<Message> messages) throws Exception {
+        return answer(messages, null);
+    }
+
+    @Override
+    public Answer answer(List<Message> messages, String jsonSchema) throws Exception {
         String system = messages.stream().filter(m -> m.role().equals("system")).map(Message::content).collect(Collectors.joining("\n\n"));
         List<Message> rest = messages.stream().filter(m -> !m.role().equals("system")).toList();
         String user;
@@ -58,6 +63,11 @@ public class ClaudeCliAuthor implements Author {
         List<String> command = new ArrayList<>(List.of("claude", "-p", "--model", model,
                 "--tools", "", "--no-session-persistence", "--disable-slash-commands", "--setting-sources", "",
                 "--output-format", "json"));
+        if (jsonSchema != null && !jsonSchema.isBlank()) {
+            // structured output as a server with response_format gives it: the tool answers with JSON that matches (the text is in "result")
+            command.add("--json-schema");
+            command.add(jsonSchema);
+        }
         if (!system.isBlank()) {
             command.add("--system-prompt");
             command.add(system);

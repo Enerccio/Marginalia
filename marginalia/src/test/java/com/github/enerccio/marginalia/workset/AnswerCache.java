@@ -33,6 +33,11 @@ public class AnswerCache {
     }
 
     public static String key(String authorId, List<Author.Message> messages) {
+        return key(authorId, messages, null);
+    }
+
+    /** The key of a request with a JSON schema: the schema is part of the question (no schema gives the same key as before, so the old answers are found). */
+    public static String key(String authorId, List<Author.Message> messages, String jsonSchema) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             digest.update(authorId.getBytes(StandardCharsets.UTF_8));
@@ -41,6 +46,10 @@ public class AnswerCache {
                 digest.update(m.role().getBytes(StandardCharsets.UTF_8));
                 digest.update((byte) 0);
                 digest.update(m.content().getBytes(StandardCharsets.UTF_8));
+            }
+            if (jsonSchema != null && !jsonSchema.isBlank()) {
+                digest.update((byte) 1);
+                digest.update(jsonSchema.getBytes(StandardCharsets.UTF_8));
             }
             return HexFormat.of().formatHex(digest.digest());
         } catch (java.security.NoSuchAlgorithmException e) {

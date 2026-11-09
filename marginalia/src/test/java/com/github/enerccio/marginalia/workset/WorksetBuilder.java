@@ -101,6 +101,8 @@ class WorksetBuilder extends MarginaliaTestBase {
     private CommandScopes commandScopes;
     @Autowired
     private ExtensionService extensionService;
+    @Autowired
+    private SettingService settingService;
 
     private Path dir;
     private Skeleton skeletonForReview;
@@ -118,6 +120,7 @@ class WorksetBuilder extends MarginaliaTestBase {
     private Set<String> steps = Set.of("generate");
     /** The plugins started by hand (see {@link PluginHost}) and the translators among them, in the order the pass runs them. */
     private PluginHost plugins;
+    private LabelPass labelPass;
     private List<String> translators = List.of();
     private TranslationPass translation;
     private KnowledgePass knowledge;
@@ -162,7 +165,7 @@ class WorksetBuilder extends MarginaliaTestBase {
         translateAllUntil = Integer.getInteger("workset.translate.allUntil", 1);
         translateAll = ungated.equals("true") ? Set.of("conlang", "reallang") : ungated.equals("false") ? Set.of() : Set.of(ungated.split("\\s*,\\s*"));
         // the plugins: by default the translators when the loop translates, none otherwise (the knowledge tracker is opt-in: it needs its own set-up)
-        String defaultPlugins = (steps.contains("knowledge") ? "knowledge," : "") + (steps.contains("translate") ? "conlang,reallang," : "") + (steps.contains("blockend") ? "arcoutline" : "");
+        String defaultPlugins = (steps.contains("knowledge") ? "knowledge," : "") + (steps.contains("translate") ? "conlang,reallang," : "") + (steps.contains("blockend") ? "arcoutline," : "") + (steps.contains("label") ? "audiobook" : "");
         List<String> wantedPlugins = List.of(System.getProperty("workset.plugins", defaultPlugins).split(",")).stream()
                 .map(String::strip).filter(name -> !name.isEmpty()).toList();
         int blockSize = Integer.getInteger("workset.blockSize", 25);
@@ -262,6 +265,13 @@ class WorksetBuilder extends MarginaliaTestBase {
             knowledge = new KnowledgePass(commandService, commandScopes, manuscriptService);
             System.out.print("[workset] knowledge set-up:\n" + knowledge.setup(manuscriptService.find(bookId), skeletonDir.resolve("knowledge_seed.json")).indent(2));
         }
+        if (steps.contains("label")) {
+            if (plugins == null || !plugins.isLoaded("audiobook")) {
+                throw new IllegalStateException("workset.steps has label, but the audiobook plugin is not loaded (workset.plugins=" + wantedPlugins + ")");
+            }
+            labelPass = new LabelPass(commandService, commandScopes, settingService);
+            System.out.println("[workset] label set-up: " + labelPass.setup());
+        }
         if (steps.contains("translate")) {
             List<String> order = List.of(System.getProperty("workset.translators", "conlang,reallang").split(",")).stream().map(String::strip)
                     .filter(name -> !name.isEmpty() && plugins != null && plugins.isLoaded(name)).toList();
@@ -316,6 +326,10 @@ class WorksetBuilder extends MarginaliaTestBase {
             if (skeleton.branch != null && done == skeleton.branch.fromPart() + 1 && !state.branchDone) {
                 buildBranch(skeleton, bookId, state, start, lengthHint, lengthFactor);
             }
+        }
+
+        if (labelPass != null) {
+            labelBook(bookId);
         }
 
         illustrate(skeletonDir, bookId);
@@ -523,6 +537,31 @@ class WorksetBuilder extends MarginaliaTestBase {
     }
 
     /**
+     * The audiobook analysis of the finished book (step {@code label}): the language model labels every part of the active branch, ten parts to a command. Parts
+     * whose script is stored are not asked again (the plugin caches by content, and the answer cache of the bridge by request), so a run can stop and go on.
+     * Nothing is spoken. The calls are labelled {@code labels N-M} in the ledger.
+     */
+    private void labelBook(long bookId) throws Exception {
+        int total = chain(manuscriptService.find(bookId)).size();
+        int chunk = Integer.getInteger("workset.labelChunk", 10);
+        int first = Integer.getInteger("workset.labelFrom", 1);
+        int last = Math.min(total, Integer.getInteger("workset.labelTo", total));
+        StringBuilder report = new StringBuilder();
+        for (int from = first; from <= last; from += chunk) {
+            int to = Math.min(last, from + chunk - 1);
+            current = "labels " + from + "-" + to;
+            kind = "label";
+            bridgeError = null;
+            lastLine = null;
+            String answer = labelPass.label(manuscriptService.find(bookId), from, to);
+            System.out.println("[workset] " + current + ": " + answer.replaceAll("\\s+", " "));
+            report.append("Parts ").append(from).append("-").append(to).append(":\n\n```\n").append(answer).append("\n```\n\n");
+        }
+        current = "labels";
+        audit("labels", "Audiobook labelling (parts " + first + " to " + last + ")", report + "State of the audiobook:\n\n```\n" + labelPass.status(manuscriptService.find(bookId)) + "\n```\n");
+    }
+
+    /**
      * The Knowledge Tracker reads the part just finished (the model finds what the characters learned, the changes are applied and logged), so the block in the
      * prompt of the next part has it. The items the seed expects at this part are put next to the answer, for the author to compare; they are never inserted.
      */
@@ -674,15 +713,29 @@ class WorksetBuilder extends MarginaliaTestBase {
 
     // -------------------------------------------------------------------------------------------------------- the bridge
 
+    /** The JSON schema the application asked the answer to have ({@code response_format.json_schema.schema}), as JSON text; null when the request has none. */
+    private static String schemaOf(MockLLMRequest request) {
+        com.google.gson.JsonObject body = request.getBody();
+        if (!body.has("response_format") || !body.get("response_format").isJsonObject()) {
+            return null;
+        }
+        com.google.gson.JsonObject format = body.getAsJsonObject("response_format");
+        if (!format.has("json_schema") || !format.get("json_schema").isJsonObject() || !format.getAsJsonObject("json_schema").has("schema")) {
+            return null;
+        }
+        return format.getAsJsonObject("json_schema").get("schema").toString();
+    }
+
     /** What the fake model server answers a completion request with: the author's answer, from the cache when the same request was answered before. */
     private MockLLMResponse bridge(MockLLMRequest request) {
         try {
             List<Author.Message> messages = request.getMessages().stream().map(m -> new Author.Message(m.role(), m.content())).toList();
             Path prompts = Files.createDirectories(dir.resolve("prompts"));
-            String key = AnswerCache.key(author.id(), messages);
+            String schema = schemaOf(request);
+            String key = AnswerCache.key(author.id(), messages, schema);
             Files.writeString(prompts.resolve(current.replace(' ', '-') + ".json"), GSON.toJson(messages), StandardCharsets.UTF_8);
             Optional<Author.Answer> cached = cache.find(key);
-            Author.Answer answer = cached.isPresent() ? cached.get() : author.answer(messages);
+            Author.Answer answer = cached.isPresent() ? cached.get() : schema == null ? author.answer(messages) : author.answer(messages, schema);
             if (cached.isEmpty()) {
                 cache.store(key, author.id(), messages, answer);
             }

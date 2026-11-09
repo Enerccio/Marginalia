@@ -28,4 +28,14 @@ public interface Author {
     String id();
 
     Answer answer(List<Message> messages) throws Exception;
+
+    /**
+     * Like {@link #answer(List)} for a request that carries a JSON schema ({@code response_format} of the chat completion): a real server enforces it, so an author that
+     * can (the {@code claude} tool: {@code --json-schema}) must too, else the answer is whatever shape the prompt suggests. The default ignores the schema.
+     *
+     * @param jsonSchema the schema as JSON text, never blank
+     */
+    default Answer answer(List<Message> messages, String jsonSchema) throws Exception {
+        return answer(messages);
+    }
 }
