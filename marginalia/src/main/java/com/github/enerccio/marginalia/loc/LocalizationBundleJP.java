@@ -1843,6 +1843,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_STATISTICS_RECORD, "オフにすると、あなたの本の新しい件数・時間・サイズは記録されません。すでに記録されたものは消去するまで残ります。管理者が全員の記録をオフにしている場合もあります。");
         setValue(L.HELP_STATISTICS_KEEP_MONTHS, "古い日は1日に1回、完全に削除されます。0 ですべて保存します。管理者がより短く設定している場合があります。");
         setValue(L.HELP_STATISTICS_ADMIN, "統計には、ユーザーがいつ本に取り組んだか、どれだけの時間か、本の名前とフォルダー（削除した本も）が残ります。記録をオフにするか、保存期間を制限できます。ユーザーは自分用にさらに短く設定できます。");
+        setValue(L.HELP_STATISTICS_KEEP_MONTHS_INSTANCE, "古い日はすべてのユーザーの統計から1日に1回、完全に削除されます。0 ですべて保存します。ユーザーは自分用にさらに短く設定できます。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景設定と世界観の文脈。");

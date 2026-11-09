@@ -10,6 +10,8 @@ in the database. They record when the users worked on their books and the names 
 deleted. The **Statistics** tab of the Admin page gives you the means to limit that. Users can do the same for themselves in their
 [settings](../account.md) and clear their own statistics in the statistics windows.
 
+![The Statistics tab of the Admin page](../../images/admin-statistics.png)
+
 | | |
 |---|---|
 | **Record writing statistics** | Off stops the recording for every user, whatever they chose. Nothing that was recorded is deleted by it. The statistics windows say that nothing new is counted. |

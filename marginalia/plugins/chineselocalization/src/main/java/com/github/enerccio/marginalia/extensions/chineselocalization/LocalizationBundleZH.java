@@ -1850,6 +1850,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.HELP_INCLUDE_AUTHORSHIP, "在导出文本末尾添加说明：你写了多少词、模型生成了多少词。措辞是导出设置中的模板。");
         setValue(L.HELP_STATISTICS_RECORD, "关闭后，不再为您的书记录新的数量、时间和大小。已记录的内容会保留，直到您清除。管理员也可能已为所有人关闭记录。");
         setValue(L.HELP_STATISTICS_KEEP_MONTHS, "较早的日期每天永久删除一次。0 表示全部保留。管理员可能设置了更短的期限。");
+        setValue(L.HELP_STATISTICS_KEEP_MONTHS_INSTANCE, "较早的日期每天从所有用户的统计中永久删除一次。0 表示全部保留。用户可以为自己设置更短的期限。");
         setValue(L.HELP_STATISTICS_ADMIN, "统计会保留用户何时处理书籍、用了多长时间，以及书名和文件夹（包括已删除的书）。您可以关闭记录或限制保留时间；用户可以为自己选择更短的时间。");
 
         // --- DESC ---

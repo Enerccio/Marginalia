@@ -23,6 +23,11 @@ await main(async ({ page }) => {
   await sleep(1200);
   await snap(page, 'admin-trash');
 
+  // the Statistics tab: recording, how long they are kept, clearing
+  await openTab(page, 'Statistics');
+  await idle(page, 800);
+  await snap(page, 'admin-statistics', { clip: { x: 292, y: 0, width: 1628, height: 520 } });
+
   // a fresh page, so that the upload list of the extension loader is empty
   await page.reload();
   await idle(page, 1500);

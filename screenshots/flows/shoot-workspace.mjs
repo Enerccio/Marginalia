@@ -129,8 +129,11 @@ await main(async ({ page }) => {
 
   await section(page, 'resources', async () => {
     await openTab(page, 'Resources');
+    // the rows are the objects that use the files; the one of the part opens to its picture (the files that nothing uses stay closed)
+    await page.locator('vaadin-grid-tree-toggle').filter({ hasText: 'ChatMessage' }).first().click();
+    await idle(page, 1200);
     await snap(page, 'resources-tab');
-    await page.mouse.click(1767, 195);                        // replace content (upload icon) of the first row
+    await page.locator('vaadin-grid vaadin-button:has(vaadin-icon[icon$=":upload"])').first().click();   // replace content of the file
     await idle(page, 700);
     await snap(page, 'resources-replace');
     await press(dialog(page), 'Close');

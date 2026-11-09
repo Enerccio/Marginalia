@@ -1843,6 +1843,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_STATISTICS_RECORD, "When off, no new counts, times or sizes are recorded for your books. What was recorded stays until you clear it. An administrator may have turned recording off for everybody.");
         setValue(L.HELP_STATISTICS_KEEP_MONTHS, "Older days are deleted for good once a day. 0 keeps everything. The administrator may keep less.");
         setValue(L.HELP_STATISTICS_ADMIN, "The statistics keep when users worked on their books, for how long, and the names and folders of their books, also of deleted ones. Turn recording off or limit how long it is kept; users may choose a shorter time for themselves.");
+        setValue(L.HELP_STATISTICS_KEEP_MONTHS_INSTANCE, "Older days are deleted from the statistics of every user for good once a day. 0 keeps everything. A user may choose a shorter time for themselves.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Background lore and world context.");

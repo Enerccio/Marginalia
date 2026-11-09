@@ -71,7 +71,8 @@ public class StatisticsPanel implements LLMInteract {
         keepMonths = new IntegerField(loc.getValue(L.LABEL_STATISTICS_KEEP_MONTHS));
         keepMonths.setMin(0);
         keepMonths.setStepButtonsVisible(true);
-        keepMonths.setHelperText(loc.getValue(L.HELP_STATISTICS_KEEP_MONTHS));
+        keepMonths.setWidth("20em");
+        keepMonths.setHelperText(loc.getValue(L.HELP_STATISTICS_KEEP_MONTHS_INSTANCE));
 
         Button save = new Button(loc.getValue(L.LABEL_SAVE), _ -> save());
         save.setThemeName("primary");

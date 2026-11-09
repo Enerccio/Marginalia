@@ -193,10 +193,19 @@ await main(async ({ page }) => {
   await section(page, 'auto', async () => {
     await bookTab(page, 'Prompts');
     await idle(page, 1200);
+    // the settings of every extension are a closed panel of an accordion: open the Audiobook one
     const box = page.getByLabel('Convert new parts to audio by itself', { exact: true }).first();
+    if (!(await box.isVisible().catch(() => false))) {
+      const heading = page.locator('vaadin-accordion-heading').filter({ hasText: 'Audiobook' }).first();
+      await heading.scrollIntoViewIfNeeded();
+      await heading.click();
+      await idle(page, 600);
+    }
     await box.scrollIntoViewIfNeeded();
+    // scrolling to the check box can push the whole window sideways: back to the left edge
+    await box.evaluate(el => { for (let e = el; e; e = e.parentElement || (e.getRootNode() && e.getRootNode().host)) e.scrollLeft = 0; });
     await idle(page, 500);
-    await snap(page, 'plugin-audiobook-auto', { clip: CONTENT });
+    await snap(page, 'plugin-audiobook-auto');
   });
 
   await section(page, 'command', async () => {
@@ -221,6 +230,9 @@ await main(async ({ page }) => {
     await openTab(page, 'Settings');
     await page.getByRole('tab', { name: 'Notifications', exact: true }).click();
     await idle(page, 1000);
+    // the list is a grid that loads rows as it scrolls: go to the last rows
+    await page.locator('vaadin-grid').first().evaluate(g => g.scrollToIndex(1000));
+    await idle(page, 600);
     await page.getByText('Convert to audio (automatic)', { exact: false }).first().scrollIntoViewIfNeeded();
     await idle(page, 500);
     await snap(page, 'plugin-audiobook-notifications', { clip: CONTENT });

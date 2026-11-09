@@ -127,6 +127,8 @@ day it is recorded (*The time is recorded from ...*), the days before it show a 
 The statistics say when you worked on a book, for how long, and keep the name and folder of every book, also of the books you
 deleted. They are yours, and you decide what is left of them.
 
+![Record writing statistics and Keep statistics for, in the Settings](../../images/settings-statistics-privacy.png)
+
 - **Clear the statistics of this book** (button in the window of a book) and **Clear all statistics** (in the window of all
   books) delete the counts, the times and the sizes for good, after a question. The books are not changed. The counting goes on
   afterwards, from nothing.

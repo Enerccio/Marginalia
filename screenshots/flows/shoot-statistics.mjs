@@ -28,6 +28,12 @@ await main(async ({ page }) => {
     const top = await words.evaluate(e => e.closest('vaadin-integer-field').getBoundingClientRect().y);
     const bottom = await minutes.evaluate(e => e.closest('vaadin-integer-field').getBoundingClientRect().bottom);
     await snap(page, 'settings-daily-goal', { clip: { x: 300, y: Math.min(top, bottom - 150) - 34, width: 1590, height: Math.abs(bottom - top) + 130 } });
+    // the privacy fields below the goals: recording on or off, how long the statistics are kept
+    const keep = page.getByLabel('Keep statistics for', { exact: false }).first();
+    await keep.scrollIntoViewIfNeeded();
+    const minutesTop = await minutes.evaluate(e => e.closest('vaadin-integer-field').getBoundingClientRect().y);
+    const keepBottom = await keep.evaluate(e => e.closest('vaadin-integer-field').getBoundingClientRect().bottom);
+    await snap(page, 'settings-statistics-privacy', { clip: { x: 300, y: Math.max(0, minutesTop - 34), width: 1590, height: keepBottom - minutesTop + 100 } });
   });
 
   await section(page, 'book', async () => {

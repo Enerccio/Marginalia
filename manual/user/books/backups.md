@@ -89,7 +89,7 @@ If the backup points to resources (pictures, the audio of an audiobook, other fi
   have deleted since the backup was taken are left out.
 - *Without resources* clones the text only.
 
-![Clone with or without images](../../images/backup-clone-images.png)
+![Clone with or without resources](../../images/backup-clone-images.png)
 
 ## Exporting and importing
 
