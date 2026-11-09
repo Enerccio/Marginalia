@@ -42,7 +42,7 @@ application is the Maven project in `marginalia/`:
 
 ```sh
 cd marginalia
-mvn package                  # builds and tests, WAR in target/marginalia-1.7.0.war
+mvn package                  # builds and tests, WAR in target/marginalia-1.8.0.war
 mvn package -DskipTests      # the same without tests
 mvn install -DskipTests      # also installs the WAR and the classes JAR into ~/.m2 (needed by plugins)
 mvn -N install                                # (repository root, once) installs the parent POM, the installed POMs refer to it
@@ -65,16 +65,16 @@ What a build does, in order:
    `target/classes` are the ones that get packaged.
 4. Tests run (`maven-surefire-plugin`), see [Running the tests](#running-the-tests).
 5. `vaadin-maven-plugin` builds the frontend bundle (`build-frontend`).
-6. `maven-war-plugin` packages `target/marginalia-1.7.0.war` (about 185 MB) and, because of `attachClasses`, also
-   `target/marginalia-1.7.0-classes.jar` - the application classes that plugins compile against.
+6. `maven-war-plugin` packages `target/marginalia-1.8.0.war` (about 185 MB) and, because of `attachClasses`, also
+   `target/marginalia-1.8.0-classes.jar` - the application classes that plugins compile against.
 
 Outputs in `marginalia/target/`:
 
 | Path | |
 |---|---|
-| `marginalia-1.7.0.war` | The web application. |
-| `marginalia-1.7.0/` | The same WAR, exploded (production mode). |
-| `marginalia-1.7.0-classes.jar` | Application classes, the compile dependency of plugins. |
+| `marginalia-1.8.0.war` | The web application. |
+| `marginalia-1.8.0/` | The same WAR, exploded (production mode). |
+| `marginalia-1.8.0-classes.jar` | Application classes, the compile dependency of plugins. |
 | `surefire-reports/` | Test reports. |
 | `test-home/` | Data folders created by tests (safe to delete). |
 
@@ -106,7 +106,7 @@ the classpath or the working directory.
 To check a WAR:
 
 ```sh
-unzip -p target/marginalia-1.7.0.war WEB-INF/classes/META-INF/VAADIN/config/flow-build-info.json   # "productionMode" : true
+unzip -p target/marginalia-1.8.0.war WEB-INF/classes/META-INF/VAADIN/config/flow-build-info.json   # "productionMode" : true
 ```
 
 ### AspectJ weaving
@@ -181,7 +181,7 @@ IntelliJ builds the exploded WAR itself, without the Vaadin plugin, so the appli
   `target/classes/META-INF/VAADIN/config/flow-build-info.json` to the same path under `src/main/resources/`
   (ignored by Git and never packaged into the WAR, but IntelliJ copies it into the exploded WAR on every build).
 
-Don't deploy `target/marginalia-1.7.0/` (the exploded WAR from `mvn package`) from the IDE - it is a production build.
+Don't deploy `target/marginalia-1.8.0/` (the exploded WAR from `mvn package`) from the IDE - it is a production build.
 
 ![IntelliJ IDEA Tomcat run configuration](../images/dev-intellij-tomcat.png)
 
@@ -202,7 +202,7 @@ export JETTY_HOME=/path/to/jetty-home-12.1.10
 mkdir -p ~/jetty-marginalia && cd ~/jetty-marginalia
 java -jar $JETTY_HOME/start.jar --create-startd \
      --add-modules=server,http,ee11-deploy,ee11-websocket-jakarta,ee11-webapp,ee11-jsp
-cp /path/to/Marginalia/marginalia/target/marginalia-1.7.0.war webapps/ROOT.war
+cp /path/to/Marginalia/marginalia/target/marginalia-1.8.0.war webapps/ROOT.war
 java -XX:+EnableDynamicAgentLoading -Djdk.attach.allowAttachSelf=true -Duser.home=/path/to/dev-home \
      -jar $JETTY_HOME/start.jar jetty.http.port=8080
 ```
@@ -284,7 +284,7 @@ cd marginalia
 mvn install -DskipTests
 
 cd plugins/chaptermarker          # or anthropic, arc-outline, audiobook, authorsnote, beta-readers, book-description-generator, character-tracker, conlang-translator, gemma4toolsfix, google-genai, image-generator, instructionexporter, knowledge-tracker, lore-generator, lorebookvcs, manga-generator, name-generator, name-provider, place-provider, prompt-history, prompt-inspector, reallang-translator, reviewer, sidequery, sillytavern-converter, story-notes, tts-reader, chineselocalization
-mvn package                       # target/chaptermarker-1.7.0.jar
+mvn package                       # target/chaptermarker-1.8.0.jar
 ```
 
 ### Shared libraries

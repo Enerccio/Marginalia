@@ -57,7 +57,7 @@ await main(async ({ page }) => {
     await page.getByText('Extensions', { exact: true }).first().click();
     await idle(page, 800);
     for (const name of ['book-description-generator', 'prompt-inspector', 'prompt-history']) {
-      const jar = path.join(repo, 'marginalia/plugins', name, 'target', `${name}-1.7.0.jar`);
+      const jar = path.join(repo, 'marginalia/plugins', name, 'target', `${name}-1.8.0.jar`);
       if (!fs.existsSync(jar)) throw new Error('not built: ' + jar);
       await page.locator('vaadin-upload input[type=file]').setInputFiles(jar);
       await idle(page, 4000);
