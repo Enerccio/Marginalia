@@ -4,6 +4,7 @@ import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.extensions.audiobook.AudiobookLog;
+import com.github.enerccio.marginalia.extensions.audiobook.audio.AudioKind;
 import com.github.enerccio.marginalia.extensions.audiobook.export.AudiobookFiles;
 import com.github.enerccio.marginalia.extensions.audiobook.model.AudiobookSettings;
 import com.github.enerccio.marginalia.extensions.audiobook.model.BackendConfig;
@@ -211,11 +212,13 @@ public class ConvertDialog extends Dialog {
         HorizontalLayout row = new HorizontalLayout();
         row.setSpacing(false);
         if (job.state() == State.DONE) {
-            StreamResource resource = new StreamResource("part.mp3", () -> {
+            byte[] stored = service.partAudio(job.partId());
+            AudioKind kind = AudioKind.of(stored);
+            StreamResource resource = new StreamResource("part." + kind.extension(), () -> {
                 byte[] audio = service.partAudio(job.partId());
                 return new ByteArrayInputStream(audio == null ? new byte[0] : audio);
             });
-            resource.setContentType("audio/mpeg");
+            resource.setContentType(kind.mime());
             Anchor download = new Anchor(resource, "");
             download.getElement().setAttribute("download", true);
             download.add(new Button(T.localized(DOWNLOAD), Solid.DOWNLOAD.create()));

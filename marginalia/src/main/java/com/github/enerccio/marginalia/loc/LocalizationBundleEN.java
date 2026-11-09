@@ -1003,6 +1003,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_INCLUDE_AUTHORSHIP, "Include authorship statement");
         setValue(L.LABEL_AUTHORSHIP, "Authorship of the branch");
         setValue(L.LABEL_CALCULATE, "Calculate");
+        setValue(L.LABEL_PLAY, "Play");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");

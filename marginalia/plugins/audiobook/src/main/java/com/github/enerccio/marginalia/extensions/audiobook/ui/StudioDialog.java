@@ -5,6 +5,7 @@ import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.extensions.audiobook.AudiobookLog;
+import com.github.enerccio.marginalia.extensions.audiobook.audio.AudioKind;
 import com.github.enerccio.marginalia.extensions.audiobook.label.Delivery;
 import com.github.enerccio.marginalia.extensions.audiobook.label.ScriptFromLabels;
 import com.github.enerccio.marginalia.extensions.audiobook.model.BackendConfig;
@@ -77,6 +78,7 @@ public class StudioDialog extends Dialog {
     private final Span message = new Span();
     /** Shown while a job of the part waits or runs: the annotation takes a while and must not be started twice. */
     private final ProgressBar working = new ProgressBar();
+    private final Button stop = new Button(T.localized(STOP), Solid.STOP.create(), e -> stopJobs());
     /** The buttons that start work on the selected segment. */
     private final List<Button> segmentButtons = new ArrayList<>();
     private final Grid<Integer> grid = new Grid<>();
@@ -157,7 +159,7 @@ public class StudioDialog extends Dialog {
         pronunciation.addClickListener(e -> new SpokenFormDialog(service, manuscript, () -> Notification.success(T.localized(THE_PRONUNCIATION_IS_STORED))).open());
         // two rows: the part and what is done with it, then the model that labels (model and protocol side by side)
         partBox.setWidth("24em");
-        HorizontalLayout partRow = new HorizontalLayout(partBox, status, annotate, pronunciation);
+        HorizontalLayout partRow = new HorizontalLayout(partBox, status, annotate, stop, pronunciation);
         partRow.setAlignItems(FlexComponent.Alignment.END);
         partRow.setWrap(true);
         HorizontalLayout labelRow = new HorizontalLayout(label, modelPicker);
@@ -500,6 +502,16 @@ public class StudioDialog extends Dialog {
         status.setEnabled(script != null);
         segmentButtons.forEach(b -> b.setEnabled(!busy));
         working.setVisible(busy);
+        stop.setVisible(busy);
+    }
+
+    /** Stops what runs for the selected part (the annotation asks the language model, the making asks the speech server): both end at once. */
+    private void stopJobs() {
+        if (part == null) {
+            return;
+        }
+        queue.jobs().stream().filter(j -> j.partId().equals(part.getUuid()) && !j.finished()).forEach(j -> queue.cancel(j.id()));
+        playWhenDone = null;
     }
 
     /** Whether a job of the selected part waits or runs (the annotation, the making of the part, the hearing of a segment). */
@@ -576,8 +588,9 @@ public class StudioDialog extends Dialog {
     }
 
     private void play(byte[] bytes) {
-        StreamResource resource = new StreamResource("studio-" + System.nanoTime() + ".mp3", () -> new ByteArrayInputStream(bytes));
-        resource.setContentType("audio/mpeg");
+        AudioKind kind = AudioKind.of(bytes);
+        StreamResource resource = new StreamResource("studio-" + System.nanoTime() + "." + kind.extension(), () -> new ByteArrayInputStream(bytes));
+        resource.setContentType(kind.mime());
         audio.setAttribute("src", resource);
         audio.callJsFunction("play");
     }

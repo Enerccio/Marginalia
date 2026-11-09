@@ -1,18 +1,17 @@
 package com.github.enerccio.marginalia.extensions.audiobook.service;
 
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
+import com.github.enerccio.marginalia.domain.service.CancellationToken;
 import com.github.enerccio.marginalia.domain.service.InferenceService;
 import com.github.enerccio.marginalia.domain.service.InferenceSession;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
 import com.github.enerccio.marginalia.extensions.audiobook.label.LabelAnswer;
+import com.github.enerccio.marginalia.extensions.audiobook.label.LabelCancel;
 import com.github.enerccio.marginalia.extensions.audiobook.label.LabelModel;
 
 import java.util.List;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 /**
  * The language model of the user as a {@link LabelModel}: one structured request (the schema of {@link LabelAnswer}), waited for. The call is made
@@ -36,9 +35,13 @@ public class LlmLabelModel implements LabelModel {
     @Override
     public LabelAnswer ask(String system, String user) throws Exception {
         CompletableFuture<LabelAnswer> done = new CompletableFuture<>();
+        if (LabelCancel.requested()) {
+            throw new LabelCancel.Stopped();
+        }
+        CancellationToken token;
         List<LLMChatMessage> payload = List.of(LLMChatMessage.of(LLMRole.SYSTEM, system), LLMChatMessage.of(LLMRole.USER, user));
         try (InferenceSession _ = InferenceSession.open("audiobook")) {
-            service.infer(payload, protocol, LabelAnswer.class, new InferenceService.TypedInferenceCallback<LabelAnswer>() {
+            token = service.infer(payload, protocol, LabelAnswer.class, new InferenceService.TypedInferenceCallback<LabelAnswer>() {
                 @Override
                 public void onResult(LabelAnswer result, String text) {
                     done.complete(result);
@@ -60,8 +63,28 @@ public class LlmLabelModel implements LabelModel {
                 }
             });
         }
+        long deadline = System.nanoTime() + TimeUnit.MINUTES.toNanos(TIMEOUT_MINUTES);
         try {
-            return done.get(TIMEOUT_MINUTES, TimeUnit.MINUTES);
+            while (true) {
+                try {
+                    return done.get(200, TimeUnit.MILLISECONDS);
+                } catch (TimeoutException e) {
+                    if (LabelCancel.requested()) {
+                        // the request to the model is dropped at once, not when its answer is complete
+                        if (token != null) {
+                            token.cancel();
+                        }
+                        done.completeExceptionally(new LabelCancel.Stopped());
+                        throw new LabelCancel.Stopped();
+                    }
+                    if (System.nanoTime() > deadline) {
+                        if (token != null) {
+                            token.cancel();
+                        }
+                        throw e;
+                    }
+                }
+            }
         } catch (ExecutionException e) {
             throw e.getCause() instanceof Exception cause ? cause : e;
         }

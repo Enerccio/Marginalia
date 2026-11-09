@@ -1011,6 +1011,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_INCLUDE_AUTHORSHIP, "包含创作比例说明");
         setValue(L.LABEL_AUTHORSHIP, "分支的创作比例");
         setValue(L.LABEL_CALCULATE, "计算");
+        setValue(L.LABEL_PLAY, "播放");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");

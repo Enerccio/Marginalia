@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.extensions.audiobook.ui;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
+import com.github.enerccio.marginalia.extensions.audiobook.audio.AudioKind;
 import com.github.enerccio.marginalia.extensions.audiobook.service.AudiobookService;
 import com.google.gson.JsonObject;
 import com.vaadin.flow.component.AttachEvent;
@@ -39,7 +40,7 @@ public class AudioPlayer extends Div {
 
     private final Button play = button(Solid.HEADPHONES, LISTEN_TO_THE_AUDIOBOOK, AudiobookStyles.PLAYER_PLAY);
     private final Button pause = button(Solid.PAUSE, PAUSE_LISTENING, AudiobookStyles.PLAYER_PAUSE);
-    private final Button stop = button(Solid.STOP, STOP_LISTENING, AudiobookStyles.PLAYER_STOP);
+    private final Button stop = button(Solid.STOP, STOP, AudiobookStyles.PLAYER_STOP);
     private final Element speed = new Element("input").setAttribute("type", "range").setAttribute("min", "0.75")
             .setAttribute("max", "2").setAttribute("step", "0.05").setAttribute("title", T.localized(SPEED));
     private final Span status = new Span();
@@ -69,11 +70,13 @@ public class AudioPlayer extends Div {
         UI ui = attachEvent.getUI();
         for (Map.Entry<Long, String> entry : audio.entrySet()) {
             String resource = entry.getValue();
-            StreamResource stream = new StreamResource("part-" + entry.getKey() + ".mp3", () -> {
+            // the audio of a part is mp3 or wav, depending on the storage of the installation when it was made
+            AudioKind kind = service.audioKindOf(resource);
+            StreamResource stream = new StreamResource("part-" + entry.getKey() + "." + kind.extension(), () -> {
                 byte[] bytes = service.audioBytes(resource);
                 return new ByteArrayInputStream(bytes == null ? new byte[0] : bytes);
             });
-            stream.setContentType("audio/mpeg");
+            stream.setContentType(kind.mime());
             StreamRegistration registration = ui.getSession().getResourceRegistry().registerResource(stream);
             registrations.add(registration);
             urls.addProperty(String.valueOf(entry.getKey()), registration.getResourceUri().toString());

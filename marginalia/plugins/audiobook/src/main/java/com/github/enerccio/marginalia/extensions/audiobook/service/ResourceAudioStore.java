@@ -4,6 +4,7 @@ import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Resource;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.ResourceService;
+import com.github.enerccio.marginalia.extensions.audiobook.audio.AudioKind;
 import com.github.enerccio.marginalia.extensions.audiobook.queue.AudioStore;
 import com.google.gson.JsonObject;
 
@@ -24,7 +25,6 @@ public class ResourceAudioStore implements AudioStore {
     public static final String FILE_PREFIX = "audiobook-";
 
     public static final String KEY = "audiobook";
-    public static final String CONTENT_TYPE = "audio/mpeg";
 
     private final ResourceService resources;
     private final ChatMessageService messages;
@@ -53,7 +53,7 @@ public class ResourceAudioStore implements AudioStore {
 
     @Override
     public synchronized void putSegment(String partId, String key, byte[] audio) {
-        Resource resource = upload(FILE_PREFIX + key.substring(0, 12) + ".mp3", audio, partId);
+        Resource resource = upload(FILE_PREFIX + key.substring(0, 12) + "." + AudioKind.of(audio).extension(), audio, partId);
         pendingSegments.computeIfAbsent(partId, p -> new HashMap<>()).put(key, resource.getUuid());
     }
 
@@ -72,7 +72,7 @@ public class ResourceAudioStore implements AudioStore {
 
     @Override
     public synchronized void putPart(String partId, String joinKey, String sourceHash, byte[] audio, Collection<String> liveKeys) {
-        Resource resource = upload(FILE_PREFIX + "part.mp3", audio, partId);
+        Resource resource = upload(FILE_PREFIX + "part." + AudioKind.of(audio).extension(), audio, partId);
         pendingParts.put(partId, new PendingPart(joinKey, sourceHash, resource.getUuid(), new HashSet<>(liveKeys)));
     }
 
@@ -136,7 +136,7 @@ public class ResourceAudioStore implements AudioStore {
 
     private Resource upload(String filename, byte[] audio, String partId) {
         try {
-            Resource resource = resources.upload(filename, audio, CONTENT_TYPE);
+            Resource resource = resources.upload(filename, audio, AudioKind.of(audio).mime());
             Long id = partIds.get(partId);
             if (id == null) {
                 ChatMessage message = messages.findForUser(partId);

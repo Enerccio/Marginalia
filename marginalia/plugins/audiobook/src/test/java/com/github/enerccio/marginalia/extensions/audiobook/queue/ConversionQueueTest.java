@@ -209,6 +209,26 @@ class ConversionQueueTest {
     }
 
     @Test
+    void stopEndsTheLabellingThatMakesTheScript() throws Exception {
+        queue(Set.of(BackendConfig.MODEL_TURBO));
+        CountDownLatch asking = new CountDownLatch(1);
+        // the script waits for a model that never answers, as the labelling does; it ends only when the user's stop is seen
+        ConversionJob job = queue.submit("p1", "Part 1", () -> {
+            asking.countDown();
+            while (!com.github.enerccio.marginalia.extensions.audiobook.label.LabelCancel.requested()) {
+                Thread.sleep(10);
+            }
+            throw new com.github.enerccio.marginalia.extensions.audiobook.label.LabelCancel.Stopped();
+        });
+        assertTrue(asking.await(5, TimeUnit.SECONDS));
+
+        queue.cancelAll();
+
+        assertEquals(State.CANCELLED, finished(job).state());
+        assertTrue(batches.isEmpty(), "no batch was started for a part that was stopped");
+    }
+
+    @Test
     void everyPartThatWaitsIsOneRunAndOneBatchPerModel() throws Exception {
         queue(Set.of(BackendConfig.MODEL_TURBO));
         holdSpeech = new CountDownLatch(1);

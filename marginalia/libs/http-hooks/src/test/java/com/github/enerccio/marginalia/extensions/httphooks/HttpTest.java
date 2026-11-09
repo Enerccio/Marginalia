@@ -43,6 +43,28 @@ class HttpTest {
     }
 
     @Test
+    void aSlowRequestIsAbandonedWhenItIsCancelled() throws Exception {
+        try (FakeServer server = new FakeServer()) {
+            server.on("/slow", exchange -> {
+                try {
+                    Thread.sleep(5000);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+                FakeServer.reply(exchange, 200, "application/json", "{}".getBytes());
+            });
+            long started = System.nanoTime();
+            long cancelAt = started + 500_000_000L;
+
+            var e = assertThrows(BackendException.class, () -> Http.send(Http.request(URI.create(server.url() + "/slow"), 30).GET().build(), 1000,
+                    () -> System.nanoTime() > cancelAt));
+
+            assertEquals("Cancelled", e.getMessage());
+            assertTrue(System.nanoTime() - started < 3_000_000_000L, "the call must not wait for the answer");
+        }
+    }
+
+    @Test
     void aRequestDoesNotAskForAnUpgradeToHttp2() throws Exception {
         try (FakeServer server = new FakeServer()) {
             java.util.concurrent.atomic.AtomicReference<String> upgrade = new java.util.concurrent.atomic.AtomicReference<>("not asked");

@@ -46,7 +46,11 @@ class BackendConfigTest {
         config.setModel(BackendConfig.MODEL_MULTILINGUAL);
         assertEquals(BackendConfig.MODEL_MULTILINGUAL, config.getModel());
         config.setFormat("wav");
-        assertEquals("mp3", config.getFormat(), "only mp3 can be joined");
+        assertEquals("wav", config.getFormat());
+        config.setFormat("opus");
+        assertEquals("mp3", config.getFormat(), "only mp3 and wav can be joined");
+        assertEquals("wav", config.withFormat("wav").getFormat());
+        assertEquals("mp3", config.getFormat(), "the copy does not change the original");
     }
 
     @Test

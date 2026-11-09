@@ -1,7 +1,6 @@
 package com.github.enerccio.marginalia.extensions.audiobook.export;
 
-import com.github.enerccio.marginalia.extensions.audiobook.audio.Id3Tag;
-import com.github.enerccio.marginalia.extensions.audiobook.audio.Mp3Joiner;
+import com.github.enerccio.marginalia.extensions.audiobook.audio.*;
 import com.github.enerccio.marginalia.extensions.httphooks.BackendException;
 
 import java.io.ByteArrayOutputStream;
@@ -40,10 +39,12 @@ public final class AudiobookFiles {
                 Chapter chapter = chapters.get(i);
                 String name = String.format("%0" + width + "d - %s.mp3", i + 1, fileSafe(chapter.title()));
                 byte[] tag = Id3Tag.tag(chapter.title(), author, book, (i + 1) + "/" + chapters.size(), "Audiobook", List.of());
+                // audio that is stored as wav is encoded to mp3 for the file of the chapter
+                byte[] mp3 = AudioKind.of(chapter.audio()) == AudioKind.WAV ? Ffmpeg.toMp3(chapter.audio()) : chapter.audio();
                 zip.putNextEntry(new ZipEntry(name));
-                zip.write(Id3Tag.withTag(tag, chapter.audio()));
+                zip.write(Id3Tag.withTag(tag, mp3));
                 zip.closeEntry();
-                playlist.append("#EXTINF:").append(Math.round(Mp3Joiner.seconds(chapter.audio()))).append(',').append(chapter.title().replace('\n', ' ')).append('\n')
+                playlist.append("#EXTINF:").append(Math.round(AudioKind.seconds(chapter.audio()))).append(',').append(chapter.title().replace('\n', ' ')).append('\n')
                         .append(name).append('\n');
             }
             zip.putNextEntry(new ZipEntry("playlist.m3u8"));
@@ -55,19 +56,58 @@ public final class AudiobookFiles {
         return out.toByteArray();
     }
 
+    /** The chapters in one mp3 without a tag, and where each starts. */
+    private record Joined(byte[] audio, List<Id3Tag.Chapter> marks) {
+    }
+
+    /** The chapters as audio of one kind: all mp3, or all wav (the mp3 of a mixed book is decoded to the wav format of the others). */
+    private static List<Chapter> sameKind(List<Chapter> chapters) throws BackendException {
+        WavJoiner.Format format = null;
+        for (Chapter chapter : chapters) {
+            if (AudioKind.of(chapter.audio()) == AudioKind.WAV) {
+                format = WavJoiner.formatOf(chapter.audio());
+                break;
+            }
+        }
+        if (format == null) {
+            return chapters;
+        }
+        List<Chapter> same = new ArrayList<>();
+        for (Chapter chapter : chapters) {
+            same.add(AudioKind.of(chapter.audio()) == AudioKind.WAV ? chapter : new Chapter(chapter.title(), Ffmpeg.toWav(chapter.audio(), format)));
+        }
+        return same;
+    }
+
+    private static Joined join(List<Chapter> chapters) throws BackendException {
+        List<Chapter> same = sameKind(chapters);
+        List<Double> pauses = new ArrayList<>();
+        same.forEach(c -> pauses.add(PAUSE_BETWEEN_CHAPTERS));
+        Mp3Joiner.Joined joined = AudioKind.joinMarked(same.stream().map(Chapter::audio).toList(), pauses);
+        long total = Math.round(AudioKind.seconds(joined.audio()) * 1000);
+        List<Id3Tag.Chapter> marks = new ArrayList<>();
+        for (int i = 0; i < same.size(); i++) {
+            long start = Math.round(joined.starts()[i] * 1000);
+            long end = i + 1 < same.size() ? Math.round(joined.starts()[i + 1] * 1000) : total;
+            marks.add(new Id3Tag.Chapter(same.get(i).title(), start, end));
+        }
+        return new Joined(joined.audio(), marks);
+    }
+
     /** One mp3 of all the chapters, a pause between them, with the chapters marked in its tag (CHAP and CTOC frames). */
     public static byte[] oneFile(List<Chapter> chapters, String book, String author) throws BackendException {
-        List<Double> pauses = new ArrayList<>();
-        chapters.forEach(c -> pauses.add(PAUSE_BETWEEN_CHAPTERS));
-        Mp3Joiner.Joined joined = Mp3Joiner.joinMarked(chapters.stream().map(Chapter::audio).toList(), pauses);
-        long total = Math.round(Mp3Joiner.seconds(joined.audio()) * 1000);
-        List<Id3Tag.Chapter> marks = new ArrayList<>();
-        for (int i = 0; i < chapters.size(); i++) {
-            long start = Math.round(joined.starts()[i] * 1000);
-            long end = i + 1 < chapters.size() ? Math.round(joined.starts()[i + 1] * 1000) : total;
-            marks.add(new Id3Tag.Chapter(chapters.get(i).title(), start, end));
-        }
-        return Id3Tag.withTag(Id3Tag.tag(book, author, book, "", "Audiobook", marks), joined.audio());
+        Joined joined = join(chapters);
+        byte[] mp3 = AudioKind.of(joined.audio()) == AudioKind.WAV ? Ffmpeg.toMp3(joined.audio()) : joined.audio();
+        return Id3Tag.withTag(Id3Tag.tag(book, author, book, "", "Audiobook", joined.marks()), mp3);
+    }
+
+    /**
+     * One m4b (AAC in an MP4 container) of all the chapters, with the chapters marked; needs ffmpeg, see {@link Ffmpeg#available()}. Audio stored as mp3 is
+     * encoded a second time, audio stored as wav only once.
+     */
+    public static byte[] m4b(List<Chapter> chapters, String book, String author) throws BackendException {
+        Joined joined = join(chapters);
+        return Ffmpeg.m4b(joined.audio(), book, author, book, joined.marks());
     }
 
     /** The title of a part: its heading when its text starts with one, else "Part n". */

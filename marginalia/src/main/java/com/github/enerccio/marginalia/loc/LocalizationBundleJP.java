@@ -1003,6 +1003,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_INCLUDE_AUTHORSHIP, "執筆の内訳を含める");
         setValue(L.LABEL_AUTHORSHIP, "ブランチの執筆の内訳");
         setValue(L.LABEL_CALCULATE, "計算");
+        setValue(L.LABEL_PLAY, "再生");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");

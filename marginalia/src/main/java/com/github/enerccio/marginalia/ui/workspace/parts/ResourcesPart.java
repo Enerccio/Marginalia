@@ -32,10 +32,8 @@ import com.vaadin.flow.data.provider.QuerySortOrder;
 import com.vaadin.flow.data.provider.SortDirection;
 import com.vaadin.flow.data.provider.hierarchy.AbstractBackEndHierarchicalDataProvider;
 import com.vaadin.flow.data.provider.hierarchy.HierarchicalQuery;
-import com.vaadin.flow.server.streams.DownloadResponse;
-import com.vaadin.flow.server.streams.InMemoryUploadHandler;
-import com.vaadin.flow.server.streams.InputStreamDownloadCallback;
-import com.vaadin.flow.server.streams.InputStreamDownloadHandler;
+import com.vaadin.flow.dom.Element;
+import com.vaadin.flow.server.streams.*;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,7 +47,7 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 /**
- * All files of the user (pictures of the parts for now) in a lazy table grouped by the object that uses them (Used by):
+ * All files of the user (pictures and audio of the parts) in a lazy table grouped by the object that uses them (Used by):
  * a row of a group opens to the resources of the object. Download, replace the content, delete; ticking a group deletes
  * all its resources. A deleted resource is only marked as deleted, cleanup removes it later and the file stays in the
  * data folder.
@@ -345,22 +343,13 @@ public class ResourcesPart implements WorkspaceComponent {
                     @APILocals(name = "downloadButton", type = Button.class),
                     @APILocals(name = "replaceButton", type = Button.class),
                     @APILocals(name = "deleteButton", type = Button.class),
-                    @APILocals(name = "actions", type = HorizontalLayout.class)})
+                    @APILocals(name = "actions", type = HorizontalLayout.class),
+                    @APILocals(name = "playButton", type = Button.class),
+                    @APILocals(name = "playback", type = AudioPlayback.class)})
     private Component actionsOf(Resource resource) {
         String fileName = StringUtils.defaultIfBlank(resource.getOriginalName(), resource.getUuid())
                 .replaceAll("[\\\\/:*?\"<>|\\p{Cntrl}]", "_");
-        Anchor download = new Anchor(new InputStreamDownloadHandler((InputStreamDownloadCallback) event -> {
-            byte[] data;
-            try {
-                data = resourceService.getResourceData(resource);
-            } catch (IOException e) {
-                throw e;
-            } catch (Exception e) {
-                throw new IOException(e);
-            }
-            return new DownloadResponse(new ByteArrayInputStream(data), fileName,
-                    StringUtils.defaultIfBlank(resource.getMimeType(), "application/octet-stream"), data.length);
-        }), "");
+        Anchor download = new Anchor(contentOf(resource, fileName), "");
         download.getElement().setAttribute("download", true);
         Button downloadButton = new Button(Solid.DOWNLOAD.create());
         downloadButton.setThemeName("tertiary");
@@ -378,8 +367,104 @@ public class ResourcesPart implements WorkspaceComponent {
 
         HorizontalLayout actions = new HorizontalLayout(download, replaceButton, deleteButton);
         actions.setSpacing(false);
+        if (isAudio(resource)) {
+            Button playButton = new Button(Solid.PLAY.create());
+            playButton.setThemeName("tertiary");
+            UIUtils.addTooltip(playButton, loc.getValue(L.LABEL_PLAY));
+            AudioPlayback playback = new AudioPlayback(resource, fileName, playButton, actions);
+            playButton.addClickListener(event -> playback.toggle());
+            actions.addComponentAsFirst(playButton);
+        }
         return actions;
     }
+
+    private static boolean isAudio(Resource resource) {
+        return resource.getMimeType() != null && resource.getMimeType().startsWith("audio/");
+    }
+
+    /**
+     * The bytes of the resource as a download (the content type of the resource, the name as the file name).
+     */
+    @PublicAPI(from = "1.7.0",
+            returns = @APIReturn(type = DownloadHandler.class),
+            parameters = {@APIParameter(name = "resource", type = Resource.class),
+                    @APIParameter(name = "fileName", type = String.class)})
+    private DownloadHandler contentOf(Resource resource, String fileName) {
+        return new InputStreamDownloadHandler((InputStreamDownloadCallback) event -> {
+            byte[] data;
+            try {
+                data = resourceService.getResourceData(resource);
+            } catch (IOException e) {
+                throw e;
+            } catch (Exception e) {
+                throw new IOException(e);
+            }
+            return new DownloadResponse(new ByteArrayInputStream(data), fileName,
+                    StringUtils.defaultIfBlank(resource.getMimeType(), "application/octet-stream"), data.length);
+        });
+    }
+
+    /**
+     * The play button of an audio resource: a hidden {@code audio} element made on the first click, fed by the content
+     * of the resource. Only one plays at a time (starting another stops the one that plays), the button shows pause
+     * while it plays and returns to play when it is stopped or ends.
+     */
+    private final class AudioPlayback {
+        private final Resource resource;
+        private final String fileName;
+        private final Button button;
+        private final HorizontalLayout host;
+        private Element audio;
+        private boolean playing;
+
+        AudioPlayback(Resource resource, String fileName, Button button, HorizontalLayout host) {
+            this.resource = resource;
+            this.fileName = fileName;
+            this.button = button;
+            this.host = host;
+        }
+
+        void toggle() {
+            if (playing) {
+                stop();
+                return;
+            }
+            if (current != null && current != this) {
+                current.stop();
+            }
+            if (audio == null) {
+                audio = new Element("audio");
+                audio.setAttribute("preload", "auto");
+                audio.setAttribute("src", contentOf(resource, fileName));
+                audio.addEventListener("ended", event -> reset());
+                host.getElement().appendChild(audio);
+            }
+            audio.callJsFunction("play");
+            playing = true;
+            current = this;
+            button.setIcon(Solid.PAUSE.create());
+            UIUtils.addTooltip(button, loc.getValue(L.LABEL_PAUSE));
+        }
+
+        void stop() {
+            if (audio != null && audio.getNode().isAttached()) {
+                audio.callJsFunction("pause");
+            }
+            reset();
+        }
+
+        private void reset() {
+            playing = false;
+            if (current == this) {
+                current = null;
+            }
+            button.setIcon(Solid.PLAY.create());
+            UIUtils.addTooltip(button, loc.getValue(L.LABEL_PLAY));
+        }
+    }
+
+    // the one that plays now
+    private AudioPlayback current;
 
     /**
      * Deletes the ticked resources and all the resources of the ticked groups.

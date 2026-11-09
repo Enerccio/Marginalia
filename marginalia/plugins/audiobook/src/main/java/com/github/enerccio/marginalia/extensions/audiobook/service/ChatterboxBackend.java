@@ -62,7 +62,8 @@ public class ChatterboxBackend implements SpeechBackend {
         }
         HttpResponse<byte[]> response = Http.send(builder(endpoint("/tts"), config.getTimeoutSeconds())
                 .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(body(request))).build(), MAX_AUDIO_BYTES);
+                .POST(HttpRequest.BodyPublishers.ofString(body(request))).build(), MAX_AUDIO_BYTES,
+                cancel == null ? null : cancel::isCancelled);
         if (response.statusCode() == 503) {
             throw new BackendException("The speech server has no model loaded (503). Either nothing loaded it (add a request before the batch that does), or something unloaded it during the batch: look for /api/unload in the log of the server and compare it with the log of this extension.");
         }

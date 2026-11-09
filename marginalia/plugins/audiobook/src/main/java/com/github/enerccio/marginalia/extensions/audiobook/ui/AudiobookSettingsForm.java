@@ -2,6 +2,8 @@ package com.github.enerccio.marginalia.extensions.audiobook.ui;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.extensions.audiobook.audio.AudioKind;
+import com.github.enerccio.marginalia.extensions.audiobook.audio.Ffmpeg;
 import com.github.enerccio.marginalia.extensions.audiobook.model.Actor;
 import com.github.enerccio.marginalia.extensions.audiobook.model.AudiobookSettings;
 import com.github.enerccio.marginalia.extensions.audiobook.model.AutoMode;
@@ -191,7 +193,38 @@ public class AudiobookSettingsForm extends VerticalLayout {
         autoSection.addClassName(AudiobookStyles.SECTION);
 
         add(help, bar, editor, actorSection, autoSection);
+        if (service.isAdmin()) {
+            add(storageSection());
+        }
         refresh();
+    }
+
+    /** For an administrator: how the audio is stored for everyone on the installation. */
+    private VerticalLayout storageSection() {
+        Select<AudioKind> storage = new Select<>();
+        storage.setLabel(T.localized(STORAGE_OF_THE_AUDIO));
+        storage.setItems(AudioKind.values());
+        storage.setItemLabelGenerator(kind -> kind == AudioKind.WAV ? T.localized(STORAGE_WAV) : T.localized(STORAGE_MP3));
+        storage.setWidth("34em");
+        boolean ffmpeg = Ffmpeg.available();
+        // a wav is encoded by ffmpeg for everything that is not a wav, so without it only mp3 can be chosen
+        storage.setItemEnabledProvider(kind -> kind == AudioKind.MP3 || ffmpeg);
+        storage.setValue(service.chosenStorage() == AudioKind.WAV && !ffmpeg ? AudioKind.MP3 : service.chosenStorage());
+        storage.addValueChangeListener(e -> {
+            if (e.isFromClient() && e.getValue() != null) {
+                service.saveStorage(e.getValue());
+                Notification.success(T.localized(THE_STORAGE_OF_THE_AUDIO_IS_SAVED));
+            }
+        });
+        Span storageHelp = new Span(T.localized(STORAGE_OF_THE_AUDIO_HELP));
+        storageHelp.addClassName(CssStyles.HINT_TEXT);
+        Span ffmpegHint = new Span(T.localized(FFMPEG_IS_NOT_INSTALLED));
+        ffmpegHint.addClassName(CssStyles.HINT_TEXT);
+        ffmpegHint.setVisible(!ffmpeg);
+        VerticalLayout section = new VerticalLayout(storage, storageHelp, ffmpegHint);
+        section.setPadding(false);
+        section.addClassName(AudiobookStyles.SECTION);
+        return section;
     }
 
     private static String modelLabel(String model) {

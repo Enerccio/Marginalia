@@ -15,14 +15,14 @@ import static com.github.enerccio.marginalia.extensions.audiobook.AudiobookLocal
 
 /**
  * The audiobook as an export format of the book (the export dialog gives the title, the author, the file name and the range of parts): the audio of the
- * parts that were converted, one file per chapter in a zip, or one mp3 with chapter marks. A part without audio, or with audio older than its text or its
+ * parts that were converted, one file per chapter in a zip, one mp3 with chapter marks, or (when ffmpeg is installed) one m4b. A part without audio, or with audio older than its text or its
  * script, is left out and the author is told; nothing is converted by the export. It runs in the request context of the user (the audio is among
  * their resources) and keeps no state between exports.
  */
 public final class AudiobookExporter implements ExporterService.Exporter {
 
     public enum Format {
-        ZIP("audiobook-zip", "zip", "application/zip"), MP3("audiobook-mp3", "mp3", "audio/mpeg");
+        ZIP("audiobook-zip", "zip", "application/zip"), MP3("audiobook-mp3", "mp3", "audio/mpeg"), M4B("audiobook-m4b", "m4b", "audio/mp4");
 
         private final String id;
         private final String extension;
@@ -58,7 +58,11 @@ public final class AudiobookExporter implements ExporterService.Exporter {
 
     @Override
     public String getName() {
-        return format == Format.ZIP ? T.localized(AUDIOBOOK_ZIP) : T.localized(AUDIOBOOK_ONE_MP3);
+        return switch (format) {
+            case ZIP -> T.localized(AUDIOBOOK_ZIP);
+            case MP3 -> T.localized(AUDIOBOOK_ONE_MP3);
+            case M4B -> T.localized(AUDIOBOOK_M4B);
+        };
     }
 
     @Override
@@ -145,7 +149,10 @@ public final class AudiobookExporter implements ExporterService.Exporter {
             AudiobookLog.get().info("Audiobook export: {}", message);
             progress.vaadinLocked(() -> Notification.warning(message));
         }
-        return format == Format.ZIP ? AudiobookFiles.zip(gathered.chapters(), options.bookName(), options.author())
-                : AudiobookFiles.oneFile(gathered.chapters(), options.bookName(), options.author());
+        return switch (format) {
+            case ZIP -> AudiobookFiles.zip(gathered.chapters(), options.bookName(), options.author());
+            case MP3 -> AudiobookFiles.oneFile(gathered.chapters(), options.bookName(), options.author());
+            case M4B -> AudiobookFiles.m4b(gathered.chapters(), options.bookName(), options.author());
+        };
     }
 }

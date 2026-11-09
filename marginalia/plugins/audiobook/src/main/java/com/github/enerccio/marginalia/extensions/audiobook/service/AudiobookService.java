@@ -7,6 +7,8 @@ import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.extensions.audiobook.AudiobookLog;
+import com.github.enerccio.marginalia.extensions.audiobook.audio.AudioKind;
+import com.github.enerccio.marginalia.extensions.audiobook.audio.Ffmpeg;
 import com.github.enerccio.marginalia.extensions.audiobook.export.AudiobookExporter;
 import com.github.enerccio.marginalia.extensions.audiobook.label.*;
 import com.github.enerccio.marginalia.extensions.audiobook.model.*;
@@ -60,6 +62,9 @@ public class AudiobookService {
     private ChatMessageService chatMessageService;
 
     @Autowired
+    private com.github.enerccio.marginalia.domain.security.AdminGuard adminGuard;
+
+    @Autowired
     private StoryGenerationService generationService;
 
     @Autowired
@@ -110,6 +115,57 @@ public class AudiobookService {
             userSetting.setAttributes(attrs);
         }
         attrs.add(AudiobookSettings.KEY, gson.toJsonTree(settings));
+    }
+
+    // --- the storage of the audio (an administrator decides it for the installation) ---
+
+    /** The key of the plugin in the settings of the installation; the storage is under {@code storage}. */
+    private static final String APP_KEY = "audiobook";
+
+    /** Whether the current user is an administrator (the storage of the audio is theirs to change). */
+    public boolean isAdmin() {
+        try {
+            return adminGuard.isAdmin();
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    /** What the administrator chose, whether it can be used or not. */
+    public AudioKind chosenStorage() {
+        try {
+            JsonObject attrs = settingService.findOrBlank(com.github.enerccio.marginalia.domain.model.impl.settings.AppSettings.class, null).getAttributes();
+            if (attrs != null && attrs.has(APP_KEY) && attrs.getAsJsonObject(APP_KEY).has("storage")) {
+                return AudioKind.ofName(attrs.getAsJsonObject(APP_KEY).get("storage").getAsString());
+            }
+        } catch (Exception e) {
+            AudiobookLog.get().warn("The storage of the audio could not be read: {}", e.getMessage());
+        }
+        return AudioKind.MP3;
+    }
+
+    /** What the audio is stored as now: mp3, or wav when the administrator chose it and ffmpeg is there (the wav can't be encoded for the export without it). */
+    public AudioKind storage() {
+        return chosenStorage() == AudioKind.WAV && Ffmpeg.available() ? AudioKind.WAV : AudioKind.MP3;
+    }
+
+    /** Stores the choice; only for an administrator. */
+    public void saveStorage(AudioKind kind) {
+        try {
+            adminGuard.requireAdmin();
+            var app = settingService.getOrCreateApp(com.github.enerccio.marginalia.domain.model.impl.settings.AppSettings.class);
+            JsonObject attrs = app.getAttributes();
+            if (attrs == null) {
+                attrs = new JsonObject();
+                app.setAttributes(attrs);
+            }
+            JsonObject mine = attrs.has(APP_KEY) ? attrs.getAsJsonObject(APP_KEY) : new JsonObject();
+            mine.addProperty("storage", kind.extension());
+            attrs.add(APP_KEY, mine);
+            settingService.save(app);
+        } catch (Exception e) {
+            throw new IllegalStateException(e.getMessage(), e);
+        }
     }
 
     public String protect(String secret) {
@@ -868,6 +924,8 @@ public class AudiobookService {
         if (stored != null && stored.status() == StudioScript.Status.FINAL) {
             return stored.toPartScript();
         }
+        // the audio is made in the format the administrator chose for the installation
+        backend = backend.withFormat(storage().extension());
         Cast cast = castOfBook(bookId);
         java.util.function.Function<String, Actor> actors = settings::findActor;
         VoiceRef narrator = requireNarrator(backend, cast, actors);
@@ -890,6 +948,16 @@ public class AudiobookService {
         StudioScript merged = StudioScript.merge(stored, fresh);
         store.put(partUuid, merged);
         return merged.toPartScript();
+    }
+
+    /** The kind of audio a resource of the user is (by the type it was stored with), mp3 when it is not known. */
+    public AudioKind audioKindOf(String resourceUuid) {
+        try {
+            com.github.enerccio.marginalia.domain.model.impl.Resource resource = resourceService.findForUser(resourceUuid);
+            return resource != null && AudioKind.WAV.mime().equals(resource.getMimeType()) ? AudioKind.WAV : AudioKind.MP3;
+        } catch (Exception e) {
+            return AudioKind.MP3;
+        }
     }
 
     /** The bytes of a resource of the user (a joined audio found by {@link PlayableParts}), null when it is not theirs or gone. */

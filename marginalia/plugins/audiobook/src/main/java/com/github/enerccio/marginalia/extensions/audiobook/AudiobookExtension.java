@@ -11,6 +11,7 @@ import com.github.enerccio.marginalia.extensions.ExtensionHasCss;
 import com.github.enerccio.marginalia.extensions.InheritedSetting;
 import com.github.enerccio.marginalia.extensions.InheritedSettingRegistry;
 import com.github.enerccio.marginalia.extensions.MarginaliaExtension;
+import com.github.enerccio.marginalia.extensions.audiobook.audio.Ffmpeg;
 import com.github.enerccio.marginalia.extensions.audiobook.commands.AudiobookCommands;
 import com.github.enerccio.marginalia.extensions.audiobook.export.AudiobookExporter;
 import com.github.enerccio.marginalia.extensions.audiobook.model.AudiobookSettings;
@@ -185,6 +186,10 @@ public class AudiobookExtension implements MarginaliaExtension, ExtensionHasCss 
         }
         // the audiobook as a format of the export of the book, and the choice of the parts that are final
         for (AudiobookExporter.Format format : AudiobookExporter.Format.values()) {
+            if (format == AudiobookExporter.Format.M4B && !Ffmpeg.available()) {
+                // the m4b is made by ffmpeg: without it the format is not offered
+                continue;
+            }
             AudiobookExporter exporter = new AudiobookExporter(format, part -> audiobookService.exportableAudio(part.getUuid()));
             exporters.add(exporter);
             exporterService.registerExporter(exporter);

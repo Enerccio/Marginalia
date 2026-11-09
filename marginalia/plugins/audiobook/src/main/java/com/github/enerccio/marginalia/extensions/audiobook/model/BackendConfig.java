@@ -11,7 +11,7 @@ import java.util.UUID;
  * key is stored protected ({@code InferenceServices.protectSecret}), never in plain text. One backend is one model: a book that needs
  * another model (a language Turbo can't read) picks another backend, whose start requests load that model.
  */
-public class BackendConfig {
+public class BackendConfig implements Cloneable {
 
     /** The model ids of Chatterbox-TTS-Server ({@code repo_id} of its settings). */
     public static final String MODEL_TURBO = "chatterbox-turbo";
@@ -19,8 +19,8 @@ public class BackendConfig {
     public static final String MODEL_MULTILINGUAL = "chatterbox-multilingual";
 
     public static final List<String> MODELS = List.of(MODEL_TURBO, MODEL_ORIGINAL, MODEL_MULTILINGUAL);
-    /** Only mp3: the parts are joined without decoding (see {@code Mp3Joiner}), which wav and opus do not allow. */
-    public static final List<String> FORMATS = List.of("mp3");
+    /** Mp3 (joined without decoding, see {@code Mp3Joiner}) or wav (lossless, see {@code WavJoiner}); opus can't be joined. */
+    public static final List<String> FORMATS = List.of("mp3", "wav");
 
     public static final int DEFAULT_TIMEOUT_SECONDS = 300;
     public static final double DEFAULT_TEMPERATURE = 0.8;
@@ -134,6 +134,17 @@ public class BackendConfig {
 
     public String getFormat() {
         return format == null || !FORMATS.contains(format) ? "mp3" : format;
+    }
+
+    /** A copy that asks the server for this format: the storage of the installation decides it, not the backend. */
+    public BackendConfig withFormat(String format) {
+        try {
+            BackendConfig copy = (BackendConfig) super.clone();
+            copy.format = format;
+            return copy;
+        } catch (CloneNotSupportedException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     public void setFormat(String format) {

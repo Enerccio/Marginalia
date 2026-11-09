@@ -67,6 +67,20 @@ class SpeechBatchTest {
     }
 
     @Test
+    void aBatchThatWasStoppedBeforeItBeganTouchesNothing() {
+        GpuGate gate = new GpuGate();
+
+        assertThrows(BackendException.class, () -> SpeechBatch.run(backend(true), gate, () -> events.add("before"), () -> events.add("after"), () -> true,
+                b -> {
+                    events.add("work");
+                    return null;
+                }));
+
+        assertEquals(List.of(), events);
+        assertEquals(0, gate.holders());
+    }
+
+    @Test
     void aServerWithoutAModelStopsTheBatchBeforeTheWork() {
         assertThrows(BackendException.class, () -> SpeechBatch.run(backend(false), new GpuGate(), () -> events.add("before"), () -> events.add("after"), null,
                 b -> {

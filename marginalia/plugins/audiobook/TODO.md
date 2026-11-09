@@ -1,6 +1,8 @@
 # Audiobook - TODO
 
-Status: **stub** (the bundle loads and logs, nothing is hooked). What stands below was tried on the author's own server on 2026-11-08 (an AMD R9700 Pro, LiteLLM in front
+Status: **working, not finished**: steps 1 to 8, 10, 11 and 12 below are built and were checked in the application and on the author's server (queue, player, labelling, cast, studio,
+spoken form, automatic conversion, export, commands, manual); missing are the sound effects (9b), other engines (9), the admin side of the backends (2) and the items listed as *Not done*
+under each step. What stands below was tried on the author's own server on 2026-11-08 (an AMD R9700 Pro, LiteLLM in front
 of everything); a line says **Decided** when it is, **Not tried** / **Open** when it is not. Numbers are one listener, one machine, few samples.
 
 ## Idea
@@ -350,7 +352,8 @@ audiobook can also read the English source of a speech (dubbing) as a per-langua
    `createExtensionFields` (shown for the audiobook formats only), applied by a decorator of `export` that replaces its `messages` argument. Tests: `AudiobookExportTest`, `Id3TagTest`, the start times in `Mp3JoinerTest`.
    **Checked in the application** (fake servers): the two formats from the export dialog (a valid ID3v2.3 file, MPEG layer III, a chapter 0 - 14.4 s; the zip with its tagged file and playlist), the parts without
    audio left out with their numbers, *only final* with one part final (one chapter) and with none (a warning, no error page).
-   **Not done:** **m4b** (the format Apple Books and most audiobook apps want): it needs AAC, and there is no encoder (no ffmpeg in the image; the plugin only joins mp3 frames); the one mp3 file
+   **m4b and wav storage (added later):** the optional program **ffmpeg** (`audio/Ffmpeg`: `MARGINALIA_FFMPEG`, the `PATH`, the usual folders; the format is registered only when it is found, at load) makes the m4b from the joined audio (AAC 64k, `-brand "M4B "`, the chapters through an FFMETADATA file, `faststart`; checked: `ftyp M4B `, a `chpl` atom, the titles). The administrator's storage setting (`AppSettings` attributes, key `audiobook`, `storage`; `AdminGuard`, a section in the settings form seen only by administrators) makes `BackendConfig.withFormat("wav")` for the scripts built from then on; the format is in the key of a piece, so a changed storage makes new pieces; `WavJoiner` joins wav (PCM, silence by zeros, streamed headers read), `AudioKind` finds the kind from the first bytes (the browser gets the right type), a book of both kinds is joined as wav (mp3 decoded by ffmpeg). Exports: wav parts are encoded by ffmpeg for the mp3 and the zip (96k), once for the m4b; mp3 parts are encoded a second time for the m4b. The Docker image has ffmpeg (`--build-arg WITH_FFMPEG=false` leaves it out). Not run against the real speech server: that `/tts` with `output_format: wav` returns a 16 bit PCM wav is taken from the documentation of Chatterbox-TTS-Server; a float wav would be joined too (tag 3), an 8 bit one is refused.
+   **Not done:** a cover picture in the m4b; the "whole audiobook" button of the convert window is mp3 only; the one mp3 file
    works in VLC, Audiobookshelf and players that read ID3 chapters, not in all; no cover picture; the file name of the one file is the name of the book; no loudness levelling between parts (see the
    findings), no Xing header in the one file (a player estimates the length from the bitrate, which is constant); the part number in "Part n" and in the report is the place in the export, not in the book;
    a part list with more than a few hundred megabytes is held in memory.

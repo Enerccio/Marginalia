@@ -6,9 +6,10 @@ icon: image
 
 # Resources
 
-The **Resources** tab lists the files you have uploaded to Marginalia. For now these are the
-[pictures of the parts](books/story-editor.md#images) of your books. The tab is the place to find a picture again, to
-download it, to swap it for a better one without touching the books that use it, and to throw away what you no
+The **Resources** tab lists the files you have uploaded to Marginalia: the
+[pictures of the parts](books/story-editor.md#images) of your books and the audio that extensions such as the
+[Audiobook](extensions/audiobook.md) store with them. The tab is the place to find a file again, to listen to audio,
+to download it, to swap it for a better one without touching the books that use it, and to throw away what you no
 longer need.
 
 ![The Resources tab](../images/resources-tab.png)
@@ -29,6 +30,12 @@ are first by default.
 This is only a note kept for you. Marginalia does not enforce it: a picture still works after the part it was added
 to is gone, and the same picture can be used by more parts (for example after you [branch](books/branches-and-story-tree.md)
 the story, the branch has the same pictures as the part it was made from).
+
+## Play
+
+A file of an audio type (`audio/mpeg`, `audio/wav`...) has a **Play** button (triangle) in front of the other buttons.
+It plays the file in the page; the button turns into **Pause** while it plays and back into Play when you stop it or
+the audio ends. Only one file plays at a time: starting another stops the one that was playing.
 
 ## Download
 

@@ -21,6 +21,8 @@ that you named; the audio is stored in your own installation, as resources linke
 - Voices: a short **reference clip** (12 to 30 seconds of one person, no music) for every voice you want to clone, or one of the voice
   files the server has. A narrator needs a calm, steady reading voice.
 - For a book with several voices, a language model that can label the text. It is the model of the book by default.
+- **ffmpeg** is optional. Without it everything works with mp3. With it on the server (it is in the Docker image, and on a desktop it is found on the `PATH` or in the usual
+  folders such as `/opt/homebrew/bin`; the variable `MARGINALIA_FFMPEG` names it when it is somewhere else) the export gets the format **m4b**, and an administrator can store the audio as wav.
 
 ## The settings
 
@@ -117,7 +119,7 @@ How a part is made, so you know what to expect:
 - While a generation of yours runs, the speech waits, so the language model is not unloaded under it.
 - A part that you marked **final** in the studio is left alone, and the dialog says how many were.
 - **The whole audiobook** joins every part that has up to date audio into one mp3 with a chapter mark for each part and shows a download link under the list (the parts left out are named). The same file is the export format *one mp3 with chapter marks*.
-- **Stop all** cancels the waiting parts and stops the running one after the piece it is speaking. **Download** gives the mp3 of a done part.
+- **Stop all** cancels the waiting parts and stops the running one at once: the request to the language model (the labelling) or to the speech server (the piece being spoken) is dropped, not waited for. A batch stopped before it began does not send the requests before it, so the language model stays loaded. **Download** gives the mp3 of a done part.
 
 ## The Audiobook studio
 
@@ -128,7 +130,7 @@ piece and make the part.
 
 - While the part is being annotated or made, a bar shows that something is going on and the buttons that would start more work wait.
 - **Annotate** makes the script of the part (with the language model if you ask for it, else with the narrator) and shows the pieces in a
-  table: speaker, delivery, intensity, the spoken text and a mark for a piece you changed.
+  table: speaker, delivery, intensity, the spoken text and a mark for a piece you changed. While it runs a **Stop** button appears beside it and ends the request to the language model.
 - Select a piece to edit its **speaker**, the **spoken text**, the **delivery**, the **intensity** (the exaggeration of the voice, for the models
   that have one), the **language**, the **seed**, the **pause after** it. **Apply** keeps the change and **locks** the piece: a new annotation leaves a locked piece as it is.
   **Unlock** gives it back to the annotation. *The request the speech server gets* shows the exact request.
@@ -141,11 +143,25 @@ piece and make the part.
 
 ## Exporting
 
-The audiobook is a format of the book's *Export story*: **Audiobook (one mp3 per chapter, in a zip)** and **Audiobook (one mp3 with chapter marks)**. Both are made of the audio of the parts that
+The audiobook is a format of the book's *Export story*: **Audiobook (one mp3 per chapter, in a zip)**, **Audiobook (one mp3 with chapter marks)** and, when ffmpeg is installed, **Audiobook (one m4b with chapters)**. They are made of the audio of the parts that
 are up to date: a part that has no audio, or audio older than its text or than its script in the studio, is left out and the window
 says which. The mp3 files carry ID3 tags (the title of the book, the chapter, the track), and the single file has
 chapter marks that players such as VLC and most audiobook apps show; the zip has a playlist. The check box **Audiobook: only the parts marked final**
 limits the export to the parts you finished in the studio.
+
+The **m4b** is the format Apple Books and most phone audiobook apps want: AAC audio (64 kbit/s, enough for speech) in an MP4 container with the chapters, the title, the author and the genre. ffmpeg makes it, so the format is
+offered only on a server that has ffmpeg. Audio stored as mp3 is encoded a second time for it; audio stored as wav is encoded once.
+
+### How the audio is stored
+
+An administrator chooses it for the whole installation in *Settings → Extension Settings → Audiobook Settings* (the last section, seen only by administrators):
+
+- **mp3** (default): small, joined without a decoder, no ffmpeg needed. The m4b is a second lossy step.
+- **wav**: lossless, about ten times the size (an hour of speech is about 170 MB), needs ffmpeg. The pieces are asked from the speech server as wav and joined as wav; the browser plays it as it is;
+  the mp3 and zip exports are encoded by ffmpeg (96 kbit/s) and the m4b is encoded once.
+
+The choice applies to what is made from then on. Parts made before keep their audio and are understood as they are; a part of both kinds (a locked piece of the studio from before) is joined as wav, and an export of
+parts of both kinds works, but needs ffmpeg.
 
 ![The export dialog with the audiobook formats](../../images/plugin-audiobook-export.png)
 
@@ -199,7 +215,7 @@ list of the *Settings* page there are two lines: **Convert to audio** (the batch
 
 ## What it does not do (yet)
 
-- Only mp3 (the parts are joined without a decoder, so no wav or opus), and no m4b; the loudness of the pieces is what the voices give.
+- Mp3 and wav only (no opus); the loudness of the pieces is what the voices give.
 - No sound effects or ambience.
 - One speech engine, Chatterbox. Other engines are the next step.
 - The audition of a voice outside a segment, shared (administrator's) speech servers: every user brings their own.

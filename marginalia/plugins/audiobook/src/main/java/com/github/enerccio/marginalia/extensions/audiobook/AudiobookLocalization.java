@@ -83,7 +83,7 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
     public static final String THE_PARTS_ARE_LABELLED_FIRST = "The parts are labelled first (the model must be loaded), then spoken: the requests before the batch unload the model for the speech.";
     public static final String LISTEN_TO_THE_AUDIOBOOK = "Listen to the audiobook";
     public static final String PAUSE_LISTENING = "Pause";
-    public static final String STOP_LISTENING = "Stop";
+    public static final String STOP = "Stop";
     public static final String THIS_PART_HAS_NO_AUDIO = "This part has no audio (yet)";
     public static final String THE_AUDIO_COULD_NOT_BE_LOADED = "The audio could not be loaded";
 
@@ -188,6 +188,13 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
 
     public static final String AUDIOBOOK_ZIP = "Audiobook (one mp3 per chapter, in a zip)";
     public static final String AUDIOBOOK_ONE_MP3 = "Audiobook (one mp3 with chapter marks)";
+    public static final String AUDIOBOOK_M4B = "Audiobook (one m4b with chapters)";
+    public static final String STORAGE_OF_THE_AUDIO = "How the audio is stored (for everyone on this installation)";
+    public static final String STORAGE_MP3 = "mp3 (small; an m4b is encoded a second time)";
+    public static final String STORAGE_WAV = "wav (lossless, about ten times the size; needs ffmpeg)";
+    public static final String STORAGE_OF_THE_AUDIO_HELP = "Only administrators see this. It applies to the parts that are made from now on; the parts that were made before keep their audio and are understood as they are. A wav is encoded by ffmpeg for the mp3 and zip exports and once for the m4b, so the m4b is not encoded twice.";
+    public static final String FFMPEG_IS_NOT_INSTALLED = "ffmpeg is not installed on the server: only mp3 can be chosen, and the m4b export is not offered.";
+    public static final String THE_STORAGE_OF_THE_AUDIO_IS_SAVED = "Saved. New parts are stored this way.";
     public static final String ONLY_THE_PARTS_MARKED_FINAL = "Audiobook: only the parts marked final";
     public static final String PART_NUMBER = "Part %s";
     public static final String NO_AUDIO = "no audio";
@@ -439,8 +446,8 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
         ja(PAUSE_LISTENING, "一時停止");
         zh(PAUSE_LISTENING, "暂停");
 
-        ja(STOP_LISTENING, "停止");
-        zh(STOP_LISTENING, "停止");
+        ja(STOP, "停止");
+        zh(STOP, "停止");
 
         ja(THIS_PART_HAS_NO_AUDIO, "このパートにはまだ音声がありません");
         zh(THIS_PART_HAS_NO_AUDIO, "此章节还没有音频");
@@ -753,6 +760,20 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
 
         ja(AUDIOBOOK_ONE_MP3, "オーディオブック (章マーク付きの mp3 1 本)");
         zh(AUDIOBOOK_ONE_MP3, "有声书（带章节标记的单个 mp3）");
+        ja(AUDIOBOOK_M4B, "オーディオブック (章付きの m4b 1 本)");
+        zh(AUDIOBOOK_M4B, "有声书（带章节的单个 m4b）");
+        ja(STORAGE_OF_THE_AUDIO, "音声の保存形式 (このインストール全体)");
+        zh(STORAGE_OF_THE_AUDIO, "音频的存储格式（对整个安装生效）");
+        ja(STORAGE_MP3, "mp3 (小さい。m4b は二重にエンコードされます)");
+        zh(STORAGE_MP3, "mp3（体积小；m4b 会被二次编码）");
+        ja(STORAGE_WAV, "wav (ロスレス、約10倍のサイズ。ffmpeg が必要)");
+        zh(STORAGE_WAV, "wav（无损，约为十倍大小；需要 ffmpeg）");
+        ja(STORAGE_OF_THE_AUDIO_HELP, "管理者にのみ表示されます。これから作成するパートに適用され、以前のパートはそのまま使われます。wav は mp3 と zip の書き出し時に ffmpeg でエンコードされ、m4b では一度だけエンコードされます。");
+        zh(STORAGE_OF_THE_AUDIO_HELP, "仅管理员可见。仅对之后生成的章节生效，之前的章节保持原样。导出 mp3 和 zip 时由 ffmpeg 编码 wav，导出 m4b 时只编码一次。");
+        ja(FFMPEG_IS_NOT_INSTALLED, "サーバーに ffmpeg がインストールされていません。mp3 のみ選択でき、m4b の書き出しは利用できません。");
+        zh(FFMPEG_IS_NOT_INSTALLED, "服务器未安装 ffmpeg：只能选择 mp3，且不提供 m4b 导出。");
+        ja(THE_STORAGE_OF_THE_AUDIO_IS_SAVED, "保存しました。新しいパートはこの形式で保存されます。");
+        zh(THE_STORAGE_OF_THE_AUDIO_IS_SAVED, "已保存。新章节将按此方式存储。");
 
         ja(ONLY_THE_PARTS_MARKED_FINAL, "オーディオブック: 最終版のパートのみ");
         zh(ONLY_THE_PARTS_MARKED_FINAL, "有声书：只含已定稿的章节");

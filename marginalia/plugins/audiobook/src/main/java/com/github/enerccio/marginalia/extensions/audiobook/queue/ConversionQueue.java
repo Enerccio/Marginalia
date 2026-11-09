@@ -1,7 +1,7 @@
 package com.github.enerccio.marginalia.extensions.audiobook.queue;
 
 import com.github.enerccio.marginalia.extensions.audiobook.AudiobookLog;
-import com.github.enerccio.marginalia.extensions.audiobook.audio.Mp3Joiner;
+import com.github.enerccio.marginalia.extensions.audiobook.audio.AudioKind;
 import com.github.enerccio.marginalia.extensions.audiobook.model.BackendConfig;
 import com.github.enerccio.marginalia.extensions.audiobook.queue.ConversionJob.ScriptSource;
 import com.github.enerccio.marginalia.extensions.audiobook.queue.ConversionJob.State;
@@ -243,8 +243,14 @@ public class ConversionQueue implements AutoCloseable {
             }
             PartScript script;
             try {
-                script = job.source().get();
+                // making the script may ask the language model for the labels: Stop ends that request too
+                script = com.github.enerccio.marginalia.extensions.audiobook.label.LabelCancel.during(() -> stopRun || job.cancelRequested(),
+                        () -> job.source().get());
             } catch (Exception e) {
+                if (job.cancelRequested() || stopRun) {
+                    finish(job, State.CANCELLED, "");
+                    continue;
+                }
                 finish(job, State.FAILED, "The script of the part could not be made: " + e.getMessage());
                 continue;
             }
@@ -393,11 +399,11 @@ public class ConversionQueue implements AutoCloseable {
             pauses.add(entry.pauseAfter());
         }
         try {
-            byte[] joined = Mp3Joiner.join(pieces, pauses);
+            byte[] joined = AudioKind.join(pieces, pauses);
             env.store().putPart(job.partId(), plan.script().joinKey(), plan.script().sourceHash(), joined,
                     plan.script().liveKeys());
             String warning = job.snapshot().message();      // a request after the batch that failed, noted by speak()
-            finish(job, State.DONE, plan.script().entries().size() + " pieces, " + Math.round(Mp3Joiner.seconds(joined)) + " s"
+            finish(job, State.DONE, plan.script().entries().size() + " pieces, " + Math.round(AudioKind.seconds(joined)) + " s"
                     + (warning.isEmpty() ? "" : " (" + warning + ")"));
         } catch (BackendException | RuntimeException e) {
             finish(job, State.FAILED, "The pieces could not be joined: " + e.getMessage());

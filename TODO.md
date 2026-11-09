@@ -337,7 +337,7 @@ Items marked 🧩 are good candidates for an extension (OSGi plugin) instead of 
     published book in the Viewer (the Viewer deliberately shows them to the owner only). Files of deleted
     resources and of replaced content stay in the data folder until the administrator removes them in *Admin → Resource Files*
     (garbage collection: scan, ZIP download, delete; done). 🧩
-36. **Text-to-speech read-aloud** in the Viewer. 🧩 ✅ Partly: the `tts-reader` plugin reads with the browser's speech synthesis (play / pause / stop, voice, speed and pitch in the browser). Missing: a server side engine (an OpenAI-compatible `/audio/speech`, Kokoro, Piper) with cached audio, highlighting the sentence that is read. The server side one with several voices is the `audiobook` plugin (stub, see its `TODO.md`).
+36. **Text-to-speech read-aloud** in the Viewer. 🧩 ✅ Partly: the `tts-reader` plugin reads with the browser's speech synthesis (play / pause / stop, voice, speed and pitch in the browser). Missing: a server side engine (an OpenAI-compatible `/audio/speech`, Kokoro, Piper) with cached audio, highlighting the sentence that is read. The server side one with several voices is the `audiobook` plugin (Chatterbox through a TTS server, cast, studio, player, export; sound effects and other engines not done, see its `TODO.md`).
 37. **Health and metrics endpoint.** ✅ `GET /health` (`HealthServlet`, no login): 200 when the context runs and the database
     answers, else 503; the Dockerfile `HEALTHCHECK` uses it. ✅ Tokens per provider and user are counted since 1.2.0 (`Usage`,
     Inference Providers tab and *Usage per user* in the administration). Tokens per book and day are counted

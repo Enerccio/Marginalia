@@ -7,6 +7,11 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.function.BooleanSupplier;
 
 /** The HTTP calls a plugin makes to a server of the user, with the limits that go with them: no redirects, a timeout, a cap on the answer. */
 public final class Http {
@@ -52,6 +57,41 @@ public final class Http {
                 throw new BackendException("The answer of " + request.uri().getHost() + " is too big", e);
             }
             throw new BackendException("Cannot reach " + request.uri().getHost() + ": " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Like {@link #send(HttpRequest, int)}, but gives up as soon as {@code cancelled} turns true (asked every 200 ms): the request is
+     * abandoned and its connection closed, so the caller does not wait for a long answer it no longer wants. The server may go on with
+     * what it was doing until it notices the closed connection.
+     */
+    public static HttpResponse<byte[]> send(HttpRequest request, int maxBytes, BooleanSupplier cancelled) throws BackendException {
+        if (cancelled == null) {
+            return send(request, maxBytes);
+        }
+        CompletableFuture<HttpResponse<byte[]>> future = CLIENT.sendAsync(request, info -> new CappedBody(maxBytes,
+                info.headers().firstValueAsLong("Content-Length").orElse(-1) > maxBytes));
+        try {
+            while (true) {
+                try {
+                    return future.get(200, TimeUnit.MILLISECONDS);
+                } catch (TimeoutException e) {
+                    if (cancelled.getAsBoolean()) {
+                        future.cancel(true);
+                        throw new BackendException("Cancelled");
+                    }
+                }
+            }
+        } catch (InterruptedException e) {
+            future.cancel(true);
+            Thread.currentThread().interrupt();
+            throw new BackendException("Interrupted", e);
+        } catch (ExecutionException e) {
+            Throwable cause = e.getCause() == null ? e : e.getCause();
+            if (cause instanceof CappedBody.TooBig || cause.getCause() instanceof CappedBody.TooBig) {
+                throw new BackendException("The answer of " + request.uri().getHost() + " is too big", e);
+            }
+            throw new BackendException("Cannot reach " + request.uri().getHost() + ": " + cause.getMessage(), e);
         }
     }
 
