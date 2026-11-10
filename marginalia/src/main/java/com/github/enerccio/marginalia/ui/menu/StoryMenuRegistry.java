@@ -412,6 +412,10 @@ public class StoryMenuRegistry implements InitializingBean {
 
         application(StoryMenuItem.tools(StoryMenuKeys.ANNOTATE_RANGE, L.LABEL_ANNOTATE_BATCH, StoryEditor::openAnnotateRangeDialog)
                 .icon(Solid.COMMENT_DOTS::create).path(StoryMenuKeys.GROUP_ANALYSIS));
+        application(StoryMenuItem.tools(StoryMenuKeys.CREATE_SUMMARIES, L.LABEL_CREATE_SUMMARIES, StoryEditor::openCreateSummariesDialog)
+                .icon(Solid.ALIGN_LEFT::create).path(StoryMenuKeys.GROUP_ANALYSIS));
+        application(StoryMenuItem.tools(StoryMenuKeys.LORE_NOTES, L.LABEL_TAKE_LORE_NOTES, StoryEditor::openLoreNotesDialog)
+                .icon(Solid.FILE_ALT::create).path(StoryMenuKeys.GROUP_ANALYSIS));
         application(StoryMenuItem.tools(StoryMenuKeys.AUTO_ANNOTATE, L.LABEL_AUTO_ANNOTATE, StoryEditor::openAutoAnnotateDialog)
                 .icon(Solid.ROBOT::create).checkedWhen(StoryEditor::isAutoAnnotate).path(StoryMenuKeys.GROUP_ANALYSIS));
         application(StoryMenuItem.tools(StoryMenuKeys.BRANCH_TOKENS, L.LABEL_BRANCH_TOKENS, StoryEditor::openBranchTokensDialog)

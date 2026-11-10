@@ -17,6 +17,7 @@ import com.github.enerccio.marginalia.ui.RestorableState;
 import com.github.enerccio.marginalia.ui.components.LorebookPreview;
 import com.github.enerccio.marginalia.ui.components.MessageImages;
 import com.github.enerccio.marginalia.ui.dialogs.*;
+import com.github.enerccio.marginalia.ui.dialogs.bookimport.AfterImportDialog;
 import com.github.enerccio.marginalia.ui.dialogs.bookimport.BookImportDialog;
 import com.github.enerccio.marginalia.ui.dialogs.manuscript.*;
 import com.github.enerccio.marginalia.ui.dialogs.phone.PhoneManuscriptDialog;
@@ -371,7 +372,44 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
     @Override
     public void openArchiveImportDialog() {
         try {
-            BookImportDialog.showInto(parent.refreshManuscript(), imported -> load(parent.refreshManuscript()));
+            BookImportDialog.showInto(parent.refreshManuscript(), imported -> {
+                load(parent.refreshManuscript());
+                // the summaries and the lore notes of what was just imported
+                if (imported != null) {
+                    AfterImportDialog.show(parent.refreshManuscript(), this::reloadStory);
+                }
+            });
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+    }
+
+    /**
+     * Opens <i>Create summaries</i>: summaries for the story after the newest summary, cut by tokens, chapters or parts, see
+     * {@link CreateSummariesDialog}; the story is shown again.
+     */
+    @PublicAPI(from = "1.8.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "e", type = Exception.class)})
+    @Override
+    public void openCreateSummariesDialog() {
+        try {
+            new CreateSummariesDialog(parent.refreshManuscript(), this::reloadStory).show();
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+    }
+
+    /**
+     * Asks whether an agent should take the lore notes of the book and starts it, see {@link AfterImportDialog#startLoreNotes}.
+     */
+    @PublicAPI(from = "1.8.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "e", type = Exception.class)})
+    @Override
+    public void openLoreNotesDialog() {
+        try {
+            AfterImportDialog.startLoreNotes(parent.refreshManuscript());
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }

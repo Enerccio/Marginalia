@@ -235,4 +235,25 @@ class BookImportSourcesTest extends MarginaliaTestBase {
         });
         // nothing to import yet: the dialog only has to build and open without failing
     }
+
+    @Test
+    void whatToDoAfterAnImportOpensOnABook() throws Exception {
+        login();
+        Manuscript created = new Manuscript();
+        created.setName(uniqueName("book"));
+        Manuscript book = manuscriptService.save(created);
+        AfterImportDialog.show(manuscriptService.find(book), () -> {
+        });
+    }
+
+    @Test
+    void createSummariesSaysSoWhenThereIsNothingToSummarize() throws Exception {
+        login();
+        Manuscript created = new Manuscript();
+        created.setName(uniqueName("book"));
+        Manuscript book = manuscriptService.save(created);
+        // a book without parts: no dialog, only the notice
+        new com.github.enerccio.marginalia.ui.dialogs.manuscript.CreateSummariesDialog(manuscriptService.find(book), () -> {
+        }).show();
+    }
 }

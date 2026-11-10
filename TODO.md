@@ -756,8 +756,12 @@ numbers of the older items stable), the rest is P3/P4.
     one import window of the book list (`BookImportDialog`, a source selector with its own options): headings start chapters,
     the text is cut at a word target (`PartSplitter`; a chapter's short end stays with the part before it), all marked as
     written by the author (49 stays right); ✅ the same import into an existing book (settings menu, *Import*) at the end or before or
-    after a part. Not done: offering the summaries run and the lore suggestions (58) after the import, and chats (SillyTavern,
-    LM Studio) into an existing book (a tree of branches: they would need a part to hang from).
+    after a part; ✅ after an import (into a book or as a new book, which is opened) the window *Import finished* offers
+    *Create summaries* (by tokens, by chapters with a minimum, or by parts, only after the newest summary) and an agent that
+    takes the lore notes (a *Lore notes* agent that reads the story and writes lorebook entries, reviewed as any agent's
+    result); both are in the settings menu too. Not done: the lore suggestions of 58 (the agent is its own take on them),
+    a "do not ask again" setting for the window, and chats (SillyTavern, LM Studio) into an existing book (a tree of
+    branches: they would need a part to hang from).
 88. **"Where was I" card.** `lastOpened` is stored. When a book was not opened for N days, show a card above the story:
     the newest summary, the next open planner scenes (44), the open annotations and the last instructions. No model call
     in the first version; a *Write me a recap* button (summaries as the input) later. Cheap, and it uses four features

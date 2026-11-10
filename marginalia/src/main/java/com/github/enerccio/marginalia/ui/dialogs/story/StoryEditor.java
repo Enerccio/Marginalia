@@ -36,6 +36,16 @@ public interface StoryEditor {
     void openArchiveImportDialog();
 
     /**
+     * Opens <i>Create summaries</i>: summaries for the story after the newest summary, cut by tokens, chapters or parts.
+     */
+    void openCreateSummariesDialog();
+
+    /**
+     * Asks whether an agent should take the lore notes of the book (read the story, write the lorebook entries it finds) and starts it.
+     */
+    void openLoreNotesDialog();
+
+    /**
      * Shows the tokens the story takes in the next prompt.
      */
     void openBranchTokensDialog();

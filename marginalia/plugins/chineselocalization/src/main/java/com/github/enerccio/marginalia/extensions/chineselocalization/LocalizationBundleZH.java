@@ -1047,6 +1047,16 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_BEFORE_A_PART, "在某个段落之前");
         setValue(L.LABEL_AFTER_A_PART, "在某个段落之后");
         setValue(L.LABEL_PART, "段落");
+        setValue(L.LABEL_CREATE_SUMMARIES, "创建摘要");
+        setValue(L.LABEL_TAKE_LORE_NOTES, "用代理记录设定笔记");
+        setValue(L.LABEL_SUMMARIES_CUT_BY, "分段方式");
+        setValue(L.LABEL_TOKENS_PER_SUMMARY, "每个摘要的令牌数");
+        setValue(L.LABEL_PARTS_PER_SUMMARY, "每个摘要的段落数");
+        setValue(L.LABEL_MIN_TOKENS_PER_SUMMARY, "章节结束摘要前的最少令牌数");
+        setValue(L.LABEL_UP_TO_PART, "直到段落");
+        setValue(L.LABEL_ALSO_SUMMARIZE_THE_REST, "同时总结末尾剩余部分");
+        setValue(L.LABEL_IMPORT_FINISHED, "导入完成");
+        setValue(L.LABEL_NOT_NOW, "暂不");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -1240,6 +1250,9 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.ENUM_JOB_CALL_TYPE_AUDIO, "音频");
         setValue(L.ENUM_JOB_CALL_TYPE_IMAGE, "图像");
         setValue(L.ENUM_JOB_CALL_TYPE_OTHER, "其他");
+        setValue(L.ENUM_SUMMARY_SPLIT_TOKENS, "令牌数");
+        setValue(L.ENUM_SUMMARY_SPLIT_CHAPTERS, "章节");
+        setValue(L.ENUM_SUMMARY_SPLIT_PARTS, "段落数");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "内部服务器错误");
@@ -1786,6 +1799,18 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_IMPORT_SCRIVENER, "上传 Scrivener 项目（压缩为 zip 的 .scriv 文件夹）。导入手稿（Draft）：文件夹以及下面还有文档的文档成为标题，文件夹中的文档是其场景。研究资料、废纸篓以及未包含在编译中的文档会被忽略。全部标记为由您撰写。");
         setValue(L.MSG_INVALID_OBSIDIAN, "%s 不是包含有文本笔记的 Obsidian 库的 zip。");
         setValue(L.MSG_INVALID_SCRIVENER, "%s 不是手稿含有文本的 Scrivener 项目的 zip。");
+        setValue(L.MSG_SUMMARIES_PLANNED, "%d 个摘要,涵盖 %d 个段落(%d 个令牌)。");
+        setValue(L.MSG_NO_SUMMARIES_PLANNED, "按此设置不会生成任何摘要。");
+        setValue(L.MSG_NO_PARTS_WITHOUT_SUMMARY, "最新摘要之后没有段落。");
+        setValue(L.MSG_CREATE_SUMMARIES_PROGRESS, "摘要 %d / %d");
+        setValue(L.MSG_CREATE_SUMMARIES_FINISHED, "已生成 %d 个摘要。");
+        setValue(L.MSG_CREATE_SUMMARIES_STOPPED, "已停止。此前已生成 %d 个摘要。");
+        setValue(L.MSG_CREATE_SUMMARIES_FAILED, "在生成 %d 个摘要后失败。");
+        setValue(L.MSG_LORE_NOTES_CONFIRM, "代理会从头阅读故事,记录其中的人物、地点、物品和术语,并把它们写成本书设定集的条目(书没有设定集时会新建一个)。它在书的副本上工作,采用结果之前由你审阅。工作期间书会被锁定,使用的是书的模型:可能耗时较长并消耗大量令牌。要开始吗?");
+        setValue(L.MSG_LORE_NOTES_NOT_ALLOWED, "你没有使用代理的权限。");
+        setValue(L.MSG_LORE_NOTES_NO_MODEL, "请先为这本书选择模型和协议。");
+        setValue(L.MSG_LORE_NOTES_HAS_AGENT, "这本书已有一个代理(%s),而一本书只能有一个代理:请修改它的指示或删除它。");
+        setValue(L.MSG_LORE_NOTES_STARTED, "代理正在记录笔记。可在它的控制台中查看,结果在“代理”标签页中审阅。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");
@@ -1910,6 +1935,9 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.HELP_WORDS_PER_PART, "文本在段落之间被切分为大约这么多字的段落块。一个段落块不会包含两章的文本；章末剩下的部分若不到此数的一半，则保留在前一个段落块中。");
         setValue(L.HELP_CHAPTER_HEADING_LEVEL, "该级别及更高级别的标题开始新的一章，每章以其标题开头。更深层的标题保留在文本中。");
         setValue(L.HELP_IMPORT_PLACE, "段落将标记为由您撰写。该位置之后的内容会移到它们后面，因此涵盖该位置的摘要会过时。");
+        setValue(L.HELP_CREATE_SUMMARIES, "为最新摘要之后的故事的每个分段按从旧到新的顺序生成摘要。已有的摘要不会改动。分段按设置结束,且不会超过模型可读取的长度。");
+        setValue(L.HELP_SUMMARY_CHAPTERS, "章节是以标题开头的段落。当前分段的令牌数少于最小值时,新章节不会结束该摘要:较短的章节会与下一章一起总结。");
+        setValue(L.HELP_AFTER_IMPORT, "段落已加入书中。有两样东西能让长篇故事更好写:已导入内容的摘要,以及收录人物和地点的设定集。请先创建摘要:代理工作时会锁定这本书。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景设定与世界观。");

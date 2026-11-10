@@ -213,6 +213,9 @@ same as for a document.
   between them (their titles are not used). A document directly in the manuscript or in a folder of other folders is a chapter with its title. The
   name of the project names the book.
 
+Whatever the source, the new book is opened when the import is done (also when you stopped it), and the window [**Import finished**](story-editor.md#after-an-import) offers to write
+the summaries of the parts and to let an agent take the lore notes.
+
 ### Importing from SillyTavern
 
 To continue a roleplay or story you started in [SillyTavern](https://github.com/SillyTavern/SillyTavern), use

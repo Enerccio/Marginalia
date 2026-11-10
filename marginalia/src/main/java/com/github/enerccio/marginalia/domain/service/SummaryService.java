@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.domain.service;
 
 import com.github.enerccio.marginalia.domain.components.SummaryNode;
+import com.github.enerccio.marginalia.domain.components.SummaryPlanner;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Summary;
@@ -12,6 +13,54 @@ import java.util.List;
 public interface SummaryService extends ExtendableService<Summary, SummaryRepository> {
 
     CancellationToken createSummary(Manuscript manuscript, ChatMessage from, AsyncCallback callback) throws Exception;
+
+    /**
+     * The parts of the active branch that no summary covers yet: the ones after the newest part that has a summary (all of them
+     * when there is none), the oldest first. A summary made for one of them covers them down to that part, so this is where new
+     * summaries start whatever summaries lie further back.
+     */
+    List<ChatMessage> unsummarizedParts(Manuscript manuscript) throws Exception;
+
+    /**
+     * Where {@link #createSummaries} would put the summaries: the parts of {@link #unsummarizedParts} cut by the options (see
+     * {@link SummaryPlanner}), a block never gets longer than the model of the book can read.
+     *
+     * @param to the last part to cover, null for the end of the story
+     * @return the parts that get a summary, the oldest first; empty when there is nothing to summarize
+     * @throws IllegalArgumentException when {@code to} is not one of the parts without a summary
+     */
+    List<ChatMessage> planSummaries(Manuscript manuscript, SummaryPlanner.Options options, ChatMessage to) throws Exception;
+
+    /**
+     * Writes a summary for each of the parts, one after another, the oldest first, each as {@link #createSummary} does (it covers
+     * the parts down to the one after the summary before it). Every summary is stored when it is written, so a stop or an error
+     * leaves those before it.
+     *
+     * @param parts the parts that get a summary, the oldest first, as {@link #planSummaries} gives them
+     * @return null when the book has no model or there are no parts
+     * @throws ManuscriptLockedException when an agent works on the book
+     */
+    CancellationToken createSummaries(Manuscript manuscript, List<ChatMessage> parts, BatchCallback callback) throws Exception;
+
+    /**
+     * What {@link #createSummaries} reports, on the threads the model answers on.
+     */
+    interface BatchCallback {
+        /** The summary of the part is being written. */
+        void onStep(int number, int total, ChatMessage part) throws Exception;
+
+        /** The reasoning and the text of the summary being written, as far as they arrived. */
+        void onSummaryProgress(String reasoning, String summary) throws Exception;
+
+        /** Every summary was written. */
+        void onFinished(int count) throws Exception;
+
+        /** Stopped, {@code done} summaries were written before. */
+        void onTerminated(int done) throws Exception;
+
+        /** Failed (the prompt does not fit, the model failed or answered nothing), {@code done} summaries were written before. */
+        void onError(Throwable throwable, int done) throws Exception;
+    }
 
     /**
      * Merges the summaries from {@code from} (newest) to {@code to} (oldest) of the branch into one meta summary

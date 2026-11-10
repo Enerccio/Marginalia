@@ -1039,6 +1039,16 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_BEFORE_A_PART, "パートの前");
         setValue(L.LABEL_AFTER_A_PART, "パートの後");
         setValue(L.LABEL_PART, "パート");
+        setValue(L.LABEL_CREATE_SUMMARIES, "要約を作成");
+        setValue(L.LABEL_TAKE_LORE_NOTES, "エージェントでロアのメモを取る");
+        setValue(L.LABEL_SUMMARIES_CUT_BY, "区切り方");
+        setValue(L.LABEL_TOKENS_PER_SUMMARY, "要約あたりのトークン数");
+        setValue(L.LABEL_PARTS_PER_SUMMARY, "要約あたりのパート数");
+        setValue(L.LABEL_MIN_TOKENS_PER_SUMMARY, "章で要約を区切る最小トークン数");
+        setValue(L.LABEL_UP_TO_PART, "このパートまで");
+        setValue(L.LABEL_ALSO_SUMMARIZE_THE_REST, "最後の残りも要約する");
+        setValue(L.LABEL_IMPORT_FINISHED, "インポート完了");
+        setValue(L.LABEL_NOT_NOW, "今はしない");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -1232,6 +1242,9 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.ENUM_JOB_CALL_TYPE_AUDIO, "音声");
         setValue(L.ENUM_JOB_CALL_TYPE_IMAGE, "画像");
         setValue(L.ENUM_JOB_CALL_TYPE_OTHER, "その他");
+        setValue(L.ENUM_SUMMARY_SPLIT_TOKENS, "トークン数");
+        setValue(L.ENUM_SUMMARY_SPLIT_CHAPTERS, "章");
+        setValue(L.ENUM_SUMMARY_SPLIT_PARTS, "パート数");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "内部サーバーエラー");
@@ -1778,6 +1791,18 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_IMPORT_SCRIVENER, "Scrivener プロジェクト（.scriv フォルダを zip にしたもの）をアップロードします。原稿（Draft）が取り込まれます：フォルダと、下にドキュメントを持つドキュメントは見出しになり、フォルダ内のドキュメントはそのシーンになります。リサーチ、ゴミ箱、コンパイルに含まれないドキュメントは除外されます。すべてあなたが書いたものとして記録されます。");
         setValue(L.MSG_INVALID_OBSIDIAN, "%s は、テキストのあるノートを含む Obsidian ボールトの zip ではありません。");
         setValue(L.MSG_INVALID_SCRIVENER, "%s は、テキストのある原稿を含む Scrivener プロジェクトの zip ではありません。");
+        setValue(L.MSG_SUMMARIES_PLANNED, "%d個の要約、%dパート(%dトークン)。");
+        setValue(L.MSG_NO_SUMMARIES_PLANNED, "この設定では要約は作成されません。");
+        setValue(L.MSG_NO_PARTS_WITHOUT_SUMMARY, "最新の要約より後にパートがありません。");
+        setValue(L.MSG_CREATE_SUMMARIES_PROGRESS, "要約 %d / %d");
+        setValue(L.MSG_CREATE_SUMMARIES_FINISHED, "%d個の要約を作成しました。");
+        setValue(L.MSG_CREATE_SUMMARIES_STOPPED, "停止しました。それまでに%d個の要約を作成しました。");
+        setValue(L.MSG_CREATE_SUMMARIES_FAILED, "%d個の要約の後で失敗しました。");
+        setValue(L.MSG_LORE_NOTES_CONFIRM, "エージェントが物語を最初から読み、登場人物・場所・物・用語についてメモを取り、ブックのロアブックの項目として書き込みます(ロアブックがなければ作成します)。作業はブックのコピー上で行われ、取り込む前に結果を確認できます。作業中はブックがロックされ、ブックのモデルが使われます。時間とトークンを多く消費することがあります。開始しますか?");
+        setValue(L.MSG_LORE_NOTES_NOT_ALLOWED, "エージェントを使用する権限がありません。");
+        setValue(L.MSG_LORE_NOTES_NO_MODEL, "先にブックのモデルとプロトコルを選択してください。");
+        setValue(L.MSG_LORE_NOTES_HAS_AGENT, "このブックにはすでにエージェント(%s)があります。ブックのエージェントは1つだけです。そのエージェントの指示を変更するか、削除してください。");
+        setValue(L.MSG_LORE_NOTES_STARTED, "エージェントがメモを取っています。コンソールで確認できます。結果はエージェントタブで確認します。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");
@@ -1902,6 +1927,9 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_WORDS_PER_PART, "テキストは段落の区切りで、およそこの語数のパートに分けられます。1 つのパートに 2 つの章のテキストが入ることはなく、章の終わりに残る分がこの数の半分未満なら、その前のパートに含まれます。");
         setValue(L.HELP_CHAPTER_HEADING_LEVEL, "このレベル以上の見出しで章が始まり、各章は見出しから始まります。より深い見出しは本文中に残ります。");
         setValue(L.HELP_IMPORT_PLACE, "パートはあなたが書いたものとして追加されます。その場所以降に続くパートはそれらの後ろに移動するため、その場所を含む要約は古くなります。");
+        setValue(L.HELP_CREATE_SUMMARIES, "最新の要約より後の物語を区切り、ブロックごとに古い順に要約を作成します。既存の要約は変更されません。ブロックは設定に従って終わり、モデルが読める長さを超えることはありません。");
+        setValue(L.HELP_SUMMARY_CHAPTERS, "章とは見出しで始まるパートです。それまでの要約のトークン数が最小値に満たないときに始まる章は要約を区切りません。短い章は次の章と一緒に要約されます。");
+        setValue(L.HELP_AFTER_IMPORT, "パートがブックに追加されました。長い物語を書き進めやすくするものが2つあります。取り込んだ内容の要約と、登場人物や場所を集めたロアブックです。先に要約を作成してください。エージェントは作業中ブックをロックします。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景設定と世界観の文脈。");

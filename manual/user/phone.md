@@ -134,7 +134,7 @@ The story tab is one column of parts. The differences from the [story editor](bo
 - The **Summaries** button and the settings menu (⚙, with *Change Styles For Text*, *Search and replace*, *Import*, *Mass delete* and *Export story*) are in the top bar, not
   at the bottom.
 - The **+** button for a new part is at the bottom.
-- The **Summaries** window has its menu bar (*Search and replace*, *Resummarize all summaries*, *Export Summaries*, *Import Summaries*) in a row of its own;
+- The **Summaries** window has its menu bar (*Search and replace*, *Create summaries...*, *Resummarize all summaries*, *Export Summaries*, *Import Summaries*) in a row of its own;
   on a narrow screen the items are behind the **⋯** button. [Importing summaries](books/summaries.md#export-and-import-of-the-summaries)
   is the same window as on the desktop, in the width of the screen.
 

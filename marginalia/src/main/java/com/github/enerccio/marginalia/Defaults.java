@@ -384,6 +384,26 @@ Do not call any tool and do not do any of the work now, only write the summary. 
 """;
 
     /**
+     * The name of the agent the import offers to take the lore notes of a book ({@code LoreNotesAgent}).
+     */
+    public static final String AGENT_LORE_NOTES_NAME = "Lore notes";
+
+    /**
+     * The instructions ("agents.md") of the agent that takes the lore notes of a book after an import.
+     */
+    public static final String AGENT_LORE_NOTES_INSTRUCTIONS = """
+Task: read the story of this book and take notes for its lorebook.
+
+1. Call get-book-info, list-lorebooks and list-lore-entries first: the lorebook of the book is the one to write to, and what it holds already must not be written again (update an entry when the story tells more about it).
+2. Read the story from the first part to the last with list-parts and get-part, a few parts at a time. The summaries (list-summaries, get-summary) help to find your way, the parts are the source. After every few parts write what you learned into a notes file of your workspace (for example notes/characters.md, notes/places.md, notes/things.md, notes/terms.md), so that you can go on after a pause or a compaction.
+3. Take notes on what the story establishes and the author may need again: the characters (who they are, how they look and speak, what they want, how they relate to the others), the places, the things that matter, the groups and the terms the story makes up. Write only what the text says. Do not guess, do not add what the story does not tell, and do not retell the plot: the summaries do that.
+4. When you have read everything, write the entries with create-lore-entry: one entry for one character, place, thing, group or term, a short text in plain prose that tells what the model needs to write about it (a few sentences, a paragraph for a main character), in the language of the book. Give each entry the keys the story calls it by (its name, the short form, a title), so that it is used when the name appears. Merge the notes about one subject into one entry. Use set-lore-entry-tags only when the lorebook already uses tags.
+5. Check with list-lore-entries that the entries are there, then finish with a short report: how many entries you wrote, of what kind, and what you were not sure of.
+
+Do not change the story, do not delete anything and do not touch the entries that were there before except to add facts the story gives.
+""";
+
+    /**
      * Starts the message that holds the summary of a compacted run, in the transcript the model reads.
      */
     public static final String AGENT_COMPACTED_NOTE = "Your earlier work on this run was compacted at the author's request. "

@@ -74,7 +74,7 @@ The dialog lists the summaries the next generation will send, oldest first, and 
 Summaries that are merged into a meta summary are shown under it, see [below](#meta-summaries). They have no
 **Select** box, no trash icon and no pencil: only the summaries that are in use can be changed.
 
-The menu bar above the grid has **Search and Replace** (see [below](#search-and-replace-in-the-summaries)), **Resummarize all summaries** (see [below](#resummarize-all-summaries)), **Export Summaries** and **Import Summaries** (see [Export and import](#export-and-import-of-the-summaries)); [extensions](../extensions/index.md) can add tools to it.
+The menu bar above the grid has **Search and Replace** (see [below](#search-and-replace-in-the-summaries)), **Create summaries...** (see [below](#create-summaries)), **Resummarize all summaries** (see [below](#resummarize-all-summaries)), **Export Summaries** and **Import Summaries** (see [Export and import](#export-and-import-of-the-summaries)); [extensions](../extensions/index.md) can add tools to it.
 
 ### Editing a summary
 
@@ -103,6 +103,41 @@ those meta summaries again and they stay valid. **Revalidate all summaries** (on
 the book, also for those the replace did not touch and for those that were outdated before, see
 [the story search](story-editor.md#search-and-replace). With it off, a meta summary on a branch that is not searched
 (**Search in all branches** off) would become outdated, and the window tells you how many and asks whether to go on.
+
+### Create summaries
+
+**Create summaries...** (also in the settings menu ⚙ of the story, **Analysis**, and offered after an [import](story-editor.md#after-an-import))
+writes the summaries of a long story in one go, for instance of a book you imported: it cuts the story into blocks and makes a
+summary for each, one after the other, the oldest first. A summary covers the parts down to the part after the summary before it, as
+the summary of a single part does, so the blocks follow each other without a gap.
+
+- **Where it starts.** Only the parts **after the newest summary** get summaries (all of the story when there is none). The summaries
+  that exist are ignored: they are not written again, not changed and do not decide where the new blocks end. To write older ones
+  again use [Resummarize all summaries](#resummarize-all-summaries).
+- **Cut the story by** says where a block ends:
+  - **Number of tokens**: after the part that takes the block to **Tokens per summary** (the cut is rounded to the end of that part,
+    a block has at least that many tokens, as many parts as it takes).
+  - **Chapters**: before a part that starts a chapter, so the summary goes on the part before it. A chapter is a part that starts with
+    a heading (the shallowest heading level a part starts with: `#` in a book made by the [import](managing-books.md#importing-a-finished-manuscript)).
+    **Fewest tokens before a chapter ends a summary** keeps short chapters from having a summary of their own: when the block so far
+    has fewer tokens, the chapter that starts does not end it and is summarized together with the next one.
+  - **Number of parts**: after every **Parts per summary** parts.
+- **Up to part** stops the range at a part (empty is the end of the story). **Also summarize the rest at the end** gives a summary to
+  the parts after the last cut, which are fewer than a block (with chapters only when they have the minimum of tokens); turn it off to
+  leave the newest parts without one, as they are while you write.
+- A block never gets longer than the model can read (80% of the context without the reply): it ends before the part that would carry it
+  over. A single part that is longer than that fails with the usual error.
+
+![Create summaries: by chapters, with a minimum of 500 tokens](../../images/summaries-create.png)
+
+A line under the options says how many summaries it will write, for how many parts and tokens. **Start** opens the window with the number
+of the summary being written and its text as it comes in. The window closes when the last one is written.
+
+![The window while the summaries are written](../../images/summaries-create-progress.png)
+
+Every summary is stored when it is written: **Stop**, or a request that fails, leaves
+the summaries before it, and **Create summaries** goes on from there the next time (it starts after the newest summary). The book must not be
+locked by an [agent](../agents.md#the-book-is-locked); each summary is a request to the book's model.
 
 ### Resummarize all summaries
 

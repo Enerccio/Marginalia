@@ -1039,6 +1039,16 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_BEFORE_A_PART, "Before a part");
         setValue(L.LABEL_AFTER_A_PART, "After a part");
         setValue(L.LABEL_PART, "Part");
+        setValue(L.LABEL_CREATE_SUMMARIES, "Create summaries");
+        setValue(L.LABEL_TAKE_LORE_NOTES, "Take lore notes with an agent");
+        setValue(L.LABEL_SUMMARIES_CUT_BY, "Cut the story by");
+        setValue(L.LABEL_TOKENS_PER_SUMMARY, "Tokens per summary");
+        setValue(L.LABEL_PARTS_PER_SUMMARY, "Parts per summary");
+        setValue(L.LABEL_MIN_TOKENS_PER_SUMMARY, "Fewest tokens before a chapter ends a summary");
+        setValue(L.LABEL_UP_TO_PART, "Up to part");
+        setValue(L.LABEL_ALSO_SUMMARIZE_THE_REST, "Also summarize the rest at the end");
+        setValue(L.LABEL_IMPORT_FINISHED, "Import finished");
+        setValue(L.LABEL_NOT_NOW, "Not now");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -1232,6 +1242,9 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.ENUM_JOB_CALL_TYPE_AUDIO, "Audio");
         setValue(L.ENUM_JOB_CALL_TYPE_IMAGE, "Image");
         setValue(L.ENUM_JOB_CALL_TYPE_OTHER, "Other");
+        setValue(L.ENUM_SUMMARY_SPLIT_TOKENS, "Number of tokens");
+        setValue(L.ENUM_SUMMARY_SPLIT_CHAPTERS, "Chapters");
+        setValue(L.ENUM_SUMMARY_SPLIT_PARTS, "Number of parts");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "Internal Server Error");
@@ -1778,6 +1791,18 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_IMPORT_SCRIVENER, "Upload the zip of a Scrivener project (the .scriv folder zipped). The manuscript (Draft) is imported: a folder, or a document with documents under it, becomes a heading, and the documents in a folder are its scenes. The research, the trash and the documents that are not included in the compile are left out. All of it is marked as written by you.");
         setValue(L.MSG_INVALID_OBSIDIAN, "%s is not a zip of an Obsidian vault with notes that have text.");
         setValue(L.MSG_INVALID_SCRIVENER, "%s is not a zip of a Scrivener project with a manuscript that has text.");
+        setValue(L.MSG_SUMMARIES_PLANNED, "%d summaries for %d parts (%d tokens).");
+        setValue(L.MSG_NO_SUMMARIES_PLANNED, "With these settings no summary would be written.");
+        setValue(L.MSG_NO_PARTS_WITHOUT_SUMMARY, "The story has no parts after the newest summary.");
+        setValue(L.MSG_CREATE_SUMMARIES_PROGRESS, "Summary %d of %d");
+        setValue(L.MSG_CREATE_SUMMARIES_FINISHED, "%d summaries were written.");
+        setValue(L.MSG_CREATE_SUMMARIES_STOPPED, "Stopped. %d summaries were written before.");
+        setValue(L.MSG_CREATE_SUMMARIES_FAILED, "Failed after %d summaries.");
+        setValue(L.MSG_LORE_NOTES_CONFIRM, "An agent reads the story from the start and takes notes on the characters, places, things and terms it finds, then writes them as entries of the lorebook of the book (one is made when the book has none). It works on a copy of the book and you review what it wrote before it is taken over. The book is locked while it works, and the model of the book is used: this can take long and many tokens. Start it?");
+        setValue(L.MSG_LORE_NOTES_NOT_ALLOWED, "You are not allowed to use agents.");
+        setValue(L.MSG_LORE_NOTES_NO_MODEL, "Choose a model and a protocol for the book first.");
+        setValue(L.MSG_LORE_NOTES_HAS_AGENT, "The book already has an agent (%s) and a book can have only one: change the instructions of that one or delete it.");
+        setValue(L.MSG_LORE_NOTES_STARTED, "The agent is taking the notes. Follow it in its console, the result is reviewed in the Agents tab.");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");
@@ -1902,6 +1927,9 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_WORDS_PER_PART, "The text is cut between paragraphs into parts of about this many words. A part never holds text of two chapters, and what would be left at the end of a chapter, when it is less than half of this number, stays with the part before it.");
         setValue(L.HELP_CHAPTER_HEADING_LEVEL, "Headings of this level and the ones above it start a chapter, and each chapter starts with its heading. Deeper headings stay in the text.");
         setValue(L.HELP_IMPORT_PLACE, "The parts are added as written by you. What follows the place moves behind them, so the summaries that cover the place become outdated.");
+        setValue(L.HELP_CREATE_SUMMARIES, "Writes a summary for each block of the story after the newest summary, the oldest block first. The summaries that exist are not touched. A block ends where the setting says, and it never gets longer than the model can read.");
+        setValue(L.HELP_SUMMARY_CHAPTERS, "A chapter is a part that starts with a heading. A chapter that begins when the summary so far has fewer tokens than the minimum does not end it: a short chapter is summarized together with the next one.");
+        setValue(L.HELP_AFTER_IMPORT, "The parts are in the book. Two things make a long story easier to write on: summaries of what was imported and a lorebook with its characters and places. Create the summaries first: an agent locks the book while it works.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Background lore and world context.");

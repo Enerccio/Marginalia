@@ -11,6 +11,7 @@ import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.TextInputDialog;
+import com.github.enerccio.marginalia.ui.dialogs.bookimport.AfterImportDialog;
 import com.github.enerccio.marginalia.ui.dialogs.bookimport.BookImportDialog;
 import com.github.enerccio.marginalia.ui.workspace.ManuscriptSection;
 import com.github.enerccio.marginalia.utils.UIUtils;
@@ -95,7 +96,15 @@ public class NewBookAction {
             // the import is checked and read before the book is made, a book is not left empty by a bad file
             Manuscript manuscript = createBook(StringUtils.defaultIfBlank(name, loc.getValue(L.LABEL_NEW_BOOK)));
             // a stopped import leaves the book with the parts until then, it is opened too
-            run.run(manuscript, Insertion.END, imported -> opener.open(manuscriptService.find(manuscript)));
+            run.run(manuscript, Insertion.END, imported -> {
+                Manuscript book = manuscriptService.find(manuscript);
+                opener.open(book);
+                // the summaries and the lore notes of the new book, in front of its window; the book shows them when it is opened again
+                if (imported != null) {
+                    AfterImportDialog.show(book, () -> {
+                    });
+                }
+            });
         });
     }
 

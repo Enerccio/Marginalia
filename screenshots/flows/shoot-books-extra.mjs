@@ -3,32 +3,36 @@
 // (dataset/lorebook.mjs, `companion`) and a book is imported from the archive.
 // Pictures: multi-tag-books, lorebook-sub-lorebooks, lorebook-mass-edit, multi-tag-entries, archive-upload, archive-entry-names,
 // archive-progress, archive-lorebook-upload, and (1.8.0) import-source (the import window with the Source selector open), document-import (a Word
-// document uploaded, with its options), book-import-into (the same window opened from the settings menu of a book, the place picked).
+// document uploaded, with its options), book-import-into (the same window opened from the settings menu of a book, the place picked), and
+// import-finished (what is offered after an import), summaries-create (Create summaries by chapters), lore-notes-confirm (the agent that takes the lore notes).
 import fs from 'node:fs';
 import path from 'node:path';
 import {execFileSync} from 'node:child_process';
 import {openStoryMenu} from '../lib/story.mjs';
 import {
-  bookListMenu,
-  bookTab,
-  closeDialog,
-  DESKTOP,
-  dialog,
-  field,
-  idle,
-  login,
-  main,
-  menuItem,
-  openBook,
-  openImport,
-  openTab,
-  outDir,
-  pick,
-  root,
-  section,
-  sleep,
-  snap,
-  snapDialog
+    bookListMenu,
+    bookTab,
+    closeDialog,
+    DESKTOP,
+    dialog,
+    dialogBox,
+    field,
+    idle,
+    llm,
+    login,
+    main,
+    menuItem,
+    openBook,
+    openImport,
+    openTab,
+    outDir,
+    pick,
+    pickSelect,
+    root,
+    section,
+    sleep,
+    snap,
+    snapDialog
 } from '../lib/shot.mjs';
 
 execFileSync('node', [path.join(root, 'dataset/lorebook.mjs')], { stdio: 'inherit' });
@@ -91,6 +95,19 @@ const loreZip = zipOf('Valley Places.zip', {
   'Ledger House.md': 'A square stone building by the bridge. Nobody goes there for pleasure, and everybody has a line in it.\n',
 });
 
+// the window that offers the summaries and the lore notes once the parts are in the book: it is in front of the book that was opened
+const afterImport = async (page, picture) => {
+  const win = page.getByRole('button', { name: 'Not now', exact: true });
+  await win.waitFor({ timeout: 15000 });
+  await idle(page, 500);
+  if (picture) await snapDialog(page, picture, 0);
+  return win;
+};
+const notNow = async page => {
+  await page.getByRole('button', { name: 'Not now', exact: true }).click();
+  await idle(page, 700);
+};
+
 await main(async ({ page }) => {
   await login(page);
 
@@ -110,7 +127,9 @@ await main(async ({ page }) => {
     await snapDialog(page, 'archive-upload', -1);
     await dialog(page).getByRole('button', { name: 'Import', exact: true }).click();
     await idle(page, 3000);
-    // the book is made and opened
+    // the book is made and opened, the window of what to do next is in front of it
+    await afterImport(page);
+    await notNow(page);
     await page.getByRole('button', { name: 'Exit', exact: true }).first().click();
     await idle(page, 1000);
   });
@@ -134,6 +153,9 @@ await main(async ({ page }) => {
     await dialog(page).getByRole('button', { name: 'Import', exact: true }).click();
     await idle(page, 3500);
     await snap(page, '_document-imported');
+    // the window that offers the summaries and the lore notes (import-finished.png)
+    await afterImport(page, 'import-finished');
+    await notNow(page);
     await page.getByRole('button', { name: 'Exit', exact: true }).first().click();
     await idle(page, 1000);
   });
@@ -171,6 +193,43 @@ await main(async ({ page }) => {
     await idle(page, 3500);
     // the story shows the new parts between the second and the third
     await snap(page, '_book-imported');
+    await afterImport(page);
+    // the summaries of the story: by chapters (the imported parts start with their chapter heading), a chapter needs 500 tokens to end a summary
+    await page.getByRole('button', { name: /^Create summaries/ }).click();
+    await idle(page, 900);
+    const cs = dialog(page);
+    await pickSelect(cs, 'Chapters');
+    await idle(page, 500);
+    const min = cs.locator('vaadin-integer-field').nth(1);
+    await min.locator('input').fill('500');
+    // Tab leaves the field, which sends the value to the server (Enter would press Start)
+    await min.locator('input').press('Tab');
+    // the line under the options is written by the server: wait for the plan of the new minimum (three blocks, the rest included)
+    await cs.getByText(/^3 summaries for 9 parts/).waitFor({ timeout: 10000 });
+    await idle(page, 400);
+    await snap(page, 'summaries-create', { clip: await dialogBox(page, 'Cut the story by').boundingBox() });
+    // started: the fake model answers slowly, so the window can be seen at work (three summaries, one for each block)
+    await llm('/_reset', {});
+    for (const text of [
+      '* The tour comes up from the cellar, wet and silent; the counting goes wrong twice.\n* The iron ring in the wall smells of rust.',
+      '* The bricked archway breathes. Mizuki says so in Japanese and Tomáš, who has lied about knowing the language, understands her.',
+      '* They wake in wet reeds under an enormous moon and decide to follow the river to the light on the water.',
+    ]) await llm('/_queue', { reply: text, delayMs: 3000 });
+    await dialog(page).getByRole('button', { name: 'Start', exact: true }).click();
+    await page.getByText(/^Summary 2 of 3$/).waitFor({ timeout: 30000 });
+    await idle(page, 1500);
+    await snap(page, 'summaries-create-progress', { clip: await dialogBox(page, 'Create summaries').boundingBox() });
+    // the window closes itself when the last summary is written
+    await page.getByText(/^Summary 3 of 3$/).waitFor({ timeout: 30000 });
+    await page.getByRole('button', { name: /^Create summaries/ }).waitFor({ timeout: 30000 });
+    await idle(page, 800);
+    // the question before an agent takes the lore notes
+    await page.getByRole('button', { name: /^Take lore notes/ }).click();
+    await idle(page, 900);
+    await snap(page, 'lore-notes-confirm', { clip: await dialogBox(page, 'An agent reads').boundingBox() });
+    await dialog(page).getByRole('button', { name: /^(No|Cancel)$/ }).first().click();
+    await idle(page, 600);
+    await notNow(page);
     await page.getByRole('button', { name: 'Exit', exact: true }).first().click();
     await idle(page, 1000);
   });

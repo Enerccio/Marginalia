@@ -235,7 +235,7 @@ The settings menu (⚙) in the bottom bar groups what acts on the whole story. *
 | Sub menu | Items |
 |---|---|
 | **Appearance** | **Change Styles For Text**, **Highlight Generated Text** and **Annotations in the margin** (desktop only, the last one) |
-| **Analysis** | **Annotate a range of parts with AI**, **Automatic annotation**, **Branch Tokens**, **Lore Usage**, **Statistics** |
+| **Analysis** | **Annotate a range of parts with AI**, **Create summaries**, **Take lore notes with an agent**, **Automatic annotation**, **Branch Tokens**, **Lore Usage**, **Statistics** |
 | **Import & export** | **Import**, **Export story** (and the items of extensions that import or export, such as **Export instructions**) |
 | **Cleanup** | **Clear history of the book**, **Empty trash of the history**, **Mass delete** |
 | **Layout** (desktop only) | **Save layout as my default**, **Restore default layout** |
@@ -644,10 +644,25 @@ and LM Studio are not offered: they are a tree of branches, which has no place i
 The parts of an archive are the files in the order of their names, numbers inside the names compared as numbers (`2.md`
 before `10.md`), also in folders of the archive. Folders, hidden files (`.name`), the `__MACOSX` folder and files that are not
 `.md` are skipped. The file is the text of the part as it is, it is not sent to the model and not changed; all the parts count
-as written by you. The summaries are not made, do that in the [summaries](summaries.md) window.
+as written by you.
 
 The import shows a progress bar with the number of parts done. **Stop** ends it after the part that is being stored: the parts
 that were already added stay in the story (the import is not undone), and a message tells how many were imported.
+
+### After an import
+
+When the parts are in the book, a window **Import finished** offers the two things that make a long story easier to write on (a book that
+was just imported as a new one is opened first, and the window is in front of it). Both are also in the settings menu (⚙, **Analysis**), so
+they can be done later or again:
+
+- **Create summaries...** writes the summaries of what was imported, see [Create summaries](summaries.md#create-summaries). Do it first: an agent
+  locks the book while it works.
+- **Take lore notes with an agent...** starts an [agent](../agents.md) that reads the story and writes the characters, places, things and
+  terms it finds as entries of the book's lorebook, see [Lore notes](../agents.md#lore-notes-of-an-imported-book).
+
+**Not now** closes the window and does neither.
+
+![The window after an import](../../images/import-finished.png)
 
 The same import into a lorebook is described in [Import & export](../lorebooks/import-export.md#importing-an-archive-of-text-files).
 

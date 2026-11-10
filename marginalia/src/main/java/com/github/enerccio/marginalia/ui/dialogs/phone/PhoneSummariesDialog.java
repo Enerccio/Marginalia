@@ -12,10 +12,7 @@ import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
-import com.github.enerccio.marginalia.ui.dialogs.manuscript.ResummarizeDialog;
-import com.github.enerccio.marginalia.ui.dialogs.manuscript.SummariesImportDialog;
-import com.github.enerccio.marginalia.ui.dialogs.manuscript.SummaryDialog;
-import com.github.enerccio.marginalia.ui.dialogs.manuscript.SummaryRemoval;
+import com.github.enerccio.marginalia.ui.dialogs.manuscript.*;
 import com.github.enerccio.marginalia.ui.dialogs.search.ManuscriptSearchReplaceDialog;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.utils.UIUtils;
@@ -125,6 +122,7 @@ public class PhoneSummariesDialog extends Dialog implements LLMInteract {
     private void populateMenuBar(MenuBar bar) {
         bar.addItem(loc.getValue(L.LABEL_SEARCH_AND_REPLACE), _ -> openSearchReplaceDialog());
         bar.addItem(loc.getValue(L.LABEL_REVALIDATE_ALL_SUMMARIES), _ -> revalidate(null));
+        bar.addItem(loc.getValue(L.LABEL_CREATE_SUMMARIES) + "...", _ -> new CreateSummariesDialog(manuscript, this::refresh).show());
         ResummarizeDialog.addMenuItem(bar, manuscript, loc, summaryService, this::refresh);
         SummariesImportDialog.addMenuItems(bar, manuscript, loc, summaryService, this::refresh);
     }

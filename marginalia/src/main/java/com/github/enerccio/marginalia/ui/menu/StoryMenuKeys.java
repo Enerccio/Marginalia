@@ -25,6 +25,8 @@ public final class StoryMenuKeys {
     // the import into the book; the key is from the time it only took archives, it is kept so that menus the users arranged stay
     public static final String IMPORT_ARCHIVE = "tools.importArchive";
     public static final String ANNOTATE_RANGE = "tools.annotateRange";
+    public static final String CREATE_SUMMARIES = "tools.createSummaries";
+    public static final String LORE_NOTES = "tools.loreNotes";
     public static final String AUTO_ANNOTATE = "tools.autoAnnotate";
     public static final String BRANCH_TOKENS = "tools.branchTokens";
     public static final String LORE_USAGE = "tools.loreUsage";

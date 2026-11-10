@@ -3,6 +3,7 @@ package com.github.enerccio.marginalia.domain.service.impl;
 import com.github.enerccio.marginalia.Constants;
 import com.github.enerccio.marginalia.domain.collections.SummaryType;
 import com.github.enerccio.marginalia.domain.components.SummaryNode;
+import com.github.enerccio.marginalia.domain.components.SummaryPlanner;
 import com.github.enerccio.marginalia.domain.components.TokenLimits;
 import com.github.enerccio.marginalia.domain.listener.ExtendableEntityListener;
 import com.github.enerccio.marginalia.domain.model.impl.*;
@@ -223,6 +224,147 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
         }
 
         return cancellationToken;
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public List<ChatMessage> unsummarizedParts(Manuscript manuscript) throws Exception {
+        if (manuscript == null || manuscript.getActiveLeaf() == null) {
+            return List.of();
+        }
+        List<ChatMessage> branch = chatMessageService.getBranchFromLeaf(manuscript.getActiveLeaf());
+        int last = -1;
+        for (int i = 0; i < branch.size(); i++) {
+            if (branch.get(i).getSummary() != null) {
+                last = i;
+            }
+        }
+        return new ArrayList<>(branch.subList(last + 1, branch.size()));
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public List<ChatMessage> planSummaries(Manuscript manuscript, SummaryPlanner.Options options, ChatMessage to) throws Exception {
+        List<ChatMessage> parts = unsummarizedParts(manuscript);
+        if (to != null) {
+            int end = -1;
+            for (int i = 0; i < parts.size(); i++) {
+                if (Objects.equals(parts.get(i).getId(), to.getId())) {
+                    end = i;
+                }
+            }
+            if (end < 0) {
+                throw new IllegalArgumentException("The part is not one without a summary");
+            }
+            parts = parts.subList(0, end + 1);
+        }
+        long limit = 0;
+        if (manuscript.getAi() != null) {
+            // room for the prompt of the summary and its instructions is kept, the parts are not the whole request
+            limit = TokenLimits.promptTokens(aiService.find(manuscript.getAi()), protocolService.find(manuscript.getProtocol())) * 8L / 10;
+        }
+        return SummaryPlanner.plan(parts, options, limit);
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public CancellationToken createSummaries(Manuscript manuscript, List<ChatMessage> parts, BatchCallback callback) throws Exception {
+        if (manuscript == null || callback == null || parts == null || parts.isEmpty() || manuscript.getAi() == null) {
+            return null;
+        }
+        agentRunService.checkNotLocked(manuscript);
+        if (inferenceServices.forAIOrThrow(aiService.find(manuscript.getAi())) == null) {
+            return null;
+        }
+        SummaryBatch batch = new SummaryBatch(manuscript, List.copyOf(parts), callback);
+        // on a thread of its own: it calls services, each in a transaction of its own
+        Thread.ofVirtual().name("summaries").start(() -> batch.run(0));
+        return batch.token;
+    }
+
+    /**
+     * One run of {@link #createSummaries}: a summary after the other, the next one starts when the previous one is stored.
+     */
+    private final class SummaryBatch {
+        final CancellationToken token = new CancellationToken();
+
+        private final Manuscript manuscript;
+        private final List<ChatMessage> parts;
+        private final BatchCallback callback;
+        private final RequestAttributes attributes = ThreadCopyRequestAttributes.create();
+
+        SummaryBatch(Manuscript manuscript, List<ChatMessage> parts, BatchCallback callback) {
+            this.manuscript = manuscript;
+            this.parts = parts;
+            this.callback = callback;
+        }
+
+        void run(int index) {
+            try (InRequestScope _ = new InRequestScope(attributes)) {
+                if (token.isCancelled()) {
+                    callback.onTerminated(index);
+                    return;
+                }
+                if (index >= parts.size()) {
+                    callback.onFinished(parts.size());
+                    return;
+                }
+                callback.onStep(index + 1, parts.size(), parts.get(index));
+                ChatMessage part = chatMessageService.find(parts.get(index));
+                Runnable[] unregister = new Runnable[1];
+                CancellationToken step = self.createSummary(manuscript, part, new AsyncCallback() {
+                    @Override
+                    public void onSummaryProgress(String reasoning, String summary) throws Exception {
+                        callback.onSummaryProgress(reasoning, summary);
+                    }
+
+                    @Override
+                    public void onSummaryFinished(Summary summary) {
+                        release(unregister);
+                        // not on the thread of the answer: the next request is started from a thread of its own
+                        Thread.ofVirtual().name("summaries").start(() -> run(index + 1));
+                    }
+
+                    @Override
+                    public void onSummaryTerminated() throws Exception {
+                        release(unregister);
+                        try (InRequestScope _ = new InRequestScope(attributes)) {
+                            callback.onTerminated(index);
+                        }
+                    }
+
+                    @Override
+                    public void onError(Throwable throwable) throws Exception {
+                        release(unregister);
+                        fail(throwable, index);
+                    }
+                });
+                if (step == null) {
+                    fail(new IllegalStateException("The summary of the part " + part.getId() + " was not started"), index);
+                    return;
+                }
+                unregister[0] = token.onCancel(step::cancel);
+            } catch (Exception e) {
+                fail(e, index);
+            }
+        }
+
+        // the answer can arrive before the registration of the cancel is made
+        private void release(Runnable[] unregister) {
+            Runnable registered = unregister[0];
+            if (registered != null) {
+                registered.run();
+            }
+        }
+
+        private void fail(Throwable error, int done) {
+            log.error("Failed to create the summaries", error);
+            try (InRequestScope _ = new InRequestScope(attributes)) {
+                callback.onError(error, done);
+            } catch (Exception e) {
+                log.error("Failed to report the error of creating the summaries", e);
+            }
+        }
     }
 
     @Override

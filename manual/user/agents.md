@@ -537,6 +537,28 @@ at the limit **New agent** and **Clone** are off and say why.
 
 ![Cloning an agent](../images/agent-clone.png)
 
+## Lore notes of an imported book
+
+After you [import](books/story-editor.md#after-an-import) a manuscript the application offers an agent that takes the lore of the book:
+**Take lore notes with an agent...** (the same item is in the settings menu ⚙ of a story, **Analysis**). It asks first:
+
+![The question before the agent starts](../images/lore-notes-confirm.png)
+
+Then it makes an agent
+called **Lore notes** for the book, with the model and the protocol of the book, and starts it (its console opens).
+
+- It reads the story from the first part to the last, a few parts at a time, and keeps its notes in the files of its workspace
+  (characters, places, things, terms) so that it can go on after a pause. The summaries help it find its way, the parts are its source.
+- It then writes one entry for each character, place, thing, group or term into the lorebook of the book (a lorebook is made for the book
+  when it has none), with the names the story uses as the filter, in the language of the book. It adds facts to an entry that exists and does not
+  write the same thing twice.
+- It may read the story and the lorebooks and write entries; it cannot change the story and cannot delete anything.
+
+It is an agent like any other: the book is [locked](#the-book-is-locked) while it works, it works on a [copy](#the-working-copy), and what
+it wrote is yours only after you [review it](#reviewing-the-result) and take it over. Read the entries before you do: it only knows what the
+text says, and a long book costs many requests. The instructions are the ones of the agent (**Edit** shows them, you can change them before you start it again).
+It is refused when you may not use agents, when the book has no model, and when the book has an agent already (a book has one).
+
 ## The book is locked
 
 While a run of an agent works or waits for you, **its book is locked**: you can read it, but nothing changes it, so the agent never
