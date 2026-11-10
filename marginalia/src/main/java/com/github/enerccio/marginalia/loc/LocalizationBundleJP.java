@@ -1029,6 +1029,9 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_INSERT_SCENE_BELOW, "下にシーンを挿入");
         setValue(L.LABEL_MERGE_WITH_NEXT_SCENE, "次のシーンと統合");
         setValue(L.LABEL_LOG_OUT_EVERYWHERE_ELSE, "他のすべての場所でログアウト（他のブラウザーとすべての保存されたログイン）");
+        setValue(L.LABEL_IMPORT_FROM_DOCUMENT, "ドキュメントからインポート");
+        setValue(L.LABEL_WORDS_PER_PART, "パートあたりの語数");
+        setValue(L.LABEL_CHAPTER_HEADING_LEVEL, "章を始める見出しレベル");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -1759,6 +1762,11 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_PLANNER_IMPORT_NONE, "現在のブランチのパートにはターン詳細がありません");
         setValue(L.MSG_MERGE_TURNS_HINT, "両方の詳細をここにまとめました。合わない箇所を直してから統合すると、二つが一つになります。");
         setValue(L.MSG_MERGE_OTHER_POV, "二つ目の値: %s");
+        setValue(L.MSG_IMPORT_DOCUMENT, "ワープロで書いた原稿（Word 文書 .docx、または LibreOffice / OpenDocument テキスト .odt）をアップロードします。結果は新しい本になります。見出しで章が始まり、本文は段落の区切りでパートに分けられ、すべてあなたが書いたものとして記録されます。");
+        setValue(L.MSG_INVALID_DOCUMENT, "%s はテキストを含む Word（.docx）または LibreOffice（.odt）文書ではありません。");
+        setValue(L.MSG_IMPORTING_DOCUMENT, "ドキュメントをインポート中");
+        setValue(L.MSG_DOCUMENT_READY, "%d 章、%d 語、%d パート。");
+        setValue(L.MSG_ARCHIVE_FILES_READY, "%d 個のファイルをインポートできます。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");
@@ -1880,6 +1888,8 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_STATISTICS_KEEP_MONTHS_INSTANCE, "古い日はすべてのユーザーの統計から1日に1回、完全に削除されます。0 ですべて保存します。ユーザーは自分用にさらに短く設定できます。");
         setValue(L.HELP_JOBS_ADMIN, "外部 AI と通信するすべてのジョブ（生成、要約、オーディオブックの章、画像など）が、ユーザー、開始・終了時刻、モデルや音声・画像バックエンドへの各呼び出しとともにここに記録されます。保存されるのはメタデータのみで、本文は保存されません。自動的には削除されません。フィルターを設定して、一致するジョブを削除してください。");
         setValue(L.HELP_PLANNER_IMPORT_FROM_BRANCH, "現在のブランチのパートのターン詳細をシーンとして追加します。物語の書き直しを計画するために使います");
+        setValue(L.HELP_WORDS_PER_PART, "テキストは段落の区切りで、およそこの語数のパートに分けられます。1 つのパートに 2 つの章のテキストが入ることはなく、章の終わりに残る分がこの数の半分未満なら、その前のパートに含まれます。");
+        setValue(L.HELP_CHAPTER_HEADING_LEVEL, "このレベル以上の見出しで章が始まり、各章は見出しから始まります。より深い見出しは本文中に残ります。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景設定と世界観の文脈。");

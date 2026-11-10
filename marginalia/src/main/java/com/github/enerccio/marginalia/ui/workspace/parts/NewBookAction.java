@@ -9,9 +9,9 @@ import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
-import com.github.enerccio.marginalia.ui.dialogs.*;
+import com.github.enerccio.marginalia.ui.dialogs.TextInputDialog;
+import com.github.enerccio.marginalia.ui.dialogs.bookimport.BookImportDialog;
 import com.github.enerccio.marginalia.ui.workspace.ManuscriptSection;
-import com.github.enerccio.marginalia.utils.MarkdownArchive;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -83,48 +83,18 @@ public class NewBookAction {
     }
 
     /**
-     * Asks for a zip archive of {@code .md} files and opens a new book named after it, with a part for each file, see
-     * {@link ArchiveImportService#appendParts}.
-     */
-    @PublicAPI(from = "1.4.0",
-            returns = @APIReturn(type = void.class))
-    public void runFromArchive() {
-        ArchiveUploadDialog.show(loc.getValue(L.LABEL_IMPORT_FROM_ARCHIVE), loc.getValue(L.MSG_IMPORT_ARCHIVE_NEW_BOOK),
-                (archive, fileName) -> {
-                    // the archive is checked before the book is made, a book is not left empty by a bad file
-                    MarkdownArchive.Content content = MarkdownArchive.read(archive);
-                    String name = fileName.toLowerCase().endsWith(".zip") ? fileName.substring(0, fileName.length() - 4) : fileName;
-                    Manuscript manuscript = createBook(StringUtils.defaultIfBlank(name.trim(), loc.getValue(L.LABEL_NEW_BOOK)));
-                    // a stopped import leaves the book with the parts until then, it is opened too
-                    new ArchiveImportRunner().appendParts(manuscript, content, imported -> opener.open(manuscriptService.find(manuscript)));
-                });
-    }
-
-    /**
-     * Asks for chats of SillyTavern and opens a new book with their messages as a tree of parts, see
+     * Asks what to import (a zip archive of {@code .md} files, chats of SillyTavern or LM Studio, a Word or LibreOffice
+     * document) and opens a new book made of it, see {@link BookImportDialog}, {@link ArchiveImportService#appendParts} and
      * {@link SillyTavernImportService#importTree}.
      */
-    @PublicAPI(from = "1.5.0",
+    @PublicAPI(from = "1.8.0",
             returns = @APIReturn(type = void.class))
-    public void runFromSillyTavern() {
-        SillyTavernImportDialog.show((tree, name) -> {
+    public void runImport() {
+        BookImportDialog.show((run, name) -> {
+            // the import is checked and read before the book is made, a book is not left empty by a bad file
             Manuscript manuscript = createBook(StringUtils.defaultIfBlank(name, loc.getValue(L.LABEL_NEW_BOOK)));
             // a stopped import leaves the book with the parts until then, it is opened too
-            new SillyTavernImportRunner().run(manuscript, tree, imported -> opener.open(manuscriptService.find(manuscript)));
-        });
-    }
-
-    /**
-     * Asks for conversations of LM Studio and opens a new book with their messages as a tree of parts, the same way
-     * {@link #runFromSillyTavern()} does.
-     */
-    @PublicAPI(from = "1.7.0",
-            returns = @APIReturn(type = void.class))
-    public void runFromLmStudio() {
-        SillyTavernImportDialog.show(ChatImportFormat.LMSTUDIO, (tree, name) -> {
-            Manuscript manuscript = createBook(StringUtils.defaultIfBlank(name, loc.getValue(L.LABEL_NEW_BOOK)));
-            // a stopped import leaves the book with the parts until then, it is opened too
-            new SillyTavernImportRunner().run(ChatImportFormat.LMSTUDIO, manuscript, tree, imported -> opener.open(manuscriptService.find(manuscript)));
+            run.run(manuscript, imported -> opener.open(manuscriptService.find(manuscript)));
         });
     }
 

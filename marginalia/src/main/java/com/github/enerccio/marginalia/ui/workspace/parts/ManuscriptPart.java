@@ -132,8 +132,7 @@ public class ManuscriptPart implements ManuscriptSection {
                     @APILocals(name = "manageBar", type = MenuBar.class),
                     @APILocals(name = "manageItem", type = MenuItem.class),
                     @APILocals(name = "massChangesItem", type = MenuItem.class),
-                    @APILocals(name = "importBar", type = MenuBar.class),
-                    @APILocals(name = "importItem", type = MenuItem.class),
+                    @APILocals(name = "importButton", type = Button.class),
                     @APILocals(name = "navigationLayout", type = HorizontalLayout.class),
                     @APILocals(name = "toolColumn", type = Grid.Column.class),
                     @APILocals(name = "filterRow", type = HeaderRow.class),
@@ -172,15 +171,9 @@ public class ManuscriptPart implements ManuscriptSection {
         massChangesItem.getSubMenu().addItem(loc.getValue(L.LABEL_MASS_CHANGE_LANGUAGE), _ -> openMassChangeLanguageDialog());
         massChangesItem.getSubMenu().addItem(loc.getValue(L.LABEL_MASS_RENAME), _ -> openMassRenameDialog());
         massChangesItem.getSubMenu().addItem(loc.getValue(L.LABEL_TAG_FOLDERS), _ -> openTagFoldersDialog());
-        MenuBar importBar = new MenuBar();
-        MenuItem importItem = importBar.addItem(loc.getValue(L.LABEL_IMPORT));
-        importItem.getSubMenu().addItem(loc.getValue(L.LABEL_IMPORT_FROM_ARCHIVE),
-                _ -> new NewBookAction(this::openManuscript, currentFolder).runFromArchive());
-        importItem.getSubMenu().addItem(loc.getValue(L.LABEL_IMPORT_FROM_SILLYTAVERN),
-                _ -> new NewBookAction(this::openManuscript, currentFolder).runFromSillyTavern());
-        importItem.getSubMenu().addItem(loc.getValue(L.LABEL_IMPORT_FROM_LMSTUDIO),
-                _ -> new NewBookAction(this::openManuscript, currentFolder).runFromLmStudio());
-        headerLayout.add(titleSpan, searchButton, manageBar, importBar, newFolderButton, addBookButton);
+        Button importButton = new Button(loc.getValue(L.LABEL_IMPORT), Solid.FILE_IMPORT.create(),
+                event -> new NewBookAction(this::openManuscript, currentFolder).runImport());
+        headerLayout.add(titleSpan, searchButton, manageBar, importButton, newFolderButton, addBookButton);
         headerLayout.setFlexGrow(1, titleSpan);
         headerLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
 

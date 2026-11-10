@@ -1029,6 +1029,9 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_INSERT_SCENE_BELOW, "Insert a scene below");
         setValue(L.LABEL_MERGE_WITH_NEXT_SCENE, "Merge with the next scene");
         setValue(L.LABEL_LOG_OUT_EVERYWHERE_ELSE, "Log out everywhere else (other browsers and all saved logins)");
+        setValue(L.LABEL_IMPORT_FROM_DOCUMENT, "Import from a document");
+        setValue(L.LABEL_WORDS_PER_PART, "Words per part");
+        setValue(L.LABEL_CHAPTER_HEADING_LEVEL, "Chapters start at heading level");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -1759,6 +1762,11 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_PLANNER_IMPORT_NONE, "The parts of the current branch have no turn details");
         setValue(L.MSG_MERGE_TURNS_HINT, "The details of both are joined here. Change what does not fit, then merge: the two become one.");
         setValue(L.MSG_MERGE_OTHER_POV, "The second one has: %s");
+        setValue(L.MSG_IMPORT_DOCUMENT, "Upload a manuscript written in a word processor: a Word document (.docx) or a LibreOffice / OpenDocument text (.odt). The result is a new book: a heading starts a chapter, the text is cut between paragraphs into parts and all of it is marked as written by you.");
+        setValue(L.MSG_INVALID_DOCUMENT, "%s is not a Word (.docx) or LibreOffice (.odt) document with text.");
+        setValue(L.MSG_IMPORTING_DOCUMENT, "Importing the document");
+        setValue(L.MSG_DOCUMENT_READY, "%d chapters, %d words, %d parts.");
+        setValue(L.MSG_ARCHIVE_FILES_READY, "%d files ready to import.");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");
@@ -1880,6 +1888,8 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_STATISTICS_KEEP_MONTHS_INSTANCE, "Older days are deleted from the statistics of every user for good once a day. 0 keeps everything. A user may choose a shorter time for themselves.");
         setValue(L.HELP_JOBS_ADMIN, "Every job that talks to an external AI (a generation, a summary, an audiobook chapter, an image) is logged here with the user, its start and end and each call it made to a model or a speech or image backend. Only metadata is kept, never the text. Nothing is deleted automatically: set the filter and delete the matching jobs.");
         setValue(L.HELP_PLANNER_IMPORT_FROM_BRANCH, "Adds the turn details of the parts of the current branch as scenes, to plan a rewrite of the story");
+        setValue(L.HELP_WORDS_PER_PART, "The text is cut between paragraphs into parts of about this many words. A part never holds text of two chapters, and what would be left at the end of a chapter, when it is less than half of this number, stays with the part before it.");
+        setValue(L.HELP_CHAPTER_HEADING_LEVEL, "Headings of this level and the ones above it start a chapter, and each chapter starts with its heading. Deeper headings stay in the text.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Background lore and world context.");

@@ -7,10 +7,29 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import {
-  bookListMenu, bookTab, closeDialog, CONTENT, DESKTOP, dialog, field, fill, idle, llm, login, main, menuItem, openBook, openTab, outDir, pick, press, repo, section, sleep, snap, snapDialog,
+    bookTab,
+    closeDialog,
+    DESKTOP,
+    dialog,
+    fill,
+    idle,
+    llm,
+    login,
+    main,
+    menuItem,
+    openBook,
+    openImport,
+    openTab,
+    outDir,
+    pick,
+    press,
+    repo,
+    section,
+    sleep,
+    snap,
+    snapDialog,
 } from '../lib/shot.mjs';
-import {clickPlus, clickSummaries, fillTurn, openStoryMenu, parts, partAction, sideTab, widenSidebar} from '../lib/story.mjs';
-import {metaSummary} from '../dataset/story.mjs';
+import {clickSummaries, fillTurn, openStoryMenu, partAction, parts, sideTab, widenSidebar} from '../lib/story.mjs';
 
 const DESCRIPTION = 'A Czech cellar guide who learned Japanese from novels and a Japanese nurse on holiday step through a bricked archway and wake in a river valley held by an empire that speaks Vrakht. She knows he understands her; he does not know why she has not said so.';
 
@@ -230,12 +249,11 @@ await main(async ({ page }) => {
     fs.mkdirSync(dir, { recursive: true });
     const file = path.join(dir, '1793958287215.conversation.json');
     fs.writeFileSync(file, JSON.stringify(LM_STUDIO));
-    await page.getByRole('button', { name: 'Exit', exact: true }).last().click();
-    await idle(page, 1000);
+    // the book of the section before is open (nothing is open when this section runs alone)
+    const exit = page.getByRole('button', { name: 'Exit', exact: true });
+    if (await exit.count()) { await exit.last().click(); await idle(page, 1000); }
     await openTab(page, 'Books');
-    await bookListMenu(page, 'Import', 'Import from LM Studio');
-    await idle(page, 800);
-    const d = dialog(page);
+    const d = await openImport(page, 'Import from LM Studio');
     await d.locator('vaadin-upload input[type=file]').setInputFiles(file);
     await idle(page, 2500);
     await snapDialog(page, 'lmstudio-import');

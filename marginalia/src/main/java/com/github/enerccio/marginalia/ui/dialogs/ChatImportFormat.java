@@ -8,7 +8,7 @@ import com.github.enerccio.marginalia.utils.SillyTavernChats;
 import java.util.function.BiFunction;
 
 /**
- * A program whose saved chats can be imported as the tree of parts of a new book ({@link SillyTavernImportDialog}): how its files
+ * A program whose saved chats can be imported as the tree of parts of a new book (the book import dialog, {@code BookImportDialog}): how its files
  * are read and what the dialogs say. Both formats are read into the {@link SillyTavernChats.Chat}, joined by
  * {@link SillyTavernChats#merge} and stored by {@code SillyTavernImportService}.
  */

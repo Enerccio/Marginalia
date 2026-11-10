@@ -138,6 +138,7 @@ public class LocalizationImpl implements Localization, InitializingBean {
         revisionDetails.put(RevisionDetail.ARCHIVE_IMPORT, L.LABEL_IMPORT_FROM_ARCHIVE);
         revisionDetails.put(RevisionDetail.SILLYTAVERN_IMPORT, L.LABEL_IMPORT_FROM_SILLYTAVERN);
         revisionDetails.put(RevisionDetail.LMSTUDIO_IMPORT, L.LABEL_IMPORT_FROM_LMSTUDIO);
+        revisionDetails.put(RevisionDetail.DOCUMENT_IMPORT, L.LABEL_IMPORT_FROM_DOCUMENT);
         revisionDetails.put(RevisionDetail.TRANSLATION, L.LABEL_TRANSLATION);
 
         agentRunStatuses.put(AgentRunStatus.RUNNING, L.ENUM_AGENT_RUN_RUNNING);

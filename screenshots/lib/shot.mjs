@@ -317,6 +317,22 @@ export async function closeDialog(page) {
   await page.keyboard.press('Escape');
 }
 
+/**
+ * Opens the import window of the book list (the Import button of the header; the Books tab must be open) and, when a source is given,
+ * picks it in the Source selector ("Import from SillyTavern", "Import from LM Studio", "Import from a document"; the archive is the first one).
+ * Returns the dialog.
+ */
+export async function openImport(page, source) {
+  await page.getByRole('button', { name: 'Import', exact: true }).first().click();
+  await idle(page, 800);
+  const d = dialog(page);
+  if (source) {
+    await pick(d, 'Source', source);
+    await idle(page, 500);
+  }
+  return d;
+}
+
 /** Picks an item of a Vaadin Select (not a combo box): opens it and clicks the item with this text. */
 export async function pickSelect(scope, text) {
   const page = scope.page ? scope.page() : scope;

@@ -2,11 +2,30 @@
 // edit), importing a zip of .md files. Run on a COPY of 13-db-backup, it is discarded: a lorebook with two subbooks is imported
 // (dataset/lorebook.mjs, `companion`) and a book is imported from the archive.
 // Pictures: multi-tag-books, lorebook-sub-lorebooks, lorebook-mass-edit, multi-tag-entries, archive-upload, archive-entry-names,
-// archive-progress, archive-lorebook-upload.
+// archive-progress, archive-lorebook-upload, and (1.8.0) import-source (the import window with the Source selector open), document-import (a Word
+// document uploaded, with its options).
 import fs from 'node:fs';
 import path from 'node:path';
 import {execFileSync} from 'node:child_process';
-import {bookListMenu, closeDialog, dialog, idle, login, main, openTab, outDir, pick, press, root, section, sleep, snap, snapDialog} from '../lib/shot.mjs';
+import {
+  bookListMenu,
+  closeDialog,
+  DESKTOP,
+  dialog,
+  field,
+  idle,
+  login,
+  main,
+  openImport,
+  openTab,
+  outDir,
+  pick,
+  root,
+  section,
+  sleep,
+  snap,
+  snapDialog
+} from '../lib/shot.mjs';
 
 execFileSync('node', [path.join(root, 'dataset/lorebook.mjs')], { stdio: 'inherit' });
 
@@ -23,6 +42,40 @@ const zipOf = (zipName, files) => {
   return zip;
 };
 fs.mkdirSync(archiveDir, { recursive: true });
+
+// a .docx made by hand (a zip of XML): the styles give "Title" and "heading 1" their built in names, the way Word does
+const xml = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+function manuscriptDocx() {
+  const parts = JSON.parse(fs.readFileSync(path.join(root, 'dataset/unregistered-parts.json'), 'utf8')).map(p => p.reply);
+  const chapters = [['The Cellar Tour', [0, 1]], ['The Bricked Archway', [2, 3]], ['What the River Keeps', [4, 5]]];
+  const paragraph = (text, style) => `<w:p>${style ? `<w:pPr><w:pStyle w:val="${style}"/></w:pPr>` : ''}<w:r><w:t xml:space="preserve">${xml(text)}</w:t></w:r></w:p>`;
+  let body = paragraph('Unregistered', 'Title');
+  for (const [title, indexes] of chapters) {
+    body += paragraph(title, 'Heading1');
+    for (const i of indexes) for (const text of parts[i].split(/\n\s*\n/)) if (text.trim()) body += paragraph(text.trim().replace(/\s*\n\s*/g, ' '));
+  }
+  const dir = path.join(archiveDir, '_docx');
+  fs.rmSync(dir, { recursive: true, force: true });
+  fs.mkdirSync(path.join(dir, '_rels'), { recursive: true });
+  fs.mkdirSync(path.join(dir, 'word/_rels'), { recursive: true });
+  const ns = 'xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"';
+  fs.writeFileSync(path.join(dir, '[Content_Types].xml'), '<?xml version="1.0" encoding="UTF-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
+    + '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/>'
+    + '<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>'
+    + '<Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/></Types>');
+  fs.writeFileSync(path.join(dir, '_rels/.rels'), '<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+    + '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>');
+  fs.writeFileSync(path.join(dir, 'word/_rels/document.xml.rels'), '<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+    + '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>');
+  fs.writeFileSync(path.join(dir, 'word/styles.xml'), `<?xml version="1.0" encoding="UTF-8"?><w:styles ${ns}>`
+    + '<w:style w:type="paragraph" w:styleId="Title"><w:name w:val="Title"/></w:style>'
+    + '<w:style w:type="paragraph" w:styleId="Heading1"><w:name w:val="heading 1"/></w:style></w:styles>');
+  fs.writeFileSync(path.join(dir, 'word/document.xml'), `<?xml version="1.0" encoding="UTF-8"?><w:document ${ns}><w:body>${body}</w:body></w:document>`);
+  const docx = path.join(archiveDir, 'Unregistered draft.docx');
+  fs.rmSync(docx, { force: true });
+  execFileSync('zip', ['-q', '-r', docx, '[Content_Types].xml', '_rels', 'word'], { cwd: dir });
+  return docx;
+}
 const bookZip = zipOf('Notes from the Cellar.zip', {
   '01 The Stairs.md': 'The stone stairs were wet when the last group came up from the cellar. Nobody spoke; breath hung in the air in small clouds.\n',
   '02 The Iron Ring.md': 'The iron ring in the wall smelled of rust and old rope. Everybody reached for it, and nobody asked why it was there.\n',
@@ -40,12 +93,43 @@ await main(async ({ page }) => {
   // a book from a zip of .md files
   await section(page, 'archive-book', async () => {
     await openTab(page, 'Books');
-    await bookListMenu(page, 'Import', 'Import from archive');
-    await idle(page, 900);
-    await snapDialog(page, 'archive-upload', -1);
+    const d = await openImport(page);
+    await idle(page, 400);
+    // the selector with its four sources
+    await field(d, 'Source').click();
+    await idle(page, 500);
+    await snap(page, 'import-source');
+    await page.keyboard.press('Escape');
+    await idle(page, 400);
     await page.locator('vaadin-upload input[type=file]').last().setInputFiles(bookZip);
     await idle(page, 2500);
+    await snapDialog(page, 'archive-upload', -1);
+    await dialog(page).getByRole('button', { name: 'Import', exact: true }).click();
+    await idle(page, 3000);
     // the book is made and opened
+    await page.getByRole('button', { name: 'Exit', exact: true }).first().click();
+    await idle(page, 1000);
+  });
+
+  // a Word manuscript: a title, three chapters with Heading 1 (the text of the story of the dataset), cut into parts of about 500 words
+  await section(page, 'document-import', async () => {
+    await openTab(page, 'Books');
+    const d = await openImport(page, 'Import from a document');
+    await page.locator('vaadin-upload input[type=file]').last().setInputFiles(manuscriptDocx());
+    await idle(page, 2500);
+    const words = d.locator('vaadin-integer-field').first();
+    await words.locator('input').fill('500');
+    await words.locator('input').dispatchEvent('change');
+    await idle(page, 800);
+    // a taller window, so the dialog shows down to its last option
+    await page.setViewportSize({ width: DESKTOP.width, height: 1150 });
+    await idle(page, 600);
+    await snapDialog(page, 'document-import', -1);
+    await page.setViewportSize(DESKTOP);
+    await idle(page, 400);
+    await dialog(page).getByRole('button', { name: 'Import', exact: true }).click();
+    await idle(page, 3500);
+    await snap(page, '_document-imported');
     await page.getByRole('button', { name: 'Exit', exact: true }).first().click();
     await idle(page, 1000);
   });

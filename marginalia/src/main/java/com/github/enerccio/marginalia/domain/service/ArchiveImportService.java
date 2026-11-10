@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.domain.service;
 
+import com.github.enerccio.marginalia.domain.collections.RevisionDetail;
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.utils.MarkdownArchive;
@@ -39,7 +40,20 @@ public interface ArchiveImportService {
      * @param onStored called after each file was stored
      * @throws IllegalArgumentException when the manuscript is not the user's or it has parts but no active leaf
      */
-    ImportResult<Manuscript> appendParts(Manuscript manuscript, MarkdownArchive.Content content, BooleanSupplier stopped,
+    default ImportResult<Manuscript> appendParts(Manuscript manuscript, MarkdownArchive.Content content, BooleanSupplier stopped,
+                                                 Runnable onStored) throws Exception {
+        return appendParts(manuscript, content.items().stream().map(MarkdownArchive.Item::text).toList(), RevisionDetail.ARCHIVE_IMPORT,
+                stopped, onStored);
+    }
+
+    /**
+     * Like {@link #appendParts(Manuscript, MarkdownArchive.Content, BooleanSupplier, Runnable)} for texts that are not files of an
+     * archive (the parts cut from a document), the revisions of the parts say where the text came from.
+     *
+     * @param texts  the text of each part, in order
+     * @param source {@link RevisionDetail#ARCHIVE_IMPORT} or {@link RevisionDetail#DOCUMENT_IMPORT}
+     */
+    ImportResult<Manuscript> appendParts(Manuscript manuscript, List<String> texts, RevisionDetail source, BooleanSupplier stopped,
                                          Runnable onStored) throws Exception;
 
     /**

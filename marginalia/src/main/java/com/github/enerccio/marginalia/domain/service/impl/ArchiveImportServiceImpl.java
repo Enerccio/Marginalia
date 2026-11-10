@@ -31,21 +31,20 @@ public class ArchiveImportServiceImpl implements ArchiveImportService {
 
     @Override
     @NoTx
-    public ImportResult<Manuscript> appendParts(Manuscript manuscript, MarkdownArchive.Content content, BooleanSupplier stopped,
+    public ImportResult<Manuscript> appendParts(Manuscript manuscript, List<String> texts, RevisionDetail source, BooleanSupplier stopped,
                                                 Runnable onStored) throws Exception {
-        List<MarkdownArchive.Item> items = content.items();
         // every createPart is a transaction of its own and stores the part as the active leaf of the book
         ChatMessage last = manuscript.getActiveLeaf();
         int imported = 0;
-        for (MarkdownArchive.Item item : items) {
+        for (String text : texts) {
             if (stopped.getAsBoolean()) {
                 break;
             }
-            last = chatMessageService.createPart(manuscript, last, item.text(), null, RevisionOrigin.human(RevisionDetail.ARCHIVE_IMPORT, false).uncounted());
+            last = chatMessageService.createPart(manuscript, last, text, null, RevisionOrigin.human(source, false).uncounted());
             imported++;
             onStored.run();
         }
-        return new ImportResult<>(manuscriptService.find(manuscript), imported, items.size());
+        return new ImportResult<>(manuscriptService.find(manuscript), imported, texts.size());
     }
 
     @Override

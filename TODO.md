@@ -752,11 +752,12 @@ numbers of the older items stable), the rest is P3/P4.
 
 ### Writing workflow
 
-87. **Import a finished manuscript.** 34 covers chats; there is no way in for prose that already exists (a draft from
-    Word, Scrivener, a Markdown folder, an EPUB). DOCX (POI is in the WAR), Markdown and TXT first: split at headings into
-    chapters and at a word target into parts, all marked as written by the author (49 stays right), then offer the
-    summaries run and the lore suggestions (58). It is the first thing a writer with an existing book needs, and the
-    biggest onboarding gap next to the example book.
+87. **Import a finished manuscript.** 34 covers chats; ✅ *Import from a document* (Word `.docx`, LibreOffice `.odt`) in the
+    one import window of the book list (`BookImportDialog`, a source selector with its own options): headings start chapters,
+    the text is cut at a word target (`PartSplitter`; a chapter's short end stays with the part before it), all marked as
+    written by the author (49 stays right). Not done: more formats (Markdown, TXT, EPUB, RTF; a new `DocumentFormat` constant
+    with its reader, the dialog needs no change), Scrivener, importing into an existing book (the story's *Import from
+    archive* is the only one there), and offering the summaries run and the lore suggestions (58) after the import.
 88. **"Where was I" card.** `lastOpened` is stored. When a book was not opened for N days, show a card above the story:
     the newest summary, the next open planner scenes (44), the open annotations and the last instructions. No model call
     in the first version; a *Write me a recap* button (summaries as the input) later. Cheap, and it uses four features

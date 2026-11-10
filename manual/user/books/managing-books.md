@@ -33,7 +33,7 @@ The refresh button at the end of the filter row reloads the list.
 Each row has buttons: the star makes the book a [favorite](folders.md#favorites), the pen opens it, **Move to folder** puts it
 into a [folder](folders.md), the clone button makes a copy of it and the trash button deletes it. The header has **New folder**,
 the **Manage** menu (**Organise**, the window to [move and copy](folders.md#organise) books and folders, **Tag books**,
-**Statistics** and the **Mass changes** sub menu) and the **Import** menu (**Import from archive**, **Import from SillyTavern**, **Import from LM Studio**).
+**Statistics** and the **Mass changes** sub menu) and **Import**, which makes a new book of files you have (see [Importing a book](#importing-a-book)).
 
 ### Advanced search
 
@@ -134,20 +134,58 @@ changes.
 1. Click **Add Book**.
 2. Enter the name and confirm.
 
-The new book is put into the [folder](folders.md) the list shows, and so are the books you import from an archive or
-from SillyTavern. It opens right away. It starts with your **Default Model** and **Default Protocol** from the *Settings* tab
+The new book is put into the [folder](folders.md) the list shows, and so are the books you import. It opens right away. It starts with your **Default Model** and **Default Protocol** from the *Settings* tab
 (see [Account & settings](../account.md)), if you have set them; otherwise select them on the *About* tab before
 generating.
 
-To start a book from a folder of text files, use **Import → Import from archive** in the header of the list: upload a `.zip` of `.md` files and the new book, named after the archive, gets a part for each file, see
-[Importing text files](story-editor.md#importing-text-files).
+### Importing a book
+
+**Import** in the header of the list (the file button on a phone) opens one window for everything a new book can be made of.
+Pick the **Source**; the text, the accepted files and the options under the name follow it:
+
+| Source | Upload | Options |
+|---|---|---|
+| **Import from archive** | a `.zip` of `.md` files, a part for each file, see [Importing text files](story-editor.md#importing-text-files) | none |
+| **Import from SillyTavern** | one or more `.jsonl` chats, see [below](#importing-from-sillytavern) | merge user and assistant messages |
+| **Import from LM Studio** | one or more conversations, see [below](#importing-from-lm-studio) | merge user and assistant messages |
+| **Import from a document** | a Word (`.docx`) or LibreOffice / OpenDocument (`.odt`) manuscript, see [below](#importing-a-word-or-libreoffice-document) | words per part, heading level of the chapters |
+
+Upload the file, give the book a name (it is filled from the file, the title of a document, or the character of a chat; the book is
+named *New book* when you leave it empty) and click **Import**. A progress window with **Stop** shows the parts being stored;
+stopping keeps what was stored. A file the source cannot read is refused with a warning, the other uploads stay.
+
+![The sources of the import window](../../images/import-source.png)
 
 ![Importing a zip of text files as a new book](../../images/archive-upload.png)
+
+### Importing a Word or LibreOffice document
+
+For a draft that already exists, choose **Import from a document** and upload a `.docx` (Word) or `.odt` (LibreOffice, OpenOffice)
+file. The text becomes the parts of a new book, all of it marked as written by you (the import is not counted in the
+[statistics](statistics.md) as writing and the history of a part says *Import from a document*).
+
+- **Chapters.** A paragraph in a *Heading* style starts a chapter, and each chapter starts with its heading (the first
+  heading of a part is its chapter title, as in the [export](export.md)). **Chapters start at heading level** says which headings
+  those are: the level you choose and the ones above it (the shallowest level the document has is chosen at first); deeper
+  headings stay in the text as smaller headings. A document without headings is one chapter. The *Title* of the document is not
+  imported as text, it names the book.
+- **Words per part.** The text is cut between paragraphs into parts of about this many words (1000 at first), at the paragraph
+  boundary nearest to the number. A part never holds the end of one chapter and the beginning of the next, and a chapter is not cut
+  for nothing: what would be left over at the end of a chapter, when it is less than half of the number, stays with the part before it,
+  so a chapter of up to one and a half times the number is one part. A paragraph longer than the number is not cut.
+- A line under the name tells how many chapters, words and parts the import will make; it changes as you change the options.
+- **Formatting.** Italic and bold are kept (as Markdown `*italic*`, `**bold**`); the rest of the formatting (fonts, sizes,
+  alignment), images, headers and footers, footnotes, comments and deleted text of tracked changes are not imported. Tables are
+  read cell by cell.
+
+![Importing a Word document, cut into parts of about 500 words](../../images/document-import.png)
+
+An old `.doc` file has to be saved as `.docx` or `.odt` first.
 
 ### Importing from SillyTavern
 
 To continue a roleplay or story you started in [SillyTavern](https://github.com/SillyTavern/SillyTavern), use
-**Import → Import from SillyTavern** in the header of the list. In SillyTavern, export the chat
+**Import → Import from SillyTavern**. In SillyTavern, export the chat
 (*Manage chat files*, or take the `.jsonl` files from `data/<user>/chats/<character>/`), then:
 
 1. Upload **one or more** `.jsonl` chats. A file that is not a SillyTavern chat is refused, the others stay.
@@ -168,7 +206,7 @@ skipped, and so are swipes that are empty. The reasoning and the model name of a
 
 ### Importing from LM Studio
 
-To continue a conversation you had in [LM Studio](https://lmstudio.ai), use **Import → Import from LM Studio** in the header of the list.
+To continue a conversation you had in [LM Studio](https://lmstudio.ai), use **Import → Import from LM Studio**.
 LM Studio keeps each conversation in a file `<number>.conversation.json` in the folder `.lmstudio/conversations` of your home folder (on Windows
 `%USERPROFILE%\.lmstudio\conversations`). It works like [Importing from SillyTavern](#importing-from-sillytavern):
 

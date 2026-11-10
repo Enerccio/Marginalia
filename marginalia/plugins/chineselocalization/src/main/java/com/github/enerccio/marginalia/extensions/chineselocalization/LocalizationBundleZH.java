@@ -1037,6 +1037,9 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_INSERT_SCENE_BELOW, "在下方插入场景");
         setValue(L.LABEL_MERGE_WITH_NEXT_SCENE, "与下一个场景合并");
         setValue(L.LABEL_LOG_OUT_EVERYWHERE_ELSE, "在其他所有位置退出登录（其他浏览器和所有已保存的登录）");
+        setValue(L.LABEL_IMPORT_FROM_DOCUMENT, "从文档导入");
+        setValue(L.LABEL_WORDS_PER_PART, "每段字数");
+        setValue(L.LABEL_CHAPTER_HEADING_LEVEL, "章从标题级别开始");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -1767,6 +1770,11 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_PLANNER_IMPORT_NONE, "当前分支的各部分没有回合详情");
         setValue(L.MSG_MERGE_TURNS_HINT, "两者的详情已合并在这里。修改不合适的地方后再合并：两者将合为一个。");
         setValue(L.MSG_MERGE_OTHER_POV, "第二个的值：%s");
+        setValue(L.MSG_IMPORT_DOCUMENT, "上传用文字处理软件写成的稿件：Word 文档（.docx）或 LibreOffice / OpenDocument 文本（.odt）。结果是一本新书：标题开始新的一章，文本在段落之间被切分为段落块，并全部标记为由您撰写。");
+        setValue(L.MSG_INVALID_DOCUMENT, "%s 不是包含文本的 Word（.docx）或 LibreOffice（.odt）文档。");
+        setValue(L.MSG_IMPORTING_DOCUMENT, "正在导入文档");
+        setValue(L.MSG_DOCUMENT_READY, "%d 章，%d 字，%d 段。");
+        setValue(L.MSG_ARCHIVE_FILES_READY, "%d 个文件可导入。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");
@@ -1888,6 +1896,8 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.HELP_STATISTICS_ADMIN, "统计会保留用户何时处理书籍、用了多长时间，以及书名和文件夹（包括已删除的书）。您可以关闭记录或限制保留时间；用户可以为自己选择更短的时间。");
         setValue(L.HELP_JOBS_ADMIN, "所有与外部 AI 通信的作业（生成、摘要、有声书章节、图像）都会记录在这里，包括用户、开始和结束时间，以及它对模型或语音、图像后端发出的每次调用。只保存元数据，不保存任何文本。不会自动删除：请设置筛选条件，然后删除匹配的作业。");
         setValue(L.HELP_PLANNER_IMPORT_FROM_BRANCH, "将当前分支各部分的回合详情添加为场景，用于规划故事的重写");
+        setValue(L.HELP_WORDS_PER_PART, "文本在段落之间被切分为大约这么多字的段落块。一个段落块不会包含两章的文本；章末剩下的部分若不到此数的一半，则保留在前一个段落块中。");
+        setValue(L.HELP_CHAPTER_HEADING_LEVEL, "该级别及更高级别的标题开始新的一章，每章以其标题开头。更深层的标题保留在文本中。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景设定与世界观。");
