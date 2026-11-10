@@ -148,7 +148,9 @@ Pick the **Source**; the text, the accepted files and the options under the name
 | **Import from archive** | a `.zip` of `.md` files, a part for each file, see [Importing text files](story-editor.md#importing-text-files) | none |
 | **Import from SillyTavern** | one or more `.jsonl` chats, see [below](#importing-from-sillytavern) | merge user and assistant messages |
 | **Import from LM Studio** | one or more conversations, see [below](#importing-from-lm-studio) | merge user and assistant messages |
-| **Import from a document** | a Word (`.docx`) or LibreOffice / OpenDocument (`.odt`) manuscript, see [below](#importing-a-word-or-libreoffice-document) | words per part, heading level of the chapters |
+| **Import from a document** | a manuscript in one file (Word, LibreOffice, RTF, Markdown, plain text, EPUB), see [below](#importing-a-finished-manuscript) | words per part, heading level of the chapters |
+| **Import from an Obsidian vault** | the `.zip` of a vault, see [below](#from-an-obsidian-vault-or-a-scrivener-project) | the same |
+| **Import from a Scrivener project** | the `.zip` of a `.scriv` project, see [below](#from-an-obsidian-vault-or-a-scrivener-project) | the same |
 
 Upload the file, give the book a name (it is filled from the file, the title of a document, or the character of a chat; the book is
 named *New book* when you leave it empty) and click **Import**. A progress window with **Stop** shows the parts being stored;
@@ -158,29 +160,55 @@ stopping keeps what was stored. A file the source cannot read is refused with a 
 
 ![Importing a zip of text files as a new book](../../images/archive-upload.png)
 
-### Importing a Word or LibreOffice document
+### Importing a finished manuscript
 
-For a draft that already exists, choose **Import from a document** and upload a `.docx` (Word) or `.odt` (LibreOffice, OpenOffice)
-file. The text becomes the parts of a new book, all of it marked as written by you (the import is not counted in the
+For a draft that already exists, choose **Import from a document** and upload the file: a `.docx` (Word), `.odt` (LibreOffice,
+OpenOffice), `.rtf` (Rich Text, from WordPad, TextEdit and any other program), `.md` (one Markdown file), `.txt` (plain text) or `.epub` (an e-book). The text becomes the parts of a new book, all of it marked as written by you (the import is not counted in the
 [statistics](statistics.md) as writing and the history of a part says *Import from a document*).
 
-- **Chapters.** A paragraph in a *Heading* style starts a chapter, and each chapter starts with its heading (the first
+- **Chapters.** A paragraph in a *Heading* style (a `#` heading in a Markdown file) starts a chapter, and each chapter starts with its heading (the first
   heading of a part is its chapter title, as in the [export](export.md)). **Chapters start at heading level** says which headings
   those are: the level you choose and the ones above it (the shallowest level the document has is chosen at first); deeper
   headings stay in the text as smaller headings. A document without headings is one chapter. The *Title* of the document is not
-  imported as text, it names the book.
+  imported as text, it names the book (in a Markdown file the `title:` of a header at the top, or a single `#` heading in front of
+  `##` chapters). A plain text file has no headings, so a line of its own that says `Chapter 12`, `Part IV: The Return`,
+  `Book two` or `Prologue` (also `Epilogue`, `Interlude`, `Preface`, `Foreword`, `Afterword`) starts a chapter; the heading
+  level choice is then not needed.
 - **Words per part.** The text is cut between paragraphs into parts of about this many words (1000 at first), at the paragraph
   boundary nearest to the number. A part never holds the end of one chapter and the beginning of the next, and a chapter is not cut
   for nothing: what would be left over at the end of a chapter, when it is less than half of the number, stays with the part before it,
   so a chapter of up to one and a half times the number is one part. A paragraph longer than the number is not cut.
 - A line under the name tells how many chapters, words and parts the import will make; it changes as you change the options.
+- **Paragraphs of a text file.** Blank lines separate the paragraphs and the lines of a paragraph are joined (text wrapped at a
+  column becomes one paragraph); a file with no blank lines has a paragraph on each line. A Markdown file is kept as it is
+  written, cut at the blank lines, headings and code blocks; text in Windows-1252 instead of UTF-8 is read too.
 - **Formatting.** Italic and bold are kept (as Markdown `*italic*`, `**bold**`); the rest of the formatting (fonts, sizes,
   alignment), images, headers and footers, footnotes, comments and deleted text of tracked changes are not imported. Tables are
   read cell by cell.
 
 ![Importing a Word document, cut into parts of about 500 words](../../images/document-import.png)
 
-An old `.doc` file has to be saved as `.docx` or `.odt` first.
+An old `.doc` file has to be saved as `.docx`, `.odt` or `.rtf` first.
+
+**An EPUB** is read page by page in its reading order. The headings of the pages (`h1` to `h6`) are the chapters; a page without a
+heading that the e-book's table of contents names gets that name as its heading. The cover, the table of contents, footnotes and
+the readings of ruby text are left out, and the title of the e-book names the book. A book protected by DRM cannot be read.
+
+#### From an Obsidian vault or a Scrivener project
+
+Both are folders, so zip the folder first (on a Mac **Compress** in the Finder; the `.scriv` of Scrivener is a folder too) and upload the `.zip`. The options are the
+same as for a document.
+
+- **Obsidian vault.** Every note (`.md`) is a chapter named after the note (or the `title:` of its header), in the order of the paths with numbers
+  counted as numbers (`Chapter 2` before `Chapter 10`). A folder is a part above its notes, and the headings inside a note are below the
+  note's own. Links `[[Note|text]]` become their text; embeds `![[file]]`, comments `%%...%%`, block ids and the marker of a callout are removed; a
+  highlight `==text==` is plain text. Hidden folders (`.obsidian`, `.trash`), attachments and notes without text are skipped. If the
+  vault holds notes that are not part of the story, delete them before zipping.
+- **Scrivener project.** The manuscript (the *Draft* folder of the binder, Scrivener 2 and 3) is imported, not the research, the trash or the documents
+  that are not *included in compile*. A folder, or a document that has documents under it, is a heading (its depth in the binder is its
+  level, its title the text); the documents that are all a folder holds are its scenes, one after another with a scene break
+  between them (their titles are not used). A document directly in the manuscript or in a folder of other folders is a chapter with its title. The
+  name of the project names the book.
 
 ### Importing from SillyTavern
 

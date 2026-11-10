@@ -95,7 +95,7 @@ await main(async ({ page }) => {
     await openTab(page, 'Books');
     const d = await openImport(page);
     await idle(page, 400);
-    // the selector with its four sources
+    // the selector with its sources
     await field(d, 'Source').click();
     await idle(page, 500);
     await snap(page, 'import-source');

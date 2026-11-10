@@ -27,7 +27,7 @@ import java.util.List;
 
 /**
  * The one dialog that makes a new book of something that exists already: a zip archive of {@code .md} files, the chats of
- * SillyTavern or LM Studio, a Word or LibreOffice document. The user picks the source, uploads the files (the accepted types,
+ * SillyTavern or LM Studio, a document (Word, LibreOffice, RTF, Markdown, text, EPUB), an Obsidian vault or a Scrivener project. The user picks the source, uploads the files (the accepted types,
  * the text and the options below follow the source: an archive has no options, chats a checkbox, a document the words per part and
  * the heading level of the chapters) and names the book. A file the source can't read is refused with a warning, the others stay.
  * The callback gets what stores the parts in the book it makes.
@@ -86,7 +86,8 @@ public class BookImportDialog extends Dialog {
         setWidth("520px");
 
         sources = List.of(new ArchiveSource(loc), new ChatSource(loc, ChatImportFormat.SILLYTAVERN),
-                new ChatSource(loc, ChatImportFormat.LMSTUDIO), new DocumentSource(loc));
+                new ChatSource(loc, ChatImportFormat.LMSTUDIO), new DocumentSource(loc), DocumentSource.obsidian(loc),
+                DocumentSource.scrivener(loc));
         sources.forEach(candidate -> candidate.onChange(this::refreshStatus));
 
         sourceSelect = new ComboBox<>(loc.getValue(L.LABEL_SOURCE));

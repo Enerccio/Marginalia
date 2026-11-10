@@ -1032,6 +1032,8 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_IMPORT_FROM_DOCUMENT, "Import from a document");
         setValue(L.LABEL_WORDS_PER_PART, "Words per part");
         setValue(L.LABEL_CHAPTER_HEADING_LEVEL, "Chapters start at heading level");
+        setValue(L.LABEL_IMPORT_FROM_OBSIDIAN, "Import from an Obsidian vault");
+        setValue(L.LABEL_IMPORT_FROM_SCRIVENER, "Import from a Scrivener project");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -1762,11 +1764,15 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_PLANNER_IMPORT_NONE, "The parts of the current branch have no turn details");
         setValue(L.MSG_MERGE_TURNS_HINT, "The details of both are joined here. Change what does not fit, then merge: the two become one.");
         setValue(L.MSG_MERGE_OTHER_POV, "The second one has: %s");
-        setValue(L.MSG_IMPORT_DOCUMENT, "Upload a manuscript written in a word processor: a Word document (.docx) or a LibreOffice / OpenDocument text (.odt). The result is a new book: a heading starts a chapter, the text is cut between paragraphs into parts and all of it is marked as written by you.");
-        setValue(L.MSG_INVALID_DOCUMENT, "%s is not a Word (.docx) or LibreOffice (.odt) document with text.");
+        setValue(L.MSG_IMPORT_DOCUMENT, "Upload a finished manuscript: a Word document (.docx), a LibreOffice / OpenDocument text (.odt), a Rich Text file (.rtf), a Markdown file (.md), a plain text file (.txt) or an e-book (.epub). The result is a new book: a heading starts a chapter (in a plain text file a line like \"Chapter 3\"), the text is cut between paragraphs into parts and all of it is marked as written by you.");
+        setValue(L.MSG_INVALID_DOCUMENT, "%s is not a document with text that can be read (.docx, .odt, .rtf, .md, .txt, .epub).");
         setValue(L.MSG_IMPORTING_DOCUMENT, "Importing the document");
         setValue(L.MSG_DOCUMENT_READY, "%d chapters, %d words, %d parts.");
         setValue(L.MSG_ARCHIVE_FILES_READY, "%d files ready to import.");
+        setValue(L.MSG_IMPORT_OBSIDIAN, "Upload the zip of an Obsidian vault (the folder zipped). Each note becomes a chapter named after it and the folders become parts, in the order of the paths; hidden folders, attachments and notes with no text are left out. The text is cut between paragraphs into parts and all of it is marked as written by you.");
+        setValue(L.MSG_IMPORT_SCRIVENER, "Upload the zip of a Scrivener project (the .scriv folder zipped). The manuscript (Draft) is imported: a folder, or a document with documents under it, becomes a heading, and the documents in a folder are its scenes. The research, the trash and the documents that are not included in the compile are left out. All of it is marked as written by you.");
+        setValue(L.MSG_INVALID_OBSIDIAN, "%s is not a zip of an Obsidian vault with notes that have text.");
+        setValue(L.MSG_INVALID_SCRIVENER, "%s is not a zip of a Scrivener project with a manuscript that has text.");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");

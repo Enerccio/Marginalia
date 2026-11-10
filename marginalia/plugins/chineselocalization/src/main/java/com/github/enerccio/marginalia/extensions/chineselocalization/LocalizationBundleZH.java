@@ -1040,6 +1040,8 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_IMPORT_FROM_DOCUMENT, "从文档导入");
         setValue(L.LABEL_WORDS_PER_PART, "每段字数");
         setValue(L.LABEL_CHAPTER_HEADING_LEVEL, "章从标题级别开始");
+        setValue(L.LABEL_IMPORT_FROM_OBSIDIAN, "从 Obsidian 库导入");
+        setValue(L.LABEL_IMPORT_FROM_SCRIVENER, "从 Scrivener 项目导入");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -1770,11 +1772,15 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_PLANNER_IMPORT_NONE, "当前分支的各部分没有回合详情");
         setValue(L.MSG_MERGE_TURNS_HINT, "两者的详情已合并在这里。修改不合适的地方后再合并：两者将合为一个。");
         setValue(L.MSG_MERGE_OTHER_POV, "第二个的值：%s");
-        setValue(L.MSG_IMPORT_DOCUMENT, "上传用文字处理软件写成的稿件：Word 文档（.docx）或 LibreOffice / OpenDocument 文本（.odt）。结果是一本新书：标题开始新的一章，文本在段落之间被切分为段落块，并全部标记为由您撰写。");
-        setValue(L.MSG_INVALID_DOCUMENT, "%s 不是包含文本的 Word（.docx）或 LibreOffice（.odt）文档。");
+        setValue(L.MSG_IMPORT_DOCUMENT, "上传已完成的稿件：Word 文档（.docx）、LibreOffice / OpenDocument 文本（.odt）、RTF 文件（.rtf）、Markdown 文件（.md）、纯文本文件（.txt）或电子书（.epub）。结果是一本新书：标题（纯文本文件中为“Chapter 3”之类的行）开始新的一章，文本在段落之间被切分为段落块，并全部标记为由您撰写。");
+        setValue(L.MSG_INVALID_DOCUMENT, "%s 不是可读取的文本文档（.docx、.odt、.rtf、.md、.txt、.epub）。");
         setValue(L.MSG_IMPORTING_DOCUMENT, "正在导入文档");
         setValue(L.MSG_DOCUMENT_READY, "%d 章，%d 字，%d 段。");
         setValue(L.MSG_ARCHIVE_FILES_READY, "%d 个文件可导入。");
+        setValue(L.MSG_IMPORT_OBSIDIAN, "上传 Obsidian 库（压缩为 zip 的文件夹）。每个笔记成为以其命名的一章，文件夹成为部分，按路径顺序排列；隐藏文件夹、附件和没有文本的笔记会被忽略。文本在段落之间被切分为段落块，并全部标记为由您撰写。");
+        setValue(L.MSG_IMPORT_SCRIVENER, "上传 Scrivener 项目（压缩为 zip 的 .scriv 文件夹）。导入手稿（Draft）：文件夹以及下面还有文档的文档成为标题，文件夹中的文档是其场景。研究资料、废纸篓以及未包含在编译中的文档会被忽略。全部标记为由您撰写。");
+        setValue(L.MSG_INVALID_OBSIDIAN, "%s 不是包含有文本笔记的 Obsidian 库的 zip。");
+        setValue(L.MSG_INVALID_SCRIVENER, "%s 不是手稿含有文本的 Scrivener 项目的 zip。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");

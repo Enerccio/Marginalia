@@ -1032,6 +1032,8 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_IMPORT_FROM_DOCUMENT, "ドキュメントからインポート");
         setValue(L.LABEL_WORDS_PER_PART, "パートあたりの語数");
         setValue(L.LABEL_CHAPTER_HEADING_LEVEL, "章を始める見出しレベル");
+        setValue(L.LABEL_IMPORT_FROM_OBSIDIAN, "Obsidian ボールトからインポート");
+        setValue(L.LABEL_IMPORT_FROM_SCRIVENER, "Scrivener プロジェクトからインポート");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -1762,11 +1764,15 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_PLANNER_IMPORT_NONE, "現在のブランチのパートにはターン詳細がありません");
         setValue(L.MSG_MERGE_TURNS_HINT, "両方の詳細をここにまとめました。合わない箇所を直してから統合すると、二つが一つになります。");
         setValue(L.MSG_MERGE_OTHER_POV, "二つ目の値: %s");
-        setValue(L.MSG_IMPORT_DOCUMENT, "ワープロで書いた原稿（Word 文書 .docx、または LibreOffice / OpenDocument テキスト .odt）をアップロードします。結果は新しい本になります。見出しで章が始まり、本文は段落の区切りでパートに分けられ、すべてあなたが書いたものとして記録されます。");
-        setValue(L.MSG_INVALID_DOCUMENT, "%s はテキストを含む Word（.docx）または LibreOffice（.odt）文書ではありません。");
+        setValue(L.MSG_IMPORT_DOCUMENT, "完成した原稿をアップロードします：Word 文書（.docx）、LibreOffice / OpenDocument テキスト（.odt）、リッチテキスト（.rtf）、Markdown（.md）、プレーンテキスト（.txt）、または電子書籍（.epub）。結果は新しい本になります。見出し（プレーンテキストでは「Chapter 3」のような行）で章が始まり、本文は段落の区切りでパートに分けられ、すべてあなたが書いたものとして記録されます。");
+        setValue(L.MSG_INVALID_DOCUMENT, "%s は読み取れるテキスト文書（.docx、.odt、.rtf、.md、.txt、.epub）ではありません。");
         setValue(L.MSG_IMPORTING_DOCUMENT, "ドキュメントをインポート中");
         setValue(L.MSG_DOCUMENT_READY, "%d 章、%d 語、%d パート。");
         setValue(L.MSG_ARCHIVE_FILES_READY, "%d 個のファイルをインポートできます。");
+        setValue(L.MSG_IMPORT_OBSIDIAN, "Obsidian ボールト（フォルダを zip にしたもの）をアップロードします。各ノートはノート名の章になり、フォルダはパートになります（パスの順）。隠しフォルダ、添付ファイル、テキストのないノートは除外されます。本文は段落の区切りでパートに分けられ、すべてあなたが書いたものとして記録されます。");
+        setValue(L.MSG_IMPORT_SCRIVENER, "Scrivener プロジェクト（.scriv フォルダを zip にしたもの）をアップロードします。原稿（Draft）が取り込まれます：フォルダと、下にドキュメントを持つドキュメントは見出しになり、フォルダ内のドキュメントはそのシーンになります。リサーチ、ゴミ箱、コンパイルに含まれないドキュメントは除外されます。すべてあなたが書いたものとして記録されます。");
+        setValue(L.MSG_INVALID_OBSIDIAN, "%s は、テキストのあるノートを含む Obsidian ボールトの zip ではありません。");
+        setValue(L.MSG_INVALID_SCRIVENER, "%s は、テキストのある原稿を含む Scrivener プロジェクトの zip ではありません。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");

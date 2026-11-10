@@ -89,6 +89,42 @@ class BookImportSourcesTest extends MarginaliaTestBase {
     }
 
     @Test
+    void textFilesAreDocumentsToo() {
+        DocumentSource source = new DocumentSource(loc);
+        source.read("# One\n\nSome words here.\n\n# Two\n\nMore words.".getBytes(StandardCharsets.UTF_8), "Story.md");
+        assertThat(source.suggestedName()).isEqualTo("Story");
+        assertThat(source.status()).isEqualTo("2 chapters, 7 words, 2 parts.");
+        source.read("Chapter 1\n\nWords.\n".getBytes(StandardCharsets.UTF_8), "Notes.txt");
+        assertThat(source.suggestedName()).isEqualTo("Notes");
+        assertThat(source.status()).isEqualTo("1 chapters, 3 words, 1 parts.");
+        source.read("{\\rtf1\\ansi Plain words\\par}".getBytes(StandardCharsets.UTF_8), "a.rtf");
+        assertThat(source.status()).isEqualTo("1 chapters, 2 words, 1 parts.");
+        assertThat(source.fileTypes()).contains(".rtf", ".md", ".txt", ".docx", ".odt");
+    }
+
+    @Test
+    void vaultsAndProjectsAreDocumentsInAZip() throws Exception {
+        ByteArrayOutputStream vault = new ByteArrayOutputStream();
+        try (ZipOutputStream zip = new ZipOutputStream(vault)) {
+            zip.putNextEntry(new ZipEntry("One.md"));
+            zip.write("Some words here.".getBytes(StandardCharsets.UTF_8));
+            zip.closeEntry();
+        }
+        DocumentSource obsidian = DocumentSource.obsidian(loc);
+        obsidian.read(vault.toByteArray(), "My Vault.zip");
+        assertThat(obsidian.suggestedName()).isEqualTo("My Vault");
+        assertThat(obsidian.status()).isEqualTo("1 chapters, 4 words, 1 parts.");
+        assertThat(obsidian.fileTypes()).contains(".zip");
+        assertThatThrownBy(() -> obsidian.read("plain".getBytes(StandardCharsets.UTF_8), "x.zip")).isInstanceOf(IllegalArgumentException.class);
+        assertThat(obsidian.invalid("x.zip")).contains("x.zip").contains("Obsidian");
+
+        DocumentSource scrivener = DocumentSource.scrivener(loc);
+        assertThatThrownBy(() -> scrivener.read(vault.toByteArray(), "My Novel.scriv.zip")).isInstanceOf(IllegalArgumentException.class);
+        assertThat(scrivener.invalid("x.zip")).contains("Scrivener");
+        assertThat(scrivener.ready()).isFalse();
+    }
+
+    @Test
     void aFileThatIsNotADocumentIsRefusedAndTheOneBeforeStays() throws Exception {
         DocumentSource source = new DocumentSource(loc);
         source.read(docx(1, 3), "a.docx");

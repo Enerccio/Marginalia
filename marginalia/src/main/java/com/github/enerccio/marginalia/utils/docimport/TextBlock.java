@@ -16,6 +16,13 @@ public record TextBlock(int level, String text) {
     }
 
     /**
+     * @return the block with a heading {@code by} levels deeper (the deepest is {@link #MAX_LEVEL}), a paragraph as it is
+     */
+    public TextBlock shifted(int by) {
+        return level == 0 || by == 0 ? this : new TextBlock(Math.min(MAX_LEVEL, level + by), text);
+    }
+
+    /**
      * @return the number of words (runs of non-blank characters)
      */
     public int words() {
