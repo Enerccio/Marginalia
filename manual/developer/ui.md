@@ -67,13 +67,14 @@ flowchart TB
 - `AppShellConfig` (`AppShellConfigurator`) sets up the page once: `@Push`, Lumo stylesheet, `@ColorScheme(DARK)`,
   full-viewport body, `shared-styles.css`, page title, PWA metadata.
 - `MarginaliaServlet` is the `VaadinServlet` mapped to `/*` (with `asyncSupported` for push).
-- There are three routes, all extending `LoginCheckRoute`:
+- There are four routes, all extending `LoginCheckRoute`:
 
   | Route | Class | Shows |
   |---|---|---|
   | `/` | `Main` | The workspace. |
   | `/view`, `/view/<uuid>` | `Viewer` | The reader: a list of the user's own books, and a book's active branch as text (own or published books, by link). |
   | `/reset` | `Reset` | No page: after the login it empties `UserSetting.workspaceState` and sends the browser to `/`, the way back into a workspace whose restored state freezes the browser. It builds no workspace. |
+  | `/jobs` | `JobsView` | The jobs that run now (`ActiveJobsGrid`, `ui.jobs`: who started them, how long they run, what they wait for; it reads `JobService.active()` again every few seconds while it is on the page), so an administrator sees at a glance whether the server is busy. It logs in like the other pages, builds no workspace and shows nothing to a user who is not an administrator. Not `@Extendable`. |
 
 `LoginCheckRoute` runs in the route's constructor (`showLogin()`):
 
@@ -531,6 +532,7 @@ page (`service.find(id)`) and wraps them in a `BackendTableItem` subclass. It al
 | `ResizableTextArea` | `ResizableTextArea.install(loc, textArea, "160px")` on long prompt and description fields: a corner icon toggles between the fixed height (with a scrollbar) and a height that fits the whole content. On a phone the height is the one of the field (CSS class `resizable-text-area-field`, the variables `--resizable-text-area-height` and `--resizable-text-area-min-height`), not of the whole component: the helper text of a narrow screen would eat it. |
 | `GraphView` | A [Cytoscape.js](https://js.cytoscape.org/) graph with rings around a center node and re-centering by double click, see [Custom components](custom-components.md#graphview). |
 | `StatisticsPanel` (`ui.workspace.parts.admin`) | The *Statistics* tab of `AdminPart`: the check box *Record writing statistics* and *Keep statistics for (months)* of the installation (`StatisticsPolicyService.setInstance`), and a user list with *Clear the statistics of the user* / *Clear the statistics of everybody* (after a question). `UserPart` has the user's own two fields in the general settings (saved with the rest, then the policy cache is invalidated and the user pruned). |
+| `JobsPanel` (`ui.workspace.parts.admin`) | The *Jobs* tab of `AdminPart`: the log of the jobs that ended, `JobHistoryGrid` (`ui.jobs`): a list filtered by user, kind, status and age (*older than* a number of days) and read page by page (`JobService.search` / `count`), a job opens into its calls (`JobService.calls`), and *delete* removes the jobs the filter matches for good (`JobService.purge`; the log is never cleaned by itself). `JobFormat` formats the times, durations and statuses of both job lists. What runs now is on the page `/jobs`, see [Jobs](services.md). The panel implements `LLMInteract`; it and the two grids are not `@Extendable`. |
 | `ChartJs` | A [Chart.js](https://www.chartjs.org/) chart: `setChartConfig(json)` takes a Chart.js configuration (`type`, `data`, `options`) as JSON and draws it responsively into the element (height 320px, the `chart-js` style). Used by `TokenUsageDialog` (doughnut of the prompt sections, bar chart of the payload messages), opened from *Token Usage* in the part menu of the desktop and phone story editors, and by the statistics windows (`StatisticCharts`). |
 | `TrashGrid` | Deleted objects with a restore button and a button that deletes parts and entries for good, see [Trash](#trash). |
 | `Notification` | `Notification.success(...)` / `error(...)` with Marginalia's durations and variants. |

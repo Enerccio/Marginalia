@@ -142,7 +142,7 @@ All application code is in `com.github.enerccio.marginalia` (`marginalia/src/mai
 
 | Package | Layer | Contents |
 |---|---|---|
-| `ui.main` | UI | Servlet, app shell, the routes: `Main` (`/`), `Viewer` (`/view`) and `Reset` (`/reset`, clears the saved workspace state), login handling (`LoginCheckRoute`). |
+| `ui.main` | UI | Servlet, app shell, the routes: `Main` (`/`), `Viewer` (`/view`), `Reset` (`/reset`, clears the saved workspace state) and `JobsView` (`/jobs`, the jobs that run now, for administrators), login handling (`LoginCheckRoute`). |
 | `ui.workspace`, `ui.workspace.parts` | UI | The workspace after login and its tabs: books, lorebooks, settings, protocols, inference providers, admin. |
 | `ui.dialogs`, `ui.dialogs.manuscript` | UI | Dialogs; the book window (`ManuscriptDialog`) and its tabs: story, tree, about, prompts, lorebook, backups. `ui.dialogs.agent` has the screens of agents, `ui.dialogs.search` the search and replace windows. |
 | `ui.components`, `ui.widgets` | UI | Reusable components (lorebook editor, story tree, the help assistant's button and chat) and small widgets. |
@@ -245,7 +245,7 @@ flowchart TB
     WS --> AP["AIPart<br/>Inference Providers"]
     WS --> RP["ResourcesPart<br/>Resources"]
     WS --> TP["TrashPart<br/>Trash"]
-    WS --> AdP["AdminPart<br/>Users, Backups, Cleanup, Help assistant, Extensions"]
+    WS --> AdP["AdminPart<br/>Users, Backups, Cleanup, Help assistant, Agents, Statistics, Jobs, Extensions"]
     MP --> MD["ManuscriptDialog<br/>(book window)"]
     MD --> Story["ManuscriptStoryPart"]
     MD --> Tree["ManuscriptTreePart"]

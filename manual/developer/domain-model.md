@@ -78,7 +78,7 @@ erDiagram
     TagRelation }o--|| Folder : "objectId + clazz"
 ```
 
-Every entity except `User` has an owner, so each user has a separate set of books, lorebooks, providers, protocols
+Every entity except `User` has an owner (the [job log](#the-job-log-job-jobcall) is the one place where it can be empty), so each user has a separate set of books, lorebooks, providers, protocols
 and settings. The relationships between them never cross users: a book can only use the owner's provider, protocol
 and lorebook.
 
@@ -779,11 +779,34 @@ Besides the rows an agent has files: its **workspace** (`<application folder>/ag
 and, for each run, a folder (`agent-runs/<run uuid>`). They are not rows and not in the backups of the database; the cleanup, deleting
 for good and cloning an agent take care of them, see [Files of an agent](agents.md#files-of-an-agent).
 
+## The job log (`Job`, `JobCall`)
+
+`Job` (`jobs`, an `OwnedEntity`) is one unit of work that talked to an external AI and `JobCall` (`job_calls`, a
+`BaseEntity`) one call it made: a request to a model, to a speech or an image server. Metadata only, never the text.
+They are the administrator's log (*Admin → Jobs*), see `Jobs` and `JobService` in [Services](services.md): a running job
+is in memory only, the rows are written by the writer thread of `JobServiceImpl` when the job ends.
+
+| Field | |
+|---|---|
+| `Job.owner`, `ownerLogin` | The user the job ran for and their login at that time, which stays readable when the user is renamed or purged. Both are `null` for a job of a thread without a user. |
+| `Job.kind`, `label` | What it was: the kind of the `InferenceSession` (`generation`, `summary`, `agent`..., `untagged`) or the kind the caller gave (`audiobook`), and a text for the list. |
+| `status` (both) | `JobStatus` by name: `COMPLETED`, `FAILED` or `CANCELLED` once written (`RUNNING` only in memory). |
+| `startedAt`, `endedAt` (both) | Start and end. |
+| `Job.callCount`, `failedCalls` | All calls the job made and how many failed; a job with more than `Jobs.MAX_KEPT_CALLS` calls (5000) keeps only the first ones as rows. |
+| `JobCall.job` | The job (`OWNED_BY`). |
+| `JobCall.callType` | `JobCallType` by name (`LLM`, `AUDIO`, `IMAGE`, `OTHER`). |
+| `JobCall.backend`, `model` | The name of the AI, or the host of the speech or image server (never the path or the query), and the model id. |
+| `JobCall.error` | The message of a failure, cut to 300 characters. |
+
+Neither is an `ExtendableEntity` and neither is part of a backup of a book. The rows are not soft deleted:
+`JobService.purge(JobFilter)` deletes the jobs of a filter and their calls for good, and nothing else ever deletes
+them, except the cleanup of a purged user, which takes the user's jobs along (`owner` is `OWNED_BY`).
+
 ## Resources
 
 `Resource` (`resources`, an `OwnedEntity`) is an uploaded file: the images attached to parts
 (`ChatMessage.getImages()`, see [Extended attributes](#extendableentity---extended-attributes)) and the files that extensions keep with a part (the audio of the Audiobook, linked to the part). A backup
-carries the uuids of both and the export packs the files, see [Resources in backups](services.md#resources-in-backups).
+carries the uuids of both and the export packs the files, see *Resources in backups* under [Books and the story](services.md#books-and-the-story).
 
 | Field | |
 |---|---|
@@ -804,7 +827,7 @@ references between rows and decides what may go. Each reference has a policy (`@
 | Policy | Meaning | Used for |
 |---|---|---|
 | `STRONG` (default) | The referenced row can't be purged while the reference exists. | `Manuscript.ai`, `.protocol`, `.lorebook`, `.activeLeaf` |
-| `OWNED_BY` | The referencing row belongs to the referenced one and is purged with it. | `ChatMessage.parentScript`, `.parent`; `Folder.parent`; `LorebookEntry.lorebook`; `TagRelation.tag`, `.objectId`; every `owner` |
+| `OWNED_BY` | The referencing row belongs to the referenced one and is purged with it. | `ChatMessage.parentScript`, `.parent`; `Folder.parent`; `LorebookEntry.lorebook`; `TagRelation.tag`, `.objectId`; `JobCall.job`; every `owner` |
 | `OWNS` | The referenced row belongs to the referencing one and is purged with it, unless referenced elsewhere. | `ChatMessage.summary` |
 | `WEAK` | The reference doesn't block the purge; it is cleared when the referenced row goes. | `Lorebook.subbooks`, `Manuscript.folder`, `UserSetting.defaultModel`, `.defaultProtocol` |
 
