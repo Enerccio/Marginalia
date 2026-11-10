@@ -14,6 +14,14 @@ Only metadata is kept: who, when, how long, which AI or server (the name of the 
 the address path or the query), the model, how it ended and the short error message of a failure. **No prompt, no answer, no text** is
 ever stored.
 
+## What is one job
+
+- A **request that nothing groups** (a generation, an annotation, a redraft, an impersonation, a summary of one part, a question to the help assistant, a request of a plugin such as a translation of a part or a lore entry) is a job of its own with one call. Its kind is the kind of work (`generation`, `annotate`, `summary`...).
+- A **rewrite of the summaries** is one job (`summary`) with a call per summary written.
+- A **work session of an agent run** is one job (`agent`) with a call per round of the agent; a run that is paused and resumed has a job for each session, and a sub-agent's requests are jobs of their own.
+- A **conversion to audio** is one job (`audiobook`) per batch of parts, with the requests of the labelling model and every piece spoken as its calls.
+- An image made by the **Image Generator** is a job of its own (`image-generator`) with an image call.
+
 ## What runs now: `/jobs`
 
 Open `/jobs` on the address of your Marginalia (for example `http://localhost:8080/jobs`; the **Open the live view** link of the tab

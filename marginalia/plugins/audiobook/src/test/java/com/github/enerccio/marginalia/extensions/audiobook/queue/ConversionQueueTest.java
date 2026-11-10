@@ -190,6 +190,38 @@ class ConversionQueueTest {
     }
 
     @Test
+    void aBatchIsOneJobOfTheLogAndTheRequestsOfItsWorkerThreadAreItsCalls() throws Exception {
+        queue(Set.of(BackendConfig.MODEL_TURBO));
+        PartScript script = script("One.\n\nTwo.");
+        List<com.github.enerccio.marginalia.domain.service.job.FinishedJob> ended = new CopyOnWriteArrayList<>();
+        java.util.function.Consumer<com.github.enerccio.marginalia.domain.service.job.FinishedJob> sink = ended::add;
+        com.github.enerccio.marginalia.domain.service.job.Jobs.addSink(sink);
+        try {
+            ConversionJob job = queue.submit("p1", "Part 1", () -> {
+                // the labelling request, made on the worker thread while the script is made
+                com.github.enerccio.marginalia.domain.service.job.Jobs.beginCall(
+                        com.github.enerccio.marginalia.domain.service.job.JobCallType.LLM, "labelling model", "m")
+                        .finish(com.github.enerccio.marginalia.domain.service.job.JobStatus.COMPLETED, null);
+                return script;
+            });
+            assertEquals(State.DONE, finished(job).state());
+            long end = System.currentTimeMillis() + 5000;
+            while (ended.isEmpty() && System.currentTimeMillis() < end) {
+                Thread.sleep(10);
+            }
+        } finally {
+            com.github.enerccio.marginalia.domain.service.job.Jobs.removeSink(sink);
+        }
+
+        assertEquals(1, ended.size());
+        assertEquals("audiobook", ended.get(0).kind());
+        assertEquals("Conversion of 1 part", ended.get(0).label());
+        assertEquals(com.github.enerccio.marginalia.domain.service.job.JobStatus.COMPLETED, ended.get(0).status());
+        assertEquals(1, ended.get(0).calls().size());
+        assertEquals("labelling model", ended.get(0).calls().get(0).backend());
+    }
+
+    @Test
     void theJobSaysWhichPiecesTheModelLabelsAndKeepsWhatItSaid() throws Exception {
         queue(Set.of(BackendConfig.MODEL_TURBO));
         PartScript script = script("One.\n\nTwo.");

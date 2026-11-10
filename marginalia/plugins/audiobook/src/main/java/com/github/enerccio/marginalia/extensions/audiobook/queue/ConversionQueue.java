@@ -230,13 +230,22 @@ public class ConversionQueue implements AutoCloseable {
                     batch.forEach(j -> j.set(State.RUNNING, ""));
                 }
                 batch.forEach(this::fire);
-                try {
-                    run(batch);
-                } catch (RuntimeException e) {
-                    AudiobookLog.get().warn("The conversion failed: {}", e.getMessage(), e);
-                    for (ConversionJob job : batch) {
-                        if (job.state() == State.RUNNING) {
-                            finish(job, State.FAILED, String.valueOf(e.getMessage()));
+                // the batch is one job of the administrator's log: the labelling requests and the speech requests are its calls
+                try (com.github.enerccio.marginalia.domain.service.job.Jobs.Handle logged = com.github.enerccio.marginalia.domain.service.job.Jobs.open(
+                        "audiobook", "Conversion of " + batch.size() + (batch.size() == 1 ? " part" : " parts"),
+                        com.github.enerccio.marginalia.domain.service.job.JobCallType.AUDIO)) {
+                    try {
+                        run(batch);
+                        if (stopRun) {
+                            logged.finish(com.github.enerccio.marginalia.domain.service.job.JobStatus.CANCELLED);
+                        }
+                    } catch (RuntimeException e) {
+                        logged.fail();
+                        AudiobookLog.get().warn("The conversion failed: {}", e.getMessage(), e);
+                        for (ConversionJob job : batch) {
+                            if (job.state() == State.RUNNING) {
+                                finish(job, State.FAILED, String.valueOf(e.getMessage()));
+                            }
                         }
                     }
                 }
