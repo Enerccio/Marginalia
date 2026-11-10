@@ -7,7 +7,7 @@ covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/ui/widgets/GraphView.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/ui/JavascriptLibrary.java
   - marginalia/src/main/frontend
-verified: 823dc792d
+verified: cec4f0cd1
 ---
 
 # Custom components
