@@ -91,7 +91,7 @@ state the part had, then changes it, then records.
 | `RedraftServiceImpl` (dialog and command) | `REDRAFT` with the reasoning the redraft got |
 | the editor, `storeResponse` | `HUMAN` |
 | manuscript commands (`ManuscriptWriteSupport`), `AgentMergeServiceImpl`, Replace | `AUTOMATIC` with `RevisionDetail.COMMAND`, `AGENT_MERGE`, `REPLACE` (agent flag set for the first two) |
-| archive, SillyTavern and LM Studio import | `HUMAN` with `ARCHIVE_IMPORT` / `SILLYTAVERN_IMPORT` / `LMSTUDIO_IMPORT`, `GENERATE` for a chat that has a model |
+| archive, document, SillyTavern and LM Studio import | `HUMAN` with `ARCHIVE_IMPORT` / `DOCUMENT_IMPORT` / `SILLYTAVERN_IMPORT` / `LMSTUDIO_IMPORT`, `GENERATE` for a chat that has a model |
 | `ChatMessageService.replaceText` (an extension puts the text of a part into another language: the part is not flagged as edited, the summaries stay valid) | the origin the caller gives, `RevisionOrigin.automatic(RevisionDetail.TRANSLATION, false)` for a translation |
 | a branch (`ChatMessageService` copy) | `DUPLICATE` with `BRANCH` |
 | `mergeIntoPrevious` | `MERGE` on the surviving part; the merged part's history goes with it |

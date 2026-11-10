@@ -368,7 +368,7 @@ only `builtPromptTokens`; whoever needs the text asks `MessagePromptService`:
 
 | Method | |
 |---|---|
-| `getBuiltPrompt(part)`, `getBackgroundLore(part)` | The texts, `null` when the part has none (it was typed by the author, or made before prompts were kept). One query each; the summary, redraft, annotate and impersonate services read the lore this way, the story editor, `/show-prompt` and the reviewer the prompt. |
+| `getBuiltPrompt(part)`, `getBackgroundLore(part)` | The texts, `null` when the part has none (it was typed by the author, or made before prompts were kept). One query each; the impersonate service reads the lore this way, the summary, redraft and annotate services only when the book has no lorebook (otherwise they ask `LorebookActivationService.currentBackgroundLore`, the lore as the lorebooks are now, not the one the part was written with), the story editor, `/show-prompt` and the reviewer the prompt. |
 | `store(part, prompt, lore, loreUsage)` | Replaces the prompt of the part (`store(part, prompt, lore)` is the same with no usage); two empty texts and no usage remove it. Called by `GenerateNewMessageStep` after the part is saved (a regenerated part gets the new prompt; the old one is kept in the `ORIGINAL_PROMPT` property, which `CleanupStep` puts back with `ORIGINAL_MESSAGE` when no text arrived). |
 | `getLoreUsage(part)` | The lore entries the generation of the part used (`LoreUsage`), `null` when none was recorded. See below. |
 | `copy(from, to)` | Branching a part (`ChatMessageService.branch`) and creating a part in the book from a working copy of an agent (`AgentMergeService`) copy the prompt with it. `ChatMessage.copyOf` / `loadFrom` do not. |
