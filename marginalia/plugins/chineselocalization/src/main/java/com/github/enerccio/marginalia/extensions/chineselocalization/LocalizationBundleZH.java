@@ -1020,6 +1020,18 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_STATISTICS_KEEP_MONTHS, "统计保留时间（月数，0 = 永久）");
         setValue(L.LABEL_STATISTICS_CLEAR_USER, "清除用户的统计");
         setValue(L.LABEL_STATISTICS_CLEAR_EVERYONE, "清除所有人的统计");
+        setValue(L.LABEL_JOBS, "作业");
+        setValue(L.LABEL_ACTIVE_JOBS, "运行中的作业");
+        setValue(L.LABEL_JOB_KIND, "类型");
+        setValue(L.LABEL_JOB_STARTED, "开始");
+        setValue(L.LABEL_JOB_ENDED, "结束");
+        setValue(L.LABEL_JOB_DURATION, "耗时");
+        setValue(L.LABEL_JOB_CALLS, "调用");
+        setValue(L.LABEL_JOB_BACKEND, "后端");
+        setValue(L.LABEL_JOB_IN_FLIGHT, "进行中的调用");
+        setValue(L.LABEL_JOB_OLDER_THAN_DAYS, "开始于多少天之前（含）");
+        setValue(L.LABEL_JOBS_DELETE_MATCHING, "删除这些作业");
+        setValue(L.LABEL_JOBS_OPEN_LIVE, "打开实时视图");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -1205,6 +1217,14 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.ENUM_REASONING_PASSTHROUGH_TOOL_CALLS, "工具调用之间");
         setValue(L.ENUM_REASONING_PASSTHROUGH_ALWAYS, "始终");
         setValue(L.ENUM_ACTIVATION_REASON_RECURSION_ONLY, "未使用：仅通过其他条目的内容使用");
+        setValue(L.ENUM_JOB_STATUS_RUNNING, "运行中");
+        setValue(L.ENUM_JOB_STATUS_COMPLETED, "已完成");
+        setValue(L.ENUM_JOB_STATUS_FAILED, "失败");
+        setValue(L.ENUM_JOB_STATUS_CANCELLED, "已取消");
+        setValue(L.ENUM_JOB_CALL_TYPE_LLM, "语言模型");
+        setValue(L.ENUM_JOB_CALL_TYPE_AUDIO, "音频");
+        setValue(L.ENUM_JOB_CALL_TYPE_IMAGE, "图像");
+        setValue(L.ENUM_JOB_CALL_TYPE_OTHER, "其他");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "内部服务器错误");
@@ -1733,6 +1753,10 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_CONFIRM_STATISTICS_CLEAR_EVERYONE, "要永久删除所有用户的统计吗？任何人的书都不会改变。");
         setValue(L.MSG_STATISTICS_CLEARED, "统计已删除。");
         setValue(L.MSG_STATISTICS_RECORDING_OFF, "统计记录已关闭：不会再统计新的内容。");
+        setValue(L.MSG_CONFIRM_JOBS_PURGE, "永久删除 %d 个作业及其调用记录？此操作无法撤销。");
+        setValue(L.MSG_JOBS_PURGED, "已删除 %d 个作业。");
+        setValue(L.MSG_JOBS_NONE_ACTIVE, "没有正在运行的作业。");
+        setValue(L.MSG_JOBS_ACTIVE_SUMMARY, "运行中的作业：%d 个，进行中的调用：%d 个。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");
@@ -1852,6 +1876,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.HELP_STATISTICS_KEEP_MONTHS, "较早的日期每天永久删除一次。0 表示全部保留。管理员可能设置了更短的期限。");
         setValue(L.HELP_STATISTICS_KEEP_MONTHS_INSTANCE, "较早的日期每天从所有用户的统计中永久删除一次。0 表示全部保留。用户可以为自己设置更短的期限。");
         setValue(L.HELP_STATISTICS_ADMIN, "统计会保留用户何时处理书籍、用了多长时间，以及书名和文件夹（包括已删除的书）。您可以关闭记录或限制保留时间；用户可以为自己选择更短的时间。");
+        setValue(L.HELP_JOBS_ADMIN, "所有与外部 AI 通信的作业（生成、摘要、有声书章节、图像）都会记录在这里，包括用户、开始和结束时间，以及它对模型或语音、图像后端发出的每次调用。只保存元数据，不保存任何文本。不会自动删除：请设置筛选条件，然后删除匹配的作业。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景设定与世界观。");

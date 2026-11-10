@@ -40,6 +40,13 @@ public class ComfyUiBackend implements ImageBackend {
 
     @Override
     public byte[] generate(ImageRequest request, Cancel cancel) throws BackendException {
+        // the call is the whole run: queued, polled until the image is there
+        return com.github.enerccio.marginalia.extensions.httphooks.JobCalls.track(
+                com.github.enerccio.marginalia.domain.service.job.JobCallType.IMAGE, "image-generator", config.getBaseUrl(),
+                config.getModel(), () -> draw(request, cancel));
+    }
+
+    private byte[] draw(ImageRequest request, Cancel cancel) throws BackendException {
         JsonObject workflow = WorkflowTemplate.fill(config.getWorkflow(), request);
         JsonObject body = new JsonObject();
         body.add("prompt", workflow);

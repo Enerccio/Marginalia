@@ -32,6 +32,12 @@ public class OpenAiImagesBackend implements ImageBackend {
 
     @Override
     public byte[] generate(ImageRequest request, Cancel cancel) throws BackendException {
+        return com.github.enerccio.marginalia.extensions.httphooks.JobCalls.track(
+                com.github.enerccio.marginalia.domain.service.job.JobCallType.IMAGE, "image-generator", config.getBaseUrl(),
+                config.getModel(), () -> draw(request, cancel));
+    }
+
+    private byte[] draw(ImageRequest request, Cancel cancel) throws BackendException {
         JsonObject body = new JsonObject();
         if (StringUtils.isNotBlank(config.getModel())) {
             body.addProperty("model", config.getModel());

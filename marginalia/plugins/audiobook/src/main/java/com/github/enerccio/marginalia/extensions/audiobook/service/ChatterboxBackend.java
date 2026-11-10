@@ -52,6 +52,12 @@ public class ChatterboxBackend implements SpeechBackend {
 
     @Override
     public byte[] synthesize(SpeechRequest request, Cancel cancel) throws BackendException {
+        return com.github.enerccio.marginalia.extensions.httphooks.JobCalls.track(
+                com.github.enerccio.marginalia.domain.service.job.JobCallType.AUDIO, "audiobook", config.getBaseUrl(),
+                config.getModel(), () -> speak(request, cancel));
+    }
+
+    private byte[] speak(SpeechRequest request, Cancel cancel) throws BackendException {
         if (request.text() == null || request.text().isBlank()) {
             throw new BackendException("There is nothing to say");
         }

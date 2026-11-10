@@ -10,8 +10,7 @@ verified: d163441bd
 # http-hooks
 
 `marginalia/libs/http-hooks` is what the plugins that call a **server of the user** share: the **Image Generator** and the **Audiobook** (text to speech). Read
-[Libraries for plugins](index.md) first for how a library is embedded and what that implies (a copy per plugin, no shared state). This one depends on the JDK only (but for the settings form `HookListEditor` in the `ui` package, which uses Vaadin from the application), not on the
-application, and has its own tests (a fake HTTP server).
+[Libraries for plugins](index.md) first for how a library is embedded and what that implies (a copy per plugin, no shared state). This one depends on the JDK only, but for the settings form `HookListEditor` in the `ui` package (Vaadin, from the application) and `JobCalls` (the application's `Jobs`), and has its own tests (a fake HTTP server).
 
 ## The call: `Http`
 
@@ -26,6 +25,16 @@ application, and has its own tests (a fake HTTP server).
 - `excerpt(response)` (the first 400 characters, for an error message) and `requireOk(response, what)`.
 
 The client speaks **HTTP/1.1 only**. The JDK client otherwise offers an upgrade to HTTP/2 on a plain connection (`Upgrade: h2c`), and an ASGI server (uvicorn with httptools: LiteLLM, FastAPI servers such as Chatterbox-TTS-Server) then takes the body of a POST for upgrade data and hands the application an empty request (a 422 "field required"); the JDK's own test server tolerates the header, so only a real server shows it.
+
+## The job log: `JobCalls`
+
+`JobCalls.track(type, autoKind, baseUrl, model, work)` runs the one operation that is the *work* (a speech made, an image generated: not the
+check of a connection, not a poll of the server) as a **call** of the job of the thread, so the administrator's overview of jobs sees it (see
+`Jobs` in [Services](../../services.md)). It records the host of `baseUrl` (never the path or the query), the model, the start and the end, and how it
+ended: a `BackendException` with the message `Cancelled` is a cancelled call, any other failure a failed one (the exception is thrown again). A call
+outside of a job becomes a job of its own with the kind `autoKind` (the name of the plugin); a plugin that does a unit of work of many calls (a chapter
+converted piece by piece) opens a job around them with `Jobs.open`. The Audiobook wraps `ChatterboxBackend.synthesize`, the Image Generator
+`OpenAiImagesBackend.generate` and `ComfyUiBackend.generate` (there the call is the whole run, queued and polled until the image is there).
 
 ## The guard: `UrlGuard`
 
