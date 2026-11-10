@@ -340,6 +340,9 @@ means the index is used. `FlywayMigrationTest.tagRelationLookupsUseIndexes` does
 
 - On the first start `Configuration` writes a random UUID to `<data folder>/secret.key`; the AES-256 key is the
   SHA-256 of that UUID. The file is outside the database, so a database backup alone doesn't reveal the secrets.
+  It is created with mode 600 (`createOwnerOnly`, skipped where the file system has no POSIX attributes); the folder is
+  not restricted (a Docker bind mount must stay open to the host user), and an existing key readable by group or
+  others only logs a warning (`warnWhenReadableByOthers`).
 - A stored value is `enc:` + Base64 of a random 12-byte IV and the AES/GCM ciphertext. Values without the prefix are
   read as they are (plain values from before the migration); a value that can't be decrypted (a database from another
   installation, a different `secret.key`) is logged and read as `null` - the user enters the key again.

@@ -39,7 +39,7 @@ on the host with the [Docker setup](../getting-started/docker-server.md)):
 | Path | |
 |---|---|
 | `marginalia.sqlite` (with `-wal`, `-shm`) | The database: users, books, lorebooks, settings, everything. |
-| `secret.key` | Key that encrypts the API keys in the database. Created on the first start; without it, saved API keys can't be read. |
+| `secret.key` | Key that encrypts the API keys in the database. Created on the first start, readable by its owner only (on Linux and macOS); without it, saved API keys can't be read. If it is readable by other users of the computer, the log says so: `chmod 600 secret.key`. |
 | `db-backups/` | [Database backups](database-backups.md). |
 | `data/<login>/backups/manuscripts/<book id>/` | [Book backups](../books/backups.md) of each user. |
 | `extensions/` | Installed [extension](extensions.md) JARs. |

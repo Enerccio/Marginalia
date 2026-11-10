@@ -707,10 +707,11 @@ numbers of the older items stable), the rest is P3/P4.
     construction is 600,000. Store the count with the hash (a versioned format), verify old hashes with their own count and
     rehash at the next successful login. Test: an old hash still logs in and is upgraded. Mind the constant-work path for
     unknown users (it must cost the same as the new count) and the login time on a small server.
-78. **`secret.key` and the data folder are created with the default permissions.** No `PosixFilePermission` anywhere in the
-    core, so on a shared Linux host the key that protects the API keys is world-readable under the usual umask. Create both
-    owner-only (skip on file systems without POSIX attributes, i.e. Windows) and warn at start when an existing key is group
-    or world readable.
+78. ~~**`secret.key` is created with the default permissions.**~~ ✅ Done (low priority in the end: a single-user desktop gains
+    little) - the key is created mode 600 (`Configuration.createOwnerOnly`, `SecretKeyPermissionsTest`), a group/world
+    readable existing one logs a warning. The data folder is left alone on purpose: in Docker it is a bind mount that the
+    host user must open (backups). Original text: no `PosixFilePermission` anywhere in the core, so on a shared Linux host
+    the key was world-readable under the usual umask.
 79. **One outbound address guard, resolved once.** The agent webhook (`AgentWebhookService`) and the image generator (35:
     "resolves the host twice") both check the host and then let the HTTP client resolve it again, which a DNS-rebinding
     host passes. Resolve once and connect to that address (or a custom `InetAddressResolver` for the client), in one shared
