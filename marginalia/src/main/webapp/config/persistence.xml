@@ -30,6 +30,8 @@
         <class>com.github.enerccio.marginalia.domain.model.impl.MessagePrompt</class>
         <class>com.github.enerccio.marginalia.domain.model.impl.MessageRevision</class>
         <class>com.github.enerccio.marginalia.domain.model.impl.Usage</class>
+        <class>com.github.enerccio.marginalia.domain.model.impl.Job</class>
+        <class>com.github.enerccio.marginalia.domain.model.impl.JobCall</class>
         <class>com.github.enerccio.marginalia.domain.model.impl.ManuscriptStatistic</class>
         <class>com.github.enerccio.marginalia.domain.model.impl.ActivityInterval</class>
         <class>com.github.enerccio.marginalia.domain.model.impl.ManuscriptSize</class>

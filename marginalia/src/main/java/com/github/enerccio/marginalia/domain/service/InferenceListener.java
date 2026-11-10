@@ -26,6 +26,15 @@ public interface InferenceListener {
      */
     Observation onRequest(Request request);
 
+    /**
+     * Whether the listener reads {@link Request#messages()}. The messages are a copy of the whole prompt, made for every request
+     * when one listener wants them; a listener that only needs to know that a request was made says false and gets an empty list
+     * (unless another listener wants them).
+     */
+    default boolean wantsMessages() {
+        return true;
+    }
+
     interface Observation {
 
         /**

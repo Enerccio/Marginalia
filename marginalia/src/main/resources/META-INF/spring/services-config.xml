@@ -65,6 +65,14 @@
         <property name="repository" ref="usageRepository" />
     </bean>
 
+    <bean id="jobRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaJobRepository">
+        <property name="entityManager" ref="em"/>
+    </bean>
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.JobServiceImpl">
+        <property name="repository" ref="jobRepository" />
+    </bean>
+
     <bean id="manuscriptStatisticRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaManuscriptStatisticRepository">
         <property name="entityManager" ref="em"/>
     </bean>

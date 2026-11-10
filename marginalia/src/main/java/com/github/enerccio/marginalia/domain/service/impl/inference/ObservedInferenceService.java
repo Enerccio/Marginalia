@@ -144,7 +144,8 @@ public class ObservedInferenceService implements InferenceService {
         InferenceSession.Scope scope = InferenceSession.current();
         InferenceListener.Request request = new InferenceListener.Request(Instant.now(),
                 scope == null ? null : scope.kind(), scope == null ? null : scope.scope(),
-                ai.getName(), modelOf(ai), protocol == null ? null : protocol.getName(), snapshot(payload));
+                ai.getName(), modelOf(ai), protocol == null ? null : protocol.getName(),
+                listeners.stream().anyMatch(InferenceListener::wantsMessages) ? snapshot(payload) : List.of());
         List<Observation> observations = new ArrayList<>();
         for (InferenceListener listener : listeners) {
             try {

@@ -26,6 +26,7 @@ narrower than 768 pixels) it is the tab **Admin** of the drawer. It opens the ad
 | **Help assistant** | The chat that answers questions from the manual: the model, the prompts and who pays for it. See [Help assistant](help-assistant.md). |
 | **Agents** | The system prompt and the compaction prompt that agents follow when neither they nor their user have one of their own. Empty is the built-in prompt; the info icon has **Insert Default Template**, which fills it in so you can edit a copy. What users may do with agents is their [permission](permissions.md). Also **Agents may send messages to the webhooks of users**: the server calls the address a user typed in their settings when an agent needs them and they have the application closed ([When you are not there](../agents.md#when-you-are-not-there)); turn it off where that is not acceptable. |
 | **Statistics** | Whether the [writing statistics](../books/statistics.md) are recorded at all, how long they are kept, and clearing the statistics of a user or of everybody. See [Statistics](statistics.md). |
+| **Jobs** | The log of everything that was asked of an external AI (who, when, which calls, how they ended), a filter that deletes old entries by hand, and the page `/jobs` with the jobs that run now. See [Jobs](jobs.md). |
 | **Extensions** | Installing and removing extensions. See [Managing extensions](extensions.md). |
 
 ![The Agents tab of the Admin page](../../images/admin-agents.png)

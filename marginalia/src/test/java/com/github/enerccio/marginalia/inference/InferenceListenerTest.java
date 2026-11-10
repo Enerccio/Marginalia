@@ -185,16 +185,13 @@ class InferenceListenerTest extends MarginaliaTestBase {
     }
 
     @Test
-    void removedListenerSeesNothingAndServiceIsNotWrapped() throws Exception {
+    void removedListenerSeesNothing() throws Exception {
         login();
         OpenAICompatible ai = createAI();
         Recorder seen = install();
-        InferenceService wrapped = inferenceServices.forAI(ai);
         InferenceSession.removeListener(seen);
+        // the job log keeps its own listener, so the service is wrapped either way
         InferenceService plain = inferenceServices.forAI(ai);
-
-        assertThat(plain).isNotSameAs(wrapped);
-        assertThat(inferenceServices.forAI(ai)).isSameAs(plain);
 
         llm.enqueue(MockLLMResponse.text("ok"));
         InferenceCollector collector = new InferenceCollector();

@@ -1012,6 +1012,18 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_STATISTICS_KEEP_MONTHS, "統計を保存する期間（月数、0 = 無期限）");
         setValue(L.LABEL_STATISTICS_CLEAR_USER, "ユーザーの統計を消去");
         setValue(L.LABEL_STATISTICS_CLEAR_EVERYONE, "全員の統計を消去");
+        setValue(L.LABEL_JOBS, "ジョブ");
+        setValue(L.LABEL_ACTIVE_JOBS, "実行中のジョブ");
+        setValue(L.LABEL_JOB_KIND, "種類");
+        setValue(L.LABEL_JOB_STARTED, "開始");
+        setValue(L.LABEL_JOB_ENDED, "終了");
+        setValue(L.LABEL_JOB_DURATION, "所要時間");
+        setValue(L.LABEL_JOB_CALLS, "呼び出し");
+        setValue(L.LABEL_JOB_BACKEND, "バックエンド");
+        setValue(L.LABEL_JOB_IN_FLIGHT, "実行中の呼び出し");
+        setValue(L.LABEL_JOB_OLDER_THAN_DAYS, "開始から経過した日数（以上）");
+        setValue(L.LABEL_JOBS_DELETE_MATCHING, "これらのジョブを削除");
+        setValue(L.LABEL_JOBS_OPEN_LIVE, "ライブビューを開く");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -1197,6 +1209,14 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.ENUM_REASONING_PASSTHROUGH_TOOL_CALLS, "ツール呼び出しの間");
         setValue(L.ENUM_REASONING_PASSTHROUGH_ALWAYS, "常に");
         setValue(L.ENUM_ACTIVATION_REASON_RECURSION_ONLY, "未使用: 他のエントリの内容経由でのみ使用");
+        setValue(L.ENUM_JOB_STATUS_RUNNING, "実行中");
+        setValue(L.ENUM_JOB_STATUS_COMPLETED, "完了");
+        setValue(L.ENUM_JOB_STATUS_FAILED, "失敗");
+        setValue(L.ENUM_JOB_STATUS_CANCELLED, "キャンセル");
+        setValue(L.ENUM_JOB_CALL_TYPE_LLM, "言語モデル");
+        setValue(L.ENUM_JOB_CALL_TYPE_AUDIO, "音声");
+        setValue(L.ENUM_JOB_CALL_TYPE_IMAGE, "画像");
+        setValue(L.ENUM_JOB_CALL_TYPE_OTHER, "その他");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "内部サーバーエラー");
@@ -1725,6 +1745,10 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_CONFIRM_STATISTICS_CLEAR_EVERYONE, "全ユーザーの統計を完全に削除しますか？誰の本も変更されません。");
         setValue(L.MSG_STATISTICS_CLEARED, "統計を削除しました。");
         setValue(L.MSG_STATISTICS_RECORDING_OFF, "統計の記録はオフです。新しい記録は取られません。");
+        setValue(L.MSG_CONFIRM_JOBS_PURGE, "%d 件のジョブとその呼び出しを完全に削除しますか？ 元に戻せません。");
+        setValue(L.MSG_JOBS_PURGED, "%d 件のジョブを削除しました。");
+        setValue(L.MSG_JOBS_NONE_ACTIVE, "実行中のジョブはありません。");
+        setValue(L.MSG_JOBS_ACTIVE_SUMMARY, "実行中のジョブ: %d 件、実行中の呼び出し: %d 件。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");
@@ -1844,6 +1868,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_STATISTICS_KEEP_MONTHS, "古い日は1日に1回、完全に削除されます。0 ですべて保存します。管理者がより短く設定している場合があります。");
         setValue(L.HELP_STATISTICS_ADMIN, "統計には、ユーザーがいつ本に取り組んだか、どれだけの時間か、本の名前とフォルダー（削除した本も）が残ります。記録をオフにするか、保存期間を制限できます。ユーザーは自分用にさらに短く設定できます。");
         setValue(L.HELP_STATISTICS_KEEP_MONTHS_INSTANCE, "古い日はすべてのユーザーの統計から1日に1回、完全に削除されます。0 ですべて保存します。ユーザーは自分用にさらに短く設定できます。");
+        setValue(L.HELP_JOBS_ADMIN, "外部 AI と通信するすべてのジョブ（生成、要約、オーディオブックの章、画像など）が、ユーザー、開始・終了時刻、モデルや音声・画像バックエンドへの各呼び出しとともにここに記録されます。保存されるのはメタデータのみで、本文は保存されません。自動的には削除されません。フィルターを設定して、一致するジョブを削除してください。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景設定と世界観の文脈。");

@@ -1012,6 +1012,18 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_STATISTICS_KEEP_MONTHS, "Keep statistics for (months, 0 = always)");
         setValue(L.LABEL_STATISTICS_CLEAR_USER, "Clear the statistics of the user");
         setValue(L.LABEL_STATISTICS_CLEAR_EVERYONE, "Clear the statistics of everybody");
+        setValue(L.LABEL_JOBS, "Jobs");
+        setValue(L.LABEL_ACTIVE_JOBS, "Active jobs");
+        setValue(L.LABEL_JOB_KIND, "Kind");
+        setValue(L.LABEL_JOB_STARTED, "Started");
+        setValue(L.LABEL_JOB_ENDED, "Ended");
+        setValue(L.LABEL_JOB_DURATION, "Duration");
+        setValue(L.LABEL_JOB_CALLS, "Calls");
+        setValue(L.LABEL_JOB_BACKEND, "Backend");
+        setValue(L.LABEL_JOB_IN_FLIGHT, "In flight");
+        setValue(L.LABEL_JOB_OLDER_THAN_DAYS, "Started more than (days) ago");
+        setValue(L.LABEL_JOBS_DELETE_MATCHING, "Delete these jobs");
+        setValue(L.LABEL_JOBS_OPEN_LIVE, "Open the live view");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -1197,6 +1209,14 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.ENUM_REASONING_PASSTHROUGH_TOOL_CALLS, "Between tool calls");
         setValue(L.ENUM_REASONING_PASSTHROUGH_ALWAYS, "Always");
         setValue(L.ENUM_ACTIVATION_REASON_RECURSION_ONLY, "Not used: used only through the content of other entries");
+        setValue(L.ENUM_JOB_STATUS_RUNNING, "Running");
+        setValue(L.ENUM_JOB_STATUS_COMPLETED, "Completed");
+        setValue(L.ENUM_JOB_STATUS_FAILED, "Failed");
+        setValue(L.ENUM_JOB_STATUS_CANCELLED, "Cancelled");
+        setValue(L.ENUM_JOB_CALL_TYPE_LLM, "Language model");
+        setValue(L.ENUM_JOB_CALL_TYPE_AUDIO, "Audio");
+        setValue(L.ENUM_JOB_CALL_TYPE_IMAGE, "Image");
+        setValue(L.ENUM_JOB_CALL_TYPE_OTHER, "Other");
 
         // --- ERROR ---
         setValue(L.ERROR_INTERNAL_SERVER_ERROR, "Internal Server Error");
@@ -1725,6 +1745,10 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_CONFIRM_STATISTICS_CLEAR_EVERYONE, "Delete the statistics of all users for good? Nobody's books are changed.");
         setValue(L.MSG_STATISTICS_CLEARED, "The statistics were deleted.");
         setValue(L.MSG_STATISTICS_RECORDING_OFF, "Recording of statistics is turned off: nothing new is counted.");
+        setValue(L.MSG_CONFIRM_JOBS_PURGE, "Delete %d jobs and their calls for good? This cannot be undone.");
+        setValue(L.MSG_JOBS_PURGED, "%d jobs deleted.");
+        setValue(L.MSG_JOBS_NONE_ACTIVE, "No job is running.");
+        setValue(L.MSG_JOBS_ACTIVE_SUMMARY, "%d jobs running, %d calls in flight.");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");
@@ -1844,6 +1868,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_STATISTICS_KEEP_MONTHS, "Older days are deleted for good once a day. 0 keeps everything. The administrator may keep less.");
         setValue(L.HELP_STATISTICS_ADMIN, "The statistics keep when users worked on their books, for how long, and the names and folders of their books, also of deleted ones. Turn recording off or limit how long it is kept; users may choose a shorter time for themselves.");
         setValue(L.HELP_STATISTICS_KEEP_MONTHS_INSTANCE, "Older days are deleted from the statistics of every user for good once a day. 0 keeps everything. A user may choose a shorter time for themselves.");
+        setValue(L.HELP_JOBS_ADMIN, "Every job that talks to an external AI (a generation, a summary, an audiobook chapter, an image) is logged here with the user, its start and end and each call it made to a model or a speech or image backend. Only metadata is kept, never the text. Nothing is deleted automatically: set the filter and delete the matching jobs.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Background lore and world context.");
