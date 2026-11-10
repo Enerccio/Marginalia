@@ -8,6 +8,8 @@
 /marginalia/plugins/*/target
 /marginalia/libs/*/target
 retype.manifest
+# the generated manual (tools/retype_build.sh); published by the Manual workflow, kept locally for browsing
+/docs/
 /marginalia/package.json
 /marginalia/package-lock.json
 /marginalia/node_modules
