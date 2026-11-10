@@ -152,6 +152,10 @@ public class SpeakersEditor extends VerticalLayout {
     }
 
     private static String levelLabel(UnderstandingLevel level) {
+        // the Select asks for the label of the empty choice too (null)
+        if (level == null) {
+            return "";
+        }
         return switch (level) {
             case NONE -> TC.localized(UNDERSTANDS_NOTHING);
             case FEW_WORDS -> TC.localized(KNOWS_A_FEW_WORDS);
