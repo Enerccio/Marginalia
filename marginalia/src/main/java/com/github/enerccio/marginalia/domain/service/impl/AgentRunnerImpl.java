@@ -13,6 +13,9 @@ import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.AgentService.ResolvedProfile;
 import com.github.enerccio.marginalia.domain.service.InferenceService.RoundUsage;
 import com.github.enerccio.marginalia.domain.service.agent.*;
+import com.github.enerccio.marginalia.domain.service.job.JobCallType;
+import com.github.enerccio.marginalia.domain.service.job.JobStatus;
+import com.github.enerccio.marginalia.domain.service.job.Jobs;
 import com.github.enerccio.marginalia.domain.service.agent.RunTools.Finding;
 import com.github.enerccio.marginalia.domain.service.agent.RunTools.PlanItem;
 import com.github.enerccio.marginalia.domain.service.agent.SubAgents.State;
@@ -1184,7 +1187,18 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
             try {
                 attributes = runService.openSession(run);
                 try (InRequestScope _ = new InRequestScope(attributes)) {
-                    work();
+                    // one work session of the run is a job: the requests of the agent are its calls
+                    try (Jobs.Handle job = Jobs.open(InferenceSession.AGENT, "Agent run " + runId, JobCallType.LLM)) {
+                        try {
+                            work();
+                        } catch (Discarded e) {
+                            job.finish(JobStatus.CANCELLED);
+                            throw e;
+                        } catch (Throwable e) {
+                            job.fail();
+                            throw e;
+                        }
+                    }
                 } catch (Interrupted e) {
                     log.info("Agent run {}: the author paused it at once", run.getUuid());
                     run = runService.find(runId);

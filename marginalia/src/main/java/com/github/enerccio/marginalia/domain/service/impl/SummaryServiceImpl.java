@@ -8,6 +8,9 @@ import com.github.enerccio.marginalia.domain.listener.ExtendableEntityListener;
 import com.github.enerccio.marginalia.domain.model.impl.*;
 import com.github.enerccio.marginalia.domain.repository.SummaryRepository;
 import com.github.enerccio.marginalia.domain.service.*;
+import com.github.enerccio.marginalia.domain.service.job.JobCallType;
+import com.github.enerccio.marginalia.domain.service.job.JobStatus;
+import com.github.enerccio.marginalia.domain.service.job.Jobs;
 import com.github.enerccio.marginalia.domain.service.InferenceService.ChunkType;
 import com.github.enerccio.marginalia.domain.service.InferenceService.InferenceAsyncCallback;
 import com.github.enerccio.marginalia.domain.service.InferenceService.InferenceAsyncController;
@@ -321,6 +324,8 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
         private final Map<SummaryNode, ResummaryResult> results = new IdentityHashMap<>();
         // the new text of the summaries that are stored on a part, by uuid: the hash of a meta summary is made of them
         private final Map<String, String> newTexts = new HashMap<>();
+        // the job of the whole run (its requests go one after another, on different threads), null until the first step
+        private Jobs.Handle job;
 
         ResummaryRun(Manuscript manuscript, AI ai, Protocol protocol, InferenceService inferenceService, List<ChatMessage> tree,
                      Summary[] attached, List<SummaryNode> roots, List<ResummaryStep> steps, ResummaryCallback callback) {
@@ -337,12 +342,19 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
 
         void run(int index) {
             try (InRequestScope _ = new InRequestScope(attributes)) {
+                if (job == null) {
+                    // ends in endJob, from whichever thread the last request answers on
+                    job = Jobs.openAsync(InferenceSession.SUMMARY, "Rewrite of the summaries, " + steps.size() + " steps", JobCallType.LLM);
+                    job.close();
+                }
                 if (token.isCancelled()) {
+                    endJob(JobStatus.CANCELLED);
                     callback.onTerminated();
                     return;
                 }
                 if (index >= steps.size()) {
                     store();
+                    endJob(JobStatus.COMPLETED);
                     callback.onFinished(steps.size());
                     return;
                 }
@@ -354,10 +366,12 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
                     throw new IllegalStateException("Nothing to summarize at the part " + tree.get(step.index()).getId());
                 }
                 if (token.isCancelled()) {
+                    endJob(JobStatus.CANCELLED);
                     callback.onTerminated();
                     return;
                 }
-                try (InferenceSession _ = InferenceSession.open(InferenceSession.SUMMARY); UsageContext _ = UsageContext.open(manuscript)) {
+                try (Jobs.Scope _ = job.enter(); InferenceSession _ = InferenceSession.open(InferenceSession.SUMMARY);
+                     UsageContext _ = UsageContext.open(manuscript)) {
                     // a stop reaches the request also while the server still reads the prompt
                     StepCallback stepCallback = new StepCallback(index, step, prepared.hash());
                     stepCallback.unregister = token.onCancel(inferenceService.stream(prepared.payload(), protocol, stepCallback)::cancel);
@@ -367,7 +381,14 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
             }
         }
 
+        private void endJob(JobStatus status) {
+            if (job != null) {
+                job.finish(status);
+            }
+        }
+
         private void fail(Throwable error) {
+            endJob(JobStatus.FAILED);
             log.error("Failed to write the summaries again", error);
             try (InRequestScope _ = new InRequestScope(attributes)) {
                 callback.onError(error);
@@ -499,6 +520,7 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
             @Override
             public void onCancel() throws Exception {
                 unregister.run();
+                endJob(JobStatus.CANCELLED);
                 try (InRequestScope _ = new InRequestScope(attributes)) {
                     callback.onTerminated();
                 }

@@ -11,6 +11,9 @@ import com.github.enerccio.marginalia.domain.service.agent.CheckpointStore.Info;
 import com.github.enerccio.marginalia.domain.service.agent.CheckpointStore.Kind;
 import com.github.enerccio.marginalia.domain.service.agent.ImageFiles;
 import com.github.enerccio.marginalia.domain.service.agent.RunTools;
+import com.github.enerccio.marginalia.domain.service.job.FinishedJob;
+import com.github.enerccio.marginalia.domain.service.job.JobStatus;
+import com.github.enerccio.marginalia.domain.service.job.Jobs;
 import com.github.enerccio.marginalia.domain.service.agent.VirtualFileSystem;
 import com.github.enerccio.marginalia.domain.service.agent.VirtualPath;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMAttachment;
@@ -28,8 +31,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.concurrent.CountDownLatch;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -140,6 +146,28 @@ class AgentRunnerTest extends AgentTestBase {
         assertThat(run.getStatus()).isEqualTo(AgentRunStatus.IDLE);
         assertThat(llm.getCompletionRequests()).hasSize(1);
         assertThat(aiGate.active(main.ai())).as("the place was given back").isZero();
+    }
+
+    @Test
+    void aWorkSessionOfARunIsOneJobAndItsRequestsAreItsCalls() throws Exception {
+        Agent agent = readingAgent();
+        llm.reply("Nothing to do.");
+        List<FinishedJob> ended = Collections.synchronizedList(new ArrayList<>());
+        Consumer<FinishedJob> sink = ended::add;
+        Jobs.addSink(sink);
+        try {
+            AgentRun run = startRun(agent);
+            await(run);
+        } finally {
+            Jobs.removeSink(sink);
+        }
+
+        assertThat(ended).singleElement().satisfies(job -> {
+            assertThat(job.kind()).isEqualTo(InferenceSession.AGENT);
+            assertThat(job.label()).startsWith("Agent run");
+            assertThat(job.status()).isEqualTo(JobStatus.COMPLETED);
+            assertThat(job.calls()).hasSize(1);
+        });
     }
 
     @Test
