@@ -311,6 +311,13 @@ public class ConversionQueue implements AutoCloseable {
                 }
             }
             job.progress(present, total);
+            if (present < total) {
+                // why a part that was made is made again: its script is not the stored one (another label, voice, delivery or spoken form changes the key of a piece)
+                AudiobookLog.get().info("Part {}: {} of {} pieces are not stored and will be made ({})", job.partId(), total - present, total,
+                        stored == null ? "no audio of the part yet" : stored.sourceHash().equals(script.sourceHash())
+                                ? "same text, other script: labels, voices or spoken form differ from the stored ones"
+                                : "the text of the part changed");
+            }
             fire(job);
         }
 
@@ -482,6 +489,10 @@ public class ConversionQueue implements AutoCloseable {
 
     private void finish(ConversionJob job, State state, String message) {
         job.set(state, message);
+        if (state == State.FAILED) {
+            // the reason is also in the window, but only until it is closed: the log is where it can be read later
+            AudiobookLog.get().warn("The conversion of part {} failed: {}", job.partId(), message);
+        }
         try {
             env.store().flush(job.partId());
         } catch (RuntimeException e) {

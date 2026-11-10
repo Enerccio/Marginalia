@@ -43,6 +43,7 @@ A backend is a speech server and the model it speaks with. Add one with **+**.
 | GPU (name) | Optional. Servers that share one GPU, also those of the [Image Generator](image-generator.md), get the same name here: their work then waits for each other, and a backend for another model waits for the others to be done. Empty: only batches to this address wait for each other. |
 | The server is on this machine or on my network | Allows addresses of the local network. Leave it off for a server in the cloud: it then cannot be made to call your own machine. |
 | Timeout of a request | How long to wait for one piece of speech. |
+| Restart the server after (pieces) | For a speech server that leaks memory and is killed by the system in a long batch: after this many pieces the requests after the batch and then the requests before it are made again in the middle of the batch (stop, start, load), and the work goes on with a fresh server. 0 (the default) never does it. A server that dies is started again whatever this says, see [Troubleshooting](audiobook-server.md#troubleshooting). |
 | Key of the requests around a batch | The key the requests before and after a batch carry as `Authorization: Bearer`. It is stored encrypted and not shown again (**Remove the key** clears it), so it does not have to be written into the headers of each request, where it would be readable. Empty: the *Api key* above is used, which is what you want when one proxy such as LiteLLM serves everything. A request that has an `Authorization` header of its own keeps it. |
 | Narrator voice | The narrator of a book that has no cast. A voice file of the server is written `predefined:Henry.wav`. |
 | Defaults of a segment | Temperature, CFG weight, speed and chunk size that a piece starts with (the studio can change them for one piece). |
@@ -109,11 +110,19 @@ changes is made again, the others are kept.
 
 ![The dialog before starting](../../images/plugin-audiobook-convert.png)
 
-1. Choose the **backend** and the range of parts (the parts with text of the active branch are counted, the first is 1).
+1. Choose the **backend** and press **Load**: the parts with text of the active branch are listed (the first is 1) with what each has:
+   *Not generated*, *Labelled* (the model's labels are stored, no audio yet), *Generated* (with a play button and a download) or
+   *Generated (the text changed)* (the audio was made from an older text and is made again); *(final)* is added to a part the studio marks final.
 2. Leave **Label the parts with a language model** off for the plain version: the narrator reads every paragraph. Turn it on to have
    the model decide who speaks each piece of speech, how (calm, whisper, shout...) and where a sound tag fits, and the cast gives the
-   voices. The model of the book is chosen; pick another if you like. The parts are labelled first, then spoken.
-3. **Start**. The parts go into your queue, which goes on when you close the window and when you leave the page.
+   voices. The model of the book is chosen; pick another if you like. The parts are labelled first, then spoken. A part that already has labels for its text is read
+   with them also when the box is off (the model is not asked), so running a labelled book again without the box does not turn its dialogue into plain narration; **Remove labels** is how you ask for plain narration or new labels.
+3. Tick the parts (the box in the header ticks them all) and **plan** what to do with them; the **Plan** column shows it and nothing is done yet:
+   **Generate** (make what is missing; a part that is up to date is not made again), **Regenerate** (delete the audio, remove the labels, generate),
+   **Delete audio** (the pieces and the joined audio of the part; the labels stay), **Remove labels** (the model is asked again the next time the part is made),
+   **Clear the plan**. Steps add up on a part (Delete audio and Remove labels without Generate only clean up); a part marked final is left out of every plan.
+4. **Start** carries the plan out. When it takes audio or labels away it asks first. What is to be generated goes into your queue, which goes on when you close the window
+   and when you leave the page; a part that waits or runs in the queue is left out of a plan. The state, the pieces made so far and the message of the job are shown on the part's row.
 
 ![The queue: pieces made so far, and a download when a part is done](../../images/plugin-audiobook-queue.png)
 
@@ -122,10 +131,11 @@ How a part is made, so you know what to expect:
 - The text is **split by the program**, never by the model, into pieces of narration and pieces of direct speech (between straight or
   curly double quotation marks or Japanese corner brackets; a heading is narration). The model only *labels* the numbered pieces. A text
   with sound tags is used only when it is the piece with tags added and nothing else changed, so the model can never change your book.
-- **Who speaks a piece is the model's call**, also for narration. A letter, a note, a sign or a character's thoughts has no quotation marks, so the program calls it
-  narration, but the model sees from the context (a signature, "the handwriting was unmistakable") that it is a character's own words and names that character, so the voice
-  of the cast reads it. Italics are only a hint to the model, which also reads emphasis and sounds in italics as narration. When it is in doubt it is the narrator. The words
-  are always yours.
+- **Who speaks a piece is the model's call for speech; narration is the narrator's.** A letter, a note, a message or a character's thoughts has no quotation marks, so the
+  program calls it narration. Such a piece is read by the character (the voice of the cast) only when it **starts in italics** (`*...*` or `_..._`) and the model names the
+  character, from the context (a signature, "the handwriting was unmistakable"). Third person narration, also when it is told from a character's point of view ("She watched as
+  Percy crossed the room"), is always the narrator: the program ignores a character the model gives to a piece without italics. Italics for emphasis, sounds or foreign words are
+  narration too. The words are always yours.
 - **The instruction to the model is a template you can change.** *Settings → Extension Settings → Audiobook Settings → Labelling prompt* is your default; a book (*Prompts* tab →
   *Extension Settings* → *Audiobook*) or a folder can have its own. Empty means the one of the folder above, then yours, then the built-in one. It is written like the other
   [prompts](../books/prompts.md): the variables are `{{characters}}`, `{{deliveries}}`, `{{tags}}` and `{{wordsPerTag}}`, and the hints popover has **Insert Default Template**. A changed

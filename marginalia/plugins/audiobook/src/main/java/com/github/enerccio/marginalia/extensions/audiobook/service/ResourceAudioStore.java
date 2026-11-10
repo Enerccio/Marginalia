@@ -136,6 +136,46 @@ public class ResourceAudioStore implements AudioStore {
         }
     }
 
+    /**
+     * Forgets all the audio of the part, the pieces and the joined audio, and deletes the files; the labels and the script of the part stay. What was
+     * made since the last flush is dropped too.
+     *
+     * @return how many files were deleted
+     */
+    public synchronized int discardAudio(String partId) {
+        pendingSegments.remove(partId);
+        pendingParts.remove(partId);
+        try {
+            ChatMessage message = messages.findForUser(partId);
+            if (message == null) {
+                return 0;
+            }
+            JsonObject index = indexOf(message);
+            List<String> dropped = new ArrayList<>();
+            if (index.has("segments") && index.get("segments").isJsonObject()) {
+                index.getAsJsonObject("segments").entrySet().forEach(e -> dropped.add(e.getValue().getAsString()));
+            }
+            if (index.has("part") && index.get("part").isJsonObject() && index.getAsJsonObject("part").has("resource")) {
+                dropped.add(index.getAsJsonObject("part").get("resource").getAsString());
+            }
+            if (dropped.isEmpty() && !index.has("segments") && !index.has("part")) {
+                return 0;
+            }
+            index.remove("segments");
+            index.remove("part");
+            message.getAttributes().add(KEY, index);
+            messages.save(message);
+            if (!dropped.isEmpty()) {
+                resources.softDelete(dropped);
+            }
+            return dropped.size();
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new IllegalStateException(e.getMessage(), e);
+        }
+    }
+
     /** The joined audio of the part as it is stored (after the last flush or put), null when there is none. */
     public synchronized byte[] partBytes(String partId) {
         PendingPart pending = pendingParts.get(partId);

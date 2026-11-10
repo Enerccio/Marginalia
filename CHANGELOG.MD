@@ -7,6 +7,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+- **Audiobook: a speech server that dies is started again, and it can be restarted on a schedule.** A piece that finds the server gone (refused, reset, timed out, 503 "no model loaded") no longer fails the part: the requests after the batch and the ones before it are made again and the piece is made once more; if the server cannot be brought back, or is gone again at once, the rest of the batch fails at once instead of waiting for each piece. The backend has a new setting **Restart the server after (pieces)** (0 = never, the default) that does the same every N pieces, for a server that leaks memory (a Chatterbox that grew to 20 GB was killed by the system after 74 minutes of a batch). Library `http-hooks`: new `ServerGoneException`, a subclass of `BackendException` that `Http.send` throws when the server did not answer.
+
+### Changed
+
+- **Audiobook: Convert to audio works on a list of parts with a plan.** Instead of a first and a last part and *Start*, **Load** lists the parts of the book with what each has (*Not generated*, *Labelled*, *Generated* with a play button and a download, *Generated (the text changed)*, final). Tick parts and plan **Generate**, **Regenerate**, **Delete audio** or **Remove labels** (a *Plan* column shows it, steps add up); **Start** carries the plan out, after a question when it takes audio or labels away, and the parts to generate go into the queue (a part that waits or runs, or is final, is left out). The job of each part is shown on its row. Until now there was no way to delete the audio of a part or to make a part again from scratch. API: `AudiobookService.partStates`, `partState`, `deleteAudio`, `removeLabels`, `busy`, `convertParts` (chosen parts instead of a range).
+- **Audiobook: the pieces the labelling model leaves out are the narrator's, and the labels are stored.** They were read by the narrator already, but labels with a gap were never stored, so the model was asked again on every run and gave other labels (other voices and deliveries, so other pieces to speak) for the same text. The labels are complete and stored now; *Remove labels* asks the model again.
+
+### Fixed
+
+- **Audiobook: running a labelled book again without the labelling box turned its dialogue into plain narration.** The run built the plain script, so the pieces of speech got the narrator's voice, their audio was "missing" (another voice, another key) and was spoken again while the model was never asked. A part that has labels for its text now keeps them when the box is off. The labels are stored with the hash of their text (`textHash`) for this; labels stored before are found by the key they were made under, when the characters and the instruction are the same.
+- **Audiobook: the studio said *invalid value* for the default pause of 0.12 s.** The step of the *Pause after* field was 0.05, so 0.12 was not a valid value; it is 0.01 now.
+- **Audiobook: third person narration is read by the narrator, not by the character it is about.** The labelling model often gave a narration piece such as "She watched as Percy crossed the room" to the character whose point of view it is told from. The program now enforces the rule: a character the model gives to a narration piece that does not start in italics (a thought, a letter) is the narrator, also for labels made earlier (the script is built from them again; a segment locked in the studio keeps its voice). The labelling instruction is unchanged on purpose, so the labels already stored are still found (a changed instruction asks the model again for every part).
+- **Audiobook: a failed conversion is written to the log of the extension.** The reason (*A piece could not be made: ...*) was only shown in the window of the job, the log said just that the batch was over.
+
 ## [1.7.0] - 2026-11-09
 
 Everything below is new since 1.6.0. Migrations `V24`, `V25`, `V26` and `V27`; plugins have to be rebuilt with the application.

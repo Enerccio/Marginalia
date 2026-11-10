@@ -11,6 +11,7 @@ import com.github.enerccio.marginalia.extensions.audiobook.queue.ConversionJob;
 import com.github.enerccio.marginalia.extensions.audiobook.queue.ConversionJob.State;
 import com.github.enerccio.marginalia.extensions.audiobook.queue.ConversionQueue;
 import com.github.enerccio.marginalia.extensions.audiobook.service.AudiobookService;
+import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.widgets.ModelProtocolPicker;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.utils.UIUtils;
@@ -29,36 +30,58 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.select.Select;
-import com.vaadin.flow.component.textfield.IntegerField;
+import com.vaadin.flow.dom.Element;
 import com.vaadin.flow.server.StreamResource;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.ByteArrayInputStream;
+import java.util.*;
 import java.util.function.Consumer;
 
 import static com.github.enerccio.marginalia.extensions.audiobook.AudiobookLocalization.*;
 
 /**
- * <i>Convert to audio</i>: the user picks a backend and a range of parts, the parts go into the queue of the user, and the list of jobs shows
- * how each goes (waiting, running with the pieces made so far, done with a download, failed with the reason and a retry). The queue goes on
- * when the window is closed; a job that is over is shown again when the window is opened.
+ * <i>Convert to audio</i>: <b>Load</b> reads the parts of the book and what each has (nothing, labels, audio); the user ticks parts and plans
+ * what to do with them (delete the audio, remove the labels, generate, regenerate = all three), the plan is shown in a column of its own, and
+ * <b>Start</b> carries it out: the audio and the labels are taken away at once, the parts to generate go into the queue of the user, and the same
+ * list shows how each job goes (waiting, running with the pieces made so far, done, failed with the reason and a retry). The queue goes on when the
+ * window is closed; a job that is over is shown again when the window is opened and the parts are loaded.
  */
 public class ConvertDialog extends Dialog {
+
+    /** What a plan does to a part; they are carried out in this order. */
+    private enum Step {
+        DELETE_AUDIO, REMOVE_LABELS, GENERATE
+    }
+
+    /** A part of the list: what it has, what is planned for it, and its job. */
+    private static final class Row {
+        private AudiobookService.PartState state;
+        private final EnumSet<Step> plan = EnumSet.noneOf(Step.class);
+        private ConversionJob.Snapshot job;
+
+        private Row(AudiobookService.PartState state) {
+            this.state = state;
+        }
+    }
 
     private final Manuscript manuscript;
     private final AudiobookService service;
     private final ConversionQueue queue;
-    private final Consumer<ConversionJob.Snapshot> listener = snapshot -> UIUtils.accessComponent(this, this::refresh);
+    private final Consumer<ConversionJob.Snapshot> listener = snapshot -> UIUtils.accessComponent(this, () -> jobChanged(snapshot));
 
     private final Select<BackendConfig> backend = new Select<>();
-    private final IntegerField from = new IntegerField(T.localized(FIRST_PART));
-    private final IntegerField to = new IntegerField(T.localized(LAST_PART));
+    private final Button load = new Button(T.localized(LOAD), Solid.ARROW_ROTATE_RIGHT.create(), e -> load());
     private final Button editCast = new Button(T.localized(CAST), Solid.MASKS_THEATER.create());
     private final Button pronunciation = new Button(T.localized(PRONUNCIATION), Solid.LANGUAGE.create());
     private final Checkbox label = new Checkbox(T.localized(LABEL_WITH_A_LANGUAGE_MODEL));
     private final ModelProtocolPicker modelPicker = new ModelProtocolPicker();
     private final Button start = new Button(T.localized(START), Solid.PLAY.create(), e -> start());
-    private final Grid<ConversionJob.Snapshot> grid = new Grid<>();
+    private final Grid<Row> grid = new Grid<>();
+    private final List<Row> rows = new ArrayList<>();
+    /** The parts queued with the labelling of the model in this window: when their job is done they have labels. */
+    private final Set<String> queuedLabelled = new HashSet<>();
+    private final Element audio = new Element("audio");
     private final Div wholeLink = new Div();
     private int parts;
 
@@ -68,7 +91,7 @@ public class ConvertDialog extends Dialog {
         this.queue = service.queue();
 
         setHeaderTitle(T.localized(CONVERT_TO_AUDIO));
-        setWidth("min(900px, 95vw)");
+        setWidth("min(1000px, 95vw)");
         setMaxHeight("92vh");
 
         backend.setLabel(T.localized(BACKEND));
@@ -84,34 +107,43 @@ public class ConvertDialog extends Dialog {
         } catch (Exception e) {
             AudiobookLog.get().warn("The parts of the book could not be counted: {}", e.getMessage(), e);
         }
-        hint.setText(parts == 0 ? T.localized(THE_BOOK_HAS_NO_TEXT) : T.localized(THE_BOOK_HAS_PARTS_WITH_TEXT).formatted(parts));
-        for (IntegerField f : new IntegerField[]{from, to}) {
-            f.setMin(1);
-            f.setMax(Math.max(parts, 1));
-            f.setStepButtonsVisible(true);
-            f.setWidth("9em");
-        }
-        from.setValue(1);
-        to.setValue(Math.max(parts, 1));
+        hint.setText(parts == 0 ? T.localized(THE_BOOK_HAS_NO_TEXT) : T.localized(LOAD_THE_PARTS_HINT).formatted(parts));
+        load.setEnabled(parts > 0);
         start.addThemeName("primary");
-        start.setEnabled(parts > 0 && !service.backends().isEmpty());
+        start.setEnabled(false);
 
         editCast.setThemeName("tertiary");
         pronunciation.setThemeName("tertiary");
         pronunciation.addClickListener(e -> new SpokenFormDialog(service, manuscript, () -> Notification.success(T.localized(THE_PRONUNCIATION_IS_STORED))).open());
         editCast.addClickListener(e -> new CastDialog(service, manuscript, () -> Notification.success(T.localized(THE_CAST_IS_STORED))).open());
 
-        HorizontalLayout form = new HorizontalLayout(backend, from, to, start, editCast, pronunciation);
+        HorizontalLayout form = new HorizontalLayout(backend, load, editCast, pronunciation);
         form.setAlignItems(FlexComponent.Alignment.END);
         form.setWrap(true);
 
+        grid.setSelectionMode(Grid.SelectionMode.MULTI);
         grid.addThemeVariants(GridVariant.LUMO_COMPACT, GridVariant.LUMO_NO_BORDER);
-        grid.addColumn(ConversionJob.Snapshot::title).setHeader(T.localized(PART)).setFlexGrow(3);
-        grid.addColumn(s -> stateText(s.state())).setHeader(T.localized(STATE)).setAutoWidth(true);
-        grid.addColumn(s -> s.total() == 0 ? "" : s.done() + " / " + s.total()).setHeader(T.localized(PROGRESS)).setAutoWidth(true);
-        grid.addColumn(ConversionJob.Snapshot::message).setHeader(T.localized(MESSAGE)).setFlexGrow(2);
+        grid.addColumn(r -> r.state.title()).setHeader(T.localized(PART)).setFlexGrow(3);
+        grid.addColumn(r -> statusText(r.state)).setHeader(T.localized(STATUS)).setAutoWidth(true);
+        grid.addColumn(r -> planText(r.plan)).setHeader(T.localized(PLAN)).setAutoWidth(true);
+        grid.addColumn(r -> r.job == null ? "" : stateText(r.job.state()) + (r.job.total() == 0 ? "" : " " + r.job.done() + " / " + r.job.total()))
+                .setHeader(T.localized(STATE)).setAutoWidth(true);
+        grid.addColumn(r -> r.job == null ? "" : r.job.message()).setHeader(T.localized(MESSAGE)).setFlexGrow(2);
         grid.addComponentColumn(this::actions).setAutoWidth(true);
-        grid.setHeight("18em");
+        grid.setHeight("22em");
+
+        Button generate = planButton(GENERATE, Solid.PLAY, EnumSet.of(Step.GENERATE), false);
+        Button regenerate = planButton(REGENERATE, Solid.ROTATE, EnumSet.allOf(Step.class), true);
+        Button deleteAudio = planButton(DELETE_AUDIO, Solid.TRASH, EnumSet.of(Step.DELETE_AUDIO), false);
+        Button removeLabels = planButton(REMOVE_LABELS, Solid.TAG, EnumSet.of(Step.REMOVE_LABELS), false);
+        Button clearPlan = new Button(T.localized(CLEAR_THE_PLAN), Solid.XMARK.create(), e -> {
+            selectedRows().forEach(r -> r.plan.clear());
+            grid.getDataProvider().refreshAll();
+        });
+        clearPlan.setThemeName("tertiary");
+        HorizontalLayout planning = new HorizontalLayout(generate, regenerate, deleteAudio, removeLabels, clearPlan, start);
+        planning.setWrap(true);
+        planning.setAlignItems(FlexComponent.Alignment.CENTER);
 
         modelPicker.setPlaceholder(T.localized(THE_MODEL_THAT_LABELS));
         modelPicker.setEnabled(false);
@@ -127,49 +159,197 @@ public class ConvertDialog extends Dialog {
         labelling.setAlignItems(FlexComponent.Alignment.CENTER);
         labelling.setWrap(true);
 
-        VerticalLayout content = new VerticalLayout(hint, form, labelling, labelHint, grid, wholeLink);
+        audio.setAttribute("controls", true);
+        audio.setAttribute("preload", "none");
+        audio.getClassList().add(AudiobookStyles.CONVERT_AUDIO);
+        Div player = new Div();
+        player.getElement().appendChild(audio);
+
+        VerticalLayout content = new VerticalLayout(hint, form, labelling, labelHint, grid, planning, player, wholeLink);
         content.setPadding(false);
         add(content);
 
         Button stop = new Button(T.localized(STOP_ALL), Solid.STOP.create(), e -> queue.cancelAll());
         Button clear = new Button(T.localized(CLEAR_FINISHED), Solid.BROOM.create(), e -> {
             queue.clearFinished();
-            refresh();
+            attachJobs();
+            grid.getDataProvider().refreshAll();
         });
         Button whole = new Button(T.localized(DOWNLOAD_THE_AUDIOBOOK), Solid.FILE_AUDIO.create(), e -> downloadWhole());
         whole.setTooltipText(T.localized(DOWNLOAD_THE_AUDIOBOOK_HELP));
         Button close = new Button(T.localized(CLOSE), e -> close());
         getFooter().add(whole, stop, clear, close);
-        refresh();
     }
 
-    private void start() {
-        BackendConfig chosen = backend.getValue();
-        if (chosen == null) {
-            Notification.error(T.localized(NO_BACKEND_YET));
+    /** A button that adds steps to the plan of the selected parts (or, for {@code replace}, makes them the plan). */
+    private Button planButton(String text, Solid icon, EnumSet<Step> steps, boolean replace) {
+        Button button = new Button(T.localized(text), icon.create(), e -> plan(steps, replace));
+        button.setThemeName("tertiary");
+        return button;
+    }
+
+    private List<Row> selectedRows() {
+        return new ArrayList<>(grid.getSelectedItems());
+    }
+
+    private void plan(EnumSet<Step> steps, boolean replace) {
+        List<Row> selected = selectedRows();
+        if (selected.isEmpty()) {
+            Notification.error(T.localized(SELECT_THE_PARTS_FIRST));
             return;
         }
-        var narratorActor = service.getSettings().findActor(service.castOf(manuscript).getNarratorActorId());
-        boolean castNarrates = narratorActor != null && !narratorActor.getVoice().isBlank();
-        if (chosen.getNarratorVoice().isBlank() && !castNarrates) {
-            Notification.error(T.localized(THERE_IS_NO_NARRATOR_VOICE));
-            return;
+        int left = 0;
+        for (Row row : selected) {
+            if (row.state.finalStatus()) {
+                left++;
+                continue;
+            }
+            if (replace) {
+                row.plan.clear();
+            }
+            row.plan.addAll(steps);
         }
-        int first = from.getValue() == null ? 1 : from.getValue();
-        int last = to.getValue() == null ? parts : to.getValue();
-        if (first < 1 || last < first || last > parts) {
-            Notification.error(T.localized(THE_RANGE_IS_NOT_IN_THE_BOOK).formatted(parts));
-            return;
+        if (left > 0) {
+            Notification.success(T.localized(FINAL_PARTS_ARE_LEFT_ALONE).formatted(left));
         }
+        grid.getDataProvider().refreshAll();
+    }
+
+    /** Reads the parts of the book and what each has; the plans are dropped. */
+    private void load() {
         try {
-            var jobs = service.convert(manuscript, chosen, first, last,
-                    label.getValue() ? new AudiobookService.LabelOptions(modelPicker.getAi(), modelPicker.getProtocol()) : null);
+            rows.clear();
+            for (AudiobookService.PartState state : service.partStates(manuscript)) {
+                rows.add(new Row(state));
+            }
+            attachJobs();
+            grid.setItems(rows);
+            start.setEnabled(!rows.isEmpty());
+        } catch (Exception e) {
+            AudiobookLog.get().warn("The parts of the book could not be loaded: {}", e.getMessage(), e);
+            Notification.error(T.localized(THE_CONVERSION_COULD_NOT_BE_STARTED).formatted(e.getMessage()));
+        }
+    }
+
+    /** Gives each part the latest job of the queue that is about it. */
+    private void attachJobs() {
+        for (Row row : rows) {
+            row.job = null;
+        }
+        for (ConversionJob.Snapshot job : queue.jobs()) {
+            for (Row row : rows) {
+                if (row.state.uuid().equals(job.partId())) {
+                    row.job = job;
+                }
+            }
+        }
+    }
+
+    /** A job moved on: the row shows it; a part that is done has its audio (and the labels, when the model labelled it). */
+    private void jobChanged(ConversionJob.Snapshot job) {
+        for (Row row : rows) {
+            if (!row.state.uuid().equals(job.partId())) {
+                continue;
+            }
+            row.job = job;
+            if (job.state() == State.DONE && job.mode() == ConversionJob.Mode.PART) {
+                row.state = new AudiobookService.PartState(row.state.number(), row.state.uuid(), row.state.title(),
+                        row.state.labelled() || queuedLabelled.contains(row.state.uuid()), AudiobookService.StoredAudio.CURRENT, row.state.finalStatus());
+            }
+            grid.getDataProvider().refreshItem(row);
+        }
+    }
+
+    /** Carries out the plan: asks first when it takes something away. */
+    private void start() {
+        List<Row> planned = rows.stream().filter(r -> !r.plan.isEmpty()).toList();
+        if (planned.isEmpty()) {
+            Notification.error(T.localized(NOTHING_IS_PLANNED));
+            return;
+        }
+        boolean generating = planned.stream().anyMatch(r -> r.plan.contains(Step.GENERATE));
+        BackendConfig chosen = backend.getValue();
+        if (generating) {
+            if (chosen == null) {
+                Notification.error(T.localized(NO_BACKEND_YET));
+                return;
+            }
+            var narratorActor = service.getSettings().findActor(service.castOf(manuscript).getNarratorActorId());
+            boolean castNarrates = narratorActor != null && !narratorActor.getVoice().isBlank();
+            if (chosen.getNarratorVoice().isBlank() && !castNarrates) {
+                Notification.error(T.localized(THERE_IS_NO_NARRATOR_VOICE));
+                return;
+            }
+        }
+        long audioGoes = planned.stream().filter(r -> r.plan.contains(Step.DELETE_AUDIO)).count();
+        long labelsGo = planned.stream().filter(r -> r.plan.contains(Step.REMOVE_LABELS)).count();
+        if (audioGoes + labelsGo == 0) {
+            apply(planned, chosen);
+            return;
+        }
+        ConfirmDialog.show(T.localized(APPLY_THE_PLAN_QUESTION).formatted(audioGoes, labelsGo), () -> apply(planned, chosen));
+    }
+
+    private void apply(List<Row> planned, BackendConfig chosen) {
+        int audioDeleted = 0;
+        int labelsRemoved = 0;
+        int busy = 0;
+        List<Row> generate = new ArrayList<>();
+        for (Row row : planned) {
+            try {
+                if (service.busy(row.state.uuid())) {
+                    busy++;
+                    continue;
+                }
+                if (row.plan.contains(Step.DELETE_AUDIO)) {
+                    service.deleteAudio(row.state.uuid());
+                    audioDeleted++;
+                }
+                if (row.plan.contains(Step.REMOVE_LABELS)) {
+                    service.removeLabels(row.state.uuid());
+                    labelsRemoved++;
+                }
+                if (row.plan.contains(Step.GENERATE)) {
+                    generate.add(row);
+                }
+                AudiobookService.PartState now = service.partState(row.state.number(), row.state.uuid());
+                if (now != null) {
+                    row.state = now;
+                }
+                row.plan.clear();
+            } catch (Exception e) {
+                AudiobookLog.get().warn("The plan could not be carried out for {}: {}", row.state.title(), e.getMessage(), e);
+                Notification.error(T.localized(THE_CONVERSION_COULD_NOT_BE_STARTED).formatted(e.getMessage()));
+            }
+        }
+        if (audioDeleted + labelsRemoved > 0) {
+            Notification.success(T.localized(THE_PLAN_WAS_CARRIED_OUT).formatted(audioDeleted, labelsRemoved));
+        }
+        if (busy > 0) {
+            Notification.error(T.localized(PARTS_IN_THE_QUEUE_ARE_LEFT_OUT).formatted(busy));
+        }
+        if (!generate.isEmpty()) {
+            generate(generate, chosen);
+        }
+        attachJobs();
+        grid.getDataProvider().refreshAll();
+    }
+
+    private void generate(List<Row> generate, BackendConfig chosen) {
+        try {
+            AudiobookService.LabelOptions labelling = label.getValue() ? new AudiobookService.LabelOptions(modelPicker.getAi(), modelPicker.getProtocol()) : null;
+            List<Integer> numbers = generate.stream().map(r -> r.state.number()).sorted().toList();
+            var jobs = service.convertParts(manuscript, chosen, numbers, labelling, ConversionJob.Mode.PART);
+            if (labelling != null) {
+                generate.forEach(r -> queuedLabelled.add(r.state.uuid()));
+            }
+            generate.forEach(r -> r.plan.clear());
             Notification.success(T.localized(THE_PARTS_ARE_IN_THE_QUEUE).formatted(jobs.size()));
             UI ui = UI.getCurrent();
             String book = manuscript.getName();
             BatchNotifier.whenOver(queue, jobs, done -> BatchNotifier.tell(ui, false, book, done));
-            if (jobs.size() < last - first + 1) {
-                Notification.success(T.localized(FINAL_PARTS_ARE_LEFT_ALONE).formatted(last - first + 1 - jobs.size()));
+            if (jobs.size() < numbers.size()) {
+                Notification.success(T.localized(FINAL_PARTS_ARE_LEFT_ALONE).formatted(numbers.size() - jobs.size()));
             }
         } catch (IllegalArgumentException e) {
             Notification.error(T.localized(THE_CONVERSION_COULD_NOT_BE_STARTED).formatted(e.getMessage()));
@@ -177,7 +357,6 @@ public class ConvertDialog extends Dialog {
             AudiobookLog.get().warn("The conversion could not be started: {}", e.getMessage(), e);
             Notification.error(T.localized(THE_CONVERSION_COULD_NOT_BE_STARTED).formatted(e.getMessage()));
         }
-        refresh();
     }
 
     /** Joins the parts that have up to date audio into one mp3 with a chapter for each, and offers it for download (a link in the window). */
@@ -205,32 +384,82 @@ public class ConvertDialog extends Dialog {
         }));
     }
 
-    /** What can be done with a job: take its audio, try it again, or stop it. */
-    private HorizontalLayout actions(ConversionJob.Snapshot job) {
-        HorizontalLayout row = new HorizontalLayout();
-        row.setSpacing(false);
-        if (job.state() == State.DONE) {
-            byte[] stored = service.partAudio(job.partId());
-            AudioKind kind = AudioKind.of(stored);
-            StreamResource resource = new StreamResource("part." + kind.extension(), () -> {
-                byte[] audio = service.partAudio(job.partId());
-                return new ByteArrayInputStream(audio == null ? new byte[0] : audio);
+    /** What can be done with a part: play and download its audio, try its job again, or stop it. */
+    private HorizontalLayout actions(Row row) {
+        HorizontalLayout buttons = new HorizontalLayout();
+        buttons.setSpacing(false);
+        String uuid = row.state.uuid();
+        if (row.state.audio() == AudiobookService.StoredAudio.CURRENT) {
+            Button play = new Button(Solid.PLAY.create(), e -> play(uuid));
+            play.setThemeName("tertiary small");
+            play.setTooltipText(T.localized(PLAY));
+            buttons.add(play);
+            // the bytes are read when the browser asks (a list of many parts must not load all the audio to be shown)
+            StreamResource resource = new StreamResource("part-" + row.state.number(), () -> {
+                byte[] audioBytes = service.partAudio(uuid);
+                return new ByteArrayInputStream(audioBytes == null ? new byte[0] : audioBytes);
             });
-            resource.setContentType(kind.mime());
+            resource.setContentTypeResolver((res, context) -> {
+                byte[] audioBytes = service.partAudio(uuid);
+                return audioBytes == null ? AudioKind.MP3.mime() : AudioKind.of(audioBytes).mime();
+            });
             Anchor download = new Anchor(resource, "");
             download.getElement().setAttribute("download", true);
-            download.add(new Button(T.localized(DOWNLOAD), Solid.DOWNLOAD.create()));
-            row.add(download);
-        } else if (job.state() == State.FAILED || job.state() == State.CANCELLED) {
+            Button save = new Button(Solid.DOWNLOAD.create());
+            save.setThemeName("tertiary small");
+            save.setTooltipText(T.localized(DOWNLOAD));
+            download.add(save);
+            buttons.add(download);
+        }
+        ConversionJob.Snapshot job = row.job;
+        if (job != null && (job.state() == State.FAILED || job.state() == State.CANCELLED)) {
             Button retry = new Button(T.localized(RETRY), Solid.ROTATE_RIGHT.create(), e -> queue.retry(job.id()));
             retry.setThemeName("tertiary small");
-            row.add(retry);
-        } else {
+            buttons.add(retry);
+        } else if (job != null && !job.finished()) {
             Button cancel = new Button(T.localized(CANCEL), Solid.XMARK.create(), e -> queue.cancel(job.id()));
             cancel.setThemeName("tertiary small");
-            row.add(cancel);
+            buttons.add(cancel);
         }
-        return row;
+        return buttons;
+    }
+
+    /** Plays the joined audio of a part in the player under the list. */
+    private void play(String partUuid) {
+        byte[] stored = service.partAudio(partUuid);
+        if (stored == null) {
+            return;
+        }
+        AudioKind kind = AudioKind.of(stored);
+        StreamResource resource = new StreamResource("part." + kind.extension(), () -> new ByteArrayInputStream(stored));
+        resource.setContentType(kind.mime());
+        audio.setAttribute("src", resource);
+        audio.setAttribute("autoplay", true);
+        audio.callJsFunction("load");
+    }
+
+    private static String statusText(AudiobookService.PartState state) {
+        String text = switch (state.audio()) {
+            case CURRENT -> T.localized(PART_GENERATED);
+            case OUTDATED -> T.localized(PART_GENERATED_TEXT_CHANGED);
+            case NONE -> state.labelled() ? T.localized(PART_LABELLED) : T.localized(PART_NOT_GENERATED);
+        };
+        return state.finalStatus() ? text + " (" + T.localized(PART_FINAL) + ")" : text;
+    }
+
+    private static String planText(EnumSet<Step> plan) {
+        if (plan.equals(EnumSet.allOf(Step.class))) {
+            return T.localized(REGENERATE);
+        }
+        List<String> names = new ArrayList<>();
+        for (Step step : plan) {
+            names.add(T.localized(switch (step) {
+                case DELETE_AUDIO -> DELETE_AUDIO;
+                case REMOVE_LABELS -> REMOVE_LABELS;
+                case GENERATE -> GENERATE;
+            }));
+        }
+        return String.join(", ", names);
     }
 
     private static String stateText(State state) {
@@ -243,15 +472,10 @@ public class ConvertDialog extends Dialog {
         };
     }
 
-    private void refresh() {
-        grid.setItems(queue.jobs());
-    }
-
     @Override
     protected void onAttach(AttachEvent attachEvent) {
         super.onAttach(attachEvent);
         queue.addListener(listener);
-        refresh();
     }
 
     @Override

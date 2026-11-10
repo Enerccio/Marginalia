@@ -36,6 +36,8 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
     public static final String THE_SERVER_IS_LOCAL = "The server is on this machine or on my network";
     public static final String ALLOWS_ADDRESSES_OF_THE_LOCAL_NETWORK = "Allows the addresses of the local network; leave it off for a server in the cloud";
     public static final String TIMEOUT_SECONDS = "Timeout of a request (s)";
+    public static final String RESTART_THE_SERVER_AFTER_PIECES = "Restart the server after (pieces)";
+    public static final String RESTART_THE_SERVER_HELP = "0 = never. The requests after and before a batch are made again in the middle of a batch every so many pieces, for a server that leaks memory. A server that dies is restarted whatever this says.";
     public static final String DEFAULTS_OF_A_SEGMENT = "Defaults of a segment";
     public static final String TEMPERATURE = "Temperature";
     public static final String CFG_WEIGHT = "CFG weight";
@@ -59,16 +61,31 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
     public static final String NARRATOR_VOICE_HELP = "The narrator when a book has no cast, or its cast has no narrator voice.";
     public static final String CONVERT_TO_AUDIO = "Convert to audio";
     public static final String BACKEND = "Backend";
-    public static final String FIRST_PART = "First part";
-    public static final String LAST_PART = "Last part";
-    public static final String THE_BOOK_HAS_PARTS_WITH_TEXT = "The book has %s parts with text. The parts that are up to date are not made again.";
+    public static final String LOAD = "Load";
+    public static final String LOAD_THE_PARTS_HINT = "The book has %s parts with text. Load them to see what each has, tick the parts, plan what to do with them and press Start.";
+    public static final String PART_NOT_GENERATED = "Not generated";
+    public static final String PART_LABELLED = "Labelled";
+    public static final String PART_GENERATED = "Generated";
+    public static final String PART_GENERATED_TEXT_CHANGED = "Generated (the text changed)";
+    public static final String PART_FINAL = "final";
+    public static final String PLAN = "Plan";
+    public static final String GENERATE = "Generate";
+    public static final String REGENERATE = "Regenerate";
+    public static final String DELETE_AUDIO = "Delete audio";
+    public static final String REMOVE_LABELS = "Remove labels";
+    public static final String CLEAR_THE_PLAN = "Clear the plan";
+    public static final String PLAY = "Play";
+    public static final String SELECT_THE_PARTS_FIRST = "Tick the parts first";
+    public static final String NOTHING_IS_PLANNED = "Nothing is planned: tick parts and choose Generate, Regenerate, Delete audio or Remove labels";
+    public static final String APPLY_THE_PLAN_QUESTION = "The audio of %s parts will be deleted and the labels of %s parts removed. This cannot be undone. Carry out the plan?";
+    public static final String THE_PLAN_WAS_CARRIED_OUT = "Audio deleted for %s parts, labels removed for %s parts";
+    public static final String PARTS_IN_THE_QUEUE_ARE_LEFT_OUT = "%s parts are waiting or running in the queue and were left out";
     public static final String START = "Start";
     public static final String STOP_ALL = "Stop all";
     public static final String CLEAR_FINISHED = "Clear finished";
     public static final String CLOSE = "Close";
     public static final String PART = "Part";
     public static final String STATE = "State";
-    public static final String PROGRESS = "Progress";
     public static final String MESSAGE = "Message";
     public static final String STATE_WAITING = "Waiting";
     public static final String STATE_RUNNING = "Running";
@@ -82,7 +99,6 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
     public static final String THERE_IS_NO_NARRATOR_VOICE = "There is no narrator voice. Pick it in the cast, or in Settings → Extension Settings → Audiobook Settings.";
     public static final String THE_BOOK_HAS_NO_TEXT = "The book has no parts with text";
     public static final String THE_PARTS_ARE_IN_THE_QUEUE = "%s parts are in the queue";
-    public static final String THE_RANGE_IS_NOT_IN_THE_BOOK = "The range is not in the book: it has %s parts with text";
     public static final String THE_CONVERSION_COULD_NOT_BE_STARTED = "The conversion could not be started: %s";
     public static final String LABEL_WITH_A_LANGUAGE_MODEL = "Label the parts with a language model (who speaks, how, sound tags)";
     public static final String THE_MODEL_THAT_LABELS = "The model that labels";
@@ -320,6 +336,10 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
 
         ja(TIMEOUT_SECONDS, "リクエストのタイムアウト (秒)");
         zh(TIMEOUT_SECONDS, "请求超时（秒）");
+        ja(RESTART_THE_SERVER_AFTER_PIECES, "サーバーを再起動するまでのピース数");
+        zh(RESTART_THE_SERVER_AFTER_PIECES, "每隔多少片段重启服务器");
+        ja(RESTART_THE_SERVER_HELP, "0 = 再起動しない。メモリリークするサーバー向けに、指定した数のピースごとにバッチの途中でバッチ後・バッチ前のリクエストをもう一度実行します。停止したサーバーはこの設定に関係なく再起動されます。");
+        zh(RESTART_THE_SERVER_HELP, "0 = 从不。针对内存泄漏的服务器：每处理这么多片段，就在批处理中途重新执行批处理之后和之前的请求。服务器崩溃时无论如何设置都会重启。");
 
         ja(DEFAULTS_OF_A_SEGMENT, "セグメントの初期値");
         zh(DEFAULTS_OF_A_SEGMENT, "片段的默认值");
@@ -390,14 +410,62 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
         ja(BACKEND, "バックエンド");
         zh(BACKEND, "后端");
 
-        ja(FIRST_PART, "最初のパート");
-        zh(FIRST_PART, "起始章节");
+        ja(LOAD, "読み込む");
+        zh(LOAD, "加载");
 
-        ja(LAST_PART, "最後のパート");
-        zh(LAST_PART, "结束章节");
+        ja(LOAD_THE_PARTS_HINT, "この本には本文のあるパートが %s 個あります。読み込んで各パートの状態を確認し、パートにチェックを入れて処理を計画し、開始を押してください。");
+        zh(LOAD_THE_PARTS_HINT, "本书有 %s 个含文本的章节。加载后可查看各章节的状态，勾选章节并规划操作，然后点击开始。");
 
-        ja(THE_BOOK_HAS_PARTS_WITH_TEXT, "この本には本文のあるパートが %s 個あります。最新のパートは作り直しません。");
-        zh(THE_BOOK_HAS_PARTS_WITH_TEXT, "本书有 %s 个含文本的章节。已是最新的章节不会重新制作。");
+        ja(PART_NOT_GENERATED, "未生成");
+        zh(PART_NOT_GENERATED, "未生成");
+
+        ja(PART_LABELLED, "ラベル付き");
+        zh(PART_LABELLED, "已标注");
+
+        ja(PART_GENERATED, "生成済み");
+        zh(PART_GENERATED, "已生成");
+
+        ja(PART_GENERATED_TEXT_CHANGED, "生成済み(本文が変更されました)");
+        zh(PART_GENERATED_TEXT_CHANGED, "已生成（文本已更改）");
+
+        ja(PART_FINAL, "確定");
+        zh(PART_FINAL, "最终");
+
+        ja(PLAN, "計画");
+        zh(PLAN, "计划");
+
+        ja(GENERATE, "生成");
+        zh(GENERATE, "生成");
+
+        ja(REGENERATE, "再生成");
+        zh(REGENERATE, "重新生成");
+
+        ja(DELETE_AUDIO, "音声を削除");
+        zh(DELETE_AUDIO, "删除音频");
+
+        ja(REMOVE_LABELS, "ラベルを削除");
+        zh(REMOVE_LABELS, "移除标注");
+
+        ja(CLEAR_THE_PLAN, "計画を消去");
+        zh(CLEAR_THE_PLAN, "清除计划");
+
+        ja(PLAY, "再生");
+        zh(PLAY, "播放");
+
+        ja(SELECT_THE_PARTS_FIRST, "先にパートにチェックを入れてください");
+        zh(SELECT_THE_PARTS_FIRST, "请先勾选章节");
+
+        ja(NOTHING_IS_PLANNED, "計画がありません。パートにチェックを入れ、生成・再生成・音声を削除・ラベルを削除のいずれかを選んでください");
+        zh(NOTHING_IS_PLANNED, "没有计划：请勾选章节并选择生成、重新生成、删除音频或移除标注");
+
+        ja(APPLY_THE_PLAN_QUESTION, "%s パートの音声を削除し、%s パートのラベルを削除します。元に戻せません。計画を実行しますか?");
+        zh(APPLY_THE_PLAN_QUESTION, "将删除 %s 个章节的音频并移除 %s 个章节的标注，此操作无法撤销。执行计划吗？");
+
+        ja(THE_PLAN_WAS_CARRIED_OUT, "%s パートの音声を削除し、%s パートのラベルを削除しました");
+        zh(THE_PLAN_WAS_CARRIED_OUT, "已删除 %s 个章节的音频，已移除 %s 个章节的标注");
+
+        ja(PARTS_IN_THE_QUEUE_ARE_LEFT_OUT, "%s パートはキューで待機中または実行中のため対象外です");
+        zh(PARTS_IN_THE_QUEUE_ARE_LEFT_OUT, "%s 个章节正在队列中等待或运行，已被跳过");
 
         ja(START, "開始");
         zh(START, "开始");
@@ -416,9 +484,6 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
 
         ja(STATE, "状態");
         zh(STATE, "状态");
-
-        ja(PROGRESS, "進行状況");
-        zh(PROGRESS, "进度");
 
         ja(MESSAGE, "メッセージ");
         zh(MESSAGE, "消息");
@@ -458,9 +523,6 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
 
         ja(THE_PARTS_ARE_IN_THE_QUEUE, "%s 個のパートをキューに入れました");
         zh(THE_PARTS_ARE_IN_THE_QUEUE, "已将 %s 个章节加入队列");
-
-        ja(THE_RANGE_IS_NOT_IN_THE_BOOK, "範囲が本にありません。本文のあるパートは %s 個です");
-        zh(THE_RANGE_IS_NOT_IN_THE_BOOK, "范围超出本书：共有 %s 个含文本的章节");
 
         ja(THE_CONVERSION_COULD_NOT_BE_STARTED, "変換を開始できませんでした: %s");
         zh(THE_CONVERSION_COULD_NOT_BE_STARTED, "无法开始转换：%s");

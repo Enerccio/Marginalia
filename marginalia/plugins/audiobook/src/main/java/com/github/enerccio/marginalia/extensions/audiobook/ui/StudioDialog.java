@@ -229,6 +229,8 @@ public class StudioDialog extends Dialog {
             f.setStepButtonsVisible(true);
             f.setMin(0);
         }
+        // the pauses the script builder sets are not all multiples of 0.05 (0.12 before an attribution), so the step must be finer
+        pause.setStep(0.01);
         intensity.setMax(1);
         seed.setMin(0);
         seed.setStepButtonsVisible(true);

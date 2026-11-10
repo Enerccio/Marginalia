@@ -91,4 +91,40 @@ class PartLabelStoreTest {
         assertNull(new PartLabelStore(messages).find("gone", "key"));
         assertThrows(IllegalStateException.class, () -> new PartLabelStore(messages).put("gone", "key", LABELS));
     }
+
+    @Test
+    void theLabelsCanBeToldAndForgotten() {
+        PartLabelStore store = new PartLabelStore(messages);
+        assertFalse(PartLabelStore.has(part));
+
+        store.put(part.getUuid(), "key-1", LABELS);
+        assertTrue(PartLabelStore.has(part));
+
+        int before = saves;
+        store.clear(part.getUuid());
+        assertFalse(PartLabelStore.has(part));
+        assertNull(store.find(part.getUuid(), "key-1"), "the model is asked again");
+        assertEquals(before + 1, saves);
+        store.clear(part.getUuid());
+        assertEquals(before + 1, saves, "nothing to forget, nothing saved");
+    }
+
+    @Test
+    void theLabelsOfATextAreFoundWhateverTheInstructionWas() {
+        PartLabelStore store = new PartLabelStore(messages);
+        store.put(part.getUuid(), "key-for-the-old-instruction", "The text.", LABELS);
+
+        assertEquals(LABELS, store.findForText(part.getUuid(), "The text."), "a run without the model reads them");
+        assertNull(store.findForText(part.getUuid(), "The text, edited."), "labels of another text are not for this one");
+        assertNull(store.find(part.getUuid(), "another-key"));
+    }
+
+    @Test
+    void labelsStoredWithoutTheirTextAreNotGuessedFor() {
+        PartLabelStore store = new PartLabelStore(messages);
+        store.put(part.getUuid(), "key-1", LABELS);
+
+        assertNull(store.findForText(part.getUuid(), "The text."));
+        assertEquals(LABELS, store.find(part.getUuid(), "key-1"), "still found by their key");
+    }
 }

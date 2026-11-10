@@ -70,3 +70,8 @@
     border-radius: var(--lumo-border-radius-m);
     box-shadow: -4px 0 0 var(--lumo-primary-color);
 }
+
+/* The player under the list of the parts in Convert to audio */
+.audiobook-convert-audio {
+    width: 100%;
+}

@@ -56,7 +56,7 @@ public final class Http {
             if (e instanceof CappedBody.TooBig || e.getCause() instanceof CappedBody.TooBig) {
                 throw new BackendException("The answer of " + request.uri().getHost() + " is too big", e);
             }
-            throw new BackendException("Cannot reach " + request.uri().getHost() + ": " + e.getMessage(), e);
+            throw new ServerGoneException("Cannot reach " + request.uri().getHost() + ": " + e.getMessage(), e);
         }
     }
 
@@ -91,7 +91,7 @@ public final class Http {
             if (cause instanceof CappedBody.TooBig || cause.getCause() instanceof CappedBody.TooBig) {
                 throw new BackendException("The answer of " + request.uri().getHost() + " is too big", e);
             }
-            throw new BackendException("Cannot reach " + request.uri().getHost() + ": " + cause.getMessage(), e);
+            throw new ServerGoneException("Cannot reach " + request.uri().getHost() + ": " + cause.getMessage(), e);
         }
     }
 

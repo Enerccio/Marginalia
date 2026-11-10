@@ -22,6 +22,7 @@ application, and has its own tests (a fake HTTP server).
   before reading anything when `Content-Length` already announces more. The default is `Http.MAX_BYTES` (32 MB); `HookRunner` reads at most 1 MB. A bigger answer is a
   `BackendException` ("is too big"), never an allocation.
 - A connect timeout of 10 s and a timeout per request that the caller gives.
+- **`ServerGoneException`** (a `BackendException`) is what `send` throws when the server did not answer at all (refused, reset, timed out: "Cannot reach ..."); a plugin can tell a server that is down from one that refused (an HTTP error answer is a plain `BackendException`) and start it again. The Audiobook's `ChatterboxBackend` throws it for a 503 ("no model loaded") too, and `RecoveringBackend` restarts the server and repeats the piece once.
 - `excerpt(response)` (the first 400 characters, for an error message) and `requireOk(response, what)`.
 
 The client speaks **HTTP/1.1 only**. The JDK client otherwise offers an upgrade to HTTP/2 on a plain connection (`Upgrade: h2c`), and an ASGI server (uvicorn with httptools: LiteLLM, FastAPI servers such as Chatterbox-TTS-Server) then takes the body of a POST for upgrade data and hands the application an empty request (a 422 "field required"); the JDK's own test server tolerates the header, so only a real server shows it.

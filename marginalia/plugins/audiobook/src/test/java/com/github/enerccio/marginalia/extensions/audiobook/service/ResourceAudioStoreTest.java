@@ -128,6 +128,27 @@ class ResourceAudioStoreTest {
     }
 
     @Test
+    void discardingTheAudioDropsThePiecesAndTheJoinedAudioButNotTheLabels() {
+        ResourceAudioStore store = store();
+        store.putSegment(part.getUuid(), KEY_A, new byte[]{1});
+        store.putSegment(part.getUuid(), KEY_B, new byte[]{2});
+        store.putPart(part.getUuid(), "join-1", "source-1", new byte[]{9}, List.of(KEY_A, KEY_B));
+        store.flush(part.getUuid());
+        part.getAttributes().getAsJsonObject(ResourceAudioStore.KEY).add("labels", new JsonObject());
+        store.putSegment(part.getUuid(), "c".repeat(64), new byte[]{3});   // made since the flush: dropped too
+
+        int deleted = store().discardAudio(part.getUuid());
+
+        assertEquals(3, deleted, "two pieces and the joined audio");
+        assertEquals(3, softDeleted.size());
+        assertNull(store().partAudio(part.getUuid()));
+        assertNull(store().segment(part.getUuid(), KEY_A));
+        assertFalse(part.getAttributes().getAsJsonObject(ResourceAudioStore.KEY).has("segments"));
+        assertTrue(part.getAttributes().getAsJsonObject(ResourceAudioStore.KEY).has("labels"), "the labels stay");
+        assertEquals(0, store().discardAudio(part.getUuid()), "nothing left to drop");
+    }
+
+    @Test
     void aFlushWithNothingPendingSavesNothing() {
         store().flush(part.getUuid());
         assertEquals(0, saves);

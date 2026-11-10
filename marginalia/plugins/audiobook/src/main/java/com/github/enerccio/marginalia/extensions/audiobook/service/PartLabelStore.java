@@ -5,6 +5,7 @@ import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.extensions.audiobook.label.Delivery;
 import com.github.enerccio.marginalia.extensions.audiobook.label.LabelStore;
 import com.github.enerccio.marginalia.extensions.audiobook.label.PieceLabel;
+import com.github.enerccio.marginalia.extensions.audiobook.script.Hashes;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
@@ -55,8 +56,62 @@ public class PartLabelStore implements LabelStore {
         }
     }
 
+    /** True when labels are stored with the part (whatever instruction they were made for). */
+    public static boolean has(ChatMessage part) {
+        if (part == null || part.getAttributes() == null || !part.getAttributes().has(ResourceAudioStore.KEY)
+                || !part.getAttributes().get(ResourceAudioStore.KEY).isJsonObject()) {
+            return false;
+        }
+        JsonObject index = part.getAttributes().getAsJsonObject(ResourceAudioStore.KEY);
+        return index.has("labels") && index.get("labels").isJsonObject() && index.getAsJsonObject("labels").has("labels");
+    }
+
+    /** Forgets the labels of the part: the model is asked again the next time the part is made. The audio is left as it is. */
+    public void clear(String partId) {
+        try {
+            ChatMessage part = messages.findForUser(partId);
+            if (part == null || !has(part)) {
+                return;
+            }
+            part.getAttributes().getAsJsonObject(ResourceAudioStore.KEY).remove("labels");
+            messages.save(part);
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new IllegalStateException(e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public List<PieceLabel> findForText(String partId, String text) {
+        try {
+            ChatMessage part = messages.findForUser(partId);
+            if (part == null || !has(part)) {
+                return null;
+            }
+            JsonObject stored = part.getAttributes().getAsJsonObject(ResourceAudioStore.KEY).getAsJsonObject("labels");
+            if (!stored.has("textHash") || !Hashes.sha256(text == null ? "" : text).equals(stored.get("textHash").getAsString())) {
+                return null;
+            }
+            return find(partId, stored.get("key").getAsString());
+        } catch (RuntimeException e) {
+            return null;
+        } catch (Exception e) {
+            throw new IllegalStateException(e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public void put(String partId, String key, String text, List<PieceLabel> labels) {
+        store(partId, key, text, labels);
+    }
+
     @Override
     public void put(String partId, String key, List<PieceLabel> labels) {
+        store(partId, key, null, labels);
+    }
+
+    private void store(String partId, String key, String text, List<PieceLabel> labels) {
         try {
             ChatMessage part = messages.findForUser(partId);
             if (part == null) {
@@ -79,6 +134,9 @@ public class PartLabelStore implements LabelStore {
             }
             JsonObject stored = new JsonObject();
             stored.addProperty("key", key);
+            if (text != null) {
+                stored.addProperty("textHash", Hashes.sha256(text));
+            }
             stored.add("labels", array);
             index.add("labels", stored);
             part.getAttributes().add(ResourceAudioStore.KEY, index);

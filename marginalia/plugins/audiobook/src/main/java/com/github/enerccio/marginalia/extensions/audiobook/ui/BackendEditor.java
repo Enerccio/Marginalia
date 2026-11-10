@@ -47,6 +47,7 @@ public class BackendEditor extends VerticalLayout {
     private final VoiceChoices voiceChoices;
     private final VoiceField narratorVoice;
     private final IntegerField timeout = new IntegerField(T.localized(TIMEOUT_SECONDS));
+    private final IntegerField restartEvery = new IntegerField(T.localized(RESTART_THE_SERVER_AFTER_PIECES));
     private final NumberField temperature = new NumberField(T.localized(TEMPERATURE));
     private final NumberField cfgWeight = new NumberField(T.localized(CFG_WEIGHT));
     private final NumberField speed = new NumberField(T.localized(SPEED));
@@ -84,6 +85,10 @@ public class BackendEditor extends VerticalLayout {
         narratorVoice.setHelperText(T.localized(NARRATOR_VOICE_HELP));
         timeout.setMin(0);
         timeout.setStepButtonsVisible(true);
+        restartEvery.setMin(0);
+        restartEvery.setStepButtonsVisible(true);
+        restartEvery.setStep(10);
+        restartEvery.setHelperText(T.localized(RESTART_THE_SERVER_HELP));
         for (NumberField f : List.of(temperature, cfgWeight, speed)) {
             f.setMin(0);
             f.setStep(0.1);
@@ -100,7 +105,7 @@ public class BackendEditor extends VerticalLayout {
         HorizontalLayout credentials = new HorizontalLayout(apiKey, removeKey);
         credentials.setWrap(true);
         credentials.setAlignItems(FlexComponent.Alignment.END);
-        HorizontalLayout requestOptions = new HorizontalLayout(timeout);
+        HorizontalLayout requestOptions = new HorizontalLayout(timeout, restartEvery);
         requestOptions.setWrap(true);
         HorizontalLayout defaults = new HorizontalLayout(temperature, cfgWeight, speed, chunkSize);
         defaults.setWrap(true);
@@ -181,6 +186,7 @@ public class BackendEditor extends VerticalLayout {
         gpu.setValue(config.getGpu());
         local.setValue(config.isLocal());
         timeout.setValue(config.getTimeoutSeconds());
+        restartEvery.setValue(config.getRestartEveryPieces());
         temperature.setValue(config.getTemperature());
         cfgWeight.setValue(config.getCfgWeight());
         speed.setValue(config.getSpeed());
@@ -210,6 +216,7 @@ public class BackendEditor extends VerticalLayout {
         current.setGpu(gpu.getValue().strip());
         current.setLocal(local.getValue());
         current.setTimeoutSeconds(positive(timeout, BackendConfig.DEFAULT_TIMEOUT_SECONDS));
+        current.setRestartEveryPieces(restartEvery.getValue() == null ? 0 : Math.max(0, restartEvery.getValue()));
         current.setTemperature(positive(temperature, BackendConfig.DEFAULT_TEMPERATURE));
         current.setCfgWeight(positive(cfgWeight, BackendConfig.DEFAULT_CFG_WEIGHT));
         current.setSpeed(positive(speed, BackendConfig.DEFAULT_SPEED));
