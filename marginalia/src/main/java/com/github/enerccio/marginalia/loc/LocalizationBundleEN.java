@@ -1034,6 +1034,11 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_CHAPTER_HEADING_LEVEL, "Chapters start at heading level");
         setValue(L.LABEL_IMPORT_FROM_OBSIDIAN, "Import from an Obsidian vault");
         setValue(L.LABEL_IMPORT_FROM_SCRIVENER, "Import from a Scrivener project");
+        setValue(L.LABEL_IMPORT_PLACE, "Put the parts");
+        setValue(L.LABEL_AT_THE_END_OF_THE_STORY, "At the end of the story");
+        setValue(L.LABEL_BEFORE_A_PART, "Before a part");
+        setValue(L.LABEL_AFTER_A_PART, "After a part");
+        setValue(L.LABEL_PART, "Part");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -1530,7 +1535,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_MOVE_PICK_FIRST, "Check the entries and pick the lorebook to move them to first.");
         setValue(L.MSG_INVALID_ARCHIVE, "The archive has to be a zip file with at least one .md file.");
         setValue(L.MSG_IMPORT_FROM_ARCHIVE, "Upload a zip archive of .md files. Each file becomes a disabled entry of a new lorebook, in the order of the file names.");
-        setValue(L.MSG_IMPORT_ARCHIVE_TO_BOOK, "Upload a zip archive of .md files. Each file becomes a part of the story, in the order of the file names, after the last part.");
+        setValue(L.MSG_IMPORT_ARCHIVE_TO_BOOK, "Upload a zip archive of .md files. Each file becomes a part of the story, in the order of the file names.");
         setValue(L.MSG_IMPORT_ARCHIVE_NEW_BOOK, "Upload a zip archive of .md files. Each file becomes a part of a new book named after the archive, in the order of the file names.");
         setValue(L.MSG_ARCHIVE_ENTRY_NAMES, "Check the names of the entries. A names.txt in the archive (one name on a line, in the order of the files) fills them in; a name you leave empty is the first heading of the file or its file name.");
         setValue(L.MSG_ARCHIVE_PARTS_ADDED, "%d parts added.");
@@ -1764,7 +1769,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_PLANNER_IMPORT_NONE, "The parts of the current branch have no turn details");
         setValue(L.MSG_MERGE_TURNS_HINT, "The details of both are joined here. Change what does not fit, then merge: the two become one.");
         setValue(L.MSG_MERGE_OTHER_POV, "The second one has: %s");
-        setValue(L.MSG_IMPORT_DOCUMENT, "Upload a finished manuscript: a Word document (.docx), a LibreOffice / OpenDocument text (.odt), a Rich Text file (.rtf), a Markdown file (.md), a plain text file (.txt) or an e-book (.epub). The result is a new book: a heading starts a chapter (in a plain text file a line like \"Chapter 3\"), the text is cut between paragraphs into parts and all of it is marked as written by you.");
+        setValue(L.MSG_IMPORT_DOCUMENT, "Upload a finished manuscript: a Word document (.docx), a LibreOffice / OpenDocument text (.odt), a Rich Text file (.rtf), a Markdown file (.md), a plain text file (.txt) or an e-book (.epub). A heading starts a chapter (in a plain text file a line like \"Chapter 3\"), the text is cut between paragraphs into parts and all of it is marked as written by you.");
         setValue(L.MSG_INVALID_DOCUMENT, "%s is not a document with text that can be read (.docx, .odt, .rtf, .md, .txt, .epub).");
         setValue(L.MSG_IMPORTING_DOCUMENT, "Importing the document");
         setValue(L.MSG_DOCUMENT_READY, "%d chapters, %d words, %d parts.");
@@ -1896,6 +1901,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_PLANNER_IMPORT_FROM_BRANCH, "Adds the turn details of the parts of the current branch as scenes, to plan a rewrite of the story");
         setValue(L.HELP_WORDS_PER_PART, "The text is cut between paragraphs into parts of about this many words. A part never holds text of two chapters, and what would be left at the end of a chapter, when it is less than half of this number, stays with the part before it.");
         setValue(L.HELP_CHAPTER_HEADING_LEVEL, "Headings of this level and the ones above it start a chapter, and each chapter starts with its heading. Deeper headings stay in the text.");
+        setValue(L.HELP_IMPORT_PLACE, "The parts are added as written by you. What follows the place moves behind them, so the summaries that cover the place become outdated.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Background lore and world context.");

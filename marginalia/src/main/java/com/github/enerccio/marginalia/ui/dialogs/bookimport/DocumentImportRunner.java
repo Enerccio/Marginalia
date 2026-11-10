@@ -4,6 +4,7 @@ import com.github.enerccio.marginalia.domain.collections.RevisionDetail;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.ArchiveImportService;
 import com.github.enerccio.marginalia.domain.service.ArchiveImportService.ImportResult;
+import com.github.enerccio.marginalia.domain.service.ArchiveImportService.Insertion;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.ArchiveImportRunner;
@@ -17,7 +18,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * Runs the storing of the parts cut from a document ({@link ArchiveImportService#appendParts}) in a progress dialog with a
+ * Runs the storing of the parts cut from a document ({@link ArchiveImportService#insertParts}) in a progress dialog with a
  * Stop button. Stopping leaves what was imported until then, the user is told how much it was.
  */
 @Configurable
@@ -29,7 +30,7 @@ final class DocumentImportRunner {
     @Autowired
     private ArchiveImportService archiveImportService;
 
-    void run(Manuscript manuscript, List<String> parts, RevisionDetail source, ArchiveImportRunner.Continuation<Manuscript> afterwards) {
+    void run(Manuscript manuscript, Insertion place, List<String> parts, RevisionDetail source, ArchiveImportRunner.Continuation<Manuscript> afterwards) {
         AtomicReference<ImportResult<Manuscript>> result = new AtomicReference<>();
         AtomicReference<Exception> failure = new AtomicReference<>();
 
@@ -40,7 +41,7 @@ final class DocumentImportRunner {
         progress.create();
         progress.setAction(dialog -> {
             try {
-                result.set(archiveImportService.appendParts(manuscript, parts, source, dialog::isCancelled, dialog::updateProgress));
+                result.set(archiveImportService.insertParts(manuscript, place, parts, source, dialog::isCancelled, dialog::updateProgress));
             } catch (Exception e) {
                 failure.set(e);
             }

@@ -190,6 +190,6 @@ final class DocumentSource extends BookImportSource {
             throw new IllegalArgumentException(loc.getValue(L.LABEL_WORDS_PER_PART));
         }
         List<String> parts = result.parts();
-        return (manuscript, afterwards) -> new DocumentImportRunner().run(manuscript, parts, RevisionDetail.DOCUMENT_IMPORT, afterwards);
+        return (manuscript, place, afterwards) -> new DocumentImportRunner().run(manuscript, place, parts, RevisionDetail.DOCUMENT_IMPORT, afterwards);
     }
 }

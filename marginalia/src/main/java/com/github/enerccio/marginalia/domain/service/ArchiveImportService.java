@@ -1,11 +1,13 @@
 package com.github.enerccio.marginalia.domain.service;
 
 import com.github.enerccio.marginalia.domain.collections.RevisionDetail;
+import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.utils.MarkdownArchive;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.function.BooleanSupplier;
 
 /**
@@ -53,8 +55,63 @@ public interface ArchiveImportService {
      * @param texts  the text of each part, in order
      * @param source {@link RevisionDetail#ARCHIVE_IMPORT} or {@link RevisionDetail#DOCUMENT_IMPORT}
      */
-    ImportResult<Manuscript> appendParts(Manuscript manuscript, List<String> texts, RevisionDetail source, BooleanSupplier stopped,
-                                         Runnable onStored) throws Exception;
+    default ImportResult<Manuscript> appendParts(Manuscript manuscript, List<String> texts, RevisionDetail source, BooleanSupplier stopped,
+                                                 Runnable onStored) throws Exception {
+        return insertParts(manuscript, Insertion.END, texts, source, stopped, onStored);
+    }
+
+    /**
+     * Where the parts of an import go in the story of a book: after its last part, or between two parts. The parts of the story that
+     * follow the place (all their branches) follow the new parts then, see {@link ChatMessageService#insertPart}.
+     *
+     * @param after the part the new parts come after; null for the place before the whole story; not used for the end
+     * @param end   true for the end of the active branch of the story (a book without parts has only this place)
+     */
+    record Insertion(ChatMessage after, boolean end) {
+
+        /**
+         * After the last part of the story.
+         */
+        public static final Insertion END = new Insertion(null, true);
+
+        /**
+         * Before the first part of the story.
+         */
+        public static final Insertion START = new Insertion(null, false);
+
+        /**
+         * Right after the part.
+         */
+        public static Insertion after(ChatMessage part) {
+            return new Insertion(Objects.requireNonNull(part, "part"), false);
+        }
+    }
+
+    /**
+     * Adds a part for each text at the place, in the order of the texts, as {@link #appendParts} does at the end: each part follows
+     * the one before it, the texts are counted and the parts are not flagged as edited. At the end the first part follows the active
+     * leaf, so the active leaf is the last part stored; elsewhere the active leaf stays where it is (it is the last part stored only
+     * when the place was the end of the branch) and the story is that many parts longer. The summaries that covered the place are
+     * outdated, as they describe the story without the new parts.
+     *
+     * @param texts   the text of each part, in order
+     * @param source  {@link RevisionDetail#ARCHIVE_IMPORT} or {@link RevisionDetail#DOCUMENT_IMPORT}
+     * @param stopped asked before each part, true stops the import
+     * @param onStored called after each part was stored
+     * @throws IllegalArgumentException when the manuscript is not the user's, the part of the place is not a part of it, or it has
+     *                                  parts but no active leaf (the end)
+     */
+    ImportResult<Manuscript> insertParts(Manuscript manuscript, Insertion place, List<String> texts, RevisionDetail source,
+                                         BooleanSupplier stopped, Runnable onStored) throws Exception;
+
+    /**
+     * As {@link #insertParts(Manuscript, Insertion, List, RevisionDetail, BooleanSupplier, Runnable)} for the files of an archive.
+     */
+    default ImportResult<Manuscript> insertParts(Manuscript manuscript, Insertion place, MarkdownArchive.Content content,
+                                                 BooleanSupplier stopped, Runnable onStored) throws Exception {
+        return insertParts(manuscript, place, content.items().stream().map(MarkdownArchive.Item::text).toList(), RevisionDetail.ARCHIVE_IMPORT,
+                stopped, onStored);
+    }
 
     /**
      * Makes a new, enabled lorebook with an entry for each file, in the order of the files (the entries have the order 1, 2,

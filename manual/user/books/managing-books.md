@@ -145,7 +145,7 @@ Pick the **Source**; the text, the accepted files and the options under the name
 
 | Source | Upload | Options |
 |---|---|---|
-| **Import from archive** | a `.zip` of `.md` files, a part for each file, see [Importing text files](story-editor.md#importing-text-files) | none |
+| **Import from archive** | a `.zip` of `.md` files, a part for each file, see [Importing into the book](story-editor.md#importing-into-the-book) | none |
 | **Import from SillyTavern** | one or more `.jsonl` chats, see [below](#importing-from-sillytavern) | merge user and assistant messages |
 | **Import from LM Studio** | one or more conversations, see [below](#importing-from-lm-studio) | merge user and assistant messages |
 | **Import from a document** | a manuscript in one file (Word, LibreOffice, RTF, Markdown, plain text, EPUB), see [below](#importing-a-finished-manuscript) | words per part, heading level of the chapters |
@@ -155,6 +155,9 @@ Pick the **Source**; the text, the accepted files and the options under the name
 Upload the file, give the book a name (it is filled from the file, the title of a document, or the character of a chat; the book is
 named *New book* when you leave it empty) and click **Import**. A progress window with **Stop** shows the parts being stored;
 stopping keeps what was stored. A file the source cannot read is refused with a warning, the other uploads stay.
+
+The same window, from the settings menu (⚙) of a book, adds the parts to that book at a place you pick, see
+[Importing into the book](story-editor.md#importing-into-the-book).
 
 ![The sources of the import window](../../images/import-source.png)
 

@@ -1034,6 +1034,11 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_CHAPTER_HEADING_LEVEL, "章を始める見出しレベル");
         setValue(L.LABEL_IMPORT_FROM_OBSIDIAN, "Obsidian ボールトからインポート");
         setValue(L.LABEL_IMPORT_FROM_SCRIVENER, "Scrivener プロジェクトからインポート");
+        setValue(L.LABEL_IMPORT_PLACE, "パートを置く場所");
+        setValue(L.LABEL_AT_THE_END_OF_THE_STORY, "ストーリーの最後");
+        setValue(L.LABEL_BEFORE_A_PART, "パートの前");
+        setValue(L.LABEL_AFTER_A_PART, "パートの後");
+        setValue(L.LABEL_PART, "パート");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -1530,7 +1535,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_MOVE_PICK_FIRST, "先にエントリをチェックし、移動先のロアブックを選んでください。");
         setValue(L.MSG_INVALID_ARCHIVE, "アーカイブは .md ファイルを 1 つ以上含む zip ファイルである必要があります。");
         setValue(L.MSG_IMPORT_FROM_ARCHIVE, ".md ファイルの zip アーカイブをアップロードします。各ファイルは、ファイル名順に、新しいロアブックの無効なエントリになります。");
-        setValue(L.MSG_IMPORT_ARCHIVE_TO_BOOK, ".md ファイルの zip アーカイブをアップロードします。各ファイルは、ファイル名順に、最後のパートの後ろにストーリーのパートとして追加されます。");
+        setValue(L.MSG_IMPORT_ARCHIVE_TO_BOOK, ".md ファイルの zip アーカイブをアップロードします。各ファイルは、ファイル名順にストーリーのパートとして追加されます。");
         setValue(L.MSG_IMPORT_ARCHIVE_NEW_BOOK, ".md ファイルの zip アーカイブをアップロードします。各ファイルは、ファイル名順に、アーカイブ名の新しい本のパートになります。");
         setValue(L.MSG_ARCHIVE_ENTRY_NAMES, "エントリ名を確認してください。アーカイブ内の names.txt(1 行に 1 つ、ファイルの順)があればそれが入ります。空欄の名前は、ファイルの最初の見出しまたはファイル名になります。");
         setValue(L.MSG_ARCHIVE_PARTS_ADDED, "%d 個のパートを追加しました。");
@@ -1764,7 +1769,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_PLANNER_IMPORT_NONE, "現在のブランチのパートにはターン詳細がありません");
         setValue(L.MSG_MERGE_TURNS_HINT, "両方の詳細をここにまとめました。合わない箇所を直してから統合すると、二つが一つになります。");
         setValue(L.MSG_MERGE_OTHER_POV, "二つ目の値: %s");
-        setValue(L.MSG_IMPORT_DOCUMENT, "完成した原稿をアップロードします：Word 文書（.docx）、LibreOffice / OpenDocument テキスト（.odt）、リッチテキスト（.rtf）、Markdown（.md）、プレーンテキスト（.txt）、または電子書籍（.epub）。結果は新しい本になります。見出し（プレーンテキストでは「Chapter 3」のような行）で章が始まり、本文は段落の区切りでパートに分けられ、すべてあなたが書いたものとして記録されます。");
+        setValue(L.MSG_IMPORT_DOCUMENT, "完成した原稿をアップロードします：Word 文書（.docx）、LibreOffice / OpenDocument テキスト（.odt）、リッチテキスト（.rtf）、Markdown（.md）、プレーンテキスト（.txt）、または電子書籍（.epub）。見出し（プレーンテキストでは「Chapter 3」のような行）で章が始まり、本文は段落の区切りでパートに分けられ、すべてあなたが書いたものとして記録されます。");
         setValue(L.MSG_INVALID_DOCUMENT, "%s は読み取れるテキスト文書（.docx、.odt、.rtf、.md、.txt、.epub）ではありません。");
         setValue(L.MSG_IMPORTING_DOCUMENT, "ドキュメントをインポート中");
         setValue(L.MSG_DOCUMENT_READY, "%d 章、%d 語、%d パート。");
@@ -1896,6 +1901,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_PLANNER_IMPORT_FROM_BRANCH, "現在のブランチのパートのターン詳細をシーンとして追加します。物語の書き直しを計画するために使います");
         setValue(L.HELP_WORDS_PER_PART, "テキストは段落の区切りで、およそこの語数のパートに分けられます。1 つのパートに 2 つの章のテキストが入ることはなく、章の終わりに残る分がこの数の半分未満なら、その前のパートに含まれます。");
         setValue(L.HELP_CHAPTER_HEADING_LEVEL, "このレベル以上の見出しで章が始まり、各章は見出しから始まります。より深い見出しは本文中に残ります。");
+        setValue(L.HELP_IMPORT_PLACE, "パートはあなたが書いたものとして追加されます。その場所以降に続くパートはそれらの後ろに移動するため、その場所を含む要約は古くなります。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景設定と世界観の文脈。");

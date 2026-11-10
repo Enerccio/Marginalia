@@ -8,14 +8,14 @@ import com.github.enerccio.marginalia.domain.listener.ExtendableEntityListener;
 import com.github.enerccio.marginalia.domain.model.impl.*;
 import com.github.enerccio.marginalia.domain.repository.SummaryRepository;
 import com.github.enerccio.marginalia.domain.service.*;
-import com.github.enerccio.marginalia.domain.service.job.JobCallType;
-import com.github.enerccio.marginalia.domain.service.job.JobStatus;
-import com.github.enerccio.marginalia.domain.service.job.Jobs;
 import com.github.enerccio.marginalia.domain.service.InferenceService.ChunkType;
 import com.github.enerccio.marginalia.domain.service.InferenceService.InferenceAsyncCallback;
 import com.github.enerccio.marginalia.domain.service.InferenceService.InferenceAsyncController;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
+import com.github.enerccio.marginalia.domain.service.job.JobCallType;
+import com.github.enerccio.marginalia.domain.service.job.JobStatus;
+import com.github.enerccio.marginalia.domain.service.job.Jobs;
 import com.github.enerccio.marginalia.domain.templates.MetaSummaryTemplateData;
 import com.github.enerccio.marginalia.domain.templates.SummaryTemplateData;
 import com.github.enerccio.marginalia.domain.templates.TemplateContext;
@@ -55,6 +55,9 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
 
     @Autowired
     private MessagePromptService messagePromptService;
+
+    @Autowired
+    private LorebookActivationService loreActivationService;
 
     @Autowired
     private ChatMessageService chatMessageService;
@@ -936,7 +939,9 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
         String jailbreak = Boolean.TRUE.equals(ai.getNeedsJailbreak()) && StringUtils.isNotBlank(ai.getJailbreak())
                 ? ai.getJailbreak() + "\n\n" : "";
 
-        template.setBackgroundLore(StringUtils.defaultString(messagePromptService.getBackgroundLore(from)));
+        // the lore as the lorebooks are now; the lore the part was written with only when the book has no lorebook
+        String lore = loreActivationService.currentBackgroundLore(manuscript, from);
+        template.setBackgroundLore(StringUtils.defaultString(lore != null ? lore : messagePromptService.getBackgroundLore(from)));
 
         String prompt = jailbreak + templateService.processTemplate(systemPrompt, "summaryPrompt", template);
         long tokens = inferenceService.countTokens(prompt);
@@ -1039,7 +1044,9 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
         String jailbreak = Boolean.TRUE.equals(ai.getNeedsJailbreak()) && StringUtils.isNotBlank(ai.getJailbreak())
                 ? ai.getJailbreak() + "\n\n" : "";
 
-        template.setBackgroundLore(StringUtils.defaultString(messagePromptService.getBackgroundLore(from)));
+        // the lore as the lorebooks are now; the lore the part was written with only when the book has no lorebook
+        String lore = loreActivationService.currentBackgroundLore(manuscript, from);
+        template.setBackgroundLore(StringUtils.defaultString(lore != null ? lore : messagePromptService.getBackgroundLore(from)));
         template.setSummaryBlocks("");
 
         long summaryTokens = 0;

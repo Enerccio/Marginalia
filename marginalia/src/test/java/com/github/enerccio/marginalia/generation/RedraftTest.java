@@ -3,9 +3,7 @@ package com.github.enerccio.marginalia.generation;
 import com.github.enerccio.marginalia.Defaults;
 import com.github.enerccio.marginalia.domain.collections.AnnotationSource;
 import com.github.enerccio.marginalia.domain.collections.AnnotationStatus;
-import com.github.enerccio.marginalia.domain.model.impl.Annotation;
-import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
-import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
+import com.github.enerccio.marginalia.domain.model.impl.*;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.RedraftService.ContextInsufficient;
@@ -47,6 +45,12 @@ class RedraftTest extends GenerationTestBase {
 
     @Autowired
     private AnnotationService annotationService;
+
+    @Autowired
+    private LorebookService lorebookService;
+
+    @Autowired
+    private LorebookEntryService lorebookEntryService;
 
     private Manuscript manuscript;
     private List<ChatMessage> story;
@@ -158,6 +162,35 @@ class RedraftTest extends GenerationTestBase {
                 .contains("Make the harbour scene longer");
         assertThat(part(3).getResponse()).isEqualTo("TEXT-3");
         assertThat(chatMessageService.getAllMessages(manuscriptService.find(manuscript.getId()))).hasSize(5);
+    }
+
+    @Test
+    void theLoreIsTheOneOfTheLorebooksNowNotTheOneThePartWasWrittenWith() throws Exception {
+        Lorebook lorebook = new Lorebook();
+        lorebook.setName("world");
+        lorebook = lorebookService.save(lorebook);
+        LorebookEntry entry = new LorebookEntry();
+        entry.setLorebook(lorebook);
+        entry.setName("dragons");
+        entry.setPayload("Dragons are small.");
+        entry = lorebookEntryService.save(entry);
+        Manuscript loaded = manuscriptService.find(manuscript.getId());
+        loaded.setLorebook(lorebook);
+        manuscript = manuscriptService.save(loaded);
+        // what the part was written with
+        messagePromptService.store(part(3), null, "Dragons are small.");
+
+        // the entry is edited afterwards
+        entry.setPayload("Dragons are huge.");
+        lorebookEntryService.save(entry);
+        llm.enqueue(MockLLMResponse.text("REDRAFTED"));
+
+        redraft(3, "Again");
+
+        String message = llm.lastCompletionRequest().getMessages().getLast().content();
+        assertThat(message).contains("Dragons are huge.").doesNotContain("Dragons are small.");
+        // nothing is stored: the part keeps the lore it was written with
+        assertThat(messagePromptService.getBackgroundLore(part(3))).isEqualTo("Dragons are small.");
     }
 
     @Test

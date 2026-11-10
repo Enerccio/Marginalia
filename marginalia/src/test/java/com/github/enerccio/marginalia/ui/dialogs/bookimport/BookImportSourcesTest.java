@@ -1,5 +1,9 @@
 package com.github.enerccio.marginalia.ui.dialogs.bookimport;
 
+import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
+import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
+import com.github.enerccio.marginalia.domain.service.ArchiveImportService;
+import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.test.MarginaliaTestBase;
 import com.vaadin.flow.component.UI;
@@ -15,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -29,6 +34,9 @@ class BookImportSourcesTest extends MarginaliaTestBase {
 
     @Autowired
     private Localization loc;
+
+    @Autowired
+    private ManuscriptService manuscriptService;
 
     // UI.setCurrent keeps only a weak reference, see WorkspaceStateTest
     private UI ui;
@@ -138,7 +146,7 @@ class BookImportSourcesTest extends MarginaliaTestBase {
 
     @Test
     void anArchiveHasNoOptions() throws Exception {
-        ArchiveSource source = new ArchiveSource(loc);
+        ArchiveSource source = new ArchiveSource(loc, false);
         assertThat(source.options()).isNull();
         assertThat(source.ready()).isFalse();
 
@@ -164,6 +172,61 @@ class BookImportSourcesTest extends MarginaliaTestBase {
         assertThat(source.multiple()).isTrue();
         assertThat(source.ready()).isFalse();
         assertThatThrownBy(() -> source.read("not a chat".getBytes(StandardCharsets.UTF_8), "x.jsonl")).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void chatsHaveNoPlaceInTheMiddleOfAStory() {
+        assertThat(new ChatSource(loc, com.github.enerccio.marginalia.ui.dialogs.ChatImportFormat.SILLYTAVERN).insertable()).isFalse();
+        assertThat(new ArchiveSource(loc, true).insertable()).isTrue();
+        assertThat(new DocumentSource(loc).insertable()).isTrue();
+        // the text of an archive for a book does not speak of a new book
+        assertThat(new ArchiveSource(loc, true).description()).isNotEqualTo(new ArchiveSource(loc, false).description());
+    }
+
+    private static ChatMessage part(long id, String text) {
+        ChatMessage part = new ChatMessage();
+        part.setId(id);
+        part.setResponse(text);
+        return part;
+    }
+
+    @Test
+    void thePickerPutsPartsAtTheEndBeforeOrAfterAPart() {
+        List<ChatMessage> branch = List.of(part(1, "first"), part(2, "second"), part(3, "third"));
+        InsertionPicker picker = new InsertionPicker(loc, branch);
+        assertThat(picker.isVisible()).isTrue();
+        assertThat(picker.insertion()).isEqualTo(ArchiveImportService.Insertion.END);
+
+        picker.choose("AFTER", 1);
+        assertThat(picker.insertion().after()).isSameAs(branch.get(1));
+        assertThat(picker.insertion().end()).isFalse();
+
+        // before a part is after the part above it, before the first part is the start of the story
+        picker.choose("BEFORE", 2);
+        assertThat(picker.insertion().after()).isSameAs(branch.get(1));
+        picker.choose("BEFORE", 0);
+        assertThat(picker.insertion()).isEqualTo(ArchiveImportService.Insertion.START);
+
+        // a part still has to be picked
+        picker.choose("AFTER", null);
+        assertThat(picker.insertion()).isNull();
+    }
+
+    @Test
+    void aBookWithoutPartsHasOnlyTheEnd() {
+        InsertionPicker picker = new InsertionPicker(loc, List.of());
+        assertThat(picker.isVisible()).isFalse();
+        assertThat(picker.insertion()).isEqualTo(ArchiveImportService.Insertion.END);
+    }
+
+    @Test
+    void theDialogOpensOnABookToo() throws Exception {
+        login();
+        Manuscript created = new Manuscript();
+        created.setName(uniqueName("book"));
+        Manuscript book = manuscriptService.save(created);
+        BookImportDialog.showInto(manuscriptService.find(book), imported -> {
+        });
     }
 
     @Test

@@ -113,6 +113,9 @@ public class AnnotateServiceImpl implements AnnotateService {
     private MessagePromptService messagePromptService;
 
     @Autowired
+    private LorebookActivationService loreActivationService;
+
+    @Autowired
     private SummaryService summaryService;
 
     @Autowired
@@ -715,7 +718,9 @@ public class AnnotateServiceImpl implements AnnotateService {
         int maxTokens = TokenLimits.promptTokens(ai, protocol);
 
         AnnotateTemplateData data = new AnnotateTemplateData();
-        data.setBackgroundLore(StringUtils.defaultString(messagePromptService.getBackgroundLore(part)));
+        // the lore as the lorebooks are now; the lore the part was written with only when the book has no lorebook
+        String lore = loreActivationService.currentBackgroundLore(book, part);
+        data.setBackgroundLore(StringUtils.defaultString(lore != null ? lore : messagePromptService.getBackgroundLore(part)));
         data.setNarrativePov(manuscriptService.getPov(book));
         data.setNarrativeTense(manuscriptService.getTense(book));
         data.setStyle(manuscriptService.getStyle(book));

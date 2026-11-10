@@ -1042,6 +1042,11 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_CHAPTER_HEADING_LEVEL, "章从标题级别开始");
         setValue(L.LABEL_IMPORT_FROM_OBSIDIAN, "从 Obsidian 库导入");
         setValue(L.LABEL_IMPORT_FROM_SCRIVENER, "从 Scrivener 项目导入");
+        setValue(L.LABEL_IMPORT_PLACE, "放置段落的位置");
+        setValue(L.LABEL_AT_THE_END_OF_THE_STORY, "故事末尾");
+        setValue(L.LABEL_BEFORE_A_PART, "在某个段落之前");
+        setValue(L.LABEL_AFTER_A_PART, "在某个段落之后");
+        setValue(L.LABEL_PART, "段落");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -1538,7 +1543,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_MOVE_PICK_FIRST, "请先勾选条目，并选择要移动到的世界书。");
         setValue(L.MSG_INVALID_ARCHIVE, "压缩包必须是至少包含一个 .md 文件的 zip 文件。");
         setValue(L.MSG_IMPORT_FROM_ARCHIVE, "上传 .md 文件的 zip 压缩包。每个文件按文件名顺序成为新世界书中一个已禁用的条目。");
-        setValue(L.MSG_IMPORT_ARCHIVE_TO_BOOK, "上传 .md 文件的 zip 压缩包。每个文件按文件名顺序成为故事中的一个段落，添加在最后一个段落之后。");
+        setValue(L.MSG_IMPORT_ARCHIVE_TO_BOOK, "上传 .md 文件的 zip 压缩包。每个文件按文件名顺序成为故事中的一个段落。");
         setValue(L.MSG_IMPORT_ARCHIVE_NEW_BOOK, "上传 .md 文件的 zip 压缩包。每个文件按文件名顺序成为以压缩包命名的新书中的一个段落。");
         setValue(L.MSG_ARCHIVE_ENTRY_NAMES, "请检查条目名称。压缩包中的 names.txt（每行一个名称，按文件顺序）会自动填入；留空的名称将使用文件的第一个标题或文件名。");
         setValue(L.MSG_ARCHIVE_PARTS_ADDED, "已添加 %d 个段落。");
@@ -1772,7 +1777,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_PLANNER_IMPORT_NONE, "当前分支的各部分没有回合详情");
         setValue(L.MSG_MERGE_TURNS_HINT, "两者的详情已合并在这里。修改不合适的地方后再合并：两者将合为一个。");
         setValue(L.MSG_MERGE_OTHER_POV, "第二个的值：%s");
-        setValue(L.MSG_IMPORT_DOCUMENT, "上传已完成的稿件：Word 文档（.docx）、LibreOffice / OpenDocument 文本（.odt）、RTF 文件（.rtf）、Markdown 文件（.md）、纯文本文件（.txt）或电子书（.epub）。结果是一本新书：标题（纯文本文件中为“Chapter 3”之类的行）开始新的一章，文本在段落之间被切分为段落块，并全部标记为由您撰写。");
+        setValue(L.MSG_IMPORT_DOCUMENT, "上传已完成的稿件：Word 文档（.docx）、LibreOffice / OpenDocument 文本（.odt）、RTF 文件（.rtf）、Markdown 文件（.md）、纯文本文件（.txt）或电子书（.epub）。标题（纯文本文件中为“Chapter 3”之类的行）开始新的一章，文本在段落之间被切分为段落块，并全部标记为由您撰写。");
         setValue(L.MSG_INVALID_DOCUMENT, "%s 不是可读取的文本文档（.docx、.odt、.rtf、.md、.txt、.epub）。");
         setValue(L.MSG_IMPORTING_DOCUMENT, "正在导入文档");
         setValue(L.MSG_DOCUMENT_READY, "%d 章，%d 字，%d 段。");
@@ -1904,6 +1909,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.HELP_PLANNER_IMPORT_FROM_BRANCH, "将当前分支各部分的回合详情添加为场景，用于规划故事的重写");
         setValue(L.HELP_WORDS_PER_PART, "文本在段落之间被切分为大约这么多字的段落块。一个段落块不会包含两章的文本；章末剩下的部分若不到此数的一半，则保留在前一个段落块中。");
         setValue(L.HELP_CHAPTER_HEADING_LEVEL, "该级别及更高级别的标题开始新的一章，每章以其标题开头。更深层的标题保留在文本中。");
+        setValue(L.HELP_IMPORT_PLACE, "段落将标记为由您撰写。该位置之后的内容会移到它们后面，因此涵盖该位置的摘要会过时。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景设定与世界观。");

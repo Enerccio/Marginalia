@@ -17,6 +17,7 @@ import com.github.enerccio.marginalia.ui.RestorableState;
 import com.github.enerccio.marginalia.ui.components.LorebookPreview;
 import com.github.enerccio.marginalia.ui.components.MessageImages;
 import com.github.enerccio.marginalia.ui.dialogs.*;
+import com.github.enerccio.marginalia.ui.dialogs.bookimport.BookImportDialog;
 import com.github.enerccio.marginalia.ui.dialogs.manuscript.*;
 import com.github.enerccio.marginalia.ui.dialogs.phone.PhoneManuscriptDialog;
 import com.github.enerccio.marginalia.ui.dialogs.phone.PhoneManuscriptDialogPart;
@@ -33,7 +34,6 @@ import com.github.enerccio.marginalia.ui.widgets.LazyContextMenu;
 import com.github.enerccio.marginalia.ui.widgets.MassDeleteBox;
 import com.github.enerccio.marginalia.ui.widgets.ScrollPanel;
 import com.github.enerccio.marginalia.ui.widgets.TabDock;
-import com.github.enerccio.marginalia.utils.MarkdownArchive;
 import com.github.enerccio.marginalia.utils.TextMarkup;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.google.gson.JsonObject;
@@ -361,16 +361,20 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
     }
 
     /**
-     * Asks for a zip archive of {@code .md} files and adds a part for each file to the end of the story, see
-     * {@link ArchiveImportService#appendParts}; the story is shown again.
+     * Opens the import into the book (an archive of {@code .md} files, a document, an Obsidian vault, a Scrivener project): the parts are added
+     * at the place the author picks, after the last part or before or after a part, see {@link BookImportDialog#showInto} and
+     * {@link ArchiveImportService#insertParts}; the story is shown again.
      */
     @PublicAPI(from = "1.4.0",
-            returns = @APIReturn(type = void.class))
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "e", type = Exception.class)})
     @Override
     public void openArchiveImportDialog() {
-        ArchiveUploadDialog.show(loc.getValue(L.LABEL_IMPORT_FROM_ARCHIVE), loc.getValue(L.MSG_IMPORT_ARCHIVE_TO_BOOK),
-                (archive, fileName) -> new ArchiveImportRunner().appendParts(parent.refreshManuscript(), MarkdownArchive.read(archive),
-                        imported -> load(parent.refreshManuscript())));
+        try {
+            BookImportDialog.showInto(parent.refreshManuscript(), imported -> load(parent.refreshManuscript()));
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
     }
 
     /**

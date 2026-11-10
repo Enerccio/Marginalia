@@ -6,6 +6,7 @@ import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.service.*;
+import com.github.enerccio.marginalia.domain.service.ArchiveImportService.Insertion;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
@@ -94,7 +95,7 @@ public class NewBookAction {
             // the import is checked and read before the book is made, a book is not left empty by a bad file
             Manuscript manuscript = createBook(StringUtils.defaultIfBlank(name, loc.getValue(L.LABEL_NEW_BOOK)));
             // a stopped import leaves the book with the parts until then, it is opened too
-            run.run(manuscript, imported -> opener.open(manuscriptService.find(manuscript)));
+            run.run(manuscript, Insertion.END, imported -> opener.open(manuscriptService.find(manuscript)));
         });
     }
 

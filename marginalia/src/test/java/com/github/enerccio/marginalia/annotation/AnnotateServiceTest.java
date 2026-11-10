@@ -66,6 +66,12 @@ class AnnotateServiceTest extends GenerationTestBase {
     @Autowired
     private com.github.enerccio.marginalia.domain.service.MessagePromptService messagePromptService;
 
+    @Autowired
+    private com.github.enerccio.marginalia.domain.service.LorebookService lorebookService;
+
+    @Autowired
+    private com.github.enerccio.marginalia.domain.service.LorebookEntryService lorebookEntryService;
+
     /** The reasoning of the model as the run reported it while the answer was written. */
     private final List<String> reasoningSeen = new java.util.concurrent.CopyOnWriteArrayList<>();
 
@@ -687,6 +693,29 @@ class AnnotateServiceTest extends GenerationTestBase {
         assertThat(first.getFirst().content()).doesNotContain("LORE-OF");
         assertThat(first.getLast().content()).contains("LORE-OF-TEN").doesNotContain("LORE-OF-ELEVEN");
         assertThat(second.getLast().content()).contains("LORE-OF-ELEVEN").doesNotContain("LORE-OF-TEN");
+    }
+
+    @Test
+    void theLoreIsTheOneOfTheLorebooksNowNotTheOneThePartWasWrittenWith() throws Exception {
+        com.github.enerccio.marginalia.domain.model.impl.Lorebook lorebook = new com.github.enerccio.marginalia.domain.model.impl.Lorebook();
+        lorebook.setName("world");
+        lorebook = lorebookService.save(lorebook);
+        com.github.enerccio.marginalia.domain.model.impl.LorebookEntry entry = new com.github.enerccio.marginalia.domain.model.impl.LorebookEntry();
+        entry.setLorebook(lorebook);
+        entry.setName("dragons");
+        entry.setPayload("Dragons are small.");
+        entry = lorebookEntryService.save(entry);
+        Manuscript loaded = manuscriptService.find(manuscript.getId());
+        loaded.setLorebook(lorebook);
+        manuscript = manuscriptService.save(loaded);
+        messagePromptService.store(part, null, "Dragons are small.");
+
+        entry.setPayload("Dragons are huge.");
+        lorebookEntryService.save(entry);
+        llm.enqueue(MockLLMResponse.text("{\"findings\": []}"));
+        done(manuscript, part, request("flag weak scenes", Mode.STRUCTURED));
+
+        assertThat(sent().getLast().content()).contains("Dragons are huge.").doesNotContain("Dragons are small.");
     }
 
     @Test

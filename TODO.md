@@ -755,8 +755,9 @@ numbers of the older items stable), the rest is P3/P4.
 87. **Import a finished manuscript.** 34 covers chats; ✅ *Import from a document* (Word `.docx`, LibreOffice `.odt`, `.rtf`, a single Markdown file, plain text, EPUB) and the zips of an Obsidian vault and of a Scrivener project in the
     one import window of the book list (`BookImportDialog`, a source selector with its own options): headings start chapters,
     the text is cut at a word target (`PartSplitter`; a chapter's short end stays with the part before it), all marked as
-    written by the author (49 stays right). Not done: importing into an existing book (the story's *Import from
-    archive* is the only one there), and offering the summaries run and the lore suggestions (58) after the import.
+    written by the author (49 stays right); ✅ the same import into an existing book (settings menu, *Import*) at the end or before or
+    after a part. Not done: offering the summaries run and the lore suggestions (58) after the import, and chats (SillyTavern,
+    LM Studio) into an existing book (a tree of branches: they would need a part to hang from).
 88. **"Where was I" card.** `lastOpened` is stored. When a book was not opened for N days, show a card above the story:
     the newest summary, the next open planner scenes (44), the open annotations and the last instructions. No model call
     in the first version; a *Write me a recap* button (summaries as the input) later. Cheap, and it uses four features

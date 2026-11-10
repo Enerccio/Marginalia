@@ -3,12 +3,14 @@
 // (dataset/lorebook.mjs, `companion`) and a book is imported from the archive.
 // Pictures: multi-tag-books, lorebook-sub-lorebooks, lorebook-mass-edit, multi-tag-entries, archive-upload, archive-entry-names,
 // archive-progress, archive-lorebook-upload, and (1.8.0) import-source (the import window with the Source selector open), document-import (a Word
-// document uploaded, with its options).
+// document uploaded, with its options), book-import-into (the same window opened from the settings menu of a book, the place picked).
 import fs from 'node:fs';
 import path from 'node:path';
 import {execFileSync} from 'node:child_process';
+import {openStoryMenu} from '../lib/story.mjs';
 import {
   bookListMenu,
+  bookTab,
   closeDialog,
   DESKTOP,
   dialog,
@@ -16,6 +18,8 @@ import {
   idle,
   login,
   main,
+  menuItem,
+  openBook,
   openImport,
   openTab,
   outDir,
@@ -130,6 +134,43 @@ await main(async ({ page }) => {
     await dialog(page).getByRole('button', { name: 'Import', exact: true }).click();
     await idle(page, 3500);
     await snap(page, '_document-imported');
+    await page.getByRole('button', { name: 'Exit', exact: true }).first().click();
+    await idle(page, 1000);
+  });
+
+  // the import window from the settings menu of a book: the parts go after the second part of the story, what followed them follows them
+  await section(page, 'book-import-into', async () => {
+    await openBook(page, 'Notes from the Cellar');
+    await bookTab(page, 'Story');
+    await openStoryMenu(page);
+    await page.getByRole('menuitem', { name: /^Import & export/ }).first().click();
+    await idle(page, 400);
+    await menuItem(page, 'Import').click();
+    await idle(page, 900);
+    const d = dialog(page);
+    await pick(d, 'Source', 'Import from a document');
+    await idle(page, 500);
+    await page.locator('vaadin-upload input[type=file]').last().setInputFiles(manuscriptDocx());
+    await idle(page, 2500);
+    const words = d.locator('vaadin-integer-field').first();
+    await words.locator('input').fill('500');
+    await words.locator('input').dispatchEvent('change');
+    await idle(page, 600);
+    await d.locator('vaadin-radio-button').filter({ hasText: 'After a part' }).click();
+    await idle(page, 500);
+    await field(d, 'Part').click();
+    await idle(page, 500);
+    await page.getByRole('option').nth(1).click();
+    await idle(page, 600);
+    await page.setViewportSize({ width: DESKTOP.width, height: 1250 });
+    await idle(page, 600);
+    await snapDialog(page, 'book-import-into', 0);
+    await page.setViewportSize(DESKTOP);
+    await idle(page, 400);
+    await dialog(page).getByRole('button', { name: 'Import', exact: true }).click();
+    await idle(page, 3500);
+    // the story shows the new parts between the second and the third
+    await snap(page, '_book-imported');
     await page.getByRole('button', { name: 'Exit', exact: true }).first().click();
     await idle(page, 1000);
   });

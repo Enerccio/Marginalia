@@ -421,7 +421,7 @@ public class StoryMenuRegistry implements InitializingBean {
         application(StoryMenuItem.tools(StoryMenuKeys.STATISTICS, L.LABEL_STATISTICS, StoryEditor::openStatisticsDialog)
                 .icon(Solid.CHART_LINE::create).path(StoryMenuKeys.GROUP_ANALYSIS));
 
-        application(StoryMenuItem.tools(StoryMenuKeys.IMPORT_ARCHIVE, L.LABEL_IMPORT_FROM_ARCHIVE, StoryEditor::openArchiveImportDialog)
+        application(StoryMenuItem.tools(StoryMenuKeys.IMPORT_ARCHIVE, L.LABEL_IMPORT, StoryEditor::openArchiveImportDialog)
                 .icon(Solid.FILE_IMPORT::create).path(StoryMenuKeys.GROUP_IMPORT_EXPORT));
         application(StoryMenuItem.tools(StoryMenuKeys.EXPORT, L.LABEL_EXPORT_STORY, StoryEditor::openExportDialog)
                 .icon(Solid.FILE_EXPORT::create).path(StoryMenuKeys.GROUP_IMPORT_EXPORT));

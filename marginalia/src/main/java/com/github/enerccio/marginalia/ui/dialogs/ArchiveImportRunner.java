@@ -4,6 +4,7 @@ import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.ArchiveImportService;
 import com.github.enerccio.marginalia.domain.service.ArchiveImportService.ImportResult;
+import com.github.enerccio.marginalia.domain.service.ArchiveImportService.Insertion;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
@@ -49,7 +50,20 @@ public class ArchiveImportRunner {
                     @APIParameter(name = "content", type = MarkdownArchive.Content.class),
                     @APIParameter(name = "afterwards", type = ArchiveImportRunner.Continuation.class)})
     public void appendParts(Manuscript manuscript, MarkdownArchive.Content content, Continuation<Manuscript> afterwards) {
-        run(content, (dialog) -> archiveImportService.appendParts(manuscript, content, dialog::isCancelled, dialog::updateProgress),
+        insertParts(manuscript, Insertion.END, content, afterwards);
+    }
+
+    /**
+     * Adds the files of the archive to the story of the book at the place: after the last part, or between two parts.
+     */
+    @PublicAPI(from = "1.8.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "manuscript", type = Manuscript.class),
+                    @APIParameter(name = "place", type = ArchiveImportService.Insertion.class),
+                    @APIParameter(name = "content", type = MarkdownArchive.Content.class),
+                    @APIParameter(name = "afterwards", type = ArchiveImportRunner.Continuation.class)})
+    public void insertParts(Manuscript manuscript, Insertion place, MarkdownArchive.Content content, Continuation<Manuscript> afterwards) {
+        run(content, (dialog) -> archiveImportService.insertParts(manuscript, place, content, dialog::isCancelled, dialog::updateProgress),
                 L.MSG_ARCHIVE_PARTS_ADDED, afterwards);
     }
 

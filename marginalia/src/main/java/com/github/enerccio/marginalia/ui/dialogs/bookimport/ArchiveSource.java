@@ -12,11 +12,16 @@ import java.io.IOException;
  */
 final class ArchiveSource extends BookImportSource {
 
+    private final boolean intoBook;
     private MarkdownArchive.Content content;
     private String name = "";
 
-    ArchiveSource(Localization loc) {
+    /**
+     * @param intoBook true when the files go into a book that exists (the text does not speak of a new book)
+     */
+    ArchiveSource(Localization loc, boolean intoBook) {
         super(loc);
+        this.intoBook = intoBook;
     }
 
     @Override
@@ -26,7 +31,7 @@ final class ArchiveSource extends BookImportSource {
 
     @Override
     L description() {
-        return L.MSG_IMPORT_ARCHIVE_NEW_BOOK;
+        return intoBook ? L.MSG_IMPORT_ARCHIVE_TO_BOOK : L.MSG_IMPORT_ARCHIVE_NEW_BOOK;
     }
 
     @Override
@@ -73,6 +78,6 @@ final class ArchiveSource extends BookImportSource {
     @Override
     BookImportDialog.Run prepare() {
         MarkdownArchive.Content read = content;
-        return (manuscript, afterwards) -> new ArchiveImportRunner().appendParts(manuscript, read, afterwards);
+        return (manuscript, place, afterwards) -> new ArchiveImportRunner().insertParts(manuscript, place, read, afterwards);
     }
 }

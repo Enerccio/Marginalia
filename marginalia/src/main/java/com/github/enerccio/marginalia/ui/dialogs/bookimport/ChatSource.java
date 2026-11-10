@@ -55,6 +55,11 @@ final class ChatSource extends BookImportSource {
     }
 
     @Override
+    boolean insertable() {
+        return false;
+    }
+
+    @Override
     Component options() {
         return options;
     }
@@ -103,6 +108,6 @@ final class ChatSource extends BookImportSource {
         if (tree.size() == 0) {
             throw new IllegalArgumentException(loc.getValue(L.MSG_ST_NO_MESSAGES));
         }
-        return (manuscript, afterwards) -> new SillyTavernImportRunner().run(format, manuscript, tree, afterwards::accept);
+        return (manuscript, _, afterwards) -> new SillyTavernImportRunner().run(format, manuscript, tree, afterwards::accept);
     }
 }

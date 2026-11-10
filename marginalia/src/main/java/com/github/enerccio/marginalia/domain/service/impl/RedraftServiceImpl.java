@@ -70,6 +70,9 @@ public class RedraftServiceImpl implements RedraftService {
     private TemplateService templateService;
 
     @Autowired
+    private LorebookActivationService loreActivationService;
+
+    @Autowired
     @Lazy
     private AgentRunService agentRunService;
 
@@ -216,7 +219,10 @@ public class RedraftServiceImpl implements RedraftService {
         int maxTokens = TokenLimits.promptTokens(ai, protocol);
 
         RedraftTemplateData data = new RedraftTemplateData();
-        data.setBackgroundLore(StringUtils.defaultString(messagePromptService.getBackgroundLore(part)));
+        // the lore as the lorebooks are now, so a change of the lore reaches the redraft; the lore the part was written with
+        // only when the book has no lorebook to ask
+        String lore = loreActivationService.currentBackgroundLore(book, part);
+        data.setBackgroundLore(StringUtils.defaultString(lore != null ? lore : messagePromptService.getBackgroundLore(part)));
         data.setNarrativePov(manuscriptService.getPov(book));
         data.setNarrativeTense(manuscriptService.getTense(book));
         data.setStyle(manuscriptService.getStyle(book));

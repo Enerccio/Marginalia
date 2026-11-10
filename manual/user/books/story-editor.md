@@ -236,7 +236,7 @@ The settings menu (⚙) in the bottom bar groups what acts on the whole story. *
 |---|---|
 | **Appearance** | **Change Styles For Text**, **Highlight Generated Text** and **Annotations in the margin** (desktop only, the last one) |
 | **Analysis** | **Annotate a range of parts with AI**, **Automatic annotation**, **Branch Tokens**, **Lore Usage**, **Statistics** |
-| **Import & export** | **Import from archive**, **Export story** (and the items of extensions that import or export, such as **Export instructions**) |
+| **Import & export** | **Import**, **Export story** (and the items of extensions that import or export, such as **Export instructions**) |
 | **Cleanup** | **Clear history of the book**, **Empty trash of the history**, **Mass delete** |
 | **Layout** (desktop only) | **Save layout as my default**, **Restore default layout** |
 
@@ -371,8 +371,9 @@ old one in the middle of the story, and keeps what you do not ask to change. Cho
 
 The model gets the [redraft prompts](prompts.md#redraft-prompt): the part, your instructions, the story before
 the part (the older story as [summaries](summaries.md) where there are valid ones, the rest as text, the newest part first
-when it does not all fit), as much of the story after the part as fits (up to a quarter of the room), the lore the part
-was written with, the point of view, tense and style of the book, and the scene setting, point of view character, present
+when it does not all fit), as much of the story after the part as fits (up to a quarter of the room), the lore the
+lorebooks give that part now (worked out again for the part's turn, so an edit of an entry reaches the redraft; the lore
+the part was written with is used only when the book has no lorebook), the point of view, tense and style of the book, and the scene setting, point of view character, present
 characters and instructions of the turn the part came from. The story after the part is there so the new text still leads
 into it: events the following parts rely on should stay.
 
@@ -620,20 +621,34 @@ The [Summaries overview](summaries.md#search-and-replace-in-the-summaries) has t
 The same search and replace can be run from the [command line](../commands/index.md#commands-that-come-with-marginalia)
 with `/search-replace-parts`; it asks before it replaces.
 
-## Importing text files
+## Importing into the book
 
-The settings menu (⚙) has **Import from archive**. Upload a `.zip` of `.md` (Markdown) files and every file is added as
-a **part** at the end of the story: the first one after the last part of the active branch (the first part of an empty
-book), each next one after the one before. The files are taken in the order of their names, numbers inside the names
-compared as numbers (`2.md` before `10.md`), also in folders of the archive. Folders, hidden files (`.name`), the
-`__MACOSX` folder and files that are not `.md` are skipped. The file is the text of the part as it is, it is not sent to
-the model and not changed; the parts count as written by you. The summaries are not made, do that in the
-[summaries](summaries.md) window.
+The settings menu (⚙) has **Import** (under **Import & export**). It is the window of the Books tab that makes a new book of
+a file (see [Managing books](managing-books.md#creating-a-book)), for the book you are in: the parts are **added to the
+story** instead. The **Source** is one of the zip archive of `.md` files, a document (Word, LibreOffice, RTF, Markdown, plain
+text, EPUB), the zip of an Obsidian vault or the zip of a Scrivener project; each has the same text and the same options as there
+(the words per part and the heading level of the chapters), and a line tells what the import will make. The chats of SillyTavern
+and LM Studio are not offered: they are a tree of branches, which has no place in the middle of a story.
 
-The import shows a progress bar with the number of files done. **Stop** ends it after the part that is being stored: the parts
-that were already added stay in the story (the import is not undone), and a message tells how many of the files were imported.
+**Put the parts** says where they go:
 
-The **import** button of the Books tab does the same into a new book, see [Managing books](managing-books.md#creating-a-book).
+- **At the end of the story**: after the last part of the active branch (the first part of an empty book).
+- **Before a part** or **After a part**: pick the part from the list (the numbers are the places in the active branch, with the
+  start of the text). The parts are put between two parts: everything that followed the place, all its branches, follows the new
+  parts, and no part is changed or made again. The end of the story stays where it was (the story is that many parts longer).
+  The summaries that cover the place are outdated, as they describe the story without the new parts: the
+  [summaries](summaries.md) window shows them and makes them again.
+
+![The import window of a book](../images/book-import-into.png)
+
+The parts of an archive are the files in the order of their names, numbers inside the names compared as numbers (`2.md`
+before `10.md`), also in folders of the archive. Folders, hidden files (`.name`), the `__MACOSX` folder and files that are not
+`.md` are skipped. The file is the text of the part as it is, it is not sent to the model and not changed; all the parts count
+as written by you. The summaries are not made, do that in the [summaries](summaries.md) window.
+
+The import shows a progress bar with the number of parts done. **Stop** ends it after the part that is being stored: the parts
+that were already added stay in the story (the import is not undone), and a message tells how many were imported.
+
 The same import into a lorebook is described in [Import & export](../lorebooks/import-export.md#importing-an-archive-of-text-files).
 
 ## Exporting the story

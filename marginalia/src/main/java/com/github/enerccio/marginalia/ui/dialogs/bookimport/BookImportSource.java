@@ -40,6 +40,14 @@ abstract class BookImportSource {
     }
 
     /**
+     * @return true when the parts can be put into a book that has a story already, at a place of it; false for what is a tree of
+     * branches (chats), which is made for a new book
+     */
+    boolean insertable() {
+        return true;
+    }
+
+    /**
      * @return the controls of the options of the source, null when it has none
      */
     Component options() {
