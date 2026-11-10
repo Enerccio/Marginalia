@@ -24,7 +24,8 @@ class TurnDetailsMergeTest {
 
     @Test
     void namesOfBothListsAreKeptOnce() {
-        assertThat(TurnDetailsMerge.names("Anna, John", "john; Mara\nAnna")).isEqualTo("Anna, John, Mara");
+        assertThat(TurnDetailsMerge.names("Anna, John", "john; Mara, Anna")).isEqualTo("Anna, John, Mara");
+        assertThat(TurnDetailsMerge.names("Anna (young, tired)\nJohn", "john\nMara")).isEqualTo("Anna (young, tired)\nJohn\nMara");
         assertThat(TurnDetailsMerge.names(null, " Mara ,")).isEqualTo("Mara");
         assertThat(TurnDetailsMerge.names(null, null)).isEmpty();
     }

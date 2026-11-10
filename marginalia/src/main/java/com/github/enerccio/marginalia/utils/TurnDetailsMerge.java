@@ -27,18 +27,22 @@ public final class TurnDetailsMerge {
     }
 
     /**
-     * The names of both lists (separated by commas, semicolons or line breaks), each once, in the order they come in.
-     * Names that differ only in case are the same name.
+     * The names of both lists, each once, in the order they come in. Names that differ only in case are the same name.
+     * Lists with several lines (one entry per line, an entry may hold commas) are merged line by line and stay several
+     * lines; one-line lists are split at commas and semicolons and joined with {@code ", "}.
      */
     public static String names(String first, String second) {
+        String a = StringUtils.defaultString(first);
+        String b = StringUtils.defaultString(second);
+        boolean lines = (a + b).strip().contains("\n") || (a + b).strip().contains("\r");
         List<String> names = new ArrayList<>();
-        for (String name : (StringUtils.defaultString(first) + "\n" + StringUtils.defaultString(second)).split("[,;\\n\\r]+")) {
+        for (String name : (a + "\n" + b).split(lines ? "[\\n\\r]+" : "[,;\\n\\r]+")) {
             String stripped = name.strip();
             if (!stripped.isEmpty() && names.stream().noneMatch(stripped::equalsIgnoreCase)) {
                 names.add(stripped);
             }
         }
-        return String.join(", ", names);
+        return String.join(lines ? "\n" : ", ", names);
     }
 
     /**

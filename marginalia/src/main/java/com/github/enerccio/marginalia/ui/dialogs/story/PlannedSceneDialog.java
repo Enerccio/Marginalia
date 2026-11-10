@@ -38,12 +38,8 @@ class PlannedSceneDialog extends Dialog {
         title.setValue(StringUtils.defaultString(scene.getTitle()));
 
         TextArea setting = area(loc, L.LABEL_SCENE_SETTING, scene.getSceneSetting());
-        TextField pov = new TextField(loc.getValue(L.LABEL_POV_CHARACTER));
-        pov.setWidthFull();
-        pov.setValue(StringUtils.defaultString(scene.getPovCharacter()));
-        TextField present = new TextField(loc.getValue(L.LABEL_PRESENT_CHARACTERS));
-        present.setWidthFull();
-        present.setValue(StringUtils.defaultString(scene.getPresentCharacters()));
+        TextArea pov = smallArea(loc, L.LABEL_POV_CHARACTER, scene.getPovCharacter());
+        TextArea present = smallArea(loc, L.LABEL_PRESENT_CHARACTERS, scene.getPresentCharacters());
         TextArea instructions = area(loc, L.LABEL_INSTRUCTIONS, scene.getInstructions());
 
         VerticalLayout layout = new VerticalLayout(title, setting, pov, present, instructions);
@@ -70,6 +66,15 @@ class PlannedSceneDialog extends Dialog {
         save.setThemeName("primary");
         getFooter().add(new Button(loc.getValue(L.LABEL_CANCEL), _ -> close()), save);
         DialogShortcuts.submitWith(save, title, setting, pov, present, instructions);
+    }
+
+    /** POV and present characters can be several lines, but are short: a small text area. */
+    private static TextArea smallArea(Localization loc, L label, String value) {
+        TextArea area = new TextArea(loc.getValue(label));
+        area.setWidthFull();
+        area.setValue(StringUtils.defaultString(value));
+        ResizableTextArea.install(loc, area, "80px");
+        return area;
     }
 
     private static TextArea area(Localization loc, L label, String value) {

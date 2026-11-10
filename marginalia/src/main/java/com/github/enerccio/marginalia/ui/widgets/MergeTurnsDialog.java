@@ -53,17 +53,13 @@ public class MergeTurnsDialog extends Dialog {
             title.setValue(TurnDetailsMerge.title(first.title(), second.title(), maxTitleLength));
         }
         TextArea setting = area(loc, L.LABEL_SCENE_SETTING, TurnDetailsMerge.text(first.sceneSetting(), second.sceneSetting()));
-        TextField pov = new TextField(loc.getValue(L.LABEL_POV_CHARACTER));
-        pov.setWidthFull();
-        pov.setValue(TurnDetailsMerge.one(first.povCharacter(), second.povCharacter()));
+        TextArea pov = smallArea(loc, L.LABEL_POV_CHARACTER, TurnDetailsMerge.one(first.povCharacter(), second.povCharacter()));
         String otherPov = StringUtils.trimToEmpty(second.povCharacter());
         if (!otherPov.isEmpty() && !otherPov.equalsIgnoreCase(pov.getValue())) {
             // a turn has one POV character: the author sees that the second turn had another one
             pov.setHelperText(loc.getValue(L.MSG_MERGE_OTHER_POV).formatted(otherPov));
         }
-        TextField present = new TextField(loc.getValue(L.LABEL_PRESENT_CHARACTERS));
-        present.setWidthFull();
-        present.setValue(TurnDetailsMerge.names(first.presentCharacters(), second.presentCharacters()));
+        TextArea present = smallArea(loc, L.LABEL_PRESENT_CHARACTERS, TurnDetailsMerge.names(first.presentCharacters(), second.presentCharacters()));
         TextArea instructions = area(loc, L.LABEL_INSTRUCTIONS, TurnDetailsMerge.text(first.instructions(), second.instructions()));
 
         VerticalLayout layout = new VerticalLayout(hint);
@@ -92,6 +88,15 @@ public class MergeTurnsDialog extends Dialog {
         merge.setThemeName("primary");
         getFooter().add(new Button(loc.getValue(L.LABEL_CANCEL), _ -> close()), merge);
         DialogShortcuts.submitWith(merge, title, setting, pov, present, instructions);
+    }
+
+    /** POV and present characters can be several lines, but are short: a small text area. */
+    private static TextArea smallArea(Localization loc, L label, String value) {
+        TextArea area = new TextArea(loc.getValue(label));
+        area.setWidthFull();
+        area.setValue(value);
+        ResizableTextArea.install(loc, area, "80px");
+        return area;
     }
 
     private static TextArea area(Localization loc, L label, String value) {
