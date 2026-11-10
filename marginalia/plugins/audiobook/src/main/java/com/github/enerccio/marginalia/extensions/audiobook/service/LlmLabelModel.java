@@ -1,14 +1,19 @@
 package com.github.enerccio.marginalia.extensions.audiobook.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.service.CancellationToken;
 import com.github.enerccio.marginalia.domain.service.InferenceService;
 import com.github.enerccio.marginalia.domain.service.InferenceSession;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
+import com.github.enerccio.marginalia.domain.service.structured.SchemaCheck;
+import com.github.enerccio.marginalia.domain.service.structured.StructuredOutputException;
+import com.github.enerccio.marginalia.domain.service.structured.StructuredOutputs;
 import com.github.enerccio.marginalia.extensions.audiobook.label.LabelAnswer;
 import com.github.enerccio.marginalia.extensions.audiobook.label.LabelCancel;
 import com.github.enerccio.marginalia.extensions.audiobook.label.LabelModel;
+import com.github.enerccio.marginalia.extensions.audiobook.label.LabelWatch;
 
 import java.util.List;
 import java.util.concurrent.*;
@@ -40,28 +45,10 @@ public class LlmLabelModel implements LabelModel {
         }
         CancellationToken token;
         List<LLMChatMessage> payload = List.of(LLMChatMessage.of(LLMRole.SYSTEM, system), LLMChatMessage.of(LLMRole.USER, user));
+        // read here: the request is answered on other threads
+        LabelWatch.Listener watch = LabelWatch.current();
         try (InferenceSession _ = InferenceSession.open("audiobook")) {
-            token = service.infer(payload, protocol, LabelAnswer.class, new InferenceService.TypedInferenceCallback<LabelAnswer>() {
-                @Override
-                public void onResult(LabelAnswer result, String text) {
-                    done.complete(result);
-                }
-
-                @Override
-                public void onCancel() {
-                    done.completeExceptionally(new CancellationException("The labelling was cancelled"));
-                }
-
-                @Override
-                public void onError(Throwable exception) {
-                    done.completeExceptionally(exception);
-                }
-
-                @Override
-                public boolean isDead() {
-                    return done.isDone();
-                }
-            });
+            token = watch == null ? infer(payload, done) : streamOrInfer(payload, done, watch);
         }
         long deadline = System.nanoTime() + TimeUnit.MINUTES.toNanos(TIMEOUT_MINUTES);
         try {
@@ -87,6 +74,89 @@ public class LlmLabelModel implements LabelModel {
             }
         } catch (ExecutionException e) {
             throw e.getCause() instanceof Exception cause ? cause : e;
+        }
+    }
+
+    /** The request without anyone watching: the whole answer at once. */
+    private CancellationToken infer(List<LLMChatMessage> payload, CompletableFuture<LabelAnswer> done) throws Exception {
+        return service.infer(payload, protocol, LabelAnswer.class, new InferenceService.TypedInferenceCallback<LabelAnswer>() {
+            @Override
+            public void onResult(LabelAnswer result, String text) {
+                done.complete(result);
+            }
+
+            @Override
+            public void onCancel() {
+                done.completeExceptionally(new CancellationException("The labelling was cancelled"));
+            }
+
+            @Override
+            public void onError(Throwable exception) {
+                done.completeExceptionally(exception);
+            }
+
+            @Override
+            public boolean isDead() {
+                return done.isDone();
+            }
+        });
+    }
+
+    /**
+     * The request as a stream with the same schema, so that the reasoning and the answer can be shown while the model writes them; the answer is
+     * checked and read here, as {@code infer} does. A service that cannot stream with a schema is asked for the whole answer (nothing to watch then).
+     */
+    private CancellationToken streamOrInfer(List<LLMChatMessage> payload, CompletableFuture<LabelAnswer> done, LabelWatch.Listener watch) throws Exception {
+        JsonNode schema = StructuredOutputs.schemaOf(LabelAnswer.class);
+        StringBuilder answer = new StringBuilder();
+        try {
+            return service.stream(payload, protocol, schema, null, new InferenceService.InferenceAsyncCallback() {
+                @Override
+                public void onChunk(InferenceService.InferenceAsyncController controller, InferenceService.ChunkType chunkType, String text) {
+                    boolean reasoning = chunkType == InferenceService.ChunkType.REASONING;
+                    if (!reasoning) {
+                        answer.append(text);
+                    }
+                    try {
+                        watch.chunk(reasoning, text);
+                    } catch (RuntimeException e) {
+                        // the view must not stop the labelling
+                    }
+                    controller.continueInference();
+                }
+
+                @Override
+                public void onCompletion() {
+                    String text = answer.toString();
+                    SchemaCheck check = StructuredOutputs.validate(schema, text);
+                    try {
+                        if (!check.valid()) {
+                            done.completeExceptionally(new StructuredOutputException(text, check.errors(), null));
+                        } else {
+                            done.complete(StructuredOutputs.parse(text, LabelAnswer.class));
+                        }
+                    } catch (StructuredOutputException e) {
+                        done.completeExceptionally(e);
+                    }
+                }
+
+                @Override
+                public void onCancel() {
+                    done.completeExceptionally(new CancellationException("The labelling was cancelled"));
+                }
+
+                @Override
+                public void onError(Throwable exception) {
+                    done.completeExceptionally(exception);
+                }
+
+                @Override
+                public boolean isDead() {
+                    return done.isDone();
+                }
+            });
+        } catch (UnsupportedOperationException e) {
+            return infer(payload, done);
         }
     }
 }

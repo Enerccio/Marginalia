@@ -80,6 +80,10 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
     public static final String APPLY_THE_PLAN_QUESTION = "The audio of %s parts will be deleted and the labels of %s parts removed. This cannot be undone. Carry out the plan?";
     public static final String THE_PLAN_WAS_CARRIED_OUT = "Audio deleted for %s parts, labels removed for %s parts";
     public static final String PARTS_IN_THE_QUEUE_ARE_LEFT_OUT = "%s parts are waiting or running in the queue and were left out";
+    public static final String REASONING = "Reasoning";
+    public static final String THE_ANSWER_OF_THE_MODEL = "Answer of the model";
+    public static final String WHAT_THE_MODEL_SAID = "What the model said: %s";
+    public static final String CLICK_TO_SEE_WHAT_THE_MODEL_SAID = "Click to read what the model said while it labelled this part";
     public static final String START = "Start";
     public static final String STOP_ALL = "Stop all";
     public static final String CLEAR_FINISHED = "Clear finished";
@@ -466,6 +470,18 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
 
         ja(PARTS_IN_THE_QUEUE_ARE_LEFT_OUT, "%s パートはキューで待機中または実行中のため対象外です");
         zh(PARTS_IN_THE_QUEUE_ARE_LEFT_OUT, "%s 个章节正在队列中等待或运行，已被跳过");
+
+        ja(REASONING, "思考");
+        zh(REASONING, "推理");
+
+        ja(THE_ANSWER_OF_THE_MODEL, "モデルの回答");
+        zh(THE_ANSWER_OF_THE_MODEL, "模型的回答");
+
+        ja(WHAT_THE_MODEL_SAID, "モデルの出力: %s");
+        zh(WHAT_THE_MODEL_SAID, "模型的输出：%s");
+
+        ja(CLICK_TO_SEE_WHAT_THE_MODEL_SAID, "クリックして、このパートのラベル付け中にモデルが出力した内容を表示");
+        zh(CLICK_TO_SEE_WHAT_THE_MODEL_SAID, "点击查看模型在标注此章节时输出的内容");
 
         ja(START, "開始");
         zh(START, "开始");

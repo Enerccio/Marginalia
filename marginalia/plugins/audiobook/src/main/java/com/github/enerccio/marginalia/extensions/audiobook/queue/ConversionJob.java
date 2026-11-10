@@ -48,6 +48,8 @@ public final class ConversionJob {
     private final ScriptSource source;
     private final Mode mode;
 
+    private final LabelTrace trace = new LabelTrace();
+
     private State state = State.WAITING;
     private String message = "";
     private int done;
@@ -59,6 +61,11 @@ public final class ConversionJob {
         this.title = title;
         this.source = source;
         this.mode = mode;
+    }
+
+    /** What the labelling model said while this job made its script. */
+    public LabelTrace trace() {
+        return trace;
     }
 
     public Mode mode() {

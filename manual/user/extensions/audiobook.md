@@ -123,6 +123,8 @@ changes is made again, the others are kept.
    **Clear the plan**. Steps add up on a part (Delete audio and Remove labels without Generate only clean up); a part marked final is left out of every plan.
 4. **Start** carries the plan out. When it takes audio or labels away it asks first. What is to be generated goes into your queue, which goes on when you close the window
    and when you leave the page; a part that waits or runs in the queue is left out of a plan. The state, the pieces made so far and the message of the job are shown on the part's row.
+   While the model labels a part its row says *Labelling pieces 17-32 of 120* (the model is asked about 16 pieces at a time); **click the state** of a part that was labelled to read, for each request, the
+   model's reasoning and its answer, as they arrive. They are kept in memory with the job, until the finished jobs are cleared (*Clear finished*) or the application restarts.
 
 ![The queue: pieces made so far, and a download when a part is done](../../images/plugin-audiobook-queue.png)
 

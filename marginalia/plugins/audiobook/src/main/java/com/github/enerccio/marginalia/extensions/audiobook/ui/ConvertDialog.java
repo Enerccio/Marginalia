@@ -10,12 +10,14 @@ import com.github.enerccio.marginalia.extensions.audiobook.model.BackendConfig;
 import com.github.enerccio.marginalia.extensions.audiobook.queue.ConversionJob;
 import com.github.enerccio.marginalia.extensions.audiobook.queue.ConversionJob.State;
 import com.github.enerccio.marginalia.extensions.audiobook.queue.ConversionQueue;
+import com.github.enerccio.marginalia.extensions.audiobook.queue.LabelTrace;
 import com.github.enerccio.marginalia.extensions.audiobook.service.AudiobookService;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.widgets.ModelProtocolPicker;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.AttachEvent;
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
@@ -126,8 +128,7 @@ public class ConvertDialog extends Dialog {
         grid.addColumn(r -> r.state.title()).setHeader(T.localized(PART)).setFlexGrow(3);
         grid.addColumn(r -> statusText(r.state)).setHeader(T.localized(STATUS)).setAutoWidth(true);
         grid.addColumn(r -> planText(r.plan)).setHeader(T.localized(PLAN)).setAutoWidth(true);
-        grid.addColumn(r -> r.job == null ? "" : stateText(r.job.state()) + (r.job.total() == 0 ? "" : " " + r.job.done() + " / " + r.job.total()))
-                .setHeader(T.localized(STATE)).setAutoWidth(true);
+        grid.addComponentColumn(this::stateCell).setHeader(T.localized(STATE)).setAutoWidth(true);
         grid.addColumn(r -> r.job == null ? "" : r.job.message()).setHeader(T.localized(MESSAGE)).setFlexGrow(2);
         grid.addComponentColumn(this::actions).setAutoWidth(true);
         grid.setHeight("22em");
@@ -382,6 +383,22 @@ public class ConvertDialog extends Dialog {
             wholeLink.removeAll();
             wholeLink.add(link);
         }));
+    }
+
+    /** The state of the job of a part; when the model labelled the part it is a link to what the model said. */
+    private Component stateCell(Row row) {
+        if (row.job == null) {
+            return new Span();
+        }
+        String text = stateText(row.job.state()) + (row.job.total() == 0 ? "" : " " + row.job.done() + " / " + row.job.total());
+        LabelTrace trace = queue.trace(row.job.id());
+        if (trace == null || trace.isEmpty()) {
+            return new Span(text);
+        }
+        Button link = new Button(text, e -> new LabelTraceDialog(row.state.title(), trace).open());
+        link.setThemeName("tertiary small");
+        link.setTooltipText(T.localized(CLICK_TO_SEE_WHAT_THE_MODEL_SAID));
+        return link;
     }
 
     /** What can be done with a part: play and download its audio, try its job again, or stop it. */

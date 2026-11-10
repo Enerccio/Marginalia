@@ -42,6 +42,7 @@ public final class PieceLabeler {
         List<Piece> window = pieces.subList(from, to);
         List<Piece> context = pieces.subList(Math.max(0, from - CONTEXT), from);
         LabelAnswer answer;
+        LabelWatch.window(from, to, pieces.size());
         try {
             answer = model.ask(system, LabelPrompt.user(context, window));
         } catch (StructuredOutputException e) {

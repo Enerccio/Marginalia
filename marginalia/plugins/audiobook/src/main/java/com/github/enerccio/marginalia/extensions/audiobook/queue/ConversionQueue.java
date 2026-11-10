@@ -266,8 +266,13 @@ public class ConversionQueue implements AutoCloseable {
             PartScript script;
             try {
                 // making the script may ask the language model for the labels: Stop ends that request too
+                // the window shows which part is being labelled, and keeps what the model says for the user to read
                 script = com.github.enerccio.marginalia.extensions.audiobook.label.LabelCancel.during(() -> stopRun || job.cancelRequested(),
-                        () -> job.source().get());
+                        () -> com.github.enerccio.marginalia.extensions.audiobook.label.LabelWatch.during(watcher(job), () -> job.source().get()));
+                if (job.state() == State.RUNNING && job.snapshot().message().startsWith(LABELLING)) {
+                    job.set(State.RUNNING, "");
+                    fire(job);
+                }
             } catch (Exception e) {
                 if (job.cancelRequested() || stopRun) {
                     finish(job, State.CANCELLED, "");
@@ -336,6 +341,31 @@ public class ConversionQueue implements AutoCloseable {
                 }
             }
         }
+    }
+
+    /** The start of the message of a job while the model labels its part. */
+    static final String LABELLING = "Labelling ";
+
+    private com.github.enerccio.marginalia.extensions.audiobook.label.LabelWatch.Listener watcher(ConversionJob job) {
+        return new com.github.enerccio.marginalia.extensions.audiobook.label.LabelWatch.Listener() {
+            @Override
+            public void window(int from, int to, int total) {
+                String title = "pieces " + (from + 1) + "-" + to + " of " + total;
+                job.trace().startWindow(title);
+                job.set(State.RUNNING, LABELLING + title);
+                fire(job);
+            }
+
+            @Override
+            public void chunk(boolean reasoning, String text) {
+                job.trace().append(reasoning, text);
+            }
+        };
+    }
+
+    /** What the model said while it labelled the part of the job, null when there is no such job. */
+    public synchronized LabelTrace trace(String jobId) {
+        return jobs.stream().filter(j -> j.id().equals(jobId)).map(ConversionJob::trace).findFirst().orElse(null);
     }
 
     private static int distinct(PartScript script) {

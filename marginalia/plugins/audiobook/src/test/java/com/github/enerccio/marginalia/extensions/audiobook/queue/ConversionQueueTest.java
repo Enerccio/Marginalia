@@ -190,6 +190,45 @@ class ConversionQueueTest {
     }
 
     @Test
+    void theJobSaysWhichPiecesTheModelLabelsAndKeepsWhatItSaid() throws Exception {
+        queue(Set.of(BackendConfig.MODEL_TURBO));
+        PartScript script = script("One.\n\nTwo.");
+        List<String> messages = new CopyOnWriteArrayList<>();
+        queue.addListener(snapshot -> messages.add(snapshot.message()));
+
+        ConversionJob job = queue.submit("p1", "Part 1", () -> {
+            // what the labelling does on this thread: a window, then what the model writes for it
+            com.github.enerccio.marginalia.extensions.audiobook.label.LabelWatch.window(0, 16, 40);
+            com.github.enerccio.marginalia.extensions.audiobook.label.LabelWatch.current().chunk(true, "Let me think. ");
+            com.github.enerccio.marginalia.extensions.audiobook.label.LabelWatch.current().chunk(false, "{\"labels\":[]}");
+            com.github.enerccio.marginalia.extensions.audiobook.label.LabelWatch.window(16, 32, 40);
+            com.github.enerccio.marginalia.extensions.audiobook.label.LabelWatch.current().chunk(false, "second");
+            return script;
+        });
+        ConversionJob.Snapshot done = finished(job);
+
+        assertEquals(State.DONE, done.state(), done.message());
+        assertTrue(messages.contains("Labelling pieces 1-16 of 40"), messages.toString());
+        assertTrue(messages.contains("Labelling pieces 17-32 of 40"), messages.toString());
+        List<LabelTrace.Window> windows = queue.trace(job.id()).windows();
+        assertEquals(2, windows.size());
+        assertEquals("pieces 1-16 of 40", windows.get(0).title());
+        assertEquals("Let me think. ", windows.get(0).reasoning());
+        assertEquals("{\"labels\":[]}", windows.get(0).output());
+        assertEquals("second", windows.get(1).output());
+        assertNull(queue.trace("nobody"));
+    }
+
+    @Test
+    void aJobWithoutLabellingHasNothingToShow() throws Exception {
+        queue(Set.of(BackendConfig.MODEL_TURBO));
+        ConversionJob job = queue.submit("p1", "Part 1", () -> script("One."));
+        finished(job);
+
+        assertTrue(queue.trace(job.id()).isEmpty());
+    }
+
+    @Test
     void aPartThatIsUpToDateCostsNoBatchAtAll() throws Exception {
         queue(Set.of(BackendConfig.MODEL_TURBO));
         PartScript script = script("One.\n\nTwo.");
