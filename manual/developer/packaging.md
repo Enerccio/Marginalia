@@ -15,6 +15,7 @@ covers:
   - marginalia/src/desktop
   - marginalia/pom.xml
   - retype.yml
+  - tools/retype_build.sh
 ---
 
 # Packaging & releases
@@ -42,7 +43,7 @@ flowchart LR
 | Docker image | `Dockerfile`, `docker compose build`, `.github/workflows/server.yml` | `ghcr.io/enerccio/marginalia` (amd64 + arm64) for `master` and `v*` tags; or built from source with compose. |
 | Desktop archives and installers | `mvn package -Pdesktop`, `.github/workflows/desktop.yml` | Attached to GitHub releases for `v*` tags. |
 | Plugin JARs | `mvn package` in `marginalia/plugins/<plugin>`, `.github/workflows/server.yml` | Attached to GitHub releases for `v*` tags. |
-| Manual | `retype build` | `docs/`, served by GitHub Pages. |
+| Manual | `tools/retype_build.sh`, `.github/workflows/manual.yml` | The site on GitHub Pages, for `master`. |
 
 ## The WAR
 
@@ -279,7 +280,8 @@ script on LF and the batch file on CRLF.
 
 ## Continuous integration
 
-Two workflows, `desktop.yml` (tests and the desktop archives) and `server.yml` (WAR, plugins, Docker image). Both run
+Three workflows: `desktop.yml` (tests and the desktop archives), `server.yml` (WAR, plugins, Docker image) and
+`manual.yml` (the manual, see [Publishing the manual](#publishing-the-manual)). The first two run
 on pushes to `master`, on `v*` tags, on pull requests that change `marginalia/**` or the workflow, and by hand
 (*workflow_dispatch*). A newer run on the same ref cancels the running one.
 
@@ -343,7 +345,8 @@ the first time it is pushed; make it public in the package settings on GitHub so
    requires a version of the form `x.y.z` with `x` ≥ 1.
 2. **Database.** If the release changes the schema, check that the migrations upgrade a database of the previous
    release (keep a copy of one around) - `FlywayMigrationTest` covers only the migrations themselves.
-3. **Manual.** Update the manual for user-visible changes, run `tools/retype_build.sh`, commit `docs/`.
+3. **Manual.** Update the manual for user-visible changes and check it with `tools/retype_build.sh`; it is published
+   when the release reaches `master`.
 4. **Test.** `mvn test`, and `mvn package -Pdesktop` on at least your own platform; start the app and generate a part
    against a real model.
 5. **Tag.** Commit, then create and push the tag:
@@ -365,7 +368,21 @@ the first time it is pushed; make it public in the package settings on GitHub so
 
 ## Publishing the manual
 
-The manual is part of the repository: Retype reads `manual/` and writes the static site to `docs/` (configured in
-`retype.yml`). GitHub Pages serves `docs/` from the `master` branch, so the published manual changes when a commit
-with a new `docs/` reaches `master`. Rebuild and commit `docs/` in the same change as the sources - see
-[Building the manual](building.md#building-the-manual).
+The sources of the manual are part of the repository, the generated site is not: Retype reads `manual/` and writes
+the static site to `docs/` (configured in `retype.yml`), which git ignores.
+
+The workflow `manual.yml` publishes it. It runs on a push to `master` that changes `manual/**`, `retype.yml`, the root
+`pom.xml` (the version in the label), `tools/retype_build.sh` or the workflow, and by hand (*workflow_dispatch*):
+
+| Job | Does |
+|---|---|
+| `build` | Installs Retype (the version in `RETYPE_VERSION`, the one the manual is written with), runs `tools/retype_build.sh` and uploads `docs/` as a Pages artifact. |
+| `deploy` | Publishes the artifact to GitHub Pages (environment `github-pages`). Not for pull requests: those only build, as a check. |
+
+So the published manual changes when a commit with a changed manual reaches `master`, nothing has to be rebuilt or
+committed by hand. This needs *Settings → Pages → Source: GitHub Actions* in the repository. Retype needs no key
+(the free version has no page limit); with a secret `RETYPE_KEY` the build uses it.
+
+The checkout must not contain a `docs/` folder: on the runner Retype fails to write over one that came from the
+repository ("Failed to deploy" for a part of the files), which is one more reason it is not committed. To read the
+manual locally see [Building the manual](building.md#building-the-manual).

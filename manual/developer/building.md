@@ -356,7 +356,8 @@ the output before using it: Hibernate's SQLite updates are a starting point, not
 ## Building the manual
 
 The manual is a [Retype](https://retype.com) site. Sources are in `manual/`, the configuration is `retype.yml` in the
-repository root, and the generated site is written to `docs/` and served by GitHub Pages from the `master` branch.
+repository root, and the generated site is written to `docs/`, which git ignores: the published manual is built by a workflow
+([Publishing the manual](packaging.md#publishing-the-manual)), the local one is for reading and checking.
 
 ```sh
 npm install --global retypeapp     # or: dotnet tool install retypeapp --global
@@ -364,7 +365,7 @@ retype start                       # live preview at http://localhost:5000
 tools/retype_build.sh              # writes docs/; plain `retype build` works too, without the version in the site
 ```
 
-Commit `docs/` together with the changed sources. Images go into `manual/images/`; most are taken by the scripts in
+Images go into `manual/images/`; most are taken by the scripts in
 `screenshots/` (see [Contributing](contributing.md#documentation)), the few that cannot be are listed in `TODO.IMAGES.md`.
 
 ## Troubleshooting

@@ -1,5 +1,5 @@
 #!/bin/sh
-# Builds the manual (docs/) with the version of the project and the commit it was built from in the label next to
+# Builds the manual (docs/, ignored by git; the Manual workflow publishes its own build) with the version of the project and the commit it was built from in the label next to
 # the title and in the footer. Run from anywhere; passes extra arguments to `retype build`.
 set -e
 cd "$(dirname "$0")/.."

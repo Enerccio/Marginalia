@@ -33,7 +33,7 @@ the desktop app.
 | Extensions | Apache Felix (OSGi), bytecode instrumentation of `@Extendable` classes with ByteBuddy (at build time; an agent in development runs) |
 | Server | Any Jakarta EE 11 servlet container (Servlet 6.1) - Jetty 12 in Docker and in the desktop app |
 | Tests | JUnit 6, AssertJ, Spring Test, a fake OpenAI-compatible server |
-| Manual | [Retype](https://retype.com) (sources in `manual/`, generated site in `docs/`) |
+| Manual | [Retype](https://retype.com) (sources in `manual/`, generated site in `docs/`, not in the repository) |
 
 ## Repository at a glance
 
@@ -49,7 +49,6 @@ Marginalia/
 │   ├── libs/              code that plugins share, embedded in their bundles (`translator-common`, `http-hooks`)
 │   └── plugins/           the twenty-nine bundled extensions, each a separate Maven project
 ├── manual/                this manual (Retype sources); manual/user is also packed into the WAR for the help assistant
-├── docs/                  generated manual, served by GitHub Pages
 ├── Dockerfile, docker-compose.yml
 └── .github/workflows/     CI (desktop builds and releases)
 ```

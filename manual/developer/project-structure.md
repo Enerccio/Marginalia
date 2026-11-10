@@ -26,11 +26,12 @@ Marginalia/
 │   └── plugins/             bundled extensions, one Maven project each
 ├── manual/                  sources of this manual (Retype, Markdown)
 │   └── images/              screenshots used by the manual and the READMEs
-├── docs/                    generated manual, served by GitHub Pages - don't edit by hand
+├── docs/                    generated manual (tools/retype_build.sh), ignored by git - a local copy for reading
 ├── screenshots/             scripted environment that takes the pictures of the manual (see its SCREENSHOTS.md)
 ├── tools/                   check_dev_docs.py (stale developer pages), annotate_ui_maps.py (labels of the UI map figures), retype_build.sh (builds the manual into docs/ with the version in the label and footer), LocalLlm.java (a prompt on the dev AI), workset_run.sh (the dataset harness), gpu-control/ (the controller that starts and stops the containers that share one GPU)
 ├── .github/workflows/
 │   ├── desktop.yml          CI: tests, desktop builds for 5 platforms, release upload
+│   ├── manual.yml           CI: builds the manual and publishes it to GitHub Pages
 │   └── server.yml           CI: WAR, plugin JARs, Docker image (ghcr.io), release upload
 ├── pom.xml                  parent POM: the version of the application and the plugins, lists them as modules
 ├── Dockerfile               two-stage build: Maven builder → Jetty 12 image

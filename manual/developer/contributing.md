@@ -154,10 +154,10 @@ no build) sends one chat completion to the AI set up in your dev database `~/.ma
 
 ## Documentation
 
-The manual you are reading is in `manual/` (Markdown for [Retype](https://retype.com)); `docs/` is the generated site.
+The manual you are reading is in `manual/` (Markdown for [Retype](https://retype.com)); `docs/` is the generated site, which is not in the repository.
 
-- Change the Markdown in `manual/`, then run `tools/retype_build.sh` (`retype build` with the project version and commit in the site) and commit `docs/` in the same pull request. Never edit
-  files in `docs/` by hand.
+- Change the Markdown in `manual/`, then run `tools/retype_build.sh` (`retype build` with the project version and commit in the site) to look at the result in `docs/` (ignored by git). The site is published by the `Manual` workflow when the change reaches `master`, see
+  [Publishing the manual](packaging.md#publishing-the-manual).
 - Preview with `retype start`.
 - Write for the reader of that part: the [User guide](../user/index.md) talks about what users see and click (UI
   names in *italics*, no class names), the developer guide about code (paths relative to the main package, class

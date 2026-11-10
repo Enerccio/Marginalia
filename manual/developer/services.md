@@ -451,7 +451,7 @@ wrong](ui.md#what-went-wrong-the-problem-log)); the rules for it are `HelpPrompt
 administrator may have edited. Manual tools print the address of what they found (`URL:` next to `Page:`):
 `ManualPage.url()` / `ManualSection.url()` turn the path in the manual into the address on the published site
 (`ManualPage.WEB_BASE`, `https://enerccio.github.io/Marginalia/user/`, the GitHub pages of the project: `books/story-editor.md#images` is
-`.../user/books/story-editor/#images`; `ManualServiceTest` checks that every page has its file under `docs/`), and the default prompt tells the model to cite
+`.../user/books/story-editor/#images`; `ManualServiceTest` checks that every page has its file under `docs/`, when the site was built there), and the default prompt tells the model to cite
 pages as Markdown links with those addresses only; the widget opens them in a new tab.
 
 **The data of the Admin page.** With `Settings.adminData` (`AppSettings.helpAdminData`, off by default, a checkbox of the *Help assistant* tab)
