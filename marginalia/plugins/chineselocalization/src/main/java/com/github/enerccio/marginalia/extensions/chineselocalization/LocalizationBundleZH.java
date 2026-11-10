@@ -1029,9 +1029,10 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_JOB_CALLS, "调用");
         setValue(L.LABEL_JOB_BACKEND, "后端");
         setValue(L.LABEL_JOB_IN_FLIGHT, "进行中的调用");
-        setValue(L.LABEL_JOB_OLDER_THAN_DAYS, "开始于多少天之前（含）");
+        setValue(L.LABEL_JOB_OLDER_THAN_DAYS, "超过（天）");
         setValue(L.LABEL_JOBS_DELETE_MATCHING, "删除这些作业");
         setValue(L.LABEL_JOBS_OPEN_LIVE, "打开实时视图");
+        setValue(L.LABEL_JOB_CALLS_FAILED, "%d（失败 %d）");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");

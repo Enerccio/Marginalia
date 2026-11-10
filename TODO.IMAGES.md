@@ -9,6 +9,12 @@ so that all of them keep matching. The table of the pictures, with the flow that
 Screenshots that show the painting (*Interior of a Cottage in Scheveningen* by W. A. A. Liernur, public domain, Rawpixel) must stay listed on
 `manual/credits.md`. If another third-party picture is used, add it there too (author, source, license, changes).
 
+## 1.8.0
+
+The jobs come from `shoot-jobs` (run by `bin/shoot-jobs.sh`: the dataset gets fifteen jobs from `bin/seed-jobs.py` first, and a real generation is in flight for `jobs-live`):
+`jobs-live`, `admin-jobs`, `admin-jobs-calls`, `admin-jobs-failed`, `admin-jobs-old`, `admin-jobs-delete`. Not taken: the phone layout of the Jobs tab, the page `/jobs` with several jobs
+(agent runs and an audiobook conversion running together).
+
 ## 1.7.0
 
 Every picture of the manual was retaken from a new dataset: the example book *Unregistered* (the first five parts and the lorebook of the dataset book of

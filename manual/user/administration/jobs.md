@@ -24,6 +24,8 @@ ever stored.
 
 ## What runs now: `/jobs`
 
+![The page /jobs with a generation in flight](../../images/jobs-live.png)
+
 Open `/jobs` on the address of your Marginalia (for example `http://localhost:8080/jobs`; the **Open the live view** link of the tab
 does it). It asks for the login like every other page and shows nothing to users who are not administrators. The list refreshes every
 two seconds and shows, for each running job, the user, the kind, how long it runs, how many of its calls are done and what is in
@@ -32,10 +34,12 @@ on one model tells you why everything is slow.
 
 ## The log: the Jobs tab
 
+![The Jobs tab of the Admin page](../../images/admin-jobs.png)
+
 | | |
 |---|---|
 | **User, Kind, Status** | Filters. The *kind* is what the job is (`generation`, `summary`, `annotate`, `agent`, `audiobook`, `image-generator`...); a request made by code that did not name its work is `untagged`. |
-| **Started more than (days) ago** | Only the jobs that started that many days ago or earlier. |
+| **Older than (days)** | Only the jobs that started that many days ago or earlier. |
 | **Refresh** | Reads the log again. |
 | **Delete these jobs** | Deletes for good the jobs the filter shows and their calls, after a question that says how many. With no filter set it deletes the whole log. |
 | **Open the live view** | Opens `/jobs` in a new tab. |
@@ -44,8 +48,18 @@ Click a row to see the calls of the job: the type (language model, audio, image)
 status and the error of a failed one. A job that is shown as failed made a call that failed, or was ended as failed by the code that ran
 it; a cancelled call is one you stopped (or one that was still running when its job ended).
 
-**Nothing is deleted by itself.** The log grows with every request, so clear it from time to time: set *Started more than (days) ago*
-(for example 30) and delete. The [cleanup](cleanup.md) removes the jobs of a user together with the user.
+![The calls of an audiobook conversion](../../images/admin-jobs-calls.png)
+
+A failed job shows which call failed and why:
+
+![A failed conversion with the error of its speech call](../../images/admin-jobs-failed.png)
+
+**Nothing is deleted by itself.** The log grows with every request, so clear it from time to time: set *Older than (days)*
+(for example 30), look at what is listed and delete. The [cleanup](cleanup.md) removes the jobs of a user together with the user.
+
+![The jobs older than 30 days, and the question before they are deleted](../../images/admin-jobs-old.png)
+
+![The question before the jobs are deleted](../../images/admin-jobs-delete.png)
 
 A job is written to the log when it ends; a job that is still running is only on `/jobs`. If the application stops, the jobs that were
 running are lost (they were never finished). A job that nobody ended and that makes no call for half an hour is ended as completed.

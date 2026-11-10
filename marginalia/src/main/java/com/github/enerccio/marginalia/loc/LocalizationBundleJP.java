@@ -1021,9 +1021,10 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_JOB_CALLS, "呼び出し");
         setValue(L.LABEL_JOB_BACKEND, "バックエンド");
         setValue(L.LABEL_JOB_IN_FLIGHT, "実行中の呼び出し");
-        setValue(L.LABEL_JOB_OLDER_THAN_DAYS, "開始から経過した日数（以上）");
+        setValue(L.LABEL_JOB_OLDER_THAN_DAYS, "経過日数（以上）");
         setValue(L.LABEL_JOBS_DELETE_MATCHING, "これらのジョブを削除");
         setValue(L.LABEL_JOBS_OPEN_LIVE, "ライブビューを開く");
+        setValue(L.LABEL_JOB_CALLS_FAILED, "%d（失敗 %d）");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");

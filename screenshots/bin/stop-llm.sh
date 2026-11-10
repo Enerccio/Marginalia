@@ -1,3 +1,3 @@
 #!/bin/bash
 . "$(dirname "$0")/env.sh"
-pid=$(lsof -ti tcp:$SHOT_LLM_PORT -sTCP:LISTEN 2>/dev/null); [ -n "$pid" ] && kill $pid && echo stopped
+pid=$("$SHOT_ROOT/bin/listening-pids.sh" $SHOT_LLM_PORT); [ -n "$pid" ] && kill $pid && echo stopped

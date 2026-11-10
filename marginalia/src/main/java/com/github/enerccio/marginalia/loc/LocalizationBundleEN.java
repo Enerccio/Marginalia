@@ -1021,9 +1021,10 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_JOB_CALLS, "Calls");
         setValue(L.LABEL_JOB_BACKEND, "Backend");
         setValue(L.LABEL_JOB_IN_FLIGHT, "In flight");
-        setValue(L.LABEL_JOB_OLDER_THAN_DAYS, "Started more than (days) ago");
+        setValue(L.LABEL_JOB_OLDER_THAN_DAYS, "Older than (days)");
         setValue(L.LABEL_JOBS_DELETE_MATCHING, "Delete these jobs");
         setValue(L.LABEL_JOBS_OPEN_LIVE, "Open the live view");
+        setValue(L.LABEL_JOB_CALLS_FAILED, "%d (%d failed)");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -1748,7 +1749,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_CONFIRM_JOBS_PURGE, "Delete %d jobs and their calls for good? This cannot be undone.");
         setValue(L.MSG_JOBS_PURGED, "%d jobs deleted.");
         setValue(L.MSG_JOBS_NONE_ACTIVE, "No job is running.");
-        setValue(L.MSG_JOBS_ACTIVE_SUMMARY, "%d jobs running, %d calls in flight.");
+        setValue(L.MSG_JOBS_ACTIVE_SUMMARY, "Jobs running: %d. Calls in flight: %d.");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");

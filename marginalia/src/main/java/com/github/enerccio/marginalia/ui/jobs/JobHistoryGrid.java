@@ -41,6 +41,9 @@ import java.util.List;
 @Configurable
 public class JobHistoryGrid extends VerticalLayout {
 
+    // the height of the calls of a job: about ten rows
+    private static final String CALLS_HEIGHT = "26em";
+
     @Autowired
     private Localization loc;
 
@@ -99,7 +102,8 @@ public class JobHistoryGrid extends VerticalLayout {
         grid.addColumn(Job::getKind).setHeader(loc.getValue(L.LABEL_JOB_KIND)).setAutoWidth(true).setFlexGrow(0);
         grid.addColumn(job -> job.getLabel() == null ? "" : job.getLabel()).setHeader(loc.getValue(L.LABEL_VERSION_LABEL)).setFlexGrow(1);
         grid.addComponentColumn(job -> JobFormat.badge(loc, job.getStatus())).setHeader(loc.getValue(L.LABEL_STATUS)).setAutoWidth(true).setFlexGrow(0);
-        grid.addColumn(job -> job.getFailedCalls() == 0 ? String.valueOf(job.getCallCount()) : job.getCallCount() + " (" + job.getFailedCalls() + " !)")
+        grid.addColumn(job -> job.getFailedCalls() == 0 ? String.valueOf(job.getCallCount())
+                        : String.format(loc.getValue(L.LABEL_JOB_CALLS_FAILED), job.getCallCount(), job.getFailedCalls()))
                 .setHeader(loc.getValue(L.LABEL_JOB_CALLS)).setAutoWidth(true).setFlexGrow(0);
         grid.setItemDetailsRenderer(new ComponentRenderer<>(this::calls));
         grid.setDetailsVisibleOnClick(true);
@@ -183,7 +187,9 @@ public class JobHistoryGrid extends VerticalLayout {
                 .setAutoWidth(true).setFlexGrow(0);
         calls.addComponentColumn(call -> JobFormat.badge(loc, call.getStatus())).setHeader(loc.getValue(L.LABEL_STATUS)).setAutoWidth(true).setFlexGrow(0);
         calls.addColumn(call -> call.getError() == null ? "" : call.getError()).setHeader(loc.getValue(L.LABEL_ERROR)).setFlexGrow(1);
-        calls.setAllRowsVisible(true);
+        // a job of many calls scrolls inside its details instead of pushing the list away
+        calls.setAllRowsVisible(false);
+        calls.setHeight(CALLS_HEIGHT);
         try {
             calls.setItems(jobService.calls(job));
         } catch (Exception e) {
