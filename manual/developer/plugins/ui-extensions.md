@@ -363,6 +363,11 @@ register it in the `InheritedSettingRegistry` and the *Prompts* tab and the fold
 Plugin dialogs and components are ordinary Vaadin classes in the bundle. Annotate them `@Configurable` to inject
 services. Follow the application's conventions ([User interface → Conventions](../ui.md#conventions)).
 
+A plugin that keeps turn details (scene setting, POV character, present characters, instructions) can let the author make
+one turn of two with `MergeTurnsDialog` (`ui.widgets`, since 1.8.0): `new MergeTurnsDialog(loc, header, first, second, maxTitleLength, onMerge).open()`
+with two `MergeTurnsDialog.Turn` records (a `null` title leaves the title field out); the fields are filled by
+`utils.TurnDetailsMerge` and `onMerge` gets the edited turn and returns whether the dialog may close.
+
 A dialog with an input follows the keyboard conventions of the application: `DialogFocus.onOpen(dialog, firstField)` puts the cursor into the first field, and
 `DialogShortcuts.submitWith(mainButton, fields...)` (`ui.widgets`) sends with <kbd>Enter</kbd> in a single line field and <kbd>Ctrl/Cmd+Enter</kbd> in a text area; list
 every input field, call it after the fields and the button exist (a null field is skipped) and never write an `addKeyDownListener(Key.ENTER)` yourself. A dialog

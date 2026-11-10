@@ -100,6 +100,10 @@ The model is told to cover every message of the range exactly once; numbers outs
 - **Click a row** to open the *new turn* form of the story and copy all four fields of the turn into it. Change what you
   want and generate. (A row's checkbox and delete button do not open the form.)
 - Tick the checkbox of a turn you have used; the double arrow goes to the next unchecked turn.
+- The merge button of a turn **merges it with the next one**: a form opens with the details of both already joined (the scene
+  settings and the instructions under each other, the present characters of both, the POV character of the first; when the
+  second turn has another one the form says which). Change what does not fit and press **Merge**
+  (or <kbd>Ctrl/Cmd+Enter</kbd>): the two rows become one that covers the messages of both, ticked only when both were.
 - Running the wand again for a range **replaces** the earlier turns that touch the range, except the ticked ones.
 
 ![The turn details the model prepared](../../images/plugin-stconverter-turns.png)
@@ -126,7 +130,8 @@ to turn details** section is not there):
   to the story you write.
 - **Turn details** has one row per part with its scene setting, POV character, present characters and instructions.
   **Click a row** to put them into the new turn form of the story, as with a chat, and generate the new part. Tick the
-  turns you have done.
+  turns you have done. Two turns can be **merged** as with a chat (the merge button of the first one), to write two parts
+  of the old book as one; the merged turns are kept with the book.
 
 Only one source is kept with a book. To load another, remove the current one with the cross (after asking); this
 also forgets the ticks made on it.

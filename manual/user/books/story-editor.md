@@ -82,6 +82,15 @@ fields as the new turn form.
 ![The Planner tab with four scenes, the first one written](../../images/planner-tab.png)
 
 - **Add scene** opens a form for a new scene; it goes to the end of the list. The pen edits a scene, the arrows move it up or down, the trash can deletes it.
+- The **+** in the row of a scene **inserts a new scene** right under it, between that scene and the next one.
+- The merge button of a scene **merges it with the next one**: a form opens with the details of both already joined (the two titles, the scene settings
+  and the instructions under each other, the present characters of both, the POV character of the first; when the second scene has another one the form
+  says which). Change what does not fit and press **Merge** (or <kbd>Ctrl/Cmd+Enter</kbd>): the two scenes become one, in the place of the first. It is
+  done only when both were.
+- **Import from the branch** adds a scene for every part of the branch the book is on (from the first part to the newest) that has turn details: its
+  scene setting, POV character, present characters and instructions, with the first line of the instructions as the title. Parts without turn details
+  are left out, and the scenes come after the ones you have, not done. Use it to plan a rewrite of a story you have written: import, merge the turns
+  that belong together, insert what is missing, then write the scenes on a new branch or in a copy of the book.
 - The box in front of a scene says it is **done** (written): the title is struck through and the scene is dimmed. Nothing checks it for you, tick it
   when you have written the scene. The line above the list counts how many are done.
 - **Click a scene** to put its details into the **new turn form** (the form opens, with the scene setting, POV, present characters and instructions of the

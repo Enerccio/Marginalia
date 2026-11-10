@@ -1025,6 +1025,9 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_JOBS_DELETE_MATCHING, "Delete these jobs");
         setValue(L.LABEL_JOBS_OPEN_LIVE, "Open the live view");
         setValue(L.LABEL_JOB_CALLS_FAILED, "%d (%d failed)");
+        setValue(L.LABEL_IMPORT_FROM_BRANCH, "Import from the branch");
+        setValue(L.LABEL_INSERT_SCENE_BELOW, "Insert a scene below");
+        setValue(L.LABEL_MERGE_WITH_NEXT_SCENE, "Merge with the next scene");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -1750,6 +1753,11 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_JOBS_PURGED, "%d jobs deleted.");
         setValue(L.MSG_JOBS_NONE_ACTIVE, "No job is running.");
         setValue(L.MSG_JOBS_ACTIVE_SUMMARY, "Jobs running: %d. Calls in flight: %d.");
+        setValue(L.MSG_PLANNER_IMPORT_CONFIRM, "Add a scene for every part of the current branch that has turn details (scene setting, POV character, present characters or instructions)? The scenes are added at the end of the planner.");
+        setValue(L.MSG_PLANNER_IMPORTED, "%d scenes added to the planner");
+        setValue(L.MSG_PLANNER_IMPORT_NONE, "The parts of the current branch have no turn details");
+        setValue(L.MSG_MERGE_TURNS_HINT, "The details of both are joined here. Change what does not fit, then merge: the two become one.");
+        setValue(L.MSG_MERGE_OTHER_POV, "The second one has: %s");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");
@@ -1870,6 +1878,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_STATISTICS_ADMIN, "The statistics keep when users worked on their books, for how long, and the names and folders of their books, also of deleted ones. Turn recording off or limit how long it is kept; users may choose a shorter time for themselves.");
         setValue(L.HELP_STATISTICS_KEEP_MONTHS_INSTANCE, "Older days are deleted from the statistics of every user for good once a day. 0 keeps everything. A user may choose a shorter time for themselves.");
         setValue(L.HELP_JOBS_ADMIN, "Every job that talks to an external AI (a generation, a summary, an audiobook chapter, an image) is logged here with the user, its start and end and each call it made to a model or a speech or image backend. Only metadata is kept, never the text. Nothing is deleted automatically: set the filter and delete the matching jobs.");
+        setValue(L.HELP_PLANNER_IMPORT_FROM_BRANCH, "Adds the turn details of the parts of the current branch as scenes, to plan a rewrite of the story");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Background lore and world context.");

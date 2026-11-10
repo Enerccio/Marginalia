@@ -20,10 +20,7 @@ import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes.InRequestScope;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
-import com.github.enerccio.marginalia.ui.widgets.BookLabels;
-import com.github.enerccio.marginalia.ui.widgets.DesktopNotifier;
-import com.github.enerccio.marginalia.ui.widgets.ModelProtocolPicker;
-import com.github.enerccio.marginalia.ui.widgets.Notification;
+import com.github.enerccio.marginalia.ui.widgets.*;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
@@ -456,7 +453,12 @@ public class ConverterView extends VerticalLayout {
             delete.setTooltipText(T.localized(DELETE_THE_TURN_DETAILS));
             // the turn details of a book are its instructions, read from the stored parts each time
             delete.setVisible(!data.isBookSource());
-            return delete;
+            Button merge = new Button(Solid.CODE_MERGE.create(), e -> openMergeDialog(turn));
+            merge.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_TERTIARY);
+            merge.setTooltipText(T.localized(MERGE_WITH_THE_NEXT_TURN));
+            // the last turn has none after it
+            merge.setVisible(data.getTurns().indexOf(turn) < data.getTurns().size() - 1);
+            return new Div(merge, delete);
         }).setWidth(phone ? "44px" : "50px").setFlexGrow(0);
         turnGrid.setPartNameGenerator(turn -> STConverterStyles.PART_CLICKABLE
                 + (turn.isReviewed() ? " " + STConverterStyles.PART_REVIEWED : "")
@@ -711,6 +713,35 @@ public class ConverterView extends VerticalLayout {
         turnCursor = Math.min(turnCursor, data.getTurns().size());
         turnGrid.setItems(new ArrayList<>(data.getTurns()));
         refreshTurnSummary();
+    }
+
+    /**
+     * Shows the turn and the one after it joined, for the author to edit, and makes one turn of them. The turn details of a
+     * book can be merged too: the merged ones are kept with the book and replace those of its parts.
+     */
+    private void openMergeDialog(TurnItem turn) {
+        int index = data.getTurns().indexOf(turn);
+        if (index < 0 || index + 1 >= data.getTurns().size()) {
+            return;
+        }
+        TurnItem next = data.getTurns().get(index + 1);
+        new MergeTurnsDialog(loc, T.localized(MERGE_WITH_THE_NEXT_TURN), toMergeTurn(turn), toMergeTurn(next), 0, merged -> {
+            // the list may have changed while the dialog was open (the wand, a delete)
+            int at = data.getTurns().indexOf(turn);
+            if (at < 0 || at + 1 >= data.getTurns().size() || data.getTurns().get(at + 1) != next) {
+                Notification.warning(T.localized(THE_TURN_DETAILS_HAVE_CHANGED));
+                return true;
+            }
+            ConverterService.joinTurns(data, at, merged.sceneSetting(), merged.povCharacter(), merged.presentCharacters(), merged.instructions());
+            turnCursor = at + 1;
+            persist();
+            refreshTurns();
+            return true;
+        }).open();
+    }
+
+    private static MergeTurnsDialog.Turn toMergeTurn(TurnItem turn) {
+        return new MergeTurnsDialog.Turn(null, turn.getSceneSetting(), turn.getPovCharacter(), turn.getPresentCharacters(), turn.getInstructions());
     }
 
     private void refreshTurnSummary() {

@@ -1025,6 +1025,9 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_JOBS_DELETE_MATCHING, "これらのジョブを削除");
         setValue(L.LABEL_JOBS_OPEN_LIVE, "ライブビューを開く");
         setValue(L.LABEL_JOB_CALLS_FAILED, "%d（失敗 %d）");
+        setValue(L.LABEL_IMPORT_FROM_BRANCH, "ブランチから取り込む");
+        setValue(L.LABEL_INSERT_SCENE_BELOW, "下にシーンを挿入");
+        setValue(L.LABEL_MERGE_WITH_NEXT_SCENE, "次のシーンと統合");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -1750,6 +1753,11 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_JOBS_PURGED, "%d 件のジョブを削除しました。");
         setValue(L.MSG_JOBS_NONE_ACTIVE, "実行中のジョブはありません。");
         setValue(L.MSG_JOBS_ACTIVE_SUMMARY, "実行中のジョブ: %d 件、実行中の呼び出し: %d 件。");
+        setValue(L.MSG_PLANNER_IMPORT_CONFIRM, "現在のブランチの、ターン詳細（シーン設定、視点キャラクター、登場キャラクター、指示）を持つ各パートをシーンとして追加しますか？シーンはプランナーの末尾に追加されます。");
+        setValue(L.MSG_PLANNER_IMPORTED, "%d個のシーンをプランナーに追加しました");
+        setValue(L.MSG_PLANNER_IMPORT_NONE, "現在のブランチのパートにはターン詳細がありません");
+        setValue(L.MSG_MERGE_TURNS_HINT, "両方の詳細をここにまとめました。合わない箇所を直してから統合すると、二つが一つになります。");
+        setValue(L.MSG_MERGE_OTHER_POV, "二つ目の値: %s");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");
@@ -1870,6 +1878,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_STATISTICS_ADMIN, "統計には、ユーザーがいつ本に取り組んだか、どれだけの時間か、本の名前とフォルダー（削除した本も）が残ります。記録をオフにするか、保存期間を制限できます。ユーザーは自分用にさらに短く設定できます。");
         setValue(L.HELP_STATISTICS_KEEP_MONTHS_INSTANCE, "古い日はすべてのユーザーの統計から1日に1回、完全に削除されます。0 ですべて保存します。ユーザーは自分用にさらに短く設定できます。");
         setValue(L.HELP_JOBS_ADMIN, "外部 AI と通信するすべてのジョブ（生成、要約、オーディオブックの章、画像など）が、ユーザー、開始・終了時刻、モデルや音声・画像バックエンドへの各呼び出しとともにここに記録されます。保存されるのはメタデータのみで、本文は保存されません。自動的には削除されません。フィルターを設定して、一致するジョブを削除してください。");
+        setValue(L.HELP_PLANNER_IMPORT_FROM_BRANCH, "現在のブランチのパートのターン詳細をシーンとして追加します。物語の書き直しを計画するために使います");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景設定と世界観の文脈。");

@@ -733,7 +733,9 @@ The marks, the notes and the list share a few classes in `ui.dialogs.story`; the
   `scrollToBottomWhileSettling(element, content)` (open a list at its end and keep it there while its Markdown is drawn, until the reader scrolls or 1.5 s pass) and `restoreScroll` (after the content was
   replaced). They share one listener per element (`_stick`), so a component can mix them. The plot wizard of the Arc Outline plugin uses them too.
 - `PlannerPanel` is the Planner tab (`ManuscriptStoryPart.PLANNER_TAB`, in the default layout; the phone has it in the drawer): the scenes of `PlannerService` as rows (a box for done, the clickable
-  title and details, the arrows, the pen and the trash can; `PlannedSceneDialog` edits one). It takes the book from a supplier (the story part loads other books into the same instance), registers a listener with
+  title and details, and two lines of buttons: the arrows and the plus that inserts a scene under the row, then merge with the next scene, the pen and the trash can; `PlannedSceneDialog` edits one,
+  `MergeTurnsDialog` (`ui.widgets`, public: the Converter plugin uses it for its turn details) shows two turns joined by `utils.TurnDetailsMerge` for the author to edit and hands the result to a
+  predicate that says whether it may close). **Import from the branch** above the list calls `PlannerService.importBranch` after a confirmation. It takes the book from a supplier (the story part loads other books into the same instance), registers a listener with
   `PlannerService.onChange` for the book it shows (replaced when the book changes, removed on detach) and draws again on its own thread through `UIUtils.accessComponent`, so scenes added by an
   agent or by the plot wizard show at once. A click gives the scene to the `Host`, which the story part implements with `NewTurnForm.restoreState(PlannerPanel.toFormState(scene))` and the popover of the form.
 - **Notes in the margin** (desktop): the cogs menu item **Annotations in the margin** (an item of the `StoryMenuRegistry`; `ManuscriptStoryPart.setAnnotationsInMargin`) stores the

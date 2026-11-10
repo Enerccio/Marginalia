@@ -22,6 +22,9 @@ public interface PlannerService {
     /** The longest title. */
     int MAX_TITLE_LENGTH = 200;
 
+    /** The longest title {@link #importBranch} makes of the instructions of a part. */
+    int IMPORTED_TITLE_LENGTH = 80;
+
     /** The longest text of a scene setting, character list or instructions. */
     int MAX_TEXT_LENGTH = 20_000;
 
@@ -38,6 +41,36 @@ public interface PlannerService {
      * @throws IllegalStateException    when the book has {@link #MAX_SCENES} scenes already
      */
     PlannedScene add(Manuscript book, PlannedScene scene) throws Exception;
+
+    /**
+     * Adds the scene after the scene with the uuid {@code afterUuid}, like {@link #add}.
+     *
+     * @return the scene as it was stored
+     * @throws IllegalArgumentException when the title is blank, a text is too long or the book has no scene {@code afterUuid}
+     * @throws IllegalStateException    when the book has {@link #MAX_SCENES} scenes already
+     */
+    PlannedScene insert(Manuscript book, String afterUuid, PlannedScene scene) throws Exception;
+
+    /**
+     * Makes one scene of two: the scene {@code firstUuid} gets the title and the turn details of {@code merged} (it keeps its
+     * uuid and its place) and the scene {@code secondUuid} is removed. The scene is done when both were.
+     *
+     * @return the scene as it was stored
+     * @throws IllegalArgumentException when the title is blank, a text is too long, the book lacks one of the scenes or they
+     *                                  are the same scene
+     */
+    PlannedScene merge(Manuscript book, String firstUuid, String secondUuid, PlannedScene merged) throws Exception;
+
+    /**
+     * Adds a scene at the end for every part of the branch the book is on (from the first part to the active leaf) that has
+     * turn details: the scene setting, POV character, present characters and instructions of the part, with the first line of
+     * its instructions as the title. Parts without turn details are left out; the scenes are not done. Nothing is added when
+     * the planner would have more than {@link #MAX_SCENES} scenes.
+     *
+     * @return the number of scenes added
+     * @throws IllegalStateException when the scenes do not fit into the planner
+     */
+    int importBranch(Manuscript book) throws Exception;
 
     /**
      * Replaces the title, the turn details and the done flag of the scene with the uuid of the argument; its place stays.

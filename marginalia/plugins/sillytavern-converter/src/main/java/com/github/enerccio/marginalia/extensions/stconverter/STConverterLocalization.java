@@ -32,6 +32,8 @@ public class STConverterLocalization extends PluginLocalizationBundle {
     public static final String MSGS = "Msgs";
     public static final String TURN = "Turn";
     public static final String DELETE_THE_TURN_DETAILS = "Delete the turn details";
+    public static final String MERGE_WITH_THE_NEXT_TURN = "Merge with the next turn";
+    public static final String THE_TURN_DETAILS_HAVE_CHANGED = "The turn details have changed, nothing was merged";
     public static final String THE_NEW_TURN_FORM = "The new turn form of the story is not available";
     public static final String CLICK_TO_PUT_THE_TURN = "Click to put the turn details into the new turn form";
     public static final String SCENE_SETTING = "Scene setting";
@@ -171,6 +173,12 @@ public class STConverterLocalization extends PluginLocalizationBundle {
 
         ja(DELETE_THE_TURN_DETAILS, "ターン詳細を削除");
         zh(DELETE_THE_TURN_DETAILS, "删除回合详情");
+
+        ja(MERGE_WITH_THE_NEXT_TURN, "次のターンと統合");
+        zh(MERGE_WITH_THE_NEXT_TURN, "与下一个回合合并");
+
+        ja(THE_TURN_DETAILS_HAVE_CHANGED, "ターン詳細が変更されたため、統合されませんでした");
+        zh(THE_TURN_DETAILS_HAVE_CHANGED, "回合详情已更改，未进行合并");
 
         ja(THE_NEW_TURN_FORM, "ストーリーの新規ターンフォームは利用できません");
         zh(THE_NEW_TURN_FORM, "故事的新回合表单不可用");

@@ -31,6 +31,9 @@ Under that, two tabs:
   setting, POV, present characters and instructions, each under a bold line with its name, also with a checkbox for the turns you have used. **Click a turn** to open the new turn form
   of the story and copy all four fields into it, then generate as usual.
 
+The merge button of a turn opens a form with its turn details and those of the next turn joined (`MergeTurnsDialog` of the
+application); the author edits the result and the two turns become one that covers the messages of both.
+
 The wand sends the chat of the range together with the lore of the book (all non-deleted entries of the lorebook and its
 sub lorebooks, rendered like the story would) and asks for a list of turns that cover the range. The turns replace the
 turns of the earlier runs that touch the range, except those you ticked as reviewed.
@@ -61,4 +64,6 @@ book backups (only images are), so after a restore the chat has to be uploaded a
 
 For the parts of a book the resource is the stripped JSON (`<book name>.redraft.json`, content type `application/json`) and
 `ConverterData.sourceKind` is `book`. The attributes then hold the ticked part numbers and the ticked turn numbers
-(`reviewedTurns`) but not the turn details, which are made from the resource each time the tab opens.
+(`reviewedTurns`) but not the turn details, which are made from the resource each time the tab opens. The turns the author
+merged are the exception: they are kept in `joinedTurns` and take the place of the turns of the parts they cover
+(`ConverterService.applyJoined`) before the ticks are put on.

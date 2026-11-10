@@ -391,7 +391,8 @@ Most are 🧩 plugin-sized; the ones that need a core hook say so.
     place for it) and the separators of the characters set per book, which the Knowledge Tracker reads (`has` splits at `,` `;` and line breaks).
 44. ✅ Partly: **Beat sheet / outline mode.** Done in core by the **Planner** tab of the story editor (`PlannerService`, `PlannedScene`, stored
     in the book's `plan` attribute, so backups and copies carry it): the scenes the author plans, reorderable, each with the turn details
-    (scene setting, POV, present characters, instructions) and a *written* flag; a click puts a scene into the new turn form. Commands
+    (scene setting, POV, present characters, instructions) and a *written* flag; a click puts a scene into the new turn form. A scene can be
+    inserted between two, two scenes merged in a form (`MergeTurnsDialog`), and the parts of the current branch imported as scenes. Commands
     `/get-planned-scenes`, `/add-planned-scene`, `/update-planned-scene`, `/set-planned-scene-done`, `/move-planned-scene` and
     `/delete-planned-scene` let agents, the command bar and the plot wizard of the Arc Outline plugin use it; on the phone it is in the
     drawer. Not done: the flag is ticked by hand ("nothing checks it for you"), the next open scene is not fed to a turn by itself, no side
