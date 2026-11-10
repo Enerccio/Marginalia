@@ -21,6 +21,7 @@ public final class KnowledgeTrackerStyles {
     public static final String ACTIONS = "knowledge-tracker-actions";
     public static final String BODY = "knowledge-tracker-body";
     public static final String ITEM = "knowledge-tracker-item";
+    public static final String ITEM_BAR = "knowledge-tracker-item-bar";
     public static final String ITEM_TEXT = "knowledge-tracker-item-text";
     public static final String KIND = "knowledge-tracker-kind";
     public static final String KIND_NOT = "knowledge-tracker-kind-not";

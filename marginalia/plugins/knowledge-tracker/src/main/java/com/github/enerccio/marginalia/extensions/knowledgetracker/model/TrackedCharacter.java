@@ -2,9 +2,7 @@ package com.github.enerccio.marginalia.extensions.knowledgetracker.model;
 
 import com.github.enerccio.marginalia.extensions.knowledgetracker.scene.PresentCharacters;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Predicate;
 
 /**
@@ -54,6 +52,18 @@ public class TrackedCharacter {
 
     public boolean deleteItem(String itemId) {
         return getItems().removeIf(item -> item.getId().equals(itemId));
+    }
+
+    /**
+     * Deletes the items with these ids for good.
+     *
+     * @return how many items were deleted
+     */
+    public int deleteItems(Collection<String> itemIds) {
+        int before = getItems().size();
+        Set<String> ids = new HashSet<>(itemIds);
+        getItems().removeIf(item -> ids.contains(item.getId()));
+        return before - getItems().size();
     }
 
     /**

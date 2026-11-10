@@ -256,7 +256,7 @@ application. See [Plugin development](plugins/index.md).
 `marginalia/plugins/Dockerfile` is a separate build environment for the plugins, used by servers that build from
 source (and by anyone without a local JDK/Maven). Its `builder` stage (Maven + JDK 25, like the main `Dockerfile`)
 installs the application into the image's local Maven repository (with `-Dvaadin.skip=true`: the plugins need only the
-classes JAR, so the frontend is not built, see [Building](building.md)), installs the libraries of `marginalia/libs` and builds every plugin against them; the final
+classes JAR, so the frontend is not built, see [Building](building.md)), installs the libraries of `marginalia/libs` and builds every plugin against them (`mvn package -DskipTests`: the plugin tests are not run in the image); the final
 stage is a small Alpine image that holds the JARs in `/jars`. Its command copies them to `/output`, replacing the
 `*.jar` files there, so the compose file (`marginalia/plugins/docker-compose.yml`, build context `../..`) mounts
 `marginalia/plugins/build` as `/output`. The plugins are built one after the other and none of them needs another one

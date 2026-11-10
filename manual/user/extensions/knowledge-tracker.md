@@ -34,6 +34,7 @@ Open a character with the arrow on its card to see what it knows:
 | **Retract** (the circle with a slash) | The item is not true any more (*has not met Thomas* after they meet). It is not deleted: it becomes *old knowledge* and is no longer sent to the model. |
 | **Lock** (the padlock, on items the model learned) | The [tidy pass](#tidying-the-knowledge) never sees a locked item: use it for what must stay, a betrayal, a secret. The story can still contradict a locked item (a character who loses their memory): the reading of the story retracts it as usual. |
 | **Delete** | Removes an item for good, after a question. Retract keeps it, so use it when in doubt. |
+| **Select items** (next to **Add knowledge**) | Delete many items quickly: every item of the character, old ones included, gets a check box. **Select all** / **Deselect all** ticks or clears them, **Delete selected (n)** removes the ticked ones for good after one question, **Cancel** leaves the selection. |
 | **Has met** | The people the character has met, noted by [processing](#processing). Processing can note a name that is not a person (a note in the present characters field): open **Edit** and change the **Has met** list, one name after another separated by commas. The names you write stay when the story is read again; one you remove comes back only if the part it was seen in is read again. |
 | **Old knowledge (n)** | Collapsed by default. Each old item can be **copied**, **edited**, **restored** (it is active again, from now on) or deleted. |
 

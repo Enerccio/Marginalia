@@ -31,6 +31,12 @@ public class KnowledgeTrackerLocalization extends PluginLocalizationBundle {
     public static final String ITEMS_ACTIVE_OLD = "%d active, %d old";
     public static final String SHOW_WHAT_THE_CHARACTER_KNOWS = "Show what the character knows";
     public static final String ADD_KNOWLEDGE = "Add knowledge";
+    public static final String SELECT_ITEMS = "Select items";
+    public static final String SELECT_ALL = "Select all";
+    public static final String DESELECT_ALL = "Deselect all";
+    public static final String DELETE_SELECTED = "Delete selected (%d)";
+    public static final String DELETE_N_ITEMS_FOR_GOOD = "Delete %d items for good? Retract keeps them as old knowledge.";
+    public static final String SELECT_THIS_ITEM = "Select this item";
     public static final String NEW_ITEM = "New item";
     public static final String EDIT_ITEM = "Edit item";
     public static final String KIND = "Kind";
@@ -227,6 +233,24 @@ public class KnowledgeTrackerLocalization extends PluginLocalizationBundle {
 
         ja(SHOW_WHAT_THE_CHARACTER_KNOWS, "キャラクターの知識を表示");
         zh(SHOW_WHAT_THE_CHARACTER_KNOWS, "显示该角色的认知");
+
+        ja(SELECT_ITEMS, "項目を選択");
+        zh(SELECT_ITEMS, "选择条目");
+
+        ja(SELECT_ALL, "すべて選択");
+        zh(SELECT_ALL, "全选");
+
+        ja(DESELECT_ALL, "選択を解除");
+        zh(DESELECT_ALL, "取消全选");
+
+        ja(DELETE_SELECTED, "選択した項目を削除（%d）");
+        zh(DELETE_SELECTED, "删除所选（%d）");
+
+        ja(DELETE_N_ITEMS_FOR_GOOD, "%d 件の項目を完全に削除しますか？「撤回」なら古い知識として残ります。");
+        zh(DELETE_N_ITEMS_FOR_GOOD, "要永久删除这 %d 个条目吗？“撤回”会将其保留为旧认知。");
+
+        ja(SELECT_THIS_ITEM, "この項目を選択");
+        zh(SELECT_THIS_ITEM, "选择此条目");
 
         ja(ADD_KNOWLEDGE, "知識を追加");
         zh(ADD_KNOWLEDGE, "添加认知");
