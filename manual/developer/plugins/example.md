@@ -1,7 +1,7 @@
 ---
 label: Example plugin
 order: 60
-verified: dbf652f7b
+verified: 271b964f0
 covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/extensions
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/ExtensionService.java
