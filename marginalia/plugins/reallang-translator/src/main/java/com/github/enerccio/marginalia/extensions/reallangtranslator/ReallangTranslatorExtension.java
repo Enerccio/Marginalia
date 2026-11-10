@@ -53,6 +53,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
 import java.util.*;
+import java.util.concurrent.CancellationException;
 
 import static com.github.enerccio.marginalia.extensions.reallangtranslator.ReallangTranslatorLocalization.*;
 
@@ -470,10 +471,13 @@ public class ReallangTranslatorExtension implements MarginaliaExtension, Extensi
 
     private void translatePart(Manuscript manuscript, StoryCard card, String languageId) {
         ChatMessage part = card.getMessage();
-        Notification.success(T.localized(TRANSLATING_THE_SPEECH));
-        boolean started = runs.start(manuscript, part, languageId, (outcome, failure) -> {
+        // the window opens when a request goes to the model: the thinking, the answer and a Stop button
+        RunWindow window = new RunWindow(T.localized(TRANSLATING_THE_SPEECH));
+        boolean started = runs.start(manuscript, part, languageId, window.progress(), (outcome, failure) -> {
+            window.finish();
             report(outcome, failure);
-            if (outcome != null && outcome.status() == TranslationService.Status.TRANSLATED) {
+            // a stopped run may have written the languages before it
+            if (outcome != null && outcome.status() == TranslationService.Status.TRANSLATED || failure instanceof CancellationException) {
                 try {
                     card.updateResponse(translationService.find(part).getResponse());
                 } catch (Exception e) {
@@ -511,8 +515,9 @@ public class ReallangTranslatorExtension implements MarginaliaExtension, Extensi
         card.withSelection(range -> LanguageChoiceDialog.ask(languages, false, languageId -> {
             ChatMessage part = card.getMessage();
             String expected = part.getResponse();
-            Notification.success(T.localized(TRANSLATING_THE_SELECTION));
-            boolean started = runs.startSelection(manuscript, part, expected, range[0], range[1], languageId, (outcome, failure) -> {
+            RunWindow window = new RunWindow(T.localized(TRANSLATING_THE_SELECTION));
+            boolean started = runs.startSelection(manuscript, part, expected, range[0], range[1], languageId, window.progress(), (outcome, failure) -> {
+                window.finish();
                 report(outcome, failure);
                 if (outcome != null && outcome.status() == TranslationService.Status.TRANSLATED) {
                     try {
@@ -541,9 +546,13 @@ public class ReallangTranslatorExtension implements MarginaliaExtension, Extensi
             if (!settings.isAuto() || settings.getLanguageId() == null) {
                 return;
             }
-            runs.start(manuscript, part, (outcome, failure) -> {
+            // a model with one slot has nothing else to do meanwhile: the window blocks the page and shows the work, with a Stop button
+            RunWindow window = new RunWindow(T.localized(TRANSLATING_THE_SPEECH));
+            runs.start(manuscript, part, null, window.progress(), (outcome, failure) -> {
+                window.finish();
                 report(outcome, failure);
-                if (outcome != null && outcome.status() == TranslationService.Status.TRANSLATED && onChanged != null) {
+                boolean written = outcome != null && outcome.status() == TranslationService.Status.TRANSLATED || failure instanceof CancellationException;
+                if (written && onChanged != null) {
                     onChanged.run();
                 }
             });
@@ -553,6 +562,10 @@ public class ReallangTranslatorExtension implements MarginaliaExtension, Extensi
     }
 
     private void report(Outcome outcome, Throwable failure) {
+        if (failure instanceof CancellationException) {
+            Notification.success(T.localized(THE_TRANSLATION_WAS_STOPPED));
+            return;
+        }
         if (failure != null) {
             Notification.error(String.format(T.localized(THE_TRANSLATION_FAILED), failure.getMessage()));
             return;

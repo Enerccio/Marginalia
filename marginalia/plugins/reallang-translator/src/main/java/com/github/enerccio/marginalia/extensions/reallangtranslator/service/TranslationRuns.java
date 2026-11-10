@@ -4,6 +4,7 @@ import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.extensions.reallangtranslator.service.TranslationService.Outcome;
 import com.github.enerccio.marginalia.extensions.translatorcommon.service.PartRuns;
+import com.github.enerccio.marginalia.extensions.translatorcommon.service.RunProgress;
 import org.slf4j.Logger;
 
 import java.util.function.BiConsumer;
@@ -45,7 +46,14 @@ public final class TranslationRuns {
      * @param languageId the language (its id in the library), null for all of the book's
      */
     public boolean start(Manuscript manuscript, ChatMessage part, String languageId, BiConsumer<Outcome, Throwable> done) {
-        return runs.start(part, () -> service.translate(manuscript, part, languageId), done);
+        return start(manuscript, part, languageId, null, done);
+    }
+
+    /**
+     * As above, the requests to the model report to the progress (and a stop of it stops the run); null for none.
+     */
+    public boolean start(Manuscript manuscript, ChatMessage part, String languageId, RunProgress progress, BiConsumer<Outcome, Throwable> done) {
+        return runs.start(part, () -> service.translate(manuscript, part, languageId), done, progress);
     }
 
     /**
@@ -60,6 +68,14 @@ public final class TranslationRuns {
      */
     public boolean startSelection(Manuscript manuscript, ChatMessage part, String expected, int from, int to, String languageId,
                                   BiConsumer<Outcome, Throwable> done) {
-        return runs.start(part, () -> service.translateSelection(manuscript, part, expected, from, to, languageId), done);
+        return startSelection(manuscript, part, expected, from, to, languageId, null, done);
+    }
+
+    /**
+     * As above, the request to the model reports to the progress (and a stop of it stops the run); null for none.
+     */
+    public boolean startSelection(Manuscript manuscript, ChatMessage part, String expected, int from, int to, String languageId,
+                                  RunProgress progress, BiConsumer<Outcome, Throwable> done) {
+        return runs.start(part, () -> service.translateSelection(manuscript, part, expected, from, to, languageId), done, progress);
     }
 }

@@ -11,6 +11,7 @@ import org.springframework.web.context.request.RequestAttributes;
 
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 
@@ -49,6 +50,15 @@ public final class PartRuns<R> {
      * @return false when the part is being worked on already (nothing is started)
      */
     public boolean start(ChatMessage part, Callable<R> job, BiConsumer<R, Throwable> done) {
+        return start(part, job, done, null);
+    }
+
+    /**
+     * As {@link #start(ChatMessage, Callable, BiConsumer)}, with a progress that the requests of the job report to and that stops them (see {@link RunProgress}).
+     *
+     * @param progress bound to the worker thread for the job; may be null
+     */
+    public boolean start(ChatMessage part, Callable<R> job, BiConsumer<R, Throwable> done, RunProgress progress) {
         if (!running.add(part.getUuid())) {
             return false;
         }
@@ -57,8 +67,11 @@ public final class PartRuns<R> {
         Thread.ofVirtual().name(threadName).start(() -> {
             R result = null;
             Throwable failure = null;
-            try (InRequestScope _ = new InRequestScope(attributes)) {
+            try (InRequestScope _ = new InRequestScope(attributes); RunProgress.Binding _ = progress == null ? null : progress.bind()) {
                 result = job.call();
+            } catch (CancellationException e) {
+                failure = e;
+                log.info("The run on a part was stopped");
             } catch (Throwable e) {
                 failure = e;
                 log.warn("Failed to translate a part: {}", e.getMessage(), e);

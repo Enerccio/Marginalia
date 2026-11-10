@@ -750,6 +750,23 @@ numbers of the older items stable), the rest is P3/P4.
     a trusted header from the reverse proxy (`trustedProxies` exists) for people who already run Authelia / Authentik,
     which is far less work than OIDC in the app.
 
+101. **Concurrency of long operations (one model for the story, for the translators, for the annotation).** A request to a
+    model takes minutes and several things can want the same book at once: the generation of the next part, the automatic
+    annotation and redraft, the translators' automatic run, a range run, a summary. Today each blocks in its own way: the
+    generation blocks the page, and the translation window of the Real Language Translator is a strict modal on purpose,
+    because without it the user could leave the page, delete or regenerate the part the run is writing into, edit its text,
+    or start the next generation while a one-slot model is still busy. What exists is only "one run per part"
+    (`PartRuns`, `RangeRuns`: a range of the same book is refused while one runs) and the `CHANGED` outcome of a
+    translation (the part changed meanwhile, the answer is dropped). Needed: one registry of the running operations per book
+    and part (what runs, who started it, how to stop it), operations that conflict with a run (delete or regenerate the
+    part, delete or restore the book, a second generation, a range over the same parts) refused or queued with a
+    message that names the run, a run that survives the closed page (the result waits for the user: a notification or a
+    list of finished jobs; `/jobs` logs them and `SharedGate` shares one GPU between extensions already, 95 adds the queue) and
+    a non-modal indicator with Stop for those that need no blocking (a cloud model, a second model). Then the modal can
+    become a choice instead of a rule. Where to look:
+    `PartRuns` / `RangeRuns` / `RunWindow` in `libs/translator-common`, `AutoAnnotate`, the generation pipeline
+    (`domain.service.impl.generation`), `UIPushGuard`.
+
 ### Writing workflow
 
 87. **Import a finished manuscript.** 34 covers chats; ✅ *Import from a document* (Word `.docx`, LibreOffice `.odt`, `.rtf`, a single Markdown file, plain text, EPUB) and the zips of an Obsidian vault and of a Scrivener project in the

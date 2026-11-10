@@ -68,6 +68,12 @@ public class TranslatorCommonLocalization extends PluginLocalizationBundle {
     public static final String WHAT_DO_YOU_WANT = "What do you want?";
     public static final String CLOSE = "Close";
     public static final String ALL_LANGUAGES = "All languages";
+    public static final String ANSWER = "Answer";
+    public static final String REASONING = "Reasoning";
+    public static final String STOPPING_THE_REQUEST = "Stopping the request...";
+    public static final String THE_MODEL_IS_ANSWERING = "The model is answering...";
+    public static final String THE_MODEL_IS_THINKING = "The model is thinking...";
+    public static final String WAITING_FOR_THE_MODEL = "Waiting for the model...";
     public static final String ANOTHER_LANGUAGE = "Another language";
     public static final String A_LANGUAGE_THAT_IS_GONE = "(a language that is not in your library any more)";
     public static final String LANGUAGE = "Language";
@@ -251,6 +257,24 @@ public class TranslatorCommonLocalization extends PluginLocalizationBundle {
 
         ja(ALL_LANGUAGES, "すべての言語");
         zh(ALL_LANGUAGES, "所有语言");
+
+        ja(ANSWER, "回答");
+        zh(ANSWER, "回答");
+
+        ja(REASONING, "推論");
+        zh(REASONING, "推理");
+
+        ja(STOPPING_THE_REQUEST, "リクエストを停止しています...");
+        zh(STOPPING_THE_REQUEST, "正在停止请求...");
+
+        ja(THE_MODEL_IS_ANSWERING, "モデルが回答しています...");
+        zh(THE_MODEL_IS_ANSWERING, "模型正在回答...");
+
+        ja(THE_MODEL_IS_THINKING, "モデルが考えています...");
+        zh(THE_MODEL_IS_THINKING, "模型正在思考...");
+
+        ja(WAITING_FOR_THE_MODEL, "モデルを待っています...");
+        zh(WAITING_FOR_THE_MODEL, "正在等待模型...");
 
         ja(ANOTHER_LANGUAGE, "別の言語");
         zh(ANOTHER_LANGUAGE, "另一种语言");

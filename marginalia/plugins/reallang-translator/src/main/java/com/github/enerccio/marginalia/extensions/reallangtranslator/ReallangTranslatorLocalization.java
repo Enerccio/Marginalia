@@ -77,6 +77,7 @@ public class ReallangTranslatorLocalization extends PluginLocalizationBundle {
     public static final String THE_TEXT_IS_TRANSLATED_NOTHING_IS_WRITTEN = "The text is translated into the language of the book. Nothing is written into the story; you use the translation.";
     public static final String THE_TRANSLATION_AS_IT_IS = "The translation as it is";
     public static final String THE_TRANSLATION_FAILED = "The translation failed: %s";
+    public static final String THE_TRANSLATION_WAS_STOPPED = "The translation was stopped";
     public static final String THE_TRANSLATION_IS_NOT_IN_THE_SCRIPT_OF_THE_LANGUAGE = "The translation is not in the script the language asks for";
     public static final String THE_TRANSLATION_ONLY = "The translation only";
     public static final String THE_TRANSLATION_THE_ENGLISH_IN_FOOTNOTES = "The translation, the English in footnotes";
@@ -359,6 +360,9 @@ public class ReallangTranslatorLocalization extends PluginLocalizationBundle {
 
         ja(THE_TRANSLATION_FAILED, "翻訳に失敗しました: %s");
         zh(THE_TRANSLATION_FAILED, "翻译失败:%s");
+
+        ja(THE_TRANSLATION_WAS_STOPPED, "翻訳を停止しました");
+        zh(THE_TRANSLATION_WAS_STOPPED, "翻译已停止");
 
         ja(THE_TRANSLATION_IS_NOT_IN_THE_SCRIPT_OF_THE_LANGUAGE, "翻訳が言語の指定する文字になっていません");
         zh(THE_TRANSLATION_IS_NOT_IN_THE_SCRIPT_OF_THE_LANGUAGE, "译文不符合语言要求的文字");

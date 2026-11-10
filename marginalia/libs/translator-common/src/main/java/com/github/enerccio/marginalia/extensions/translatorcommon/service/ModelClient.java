@@ -17,6 +17,7 @@ import java.util.concurrent.ExecutionException;
 
 /**
  * Asks a model one question and waits for the whole answer: what the translators and the designers of the plugins do. The model is chosen by the caller.
+ * A run that bound a {@link RunProgress} to its thread sees the reasoning and the answer as they come and can stop the request.
  */
 @Configurable
 public class ModelClient {
@@ -88,13 +89,22 @@ public class ModelClient {
         List<LLMChatMessage> payload = List.of(LLMChatMessage.of(LLMRole.SYSTEM, system), LLMChatMessage.of(LLMRole.USER, user));
         CompletableFuture<String> answer = new CompletableFuture<>();
         StringBuilder text = new StringBuilder();
+        // the run that asks may show what comes and may be stopped (none: nothing is shown)
+        RunProgress progress = RunProgress.current();
+        if (progress != null) {
+            progress.requestStarted();
+        }
         CancellationToken token;
         try (InferenceSession _ = InferenceSession.open(sessionName); UsageContext _ = UsageContext.open(book)) {
             token = inferenceServices.forAIOrThrow(model.ai()).stream(payload, model.protocol(), new InferenceService.InferenceAsyncCallback() {
                 @Override
                 public void onChunk(InferenceService.InferenceAsyncController controller, InferenceService.ChunkType chunkType, String chunk) throws Exception {
-                    if (chunkType != InferenceService.ChunkType.REASONING) {
+                    boolean reasoning = chunkType == InferenceService.ChunkType.REASONING;
+                    if (!reasoning) {
                         text.append(chunk);
+                    }
+                    if (progress != null) {
+                        progress.chunk(reasoning, chunk);
                     }
                     controller.continueInference();
                 }
@@ -119,6 +129,9 @@ public class ModelClient {
                     return answer.isDone();
                 }
             });
+        }
+        if (progress != null) {
+            progress.attach(token);
         }
         try {
             return answer.get();
