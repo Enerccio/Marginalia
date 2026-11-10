@@ -1,7 +1,7 @@
 ---
 label: Domain model
 order: 960
-verified: 85a73bd53
+verified: dbf652f7b
 covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/model
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/traits

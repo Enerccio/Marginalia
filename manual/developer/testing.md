@@ -1,7 +1,7 @@
 ---
 label: Testing
 order: 890
-verified: 85a73bd53
+verified: dbf652f7b
 covers:
   - marginalia/src/test
   - marginalia/pom.xml

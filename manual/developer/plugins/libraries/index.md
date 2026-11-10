@@ -9,7 +9,7 @@ covers:
   - marginalia/plugins/Dockerfile
   - .github/workflows/server.yml
   - .github/workflows/desktop.yml
-verified: 817e5239b
+verified: dd90f1732
 ---
 
 # Libraries for plugins
