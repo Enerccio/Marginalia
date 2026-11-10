@@ -1,0 +1,86 @@
+# Builds the manual (Retype, sources in manual/) and publishes it to GitHub Pages.
+#
+# The generated site is not in the repository: the build job uploads it as a Pages artifact and the deploy job
+# publishes that (Settings → Pages → Source: GitHub Actions). Published on master only; a pull request that
+# touches the manual is built to check it, not deployed.
+#
+# Retype needs no key for this (the free version has no page limit). Secret RETYPE_KEY is optional: with a key
+# the build uses it (Pro features, for example no "Powered by Retype" in the footer).
+
+name: Manual
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'manual/**'
+      - 'retype.yml'
+      - 'pom.xml'
+      - 'tools/retype_build.sh'
+      - '.github/workflows/manual.yml'
+  pull_request:
+    paths:
+      - 'manual/**'
+      - 'retype.yml'
+      - 'pom.xml'
+      - 'tools/retype_build.sh'
+      - '.github/workflows/manual.yml'
+  workflow_dispatch:
+
+concurrency:
+  # one deployment at a time, a running one is finished (a cancelled deployment can leave Pages half published)
+  group: manual-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+env:
+  # the version the manual is written with (`retype --version` locally); raise both together
+  RETYPE_VERSION: '4.6.0'
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Retype
+        run: npm install --global "retypeapp@$RETYPE_VERSION"
+
+      - name: Build the manual
+        # the script puts the project version and the commit into the label and the footer; writes docs/
+        env:
+          RETYPE_KEY: ${{ secrets.RETYPE_KEY }}
+        run: |
+          if [ -n "$RETYPE_KEY" ]; then
+            tools/retype_build.sh --key "$RETYPE_KEY"
+          else
+            tools/retype_build.sh
+          fi
+
+      - name: Upload the site
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs
+
+  deploy:
+    name: Deploy to GitHub Pages
+    if: github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
