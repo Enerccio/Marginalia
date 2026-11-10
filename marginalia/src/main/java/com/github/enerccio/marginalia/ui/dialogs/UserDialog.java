@@ -52,6 +52,7 @@ public class UserDialog extends Dialog implements LLMInteract {
     private Checkbox clearPasswordCheckbox;
     private Checkbox unlockCheckbox;
     private Checkbox clearSavedLoginsCheckbox;
+    private Checkbox logoutEverywhereCheckbox;
     private Checkbox isAdminCheckbox;
     private final boolean openedFromUser;
 
@@ -128,6 +129,10 @@ public class UserDialog extends Dialog implements LLMInteract {
         clearSavedLoginsCheckbox.setVisible(!openedFromUser && !firstTime && user.getId() != null
                 && StringUtils.isNotBlank(user.getSavedLogins()));
 
+        // the user's own dialog: ends the other sessions of the account and all of its saved logins, this session stays
+        logoutEverywhereCheckbox = new Checkbox(loc.getValue(L.LABEL_LOG_OUT_EVERYWHERE_ELSE));
+        logoutEverywhereCheckbox.setVisible(openedFromUser);
+
         isAdminCheckbox = new Checkbox(loc.getValue(L.LABEL_ADMINISTRATOR));
 
         if (firstTime) {
@@ -144,7 +149,7 @@ public class UserDialog extends Dialog implements LLMInteract {
         }
 
         if (openedFromUser)
-            formLayout.add(loginField, fullNameField, currentPassword, passwordField, passwordRepeatField, isAdminCheckbox);
+            formLayout.add(loginField, fullNameField, currentPassword, passwordField, passwordRepeatField, logoutEverywhereCheckbox, isAdminCheckbox);
         else
             formLayout.add(loginField, fullNameField, passwordField, passwordRepeatField, clearPasswordCheckbox, unlockCheckbox, clearSavedLoginsCheckbox, isAdminCheckbox);
         add(formLayout);
@@ -245,6 +250,11 @@ public class UserDialog extends Dialog implements LLMInteract {
                     // clearPassword and changePassword drop the saved logins already
                     if (clearSavedLoginsCheckbox.getValue() && !clearPassword && StringUtils.isBlank(password)) {
                         userService.clearSavedLogins(user);
+                    }
+
+                    // a new password logs the user out everywhere else already
+                    if (openedFromUser && logoutEverywhereCheckbox.getValue() && StringUtils.isBlank(password)) {
+                        userService.logoutEverywhere(user);
                     }
 
                     close();

@@ -1036,6 +1036,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_IMPORT_FROM_BRANCH, "从分支导入");
         setValue(L.LABEL_INSERT_SCENE_BELOW, "在下方插入场景");
         setValue(L.LABEL_MERGE_WITH_NEXT_SCENE, "与下一个场景合并");
+        setValue(L.LABEL_LOG_OUT_EVERYWHERE_ELSE, "在其他所有位置退出登录（其他浏览器和所有已保存的登录）");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");

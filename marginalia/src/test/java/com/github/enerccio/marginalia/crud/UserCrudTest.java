@@ -369,6 +369,33 @@ class UserCrudTest extends MarginaliaTestBase {
     }
 
     @Test
+    void aUserLogsThemselvesOutEverywhere() throws Exception {
+        User user = userService.find(login().getId());
+        userService.addPersistedLoginInfo(user, userService.generateNewPersistentInfo(user));
+        userService.save(user);
+        assertThat(userService.getPersistedLoginInfo(userService.find(user.getId()))).isNotEmpty();
+
+        userService.logoutEverywhere(userService.find(user.getId()));
+
+        assertThat(userService.getPersistedLoginInfo(userService.find(user.getId()))).isEmpty();
+    }
+
+    @Test
+    void onlyTheUserOrAnAdministratorLogsAUserOutEverywhere() throws Exception {
+        User target = userService.find(createUser().getId());
+        userService.addPersistedLoginInfo(target, userService.generateNewPersistentInfo(target));
+        userService.save(target);
+        login();
+
+        assertThatThrownBy(() -> userService.logoutEverywhere(userService.find(target.getId()))).isInstanceOf(SecurityException.class);
+        assertThat(userService.getPersistedLoginInfo(userService.find(target.getId()))).isNotEmpty();
+
+        loginAdmin();
+        userService.logoutEverywhere(userService.find(target.getId()));
+        assertThat(userService.getPersistedLoginInfo(userService.find(target.getId()))).isEmpty();
+    }
+
+    @Test
     void onlyAdministratorsDeleteClearOrUnlockUsers() throws Exception {
         User target = createUser();
         login();

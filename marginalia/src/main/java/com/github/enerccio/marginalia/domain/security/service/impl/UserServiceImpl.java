@@ -80,6 +80,9 @@ public class UserServiceImpl extends BaseServiceImpl<User, UserRepository> imple
     @Autowired
     private AdminGuard adminGuard;
 
+    @Autowired
+    private User currentUser;
+
     @Override
     @CommonTxReadOnly
     public boolean existsUsers() throws Exception {
@@ -261,9 +264,7 @@ public class UserServiceImpl extends BaseServiceImpl<User, UserRepository> imple
         user.setFailedLogins(0);
         user.setLockedUntil(0);
         save(user);
-        sessionManager.runForUsers(u -> user.getId().equals(u.getId()), (sessionInformation) -> {
-            sessionInformation.boundVaadinSession.getSession().invalidate();
-        }, true, true);
+        endSessions(user);
         return user;
     }
 
@@ -279,9 +280,7 @@ public class UserServiceImpl extends BaseServiceImpl<User, UserRepository> imple
         user.setFailedLogins(0);
         user.setLockedUntil(0);
         save(user);
-        sessionManager.runForUsers(u -> user.getId().equals(u.getId()), (sessionInformation) -> {
-            sessionInformation.boundVaadinSession.getSession().invalidate();
-        }, true, true);
+        endSessions(user);
         return user;
     }
 
@@ -307,6 +306,25 @@ public class UserServiceImpl extends BaseServiceImpl<User, UserRepository> imple
         adminGuard.requireAdmin();
         user.setSavedLogins(null);
         return save(user);
+    }
+
+    @Override
+    @CommonTx
+    public User logoutEverywhere(User user) throws Exception {
+        if (user.getId() == null || !user.getId().equals(currentUser.getId())) {
+            adminGuard.requireAdmin();
+        }
+        user.setSavedLogins(null);
+        save(user);
+        endSessions(user);
+        return user;
+    }
+
+    /** Ends every session of the user that is open now, except the one of the caller. */
+    private void endSessions(User user) {
+        sessionManager.runForUsers(u -> user.getId().equals(u.getId()), (sessionInformation) -> {
+            sessionInformation.boundVaadinSession.getSession().invalidate();
+        }, true, true);
     }
 
     /**

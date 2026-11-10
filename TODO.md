@@ -745,7 +745,7 @@ numbers of the older items stable), the rest is P3/P4.
     Not done: weaving the `@Extendable` classes of a third-party extension at its build (they need
     `-Dmarginalia.extendable.agent=true`; no built-in plugin has such a class).
 86. **Account security for an instance on the internet.** Not in the code: TOTP as a second factor (per user, recovery
-    codes, the admin can clear it like a password), a list of the user's remember-me sessions with *Log out everywhere*,
+    codes, the admin can clear it like a password), a list of the user's remember-me sessions (✅ *Log out everywhere else* in *Change Password* ends all of them and the other open sessions at once, `UserService.logoutEverywhere`; an administrator can clear a user's saved logins; what is missing is the list, to see them and end one),
     an audit log of admin actions (extension install, user delete / unlock, backup restore, limits) in *Admin*, and login by
     a trusted header from the reverse proxy (`trustedProxies` exists) for people who already run Authelia / Authentik,
     which is far less work than OIDC in the app.

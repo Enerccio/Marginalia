@@ -1028,6 +1028,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_IMPORT_FROM_BRANCH, "ブランチから取り込む");
         setValue(L.LABEL_INSERT_SCENE_BELOW, "下にシーンを挿入");
         setValue(L.LABEL_MERGE_WITH_NEXT_SCENE, "次のシーンと統合");
+        setValue(L.LABEL_LOG_OUT_EVERYWHERE_ELSE, "他のすべての場所でログアウト（他のブラウザーとすべての保存されたログイン）");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");

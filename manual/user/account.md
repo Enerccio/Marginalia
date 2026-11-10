@@ -29,14 +29,21 @@ The buttons at the bottom of the workspace:
 - enter your **current password** for every change (leave it empty if your account has no password);
 - to change the password, enter the new one in both password fields;
 - leave both password fields empty to change only the name and keep the password;
+- tick **Log out everywhere else (other browsers and all saved logins)** to log your account out on every other device
+  without changing the password, see below;
 - the user name must not be used by another account.
 
 Click **OK** to save. With a wrong current password nothing is saved.
 
 Changing the password ends all saved logins (*Save login*), on every device including this one: they have to log in
-again with the new password. If a device was lost or your password leaked, changing the password logs that device
-out. Sessions that are open right now (a browser tab still showing the workspace) stay logged in until they log out
-or their session expires.
+again with the new password. Your other sessions that are open right now (a browser on another device still showing
+the workspace) are ended too; only the one you are working in goes on. If a device was lost or your password leaked,
+changing the password logs that device out.
+
+**Log out everywhere else** does the same without a new password: every saved login of your account is forgotten and
+every other open session is ended. Use it when you left yourself logged in somewhere, for example on a computer that
+is not yours. It needs your current password like every other change in this dialog. The session you are in stays, but
+its saved login is forgotten as well, so this browser asks for the password the next time too.
 
 ### Language
 

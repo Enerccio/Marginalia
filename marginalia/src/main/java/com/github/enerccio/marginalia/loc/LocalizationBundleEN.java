@@ -1028,6 +1028,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_IMPORT_FROM_BRANCH, "Import from the branch");
         setValue(L.LABEL_INSERT_SCENE_BELOW, "Insert a scene below");
         setValue(L.LABEL_MERGE_WITH_NEXT_SCENE, "Merge with the next scene");
+        setValue(L.LABEL_LOG_OUT_EVERYWHERE_ELSE, "Log out everywhere else (other browsers and all saved logins)");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
