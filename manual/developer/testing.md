@@ -30,12 +30,13 @@ Surefire is configured in `pom.xml` with:
 
 | Setting | Why |
 |---|---|
-| `-XX:+EnableDynamicAgentLoading -Djdk.attach.allowAttachSelf=true` | `RuntimeInstrumentationTest` installs the ByteBuddy agent into the test JVM. |
+| `-XX:+EnableDynamicAgentLoading -Djdk.attach.allowAttachSelf=true` | `RuntimeInstrumentationTest` installs the ByteBuddy agent (the fallback of development runs) into the test JVM. |
+| `marginalia.test.woven=true` | Tells `BuildTimeWeaverTest` that the classes under test went through the `weave-extendable` step of the build, so it checks that every `@Extendable` class of the application is woven (skipped in an IDE run). |
 | `marginalia.test.home=target/test-home` | Folder for the test databases (see [The application folder](#the-application-folder)). |
 | `forkCount=${test.forks}` (default 3), `reuseForks=true` | The test classes are spread over that many JVMs, one class at a time in each. Every JVM has its own Spring context and so its own database: SQLite lets one writer in at a time, and the `@Configurable` aspect (the `@Autowired` fields of the UI classes) is one for the JVM and bound to one Spring context, so threads of one JVM with a context each do not work. `-Dtest.forks=1` runs the classes one after another (times below). |
 
 How long `mvn test` takes (about 3,000 tests in the first two rows), with the machine, as the time depends on it. Add a row for yours: the
-`Total time` line of Maven, once with `-Dtest.forks=1` and once as it is. Each fork has a heap of `-Xmx1536m` (`test.heap` in the pom; `-Dtest.heap=-Xmx3g` for a test that needs more): the JVM default is a quarter of the RAM, which three forks and the Maven JVM filled on a 16 GB machine.
+`Total time` line of Maven, once with `-Dtest.forks=1` and once as it is. Each fork has a heap of `-Xmx1g` (`test.heap` in the pom; `-Dtest.heap=-Xmx3g` for a test that needs more): the JVM default is a quarter of the RAM, which three forks and the Maven JVM filled on a 16 GB machine.
 
 | Machine | `-Dtest.forks=1` | 3 JVMs (default) | Memory of the 3 JVMs |
 |---|---|---|---|
@@ -115,7 +116,7 @@ fake is the model server.
 | `crud`, `generation`, `backup`, `domain`, `ui` (folders, 1.6.0) | `FolderCrudTest`, `FolderServiceTest`, `FolderTransferTest`, `FolderListTest`, `FolderSettingsTest`, `SettingsInheritanceTest`, `ModificationTest`, `FolderSettingsGenerationTest`, `BackupFoldersTest`, `BackupExportInheritanceTest`, `AgentFoldersTest`, `HelpAssistantBooksTest`, `FolderDialogTest`, `OrganiseDialogTest`, `OrganiseDialogFlowTest`, `BookPromptSettingsTest`, `MassChangeModelProtocolDialogTest`, `MassChangeLanguageDialogTest`, `ManuscriptPartFoldersTest`, `PhoneManuscriptPartFoldersTest`, `BookLabelsTest`, `StoryMassDeleteTest`, `TabDockIconsTest` | The folders, see [Folders](folders.md#tests): the entity and the service rules (names, cycles, delete, the lock of an agent's book), copy and move with name clashes, the settings of the folders resolved for a book and reaching the prompt of a generation, the modification time of books and folders, the folder in a backup and the inherited settings in an export, the working copy of an agent, the books tools of the help assistant, and the windows (settings, Organise with its keys, the lists on the desktop and the phone). The mass delete of parts and the icons of the minimized tabs are here too. |
 | `generation`, `utils` (macros, 1.7.0) | `ClosestMacroTest`, `CommandMacroTest`, `ReflectUtilsTest` | `ClosestMacroTest`: {%{`{{closest-message::n}}`}%}, {%{`{{closest-summary::n}}`}%} and `{{current-message}}` count the parts and summaries back from the part being written (a position that is not there is empty, the argument can be a macro, a regenerate and a swipe have the part they replace as the current one, a new part has none). `CommandMacroTest`: {%{`{{command::name::argument}}`}%} runs a read only command made for macros (its answer is in the prompt, it runs once per generation whatever the number of renders, other arguments are other calls, a command in an untaken branch is not run, an `async` one is waited for, one not made for macros is not run, a failing one renders empty and is not kept); the answer is kept with the part the generation continues from (a later generation from the part reads it, a regenerate or a swipe runs it again, a refresh drops the answers of calls that were not made); `availableInMacros` without `readOnly` is refused when the commands are registered. `ReflectUtilsTest`: a private method or field is found in a class whose hierarchy ends in JDK classes (`Object`'s methods cannot be opened: the lookup used to fail and an extension was told the method did not exist). |
 | `cleanup` | `CleanupServiceTest`, `TrashServiceTest`, `SoftDeleteCascadeTest`, `PermanentDeleteTest`, `AgentCleanupTest` | Purging soft-deleted data (also an AI with usage rows), owned data, strong and weak references; the trash: own objects only, administrator sees all, restore refused while a deleted parent is not restored with it, extended content; `SoftDeleteCascadeTest`: a soft delete takes the owned objects with it and a restore brings them back (the purge tests there log in as administrator); `PermanentDeleteTest`: deleting parts and entries for good, children moved to the parent, active leaf, blocked deletes roll back. |
-| `instruct` | `ExtendableMethodVisitorTest`, `RuntimeInstrumentationTest`, `ExtensionVerifierTest`, `PublicAPISignatureTest` | The bytecode instrumentation of `@Extendable` methods and the runtime agent; the verification of extensions against the application; the `@PublicAPI` declarations of the `@Extendable` classes. |
+| `instruct` | `ExtendableMethodVisitorTest`, `BuildTimeWeaverTest`, `RuntimeInstrumentationTest`, `ExtensionVerifierTest`, `PublicAPISignatureTest` | The bytecode instrumentation of `@Extendable` methods, the weaver of the build and the runtime agent; the verification of extensions against the application; the `@PublicAPI` declarations of the `@Extendable` classes. |
 | `utils`, `generation` (1.7.0) | `AppClockTest`, `StoredTimesFollowAppClockTest` | `AppClock`, the one clock the application stores times from: it follows the system clock until a test sets another, every reader sees the set clock; a generation run "on" another day stores the times of the part (creation, modification, the stamps of the history) from it. The dataset build moves it day by day. |
 | `planner`, `command` (1.7.0) | `PlannerServiceTest`, `PlannerCommandsTest` | The planner of a book: a scene is added at the end with a new uuid and never as done, the texts are stripped and a title is required, done and not done, an update keeps the place, moves stop at the ends, a missing scene is ignored on delete and an error elsewhere, the list is a copy, the listeners are told of every change until they are removed, the scenes travel with a backup, the limit of scenes; the commands add, update (only what is given), mark done and move by the number in the list, delete. |
 | `utils`, `manuscript` (1.7.0) | `LmStudioChatsTest`, `LmStudioImportTest` | The conversations of LM Studio: the messages, the thinking and the model, the name of the file when there is no name, the versions of a message as alternatives with the selected one shown, the system prompt and the tools that are not messages, conversations that share their beginning joined into one tree, the user message as the instructions with *merge*, a file that is not a conversation refused; the import makes the tree of a new book. |
@@ -181,7 +182,9 @@ classDiagram
 `src/test/resources/META-INF/spring/test-application-config.xml`. That file imports the production
 `application-config.xml` and adds `TestContextPostProcessor`, which
 
-- removes the OSGi framework (`OsgiServiceImpl`) and the instrumentation agent (`RuntimeInstrumentationInitializer`),
+- removes the OSGi framework (`OsgiServiceImpl`) and the instrumentation agent (`RuntimeInstrumentationInitializer`;
+  the classes of the application are woven by the build, so their hooks run in the tests and call the
+  `ExtensionService` of the Spring context, which has no decorators),
 - points `Configuration` to a new folder `target/test-home/ctx-<random>/` instead of `~/.marginalia`,
 - makes `TestUserService` the user service: it hashes passwords with one round of SHA-256 instead of PBKDF2 (600,000
   rounds), which was close to half of the time the tests spent, every test creates a user. `authenticate` works as
@@ -406,13 +409,19 @@ The `instruct` tests check the bytecode that makes `@Extendable` methods extensi
 - `ExtendableMethodVisitorTest` transforms fixture classes from `instruct/fixture/` with `instruct/Instrumenter` -
   the same transformation the agent applies, without an agent - and checks that the result verifies, keeps the class
   schema, behaves like the original and exposes arguments and locals to decorators.
-- `RuntimeInstrumentationTest` installs the real agent into the test JVM and checks classes loaded both before and
-  after the installation (`fixture/agent/`).
+- `BuildTimeWeaverTest` runs the weaver of the build on a copy of the fixture classes: the `@Extendable` ones get
+  the hooks and the `@Woven` mark, verify and call decorators, a second run changes nothing, a class compiled again
+  is woven again. In a Maven run it also checks that every `@Extendable` class of the application was woven by the
+  build, and it covers when the agent is installed (`woven.properties`, `marginalia.extendable.agent`).
+- `RuntimeInstrumentationTest` installs the real agent (the fallback for classes the build did not weave; test
+  classes never are) into the test JVM and checks classes loaded both before and after the installation
+  (`fixture/agent/`), a `@Configurable` class with a generic supertype, and that a class marked `@Woven` is left alone.
 - `ExtensionVerifierTest` runs the [extension verification](plugins/extendable.md#verification-before-loading) on
   the extensions of `fixture/verify/VerifyFixtures` (decorators that are valid, ask for things that don't exist, or
   can't be followed) against the decorated `VerifyTarget`. Their class files are packed into a JAR on the fly and
   served by a stand-in `Bundle`. Decorators must be anonymous classes with the context calls inside them, as in a real
-  extension - a decorator that delegates to a helper class would not be checked.
+  extension - a decorator that delegates to a helper class would not be checked. One test runs the same extensions
+  against a woven copy of the targets: the verifier reads the locals of a woven class from the hooks.
 - `PublicAPISignatureTest` checks the [`@PublicAPI`](plugins/extendable.md#the-public-api) of every instrumented method
   of every `@Extendable` class of the application against the compiled classes (`target/classes`). It reads them with
   ByteBuddy's type pool and the local variable table (`PublicAPISignatures`), so the application classes are not

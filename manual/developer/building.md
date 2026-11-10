@@ -61,8 +61,10 @@ What a build does, in order:
 2. `vaadin-maven-plugin` prepares the frontend (`prepare-frontend`): it generates `package.json`, `vite` config and
    the files in `src/main/frontend/generated/` (ignored by Git) and downloads Node.js if needed.
 3. `maven-compiler-plugin` compiles the sources, then `aspectj-maven-plugin` compiles them again with the AspectJ
-   compiler and weaves the Spring aspects in (see [AspectJ weaving](#aspectj-weaving) below). The woven classes in
-   `target/classes` are the ones that get packaged.
+   compiler and weaves the Spring aspects in (see [AspectJ weaving](#aspectj-weaving) below). Then `BuildTimeWeaver`
+   (`exec-maven-plugin`, `weave-extendable`, phase `process-classes`) puts the hooks of the extensions into the
+   `@Extendable` classes (see [Extension hooks](#extension-hooks)). The woven classes in `target/classes` are the
+   ones that get packaged.
 4. Tests run (`maven-surefire-plugin`), see [Running the tests](#running-the-tests).
 5. `vaadin-maven-plugin` builds the frontend bundle (`build-frontend`).
 6. `maven-war-plugin` packages `target/marginalia-1.8.0.war` (about 185 MB) and, because of `attachClasses`, also
@@ -125,6 +127,18 @@ make sure the AspectJ compiler is used too (see [IntelliJ IDEA](#intellij-idea))
 The compiler also keeps parameter names (`-parameters`) and all local variables (`preserveAllLocals`): extensions
 read method arguments and local variables of `@Extendable` methods by name, so don't remove these options.
 
+### Extension hooks
+
+The hooks that let extensions decorate the methods of `@Extendable` classes are a second, separate weaving: the
+Maven build runs `BuildTimeWeaver` on `target/classes` after the AspectJ compiler and marks every class it rewrote
+with `@Woven` (details in [@Extendable hooks](plugins/extendable.md#instrumentation)). The packaged application
+therefore needs no agent.
+
+The IDE does not run that step. A class compiled by the IDE has no hooks, and the application makes up for it at
+start: outside of the packaged WAR it installs a ByteBuddy agent that instruments the `@Extendable` classes without
+the mark (see [JVM options](#jvm-options)). Nothing has to be set up for it, and a `target/classes` with classes of
+both kinds works. To weave by hand, `mvn process-classes` does it (woven classes are skipped).
+
 The IDE (with the `ajc` compiler) compiles into the same `target/` as Maven, and a class compiled by the other one is overwritten (or
 left unwoven, with `null` `@Autowired` fields). To keep a Maven run apart from an open IDE, move the output with `-Dbuild.dir=/tmp/marginalia-build`
 (the property `build.dir` of the POM, default `${project.basedir}/target`): the classes, the woven classes, the test home
@@ -150,15 +164,23 @@ installation (you'll be asked to create the administrator again).
 
 ### JVM options
 
-The extension mechanism installs a ByteBuddy agent into the running JVM when the application starts. On a JDK this
-works without options, but recent JDKs print a warning about dynamically loaded agents. To silence it and allow the
-agent to attach to its own process, add:
+The packaged application (the WAR in a servlet container, Docker, the desktop app) needs no JVM option for the
+extensions: its `@Extendable` classes were woven by the build.
+
+A development run (`mvn jetty:run`, the IDE) installs a ByteBuddy agent into the running JVM when the application
+starts, for the classes the build did not weave (see [Extension hooks](#extension-hooks)). On a current JDK this
+works without options, but the JDK prints a warning about dynamically loaded agents, and a later JDK will refuse
+the agent unless it is allowed. To silence the warning and allow the agent to attach to its own process, add:
 
 ```
 -XX:+EnableDynamicAgentLoading -Djdk.attach.allowAttachSelf=true
 ```
 
-These are the options the desktop app and the tests use.
+These are the options the tests use. If the JVM refuses the agent, the application still starts: an error in the log
+says so, and only the classes woven by a Maven build have hooks.
+
+`-Dmarginalia.extendable.agent=true` installs the agent in the packaged application as well (for an extension with
+`@Extendable` classes of its own), `=false` never installs it.
 
 ### IntelliJ IDEA
 
@@ -203,8 +225,7 @@ mkdir -p ~/jetty-marginalia && cd ~/jetty-marginalia
 java -jar $JETTY_HOME/start.jar --create-startd \
      --add-modules=server,http,ee11-deploy,ee11-websocket-jakarta,ee11-webapp,ee11-jsp
 cp /path/to/Marginalia/marginalia/target/marginalia-1.8.0.war webapps/ROOT.war
-java -XX:+EnableDynamicAgentLoading -Djdk.attach.allowAttachSelf=true -Duser.home=/path/to/dev-home \
-     -jar $JETTY_HOME/start.jar jetty.http.port=8080
+java -Duser.home=/path/to/dev-home -jar $JETTY_HOME/start.jar jetty.http.port=8080
 ```
 
 Marginalia is then at `http://localhost:8080/`. `ee11-websocket-jakarta` is required: the UI is updated through a
@@ -355,4 +376,5 @@ Commit `docs/` together with the changed sources. Images go into `manual/images/
 | `Schema-validation: missing column ...` on start | An entity was changed without a Flyway migration. Add one ([Database schema changes](#database-schema-changes)). |
 | The frontend build fails downloading Node.js or npm packages | It needs internet access on the first build. Behind a proxy, configure it for Maven and npm, or delete `~/.vaadin` and `node_modules` and try again. |
 | A plugin fails with `NoSuchMethodError` / `ClassNotFoundException` | It was built against another version of the application. Run `mvn install` in `marginalia/` (and `mvn -N install` in the root) and rebuild the plugin. |
-| `WARNING: A Java agent has been loaded dynamically` | Add the [JVM options](#jvm-options). |
+| `WARNING: A Java agent has been loaded dynamically` | A development run installed the agent for classes the build did not weave. Add the [JVM options](#jvm-options). |
+| `The instrumentation agent could not be installed` in the log, extensions do nothing on some screens | The JVM refused the agent and some `@Extendable` classes were compiled by the IDE. Add the [JVM options](#jvm-options) or run `mvn process-classes` ([Extension hooks](#extension-hooks)). |

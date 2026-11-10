@@ -204,9 +204,11 @@ The icon is `src/desktop/icons/marginalia.{icns,ico,png}` (made from `src/main/w
 picks the file for the OS (`desktop.icon`) for `jpackage --icon`, and copies the PNG into the launcher jar for the tray
 icon. The browser favicon is `AppShellConfig` (SVG) plus the PNG that Vaadin's `@PWA` reads from `icons/icon.png`.
 
-The JVM options needed by the extension agent (`-Djdk.attach.allowAttachSelf=true -XX:+EnableDynamicAgentLoading`,
-plus `--enable-native-access=ALL-UNNAMED` for SQLite) are passed by `jpackage --java-options` and by the scripts in
-`bin/`. The scripts add `MARGINALIA_JAVA_OPTS`. Keep the three places in sync - the `desktop.javaOptions` property
+The JVM option `--enable-native-access=ALL-UNNAMED` (for SQLite) is passed by `jpackage --java-options` and by the
+scripts in `bin/`. The options of the extension agent are no longer among them: the `@Extendable` classes of the WAR
+are woven by the build and the packaged application installs no agent (the modules `jdk.attach` and
+`java.instrument` stay in the runtime image for `-Dmarginalia.extendable.agent=true`, see
+[@Extendable hooks](plugins/extendable.md#instrumentation)). The scripts add `MARGINALIA_JAVA_OPTS`. Keep the three places in sync - the `desktop.javaOptions` property
 and both scripts. On macOS, `-Dapple.awt.UIElement=true` keeps the app out of the Dock; it lives only in the tray.
 
 Command-line options are described in [Desktop app](../user/getting-started/desktop-app.md#options).

@@ -4,8 +4,10 @@ import com.github.enerccio.marginalia.domain.service.ExtensionService;
 import com.github.enerccio.marginalia.domain.service.ExtensionService.ExtendableMethodContext;
 import com.github.enerccio.marginalia.domain.service.ExtensionService.ExtensionDecorator;
 import com.github.enerccio.marginalia.domain.service.impl.ExtensionServiceImpl;
+import com.github.enerccio.marginalia.instruct.fixture.agent.AgentConfigurableSubject;
 import com.github.enerccio.marginalia.instruct.fixture.agent.AgentEarlySubject;
 import com.github.enerccio.marginalia.instruct.fixture.agent.AgentPlainSubject;
+import com.github.enerccio.marginalia.instruct.fixture.agent.AgentWovenSubject;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,9 +20,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
- * The real agent installed by {@link RuntimeInstrumentationInitializer}: {@code @Extendable} classes are instrumented
+ * The real agent installed by {@link RuntimeInstrumentationInitializer}, the fallback for classes the build did not
+ * weave (the fixtures are test classes, which the build never weaves): {@code @Extendable} classes are instrumented
  * whether they were loaded before (retransformation) or after (load-time transformation) the installation, and
- * decorators registered the way plugins do it see arguments and locals.
+ * decorators registered the way plugins do it see arguments and locals. Classes woven at build time are left alone.
  */
 class RuntimeInstrumentationTest {
 
@@ -38,7 +41,7 @@ class RuntimeInstrumentationTest {
         synchronized (RuntimeInstrumentationTest.class) {
             if (!installed) {
                 // installing twice would register two transformers
-                new RuntimeInstrumentationInitializer().afterPropertiesSet();
+                RuntimeInstrumentationInitializer.install();
                 installed = true;
             }
         }
@@ -138,6 +141,28 @@ class RuntimeInstrumentationTest {
         List<String> events = decorate(AgentPlainSubject.class.getName(), "greet", NOTHING, NOTHING);
 
         assertThat(new AgentPlainSubject().greet("x")).isEqualTo("hi x");
+
+        assertThat(events).isEmpty();
+    }
+
+    @Test
+    void configurableClassesWithGenericSupertypesAreInstrumented() {
+        List<String> seen = new ArrayList<>();
+        List<String> events = decorate(AgentConfigurableSubject.class.getName(), "get", NOTHING,
+                (context, _) -> seen.add(context.getLocalVariable("value", StringBuilder.class).toString()));
+
+        assertThat(new AgentConfigurableSubject().get()).isEqualTo("configured");
+
+        assertThat(events).containsExactly("enter", "leave");
+        assertThat(seen).containsExactly("configured");
+    }
+
+    @Test
+    void classesWovenAtBuildTimeAreNotInstrumentedAgain() {
+        // the fixture only carries the mark: hooks would show that the agent took it
+        List<String> events = decorate(AgentWovenSubject.class.getName(), "greet", NOTHING, NOTHING);
+
+        assertThat(new AgentWovenSubject().greet("x")).isEqualTo("woven x");
 
         assertThat(events).isEmpty();
     }

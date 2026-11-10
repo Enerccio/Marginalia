@@ -30,7 +30,7 @@ the desktop app.
 | Persistence | Hibernate 7 (JPA), SQLite (`sqlite-jdbc`, WAL mode), Flyway migrations |
 | LLM access | [openai-java](https://github.com/openai/openai-java) against any OpenAI-compatible API, JTokkit and server tokenizers for token counts, victools and networknt json-schema-validator for structured answers |
 | Templates | Handlebars.java with SillyTavern-compatible macros |
-| Extensions | Apache Felix (OSGi), ByteBuddy agent for bytecode instrumentation of `@Extendable` classes |
+| Extensions | Apache Felix (OSGi), bytecode instrumentation of `@Extendable` classes with ByteBuddy (at build time; an agent in development runs) |
 | Server | Any Jakarta EE 11 servlet container (Servlet 6.1) - Jetty 12 in Docker and in the desktop app |
 | Tests | JUnit 6, AssertJ, Spring Test, a fake OpenAI-compatible server |
 | Manual | [Retype](https://retype.com) (sources in `manual/`, generated site in `docs/`) |

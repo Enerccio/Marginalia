@@ -22,16 +22,40 @@ the method returns. This page explains how that works and how to use it. The sig
 
 ```mermaid
 flowchart LR
-    Init["RuntimeInstrumentationInitializer<br/>(Spring bean, at startup)"] -->|ByteBuddyAgent.install| Agent["agent"]
-    Agent -->|"classes annotated @Extendable<br/>in com.github.enerccio.*"| Vis["ExtendableMethodVisitor<br/>rewrites each method"]
+    Build["BuildTimeWeaver<br/>(Maven, process-classes)"] -->|"@Extendable classes<br/>of target/classes"| Vis["ExtendableMethodVisitor<br/>rewrites each method"]
+    Init["RuntimeInstrumentationInitializer<br/>(agent, development runs only)"] -->|"@Extendable classes<br/>without @Woven"| Vis
     Vis --> Code["instrumented method"]
     Code -->|enter / leave| Holder["ExtensionServiceHolder"] --> ES["ExtensionServiceImpl<br/>decorators by class + method name"]
 ```
 
-`RuntimeInstrumentationInitializer` installs a ByteBuddy agent into the running JVM when the Spring context starts.
-The agent transforms every class annotated `@Extendable` whose name starts with `com.github.enerccio` - classes
-loaded later when they are loaded, classes already loaded by retransformation. Only method bodies change; the class
-keeps its fields and methods (`disableClassFormatChanges`), which is what makes retransformation possible.
+The hooks get into a class in one of two ways, both with the same rewriting (`ExtendableWeaving`):
+
+- **At build time.** The Maven build runs `BuildTimeWeaver` on `target/classes` after the AspectJ compiler
+  (`weave-extendable`, phase `process-classes`). It rewrites every class that declares `@Extendable`, in place, and
+  marks it with `@Woven` (package `instruct`; never written in the sources). A class with the mark is skipped, so the
+  step can run again on a folder where only some classes were compiled anew. This is what the WAR, the Docker image and
+  the desktop app contain: **the packaged application starts without an agent** and needs no JVM option for it.
+- **By the agent, as a fallback of development runs.** A class compiled by the IDE, or swapped into a running JVM,
+  is not woven. So where the application does not run from the packaged WAR (`mvn jetty:run`, the IDE),
+  `RuntimeInstrumentationInitializer` installs a ByteBuddy agent into the running JVM when the Spring context starts.
+  The agent transforms every class annotated `@Extendable` and not `@Woven` whose name starts with
+  `com.github.enerccio` - classes loaded later when they are loaded, classes already loaded by retransformation. A
+  `target/classes` where the IDE compiled a few classes over a Maven build is handled class by class. If the JVM
+  refuses the agent, the start goes on and an error in the log says that the unwoven classes have no hooks.
+
+The packaged WAR says that it was woven with the resource `META-INF/build-info/woven.properties`
+(`src/main/resources-release`, like the release `logback.xml`). It is not trusted blindly: at start the class files
+of `WEB-INF/classes` are checked (`ExtendableWeaving.unwovenClasses`, headers only), and if an `@Extendable` class
+has no mark - an exploded WAR put together by the IDE can carry the resource over classes the IDE compiled - the
+agent is installed after all, with a warning in the log. The system property `marginalia.extendable.agent`
+overrules both (`true` installs the agent in the packaged application too, `false` never installs it). The weaver only
+sees the classes of the application: an extension that has `@Extendable` classes of its own gets hooks only with
+`-Dmarginalia.extendable.agent=true` (plus the [JVM options](../building.md#jvm-options) of the agent).
+
+Only method bodies change; the class keeps its fields and methods, which is what makes retransformation by the agent
+possible (`disableClassFormatChanges`). The hooks find the service through `ExtensionServiceHolder`, where the
+`ExtensionServiceImpl` of the running Spring context binds itself; without a service (plain unit tests) an
+instrumented method runs as if it had no hooks.
 
 `ExtendableMethodVisitor` rewrites every method that is not a constructor, not static and not synthetic (lambda
 bodies are synthetic). In pseudo-code, an instrumented method looks like this:

@@ -737,10 +737,12 @@ numbers of the older items stable), the rest is P3/P4.
 84. **Split `AgentRunnerImpl`** (about 3,800 lines, a `Worker` inner class of about 1,500): context building, compaction,
     tool dispatch, approvals and sub-agents as collaborators, the agent tests as the net. No behaviour change, so no
     CHANGELOG entry, but the class is where agent bugs will keep landing.
-85. **A plan for the day dynamic agent attach is refused.** `@Extendable` needs the self-attached ByteBuddy agent
-    (`-XX:+EnableDynamicAgentLoading`, a warning today, off by default in a later JDK). Options to try before it is forced:
-    the agent on the command line of the launcher and the Docker entrypoint (cheap, both are ours; only a WAR dropped into
-    a foreign container is left out), or weaving the hooks at build time. Write the decision into `architecture.md`.
+85. ✅ **A plan for the day dynamic agent attach is refused.** Done: the hooks of `@Extendable` classes are woven at build
+    time (`BuildTimeWeaver`, `process-classes`, the class gets `@Woven`), the packaged application installs no agent and
+    needs no JVM option. The self-attached ByteBuddy agent stays as the fallback of development runs (classes compiled by
+    the IDE or hot-swapped), where a refused attach is only an error in the log. The decision is in `architecture.md`.
+    Not done: weaving the `@Extendable` classes of a third-party extension at its build (they need
+    `-Dmarginalia.extendable.agent=true`; no built-in plugin has such a class).
 86. **Account security for an instance on the internet.** Not in the code: TOTP as a second factor (per user, recovery
     codes, the admin can clear it like a password), a list of the user's remember-me sessions with *Log out everywhere*,
     an audit log of admin actions (extension install, user delete / unlock, backup restore, limits) in *Admin*, and login by

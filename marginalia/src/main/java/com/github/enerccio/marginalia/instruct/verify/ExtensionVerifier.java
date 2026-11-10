@@ -54,6 +54,7 @@ public final class ExtensionVerifier {
     private static final String REGISTER_DESC = "(L" + SERVICE_TYPE + "$ExtensionDecorator;Ljava/lang/String;Ljava/lang/String;)V";
     private static final String ENTER_DESC = "(Ljava/lang/Object;L" + CONTEXT_TYPE + ";)V";
     private static final String LEAVE_DESC = "(Ljava/lang/Object;L" + CONTEXT_TYPE + ";Ljava/lang/Throwable;)V";
+    private static final String WOVEN_DESC = "Lcom/github/enerccio/marginalia/instruct/Woven;";
 
     private final ClassLoader runtime;
 
@@ -297,10 +298,11 @@ public final class ExtensionVerifier {
                 return null;
             }
             List<TargetMethod> methods = new ArrayList<>();
+            boolean woven = isWoven(node.get());
             for (MethodNode method : node.get().methods) {
-                // what RuntimeInstrumentationInitializer instruments
+                // what ExtendableWeaving instruments
                 if (method.name.equals(methodName) && (method.access & (Opcodes.ACC_STATIC | Opcodes.ACC_SYNTHETIC)) == 0) {
-                    methods.add(describe(method));
+                    methods.add(describe(method, woven));
                 }
             }
             if (methods.isEmpty()) {
@@ -322,7 +324,7 @@ public final class ExtensionVerifier {
         /**
          * Names the way {@code ExtendableMethodVisitor} gives them to the context.
          */
-        private TargetMethod describe(MethodNode method) {
+        private TargetMethod describe(MethodNode method, boolean woven) {
             Map<Integer, String> slotNames = new HashMap<>();
             Map<Integer, Type> slotTypes = new HashMap<>();
             if (method.localVariables != null) {
@@ -351,6 +353,10 @@ public final class ExtensionVerifier {
                 slot += argumentTypes[i].getSize();
             }
 
+            if (woven) {
+                return new TargetMethod(method.desc, params, wovenLocals(method));
+            }
+
             // object locals only: the ones that are stored with ASTORE
             Map<String, List<Type>> locals = new LinkedHashMap<>();
             AbstractInsnNode[] instructions = method.instructions.toArray();
@@ -367,6 +373,53 @@ public final class ExtensionVerifier {
                 }
             }
             return new TargetMethod(method.desc, params, locals);
+        }
+
+        /**
+         * The locals of a method that {@code BuildTimeWeaver} rewrote: the hooks are in the class file, so the names
+         * are read from the {@code registerLocalVariable(name, value, class)} calls the weaver put after the stores
+         * (the name is a constant, the value is loaded from the slot of the variable). The types are those of the
+         * local variable table entries of that name and slot.
+         */
+        private Map<String, List<Type>> wovenLocals(MethodNode method) {
+            Map<String, List<Type>> locals = new LinkedHashMap<>();
+            for (AbstractInsnNode instruction : method.instructions) {
+                if (!(instruction instanceof MethodInsnNode call) || !call.owner.equals(CONTEXT_TYPE)
+                        || !call.name.equals("registerLocalVariable")) {
+                    continue;
+                }
+                AbstractInsnNode name = call.getPrevious();
+                while (name != null && !(name instanceof LdcInsnNode constant && constant.cst instanceof String)) {
+                    name = name.getPrevious();
+                }
+                if (name == null || !(name.getNext() instanceof VarInsnNode load)) {
+                    continue;
+                }
+                String variable = (String) ((LdcInsnNode) name).cst;
+                List<Type> types = locals.computeIfAbsent(variable, _ -> new ArrayList<>());
+                boolean described = false;
+                if (method.localVariables != null) {
+                    for (LocalVariableNode entry : method.localVariables) {
+                        if (entry.index == load.var && entry.name.equals(variable)) {
+                            described = true;
+                            Type type = Type.getType(entry.desc);
+                            if (!types.contains(type)) {
+                                types.add(type);
+                            }
+                        }
+                    }
+                }
+                Type object = Type.getObjectType("java/lang/Object");
+                if (!described && !types.contains(object)) {
+                    types.add(object);
+                }
+            }
+            return locals;
+        }
+
+        private static boolean isWoven(ClassNode node) {
+            return node.visibleAnnotations != null && node.visibleAnnotations.stream()
+                    .anyMatch(annotation -> annotation.desc.equals(WOVEN_DESC));
         }
 
         /**
@@ -762,7 +815,8 @@ public final class ExtensionVerifier {
         }
 
         /**
-         * The class file as the compiler wrote it, not as the agent rewrites it.
+         * The class file on the class path: as the compiler wrote it, or with the hooks when the build wove it
+         * ({@code @Woven}, see {@link #wovenLocals}) - never as the agent rewrites it in memory.
          */
         private Optional<ClassNode> runtimeNode(Class<?> cls) {
             return runtimeNodes.computeIfAbsent(cls, c -> {
