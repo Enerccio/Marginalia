@@ -8,7 +8,7 @@ covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/RedraftServiceImpl.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/AnnotateServiceImpl.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/ChatMessageServiceImpl.java
-verified: 271b964f0
+verified: 823dc792d
 ---
 
 # The text of a part as a model reads it

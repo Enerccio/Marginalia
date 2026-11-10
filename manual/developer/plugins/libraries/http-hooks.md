@@ -4,7 +4,7 @@ order: 51
 covers:
   - marginalia/libs/http-hooks
   - marginalia/plugins/image-generator/src/main/java
-verified: 271b964f0
+verified: 823dc792d
 ---
 
 # http-hooks
