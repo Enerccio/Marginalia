@@ -289,7 +289,8 @@ class ManuscriptSearchReplaceDialogTest extends MarginaliaTestBase {
         field(dialog, "Replace with").setValue("Jon");
 
         button(dialog, "Search").click();
-        await(() -> dialog.getState() == State.PREPARED);
+        // the state is set before the buttons are enabled, wait for both
+        await(() -> dialog.getState() == State.PREPARED && button(dialog, "Replace").isEnabled());
 
         // two parts and the summary of the active branch
         assertThat(roots(dialog)).isEqualTo(3);

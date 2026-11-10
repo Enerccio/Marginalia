@@ -119,7 +119,8 @@ class LorebookSearchReplaceDialogTest extends MarginaliaTestBase {
         field(dialog, "Replace with").setValue("Ron");
 
         button(dialog, "Search").click();
-        await(() -> dialog.getState() == State.PREPARED);
+        // the state is set before the buttons are enabled, wait for both
+        await(() -> dialog.getState() == State.PREPARED && button(dialog, "Replace").isEnabled());
 
         assertThat(button(dialog, "Replace").isEnabled()).isTrue();
         assertThat(entryService.find(harry.getId()).getName()).isEqualTo("Harry");
