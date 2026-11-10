@@ -32,9 +32,17 @@ public class UserServiceImpl extends BaseServiceImpl<User, UserRepository> imple
 
     private static final Logger log = LoggerFactory.getLogger(UserServiceImpl.class);
 
-    private static final int ITERATIONS = 65536;
+    /**
+     * PBKDF2 rounds of a new password hash (OWASP figure for PBKDF2-HMAC-SHA256). The count is stored with every hash, so
+     * raising it later needs no migration: a hash with fewer rounds is verified with its own count and made again with
+     * this one at the user's next successful login.
+     */
+    static final int ITERATIONS = 600_000;
+    /** The rounds of the hashes made before the count was stored (the format {@code salt:hash}). */
+    static final int LEGACY_ITERATIONS = 65_536;
     private static final int KEY_LENGTH = 256;
     private static final String ALGORITHM = "PBKDF2WithHmacSHA256";
+    private static final String HASH_PREFIX = "pbkdf2-sha256";
 
     static final int FREE_LOGIN_ATTEMPTS = 10;
     private static final long MAX_BACKOFF_MILLIS = 15 * 60 * 1000L;
@@ -156,13 +164,19 @@ public class UserServiceImpl extends BaseServiceImpl<User, UserRepository> imple
         boolean addressLocked = isAddressLocked(clientAddress, now);
 
         String storedPasswordData = user == null ? null : user.getPasswordHash();
-        String[] parts = storedPasswordData == null ? new String[0] : storedPasswordData.split(":");
-        boolean wellFormed = parts.length == 2;
-        String salt = wellFormed ? parts[0] : DUMMY_SALT;
-        String expected = wellFormed ? parts[1] : DUMMY_HASH;
+        StoredHash stored = StoredHash.parse(storedPasswordData);
+        boolean wellFormed = stored != null;
+        String salt = wellFormed ? stored.salt : DUMMY_SALT;
+        String expected = wellFormed ? stored.hash : DUMMY_HASH;
+        int iterations = wellFormed ? stored.iterations : ITERATIONS;
 
         boolean passwordGiven = StringUtils.isNotBlank(password);
-        String computed = hashPassword(passwordGiven ? password : "", salt);
+        String computed = hashPassword(passwordGiven ? password : "", salt, iterations);
+        if (iterations < ITERATIONS) {
+            // an older hash is cheaper to check; spend the difference, so that the time does not tell which accounts
+            // still have one (an unknown user costs the full ITERATIONS)
+            hashPassword("", DUMMY_SALT, ITERATIONS - iterations);
+        }
         boolean hashMatches = MessageDigest.isEqual(
                 expected.getBytes(StandardCharsets.UTF_8), computed.getBytes(StandardCharsets.UTF_8));
 
@@ -180,7 +194,12 @@ public class UserServiceImpl extends BaseServiceImpl<User, UserRepository> imple
 
         if (user != null) {
             if (ok && !locked) {
-                if (user.getFailedLogins() != 0 || user.getLockedUntil() != 0) {
+                boolean rehash = wellFormed && passwordGiven && iterations < ITERATIONS;
+                if (rehash) {
+                    user.setPasswordHash(newPasswordHash(password));
+                    log.info("Password hash of user {} upgraded from {} to {} rounds", username, iterations, ITERATIONS);
+                }
+                if (rehash || user.getFailedLogins() != 0 || user.getLockedUntil() != 0) {
                     user.setFailedLogins(0);
                     user.setLockedUntil(0);
                     save(user);
@@ -237,11 +256,7 @@ public class UserServiceImpl extends BaseServiceImpl<User, UserRepository> imple
     @Override
     @CommonTx
     public User changePassword(User user, String password) throws Exception {
-        byte[] saltBytes = new byte[16];
-        secureRandom.nextBytes(saltBytes);
-        String salt = Base64.getEncoder().encodeToString(saltBytes);
-        String hash = hashPassword(password, salt);
-        user.setPasswordHash(salt + ":" + hash);
+        user.setPasswordHash(newPasswordHash(password));
         user.setSavedLogins(null);
         user.setFailedLogins(0);
         user.setLockedUntil(0);
@@ -419,11 +434,48 @@ public class UserServiceImpl extends BaseServiceImpl<User, UserRepository> imple
                 pli.getIdentifier() + ";" + pli.getHashedSecret() + ";" + pli.getCreate() + ";" + pli.getLastAccess()).collect(Collectors.joining("|")));
     }
 
-    protected String hashPassword(String password, String salt) throws Exception {
+    /** The stored value of a password: a new random salt and {@link #ITERATIONS} rounds. */
+    private String newPasswordHash(String password) throws Exception {
+        byte[] saltBytes = new byte[16];
+        secureRandom.nextBytes(saltBytes);
+        String salt = Base64.getEncoder().encodeToString(saltBytes);
+        return new StoredHash(ITERATIONS, salt, hashPassword(password, salt, ITERATIONS)).format();
+    }
+
+    /** What {@code User.passwordHash} holds: {@code pbkdf2-sha256$<rounds>$<salt>$<hash>}, or the older {@code salt:hash}. */
+    record StoredHash(int iterations, String salt, String hash) {
+
+        String format() {
+            return HASH_PREFIX + "$" + iterations + "$" + salt + "$" + hash;
+        }
+
+        /** {@code null} for nothing stored or anything that is not a hash. */
+        static StoredHash parse(String stored) {
+            if (stored == null) {
+                return null;
+            }
+            if (stored.startsWith(HASH_PREFIX + "$")) {
+                String[] parts = stored.split("\\$", -1);
+                if (parts.length != 4) {
+                    return null;
+                }
+                try {
+                    int iterations = Integer.parseInt(parts[1]);
+                    return iterations > 0 ? new StoredHash(iterations, parts[2], parts[3]) : null;
+                } catch (NumberFormatException e) {
+                    return null;
+                }
+            }
+            String[] parts = stored.split(":");
+            return parts.length == 2 ? new StoredHash(LEGACY_ITERATIONS, parts[0], parts[1]) : null;
+        }
+    }
+
+    protected String hashPassword(String password, String salt, int iterations) throws Exception {
         char[] passwordChars = password.toCharArray();
         byte[] saltBytes = Base64.getDecoder().decode(salt);
 
-        PBEKeySpec spec = new PBEKeySpec(passwordChars, saltBytes, ITERATIONS, KEY_LENGTH);
+        PBEKeySpec spec = new PBEKeySpec(passwordChars, saltBytes, iterations, KEY_LENGTH);
         SecretKeyFactory factory = SecretKeyFactory.getInstance(ALGORITHM);
         byte[] hash = factory.generateSecret(spec).getEncoded();
 

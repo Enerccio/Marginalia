@@ -693,3 +693,121 @@ Most are 🧩 plugin-sized; the ones that need a core hook say so.
     `@PublicAPI` for plugins and a Flyway migration. `StoryNotesService.read` / `update` are the only place the Story Notes touch the storage, so it can move
     there first. Measure before: the size of the plugin data of the biggest books and the time of a `Manuscript` load.
 
+---
+
+## Proposed 2026-11-10 (not reviewed by the author yet)
+
+Suggestions added in one pass over this file, `EVALUATION.MD` and the code. Each was checked with a grep to be absent,
+not with a full read; delete or renumber freely. The *Hardening* block is P1 by importance (it sits here only to keep the
+numbers of the older items stable), the rest is P3/P4.
+
+### Hardening and project health (P1; from `EVALUATION.MD` §6 and §11, none of it was tracked here)
+
+77. ~~**Password hash cost.**~~ ✅ Done — 600,000 rounds, `pbkdf2-sha256$<rounds>$<salt>$<hash>`, upgrade at login (`UserServiceImpl`, `PasswordHashTest`, `UserCrudTest`). Original text: `UserServiceImpl.ITERATIONS` is 65,536 (PBKDF2-HMAC-SHA256); the current OWASP figure for this
+    construction is 600,000. Store the count with the hash (a versioned format), verify old hashes with their own count and
+    rehash at the next successful login. Test: an old hash still logs in and is upgraded. Mind the constant-work path for
+    unknown users (it must cost the same as the new count) and the login time on a small server.
+78. **`secret.key` and the data folder are created with the default permissions.** No `PosixFilePermission` anywhere in the
+    core, so on a shared Linux host the key that protects the API keys is world-readable under the usual umask. Create both
+    owner-only (skip on file systems without POSIX attributes, i.e. Windows) and warn at start when an existing key is group
+    or world readable.
+79. **One outbound address guard, resolved once.** The agent webhook (`AgentWebhookService`) and the image generator (35:
+    "resolves the host twice") both check the host and then let the HTTP client resolve it again, which a DNS-rebinding
+    host passes. Resolve once and connect to that address (or a custom `InetAddressResolver` for the client), in one shared
+    class (`http-hooks` already serves plugins), with a test class for the SSRF cases: `security/` holds one test now.
+    With it: audit the `new Html(...)` call sites that rely on the caller escaping (`OutdatedSummariesDialog`, `HtmlText`).
+80. **CI: dependency updates, vulnerability scan, coverage.** No Dependabot, no OWASP Dependency-Check and no JaCoCo in the
+    poms or `.github/workflows`, while the WAR carries POI, PDFBox, OpenPDF, Jetty, Hibernate and a Node toolchain.
+    Dependabot (Maven + GitHub Actions + the `screenshots` npm), a weekly scan job that does not block a build, and JaCoCo
+    as a report only, so "well tested" is a number.
+81. **A smoke test for every plugin.** 12 of the plugins have no tests, and the plugin API is the internals of the core. One
+    shared harness that installs each built JAR into a test context (the `extensions` tests already load bundles), checks
+    that `onExtensionLoad` passes, that every decorator names a method that exists with those arguments and locals
+    (`@PublicAPI` has the data) and that unload leaves nothing registered (decorators, CSS, shortcuts, commands). It turns
+    "a refactor broke a plugin" from a runtime surprise into a red build.
+82. **A few browser flows in CI.** The UI tests run on server-side components; everything in `JavascriptLibrary` (marks,
+    selection, popovers, scroll, lazy loading) is checked by hand. The screenshot pipeline already drives the real app with
+    Playwright and a fake model: reuse it for a handful of asserting flows (log in, generate with streaming, swipe, edit and
+    save, annotate a selection, phone width) as a separate, slower workflow.
+83. **Plugin API: a promise and a generated diff.** `@PublicAPI(from = ...)` already records when a method changed. A small
+    tool that prints the API changes between two tags (methods added / changed / removed per `@Extendable` class) would
+    write the *plugin-visible changes* part of the CHANGELOG and make a rule possible: nothing is removed inside a minor
+    version without one release of deprecation. Decide the rule first (25: "not frozen").
+84. **Split `AgentRunnerImpl`** (about 3,800 lines, a `Worker` inner class of about 1,500): context building, compaction,
+    tool dispatch, approvals and sub-agents as collaborators, the agent tests as the net. No behaviour change, so no
+    CHANGELOG entry, but the class is where agent bugs will keep landing.
+85. **A plan for the day dynamic agent attach is refused.** `@Extendable` needs the self-attached ByteBuddy agent
+    (`-XX:+EnableDynamicAgentLoading`, a warning today, off by default in a later JDK). Options to try before it is forced:
+    the agent on the command line of the launcher and the Docker entrypoint (cheap, both are ours; only a WAR dropped into
+    a foreign container is left out), or weaving the hooks at build time. Write the decision into `architecture.md`.
+86. **Account security for an instance on the internet.** Not in the code: TOTP as a second factor (per user, recovery
+    codes, the admin can clear it like a password), a list of the user's remember-me sessions with *Log out everywhere*,
+    an audit log of admin actions (extension install, user delete / unlock, backup restore, limits) in *Admin*, and login by
+    a trusted header from the reverse proxy (`trustedProxies` exists) for people who already run Authelia / Authentik,
+    which is far less work than OIDC in the app.
+
+### Writing workflow
+
+87. **Import a finished manuscript.** 34 covers chats; there is no way in for prose that already exists (a draft from
+    Word, Scrivener, a Markdown folder, an EPUB). DOCX (POI is in the WAR), Markdown and TXT first: split at headings into
+    chapters and at a word target into parts, all marked as written by the author (49 stays right), then offer the
+    summaries run and the lore suggestions (58). It is the first thing a writer with an existing book needs, and the
+    biggest onboarding gap next to the example book.
+88. **"Where was I" card.** `lastOpened` is stored. When a book was not opened for N days, show a card above the story:
+    the newest summary, the next open planner scenes (44), the open annotations and the last instructions. No model call
+    in the first version; a *Write me a recap* button (summaries as the input) later. Cheap, and it uses four features
+    that already keep the data.
+89. **Structure view from data that is already stored.** Deterministic charts (`ChartJs` exists), no model: words per
+    chapter, POV per part as a strip, a grid of present characters by part (who vanished for ten parts), parts per day,
+    lore entries per part (57 records them). The Character Tracker could add its colours. Complements 47 (style), and
+    answers "is the middle sagging" at a glance.
+90. 🧩 **Spelling and grammar as annotations.** A plugin that sends a part to a LanguageTool server (self-hosted, the
+    book language is known) and posts the findings as annotations (54) of source *plugin*, with *apply suggestion* where
+    there is exactly one. Deterministic, fast, no tokens, and the names of the lorebook entries become its ignore list.
+91. 🧩 **Lore that keeps up with the story.** 58 proposes entries that are missing; nothing proposes changes to the ones
+    that exist (a character lost an arm, a city fell). After a chapter, a side query gets the chapter and the entries that
+    were active in it (57) and answers with proposed edits, shown as a diff per entry to accept (`lorebookvcs` keeps the old
+    text). With 42, an accepted change could become a second entry with a range instead of an overwrite.
+92. **A prompt bench.** 52 compares models on one live turn and 63 renders a template; neither answers "is my new
+    template / protocol / model better" over a set. Save turns as cases (book, part, instructions: the stored prompt of a
+    part has all of it), run a case set against a chosen template + protocol + AI as a job, and show the answers next to
+    the kept text, with a blind pick. Results are few samples of one model: show counts, not rates.
+
+### Providers and jobs
+
+93. **A fallback provider.** The client retries 429 / 5xx / connection errors (11) and then fails. A second AI on the
+    provider (*If this fails, use...*), tried once after the retries, matters most for unattended work: agents, automatic
+    annotation, re-summary runs, the audiobook labelling. The part records which model answered (it already keeps the
+    model), and shared-AI limits are checked for the fallback too (`AILimitService.check`).
+94. **Read the context size from the server.** The context of an AI is typed by hand, and a wrong number gives a cut
+    prompt or an overflow error. *Test Connection* could ask the server (llama.cpp `/props`, the `context_length` /
+    `max_model_len` fields that OpenRouter, vLLM and LM Studio put into `/v1/models`) and offer the value; never silently
+    overwrite, the user may want a smaller budget.
+95. **A queue and a time window for long jobs.** Jobs are logged now (`/jobs`), and `SharedGate` shares one GPU between
+    extensions, but a long run starts when it is clicked. *Run tonight* / *run when the GPU is free* for the batch jobs
+    (re-summary, annotate a range, audiobook conversion, image batches), with the order visible in the job list and one
+    notification at the end (70). Needs the batch dialogs to describe their run as data that can wait, not as an open
+    window: check which of them can before promising it.
+96. **Keep what is typed.** `WorkspaceAutosave` restores the open tabs, not text. The instructions of a new turn and an
+    unsaved edit of a part are lost on a reload, a session timeout or a server restart, and a long instruction is the
+    costly thing to lose. Keep them per book in the browser (`localStorage`, through `JavascriptLibrary`) and offer them
+    back; the phone needs it more than the desktop.
+
+### Sharing and distribution
+
+97. **Reader feedback on a published book.** The Viewer is read-only. Logged-in readers could leave a reaction or a
+    comment on a chapter or a selected passage; the author sees them as annotations of source *reader* (54 has the
+    anchoring, the panel and the statuses). Off by default per book. Goes with 66 (serial publishing) and the reading
+    position per reader.
+98. **Extension catalog in Admin → Extensions.** The plugin JARs are attached to every GitHub release. List the ones of
+    the running version with their README line, *Install* and *Update all*, behind the existing `ExtensionVerifier`; an
+    instance without internet access keeps the upload. The address of the catalog is a setting, so a fork or a private
+    set works too. It also answers "which plugins exist" without leaving the app.
+99. **Move a whole account.** Backups are per book. One archive with all books, folders, lorebooks, protocols, templates,
+    styles and settings of a user (never the API keys unless asked, then encrypted with a passphrase) and its import on
+    another instance: the path from the desktop app to a server and back, and the honest answer to "can I leave".
+100. **Accessibility pass.** Not looked at so far beyond what Vaadin gives: the story tree and the dock by keyboard,
+     `aria-live` for a streaming part (politely, not every token), names for the icon-only buttons, the contrast of the
+     marks (generated text, search hits, annotation underlines) in both themes, and `prefers-reduced-motion`. A check
+     list in `manual/developer/ui.md` keeps new widgets honest.
+

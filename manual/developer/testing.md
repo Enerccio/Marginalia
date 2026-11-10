@@ -183,7 +183,7 @@ classDiagram
 
 - removes the OSGi framework (`OsgiServiceImpl`) and the instrumentation agent (`RuntimeInstrumentationInitializer`),
 - points `Configuration` to a new folder `target/test-home/ctx-<random>/` instead of `~/.marginalia`,
-- makes `TestUserService` the user service: it hashes passwords with one round of SHA-256 instead of PBKDF2 (65536
+- makes `TestUserService` the user service: it hashes passwords with one round of SHA-256 instead of PBKDF2 (600,000
   rounds), which was close to half of the time the tests spent, every test creates a user. `authenticate` works as
   usual; `PasswordHashTest` keeps the real PBKDF2 hash covered.
 
