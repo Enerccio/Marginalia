@@ -91,6 +91,17 @@ class TranslationPromptTest {
     }
 
     @Test
+    void aPartThatIsTranslatedAlreadyIsSaidSoInTheUserMessageAndNotInTheSystemMessage() {
+        TranslationPrompt.Request plain = TranslationPrompt.build(Presets.make("ja-kana-kanji"), List.of(), speakers(), "Mara ran.", TranslationPrompt.Scene.none());
+        TranslationPrompt.Request partly = TranslationPrompt.build(Presets.make("ja-kana-kanji"), List.of(), speakers(), "Mara ran.", TranslationPrompt.Scene.none(), true);
+
+        assertFalse(plain.user().contains("translated already"));
+        assertTrue(partly.user().contains("partly translated already"), partly.user());
+        assertTrue(partly.user().indexOf("partly translated") < partly.user().indexOf("PART:\n"));
+        assertEquals(plain.system(), partly.system(), "the system message stays the same, so it can be cached");
+    }
+
+    @Test
     void aListedCharacterDoesNotKnowTheLanguageInTheDefaultMode() {
         String user = TranslationPrompt.build(Presets.make("ja-kana-kanji"), speakers(), "Ken said, \"Hello.\"", TranslationPrompt.Scene.none()).user();
 

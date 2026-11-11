@@ -308,17 +308,24 @@ public class TranslationService {
         // the speeches of the other languages stay translated, and nothing of this answer may land on them
         List<TranslationPlan.Accepted> carried = writer.carried(current, read, language.getId(), scope.missingOnly());
         int[] window = scope.window(read.model());
+        // a run that writes only the missing speeches shows the model the part as it is stored: the speeches that are translated already are
+        // not asked for again (the model would translate them and the plugin would throw the answer away)
+        String shown = scope.shown(read.model());
+        boolean translated = scope.showsStored(read.model());
 
         List<GlossaryEntry> names = glossary.active(book, language);
-        TranslationPrompt.Request request = TranslationPrompt.build(language, names, bookLang.speakers(), source, scene(book, current, settings));
+        TranslationPrompt.Request request = TranslationPrompt.build(language, names, bookLang.speakers(), shown, scene(book, current, settings), translated);
         TranslationAnswer answer = TranslationAnswer.parse(modelClient.ask(model, book, request.system(), request.user()));
         if (answer == null) {
             return Outcome.of(Status.BAD_ANSWER, "The model did not answer in the expected form.");
         }
-        AnswerChecker.Checked checked = AnswerChecker.check(source, answer, language, names);
-        List<AnswerChecker.Item> usable = checked.accepted().stream().filter(item -> !TranslationWriter.overlapsAny(carried, item.start(), item.end()))
-                .filter(item -> RunScope.admits(window, item.start(), item.end())).toList();
-        List<TranslationPlan.Accepted> accepted = new ArrayList<>(usable.stream().map(item -> new TranslationPlan.Accepted(item.speech(), item.start(), item.end())).toList());
+        AnswerChecker.Checked checked = AnswerChecker.check(shown, answer, language, names);
+        // the ranges of the answer are in the text that was shown; the plan and the window are in the text the model reads
+        Map<AnswerChecker.Item, int[]> ranges = new IdentityHashMap<>();
+        checked.accepted().forEach(item -> ranges.put(item, scope.inModel(read.model(), item.start(), item.end())));
+        List<AnswerChecker.Item> usable = checked.accepted().stream().filter(item -> !TranslationWriter.overlapsAny(carried, ranges.get(item)[0], ranges.get(item)[1]))
+                .filter(item -> RunScope.admits(window, ranges.get(item)[0], ranges.get(item)[1])).toList();
+        List<TranslationPlan.Accepted> accepted = new ArrayList<>(usable.stream().map(item -> new TranslationPlan.Accepted(item.speech(), ranges.get(item)[0], ranges.get(item)[1])).toList());
         accepted.addAll(carried);
         TranslationPlan plan = TranslationPlan.make(source, accepted);
         int dropped = (int) checked.speeches().stream().filter(item -> !item.accepted()).count() + (checked.accepted().size() - usable.size());

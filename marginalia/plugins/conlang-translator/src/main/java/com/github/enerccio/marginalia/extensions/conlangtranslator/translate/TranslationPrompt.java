@@ -1,9 +1,12 @@
 package com.github.enerccio.marginalia.extensions.conlangtranslator.translate;
 
+import com.github.enerccio.marginalia.extensions.conlangtranslator.model.Audience;
+import com.github.enerccio.marginalia.extensions.conlangtranslator.model.Language;
+import com.github.enerccio.marginalia.extensions.conlangtranslator.model.Register;
+import com.github.enerccio.marginalia.extensions.conlangtranslator.model.RuleSection;
 import com.github.enerccio.marginalia.extensions.translatorcommon.model.CharacterNote;
-import com.github.enerccio.marginalia.extensions.translatorcommon.model.SpeakersMode;
 import com.github.enerccio.marginalia.extensions.translatorcommon.model.Speakers;
-import com.github.enerccio.marginalia.extensions.conlangtranslator.model.*;
+import com.github.enerccio.marginalia.extensions.translatorcommon.model.SpeakersMode;
 
 import java.util.List;
 
@@ -15,6 +18,10 @@ import java.util.List;
  * caches the prompt reads it once; the <b>user message</b> has the part and what is known of the people in it.
  */
 public final class TranslationPrompt {
+
+    /** Said in the user message when the PART holds speeches that are translated already (a run that only writes the missing ones). */
+    static final String PARTLY_TRANSLATED = "The PART is partly translated already: a speech that is not written in English any more is finished. Give no entry for it; "
+            + "give entries only for the direct speech that is still written in English.\n";
 
     /** The instructions, before the language. {@code %s} is the name of the language. */
     static final String INSTRUCTIONS = """
@@ -71,7 +78,16 @@ public final class TranslationPrompt {
      * @param maxLexiconChars the size above which the lexicon is cut down, see {@link LexiconText#select}
      */
     public static Request build(Language language, Speakers speakers, String partText, Scene scene, int maxLexiconChars) {
-        return new Request(system(language, speakers, partText, maxLexiconChars), user(language, speakers, partText, scene));
+        return build(language, speakers, partText, scene, maxLexiconChars, false);
+    }
+
+    /**
+     * @param partText   the part as the model reads it: the source, or, for a run that writes only the missing speeches, the part as it is stored
+     *                   with the translated speeches in it
+     * @param translated whether {@code partText} holds speeches that are translated already; the model is told to leave them
+     */
+    public static Request build(Language language, Speakers speakers, String partText, Scene scene, int maxLexiconChars, boolean translated) {
+        return new Request(system(language, speakers, partText, maxLexiconChars), user(language, speakers, partText, scene, translated));
     }
 
     static String system(Language language, Speakers speakers, String partText, int maxLexiconChars) {
@@ -121,6 +137,10 @@ public final class TranslationPrompt {
     }
 
     static String user(Language language, Speakers speakers, String partText, Scene scene) {
+        return user(language, speakers, partText, scene, false);
+    }
+
+    static String user(Language language, Speakers speakers, String partText, Scene scene, boolean translated) {
         StringBuilder user = new StringBuilder();
         String characters = characters(language, speakers, scene, partText);
         if (!characters.isEmpty()) {
@@ -135,6 +155,9 @@ public final class TranslationPrompt {
         }
         if (scene != null && !scene.present().isBlank()) {
             user.append("Characters present: ").append(scene.present().strip()).append('\n');
+        }
+        if (translated) {
+            user.append('\n').append(PARTLY_TRANSLATED);
         }
         user.append("\nPART:\n").append(partText == null ? "" : partText.strip()).append('\n');
         return user.toString();
