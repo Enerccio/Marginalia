@@ -20,6 +20,8 @@ Every story part gets a **Review** item in its menu:
   - *Include Lorebook* - include the lore that was active for the part (with standard prompt info off),
   - *With summaries* - (with standard prompt info off) send the summaries of the story first, then the parts after the newest
     summary, as a generation does; the summaries are counted into the token limit before the parts,
+  - *Send original text* - (only when a translator plugin is loaded) send the story as it is stored, with the speech in the
+    translated or constructed language, instead of the English a model reads,
   - *Token Limit* - how many tokens of the story (parts up to the reviewed one) are sent along.
 - **Delete Review** removes the reviews of the part.
 

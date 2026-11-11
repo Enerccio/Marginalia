@@ -48,6 +48,8 @@ public class ReviewerLocalization extends PluginLocalizationBundle {
     public static final String INCLUDE_LOREBOOK = "Include Lorebook";
     public static final String WITH_SUMMARIES = "With summaries";
     public static final String SEND_THE_SUMMARIES = "Send the summaries of the story before the part, then the parts after the newest summary, as a generation does, instead of as many of the latest parts as fit";
+    public static final String SEND_ORIGINAL_TEXT = "Send original text";
+    public static final String SEND_THE_TEXT_AS_STORED = "Send the text of the story as it is stored, with the speech in the translated or constructed language, instead of the English a model reads";
     public static final String TOKEN_LIMIT = "Token Limit";
     public static final String GENERATE = "Generate";
     public static final String TOTAL_TOKENS = "Total tokens: %s";
@@ -171,6 +173,12 @@ public class ReviewerLocalization extends PluginLocalizationBundle {
 
         ja(SEND_THE_SUMMARIES, "生成と同様に、パートより前の物語の要約を送り、その後に最新の要約より後のパートを送ります（収まる限りの最新のパートを送る代わりに）");
         zh(SEND_THE_SUMMARIES, "与生成时一样，先发送该段落之前故事的摘要，再发送最新摘要之后的段落（而不是发送尽可能多的最新段落）");
+
+        ja(SEND_ORIGINAL_TEXT, "原文を送る");
+        zh(SEND_ORIGINAL_TEXT, "发送原文");
+
+        ja(SEND_THE_TEXT_AS_STORED, "モデルが読む英語の代わりに、翻訳後の言語または人工言語の台詞を含む、保存されているままの物語のテキストを送ります");
+        zh(SEND_THE_TEXT_AS_STORED, "发送故事的存储原样文本（对白为翻译后的语言或构造语言），而不是模型所读取的英文");
 
         ja(TOKEN_LIMIT, "トークン上限");
         zh(TOKEN_LIMIT, "词元上限");

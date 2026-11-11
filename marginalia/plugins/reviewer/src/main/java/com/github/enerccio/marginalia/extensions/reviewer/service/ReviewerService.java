@@ -282,10 +282,11 @@ public class ReviewerService {
                 if (stopMessage != null && stopMessage.getId().equals(msg.getId())) {
                     break;
                 }
-                String response = partTexts.forModel(msg);
+                String response = partText(msg, advancedOptions);
                 if (StringUtils.isBlank(response)) continue;
 
-                long msgTokens = msg.getTokenCount() > 0
+                // the stored count is of the text a model reads, the stored text is counted again
+                long msgTokens = msg.getTokenCount() > 0 && !advancedOptions.isOriginalText()
                         ? msg.getTokenCount()
                         : countTokens(inferenceService, response);
 
@@ -308,7 +309,7 @@ public class ReviewerService {
                 payload.add(LLMChatMessage.of(LLMRole.SYSTEM, "Summaries of the story so far:\n" + summaryText));
             }
             for (ChatMessage msg : selectedMessages) {
-                payload.add(LLMChatMessage.of(LLMRole.ASSISTANT, partTexts.forModel(msg)));
+                payload.add(LLMChatMessage.of(LLMRole.ASSISTANT, partText(msg, advancedOptions)));
             }
             payload.add(LLMChatMessage.of(LLMRole.USER, reviewPrompt));
 
@@ -330,11 +331,30 @@ public class ReviewerService {
             }
 
             payload.add(LLMChatMessage.of(LLMRole.USER, "[ Generate more story ]"));
-            payload.add(LLMChatMessage.of(LLMRole.ASSISTANT, partTexts.forModel(targetMessage)));
+            payload.add(LLMChatMessage.of(LLMRole.ASSISTANT, partText(targetMessage, advancedOptions)));
             payload.add(LLMChatMessage.of(LLMRole.USER, reviewPrompt));
         }
 
         return payload;
+    }
+
+    /**
+     * Whether an extension (a translator) gives a model another text than the stored one, so that *sending the original text* makes a
+     * difference.
+     */
+    public boolean hasModelTextTransformers() {
+        return partTexts.isActive();
+    }
+
+    /**
+     * The text of a part for the review: what a model reads (the source of the translated speech), or the text as it is stored (the
+     * translation) when the option asks for the original.
+     */
+    private String partText(ChatMessage part, AdvancedOptions advancedOptions) {
+        if (advancedOptions != null && advancedOptions.isOriginalText()) {
+            return StringUtils.defaultString(part.getResponse());
+        }
+        return partTexts.forModel(part);
     }
 
     /**
