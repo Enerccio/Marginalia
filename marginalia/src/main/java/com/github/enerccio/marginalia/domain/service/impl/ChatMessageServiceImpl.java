@@ -16,6 +16,7 @@ import com.github.enerccio.marginalia.domain.service.search.FulltextQuery;
 import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
 import com.github.enerccio.marginalia.domain.traits.NoTx;
+import com.github.enerccio.marginalia.utils.WordCounter;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Hibernate;
 import org.slf4j.Logger;
@@ -27,14 +28,11 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, ChatMessageRepository> implements ChatMessageService {
 
     private static final Logger log = LoggerFactory.getLogger(ChatMessageServiceImpl.class);
     private static final int SNIPPET_RADIUS = 60;
-    private static final Pattern WORD_PATTERN = Pattern.compile("\\w+", Pattern.UNICODE_CHARACTER_CLASS);
 
     @Autowired
     private ManuscriptService manuscriptService;
@@ -668,10 +666,7 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
     @Override
     @NoTx
     public int countWords(String text) {
-        Matcher matcher = WORD_PATTERN.matcher(text);
-        int count = 0;
-        while (matcher.find()) count++;
-        return count;
+        return WordCounter.count(text);
     }
 
 

@@ -156,6 +156,9 @@ public interface ChatMessageService extends ExtendableService<ChatMessage, ChatM
      */
     Manuscript deleteNodeAndMigrateChildren(ChatMessage message, Manuscript manuscript, boolean hard, boolean counted) throws Exception;
 
+    /**
+     * @return the number of words of the text; every Chinese or Japanese character is a word, see {@link com.github.enerccio.marginalia.utils.WordCounter}
+     */
     int countWords(String text);
 
     /**

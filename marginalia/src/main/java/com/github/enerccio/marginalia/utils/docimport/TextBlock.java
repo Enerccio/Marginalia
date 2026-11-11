@@ -1,5 +1,7 @@
 package com.github.enerccio.marginalia.utils.docimport;
 
+import com.github.enerccio.marginalia.utils.WordCounter;
+
 /**
  * One paragraph or heading of an imported document, the text already in Markdown (emphasis as {@code *} and {@code **}, the
  * characters that would be read as Markdown escaped).
@@ -23,22 +25,13 @@ public record TextBlock(int level, String text) {
     }
 
     /**
-     * @return the number of words (runs of non-blank characters)
+     * @return the number of words (see {@link WordCounter}: a run of letters, every Chinese or Japanese character)
      */
     public int words() {
         return TextBlock.words(text);
     }
 
     static int words(String text) {
-        int words = 0;
-        boolean inWord = false;
-        for (int i = 0; i < text.length(); i++) {
-            boolean blank = Character.isWhitespace(text.charAt(i));
-            if (!blank && !inWord) {
-                words++;
-            }
-            inWord = !blank;
-        }
-        return words;
+        return WordCounter.count(text);
     }
 }
