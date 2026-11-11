@@ -86,6 +86,7 @@ public class AdminPart implements WorkspaceComponent {
     private final AgentSettingsPanel agentSettingsPanel = new AgentSettingsPanel();
     private final StatisticsPanel statisticsPanel = new StatisticsPanel();
     private final JobsPanel jobsPanel = new JobsPanel();
+    private final UpdatePanel updatePanel = new UpdatePanel();
 
     public AdminPart(Workspace workspace) {
         this(workspace, false);
@@ -111,6 +112,7 @@ public class AdminPart implements WorkspaceComponent {
                     @APILocals(name = "agentsTab", type = Tab.class),
                     @APILocals(name = "statisticsTab", type = Tab.class),
                     @APILocals(name = "jobsTab", type = Tab.class),
+                    @APILocals(name = "updateTab", type = Tab.class),
                     @APILocals(name = "extensionsTab", type = Tab.class),
                     @APILocals(name = "extensionsContent", type = Component.class),
                     @APILocals(name = "container", type = Div.class)})
@@ -144,6 +146,9 @@ public class AdminPart implements WorkspaceComponent {
         Tab jobsTab = new Tab(loc.getValue(L.LABEL_JOBS));
         tabSheet.add(jobsTab, jobsPanel.create());
 
+        Tab updateTab = new Tab(loc.getValue(L.LABEL_UPDATE));
+        tabSheet.add(updateTab, updatePanel.create());
+
         adminTabs = tabSheet;
         adminPanels.put(databaseTab, databaseBackupPanel);
         adminPanels.put(cleanupTab, cleanupPanel);
@@ -152,6 +157,7 @@ public class AdminPart implements WorkspaceComponent {
         adminPanels.put(agentsTab, agentSettingsPanel);
         adminPanels.put(statisticsTab, statisticsPanel);
         adminPanels.put(jobsTab, jobsPanel);
+        adminPanels.put(updateTab, updatePanel);
 
         Tab extensionsTab = new Tab(loc.getValue(L.LABEL_EXTENSIONS));
         shownExtensionsTab = extensionsTab;
@@ -718,6 +724,7 @@ public class AdminPart implements WorkspaceComponent {
         refreshUsersGrid();
         databaseBackupPanel.refresh();
         cleanupPanel.refresh();
+        updatePanel.refresh();
     }
 
     @PublicAPI(from = "1.1.0",

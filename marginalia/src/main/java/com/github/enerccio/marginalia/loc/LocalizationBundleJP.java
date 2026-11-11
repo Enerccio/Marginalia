@@ -1056,6 +1056,8 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_REDRAFT_SAME_LENGTH, "同じ長さ");
         setValue(L.LABEL_SHORTER, "短く");
         setValue(L.LABEL_LONGER, "長く");
+        setValue(L.LABEL_UPDATE, "アップデート");
+        setValue(L.LABEL_UPDATE_AND_RESTART, "アップデートして再起動");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -1810,6 +1812,20 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_LORE_NOTES_NO_MODEL, "先にブックのモデルとプロトコルを選択してください。");
         setValue(L.MSG_LORE_NOTES_HAS_AGENT, "このブックにはすでにエージェント(%s)があります。ブックのエージェントは1つだけです。そのエージェントの指示を変更するか、削除してください。");
         setValue(L.MSG_LORE_NOTES_STARTED, "エージェントがメモを取っています。コンソールで確認できます。結果はエージェントタブで確認します。");
+        setValue(L.MSG_UPDATE_RUNNING_VERSION, "実行中のバージョン: %s");
+        setValue(L.MSG_UPDATE_BRANCH, "ブランチ %s（追跡先 %s）。最新のコミット: %s（確認日時 %s）。");
+        setValue(L.MSG_UPDATE_NO_UPSTREAM, "ブランチ %s はリモートブランチを追跡していないため、アップデート元がありません。");
+        setValue(L.MSG_UPDATE_NOT_SET_UP, "サーバーでアップデート監視が動いていないため、ここから Marginalia をアップデートできません。Docker を実行しているコンピューターで一度だけ設定します。マニュアルの「管理」→「アップデート」を参照してください。");
+        setValue(L.MSG_UPDATE_AVAILABLE, "新しいバージョンがあります。");
+        setValue(L.MSG_UPDATE_UP_TO_DATE, "Marginalia は最新です。");
+        setValue(L.MSG_UPDATE_IN_PROGRESS, "アップデートを実行中です。新しいバージョンをビルドしています。準備ができると Marginalia は再起動します。");
+        setValue(L.MSG_UPDATE_REQUESTED, "アップデートを依頼しました。まもなく開始します。");
+        setValue(L.MSG_UPDATE_FETCH_FAILED, "前回の確認でサーバーは Git リポジトリに接続できませんでした。最新のコミットは実際より古い可能性があります。");
+        setValue(L.MSG_UPDATE_LAST_OK, "前回のアップデート: %s、完了。");
+        setValue(L.MSG_UPDATE_LAST_FAILED, "前回のアップデート: %s、失敗。それ以前のバージョンが引き続き動いています。理由はログにあります。");
+        setValue(L.MSG_CONFIRM_UPDATE, "サーバーがブランチの最新バージョンを取得してビルドし（数分かかります）、Marginalia を再起動します。再起動すると作業中の全員が中断され、生成中のものはすべて止まります。新しいものがなくてもビルドと再起動を行います。今すぐアップデートしますか？");
+        setValue(L.MSG_CONFIRM_UPDATE_JOBS, "実行中のジョブ: %d。再起動するとこれらは止まります。");
+        setValue(L.MSG_UPDATE_LOG_EMPTY, "ここからのアップデートはまだ実行されていません。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");
@@ -1938,6 +1954,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_SUMMARY_CHAPTERS, "章とは見出しで始まるパートです。それまでの要約のトークン数が最小値に満たないときに始まる章は要約を区切りません。短い章は次の章と一緒に要約されます。");
         setValue(L.HELP_AFTER_IMPORT, "パートがブックに追加されました。長い物語を書き進めやすくするものが2つあります。取り込んだ内容の要約と、登場人物や場所を集めたロアブックです。先に要約を作成してください。エージェントは作業中ブックをロックします。");
         setValue(L.HELP_REDRAFT_LENGTH_PROMPT, "リライトを短く（長く）するよう求めたとき、指示の後ろに追加されるテキストです。テンプレートではありません。空の場合は組み込みのテキストになります。");
+        setValue(L.HELP_UPDATE, "サーバーにログインせずに、Docker インストールを Git チェックアウトからアップデートします。ブランチの最新バージョンを取得してプラグインとともにビルドし、Marginalia を再起動します。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景設定と世界観の文脈。");

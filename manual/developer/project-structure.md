@@ -28,7 +28,7 @@ Marginalia/
 │   └── images/              screenshots used by the manual and the READMEs
 ├── docs/                    generated manual (tools/retype_build.sh), ignored by git - a local copy for reading
 ├── screenshots/             scripted environment that takes the pictures of the manual (see its SCREENSHOTS.md)
-├── tools/                   check_dev_docs.py (stale developer pages), annotate_ui_maps.py (labels of the UI map figures), retype_build.sh (builds the manual into docs/ with the version in the label and footer), LocalLlm.java (a prompt on the dev AI), workset_run.sh (the dataset harness), gpu-control/ (the controller that starts and stops the containers that share one GPU)
+├── tools/                   check_dev_docs.py (stale developer pages), annotate_ui_maps.py (labels of the UI map figures), retype_build.sh (builds the manual into docs/ with the version in the label and footer), LocalLlm.java (a prompt on the dev AI), workset_run.sh (the dataset harness), gpu-control/ (the controller that starts and stops the containers that share one GPU), update-watcher/ (the host side of Admin → Update: watch.sh runs rebuild.sh when the application asks, install.sh makes it systemd units)
 ├── .github/workflows/
 │   ├── desktop.yml          CI: tests, desktop builds for 5 platforms, release upload
 │   ├── manual.yml           CI: builds the manual and publishes it to GitHub Pages
@@ -36,7 +36,7 @@ Marginalia/
 ├── pom.xml                  parent POM: the version of the application and the plugins, lists them as modules
 ├── Dockerfile               two-stage build: Maven builder → Jetty 12 image
 ├── docker-compose.yml       the server setup (port 8080, ./data volume, JVM options)
-├── rebuild.sh, rebuild.bat  update a Docker server: pull, build the plugins, copy them to data/extensions, restart
+├── rebuild.sh, rebuild.bat  update a Docker server: pull, build the plugins and the image, copy the plugins to data/extensions, restart
 ├── retype.yml               manual configuration (input manual/, output docs/)
 ├── README.md, LICENSE
 ├── CHANGELOG.MD             user- and plugin-visible changes, per release
@@ -112,7 +112,7 @@ Application code lives in `com.github.enerccio.marginalia` (paths below are rela
 | `ui.menu` | The menus of the story editor built from one registry: `StoryMenuRegistry` (Spring bean), `StoryMenuItem`, `StoryMenuKeys`, `MenuKind`, `MenuDefinition` / `MenuNode` / `BuiltMenu` / `MenuItemContent`, `MenuGroup`, `MenuPath`, `MenuPosition`, see [User interface](ui.md#menus-of-the-story-editor). |
 | `ui.shortcuts` | The keyboard shortcuts of the story editor: `ShortcutRegistry`, `ShortcutAction` / `ShortcutActions`, `KeyCombo`, `KeyBindings`, `KeyBindingsEditor`, see [User interface](ui.md#keyboard-shortcuts). |
 | `ui.workspace.parts` | One class per workspace tab: `ManuscriptPart` (Books), `LorebookPart`, `UserPart` (Settings), `ProtocolPart`, `AIPart` (Inference Providers), `ResourcesPart` (Resources: lazy `TreeGrid`, a group row per `clazz` + `objectId` from `ResourceService.findGroupPageForUser`, its files from `findPageOfGroupForUser`), `TrashPart` (Trash: the `TrashGrid` widget), `AdminPart`, plus `NewBookAction` (the *Add Book* flow shared by both book lists). |
-| `ui.workspace.parts.admin` | Admin panels with their own logic: `DatabaseBackupPanel`, `CleanupPanel`, `ResourceGarbagePanel` (the *Resource Files* tab: scan and delete the files nothing refers to), `HelpAssistantPanel` (the settings of the help assistant), `StatisticsPanel` (the *Statistics* tab: the switch and the retention of the [writing statistics](domain-model.md#writing-statistics-manuscriptstatistic-activityinterval-manuscriptsize) for everybody, clearing one user or all), `JobsPanel` (the *Jobs* tab: the log of the jobs that ended). |
+| `ui.workspace.parts.admin` | Admin panels with their own logic: `DatabaseBackupPanel`, `CleanupPanel`, `ResourceGarbagePanel` (the *Resource Files* tab: scan and delete the files nothing refers to), `HelpAssistantPanel` (the settings of the help assistant), `StatisticsPanel` (the *Statistics* tab: the switch and the retention of the [writing statistics](domain-model.md#writing-statistics-manuscriptstatistic-activityinterval-manuscriptsize) for everybody, clearing one user or all), `JobsPanel` (the *Jobs* tab: the log of the jobs that ended), `UpdatePanel` (the *Update* tab: the status of the update watcher of a Docker server and the button that asks it to update). |
 | `ui.jobs` | The lists of the [job log](domain-model.md#the-job-log-job-jobcall): `ActiveJobsGrid` (what runs now, on the page `/jobs`), `JobHistoryGrid` (the jobs that ended with their calls, filtered, paged and deleted by hand, in the *Jobs* tab of the Admin page), `JobFormat` (times, durations and statuses as both show them). |
 | `ui.dialogs.permissions` | `PermissionsDialog` (the permissions of a user, opened from the key button of Admin → Users), `PermissionUIFactory` / `PermissionUIFactoryImpl` and `PermissionUIComponent` (the settings of a permission type, `HelperPermissionComponent` for `HELPER`), see [Permissions dialog](ui.md#permissions-dialog). |
 | `ui.dialogs.agent` | The screens of [agents](agents.md#the-screens): `AgentConsoleDialog` and its tabs, `AgentDialog` and its editors, `AgentMergeDialog` / `JsonMergeDialog` (the review of a result), the dialogs of a run (`AgentApprovalDialog`, `AgentStopDialog`, `AgentResumeDialog`, `AgentCloneDialog`). |
@@ -203,6 +203,7 @@ Interfaces in `domain.service`, implementations in `domain.service.impl`:
 | `HelpAssistantService`, `UnmeteredScope` | The help assistant: its settings (administrators), the AI it uses, who pays (`UnmeteredScope` is read by the inference services), `ask` with the manual tools and the screen. |
 | `TemplateService` | Rendering Handlebars templates with macros. |
 | `BackupService`, `DatabaseBackupService` | Book backups (restore, clone, export); database backups and their schedule. |
+| `UpdateService` | Admin → Update: reads the status the update watcher of a Docker host writes and asks it for an update (files in `<data>/update`). |
 | `CleanupService`, `TrashService` | Purging soft-deleted data that is no longer referenced; listing, restoring and (parts, entries) permanently deleting it (one bean, `CleanupServiceImpl`, shares the reference model). |
 | `ToolService` | Suites of tools (functions, items to check, commands) that extensions offer to the model, and the user's `ToolSelection` turned into functions and hints (in memory, removed with the bundle). |
 | `IPCService` | Providers of text about a book or a story part that extensions register for each other (in memory, removed with the bundle). |

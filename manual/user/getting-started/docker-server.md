@@ -173,12 +173,19 @@ but make a [database backup](../administration/database-backups.md) of your own 
 
 ### Automatic updates
 
-`rebuild.sh` (Linux, macOS) and `rebuild.bat` (Windows) in the repository root do the update for you; run them from
-the root, for example from a cron job or a scheduled task. They fetch the remote branch and do nothing when there is
-nothing new (`--force` rebuilds and restarts anyway, for example after changing `docker-compose.yml`). Otherwise they
-stop the container, `git pull`, rebuild the [bundled plugins](#plugins) and copy their JARs into `data/extensions`
-(replacing the installed ones), and start the container again with `docker compose up -d --build`. If any step fails,
-the script stops with a message.
+`rebuild.sh` (Linux, macOS) and `rebuild.bat` (Windows) in the repository root do the update for you; run them by
+hand or from a cron job or a scheduled task. They fetch the remote of the branch the checkout is on (whichever it is)
+and do nothing when there is nothing new (`--force` rebuilds and restarts anyway, for example after changing
+`docker-compose.yml`). Otherwise they `git pull`, build the [bundled plugins](#plugins) and the image **while
+Marginalia keeps running**, then stop the container, copy the plugin JARs into `data/extensions` (replacing the
+installed ones) and start the new version. If any step fails, the script stops with a message; when it is the pull
+or a build, the old version is still running, and the next run builds again.
+
+`--stop-first` stops the container before the build, for a server that does not have the memory for the application
+and the build together; Marginalia is then down for the whole build.
+
+On Linux the scripts need not be run by hand at all: with the update watcher installed, an administrator updates the
+server with a button, see [Updates](../administration/updates.md).
 
 ## Plugins
 

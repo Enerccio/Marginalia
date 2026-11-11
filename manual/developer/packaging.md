@@ -11,6 +11,8 @@ covers:
   - marginalia/plugins/docker-compose.yml
   - rebuild.sh
   - rebuild.bat
+  - tools/update-watcher
+  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/UpdateServiceImpl.java
   - .github
   - marginalia/src/desktop
   - marginalia/pom.xml
@@ -273,10 +275,33 @@ docker compose -f marginalia/plugins/docker-compose.yml run --rm plugins
 The JARs are not copied while the image is built, because a bind mount exists only when a container runs.
 
 `rebuild.sh` (Linux, macOS) and `rebuild.bat` (Windows) in the repository root update a Docker server: when the
-upstream branch has new commits they stop the container, `git pull`, build the plugins as above, copy the JARs into
-`data/extensions` (overwriting the installed ones; extensions load on start) and run `docker compose up -d --build`.
-`--force` skips the check for new commits. The two scripts must be kept in step; `.gitattributes` keeps the shell
-script on LF and the batch file on CRLF.
+upstream of the checked out branch (`@{u}`, never a fixed branch name) has new commits they `git pull`, build the
+plugins as above and the image (`docker compose build`) while the old container still runs, then `docker compose
+down`, copy the JARs into `data/extensions` (overwriting the installed ones; extensions load on start) and
+`docker compose up -d`. `--force` skips the check for new commits, `--stop-first` stops the container before the
+build (the old order, for a host short of memory). The commit the running container was built from is kept in
+`.rebuild-deployed` (ignored by Git), written before the pull and after a successful start: a run that failed after
+the pull leaves it behind the checkout, so the next run builds again although there is nothing to pull. As root in a
+checkout of another user `rebuild.sh` runs git as the owner of the checkout (`runuser`). The two scripts must be kept
+in step; `.gitattributes` keeps the shell script on LF and the batch file on CRLF.
+
+### Update from the application
+
+Admin → Update ([user manual](../user/administration/updates.md)) updates a Docker server without giving the
+container access to Docker or to the checkout. The two sides only share files in `<data folder>/update`:
+
+| File | Written by | |
+|---|---|---|
+| `request` | the application (`UpdateService.requestUpdate`, administrators only) | Asks for an update; the content (login, time) is only printed to the log. |
+| `status.properties` | the watcher | `state` (`idle`, `running`), `branch`, `upstream`, `local`, `remote` (commits), `fetchFailed`, `checked`, `lastRun` (seconds since 1970), `lastResult` (`ok`, `failed`). Replaced atomically. |
+| `update.log` | the watcher | The output of the last `rebuild.sh`. |
+
+`tools/update-watcher/watch.sh` runs on the host (the systemd units written by `install.sh` next to it: a `.path`
+unit on `request` and a 15 minute `.timer`, both starting one oneshot `.service`; or cron). When `request` is there
+it removes it, writes `state=running` and runs `rebuild.sh --force` (`MARGINALIA_REBUILD_ARGS`); then, and on every
+run of the timer, it fetches and writes the status. A request older than an hour is dropped. `UpdateServiceImpl`
+treats a status older than an hour (three while `running`) as no watcher, and reports an update when `remote` is not
+the commit of the running build (`BuildInfo`), so the application never names a branch. `UpdatePanel` is the tab.
 
 ## Continuous integration
 

@@ -164,7 +164,7 @@ The story tab is one column of parts. The differences from the [story editor](bo
 ## Administration
 
 An administrator has the tab **Admin** in the drawer, with the same tabs as the [desktop page](administration/index.md) in a row you scroll sideways:
-*Users*, *Database Backups*, *Cleanup*, *Resource Files*, *Help assistant*, *Agents* and *Extensions*. The lists (users, backups, extensions) are
+*Users*, *Database Backups*, *Cleanup*, *Resource Files*, *Help assistant*, *Agents*, *Update* and *Extensions*. The lists (users, backups, extensions) are
 cards with their buttons under the text, and the toolbars wrap onto a second line. Installing an extension (*Load Extension*) and uploading a database backup open the file chooser of the phone. Other users do not get the tab.
 
 ![The users of the Admin tab on a phone](../images/phone-admin-users.png)

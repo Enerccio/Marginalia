@@ -1056,6 +1056,8 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_REDRAFT_SAME_LENGTH, "Same length");
         setValue(L.LABEL_SHORTER, "Shorter");
         setValue(L.LABEL_LONGER, "Longer");
+        setValue(L.LABEL_UPDATE, "Update");
+        setValue(L.LABEL_UPDATE_AND_RESTART, "Update and restart");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -1810,6 +1812,20 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_LORE_NOTES_NO_MODEL, "Choose a model and a protocol for the book first.");
         setValue(L.MSG_LORE_NOTES_HAS_AGENT, "The book already has an agent (%s) and a book can have only one: change the instructions of that one or delete it.");
         setValue(L.MSG_LORE_NOTES_STARTED, "The agent is taking the notes. Follow it in its console, the result is reviewed in the Agents tab.");
+        setValue(L.MSG_UPDATE_RUNNING_VERSION, "Running version: %s");
+        setValue(L.MSG_UPDATE_BRANCH, "Branch %s, following %s. Newest commit: %s (checked %s).");
+        setValue(L.MSG_UPDATE_NO_UPSTREAM, "Branch %s follows no remote branch, so there is nothing to update from.");
+        setValue(L.MSG_UPDATE_NOT_SET_UP, "The update watcher does not run on the server, so Marginalia cannot be updated from here. It is set up once on the computer that runs Docker: see Administration, Updates in the manual.");
+        setValue(L.MSG_UPDATE_AVAILABLE, "A new version is available.");
+        setValue(L.MSG_UPDATE_UP_TO_DATE, "Marginalia is up to date.");
+        setValue(L.MSG_UPDATE_IN_PROGRESS, "The update is running: the new version is being built. Marginalia restarts when it is ready.");
+        setValue(L.MSG_UPDATE_REQUESTED, "The update was requested and starts in a moment.");
+        setValue(L.MSG_UPDATE_FETCH_FAILED, "The server could not reach the Git repository at the last check, the newest commit may be older than the real one.");
+        setValue(L.MSG_UPDATE_LAST_OK, "Last update: %s, finished.");
+        setValue(L.MSG_UPDATE_LAST_FAILED, "Last update: %s, failed. The version from before it keeps running, the log says why.");
+        setValue(L.MSG_CONFIRM_UPDATE, "The server pulls the newest version of its branch, builds it (several minutes) and restarts Marginalia. The restart interrupts everybody who is working and stops whatever is being generated. It is built and restarted also when there is nothing new. Update now?");
+        setValue(L.MSG_CONFIRM_UPDATE_JOBS, "Jobs running now: %d. The restart stops them.");
+        setValue(L.MSG_UPDATE_LOG_EMPTY, "No update has been run from here yet.");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");
@@ -1938,6 +1954,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_SUMMARY_CHAPTERS, "A chapter is a part that starts with a heading. A chapter that begins when the summary so far has fewer tokens than the minimum does not end it: a short chapter is summarized together with the next one.");
         setValue(L.HELP_AFTER_IMPORT, "The parts are in the book. Two things make a long story easier to write on: summaries of what was imported and a lorebook with its characters and places. Create the summaries first: an agent locks the book while it works.");
         setValue(L.HELP_REDRAFT_LENGTH_PROMPT, "Plain text that is added to your instructions when the redraft is asked to be shorter (longer). It is not a template. Empty is the built-in text.");
+        setValue(L.HELP_UPDATE, "Updates a Docker installation from its Git checkout without logging in to the server: the newest version of the branch is pulled and built, with the plugins, and Marginalia is restarted.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Background lore and world context.");

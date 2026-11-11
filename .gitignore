@@ -23,6 +23,8 @@ retype.manifest
 /src/main/bundles/README.md
 /target/
 /marginalia/plugins/build
+# the commit the running container was built from (rebuild.sh, rebuild.bat)
+/.rebuild-deployed
 /tmp/
 
 # screenshot environment (screenshots/SCREENSHOTS.md): data, run state, tooling, step backups, work-in-progress images

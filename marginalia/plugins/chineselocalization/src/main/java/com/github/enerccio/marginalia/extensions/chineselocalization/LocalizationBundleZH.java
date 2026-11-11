@@ -1064,6 +1064,8 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_REDRAFT_SAME_LENGTH, "篇幅不变");
         setValue(L.LABEL_SHORTER, "更短");
         setValue(L.LABEL_LONGER, "更长");
+        setValue(L.LABEL_UPDATE, "更新");
+        setValue(L.LABEL_UPDATE_AND_RESTART, "更新并重启");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -1818,6 +1820,20 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_LORE_NOTES_NO_MODEL, "请先为这本书选择模型和协议。");
         setValue(L.MSG_LORE_NOTES_HAS_AGENT, "这本书已有一个代理(%s),而一本书只能有一个代理:请修改它的指示或删除它。");
         setValue(L.MSG_LORE_NOTES_STARTED, "代理正在记录笔记。可在它的控制台中查看,结果在“代理”标签页中审阅。");
+        setValue(L.MSG_UPDATE_RUNNING_VERSION, "当前运行的版本：%s");
+        setValue(L.MSG_UPDATE_BRANCH, "分支 %s，跟踪 %s。最新提交：%s（检查于 %s）。");
+        setValue(L.MSG_UPDATE_NO_UPSTREAM, "分支 %s 没有跟踪远程分支，因此没有可用于更新的来源。");
+        setValue(L.MSG_UPDATE_NOT_SET_UP, "服务器上没有运行更新监视程序，因此无法从这里更新 Marginalia。它需要在运行 Docker 的计算机上设置一次：请参阅手册的“管理”→“更新”。");
+        setValue(L.MSG_UPDATE_AVAILABLE, "有新版本可用。");
+        setValue(L.MSG_UPDATE_UP_TO_DATE, "Marginalia 已是最新版本。");
+        setValue(L.MSG_UPDATE_IN_PROGRESS, "正在更新：正在构建新版本。完成后 Marginalia 将重新启动。");
+        setValue(L.MSG_UPDATE_REQUESTED, "已请求更新，即将开始。");
+        setValue(L.MSG_UPDATE_FETCH_FAILED, "上次检查时服务器无法连接 Git 仓库，显示的最新提交可能比实际的旧。");
+        setValue(L.MSG_UPDATE_LAST_OK, "上次更新：%s，已完成。");
+        setValue(L.MSG_UPDATE_LAST_FAILED, "上次更新：%s，失败。之前的版本仍在运行，原因见日志。");
+        setValue(L.MSG_CONFIRM_UPDATE, "服务器将拉取其分支的最新版本并构建（需要几分钟），然后重启 Marginalia。重启会打断所有正在工作的人，并停止正在生成的内容。即使没有新内容也会构建并重启。现在更新吗？");
+        setValue(L.MSG_CONFIRM_UPDATE_JOBS, "正在运行的作业：%d。重启会停止它们。");
+        setValue(L.MSG_UPDATE_LOG_EMPTY, "尚未从这里运行过更新。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");
@@ -1946,6 +1962,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.HELP_SUMMARY_CHAPTERS, "章节是以标题开头的段落。当前分段的令牌数少于最小值时,新章节不会结束该摘要:较短的章节会与下一章一起总结。");
         setValue(L.HELP_AFTER_IMPORT, "段落已加入书中。有两样东西能让长篇故事更好写:已导入内容的摘要,以及收录人物和地点的设定集。请先创建摘要:代理工作时会锁定这本书。");
         setValue(L.HELP_REDRAFT_LENGTH_PROMPT, "要求重写更短（更长）时，附加在您的指示之后的纯文本。它不是模板。留空则使用内置文本。");
+        setValue(L.HELP_UPDATE, "无需登录服务器即可从 Git 检出更新 Docker 安装：拉取分支的最新版本，连同插件一起构建，然后重启 Marginalia。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景设定与世界观。");
