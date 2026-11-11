@@ -204,7 +204,7 @@ same as for a document.
 
 - **Obsidian vault.** Every note (`.md`) is a chapter named after the note (or the `title:` of its header), in the order of the paths with numbers
   counted as numbers (`Chapter 2` before `Chapter 10`). A folder is a part above its notes, and the headings inside a note are below the
-  note's own. Links `[[Note|text]]` become their text; embeds `![[file]]`, comments `%%...%%`, block ids and the marker of a callout are removed; a
+  note's own. Links `[[Note|text]]` become their text; embeds (`[[file]]` with a `!` before it), comments `%%...%%`, block ids and the marker of a callout are removed; a
   highlight `==text==` is plain text. Hidden folders (`.obsidian`, `.trash`), attachments and notes without text are skipped. If the
   vault holds notes that are not part of the story, delete them before zipping.
 - **Scrivener project.** The manuscript (the *Draft* folder of the binder, Scrivener 2 and 3) is imported, not the research, the trash or the documents
