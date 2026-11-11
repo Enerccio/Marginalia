@@ -1050,6 +1050,12 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_IMPORT_FINISHED, "インポート完了");
         setValue(L.LABEL_NOT_NOW, "今はしない");
         setValue(L.LABEL_TRANSLATE, "翻訳");
+        setValue(L.LABEL_REDRAFT_SHORTER_PROMPT, "短縮して書き直すプロンプト");
+        setValue(L.LABEL_REDRAFT_LONGER_PROMPT, "長くして書き直すプロンプト");
+        setValue(L.LABEL_REDRAFT_LENGTH, "長さ");
+        setValue(L.LABEL_REDRAFT_SAME_LENGTH, "同じ長さ");
+        setValue(L.LABEL_SHORTER, "短く");
+        setValue(L.LABEL_LONGER, "長く");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -1931,6 +1937,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_CREATE_SUMMARIES, "最新の要約より後の物語を区切り、ブロックごとに古い順に要約を作成します。既存の要約は変更されません。ブロックは設定に従って終わり、モデルが読める長さを超えることはありません。");
         setValue(L.HELP_SUMMARY_CHAPTERS, "章とは見出しで始まるパートです。それまでの要約のトークン数が最小値に満たないときに始まる章は要約を区切りません。短い章は次の章と一緒に要約されます。");
         setValue(L.HELP_AFTER_IMPORT, "パートがブックに追加されました。長い物語を書き進めやすくするものが2つあります。取り込んだ内容の要約と、登場人物や場所を集めたロアブックです。先に要約を作成してください。エージェントは作業中ブックをロックします。");
+        setValue(L.HELP_REDRAFT_LENGTH_PROMPT, "リライトを短く（長く）するよう求めたとき、指示の後ろに追加されるテキストです。テンプレートではありません。空の場合は組み込みのテキストになります。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景設定と世界観の文脈。");

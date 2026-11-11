@@ -79,6 +79,14 @@ public class UserSetting extends Setting {
 
     @ExtendedAttribute
     @Transient
+    private String defaultRedraftShorter;
+
+    @ExtendedAttribute
+    @Transient
+    private String defaultRedraftLonger;
+
+    @ExtendedAttribute
+    @Transient
     private String defaultAnnotateSystemPrompt;
 
     @ExtendedAttribute
@@ -481,6 +489,22 @@ public class UserSetting extends Setting {
 
     public void setDefaultRedraftPrompt(String defaultRedraftPrompt) {
         this.defaultRedraftPrompt = defaultRedraftPrompt;
+    }
+
+    public String getDefaultRedraftShorter() {
+        return defaultRedraftShorter;
+    }
+
+    public void setDefaultRedraftShorter(String defaultRedraftShorter) {
+        this.defaultRedraftShorter = defaultRedraftShorter;
+    }
+
+    public String getDefaultRedraftLonger() {
+        return defaultRedraftLonger;
+    }
+
+    public void setDefaultRedraftLonger(String defaultRedraftLonger) {
+        this.defaultRedraftLonger = defaultRedraftLonger;
     }
 
     public String getDefaultAgentCompactionPrompt() {

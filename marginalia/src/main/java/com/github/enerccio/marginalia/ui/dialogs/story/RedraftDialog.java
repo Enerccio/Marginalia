@@ -25,6 +25,7 @@ import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.markdown.Markdown;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.tabs.TabSheet;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.data.value.ValueChangeMode;
@@ -80,6 +81,8 @@ public class RedraftDialog extends Dialog {
     private final boolean applyAutomatically;
 
     private final TextArea instructions = new TextArea();
+    // whether the model is also asked to make the text shorter or longer (the snippet of the setting goes after the instructions)
+    private final Select<RedraftService.Length> length = new Select<>();
     private final Checkbox withAnnotations = new Checkbox();
     // shown when a summary describes the part: the summaries the applied redraft makes outdated get their hash again
     private final Checkbox revalidateSummaries = new Checkbox();
@@ -182,6 +185,15 @@ public class RedraftDialog extends Dialog {
         instructions.setMinRows(3);
         instructions.setMaxRows(8);
 
+        length.setLabel(loc.getValue(L.LABEL_REDRAFT_LENGTH));
+        length.setItems(RedraftService.Length.values());
+        length.setItemLabelGenerator(l -> loc.getValue(switch (l) {
+            case SAME -> L.LABEL_REDRAFT_SAME_LENGTH;
+            case SHORTER -> L.LABEL_SHORTER;
+            case LONGER -> L.LABEL_LONGER;
+        }));
+        length.setValue(RedraftService.Length.SAME);
+
         withAnnotations.setLabel(loc.getValue(passage == null ? L.LABEL_REDRAFT_WITH_ANNOTATIONS : L.LABEL_REDRAFT_WITH_ANNOTATIONS_SELECTION));
         withAnnotations.setVisible(false);
         try {
@@ -239,9 +251,9 @@ public class RedraftDialog extends Dialog {
             redrafted.addClassName(CssStyles.GAP_S);
             tabs.add(loc.getValue(L.LABEL_REDRAFTED_TEXT), redrafted);
             tabs.add(loc.getValue(L.LABEL_REDRAFT_ORIGINAL_TEXT), originalWithAnnotations());
-            content = new VerticalLayout(info, instructions, withAnnotations, revalidateSummaries, start, tabs);
+            content = new VerticalLayout(info, instructions, length, withAnnotations, revalidateSummaries, start, tabs);
         } else {
-            content = new VerticalLayout(info, instructions, withAnnotations, revalidateSummaries, start, reasoningDetails, result, changesDetails);
+            content = new VerticalLayout(info, instructions, length, withAnnotations, revalidateSummaries, start, reasoningDetails, result, changesDetails);
         }
         if (passage != null) {
             content.addComponentAtIndex(1, selection);
@@ -359,6 +371,7 @@ public class RedraftDialog extends Dialog {
             start.setThemeName("primary");
         }
         instructions.setReadOnly(running);
+        length.setReadOnly(running);
         withAnnotations.setReadOnly(running);
         revalidateSummaries.setReadOnly(running);
         result.setReadOnly(running);
@@ -425,7 +438,8 @@ public class RedraftDialog extends Dialog {
                 addressed.addAll(openAnnotations());
             }
             cancellationToken = redraftService.redraft(manuscript, part, instructions.getValue(), null,
-                    com.github.enerccio.marginalia.domain.service.impl.generation.GenerationOptions.defaults(), give, passage, callback);
+                    com.github.enerccio.marginalia.domain.service.impl.generation.GenerationOptions.defaults(), give, passage,
+                    length.getValue(), callback);
             if (cancellationToken == null) {
                 showGenerating(false);
                 Notification.error(loc.getValue(L.ERROR_REDRAFT_FAILED));

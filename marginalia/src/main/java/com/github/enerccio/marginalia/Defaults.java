@@ -196,6 +196,16 @@ Redraft one part of the ongoing narrative "MANUSCRIPT CHRONICLE". Rewrite the PA
 {{/annotations}}
 """;
 
+    /**
+     * Added to the instructions of a redraft that is asked to be shorter (plain text, not a template).
+     */
+    public static final String DEFAULT_REDRAFT_SHORTER = "Make the redrafted text noticeably shorter than the original, by about a third to a half: cut what is redundant, tighten the prose and drop the least important details, but keep every event, line and fact that the story relies on.";
+
+    /**
+     * Added to the instructions of a redraft that is asked to be longer (plain text, not a template).
+     */
+    public static final String DEFAULT_REDRAFT_LONGER = "Make the redrafted text noticeably longer than the original, by about half again to twice as long: develop it with more sensory detail, interiority, dialogue and pacing, but do not add events the author did not ask for and do not change what happens.";
+
     public static final String DEFAULT_ANNOTATE_SYSTEM_PROMPT = """
 ### OBJECTIVE
 Review one part of the ongoing narrative "MANUSCRIPT CHRONICLE" as its editor and annotate it: find the passages of the PART TO REVIEW that have a problem in the sense of the EDITOR'S TASK and write a short note for the author about each of them.

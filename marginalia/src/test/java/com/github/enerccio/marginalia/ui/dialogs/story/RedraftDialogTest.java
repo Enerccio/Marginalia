@@ -97,6 +97,20 @@ class RedraftDialogTest extends MarginaliaTestBase {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
+    void theLengthStartsAsTheSameAndOffersShorterAndLonger() {
+        List<Component> components = components(RedraftDialog.create(book, part, saved -> {
+        }));
+        com.vaadin.flow.component.select.Select<RedraftService.Length> length = (com.vaadin.flow.component.select.Select<RedraftService.Length>)
+                components.stream().filter(com.vaadin.flow.component.select.Select.class::isInstance).findFirst().orElseThrow();
+
+        assertThat(length.getValue()).isEqualTo(RedraftService.Length.SAME);
+        assertThat(length.getListDataView().getItems()).containsExactly(RedraftService.Length.values());
+        assertThat(length.getItemLabelGenerator().apply(RedraftService.Length.SHORTER)).isEqualTo("Shorter");
+        assertThat(length.getItemLabelGenerator().apply(RedraftService.Length.LONGER)).isEqualTo("Longer");
+    }
+
+    @Test
     void theDifferencesFollowTheEditedText() {
         List<Component> components = components(RedraftDialog.create(book, part, saved -> {
         }));

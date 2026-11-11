@@ -394,6 +394,60 @@ class RedraftTest extends GenerationTestBase {
         return done.get(30, TimeUnit.SECONDS);
     }
 
+    private Redrafted redraftLength(int n, String instructions, RedraftService.Length length) throws Exception {
+        CompletableFuture<Redrafted> done = new CompletableFuture<>();
+        redraftService.redraft(manuscriptService.find(manuscript.getId()), part(n), instructions, null,
+                com.github.enerccio.marginalia.domain.service.impl.generation.GenerationOptions.defaults(), false, null, length,
+                new RedraftService.Callback() {
+                    public void onProgress(String reasoning, String text) {
+                    }
+
+                    public void onFinished(String reasoning, String text) {
+                        done.complete(new Redrafted(reasoning, text, true));
+                    }
+
+                    public void onTerminated(String reasoning, String text) {
+                        done.complete(new Redrafted(reasoning, text, false));
+                    }
+
+                    public void onError(Throwable throwable) {
+                        done.completeExceptionally(throwable);
+                    }
+                });
+        return done.get(30, TimeUnit.SECONDS);
+    }
+
+    @Test
+    void shorterAndLongerAddTheirSnippetAfterTheInstructions() throws Exception {
+        llm.enqueue(MockLLMResponse.text("SHORT"));
+        redraftLength(3, "Keep the ending", RedraftService.Length.SHORTER);
+        String shorter = between(prompt(), "=== AUTHOR'S INSTRUCTIONS START ===", "=== AUTHOR'S INSTRUCTIONS END ===");
+        assertThat(shorter).contains("Keep the ending").contains(Defaults.DEFAULT_REDRAFT_SHORTER).doesNotContain(Defaults.DEFAULT_REDRAFT_LONGER);
+        assertThat(shorter.indexOf("Keep the ending")).isLessThan(shorter.indexOf(Defaults.DEFAULT_REDRAFT_SHORTER));
+
+        llm.enqueue(MockLLMResponse.text("LONG"));
+        redraftLength(3, "", RedraftService.Length.LONGER);
+        String longer = between(prompt(), "=== AUTHOR'S INSTRUCTIONS START ===", "=== AUTHOR'S INSTRUCTIONS END ===");
+        assertThat(longer).contains(Defaults.DEFAULT_REDRAFT_LONGER).doesNotContain(Defaults.DEFAULT_REDRAFT_SHORTER).doesNotContain("Write the part again");
+
+        llm.enqueue(MockLLMResponse.text("SAME"));
+        redraftLength(3, "Keep the ending", RedraftService.Length.SAME);
+        assertThat(prompt()).doesNotContain(Defaults.DEFAULT_REDRAFT_SHORTER).doesNotContain(Defaults.DEFAULT_REDRAFT_LONGER);
+    }
+
+    @Test
+    void theSnippetOfTheBookReplacesTheBuiltInOne() throws Exception {
+        Manuscript loaded = manuscriptService.find(manuscript.getId());
+        loaded.setRedraftShorter("CUT IT DOWN");
+        manuscriptService.save(loaded);
+        llm.enqueue(MockLLMResponse.text("SHORT"));
+
+        redraftLength(3, "", RedraftService.Length.SHORTER);
+
+        assertThat(between(prompt(), "=== AUTHOR'S INSTRUCTIONS START ===", "=== AUTHOR'S INSTRUCTIONS END ===")).contains("CUT IT DOWN")
+                .doesNotContain(Defaults.DEFAULT_REDRAFT_SHORTER);
+    }
+
     @Test
     void thePassageIsMarkedInThePartAndTheModelIsToWriteJustIt() throws Exception {
         ChatMessage third = part(3);

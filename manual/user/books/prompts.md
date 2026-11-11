@@ -62,6 +62,7 @@ point for your own version. The template fields also list the **Available Templa
 | **Default Meta Summary Prompt** | meta summaries | The request for a [meta summary](summaries.md#meta-summaries), which merges summaries. A template. |
 | **Redraft System Prompt** | redrafts | The system message of a [redraft](story-editor.md#redrafting-a-part): the directives, the narration and the summaries. A template. |
 | **Redraft Prompt** | redrafts | The last message of a redraft, the request itself: the lore the lorebooks give the part now (so an edit of an entry reaches the redraft; the lore the part was written with only when the book has no lorebook), the story after the part, the part and the instructions. A template. |
+| **Redraft Shorter Prompt**, **Redraft Longer Prompt** | redrafts | The sentence added after your instructions when the [redraft](story-editor.md#redrafting-a-part) window is set to **Shorter** or **Longer**. Plain text, not a template. Empty is the built-in text. |
 | **Annotate System Prompt** | annotating | The system message of a request for a model to [annotate](annotations.md#letting-a-model-annotate) a part. A template. |
 | **Annotate Prompt** | annotating | The last message of the request to annotate. A template. |
 | **Annotate Instructions** (*What to look for*) | annotating | What the model looks for when it annotates (*flag continuity errors*, *weak dialogue*), the text of `{%{{{annotateInstructions}}}%}` of the annotate prompt. Plain text. Set it here, in a folder or in *Settings → Templates*, and the *Annotate with AI* window starts with it. |
@@ -142,6 +143,15 @@ When you redraft only a [selected passage](story-editor.md#redrafting-only-a-pas
 `[[/PASSAGE TO REDRAFT]]` and tells the model to answer with the text that replaces the passage only. A prompt of your own
 that does not know `{%{{{selection}}}%}` makes the model answer with the whole part, and the whole answer then replaces the
 selection; add a `{%{{#selection}}%}...{%{{{/selection}}}%}` block (and `{%{{{^selection}}}%}` for the other case) to handle it.
+
+## Redraft shorter and longer
+
+The **Length** choice of the [redraft](story-editor.md#redrafting-a-part) window (**Same length**, **Shorter**, **Longer**) does not
+touch the redraft prompts: for **Shorter** the text of **Redraft Shorter Prompt** (for **Longer** the one of **Redraft Longer
+Prompt**) is added after what you wrote in *Instructions for the redraft*, in the place of `{%{{{redraftInstructions}}}%}`, so it also works with a redraft prompt of your
+own. With empty instructions it is the only instruction. The two texts follow the rule of all prompts: the book's field, else the
+nearest folder above it that sets one, else the one in *Settings → Templates*, else the built-in text, which asks for roughly a third to a half
+less (more: half again to twice as long) without changing what happens.
 
 ## Annotate prompt
 

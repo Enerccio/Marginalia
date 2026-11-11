@@ -180,6 +180,8 @@ final class HelpBookData implements BookDataSource {
             case META_SUMMARY_PROMPT -> "Meta summary prompt";
             case REDRAFT_SYSTEM_PROMPT -> "Redraft system prompt";
             case REDRAFT_PROMPT -> "Redraft prompt";
+            case REDRAFT_SHORTER -> "Redraft shorter prompt";
+            case REDRAFT_LONGER -> "Redraft longer prompt";
             case ANNOTATE_SYSTEM_PROMPT -> "Annotate system prompt";
             case ANNOTATE_PROMPT -> "Annotate prompt";
             case ANNOTATE_INSTRUCTIONS -> "Annotate instructions (what to look for)";

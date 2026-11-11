@@ -360,7 +360,9 @@ old one in the middle of the story, and keeps what you do not ask to change. Cho
 1. Write what should change in **Instructions for the redraft**: *add more dialogue between the two*, *make the fight
    longer*, *remove the explanation of the map*, *keep the ending as it is*. Empty instructions write the part again with
    the same events.
-2. Choose **Redraft**. The text streams into **Redrafted text**; **Stop** ends it early. Choose **Redraft again** for
+2. Choose **Length** if the part should get **Shorter** or **Longer** (the default is **Same length**): a sentence that asks for it
+   is added after your instructions (see [Redraft Shorter Prompt and Redraft Longer Prompt](prompts.md#redraft-shorter-and-longer)).
+   Choose **Redraft**. The text streams into **Redrafted text**; **Stop** ends it early. Choose **Redraft again** for
    another try, with other instructions if you like. **Differences** shows what changed against the part, word by word.
    When the part has open [annotations](annotations.md), **Deal with the open annotations of the part** (checked at first)
    gives them to the model as well, and **Apply** marks them resolved.

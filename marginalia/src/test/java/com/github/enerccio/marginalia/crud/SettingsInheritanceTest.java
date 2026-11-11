@@ -162,6 +162,8 @@ class SettingsInheritanceTest extends MarginaliaTestBase {
             folder.setMetaSummaryPrompt("m");
             folder.setRedraftSystemPrompt("rs");
             folder.setRedraftPrompt("r");
+            folder.setRedraftShorter("rsh");
+            folder.setRedraftLonger("rlo");
             folder.setAnnotateSystemPrompt("as");
             folder.setAnnotatePrompt("a");
             folder.setAnnotateInstructions("ai");
@@ -178,6 +180,8 @@ class SettingsInheritanceTest extends MarginaliaTestBase {
         assertThat(manuscriptService.getMetaSummaryPrompt(nested)).isEqualTo("m");
         assertThat(manuscriptService.getRedraftSystemPrompt(nested)).isEqualTo("rs");
         assertThat(manuscriptService.getRedraftPrompt(nested)).isEqualTo("r");
+        assertThat(manuscriptService.getRedraftShorter(nested)).isEqualTo("rsh");
+        assertThat(manuscriptService.getRedraftLonger(nested)).isEqualTo("rlo");
         assertThat(manuscriptService.getAnnotateSystemPrompt(nested)).isEqualTo("as");
         assertThat(manuscriptService.getAnnotatePrompt(nested)).isEqualTo("a");
         assertThat(manuscriptService.getAnnotateInstructions(nested)).isEqualTo("ai");

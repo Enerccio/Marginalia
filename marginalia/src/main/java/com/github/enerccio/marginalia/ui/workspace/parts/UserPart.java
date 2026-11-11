@@ -151,6 +151,8 @@ public class UserPart implements WorkspaceComponent {
     private TextAreaPopoverComponent defaultMetaSummaryPromptField;
     private TextAreaPopoverComponent defaultRedraftSystemPromptField;
     private TextAreaPopoverComponent defaultRedraftPromptField;
+    private TextArea defaultRedraftShorterField;
+    private TextArea defaultRedraftLongerField;
     private TextAreaPopoverComponent defaultAnnotateSystemPromptField;
     private TextAreaPopoverComponent defaultAnnotatePromptField;
     private TextAreaPopoverComponent defaultImpersonatePromptField;
@@ -253,6 +255,10 @@ public class UserPart implements WorkspaceComponent {
         templatesFormLayout.setColspan(defaultRedraftSystemPromptField, 2);
         templatesFormLayout.add(defaultRedraftPromptField);
         templatesFormLayout.setColspan(defaultRedraftPromptField, 2);
+        templatesFormLayout.add(defaultRedraftShorterField);
+        templatesFormLayout.setColspan(defaultRedraftShorterField, 2);
+        templatesFormLayout.add(defaultRedraftLongerField);
+        templatesFormLayout.setColspan(defaultRedraftLongerField, 2);
         templatesFormLayout.add(defaultAnnotateSystemPromptField);
         templatesFormLayout.setColspan(defaultAnnotateSystemPromptField, 2);
         templatesFormLayout.add(defaultAnnotatePromptField);
@@ -623,6 +629,19 @@ public class UserPart implements WorkspaceComponent {
         defaultRedraftPromptField.setPopoverContent(createTemplateHintPopoverContent(
                 defaultRedraftPromptField, defaultRedraftPromptField.getPopover(), RedraftTemplateData.class, Defaults.DEFAULT_REDRAFT_PROMPT));
 
+        // plain texts that the redraft adds to the instructions when it is asked to be shorter or longer
+        defaultRedraftShorterField = new TextArea(loc.getValue(L.LABEL_REDRAFT_SHORTER_PROMPT));
+        defaultRedraftShorterField.setWidthFull();
+        defaultRedraftShorterField.setHelperText(loc.getValue(L.HELP_REDRAFT_LENGTH_PROMPT));
+        defaultRedraftShorterField.setPlaceholder(Defaults.DEFAULT_REDRAFT_SHORTER);
+        ResizableTextArea.install(loc, defaultRedraftShorterField, "100px");
+
+        defaultRedraftLongerField = new TextArea(loc.getValue(L.LABEL_REDRAFT_LONGER_PROMPT));
+        defaultRedraftLongerField.setWidthFull();
+        defaultRedraftLongerField.setHelperText(loc.getValue(L.HELP_REDRAFT_LENGTH_PROMPT));
+        defaultRedraftLongerField.setPlaceholder(Defaults.DEFAULT_REDRAFT_LONGER);
+        ResizableTextArea.install(loc, defaultRedraftLongerField, "100px");
+
         // plain text, not a template; what it follows is the placeholder (see refreshAgentPrompt)
         defaultAgentPromptField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_AGENT_DEFAULT_PROMPT));
         defaultAgentPromptField.setWidthFull();
@@ -841,6 +860,8 @@ public class UserPart implements WorkspaceComponent {
             defaultMetaSummaryPromptField.setValue(StringUtils.defaultString(userSetting.getDefaultMetaSummaryPrompt()));
             defaultRedraftSystemPromptField.setValue(StringUtils.defaultString(userSetting.getDefaultRedraftSystemPrompt()));
             defaultRedraftPromptField.setValue(StringUtils.defaultString(userSetting.getDefaultRedraftPrompt()));
+            defaultRedraftShorterField.setValue(StringUtils.defaultString(userSetting.getDefaultRedraftShorter()));
+            defaultRedraftLongerField.setValue(StringUtils.defaultString(userSetting.getDefaultRedraftLonger()));
             defaultAnnotateSystemPromptField.setValue(StringUtils.defaultString(userSetting.getDefaultAnnotateSystemPrompt()));
             defaultAnnotatePromptField.setValue(StringUtils.defaultString(userSetting.getDefaultAnnotatePrompt()));
             defaultAnnotateInstructionsField.setValue(StringUtils.defaultString(userSetting.getDefaultAnnotateInstructions()));
@@ -947,6 +968,8 @@ public class UserPart implements WorkspaceComponent {
                     @APILocals(name = "metaSummaryPrompt", type = String.class),
                     @APILocals(name = "redraftSystemPrompt", type = String.class),
                     @APILocals(name = "redraftPrompt", type = String.class),
+                    @APILocals(name = "redraftShorter", type = String.class),
+                    @APILocals(name = "redraftLonger", type = String.class),
                     @APILocals(name = "annotateSystemPrompt", type = String.class),
                     @APILocals(name = "annotatePrompt", type = String.class),
                     @APILocals(name = "annotateInstructions", type = String.class),
@@ -994,6 +1017,8 @@ public class UserPart implements WorkspaceComponent {
         String metaSummaryPrompt = defaultMetaSummaryPromptField.getValue();
         String redraftSystemPrompt = defaultRedraftSystemPromptField.getValue();
         String redraftPrompt = defaultRedraftPromptField.getValue();
+        String redraftShorter = defaultRedraftShorterField.getValue();
+        String redraftLonger = defaultRedraftLongerField.getValue();
         String annotateSystemPrompt = defaultAnnotateSystemPromptField.getValue();
         String annotatePrompt = defaultAnnotatePromptField.getValue();
         String annotateInstructions = defaultAnnotateInstructionsField.getValue();
@@ -1036,6 +1061,8 @@ public class UserPart implements WorkspaceComponent {
             userSetting.setDefaultMetaSummaryPrompt(metaSummaryPrompt);
             userSetting.setDefaultRedraftSystemPrompt(redraftSystemPrompt);
             userSetting.setDefaultRedraftPrompt(redraftPrompt);
+            userSetting.setDefaultRedraftShorter(redraftShorter);
+            userSetting.setDefaultRedraftLonger(redraftLonger);
             userSetting.setDefaultAnnotateSystemPrompt(annotateSystemPrompt);
             userSetting.setDefaultAnnotatePrompt(annotatePrompt);
             userSetting.setDefaultAnnotateInstructions(annotateInstructions);

@@ -79,7 +79,7 @@ public class RedraftServiceImpl implements RedraftService {
     @Override
     @CommonTxReadOnly
     public CancellationToken redraft(Manuscript manuscript, ChatMessage part, String instructions, String prompt,
-                                     GenerationOptions options, boolean withAnnotations, Passage passage, Callback callback) throws Exception {
+                                     GenerationOptions options, boolean withAnnotations, Passage passage, Length length, Callback callback) throws Exception {
         if (manuscript == null || part == null || callback == null) {
             throw new IllegalArgumentException("The part does not exist");
         }
@@ -115,7 +115,7 @@ public class RedraftServiceImpl implements RedraftService {
         }
         InferenceService inferenceService = inferenceServices.forAIOrThrow(ai);
 
-        List<LLMChatMessage> payload = createPayload(book, stored, StringUtils.trimToEmpty(instructions), prompt, withAnnotations, widen(stored, passage), ai, protocol, inferenceService);
+        List<LLMChatMessage> payload = createPayload(book, stored, withLength(book, StringUtils.trimToEmpty(instructions), length), prompt, withAnnotations, widen(stored, passage), ai, protocol, inferenceService);
 
         CancellationToken cancellationToken = new CancellationToken();
         InferenceAsyncCallback inferenceCallback = new InferenceAsyncCallback() {
@@ -172,6 +172,20 @@ public class RedraftServiceImpl implements RedraftService {
             inferenceCallback.onError(e);
         }
         return cancellationToken;
+    }
+
+    /**
+     * The instructions of the author with the snippet of the setting that asks for a shorter or longer text after them.
+     */
+    private String withLength(Manuscript book, String instructions, Length length) throws Exception {
+        if (length == null || length == Length.SAME) {
+            return instructions;
+        }
+        String snippet = StringUtils.trimToEmpty(length == Length.SHORTER ? manuscriptService.getRedraftShorter(book) : manuscriptService.getRedraftLonger(book));
+        if (snippet.isEmpty()) {
+            return instructions;
+        }
+        return instructions.isEmpty() ? snippet : instructions + "\n\n" + snippet;
     }
 
     @Override

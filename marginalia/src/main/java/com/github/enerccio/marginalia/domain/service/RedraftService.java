@@ -64,8 +64,32 @@ public interface RedraftService {
      * @param passage the passage of the part to write again, {@code null} for the whole part
      * @throws IllegalArgumentException when the passage is not inside the text of the part or has no text
      */
+    default CancellationToken redraft(Manuscript manuscript, ChatMessage part, String instructions, String prompt, GenerationOptions options,
+                                      boolean withAnnotations, Passage passage, Callback callback) throws Exception {
+        return redraft(manuscript, part, instructions, prompt, options, withAnnotations, passage, Length.SAME, callback);
+    }
+
+    /**
+     * As {@link #redraft(Manuscript, ChatMessage, String, String, GenerationOptions, boolean, Passage, Callback)} and the model is also asked to make
+     * the text shorter or longer: the snippet of the setting ({@link ManuscriptService#getRedraftShorter}, {@link ManuscriptService#getRedraftLonger}) is
+     * added to the instructions of the author, whatever the redraft prompt is.
+     *
+     * @param length how the text should change in length, {@code null} is {@link Length#SAME}
+     */
     CancellationToken redraft(Manuscript manuscript, ChatMessage part, String instructions, String prompt, GenerationOptions options,
-                              boolean withAnnotations, Passage passage, Callback callback) throws Exception;
+                              boolean withAnnotations, Passage passage, Length length, Callback callback) throws Exception;
+
+    /**
+     * Whether the redraft is asked to change the length of the text.
+     */
+    enum Length {
+        /** The length is left to the model and the instructions of the author. */
+        SAME,
+        /** The text gets shorter. */
+        SHORTER,
+        /** The text gets longer. */
+        LONGER
+    }
 
     /**
      * The passage grown to cover whole the passages of the text that an extension keeps in another form than the model reads

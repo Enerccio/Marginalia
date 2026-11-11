@@ -29,6 +29,10 @@ public enum PromptField {
             UserSetting::getDefaultRedraftSystemPrompt, Defaults.DEFAULT_REDRAFT_SYSTEM_PROMPT),
     REDRAFT_PROMPT(Manuscript::getRedraftPrompt, Folder::getRedraftPrompt, UserSetting::getDefaultRedraftPrompt,
             Defaults.DEFAULT_REDRAFT_PROMPT),
+    REDRAFT_SHORTER(Manuscript::getRedraftShorter, Folder::getRedraftShorter, UserSetting::getDefaultRedraftShorter,
+            Defaults.DEFAULT_REDRAFT_SHORTER),
+    REDRAFT_LONGER(Manuscript::getRedraftLonger, Folder::getRedraftLonger, UserSetting::getDefaultRedraftLonger,
+            Defaults.DEFAULT_REDRAFT_LONGER),
     ANNOTATE_SYSTEM_PROMPT(Manuscript::getAnnotateSystemPrompt, Folder::getAnnotateSystemPrompt,
             UserSetting::getDefaultAnnotateSystemPrompt, Defaults.DEFAULT_ANNOTATE_SYSTEM_PROMPT),
     ANNOTATE_PROMPT(Manuscript::getAnnotatePrompt, Folder::getAnnotatePrompt, UserSetting::getDefaultAnnotatePrompt,
@@ -87,6 +91,8 @@ public enum PromptField {
             case META_SUMMARY_PROMPT -> manuscript.setMetaSummaryPrompt(text);
             case REDRAFT_SYSTEM_PROMPT -> manuscript.setRedraftSystemPrompt(text);
             case REDRAFT_PROMPT -> manuscript.setRedraftPrompt(text);
+            case REDRAFT_SHORTER -> manuscript.setRedraftShorter(text);
+            case REDRAFT_LONGER -> manuscript.setRedraftLonger(text);
             case ANNOTATE_SYSTEM_PROMPT -> manuscript.setAnnotateSystemPrompt(text);
             case ANNOTATE_PROMPT -> manuscript.setAnnotatePrompt(text);
             case ANNOTATE_INSTRUCTIONS -> manuscript.setAnnotateInstructions(text);
@@ -109,6 +115,8 @@ public enum PromptField {
             case META_SUMMARY_PROMPT -> folder.setMetaSummaryPrompt(text);
             case REDRAFT_SYSTEM_PROMPT -> folder.setRedraftSystemPrompt(text);
             case REDRAFT_PROMPT -> folder.setRedraftPrompt(text);
+            case REDRAFT_SHORTER -> folder.setRedraftShorter(text);
+            case REDRAFT_LONGER -> folder.setRedraftLonger(text);
             case ANNOTATE_SYSTEM_PROMPT -> folder.setAnnotateSystemPrompt(text);
             case ANNOTATE_PROMPT -> folder.setAnnotatePrompt(text);
             case ANNOTATE_INSTRUCTIONS -> folder.setAnnotateInstructions(text);

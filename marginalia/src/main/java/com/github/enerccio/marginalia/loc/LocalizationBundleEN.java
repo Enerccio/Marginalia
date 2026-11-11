@@ -1050,6 +1050,12 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_IMPORT_FINISHED, "Import finished");
         setValue(L.LABEL_NOT_NOW, "Not now");
         setValue(L.LABEL_TRANSLATE, "Translate");
+        setValue(L.LABEL_REDRAFT_SHORTER_PROMPT, "Redraft Shorter Prompt");
+        setValue(L.LABEL_REDRAFT_LONGER_PROMPT, "Redraft Longer Prompt");
+        setValue(L.LABEL_REDRAFT_LENGTH, "Length");
+        setValue(L.LABEL_REDRAFT_SAME_LENGTH, "Same length");
+        setValue(L.LABEL_SHORTER, "Shorter");
+        setValue(L.LABEL_LONGER, "Longer");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -1931,6 +1937,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_CREATE_SUMMARIES, "Writes a summary for each block of the story after the newest summary, the oldest block first. The summaries that exist are not touched. A block ends where the setting says, and it never gets longer than the model can read.");
         setValue(L.HELP_SUMMARY_CHAPTERS, "A chapter is a part that starts with a heading. A chapter that begins when the summary so far has fewer tokens than the minimum does not end it: a short chapter is summarized together with the next one.");
         setValue(L.HELP_AFTER_IMPORT, "The parts are in the book. Two things make a long story easier to write on: summaries of what was imported and a lorebook with its characters and places. Create the summaries first: an agent locks the book while it works.");
+        setValue(L.HELP_REDRAFT_LENGTH_PROMPT, "Plain text that is added to your instructions when the redraft is asked to be shorter (longer). It is not a template. Empty is the built-in text.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Background lore and world context.");

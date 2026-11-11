@@ -492,6 +492,16 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
     }
 
     @Override
+    public String getRedraftShorter(Manuscript manuscript) throws Exception {
+        return resolve(manuscript, PromptField.REDRAFT_SHORTER).value();
+    }
+
+    @Override
+    public String getRedraftLonger(Manuscript manuscript) throws Exception {
+        return resolve(manuscript, PromptField.REDRAFT_LONGER).value();
+    }
+
+    @Override
     public String getAnnotatePrompt(Manuscript manuscript) throws Exception {
         return resolve(manuscript, PromptField.ANNOTATE_PROMPT).value();
     }

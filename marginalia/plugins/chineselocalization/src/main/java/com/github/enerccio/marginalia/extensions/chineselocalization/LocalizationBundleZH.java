@@ -1058,6 +1058,12 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_IMPORT_FINISHED, "导入完成");
         setValue(L.LABEL_NOT_NOW, "暂不");
         setValue(L.LABEL_TRANSLATE, "翻译");
+        setValue(L.LABEL_REDRAFT_SHORTER_PROMPT, "缩短重写提示词");
+        setValue(L.LABEL_REDRAFT_LONGER_PROMPT, "加长重写提示词");
+        setValue(L.LABEL_REDRAFT_LENGTH, "篇幅");
+        setValue(L.LABEL_REDRAFT_SAME_LENGTH, "篇幅不变");
+        setValue(L.LABEL_SHORTER, "更短");
+        setValue(L.LABEL_LONGER, "更长");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -1939,6 +1945,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.HELP_CREATE_SUMMARIES, "为最新摘要之后的故事的每个分段按从旧到新的顺序生成摘要。已有的摘要不会改动。分段按设置结束,且不会超过模型可读取的长度。");
         setValue(L.HELP_SUMMARY_CHAPTERS, "章节是以标题开头的段落。当前分段的令牌数少于最小值时,新章节不会结束该摘要:较短的章节会与下一章一起总结。");
         setValue(L.HELP_AFTER_IMPORT, "段落已加入书中。有两样东西能让长篇故事更好写:已导入内容的摘要,以及收录人物和地点的设定集。请先创建摘要:代理工作时会锁定这本书。");
+        setValue(L.HELP_REDRAFT_LENGTH_PROMPT, "要求重写更短（更长）时，附加在您的指示之后的纯文本。它不是模板。留空则使用内置文本。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景设定与世界观。");
