@@ -19,6 +19,9 @@ public final class QuoteFinder {
     private static final int MAX_QUOTE_WORDS = 120;
     // the share of the words of the quote that the passage has in the same order, below this nothing is found
     private static final double MIN_SIMILARITY = 0.7;
+    // how many words more than the quote has the passage may have (a model joins two quotations of one speaker and leaves the dialogue tag
+    // between them out: the passage is longer than the quote), at least this many, or half of the quote
+    private static final int MIN_SLACK_WORDS = 8;
     // the longest text the fuzzy search goes through (words times words of the quote)
     private static final long MAX_WORK = 30_000_000L;
 
@@ -230,6 +233,8 @@ public final class QuoteFinder {
         double bestScore = 0;
         int bestFrom = -1;
         int bestTo = -1;
+        int bestWordFrom = -1;
+        int bestWordTo = -1;
         for (int i = 0; i < t.size(); i++) {
             overlap += add(inWindow, wanted, t.get(i), 1);
             if (i >= size) {
@@ -265,9 +270,61 @@ public final class QuoteFinder {
                 bestScore = score;
                 bestFrom = start;
                 bestTo = end;
+                bestWordFrom = trimmedFrom;
+                bestWordTo = trimmedTo;
             }
         }
-        return bestFrom < 0 ? null : new Match(bestFrom, bestTo, false);
+        if (bestFrom < 0) {
+            return null;
+        }
+        // the window has as many words as the quote, a passage that has words the quote left out (a dialogue tag in the middle) is longer
+        // and its end was cut off: look a little further and take the edges of the words the quote has
+        int[] edges = align(q, t, bestWordFrom, bestWordTo, Math.max(MIN_SLACK_WORDS, window / 2));
+        if (edges != null) {
+            return new Match(haystack.spans().get(edges[0])[0], haystack.spans().get(edges[1])[1], false);
+        }
+        return new Match(bestFrom, bestTo, false);
+    }
+
+    /**
+     * The first and the last word of the text (indices) that the longest common subsequence of the quote and the words around the window
+     * [from, to] shares with the quote, looking {@code slack} words further on both sides; null when it has none.
+     */
+    private static int[] align(List<String> quote, List<String> text, int from, int to, int slack) {
+        int begin = Math.max(0, from - slack);
+        int stop = Math.min(text.size(), to + 1 + slack);
+        int n = quote.size();
+        int m = stop - begin;
+        if ((long) (n + 1) * (m + 1) > 4_000_000L) {
+            return null;
+        }
+        int[][] table = new int[n + 1][m + 1];
+        for (int i = 1; i <= n; i++) {
+            for (int j = 1; j <= m; j++) {
+                table[i][j] = quote.get(i - 1).equals(text.get(begin + j - 1))
+                        ? table[i - 1][j - 1] + 1
+                        : Math.max(table[i - 1][j], table[i][j - 1]);
+            }
+        }
+        int first = -1;
+        int last = -1;
+        int i = n;
+        int j = m;
+        while (i > 0 && j > 0) {
+            if (quote.get(i - 1).equals(text.get(begin + j - 1)) && table[i][j] == table[i - 1][j - 1] + 1) {
+                if (last < 0) {
+                    last = begin + j - 1;
+                }
+                first = begin + j - 1;
+                i--;
+                j--;
+            } else if (table[i - 1][j] >= table[i][j - 1]) {
+                i--;
+            } else {
+                j--;
+            }
+        }
+        return last < 0 ? null : new int[]{first, last};
     }
 
     /**

@@ -22,7 +22,7 @@ public final class TranslationPrompt {
             You translate the direct speech of a story into %1$s. The story is written in English. You do not rewrite the story: you only report which direct speech is spoken in %1$s, and what it is in %1$s.
 
             For EVERY piece of direct speech in the PART (the words the characters say aloud, inside quotation marks) give one entry, in the order they appear:
-            - "quote": the speech copied exactly from the PART, character for character, without the quotation marks. A quotation that has several sentences may be one entry or one entry for each sentence; the quotes of the entries never overlap.
+            - "quote": the speech copied exactly from the PART, character for character, without the quotation marks. A quotation that has several sentences may be one entry or one entry for each sentence; the quotes of the entries never overlap. A quote is one unbroken piece of the PART: when narration or a dialogue tag (Hiroko said.) stands between two quotation marks, they are two entries, never one quote that skips the narration.
             - "speaker": who says it.
             - "language": "%1$s" when the speech is spoken in it, or "none" when it is spoken in English or in another language that is not %1$s.
             - "text": the speech in %1$s, %3$s Do not add quotation marks: the story has them. Empty when the language is "none".

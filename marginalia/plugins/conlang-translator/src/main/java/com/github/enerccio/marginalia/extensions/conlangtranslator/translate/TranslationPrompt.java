@@ -28,7 +28,7 @@ public final class TranslationPrompt {
             You translate the direct speech of a story into a constructed language. The story is written in English. You do not rewrite the story: you only report which direct speech is spoken in the constructed language, and what it is in that language.
 
             For EVERY piece of direct speech in the PART (the words the characters say aloud, inside quotation marks) give one entry, in the order they appear:
-            - "quote": the speech copied exactly from the PART, character for character, without the quotation marks. A quotation that has several sentences may be one entry or one entry for each sentence; the quotes of the entries never overlap.
+            - "quote": the speech copied exactly from the PART, character for character, without the quotation marks. A quotation that has several sentences may be one entry or one entry for each sentence; the quotes of the entries never overlap. A quote is one unbroken piece of the PART: when narration or a dialogue tag (Hiroko said.) stands between two quotation marks, they are two entries, never one quote that skips the narration.
             - "speaker": who says it.
             - "language": "%1$s" when the speech is spoken in it, or "none" when it is spoken in ordinary English (the common language of the story) or in any other language than %1$s, real or invented (Japanese, Czech, another constructed language): speech that the PART gives to another language is "none" for this request, never %1$s.
             - "text": the speech in %1$s, written strictly by the rules of the language; empty when the language is "none".
