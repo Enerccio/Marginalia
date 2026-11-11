@@ -1,5 +1,9 @@
 package com.github.enerccio.marginalia.domain.service.impl;
 
+import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.domain.service.NotificationService;
+import com.github.enerccio.marginalia.domain.service.run.Runs;
 import com.github.enerccio.marginalia.Constants;
 import com.github.enerccio.marginalia.domain.collections.SummaryType;
 import com.github.enerccio.marginalia.domain.components.SummaryNode;
@@ -49,6 +53,9 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
     private static final Logger log = LoggerFactory.getLogger(SummaryServiceImpl.class);
 
     private final ExtendableEntityListener extendableListener = new ExtendableEntityListener();
+
+    @Autowired
+    private Localization loc;
 
     @Autowired
     @Lazy
@@ -276,10 +283,92 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
         if (inferenceServices.forAIOrThrow(aiService.find(manuscript.getAi())) == null) {
             return null;
         }
-        SummaryBatch batch = new SummaryBatch(manuscript, List.copyOf(parts), callback);
+        // a run of the book: it is not deleted or replaced under the batch; given back when the batch reports its end
+        Runs.Run held = summaryRun(manuscript, null);
+        SummaryBatch batch = new SummaryBatch(manuscript, List.copyOf(parts), endingWith(held, callback));
         // on a thread of its own: it calls services, each in a transaction of its own
-        Thread.ofVirtual().name("summaries").start(() -> batch.run(0));
+        held.setOnStop(batch.token::cancel);
+        Thread.ofVirtual().name("summaries").start(() -> {
+            // its requests report to the run (the panel), also the ones made later from their callbacks
+            try (Runs.Binding _ = held.bind()) {
+                batch.run(0);
+            }
+        });
         return batch.token;
+    }
+
+    /**
+     * @param notice the source of the notification the panel sends when the batch ends after its page is gone, null for none
+     */
+    private Runs.Run summaryRun(Manuscript manuscript, String notice) {
+        return Runs.run("summaries", () -> loc.getValue(L.LABEL_GENERATING_SUMMARY)).book(manuscript)
+                .hold(manuscript, Runs.Mode.READ).quiet().currentPage().notifies(notice, false, manuscript.getName()).start();
+    }
+
+    /** The callback of a batch that ends its run before it reports the end. */
+    private static BatchCallback endingWith(Runs.Run run, BatchCallback callback) {
+        return new BatchCallback() {
+            @Override
+            public void onStep(int number, int total, ChatMessage part) throws Exception {
+                callback.onStep(number, total, part);
+            }
+
+            @Override
+            public void onSummaryProgress(String reasoning, String summary) throws Exception {
+                callback.onSummaryProgress(reasoning, summary);
+            }
+
+            @Override
+            public void onFinished(int count) throws Exception {
+                run.end(Runs.Outcome.FINISHED);
+                callback.onFinished(count);
+            }
+
+            @Override
+            public void onTerminated(int done) throws Exception {
+                run.end(Runs.Outcome.STOPPED);
+                callback.onTerminated(done);
+            }
+
+            @Override
+            public void onError(Throwable throwable, int done) throws Exception {
+                run.end(Runs.Outcome.FAILED);
+                callback.onError(throwable, done);
+            }
+        };
+    }
+
+    /** The callback of a resummary that ends its run before it reports the end. */
+    private static ResummaryCallback endingWith(Runs.Run run, ResummaryCallback callback) {
+        return new ResummaryCallback() {
+            @Override
+            public void onStep(int number, int total, ChatMessage part, boolean meta) throws Exception {
+                callback.onStep(number, total, part, meta);
+            }
+
+            @Override
+            public void onSummaryProgress(String reasoning, String summary) throws Exception {
+                callback.onSummaryProgress(reasoning, summary);
+            }
+
+            @Override
+            public void onFinished(int count) throws Exception {
+                run.end(Runs.Outcome.FINISHED);
+                callback.onFinished(count);
+            }
+
+            @Override
+            public void onTerminated() throws Exception {
+                run.end(Runs.Outcome.STOPPED);
+                callback.onTerminated();
+            }
+
+            @Override
+            public void onError(Throwable throwable) throws Exception {
+                run.end(Runs.Outcome.FAILED);
+                callback.onError(throwable);
+            }
+        };
     }
 
     /**
@@ -400,10 +489,16 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
             planResummary(root, tree, steps);
         }
 
-        ResummaryRun run = new ResummaryRun(manuscript, ai, protocol, inferenceService, tree, attached, roots, steps, callback);
+        Runs.Run held = summaryRun(manuscript, NotificationService.RESUMMARIZE);
+        ResummaryRun run = new ResummaryRun(manuscript, ai, protocol, inferenceService, tree, attached, roots, steps, endingWith(held, callback));
         // on a thread of its own: building a request calls services (each in its own transaction), which does not work
         // in the thread of this one, not even after its commit
-        Thread.ofVirtual().name("resummarize").start(() -> run.run(0));
+        held.setOnStop(run.token::cancel);
+        Thread.ofVirtual().name("resummarize").start(() -> {
+            try (Runs.Binding _ = held.bind()) {
+                run.run(0);
+            }
+        });
         return run.token;
     }
 

@@ -160,14 +160,14 @@ public class MangaService {
     }
 
     public void saveData(Manuscript manuscript, MangaData data) throws Exception {
-        Manuscript current = manuscriptService.find(manuscript);
-        JsonObject attrs = current.getAttributes();
-        if (attrs == null) {
-            attrs = new JsonObject();
-            current.setAttributes(attrs);
-        }
-        attrs.add(MangaSettings.KEY, gson.toJsonTree(data));
-        manuscriptService.save(current);
+        manuscriptService.update(manuscript, current -> {
+            JsonObject attrs = current.getAttributes();
+            if (attrs == null) {
+                attrs = new JsonObject();
+                current.setAttributes(attrs);
+            }
+            attrs.add(MangaSettings.KEY, gson.toJsonTree(data));
+        });
     }
 
     // --- models ---

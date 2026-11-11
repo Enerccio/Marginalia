@@ -7,6 +7,8 @@ import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.ExtensionService.ExtendableMethodContext;
 import com.github.enerccio.marginalia.domain.service.ExtensionService.ExtensionDecorator;
+import com.github.enerccio.marginalia.domain.service.impl.generation.AfterPart;
+import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationControllerEvent.Registration;
 import com.github.enerccio.marginalia.extensions.ExtensionHasCss;
 import com.github.enerccio.marginalia.extensions.InheritedSetting;
 import com.github.enerccio.marginalia.extensions.InheritedSettingRegistry;
@@ -41,6 +43,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static com.github.enerccio.marginalia.extensions.audiobook.AudiobookLocalization.*;
 
@@ -70,6 +74,9 @@ public class AudiobookExtension implements MarginaliaExtension, ExtensionHasCss 
     @Autowired
     private NotificationService notificationService;
 
+    @Autowired
+    private StoryGenerationService storyGenerationService;
+
     private static final String SETTINGS_PANEL_KEY = AudiobookSettings.KEY + ".settingsPanel";
 
     private final AudiobookService audiobookService = new AudiobookService();
@@ -79,7 +86,7 @@ public class AudiobookExtension implements MarginaliaExtension, ExtensionHasCss 
     private ExtensionDecorator viewerDecorator;
     private ExtensionDecorator exportFieldsDecorator;
     private ExtensionDecorator exportDecorator;
-    private ExtensionDecorator partFinishedDecorator;
+    private Registration afterPartRegistration;
     private AudiobookCommands commands;
     private final List<AudiobookExporter> exporters = new java.util.ArrayList<>();
     /** The check box of each open export dialog. */
@@ -259,24 +266,19 @@ public class AudiobookExtension implements MarginaliaExtension, ExtensionHasCss 
                         .help(() -> T.localized(THE_INSTRUCTION_THAT_TELLS_THE_MODEL_WHO_SPEAKS_EACH_PIECE))
                         .userValue(() -> audiobookService.getSettings().getLabelPrompt())
                         .fallback(() -> LabelPrompt.DEFAULT_TEMPLATE));
-        partFinishedDecorator = new ExtensionDecorator() {
+        // after a generated part, once its text is final (translated too): it is made into audio, when the book says so
+        afterPartRegistration = storyGenerationService.addAfterPartBinding(new AfterPart.Binding(BatchNotifier.SOURCE + ".afterPart",
+                () -> T.localized(CONVERT_TO_AUDIO), AfterPart.Stage.MEDIA, AfterPart.Mode.PARALLEL, new AfterPart.Handler() {
             @Override
-            public void onMethodEnter(Object instrumented, ExtendableMethodContext context) {
+            public boolean appliesTo(Manuscript book) {
+                return audiobookService.autoModeOf(book) != AutoMode.NO;
             }
 
             @Override
-            public void onMethodLeave(Object instrumented, ExtendableMethodContext context, Throwable throwing) throws Exception {
-                if (throwing == null) {
-                    convertFinishedPart(context.getReflectiveFieldValue(instrumented, "manuscript", Manuscript.class),
-                            context.getMethodArgument("part", ChatMessage.class));
-                }
+            public void run(AfterPart.Context context) throws Exception {
+                convertFinishedPart(context);
             }
-        };
-        try {
-            extensionService.registerDecorator(partFinishedDecorator, "com.github.enerccio.marginalia.ui.dialogs.story.AutoAnnotate", "finished");
-        } catch (Exception e) {
-            throw new IllegalStateException("Failed to load the Audiobook extension", e);
-        }
+        }));
         // the end of a batch of conversions (a click or a command) and of the automatic conversion of a new part
         notificationService.register(bundle.getSymbolicName(),
                 new NotificationService.Source(BatchNotifier.SOURCE, () -> T.localized(CONVERT_TO_AUDIO), true));
@@ -286,25 +288,43 @@ public class AudiobookExtension implements MarginaliaExtension, ExtensionHasCss 
         AudiobookLog.get().info("Audiobook loaded");
     }
 
-    /** The new part is final: when the book says so it goes into the queue; a failure never reaches the story (the author is told). */
-    private void convertFinishedPart(Manuscript manuscript, ChatMessage part) {
+    /**
+     * The step after a generated part: the part goes into the queue of the user and the step waits for its audio (the panel shows the
+     * step, its Stop takes the job out). What the conversion says is told in the page that generated.
+     */
+    private void convertFinishedPart(AfterPart.Context context) throws Exception {
+        String book = context.getManuscript().getName();
+        CompletableFuture<ConversionJob.Snapshot> done = new CompletableFuture<>();
+        AtomicReference<String> jobId = new AtomicReference<>();
+        AudiobookService.AutoResult result;
         try {
-            if (manuscript == null || part == null) {
+            result = audiobookService.convertFinishedPart(context.getManuscript(), context.getPart(), jobId::set, done::complete);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalStateException(T.localized(THE_CONVERSION_COULD_NOT_BE_STARTED).formatted(e.getMessage()), e);
+        }
+        switch (result) {
+            case NOTHING -> {
+                context.skip();
                 return;
             }
-            UI ui = UI.getCurrent();
-            String book = manuscript.getName();
-            switch (audiobookService.convertFinishedPart(manuscript, part, snapshot -> reportAutoJob(ui, book, snapshot))) {
-                case QUEUED -> Notification.success(T.localized(THE_NEW_PART_IS_BEING_MADE_INTO_AUDIO));
-                case QUEUED_PLAIN -> Notification.warning(T.localized(THE_BOOK_HAS_NO_MODEL_THE_NARRATOR_READS_THE_NEW_PART));
-                case NO_BACKEND -> Notification.error(T.localized(NO_BACKEND_YET));
-                case NOTHING -> {
-                }
+            case NO_BACKEND -> throw new IllegalStateException(T.localized(NO_BACKEND_YET));
+            case QUEUED_PLAIN -> context.accessUI(_ -> Notification.warning(T.localized(THE_BOOK_HAS_NO_MODEL_THE_NARRATOR_READS_THE_NEW_PART)));
+            case QUEUED -> {
             }
-        } catch (IllegalArgumentException e) {
-            Notification.error(T.localized(THE_CONVERSION_COULD_NOT_BE_STARTED).formatted(e.getMessage()));
-        } catch (Exception e) {
-            AudiobookLog.get().warn("The automatic conversion of a new part could not be started: {}", e.getMessage(), e);
+        }
+        context.onStop(() -> {
+            String id = jobId.get();
+            if (id != null) {
+                audiobookService.queue().cancel(id);
+            }
+        });
+        ConversionJob.Snapshot job = context.await(done);
+        context.accessUI(ui -> reportAutoJob(ui, book, job));
+        if (job.state() == ConversionJob.State.CANCELLED) {
+            throw new AfterPart.Stopped();
+        }
+        if (job.state() != ConversionJob.State.DONE) {
+            throw new IllegalStateException(T.localized(THE_AUDIO_OF_THE_NEW_PART_COULD_NOT_BE_MADE).formatted(job.message()));
         }
     }
 
@@ -359,9 +379,9 @@ public class AudiobookExtension implements MarginaliaExtension, ExtensionHasCss 
             extensionService.unregisterDecorator(exportFieldsDecorator);
             exportFieldsDecorator = null;
         }
-        if (partFinishedDecorator != null) {
-            extensionService.unregisterDecorator(partFinishedDecorator);
-            partFinishedDecorator = null;
+        if (afterPartRegistration != null) {
+            afterPartRegistration.unregister();
+            afterPartRegistration = null;
         }
         inheritedSettings.unregisterAll(bundle.getSymbolicName());
         if (exportDecorator != null) {

@@ -19,6 +19,7 @@ import com.github.enerccio.marginalia.utils.UiProblems;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
 /**
@@ -69,7 +70,9 @@ public class StoryGenerationListener<C extends Component & StoryCard> implements
         void renderStory();
 
         /**
-         * The part is complete and shown: time for what the book does after a generation (its automatic annotation).
+         * The part is final: what follows a generation and changes the text (the automatic annotation and redraft, the translations, see
+         * {@code AfterPart}) is over, or there was none. Not called when that was stopped or failed. The tabs call the old hook,
+         * {@link AutoAnnotate#finished}.
          */
         default void partCompleted(ChatMessage message) {
         }
@@ -83,6 +86,7 @@ public class StoryGenerationListener<C extends Component & StoryCard> implements
     private final StoryHost host;
     private final Localization loc;
     private final Callbacks callbacks;
+    private final AtomicBoolean toldWaiting = new AtomicBoolean();
 
     public StoryGenerationListener(UI ui, GenerationRequest request, StoryCards<C> cards, ScrollPanel panel,
                                    CardFactory<C> cardFactory, StoryHost host,
@@ -216,8 +220,40 @@ public class StoryGenerationListener<C extends Component & StoryCard> implements
                 UIUtils.internalServerError(loc, e);
             }
             callbacks.renderStory();
-            callbacks.partCompleted(message);
             new DesktopNotifier(ui).finished(NotificationService.GENERATION, false, null);
+            UIPushGuard.push(ui);
+        });
+    }
+
+    /**
+     * A step after the generation changed the part (notes, a redraft, a translation): the story is shown again.
+     */
+    @PublicAPI(from = "1.8.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "part", type = ChatMessage.class)})
+    @Override
+    public void onPartChanged(ChatMessage part) {
+        ui.access(() -> {
+            try {
+                callbacks.reloadManuscript();
+            } catch (Exception e) {
+                UIUtils.internalServerError(loc, e);
+            }
+            callbacks.renderStory();
+            UIPushGuard.push(ui);
+        });
+    }
+
+    /**
+     * The steps after the generation that change the text are over: the tab's hook for the final part.
+     */
+    @PublicAPI(from = "1.8.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "part", type = ChatMessage.class)})
+    @Override
+    public void onPartFinal(ChatMessage part) {
+        ui.access(() -> {
+            callbacks.partCompleted(part);
             UIPushGuard.push(ui);
         });
     }
@@ -302,6 +338,24 @@ public class StoryGenerationListener<C extends Component & StoryCard> implements
     public void onWarning(String warning) {
         ui.access(() -> {
             Notification.warning(warning);
+            UIPushGuard.push(ui);
+        });
+    }
+
+    /**
+     * The request waits for a connection of the model: said once, when it starts to wait (the number moves while it waits,
+     * a notification for each step would be noise).
+     */
+    @PublicAPI(from = "1.8.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "ahead", type = int.class)})
+    @Override
+    public void onWaitingForModel(int ahead) {
+        if (ahead <= 0 || !toldWaiting.compareAndSet(false, true)) {
+            return;
+        }
+        ui.access(() -> {
+            Notification.warning(String.format(loc.getValue(L.MSG_WAITING_FOR_MODEL_AHEAD), ahead));
             UIPushGuard.push(ui);
         });
     }

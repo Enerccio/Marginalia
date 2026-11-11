@@ -123,8 +123,8 @@ addition does in the review), a retracted item becomes active again. A row whose
 by hand since is left alone. The log keeps the last 200 changes.
 
 With **Ask before applying** off the new part is read as soon as it is final: when the generation is over, or, if the
-book has the automatic annotation (and redraft) on, when that is done, so the model reads the text you keep and works
-while you read it. The next generation then finds the knowledge up to date and does not wait. What is left (a run you
+book has the automatic annotation (and redraft) or a translation on, when that is done, so the model reads the text you keep and works
+while you read it. It is a step of [what follows the part](../books/story-editor.md#what-follows-a-generated-part). The next generation then finds the knowledge up to date and does not wait. What is left (a run you
 stopped, a window you closed) is read before the next generation, as before.
 
 While the model works a small **progress panel** floats over the page. It is **not modal**: you can keep reading and

@@ -139,7 +139,7 @@ above, then the settings of your user.
 | Field | |
 |---|---|
 | **Language of the speech** | The language the book is translated into. Empty: the book is not translated. |
-| **Translate a new part by itself** | A part is translated when it is final: after a generation, after the automatic annotation and redraft if the book has them. |
+| **Translate a new part by itself** | A part is translated when it is final: after a generation, after the automatic annotation and redraft if the book has them, as a step of [what follows the part](../books/story-editor.md#what-follows-a-generated-part) (the panel of the runs shows it, its **Stop** stops it). |
 | **Model of the translation**, **Protocol of the translation** | Empty: the model and protocol of the book, else your defaults. |
 | **Readers of the published book see** | What the [viewer](#the-viewer) shows. |
 

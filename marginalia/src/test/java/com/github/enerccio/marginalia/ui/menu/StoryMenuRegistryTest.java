@@ -56,9 +56,15 @@ class StoryMenuRegistryTest extends MarginaliaTestBase {
      * A story card or editor that answers what the test sets, everything else does nothing.
      */
     private static StoryCard card(ChatMessage message, boolean editing, boolean last, List<String> calls) {
+        return card(message, editing, last, calls, null);
+    }
+
+    private static StoryCard card(ChatMessage message, boolean editing, boolean last, List<String> calls, String busyWith) {
         return (StoryCard) Proxy.newProxyInstance(StoryCard.class.getClassLoader(), new Class<?>[]{StoryCard.class},
                 (proxy, method, args) -> switch (method.getName()) {
                     case "getMessage" -> message;
+                    case "getBusyWith" -> busyWith;
+                    case "isKeptInPlace" -> false;
                     case "isEditing" -> editing;
                     case "isLast" -> last;
                     case "getHistoryCount" -> 0L;
@@ -81,6 +87,8 @@ class StoryMenuRegistryTest extends MarginaliaTestBase {
                     case "isAnnotationsInMargin" -> Boolean.FALSE;
                     case "isAutoAnnotate" -> Boolean.FALSE;
                     case "isMassDelete" -> Boolean.FALSE;
+                    // no book: nothing is generated
+                    case "getCurrentManuscript" -> null;
                     default -> {
                         calls.add(method.getName());
                         yield null;
@@ -217,6 +225,7 @@ class StoryMenuRegistryTest extends MarginaliaTestBase {
                     case "isEditing" -> editing[0];
                     case "isLast" -> last[0];
                     case "getHistoryCount" -> history[0];
+                    case "isKeptInPlace" -> false;
                     default -> {
                         calls.add(method.getName());
                         yield null;
@@ -273,6 +282,22 @@ class StoryMenuRegistryTest extends MarginaliaTestBase {
         BuiltMenu builtCard = registry.definition(MenuKind.CARD, false, null).build(cardMenu, loc, editor(highlight, calls), () -> card);
         ComponentUtil.fireEvent(builtCard.get(StoryMenuKeys.SWIPE), new ClickEvent<>(builtCard.get(StoryMenuKeys.SWIPE)));
         assertThat(cardCalls).containsExactly("swipe");
+    }
+
+    @Test
+    void theActionsThatWouldTakeAwayAPartAWindowWorksOnAreOff() {
+        ContextMenu cardMenu = new ContextMenu(new Button());
+        List<String> calls = new ArrayList<>();
+        StoryCard card = card(message("x", false), false, true, calls, "Redrafting");
+        MenuDefinition definition = registry.definition(MenuKind.CARD, false, null);
+        BuiltMenu built = definition.build(cardMenu, loc, editor(new AtomicReference<>(false), calls), () -> card);
+        built.refresh(definition);
+
+        for (String key : List.of(StoryMenuKeys.REGENERATE, StoryMenuKeys.SWIPE, StoryMenuKeys.REDRAFT, StoryMenuKeys.ANNOTATE_WITH_AI,
+                StoryMenuKeys.DELETE)) {
+            assertThat(built.get(key).isEnabled()).as(key).isFalse();
+        }
+        assertThat(built.get(StoryMenuKeys.EDIT).isEnabled()).as("the author may still edit").isTrue();
     }
 
     @Test

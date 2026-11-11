@@ -45,6 +45,7 @@ import org.springframework.beans.factory.annotation.Configurable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Configurable
@@ -303,10 +304,11 @@ public class AIDialog extends Dialog implements LLMInteract {
         maxResponseField.setHelperText(loc.getValue(L.HELP_AI_MAX_RESPONSE));
         maxResponseField.setWidthFull();
 
-        maxConcurrentField = new IntegerField(loc.getValue(L.LABEL_MAX_CONCURRENT_REQUESTS));
+        maxConcurrentField = new IntegerField(loc.getValue(L.LABEL_CONNECTIONS));
+        maxConcurrentField.setRequired(true);
         maxConcurrentField.setMin(1);
         maxConcurrentField.setStepButtonsVisible(true);
-        maxConcurrentField.setHelperText(loc.getValue(L.HELP_AI_MAX_CONCURRENT_REQUESTS));
+        maxConcurrentField.setHelperText(loc.getValue(L.HELP_AI_CONNECTIONS));
         maxConcurrentField.setWidthFull();
 
         needsJailbreakCheckbox = new Checkbox(loc.getValue(L.LABEL_NEEDS_JAILBREAK));
@@ -504,7 +506,8 @@ public class AIDialog extends Dialog implements LLMInteract {
         // older providers may have no limits stored - offer the defaults, saving requires a value
         maxContextField.setValue(ai.getMaxContext() != null && ai.getMaxContext() > 0 ? ai.getMaxContext() : DEFAULT_MAX_CONTEXT);
         maxResponseField.setValue(ai.getMaxCompletionTokens() != null && ai.getMaxCompletionTokens() > 0 ? ai.getMaxCompletionTokens() : DEFAULT_MAX_RESPONSE);
-        maxConcurrentField.setValue(ai.getMaxConcurrentRequests() != null && ai.getMaxConcurrentRequests() > 0 ? ai.getMaxConcurrentRequests() : null);
+        // an AI without the setting has one connection, the field shows it
+        maxConcurrentField.setValue(ai.getConnections());
         jailbreakField.setValue(StringUtils.defaultString(ai.getJailbreak()));
         needsJailbreakCheckbox.setValue(Boolean.TRUE.equals(ai.getNeedsJailbreak()));
         jailbreakField.setEnabled(Boolean.TRUE.equals(ai.getNeedsJailbreak()));
@@ -907,7 +910,8 @@ public class AIDialog extends Dialog implements LLMInteract {
             ai.setShared(sharedCheckbox.isVisible() && sharedCheckbox.getValue());
             ai.setMaxContext(maxContext);
             ai.setMaxCompletionTokens(maxResponse);
-            ai.setMaxConcurrentRequests(maxConcurrentField.getValue());
+            // one connection at least, an emptied field is the default one
+            ai.setMaxConcurrentRequests(Math.max(1, Objects.requireNonNullElse(maxConcurrentField.getValue(), 1)));
             ai.setJailbreak(jailbreakField.getValue());
             ai.setNeedsJailbreak(needsJailbreakCheckbox.getValue());
             ai.setEnabledReasoning(enabledReasoningCheckbox.getValue());

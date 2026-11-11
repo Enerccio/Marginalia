@@ -205,8 +205,9 @@ parts of both kinds works, but needs ffmpeg.
 
 ## Automatic conversion
 
-A book can make the audio of a new part by itself, as soon as the part is final: right away if the book does not annotate or redraft
-its parts, after the automatic annotation and redraft if it does. It is **off** by default. Choose it in the book's *Prompts* tab under extension
+A book can make the audio of a new part by itself, as soon as the part is final: after the automatic annotation, redraft and
+translations if the book has them, as the last step of [what follows the part](../books/story-editor.md#what-follows-a-generated-part)
+(in the panel of the runs until the audio is made; its **Stop** takes the part out of the queue). It is **off** by default. Choose it in the book's *Prompts* tab under extension
 settings, for a folder of books, or for all your books in the audiobook settings; the nearest one wins:
 
 - **No**,

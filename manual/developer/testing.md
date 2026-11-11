@@ -33,6 +33,7 @@ Surefire is configured in `pom.xml` with:
 | `-XX:+EnableDynamicAgentLoading -Djdk.attach.allowAttachSelf=true` | `RuntimeInstrumentationTest` installs the ByteBuddy agent (the fallback of development runs) into the test JVM. |
 | `marginalia.test.woven=true` | Tells `BuildTimeWeaverTest` that the classes under test went through the `weave-extendable` step of the build, so it checks that every `@Extendable` class of the application is woven (skipped in an IDE run). |
 | `marginalia.test.home=target/test-home` | Folder for the test databases (see [The application folder](#the-application-folder)). |
+| `marginalia.staleSaves=${test.staleSaves}` (default `fail`) | A save of an entity from a copy read before the last save of its row (a stale save, `StaleSaves`) fails the test with `StaleSaveException` instead of only being logged; `-Dtest.staleSaves=log` only logs it. A test that saves a stale copy on purpose sets `StaleSaves.setMode(LOG)` around it and `setMode(null)` after. See [Extended attributes](plugins/extended-attributes.md). |
 | `forkCount=${test.forks}` (default 3), `reuseForks=true` | The test classes are spread over that many JVMs, one class at a time in each. Every JVM has its own Spring context and so its own database: SQLite lets one writer in at a time, and the `@Configurable` aspect (the `@Autowired` fields of the UI classes) is one for the JVM and bound to one Spring context, so threads of one JVM with a context each do not work. `-Dtest.forks=1` runs the classes one after another (times below). |
 
 How long `mvn test` takes (about 3,000 tests in the first two rows), with the machine, as the time depends on it. Add a row for yours: the
@@ -333,6 +334,10 @@ document their expected output. When you change macro behaviour, update the fixt
 `HttpServer`. One shared server lives for the whole test JVM (`MockLLMServer.shared()`); each test gets its own
 **scenario** with its own base URL, `http://127.0.0.1:<port>/<scenario-id>/v1`. A provider created with
 `createAI()` points to the test's scenario, so tests never see each other's requests or answers.
+
+After every test `MarginaliaTestBase` also ends every run of the static registry `Runs` (`Runs.reset()`), so a window or a
+generation a test left open holds nothing in the next one (`RunsTest`, `GenerationRunsTest` and `BookWindowsTest` test the registry,
+see [Services](services.md#the-runs-and-what-they-hold)).
 
 It answers:
 

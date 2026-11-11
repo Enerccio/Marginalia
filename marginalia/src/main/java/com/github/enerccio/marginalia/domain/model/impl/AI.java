@@ -60,15 +60,23 @@ public class AI extends ExtendableEntity {
     private String limits;
 
     /**
-     * How many requests of agents may be on the way to this AI at once, the rest waits (see {@code AIGate}); null or zero is no
-     * cap. A server with one slot (a single GPU) sets one.
+     * The connections of this AI: how many requests may be on the way to it at once, every request of every user and every kind
+     * (the generation, a side query, an agent, a plugin); the rest waits in the order it came (see {@code AIGate}). Null (or
+     * less than one) is one connection, see {@link #getConnections()}: a local server with one slot (a single GPU) needs no
+     * setting, a cloud model that answers several at once sets more.
      */
     @Transient
     @ExtendedAttribute
     private Integer maxConcurrentRequests;
 
+    /** The number as it is stored, null when it was never set; {@link #getConnections()} is what applies. */
     public Integer getMaxConcurrentRequests() {
         return maxConcurrentRequests;
+    }
+
+    /** The connections that apply: the setting, one when there is none. */
+    public int getConnections() {
+        return maxConcurrentRequests == null || maxConcurrentRequests < 1 ? 1 : maxConcurrentRequests;
     }
 
     public void setMaxConcurrentRequests(Integer maxConcurrentRequests) {

@@ -523,7 +523,6 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_SUBBOOKS, "子设定集");
         setValue(L.LABEL_STATE, "状态");
         setValue(L.LABEL_REWIND, "回退");
-        setValue(L.LABEL_MAX_CONCURRENT_REQUESTS, "智能体并发请求数");
         setValue(L.LABEL_PAUSE_NOW, "立即暂停");
         setValue(L.LABEL_AGENT_DEFAULT_INSTRUCTIONS, "智能体指令（agents.md）");
         setValue(L.LABEL_AGENT_AUTO_COMPACT, "压缩阈值（上下文百分比）");
@@ -1066,6 +1065,14 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_LONGER, "更长");
         setValue(L.LABEL_UPDATE, "更新");
         setValue(L.LABEL_UPDATE_AND_RESTART, "更新并重启");
+        setValue(L.LABEL_CONNECTIONS, "连接数");
+        setValue(L.LABEL_APPLY_ANYWAY, "仍然应用");
+        setValue(L.LABEL_OPEN_HERE, "在此打开");
+        setValue(L.LABEL_BOOK_OPEN_ELSEWHERE, "另一个页面中打开的本书窗口");
+        setValue(L.LABEL_RUNS_ON_BOOKS, "书籍上的运行");
+        setValue(L.LABEL_RUN_HOLDS, "占用");
+        setValue(L.LABEL_END_RUN, "结束");
+        setValue(L.LABEL_REVIEW, "审阅");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -1370,6 +1377,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.ERROR_STYLE_IMPORT_NEWER, "该文件由更新版本的 Marginalia 创建，无法读取。");
         setValue(L.ERROR_STYLE_IMPORT_CSS, "样式“%s”的自定义 CSS 的花括号 { } 不匹配。");
         setValue(L.ERROR_COMMAND_LORE_RANGE_EMPTY, "范围为空：从第 %d 部分开始，到第 %d 部分结束。");
+        setValue(L.ERROR_HELD_BY_RUN, "正在使用中：%s。请等待其完成，或将其停止。");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "无法保存表单。");
@@ -1834,6 +1842,27 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_CONFIRM_UPDATE, "服务器将拉取其分支的最新版本并构建（需要几分钟），然后重启 Marginalia。重启会打断所有正在工作的人，并停止正在生成的内容。即使没有新内容也会构建并重启。现在更新吗？");
         setValue(L.MSG_CONFIRM_UPDATE_JOBS, "正在运行的作业：%d。重启会停止它们。");
         setValue(L.MSG_UPDATE_LOG_EMPTY, "尚未从这里运行过更新。");
+        setValue(L.MSG_WAITING_FOR_MODEL_AHEAD, "正在等待模型：前面还有 %d 个请求。");
+        setValue(L.MSG_RUN_PART_GONE, "窗口打开后该部分已被删除，未写入任何内容。");
+        setValue(L.MSG_REDRAFT_PART_CHANGED, "重写开始后该部分已被修改。应用重写会替换这些修改（差异显示将要改变的内容）。仍然应用吗？");
+        setValue(L.MSG_REDRAFT_PART_CHANGED_WAITS, "重写开始后该部分已被修改，因此重写没有自动应用。差异显示应用后将改变的内容。");
+        setValue(L.MSG_BOOK_OPEN_ELSEWHERE, "本书已在另一个窗口中打开（自 %s 起）。在此打开并关闭那边的窗口吗？");
+        setValue(L.MSG_BOOK_OPEN_ELSEWHERE_GENERATING, "本书已在另一个窗口中打开（自 %s 起），并且那边正在生成一个部分。在此打开、停止生成并关闭那边的窗口吗？");
+        setValue(L.MSG_BOOK_OPEN_ELSEWHERE_NOT_RESTORED, "你之前打开的书已在另一个窗口中打开，因此没有在此打开。");
+        setValue(L.MSG_BOOK_CLOSED_ELSEWHERE, "本书已在另一个窗口中打开，因此在此关闭。");
+        setValue(L.MSG_LEAVE_STOPS_GENERATION, "正在生成一个部分。离开本书会停止生成（已收到的内容会保留）。要离开吗？");
+        setValue(L.MSG_RUN_MORE, "另有 %d 个");
+        setValue(L.MSG_RUN_WORKING, "正在处理...");
+        setValue(L.MSG_RUN_THINKING, "模型正在思考...");
+        setValue(L.MSG_RUN_WRITING, "模型正在写作...");
+        setValue(L.MSG_RUN_WAITS_FOR_YOU, "等待您处理");
+        setValue(L.MSG_RUN_STOPPING, "正在停止...");
+        setValue(L.MSG_RUNS_NONE, "没有正在处理书籍的运行。");
+        setValue(L.MSG_RUN_END_CONFIRM, "要在不停止其工作的情况下结束\"%s\"吗？它占用的内容会立即释放。仅用于永远不会结束的运行：其工作仍可能写入。");
+        setValue(L.MSG_AFTER_PART_RUN, "第%d部分之后：%s");
+        setValue(L.MSG_AFTER_PART_STOPPED, "新部分之后的处理在%s处停止。");
+        setValue(L.MSG_AFTER_PART_FAILED, "新部分之后的处理在%s处失败：%s");
+        setValue(L.MSG_AFTER_PART_NOT_RUN, "未运行：%s。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");
@@ -1884,7 +1913,6 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.HELP_AGENT_CHECKPOINTS, "书籍工作副本和工作区的还原点。运行开始时以及每次会修改内容的回合之前都会创建一个（保留最近五个）；智能体也可以保存自己的检查点。它们共用管理员设置的配额。“还原”会恢复书籍和工作区；“回退”还会让对话回到创建检查点的位置，使智能体不会记得已不在书中的工作（需暂停或停止的运行）。");
         setValue(L.HELP_MERGE, "智能体在书籍的副本上工作。请选择要采纳的内容,应用前会先保存书籍。右侧的文本就是将写入的内容,可以编辑。冲突是指你和智能体都修改过的文本。");
         setValue(L.HELP_COMMAND_PRESETS, "角色：审计员只读；设定管理员还可编写设定集；编辑还可修订正文、摘要和书籍信息；撰稿人还可添加新段落并让模型撰写下一回合。任何角色都不能删除数据。");
-        setValue(L.HELP_AI_MAX_CONCURRENT_REQUESTS, "可同时发往该模型的智能体请求数，超出的请求排队等待。留空表示不限。只有一个槽位的服务器（例如一块 GPU）请设为 1。故事窗口中您自己的生成不会排队。");
         setValue(L.HELP_AGENT_PAUSE_NOW, "取消正在进行的模型请求和调用并立即暂停。它们本应产生的结果将丢失；无法中止的调用可能仍会完成，智能体在继续时会检查状态。");
         setValue(L.HELP_AGENT_DEFAULT_INSTRUCTIONS_USER, "用于没有自己指令的智能体，会加入每次运行的提示词。留空表示没有指令。");
         setValue(L.HELP_AGENT_AUTO_COMPACT, "当模型上下文超过其上限的这一比例且智能体没有自行压缩时，运行会对之前的回合进行摘要。留空为 %d。0 表示从不压缩（上下文满时运行将停止）。否则取 %d 到 99。");
@@ -1963,6 +1991,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.HELP_AFTER_IMPORT, "段落已加入书中。有两样东西能让长篇故事更好写:已导入内容的摘要,以及收录人物和地点的设定集。请先创建摘要:代理工作时会锁定这本书。");
         setValue(L.HELP_REDRAFT_LENGTH_PROMPT, "要求重写更短（更长）时，附加在您的指示之后的纯文本。它不是模板。留空则使用内置文本。");
         setValue(L.HELP_UPDATE, "无需登录服务器即可从 Git 检出更新 Docker 安装：拉取分支的最新版本，连同插件一起构建，然后重启 Marginalia。");
+        setValue(L.HELP_AI_CONNECTIONS, "可同时发往该模型的请求数：所有用户、所有类型的请求（您的生成、侧边查询、智能体、插件）。超出的请求按到达顺序排队等待。只有一个槽位的服务器（例如一块 GPU）设为 1；能同时回答多个请求的云端模型可以设得更多。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景设定与世界观。");

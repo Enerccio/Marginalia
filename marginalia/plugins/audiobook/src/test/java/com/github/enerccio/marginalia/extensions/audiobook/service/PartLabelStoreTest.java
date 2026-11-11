@@ -34,6 +34,12 @@ class PartLabelStoreTest {
                     saves++;
                     return args[0];
                 }
+                case "update" -> {
+                    // the change is made to the part as it is stored (here: the one part of the test)
+                    saves++;
+                    ((ChatMessageService.PartChange) args[1]).apply(part);
+                    return part;
+                }
                 default -> throw new UnsupportedOperationException(method.getName());
             }
         });

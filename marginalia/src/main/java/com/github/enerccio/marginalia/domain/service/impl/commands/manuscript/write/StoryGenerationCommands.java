@@ -3,7 +3,6 @@ package com.github.enerccio.marginalia.domain.service.impl.commands.manuscript.w
 import com.github.enerccio.marginalia.domain.components.TurnInput;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
-import com.github.enerccio.marginalia.domain.service.AIGate;
 import com.github.enerccio.marginalia.domain.service.CancellationToken;
 import com.github.enerccio.marginalia.domain.service.GenerationListener;
 import com.github.enerccio.marginalia.domain.service.StoryGenerationService;
@@ -318,6 +317,10 @@ public class StoryGenerationCommands extends ManuscriptWriteSupport {
                           String pov, String present, String instructions, String profile) throws Exception {
         Book book = new Book(context);
         GenerationOptions options = options(context, profile);
+        if (context.getScope().isAgent()) {
+            // an agent does what follows a part by its own commands, when it judges them due
+            options = options.withoutAfterPart();
+        }
         ReentrantLock gate = GATES.computeIfAbsent(book.manuscript.getId(), _ -> new ReentrantLock());
         gate.lockInterruptibly();
         try {
@@ -358,7 +361,7 @@ public class StoryGenerationCommands extends ManuscriptWriteSupport {
             List<String> warnings = new CopyOnWriteArrayList<>();
             Manuscript fresh = context.getScope().getManuscript();
             ChatMessage created;
-            try (AIGate.Permit _ = placeAt(context, options.ai() != null ? options.ai() : fresh.getAi())) {
+            {
                 CancellationToken token = storyGenerationService.generateNextTurn(fresh, input, request,
                         listener(context, done, warnings), options);
                 created = await(context, done, token);
@@ -421,6 +424,13 @@ public class StoryGenerationCommands extends ManuscriptWriteSupport {
             @Override
             public void onComplete(ChatMessage message) {
                 done.complete(message);
+            }
+
+            @Override
+            public void onWaitingForModel(int ahead) {
+                if (ahead > 0) {
+                    context.setStatus(loc.getValue(L.MSG_COMMAND_WAITING_FOR_MODEL));
+                }
             }
 
             @Override

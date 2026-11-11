@@ -133,14 +133,14 @@ public class BetaReadersService {
     }
 
     public void saveBook(Manuscript manuscript, BookData data) throws Exception {
-        Manuscript stored = manuscriptService.find(manuscript);
-        JsonObject attributes = stored.getAttributes();
-        if (attributes == null) {
-            attributes = new JsonObject();
-            stored.setAttributes(attributes);
-        }
-        BetaReadersStore.writeBook(attributes, data);
-        manuscriptService.save(stored);
+        manuscriptService.update(manuscript, stored -> {
+            JsonObject attributes = stored.getAttributes();
+            if (attributes == null) {
+                attributes = new JsonObject();
+                stored.setAttributes(attributes);
+            }
+            BetaReadersStore.writeBook(attributes, data);
+        });
     }
 
     /**

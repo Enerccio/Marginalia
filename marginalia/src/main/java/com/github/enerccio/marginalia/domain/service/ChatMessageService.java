@@ -19,6 +19,26 @@ import java.util.Set;
 
 public interface ChatMessageService extends ExtendableService<ChatMessage, ChatMessageRepository> {
 
+    /**
+     * A change of a part that can throw.
+     */
+    @FunctionalInterface
+    interface PartChange {
+        void apply(ChatMessage part) throws Exception;
+    }
+
+    /**
+     * Applies the change to a freshly loaded copy of the part and saves it, in one write transaction. The way to change a
+     * part that the caller holds from an earlier time (a generation, an open window, a run of a plugin): only what the
+     * change sets is written, not the old values of the rest, which someone else may have changed since (the text, the
+     * data of another plugin). See {@link ManuscriptService#update}.
+     *
+     * @return the saved part
+     * @throws IllegalStateException when the part no longer exists (nothing is applied)
+     * @throws ManuscriptLockedException when an agent works on the book of the part
+     */
+    ChatMessage update(ChatMessage part, PartChange change) throws Exception;
+
     ChatMessage getParent(ChatMessage node) throws Exception;
 
     ChatMessage createRoot(Manuscript manuscript, ChatMessage message) throws Exception;

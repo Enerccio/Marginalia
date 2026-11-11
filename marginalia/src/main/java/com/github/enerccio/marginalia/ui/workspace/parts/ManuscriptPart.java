@@ -21,6 +21,7 @@ import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.LLMInteraction;
 import com.github.enerccio.marginalia.ui.RestorableState;
 import com.github.enerccio.marginalia.ui.dialogs.*;
+import com.github.enerccio.marginalia.ui.dialogs.BookWindows;
 import com.github.enerccio.marginalia.ui.dialogs.agent.AgentLockCheck;
 import com.github.enerccio.marginalia.ui.widgets.FolderBookProvider;
 import com.github.enerccio.marginalia.ui.widgets.FolderBookRow;
@@ -386,9 +387,13 @@ public class ManuscriptPart implements ManuscriptSection {
         Button editButton = new Button(Solid.PENCIL.create(), _ -> {
             try {
                 // a book an agent works on can't be changed, so there is nothing to do in its window
-                if (!new AgentLockCheck().refuses(manuscript)) {
-                    openManuscript(manuscript);
-                }
+                new BookWindows().open(manuscript, () -> {
+                    try {
+                        openManuscript(manuscript);
+                    } catch (Exception ex) {
+                        UIUtils.internalServerError(loc, ex);
+                    }
+                }, false);
             } catch (Exception e) {
                 UIUtils.internalServerError(loc, e);
             }
@@ -589,9 +594,13 @@ public class ManuscriptPart implements ManuscriptSection {
             locals = {@APILocals(name = "e", type = Exception.class)})
     private void openFound(Manuscript manuscript) {
         try {
-            if (!new AgentLockCheck().refuses(manuscript)) {
-                openManuscript(manuscript);
-            }
+            new BookWindows().open(manuscript, () -> {
+                try {
+                    openManuscript(manuscript);
+                } catch (Exception ex) {
+                    UIUtils.internalServerError(loc, ex);
+                }
+            }, false);
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
@@ -731,7 +740,13 @@ public class ManuscriptPart implements ManuscriptSection {
         try {
             Manuscript manuscript = manuscriptService.findForUser(uuid);
             if (manuscript != null) {
-                openManuscript(manuscript);
+                new BookWindows().open(manuscript, () -> {
+                    try {
+                        openManuscript(manuscript);
+                    } catch (Exception ex) {
+                        UIUtils.internalServerError(loc, ex);
+                    }
+                }, false);
             }
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
@@ -868,8 +883,14 @@ public class ManuscriptPart implements ManuscriptSection {
             String manuscriptUuid = RestorableState.string(dialogState, "manuscript");
             if (manuscriptUuid != null && grid != null) {
                 Manuscript manuscript = manuscriptService.findForUser(manuscriptUuid);
-                if (manuscript != null && !new AgentLockCheck().refuses(manuscript)) {
-                    openManuscript(manuscript).restoreState(dialogState);
+                if (manuscript != null) {
+                    new BookWindows().open(manuscript, () -> {
+                        try {
+                            openManuscript(manuscript).restoreState(dialogState);
+                        } catch (Exception e) {
+                            UIUtils.internalServerError(loc, e);
+                        }
+                    }, true);
                 }
             }
         } catch (Exception e) {

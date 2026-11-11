@@ -20,6 +20,8 @@ import com.github.enerccio.marginalia.ui.components.CommandBar;
 import com.github.enerccio.marginalia.ui.components.CommandResultView;
 import com.github.enerccio.marginalia.ui.components.LorebookPreview;
 import com.github.enerccio.marginalia.ui.components.MessageImages;
+import com.github.enerccio.marginalia.domain.service.run.Runs;
+import com.github.enerccio.marginalia.ui.components.RunsOnPage;
 import com.github.enerccio.marginalia.ui.dialogs.*;
 import com.github.enerccio.marginalia.ui.dialogs.bookimport.AfterImportDialog;
 import com.github.enerccio.marginalia.ui.dialogs.bookimport.BookImportDialog;
@@ -44,6 +46,7 @@ import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.details.Details;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.shared.Registration;
 import com.vaadin.flow.component.markdown.Markdown;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
@@ -295,10 +298,13 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
                     @APILocals(name = "action", type = ShortcutAction.class),
                     @APILocals(name = "e", type = Exception.class)})
     private void handleShortcut(String actionId) {
-        if (isFrozen) {
-            if (ShortcutActions.STORY_STOP.equals(actionId) && activeGenerationToken != null) {
-                activeGenerationToken.cancel();
-            }
+        if (isFrozen && ShortcutActions.STORY_STOP.equals(actionId)) {
+            stopGeneration();
+            return;
+        }
+        if (isFrozen && (parent == null || parent.getHold() == null || parent.getHold().isWhole()
+                || ShortcutActions.STORY_NEW_TURN.equals(actionId) || ShortcutActions.STORY_GENERATE.equals(actionId))) {
+            // while the prompt is prepared nothing, while the part is written no second turn
             return;
         }
         switch (actionId) {
@@ -404,11 +410,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
 
         actionButton.addClickListener(event -> {
             if (this.isFrozen && parent != null) {
-                if (activeGenerationToken != null) {
-                    activeGenerationToken.cancel();
-                } else {
-                    parent.unfreeze();
-                }
+                stopGeneration();
             }
         });
 
@@ -1254,7 +1256,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
                                     } catch (Exception e) {
                                         UIUtils.internalServerError(loc, e);
                                     }
-                                }).run(message);
+                                }).finished(message);
                             } catch (Exception e) {
                                 UIUtils.internalServerError(loc, e);
                             }
@@ -1278,6 +1280,49 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
             );
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
+        }
+    }
+
+    /**
+     * The Stop of the round button: the generation this tab started, else the one the window follows (started by a command or a
+     * plugin), else the window just lets go.
+     */
+    @PublicAPI(from = "1.8.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "generation", type = Runs.Run.class)})
+    private void stopGeneration() {
+        if (activeGenerationToken != null) {
+            activeGenerationToken.cancel();
+            return;
+        }
+        Runs.Run generation = currentManuscript == null ? null : Runs.generationOf(currentManuscript.getId());
+        if (generation != null) {
+            generation.stop();
+        } else {
+            parent.unfreeze();
+        }
+    }
+
+    /**
+     * Follows what the generation of the book holds: while it prepares, everything as {@link #setFrozen setFrozen(true)}; from the
+     * inference on the story works on, with the round button as Stop: only the card of the new part is frozen, the parts before it keep
+     * their place (no delete, merge, branch), and what works over the whole book (a new turn, the mass delete, search and replace, an
+     * import) waits. The server refuses the same.
+     */
+    @PublicAPI(from = "1.8.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "hold", type = GenerationHold.class)})
+    @Override
+    public void setHold(GenerationHold hold) {
+        setFrozen(hold != null);
+        if (hold != null && !hold.isWhole()) {
+            leftBar.setTabsEnabled(true, STORY_TAB);
+            menuBar.setEnabled(true);
+            commandBar.setEnabled(true);
+        }
+        cards.setHold(hold == null || hold.isWhole() ? null : hold);
+        if (hold != null && hold.isWhole()) {
+            cards.setFrozen(true);
         }
     }
 
@@ -1559,6 +1604,13 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
         private Popover detailsPopover;
         private TurnDetailsForm detailsForm;
 
+        // what a window of the model (annotate, redraft) does to the part, null when none is open on it
+        private String busyWith;
+        // a generation continues the branch of the part: no delete, merge or branch
+        private boolean keptInPlace;
+        private final Span busyBadge = new Span();
+        private Registration busyRegistration;
+
         public ChatMessageCard(ChatMessage message, int orderId) {
             this(message, false, orderId);
         }
@@ -1591,8 +1643,21 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
 
             createHamburgerMenu();
 
+            busyBadge.addClassName(CssStyles.PART_BUSY);
+            busyBadge.setVisible(false);
+            addAttachListener(event -> {
+                busyRegistration = RunsOnPage.listen(event.getUI(), this::refreshBusy);
+                refreshBusy();
+            });
+            addDetachListener(event -> {
+                if (busyRegistration != null) {
+                    busyRegistration.remove();
+                    busyRegistration = null;
+                }
+            });
+
             // the badge of the annotations is added to the header when the card has its markdown
-            HorizontalLayout actions = new HorizontalLayout(menuBtn);
+            HorizontalLayout actions = new HorizontalLayout(busyBadge, menuBtn);
             actions.setSpacing(false);
             actions.setPadding(false);
             actions.setAlignItems(FlexComponent.Alignment.CENTER);
@@ -1656,6 +1721,40 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
             setAlignSelf(FlexComponent.Alignment.START, massDeleteBox);
             setFlexGrow(1, contentLayout);
             setFlexGrow(0, metaLayout);
+        }
+
+        @PublicAPI(from = "1.8.0",
+                returns = @APIReturn(type = String.class))
+        @Override
+        public String getBusyWith() {
+            return busyWith;
+        }
+
+        @PublicAPI(from = "1.8.0",
+                returns = @APIReturn(type = void.class),
+                parameters = {@APIParameter(name = "kept", type = boolean.class)})
+        @Override
+        public void setKeptInPlace(boolean kept) {
+            this.keptInPlace = kept;
+        }
+
+        @PublicAPI(from = "1.8.0",
+                returns = @APIReturn(type = boolean.class))
+        @Override
+        public boolean isKeptInPlace() {
+            return keptInPlace;
+        }
+
+        /**
+         * Shows on the card the run that works on the part (a window of the model, a translation), read from the {@link Runs}.
+         */
+        @PublicAPI(from = "1.8.0",
+                returns = @APIReturn(type = void.class))
+        private void refreshBusy() {
+            busyWith = message == null || message.getId() == null ? null
+                    : Runs.busyWith(message.getId());
+            busyBadge.setText(StringUtils.defaultString(busyWith));
+            busyBadge.setVisible(busyWith != null);
         }
 
         @PublicAPI(from = "1.6.0",

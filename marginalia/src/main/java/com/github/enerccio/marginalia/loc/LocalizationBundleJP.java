@@ -515,7 +515,6 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_SUBBOOKS, "サブブック");
         setValue(L.LABEL_STATE, "状態");
         setValue(L.LABEL_REWIND, "巻き戻す");
-        setValue(L.LABEL_MAX_CONCURRENT_REQUESTS, "エージェントの同時リクエスト数");
         setValue(L.LABEL_PAUSE_NOW, "今すぐ一時停止");
         setValue(L.LABEL_AGENT_DEFAULT_INSTRUCTIONS, "エージェントの指示（agents.md）");
         setValue(L.LABEL_AGENT_AUTO_COMPACT, "圧縮する位置（コンテキストの%）");
@@ -1058,6 +1057,14 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_LONGER, "長く");
         setValue(L.LABEL_UPDATE, "アップデート");
         setValue(L.LABEL_UPDATE_AND_RESTART, "アップデートして再起動");
+        setValue(L.LABEL_CONNECTIONS, "接続数");
+        setValue(L.LABEL_APPLY_ANYWAY, "それでも適用");
+        setValue(L.LABEL_OPEN_HERE, "ここで開く");
+        setValue(L.LABEL_BOOK_OPEN_ELSEWHERE, "別のページで開いている本のウィンドウ");
+        setValue(L.LABEL_RUNS_ON_BOOKS, "書籍の実行");
+        setValue(L.LABEL_RUN_HOLDS, "保持");
+        setValue(L.LABEL_END_RUN, "終了");
+        setValue(L.LABEL_REVIEW, "確認");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -1362,6 +1369,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.ERROR_STYLE_IMPORT_NEWER, "このファイルは新しいバージョンのMarginaliaで作成されたため、読み込めません。");
         setValue(L.ERROR_STYLE_IMPORT_CSS, "スタイル「%s」のカスタムCSSの波括弧 { } が対応していません。");
         setValue(L.ERROR_COMMAND_LORE_RANGE_EMPTY, "範囲が空です：パート %d から始まり、パート %d で終わります。");
+        setValue(L.ERROR_HELD_BY_RUN, "使用中です：%s。終わるまで待つか、停止してください。");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "フォームを保存できません。");
@@ -1826,6 +1834,27 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_CONFIRM_UPDATE, "サーバーがブランチの最新バージョンを取得してビルドし（数分かかります）、Marginalia を再起動します。再起動すると作業中の全員が中断され、生成中のものはすべて止まります。新しいものがなくてもビルドと再起動を行います。今すぐアップデートしますか？");
         setValue(L.MSG_CONFIRM_UPDATE_JOBS, "実行中のジョブ: %d。再起動するとこれらは止まります。");
         setValue(L.MSG_UPDATE_LOG_EMPTY, "ここからのアップデートはまだ実行されていません。");
+        setValue(L.MSG_WAITING_FOR_MODEL_AHEAD, "モデルの順番待ちです（前に%d件のリクエストがあります）。");
+        setValue(L.MSG_RUN_PART_GONE, "ウィンドウを開いた後にパートが削除されたため、何も書き込まれませんでした。");
+        setValue(L.MSG_REDRAFT_PART_CHANGED, "リドラフトの開始後にパートが変更されました。適用するとその変更は置き換えられます（差分で変わる内容を確認できます）。それでも適用しますか？");
+        setValue(L.MSG_REDRAFT_PART_CHANGED_WAITS, "リドラフトの開始後にパートが変更されたため、リドラフトは自動では適用されませんでした。差分で適用した場合に変わる内容を確認できます。");
+        setValue(L.MSG_BOOK_OPEN_ELSEWHERE, "この本は別のウィンドウで開いています（%s から）。ここで開いて、あちらを閉じますか？");
+        setValue(L.MSG_BOOK_OPEN_ELSEWHERE_GENERATING, "この本は別のウィンドウで開いていて（%s から）、そこでパートを生成中です。ここで開き、生成を停止して、あちらを閉じますか？");
+        setValue(L.MSG_BOOK_OPEN_ELSEWHERE_NOT_RESTORED, "開いていた本は別のウィンドウで開いているため、ここでは開きませんでした。");
+        setValue(L.MSG_BOOK_CLOSED_ELSEWHERE, "この本は別のウィンドウで開かれたため、ここでは閉じました。");
+        setValue(L.MSG_LEAVE_STOPS_GENERATION, "パートを生成中です。本を閉じると生成は止まります（届いた分は残ります）。閉じますか？");
+        setValue(L.MSG_RUN_MORE, "他 %d 件");
+        setValue(L.MSG_RUN_WORKING, "処理中...");
+        setValue(L.MSG_RUN_THINKING, "モデルが考えています...");
+        setValue(L.MSG_RUN_WRITING, "モデルが書いています...");
+        setValue(L.MSG_RUN_WAITS_FOR_YOU, "あなたを待っています");
+        setValue(L.MSG_RUN_STOPPING, "停止しています...");
+        setValue(L.MSG_RUNS_NONE, "書籍で動いている実行はありません。");
+        setValue(L.MSG_RUN_END_CONFIRM, "「%s」を、処理を止めずに終了しますか？保持しているものはすぐに解放されます。終わらない実行にだけ使ってください。処理はまだ書き込む可能性があります。");
+        setValue(L.MSG_AFTER_PART_RUN, "パート%dの後：%s");
+        setValue(L.MSG_AFTER_PART_STOPPED, "新しいパートの後の処理は%sで止まりました。");
+        setValue(L.MSG_AFTER_PART_FAILED, "新しいパートの後の処理が%sで失敗しました：%s");
+        setValue(L.MSG_AFTER_PART_NOT_RUN, "実行されなかったもの：%s。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");
@@ -1876,7 +1905,6 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_AGENT_CHECKPOINTS, "本の作業コピーとワークスペースの復元ポイントです。実行の開始時と、変更を伴うラウンドの前に自動で作られます (最新の5つを保持)。エージェントも自分で保存できます。管理者が設定した容量を共有します。「復元」は本とワークスペースを戻し、「巻き戻す」は会話もチェックポイントを作った時点まで戻します。これにより、エージェントは本に残っていない作業を覚えていません (一時停止または停止した実行)。");
         setValue(L.HELP_MERGE, "エージェントはブックのコピーで作業しました。引き継ぐ内容を選んでください。適用前にブックが保存されます。右側のテキストが書き込まれる内容で、編集できます。競合とは、あなたとエージェントの両方が変更したテキストです。");
         setValue(L.HELP_COMMAND_PRESETS, "役割：監査役は読み取りのみ。設定管理者はロアブックも書き込む。編集者は本文・要約・書籍情報も修正する。執筆者は新しいパートの追加とモデルによる次のターンの執筆も行う。いずれもデータを削除することはできません。");
-        setValue(L.HELP_AI_MAX_CONCURRENT_REQUESTS, "このモデルへ同時に送れるエージェントのリクエスト数。超えた分は順番待ちになります。空欄は無制限。スロットが1つのサーバー（例：GPU 1枚）では1にしてください。ストーリー画面での生成は待たされません。");
         setValue(L.HELP_AGENT_PAUSE_NOW, "実行中のモデルへのリクエストと呼び出しを取り消し、すぐに一時停止します。その結果は失われます。止められない呼び出しは完了する場合があり、エージェントは再開時に状態を確認します。");
         setValue(L.HELP_AGENT_DEFAULT_INSTRUCTIONS_USER, "独自の指示を持たないあなたのエージェント向けの指示。毎回の実行でプロンプトに追加されます。空欄は指示なしです。");
         setValue(L.HELP_AGENT_AUTO_COMPACT, "モデルのコンテキストが上限のこの割合を超え、エージェントが自分で圧縮しなかった場合、実行側が以前のラウンドを要約します。空欄は%dです。0は圧縮しません（コンテキストが満杯になると実行が停止します）。それ以外は%dから99。");
@@ -1955,6 +1983,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_AFTER_IMPORT, "パートがブックに追加されました。長い物語を書き進めやすくするものが2つあります。取り込んだ内容の要約と、登場人物や場所を集めたロアブックです。先に要約を作成してください。エージェントは作業中ブックをロックします。");
         setValue(L.HELP_REDRAFT_LENGTH_PROMPT, "リライトを短く（長く）するよう求めたとき、指示の後ろに追加されるテキストです。テンプレートではありません。空の場合は組み込みのテキストになります。");
         setValue(L.HELP_UPDATE, "サーバーにログインせずに、Docker インストールを Git チェックアウトからアップデートします。ブランチの最新バージョンを取得してプラグインとともにビルドし、Marginalia を再起動します。");
+        setValue(L.HELP_AI_CONNECTIONS, "このモデルへ同時に送れるリクエストの数です。すべてのユーザー、すべての種類のリクエスト（あなたの生成、サイドクエリ、エージェント、プラグイン）が対象で、超えた分は来た順に順番待ちになります。スロットが1つのサーバー（例：GPU 1枚）では1、同時に複数のリクエストに答えられるクラウドのモデルではそれ以上にしてください。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景設定と世界観の文脈。");

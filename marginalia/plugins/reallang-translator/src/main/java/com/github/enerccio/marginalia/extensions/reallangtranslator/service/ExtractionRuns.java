@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.extensions.reallangtranslator.service;
 
+import com.github.enerccio.marginalia.domain.service.run.Runs;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.extensions.translatorcommon.service.RangeLoop;
@@ -22,8 +23,9 @@ public final class ExtractionRuns {
     private final RangeRuns runs;
 
     public ExtractionRuns(ExtractionService service, Logger log) {
-        // the mode of the range run is about translating; this work has one action and ignores it
-        this.runs = new RangeRuns((book, _, part, languageId) -> work(service, book, part, languageId), "reallang-translator-extraction", log);
+        // the mode of the range run is about translating; this work has one action and ignores it. It only reads the parts.
+        this.runs = new RangeRuns((book, _, part, languageId) -> work(service, book, part, languageId), "reallang-translator-extraction", log,
+                null, Runs.Mode.READ);
     }
 
     private static PartResult work(ExtractionService service, Manuscript book, ChatMessage part, String languageId) throws Exception {

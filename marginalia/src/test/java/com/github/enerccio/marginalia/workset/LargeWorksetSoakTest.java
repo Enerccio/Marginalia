@@ -9,6 +9,7 @@ import com.github.enerccio.marginalia.domain.model.impl.OpenAICompatible;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.service.*;
+import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationOptions;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationRequest;
 import com.github.enerccio.marginalia.test.GenerationRun;
 import com.github.enerccio.marginalia.test.GenerationTestBase;
@@ -139,7 +140,8 @@ class LargeWorksetSoakTest extends GenerationTestBase {
                 long start = System.nanoTime();
                 GenerationRun run = new GenerationRun().answering(true);
                 storyGenerationService.generateNextTurn(manuscriptService.find(side.book().getId()), new TurnInput(null, null, null, "Continue the story, part " + (i + 1) + "."),
-                        GenerationRequest.newMessage(), run);
+                        // the books of the workset annotate their parts by themselves: what follows a part is not what this measures
+                        GenerationRequest.newMessage(), run, GenerationOptions.defaults().withoutAfterPart());
                 GenerationRun.Outcome outcome = run.await(Duration.ofSeconds(180));
                 assertThat(outcome).as("generation %d of %s", i + 1, side.user().getLogin()).isEqualTo(GenerationRun.Outcome.COMPLETED);
                 assertThat(run.getErrors()).isEmpty();

@@ -6,6 +6,7 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executor;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
 import java.util.function.BooleanSupplier;
 
@@ -33,14 +34,40 @@ public final class FunctionSet {
     // told when a call starts, before it runs; null for none
     private final BiConsumer<String, String> starting;
 
+    // around every call (the connection of the AI is given back while it runs); null for none
+    private final CallAround around;
+
+    /**
+     * What happens around every call of a function of the set: {@link #before} when it starts, {@link #after} when it answered,
+     * and the answer goes back to the model when the future of {@code after} completes. The connections of an AI use it: a
+     * function the model called may ask a model itself, the place of the request is given back while it runs and taken again
+     * for the next round (see {@code AIGate}).
+     */
+    public interface CallAround {
+
+        /** A call starts; on the thread that asks for it. */
+        void before();
+
+        /**
+         * The call answered (or failed); the answer is held until the returned future completes. A future that completes
+         * exceptionally fails the call with that error.
+         */
+        CompletableFuture<Void> after();
+    }
+
     private FunctionSet(Map<String, Binding> bound) {
-        this(bound, null);
+        this(bound, null, null);
     }
 
     private FunctionSet(Map<String, Binding> bound, BiConsumer<String, String> starting) {
+        this(bound, starting, null);
+    }
+
+    private FunctionSet(Map<String, Binding> bound, BiConsumer<String, String> starting, CallAround around) {
         this.bound = bound;
         this.functions = complete(bound);
         this.starting = starting;
+        this.around = around;
     }
 
     // a function is out when a function linked to it is missing, and so is everything linked to that one in turn
@@ -70,11 +97,14 @@ public final class FunctionSet {
      * @throws IllegalArgumentException when both have a function of the same name
      */
     public FunctionSet and(FunctionSet other) {
-        if (other.bound.isEmpty() && other.starting == null) {
+        if (other.bound.isEmpty() && other.starting == null && other.around == null) {
             return this;
         }
-        if (bound.isEmpty() && starting == null) {
+        if (bound.isEmpty() && starting == null && around == null) {
             return other;
+        }
+        if (around != null && other.around != null && around != other.around) {
+            throw new IllegalArgumentException("Both sets have their own CallAround");
         }
         Map<String, Binding> bindings = new LinkedHashMap<>(bound);
         for (Map.Entry<String, Binding> binding : other.bound.entrySet()) {
@@ -82,7 +112,7 @@ public final class FunctionSet {
                 throw new IllegalArgumentException("Function " + binding.getKey() + " is bound twice");
             }
         }
-        return new FunctionSet(bindings, both(starting, other.starting));
+        return new FunctionSet(bindings, both(starting, other.starting), around != null ? around : other.around);
     }
 
     private static BiConsumer<String, String> both(BiConsumer<String, String> a, BiConsumer<String, String> b) {
@@ -101,7 +131,14 @@ public final class FunctionSet {
      * running before the result comes). What it throws is ignored.
      */
     public FunctionSet whenCalled(BiConsumer<String, String> starting) {
-        return new FunctionSet(bound, both(this.starting, starting));
+        return new FunctionSet(bound, both(this.starting, starting), around);
+    }
+
+    /**
+     * The same functions, with {@code around} around every call (see {@link CallAround}); it replaces the one the set had.
+     */
+    public FunctionSet around(CallAround around) {
+        return new FunctionSet(bound, starting, around);
     }
 
     public boolean isEmpty() {
@@ -134,6 +171,52 @@ public final class FunctionSet {
      * arguments do not fit, the method threw or failed the continuation.
      */
     public CompletableFuture<String> call(String name, String argumentsJson, Executor executor, BooleanSupplier cancelled) {
+        if (around == null) {
+            return callPlain(name, argumentsJson, executor, cancelled);
+        }
+        around.before();
+        CompletableFuture<String> inner = callPlain(name, argumentsJson, executor, cancelled);
+        CompletableFuture<String> outer = new CompletableFuture<>();
+        AtomicReference<CompletableFuture<Void>> waiting = new AtomicReference<>();
+        inner.whenComplete((answer, error) -> {
+            CompletableFuture<Void> resumed;
+            try {
+                resumed = around.after();
+            } catch (RuntimeException e) {
+                resumed = CompletableFuture.failedFuture(e);
+            }
+            waiting.set(resumed);
+            if (outer.isDone()) {
+                // the caller gave up meanwhile: it waits for nothing
+                resumed.cancel(true);
+                return;
+            }
+            resumed.whenComplete((_, failure) -> {
+                if (failure != null) {
+                    outer.completeExceptionally(failure);
+                } else if (error != null) {
+                    outer.completeExceptionally(error);
+                } else {
+                    outer.complete(answer);
+                }
+            });
+        });
+        // the caller cancels (or fails) the future it got: the call is cancelled, a wait for the connection is left
+        outer.whenComplete((_, failure) -> {
+            if (failure != null) {
+                if (!inner.isDone()) {
+                    inner.cancel(true);
+                }
+                CompletableFuture<Void> resumed = waiting.get();
+                if (resumed != null && !resumed.isDone()) {
+                    resumed.cancel(true);
+                }
+            }
+        });
+        return outer;
+    }
+
+    private CompletableFuture<String> callPlain(String name, String argumentsJson, Executor executor, BooleanSupplier cancelled) {
         CompletableFuture<String> result = new CompletableFuture<>();
         if (starting != null) {
             try {

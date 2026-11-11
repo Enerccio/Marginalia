@@ -132,15 +132,6 @@ public class ConverterService {
     }
 
     public void save(Manuscript manuscript, ConverterData data) throws Exception {
-        Manuscript current = manuscriptService.find(manuscript);
-        if (current == null) {
-            current = manuscript;
-        }
-        JsonObject attrs = current.getAttributes();
-        if (attrs == null) {
-            attrs = new JsonObject();
-            current.setAttributes(attrs);
-        }
         List<Integer> reviewed = new ArrayList<>();
         for (int i = 0; i < data.getChat().size(); i++) {
             if (data.getChat().get(i).isReviewed()) {
@@ -162,8 +153,14 @@ public class ConverterService {
         } else {
             stored.remove("reviewedTurns");
         }
-        attrs.add(ConverterData.KEY, stored);
-        manuscriptService.save(current);
+        manuscriptService.update(manuscript, current -> {
+            JsonObject attrs = current.getAttributes();
+            if (attrs == null) {
+                attrs = new JsonObject();
+                current.setAttributes(attrs);
+            }
+            attrs.add(ConverterData.KEY, stored);
+        });
     }
 
     // --- the chat ---

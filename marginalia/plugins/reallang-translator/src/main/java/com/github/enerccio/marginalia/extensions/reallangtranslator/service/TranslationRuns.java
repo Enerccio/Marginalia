@@ -9,6 +9,8 @@ import org.slf4j.Logger;
 
 import java.util.function.BiConsumer;
 
+import static com.github.enerccio.marginalia.extensions.reallangtranslator.ReallangTranslatorLocalization.*;
+
 /**
  * Runs the translations of parts on worker threads, see {@link PartRuns}.
  */
@@ -19,7 +21,8 @@ public final class TranslationRuns {
 
     public TranslationRuns(TranslationService service, Logger log) {
         this.service = service;
-        this.runs = new PartRuns<>("reallang-translator", log);
+        // the card of the part shows it while it works
+        this.runs = new PartRuns<>("reallang-translator", log, () -> T.localized(TRANSLATING_THE_SPEECH));
     }
 
     /**
@@ -38,6 +41,17 @@ public final class TranslationRuns {
      */
     public boolean start(Manuscript manuscript, ChatMessage part, BiConsumer<Outcome, Throwable> done) {
         return start(manuscript, part, null, done);
+    }
+
+    /**
+     * Translates the part into all the languages of the book on this thread (a step after a generated part, which waits for it), see
+     * {@link PartRuns#run}.
+     *
+     * @param progress the requests report to it, its stop stops them
+     * @throws java.util.concurrent.CancellationException when it was stopped
+     */
+    public Outcome translateNow(Manuscript manuscript, ChatMessage part, RunProgress progress) throws Exception {
+        return runs.run(part, () -> service.translate(manuscript, part, null), progress);
     }
 
     /**

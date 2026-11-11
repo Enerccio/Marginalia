@@ -1942,3 +1942,140 @@ vaadin-dialog-overlay.agent-console-phone .help-message-user {
     text-decoration: line-through;
 }
 
+
+/* the corner of the page where the windows of model runs are folded (RunCorner): bottom left, the help assistant has the right */
+.run-corner-root {
+    display: contents;
+}
+
+.run-corner {
+    position: fixed;
+    left: var(--lumo-space-l);
+    bottom: var(--lumo-space-l);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    gap: var(--lumo-space-s);
+    box-sizing: border-box;
+    width: min(320px, calc(100vw - 2 * var(--lumo-space-m)));
+    padding: var(--lumo-space-s);
+    background: var(--lumo-base-color);
+    border: 1px solid var(--lumo-contrast-10pct);
+    border-radius: var(--lumo-border-radius-l);
+    box-shadow: var(--lumo-box-shadow-m);
+}
+
+.run-corner-root > .run-corner[popover] {
+    inset: auto;
+    margin: 0;
+    left: var(--lumo-space-l);
+    bottom: var(--lumo-space-l);
+    padding: var(--lumo-space-s);
+    color: inherit;
+    pointer-events: auto;
+}
+
+.run-corner-entry {
+    display: flex;
+    flex-direction: column;
+    gap: var(--lumo-space-xs);
+}
+
+.run-corner-label {
+    font-size: var(--lumo-font-size-s);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.run-corner-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--lumo-space-xs);
+}
+
+/* collapsed: the first run and how many more; a click opens the list */
+.run-corner-chip {
+    display: flex;
+    align-items: center;
+    gap: var(--lumo-space-xs);
+    cursor: pointer;
+    min-width: 0;
+}
+
+.run-corner-chip > .run-corner-label {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.run-corner-grip {
+    flex: 0 0 auto;
+    width: var(--lumo-icon-size-s);
+    height: var(--lumo-icon-size-s);
+    color: var(--lumo-tertiary-text-color);
+    cursor: grab;
+    touch-action: none;
+}
+
+.run-corner-bar {
+    margin: 0;
+}
+
+.run-corner-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--lumo-space-m);
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.run-corner-status {
+    color: var(--lumo-secondary-text-color);
+    font-size: var(--lumo-font-size-xs);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* the end of what the model writes for the run */
+.run-corner-text {
+    box-sizing: border-box;
+    max-height: 7em;
+    overflow-y: auto;
+    padding: var(--lumo-space-xs) var(--lumo-space-s);
+    border-radius: var(--lumo-border-radius-s);
+    background: var(--lumo-contrast-5pct);
+    color: var(--lumo-secondary-text-color);
+    font-size: var(--lumo-font-size-xs);
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+/* on the phone a bar above the navigation at the bottom, the whole width */
+@media (max-width: 767px) {
+    .run-corner,
+    .run-corner-root > .run-corner[popover] {
+        left: var(--lumo-space-s);
+        right: var(--lumo-space-s);
+        width: auto;
+        bottom: calc(var(--lumo-size-xl) + var(--lumo-space-m));
+    }
+
+    .run-corner-grip {
+        display: none;
+    }
+}
+
+/* a window of the model (annotate, redraft) works on the part */
+.part-busy {
+    margin-right: var(--lumo-space-s);
+    padding: 0 var(--lumo-space-s);
+    border-radius: var(--lumo-border-radius-m);
+    background: var(--lumo-primary-color-10pct);
+    color: var(--lumo-primary-text-color);
+    font-size: var(--lumo-font-size-xs);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 40ch;
+}

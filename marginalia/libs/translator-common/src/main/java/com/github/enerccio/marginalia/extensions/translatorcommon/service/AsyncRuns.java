@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.extensions.translatorcommon.service;
 
+import com.github.enerccio.marginalia.domain.service.run.Runs;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes.InRequestScope;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
@@ -13,7 +14,8 @@ import java.util.function.BiConsumer;
 
 /**
  * Runs something that takes minutes (a request to a model) on a worker thread of the user's session and hands the result to the page. The page
- * goes on while it works; a failure is told to the page that asked, never thrown.
+ * goes on while it works; a failure is told to the page that asked, never thrown. The run of the registry bound to the calling thread
+ * ({@code WindowRun.start}) is bound to the worker too: its requests show in the panel of the runs.
  */
 public final class AsyncRuns {
 
@@ -29,10 +31,11 @@ public final class AsyncRuns {
     public static <T> void start(String name, Logger log, Callable<T> work, BiConsumer<T, Throwable> done) {
         RequestAttributes attributes = ThreadCopyRequestAttributes.create();
         UI ui = UI.getCurrent();
+        Runs.Run run = Runs.current();
         Thread.ofVirtual().name(name).start(() -> {
             T result = null;
             Throwable failure = null;
-            try (InRequestScope _ = new InRequestScope(attributes)) {
+            try (InRequestScope _ = new InRequestScope(attributes); Runs.Binding _ = run == null ? null : run.bind()) {
                 result = work.call();
             } catch (Throwable e) {
                 failure = e;

@@ -126,14 +126,14 @@ public class CharacterTrackerService {
     }
 
     public void save(Manuscript manuscript, CharacterBook book) throws Exception {
-        manuscript = manuscriptService.find(manuscript);
-        JsonObject attrs = manuscript.getAttributes();
-        if (attrs == null) {
-            attrs = new JsonObject();
-            manuscript.setAttributes(attrs);
-        }
-        attrs.add(CharacterTrackerData.KEY, gson.toJsonTree(book.toData()));
-        manuscriptService.save(manuscript);
+        manuscriptService.update(manuscript, current -> {
+            JsonObject attrs = current.getAttributes();
+            if (attrs == null) {
+                attrs = new JsonObject();
+                current.setAttributes(attrs);
+            }
+            attrs.add(CharacterTrackerData.KEY, gson.toJsonTree(book.toData()));
+        });
     }
 
     /**

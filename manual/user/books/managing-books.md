@@ -35,6 +35,15 @@ into a [folder](folders.md), the clone button makes a copy of it and the trash b
 the **Manage** menu (**Organise**, the window to [move and copy](folders.md#organise) books and folders, **Tag books**,
 **Statistics** and the **Mass changes** sub menu) and **Import**, which makes a new book of files you have (see [Importing a book](#importing-a-book)).
 
+### A book is open in one window
+
+A book can be open in one window at a time, also across your browser tabs, other browsers and your phone. When you open a book that is
+open somewhere else, Marginalia says since when and asks **Open here**: the book then opens here and its window in the other place
+closes, saying why (if a part is being generated there, the question says so and **Open here** stops the generation; what was written
+so far stays). **Cancel** leaves it where it is. When you log in and Marginalia opens the book you had open last, it does not take the
+book from another window: it leaves it closed and tells you where it is. A window in a tab that was closed or a device that went off
+does not keep the book: **Open here** takes it at once.
+
 ### Advanced search
 
 **Search** (in the header, next to **Manage**; the magnifier in the header on a phone) opens a window that finds books by more than
@@ -292,6 +301,10 @@ A book needs a model and a protocol to generate. Without them, generating stops 
 ## Deleting a book
 
 Click the trash button in the book list and confirm. The book disappears from your list.
+
+A book is not deleted while something works on it: a part being generated, a summary batch, a translation, a redraft or annotation
+window, or the book open in another window. Marginalia then says what is in the way (*This is in use: ...*); wait until it is done or
+stop it, and delete again. The same holds for restoring a [backup](backups.md) into the book while another window or a run works on it.
 
 Deleted books are not removed from the database right away. Until an administrator removes them, with all their parts,
 using [Cleanup](../administration/cleanup.md), you can bring the book back from the [Trash](../trash.md) tab. Until then the data is still in the

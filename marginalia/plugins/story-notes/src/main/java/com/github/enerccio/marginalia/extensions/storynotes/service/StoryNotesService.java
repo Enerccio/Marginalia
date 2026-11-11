@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 /**
@@ -35,8 +36,6 @@ public class StoryNotesService {
     public interface Change<T> {
         T apply(NoteBook book) throws Exception;
     }
-
-    private final Map<String, Object> locks = new ConcurrentHashMap<>();
 
     /** Who wants to know that the pages of a book changed, by the uuid of the book. */
     private final Map<String, Set<Runnable>> changeListeners = new ConcurrentHashMap<>();
@@ -88,24 +87,20 @@ public class StoryNotesService {
      * @return what the change returns
      */
     public <T> T update(Manuscript manuscript, Change<T> change) throws Exception {
-        T result;
-        synchronized (locks.computeIfAbsent(manuscript.getUuid(), _ -> new Object())) {
-            Manuscript current = manuscriptService.find(manuscript);
-            if (current == null) {
-                throw new IllegalStateException("The book is gone");
-            }
+        AtomicReference<T> result = new AtomicReference<>();
+        // read, change and save in one write transaction: two changes of the pages never lose one another
+        manuscriptService.update(manuscript, current -> {
             NoteBook book = read(current);
-            result = change.apply(book);
+            result.set(change.apply(book));
             JsonObject attrs = current.getAttributes();
             if (attrs == null) {
                 attrs = new JsonObject();
                 current.setAttributes(attrs);
             }
             attrs.add(StoryNotesData.KEY, gson.toJsonTree(book.toData()));
-            manuscriptService.save(current);
-        }
+        });
         changed(manuscript);
-        return result;
+        return result.get();
     }
 
     // --- the pages as text for the assistants ---

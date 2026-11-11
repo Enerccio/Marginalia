@@ -32,6 +32,14 @@ two seconds and shows, for each running job, the user, the kind, how long it run
 flight now (the AI or server and how long the call waits). It is the quick look when the server seems busy: a long list of calls waiting
 on one model tells you why everything is slow.
 
+Below the jobs, **Runs on the books** lists what works on a book now and keeps parts of it from being deleted or changed under it
+(see the [panel of the runs](../books/story-editor.md#the-panel-of-the-runs), which shows the same to each user for their own
+books): the user, the book, what it does, where it is (*INFERENCE* for a generation that writes its part, *Waits for you*, *Waiting
+for the model*), since when, and how many objects it holds (the book, parts). The window of an open book is a run too. **Stop**
+stops the run as its user would. **End**, after a question, ends a run without stopping its work: what it holds is given back at
+once. Use it only for a run that never ends (its work got stuck and it holds the book until a restart); its work may still write
+when it wakes up.
+
 ## The log: the Jobs tab
 
 ![The Jobs tab of the Admin page](../../images/admin-jobs.png)

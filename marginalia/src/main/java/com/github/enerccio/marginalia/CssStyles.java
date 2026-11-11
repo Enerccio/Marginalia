@@ -295,6 +295,20 @@ public final class CssStyles {
     public static final String PLANNER_SCENE_MAIN = "planner-scene-main";
     public static final String PLANNER_SCENE_TEXT = "planner-scene-text";
 
+    // the corner of the page where the windows of model runs are folded (RunCorner), and the mark of a part a window works on
+    public static final String RUN_CORNER_ROOT = "run-corner-root";
+    public static final String RUN_CORNER = "run-corner";
+    public static final String RUN_CORNER_ENTRY = "run-corner-entry";
+    public static final String RUN_CORNER_LABEL = "run-corner-label";
+    public static final String RUN_CORNER_BUTTONS = "run-corner-buttons";
+    public static final String RUN_CORNER_CHIP = "run-corner-chip";
+    public static final String RUN_CORNER_GRIP = "run-corner-grip";
+    public static final String RUN_CORNER_BAR = "run-corner-bar";
+    public static final String RUN_CORNER_LIST = "run-corner-list";
+    public static final String RUN_CORNER_STATUS = "run-corner-status";
+    public static final String RUN_CORNER_TEXT = "run-corner-text";
+    public static final String PART_BUSY = "part-busy";
+
     private CssStyles() {
     }
 

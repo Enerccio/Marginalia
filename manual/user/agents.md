@@ -258,7 +258,7 @@ The agent is told the roles, the descriptions and the commands of each model, an
 
 ## One model, several agents
 
-A local server often has one slot (one GPU): ask it for two answers at once and both crawl or time out. Set **Concurrent requests of agents** in the [settings of the model](inference-providers.md#general-settings) (1 for one slot) and the requests of your agents to it take turns, in the order they came: the others wait, their runs stay *Running*, and a **Pause** or **Stop** ends the wait. It counts the model requests of all the agents of all users who use that model, the commands that write with it included. It does not hold up your own writing in the story window, and that does not count against the agents either.
+A local server often has one slot (one GPU): ask it for two answers at once and both crawl or time out. The **Connections** of the [model](inference-providers.md#general-settings) (1 unless you set more) make every request to it take turns, in the order they came: the requests of your agents, of other users' agents and your own writing in the story window. A run that waits stays *Running*, and a **Pause** or **Stop** ends the wait at once. Between two answers of the model an agent holds no connection, so your generation can go in between.
 
 ## When you are not there
 

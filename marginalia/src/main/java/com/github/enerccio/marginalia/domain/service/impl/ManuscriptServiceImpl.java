@@ -16,6 +16,7 @@ import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.security.permissions.PermissionType;
 import com.github.enerccio.marginalia.domain.security.service.PermissionService;
 import com.github.enerccio.marginalia.domain.service.*;
+import com.github.enerccio.marginalia.domain.service.run.Runs;
 import com.github.enerccio.marginalia.domain.service.BackupService.BackupStrategy;
 import com.github.enerccio.marginalia.domain.service.agent.UuidPair;
 import com.github.enerccio.marginalia.domain.service.search.ManuscriptFilterValues;
@@ -125,6 +126,7 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
     @CommonTx
     public Manuscript save(Manuscript manuscript) throws Exception {
         agentRunService.checkNotLocked(manuscript);
+        checkActiveLeaf(manuscript);
         checkFolder(manuscript);
         boolean born = manuscript.getId() == null;
         Manuscript saved = super.save(manuscript);
@@ -147,6 +149,25 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
         }
         change.apply(fresh);
         return save(fresh);
+    }
+
+    /**
+     * While a generation writes the next part of the book the end of its branch stays on that part: a swipe, a switch to a branch or a
+     * copy of the book read before the generation moved it is refused.
+     */
+    private static void checkActiveLeaf(Manuscript manuscript) {
+        if (manuscript.getId() == null) {
+            return;
+        }
+        Runs.Run generation = Runs.generationOf(manuscript.getId());
+        if (generation == null || generation.getStage() != Runs.Stage.INFERENCE) {
+            return;
+        }
+        Long written = generation.getWrittenPart();
+        Long leaf = manuscript.getActiveLeaf() == null ? null : manuscript.getActiveLeaf().getId();
+        if (written != null && !written.equals(leaf)) {
+            Runs.check(manuscript, Runs.Operation.SWITCH);
+        }
     }
 
     /**
@@ -231,6 +252,8 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
     @CommonTx
     public Manuscript delete(Manuscript manuscript, boolean hard) throws Exception {
         agentRunService.checkNotLocked(manuscript);
+        // a run works on the book (a generation, a window of it in another page): before its parts go
+        Runs.check(manuscript, Runs.Operation.DELETE);
         if (!hard && manuscript != null && manuscript.getId() != null) {
             chatMessageService.softDeleteForManuscript(manuscript);
             tagRelationService.deleteForObject(manuscript, false);
@@ -996,6 +1019,8 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
             return m;
         }
         agentRunService.checkNotLocked(m);
+        // the window that restores is its own page; any other run of the book would work on parts that are gone
+        Runs.check(m, Runs.Operation.REPLACE);
 
         // 1. Store all current messages in that manuscript
         List<ChatMessage> oldMessages = chatMessageService.getAllMessages(m);

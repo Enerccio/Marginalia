@@ -16,6 +16,80 @@ public final class JavascriptLibrary {
     private JavascriptLibrary() {
     }
 
+    // --- leaving the page ---
+
+    /**
+     * Has the browser ask its own <i>Leave site?</i> before the page is closed, reloaded or left by a typed address, while {@code warn}
+     * is true (a generation runs: leaving stops it); false takes the question away again. The page cannot ask a question of its own
+     * then, browsers allow only theirs.
+     *
+     * @param element any element of the page, the question is kept on the window
+     */
+    public static void warnOnLeave(Element element, boolean warn) {
+        element.executeJs(
+                "if ($1) {"
+                        + " if (!window.__marginaliaLeave) { window.__marginaliaLeave = e => { e.preventDefault(); e.returnValue = ''; };"
+                        + " window.addEventListener('beforeunload', window.__marginaliaLeave); }"
+                        + "} else if (window.__marginaliaLeave) {"
+                        + " window.removeEventListener('beforeunload', window.__marginaliaLeave); window.__marginaliaLeave = null; }",
+                element, warn);
+    }
+
+    // --- a panel that is moved ---
+
+    /**
+     * Lets the user move a fixed panel by its handle (the panel of the runs) and keeps where it was left in the browser
+     * ({@code localStorage}, under the key); it stays inside the window, also when the window is made smaller. A drag is not a click
+     * on the handle's parent.
+     *
+     * @param panel  the element with {@code position: fixed}
+     * @param handle the element it is dragged by
+     */
+    public static void makeDraggable(Element panel, Element handle, String storageKey) {
+        panel.executeJs("""
+                const panel = $0, handle = $1, key = $2;
+                if (panel.__draggable) return;
+                panel.__draggable = true;
+                let saved = null;
+                const place = (left, top) => {
+                  const w = panel.offsetWidth, h = panel.offsetHeight;
+                  left = Math.max(0, Math.min(left, window.innerWidth - w));
+                  top = Math.max(0, Math.min(top, window.innerHeight - h));
+                  panel.style.left = left + 'px';
+                  panel.style.top = top + 'px';
+                  panel.style.bottom = 'auto';
+                };
+                try { saved = JSON.parse(localStorage.getItem(key) || 'null'); } catch (e) { saved = null; }
+                if (saved) requestAnimationFrame(() => place(saved.left, saved.top));
+                window.addEventListener('resize', () => { if (panel.style.top) place(parseFloat(panel.style.left), parseFloat(panel.style.top)); });
+                let start = null, moved = false;
+                handle.addEventListener('pointerdown', e => {
+                  const box = panel.getBoundingClientRect();
+                  start = { x: e.clientX, y: e.clientY, left: box.left, top: box.top };
+                  moved = false;
+                  try { handle.setPointerCapture(e.pointerId); } catch (err) {}
+                  e.preventDefault();
+                });
+                handle.addEventListener('pointermove', e => {
+                  if (!start) return;
+                  const dx = e.clientX - start.x, dy = e.clientY - start.y;
+                  if (!moved && Math.abs(dx) + Math.abs(dy) < 4) return;
+                  moved = true;
+                  place(start.left + dx, start.top + dy);
+                });
+                const end = () => {
+                  if (!start) return;
+                  start = null;
+                  if (moved) {
+                    try { localStorage.setItem(key, JSON.stringify({ left: parseFloat(panel.style.left), top: parseFloat(panel.style.top) })); } catch (e) {}
+                  }
+                };
+                handle.addEventListener('pointerup', end);
+                handle.addEventListener('pointercancel', end);
+                handle.addEventListener('click', e => { if (moved) { e.stopPropagation(); moved = false; } }, true);
+                """, handle, storageKey);
+    }
+
     // --- clipboard ---
 
     /**

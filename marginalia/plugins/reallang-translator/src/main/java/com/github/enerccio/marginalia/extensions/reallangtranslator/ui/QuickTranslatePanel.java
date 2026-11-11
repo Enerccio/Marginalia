@@ -9,7 +9,9 @@ import com.github.enerccio.marginalia.extensions.translatorcommon.service.AsyncR
 import com.github.enerccio.marginalia.extensions.translatorcommon.service.PluginLog;
 import com.github.enerccio.marginalia.extensions.translatorcommon.ui.CommonStyles;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
+import com.github.enerccio.marginalia.domain.service.run.Runs;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
+import com.github.enerccio.marginalia.ui.widgets.WindowRun;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.Span;
@@ -31,6 +33,7 @@ import static com.github.enerccio.marginalia.extensions.reallangtranslator.Reall
 public class QuickTranslatePanel extends VerticalLayout {
 
     private final Manuscript book;
+    private final WindowRun request = WindowRun.of(this, "reallang-quick", () -> T.localized(QUICK_TRANSLATE));
     private final BookReal service;
 
     private final Select<LanguageRef> language = new Select<>();
@@ -49,6 +52,7 @@ public class QuickTranslatePanel extends VerticalLayout {
      */
     public QuickTranslatePanel(Manuscript book, BookReal service, List<LanguageRef> languages) {
         this.book = book;
+        request.book(book);
         this.service = service;
         setPadding(false);
         setSizeFull();
@@ -96,21 +100,25 @@ public class QuickTranslatePanel extends VerticalLayout {
         translate.setEnabled(false);
         busy.setVisible(true);
         showResult(null);
-        AsyncRuns.start("reallang-quick", PluginLog.get(), () -> service.quickTranslate(book, text, who, languageId), (result, failure) -> {
-            translate.setEnabled(true);
-            busy.setVisible(false);
-            if (failure != null) {
-                Notification.error(String.format(T.localized(THE_TRANSLATION_FAILED), failure.getMessage()));
-                return;
-            }
-            switch (result.status()) {
-                case TRANSLATED -> showResult(result);
-                case NO_LANGUAGE -> Notification.error(T.localized(THE_BOOK_HAS_NO_LANGUAGE));
-                case NO_MODEL -> Notification.error(T.localized(THE_BOOK_HAS_NO_MODEL));
-                case BAD_ANSWER -> Notification.error(T.localized(THE_MODEL_ANSWERED_WRONG));
-                default -> Notification.error(T.localized(THERE_IS_NO_TEXT_TO_TRANSLATE));
-            }
-        });
+        // the request as a run: the panel of the runs shows it (no Stop: the translation can not be stopped)
+        try (Runs.Binding _ = request.start(null)) {
+            AsyncRuns.start("reallang-quick", PluginLog.get(), () -> service.quickTranslate(book, text, who, languageId), (result, failure) -> {
+                request.finished();
+                translate.setEnabled(true);
+                busy.setVisible(false);
+                if (failure != null) {
+                    Notification.error(String.format(T.localized(THE_TRANSLATION_FAILED), failure.getMessage()));
+                    return;
+                }
+                switch (result.status()) {
+                    case TRANSLATED -> showResult(result);
+                    case NO_LANGUAGE -> Notification.error(T.localized(THE_BOOK_HAS_NO_LANGUAGE));
+                    case NO_MODEL -> Notification.error(T.localized(THE_BOOK_HAS_NO_MODEL));
+                    case BAD_ANSWER -> Notification.error(T.localized(THE_MODEL_ANSWERED_WRONG));
+                    default -> Notification.error(T.localized(THERE_IS_NO_TEXT_TO_TRANSLATE));
+                }
+            });
+        }
     }
 
     private void showResult(Quick result) {

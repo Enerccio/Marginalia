@@ -23,10 +23,6 @@ public final class CommonStyles {
     public static final String HINT = "translator-hint";
     /** A conflict, a warning in the color of an error. */
     public static final String CONFLICT = "translator-conflict";
-    /** The heading over a box of the window of a run (the reasoning, the answer). */
-    public static final String RUN_HEADING = "translator-run-heading";
-    /** A box of the window of a run: the text as it arrives, scrolled. */
-    public static final String RUN_BOX = "translator-run-box";
 
     private static final String RESOURCE = "/translatorcommon.css";
 

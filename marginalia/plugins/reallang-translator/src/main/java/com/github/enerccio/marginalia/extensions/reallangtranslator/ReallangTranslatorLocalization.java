@@ -91,7 +91,6 @@ public class ReallangTranslatorLocalization extends PluginLocalizationBundle {
     public static final String TRANSLATE_MISSING_DIALOGS_REAL = "Translate missing dialogs (real language)";
     public static final String TRANSLATE_MISSING_DIALOGS_IN_SELECTION_REAL = "Translate missing dialogs in selection (real language)";
     public static final String TRANSLATE_DIALOGS_REAL = "Translate dialogs (real language)";
-    public static final String TRANSLATING_THE_SELECTION = "Translating the selected text...";
     public static final String TRANSLATING_THE_SPEECH = "Translating the speech of the part...";
     public static final String TRANSLATION = "Translation";
     public static final String WHAT_BOOKS_AND_FOLDERS_INHERIT = "What books and folders inherit. A book or a folder can choose its own in its dialog, under Extension Settings.";
@@ -403,8 +402,6 @@ public class ReallangTranslatorLocalization extends PluginLocalizationBundle {
         ja(TRANSLATE_DIALOGS_REAL, "台詞を翻訳(実在言語)");
         zh(TRANSLATE_DIALOGS_REAL, "翻译对白(现实语言)");
 
-        ja(TRANSLATING_THE_SELECTION, "選択したテキストを翻訳中...");
-        zh(TRANSLATING_THE_SELECTION, "正在翻译所选文本...");
 
         ja(TRANSLATING_THE_SPEECH, "パートの台詞を翻訳中...");
         zh(TRANSLATING_THE_SPEECH, "正在翻译本段对白...");

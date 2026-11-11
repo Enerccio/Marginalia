@@ -259,13 +259,18 @@ public class UserServiceImpl extends BaseServiceImpl<User, UserRepository> imple
     @Override
     @CommonTx
     public User changePassword(User user, String password) throws Exception {
-        user.setPasswordHash(newPasswordHash(password));
-        user.setSavedLogins(null);
-        user.setFailedLogins(0);
-        user.setLockedUntil(0);
-        save(user);
-        endSessions(user);
-        return user;
+        String hash = newPasswordHash(password);
+        // the stored user, not the copy of the caller: a login saves the user too (its counters, the saved logins)
+        User stored = user.getId() == null ? null : find(user.getId());
+        for (User target : stored == null || stored == user ? List.of(user) : List.of(user, stored)) {
+            target.setPasswordHash(hash);
+            target.setSavedLogins(null);
+            target.setFailedLogins(0);
+            target.setLockedUntil(0);
+        }
+        User saved = save(stored != null ? stored : user);
+        endSessions(saved);
+        return saved;
     }
 
     /**

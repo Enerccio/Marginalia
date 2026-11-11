@@ -331,20 +331,28 @@ public class AudiobookService {
         return none.get();
     }
 
+    /**
+     * Stores the entry in the book as it is stored now (the rest of the book is not written back from the copy the caller holds) and in
+     * that copy too, so the caller reads it from there.
+     */
     private void writeBook(Manuscript manuscript, String name, Object value) {
         try {
-            JsonObject attrs = manuscript.getAttributes();
-            if (attrs == null) {
-                attrs = new JsonObject();
-                manuscript.setAttributes(attrs);
-            }
-            JsonObject book = attrs.has(BOOK_KEY) && attrs.get(BOOK_KEY).isJsonObject() ? attrs.getAsJsonObject(BOOK_KEY) : new JsonObject();
-            book.add(name, gson.toJsonTree(value));
-            attrs.add(BOOK_KEY, book);
-            manuscriptService.save(manuscript);
+            writeBookEntry(manuscript, name, value);
+            manuscriptService.update(manuscript, current -> writeBookEntry(current, name, value));
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    private void writeBookEntry(Manuscript manuscript, String name, Object value) {
+        JsonObject attrs = manuscript.getAttributes();
+        if (attrs == null) {
+            attrs = new JsonObject();
+            manuscript.setAttributes(attrs);
+        }
+        JsonObject book = attrs.has(BOOK_KEY) && attrs.get(BOOK_KEY).isJsonObject() ? attrs.getAsJsonObject(BOOK_KEY) : new JsonObject();
+        book.add(name, gson.toJsonTree(value));
+        attrs.add(BOOK_KEY, book);
     }
 
     /** The cast of the book (it is in the book, so it travels with it), an empty one when it has none. */
@@ -882,6 +890,16 @@ public class AudiobookService {
      * @throws IllegalArgumentException when there is no narrator voice, neither in the cast nor in the backend
      */
     public AutoResult convertFinishedPart(Manuscript manuscript, ChatMessage part, Consumer<ConversionJob.Snapshot> onFinished) throws Exception {
+        return convertFinishedPart(manuscript, part, null, onFinished);
+    }
+
+    /**
+     * As {@link #convertFinishedPart(Manuscript, ChatMessage, Consumer)}, and told the id of the job when it is queued (to stop it).
+     *
+     * @param onQueued called with the id of the job before it can end; null for none
+     */
+    public AutoResult convertFinishedPart(Manuscript manuscript, ChatMessage part, Consumer<String> onQueued,
+                                          Consumer<ConversionJob.Snapshot> onFinished) throws Exception {
         AutoMode mode = autoModeOf(manuscript);
         if (mode == AutoMode.NO || part == null || part.getResponse() == null || part.getResponse().isBlank()) {
             return AutoResult.NOTHING;
@@ -905,6 +923,9 @@ public class AudiobookService {
         List<ConversionJob> jobs = convert(manuscript, backend, number, number, options, ConversionJob.Mode.PART);
         if (jobs.isEmpty()) {
             return AutoResult.NOTHING;
+        }
+        if (onQueued != null) {
+            onQueued.accept(jobs.getFirst().id());
         }
         if (onFinished != null) {
             String jobId = jobs.getFirst().id();

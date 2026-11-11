@@ -5,9 +5,12 @@ import com.github.enerccio.marginalia.domain.service.CancellationToken;
 import java.util.concurrent.CancellationException;
 
 /**
- * What a run that asks a model shows and how it is stopped. The run binds one to its worker thread ({@link #bind}); {@link ModelClient} finds it
- * there, so the code between the run and the request (the translation service) needs no extra argument. A run with none behaves as before: the
- * request goes on and nothing is shown.
+ * How a run that asks a model is stopped, and who else hears what the model sends. The run binds one to its worker thread ({@link #bind});
+ * {@link ModelClient} finds it there, so the code between the run and the request (the translation service) needs no extra argument. A run with
+ * none behaves as before: the request goes on.
+ * <p>
+ * What the model writes is shown by the panel of the runs of the core (bottom left of every page of the user): the requests are made on a thread
+ * bound to the run of the core's registry, which the gate of the connections reports to. A listener is only for a window of its own.
  * <p>
  * Stopping cancels the request that is going now (the model server stops generating) and refuses the next ones of the same run.
  */
@@ -36,6 +39,11 @@ public final class RunProgress {
     private final Listener listener;
     private volatile boolean stopped;
     private volatile CancellationToken token;
+
+    /** A progress with no listener of its own: only the Stop (the panel shows the text). */
+    public RunProgress() {
+        this(null);
+    }
 
     public RunProgress(Listener listener) {
         this.listener = listener;
@@ -105,7 +113,9 @@ public final class RunProgress {
     void requestStarted() {
         checkNotStopped();
         token = null;
-        listener.requestStarted();
+        if (listener != null) {
+            listener.requestStarted();
+        }
     }
 
     /**
@@ -119,7 +129,7 @@ public final class RunProgress {
     }
 
     void chunk(boolean reasoning, String text) {
-        if (text != null && !text.isEmpty()) {
+        if (listener != null && text != null && !text.isEmpty()) {
             listener.chunk(reasoning, text);
         }
     }

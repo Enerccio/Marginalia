@@ -9,6 +9,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -35,20 +37,44 @@ class AIGateTest extends MarginaliaTestBase {
     }
 
     @Test
-    void anAIWithoutACapLetsEveryoneIn() throws Exception {
+    void anAIWithoutTheSettingHasOneConnection() throws Exception {
+        cap(null);
         CompletableFuture<Permit> first = gate.acquire(ai);
         CompletableFuture<Permit> second = gate.acquire(ai);
-        CompletableFuture<Permit> third = gate.acquire(ai);
 
         assertThat(first).isCompleted();
-        assertThat(second).isCompleted();
-        assertThat(third).isCompleted();
-        assertThat(gate.active(ai)).isEqualTo(3);
-        assertThat(gate.waiting(ai)).isZero();
+        assertThat(second).isNotDone();
         first.get().close();
+        assertThat(second).isCompleted();
+        second.get().close();
+        assertThat(gate.active(ai)).isZero();
+    }
+
+    @Test
+    void theOnesThatWaitAreToldHowManyAreBeforeThem() throws Exception {
+        cap(1);
+        List<Integer> secondSees = new CopyOnWriteArrayList<>();
+        List<Integer> thirdSees = new CopyOnWriteArrayList<>();
+        CompletableFuture<Permit> first = gate.acquire(ai);
+        CompletableFuture<Permit> second = gate.acquire(ai, secondSees::add);
+        CompletableFuture<Permit> third = gate.acquire(ai, thirdSees::add);
+
+        assertThat(secondSees).containsExactly(1);
+        assertThat(thirdSees).containsExactly(2);
+        first.get().close();
+        assertThat(second).isCompleted();
+        assertThat(secondSees).as("not told when its turn comes").containsExactly(1);
+        assertThat(thirdSees).containsExactly(2, 1);
         second.get().close();
         third.get().close();
-        assertThat(gate.active(ai)).isZero();
+    }
+
+    @Test
+    void anAIThatIsNotStoredIsNotCounted() {
+        AI transientAi = new com.github.enerccio.marginalia.domain.model.impl.OpenAICompatible();
+
+        assertThat(gate.acquire(transientAi)).isCompleted();
+        assertThat(gate.acquire(transientAi)).isCompleted();
     }
 
     @Test
@@ -135,12 +161,14 @@ class AIGateTest extends MarginaliaTestBase {
 
         cap(3);
         CompletableFuture<Permit> third = gate.acquire(ai);
-        assertThat(third).as("behind the one that waits").isNotDone();
-        first.get().close();
+        // the next request reads the raised number: the one that waits goes in first, then the new one
         assertThat(second).isCompleted();
         assertThat(third).isCompleted();
+        assertThat(gate.active(ai)).isEqualTo(3);
+        first.get().close();
         second.get().close();
         third.get().close();
+        assertThat(gate.active(ai)).isZero();
     }
 
     @Test

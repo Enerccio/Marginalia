@@ -215,14 +215,14 @@ public class SideQueryService {
     }
 
     public void saveSideQueryData(Manuscript manuscript, SideQueryData data) throws Exception {
-        manuscript = manuscriptService.find(manuscript);
-        JsonObject attrs = manuscript.getAttributes();
-        if (attrs == null) {
-            attrs = new JsonObject();
-            manuscript.setAttributes(attrs);
-        }
-        attrs.add(SideQuerySettings.KEY, gson.toJsonTree(data));
-        manuscriptService.save(manuscript);
+        manuscriptService.update(manuscript, current -> {
+            JsonObject attrs = current.getAttributes();
+            if (attrs == null) {
+                attrs = new JsonObject();
+                current.setAttributes(attrs);
+            }
+            attrs.add(SideQuerySettings.KEY, gson.toJsonTree(data));
+        });
     }
 
     public List<LLMChatMessage> buildPromptPayload(

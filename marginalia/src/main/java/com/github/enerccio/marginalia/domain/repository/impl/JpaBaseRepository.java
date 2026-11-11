@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.domain.repository.impl;
 
 import com.github.enerccio.marginalia.domain.model.BaseEntity;
 import com.github.enerccio.marginalia.domain.repository.BaseRepository;
+import com.github.enerccio.marginalia.domain.service.run.Runs;
 import com.github.enerccio.marginalia.utils.AppClock;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
@@ -87,6 +88,11 @@ public abstract class JpaBaseRepository<T extends BaseEntity> implements BaseRep
         if (entity.getCreation() == null) {
             entity.setCreation(AppClock.now());
         }
+        checkStale(entity);
+        if (entity.isDeleted()) {
+            // a soft delete is a save; a run may hold the object
+            Runs.deleting(entity);
+        }
         if (touch || entity.getModification() == null) {
             entity.setModification(AppClock.now());
         }
@@ -97,10 +103,21 @@ public abstract class JpaBaseRepository<T extends BaseEntity> implements BaseRep
             entity = entityManager.merge(entity);
         }
         entityManager.flush();
+        StaleSaves.written(entity);
         if (touch) {
             changed(entity);
         }
         return entity;
+    }
+
+    /**
+     * A detached copy read before the last save of its row is a stale save, see {@link StaleSaves}. A managed entity is the row of
+     * this transaction.
+     */
+    private void checkStale(T entity) {
+        if (entity.getId() != null && !entityManager.contains(entity)) {
+            StaleSaves.check(entity);
+        }
     }
 
     /**
@@ -121,8 +138,10 @@ public abstract class JpaBaseRepository<T extends BaseEntity> implements BaseRep
             entity.setDeleted(true);
             return save(entity);
         }
+        Runs.deleting(entity);
         changed(entity);
         entityManager.remove(entityManager.contains(entity) ? entity : entityManager.merge(entity));
+        StaleSaves.removed(entity);
         return null;
     }
 

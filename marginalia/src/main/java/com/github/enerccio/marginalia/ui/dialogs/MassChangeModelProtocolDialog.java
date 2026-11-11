@@ -416,13 +416,14 @@ public class MassChangeModelProtocolDialog extends Dialog implements LLMInteract
                 if (book == null) {
                     continue;
                 }
-                if (ai != null) {
-                    book.setAi(ai);
-                }
-                if (protocol != null) {
-                    book.setProtocol(protocol);
-                }
-                manuscriptService.save(book);
+                manuscriptService.update(book, fresh -> {
+                    if (ai != null) {
+                        fresh.setAi(ai);
+                    }
+                    if (protocol != null) {
+                        fresh.setProtocol(protocol);
+                    }
+                });
                 changed++;
             }
         } catch (Exception e) {

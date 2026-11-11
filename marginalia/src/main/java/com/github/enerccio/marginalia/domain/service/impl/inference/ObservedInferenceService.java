@@ -47,6 +47,11 @@ public class ObservedInferenceService implements InferenceService {
     }
 
     @Override
+    public <T> T unwrap(Class<T> type) {
+        return type.isInstance(this) ? type.cast(this) : delegate.unwrap(type);
+    }
+
+    @Override
     public List<String> getModels() {
         return delegate.getModels();
     }

@@ -4,7 +4,8 @@ The analysis for the item **101** of `TODO.md` (*Concurrency of long operations*
 What the item asks for: one registry of the running operations per book and part, conflicting operations refused or queued with a
 message that names the run, a run that survives the closed page, and a non-modal indicator with Stop, so that the strict modal of the
 translators becomes a choice. This file says what exists today (core and every plugin), what is missing, a design, and an order of
-work. Nothing here is built yet.
+work. Steps 1 to 8 of the order of work are built (step 3 for the two windows of the core; step 8 for kind A, kind B was
+not needed so far).
 
 Read from the code at commit `f2f64a955`. Points marked **(check)** were not read to the end and must be confirmed before they are
 relied on.
@@ -814,34 +815,180 @@ working as today (its own window); it only is not seen by the registry.
 
 ## Order of work
 
-1. **Safe writes** (design 1). Independent, useful by itself, and the condition for everything after it. Medium: many small edits,
-   tests per store.
-2. **The connections of an AI as the queue of every request** (design 7): the gate in the wrapper of `forAI`, the scope for a
-   request inside a request, the two classes of order, "waiting for the model" told to the caller, the label of the setting.
-   Small to medium, no plugin changes.
-3. **Annotate and redraft not modal** (design 5a): the two windows, the changed-text check of a whole-part redraft, the busy mark
-   on the card, the minimise into a first version of the corner panel (fed by the page). Small to medium, no public API. Then
-   the other read-only windows of the table in 5a, core and plugins, one at a time (small each).
-4. **The registry + the general lock check** (design 2, 3, 3a): the guard in the base `save` / `delete` with modes and
+1. ✅ **Safe writes** (design 1). Done: `ChatMessageService.update(part, PartChange)`; the stores of the built-in plugins (Arc
+   Outline, Author's Note, Audiobook, Beta Readers, Character Tracker, Image Generator, Knowledge Tracker, Manga Generator,
+   Reviewer, Side Query, SillyTavern Converter, Story Notes; the Story Notes lock is gone) and the core writers that saved a held
+   copy (`deleteNodeAndMigrateChildren`, the mass model/protocol and language dialogs, the lore notes agent, the lorebook
+   commands, `UserServiceImpl.changePassword`) on `update`; no version column; the detector `StaleSaves` in
+   `JpaBaseRepository.write` (logs in production, fails the tests: `-Dtest.staleSaves`). It compares with the modification the
+   last save of the row wrote, kept in memory, not with the stored one: a bulk touch (a saved part touches its book) is not a
+   stale save. The full suite has no stale save left. Not done: the book window's `save()` and the other
+   `refreshManuscript()` + change + `save()` places of its parts (they read fresh first, the gap is the user's click, not a
+   run; they become `update` with the holds of step 4/5), `Lorebook` / `LorebookEntry` `update` (no run writes them yet), and
+   the generation's own saves of the part it holds (the hold of step 4 protects them; a plugin that writes the part during the
+   inference is reported by the detector).
+2. ✅ **The connections of an AI as the queue of every request** (design 7). Done: `GatedInferenceService` in `forAI` around
+   every provider (outside `ObservedInferenceService`); a plain queue per AI (`AIGateImpl`, the places are handed out outside
+   its lock); one connection when the AI has no number (`AI.getConnections()`, the field *Connections*, required, shows 1);
+   the place is given back before the caller's terminal callback and while a function the model called runs
+   (`FunctionSet.around`); the methods never block: with no free place they return a token and send later from a virtual
+   thread with the caller's request scope, `UsageContext`, `UnmeteredScope`, `InferenceSession` and job; `onWaiting(ahead)` on
+   the callbacks (`0` when sent), shown by the story page (one notice) and the command bar; the agent runner and the agents'
+   commands no longer take places themselves (the agent's pause still ends a wait for a connection at once, through
+   `onWaiting`). `InferenceService.unwrap` (the provider plugins needed it already: `forAI` returns a wrapper). Not done:
+   "waiting" in the other windows (annotate, redraft, summaries, the plugins' windows): they get `onWaiting` on their
+   callbacks but show nothing yet; that is the corner panel of step 3/6. The freeze of the page is unchanged (step 5).
+3. ✅ **Annotate and redraft not modal** (design 5a): the two windows, the changed-text check of a whole-part redraft, the busy mark
+   on the card, the minimise into a first version of the corner panel (fed by the page). Done for `AnnotateDialog` (one part,
+   a range, automatic) and `RedraftDialog` (whole part, passage, automatic): `FloatingWindow` (modeless, draggable, resizable,
+   at the right on the desktop; strict on the phone; fold into the corner and back; stopped with the book window, also folded),
+   `PageRuns` (the windows of the page, with their part ids) and `RunCorner` (bottom left in `Main`, *Open* / *Stop* / *Close*,
+   above the strict book window like the help widget); the card badge and `StoryCard.getBusyWith()` turning off regenerate,
+   swipe, redraft, annotate, merge, delete and redraft selection (the one public API: a default method and two `@PublicAPI`
+   methods per card); the changed-text check of a whole-part redraft (*Apply anyway* / *Cancel*, the differences against the
+   part as it is now; an automatic apply waits); a part deleted meanwhile is not written. Not done: the corner is not
+   draggable and does not remember its place, it shows no live text (the window has it); a *merge* of the part after the busy
+   one into it is not off (the deleted-part check covers what it can); the generation is not asked about an open redraft of
+   the last part (point 3 of 5a; the changed-text check catches a *Continue* that changed it); the mass delete does not skip
+   busy parts (same check). Then the other read-only windows of the table in 5a, core and plugins, one at a time (small
+   each): `SummaryDialog`, `CreateSummariesDialog` / `ResummarizeDialog`, the plugins' windows.
+4. ✅ **The registry + the general lock check** (design 2, 3, 3a): the guard in the base `save` / `delete` with modes and
    containers, the agent lock folded into it, the explicit checks of the compound operations, the bulk statements looked at;
    **one window per book** as the first holder (design 3b: the check when a book is opened, *open it here and close it there*);
    then the holds **for what already runs on the server** (translators through the library, Knowledge Tracker, summary
    batches, Audiobook batches, and the generation, which registers what it holds). Medium. From here on a second generation and a delete under a run are
    refused with a name; the busy mark of step 3 is read from the registry.
-5. **Blocking by part and stage** (design 6a to 6c): the hold instead of the boolean in every part of the book window, desktop
+   Done: `Runs` (`domain.service.run`), **static** like `Jobs` and not a bean (the library is a copy per bundle without
+   injection, and the base repository needs it); modes `WRITE`, `STRUCTURE`, `READ`, `OPEN`; operations `DELETE`, `REPLACE`,
+   `GENERATE`, `OPEN`, `WRITE`; `startUnless` checks and starts in one step; `Runs.HeldException` extends
+   `ManuscriptLockedException` and names the run (`ERROR_HELD_BY_RUN`). The guard is in `JpaBaseRepository.delete` and in a
+   save of an entity marked deleted (the lowest level); the container is the book (a book is refused by any run of it, except
+   the `OPEN` hold of the current page). Explicit checks: `ManuscriptServiceImpl.delete` and `restoreBackup`, `generateNextTurn`.
+   Holders: the generation (its book `READ`, its new part `WRITE`, given back when `CLEANUP` starts), the window of a book
+   (`BookWindows`, desktop and phone, *Open here*, the restored workspace never takes over, the statistics now ask the agent
+   lock too), the redraft and annotation windows (`STRUCTURE`), `PartRuns` and `RangeRuns` of `translator-common` (`WRITE`;
+   the word extraction `READ`), the summary batches and the resummary (`READ`); the cards read `Runs.busyWith`
+   (`RunsOnPage.listen`); the mass delete skips held parts. Not done:
+   - **saves are not refused**: a `WRITE` hold refuses a delete and a second writer, not a save by someone else, because the
+     holder's own saves come from many threads (the inference callbacks) and telling them apart needs the thread scope of the
+     work (3a, *the holder writes through its own hold*); with step 5;
+   - **the agent lock is not folded in**: it stays a status in the database, asked by the services as before, and by
+     `BookWindows.open` through `AgentLockCheck`; a check per write would be a query per write;
+   - the Knowledge Tracker and the Audiobook are not registered (they only read the parts; their place is the panel, step 6);
+   - starting an agent on a book open in a window is not refused (a scheduled agent would fail while the author has the book
+     open; what it does today stays, 3b *(check)*); the imports into a book (`insertParts`, `importTree`) and search and replace
+     do not check the runs; the bulk statements were not looked at one by one (the deletes of a book's parts go with the
+     book, which is checked);
+   - a run whose work never reaches its end (a step of the generation that never calls `next`) holds until a restart; there is
+     no sweeper yet (with `/jobs`, step 6).
+5. ✅ **Blocking by part and stage** (design 6a to 6c): the hold instead of the boolean in every part of the book window, desktop
    and phone; the conflict table in the services; the author's `next` / regenerate commands blocked the same way. Medium to
    large (many small places, the public API of the window's parts). This is where a side query, a lore edit or a redraft of
    another part beside a running generation becomes possible. With it (design 6d): leaving the book asks and stops, a closed
    tab stops through the normal Stop path, the browser's prompt while a generation runs.
-6. **The panel on the registry**: per user instead of per page, Stop and the live text for every run, the queue of each model;
+   Done: the generation's run has a **stage** (`Runs.Stage` `PREPARE` / `INFERENCE`); when the `INFERENCE` step starts it holds the
+   branch above its part in `STRUCTURE` and moves on. New operations `EDIT` (the text of a part by hand: refused by a generation's
+   `WRITE`; a translation's is not), `MOVE` (merged away, a part inserted after it: refused by `WRITE` and `STRUCTURE`), `SWITCH`
+   (the active leaf, refused during the inference). Checked in `ChatMessageServiceImpl.storeResponse` (so `updateResponse`,
+   `storeResponse`, `replaceText`), `mergeIntoPrevious`, `insertPart` (so an import of parts before or after a part; `importTree` is not checked) and
+   `ManuscriptServiceImpl.save` (a leaf that is not the written part: swipe, branch, a stale copy). The windows follow the
+   registry (`RunsOnPage.listen`), whoever started the generation: `GenerationHold` to every tab (`setHold`, default
+   `setFrozen(hold != null)`); info, prompt and lorebook free from the inference on, tree and backup held; the story: only the
+   written card frozen, the others *kept in place* (`StoryCard.setKeptInPlace`: no delete, merge, branch), menu, command bar and
+   left bar on, search and replace / import / mass delete off, the round button Stop (also for a generation the tab did not start).
+   6d: the exit button asks and stops (`MSG_LEAVE_STOPS_GENERATION`), a window that leaves its page stops the generation the page
+   started (`BookWindows.stopGenerationOf`, on detach: closed tab, heartbeat timeout), `JavascriptLibrary.warnOnLeave` while a
+   generation runs. Not done:
+   - **6c, the command bar's `next` / regenerate / swipe**: they still run under the strict `CommandProgressDialog` and the
+     part does not stream into the story; the window does follow their hold (it greys out what the generation holds) but under
+     the modal that shows nothing. Needs the page to become a listener of a generation it did not start (a listener added to
+     the run, or the engine's listener as a list); then the modal goes for these commands;
+   - **saves are still not refused** (a plain `save` of a held part by someone else); the thread scope is still missing, and
+     every by-hand path goes through a checked method now, so it has not been needed;
+   - a stale copy of the book saved during the inference is refused (`SWITCH`), not repaired: the window's tabs read the book
+     fresh before they save, so it should not happen from the interface;
+   - the cleanup is held as the prepare (the run ends when `CLEANUP` starts, the window holds the whole book until the listener's
+     `onComplete`): a fraction of a second;
+   - the stage moves when the `INFERENCE` step starts, before its `BEFORE_INFERENCE` event: while the Prompt Inspector asks its
+     question the window is free already (the table above puts that question in *Prepare*); the prompt is built by then, so
+     nothing the author changes reaches it;
+   - logout while a part is generated does not ask (the book window covers the workspace, the logout is behind it);
+   - **(check)** on a phone, whether a browser in the background reports the page as gone at once (6d); not tested on a device.
+6. ✅ **The panel on the registry**: per user instead of per page, Stop and the live text for every run, the queue of each model;
    notifications from the panel; `/jobs` shows the book. Medium. The strict modal of the Real Language Translator becomes a
    setting here (it writes the text of a part, so it waits for the refusals of step 4).
-7. **The loop after the part** (design 5b): stages and bindings in the core, annotation and redraft without their windows, the
+   Done: the strict modal is **removed, with no setting** (as design 4 and the decisions say; the line above was older). Each run has
+   its text (`Runs.Text`: the end of the reasoning and of the answer, the place in the queue, the requests), fed by
+   `GatedInferenceService` for every request made on a thread bound to the run (`run.bind()`, `Runs.current()`; the callbacks run
+   with it bound, so the next request of a chain reports to it too); bound: the generation's steps, the summary batches and the
+   resummary (which got their Stop through `setOnStop`), `PartRuns` / `RangeRuns`, the annotate and redraft windows when they start
+   a request (`FloatingWindow.bind`), the Knowledge Tracker's `ExtractionRun` (now a run
+   of the registry, `setWaitingForUser` while a proposal waits). `RunCorner` lists the runs of the user (`Runs.ofUser`, owner from the
+   book or `Jobs.currentOwner()`) and the windows of the page: chip with the first run and the count, a list with book, state
+   (waiting N before / thinking / writing / waits for you / stopping), time, the end of the text (throttled, `RunsOnPage.listenText`),
+   Open / Stop / Close; draggable by a grip, the place in `localStorage`; a bar on the phone. A stop from another page reaches a
+   window in its own page (`ui.access`). The end: `end(Outcome)`, `Builder.notifies`, the first live page of the user sends the
+   notification when the run's page is gone (`claimNotice`); used by the resummary. `/jobs`: `RunsGrid` with user, book, label,
+   source, state, since, holds, Stop and End (the sweeper by hand). `RunWindow` and its texts and styles are gone from
+   `translator-common`; `new RunProgress()`. Not done:
+   - **the Audiobook's batches** are not runs of the registry yet (the queue batches by speech model; each batch should be a run that
+     holds its parts READ and binds its worker); so a conversion is not in the panel;
+   - the panel has no **Review** / *go to the book* actions for a run that waits for the user (the Knowledge Tracker's proposal is
+     reviewed in its tab), and no list of the finished runs: an entry goes when its run ends;
+   - only the resummary declares a notification: the other runs that end after their page is gone (a translation, the tracker)
+     have no source of their own, or one that is only for runs the user started (the tracker's);
+   - `KnowledgeTracker`'s `ProgressPanel` stays (the panel shows the run as well);
+   - the jobs of `/jobs` still do not name the book (the runs below them do); a job knows only the book id of its usage;
+   - **(check)** the drag in a real browser with a book window open (the panel is in the top layer then).
+7. ✅ **The loop after the part** (design 5b): stages and bindings in the core, annotation and redraft without their windows, the
    four plugins moved from the `AutoAnnotate.finished` decorator to bindings, one entry in the panel. Medium to large. For the
    author's generations, from the page or the command bar; not for agent runs.
-8. **Kind A registrations** (cheap, one by one). **Kind B** (the result waits without its window) for the remaining windows only
+   Done: `AfterPart` (stages, modes, `Binding`, a **blocking** `Handler` with `appliesTo`, `Context`: the book and part as stored,
+   the generation's request / AI / protocol / input / properties, `onStop`, `await`, `changed`, `skip`, `waitForAuthor`, `stop`,
+   `accessUI`), `StoryGenerationService.addAfterPartBinding`. `AfterPartPhase` is started by the engine after `AFTER_CLEANUP` of a
+   completed generation (`startAfterPart`), as a phase of its own (own run `Runs.AFTER_PART`, own stop and end, never `CLEANUP`); one
+   run holds the part `STRUCTURE` until the end of `TRANSFORM`, then `READ`; `setBlocksGeneration` during `REWRITE`; parallel steps
+   on the engine's executor; a failure is a Stop; the "stopped at / failed at, not run: ..." message goes to `onWarning`; a
+   regeneration of the part stops it; `GenerationOptions.afterPart` (`withoutAfterPart()` for an agent's command). `Runs`: child
+   runs (`setAdopts`, `getParent`, `partOf`; text and queue forwarded, Stop passed on), `blocksGeneration`, `setOnOpen` (the
+   panel's Review), `relabel`. `AutoAnnotateSteps` (the annotation in REVIEW, the redraft in REWRITE, without windows; a result to
+   decide opens `AnnotateDialog.openResult` / `RedraftDialog.openResult` in the generating page and from Review, closing = Stop;
+   an applied redraft resolves the notes it was given; a part edited meanwhile waits for the author). The tabs call
+   `AutoAnnotate.finished` from `onPartFinal` (deprecated, with `run`). Plugins: both translators TRANSFORM sequential
+   (`PartRuns.run`, `TranslationRuns.translateNow`), Knowledge Tracker EXTRACT parallel (waits for its `ExtractionRun`), Audiobook
+   MEDIA parallel (waits for its job, Stop cancels it). Tests: `AfterPartTest`, `AutoAnnotateStepsTest`. Decided while building:
+   - the binding API is a blocking handler, not the events with `chain.next()` the design suggested: parallel steps and the names
+     in the panel needed a registration of their own anyway, and a blocking handler is simpler for a plugin;
+   - the redraft blocks a new generation of the **book**, not only of the branch;
+   - a model that finds no notes goes on (before, nothing followed: the translation and the audio were skipped);
+   - an answer of the annotation that cannot be read is a failure (before, the window stayed open with it).
+   Not done:
+   - **(check)** in a real browser: the result windows opening in the generating page and from Review in another page;
+   - the author's generation does not go before the phase's requests at the queue of the model (first come first served);
+   - a parallel step is not prevented from writing the text of the part;
+   - the redraft by hand does not block the next generation;
+   - no list of finished phases in the panel (the message of a stopped one is a notification of the generating page only).
+8. ✅ **Kind A registrations** (cheap, one by one). **Kind B** (the result waits without its window) for the remaining windows only
    where a closed page really loses something worth keeping. Each dialog is its own change, and after steps 3 and 7 it may turn
    out that few are needed.
+   Done (kind A): `WindowRun` (`ui.widgets`, for plugins too): the request of a window as a run of the registry while the model
+   answers, no holds, `quiet()`, the window's own stop run in its page (`start(stop)` / `start(stop, request)`, `start(null)` for no
+   Stop), `finished()` from the end callbacks, ended with the window (closed or detached); `AsyncRuns` of `translator-common` binds
+   `Runs.current()` to its worker. Registered: `ImpersonateDialog`, `HelpAssistantWidget` (through `start(stop, request)`, so
+   `send()` keeps its `@PublicAPI`), the quick translation of both translators (no Stop: it can not be stopped), the Conlang
+   designer's busy window (its Stop is *stop waiting*), Side Query's answer, the Beta Readers chat, the plot wizard. A question
+   inside a run marks it `setWaitingForUser`: the Prompt Inspector's question on the generation's run (`Runs.current()` on the
+   generation's thread), the plot wizard's approval of a command. Test: `WindowRunTest`. Decided:
+   - **no kind B**: after steps 3 and 7 nothing a closed page loses is worth a result that waits without its window. The windows
+     that write go on on the server already (translations, summary batches, the loop after the part); the read-only ones lose one
+     answer the author asked for and can ask again. Take one up when an author misses it, one dialog at a time.
+   Not done:
+   - the other requests of these plugins are not registered: Side Query's tab name, the Beta Readers persona writer, the
+     generators of Arc Outline, Lore Generator, Book Description Generator, Reviewer, Story Notes (they are kind B candidates; each
+     is two lines with `WindowRun` when wanted);
+   - the remaining windows of 5a made non-modal (`SummaryDialog`, `CreateSummariesDialog` / `ResummarizeDialog`, the plugins'
+     windows), as in the *Not done* of step 3;
+   - **(check)** in a real browser: the entries of these windows in the panel of another page, and the Stop from there.
 
 Steps 1 to 3 are small and already help: the model's connections are used in order, and an annotation or a redraft no longer
 blocks the writing. Steps 4 to 6 give what the item's text asks for (the registry, the refusals, the indicator, the modal as a
@@ -863,7 +1010,7 @@ says "waiting, 2 before you", without names.
 
 Still open:
 
-1. **Versions** (design 1): proposed is none, with the stale-save warning on `modification` in development and tests instead.
+1. ~~**Versions** (design 1)~~: none, the stale-save detector instead (built with step 1).
 
 Still to find out, by a test when the part is built: what a phone reports when its browser goes to the background (6d), and what
 starting an agent does to a book that is open (3b).

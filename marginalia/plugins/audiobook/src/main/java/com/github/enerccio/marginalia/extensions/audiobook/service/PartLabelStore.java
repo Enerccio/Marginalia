@@ -74,7 +74,7 @@ public class PartLabelStore implements LabelStore {
                 return;
             }
             part.getAttributes().getAsJsonObject(ResourceAudioStore.KEY).remove("labels");
-            messages.save(part);
+            ResourceAudioStore.writeIndex(messages, part, "labels");
         } catch (RuntimeException e) {
             throw e;
         } catch (Exception e) {
@@ -140,7 +140,7 @@ public class PartLabelStore implements LabelStore {
             stored.add("labels", array);
             index.add("labels", stored);
             part.getAttributes().add(ResourceAudioStore.KEY, index);
-            messages.save(part);
+            ResourceAudioStore.writeIndex(messages, part, "labels");
         } catch (RuntimeException e) {
             throw e;
         } catch (Exception e) {

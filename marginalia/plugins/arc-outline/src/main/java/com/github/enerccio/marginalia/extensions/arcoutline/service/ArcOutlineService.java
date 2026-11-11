@@ -209,14 +209,14 @@ public class ArcOutlineService {
     }
 
     public void save(Manuscript manuscript, ArcOutline outline) throws Exception {
-        manuscript = manuscriptService.find(manuscript);
-        JsonObject attrs = manuscript.getAttributes();
-        if (attrs == null) {
-            attrs = new JsonObject();
-            manuscript.setAttributes(attrs);
-        }
-        attrs.add(ArcOutlineData.KEY, gson.toJsonTree(outline.toData()));
-        manuscriptService.save(manuscript);
+        manuscriptService.update(manuscript, current -> {
+            JsonObject attrs = current.getAttributes();
+            if (attrs == null) {
+                attrs = new JsonObject();
+                current.setAttributes(attrs);
+            }
+            attrs.add(ArcOutlineData.KEY, gson.toJsonTree(outline.toData()));
+        });
     }
 
     /**
@@ -332,18 +332,18 @@ public class ArcOutlineService {
 
     /** Stores the conversations with the book; none removes them. */
     public void saveWizard(Manuscript manuscript, WizardData data) throws Exception {
-        manuscript = manuscriptService.find(manuscript);
-        JsonObject attrs = manuscript.getAttributes();
-        if (attrs == null) {
-            attrs = new JsonObject();
-            manuscript.setAttributes(attrs);
-        }
-        if (data.getChats().isEmpty()) {
-            attrs.remove(WizardData.KEY);
-        } else {
-            attrs.add(WizardData.KEY, gson.toJsonTree(data));
-        }
-        manuscriptService.save(manuscript);
+        manuscriptService.update(manuscript, current -> {
+            JsonObject attrs = current.getAttributes();
+            if (attrs == null) {
+                attrs = new JsonObject();
+                current.setAttributes(attrs);
+            }
+            if (data.getChats().isEmpty()) {
+                attrs.remove(WizardData.KEY);
+            } else {
+                attrs.add(WizardData.KEY, gson.toJsonTree(data));
+            }
+        });
     }
 
     /**

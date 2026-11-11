@@ -78,6 +78,17 @@ public final class Jobs {
     }
 
     /**
+     * The user the current thread works for (the session's user), null without one.
+     */
+    public static Owner currentOwner() {
+        try {
+            return ownerResolver.get();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /**
      * Passes every job that ends to the sink (on the thread that ended it), until {@link #removeSink}.
      */
     public static void addSink(Consumer<FinishedJob> sink) {

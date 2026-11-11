@@ -173,7 +173,8 @@ class CommandsTest {
             Map.entry("TranslationRuns.start", "conlang-translate-part"),
             Map.entry("TranslationRuns.startMissing", "conlang-translate-part"),
             Map.entry("TranslationRuns.startMissingIn", "conlang-translate-part"),
-            Map.entry("TranslationRuns.startSelection", "conlang-translate-sentence"));
+            Map.entry("TranslationRuns.startSelection", "conlang-translate-sentence"),
+            Map.entry("TranslationRuns.translateNow", "conlang-translate-part"));
 
     @Test
     void everyOperationOfAServiceHasACommand() {

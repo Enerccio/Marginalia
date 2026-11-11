@@ -144,7 +144,7 @@ public class RedraftCommands extends ManuscriptWriteSupport {
         };
         context.setStatus(loc.getValue(L.MSG_COMMAND_REDRAFTING));
         String text;
-        try (AIGate.Permit _ = placeAt(context, options.ai() != null ? options.ai() : book.manuscript.getAi())) {
+        {
             CancellationToken token;
             try {
                 token = redraftService.redraft(book.manuscript, message, instructions, prompt, options, callback);

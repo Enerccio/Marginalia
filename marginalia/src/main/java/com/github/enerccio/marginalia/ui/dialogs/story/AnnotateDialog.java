@@ -9,6 +9,7 @@ import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.AnnotateService.Mode;
 import com.github.enerccio.marginalia.domain.service.AnnotateService.Proposal;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationOptions;
+import com.github.enerccio.marginalia.domain.service.run.Runs;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes;
@@ -16,7 +17,6 @@ import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes.
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
 import com.github.enerccio.marginalia.ui.widgets.*;
 import com.github.enerccio.marginalia.utils.UIUtils;
-import com.vaadin.flow.component.ModalityMode;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -114,6 +114,11 @@ public class AnnotateDialog extends Dialog {
     private CancellationToken cancellationToken;
     private boolean running;
     private String modelName;
+    // opened on the result of the step after a generated part: told when the window is closed without adding the notes
+    private Runnable onClosedWithout;
+    private boolean added;
+    // not modal on the desktop, can be folded into the corner of the page; the cards of its parts show it as busy
+    private final FloatingWindow floating;
 
     /**
      * What the automatic annotation of a part is set to.
@@ -135,8 +140,10 @@ public class AnnotateDialog extends Dialog {
     /**
      * @param onAdded called after annotations were added to the part
      */
-    public static void open(Manuscript manuscript, ChatMessage part, Runnable onAdded) {
-        create(manuscript, part, onAdded).open();
+    public static AnnotateDialog open(Manuscript manuscript, ChatMessage part, Runnable onAdded) {
+        AnnotateDialog dialog = create(manuscript, part, onAdded);
+        dialog.open();
+        return dialog;
     }
 
     /**
@@ -153,10 +160,33 @@ public class AnnotateDialog extends Dialog {
      *
      * @param onAdded called after the annotations were added to the part (not when the dialog was closed before, or found nothing)
      */
-    static void openAuto(Manuscript manuscript, ChatMessage part, Auto auto, Runnable onAdded) {
+    static AnnotateDialog openAuto(Manuscript manuscript, ChatMessage part, Auto auto, Runnable onAdded) {
         AnnotateDialog dialog = createAuto(manuscript, part, auto, onAdded);
         dialog.open();
         dialog.startOrStop();
+        return dialog;
+    }
+
+    /**
+     * Opens the dialog on what the automatic annotation of a generated part found ({@link AutoAnnotateSteps}, the model is done): the
+     * author chooses the notes to add. The window is a part of the entry of what follows the part in the panel of the runs, not a run of
+     * its own.
+     *
+     * @param phase    the run of what follows the part
+     * @param onAdded  after the notes were added
+     * @param onClosed the window was closed for good without adding them (that stops what follows the part)
+     */
+    static AnnotateDialog openResult(Manuscript manuscript, ChatMessage part, Auto auto, List<Proposal> found, String raw, String modelName,
+                                     Runs.Run phase, Runnable onAdded, Runnable onClosed) {
+        AnnotateDialog dialog = createAuto(manuscript, part, auto, onAdded);
+        dialog.floating.partOf(phase);
+        dialog.onClosedWithout = onClosed;
+        dialog.modelName = modelName;
+        dialog.addProposals(part, found);
+        dialog.showAnswer(raw);
+        dialog.add.setEnabled(!dialog.proposals.isEmpty());
+        dialog.open();
+        return dialog;
     }
 
     /**
@@ -191,7 +221,10 @@ public class AnnotateDialog extends Dialog {
         setHeight("85vh");
         setCloseOnEsc(false);
         setCloseOnOutsideClick(false);
-        setModality(ModalityMode.STRICT);
+        floating = new FloatingWindow(this, loc, this::runLabel, this::stopRunning);
+        if (part != null) {
+            floating.setParts(manuscript, List.of(part));
+        }
 
         Span info = new Span(loc.getValue(L.MSG_ANNOTATE_INFO));
         info.addClassName(CssStyles.HINT_TEXT);
@@ -294,12 +327,37 @@ public class AnnotateDialog extends Dialog {
         getFooter().add(close, add);
         DialogShortcuts.submitWith(run, instructions);
         DialogFocus.onOpen(this, instructions);
+    }
 
-        addOpenedChangeListener(e -> {
-            if (!e.isOpened() && running && cancellationToken != null) {
-                cancellationToken.cancel();
-            }
-        });
+    /**
+     * What the window does, for the corner of the page and the cards of its parts.
+     */
+    private String runLabel() {
+        return getHeaderTitle() + " \u00b7 " + manuscript.getName();
+    }
+
+    /**
+     * Ends the run when the window is closed (also folded, or with its book): nothing more is started, the part in progress is stopped.
+     */
+    private void stopRunning() {
+        pending.clear();
+        if (running && cancellationToken != null && !cancellationToken.isCancelled()) {
+            cancellationToken.cancel();
+        }
+        Runnable closed = onClosedWithout;
+        onClosedWithout = null;
+        if (closed != null && !added) {
+            closed.run();
+        }
+    }
+
+    /**
+     * Closes the window, also when it is folded into the corner; that ends its run.
+     */
+    @Override
+    public void close() {
+        super.close();
+        floating.closed();
     }
 
     /**
@@ -339,6 +397,9 @@ public class AnnotateDialog extends Dialog {
 
     private void showRunning(boolean value) {
         running = value;
+        if (floating != null) {
+            floating.setRunning(value);
+        }
         setHeaderTitle(loc.getValue(value ? L.LABEL_ANNOTATING : isRange() ? L.LABEL_ANNOTATE_BATCH : L.LABEL_ANNOTATE_WITH_AI));
         run.setText(loc.getValue(value ? L.LABEL_STOP : L.LABEL_ANNOTATE_RUN));
         run.setThemeName(value ? "error primary" : "primary");
@@ -385,6 +446,7 @@ public class AnnotateDialog extends Dialog {
         total = parts.size();
         finished = 0;
         pending.addAll(parts);
+        floating.setParts(manuscript, parts);
         attributes = ThreadCopyRequestAttributes.create();
         showRunning(true);
         annotateNext(UI.getCurrent());
@@ -419,7 +481,7 @@ public class AnnotateDialog extends Dialog {
             if (batchRun) {
                 batchProgress.setText(String.format(loc.getValue(L.MSG_ANNOTATE_BATCH_PROGRESS), positionOf(next), finished + 1, total));
             }
-            try (InRequestScope _ = new InRequestScope(attributes)) {
+            try (InRequestScope _ = new InRequestScope(attributes); Runs.Binding _ = floating == null ? null : floating.bind()) {
                 GenerationOptions options = GenerationOptions.defaults().withModel(model.getAi(), model.getProtocol());
                 AI used = model.getAi() != null ? model.getAi() : manuscript.getAi();
                 modelName = used == null ? null : used.getName();
@@ -469,7 +531,7 @@ public class AnnotateDialog extends Dialog {
             showMessage(String.join(" ", notes));
         }
         add.setEnabled(proposals.stream().anyMatch(entry -> entry.chosen().getValue()));
-        if (auto != null && auto.accept() && complete && isOpened()) {
+        if (auto != null && auto.accept() && complete && floating.isLive()) {
             acceptAutomatically();
         }
     }
@@ -708,10 +770,25 @@ public class AnnotateDialog extends Dialog {
         }
         try {
             int made = 0;
+            int gone = 0;
             for (Map.Entry<ChatMessage, List<Proposal>> about : chosen.entrySet()) {
-                made += annotateService.accept(manuscript, about.getKey(), about.getValue(), modelName).size();
+                // the window does not hold the page: the part may have been deleted meanwhile
+                ChatMessage stored = chatMessageService.find(about.getKey());
+                if (stored == null || stored.isDeleted()) {
+                    gone++;
+                    continue;
+                }
+                made += annotateService.accept(manuscript, stored, about.getValue(), modelName).size();
+            }
+            if (gone > 0) {
+                Notification.warning(loc.getValue(L.MSG_RUN_PART_GONE));
+            }
+            if (gone == chosen.size()) {
+                close();
+                return;
             }
             Notification.success(String.format(loc.getValue(L.MSG_ANNOTATE_ADDED), made));
+            added = true;
             close();
             onAdded.run();
         } catch (Exception e) {
@@ -794,6 +871,10 @@ public class AnnotateDialog extends Dialog {
 
     void setModelNameForTest(String name) {
         this.modelName = name;
+    }
+
+    FloatingWindow floatingForTest() {
+        return floating;
     }
 
 }

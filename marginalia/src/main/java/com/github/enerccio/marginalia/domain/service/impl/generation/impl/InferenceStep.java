@@ -162,6 +162,11 @@ public class InferenceStep extends GenerationStepBase {
                 public boolean isDead() {
                     return controller.getCancellationToken().isCancelled();
                 }
+
+                @Override
+                public void onWaiting(int ahead) {
+                    controller.getUIListener().onWaitingForModel(ahead);
+                }
             };
             // a new part, a regenerated one and a swipe are the same kind of work for the provider's cache
             try (InferenceSession _ = InferenceSession.open(InferenceSession.GENERATION);

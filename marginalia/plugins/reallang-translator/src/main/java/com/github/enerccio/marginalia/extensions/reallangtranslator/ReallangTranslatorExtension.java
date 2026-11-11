@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.extensions.reallangtranslator;
 
+import com.github.enerccio.marginalia.domain.service.run.Runs;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.domain.model.impl.AnchoredPassage;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
@@ -122,7 +123,9 @@ public class ReallangTranslatorExtension implements MarginaliaExtension, Extensi
     private TranslationRuns runs;
     private RangeRuns rangeRuns;
     private ExtractionRuns extractionRuns;
-    private ExtensionDecorator partFinishedDecorator;
+    private Registration afterPartRegistration;
+    /** The id of the step after a generated part. */
+    public static final String NOTIFY_AFTER_PART = BookSettings.KEY.substring(0, BookSettings.KEY.lastIndexOf('.')) + ".translate";
     private Registration cleanupRegistration;
     private UnderstandingPrompt understandingPrompt;
     private ExtensionDecorator userPartDecorator;
@@ -144,7 +147,7 @@ public class ReallangTranslatorExtension implements MarginaliaExtension, Extensi
         PluginLog.set(log);
         owner = bundle.getSymbolicName();
         runs = new TranslationRuns(translationService, log);
-        rangeRuns = new RangeRuns(this::rangeWork, "reallang-translator-range", log);
+        rangeRuns = new RangeRuns(this::rangeWork, "reallang-translator-range", log, () -> T.localized(TRANSLATING_THE_SPEECH), Runs.Mode.WRITE);
         extractionRuns = new ExtractionRuns(extractionService, log);
         try {
             passageKinds.register(kind);
@@ -177,22 +180,20 @@ public class ReallangTranslatorExtension implements MarginaliaExtension, Extensi
             registerViewer(extensionService);
             registerExport(extensionService);
 
-            // a generated part is final once the automatic annotation and redraft (if the book has them) are done
-            partFinishedDecorator = new ExtensionDecorator() {
+            // after a generated part, once the annotation and the redraft (if the book has them) are done: its speeches are translated
+            afterPartRegistration = storyGenerationService.addAfterPartBinding(new AfterPart.Binding(NOTIFY_AFTER_PART,
+                    () -> T.localized(TRANSLATE), AfterPart.Stage.TRANSFORM, AfterPart.Mode.SEQUENTIAL, new AfterPart.Handler() {
                 @Override
-                public void onMethodEnter(Object instrumented, ExtendableMethodContext context) {
+                public boolean appliesTo(Manuscript book) throws Exception {
+                    BookSettings settings = translationService.settings(book);
+                    return settings.isAuto() && settings.getLanguageId() != null;
                 }
 
                 @Override
-                public void onMethodLeave(Object instrumented, ExtendableMethodContext context, Throwable throwing) throws Exception {
-                    if (throwing == null) {
-                        translateFinishedPart(context.getReflectiveFieldValue(instrumented, "manuscript", Manuscript.class),
-                                context.getMethodArgument("part", ChatMessage.class),
-                                context.getReflectiveFieldValue(instrumented, "onChanged", Runnable.class));
-                    }
+                public void run(AfterPart.Context context) throws Exception {
+                    translateFinishedPart(context);
                 }
-            };
-            extensionService.registerDecorator(partFinishedDecorator, "com.github.enerccio.marginalia.ui.dialogs.story.AutoAnnotate", "finished");
+            }));
 
             // a part that is generated again has a new English text: the passages of the old one go
             cleanupRegistration = storyGenerationService.addEventListener(Events.AFTER_CLEANUP, this::dropRegenerated);
@@ -483,10 +484,9 @@ public class ReallangTranslatorExtension implements MarginaliaExtension, Extensi
 
     private void translatePart(StoryEditor story, Manuscript manuscript, StoryCard card, String languageId, boolean missingOnly) {
         ChatMessage part = card.getMessage();
-        // the window opens when a request goes to the model: the thinking, the answer and a Stop button
-        RunWindow window = new RunWindow(T.localized(TRANSLATING_THE_SPEECH));
+        // what the model writes and the Stop are in the panel of the runs (bottom left), the page stays free
+        RunProgress progress = new RunProgress();
         BiConsumer<Outcome, Throwable> done = (outcome, failure) -> {
-            window.finish();
             report(outcome, failure);
             // a stopped run may have written the languages before it
             if (outcome != null && outcome.status() == TranslationService.Status.TRANSLATED || failure instanceof CancellationException) {
@@ -494,8 +494,8 @@ public class ReallangTranslatorExtension implements MarginaliaExtension, Extensi
                 story.reloadStory();
             }
         };
-        boolean started = missingOnly ? runs.startMissing(manuscript, part, languageId, window.progress(), done)
-                : runs.start(manuscript, part, languageId, window.progress(), done);
+        boolean started = missingOnly ? runs.startMissing(manuscript, part, languageId, progress, done)
+                : runs.start(manuscript, part, languageId, progress, done);
         if (!started) {
             Notification.error(T.localized(THE_PART_IS_BEING_TRANSLATED));
         }
@@ -534,9 +534,8 @@ public class ReallangTranslatorExtension implements MarginaliaExtension, Extensi
         card.withSelection(range -> LanguageChoiceDialog.ask(languages, false, languageId -> {
             ChatMessage part = card.getMessage();
             String expected = part.getResponse();
-            RunWindow window = new RunWindow(T.localized(TRANSLATING_THE_SPEECH));
-            boolean started = runs.startMissingIn(manuscript, part, expected, range[0], range[1], languageId, window.progress(), (outcome, failure) -> {
-                window.finish();
+            RunProgress progress = new RunProgress();
+            boolean started = runs.startMissingIn(manuscript, part, expected, range[0], range[1], languageId, progress, (outcome, failure) -> {
                 report(outcome, failure);
                 if (outcome != null && outcome.status() == TranslationService.Status.TRANSLATED || failure instanceof CancellationException) {
                     story.reloadStory();
@@ -564,9 +563,8 @@ public class ReallangTranslatorExtension implements MarginaliaExtension, Extensi
         card.withSelection(range -> LanguageChoiceDialog.ask(languages, false, languageId -> {
             ChatMessage part = card.getMessage();
             String expected = part.getResponse();
-            RunWindow window = new RunWindow(T.localized(TRANSLATING_THE_SELECTION));
-            boolean started = runs.startSelection(manuscript, part, expected, range[0], range[1], languageId, window.progress(), (outcome, failure) -> {
-                window.finish();
+            RunProgress progress = new RunProgress();
+            boolean started = runs.startSelection(manuscript, part, expected, range[0], range[1], languageId, progress, (outcome, failure) -> {
                 report(outcome, failure);
                 if (outcome != null && outcome.status() == TranslationService.Status.TRANSLATED) {
                     story.reloadStory();
@@ -579,31 +577,25 @@ public class ReallangTranslatorExtension implements MarginaliaExtension, Extensi
     }
 
     /**
-     * The new part is final: when the book translates by itself, a run starts on a worker thread, and the story is loaded again when it is over.
-     * Otherwise nothing happens. A failure never reaches the story.
+     * The step after a generated part: the speeches of the part are translated on this thread, the panel of the runs shows it, its Stop
+     * stops it. The story is shown again when something was written; what the translation says is told in the page that generated.
      */
-    private void translateFinishedPart(Manuscript manuscript, ChatMessage part, Runnable onChanged) {
+    private void translateFinishedPart(AfterPart.Context context) throws Exception {
+        RunProgress progress = new RunProgress();
+        context.onStop(progress::stop);
+        Outcome outcome;
         try {
-            if (manuscript == null || part == null) {
-                return;
-            }
-            BookSettings settings = translationService.settings(manuscript);
-            if (!settings.isAuto() || settings.getLanguageId() == null) {
-                return;
-            }
-            // a model with one slot has nothing else to do meanwhile: the window blocks the page and shows the work, with a Stop button
-            RunWindow window = new RunWindow(T.localized(TRANSLATING_THE_SPEECH));
-            runs.start(manuscript, part, null, window.progress(), (outcome, failure) -> {
-                window.finish();
-                report(outcome, failure);
-                boolean written = outcome != null && outcome.status() == TranslationService.Status.TRANSLATED || failure instanceof CancellationException;
-                if (written && onChanged != null) {
-                    onChanged.run();
-                }
-            });
-        } catch (Exception e) {
-            log.warn("Failed to start the translation of a finished part: {}", e.getMessage(), e);
+            outcome = runs.translateNow(context.getManuscript(), context.getPart(), progress);
+        } catch (CancellationException e) {
+            throw new AfterPart.Stopped();
         }
+        if (outcome.status() == TranslationService.Status.TRANSLATED) {
+            context.changed();
+        } else if (outcome.status() == TranslationService.Status.NOTHING_TO_TRANSLATE) {
+            context.skip();
+            return;
+        }
+        context.accessUI(_ -> report(outcome, null));
     }
 
     private void report(Outcome outcome, Throwable failure) {
@@ -685,9 +677,9 @@ public class ReallangTranslatorExtension implements MarginaliaExtension, Extensi
         }
         inheritedSettingRegistry.unregisterAll(owner);
         menuRegistry.unregisterAll(owner);
-        if (partFinishedDecorator != null) {
-            extensionService.unregisterDecorator(partFinishedDecorator);
-            partFinishedDecorator = null;
+        if (afterPartRegistration != null) {
+            afterPartRegistration.unregister();
+            afterPartRegistration = null;
         }
         if (cleanupRegistration != null) {
             cleanupRegistration.unregister();

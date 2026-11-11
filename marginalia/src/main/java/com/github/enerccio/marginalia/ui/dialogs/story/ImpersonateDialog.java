@@ -6,6 +6,7 @@ import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.CancellationToken;
 import com.github.enerccio.marginalia.domain.service.ImpersonateService;
 import com.github.enerccio.marginalia.domain.service.NotificationService;
+import com.github.enerccio.marginalia.domain.service.run.Runs;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
@@ -13,6 +14,7 @@ import com.github.enerccio.marginalia.ui.widgets.DesktopNotifier;
 import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
 import com.github.enerccio.marginalia.ui.widgets.DialogShortcuts;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
+import com.github.enerccio.marginalia.ui.widgets.WindowRun;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.ModalityMode;
 import com.vaadin.flow.component.UI;
@@ -55,6 +57,8 @@ public class ImpersonateDialog extends Dialog {
     private final Markdown reasoningMarkdown = new Markdown();
     private final TextArea result = new TextArea();
     private final Button use = new Button();
+    // the request as a run: the panel of the runs shows it, also in the other pages of the author
+    private final WindowRun request;
 
     private CancellationToken cancellationToken;
     private boolean generating;
@@ -83,6 +87,7 @@ public class ImpersonateDialog extends Dialog {
         this.turn = turn;
         this.outline = StringUtils.trimToEmpty(outline);
         this.onUse = onUse;
+        this.request = WindowRun.of(this, NotificationService.IMPERSONATE, () -> loc.getValue(L.LABEL_IMPERSONATING)).book(manuscript);
 
         setHeaderTitle(loc.getValue(L.LABEL_IMPERSONATE));
         setWidth("min(900px, 95vw)");
@@ -166,9 +171,7 @@ public class ImpersonateDialog extends Dialog {
 
     private void startOrStop() {
         if (generating) {
-            if (cancellationToken != null && !cancellationToken.isCancelled()) {
-                cancellationToken.cancel();
-            }
+            stopDrafting();
             return;
         }
 
@@ -184,6 +187,7 @@ public class ImpersonateDialog extends Dialog {
 
             @Override
             public void onFinished(String reasoning, String text) {
+                request.finished();
                 ui.access(() -> {
                     finish(reasoning, text);
                     new DesktopNotifier(ui).finished(NotificationService.IMPERSONATE, false, manuscript.getName());
@@ -193,6 +197,7 @@ public class ImpersonateDialog extends Dialog {
 
             @Override
             public void onTerminated(String reasoning, String text) {
+                request.finished();
                 ui.access(() -> {
                     finish(reasoning, text);
                     UIPushGuard.push(ui);
@@ -201,6 +206,7 @@ public class ImpersonateDialog extends Dialog {
 
             @Override
             public void onError(Throwable throwable) {
+                request.finished();
                 ui.access(() -> {
                     showGenerating(false);
                     UIUtils.inferenceError(loc, throwable);
@@ -215,22 +221,31 @@ public class ImpersonateDialog extends Dialog {
         reasoningDetails.setVisible(false);
         result.setVisible(true);
         showGenerating(true);
-        try {
-            ImpersonateService.Request request = ImpersonateService.Request.of(guidance.getValue()).withOutline(outline);
+        try (Runs.Binding _ = request.start(this::stopDrafting)) {
+            ImpersonateService.Request asked = ImpersonateService.Request.of(guidance.getValue()).withOutline(outline);
             if (turn != null) {
-                request = request.withTurn(turn.sceneSetting(), turn.povCharacter(), turn.presentCharacters());
+                asked = asked.withTurn(turn.sceneSetting(), turn.povCharacter(), turn.presentCharacters());
             }
-            cancellationToken = impersonateService.impersonate(manuscript, request, callback);
+            cancellationToken = impersonateService.impersonate(manuscript, asked, callback);
             if (cancellationToken == null) {
+                request.finished();
                 showGenerating(false);
                 Notification.error(loc.getValue(L.ERROR_IMPERSONATE_FAILED));
             }
         } catch (ImpersonateService.ContextInsufficient e) {
+            request.finished();
             showGenerating(false);
             Notification.error(loc.getValue(L.ERROR_CONTEXT_INSUFFICIENT));
         } catch (Exception e) {
+            request.finished();
             showGenerating(false);
             UIUtils.internalServerError(loc, e);
+        }
+    }
+
+    private void stopDrafting() {
+        if (cancellationToken != null && !cancellationToken.isCancelled()) {
+            cancellationToken.cancel();
         }
     }
 

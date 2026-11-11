@@ -125,7 +125,7 @@ public class ResourceAudioStore implements AudioStore {
             }
             index.add("segments", stored);
             message.getAttributes().add(KEY, index);
-            messages.save(message);
+            writeIndex(messages, message, "segments", "part");
             if (!dropped.isEmpty()) {
                 resources.softDelete(dropped);
             }
@@ -164,7 +164,7 @@ public class ResourceAudioStore implements AudioStore {
             index.remove("segments");
             index.remove("part");
             message.getAttributes().add(KEY, index);
-            messages.save(message);
+            writeIndex(messages, message, "segments", "part");
             if (!dropped.isEmpty()) {
                 resources.softDelete(dropped);
             }
@@ -238,6 +238,26 @@ public class ResourceAudioStore implements AudioStore {
         } catch (Exception e) {
             throw new IllegalStateException(e.getMessage(), e);
         }
+    }
+
+    /**
+     * Saves the entries {@code names} of the index of {@code changed} (a part read a moment ago and changed by the caller) into the part as it
+     * is stored now, in one write transaction: the rest of the part (its text, the data of other plugins, the other entries of the index, which
+     * the labels and the studio script keep) is left as it is stored, not as it was read.
+     */
+    static ChatMessage writeIndex(ChatMessageService messages, ChatMessage changed, String... names) throws Exception {
+        JsonObject index = indexOf(changed);
+        return messages.update(changed, fresh -> {
+            JsonObject target = indexOf(fresh);
+            for (String name : names) {
+                if (index.has(name)) {
+                    target.add(name, index.get(name));
+                } else {
+                    target.remove(name);
+                }
+            }
+            fresh.getAttributes().add(KEY, target);
+        });
     }
 
     private static JsonObject indexOf(ChatMessage message) {

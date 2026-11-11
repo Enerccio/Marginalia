@@ -4,6 +4,7 @@ import com.github.enerccio.marginalia.Defaults;
 import com.github.enerccio.marginalia.domain.collections.AgentRunStatus;
 import com.github.enerccio.marginalia.domain.collections.DestructiveCommandMode;
 import com.github.enerccio.marginalia.domain.model.AgentModelProfile;
+import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.Agent;
 import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
 import com.github.enerccio.marginalia.domain.security.model.User;
@@ -73,6 +74,17 @@ class AgentSubagentsTest extends AgentTestBase {
         agent.setDestructiveMode(DestructiveCommandMode.DENY);
         agent.setMaxSubagents(maxSubagents);
         return agentService.save(agent);
+    }
+
+    /**
+     * The model of the agent answers {@code count} requests at once: two requests in the air of the run reach it together
+     * (with one connection, the default, the second waits for the first, see {@code AIGate}).
+     */
+    private void connections(Agent agent, int count) throws Exception {
+        AI ai = agentService.resolveProfile(agent.getMainProfile()).ai();
+        AI stored = aiService.find(ai);
+        stored.setMaxConcurrentRequests(count);
+        aiService.save(stored);
     }
 
     private AgentRun startRun(Agent agent) throws Exception {
@@ -242,6 +254,7 @@ class AgentSubagentsTest extends AgentTestBase {
         // two requests in the air, so that the agent can ask while the sub-agent's request is waiting
         updatePermission(agentUser(), PermissionType.AGENTS, permission -> permission.setAgentsMaxConcurrency(2));
         Agent agent = agentWith(2);
+        connections(agent, 2);
         CountDownLatch never = new CountDownLatch(1);
         llm.respondWith(request -> {
             if (isSub(request)) {
@@ -273,6 +286,7 @@ class AgentSubagentsTest extends AgentTestBase {
     void theStatusOfTheRunListsTheSubagentsThatWork() throws Exception {
         updatePermission(agentUser(), PermissionType.AGENTS, permission -> permission.setAgentsMaxConcurrency(2));
         Agent agent = agentWith(2);
+        connections(agent, 2);
         CountDownLatch never = new CountDownLatch(1);
         llm.respondWith(request -> {
             if (isSub(request)) {
@@ -420,6 +434,7 @@ class AgentSubagentsTest extends AgentTestBase {
     void aSubagentThatWorkedBeforeThePauseKeepsItsConversationAndAnswerCallsAfterIt() throws Exception {
         updatePermission(agentUser(), PermissionType.AGENTS, permission -> permission.setAgentsMaxConcurrency(2));
         Agent agent = agentWith(2);
+        connections(agent, 2);
         CountDownLatch never = new CountDownLatch(1);
         AtomicInteger subRequests = new AtomicInteger();
         llm.respondWith(request -> {
@@ -461,6 +476,7 @@ class AgentSubagentsTest extends AgentTestBase {
     void anAgentThatEndsItsTurnWhileSubagentsWorkIsToldOnce() throws Exception {
         updatePermission(agentUser(), PermissionType.AGENTS, permission -> permission.setAgentsMaxConcurrency(2));
         Agent agent = agentWith(2);
+        connections(agent, 2);
         CountDownLatch never = new CountDownLatch(1);
         llm.respondWith(request -> {
             if (isSub(request)) {

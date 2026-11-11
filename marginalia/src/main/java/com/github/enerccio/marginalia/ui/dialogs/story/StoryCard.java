@@ -10,6 +10,15 @@ public interface StoryCard {
 
     ChatMessage getMessage();
 
+    /**
+     * What a window of the model does to the part (an annotation or a redraft that is open or folded into the corner of the page),
+     * null when none works on it. While it is there the card shows it, and regenerating, deleting, merging and a second run on the
+     * part are off.
+     */
+    default String getBusyWith() {
+        return null;
+    }
+
     boolean isReasoningOpened();
 
     void setReasoningOpened(boolean opened);
@@ -17,6 +26,20 @@ public interface StoryCard {
     void setLastMessage(boolean isLast);
 
     void setFrozen(boolean frozen);
+
+    /**
+     * A generation continues the branch the part is on: the part must stay where it is. Its text can still be edited, annotated and
+     * redrafted; deleting, merging and branching it are off (the server refuses them too). Cards that do not track it keep everything on.
+     */
+    default void setKeptInPlace(boolean kept) {
+    }
+
+    /**
+     * See {@link #setKeptInPlace}.
+     */
+    default boolean isKeptInPlace() {
+        return false;
+    }
 
     boolean isEditing();
 

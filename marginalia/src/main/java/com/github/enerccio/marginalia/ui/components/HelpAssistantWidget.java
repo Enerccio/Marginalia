@@ -24,6 +24,7 @@ import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.LLMSnapshot;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
 import com.github.enerccio.marginalia.ui.widgets.DesktopNotifier;
+import com.github.enerccio.marginalia.ui.widgets.WindowRun;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.github.enerccio.marginalia.utils.UiProblems;
 import com.vaadin.flow.component.*;
@@ -100,8 +101,11 @@ public class HelpAssistantWidget extends Div {
     private volatile boolean generating;
     private volatile boolean cancelled;
     private volatile CancellationToken token;
+    // the question as a run: the panel of the runs shows it (its place in the queue of the model, a Stop)
+    private final WindowRun request;
 
     public HelpAssistantWidget() {
+        request = WindowRun.of(this, NotificationService.HELP_ASSISTANT, () -> loc.getValue(L.LABEL_HELP_ASSISTANT));
         history = sessionPoint.getHelpChat();
         problems = sessionPoint.getProblems();
         addClassName(CssStyles.HELP_ROOT);
@@ -368,7 +372,7 @@ public class HelpAssistantWidget extends Div {
         Answer answer = new Answer(UI.getCurrent(), question, text, questionCard, answerCard);
         try {
             UI ui = UI.getCurrent();
-            token = helpService.ask(recentHistory(), screenOf(ui, problems), answer);
+            token = request.start(this::stop, () -> helpService.ask(recentHistory(), screenOf(ui, problems), answer));
         } catch (Exception e) {
             answer.fail(e);
         }
@@ -613,6 +617,7 @@ public class HelpAssistantWidget extends Div {
 
         private void done() {
             token = null;
+            request.finished();
             setGenerating(false);
             JavascriptLibrary.scrollToBottomIfAtBottom(messages.getElement());
             UIPushGuard.push(ui);

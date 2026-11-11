@@ -129,8 +129,11 @@ change (`swipeAndSwitch`, `branchAndSwitch`) saves the book as it did, so it cou
 
 The dialogs keep entities for as long as they are open, and a generation held its book from start to finish, so saving such a copy
 wrote old values over a setting changed in the meantime (or undid a move to a folder). The writers that change one thing now call
-`ManuscriptService.update(book, BookChange)`, which loads the stored book and applies the change to it. Use it instead of `save`
-for a change that is yours alone.
+`ManuscriptService.update(book, BookChange)`, which loads the stored book and applies the change to it in one write transaction
+(`ChatMessageService.update(part, PartChange)` is the same for a part). Use it instead of `save` for a change that is yours alone.
+A save of a copy read before the last save of its row is reported by `StaleSaves` (a warning, an error in the tests, see
+[Extended attributes](plugins/extended-attributes.md)); a copy older only than the touch of the modification time above is not
+stale.
 
 ## The lists and windows
 

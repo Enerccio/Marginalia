@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.ui.dialogs.phone.manuscript;
 
+import com.github.enerccio.marginalia.ui.dialogs.manuscript.GenerationHold;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.traits.*;
@@ -81,6 +82,17 @@ public class PhoneManuscriptPromptPart implements PhoneManuscriptDialogPart {
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
+    }
+
+    /**
+     * Free from the inference on: the generation does not need the settings of the book (its prompt is built), only its part.
+     */
+    @PublicAPI(from = "1.8.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "hold", type = GenerationHold.class)})
+    @Override
+    public void setHold(GenerationHold hold) {
+        setFrozen(hold != null && hold.isWhole());
     }
 
     @PublicAPI(from = "1.1.0",

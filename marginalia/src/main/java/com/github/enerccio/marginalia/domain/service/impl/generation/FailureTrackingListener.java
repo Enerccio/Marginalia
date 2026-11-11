@@ -84,6 +84,16 @@ public class FailureTrackingListener implements GenerationListener {
     }
 
     @Override
+    public void onPartChanged(ChatMessage part) {
+        delegate.onPartChanged(part);
+    }
+
+    @Override
+    public void onPartFinal(ChatMessage part) {
+        delegate.onPartFinal(part);
+    }
+
+    @Override
     public void askQuestion(String question, Runnable yes, Runnable no) {
         delegate.askQuestion(question, yes, no);
     }

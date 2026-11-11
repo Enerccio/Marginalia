@@ -102,8 +102,8 @@ public final class LoreNotesAgent {
             Lorebook lorebook = new Lorebook();
             lorebook.setName(book.getName());
             lorebook.setEnabled(true);
-            book.setLorebook(lorebookService.save(lorebook));
-            book = manuscriptService.save(book);
+            Lorebook made = lorebookService.save(lorebook);
+            book = manuscriptService.update(book, fresh -> fresh.setLorebook(made));
         }
 
         Agent agent = new Agent();

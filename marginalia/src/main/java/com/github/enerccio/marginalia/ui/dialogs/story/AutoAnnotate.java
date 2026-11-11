@@ -20,10 +20,13 @@ import org.springframework.beans.factory.annotation.Configurable;
 import java.util.List;
 
 /**
- * The automatic annotation of a generated part, set per book in {@link AutoAnnotateDialog} (the Tools menu of the story): the annotation
- * window opens and starts at once ({@link AnnotateDialog#openAuto}); when the notes are added without asking, the redraft window follows,
- * if it is set, and starts at once to address them ({@link RedraftDialog#openAuto}). Each window closes by itself when its result is
- * taken without asking, otherwise it waits for the author. Closing a window ends the run: what would follow is dropped.
+ * The automatic annotation of a generated part, set per book in {@link AutoAnnotateDialog} (the Tools menu of the story).
+ * <p>
+ * Since 1.8.0 the annotation and the redraft are steps of what follows a generation ({@link AutoAnnotateSteps}, see
+ * {@link com.github.enerccio.marginalia.domain.service.impl.generation.AfterPart}), run on the server without their windows; the story
+ * tabs no longer call {@link #run}. {@link #finished} is still called, in the page that generated when it is still there, once the steps
+ * that change the text of the part are over: a hook kept for one version for extensions that decorate it. Bind a step instead
+ * ({@code StoryGenerationService.addAfterPartBinding}).
  */
 @Extendable
 @Configurable(preConstruction = true)
@@ -61,8 +64,11 @@ public class AutoAnnotate {
     }
 
     /**
-     * Starts the run for a part that was just generated, when the book is set to annotate them and the part has a text.
+     * Starts the run for a part that was just generated, when the book is set to annotate them and the part has a text, in the windows.
+     *
+     * @deprecated the annotation and the redraft follow a generation by themselves ({@link AutoAnnotateSteps}); nothing calls this
      */
+    @Deprecated(since = "1.8.0")
     @PublicAPI(from = "1.7.0",
             returns = @APIReturn(type = void.class),
             parameters = {@APIParameter(name = "generated", type = ChatMessage.class)},
@@ -97,13 +103,16 @@ public class AutoAnnotate {
     }
 
     /**
-     * Called when nothing more will happen to a generated part by itself: right away when the book does not annotate its parts, else
-     * when the notes were added and, if the book redrafts, the redraft was applied. It is not called when the author closes a window of
-     * the run (the part is then in the author's hands). A hook for extensions that read the
-     * finished text of the new part ({@code registerDecorator}, after the method).
+     * Called when the steps after a generation that change the text of the part (annotation, redraft, translations) are over, or right
+     * away when there are none, in the page that generated (not when the page is gone). It is not called when those steps were stopped
+     * or failed (the part is then in the author's hands). A hook for extensions that read the final text of the new part
+     * ({@code registerDecorator}, after the method).
      *
      * @param part the generated part, as it is stored now
+     * @deprecated bind a step to what follows a generation ({@code StoryGenerationService.addAfterPartBinding}, stage {@code EXTRACT}
+     * or {@code MEDIA}): it runs also without a page, in order, and can be stopped; this hook goes in a later version
      */
+    @Deprecated(since = "1.8.0")
     @PublicAPI(from = "1.7.0",
             returns = @APIReturn(type = void.class),
             parameters = {@APIParameter(name = "part", type = ChatMessage.class)})

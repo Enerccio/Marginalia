@@ -20,6 +20,7 @@ com/github/enerccio/marginalia/domain/service/impl/StoryAround.java
 com/github/enerccio/marginalia/domain/service/impl/AnnotateServiceImpl.java
 com/github/enerccio/marginalia/domain/service/impl/RedraftServiceImpl.java
 com/github/enerccio/marginalia/domain/service/impl/SummaryServiceImpl.java
+com/github/enerccio/marginalia/ui/dialogs/story/AutoAnnotateSteps.java
 com/github/enerccio/marginalia/domain/components/SummaryPlanner.java
 
 # --- the stored text and its offsets: the editor, the revisions, the annotations, the hashes, the search and replace

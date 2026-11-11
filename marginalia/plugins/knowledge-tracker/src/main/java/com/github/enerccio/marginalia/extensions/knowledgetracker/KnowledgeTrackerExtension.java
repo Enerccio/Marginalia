@@ -100,7 +100,7 @@ public class KnowledgeTrackerExtension implements MarginaliaExtension, Extension
     private ExtensionDecorator storyPartDecorator;
     private ExtensionDecorator userPartDecorator;
     private ExtensionDecorator userPartSaveDecorator;
-    private ExtensionDecorator partFinishedDecorator;
+    private Registration afterPartRegistration;
     private Registration reserveRegistration;
     private Registration payloadRegistration;
     private Registration cleanupRegistration;
@@ -195,21 +195,24 @@ public class KnowledgeTrackerExtension implements MarginaliaExtension, Extension
             extensionService.registerDecorator(storyPartDecorator,
                     "com.github.enerccio.marginalia.ui.dialogs.phone.manuscript.PhoneManuscriptStoryPart", "renderStoryContent");
 
-            // a generated part is final once the automatic annotation and redraft (if the book has them) are done: read it then,
-            // while the author reads it, instead of making the next generation wait
-            partFinishedDecorator = new ExtensionDecorator() {
-                @Override
-                public void onMethodEnter(Object instrumented, ExtendableMethodContext context) throws Exception {}
+            // after a generated part, once its text is final (annotation, redraft, translations): read it then, while the author reads it,
+            // instead of making the next generation wait
+            afterPartRegistration = storyGenerationService.addAfterPartBinding(new AfterPart.Binding(KnowledgeState.KEY + ".afterPart",
+                    () -> T.localized(KnowledgeTrackerLocalization.KNOWLEDGE), AfterPart.Stage.EXTRACT, AfterPart.Mode.PARALLEL,
+                    new AfterPart.Handler() {
+                        @Override
+                        public boolean appliesTo(Manuscript book) throws Exception {
+                            // the open tabs of the book show how many parts wait: they read the branch again, a new part is one more
+                            stateService.changed(book);
+                            BookSettings settings = stateService.load(book).getSettings();
+                            return settings.isAutoProcess() && settings.isExtractWithModel() && !settings.isAskBeforeApplying();
+                        }
 
-                @Override
-                public void onMethodLeave(Object instrumented, ExtendableMethodContext context, Throwable throwing) throws Exception {
-                    if (throwing == null) {
-                        readFinishedPart(context.getReflectiveFieldValue(instrumented, "manuscript", Manuscript.class));
-                    }
-                }
-            };
-            extensionService.registerDecorator(partFinishedDecorator,
-                    "com.github.enerccio.marginalia.ui.dialogs.story.AutoAnnotate", "finished");
+                        @Override
+                        public void run(AfterPart.Context context) throws Exception {
+                            readFinishedPart(context);
+                        }
+                    }));
 
             // what the characters know at a part, for the model that reviews it (Annotate with AI)
             factsProvider = new KnowledgeFactsProvider(stateService);
@@ -231,25 +234,27 @@ public class KnowledgeTrackerExtension implements MarginaliaExtension, Extension
     }
 
     /**
-     * The new part of the story is final (the automatic annotation is over, or the book has none): when the book is set to read with
-     * the model and apply at once, a run starts on a worker thread and reads it while the author reads it. Otherwise nothing happens
-     * here; the next generation reads what is left, see {@link #processBeforePrompt}. A failure never reaches the story.
+     * The step after a generated part (the book reads with the model and applies at once): a run reads what waits, on its own thread,
+     * a part of the panel's entry of what follows the part; the step waits for it. A book that is being read already reads the part
+     * with that run (it reads on from its cursor). Otherwise the next generation reads what is left, see {@link #processBeforePrompt}.
      */
-    private void readFinishedPart(Manuscript manuscript) {
+    private void readFinishedPart(AfterPart.Context context) throws Exception {
+        ExtractionRun run;
         try {
-            if (manuscript == null) {
-                return;
-            }
-            // the open tabs of the book show how many parts wait: they read the branch again, a new part is one more
-            stateService.changed(manuscript);
-            BookSettings settings = stateService.load(manuscript).getSettings();
-            if (settings.isAutoProcess() && settings.isExtractWithModel() && !settings.isAskBeforeApplying()) {
-                runs.start(manuscript, false, null);
-            }
+            run = runs.start(context.getManuscript(), false, null);
         } catch (IllegalStateException e) {
             log.debug("The story is being processed already: {}", e.getMessage());
-        } catch (Exception e) {
-            log.warn("Failed to read the finished part: {}", e.getMessage(), e);
+            context.skip();
+            return;
+        }
+        context.onStop(run::cancel);
+        context.await(run.whenFinished());
+        ExtractionRun.Status status = run.getStatus();
+        if (status.phase() == ExtractionRun.Phase.FAILED) {
+            throw new IllegalStateException(status.message());
+        }
+        if (status.phase() == ExtractionRun.Phase.CANCELLED) {
+            throw new AfterPart.Stopped();
         }
     }
 
@@ -387,9 +392,9 @@ public class KnowledgeTrackerExtension implements MarginaliaExtension, Extension
             }
             activeAccordions.clear();
         }
-        if (partFinishedDecorator != null) {
-            extensionService.unregisterDecorator(partFinishedDecorator);
-            partFinishedDecorator = null;
+        if (afterPartRegistration != null) {
+            afterPartRegistration.unregister();
+            afterPartRegistration = null;
         }
         if (reserveRegistration != null) {
             reserveRegistration.unregister();

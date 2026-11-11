@@ -146,18 +146,18 @@ public class ReviewerService {
      * @param profileUuid uuid of the profile, {@code null} for the globally selected one
      */
     public Manuscript saveManuscriptProfile(Manuscript manuscript, String profileUuid) throws Exception {
-        manuscript = manuscriptService.find(manuscript);
-        JsonObject attrs = manuscript.getAttributes();
-        if (attrs == null) {
-            attrs = new JsonObject();
-            manuscript.setAttributes(attrs);
-        }
-        if (profileUuid == null) {
-            attrs.remove(MANUSCRIPT_PROFILE_KEY);
-        } else {
-            attrs.addProperty(MANUSCRIPT_PROFILE_KEY, profileUuid);
-        }
-        return manuscriptService.save(manuscript);
+        return manuscriptService.update(manuscript, current -> {
+            JsonObject attrs = current.getAttributes();
+            if (attrs == null) {
+                attrs = new JsonObject();
+                current.setAttributes(attrs);
+            }
+            if (profileUuid == null) {
+                attrs.remove(MANUSCRIPT_PROFILE_KEY);
+            } else {
+                attrs.addProperty(MANUSCRIPT_PROFILE_KEY, profileUuid);
+            }
+        });
     }
 
     public List<ReviewerProfile> getProfiles(ReviewerSettings settings) {
@@ -211,24 +211,27 @@ public class ReviewerService {
     }
 
     public ChatMessage saveReviewData(ChatMessage message, ReviewData data) throws Exception {
-        message = chatMessageService.find(message);
-        JsonObject attrs = message.getAttributes();
-        if (attrs == null) {
-            attrs = new JsonObject();
-            message.setAttributes(attrs);
-        }
-        attrs.add(ReviewerSettings.KEY, gson.toJsonTree(data));
-        return chatMessageService.save(message);
+        return chatMessageService.update(message, current -> {
+            JsonObject attrs = current.getAttributes();
+            if (attrs == null) {
+                attrs = new JsonObject();
+                current.setAttributes(attrs);
+            }
+            attrs.add(ReviewerSettings.KEY, gson.toJsonTree(data));
+        });
     }
 
     public ChatMessage deleteReviewData(ChatMessage message) throws Exception {
-        message = chatMessageService.find(message);
-        JsonObject attrs = message.getAttributes();
-        if (attrs != null && attrs.has(ReviewerSettings.KEY)) {
-            attrs.remove(ReviewerSettings.KEY);
-            message = chatMessageService.save(message);
+        ChatMessage current = chatMessageService.find(message);
+        JsonObject attrs = current.getAttributes();
+        if (attrs == null || !attrs.has(ReviewerSettings.KEY)) {
+            return current;
         }
-        return message;
+        return chatMessageService.update(current, fresh -> {
+            if (fresh.getAttributes() != null) {
+                fresh.getAttributes().remove(ReviewerSettings.KEY);
+            }
+        });
     }
 
     public List<LLMChatMessage> buildChatCompletePrompts(

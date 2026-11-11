@@ -59,14 +59,15 @@ public ReviewData getReviewData(ChatMessage message) {
     return null;
 }
 
-public void saveReviewData(ChatMessage message, ReviewData data) throws Exception {
-    JsonObject attrs = message.getAttributes();
-    if (attrs == null) {
-        attrs = new JsonObject();
-        message.setAttributes(attrs);
-    }
-    attrs.add(ReviewerSettings.KEY, gson.toJsonTree(data));
-    chatMessageService.save(message);
+public ChatMessage saveReviewData(ChatMessage message, ReviewData data) throws Exception {
+    return chatMessageService.update(message, current -> {
+        JsonObject attrs = current.getAttributes();
+        if (attrs == null) {
+            attrs = new JsonObject();
+            current.setAttributes(attrs);
+        }
+        attrs.add(ReviewerSettings.KEY, gson.toJsonTree(data));
+    });
 }
 ```
 
@@ -74,10 +75,15 @@ Rules:
 
 - **Save through the entity's service** - `save(...)`, not `saveWithoutEvent(...)`. See
   [How attributes are stored](#how-attributes-are-stored) for why.
-- **Load before you change.** Entities held by the UI are detached copies, and the one you got from a decorator may
-  be older than the database. Reload it (`service.find(entity)` or `find(id)`), change the attributes, save it, and
-  use the returned object from then on. Saving an old copy overwrites changes made since - to the plugin's data and
-  to the rest of the entity. Lorebook VCS's `saveVCSData` is a good template:
+- **Change the stored row, not your copy.** Entities held by the UI are detached copies, and the one you got from a
+  decorator may be older than the database. Saving an old copy writes the whole row back as it was read: the data
+  other plugins saved since, the text of the part, the settings of the book. For a book or a part use
+  `ManuscriptService.update(book, change)` / `ChatMessageService.update(part, change)`: it loads the row and applies
+  your change to it, and saves it, in one write transaction (SQLite takes the write lock at its start, so two updates
+  of one row run one after the other and neither loses the other's change; no lock of your own is needed). Use the
+  returned object from then on. The change runs inside the transaction: keep it short, never call a model in it.
+  It throws `IllegalStateException` when the row is gone. For other entities read the row again right before the
+  change and save it (Lorebook VCS's `saveVCSData`):
 
   ```java
   Lorebook fresh = lorebookService.find(lorebook);
@@ -86,8 +92,14 @@ Rules:
   ```
 
   The same goes for the plugin's own data: when several components edit parts of one JSON tree, each change should
-  re-read the stored tree, change only its part and save it (Lorebook VCS's `updateEntryData`), not save a copy it
-  loaded earlier.
+  write only its part into the stored tree (the Audiobook's `ResourceAudioStore.writeIndex`, Lorebook VCS's
+  `updateEntryData`), not save a copy of the whole tree loaded earlier.
+
+- **Stale saves are reported.** `JpaBaseRepository` compares the `modification` of a detached copy with the one the
+  last save of the row wrote (`StaleSaves`, kept in memory for the rows saved since the start). A copy that is older
+  logs a warning with the caller; in the tests of the build (`-Dtest.staleSaves=fail`, the default of the pom) the
+  save fails with `StaleSaveException`. A copy older only than a bulk *touch* (a saved part touches its book) is not
+  stale.
 
 - **Version your data.** There are no migrations; if the format changes, read old formats too (a `version` field in
   your JSON tree makes this easy) and never fail on data you don't understand.

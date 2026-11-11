@@ -16,6 +16,8 @@ import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.RestorableState;
 import com.github.enerccio.marginalia.ui.components.LorebookPreview;
 import com.github.enerccio.marginalia.ui.components.MessageImages;
+import com.github.enerccio.marginalia.domain.service.run.Runs;
+import com.github.enerccio.marginalia.ui.components.RunsOnPage;
 import com.github.enerccio.marginalia.ui.dialogs.*;
 import com.github.enerccio.marginalia.ui.dialogs.bookimport.AfterImportDialog;
 import com.github.enerccio.marginalia.ui.dialogs.bookimport.BookImportDialog;
@@ -47,6 +49,7 @@ import com.vaadin.flow.component.contextmenu.ContextMenu;
 import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.details.Details;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.shared.Registration;
 import com.vaadin.flow.component.markdown.Markdown;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
@@ -215,11 +218,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
 
         actionButton.addClickListener(event -> {
             if (this.isFrozen && parent != null) {
-                if (activeGenerationToken != null) {
-                    activeGenerationToken.cancel();
-                } else {
-                    parent.unfreeze();
-                }
+                stopGeneration();
             }
         });
 
@@ -968,7 +967,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
                                     } catch (Exception e) {
                                         UIUtils.internalServerError(loc, e);
                                     }
-                                }).run(message);
+                                }).finished(message);
                             } catch (Exception e) {
                                 UIUtils.internalServerError(loc, e);
                             }
@@ -992,6 +991,46 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
             );
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
+        }
+    }
+
+    /**
+     * The Stop of the round button: the generation this tab started, else the one the window follows (started by a command or a
+     * plugin), else the window just lets go.
+     */
+    @PublicAPI(from = "1.8.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "generation", type = Runs.Run.class)})
+    private void stopGeneration() {
+        if (activeGenerationToken != null) {
+            activeGenerationToken.cancel();
+            return;
+        }
+        Runs.Run generation = currentManuscript == null ? null : Runs.generationOf(currentManuscript.getId());
+        if (generation != null) {
+            generation.stop();
+        } else {
+            parent.unfreeze();
+        }
+    }
+
+    /**
+     * Follows what the generation of the book holds, as the desktop story does: everything while it prepares; from the inference on
+     * only the card of the new part, the parts before it keep their place and the button stays Stop.
+     */
+    @PublicAPI(from = "1.8.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "hold", type = GenerationHold.class)})
+    @Override
+    public void setHold(GenerationHold hold) {
+        setFrozen(hold != null);
+        if (hold != null && !hold.isWhole()) {
+            drawerToggle.setEnabled(true);
+            menuBar.setEnabled(true);
+        }
+        cards.setHold(hold == null || hold.isWhole() ? null : hold);
+        if (hold != null && hold.isWhole()) {
+            cards.setFrozen(true);
         }
     }
 
@@ -1134,6 +1173,13 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
 
         private TurnDetailsForm detailsForm;
 
+        // what a window of the model (annotate, redraft) does to the part, null when none is open on it
+        private String busyWith;
+        // a generation continues the branch of the part: no delete, merge or branch
+        private boolean keptInPlace;
+        private final Span busyBadge = new Span();
+        private Registration busyRegistration;
+
         public ChatMessageCard(ChatMessage message, int orderId) {
             this(message, false, orderId);
         }
@@ -1167,7 +1213,20 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
 
             showMassDelete(massDelete.isActive(), massDelete.isSelected(message.getId()));
 
-            headerBar.add(massDeleteBox, menuBtn, infoBtn);
+            busyBadge.addClassName(CssStyles.PART_BUSY);
+            busyBadge.setVisible(false);
+            addAttachListener(event -> {
+                busyRegistration = RunsOnPage.listen(event.getUI(), this::refreshBusy);
+                refreshBusy();
+            });
+            addDetachListener(event -> {
+                if (busyRegistration != null) {
+                    busyRegistration.remove();
+                    busyRegistration = null;
+                }
+            });
+
+            headerBar.add(massDeleteBox, menuBtn, infoBtn, busyBadge);
 
             reasoningMarkdown = new Markdown();
             reasoningMarkdown.addClassName(CssStyles.CHAT_MESSAGE_MARKDOWN);
@@ -1192,6 +1251,40 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
             messageImages = new MessageImages(message.getImages());
 
             add(headerBar, reasoningDetails, responseMarkdown, messageImages, cardAnnotations.getAnchor());
+        }
+
+        @PublicAPI(from = "1.8.0",
+                returns = @APIReturn(type = String.class))
+        @Override
+        public String getBusyWith() {
+            return busyWith;
+        }
+
+        @PublicAPI(from = "1.8.0",
+                returns = @APIReturn(type = void.class),
+                parameters = {@APIParameter(name = "kept", type = boolean.class)})
+        @Override
+        public void setKeptInPlace(boolean kept) {
+            this.keptInPlace = kept;
+        }
+
+        @PublicAPI(from = "1.8.0",
+                returns = @APIReturn(type = boolean.class))
+        @Override
+        public boolean isKeptInPlace() {
+            return keptInPlace;
+        }
+
+        /**
+         * Shows on the card the run that works on the part (a window of the model, a translation), read from the {@link Runs}.
+         */
+        @PublicAPI(from = "1.8.0",
+                returns = @APIReturn(type = void.class))
+        private void refreshBusy() {
+            busyWith = message == null || message.getId() == null ? null
+                    : Runs.busyWith(message.getId());
+            busyBadge.setText(StringUtils.defaultString(busyWith));
+            busyBadge.setVisible(busyWith != null);
         }
 
         @PublicAPI(from = "1.6.0",

@@ -209,6 +209,8 @@ class SharedLibraryTest extends MarginaliaTestBase {
         addEntry(sharedDeep, "Deep secret", "deep");
         addEntry(hidden, "Secret", "secret");
         addEntry(hiddenDeep, "Deeper secret", "deeper");
+        // read again: adding a sub lorebook saved the parent
+        shared = lorebookService.find(shared);
         shared.setShared(true);
         lorebookService.save(shared);
         hiddenDeep.setShared(true);
@@ -232,6 +234,8 @@ class SharedLibraryTest extends MarginaliaTestBase {
         Lorebook shared = lorebookService.createSubbook(original, "Shared sub");
         Lorebook deep = lorebookService.createSubbook(shared, "Deep");
         Lorebook other = lorebookService.createSubbook(original, "Other");
+        // read again: adding a sub lorebook saved the parent
+        shared = lorebookService.find(shared);
         shared.setShared(true);
         lorebookService.save(shared);
 

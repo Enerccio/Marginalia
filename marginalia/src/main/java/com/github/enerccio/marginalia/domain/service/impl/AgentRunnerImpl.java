@@ -50,9 +50,11 @@ import org.springframework.context.annotation.Lazy;
 
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -93,9 +95,6 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
     @Autowired
     @Lazy
     private AgentRunService runService;
-
-    @Autowired
-    private AIGate aiGate;
 
     @Autowired
     private AgentActivityService activityService;
@@ -1101,7 +1100,14 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
      * sub-agent to its cancel and to the run being paused or thrown away.
      */
     private interface Waiter {
-        <T> T await(CompletableFuture<T> future, Runnable cancel, boolean queued) throws Exception;
+        /**
+         * @param queued whether the wait is (still) for a place in a queue and not for work that goes on, asked while it waits
+         */
+        <T> T await(CompletableFuture<T> future, Runnable cancel, BooleanSupplier queued) throws Exception;
+
+        default <T> T await(CompletableFuture<T> future, Runnable cancel, boolean queued) throws Exception {
+            return await(future, cancel, () -> queued);
+        }
     }
 
     private final class Worker implements Runnable {
@@ -2953,15 +2959,10 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                 log.info("Agent run {} waits for a turn to ask the model ({} waiting, {} in the air)", runId, requestSlots.waiting(), requestSlots.active());
             }
             try (AIGate.Permit _ = waiter.await(turn, () -> turn.cancel(true), true)) {
-                // a model with a cap of requests lets the runs take turns
-                CompletableFuture<AIGate.Permit> place = aiGate.acquire(profile.ai());
-                if (!place.isDone()) {
-                    log.info("Agent run {} waits for a place at the AI {} ({} waiting)", runId, profile.ai().getUuid(), aiGate.waiting(profile.ai()));
-                }
-                try (AIGate.Permit _ = waiter.await(place, () -> place.cancel(true), true)) {
-                    long waited = (System.nanoTime() - asking) / 1_000_000;
-                    return request(inference, profile, payload, tools, noCalls, live, waiter).waited(waited);
-                }
+                // the connections of the AI are taken by the service itself (GatedInferenceService), for every request: the
+                // wait for one is inside the request, a pause or a stop cancels it there
+                long waited = (System.nanoTime() - asking) / 1_000_000;
+                return request(inference, profile, payload, tools, noCalls, live, waiter).waited(waited);
             } catch (ExecutionException e) {
                 throw e.getCause() instanceof Exception cause ? cause : e;
             }
@@ -2975,10 +2976,12 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                 live.begin();
             }
             CancellationToken token;
+            // while the request waits for a connection of the AI, a pause ends it like any wait in a queue (nothing is lost)
+            AtomicBoolean queued = new AtomicBoolean();
             // a run grows its own conversation, so each run has the cache of the provider to itself
             try (InferenceSession _ = InferenceSession.open(InferenceSession.AGENT, String.valueOf(runId));
                  UsageContext _ = UsageContext.open(run.getWorkingCopy())) {
-                token = inference.round(payload, profile.protocol(), tools, noCalls, roundCallback(answer, live));
+                token = inference.round(payload, profile.protocol(), tools, noCalls, roundCallback(answer, live, queued));
             } catch (Exception | Error e) {
                 if (live != null) {
                     live.end();
@@ -2986,7 +2989,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                 throw e;
             }
             try {
-                return waiter.await(answer, token::cancel, false);
+                return waiter.await(answer, token::cancel, queued::get);
             } catch (ExecutionException e) {
                 throw e.getCause() instanceof Exception cause ? cause : e;
             } catch (Exception | Error e) {
@@ -2997,8 +3000,15 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
             }
         }
 
-        private InferenceService.InferenceRoundCallback roundCallback(CompletableFuture<Round> answer, LiveAnswerBuffer live) {
+        private InferenceService.InferenceRoundCallback roundCallback(CompletableFuture<Round> answer, LiveAnswerBuffer live,
+                                                                      AtomicBoolean queued) {
             return new InferenceService.InferenceRoundCallback() {
+                @Override
+                public void onWaiting(int ahead) {
+                    // zero: its turn came, it is sent
+                    queued.set(ahead > 0);
+                }
+
                 @Override
                 public void onRound(String text, List<LLMToolCall> calls, RoundUsage usage) {
                     onRound(text, null, calls, usage);
@@ -3084,6 +3094,11 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
          * stop ends it too (nothing is lost by it). A pause "at once" ends every wait.
          */
         private <T> T await(CompletableFuture<T> future, Runnable cancel, boolean queued) throws Exception {
+            return await(future, cancel, () -> queued);
+        }
+
+        /** As above, {@code queued} is asked at every look (a request that waits for a connection of the AI and then goes). */
+        private <T> T await(CompletableFuture<T> future, Runnable cancel, BooleanSupplier queued) throws Exception {
             while (true) {
                 if (interrupts.contains(runId)) {
                     cancel.run();
@@ -3101,7 +3116,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                         cancel.run();
                         throw new Discarded();
                     }
-                    if ((queued && current.getStatus() == AgentRunStatus.PAUSING) || current.getStatus() == AgentRunStatus.STOPPING) {
+                    if ((queued.getAsBoolean() && current.getStatus() == AgentRunStatus.PAUSING) || current.getStatus() == AgentRunStatus.STOPPING) {
                         // a stop does not wait for the request or the call that go on: they are canceled, a command that can be
                         // stopped ends with them (a pause waits for them, it ends at a stable point)
                         cancel.run();
@@ -3265,7 +3280,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
             }
             Waiter waiter = new Waiter() {
                 @Override
-                public <T> T await(CompletableFuture<T> future, Runnable cancel, boolean queued) throws Exception {
+                public <T> T await(CompletableFuture<T> future, Runnable cancel, BooleanSupplier queued) throws Exception {
                     return awaitSub(future, cancel, sub);
                 }
             };

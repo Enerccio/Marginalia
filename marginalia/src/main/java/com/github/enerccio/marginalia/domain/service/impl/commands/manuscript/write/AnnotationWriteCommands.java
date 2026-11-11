@@ -5,7 +5,6 @@ import com.github.enerccio.marginalia.domain.collections.AnnotationStatus;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.Annotation;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
-import com.github.enerccio.marginalia.domain.service.AIGate;
 import com.github.enerccio.marginalia.domain.service.AnnotateService;
 import com.github.enerccio.marginalia.domain.service.CancellationToken;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
@@ -269,7 +268,7 @@ public class AnnotationWriteCommands extends ManuscriptWriteSupport {
         };
         context.setStatus(loc.getValue(L.MSG_COMMAND_ANNOTATING));
         List<AnnotateService.Proposal> proposals;
-        try (AIGate.Permit _ = placeAt(context, ai)) {
+        {
             CancellationToken token;
             try {
                 token = annotateService.annotate(book.manuscript, message,

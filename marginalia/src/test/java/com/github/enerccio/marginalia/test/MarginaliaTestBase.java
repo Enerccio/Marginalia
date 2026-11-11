@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.test;
 
+import com.github.enerccio.marginalia.domain.service.run.Runs;
 import com.github.enerccio.marginalia.domain.collections.AIType;
 import com.github.enerccio.marginalia.domain.model.impl.OpenAICompatible;
 import com.github.enerccio.marginalia.domain.security.model.Permission;
@@ -74,6 +75,8 @@ public abstract class MarginaliaTestBase {
     @AfterEach
     void tearDownMockLLM() {
         llm.close();
+        // the registry of runs is static: what a test left running holds nothing in the next one
+        Runs.reset();
     }
 
     protected static String uniqueName(String prefix) {

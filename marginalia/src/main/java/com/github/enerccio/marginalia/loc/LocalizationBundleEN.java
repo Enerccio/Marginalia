@@ -515,7 +515,6 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_SUBBOOKS, "Subbooks");
         setValue(L.LABEL_STATE, "State");
         setValue(L.LABEL_REWIND, "Rewind");
-        setValue(L.LABEL_MAX_CONCURRENT_REQUESTS, "Concurrent requests of agents");
         setValue(L.LABEL_PAUSE_NOW, "Pause now");
         setValue(L.LABEL_AGENT_DEFAULT_INSTRUCTIONS, "Instructions of agents (agents.md)");
         setValue(L.LABEL_AGENT_AUTO_COMPACT, "Compact at (% of context)");
@@ -1058,6 +1057,14 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_LONGER, "Longer");
         setValue(L.LABEL_UPDATE, "Update");
         setValue(L.LABEL_UPDATE_AND_RESTART, "Update and restart");
+        setValue(L.LABEL_CONNECTIONS, "Connections");
+        setValue(L.LABEL_APPLY_ANYWAY, "Apply anyway");
+        setValue(L.LABEL_OPEN_HERE, "Open here");
+        setValue(L.LABEL_BOOK_OPEN_ELSEWHERE, "The window of the book in another page");
+        setValue(L.LABEL_RUNS_ON_BOOKS, "Runs on the books");
+        setValue(L.LABEL_RUN_HOLDS, "Holds");
+        setValue(L.LABEL_END_RUN, "End");
+        setValue(L.LABEL_REVIEW, "Review");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -1362,6 +1369,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.ERROR_STYLE_IMPORT_NEWER, "The file was made by a newer version of Marginalia and cannot be read.");
         setValue(L.ERROR_STYLE_IMPORT_CSS, "The custom CSS of the style \"%s\" has braces { } that do not match.");
         setValue(L.ERROR_COMMAND_LORE_RANGE_EMPTY, "The range is empty: it starts at part %d and ends at part %d.");
+        setValue(L.ERROR_HELD_BY_RUN, "This is in use: %s. Wait until it is done, or stop it.");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "Cannot save form.");
@@ -1826,6 +1834,27 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_CONFIRM_UPDATE, "The server pulls the newest version of its branch, builds it (several minutes) and restarts Marginalia. The restart interrupts everybody who is working and stops whatever is being generated. It is built and restarted also when there is nothing new. Update now?");
         setValue(L.MSG_CONFIRM_UPDATE_JOBS, "Jobs running now: %d. The restart stops them.");
         setValue(L.MSG_UPDATE_LOG_EMPTY, "No update has been run from here yet.");
+        setValue(L.MSG_WAITING_FOR_MODEL_AHEAD, "Waiting for the model: %d requests before this one.");
+        setValue(L.MSG_RUN_PART_GONE, "The part was deleted after the window was opened, nothing was written to it.");
+        setValue(L.MSG_REDRAFT_PART_CHANGED, "The part was changed after the redraft started. Applying the redraft replaces those changes (the differences show what would change). Apply anyway?");
+        setValue(L.MSG_REDRAFT_PART_CHANGED_WAITS, "The part was changed after the redraft started, so the redraft was not applied by itself. The differences show what applying it would change.");
+        setValue(L.MSG_BOOK_OPEN_ELSEWHERE, "This book is open in another window (since %s). Open it here and close it there?");
+        setValue(L.MSG_BOOK_OPEN_ELSEWHERE_GENERATING, "This book is open in another window (since %s), and a part is being generated there. Open it here, stop the generation and close it there?");
+        setValue(L.MSG_BOOK_OPEN_ELSEWHERE_NOT_RESTORED, "The book you had open is open in another window, so it was not opened here.");
+        setValue(L.MSG_BOOK_CLOSED_ELSEWHERE, "This book was opened in another window, so it was closed here.");
+        setValue(L.MSG_LEAVE_STOPS_GENERATION, "A part is being generated. Leaving the book stops the generation (what has arrived is kept). Leave it?");
+        setValue(L.MSG_RUN_MORE, "%d more");
+        setValue(L.MSG_RUN_WORKING, "Working...");
+        setValue(L.MSG_RUN_THINKING, "The model is thinking...");
+        setValue(L.MSG_RUN_WRITING, "The model is writing...");
+        setValue(L.MSG_RUN_WAITS_FOR_YOU, "Waits for you");
+        setValue(L.MSG_RUN_STOPPING, "Stopping...");
+        setValue(L.MSG_RUNS_NONE, "No run works on a book.");
+        setValue(L.MSG_RUN_END_CONFIRM, "End \"%s\" without stopping its work? What it holds is given back at once. Only for a run that never ends: its work may still write.");
+        setValue(L.MSG_AFTER_PART_RUN, "After part %d: %s");
+        setValue(L.MSG_AFTER_PART_STOPPED, "What follows the new part stopped at %s.");
+        setValue(L.MSG_AFTER_PART_FAILED, "What follows the new part failed at %s: %s");
+        setValue(L.MSG_AFTER_PART_NOT_RUN, "Not run: %s.");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");
@@ -1876,7 +1905,6 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_AGENT_CHECKPOINTS, "Restore points of the working copy of the book and the workspace. The run makes one when it starts and one before the rounds that change something (the last five are kept); the agent can save its own. They share a quota set by the administrator. Restore brings back the book and the workspace; Rewind also takes the conversation back to where the checkpoint was made, so the agent does not remember work that is no longer in the book (a paused or stopped run).");
         setValue(L.HELP_MERGE, "The agent worked on a copy of the book. Pick what to take over, the book is saved first. The text on the right is what will be written: edit it to change it. A conflict is a text that both you and the agent changed.");
         setValue(L.HELP_COMMAND_PRESETS, "Roles: the auditor only reads; the lore keeper also writes lorebooks; the editor also revises the text, the summaries and the book info; the drafter also adds new parts and lets the model write the next turn. None of them can remove data.");
-        setValue(L.HELP_AI_MAX_CONCURRENT_REQUESTS, "How many requests of agents may be on the way to this model at once, the others wait their turn. Empty is no limit. Set 1 for a server with one slot (for example one GPU). Your own generation in the story window is not queued.");
         setValue(L.HELP_AGENT_PAUSE_NOW, "Cancels the request to the model and the call that are going on and pauses at once. What they would have done is lost; a call that cannot be stopped may still finish, the agent checks the state when it goes on.");
         setValue(L.HELP_AGENT_DEFAULT_INSTRUCTIONS_USER, "Instructions for those of your agents that have none of their own, added to their prompt in every run. Empty means no instructions.");
         setValue(L.HELP_AGENT_AUTO_COMPACT, "When the context of the model passes this share of its limit and the agent did not compact its work itself, the run summarizes the earlier rounds. Empty is %d. Zero never compacts (the run then stops when the context is full). Otherwise %d to 99.");
@@ -1955,6 +1983,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_AFTER_IMPORT, "The parts are in the book. Two things make a long story easier to write on: summaries of what was imported and a lorebook with its characters and places. Create the summaries first: an agent locks the book while it works.");
         setValue(L.HELP_REDRAFT_LENGTH_PROMPT, "Plain text that is added to your instructions when the redraft is asked to be shorter (longer). It is not a template. Empty is the built-in text.");
         setValue(L.HELP_UPDATE, "Updates a Docker installation from its Git checkout without logging in to the server: the newest version of the branch is pulled and built, with the plugins, and Marginalia is restarted.");
+        setValue(L.HELP_AI_CONNECTIONS, "How many requests may be on the way to this model at once: every request, of every user and of every kind (your generation, a side query, an agent, a plugin). The others wait their turn, in the order they came. 1 for a server with one slot (for example one GPU); a cloud model that answers several requests at once can have more.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Background lore and world context.");

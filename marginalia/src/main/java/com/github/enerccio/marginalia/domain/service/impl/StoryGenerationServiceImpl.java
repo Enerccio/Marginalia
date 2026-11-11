@@ -9,14 +9,18 @@ import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.service.AgentRunService;
 import com.github.enerccio.marginalia.domain.service.CancellationToken;
+import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.GenerationListener;
+import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.domain.service.StoryGenerationService;
 import com.github.enerccio.marginalia.domain.service.impl.generation.*;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationControllerEvent.EventChain;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationControllerEvent.Registration;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.GenerationFailure;
+import com.github.enerccio.marginalia.domain.service.impl.generation.dto.GenerationOutcome;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.PrePromptData;
+import com.github.enerccio.marginalia.domain.service.run.Runs;
 import com.github.enerccio.marginalia.domain.traits.NoTx;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
@@ -53,10 +57,19 @@ public class StoryGenerationServiceImpl implements StoryGenerationService, Initi
     @Lazy
     private AgentRunService agentRunService;
 
+    @Autowired
+    @Lazy
+    private ChatMessageService chatMessageService;
+
+    @Autowired
+    @Lazy
+    private ManuscriptService manuscriptService;
+
     private List<GenerationStep> installedSteps;
     private final Map<GenerationStepType, GenerationStep> steps = new LinkedHashMap<>();
     private final Map<Events, List<GenerationEvent>> listeners = new ConcurrentHashMap<>();
     private final Map<Events, List<GenerationObserver>> observers = new ConcurrentHashMap<>();
+    private final List<AfterPart.Binding> afterPartBindings = new CopyOnWriteArrayList<>();
     private ExecutorService taskExecutor;
 
     @Override
@@ -73,6 +86,13 @@ public class StoryGenerationServiceImpl implements StoryGenerationService, Initi
         List<GenerationObserver> list = observers.computeIfAbsent(event, e -> new CopyOnWriteArrayList<>());
         list.add(observer);
         return () -> list.remove(observer);
+    }
+
+    @Override
+    public Registration addAfterPartBinding(AfterPart.Binding binding) {
+        Objects.requireNonNull(binding, "binding");
+        afterPartBindings.add(binding);
+        return () -> afterPartBindings.remove(binding);
     }
 
     // Accessible to GenerationEngine
@@ -98,7 +118,13 @@ public class StoryGenerationServiceImpl implements StoryGenerationService, Initi
         if (attributes == null) {
             throw new IllegalStateException("Called without a request context (neither in a request nor with one in the options)!");
         }
+        endAfterPart(manuscript, generationRequest);
+        // one generation of a book at a time, from any page, command or plugin; the run is given back when the cleanup starts
+        Runs.Run run = Runs.run(Runs.GENERATION, () -> loc.getValue(L.MSG_COMMAND_GENERATING))
+                .book(manuscript).hold(manuscript, Runs.Mode.READ).stage(Runs.Stage.PREPARE).quiet().currentPage().onStop(token::cancel)
+                .startUnless(manuscript, Runs.Operation.GENERATE);
         GenerationEngine generationEngine = new GenerationEngine();
+        generationEngine.run = run;
         generationEngine.setManuscript(manuscript);
         generationEngine.ai = options.ai() != null ? options.ai() : manuscript.getAi();
         generationEngine.protocol = options.protocol() != null ? options.protocol() : manuscript.getProtocol();
@@ -108,9 +134,32 @@ public class StoryGenerationServiceImpl implements StoryGenerationService, Initi
         generationEngine.uiListener = new FailureTrackingListener(listener);
         generationEngine.properties.put(GenerationProperties.RUN_ID, UUID.randomUUID().toString());
         generationEngine.requestAttributes = attributes;
-        generationEngine.executeNextStep();
+        generationEngine.afterPart = options.afterPart();
+        try {
+            generationEngine.executeNextStep();
+        } catch (RuntimeException e) {
+            run.end();
+            throw e;
+        }
 
         return token;
+    }
+
+    /**
+     * A part that is generated again ends what follows its earlier generation (its notes and redraft were about the old text).
+     */
+    private static void endAfterPart(Manuscript manuscript, GenerationRequest request) {
+        if (request == null || request.getRequestType() != GenerationRequestType.REGENERATE || request.getNode() == null
+                || request.getNode().getId() == null) {
+            return;
+        }
+        Long partId = request.getNode().getId();
+        for (Runs.Run run : Runs.ofBook(manuscript.getId())) {
+            if (Runs.AFTER_PART.equals(run.getSource()) && run.getHolds().stream()
+                    .anyMatch(hold -> hold.type() == ChatMessage.class && partId.equals(hold.id()))) {
+                run.stop();
+            }
+        }
     }
 
     @Override
@@ -157,6 +206,10 @@ public class StoryGenerationServiceImpl implements StoryGenerationService, Initi
         private PrePromptData prePromptData;
         private List<LLMChatMessage> payload;
         private State state = State.NOT_SUCCESSFUL;
+        // what the generation holds: the book, and the part once it exists
+        private Runs.Run run;
+        // whether what the book does after a part follows a completed generation
+        private boolean afterPart;
 
         public GenerationEngine() {
 
@@ -210,6 +263,9 @@ public class StoryGenerationServiceImpl implements StoryGenerationService, Initi
         @Override
         public void setMessage(ChatMessage message) {
             this.chatMessage = message;
+            if (message != null && message.getId() != null && run != null && currentStep != GenerationStepType.CLEANUP) {
+                run.hold(message, Runs.Mode.WRITE);
+            }
         }
 
         @Override
@@ -282,8 +338,13 @@ public class StoryGenerationServiceImpl implements StoryGenerationService, Initi
         private void executeNextStep() {
             AsyncRunnableWrapper wrapper = new AsyncRunnableWrapper(configuration);
             taskExecutor.submit(() -> {
+                if (currentStep == null || currentStep == GenerationStepType.CLEANUP) {
+                    // the cleanup takes the empty part away and tells the page: the next generation may start once it did
+                    run.end();
+                }
                 if (currentStep == null) {
-                    // we are done, exit
+                    // the generation is done: what follows the part is a phase of its own
+                    startAfterPart();
                     return;
                 }
 
@@ -309,15 +370,11 @@ public class StoryGenerationServiceImpl implements StoryGenerationService, Initi
 
                 GenerationStep step = steps.get(currentStep);
                 try {
+                    // the requests of the step report to the run (the panel shows what the model writes)
                     wrapper.run(() -> {
-                        if (step == null) {
-                            // not installed? during development normal
-                            uiListener.onSimpleError("NOT IMPLEMENTED");
-                            if (currentStep != GenerationStepType.CLEANUP)
-                                jumpTo(GenerationStepType.CLEANUP);
-                            return;
+                        try (Runs.Binding _ = run.bind()) {
+                            runStep(step);
                         }
-                        step.step(this);
                     });
                 } catch (Throwable e) {
                     log.error(e.getMessage(), e);
@@ -328,6 +385,54 @@ public class StoryGenerationServiceImpl implements StoryGenerationService, Initi
                     }
                 }
             });
+        }
+
+        private void runStep(GenerationStep step) throws Exception {
+            if (step == null) {
+                // not installed? during development normal
+                uiListener.onSimpleError("NOT IMPLEMENTED");
+                if (currentStep != GenerationStepType.CLEANUP)
+                    jumpTo(GenerationStepType.CLEANUP);
+                return;
+            }
+            if (currentStep == GenerationStepType.INFERENCE) {
+                startInference();
+            }
+            step.step(this);
+        }
+
+        /**
+         * The second phase ({@link AfterPart}), for a completed generation that has a part: its own run, stop and end; the generation
+         * (its token, its run, its page) is done with.
+         */
+        private void startAfterPart() {
+            if (!afterPart || afterPartBindings.isEmpty() || properties.get(GenerationProperties.OUTCOME) != GenerationOutcome.COMPLETED
+                    || chatMessage == null || chatMessage.getId() == null) {
+                if (afterPart && chatMessage != null && properties.get(GenerationProperties.OUTCOME) == GenerationOutcome.COMPLETED) {
+                    // nothing follows: the part is final at once
+                    try {
+                        uiListener.onPartFinal(chatMessage);
+                    } catch (RuntimeException e) {
+                        log.debug("The page of the generation is gone: {}", e.getMessage());
+                    }
+                }
+                return;
+            }
+            new AfterPartPhase(loc, chatMessageService, manuscriptService, taskExecutor, requestAttributes, uiListener, manuscript,
+                    chatMessage, generationRequest, ai, protocol, turnInput, run.getPage(), properties).start(afterPartBindings);
+        }
+
+        /**
+         * The prompt is fixed: from here on the generation holds only its part and the branch above it (no delete, merge or insert
+         * there), the rest of the book is free.
+         */
+        private void startInference() throws Exception {
+            if (chatMessage != null && chatMessage.getId() != null) {
+                List<ChatMessage> above = new ArrayList<>(chatMessageService.getBranchFromLeaf(chatMessage));
+                above.removeIf(part -> part.getId().equals(chatMessage.getId()));
+                run.holdMore(above, Runs.Mode.STRUCTURE);
+            }
+            run.setStage(Runs.Stage.INFERENCE);
         }
 
         @Override

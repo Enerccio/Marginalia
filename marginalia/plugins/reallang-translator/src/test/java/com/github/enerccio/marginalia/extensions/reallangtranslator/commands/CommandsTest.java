@@ -166,7 +166,8 @@ class CommandsTest {
             Map.entry("TranslationRuns.start", "reallang-translate-part"),
             Map.entry("TranslationRuns.startMissing", "reallang-translate-part"),
             Map.entry("TranslationRuns.startMissingIn", "reallang-translate-part"),
-            Map.entry("TranslationRuns.startSelection", "reallang-translate-sentence"));
+            Map.entry("TranslationRuns.startSelection", "reallang-translate-sentence"),
+            Map.entry("TranslationRuns.translateNow", "reallang-translate-part"));
 
     @Test
     void everyOperationOfAServiceHasACommand() {

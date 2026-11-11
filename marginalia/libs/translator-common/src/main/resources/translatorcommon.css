@@ -25,24 +25,3 @@
 .translator-reader-part mark[data-translated-passage] {
     cursor: pointer;
 }
-
-/* the window of a run that asks a model: the reasoning and the answer as they arrive */
-.translator-run-heading {
-    color: var(--lumo-secondary-text-color);
-    font-size: var(--lumo-font-size-s);
-    font-weight: 600;
-}
-
-.translator-run-box {
-    box-sizing: border-box;
-    width: 100%;
-    max-height: 14em;
-    overflow: auto;
-    padding: var(--lumo-space-s);
-    border: 1px solid var(--lumo-contrast-20pct);
-    border-radius: var(--lumo-border-radius-m);
-    background: var(--lumo-contrast-5pct);
-    font-size: var(--lumo-font-size-s);
-    white-space: pre-wrap;
-    overflow-wrap: anywhere;
-}

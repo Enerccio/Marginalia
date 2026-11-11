@@ -2,7 +2,9 @@ package com.github.enerccio.marginalia.extensions.conlangtranslator.ui;
 
 import com.github.enerccio.marginalia.extensions.translatorcommon.service.AsyncRuns;
 import com.github.enerccio.marginalia.extensions.translatorcommon.service.PluginLog;
+import com.github.enerccio.marginalia.domain.service.run.Runs;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
+import com.github.enerccio.marginalia.ui.widgets.WindowRun;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Span;
@@ -47,16 +49,21 @@ final class Designing {
         content.setPadding(false);
         busy.add(content);
         busy.open();
-        AsyncRuns.start("conlang-designer", PluginLog.get(), job, (result, failure) -> {
-            busy.close();
-            if (stopped.get()) {
-                return;
-            }
-            if (failure != null) {
-                Notification.error(String.format(T.localized(THE_DESIGNER_FAILED), failure.getMessage()));
-                return;
-            }
-            done.accept(result);
-        });
+        // the request as a run: the panel of the runs shows it; its Stop is the one of the window (the answer is not waited for)
+        WindowRun request = WindowRun.of(busy, "conlang-designer", () -> text);
+        try (Runs.Binding _ = request.start(stop::click)) {
+            AsyncRuns.start("conlang-designer", PluginLog.get(), job, (result, failure) -> {
+                request.finished();
+                busy.close();
+                if (stopped.get()) {
+                    return;
+                }
+                if (failure != null) {
+                    Notification.error(String.format(T.localized(THE_DESIGNER_FAILED), failure.getMessage()));
+                    return;
+                }
+                done.accept(result);
+            });
+        }
     }
 }
