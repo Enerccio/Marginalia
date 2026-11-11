@@ -49,6 +49,23 @@ public final class TranslationRuns {
     }
 
     /**
+     * Translates the speeches of the part that are not translated yet, see {@link TranslationService#translateMissing}; the rules of {@link #start} apply.
+     *
+     * @param languageId the language (its id in the library), null for all of the book's
+     */
+    public boolean startMissing(Manuscript manuscript, ChatMessage part, String languageId, BiConsumer<Outcome, Throwable> done) {
+        return runs.start(part, () -> service.translateMissing(manuscript, part, languageId), done);
+    }
+
+    /**
+     * Translates the speeches that are not translated yet in the range of the part, see {@link TranslationService#translateMissingIn}.
+     */
+    public boolean startMissingIn(Manuscript manuscript, ChatMessage part, String expected, int from, int to, String languageId,
+                                  BiConsumer<Outcome, Throwable> done) {
+        return runs.start(part, () -> service.translateMissingIn(manuscript, part, expected, from, to, languageId), done);
+    }
+
+    /**
      * Translates the sentence selected in the part, see {@link TranslationService#translateSelection}; the rules of {@link #start} apply.
      */
     public boolean startSelection(Manuscript manuscript, ChatMessage part, String expected, int from, int to, BiConsumer<Outcome, Throwable> done) {

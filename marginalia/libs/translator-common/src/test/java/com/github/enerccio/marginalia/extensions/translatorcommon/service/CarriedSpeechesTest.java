@@ -65,6 +65,22 @@ class CarriedSpeechesTest {
     }
 
     @Test
+    void aRunForTheMissingSpeechesCarriesTheSameLanguageToo() {
+        Reverse.Result read = Reverse.toModel(STORED, both());
+
+        List<TranslationPlan.Accepted> carried = TranslationWriter.carried(STORED, both(), read, "elf", true);
+
+        assertEquals(2, carried.size());
+        assertEquals("elf", carried.getFirst().carried().getLanguage());
+        // only the cook, who is still in English, is left for the run to write
+        List<TranslationPlan.Accepted> accepted = new java.util.ArrayList<>(carried);
+        int cook = ENGLISH.indexOf("Good day.");
+        accepted.add(new TranslationPlan.Accepted(new Speech("Good day.", "the cook", "elf", "Ael dan.", "", null, ""), cook, cook + "Good day.".length()));
+        TranslationPlan plan = TranslationPlan.make(read.text(), accepted);
+        assertEquals("Mara said, \"Ael tuvi.\" Brog growled, \"Ug mor zan.\" The cook sighed, \"Ael dan.\"", plan.stored());
+    }
+
+    @Test
     void anEditedSpeechIsNotCarriedItStaysInTheText() {
         List<Reverse.Located> passages = List.of(located(STORED, "Ael tuvi.", "Be welcome.", "elf", "Mara"),
                 new Reverse.Located(STORED.indexOf("Ug mor zan."), STORED.indexOf("Ug mor zan.") + "Ug mor zan.".length(),

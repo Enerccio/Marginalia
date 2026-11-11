@@ -88,6 +88,8 @@ public class ReallangTranslatorLocalization extends PluginLocalizationBundle {
     public static final String TRANSLATE_BY_ITSELF = "Translate a new part by itself";
     public static final String TRANSLATE_PARTS_REAL = "Translate parts (real language)";
     public static final String TRANSLATE_SELECTED_TEXT_REAL = "Translate selected text (real language)";
+    public static final String TRANSLATE_MISSING_DIALOGS_REAL = "Translate missing dialogs (real language)";
+    public static final String TRANSLATE_MISSING_DIALOGS_IN_SELECTION_REAL = "Translate missing dialogs in selection (real language)";
     public static final String TRANSLATE_DIALOGS_REAL = "Translate dialogs (real language)";
     public static final String TRANSLATING_THE_SELECTION = "Translating the selected text...";
     public static final String TRANSLATING_THE_SPEECH = "Translating the speech of the part...";
@@ -393,6 +395,10 @@ public class ReallangTranslatorLocalization extends PluginLocalizationBundle {
 
         ja(TRANSLATE_SELECTED_TEXT_REAL, "選択範囲を翻訳(実在言語)");
         zh(TRANSLATE_SELECTED_TEXT_REAL, "翻译所选内容(现实语言)");
+        ja(TRANSLATE_MISSING_DIALOGS_REAL, "未翻訳の台詞を翻訳(実在言語)");
+        zh(TRANSLATE_MISSING_DIALOGS_REAL, "翻译未翻译的对白(现实语言)");
+        ja(TRANSLATE_MISSING_DIALOGS_IN_SELECTION_REAL, "選択範囲の未翻訳の台詞を翻訳(実在言語)");
+        zh(TRANSLATE_MISSING_DIALOGS_IN_SELECTION_REAL, "翻译所选内容中未翻译的对白(现实语言)");
 
         ja(TRANSLATE_DIALOGS_REAL, "台詞を翻訳(実在言語)");
         zh(TRANSLATE_DIALOGS_REAL, "翻译对白(现实语言)");

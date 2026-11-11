@@ -556,15 +556,36 @@ public class ReallangCommands extends ManuscriptReadSupport {
             llmDescriptionText = "Asks the translating model to translate the direct speech of the part into the language of the book and writes the translations into the part (the quotation marks and the narration stay). "
                     + "Each translated speech keeps its English as its source, which the model reads back everywhere; the history of the part gets a version. A part that is translated already is translated again from its English. "
                     + "Returns what came of it: speeches written, speeches that could not be used, and translations that are not in the script the language asks for (wrongScript). Needs a language on the book "
-                    + "(reallang-set-book-language) and a model. A book with more than one language (reallang-add-book-language) takes one request for each, one after the other; 'language' limits it to one.",
+                    + "(reallang-set-book-language) and a model. A book with more than one language (reallang-add-book-language) takes one request for each, one after the other; 'language' limits it to one."
+                    + " 'missingOnly' translates only the speeches the model left in English and leaves the translated ones as they are (it finishes a part a run missed speeches of); 'within' quotes a passage of the part (it must occur once) and limits that to the speeches the passage touches.",
             signature = @CommandParameterSignature({
                     @CommandParameter(name = "part", type = String.class, descriptionText = PARAM_PART),
-                    @CommandParameter(name = "language", type = String.class, optional = true, descriptionText = PARAM_BOOK_LANGUAGE)}),
+                    @CommandParameter(name = "language", type = String.class, optional = true, descriptionText = PARAM_BOOK_LANGUAGE),
+                    @CommandParameter(name = "missingOnly", type = Boolean.class, optional = true, defaultValue = "false", descriptionText = "Translate only the speeches that are still in English and leave the translated ones as they are"),
+                    @CommandParameter(name = "within", type = String.class, optional = true, descriptionText = "A passage of the part, exactly as it has it (it must occur once): only the speeches it touches are translated, and only the missing ones")}),
             returns = @CommandReturn(name = "result", type = String.class, descriptionText = "JSON: what came of it"))
     public void translatePart(CommandContext context) throws Exception {
         Book book = new Book(context);
         Book.Located located = book.locate(context.get("part", String.class), null);
-        Outcome outcome = translation.translate(book.manuscript, located.message(), bookLanguage(book, context));
+        String within = StringUtils.trimToNull(context.get("within", String.class));
+        boolean missingOnly = within != null || Boolean.TRUE.equals(context.get("missingOnly", Boolean.class));
+        Outcome outcome;
+        if (within != null) {
+            ChatMessage part = translation.find(located.message());
+            String text = StringUtils.defaultString(part.getResponse());
+            int start = text.indexOf(within);
+            if (start < 0) {
+                throw new IllegalArgumentException("The part does not have that passage; quote it exactly (reallang-get-source shows the text)");
+            }
+            if (text.indexOf(within, start + 1) >= 0) {
+                throw new IllegalArgumentException("The passage occurs more than once in the part; quote more of it");
+            }
+            outcome = translation.translateMissingIn(book.manuscript, part, text, start, start + within.length(), bookLanguage(book, context));
+        } else if (missingOnly) {
+            outcome = translation.translateMissing(book.manuscript, located.message(), bookLanguage(book, context));
+        } else {
+            outcome = translation.translate(book.manuscript, located.message(), bookLanguage(book, context));
+        }
         JsonObject result = new JsonObject();
         result.addProperty("part", located.position());
         result.addProperty("status", outcome.status().name().toLowerCase(Locale.ROOT).replace('_', '-'));

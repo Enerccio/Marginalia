@@ -304,6 +304,8 @@ public class ConlangTranslatorLocalization extends PluginLocalizationBundle {
     public static final String IMPORTED_D_WORDS_AS_NEW = "Imported %d word(s) as new";
     public static final String WORDS_IN_NEITHER_THE_LEXICON_NOR_THE_NEW_WORDS = "Words that are in neither the lexicon nor the new words: %s";
     public static final String TRANSLATE_SELECTED_TEXT_CONSTRUCTED = "Translate selected text (constructed language)";
+    public static final String TRANSLATE_MISSING_DIALOGS_CONSTRUCTED = "Translate missing dialogs (constructed language)";
+    public static final String TRANSLATE_MISSING_DIALOGS_IN_SELECTION_CONSTRUCTED = "Translate missing dialogs in selection (constructed language)";
     public static final String TRANSLATING_THE_SELECTION = "Translating the selected text...";
     public static final String THE_SELECTION_HOLDS_A_TRANSLATED_SPEECH = "The selection holds a translated speech; put the English back first";
     public static final String THE_PART_WAS_CHANGED_MEANWHILE = "The part was changed meanwhile; select the text again";
@@ -1205,6 +1207,10 @@ public class ConlangTranslatorLocalization extends PluginLocalizationBundle {
 
         ja(TRANSLATE_SELECTED_TEXT_CONSTRUCTED, "選択範囲を翻訳(人工言語)");
         zh(TRANSLATE_SELECTED_TEXT_CONSTRUCTED, "翻译所选内容(人造语言)");
+        ja(TRANSLATE_MISSING_DIALOGS_CONSTRUCTED, "未翻訳の台詞を翻訳(人工言語)");
+        zh(TRANSLATE_MISSING_DIALOGS_CONSTRUCTED, "翻译未翻译的对白(人造语言)");
+        ja(TRANSLATE_MISSING_DIALOGS_IN_SELECTION_CONSTRUCTED, "選択範囲の未翻訳の台詞を翻訳(人工言語)");
+        zh(TRANSLATE_MISSING_DIALOGS_IN_SELECTION_CONSTRUCTED, "翻译所选内容中未翻译的对白(人造语言)");
 
         ja(TRANSLATING_THE_SELECTION, "選択したテキストを翻訳中...");
         zh(TRANSLATING_THE_SELECTION, "正在翻译所选文本...");

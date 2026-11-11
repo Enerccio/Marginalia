@@ -103,6 +103,8 @@ class CommandsTest {
             Map.entry("TranslationService.translate", "reallang-translate-part"),
             Map.entry("TranslationService.revert", "reallang-revert-to-source"),
             Map.entry("TranslationService.translateSelection", "reallang-translate-sentence"),
+            Map.entry("TranslationService.translateMissing", "reallang-translate-part"),
+            Map.entry("TranslationService.translateMissingIn", "reallang-translate-part"),
             Map.entry("TranslationService.quickTranslate", "reallang-translate-text"),
             Map.entry("BookReal.languageOf", "reallang-status"),
             Map.entry("BookReal.languages", "reallang-status"),
@@ -162,6 +164,8 @@ class CommandsTest {
             Map.entry("RangeRuns.start", "reallang-translate-range"),
             Map.entry("TranslationRuns.isRunning", "ui only: the progress of a dialog"),
             Map.entry("TranslationRuns.start", "reallang-translate-part"),
+            Map.entry("TranslationRuns.startMissing", "reallang-translate-part"),
+            Map.entry("TranslationRuns.startMissingIn", "reallang-translate-part"),
             Map.entry("TranslationRuns.startSelection", "reallang-translate-sentence"));
 
     @Test

@@ -128,17 +128,34 @@ public class TranslationWriter {
      * @param languageId the language the run is for; the speeches of this language (and the ones without a language) are not carried
      */
     public List<TranslationPlan.Accepted> carried(ChatMessage part, Reverse.Result read, String languageId) throws Exception {
-        return carried(StringUtils.defaultString(part.getResponse()), passages.of(List.of(part)).getOrDefault(part.getId(), List.of()), read, languageId);
+        return carried(part, read, languageId, false);
+    }
+
+    /**
+     * As above; with {@code keepSameLanguage} the translated speeches of {@code languageId} are carried too, so that only the speeches that are not
+     * translated are written (see {@link com.github.enerccio.marginalia.extensions.translatorcommon.translate.RunScope}).
+     */
+    public List<TranslationPlan.Accepted> carried(ChatMessage part, Reverse.Result read, String languageId, boolean keepSameLanguage) throws Exception {
+        return carried(StringUtils.defaultString(part.getResponse()), passages.of(List.of(part)).getOrDefault(part.getId(), List.of()), read, languageId,
+                keepSameLanguage);
     }
 
     /**
      * {@link #carried(ChatMessage, Reverse.Result, String)} for a stored text and its passages, nothing read from the store.
      */
     public static List<TranslationPlan.Accepted> carried(String stored, List<Reverse.Located> located, Reverse.Result read, String languageId) {
+        return carried(stored, located, read, languageId, false);
+    }
+
+    /**
+     * {@link #carried(String, List, Reverse.Result, String)}, with the speeches of {@code languageId} carried too when {@code keepSameLanguage}.
+     */
+    public static List<TranslationPlan.Accepted> carried(String stored, List<Reverse.Located> located, Reverse.Result read, String languageId,
+                                                         boolean keepSameLanguage) {
         List<TranslationPlan.Accepted> carried = new ArrayList<>();
         for (Reverse.Located passage : located) {
             boolean substituted = read.substitutions().stream().anyMatch(s -> s.start() == passage.start() && s.end() == passage.end());
-            if (!substituted || StringUtils.equals(passage.span().getLanguage(), languageId)) {
+            if (!substituted || !keepSameLanguage && StringUtils.equals(passage.span().getLanguage(), languageId)) {
                 continue;
             }
             int[] model = read.model().modelRange(passage.start(), passage.end());
