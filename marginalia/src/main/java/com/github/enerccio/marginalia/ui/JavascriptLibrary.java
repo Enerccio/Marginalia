@@ -639,12 +639,32 @@ public final class JavascriptLibrary {
             """;
 
     /**
+     * Part of the scripts below: paints the remembered selection with the CSS Custom Highlight API ({@code ::highlight(...)} in
+     * {@code shared-styles.css}), because the context menu takes the real selection away visually (the text is still remembered, but it
+     * would look as if it were not). {@code paintRemembered(range)} shows it, {@code clearRemembered()} removes it again; where the API
+     * does not exist they do nothing.
+     */
+    private static final String REMEMBERED_HIGHLIGHT = """
+            const HIGHLIGHT_NAME = 'marginalia-remembered-selection';
+            const clearRemembered = () => {
+              if (window.CSS && CSS.highlights) {
+                CSS.highlights.delete(HIGHLIGHT_NAME);
+              }
+            };
+            const paintRemembered = range => {
+              if (window.CSS && CSS.highlights && typeof Highlight !== 'undefined') {
+                CSS.highlights.set(HIGHLIGHT_NAME, new Highlight(range));
+              }
+            };
+            """;
+
+    /**
      * Remembers the selection of the markdown element at the moment the user opens its context menu (right click, long press), before
-     * the menu can take it away; {@link #getSelectionContext} and {@link #copySelection} use it when nothing is selected any more. A
-     * click on the text forgets it.
+     * the menu can take it away, and keeps it painted while the menu is open; {@link #getSelectionContext} and {@link #copySelection} use
+     * the memory when nothing is selected any more. A click on the text, a key press or the use of the memory forgets it.
      */
     public static void rememberSelectionOnContextMenu(Element markdown, int around) {
-        markdown.executeJs(SELECTION_SNAPSHOT + """
+        markdown.executeJs(SELECTION_SNAPSHOT + REMEMBERED_HIGHLIGHT + """
                 const el = $0;
                 if (!el._hasSelectionMemory) {
                   el._hasSelectionMemory = true;
@@ -652,6 +672,7 @@ public final class JavascriptLibrary {
                     const found = snapshot(el, $1);
                     if (found) {
                       el._rememberedSelection = found;
+                      paintRemembered(window.getSelection().getRangeAt(0).cloneRange());
                     }
                   }, true);
                   el.addEventListener('mousedown', e => {
@@ -659,6 +680,11 @@ public final class JavascriptLibrary {
                       el._rememberedSelection = null;
                     }
                   }, true);
+                  if (!window.__rememberedSelectionReset) {
+                    window.__rememberedSelectionReset = true;
+                    document.addEventListener('mousedown', clearRemembered, true);
+                    document.addEventListener('keydown', clearRemembered, true);
+                  }
                 }
                 """, markdown, around);
     }
@@ -670,13 +696,14 @@ public final class JavascriptLibrary {
      * remembered by {@link #rememberSelectionOnContextMenu}, the remembered one is given (once).
      */
     public static PendingJavaScriptResult getSelectionContext(Element markdown, int around) {
-        return markdown.executeJs(SELECTION_SNAPSHOT + """
+        return markdown.executeJs(SELECTION_SNAPSHOT + REMEMBERED_HIGHLIGHT + """
                 const el = $0;
                 let found = snapshot(el, $1);
                 if (!found && el._rememberedSelection) {
                   found = el._rememberedSelection;
                 }
                 el._rememberedSelection = null;
+                clearRemembered();
                 return found;
                 """, markdown, around);
     }
@@ -686,12 +713,13 @@ public final class JavascriptLibrary {
      * {@link #rememberSelectionOnContextMenu}) to the clipboard of the browser.
      */
     public static void copySelection(Element markdown) {
-        markdown.executeJs(SELECTION_SNAPSHOT + """
+        markdown.executeJs(SELECTION_SNAPSHOT + REMEMBERED_HIGHLIGHT + """
                 const el = $0;
                 let found = snapshot(el, 0) || el._rememberedSelection;
                 if (found) {
                   navigator.clipboard.writeText(JSON.parse(found).text);
                 }
+                clearRemembered();
                 """, markdown);
     }
 

@@ -1057,6 +1057,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_ALSO_SUMMARIZE_THE_REST, "同时总结末尾剩余部分");
         setValue(L.LABEL_IMPORT_FINISHED, "导入完成");
         setValue(L.LABEL_NOT_NOW, "暂不");
+        setValue(L.LABEL_TRANSLATE, "翻译");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");

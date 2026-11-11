@@ -1049,6 +1049,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_ALSO_SUMMARIZE_THE_REST, "最後の残りも要約する");
         setValue(L.LABEL_IMPORT_FINISHED, "インポート完了");
         setValue(L.LABEL_NOT_NOW, "今はしない");
+        setValue(L.LABEL_TRANSLATE, "翻訳");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");

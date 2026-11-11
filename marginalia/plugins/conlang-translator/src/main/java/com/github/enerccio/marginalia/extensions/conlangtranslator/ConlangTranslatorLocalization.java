@@ -9,7 +9,7 @@ public class ConlangTranslatorLocalization extends PluginLocalizationBundle {
 
     public static final ConlangTranslatorLocalization T = new ConlangTranslatorLocalization();
 
-    public static final String TRANSLATE_THE_SPEECH = "Translate the speech";
+    public static final String TRANSLATE_DIALOGS_CONSTRUCTED = "Translate dialogs (constructed language)";
     public static final String TRANSLATING_THE_SPEECH = "Translating the speech of the part...";
     public static final String TRANSLATED_SPEECHES = "Translated %d speech(es), %d new word(s) in the lexicon";
     public static final String SOME_WORDS_NOT_IN_THE_LEXICON = "%d translation(s) use words that are not in the lexicon and were not reported";
@@ -285,7 +285,7 @@ public class ConlangTranslatorLocalization extends PluginLocalizationBundle {
     public static final String THE_CONLANG_AS_IT_IS = "The conlang, as it is";
     public static final String THE_CONLANG_THE_ENGLISH_IN_FOOTNOTES = "The conlang, the English in footnotes";
     public static final String THE_ENGLISH_THE_CONLANG_IN_FOOTNOTES = "The English, the conlang in footnotes";
-    public static final String TRANSLATE_PARTS = "Translate parts";
+    public static final String TRANSLATE_PARTS_CONSTRUCTED = "Translate parts (constructed language)";
     public static final String THE_DESIGNER_REVIEWS = "The designer reads the rules and the lexicon and lists contradictions, gaps, and words that break the sound system. Nothing is changed.";
     public static final String CONLANG = "Conlang";
     public static final String QUICK_TRANSLATE = "Quick translate";
@@ -303,7 +303,7 @@ public class ConlangTranslatorLocalization extends PluginLocalizationBundle {
     public static final String IMPORT_THE_SELECTED_WORDS = "Import the selected words";
     public static final String IMPORTED_D_WORDS_AS_NEW = "Imported %d word(s) as new";
     public static final String WORDS_IN_NEITHER_THE_LEXICON_NOR_THE_NEW_WORDS = "Words that are in neither the lexicon nor the new words: %s";
-    public static final String TRANSLATE_THE_SELECTION = "Translate the selection";
+    public static final String TRANSLATE_SELECTED_TEXT_CONSTRUCTED = "Translate selected text (constructed language)";
     public static final String TRANSLATING_THE_SELECTION = "Translating the selected text...";
     public static final String THE_SELECTION_HOLDS_A_TRANSLATED_SPEECH = "The selection holds a translated speech; put the English back first";
     public static final String THE_PART_WAS_CHANGED_MEANWHILE = "The part was changed meanwhile; select the text again";
@@ -329,8 +329,8 @@ public class ConlangTranslatorLocalization extends PluginLocalizationBundle {
 
     @Override
     protected void loadKeys() {
-        ja(TRANSLATE_THE_SPEECH, "台詞を翻訳");
-        zh(TRANSLATE_THE_SPEECH, "翻译对白");
+        ja(TRANSLATE_DIALOGS_CONSTRUCTED, "台詞を翻訳(人工言語)");
+        zh(TRANSLATE_DIALOGS_CONSTRUCTED, "翻译对白(人造语言)");
 
         ja(TRANSLATING_THE_SPEECH, "パートの台詞を翻訳中...");
         zh(TRANSLATING_THE_SPEECH, "正在翻译本段对白...");
@@ -1152,8 +1152,8 @@ public class ConlangTranslatorLocalization extends PluginLocalizationBundle {
         ja(THE_ENGLISH_THE_CONLANG_IN_FOOTNOTES, "英語。人工言語は脚注");
         zh(THE_ENGLISH_THE_CONLANG_IN_FOOTNOTES, "英文,构造语言放脚注");
 
-        ja(TRANSLATE_PARTS, "パートを翻訳");
-        zh(TRANSLATE_PARTS, "翻译段落");
+        ja(TRANSLATE_PARTS_CONSTRUCTED, "パートを翻訳(人工言語)");
+        zh(TRANSLATE_PARTS_CONSTRUCTED, "翻译段落(人造语言)");
 
         ja(CONLANG, "コンラング");
         zh(CONLANG, "人造语");
@@ -1203,8 +1203,8 @@ public class ConlangTranslatorLocalization extends PluginLocalizationBundle {
         ja(WORDS_IN_NEITHER_THE_LEXICON_NOR_THE_NEW_WORDS, "語彙にも新語にもない単語: %s");
         zh(WORDS_IN_NEITHER_THE_LEXICON_NOR_THE_NEW_WORDS, "既不在词汇表也不在新词中的词:%s");
 
-        ja(TRANSLATE_THE_SELECTION, "選択範囲を翻訳");
-        zh(TRANSLATE_THE_SELECTION, "翻译所选内容");
+        ja(TRANSLATE_SELECTED_TEXT_CONSTRUCTED, "選択範囲を翻訳(人工言語)");
+        zh(TRANSLATE_SELECTED_TEXT_CONSTRUCTED, "翻译所选内容(人造语言)");
 
         ja(TRANSLATING_THE_SELECTION, "選択したテキストを翻訳中...");
         zh(TRANSLATING_THE_SELECTION, "正在翻译所选文本...");

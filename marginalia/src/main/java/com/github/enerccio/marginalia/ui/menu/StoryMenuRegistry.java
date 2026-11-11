@@ -471,6 +471,7 @@ public class StoryMenuRegistry implements InitializingBean {
                 .visibleWhen((part, card) -> card != null && !card.getMessage().getImages().isEmpty()).separatorAfter());
 
         group(APPLICATION, MenuKind.CARD, StoryMenuKeys.GROUP_ANNOTATE, L.LABEL_ANNOTATIONS);
+        group(APPLICATION, MenuKind.CARD, StoryMenuKeys.GROUP_TRANSLATE, L.LABEL_TRANSLATE).icon(Solid.LANGUAGE::create);
         application(StoryMenuItem.card(StoryMenuKeys.ANNOTATE_PART, L.LABEL_ANNOTATE_PART, (part, card) -> card.annotatePart())
                 .visibleWhen((part, card) -> card != null && card.getMessage().getId() != null).path(StoryMenuKeys.GROUP_ANNOTATE));
         application(StoryMenuItem.card(StoryMenuKeys.ANNOTATE_WITH_AI, L.LABEL_ANNOTATE_WITH_AI, (part, card) -> card.annotateWithAi())
@@ -505,6 +506,8 @@ public class StoryMenuRegistry implements InitializingBean {
     }
 
     private void registerTextItems() {
+        // the translations of the extensions; the group is hidden while nothing is in it
+        group(APPLICATION, MenuKind.TEXT, StoryMenuKeys.GROUP_TRANSLATE, L.LABEL_TRANSLATE).icon(Solid.LANGUAGE::create);
         // only here, not in the menu of the part: opening that menu takes the selection away
         application(StoryMenuItem.text(StoryMenuKeys.TEXT_ANNOTATE_SELECTION, L.LABEL_ANNOTATE_SELECTION, (part, card) -> card.annotateSelection())
                 .actionId(ShortcutActions.STORY_ANNOTATE_SELECTION).defaultKey("a"));

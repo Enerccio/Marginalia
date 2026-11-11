@@ -765,7 +765,8 @@ numbers of the older items stable), the rest is P3/P4.
     a non-modal indicator with Stop for those that need no blocking (a cloud model, a second model). Then the modal can
     become a choice instead of a rule. Where to look:
     `PartRuns` / `RangeRuns` / `RunWindow` in `libs/translator-common`, `AutoAnnotate`, the generation pipeline
-    (`domain.service.impl.generation`), `UIPushGuard`.
+    (`domain.service.impl.generation`), `UIPushGuard`. The analysis (what exists in the core and in every plugin, the
+    design, the order of work) is in `TODO.CONCURRENCY.md`.
 
 ### Writing workflow
 

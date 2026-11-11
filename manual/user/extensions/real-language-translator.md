@@ -148,17 +148,17 @@ from your library, one by one, and takes them away again.
 - **One request for each language**: the rules and the notes of one language, and only the speeches of its speakers. A part with the speech of two languages takes two requests, one after the other; the second
   reads the part with the English of the first one's speeches and leaves those speeches translated. A part whose point of view and present characters are all outside the speakers of a language is not asked for
   that language (a part that names no character is asked for every language that has speakers).
-- **A passage knows its language.** **Translate the speech** again for one language leaves the speeches of the others alone, and **Put the English back** can be for one language or for all.
+- **A passage knows its language.** **Translate dialogs (real language)** again for one language leaves the speeches of the others alone, and **Put the English back** can be for one language or for all.
 - **The menus ask which language** when the book has more than one: the menu of a part (one of the languages or *All languages*) and the right click on a selected sentence (one language).
   **Translate parts** has a *Language* field (all languages by default); *the parts that are not translated* means "not translated in that language".
 - **The automatic run** translates a new part into every language whose speakers may be in it.
 
 ## Translating
 
-- **By hand:** the menu of a part has **Translate the speech (real language)**. A part that is translated already is translated again **from its English**. A book with more than one language asks first [which one](#more-than-one-language-in-a-book).
+- **By hand:** the menu of a part has the **Translate** sub menu (the right click on the text has one too), and in it **Translate dialogs (real language)** (these items and **Translate parts (real language)** are shown only in a book that has a language of this plugin). A part that is translated already is translated again **from its English**. A book with more than one language asks first [which one](#more-than-one-language-in-a-book).
 - **By itself:** with **Translate a new part by itself**, a generated part is translated as soon as it is final. A *regenerate* of a part gives it new English and removes the old translation.
 - **The window of a translation.** A translation of one part (by hand, of a selection, or by itself) opens a window when its request goes to the model: the **reasoning** of the model and its **answer** as they arrive, and a **Stop** button. The window blocks the page until the run is over (a model server with one slot would make anything else wait anyway). **Stop** cancels the request at once and starts no further one; with several languages, the languages that were written before it stay translated. A part with no speech in the language needs no request and shows no window. The translation of a [range](#translating) has its own window, which stays open beside the story.
-- **A sentence you wrote:** select it in the text of a part, right click and choose **Translate the selection (real language)**. The model translates it with the story around it; the English is
+- **A sentence you wrote:** select it in the text of a part, right click and choose **Translate → Translate selected text (real language)**. The model translates it with the story around it; the English is
   kept as the source. A selection that holds a translated speech is refused.
 - **A range:** **Translate parts (real language)** in the tools menu of the story opens a window that stays open beside the story: *Translate the parts that are not translated*, *Translate the
   translated parts again* or *Put the English back*, from a part to a part, with a **Stop**.

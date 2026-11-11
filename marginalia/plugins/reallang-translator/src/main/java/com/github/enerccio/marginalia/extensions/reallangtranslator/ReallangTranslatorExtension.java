@@ -38,6 +38,7 @@ import com.github.enerccio.marginalia.ui.main.ApplicationEntryPoint;
 import com.github.enerccio.marginalia.ui.main.Main;
 import com.github.enerccio.marginalia.ui.main.Viewer;
 import com.github.enerccio.marginalia.ui.menu.StoryMenuItem;
+import com.github.enerccio.marginalia.ui.menu.StoryMenuKeys;
 import com.github.enerccio.marginalia.ui.menu.StoryMenuRegistry;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.ui.widgets.TabDock;
@@ -151,15 +152,15 @@ public class ReallangTranslatorExtension implements MarginaliaExtension, Extensi
                     library::protocolChoices);
             registerSettingsPanel(extensionService);
 
-            menuRegistry.register(owner, StoryMenuItem.card(MENU_ITEM_KEY, l -> T.localized(TRANSLATE_THE_SPEECH_REAL),
-                            (story, card) -> translateByHand(story.getCurrentManuscript(), card))
-                    .icon(Solid.LANGUAGE::create));
+            menuRegistry.register(owner, StoryMenuItem.card(MENU_ITEM_KEY, l -> T.localized(TRANSLATE_DIALOGS_REAL),
+                            (story, card) -> translateByHand(story, card))
+                    .icon(Solid.LANGUAGE::create).path(StoryMenuKeys.GROUP_TRANSLATE).visibleWhen((story, card) -> hasLanguage(story)));
             // the right click on a selected sentence (the menu of the text): the author's own sentence in the language
-            menuRegistry.register(owner, StoryMenuItem.text(SELECTION_ITEM_KEY, l -> T.localized(TRANSLATE_THE_SELECTION_REAL),
-                            (story, card) -> translateSelection(story.getCurrentManuscript(), card))
-                    .icon(Solid.LANGUAGE::create));
+            menuRegistry.register(owner, StoryMenuItem.text(SELECTION_ITEM_KEY, l -> T.localized(TRANSLATE_SELECTED_TEXT_REAL),
+                            (story, card) -> translateSelection(story, card))
+                    .icon(Solid.LANGUAGE::create).path(StoryMenuKeys.GROUP_TRANSLATE).visibleWhen((story, card) -> hasLanguage(story)));
             menuRegistry.register(owner, StoryMenuItem.tools(RANGE_ITEM_KEY, l -> T.localized(TRANSLATE_PARTS_REAL), this::openRange)
-                    .icon(Solid.LAYER_GROUP::create));
+                    .icon(Solid.LAYER_GROUP::create).visibleWhen((story, card) -> hasLanguage(story)));
 
             registerCommands();
             registerBookTab(extensionService);
@@ -455,7 +456,8 @@ public class ReallangTranslatorExtension implements MarginaliaExtension, Extensi
     /**
      * The action of the menu of a part: translates its speech on a worker thread and shows what came of it.
      */
-    private void translateByHand(Manuscript manuscript, StoryCard card) {
+    private void translateByHand(StoryEditor story, StoryCard card) {
+        Manuscript manuscript = story.getCurrentManuscript();
         if (manuscript == null || card == null || card.getMessage() == null) {
             return;
         }
@@ -463,13 +465,13 @@ public class ReallangTranslatorExtension implements MarginaliaExtension, Extensi
         // a book with several languages asks which one (or all of them)
         if (languages.isEmpty()) {
             // the translation tells what is missing
-            translatePart(manuscript, card, null);
+            translatePart(story, manuscript, card, null);
             return;
         }
-        LanguageChoiceDialog.ask(languages, true, languageId -> translatePart(manuscript, card, languageId));
+        LanguageChoiceDialog.ask(languages, true, languageId -> translatePart(story, manuscript, card, languageId));
     }
 
-    private void translatePart(Manuscript manuscript, StoryCard card, String languageId) {
+    private void translatePart(StoryEditor story, Manuscript manuscript, StoryCard card, String languageId) {
         ChatMessage part = card.getMessage();
         // the window opens when a request goes to the model: the thinking, the answer and a Stop button
         RunWindow window = new RunWindow(T.localized(TRANSLATING_THE_SPEECH));
@@ -478,16 +480,19 @@ public class ReallangTranslatorExtension implements MarginaliaExtension, Extensi
             report(outcome, failure);
             // a stopped run may have written the languages before it
             if (outcome != null && outcome.status() == TranslationService.Status.TRANSLATED || failure instanceof CancellationException) {
-                try {
-                    card.updateResponse(translationService.find(part).getResponse());
-                } catch (Exception e) {
-                    log.warn("Failed to show the translated part: {}", e.getMessage(), e);
-                }
+                // the story is drawn again, so the marks of the new passages are there (it keeps the passages it read before)
+                story.reloadStory();
             }
         });
         if (!started) {
             Notification.error(T.localized(THE_PART_IS_BEING_TRANSLATED));
         }
+    }
+
+    /** Whether the book the story shows has a language of this plugin, the translation is of no use without one. */
+    private boolean hasLanguage(StoryEditor story) {
+        Manuscript manuscript = story == null ? null : story.getCurrentManuscript();
+        return manuscript != null && !languagesOf(manuscript).isEmpty();
     }
 
     /** The languages of the book that are in the library; none when they can't be read. */
@@ -503,7 +508,8 @@ public class ReallangTranslatorExtension implements MarginaliaExtension, Extensi
     /**
      * The item of the menu of the text: translates the sentence the author selected on a worker thread, and shows the part again.
      */
-    private void translateSelection(Manuscript manuscript, StoryCard card) {
+    private void translateSelection(StoryEditor story, StoryCard card) {
+        Manuscript manuscript = story.getCurrentManuscript();
         if (manuscript == null || card == null || card.getMessage() == null) {
             return;
         }
@@ -520,11 +526,7 @@ public class ReallangTranslatorExtension implements MarginaliaExtension, Extensi
                 window.finish();
                 report(outcome, failure);
                 if (outcome != null && outcome.status() == TranslationService.Status.TRANSLATED) {
-                    try {
-                        card.updateResponse(translationService.find(part).getResponse());
-                    } catch (Exception e) {
-                        log.warn("Failed to show the translated part: {}", e.getMessage(), e);
-                    }
+                    story.reloadStory();
                 }
             });
             if (!started) {

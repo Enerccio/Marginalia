@@ -87,8 +87,8 @@ public class ReallangTranslatorLocalization extends PluginLocalizationBundle {
     public static final String TRANSLATED_SPEECH_REAL = "Translated speech (real language)";
     public static final String TRANSLATE_BY_ITSELF = "Translate a new part by itself";
     public static final String TRANSLATE_PARTS_REAL = "Translate parts (real language)";
-    public static final String TRANSLATE_THE_SELECTION_REAL = "Translate the selection (real language)";
-    public static final String TRANSLATE_THE_SPEECH_REAL = "Translate the speech (real language)";
+    public static final String TRANSLATE_SELECTED_TEXT_REAL = "Translate selected text (real language)";
+    public static final String TRANSLATE_DIALOGS_REAL = "Translate dialogs (real language)";
     public static final String TRANSLATING_THE_SELECTION = "Translating the selected text...";
     public static final String TRANSLATING_THE_SPEECH = "Translating the speech of the part...";
     public static final String TRANSLATION = "Translation";
@@ -391,11 +391,11 @@ public class ReallangTranslatorLocalization extends PluginLocalizationBundle {
         ja(TRANSLATE_PARTS_REAL, "パートを翻訳(実在言語)");
         zh(TRANSLATE_PARTS_REAL, "翻译段落(现实语言)");
 
-        ja(TRANSLATE_THE_SELECTION_REAL, "選択範囲を翻訳(実在言語)");
-        zh(TRANSLATE_THE_SELECTION_REAL, "翻译所选内容(现实语言)");
+        ja(TRANSLATE_SELECTED_TEXT_REAL, "選択範囲を翻訳(実在言語)");
+        zh(TRANSLATE_SELECTED_TEXT_REAL, "翻译所选内容(现实语言)");
 
-        ja(TRANSLATE_THE_SPEECH_REAL, "台詞を翻訳(実在言語)");
-        zh(TRANSLATE_THE_SPEECH_REAL, "翻译对白(现实语言)");
+        ja(TRANSLATE_DIALOGS_REAL, "台詞を翻訳(実在言語)");
+        zh(TRANSLATE_DIALOGS_REAL, "翻译对白(现实语言)");
 
         ja(TRANSLATING_THE_SELECTION, "選択したテキストを翻訳中...");
         zh(TRANSLATING_THE_SELECTION, "正在翻译所选文本...");

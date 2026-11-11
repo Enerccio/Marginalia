@@ -1049,6 +1049,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_ALSO_SUMMARIZE_THE_REST, "Also summarize the rest at the end");
         setValue(L.LABEL_IMPORT_FINISHED, "Import finished");
         setValue(L.LABEL_NOT_NOW, "Not now");
+        setValue(L.LABEL_TRANSLATE, "Translate");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");

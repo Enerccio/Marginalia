@@ -16,6 +16,8 @@ public final class StoryMenuKeys {
     public static final String GROUP_SUMMARY = "summary";
     public static final String GROUP_INSPECT = "inspect";
     public static final String GROUP_BRANCH_MERGE = "branchMerge";
+    // in the menu of a part and in the menu of its text: the translations of the extensions (translators of speech) go here
+    public static final String GROUP_TRANSLATE = "translate";
 
     // --- TOOLS ---
     public static final String CHANGE_STYLES = "tools.changeStyles";

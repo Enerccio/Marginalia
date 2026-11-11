@@ -975,6 +975,13 @@ vaadin-markdown.agent-report td {
     outline: 2px solid var(--lumo-warning-color);
 }
 
+/* The selection of a text, remembered while its context menu is open (JavascriptLibrary.rememberSelectionOnContextMenu), which the menu
+   takes away visually; painted with the CSS Custom Highlight API, so it is a name and not a class */
+::highlight(marginalia-remembered-selection) {
+    background-color: var(--lumo-primary-color-50pct);
+    color: var(--lumo-body-text-color);
+}
+
 /* Annotations: the passage a note is about is underlined with a wave (a block would clash with the highlight of the generated
    text), coloured by who wrote the note; a note inside another one is underlined lower so both can be seen */
 .annotation-mark {
