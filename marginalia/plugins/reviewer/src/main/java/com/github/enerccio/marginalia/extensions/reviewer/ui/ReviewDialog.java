@@ -7,12 +7,14 @@ import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
+import com.github.enerccio.marginalia.domain.service.run.Runs;
 import com.github.enerccio.marginalia.extensions.reviewer.ReviewerExtension;
 import com.github.enerccio.marginalia.extensions.reviewer.model.*;
 import com.github.enerccio.marginalia.extensions.reviewer.service.ReviewerService;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
 import com.github.enerccio.marginalia.ui.widgets.DesktopNotifier;
+import com.github.enerccio.marginalia.ui.widgets.FloatingWindow;
 import com.github.enerccio.marginalia.ui.widgets.ScrollPanel;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.DetachEvent;
@@ -61,6 +63,8 @@ public class ReviewDialog extends Dialog {
 
     private boolean editing = false;
     private CancellationToken isGenerating;
+    // not modal: closing it while the model writes folds it into the corner, the review goes on
+    private final FloatingWindow floating;
 
     public ReviewDialog(ReviewerService reviewerService,
             ChatMessage message,
@@ -73,8 +77,10 @@ public class ReviewDialog extends Dialog {
         this.pendingAdvancedOptions = advancedOptions;
 
         setHeaderTitle(T.localized(MESSAGE_REVIEW));
-        setWidth("80vw");
+        setWidth("min(900px, 80vw)");
         setHeight("80vh");
+        floating = new FloatingWindow(this, ReviewerExtension.NOTIFY_REVIEW,
+                () -> T.localized(MESSAGE_REVIEW) + " \u00b7 " + manuscript.getName(), this::toggleGeneration).book(manuscript);
 
         loadData();
         buildUI();
@@ -89,7 +95,8 @@ public class ReviewDialog extends Dialog {
     @Override
     protected void onDetach(DetachEvent detachEvent) {
         super.onDetach(detachEvent);
-        if (isGenerating != null) {
+        // a window folded into the corner is detached too, and goes on; closed for good, it stops through toggleGeneration
+        if (isGenerating != null && !floating.isLive()) {
             isGenerating.cancel();
         }
     }
@@ -165,7 +172,9 @@ public class ReviewDialog extends Dialog {
         reviewMarkdown.setContent(item.getText().isEmpty() ? T.localized(GENERATING_REVIEW_PLEASE_WAIT) : item.getText());
         counterSpan.setText((reviewData.getCurrent() + 1) + " / " + reviewData.getReviews().size());
 
-        stopContinueBtn.setEnabled(isGenerating != null && !isGenerating.isCancelled());
+        boolean generating = isGenerating != null && !isGenerating.isCancelled();
+        stopContinueBtn.setEnabled(generating);
+        floating.setRunning(generating);
     }
 
     private void shiftLeft() {
@@ -296,7 +305,9 @@ public class ReviewDialog extends Dialog {
                     return isGenerating != null && isGenerating.isCancelled();
                 }
             };
-            try (InferenceSession _ = InferenceSession.open("reviewer"); UsageContext _ = UsageContext.open(manuscript)) {
+            floating.setRunning(true);
+            try (InferenceSession _ = InferenceSession.open("reviewer"); UsageContext _ = UsageContext.open(manuscript);
+                 Runs.Binding _ = floating.bind()) {
                 isGenerating = service.stream(payload, targetProtocol, reviewCallback);
             }
 

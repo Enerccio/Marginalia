@@ -16,10 +16,7 @@ import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.widgets.ModelProtocolPicker;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.utils.UIUtils;
-import com.vaadin.flow.component.AttachEvent;
-import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.DetachEvent;
-import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.*;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.dialog.Dialog;
@@ -94,6 +91,12 @@ public class ConvertDialog extends Dialog {
 
         setHeaderTitle(T.localized(CONVERT_TO_AUDIO));
         setWidth("min(1000px, 95vw)");
+        if (!UIUtils.isPhone()) {
+            // not modal: the author works on beside it; the queue goes on when it is closed, its Stop is apart
+            setModality(ModalityMode.MODELESS);
+            setDraggable(true);
+            setResizable(true);
+        }
         setMaxHeight("92vh");
 
         backend.setLabel(T.localized(BACKEND));

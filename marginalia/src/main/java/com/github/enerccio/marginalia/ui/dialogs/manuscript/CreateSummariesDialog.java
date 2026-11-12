@@ -11,12 +11,8 @@ import com.github.enerccio.marginalia.domain.service.SummaryService;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
-import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
-import com.github.enerccio.marginalia.ui.widgets.DialogShortcuts;
-import com.github.enerccio.marginalia.ui.widgets.Notification;
-import com.github.enerccio.marginalia.ui.widgets.ScrollPanel;
+import com.github.enerccio.marginalia.ui.widgets.*;
 import com.github.enerccio.marginalia.utils.UIUtils;
-import com.vaadin.flow.component.ModalityMode;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -81,6 +77,8 @@ public class CreateSummariesDialog extends Dialog {
     private final Details reasoningDetails = new Details();
     private final TextArea summaryArea = new TextArea();
     private final Button actionButton = new Button();
+    private final Button closeButton = new Button();
+    private FloatingWindow floating;
 
     private List<ChatMessage> planned = List.of();
     private CancellationToken cancellationToken;
@@ -119,7 +117,7 @@ public class CreateSummariesDialog extends Dialog {
         setMaxWidth("100vw");
         setCloseOnEsc(false);
         setCloseOnOutsideClick(false);
-        setModality(ModalityMode.STRICT);
+        floating = new FloatingWindow(this, "summaries", this::getHeaderTitle, this::stopRunning).book(manuscript);
 
         Span help = new Span(loc.getValue(L.HELP_CREATE_SUMMARIES));
         help.addClassName(CssStyles.HINT_TEXT);
@@ -178,11 +176,8 @@ public class CreateSummariesDialog extends Dialog {
         DialogShortcuts.submitWith(startButton, amountField, minTokensField);
         DialogFocus.onOpen(this, amountField);
 
-        addOpenedChangeListener(e -> {
-            if (!e.isOpened()) {
-                onClosed.run();
-            }
-        });
+        // not when it is only folded into the corner
+        floating.addEndListener(onClosed);
         modeSelect.setValue(Mode.TOKENS);
         UIUtils.fitPhone(this, true);
     }
@@ -284,7 +279,7 @@ public class CreateSummariesDialog extends Dialog {
                 ui.access(() -> {
                     setRunning(false);
                     Notification.success(String.format(loc.getValue(L.MSG_CREATE_SUMMARIES_FINISHED), count));
-                    close();
+                    floating.closeForGood();
                     UIPushGuard.push(ui);
                 });
             }
@@ -311,6 +306,7 @@ public class CreateSummariesDialog extends Dialog {
 
         try {
             cancellationToken = summaryService.createSummaries(manuscript, planned, callback);
+            floating.follow("summaries");
             if (cancellationToken == null) {
                 setRunning(false);
                 progress.setText(loc.getValue(L.LABEL_SUMMARY_ERROR));
@@ -358,20 +354,44 @@ public class CreateSummariesDialog extends Dialog {
 
         actionButton.addClickListener(_ -> {
             if (running) {
-                if (cancellationToken != null && !cancellationToken.isCancelled()) {
-                    cancellationToken.cancel();
-                }
+                stopRunning();
                 actionButton.setEnabled(false);
             } else {
                 close();
             }
         });
-        getFooter().add(actionButton);
+        // while the model writes: folds the window into the corner, the summaries go on
+        closeButton.setText(loc.getValue(L.LABEL_CLOSE));
+        closeButton.addClickListener(_ -> close());
+        getFooter().add(closeButton, actionButton);
         setRunning(true);
+    }
+
+    private void stopRunning() {
+        if (running && cancellationToken != null && !cancellationToken.isCancelled()) {
+            cancellationToken.cancel();
+        }
+    }
+
+    /**
+     * Closes the window, also when it is folded into the corner; closing it while the model writes folds it.
+     */
+    @Override
+    public void close() {
+        if (floating == null) {
+            super.close();
+            return;
+        }
+        super.close();
+        floating.closed();
     }
 
     private void setRunning(boolean running) {
         this.running = running;
+        if (floating != null) {
+            floating.setRunning(running);
+        }
+        closeButton.setVisible(running);
         actionButton.setEnabled(true);
         if (running) {
             actionButton.setText(loc.getValue(L.LABEL_STOP));

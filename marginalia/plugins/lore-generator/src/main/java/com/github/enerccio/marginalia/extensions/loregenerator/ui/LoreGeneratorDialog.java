@@ -7,6 +7,7 @@ import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.function.FunctionSet;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMAttachment;
+import com.github.enerccio.marginalia.domain.service.run.Runs;
 import com.github.enerccio.marginalia.domain.service.tool.ToolSelection;
 import com.github.enerccio.marginalia.domain.service.tool.ToolSet;
 import com.github.enerccio.marginalia.extensions.loregenerator.LoreGeneratorExtension;
@@ -20,10 +21,7 @@ import com.github.enerccio.marginalia.extensions.loregenerator.service.LoreGener
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
-import com.github.enerccio.marginalia.ui.widgets.DesktopNotifier;
-import com.github.enerccio.marginalia.ui.widgets.ModelProtocolPicker;
-import com.github.enerccio.marginalia.ui.widgets.Notification;
-import com.github.enerccio.marginalia.ui.widgets.ToolSelectionButton;
+import com.github.enerccio.marginalia.ui.widgets.*;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
@@ -68,6 +66,8 @@ public class LoreGeneratorDialog extends Dialog {
 
     private final LoreGeneratorService service;
     private final Lorebook lorebook;
+    // not modal: closing it while the model writes folds it into the corner, the generation goes on
+    private final FloatingWindow floating;
     private final Runnable onEntryChanged;
 
     private LorebookEntry entry;
@@ -107,17 +107,15 @@ public class LoreGeneratorDialog extends Dialog {
         this.onEntryChanged = onEntryChanged;
 
         setHeaderTitle(T.localized(GENERATE_LORE_ENTRY_S).formatted(StringUtils.defaultString(entry.getName())));
-        setWidth("90vw");
+        setWidth("min(1200px, 90vw)");
         setHeight("90vh");
         UIUtils.fitPhone(this, true);
-        // closing while the inference runs would leave it running without anyone to read it
+        // Esc would fold a running window by accident
         setCloseOnEsc(false);
         setCloseOnOutsideClick(false);
-        addOpenedChangeListener(e -> {
-            if (!e.isOpened()) {
-                stop();
-            }
-        });
+        // closed for good (also from the corner, or with the book), it stops the model
+        floating = new FloatingWindow(this, LoreGeneratorExtension.NOTIFY_GENERATE,
+                () -> getHeaderTitle() + " \u00b7 " + lorebook.getName(), this::stop).book(book());
 
         loadData();
         buildUI();
@@ -433,7 +431,8 @@ public class LoreGeneratorDialog extends Dialog {
 
         pane.setRunning(true);
         updateControls();
-        try (InferenceSession _ = InferenceSession.open("lore-generator"); UsageContext _ = UsageContext.open(book())) {
+        try (InferenceSession _ = InferenceSession.open("lore-generator"); UsageContext _ = UsageContext.open(book());
+             Runs.Binding _ = floating.bind()) {
             running = inference.stream(service.toPayload(prompt, new ArrayList<>(sent)), modelPicker.getProtocol(), functions, callback(ui, pane));
         } catch (Exception e) {
             // nothing runs, do not leave the controls frozen
@@ -529,7 +528,7 @@ public class LoreGeneratorDialog extends Dialog {
         deleteButton.setEnabled(!busy);
         toolsButton.setEnabled(!busy);
         promptArea.setEnabled(!busy);
-        exitButton.setEnabled(!busy);
+        floating.setRunning(busy);
         attachmentPanel.setBusy(busy);
 
         generationTab.setEnabled(!busy || generationPane.isRunning());

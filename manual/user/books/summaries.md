@@ -36,7 +36,9 @@ Summaries are made only when you ask for them; Marginalia doesn't summarize on i
 1. Pick the part that ends a stretch of the story you want to condense, for example the last part of a chapter.
 2. In its menu (☰) choose **Generate summary**.
 3. The summary dialog shows the summary as the model writes it (and its reasoning, for reasoning models). **Stop**
-   interrupts it and discards the summary.
+   interrupts it and discards the summary. The dialog does not block the story: **Close** while the model writes folds it into
+   the [panel of the runs](story-editor.md#the-panel-of-the-runs) and the summary goes on (the part can't be deleted or merged
+   away meanwhile); open it there again to read it.
 4. When it's done, close the dialog with **Exit**.
 
 ![A summary being generated](../../images/summary-dialog.png)

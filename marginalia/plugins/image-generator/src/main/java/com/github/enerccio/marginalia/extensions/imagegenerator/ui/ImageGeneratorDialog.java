@@ -7,6 +7,7 @@ import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.service.CancellationToken;
+import com.github.enerccio.marginalia.domain.service.run.Runs;
 import com.github.enerccio.marginalia.extensions.httphooks.BackendException;
 import com.github.enerccio.marginalia.extensions.imagegenerator.ImageGeneratorExtension;
 import com.github.enerccio.marginalia.extensions.imagegenerator.ImageGeneratorLog;
@@ -18,10 +19,7 @@ import com.github.enerccio.marginalia.extensions.imagegenerator.service.ImageReq
 import com.github.enerccio.marginalia.extensions.imagegenerator.service.ImageSession;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
-import com.github.enerccio.marginalia.ui.widgets.DesktopNotifier;
-import com.github.enerccio.marginalia.ui.widgets.DialogShortcuts;
-import com.github.enerccio.marginalia.ui.widgets.ModelProtocolPicker;
-import com.github.enerccio.marginalia.ui.widgets.Notification;
+import com.github.enerccio.marginalia.ui.widgets.*;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.UI;
@@ -92,6 +90,8 @@ public class ImageGeneratorDialog extends Dialog {
     private ImageSession session;
     private String sessionBackendId;
     private CancellationToken promptToken;
+    // not modal: closing it while the model or the backend works folds it into the corner, the work goes on
+    private final FloatingWindow floating;
     private AtomicBoolean imageCancel;
     private boolean writing;
     private boolean making;
@@ -109,6 +109,12 @@ public class ImageGeneratorDialog extends Dialog {
         setHeaderTitle(T.localized(GENERATE_IMAGE));
         setWidth("min(900px, 95vw)");
         setMaxHeight("92vh");
+        // Esc would fold a running window by accident
+        setCloseOnEsc(false);
+        setCloseOnOutsideClick(false);
+        // closed for good (also from the corner, or with the book), it stops what runs and lets the backend go
+        floating = new FloatingWindow(this, ImageGeneratorExtension.NOTIFY_IMAGE,
+                () -> T.localized(GENERATE_IMAGE) + " \u00b7 " + manuscript.getName(), this::dispose).book(manuscript);
 
         settings = service.getSettings();
 
@@ -261,6 +267,8 @@ public class ImageGeneratorDialog extends Dialog {
             if (sendLore.getValue()) {
                 status.setText(T.localized(WAITING_FOR_THE_MODEL) + " " + T.localized(LORE_ENTRIES_SENT).formatted(request.loreEntries()));
             }
+            Runs.Binding binding = floating.bind();
+            try (binding) {
             promptToken = service.streamPrompt(ai, protocol, request.payload(), new ImageGeneratorService.PromptListener() {
                 @Override
                 public void onProgress(String text) {
@@ -291,6 +299,7 @@ public class ImageGeneratorDialog extends Dialog {
                     });
                 }
             });
+            }
         } catch (Exception e) {
             writing = false;
             status.setText("");
@@ -423,7 +432,7 @@ public class ImageGeneratorDialog extends Dialog {
             if (onChanged != null) {
                 onChanged.accept(message);
             }
-            close();
+            floating.closeForGood();
         } catch (IllegalArgumentException e) {
             Notification.error(T.localized(THE_IMAGE_IS_NOT_VALID));
         } catch (Exception e) {
@@ -445,6 +454,7 @@ public class ImageGeneratorDialog extends Dialog {
         discard.setVisible(image != null);
         discard.setEnabled(!making);
         backendSelect.setEnabled(!making);
+        floating.setRunning(writing || making);
     }
 
     private void releaseSession() {
@@ -458,6 +468,14 @@ public class ImageGeneratorDialog extends Dialog {
     }
 
     private void detached(DetachEvent event) {
+        // a window folded into the corner is detached too, and goes on
+        if (!floating.isMinimised()) {
+            dispose();
+        }
+    }
+
+    /** Stops what runs and lets the backend go: the window is closed for good, or its page is gone. */
+    private void dispose() {
         abortPrompt();
         if (imageCancel != null) {
             imageCancel.set(true);

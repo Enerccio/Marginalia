@@ -221,7 +221,7 @@ public class AnnotateDialog extends Dialog {
         setHeight("85vh");
         setCloseOnEsc(false);
         setCloseOnOutsideClick(false);
-        floating = new FloatingWindow(this, loc, this::runLabel, this::stopRunning);
+        floating = new FloatingWindow(this, this::runLabel, this::stopRunning).size("min(680px, 95vw)", "80vh");
         if (part != null) {
             floating.setParts(manuscript, List.of(part));
         }

@@ -22,6 +22,7 @@ import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.DetachEvent;
+import com.vaadin.flow.component.ModalityMode;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.dialog.Dialog;
@@ -119,6 +120,12 @@ public class StudioDialog extends Dialog {
         setHeaderTitle(T.localized(AUDIOBOOK_STUDIO));
         setWidth("min(1500px, 98vw)");
         setHeight("94vh");
+        if (!UIUtils.isPhone()) {
+            // not modal: the author works on beside it; the queue goes on when it is closed, its Stop is apart
+            setModality(ModalityMode.MODELESS);
+            setDraggable(true);
+            setResizable(true);
+        }
         // no padding of the dialog and no footer: the close button is in the header, the rest of the height is the work
         addThemeVariants(com.vaadin.flow.component.dialog.DialogVariant.LUMO_NO_PADDING);
 

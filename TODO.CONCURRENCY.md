@@ -992,11 +992,19 @@ working as today (its own window); it only is not seen by the registry.
      that write go on on the server already (translations, summary batches, the loop after the part); the read-only ones lose one
      answer the author asked for and can ask again. Take one up when an author misses it, one dialog at a time.
    Not done:
-   - the other requests of these plugins are not registered: Side Query's tab name, the Beta Readers persona writer, the
-     generators of Arc Outline, Lore Generator, Book Description Generator, Reviewer, Story Notes (they are kind B candidates; each
-     is two lines with `WindowRun` when wanted);
-   - the remaining windows of 5a made non-modal (`SummaryDialog`, `CreateSummariesDialog` / `ResummarizeDialog`, the plugins'
-     windows), as in the *Not done* of step 3;
+   - the other requests of these plugins are not registered: Side Query's tab name (the generators and the persona writer are,
+     through their `FloatingWindow`);
+   - built afterwards: the remaining windows of 5a are not modal (`FloatingWindow`, now public in `ui.widgets`): `SummaryDialog`
+     (the part held `READ`; the summary stored with `ChatMessageService.update`), `CreateSummariesDialog` / `ResummarizeDialog`
+     (the entry of the batch's own run, `follow("summaries")`), Reviewer, book description, lore generator, Arc Outline's
+     `GeneratorDialog`, image and manga generators, the Beta Readers `PersonaDialog`; the audiobook `StudioDialog` /
+     `ConvertDialog` only `MODELESS` (their queue never stopped with the window). **Close and Stop are apart** in all of them
+     (also annotate and redraft): a close while the model works folds the window, the request goes on in the queue; *Close* in the
+     panel (`closeForGood`) and the book window's detach stop it. A click on an entry of the panel opens its window or its Review.
+     A window without parts is a run only while its model works. Test: `FloatingWindowTest`. Not done: **(check)** in a real
+     browser (a folded dialog is detached: the plugins' `onDetach` now ask `isMinimised()`); the conlang designer, the translators'
+     `RangeDialog` (already modeless with Close and Stop apart) and the kind-A chats are unchanged; a folded window of a tab that
+     is closed while no book window is its owner goes on until its model is done;
    - **(check)** in a real browser: the entries of these windows in the panel of another page, and the Stop from there.
 
 Steps 1 to 3 are small and already help: the model's connections are used in order, and an annotation or a redraft no longer

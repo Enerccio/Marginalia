@@ -137,6 +137,8 @@ public class MangaDialog extends Dialog {
     /** Set while the widgets are filled in from the data, so that this does not count as the user's change. */
     private boolean binding;
     private int running;
+    // not modal: closing it while a model writes folds it into the corner, the generation goes on
+    private final FloatingWindow floating;
     /** The continuous mode is on: sections are added and generated one after the other until the story runs out or the user stops it. */
     private boolean continuous;
 
@@ -148,9 +150,12 @@ public class MangaDialog extends Dialog {
         setWidth("96vw");
         setHeight("94vh");
         setMaxWidth("96vw");
-        setDraggable(true);
-        setResizable(true);
         setCloseOnOutsideClick(false);
+        // Esc would fold a running window by accident
+        setCloseOnEsc(false);
+        // closed for good (also from the corner, or with the book), it stops what is generated
+        floating = new FloatingWindow(this, "manga-generator",
+                () -> T.localized(MANGA_GENERATOR) + " \u00b7 " + manuscript.getName(), () -> stopContinuous(null)).book(manuscript);
 
         try {
             data = service.loadData(manuscript);
@@ -167,8 +172,10 @@ public class MangaDialog extends Dialog {
     @Override
     protected void onDetach(DetachEvent detachEvent) {
         super.onDetach(detachEvent);
-        // the sections cancel what they generate when the window is closed
-        continuous = false;
+        // the sections cancel what they generate when the window is closed; folded into the corner, it goes on
+        if (!floating.isMinimised()) {
+            continuous = false;
+        }
     }
 
     // --- building ---
@@ -394,6 +401,7 @@ public class MangaDialog extends Dialog {
                     return position > 0 ? sections.get(position - 1) : null;
                 },
                 this::save, this::runChanged, () -> deleteSection(section));
+        card.setWindow(floating);
         card.setLocked(busy());
         card.setFrozen(continuous);
         cards.add(card);
@@ -411,8 +419,10 @@ public class MangaDialog extends Dialog {
     }
 
     private void lockCards() {
+        floating.setRunning(busy());
         cards.forEach(card -> {
-            card.setLocked(busy());
+            card.setWindow(floating);
+        card.setLocked(busy());
             card.setFrozen(continuous);
         });
     }

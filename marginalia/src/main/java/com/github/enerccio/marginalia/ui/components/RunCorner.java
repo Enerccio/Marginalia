@@ -24,11 +24,7 @@ import com.vaadin.flow.shared.Registration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * The panel of the runs (bottom left of every page, above the book window as the help assistant is): every run of the user that works
@@ -263,25 +259,53 @@ public class RunCorner extends Div {
         Entry(Item item) {
             this.item = item;
             root.addClassName(CssStyles.RUN_CORNER_ENTRY);
+            // what the entry says and its progress: a click opens its window again (the buttons are apart)
+            Div body = new Div();
             Span label = new Span(item.label());
             label.addClassName(CssStyles.RUN_CORNER_LABEL);
-            root.add(label);
+            body.add(label);
             Runs.Run run = item.run();
             if (run != null && run.getBookName() != null && !item.label().contains(run.getBookName())) {
                 Span book = new Span(run.getBookName());
                 book.addClassName(CssStyles.RUN_CORNER_STATUS);
-                root.add(book);
+                body.add(book);
             }
             status.addClassName(CssStyles.RUN_CORNER_STATUS);
             text.addClassName(CssStyles.RUN_CORNER_TEXT);
-            root.add(status, text);
+            body.add(status, text);
             if (item.running()) {
                 ProgressBar bar = new ProgressBar();
                 bar.setIndeterminate(true);
-                root.add(bar);
+                body.add(bar);
             }
-            root.add(buttons());
+            Runnable open = opener();
+            if (open != null) {
+                body.addClassName(CssStyles.CURSOR_POINTER);
+                body.addClickListener(_ -> open.run());
+            }
+            root.add(body, buttons());
             update();
+        }
+
+        /**
+         * What a click on the entry opens: the folded window of this page, or the result of a run that waits for the author; null
+         * when there is nothing to open.
+         */
+        private Runnable opener() {
+            PageRuns.Run window = item.window();
+            Runs.Run run = item.run();
+            if (window != null && window.isMinimised()) {
+                return window::open;
+            }
+            if (window == null && run != null && run.getOnOpen() != null) {
+                return () -> {
+                    Runnable open = run.getOnOpen();
+                    if (open != null) {
+                        open.run();
+                    }
+                };
+            }
+            return null;
         }
 
         private Div buttons() {
@@ -372,7 +396,7 @@ public class RunCorner extends Div {
 
     // for the tests
 
-    Div panelForTest() {
+    public Div panelForTest() {
         return panel;
     }
 

@@ -12,10 +12,10 @@ import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
 import com.github.enerccio.marginalia.ui.widgets.DesktopNotifier;
+import com.github.enerccio.marginalia.ui.widgets.FloatingWindow;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.ui.widgets.ScrollPanel;
 import com.github.enerccio.marginalia.utils.UIUtils;
-import com.vaadin.flow.component.ModalityMode;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -56,6 +56,8 @@ public class ResummarizeDialog extends Dialog {
     private final Details reasoningDetails = new Details();
     private final TextArea summaryArea = new TextArea();
     private final Button actionButton = new Button();
+    private final Button closeButton = new Button();
+    private FloatingWindow floating;
 
     private CancellationToken cancellationToken;
     private boolean running;
@@ -99,7 +101,7 @@ public class ResummarizeDialog extends Dialog {
         setMaxWidth("100vw");
         setCloseOnEsc(false);
         setCloseOnOutsideClick(false);
-        setModality(ModalityMode.STRICT);
+        floating = new FloatingWindow(this, "summaries", this::getHeaderTitle, this::stopRunning).book(manuscript);
 
         progress.addClassName(CssStyles.TEXT_BOLD);
 
@@ -129,26 +131,47 @@ public class ResummarizeDialog extends Dialog {
 
         actionButton.addClickListener(_ -> {
             if (running) {
-                if (cancellationToken != null && !cancellationToken.isCancelled()) {
-                    cancellationToken.cancel();
-                }
+                stopRunning();
                 actionButton.setEnabled(false);
             } else {
                 close();
             }
         });
-        getFooter().add(actionButton);
-        addOpenedChangeListener(e -> {
-            if (!e.isOpened()) {
-                onClosed.run();
-            }
-        });
+        // while the model writes: folds the window into the corner, the summaries go on
+        closeButton.setText(loc.getValue(L.LABEL_CLOSE));
+        closeButton.addClickListener(_ -> close());
+        getFooter().add(closeButton, actionButton);
+        // not when it is only folded into the corner
+        floating.addEndListener(onClosed);
         setRunning(true);
         UIUtils.fitPhone(this, true);
     }
 
+    private void stopRunning() {
+        if (running && cancellationToken != null && !cancellationToken.isCancelled()) {
+            cancellationToken.cancel();
+        }
+    }
+
+    /**
+     * Closes the window, also when it is folded into the corner; closing it while the model writes folds it.
+     */
+    @Override
+    public void close() {
+        if (floating == null) {
+            super.close();
+            return;
+        }
+        super.close();
+        floating.closed();
+    }
+
     private void setRunning(boolean running) {
         this.running = running;
+        if (floating != null) {
+            floating.setRunning(running);
+        }
+        closeButton.setVisible(running);
         actionButton.setEnabled(true);
         if (running) {
             actionButton.setText(loc.getValue(L.LABEL_STOP));
@@ -195,7 +218,7 @@ public class ResummarizeDialog extends Dialog {
                     setRunning(false);
                     Notification.success(String.format(loc.getValue(L.MSG_RESUMMARIZE_FINISHED), count));
                     new DesktopNotifier(ui).finished(NotificationService.RESUMMARIZE, false, manuscript.getName());
-                    close();
+                    floating.closeForGood();
                     UIPushGuard.push(ui);
                 });
             }
@@ -223,6 +246,7 @@ public class ResummarizeDialog extends Dialog {
 
         try {
             cancellationToken = summaryService.resummarize(manuscript, callback);
+            floating.follow("summaries");
             if (cancellationToken == null) {
                 setRunning(false);
                 progress.setText(loc.getValue(L.LABEL_SUMMARY_ERROR));

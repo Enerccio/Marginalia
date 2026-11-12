@@ -417,8 +417,16 @@ The window does not block the story, see [Working beside the window](#working-be
 On a computer the **Redraft** and **Annotate with AI** windows stand at the right of the story and leave it usable: you can read,
 scroll and edit the story while the model writes. Drag a window by its title to move it, or by its edge to resize it. The arrow
 (⌄) in the title folds a window into the [panel of the runs](#the-panel-of-the-runs) at the bottom left of the page: the model
-goes on, **Open** brings the window back and **Stop** stops the model (once it is done, **Close** closes the window). On a phone
-the windows still cover the story, but they fold the same way.
+goes on, **Open** (or a click on the entry) brings the window back and **Stop** stops the model (once it is done, **Close** closes
+the window). On a phone the windows still cover the story, but they fold the same way.
+
+**Close and Stop are two things.** The window's own **Stop** stops the model and the window stays with what arrived. **Close**
+while the model works does not stop it: the window folds into the panel and the model goes on in its queue; its answer is in the
+window when you open it again. Close a window whose model is done, or **Close** it in the panel, and it is gone. The same holds
+for the other windows that wait for a model: a **summary** (and *Create summaries*, *Rewrite all summaries*), the
+[Reviewer](../extensions/reviewer.md), the book description, the lore and outline generators, the image and manga generators, and
+the persona writer of Beta Readers. The audiobook's *Studio* and *Convert* windows do not block the page either; closing them never
+stopped the conversion.
 
 While a window is open (or folded) on a part, the part shows what it is doing next to its menu (*Redrafting · The book*), and
 **Regenerate**, **Swipe**, **Redraft**, **Annotate with AI**, **Merge into previous** and **Delete** are off for that part, so the
@@ -450,8 +458,8 @@ pages** (another tab, the phone), not only the ones started on this page. Nothin
   - *The model is thinking...* or *The model is writing...*, with the end of its thinking or of its answer below;
   - *Waits for you* when the run waits for a decision of yours (a redraft to apply, a proposal of the Knowledge Tracker to review,
     the Prompt Inspector's question before a generation, a command of the plot wizard to allow).
-- **Stop** stops the run, wherever it was started. **Open** shows a folded window again (only on the page it was opened on), **Close**
-  closes a window whose model is done.
+- **Stop** stops the run, wherever it was started. **Open**, or a click on the entry, shows a folded window again (only on the
+  page it was opened on) or the result a run waits for you with; **Close** closes a window for good (and stops its model).
 - On a computer you can move the panel by its grip (⋮ at its left); it stays where you leave it in this browser.
 
 When a run you started ends after its page was closed, another open page of yours sends its [notification](../account.md#notifications)

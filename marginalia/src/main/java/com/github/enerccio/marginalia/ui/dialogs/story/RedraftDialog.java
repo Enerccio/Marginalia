@@ -197,7 +197,8 @@ public class RedraftDialog extends Dialog {
         setHeight("85vh");
         setCloseOnEsc(false);
         setCloseOnOutsideClick(false);
-        floating = new FloatingWindow(this, loc, () -> getHeaderTitle() + " \u00b7 " + manuscript.getName(), this::stopRunning);
+        floating = new FloatingWindow(this, () -> getHeaderTitle() + " \u00b7 " + manuscript.getName(), this::stopRunning)
+                .size("min(680px, 95vw)", "80vh");
         floating.setParts(manuscript, List.of(part));
 
         Span info = new Span(loc.getValue(passage == null ? L.MSG_REDRAFT_INFO : L.MSG_REDRAFT_SELECTION_INFO));
