@@ -579,6 +579,97 @@ Most are 🧩 plugin-sized; the ones that need a core hook say so.
 60. 🧩 **Markdown vault mirror.** Two-way sync of a lorebook (and optionally chapters) with a folder of Markdown files with
     front matter (name, tags, mode), so it can live in Obsidian or git. Complements `lorebookvcs`, which versions inside
     the database. The one-way part exists: the Obsidian vault export (67); the two-way sync is not done.
+102. **Lorebook editor (full-screen, tabbed; desktop only).** The entries are edited in the expanding rows of the
+     `LorebookView` grid (`createEntryDetailLayout`: a 160 px content area, the activation settings, the condition, the
+     note), cramped for a long entry and one entry at a time. A full-screen dialog, opened from the *Lorebook* view of the
+     workspace and from the book's *Lorebook* tab (`ManuscriptLorebookPart`); the phone keeps `PhoneLorebookView`.
+     - **Dock:** a detachable `TabDock` (like the story editor's). One fixed tab (not closable, not minimizable) with the
+       list of entries: text only (name, enabled, order, tags, filter; the search, `LorebookEntryFilter` and sub
+       lorebooks of the view), per row *Open*, *Open in new tab* and *Delete*, and *New entry* above the list. *Open*
+       (also a double-click) **reuses the last opened entry tab** (shows the entry there; a new tab only when none is
+       open), *Open in new tab* (also a middle-click/Ctrl+click if the grid can tell) adds a tab, so any number of entries
+       can be open, **each at most once**: opening an entry that already has a tab selects that tab (*Delete* closes it).
+       *New entry* follows *Open* (the reused tab). "Last opened" is the tab most recently opened or selected by the user,
+       kept with the open tabs. The tabs can be moved and split side by side or stacked like in the story editor.
+       Needs in `TabDock`: **closable tabs**
+       per tab, next to the existing per-tab `setMinimizable` (`setClosable(id, true)`: an ✕ instead of the minimize
+       button; closing removes the tab and its content and drops its place from the layout, unlike a minimized one;
+       an `onClose(id)` callback so the editor updates its open entries), so the editor makes the entry tabs closable and
+       nothing minimizable and the bar of minimized tabs never shows (it is hidden while empty); and a tab caption that
+       follows a rename. The dock layout and the open entries are kept per lorebook (user setting, like
+       `StoryDockLayout`), so the editor reopens as it was left.
+     - **Dialog header:** the lorebook, its token total as in the *Lorebook* view (the enabled entries, and the
+       *Count with subbooks* button and its total, `updateLorebookTokens`/`countTokensWithSubbooks`), updated when an
+       entry's content or *Enabled* changes; move that counting out of `LorebookView` into one helper both use, so the
+       numbers agree. *Search and replace* (`LorebookSearchReplaceDialog`, whose `onReplaced` the grid
+       already uses to refresh) reloading the list and every open entry tab after a replace.
+     - **Entry tab**, top to bottom: a header row with the name, *Enabled* and the order (`ordinal`); a details panel
+       (`Details`, expanded by default) with the rest of the settings of today's row (filtering mode and filter,
+       insertion mode, tags and negative tags, activation context and parts, range from/to, recursion flags, summaries,
+       the condition); then the content and the note side by side, filling the rest of the height, the note hidden
+       until a *Show note* checkbox shows it (the content takes the full width then); and a footer with the entry's
+       token estimate (`~N tokens`, `tokenizerService.countTokensApprox` of the content), updated as the content is
+       saved.
+     - **Saving is immediate**, like the grid rows (`saveEntry` on every change, `validatePayload` on the content): no
+       Save button, so no Ctrl+Enter question. To check: the content editor sends its value on a debounce, not per
+       keystroke; the entry open in the dialog and in the workspace grid (or by two users): last write wins, and the
+       other view should at least refresh when it is shown again; the agent lock (`showLocked`) covers the dialog too.
+     - **Lore Generator** (plugin `lore-generator`): today it decorates `LorebookView.create` and adds a column with the
+       wand to the grid (`addGenerateColumn`). In the editor: the wand on the list tab (a new entry) and in the header of
+       an entry tab (rewrite/extend this entry); the dialog gets `@Extendable` hooks for both and the plugin registers
+       them, the generated text lands in the open tab.
+     - **Images in entries:** upload or paste an image into the content; it is stored as a `Resource` (`ResourceService`,
+       `objectId`/`clazz` = the entry) and referenced in the content (a Markdown image with a resource link, shown in the
+       preview). In a generation the text goes into the prompt without the image markup, and the images (`LLMAttachment`,
+       scaled by `ImageFiles.prepare`) go to the message where the entry's text lands: `BEFORE_USER_PROMPT` and a lore
+       block rendered into the user message → that user message; a lore block in the system prompt → the system side.
+       Catch: the system side cannot carry images. The OpenAI API takes text parts only in a system message, Anthropic's
+       `system` is text only, and our `buildParams` sends a system message's `getContent()` alone and silently drops its
+       attachments. So "system" means an extra user message right after the system prompt (images only, maybe a
+       one-line caption naming the entries), and that has to be decided once for all providers (`LLMChatMessage` stays the
+       one place, the plugins `anthropic` and `google-genai` map it the same).
+       Whether to send them is an **option**, not an AI capability: nothing filters images today, the Lore Generator and
+       the agents send what the user attaches. Providers do not drop them quietly: a model without vision answers with an
+       error (llama-server without `mmproj` refuses the request, the OpenAI API rejects it), so a turn would fail because
+       of a lore entry. The option: *Send lore images* (per book or in the generation settings, off by default),
+       and maybe a per-entry *send image* flag. Also: the images in the token count/budget, the activation preview and the
+       lore usage report; the lorebook exports and backups (archive export, `.zip` backups, sharing a lorebook, cloning:
+       the resources must travel; SillyTavern export drops them). Upload in the editor: whether the Markdown editor lets
+       us hook paste/drop or an image toolbar button (the Flow wrapper exposes none), else a Vaadin `Upload` next to it
+       that inserts the link at the cursor (a `JavascriptLibrary` script for the cursor).
+     - **The content editor: FlowingCode MarkdownEditor** (`com.flowingcode.vaadin.addons:markdown-editor-addon`,
+       Apache 2.0, 2.0.3 of 2025-12-01, no release since; Vaadin 24-25 according to the README, built against 24.4.6, so
+       try it on 25.2 first). It wraps the React `@uiw/react-md-editor` (toolbar, edit / live split / preview modes,
+       light and dark theme), is a `HasValue` since 2.0, has `setPlaceholder`/`setMaxLength` and a separate
+       `MarkdownViewer`; React is already in our frontend bundle. To check in a spike before adopting it: the size
+       `mermaid` adds to the bundle; that toolbar actions and the sanitizer leave `{{macros}}`/Handlebars alone (the
+       content is a template; raw braces in the preview are fine); how often the value reaches the server; focus
+       (`DialogFocus`); whether Lumo variables and our CSS reach its React DOM; the image hooks above. Fallback: our
+       `TextArea` at full height with the `Markdown` preview in a split (no new dependency). Using it for the other long
+       text areas (book description, notes, prompt templates) is not decided.
+     - **Lorebook VCS** (plugin `lorebookvcs`) binds to the editor like it does to the view: today it decorates
+       `LorebookView.create` (the *Lorebook Revisions* panel of the toolbar: export/import of the history) and
+       `createEntryDetailLayout` (the revision bar of an entry: `+`, `‹ ›`, `−`). In the editor the panel goes to the
+       list tab (or the header) and the revision bar to the entry tab (above the details); switching a revision reloads
+       that tab (the plugin's `refreshEntryRow` does it for the grid row). Also the undo of the editor: immediate save
+       has none beyond the browser's, and a revision is the way back.
+     - **Jump between entries:** Ctrl+click on the name of another entry in the content opens it (in the reused tab,
+       Ctrl+Shift in a new one), and a *Mentioned in* list in the footer (the entries whose content names this one, what
+       recursion would follow) with the same links.
+     - **Test from the tab:** *Activation preview* on the entry tab (`LorebookActivationPreviewDialog` for this entry
+       against a chosen book: why it does or does not fire, while the filter is being edited); *Mass edit* and *Tag
+       entries* on the list tab (`LorebookMassEditDialog`, `MultiTagDialog`, refreshing the open tabs).
+     - **Invalid template:** `validatePayload` flags broken Handlebars. Keep the immediate save and show the error in the
+       footer, unless the grid blocks the save today (check, and do the same in both).
+     - **Changes from elsewhere:** an agent (`/set-lore-entry-*`), the Lore Generator, search and replace, the mass edit
+       or the workspace grid can change an open entry: the tab reloads (or says *changed elsewhere* while its editor has
+       the focus), an entry deleted elsewhere closes its tab, and entries gone since the layout was stored are skipped
+       when it is restored.
+     - **Sub lorebooks:** the list can show the entries of the sub lorebooks; an entry tab of another lorebook names
+       it in its caption or header, and *New entry* goes to the lorebook selected in the list.
+     - **Open on an entry:** *Open in editor* on the rows of `LorebookView` (and later the pen of `LorebookPreview` in
+       the story) opens the dialog with that entry in a tab.
+     - `@Extendable` + `@PublicAPI` on the new classes.
 
 ### Prompt engineering
 
