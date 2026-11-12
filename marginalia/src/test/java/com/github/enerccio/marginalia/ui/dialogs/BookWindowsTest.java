@@ -11,6 +11,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -63,6 +65,38 @@ class BookWindowsTest extends MarginaliaTestBase {
         window.close();
         UI.setCurrent(here);
         assertThat(Runs.holder(book, Runs.Operation.OPEN)).isNull();
+    }
+
+    @Test
+    void aBookIsOpenedForAPluginUnlessAnotherBookIsOpenInThePage() throws Exception {
+        List<ManuscriptWindow> opened = new ArrayList<>();
+        List<ManuscriptWindow> shown = new ArrayList<>();
+        BookWindows.Opener opener = b -> {
+            ManuscriptDialog dialog = new ManuscriptDialog(manuscriptService.find(b.getId()));
+            dialog.create();
+            dialog.open();
+            opened.add(dialog);
+            return dialog;
+        };
+
+        // nothing open: the book is opened, then shown
+        assertThat(new BookWindows().openFor(null, book, opener, shown::add)).isTrue();
+        assertThat(opened).hasSize(1);
+        assertThat(shown).containsExactly(opened.getFirst());
+
+        // the same book open: shown at once, not opened again
+        assertThat(new BookWindows().openFor(opened.getFirst(), book, opener, shown::add)).isTrue();
+        assertThat(opened).hasSize(1);
+        assertThat(shown).hasSize(2);
+
+        // another book open: refused, the author is told, nothing is opened
+        Manuscript other = new Manuscript();
+        other.setName(uniqueName("other"));
+        other = manuscriptService.save(other);
+        assertThat(new BookWindows().openFor(opened.getFirst(), other, opener, shown::add)).isFalse();
+        assertThat(opened).hasSize(1);
+        assertThat(shown).hasSize(2);
+        opened.getFirst().close();
     }
 
     @Test

@@ -855,6 +855,18 @@ public class KnowledgeTrackerView extends VerticalLayout {
         run.addListener(runListener);
     }
 
+    /** Whether the tab is the one of this book. */
+    public boolean isFor(Manuscript book) {
+        return book != null && manuscript.getUuid().equals(book.getUuid());
+    }
+
+    /** Shows the run (the panel of the runs was clicked): its progress, and the review when its proposal waits. */
+    public void showRun(ExtractionRun run) {
+        watch(run);
+        showProgress(run);
+        progressPanel.openReview();
+    }
+
     private void showProgress(ExtractionRun run) {
         if (progressPanel != null) {
             progressPanel.close();

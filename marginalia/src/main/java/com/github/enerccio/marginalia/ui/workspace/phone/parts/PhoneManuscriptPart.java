@@ -18,7 +18,6 @@ import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.LLMInteraction;
 import com.github.enerccio.marginalia.ui.RestorableState;
 import com.github.enerccio.marginalia.ui.dialogs.*;
-import com.github.enerccio.marginalia.ui.dialogs.BookWindows;
 import com.github.enerccio.marginalia.ui.dialogs.agent.AgentLockCheck;
 import com.github.enerccio.marginalia.ui.dialogs.phone.PhoneGlobalStatisticsDialog;
 import com.github.enerccio.marginalia.ui.dialogs.phone.PhoneManuscriptDialog;
@@ -779,6 +778,15 @@ public class PhoneManuscriptPart implements ManuscriptSection {
     @Override
     public ManuscriptWindow getOpenWindow() {
         return openDialog;
+    }
+
+    @PublicAPI(from = "1.8.0",
+            returns = @APIReturn(type = boolean.class),
+            parameters = {@APIParameter(name = "book", type = Manuscript.class),
+                    @APIParameter(name = "then", type = java.util.function.Consumer.class)})
+    @Override
+    public boolean openBook(Manuscript book, java.util.function.Consumer<ManuscriptWindow> then) {
+        return new BookWindows().openFor(getOpenWindow(), book, this::openManuscript, then);
     }
 
     @PublicAPI(from = "1.3.0",

@@ -1856,6 +1856,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_AFTER_PART_STOPPED, "新しいパートの後の処理は%sで止まりました。");
         setValue(L.MSG_AFTER_PART_FAILED, "新しいパートの後の処理が%sで失敗しました：%s");
         setValue(L.MSG_AFTER_PART_NOT_RUN, "実行されなかったもの：%s。");
+        setValue(L.MSG_CLOSE_OPEN_BOOK_FIRST, "ここでは別の本「%s」が開いています。先に閉じてください。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");

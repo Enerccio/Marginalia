@@ -5,6 +5,7 @@ import com.github.enerccio.marginalia.extensions.knowledgetracker.model.BookSett
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 
 /**
  * The runs of the books: one at a time for a book. The last run is kept (finished or not) so that a tab that is opened
@@ -17,11 +18,18 @@ public final class ExtractionRuns {
     private final KnowledgeStateService stateService;
     private final Map<String, ExtractionRun> runs = new ConcurrentHashMap<>();
     private final Map<String, ExtractionService.Proposal> held = new ConcurrentHashMap<>();
+    /** Shows a run in the page of the click on its entry in the panel of the runs; set by the extension while it is loaded. */
+    private volatile Consumer<ExtractionRun> opener;
 
     public ExtractionRuns(ExtractionService extraction, KnowledgeProcessService processService, KnowledgeStateService stateService) {
         this.extraction = extraction;
         this.processService = processService;
         this.stateService = stateService;
+    }
+
+    /** What a click on a run's entry in the panel of the runs does (in the page of the click); null for nothing. */
+    public void setOpener(Consumer<ExtractionRun> opener) {
+        this.opener = opener;
     }
 
     /** The latest run of the book, or {@code null}. */
@@ -73,6 +81,10 @@ public final class ExtractionRuns {
                 guided != null ? guided : settings.isAskBeforeApplying(), excludeFrom, maxParts, tidy);
         runs.put(manuscript.getUuid(), run);
         run.start();
+        Consumer<ExtractionRun> open = opener;
+        if (open != null) {
+            run.setOnOpen(() -> open.accept(run));
+        }
         return run;
     }
 

@@ -509,6 +509,9 @@ public class HelpAssistantWidget extends Div {
         // in the top layer, over the button and the panel)
         ElementUtil.setIgnoreParentInert(getElement(), true);
         JavascriptLibrary.keepOnTopOfDialogs(getElement());
+        // the panel of the runs (RunCorner) can stand where the button is (over a book both are in the bottom left
+        // corner, or the panel was dragged there): the button and its panel step aside and come back when it is gone
+        JavascriptLibrary.keepClearOf(getElement(), fab.getElement(), "." + CssStyles.RUN_CORNER);
     }
 
     @PublicAPI(from = "1.4.0",

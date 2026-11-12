@@ -73,8 +73,29 @@ public class ConversionQueue implements AutoCloseable {
         byte[] level(byte[] audio, double lufs) throws BackendException;
     }
 
+    /**
+     * Tells the application that a run of the queue starts, on the worker thread (the panel of the runs shows it, with its Stop and what the
+     * language model writes while it labels); none in the tests.
+     */
+    @FunctionalInterface
+    public interface RunWatch {
+        /**
+         * @param titles the titles of the parts of the run
+         * @param stop   stops the run (as {@link #cancelAll})
+         * @return told when the run is over, on the same thread
+         */
+        Ended started(List<String> titles, Runnable stop);
+    }
+
+    /** The end of a run of the queue. */
+    @FunctionalInterface
+    public interface Ended {
+        void ended(boolean stopped, boolean failed);
+    }
+
     private final Environment env;
     private final ExecutorService worker;
+    private volatile RunWatch runWatch;
     private final List<ConversionJob> jobs = new ArrayList<>();
     private final List<Consumer<ConversionJob.Snapshot>> listeners = new CopyOnWriteArrayList<>();
     private boolean draining;
@@ -92,6 +113,11 @@ public class ConversionQueue implements AutoCloseable {
     public ConversionQueue(Environment env, ExecutorService worker) {
         this.env = env;
         this.worker = worker;
+    }
+
+    /** Who is told about the runs of the queue, null for nobody. */
+    public void setRunWatch(RunWatch runWatch) {
+        this.runWatch = runWatch;
     }
 
     /** Called (from the worker thread) with the snapshot of a job each time its state or progress changes. */
@@ -230,6 +256,9 @@ public class ConversionQueue implements AutoCloseable {
                     batch.forEach(j -> j.set(State.RUNNING, ""));
                 }
                 batch.forEach(this::fire);
+                RunWatch watch = runWatch;
+                Ended ended = watch == null ? null : watch.started(batch.stream().map(j -> j.snapshot().title()).toList(), this::cancelAll);
+                boolean failed = false;
                 // the batch is one job of the administrator's log: the labelling requests and the speech requests are its calls
                 try (com.github.enerccio.marginalia.domain.service.job.Jobs.Handle logged = com.github.enerccio.marginalia.domain.service.job.Jobs.open(
                         "audiobook", "Conversion of " + batch.size() + (batch.size() == 1 ? " part" : " parts"),
@@ -240,6 +269,7 @@ public class ConversionQueue implements AutoCloseable {
                             logged.finish(com.github.enerccio.marginalia.domain.service.job.JobStatus.CANCELLED);
                         }
                     } catch (RuntimeException e) {
+                        failed = true;
                         logged.fail();
                         AudiobookLog.get().warn("The conversion failed: {}", e.getMessage(), e);
                         for (ConversionJob job : batch) {
@@ -247,6 +277,10 @@ public class ConversionQueue implements AutoCloseable {
                                 finish(job, State.FAILED, String.valueOf(e.getMessage()));
                             }
                         }
+                    }
+                } finally {
+                    if (ended != null) {
+                        ended.ended(stopRun, failed);
                     }
                 }
             }

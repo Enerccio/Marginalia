@@ -1856,6 +1856,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_AFTER_PART_STOPPED, "What follows the new part stopped at %s.");
         setValue(L.MSG_AFTER_PART_FAILED, "What follows the new part failed at %s: %s");
         setValue(L.MSG_AFTER_PART_NOT_RUN, "Not run: %s.");
+        setValue(L.MSG_CLOSE_OPEN_BOOK_FIRST, "Another book is open here, \"%s\". Close it first.");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");

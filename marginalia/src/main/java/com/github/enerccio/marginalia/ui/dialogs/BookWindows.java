@@ -1,11 +1,15 @@
 package com.github.enerccio.marginalia.ui.dialogs;
 
+import com.github.enerccio.marginalia.bound.ApplicationPoint;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.run.Runs;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.agent.AgentLockCheck;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
+import com.github.enerccio.marginalia.ui.workspace.ManuscriptSection;
+import com.github.enerccio.marginalia.ui.workspace.Workspace;
+import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.UIDetachedException;
 import com.vaadin.flow.component.dialog.Dialog;
@@ -15,6 +19,7 @@ import org.springframework.beans.factory.annotation.Configurable;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 /**
@@ -32,6 +37,9 @@ public class BookWindows {
 
     @Autowired
     private Localization loc;
+
+    @Autowired
+    private ApplicationPoint applicationPoint;
 
     /**
      * Opens the book unless an agent works on it or it is open in another page; in that case asks to take it over.
@@ -62,6 +70,58 @@ public class BookWindows {
             open.run();
         }, () -> {
         }, false);
+    }
+
+    /**
+     * Opens the book in the current page and then runs {@code then} with its window, for code that is not the book list (a plugin, a
+     * click in the panel of the runs): {@link ManuscriptSection#openBook} of the page's workspace. The book list's checks apply (an agent
+     * works on it, it is open in another page); when another book is open in the page the author is told to close it first.
+     *
+     * @return false when it can not be opened here: the page has no workspace (not the application's main page) or another book is open
+     */
+    public static boolean openHere(Manuscript book, Consumer<ManuscriptWindow> then) {
+        UI ui = UI.getCurrent();
+        if (ui == null || book == null) {
+            return false;
+        }
+        Workspace workspace = new BookWindows().applicationPoint.getUIs().get(ui);
+        ManuscriptSection section = workspace == null ? null : workspace.getManuscriptSection();
+        return section != null && section.openBook(book, then);
+    }
+
+    /** Opens the window of a book (the book list's own way, with its listeners). */
+    @FunctionalInterface
+    public interface Opener {
+        ManuscriptWindow open(Manuscript book) throws Exception;
+    }
+
+    /**
+     * {@link com.github.enerccio.marginalia.ui.workspace.ManuscriptSection#openBook}: the book list of the page gives the window that is
+     * open and its way to open one.
+     *
+     * @return false when another book is open in the page (the author is told)
+     */
+    public boolean openFor(ManuscriptWindow open, Manuscript book, Opener opener, Consumer<ManuscriptWindow> then) {
+        if (open != null && open.isOpened()) {
+            Manuscript shown = open.getManuscript();
+            if (shown != null && shown.getUuid().equals(book.getUuid())) {
+                then.accept(open);
+                return true;
+            }
+            Notification.warning(String.format(loc.getValue(L.MSG_CLOSE_OPEN_BOOK_FIRST), shown == null ? "" : shown.getName()));
+            return false;
+        }
+        open(book, () -> {
+            try {
+                ManuscriptWindow window = opener.open(book);
+                if (window != null) {
+                    then.accept(window);
+                }
+            } catch (Exception e) {
+                UIUtils.internalServerError(loc, e);
+            }
+        }, false);
+        return true;
     }
 
     /**

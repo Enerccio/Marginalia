@@ -4,11 +4,7 @@ import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.service.run.Runs;
 import com.github.enerccio.marginalia.test.MarginaliaTestBase;
 import com.github.enerccio.marginalia.ui.components.RunCorner;
-import com.vaadin.flow.component.ClickEvent;
-import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.ComponentUtil;
-import com.vaadin.flow.component.DetachEvent;
-import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.*;
 import com.vaadin.flow.component.dialog.Dialog;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -123,6 +119,57 @@ class FloatingWindowTest extends MarginaliaTestBase {
         assertThat(stopped.get()).isEqualTo(1);
         assertThat(run.isEnded()).isTrue();
         assertThat(floating.isLive()).isFalse();
+        ui.remove(corner);
+    }
+
+    @Test
+    void aModalThatIsNotABookWindowDoesNotEndTheWindowWithItself() {
+        RunCorner corner = new RunCorner();
+        ui.add(corner);
+        // the summaries overview: a strict modal the window is opened from, closed while the summaries are written
+        Dialog overview = new Dialog();
+        overview.setModality(ModalityMode.STRICT);
+        overview.open();
+        Dialog dialog = new Dialog();
+        FloatingWindow floating = window(dialog);
+        dialog.open();
+        floating.setRunning(true);
+        Runs.Run run = floating.holdForTest();
+
+        overview.close();
+        ui.remove(overview);
+
+        assertThat(stopped.get()).isZero();
+        assertThat(run.isEnded()).isFalse();
+        assertThat(floating.isLive()).isTrue();
+        floating.closeForGood();
+        ui.remove(corner);
+    }
+
+    @Test
+    void aWindowTakenOutOfThePageWithTheModalItWasOpenedOverIsFolded() {
+        RunCorner corner = new RunCorner();
+        ui.add(corner);
+        Dialog overview = new Dialog();
+        overview.setModality(ModalityMode.STRICT);
+        ui.add(overview);
+        overview.open();
+        // Vaadin attaches a dialog opened over a modal to that modal
+        Dialog dialog = new Dialog();
+        FloatingWindow floating = window(dialog);
+        overview.add(dialog);
+        dialog.open();
+        floating.setRunning(true);
+        Runs.Run run = floating.holdForTest();
+
+        overview.close();
+        ui.remove(overview);
+
+        assertThat(dialog.isOpened()).isFalse();
+        assertThat(floating.isMinimised()).as("folded: its entry in the panel opens it again").isTrue();
+        assertThat(stopped.get()).isZero();
+        assertThat(run.isEnded()).isFalse();
+        floating.closeForGood();
         ui.remove(corner);
     }
 

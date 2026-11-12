@@ -222,6 +222,29 @@ class ConversionQueueTest {
     }
 
     @Test
+    void aRunIsToldToTheApplicationWithItsPartsAndItsEnd() throws Exception {
+        queue(Set.of(BackendConfig.MODEL_TURBO));
+        PartScript script = script("One.\n\nTwo.");
+        List<List<String>> started = new CopyOnWriteArrayList<>();
+        List<String> ends = new CopyOnWriteArrayList<>();
+        List<Runnable> stops = new CopyOnWriteArrayList<>();
+        queue.setRunWatch((titles, stop) -> {
+            started.add(titles);
+            stops.add(stop);
+            String thread = Thread.currentThread().getName();
+            // the end is told on the thread of the run, which the application bound to its run
+            return (stopped, failed) -> ends.add(stopped + "/" + failed + "/" + thread.equals(Thread.currentThread().getName()));
+        });
+
+        finished(queue.submit("p1", "Part 1", () -> script));
+        assertTrue(queue.awaitIdle(5, java.util.concurrent.TimeUnit.SECONDS));
+
+        assertEquals(List.of(List.of("Part 1")), started);
+        assertEquals(List.of("false/false/true"), ends);
+        assertEquals(1, stops.size());
+    }
+
+    @Test
     void theJobSaysWhichPiecesTheModelLabelsAndKeepsWhatItSaid() throws Exception {
         queue(Set.of(BackendConfig.MODEL_TURBO));
         PartScript script = script("One.\n\nTwo.");

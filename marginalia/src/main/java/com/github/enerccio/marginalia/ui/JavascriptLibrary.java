@@ -39,8 +39,10 @@ public final class JavascriptLibrary {
 
     /**
      * Lets the user move a fixed panel by its handle (the panel of the runs) and keeps where it was left in the browser
-     * ({@code localStorage}, under the key); it stays inside the window, also when the window is made smaller. A drag is not a click
-     * on the handle's parent.
+     * ({@code localStorage}, under the key). The panel is held by its nearer edge: in the lower half of the window by its bottom, so
+     * that it grows upwards there (as in its corner) when it is expanded, else by its top. It stays inside the window, also when it
+     * grows or the window is made smaller, and goes back to its place when it shrinks again. A drag is not a click on the handle's
+     * parent. While it is dragged the panel carries the attribute {@code data-dragging} ({@link #keepClearOf} waits for the drop).
      *
      * @param panel  the element with {@code position: fixed}
      * @param handle the element it is dragged by
@@ -50,18 +52,31 @@ public final class JavascriptLibrary {
                 const panel = $0, handle = $1, key = $2;
                 if (panel.__draggable) return;
                 panel.__draggable = true;
+                // where the user left it: { left, top } or { left, bottom }
                 let saved = null;
-                const place = (left, top) => {
+                const apply = () => {
+                  if (!saved) return;
                   const w = panel.offsetWidth, h = panel.offsetHeight;
-                  left = Math.max(0, Math.min(left, window.innerWidth - w));
-                  top = Math.max(0, Math.min(top, window.innerHeight - h));
-                  panel.style.left = left + 'px';
-                  panel.style.top = top + 'px';
-                  panel.style.bottom = 'auto';
+                  panel.style.left = Math.max(0, Math.min(saved.left, window.innerWidth - w)) + 'px';
+                  if (typeof saved.bottom === 'number') {
+                    panel.style.bottom = Math.max(0, Math.min(saved.bottom, window.innerHeight - h)) + 'px';
+                    panel.style.top = 'auto';
+                  } else {
+                    panel.style.top = Math.max(0, Math.min(saved.top, window.innerHeight - h)) + 'px';
+                    panel.style.bottom = 'auto';
+                  }
+                };
+                const placeAt = (left, top) => {
+                  const h = panel.offsetHeight;
+                  saved = top + h / 2 > window.innerHeight / 2 ? { left, bottom: window.innerHeight - top - h } : { left, top };
+                  apply();
                 };
                 try { saved = JSON.parse(localStorage.getItem(key) || 'null'); } catch (e) { saved = null; }
-                if (saved) requestAnimationFrame(() => place(saved.left, saved.top));
-                window.addEventListener('resize', () => { if (panel.style.top) place(parseFloat(panel.style.left), parseFloat(panel.style.top)); });
+                if (!saved || typeof saved.left !== 'number') saved = null;
+                if (saved) requestAnimationFrame(apply);
+                window.addEventListener('resize', apply);
+                // expanded or folded: inside the window again, or back to where it was left
+                new ResizeObserver(apply).observe(panel);
                 let start = null, moved = false;
                 handle.addEventListener('pointerdown', e => {
                   const box = panel.getBoundingClientRect();
@@ -74,20 +89,22 @@ public final class JavascriptLibrary {
                   if (!start) return;
                   const dx = e.clientX - start.x, dy = e.clientY - start.y;
                   if (!moved && Math.abs(dx) + Math.abs(dy) < 4) return;
+                  if (!moved) panel.setAttribute('data-dragging', '');
                   moved = true;
-                  place(start.left + dx, start.top + dy);
+                  placeAt(start.left + dx, start.top + dy);
                 });
                 const end = () => {
                   if (!start) return;
                   start = null;
+                  panel.removeAttribute('data-dragging');
                   if (moved) {
-                    try { localStorage.setItem(key, JSON.stringify({ left: parseFloat(panel.style.left), top: parseFloat(panel.style.top) })); } catch (e) {}
+                    try { localStorage.setItem(key, JSON.stringify(saved)); } catch (e) {}
                   }
                 };
                 handle.addEventListener('pointerup', end);
                 handle.addEventListener('pointercancel', end);
                 handle.addEventListener('click', e => { if (moved) { e.stopPropagation(); moved = false; } }, true);
-                """, handle, storageKey);
+                """, panel, handle, storageKey);
     }
 
     // --- clipboard ---
@@ -1471,6 +1488,57 @@ public final class JavascriptLibrary {
                   }
                 });
                 """, element);
+    }
+
+    /**
+     * Moves the children of {@code root} sideways while {@code anchor} (one of them) would overlap the element that
+     * matches {@code selector}, and back when it no longer would: the shift is the custom property
+     * {@code --keep-clear-shift} of the root (a value computed at run time), which the stylesheet applies as a
+     * {@code translate} to the children. The anchor goes to the right of the other element, or to its left when there
+     * is no room on the right. Checked again when the other element is shown, hidden, moved (dragged) or resized,
+     * when the anchor changes place (a dialog puts it into another corner) and when the window is resized; not while the other
+     * element is dragged (attribute {@code data-dragging}, {@link #makeDraggable}): the anchor moves once, when it is dropped. Not on
+     * a phone's width, where the layout is different.
+     */
+    public static void keepClearOf(Element root, Element anchor, String selector) {
+        root.executeJs("""
+                const root = $0, anchor = $1, selector = $2;
+                if (root.__keepClear) return;
+                root.__keepClear = true;
+                const gap = 8;
+                let shift = 0, frame = 0, watched = null;
+                const resize = new ResizeObserver(() => schedule());
+                const update = () => {
+                  frame = 0;
+                  const other = document.querySelector(selector);
+                  if (other && other !== watched) { resize.observe(other); watched = other; }
+                  let next = 0;
+                  // the other element is being dragged: the anchor stays until it is dropped, it is not pushed along
+                  if (other && other.hasAttribute('data-dragging')) return;
+                  if (other && !other.hidden && other.getClientRects().length && anchor.getClientRects().length
+                      && window.innerWidth >= 768) {
+                    // where the anchor stands without the shift: the offsets of a fixed element ignore its translate, the bounding box would
+                    // be taken in the middle of the slide and make the shift swing back and forth
+                    const left = anchor.offsetLeft, right = left + anchor.offsetWidth;
+                    const top = anchor.offsetTop, bottom = top + anchor.offsetHeight;
+                    const o = other.getBoundingClientRect();
+                    if (left < o.right + gap && right > o.left - gap && top < o.bottom + gap && bottom > o.top - gap) {
+                      const toRight = o.right + gap - left, toLeft = o.left - gap - right;
+                      next = right + toRight <= window.innerWidth || left + toLeft < 0 ? toRight : toLeft;
+                    }
+                  }
+                  if (next !== shift) {
+                    shift = next;
+                    root.style.setProperty('--keep-clear-shift', shift + 'px');
+                  }
+                };
+                const schedule = () => { if (!frame) frame = requestAnimationFrame(update); };
+                window.addEventListener('resize', schedule);
+                // not the change of the shift itself
+                new MutationObserver(records => { if (records.some(r => r.target !== root)) schedule(); }).observe(document.body,
+                    { subtree: true, attributes: true, attributeFilter: ['style', 'hidden', 'popover', 'data-dragging'] });
+                schedule();
+                """, root, anchor, selector);
     }
 
     /**

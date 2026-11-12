@@ -958,10 +958,10 @@ working as today (its own window); it only is not seen by the registry.
    notification when the run's page is gone (`claimNotice`); used by the resummary. `/jobs`: `RunsGrid` with user, book, label,
    source, state, since, holds, Stop and End (the sweeper by hand). `RunWindow` and its texts and styles are gone from
    `translator-common`; `new RunProgress()`. Not done:
-   - **the Audiobook's batches** are not runs of the registry yet (the queue batches by speech model; each batch should be a run that
-     holds its parts READ and binds its worker); so a conversion is not in the panel;
-   - the panel has no **Review** / *go to the book* actions for a run that waits for the user (the Knowledge Tracker's proposal is
-     reviewed in its tab), and no list of the finished runs: an entry goes when its run ends;
+   - ~~the Audiobook's batches~~: each run of its queue is a run of the registry (bound, Stop), built 2026-11-12; it holds no parts
+     (a conversion only reads them);
+   - ~~Review / go to the book~~: the Knowledge Tracker's run opens its book and tab from the panel (`BookWindows.openHere`), built
+     2026-11-12; still no list of the finished runs: an entry goes when its run ends;
    - only the resummary declares a notification: the other runs that end after their page is gone (a translation, the tracker)
      have no source of their own, or one that is only for runs the user started (the tracker's);
    - `KnowledgeTracker`'s `ProgressPanel` stays (the panel shows the run as well);
@@ -1052,36 +1052,36 @@ Then <http://localhost:8099>, `admin` / `marginalia`; a second tab (or a private
 click the entry, the window is back with the text going on; then *Stop* in the window: it stays with what arrived; then *Close*
 it in the panel of a folded one: the model stops):
 
-- [ ] annotate a part, and a range of parts; redraft a part, and a selected passage
-- [ ] a summary of a part, and a meta summary; *Create summaries* and *Rewrite all summaries* (one entry each, not two)
-- [ ] Reviewer; book description; lore generator; an Arc Outline generator
-- [ ] image generator (the prompt being written, then the picture; *Accept* of a folded one); manga generator (continuous)
-- [ ] Beta Readers persona writer; Audiobook Studio and Convert are only not modal (the page usable beside them)
-- [ ] the plugin windows while folded really go on: their text is complete when opened again (a folded dialog is detached;
+- [x] annotate a part, and a range of parts; redraft a part, and a selected passage
+- [x] a summary of a part, and a meta summary; *Create summaries* and *Rewrite all summaries* (one entry each, not two)
+- [x] Reviewer; book description; lore generator; an Arc Outline generator
+- [x] image generator (the prompt being written, then the picture; *Accept* of a folded one); manga generator (continuous)
+- [ ] Beta Readers persona writer (works); Audiobook Studio and Convert are only not modal (the page usable beside them)
+- [x] the plugin windows while folded really go on: their text is complete when opened again (a folded dialog is detached;
       the plugins' `onDetach` ask `isMinimised()`)
-- [ ] a folded window and the exit button of the book window: the window ends, its model stops
-- [ ] a folded window and a closed tab, without a book window (the lore generator from a lorebook, or *Create summaries* after
+- [x] a folded window and the exit button of the book window: the window ends, its model stops
+- [x] a folded window and a closed tab, without a book window (the lore generator from a lorebook, or *Create summaries* after
       an import) and with one: the run leaves the panel of the second tab, its model stops
-- [ ] the windows stand at the right, can be moved and resized; on a narrow window (phone width) they are modal and full
+- [x] the windows stand at the right, can be moved and resized; on a narrow window (phone width) they are modal and full
 
 **The panel of the runs** (step 6):
 
-- [ ] the entries of these windows in the panel of the other tab, with the text going on; *Stop* from there stops the
+- [x] the entries of these windows in the panel of the other tab, with the text going on; *Stop* from there stops the
       window's model in the first tab
-- [ ] drag the panel by its grip with a book window open (the panel is in the top layer then); its place is kept on reload
-- [ ] the model's queue: two requests at once (a summary and a redraft) show "waiting, 1 before"
+- [x] drag the panel by its grip with a book window open (the panel is in the top layer then); its place is kept on reload
+- [x] the model's queue: two requests at once (a summary and a redraft) show "waiting, 1 before"
 
 **The generation** (steps 5 and 6c):
 
-- [ ] while a part is generated: lore, prompt and info tabs usable, an earlier part can be annotated and redrafted, the new
+- [x] while a part is generated: lore, prompt and info tabs usable, an earlier part can be annotated and redrafted, the new
       part and the ones before it can not be deleted or merged
-- [ ] the exit button asks and stops; a reload asks (the browser's own question)
-- [ ] `/next` in the command bar: the part streams into the story, the round button stops it, the result popover at the end;
+- [x] the exit button asks and stops; a reload asks (the browser's own question)
+- [x] `/next` in the command bar: the part streams into the story, the round button stops it, the result popover at the end;
       a second `/next` while it runs is refused, the text stays in the field
 
 **What follows the part** (step 7, with automatic annotation on in the book):
 
-- [ ] after a generated part the annotation and the redraft run as one entry; a result to decide opens its window in the
+- [x] after a generated part the annotation and the redraft run as one entry; a result to decide opens its window in the
       generating page, and from *Review* in the panel of the other tab
 
 **Not on this list:** a phone in the background (6d) needs a real device.

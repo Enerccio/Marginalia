@@ -43,6 +43,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.security.CodeSource;
+import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -116,7 +117,8 @@ public class OsgiServiceImpl implements OsgiService, ApplicationListener<Context
             XmlWebApplicationContext applicationContext = (XmlWebApplicationContext) event.getSource();
             if (applicationContext.getDisplayName().startsWith("Root"))
                 start();
-        } catch (Exception e) {
+        } catch (Exception | LinkageError e) {
+            // a broken extension must not stop the application
             log.error(e.getMessage(), e);
         }
     }
@@ -207,7 +209,7 @@ public class OsgiServiceImpl implements OsgiService, ApplicationListener<Context
                 startBundle(b);
             } catch (ExtensionVerificationException e) {
                 log.error("Extension {} is not started, it does not fit this version of Marginalia:\n{}", e.getExtension(), e.getReport());
-            } catch (Exception e) {
+            } catch (Exception | LinkageError e) {
                 log.error("Failed to start extension {} ({}): {}", b.getSymbolicName(), locationFile(b).getName(), e.getMessage(), e);
             }
         }
@@ -509,14 +511,43 @@ public class OsgiServiceImpl implements OsgiService, ApplicationListener<Context
         b.start();
         try {
             startBundleInternal(b);
-        } catch (Exception e) {
+        } catch (Exception | LinkageError e) {
             try {
                 b.stop();
             } catch (Exception ex) {
                 log.error(ex.getMessage(), ex);
             }
+            if (e instanceof LinkageError linkageError) {
+                throw linkError(b, linkageError);
+            }
             throw e;
         }
+    }
+
+    /**
+     * An extension built against another version of the application that names a class, field or method this
+     * version doesn't have fails with a {@link LinkageError} ({@code NoSuchFieldError}, {@code NoSuchMethodError},
+     * {@code NoClassDefFoundError}...) when that code first runs. It is an {@link Error}, which would pass every
+     * {@code catch (Exception)} up to the start of the application, so it is turned into a failed verification of
+     * the extension: the {@code .invalid} report keeps it from being started again until the JAR or the application
+     * changes.
+     */
+    private ExtensionVerificationException linkError(Bundle b, LinkageError e) {
+        File jar = locationFile(b);
+        String error = "the extension was built for another version of Marginalia and uses something this version doesn't have: "
+                + e.getClass().getSimpleName() + ": " + e.getMessage();
+        String report = "Extension: " + jar.getName() + "\n"
+                + "Bundle: " + b.getSymbolicName() + " " + b.getVersion() + "\n"
+                + "Verified: " + Instant.now() + "\n"
+                + "Result: INVALID\n"
+                + "\nErrors (1):\n  - " + error + "\n";
+        try {
+            ExtensionVerifier.writeReport(jar, new ExtensionVerification(jar.getName(), false, List.of(error), List.of(), List.of(), report));
+        } catch (IOException ex) {
+            log.error("Failed to write the verification report of {}: {}", jar.getName(), ex.getMessage(), ex);
+        }
+        log.debug("Extension {} failed to link", jar.getName(), e);
+        return new ExtensionVerificationException(jar.getName(), report);
     }
 
     /**
@@ -649,7 +680,8 @@ public class OsgiServiceImpl implements OsgiService, ApplicationListener<Context
                 activeExtensions.put(sr, extension);
                 try {
                     extension.onExtensionLoad(b, this, extensionService);
-                } catch (RuntimeException e) {
+                    registerLocalizationBundles(extension);
+                } catch (RuntimeException | LinkageError e) {
                     // undo what the extension managed to register before it failed
                     activeExtensions.remove(sr);
                     try {
@@ -659,7 +691,6 @@ public class OsgiServiceImpl implements OsgiService, ApplicationListener<Context
                     }
                     throw e;
                 }
-                registerLocalizationBundles(extension);
                 LoadedExtension loaded = new LoadedExtension(b, extension);
                 loadedExtensions.put(sr, loaded);
                 fireExtensionEvent(listener -> listener.extensionLoaded(b, extension));
@@ -706,13 +737,15 @@ public class OsgiServiceImpl implements OsgiService, ApplicationListener<Context
 
     /**
      * Adds the languages of an {@link ExtensionHasLocalization} extension; a bundle that is refused (its language is
-     * taken) is logged and doesn't stop the extension.
+     * taken) is logged and doesn't stop the extension. A {@link LinkageError} (a bundle that names a key this version
+     * doesn't have) is passed on: it fails the extension, and what was registered until then is undone with it.
      */
     private void registerLocalizationBundles(MarginaliaExtension extension) {
         if (!(extension instanceof ExtensionHasLocalization hasLocalization)) {
             return;
         }
         List<LocalizationBundle> registered = new ArrayList<>();
+        localizationBundles.put(extension, registered);
         try {
             for (LocalizationBundle bundle : hasLocalization.getLocalizationBundles()) {
                 try {
@@ -726,7 +759,6 @@ public class OsgiServiceImpl implements OsgiService, ApplicationListener<Context
         } catch (RuntimeException e) {
             log.error("Extension {} failed to provide its localization bundles: {}", extension.getClass().getName(), e.getMessage(), e);
         }
-        localizationBundles.put(extension, registered);
     }
 
     private void unregisterLocalizationBundles(MarginaliaExtension extension) {

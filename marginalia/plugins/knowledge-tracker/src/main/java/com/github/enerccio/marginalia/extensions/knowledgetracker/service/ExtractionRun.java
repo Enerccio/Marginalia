@@ -212,6 +212,22 @@ public final class ExtractionRun {
         worker = Thread.ofVirtual().name("knowledge-tracker-run").start(this::work);
     }
 
+    /** The book the run reads. */
+    public Manuscript getManuscript() {
+        return manuscript;
+    }
+
+    /**
+     * What a click on the run's entry in the panel of the runs does, in the page of the click (shows the run and its review); null for
+     * nothing.
+     */
+    public void setOnOpen(Runnable open) {
+        Runs.Run registered = registryRun;
+        if (registered != null) {
+            registered.setOnOpen(open);
+        }
+    }
+
     /** The user reviewed the proposal (the changes carry their choices): apply it. */
     public void apply() {
         CompletableFuture<Boolean> waiting = decision;

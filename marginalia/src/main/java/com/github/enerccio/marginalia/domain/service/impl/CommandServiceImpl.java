@@ -11,6 +11,7 @@ import com.github.enerccio.marginalia.domain.service.impl.commands.lorebook.writ
 import com.github.enerccio.marginalia.domain.service.impl.commands.lorebook.write.LorebookWriteCommands;
 import com.github.enerccio.marginalia.domain.service.impl.commands.manuscript.read.*;
 import com.github.enerccio.marginalia.domain.service.impl.commands.manuscript.write.*;
+import com.github.enerccio.marginalia.domain.service.run.Runs;
 import com.github.enerccio.marginalia.domain.traits.Command;
 import com.github.enerccio.marginalia.domain.traits.CommandParameter;
 import com.github.enerccio.marginalia.domain.traits.CommandParameterSignature;
@@ -443,13 +444,16 @@ public class CommandServiceImpl implements CommandService, InitializingBean, Dis
         }
 
         RequestAttributes attributes = ThreadCopyRequestAttributes.create();
+        // the run the caller is bound to (the window of the command bar): the requests of the command report to it, the panel of the runs
+        // shows what the model writes
+        Runs.Run caller = Runs.current();
         try {
             Future<?> worker = workers.submit(() -> {
                 if (result.isDone()) {
                     // stopped before it started
                     return;
                 }
-                try (InRequestScope _ = new InRequestScope(attributes)) {
+                try (InRequestScope _ = new InRequestScope(attributes); Runs.Binding _ = caller == null || caller.isEnded() ? null : caller.bind()) {
                     invoke(registered, context);
                 }
             });

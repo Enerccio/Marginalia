@@ -7,6 +7,7 @@ import com.github.enerccio.marginalia.domain.service.run.Runs;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.components.PageRuns;
+import com.github.enerccio.marginalia.ui.dialogs.ManuscriptWindow;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.Component;
@@ -87,6 +88,8 @@ public final class FloatingWindow {
     private boolean foldedByClose;
     private boolean forGood;
     private boolean placed;
+    // the left edge the window was given (null when it has none): one the user dragged it away from is not touched again
+    private String placedLeft;
     private UI page;
     private final List<Runnable> endListeners = new ArrayList<>();
 
@@ -143,6 +146,15 @@ public final class FloatingWindow {
                 end(true);
             }
         });
+        // opened over another modal (the summaries overview), Vaadin attaches the window to that one, and when it closes it takes the
+        // window out of the page while the window is still open: nothing would show it again. It is closed as by its Close (folded
+        // while the model works); a page that is going away ends it by itself.
+        dialog.addDetachListener(event -> {
+            // not one that has ended already (its book window closed and ended it first)
+            if (!forGood && run != null && dialog.isOpened() && !event.getUI().isClosing()) {
+                dialog.close();
+            }
+        });
     }
 
     /**
@@ -153,8 +165,27 @@ public final class FloatingWindow {
         if (!UIUtils.isPhone()) {
             dialog.setWidth(width);
             dialog.setHeight(height);
+            // a window that grows after it was placed (a form that turns into the progress) would stand out of the page at the right
+            if (placed && placedLeft != null && placedLeft.equals(dialog.getLeft())) {
+                place();
+            }
         }
         return this;
+    }
+
+    /**
+     * At the right, never out of the page at the left; below the top bar, higher up for a tall window (a window of 94vh would stand
+     * out of the page at the bottom, with its buttons).
+     */
+    private void place() {
+        String height = dialog.getHeight();
+        // a height that is not a length ("auto") would make the calc invalid
+        dialog.setTop(height == null || !height.matches(".*\\d.*") ? "64px" : "max(0px, min(64px, calc(100vh - " + height + " - 16px)))");
+        String width = dialog.getWidth();
+        if (width != null) {
+            placedLeft = "max(0px, calc(100vw - " + width + " - 24px))";
+            dialog.setLeft(placedLeft);
+        }
     }
 
     /**
@@ -173,12 +204,10 @@ public final class FloatingWindow {
         if (ui == null) {
             return null;
         }
-        Component modal = ui.getInternals().getActiveModalComponent();
-        if (modal != null && modal != ui) {
-            return modal;
-        }
-        return ui.getChildren().filter(Dialog.class::isInstance).map(Dialog.class::cast)
-                .filter(dialog -> dialog.isOpened() && dialog.isModal()).reduce((first, second) -> second).orElse(null);
+        // only the window of a book: another modal on top of it (the summaries overview the window was opened from) closes while the
+        // window goes on, and would end it with itself
+        return ui.getChildren().filter(ManuscriptWindow.class::isInstance).map(Dialog.class::cast)
+                .filter(Dialog::isOpened).reduce((first, second) -> second).orElse(null);
     }
 
     private void opened() {
@@ -190,12 +219,7 @@ public final class FloatingWindow {
         page = ui;
         if (!placed && !UIUtils.isPhone()) {
             placed = true;
-            String width = dialog.getWidth();
-            if (width != null) {
-                dialog.setTop("64px");
-                // at the right, never out of the page at the left
-                dialog.setLeft("max(0px, calc(100vw - " + width + " - 24px))");
-            }
+            place();
         }
         PageRuns runs = PageRuns.of(ui);
         if (run == null) {

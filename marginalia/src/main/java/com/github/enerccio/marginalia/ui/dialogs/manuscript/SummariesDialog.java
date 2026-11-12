@@ -146,7 +146,9 @@ public class SummariesDialog extends Dialog implements LLMInteract {
         Button createMetaButton = new Button(loc.getValue(L.LABEL_CREATE_META_SUMMARY), Solid.LAYER_GROUP.create(), _ -> createMetaSummary());
         createMetaButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_SMALL);
 
-        HorizontalLayout toolbar = new HorizontalLayout(menuBar, tokensSpan, createMetaButton);
+        // the count and the meta summary stand in the header: the menu has the whole width, its items would go into the overflow
+        getHeader().add(tokensSpan, createMetaButton);
+        HorizontalLayout toolbar = new HorizontalLayout(menuBar);
         toolbar.setWidthFull();
         toolbar.setAlignItems(FlexComponent.Alignment.CENTER);
         toolbar.expand(menuBar);

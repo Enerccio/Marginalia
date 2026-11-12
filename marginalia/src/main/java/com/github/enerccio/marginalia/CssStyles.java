@@ -299,6 +299,7 @@ public final class CssStyles {
     public static final String RUN_CORNER_ROOT = "run-corner-root";
     public static final String RUN_CORNER = "run-corner";
     public static final String RUN_CORNER_ENTRY = "run-corner-entry";
+    public static final String RUN_CORNER_BODY = "run-corner-body";
     public static final String RUN_CORNER_LABEL = "run-corner-label";
     public static final String RUN_CORNER_BUTTONS = "run-corner-buttons";
     public static final String RUN_CORNER_CHIP = "run-corner-chip";

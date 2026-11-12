@@ -261,6 +261,7 @@ public class RunCorner extends Div {
             root.addClassName(CssStyles.RUN_CORNER_ENTRY);
             // what the entry says and its progress: a click opens its window again (the buttons are apart)
             Div body = new Div();
+            body.addClassName(CssStyles.RUN_CORNER_BODY);
             Span label = new Span(item.label());
             label.addClassName(CssStyles.RUN_CORNER_LABEL);
             body.add(label);
@@ -318,8 +319,8 @@ public class RunCorner extends Div {
                 open.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_PRIMARY);
                 buttons.add(open);
             } else if (window == null && run != null && run.getOnOpen() != null) {
-                // a result waits for the author: its window opens in this page
-                Button review = new Button(loc.getValue(L.LABEL_REVIEW), _ -> {
+                // a result waits for the author (Review), or the run can be shown (Open): it opens in this page
+                Button review = new Button(loc.getValue(run.isWaitingForUser() ? L.LABEL_REVIEW : L.LABEL_OPEN), _ -> {
                     Runnable open = run.getOnOpen();
                     if (open != null) {
                         open.run();

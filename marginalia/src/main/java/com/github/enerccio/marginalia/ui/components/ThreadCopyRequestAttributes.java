@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.ui.components;
 
 import com.github.enerccio.marginalia.bound.AgentRequestAttributes;
+import jakarta.servlet.ServletContext;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -27,6 +28,13 @@ public class ThreadCopyRequestAttributes extends ServletRequestAttributes {
 	private final Map<String, Object> sessionCopy = new ConcurrentHashMap<>();
 	/** What the page locks for the session (the mutex of the session, or the session itself); the copy locks the same object. */
 	private final Object sessionMutex;
+	/**
+	 * The request attributes, copied too: the servlet container recycles the request when it is over (Tomcat then throws "The request object has
+	 * been recycled" from every call on it), and the worker runs long after that.
+	 */
+	private final Map<String, Object> requestCopy = new ConcurrentHashMap<>();
+	/** The context of the application, taken from the request while it is alive ({@link #getServletContext()}). */
+	private final ServletContext servletContext;
 
 	private ThreadCopyRequestAttributes(HttpServletRequest request, HttpServletResponse response) {
 		super(request, response);
@@ -41,6 +49,14 @@ public class ThreadCopyRequestAttributes extends ServletRequestAttributes {
 			// ignore
 		}
 		sessionMutex = WebUtils.getSessionMutex(s);
+		servletContext = request.getServletContext();
+		for (Enumeration<String> names = request.getAttributeNames(); names.hasMoreElements(); ) {
+			String name = names.nextElement();
+			Object value = request.getAttribute(name);
+			if (value != null) {
+				requestCopy.put(name, value);
+			}
+		}
 		for (Enumeration<String> names = s.getAttributeNames(); names.hasMoreElements(); ) {
 			String name = names.nextElement();
 			Object value = s.getAttribute(name);
@@ -55,18 +71,24 @@ public class ThreadCopyRequestAttributes extends ServletRequestAttributes {
 		// fake copy, do nothing
 	}
 
+	/** The context of the application, for a thread whose request is over (asking the request for it would fail then). */
+	public ServletContext getServletContext() {
+		return servletContext;
+	}
+
 	@Override
 	public Object getAttribute(String name, int scope) {
-		if (scope == SCOPE_SESSION) {
-			return sessionCopy.get(name);
-		}
-		return super.getAttribute(name, scope);
+		return (scope == SCOPE_SESSION ? sessionCopy : requestCopy).get(name);
 	}
 
 	@Override
 	public void setAttribute(String name, Object value, int scope) {
 		if (scope != SCOPE_SESSION) {
-			super.setAttribute(name, value, scope);
+			if (value == null) {
+				requestCopy.remove(name);
+			} else {
+				requestCopy.put(name, value);
+			}
 			return;
 		}
 		sessionCopy.put(name, value);
@@ -80,7 +102,7 @@ public class ThreadCopyRequestAttributes extends ServletRequestAttributes {
 	@Override
 	public void removeAttribute(String name, int scope) {
 		if (scope != SCOPE_SESSION) {
-			super.removeAttribute(name, scope);
+			requestCopy.remove(name);
 			return;
 		}
 		sessionCopy.remove(name);
@@ -93,10 +115,7 @@ public class ThreadCopyRequestAttributes extends ServletRequestAttributes {
 
 	@Override
 	public String[] getAttributeNames(int scope) {
-		if (scope == SCOPE_SESSION) {
-			return sessionCopy.keySet().toArray(String[]::new);
-		}
-		return super.getAttributeNames(scope);
+		return (scope == SCOPE_SESSION ? sessionCopy : requestCopy).keySet().toArray(String[]::new);
 	}
 
 	@Override

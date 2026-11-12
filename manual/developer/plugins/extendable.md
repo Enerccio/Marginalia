@@ -419,6 +419,13 @@ Checked decorators (2):
   opens it. An upload that is invalid is rejected like one that fails to start: its JAR is deleted, the replaced version
   is put back and the report is shown to the administrator. A verification that can't be done (an unreadable JAR) fails
   the extension too.
+- An extension built for another version that passes the verification can still name something this version doesn't
+  have (a removed `L` key, a renamed method): the JVM throws a `LinkageError` (`NoSuchFieldError`, `NoSuchMethodError`,
+  `NoClassDefFoundError`) when that code first runs, usually in `onExtensionLoad` or in its localization bundles. Such an
+  `Error` would pass every `catch (Exception)` up to the start of the application, so `startBundle` catches it, stops
+  the bundle and turns it into a failed verification: it writes a `.invalid` report with the error and throws
+  `ExtensionVerificationException`. The extension then fails alone, and stays unstarted until the JAR or the
+  application changes.
 - Unloading an extension deletes its reports with the JAR.
 
 Verification can't know about everything: a warning is not a failure, and an extension with no errors can still break

@@ -196,10 +196,13 @@ public class CreateSummariesDialog extends Dialog {
         chaptersHelp.setVisible(chapters);
         if (mode == Mode.TOKENS) {
             amountField.setLabel(loc.getValue(L.LABEL_TOKENS_PER_SUMMARY));
+            // the step counts from the minimum: with a minimum of 1 only 1, 501, 1001... would be valid
+            amountField.setMin(500);
             amountField.setStep(500);
             amountField.setValue(DEFAULT_TOKENS);
         } else if (mode == Mode.PARTS) {
             amountField.setLabel(loc.getValue(L.LABEL_PARTS_PER_SUMMARY));
+            amountField.setMin(1);
             amountField.setStep(1);
             amountField.setValue(DEFAULT_PARTS);
         }
@@ -325,8 +328,7 @@ public class CreateSummariesDialog extends Dialog {
     private void showProgress() {
         removeAll();
         getFooter().removeAll();
-        setWidth("700px");
-        setHeight("500px");
+        floating.size("700px", "500px");
 
         progress.addClassName(CssStyles.TEXT_BOLD);
         reasoningMarkdown.addClassName(CssStyles.CHAT_MESSAGE_MARKDOWN);

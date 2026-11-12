@@ -1,10 +1,11 @@
 package com.github.enerccio.marginalia.ui.dialogs;
 
 import com.github.enerccio.marginalia.CssStyles;
+import com.github.enerccio.marginalia.domain.service.run.Runs;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
-import com.vaadin.flow.component.ModalityMode;
+import com.github.enerccio.marginalia.ui.widgets.FloatingWindow;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Div;
@@ -15,7 +16,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
 /**
- * Modal window that blocks the UI while an asynchronous command runs, with a button that stops it. Under the progress
+ * The window of an asynchronous command, with a button that stops it. It is a {@link FloatingWindow}: not modal (the page stays usable),
+ * folded into the panel of the runs by its button, and a run of the registry while the command works ({@link #bind}: the command's
+ * requests report to it, so the panel shows what the model writes and its Stop). Under the progress
  * bar it shows the two lines of status the command reports ({@link #setStatus}, {@link #setSubStatus}); a line that is
  * empty is hidden. The owner closes it when the command finishes, whatever the reason.
  */
@@ -33,6 +36,8 @@ public class CommandProgressDialog extends Dialog {
     private final Div subStatus = new Div();
     private Button stop;
     private boolean stopRequested;
+    private boolean done;
+    private FloatingWindow floating;
 
     /**
      * @param commandName the name of the command for the user
@@ -52,18 +57,15 @@ public class CommandProgressDialog extends Dialog {
         setWidth("380px");
         setCloseOnEsc(false);
         setCloseOnOutsideClick(false);
-        setModality(ModalityMode.STRICT);
+        floating = new FloatingWindow(this, "command", this::getHeaderTitle, this::requestStop);
+        floating.setRunning(true);
 
         ProgressBar progress = new ProgressBar();
         progress.setIndeterminate(true);
         progress.setWidthFull();
 
         stop = new Button(loc.getValue(L.LABEL_STOP));
-        stop.addClickListener(_ -> {
-            stopRequested = true;
-            stop.setEnabled(false);
-            onStop.run();
-        });
+        stop.addClickListener(_ -> requestStop());
 
         status.addClassNames(CssStyles.TEXT_SEMIBOLD);
         status.setVisible(false);
@@ -106,6 +108,44 @@ public class CommandProgressDialog extends Dialog {
             parameters = {@APIParameter(name = "enabled", type = boolean.class)})
     public void setStopEnabled(boolean enabled) {
         stop.setEnabled(enabled && !stopRequested);
+    }
+
+    /**
+     * Binds the current thread to the window's run until the binding is closed: what is started on it (the command) reports to the run.
+     * Call it after {@link #create}; null when there is no run.
+     */
+    @PublicAPI(from = "1.8.0",
+            returns = @APIReturn(type = Runs.Binding.class))
+    public Runs.Binding bind() {
+        return floating == null ? null : floating.bind();
+    }
+
+    /**
+     * The command is over: the window closes, also when it is folded in the panel of the runs. Call it with the UI lock.
+     */
+    @PublicAPI(from = "1.8.0",
+            returns = @APIReturn(type = void.class))
+    public void finished() {
+        done = true;
+        if (floating == null) {
+            close();
+            return;
+        }
+        floating.setRunning(false);
+        floating.closeForGood();
+    }
+
+    @PublicAPI(from = "1.8.0",
+            returns = @APIReturn(type = void.class))
+    private void requestStop() {
+        if (done || stopRequested) {
+            return;
+        }
+        stopRequested = true;
+        if (stop != null) {
+            stop.setEnabled(false);
+        }
+        onStop.run();
     }
 
     private static void show(Div line, String text) {

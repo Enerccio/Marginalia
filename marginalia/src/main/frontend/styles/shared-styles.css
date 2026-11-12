@@ -1358,6 +1358,13 @@ vaadin-grid::part(history-row-deleted) {
     display: contents;
 }
 
+/* the button and the panel step aside while the panel of the runs stands where the button is (JavascriptLibrary.keepClearOf) */
+.help-root > .help-fab,
+.help-root > .help-panel {
+    translate: var(--keep-clear-shift, 0px) 0;
+    transition: translate 0.15s ease-out;
+}
+
 .help-fab {
     position: fixed;
     right: var(--lumo-space-l);
@@ -1981,6 +1988,24 @@ vaadin-dialog-overlay.agent-console-phone .help-message-user {
     gap: var(--lumo-space-xs);
 }
 
+/* the label, the book, the state and the text of an entry each on a line of its own, cut to the panel's width */
+.run-corner-body {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+/* the name of an entry wraps to a second line, then ends with an ellipsis */
+.run-corner-body > .run-corner-label {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
 .run-corner-label {
     font-size: var(--lumo-font-size-s);
     overflow: hidden;
@@ -2026,6 +2051,7 @@ vaadin-dialog-overlay.agent-console-phone .help-message-user {
     flex-direction: column;
     gap: var(--lumo-space-m);
     max-height: 60vh;
+    overflow-x: hidden;
     overflow-y: auto;
 }
 

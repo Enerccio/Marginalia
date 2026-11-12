@@ -1864,6 +1864,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_AFTER_PART_STOPPED, "新部分之后的处理在%s处停止。");
         setValue(L.MSG_AFTER_PART_FAILED, "新部分之后的处理在%s处失败：%s");
         setValue(L.MSG_AFTER_PART_NOT_RUN, "未运行：%s。");
+        setValue(L.MSG_CLOSE_OPEN_BOOK_FIRST, "此处已打开另一本书“%s”。请先将其关闭。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");

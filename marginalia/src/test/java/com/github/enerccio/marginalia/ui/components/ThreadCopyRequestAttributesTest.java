@@ -26,10 +26,12 @@ class ThreadCopyRequestAttributesTest {
 
     private MockHttpSession session;
 
+    private MockHttpServletRequest request;
+
     @BeforeEach
     void pageRequest() {
         session = new MockHttpSession();
-        MockHttpServletRequest request = new MockHttpServletRequest();
+        request = new MockHttpServletRequest();
         request.setSession(session);
         RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request, new MockHttpServletResponse()));
     }
@@ -49,6 +51,23 @@ class ThreadCopyRequestAttributesTest {
 
         assertSame(user, copy.getAttribute(USER, RequestAttributes.SCOPE_SESSION));
         assertArrayEquals(new String[]{USER}, copy.getAttributeNames(RequestAttributes.SCOPE_SESSION));
+    }
+
+    @Test
+    void theCopyNeedsNoRequestOnceTheRequestIsOver() {
+        request.setAttribute("seen", "yes");
+        ThreadCopyRequestAttributes copy = (ThreadCopyRequestAttributes) ThreadCopyRequestAttributes.create();
+
+        // the container recycles the request: every call on it fails from now on (the mock request does the same once closed)
+        request.close();
+        assertThrows(IllegalStateException.class, () -> request.getAttribute("seen"));
+
+        assertEquals("yes", copy.getAttribute("seen", RequestAttributes.SCOPE_REQUEST));
+        copy.setAttribute("later", 1, RequestAttributes.SCOPE_REQUEST);
+        assertEquals(1, copy.getAttribute("later", RequestAttributes.SCOPE_REQUEST));
+        copy.removeAttribute("seen", RequestAttributes.SCOPE_REQUEST);
+        assertArrayEquals(new String[]{"later"}, copy.getAttributeNames(RequestAttributes.SCOPE_REQUEST));
+        assertSame(request.getServletContext(), copy.getServletContext());
     }
 
     @Test

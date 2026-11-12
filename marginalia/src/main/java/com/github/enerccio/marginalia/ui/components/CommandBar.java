@@ -6,6 +6,7 @@ import com.github.enerccio.marginalia.domain.service.CommandScopes;
 import com.github.enerccio.marginalia.domain.service.CommandService;
 import com.github.enerccio.marginalia.domain.service.GenerationView;
 import com.github.enerccio.marginalia.domain.service.command.*;
+import com.github.enerccio.marginalia.domain.service.run.Runs;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
@@ -465,16 +466,19 @@ public class CommandBar extends Composite<HorizontalLayout> implements HasEnable
         input.clear();
     }
 
-    @PublicAPI(from = "1.4.0",
+    @PublicAPI(from = "1.8.0",
             returns = @APIReturn(type = void.class),
             parameters = {@APIParameter(name = "line", type = String.class)},
             locals = {@APILocals(name = "parsed", type = CommandLine.class),
                     @APILocals(name = "overloads", type = List.class),
                     @APILocals(name = "humanName", type = String.class),
+                    @APILocals(name = "dialog", type = CommandProgressDialog.class),
+                    @APILocals(name = "started", type = java.util.concurrent.atomic.AtomicReference.class),
                     @APILocals(name = "future", type = CommandRun.class),
+                    @APILocals(name = "_", type = Runs.Binding.class),
                     @APILocals(name = "ui", type = UI.class),
                     @APILocals(name = "attributes", type = RequestAttributes.class),
-                    @APILocals(name = "dialog", type = CommandProgressDialog.class)})
+                    @APILocals(name = "window", type = CommandProgressDialog.class)})
     private void run(String line) {
         CommandLine parsed = CommandLine.parse(line);
         if (!parsed.command()) {
@@ -503,9 +507,30 @@ public class CommandBar extends Composite<HorizontalLayout> implements HasEnable
             lineRunner.accept(line);
             return;
         }
-        CommandRun future = generationView == null ? commandService.executeLine(line)
-                : commandService.executeLine(line, false, commandScopes.session(generationView));
+        // an asynchronous command gets its window before it starts: the window's run is bound while the command is started, so the
+        // command's thread reports to it (the panel of the runs shows it, with what the model writes)
+        CommandProgressDialog dialog = null;
+        java.util.concurrent.atomic.AtomicReference<CommandRun> started = new java.util.concurrent.atomic.AtomicReference<>();
+        if (!progressInStory && overloads.getFirst().async()) {
+            dialog = new CommandProgressDialog(humanName, () -> {
+                CommandRun running = started.get();
+                if (running != null) {
+                    running.cancel(true);
+                }
+            });
+            dialog.create();
+            dialog.open();
+        }
+        CommandRun future;
+        try (Runs.Binding _ = dialog == null ? null : dialog.bind()) {
+            future = generationView == null ? commandService.executeLine(line)
+                    : commandService.executeLine(line, false, commandScopes.session(generationView));
+        }
+        started.set(future);
         if (future.isDone()) {
+            if (dialog != null) {
+                dialog.finished();
+            }
             finished(parsed.name(), humanName, future);
             return;
         }
@@ -535,15 +560,18 @@ public class CommandBar extends Composite<HorizontalLayout> implements HasEnable
             return;
         }
 
-        // an asynchronous command: block the UI with a window that can stop it
-        CommandProgressDialog dialog = new CommandProgressDialog(humanName, () -> future.cancel(true));
-        dialog.create();
-        dialog.open();
+        if (dialog == null) {
+            // a command that said it was not asynchronous but did not finish at once
+            dialog = new CommandProgressDialog(humanName, () -> future.cancel(true));
+            dialog.create();
+            dialog.open();
+        }
+        CommandProgressDialog window = dialog;
         future.addStatusListener((status, subStatus) -> {
             try {
                 ui.access(() -> {
-                    dialog.setStatus(status);
-                    dialog.setSubStatus(subStatus);
+                    window.setStatus(status);
+                    window.setSubStatus(subStatus);
                     UIPushGuard.push(ui);
                 });
             } catch (RuntimeException e) {
@@ -554,7 +582,7 @@ public class CommandBar extends Composite<HorizontalLayout> implements HasEnable
         future.addUninterruptableListener(uninterruptable -> {
             try {
                 ui.access(() -> {
-                    dialog.setStopEnabled(!uninterruptable);
+                    window.setStopEnabled(!uninterruptable);
                     UIPushGuard.push(ui);
                 });
             } catch (RuntimeException e) {
@@ -563,14 +591,14 @@ public class CommandBar extends Composite<HorizontalLayout> implements HasEnable
             }
         });
         // what was set before the listeners were added
-        dialog.setStopEnabled(!future.isUninterruptable());
-        dialog.setStatus(future.getStatus());
-        dialog.setSubStatus(future.getSubStatus());
+        window.setStopEnabled(!future.isUninterruptable());
+        window.setStatus(future.getStatus());
+        window.setSubStatus(future.getSubStatus());
         future.whenComplete((_, _) -> {
             try {
                 ui.access(() -> {
                     try (InRequestScope _ = new InRequestScope(attributes)) {
-                        dialog.close();
+                        window.finished();
                         finished(parsed.name(), humanName, future);
                     }
                     UIPushGuard.push(ui);

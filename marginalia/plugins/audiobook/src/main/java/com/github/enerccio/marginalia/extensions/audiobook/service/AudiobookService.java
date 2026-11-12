@@ -6,6 +6,7 @@ import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.service.*;
+import com.github.enerccio.marginalia.domain.service.run.Runs;
 import com.github.enerccio.marginalia.extensions.audiobook.AudiobookLog;
 import com.github.enerccio.marginalia.extensions.audiobook.audio.AudioKind;
 import com.github.enerccio.marginalia.extensions.audiobook.audio.Ffmpeg;
@@ -652,10 +653,27 @@ public class AudiobookService {
                 thread.setDaemon(true);
                 return thread;
             });
-            return new ConversionQueue(new ConversionQueue.Environment(new ResourceAudioStore(resourceService, chatMessageService),
+            ConversionQueue queue = new ConversionQueue(new ConversionQueue.Environment(new ResourceAudioStore(resourceService, chatMessageService),
                     new ClipVoices(resourceService), this::backendForModel, this::runBatch, () -> tracker != null && tracker.isRunning(id), 1000,
                     this::loudnessTarget), worker);
+            queue.setRunWatch((titles, stop) -> watchRun(id, titles, stop));
+            return queue;
         });
+    }
+
+    /**
+     * A run of the queue is a run of the registry: the panel of the runs of the user shows it on every page, also after the window that started
+     * it is closed, with Stop and what the language model writes while it labels (the requests are made on this thread, which is bound to it).
+     */
+    private ConversionQueue.Ended watchRun(Long userId, List<String> titles, Runnable stop) {
+        Runs.Run run = Runs.run(com.github.enerccio.marginalia.extensions.audiobook.ui.BatchNotifier.SOURCE,
+                        () -> T.localized(CONVERT_TO_AUDIO) + (titles.size() == 1 ? ": " + titles.getFirst() : " (" + titles.size() + ")"))
+                .owner(userId).quiet().onStop(stop).start();
+        Runs.Binding binding = run.bind();
+        return (stopped, failed) -> {
+            binding.close();
+            run.end(stopped ? Runs.Outcome.STOPPED : failed ? Runs.Outcome.FAILED : Runs.Outcome.FINISHED);
+        };
     }
 
     public Long currentUserId() {
