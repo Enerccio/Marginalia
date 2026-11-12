@@ -10,18 +10,14 @@ import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationRequest;
+import com.github.enerccio.marginalia.domain.service.run.Runs;
 import com.github.enerccio.marginalia.domain.styles.PartStyle;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.RestorableState;
-import com.github.enerccio.marginalia.ui.components.CommandBar;
-import com.github.enerccio.marginalia.ui.components.CommandResultView;
-import com.github.enerccio.marginalia.ui.components.LorebookPreview;
-import com.github.enerccio.marginalia.ui.components.MessageImages;
-import com.github.enerccio.marginalia.domain.service.run.Runs;
-import com.github.enerccio.marginalia.ui.components.RunsOnPage;
+import com.github.enerccio.marginalia.ui.components.*;
 import com.github.enerccio.marginalia.ui.dialogs.*;
 import com.github.enerccio.marginalia.ui.dialogs.bookimport.AfterImportDialog;
 import com.github.enerccio.marginalia.ui.dialogs.bookimport.BookImportDialog;
@@ -46,7 +42,6 @@ import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.details.Details;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.shared.Registration;
 import com.vaadin.flow.component.markdown.Markdown;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
@@ -55,6 +50,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.popover.Popover;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.dom.Element;
+import com.vaadin.flow.shared.Registration;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
@@ -152,6 +148,8 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
 
     private MenuBar menuBar;
     private CommandBar commandBar;
+    // the page of the command bar, read by the command that starts a generation (another thread)
+    private volatile UI commandPage;
     private CommandResultView commandResultView;
     private MenuItem summariesMenuItem;
     private MenuItem cogsMenuItem;
@@ -434,7 +432,57 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
         commandResultView = new CommandResultView();
         commandResultView.create(commandBar);
         commandBar.setResultTarget(commandResultView);
+        // a generation by a command of the bar streams into the story as one of the round button
+        commandBar.addAttachListener(event -> commandPage = event.getUI());
+        commandBar.addDetachListener(_ -> commandPage = null);
+        commandBar.setGenerationView(new GenerationView() {
+            @Override
+            public Object getPage() {
+                return commandPage;
+            }
+
+            @Override
+            public GenerationListener show(Manuscript book, GenerationRequest request) {
+                return showCommandGeneration(book, request);
+            }
+        });
         return commandBar;
+    }
+
+    /**
+     * A command of the bar starts a generation of the book (on the thread of the command): the story gets ready for it as for the round
+     * button, on its page, and the listener it returns shows the part streaming in. Null when the tab is not on a page or shows
+     * another book.
+     */
+    @PublicAPI(from = "1.8.0",
+            returns = @APIReturn(type = GenerationListener.class),
+            parameters = {@APIParameter(name = "book", type = Manuscript.class),
+                    @APIParameter(name = "request", type = GenerationRequest.class)},
+            locals = {@APILocals(name = "ui", type = UI.class),
+                    @APILocals(name = "shown", type = Manuscript.class),
+                    @APILocals(name = "listener", type = StoryGenerationListener.class),
+                    @APILocals(name = "e", type = RuntimeException.class)})
+    private GenerationListener showCommandGeneration(Manuscript book, GenerationRequest request) {
+        UI ui = commandPage;
+        Manuscript shown = currentManuscript;
+        if (ui == null || book == null || shown == null || !Objects.equals(book.getId(), shown.getId())) {
+            return null;
+        }
+        StoryGenerationListener<ChatMessageCard> listener = generationListener(ui, request, false);
+        try {
+            // before the listener's first call: the accesses of a page run in order
+            ui.access(() -> {
+                autosaveAndSwapAllToMarkdown();
+                showStory();
+                lazyLoader.showTail();
+                parent.freeze();
+                UIPushGuard.push(ui);
+            });
+        } catch (RuntimeException e) {
+            // the page is gone
+            return null;
+        }
+        return listener;
     }
 
     /**
@@ -1235,52 +1283,71 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
                     currentManuscript,
                     turnInput,
                     request,
-                    new StoryGenerationListener<>(ui, request, cards, centerContentPanel, ChatMessageCard::new, parent,
-                            loc, new StoryGenerationListener.Callbacks() {
-                        @Override
-                        public void generationEnded() {
-                            activeGenerationToken = null;
-                        }
-
-                        @Override
-                        public void partGenerated() {
-                            checkAndApplyBackupStrategy();
-                        }
-
-                        @Override
-                        public void partCompleted(ChatMessage message) {
-                            try {
-                                new AutoAnnotate(parent.refreshManuscript(), () -> {
-                                    try {
-                                        load(parent.refreshManuscript());
-                                    } catch (Exception e) {
-                                        UIUtils.internalServerError(loc, e);
-                                    }
-                                }).finished(message);
-                            } catch (Exception e) {
-                                UIUtils.internalServerError(loc, e);
-                            }
-                        }
-
-                        @Override
-                        public void turnDiscarded() {
-                            newTurnForm.keepTypedValues();
-                        }
-
-                        @Override
-                        public void reloadManuscript() throws Exception {
-                            currentManuscript = parent.refreshManuscript();
-                        }
-
-                        @Override
-                        public void renderStory() {
-                            lazyLoader.keepViewportWhile(() -> renderStoryContent());
-                        }
-                    })
+                    generationListener(ui, request, true)
             );
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
+    }
+
+    /**
+     * What shows a generation in the story: the card of the new part streams, the story is drawn again at the end.
+     *
+     * @param own whether the tab started it (the round button, with the new turn form): else a command did, which has the token and the
+     *            turn of its own
+     */
+    @PublicAPI(from = "1.8.0",
+            returns = @APIReturn(type = StoryGenerationListener.class),
+            parameters = {@APIParameter(name = "ui", type = UI.class),
+                    @APIParameter(name = "request", type = GenerationRequest.class),
+                    @APIParameter(name = "own", type = boolean.class)})
+    private StoryGenerationListener<ChatMessageCard> generationListener(UI ui, GenerationRequest request, boolean own) {
+        return new StoryGenerationListener<>(ui, request, cards, centerContentPanel, ChatMessageCard::new, parent,
+                loc, new StoryGenerationListener.Callbacks() {
+            @Override
+            public void generationEnded() {
+                if (own) {
+                    activeGenerationToken = null;
+                }
+            }
+
+            @Override
+            public void partGenerated() {
+                checkAndApplyBackupStrategy();
+            }
+
+            @Override
+            public void partCompleted(ChatMessage message) {
+                try {
+                    new AutoAnnotate(parent.refreshManuscript(), () -> {
+                        try {
+                            load(parent.refreshManuscript());
+                        } catch (Exception e) {
+                            UIUtils.internalServerError(loc, e);
+                        }
+                    }).finished(message);
+                } catch (Exception e) {
+                    UIUtils.internalServerError(loc, e);
+                }
+            }
+
+            @Override
+            public void turnDiscarded() {
+                if (own) {
+                    newTurnForm.keepTypedValues();
+                }
+            }
+
+            @Override
+            public void reloadManuscript() throws Exception {
+                currentManuscript = parent.refreshManuscript();
+            }
+
+            @Override
+            public void renderStory() {
+                lazyLoader.keepViewportWhile(() -> renderStoryContent());
+            }
+        });
     }
 
     /**

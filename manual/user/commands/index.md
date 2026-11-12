@@ -88,7 +88,13 @@ If a command fails, or there is no such command, you get a notification with the
 
 Most commands answer at once. A command that needs time shows a window with an animated bar and a **Stop** button, and
 the story is locked until the command is done. Under the bar the command can say what it is doing now and, in smaller
-letters, the detail of the step. **Stop** cancels the command; it should return immediately. The commands that have the model write, like `/next`, are of this kind.
+letters, the detail of the step. **Stop** cancels the command; it should return immediately. The commands that have the model write
+a summary or notes, like `/generate-annotation`, are of this kind.
+
+`/next`, `/swipe` and `/regenerate` typed into the command bar of the story have no such window: the new part streams into the
+story as when you press the round button, the round button stops it, and the story is held only as for any generation (you can go on
+working in the lore, the other parts and the side tabs). The result of the command appears above the bar when the part is done. Until
+then the bar refuses a second one of these commands (you keep the text and can run it later); other commands work.
 
 ![The window of a command that is running](../../images/command-running.png)
 
@@ -238,7 +244,8 @@ destructive commands).
 | `/move-planned-scene <scene> <to>` | Moves the scene to the place `to` (1 is the first, the last place when it is too large). |
 | `/delete-planned-scene <scene>` | Deletes the scene. |
 
-The commands that have the model write or review (`/next`, `/swipe`, `/regenerate`, `/generate-annotation`, the two summaries) take time and show the **Stop** window.
+The commands that have the model write or review take time: `/generate-annotation` and the two summaries show the **Stop** window,
+`/next`, `/swipe` and `/regenerate` stream into the story (see [Commands that take time](#commands-that-take-time)).
 
 ## Commands that come with extensions
 

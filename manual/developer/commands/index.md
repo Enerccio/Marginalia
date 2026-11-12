@@ -354,6 +354,10 @@ The packages `domain.service.impl.commands.manuscript.write` and `lorebook.write
   the turn input from the part unless given. `profile` names a model profile of the agent of the run (`AgentService.resolveProfile`,
   `GenerationOptions.withModel`); for the user it is refused. The generation question about outdated summaries is passed on
   with `context.confirm` and the answer yes is reported as a warning. Stopping the command cancels the generation (`CancellationToken`).
+  They are `progressInStory`: typed into the bar of the story, the scope has a `GenerationView` and the listener it gives is told
+  everything as well (the question is then asked by the story), the run of the generation belongs to the page of the bar
+  (`GenerationOptions.withPage`), the window is not reloaded at the end (the story drew it) and a stop from the story ends the command
+  with a `CancellationException`.
 - `search-replace-parts` and `search-replace-lore-entries` have `maxHits` (refuse above it) and `dryRun` (count and show five matches,
   change nothing).
 

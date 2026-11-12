@@ -1378,6 +1378,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.ERROR_STYLE_IMPORT_CSS, "样式“%s”的自定义 CSS 的花括号 { } 不匹配。");
         setValue(L.ERROR_COMMAND_LORE_RANGE_EMPTY, "范围为空：从第 %d 部分开始，到第 %d 部分结束。");
         setValue(L.ERROR_HELD_BY_RUN, "正在使用中：%s。请等待其完成，或将其停止。");
+        setValue(L.ERROR_COMMAND_STILL_RUNNING, "命令 %s 仍在运行。请等待其完成，或将其停止。");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "无法保存表单。");

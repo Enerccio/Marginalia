@@ -1370,6 +1370,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.ERROR_STYLE_IMPORT_CSS, "The custom CSS of the style \"%s\" has braces { } that do not match.");
         setValue(L.ERROR_COMMAND_LORE_RANGE_EMPTY, "The range is empty: it starts at part %d and ends at part %d.");
         setValue(L.ERROR_HELD_BY_RUN, "This is in use: %s. Wait until it is done, or stop it.");
+        setValue(L.ERROR_COMMAND_STILL_RUNNING, "The command %s is still running. Wait until it is done, or stop it.");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "Cannot save form.");

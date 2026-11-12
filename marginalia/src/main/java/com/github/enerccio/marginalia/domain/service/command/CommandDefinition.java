@@ -27,9 +27,21 @@ import java.util.List;
  *                       empty
  * @param parameters     the parameters of the signature in order
  * @param returns        what the command returns
+ * @param progressInStory whether the command shows its progress in the story itself (a generation), see
+ *                       {@link com.github.enerccio.marginalia.domain.traits.Command#progressInStory()}
  */
 public record CommandDefinition(String commandName, CommandText humanName, CommandText description, CommandText llmDescription,
                                 boolean async, CommandDataSeverity dataSeverity, boolean availableForAgent, boolean readOnly, boolean availableInMacros, BatchPolicy batch, List<String> linkedCommands, Object instance, boolean anyArguments,
-                                List<CommandParameterDefinition> parameters, CommandReturnDefinition returns) {
+                                List<CommandParameterDefinition> parameters, CommandReturnDefinition returns, boolean progressInStory) {
+
+    /**
+     * A command that does not show its progress in the story.
+     */
+    public CommandDefinition(String commandName, CommandText humanName, CommandText description, CommandText llmDescription,
+                             boolean async, CommandDataSeverity dataSeverity, boolean availableForAgent, boolean readOnly, boolean availableInMacros, BatchPolicy batch, List<String> linkedCommands, Object instance, boolean anyArguments,
+                             List<CommandParameterDefinition> parameters, CommandReturnDefinition returns) {
+        this(commandName, humanName, description, llmDescription, async, dataSeverity, availableForAgent, readOnly, availableInMacros, batch,
+                linkedCommands, instance, anyArguments, parameters, returns, false);
+    }
 
 }

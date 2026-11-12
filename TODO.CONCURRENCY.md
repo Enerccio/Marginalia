@@ -898,11 +898,21 @@ working as today (its own window); it only is not seen by the registry.
    left bar on, search and replace / import / mass delete off, the round button Stop (also for a generation the tab did not start).
    6d: the exit button asks and stops (`MSG_LEAVE_STOPS_GENERATION`), a window that leaves its page stops the generation the page
    started (`BookWindows.stopGenerationOf`, on detach: closed tab, heartbeat timeout), `JavascriptLibrary.warnOnLeave` while a
-   generation runs. Not done:
-   - **6c, the command bar's `next` / regenerate / swipe**: they still run under the strict `CommandProgressDialog` and the
-     part does not stream into the story; the window does follow their hold (it greys out what the generation holds) but under
-     the modal that shows nothing. Needs the page to become a listener of a generation it did not start (a listener added to
-     the run, or the engine's listener as a list); then the modal goes for these commands;
+   generation runs. A logout needs no question: its button is in the workspace, behind the strict book window, so the book is
+   left by its exit button first; a logout from another page (*log out everywhere*) detaches the page, which stops the
+   generation as a closed tab does.
+   6c, built afterwards: `@Command(progressInStory = true)` on `next` / `swipe` / `regenerate`; the story tab gives its command
+   bar a `GenerationView` (`CommandBar.setGenerationView`), the bar runs the line in `CommandScopes.session(view)` and opens no
+   `CommandProgressDialog` for these commands; the command asks the view for a listener (`show(book, request)`: the story gets
+   ready on its page and freezes as for the round button) and tells it everything besides its own (the question is asked by the
+   story); the run belongs to the bar's page (`GenerationOptions.withPage`), so a closed tab stops it; a refused start tells
+   the view `onCancelled(null)`. The round button stops it, the command then ends with a `CancellationException` shown as
+   *stopped*. While one runs the bar refuses a second (`ERROR_COMMAND_STILL_RUNNING`); other commands run. The command still
+   holds its per-book gate, so a command from elsewhere waits as before. Test: `GenerationCommandsTest`. Not done:
+   - **(check)** 6c in a real browser: the part streaming in, the round button's Stop and the result popover at the end;
+   - between the start of the command and the start of its generation (the gate, a regenerate's question) the window is not
+     held: a round-button generation started then wins, and the command is refused with the name of that run;
+
    - **saves are still not refused** (a plain `save` of a held part by someone else); the thread scope is still missing, and
      every by-hand path goes through a checked method now, so it has not been needed;
    - a stale copy of the book saved during the inference is refused (`SWITCH`), not repaired: the window's tabs read the book
@@ -912,7 +922,6 @@ working as today (its own window); it only is not seen by the registry.
    - the stage moves when the `INFERENCE` step starts, before its `BEFORE_INFERENCE` event: while the Prompt Inspector asks its
      question the window is free already (the table above puts that question in *Prepare*); the prompt is built by then, so
      nothing the author changes reaches it;
-   - logout while a part is generated does not ask (the book window covers the workspace, the logout is behind it);
    - **(check)** on a phone, whether a browser in the background reports the page as gone at once (6d); not tested on a device.
 6. ✅ **The panel on the registry**: per user instead of per page, Stop and the live text for every run, the queue of each model;
    notifications from the panel; `/jobs` shows the book. Medium. The strict modal of the Real Language Translator becomes a

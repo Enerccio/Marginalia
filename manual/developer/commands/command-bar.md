@@ -110,6 +110,18 @@ command **must** react to `isTerminated()`: Stop only cancels the future.
 
 ![The CommandProgressDialog of an asynchronous command](../../images/command-running.png)
 
+**Generations of the story.** A command declared with `progressInStory = true` (`/next`, `/swipe`, `/regenerate`) gets no progress
+window in a bar that has a `GenerationView` (`setGenerationView`; the story tab gives it one in `createCommandBox()`). The bar runs
+the line in `commandScopes.session(view)`, so the command finds the view in `CommandScope.getGenerationView()`, calls
+`show(book, request)` before it starts the generation and hands the listener it returns to the generation besides its own: the part
+streams into the story as for the round button (`ManuscriptStoryPart.showCommandGeneration`, the same `StoryGenerationListener` as
+`startGeneration`, built by `generationListener(ui, request, own)`), the window holds what the generation holds, the round button stops
+it (`Runs.generationOf(book).stop()`), and the run belongs to the page of the bar (`GenerationOptions.withPage`), so a closed page stops
+it. A refused generation tells the listener `onCancelled(null)`, which lets the window go. The bar keeps the result and the end as for any
+command; a stopped generation ends the command with a `CommandException` whose cause is a `CancellationException`, shown as
+`MSG_COMMAND_STOPPED`. While such a command runs, the bar refuses another one (`ERROR_COMMAND_STILL_RUNNING`, the text stays in the
+field); the other commands run as before.
+
 ## Adding the bar elsewhere
 
 1. Create the `CommandBar` where the component is built (a `@Configurable` class or a plugin decorator) and set its

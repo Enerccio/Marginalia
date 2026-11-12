@@ -1370,6 +1370,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.ERROR_STYLE_IMPORT_CSS, "スタイル「%s」のカスタムCSSの波括弧 { } が対応していません。");
         setValue(L.ERROR_COMMAND_LORE_RANGE_EMPTY, "範囲が空です：パート %d から始まり、パート %d で終わります。");
         setValue(L.ERROR_HELD_BY_RUN, "使用中です：%s。終わるまで待つか、停止してください。");
+        setValue(L.ERROR_COMMAND_STILL_RUNNING, "コマンド %s はまだ実行中です。終わるまで待つか、停止してください。");
 
         // --- MSG ---
         setValue(L.MSG_VALIDATION_FAILED_CANT_SAVE, "フォームを保存できません。");

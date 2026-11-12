@@ -16,6 +16,14 @@ public interface CommandScopes {
     CommandScope session();
 
     /**
+     * As {@link #session()}, typed into the command bar of a story that shows the generations its commands start
+     * ({@link CommandScope#getGenerationView()}).
+     *
+     * @param view the story, null for none (then it is {@link #session()})
+     */
+    CommandScope session(GenerationView view);
+
+    /**
      * The scope of the run of an agent: the working copy of the run, whichever it is at the moment (a resumed run may have
      * a new one), never the book of the user.
      *

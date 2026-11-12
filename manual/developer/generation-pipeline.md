@@ -61,13 +61,14 @@ the lore, the settings); it is given back when `CLEANUP` starts. See *The runs a
 ### Generation options
 
 The form above is a shortcut for `generateNextTurn(manuscript, input, request, listener, GenerationOptions.defaults())`.
-`GenerationOptions(ai, protocol, context)` lets a caller that is not the book window decide three things, each
+`GenerationOptions(ai, protocol, context)` lets a caller that is not the book window decide these things, each
 optional (`null` = the default):
 
 | Option | Default | Use |
 |---|---|---|
 | `ai`, `protocol` | The book's | Generate with another model, e.g. a specialist model of an agent. Only this generation uses them, the book is never changed (and the steps' saves persist nothing about them). `withModel(ai, protocol)`. |
 | `context` | `ThreadCopyRequestAttributes.create()`, a copy of the calling thread's session | A `RequestAttributes` that resolves the session scoped beans (the user) for a caller without an HTTP request, such as a background run. `withContext(attributes)`. |
+| `page` | `UI.getCurrent()` of the calling thread | The page (a Vaadin `UI`) the run of the generation belongs to, for a caller on another thread that starts it for a page: the commands of the story's command bar. A closed page stops it, and what follows the part opens its windows there. `withPage(ui)`. |
 
 If there is neither a request nor a `context`, the call throws `IllegalStateException`.
 

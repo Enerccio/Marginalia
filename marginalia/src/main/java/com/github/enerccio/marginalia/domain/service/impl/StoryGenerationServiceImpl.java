@@ -7,12 +7,7 @@ import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
-import com.github.enerccio.marginalia.domain.service.AgentRunService;
-import com.github.enerccio.marginalia.domain.service.CancellationToken;
-import com.github.enerccio.marginalia.domain.service.ChatMessageService;
-import com.github.enerccio.marginalia.domain.service.GenerationListener;
-import com.github.enerccio.marginalia.domain.service.ManuscriptService;
-import com.github.enerccio.marginalia.domain.service.StoryGenerationService;
+import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.impl.generation.*;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationControllerEvent.EventChain;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationControllerEvent.Registration;
@@ -120,8 +115,10 @@ public class StoryGenerationServiceImpl implements StoryGenerationService, Initi
         }
         endAfterPart(manuscript, generationRequest);
         // one generation of a book at a time, from any page, command or plugin; the run is given back when the cleanup starts
-        Runs.Run run = Runs.run(Runs.GENERATION, () -> loc.getValue(L.MSG_COMMAND_GENERATING))
-                .book(manuscript).hold(manuscript, Runs.Mode.READ).stage(Runs.Stage.PREPARE).quiet().currentPage().onStop(token::cancel)
+        Runs.Builder builder = Runs.run(Runs.GENERATION, () -> loc.getValue(L.MSG_COMMAND_GENERATING))
+                .book(manuscript).hold(manuscript, Runs.Mode.READ).stage(Runs.Stage.PREPARE).quiet().onStop(token::cancel);
+        // the page that shows it: the caller's, or the one a command started it for
+        Runs.Run run = (options.page() != null ? builder.page(options.page()) : builder.currentPage())
                 .startUnless(manuscript, Runs.Operation.GENERATE);
         GenerationEngine generationEngine = new GenerationEngine();
         generationEngine.run = run;
