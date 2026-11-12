@@ -100,12 +100,16 @@ explanation in its `title`. The texts come from `CommandDataSeverity.getLabel()`
 
 `run(line)` closes the help, clears the result (`clearCommandResult()`), empties the field (`clearInput()`; text that is not a known command returns earlier and stays) and calls `commandService.executeLine`. For a
 command that completed (synchronous) the result is delivered at once. For an `async` command the bar opens a
-`CommandProgressDialog` – modal, an indeterminate `ProgressBar`, the two status lines of the command (`setStatus`,
-`setSubStatus`; a line that is empty is hidden) and a **Stop** button whose handler cancels the future. The bar feeds the
+`CommandProgressDialog` **before** it starts the command: an indeterminate `ProgressBar`, the two status lines of the command (`setStatus`,
+`setSubStatus`; a line that is empty is hidden) and a **Stop** button whose handler cancels the future. The window is a
+`FloatingWindow` (see [UI](../ui.md)): not modal, it stands at the side, its button folds it into the panel of the runs, and while the
+command works it is a run of the registry. The bar starts the command with that run bound (`try (Runs.Binding _ = dialog.bind())`), and
+`CommandServiceImpl` binds the command's worker thread to it (`Runs.current()` of the caller), so the requests the command makes report
+to the run: the panel of every page of the user shows the command with what the model writes and its **Stop**. The bar feeds the
 lines from `CommandRun.addStatusListener` through `ui.access(...)`, after reading the status already set, and the state
 of the button from `addUninterruptableListener` (disabled while the command is uninterruptable, `setStopEnabled`). When
-the future completes, `ui.access(...)` (with the request scope and `UIPushGuard.push`) closes the dialog and delivers the
-result, or shows a notification for a stop, a `CommandException` or an `IllegalArgumentException`. This is why an `async`
+the future completes, `ui.access(...)` (with the request scope and `UIPushGuard.push`) ends the window with `finished()` (also when it is
+folded; a `close()` of a working floating window would only fold it) and delivers the result, or shows a notification for a stop, a `CommandException` or an `IllegalArgumentException`. This is why an `async`
 command **must** react to `isTerminated()`: Stop only cancels the future.
 
 ![The CommandProgressDialog of an asynchronous command](../../images/command-running.png)

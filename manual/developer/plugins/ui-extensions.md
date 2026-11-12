@@ -275,7 +275,8 @@ rename the item and the user has a key stored), and `.hintAction((story, card) -
 **4. Where it goes: groups, paths and positions.** The menus are trees. An item names the group it is in with `path(..)`: names separated by `/`, outermost first
 (`"Whatever/Is"` shows the item as Whatever, Is, the item). The groups are made when a menu is built, so nothing is registered first, and everyone who
 names the same group shares it. The application has the groups of `StoryMenuKeys` (`GROUP_ANALYSIS`, `GROUP_IMPORT_EXPORT`, `GROUP_SUMMARY`...), an extension that fits one
-puts its item there (Instruction Exporter is `.path(StoryMenuKeys.GROUP_IMPORT_EXPORT)`). A slash that is part of a name is written `\/`.
+puts its item there (Instruction Exporter is `.path(StoryMenuKeys.GROUP_IMPORT_EXPORT)`; the translators put their items of the menu of a part
+and of its text under `GROUP_TRANSLATE`, which the application declares in both menus and hides while nothing is in it). A slash that is part of a name is written `\/`.
 
 For an extension without translations a literal name is enough, the last name of the path is the text of the item:
 
@@ -561,6 +562,11 @@ takes the request context with it: on the thread of the page `RequestAttributes 
 `try (ThreadCopyRequestAttributes.InRequestScope scope = new ThreadCopyRequestAttributes.InRequestScope(attributes)) { ... }`. The copy holds the
 attributes of the session as they were (the `user` bean above all), so the worker can still write its result when the last page of the browser was
 closed meanwhile and the session was invalidated; showing it is another matter (`ui.access` and `UIDetachedException`).
+
+Work the author should see and be able to stop is a **run of the registry**, shown in the panel of the runs of every page: a window
+in which the model works is a `FloatingWindow`, a single request of a window a `WindowRun`, work on the server a `Runs.run(...)` bound
+on its worker thread (see the table in [Plugin development](index.md)). A run that waits for the author sets `setOnOpen`, and to show
+its result next to the story it opens the book with `BookWindows.openHere(book, then)`.
 
 A **generation listener** runs on the worker thread of the generation, where there is no page to capture. To show the user
 something from there (a dialog the generation waits for), use `GenerationControllerEvent.accessUI(action)`: it runs the action on

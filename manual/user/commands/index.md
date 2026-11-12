@@ -86,8 +86,10 @@ If a command fails, or there is no such command, you get a notification with the
 
 ## Commands that take time
 
-Most commands answer at once. A command that needs time shows a window with an animated bar and a **Stop** button, and
-the story is locked until the command is done. Under the bar the command can say what it is doing now and, in smaller
+Most commands answer at once. A command that needs time shows a window with an animated bar and a **Stop** button. The
+window stands at the side and the page stays usable; its ⌄ folds it into the
+[panel of the runs](../books/story-editor.md#the-panel-of-the-runs), where the command is listed with what the model writes, on
+all your pages. Under the bar the command can say what it is doing now and, in smaller
 letters, the detail of the step. **Stop** cancels the command; it should return immediately. The commands that have the model write
 a summary or notes, like `/generate-annotation`, are of this kind.
 

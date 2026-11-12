@@ -114,7 +114,7 @@ for agents (the help shows it); the service does not check the value against it.
 | `async`   | The method runs                                                                                                  | Answer                                                                       |
 |-----------|------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------|
 | `false`   | On the thread of the caller; the future is complete when `execute*` returns.                                     | `setReturn` before the method returns, or `null`. A thrown exception fails the future. |
-| `true`    | On a worker thread (a daemon cached pool) with the **request attributes of the caller**, so session-scoped beans resolve. | The future completes with the first `setReturn` or `fail`, from any thread, whenever the command likes. |
+| `true`    | On a worker thread (a daemon cached pool) with the **request attributes of the caller** (a copy that needs nothing of the request, which is over by then), so session-scoped beans resolve, and bound to the run of the registry the caller was bound to (`Runs.current()`: the command bar's window), so its requests report to that run. | The future completes with the first `setReturn` or `fail`, from any thread, whenever the command likes. |
 
 A caller can cancel the future (the **Stop** button of the progress window does). Then `isTerminated()` becomes true, the
 worker thread is interrupted, and a command that has not started yet does not start. A long-running `async` command must
@@ -221,7 +221,7 @@ run has a **handle** for it, so an agent can only name what it was shown. The sc
 restores from the trash.
 
 `CommandUtils` (package `utils`) reads the session of the caller – also on the worker thread of an `async` command, which
-gets the request attributes – and returns `null` when there is nothing to return (no session, no workspace yet, no book
+gets the request attributes (it finds the application context in the copy, `ThreadCopyRequestAttributes.getServletContext()`, never in the finished request) – and returns `null` when there is nothing to return (no session, no workspace yet, no book
 open), so a command checks its results. The book-related methods only delegate to the `SessionPoint`, which knows where the
 book comes from: for a user the `SessionPoint` reads it from the open window of the workspace, for an agent the
 `AgenticSessionPoint` (a `SessionPoint` without workspace and window) holds the book directly, so the same command runs for

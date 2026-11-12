@@ -34,8 +34,8 @@ on one model tells you why everything is slow.
 
 Below the jobs, **Runs on the books** lists what works on a book now and keeps parts of it from being deleted or changed under it
 (see the [panel of the runs](../books/story-editor.md#the-panel-of-the-runs), which shows the same to each user for their own
-books): the user, the book, what it does, where it is (*INFERENCE* for a generation that writes its part, *Waits for you*, *Waiting
-for the model*), since when, and how many objects it holds (the book, parts). The window of an open book is a run too. **Stop**
+books): the user, the book, what it does, where it is (what the panel says: *Waiting for the model*, *The model is thinking/writing...*, *Working*, *Waits
+for you*, and for a generation its stage, such as *INFERENCE* while it writes its part; the window of an open book shows nothing there), since when, and how many objects it holds (the book, parts). The window of an open book is a run too. **Stop**
 stops the run as its user would. **End**, after a question, ends a run without stopping its work: what it holds is given back at
 once. Use it only for a run that never ends (its work got stuck and it holds the book until a restart); its work may still write
 when it wakes up.

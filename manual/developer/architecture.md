@@ -142,7 +142,7 @@ All application code is in `com.github.enerccio.marginalia` (`marginalia/src/mai
 
 | Package | Layer | Contents |
 |---|---|---|
-| `ui.main` | UI | Servlet, app shell, the routes: `Main` (`/`), `Viewer` (`/view`), `Reset` (`/reset`, clears the saved workspace state) and `JobsView` (`/jobs`, the jobs that run now, for administrators), login handling (`LoginCheckRoute`). |
+| `ui.main` | UI | Servlet, app shell, the routes: `Main` (`/`), `Viewer` (`/view`), `Reset` (`/reset`, clears the saved workspace state) and `JobsView` (`/jobs`, the jobs that run now and the runs of the registry, for administrators), login handling (`LoginCheckRoute`). |
 | `ui.workspace`, `ui.workspace.parts` | UI | The workspace after login and its tabs: books, lorebooks, settings, protocols, inference providers, admin. |
 | `ui.dialogs`, `ui.dialogs.manuscript` | UI | Dialogs; the book window (`ManuscriptDialog`) and its tabs: story, tree, about, prompts, lorebook, backups. `ui.dialogs.agent` has the screens of agents, `ui.dialogs.search` the search and replace windows. |
 | `ui.components`, `ui.widgets` | UI | Reusable components (lorebook editor, story tree, the help assistant's button and chat) and small widgets. |
@@ -237,6 +237,7 @@ version or other detail, the cause of a failure is in the log. The Docker `HEALT
 flowchart TB
     Main["Main (route /)<br/>LoginCheckRoute"] --> WS["DesktopWorkspace"]
     Main --> HW["HelpAssistantWidget<br/>robot button and chat"]
+    Main --> RC["RunCorner<br/>panel of the runs"]
     Viewer["Viewer (route /view)<br/>read-only published books"]
     WS --> MP["ManuscriptPart<br/>Books"]
     WS --> LP["LorebookPart"]
@@ -261,7 +262,8 @@ flowchart TB
   `restoreAutosaved()`; see [Remembering where the user was](ui.md#remembering-where-the-user-was). It also adds the
   `HelpAssistantWidget` (the round robot button with the chat panel, hidden while the
   [help assistant](services.md#the-help-assistant) is off). The classes of the UI describe themselves to the assistant's model
-  through `LLMInteract`, see [Letting the help assistant see the UI](ui.md#letting-the-help-assistant-see-the-ui).
+  through `LLMInteract`, see [Letting the help assistant see the UI](ui.md#letting-the-help-assistant-see-the-ui). After it
+  the `RunCorner`, the panel of the runs of the user (see [UI](ui.md), `FloatingWindow`, `PageRuns`, `RunCorner`).
 - `DesktopWorkspace` holds the left-hand tabs. Each tab is a `WorkspaceComponent` (`create`, `refresh`, `onTabSwitched`,
   `onTabClosed`) and is `Restorable` (it stores and restores its own state).
 - Opening a book opens `ManuscriptDialog`, whose tabs are `ManuscriptDialogPart`s. The story editor
@@ -373,7 +375,10 @@ its work in `ThreadCopyRequestAttributes.InRequestScope`, which makes the sessio
 generation current on the worker thread. The session scope of the copy is a **copy of the session's attributes**
 taken when the copy is made (a bean the worker adds goes to the copy and, while the session lives, to the session
 too), because the session may be invalid when the worker is done: the last page of a browser that is closed while
-the model works closes the session. The UI is a different matter: a worker that shows its result calls `ui.access`
+the model works closes the session. The request scope is a copy too, with the application's `ServletContext`
+(`getServletContext()`, which `CommandUtils.getSessionPoint` uses): the servlet container recycles the request when it
+is over, and Tomcat then refuses every call on it (*The request object has been recycled*), so nothing on a worker
+thread may ask the request itself. The UI is a different matter: a worker that shows its result calls `ui.access`
 and catches `UIDetachedException` (the result is written, only the page does not see it).
 
 An [agent](agents.md) run is not started by a request at all: `AgentRunner` works it in a background worker of its own

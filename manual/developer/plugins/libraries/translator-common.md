@@ -49,6 +49,7 @@ where an invented language (a lexicon, new words) and a real one (a script, poli
 | | `Speech` | One direct speech as the model answered for it (`quote`, `speaker`, `language`, `text`, `understood`, `register`). A convenient shape for the answer; a plugin may use its own and make a `Speech` of it. |
 | | `ModelJson` | `ModelJson.object(raw)`: the JSON object in what a model answered (a code fence or a word before it is ignored); null when there is none. |
 | | `SelectionRange` | `trim(text, start, end)`: the range the user selected without its white space. |
+| | `RunScope` | What a translation of a part may touch: `ALL` (every speech, again from its English), `MISSING` (only the speeches still in English, the translated ones of any language stay) or `missingIn(storedStart, storedEnd)` (the same within a range of the stored text the author selected). A missing-only run shows the model the part as stored (`shown(read)`, `showsStored`), turns the ranges of its answer back into the text the model reads (`inModel`, a range that touches a translated speech grows to all of it and is dropped) and writes a speech only inside the window (`window(read)`, `admits`). With it `TranslationWriter.carried(part, read, languageId, true)` carries the speeches of the same language too. |
 | `text` | `UnderstandingBlock` | The text that tells the models who does not follow which language: `build(entries, characters)` from the levels of the `Speakers` of the languages of a book (`Entry(languageName, speakers)`); only a level that says something is written; the optional `characters` keeps the names and aliases. Pure. |
 | | `SpeechTransformer` | A `PartTextRegistry.Transformer`: `new SpeechTransformer(passageAccess)`. |
 | | `SpeechExportContributor`, `ExportText` | An `ExportTextRegistry.Contributor`: `new SpeechExportContributor(passageAccess, session -> mode)`. `ExportText.edits(mode, stored, located)` is the pure part. |
@@ -140,7 +141,7 @@ leave the speeches of the other languages translated, which `write` does when th
 
 ```java
 Reverse.Result read = writer.readOf(part);                                   // the English of ALL the languages
-List<TranslationPlan.Accepted> carried = writer.carried(part, read, languageId);   // the speeches of the other languages
+List<TranslationPlan.Accepted> carried = writer.carried(part, read, languageId);   // the speeches of the other languages (a RunScope.MISSING run: carried(part, read, languageId, true), all of them)
 // ... ask the model for this language; drop the accepted speeches that TranslationWriter.overlapsAny(carried, start, end)
 accepted.addAll(carried);
 TranslationPlan plan = TranslationPlan.make(read.text(), accepted);

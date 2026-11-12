@@ -446,7 +446,8 @@ two translators never work on one part at once: the second one says that the par
 
 Everything that works on your books with a model right now is listed at the bottom left of every page: a generation, a
 redraft or an annotation, a translation by the [Real Language](../extensions/real-language-translator.md) or
-[Conlang](../extensions/conlang-translator.md) translator, a rewrite of the summaries, the Knowledge Tracker reading the story. The
+[Conlang](../extensions/conlang-translator.md) translator, a rewrite of the summaries, the Knowledge Tracker reading the story, an [Audiobook](../extensions/audiobook.md) conversion, a command of
+the command bar that takes a while (*Draft instructions*, a summary...: its window stands at the side and folds like the others). The
 windows in which you wait for an answer are listed too while the model answers: **Impersonate**, the help assistant, a quick
 translation, the Conlang designer, a chat of Side Query, Beta Readers or the plot wizard. It lists your runs from **all your open
 pages** (another tab, the phone), not only the ones started on this page. Nothing running, nothing shown.
@@ -460,8 +461,13 @@ pages** (another tab, the phone), not only the ones started on this page. Nothin
   - *Waits for you* when the run waits for a decision of yours (a redraft to apply, a proposal of the Knowledge Tracker to review,
     the Prompt Inspector's question before a generation, a command of the plot wizard to allow).
 - **Stop** stops the run, wherever it was started. **Open**, or a click on the entry, shows a folded window again (only on the
-  page it was opened on) or the result a run waits for you with; **Close** closes a window for good (and stops its model).
-- On a computer you can move the panel by its grip (⋮ at its left); it stays where you leave it in this browser.
+  page it was opened on) or the run itself; it is **Review** when the run waits for you. A run of the Knowledge Tracker opens its
+  book on this page (when no other book is open here; otherwise you are asked to close that one first), switches to the Knowledge tab
+  and shows the review. **Close** closes a window for good (and stops its model).
+- On a computer you can move the panel by its grip (⋮ at its left); it stays where you leave it in this browser. In the lower half of
+  the page it grows upwards when you open it, as in its corner, and it is always kept inside the page. When it stands where the round
+  button of the [help assistant](../administration/help-assistant.md) is (over a book both are in the bottom left corner), the button moves aside
+  and comes back when the place is free.
 
 When a run you started ends after its page was closed, another open page of yours sends its [notification](../account.md#notifications)
 (for the runs that have one, such as the rewrite of the summaries).
