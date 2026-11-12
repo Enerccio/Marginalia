@@ -14,13 +14,13 @@ relied on.
 
 To pick up on another machine; delete this section when it is done.
 
-1. **Full suite.** The last full run (repo root, `mvn clean test -Dvaadin.skip=true -Dbuild.dir=/tmp/marginalia-build`) passed all
-   4,888 tests of the app; the plugins' tests were still running when the work stopped (their changed ones had passed one by one).
-   Run it once more from the root and look at the plugins. The two runs before failed on tests that disturbed each other in one
-   JVM, fixed in the same commit as this note: the current `UI` is cleared after every test (`MarginaliaTestBase`), the agent tests
-   wait for their workers (`AgentTestBase`), `quietBackgroundWriters()` for the migration tests, and the size worker and the activity
-   tracker no longer write from a run they scheduled before they were set manual. If another test fails only in the full run, look
-   for a background writer first (a thread dump at the failure shows it).
+1. **Full suite: passes.** The last full run (repo root, `mvn clean test -Dvaadin.skip=true -Dbuild.dir=/tmp/marginalia-build`,
+   17.5 min) passed 6,177 tests: the app's 4,888 and the plugins' (20 projects with tests), none failed or skipped. The two runs
+   before failed on tests that disturbed each other in one JVM, fixed since: the current `UI` is cleared after every test
+   (`MarginaliaTestBase`), the agent tests wait for their workers (`AgentTestBase`), `quietBackgroundWriters()` for the migration
+   tests, and the size worker and the activity tracker no longer write from a run they scheduled before they were set manual. If a
+   test fails only in the full run, look for a background writer first (a thread dump at the failure shows it). No need to run it
+   again before the browser check.
 2. **The browser check** below (section *The browser check*): the setup commands, then the list. Fix what it finds.
 3. **Developer docs:** `python3 tools/check_dev_docs.py` flags 33 pages (most from the earlier steps); review them against the code
    and stamp each with `--stamp` in a commit of its own.
