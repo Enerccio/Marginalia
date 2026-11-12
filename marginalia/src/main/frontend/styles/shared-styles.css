@@ -2174,6 +2174,15 @@ vaadin-dialog-overlay.agent-console-phone .help-message-user {
 }
 
 .compact-sizes .tab-dock-panel::part(content) {
+    /* the content part is a vaadin-scroller: its padding and its overflow indicators (drawn out by the padding) both come
+       from these properties, setting only the padding would let the indicators stick out and the panel get scroll bars */
+    --vaadin-scroller-padding-block: 0px;
+    --vaadin-scroller-padding-inline: 0px;
+}
+
+/* The content of a tab is as big as the panel: its padding is inside that size, not added to it (no scroll bars). */
+.compact-sizes .tab-dock-panel > :not(vaadin-tabs) {
+    box-sizing: border-box;
     padding: var(--lumo-space-xs) var(--lumo-space-s);
 }
 
