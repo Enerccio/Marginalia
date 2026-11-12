@@ -750,23 +750,31 @@ numbers of the older items stable), the rest is P3/P4.
     a trusted header from the reverse proxy (`trustedProxies` exists) for people who already run Authelia / Authentik,
     which is far less work than OIDC in the app.
 
-101. **Concurrency of long operations (one model for the story, for the translators, for the annotation).** A request to a
-    model takes minutes and several things can want the same book at once: the generation of the next part, the automatic
-    annotation and redraft, the translators' automatic run, a range run, a summary. Today each blocks in its own way: the
-    generation blocks the page, and the translation window of the Real Language Translator is a strict modal on purpose,
-    because without it the user could leave the page, delete or regenerate the part the run is writing into, edit its text,
-    or start the next generation while a one-slot model is still busy. What exists is only "one run per part"
-    (`PartRuns`, `RangeRuns`: a range of the same book is refused while one runs) and the `CHANGED` outcome of a
-    translation (the part changed meanwhile, the answer is dropped). Needed: one registry of the running operations per book
-    and part (what runs, who started it, how to stop it), operations that conflict with a run (delete or regenerate the
-    part, delete or restore the book, a second generation, a range over the same parts) refused or queued with a
-    message that names the run, a run that survives the closed page (the result waits for the user: a notification or a
-    list of finished jobs; `/jobs` logs them and `SharedGate` shares one GPU between extensions already, 95 adds the queue) and
-    a non-modal indicator with Stop for those that need no blocking (a cloud model, a second model). Then the modal can
-    become a choice instead of a rule. Where to look:
-    `PartRuns` / `RangeRuns` / `RunWindow` in `libs/translator-common`, `AutoAnnotate`, the generation pipeline
-    (`domain.service.impl.generation`), `UIPushGuard`. The analysis (what exists in the core and in every plugin, the
-    design, the order of work) is in `TODO.CONCURRENCY.md`.
+101. ✅ **Concurrency of long operations (one model for the story, for the translators, for the annotation).** Done (the analysis,
+    the design and what was built step by step are in `TODO.CONCURRENCY.md`; the browser check passed 2026-11-12): the registry of
+    runs (`Runs`: what runs on which book and part, who started it, its Stop, what it holds), the refusals with the name of the run
+    (delete, regenerate, a second generation, merge, a part inserted after a written one), one window per book, the connections of an
+    AI as the queue of every request, the panel of the runs on every page (the live text of the model, the place in the queue, Stop,
+    Open / Review, the end notified from another page), the model windows of the core and the plugins not modal (they fold into the
+    panel and go on), the strict modal of the Real Language Translator removed, the story usable during a generation (only the written
+    part held), and what follows a part (annotate, redraft, translate, knowledge, audio) as one ordered phase on the server. Not done:
+    - **saves are not refused** under a `WRITE` hold (only deletes and a second writer are): it needs the thread scope of the work,
+      to tell the holder's own saves from someone else's;
+    - **the agent lock is not in the registry**: it stays a status in the database; starting an agent on a book that is open in a
+      window is not refused;
+    - `importTree` and search and replace do not ask the runs; the bulk statements were not looked at one by one;
+    - **no sweeper**: a run whose work never reaches its end holds until a restart (*End* in `/jobs` by hand);
+    - the panel has **no list of finished runs** (an entry goes when its run ends); only the resummary declares a notification for
+      when its page is gone;
+    - `/jobs`: the active jobs do not name their book, and have no Stop of their own (their runs have);
+    - the generation from the command bar is not held between the start of the command and the start of its generation;
+    - what follows a part: the author's generation does not go before the phase's requests at the model's queue, a parallel step is
+      not kept from writing the text of the part, the redraft by hand does not block the next generation;
+    - the merge of the part after a busy one into it is not refused, and a generation does not ask about an open redraft of the last
+      part (the changed-text check catches both);
+    - Side Query's tab name is not a run; the Knowledge Tracker keeps its own `ProgressPanel` beside the panel;
+    - not tested on a device: what a phone reports when its browser goes to the background;
+    - the developer docs flagged by `tools/check_dev_docs.py` are to be checked and stamped.
 
 ### Writing workflow
 
