@@ -168,6 +168,29 @@ public class KnowledgeTrackerLocalization extends PluginLocalizationBundle {
     public static final String THE_MODEL_OF_THE_BOOK = "The model of the book";
     public static final String SHOW_PART_IN_THE_STORY = "Show part %d in the story";
     public static final String KNOWLEDGE_TRACKER_READ_THE_STORY = "Knowledge Tracker: read the story";
+    public static final String MASS_CHANGES = "Mass changes";
+    public static final String CHANGE_MANY_ITEMS_AT_ONCE = "Delete, retract or restore many items of the tracked characters at once; export and import them as JSON";
+    public static final String STATE = "State";
+    public static final String ACTIVE = "Active";
+    public static final String OLD_RETRACTED = "Old: retracted";
+    public static final String OLD_DECLINED = "Old: declined in a review";
+    public static final String OLD_TIDIED = "Old: tidied";
+    public static final String ORIGIN = "Origin";
+    public static final String INITIAL_STATE = "Initial state";
+    public static final String WRITTEN_BY_HAND = "Written by hand";
+    public static final String LEARNED_FROM_THE_STORY = "Learned from the story";
+    public static final String PART = "Part";
+    public static final String NO_ITEMS = "No items";
+    public static final String N_OF_N_SELECTED = "%d of %d selected";
+    public static final String RETRACT_SELECTED = "Retract selected (%d)";
+    public static final String RESTORE_SELECTED = "Restore selected (%d)";
+    public static final String N_ITEMS_RETRACTED = "%d item(s) retracted";
+    public static final String N_ITEMS_RESTORED = "%d item(s) restored";
+    public static final String N_ITEMS_DELETED = "%d item(s) deleted";
+    public static final String EXPORT_TO_JSON = "Export to JSON";
+    public static final String IMPORT_FROM_JSON = "Import from JSON";
+    public static final String IMPORTED_SUMMARY = "Imported: %d new character(s), %d updated, %d item(s) added, %d already there";
+    public static final String THE_FILE_IS_NOT_A_KNOWLEDGE_EXPORT = "The file is not a Knowledge Tracker export: %s";
 
     @Override
     protected void loadKeys() {
@@ -613,6 +636,75 @@ public class KnowledgeTrackerLocalization extends PluginLocalizationBundle {
 
         ja(THE_SYSTEM_MESSAGE_OF_THE_TIDY_PASS, "残す価値のない項目を削除・統合する整理パスのシステムメッセージ。プラグインが読み取るため、JSON の回答形式は維持してください。空 = 継承されたもの、なければ組み込みのテキスト。");
         zh(THE_SYSTEM_MESSAGE_OF_THE_TIDY_PASS, "整理阶段的系统消息，用于删除和合并不值得保留的条目。请保留 JSON 回答格式，插件会读取它。留空 = 继承的设置，否则使用内置文本。");
+
+        ja(MASS_CHANGES, "一括変更");
+        zh(MASS_CHANGES, "批量修改");
+
+        ja(CHANGE_MANY_ITEMS_AT_ONCE, "追跡中の登場人物の多数の項目を一度に削除・撤回・復元し、JSON でエクスポート・インポートします");
+        zh(CHANGE_MANY_ITEMS_AT_ONCE, "一次删除、撤回或恢复被追踪角色的多个条目；以 JSON 导出和导入");
+
+        ja(STATE, "状態");
+        zh(STATE, "状态");
+
+        ja(ACTIVE, "有効");
+        zh(ACTIVE, "有效");
+
+        ja(OLD_RETRACTED, "古い: 撤回");
+        zh(OLD_RETRACTED, "旧：已撤回");
+
+        ja(OLD_DECLINED, "古い: レビューで却下");
+        zh(OLD_DECLINED, "旧：审阅时被拒绝");
+
+        ja(OLD_TIDIED, "古い: 整理済み");
+        zh(OLD_TIDIED, "旧：已整理");
+
+        ja(ORIGIN, "出所");
+        zh(ORIGIN, "来源");
+
+        ja(INITIAL_STATE, "初期状態");
+        zh(INITIAL_STATE, "初始状态");
+
+        ja(WRITTEN_BY_HAND, "手書き");
+        zh(WRITTEN_BY_HAND, "手动编写");
+
+        ja(LEARNED_FROM_THE_STORY, "物語から学んだ");
+        zh(LEARNED_FROM_THE_STORY, "从故事中得知");
+
+        ja(PART, "パート");
+        zh(PART, "部分");
+
+        ja(NO_ITEMS, "項目なし");
+        zh(NO_ITEMS, "没有条目");
+
+        ja(N_OF_N_SELECTED, "%d 件を選択（全 %d 件）");
+        zh(N_OF_N_SELECTED, "已选 %d / %d");
+
+        ja(RETRACT_SELECTED, "選択した項目を撤回（%d）");
+        zh(RETRACT_SELECTED, "撤回所选（%d）");
+
+        ja(RESTORE_SELECTED, "選択した項目を復元（%d）");
+        zh(RESTORE_SELECTED, "恢复所选（%d）");
+
+        ja(N_ITEMS_RETRACTED, "%d 件の項目を撤回しました");
+        zh(N_ITEMS_RETRACTED, "已撤回 %d 个条目");
+
+        ja(N_ITEMS_RESTORED, "%d 件の項目を復元しました");
+        zh(N_ITEMS_RESTORED, "已恢复 %d 个条目");
+
+        ja(N_ITEMS_DELETED, "%d 件の項目を削除しました");
+        zh(N_ITEMS_DELETED, "已删除 %d 个条目");
+
+        ja(EXPORT_TO_JSON, "JSON にエクスポート");
+        zh(EXPORT_TO_JSON, "导出为 JSON");
+
+        ja(IMPORT_FROM_JSON, "JSON からインポート");
+        zh(IMPORT_FROM_JSON, "从 JSON 导入");
+
+        ja(IMPORTED_SUMMARY, "インポート完了: 新しい登場人物 %d、更新 %d、追加した項目 %d、既存 %d");
+        zh(IMPORTED_SUMMARY, "已导入：新角色 %d 个，更新 %d 个，新增条目 %d 个，已存在 %d 个");
+
+        ja(THE_FILE_IS_NOT_A_KNOWLEDGE_EXPORT, "ファイルはナレッジトラッカーのエクスポートではありません: %s");
+        zh(THE_FILE_IS_NOT_A_KNOWLEDGE_EXPORT, "该文件不是知识追踪器的导出文件：%s");
 
     }
 }

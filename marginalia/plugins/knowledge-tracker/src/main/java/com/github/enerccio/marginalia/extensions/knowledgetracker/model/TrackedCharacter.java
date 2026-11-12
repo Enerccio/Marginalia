@@ -67,6 +67,40 @@ public class TrackedCharacter {
     }
 
     /**
+     * Retracts by hand the active items with these ids (they become old knowledge); old ones are left as they are.
+     *
+     * @return how many items were retracted
+     */
+    public int retractItems(Collection<String> itemIds) {
+        Set<String> ids = new HashSet<>(itemIds);
+        int count = 0;
+        for (KnowledgeItem item : getItems()) {
+            if (item.isActive() && ids.contains(item.getId())) {
+                item.retractByHand();
+                count++;
+            }
+        }
+        return count;
+    }
+
+    /**
+     * Makes the old items with these ids active again, see {@link KnowledgeItem#restore}; active ones are left as they are.
+     *
+     * @return how many items were restored
+     */
+    public int restoreItems(Collection<String> itemIds) {
+        Set<String> ids = new HashSet<>(itemIds);
+        int count = 0;
+        for (KnowledgeItem item : getItems()) {
+            if (!item.isActive() && ids.contains(item.getId())) {
+                item.restore();
+                count++;
+            }
+        }
+        return count;
+    }
+
+    /**
      * Records that this character has met {@code person}, unless it is recorded already (the earlier record wins).
      * A character does not meet itself.
      */

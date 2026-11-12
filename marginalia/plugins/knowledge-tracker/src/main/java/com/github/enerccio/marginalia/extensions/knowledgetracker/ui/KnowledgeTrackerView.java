@@ -86,6 +86,7 @@ public class KnowledgeTrackerView extends VerticalLayout {
     private final Runnable runRefresh = UiAccess.coalesced(this, () -> {
         state = loadState();
         refresh();
+        reloadMassChanges();
     });
     /**
      * The tab shows the state, which a run changes only when it applies something (the {@code onChange} below tells) and the buttons
@@ -102,7 +103,10 @@ public class KnowledgeTrackerView extends VerticalLayout {
         state = loadState();
         showSettingsState();
         refresh();
+        reloadMassChanges();
     });
+    /** The open <b>Mass changes</b> window, {@code null} when there is none. */
+    private MassChangesDialog massChanges;
     /** Removes the listener that reads the state again when a command changes it, set while the view is attached. */
     private Runnable changeRegistration;
 
@@ -186,7 +190,12 @@ public class KnowledgeTrackerView extends VerticalLayout {
         reload.setAriaLabel(T.localized(REFRESH));
         reload.setTooltipText(T.localized(REFRESH));
 
-        HorizontalLayout buttons = new HorizontalLayout(add, reload, settingsButton);
+        Button mass = new Button(Solid.TABLE_LIST.create(), _ -> openMassChanges());
+        mass.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_ICON);
+        mass.setAriaLabel(T.localized(MASS_CHANGES));
+        mass.setTooltipText(T.localized(CHANGE_MANY_ITEMS_AT_ONCE));
+
+        HorizontalLayout buttons = new HorizontalLayout(add, mass, reload, settingsButton);
         buttons.setAlignItems(Alignment.CENTER);
         buttons.setPadding(true);
         buttons.setSpacing(false);
@@ -911,6 +920,24 @@ public class KnowledgeTrackerView extends VerticalLayout {
         }
         for (TrackedCharacter character : state.getCharacters()) {
             list.add(createCard(character));
+        }
+    }
+
+    /** <b>Mass changes</b>: the items of all the characters in grids with check boxes, export and import. */
+    private void openMassChanges() {
+        massChanges = new MassChangesDialog(manuscript.getName(), () -> state, this::persist, positions::get);
+        massChanges.addOpenedChangeListener(e -> {
+            if (!e.isOpened()) {
+                massChanges = null;
+            }
+        });
+        massChanges.open();
+    }
+
+    /** The state was read again: the open mass changes window shows it. */
+    private void reloadMassChanges() {
+        if (massChanges != null) {
+            massChanges.reload();
         }
     }
 
