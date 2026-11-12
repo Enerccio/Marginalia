@@ -21,7 +21,8 @@ To pick up on another machine; delete this section when it is done.
    tests, and the size worker and the activity tracker no longer write from a run they scheduled before they were set manual. If a
    test fails only in the full run, look for a background writer first (a thread dump at the failure shows it). No need to run it
    again before the browser check.
-2. **The browser check** below (section *The browser check*): the setup commands, then the list. Fix what it finds.
+2. ~~**The browser check**~~: done 2026-11-12, every line works (the fixes it needed are in the commits of that day). The phone in the
+   background (6d) is still untested on a device.
 3. **Developer docs:** `python3 tools/check_dev_docs.py` flags 33 pages (most from the earlier steps); review them against the code
    and stamp each with `--stamp` in a commit of its own.
 4. Optional: a code review of the commits of this work (`097b30d14` onwards), mainly the fold / detach / close paths of
@@ -1056,7 +1057,7 @@ it in the panel of a folded one: the model stops):
 - [x] a summary of a part, and a meta summary; *Create summaries* and *Rewrite all summaries* (one entry each, not two)
 - [x] Reviewer; book description; lore generator; an Arc Outline generator
 - [x] image generator (the prompt being written, then the picture; *Accept* of a folded one); manga generator (continuous)
-- [ ] Beta Readers persona writer (works); Audiobook Studio and Convert are only not modal (the page usable beside them)
+- [x] Beta Readers persona writer (works); Audiobook Studio and Convert are only not modal (the page usable beside them)
 - [x] the plugin windows while folded really go on: their text is complete when opened again (a folded dialog is detached;
       the plugins' `onDetach` ask `isMinimised()`)
 - [x] a folded window and the exit button of the book window: the window ends, its model stops

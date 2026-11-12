@@ -133,7 +133,8 @@ public class ConvertDialog extends Dialog {
         grid.addColumn(r -> planText(r.plan)).setHeader(T.localized(PLAN)).setAutoWidth(true);
         grid.addComponentColumn(this::stateCell).setHeader(T.localized(STATE)).setAutoWidth(true);
         grid.addColumn(r -> r.job == null ? "" : r.job.message()).setHeader(T.localized(MESSAGE)).setFlexGrow(2);
-        grid.addComponentColumn(this::actions).setAutoWidth(true);
+        // the buttons come and go with the jobs (play, download, Retry or Cancel): a width measured once, on the first rows, would cut them
+        grid.addComponentColumn(this::actions).setWidth("13em").setFlexGrow(0);
         grid.setHeight("22em");
 
         Button generate = planButton(GENERATE, Solid.PLAY, EnumSet.of(Step.GENERATE), false);
@@ -143,6 +144,7 @@ public class ConvertDialog extends Dialog {
         Button clearPlan = new Button(T.localized(CLEAR_THE_PLAN), Solid.XMARK.create(), e -> {
             selectedRows().forEach(r -> r.plan.clear());
             grid.getDataProvider().refreshAll();
+            grid.recalculateColumnWidths();
         });
         clearPlan.setThemeName("tertiary");
         HorizontalLayout planning = new HorizontalLayout(generate, regenerate, deleteAudio, removeLabels, clearPlan, start);
@@ -178,6 +180,7 @@ public class ConvertDialog extends Dialog {
             queue.clearFinished();
             attachJobs();
             grid.getDataProvider().refreshAll();
+            grid.recalculateColumnWidths();
         });
         Button whole = new Button(T.localized(DOWNLOAD_THE_AUDIOBOOK), Solid.FILE_AUDIO.create(), e -> downloadWhole());
         whole.setTooltipText(T.localized(DOWNLOAD_THE_AUDIOBOOK_HELP));
@@ -217,6 +220,7 @@ public class ConvertDialog extends Dialog {
             Notification.success(T.localized(FINAL_PARTS_ARE_LEFT_ALONE).formatted(left));
         }
         grid.getDataProvider().refreshAll();
+        grid.recalculateColumnWidths();
     }
 
     /** Reads the parts of the book and what each has; the plans are dropped. */
@@ -228,6 +232,7 @@ public class ConvertDialog extends Dialog {
             }
             attachJobs();
             grid.setItems(rows);
+            grid.recalculateColumnWidths();
             start.setEnabled(!rows.isEmpty());
         } catch (Exception e) {
             AudiobookLog.get().warn("The parts of the book could not be loaded: {}", e.getMessage(), e);
@@ -337,6 +342,7 @@ public class ConvertDialog extends Dialog {
         }
         attachJobs();
         grid.getDataProvider().refreshAll();
+        grid.recalculateColumnWidths();
     }
 
     private void generate(List<Row> generate, BackendConfig chosen) {
