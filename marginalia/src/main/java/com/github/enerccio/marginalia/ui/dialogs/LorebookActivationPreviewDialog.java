@@ -68,6 +68,9 @@ public class LorebookActivationPreviewDialog extends Dialog {
     private TextArea textField;
     private ComboBox<Manuscript> bookBox;
     private Span summary;
+    // the entry the preview was opened for (the tab of the full-screen editor): its row is selected and its verdict spelled out
+    private String focus;
+    private Span focusLine;
     private Grid<LorebookEntryVerdict> grid;
     private final Map<Long, String> bookNames = new HashMap<>();
 
@@ -76,6 +79,14 @@ public class LorebookActivationPreviewDialog extends Dialog {
      */
     public LorebookActivationPreviewDialog(Lorebook root) {
         this.root = root;
+    }
+
+    /**
+     * The preview is for this entry: its row is selected and the line above the table says whether it is used and why.
+     */
+    public LorebookActivationPreviewDialog focus(LorebookEntry entry) {
+        this.focus = entry == null ? null : entry.getUuid();
+        return this;
     }
 
     public void create() {
@@ -111,6 +122,8 @@ public class LorebookActivationPreviewDialog extends Dialog {
 
         summary = new Span();
         summary.addClassName(CssStyles.HINT_TEXT);
+        focusLine = new Span();
+        focusLine.setVisible(false);
 
         grid = new Grid<>();
         grid.setSizeFull();
@@ -142,7 +155,7 @@ public class LorebookActivationPreviewDialog extends Dialog {
         footer.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
         getFooter().add(footer);
 
-        VerticalLayout content = new VerticalLayout(hint, textField, bookBox, summary, grid);
+        VerticalLayout content = new VerticalLayout(hint, textField, bookBox, summary, focusLine, grid);
         content.setSizeFull();
         content.setPadding(false);
         content.addClassName(CssStyles.MIN_HEIGHT_0);
@@ -186,6 +199,7 @@ public class LorebookActivationPreviewDialog extends Dialog {
                 }
             }
             summary.setText(String.format(loc.getValue(L.MSG_ACTIVATION_PREVIEW_SUMMARY), used, verdicts.size(), tokens));
+            showFocus(verdicts);
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
@@ -216,6 +230,25 @@ public class LorebookActivationPreviewDialog extends Dialog {
             context.getVariables().loadFrom(TemplateVariables.Scope.GLOBAL, manuscript.getAttributes());
         }
         return new LoreConditions(data);
+    }
+
+    private void showFocus(List<LorebookEntryVerdict> verdicts) {
+        if (focus == null) {
+            return;
+        }
+        LorebookEntryVerdict mine = verdicts.stream().filter(verdict -> focus.equals(verdict.entry().getUuid())).findFirst().orElse(null);
+        focusLine.setVisible(mine != null);
+        focusLine.removeClassNames(CssStyles.TEXT_SUCCESS, CssStyles.HINT_TEXT);
+        if (mine == null) {
+            grid.deselectAll();
+            return;
+        }
+        boolean used = mine.verdict().activated();
+        focusLine.setText(String.format(loc.getValue(used ? L.MSG_ACTIVATION_PREVIEW_ENTRY_USED : L.MSG_ACTIVATION_PREVIEW_ENTRY_NOT_USED),
+                StringUtils.defaultString(mine.entry().getName()), reason(mine.verdict())));
+        focusLine.addClassName(used ? CssStyles.TEXT_SUCCESS : CssStyles.HINT_TEXT);
+        grid.select(mine);
+        grid.scrollToItem(mine);
     }
 
     private String reason(Verdict verdict) {

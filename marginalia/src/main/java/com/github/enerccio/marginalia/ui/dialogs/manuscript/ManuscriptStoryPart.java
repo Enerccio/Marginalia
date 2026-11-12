@@ -1174,6 +1174,8 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
     private void createLorebookTab() {
         lorebookPreview = new LorebookPreview().create();
         lorebookPreview.setEditable(true);
+        // the phone's story part has no full-screen editor
+        lorebookPreview.setFullScreenEditor(true);
         leftBar.add(LOREBOOK_TAB, loc.getValue(L.LABEL_LOREBOOK), TabDockIcon.LOREBOOK, lorebookPreview);
     }
 

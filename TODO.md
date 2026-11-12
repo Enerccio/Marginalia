@@ -581,7 +581,17 @@ Most are 🧩 plugin-sized; the ones that need a core hook say so.
     the database. The one-way part exists: the Obsidian vault export (67); the two-way sync is not done.
 102. **Lorebook editor (full-screen, tabbed; desktop only).** The entries are edited in the expanding rows of the
      `LorebookView` grid (`createEntryDetailLayout`: a 160 px content area, the activation settings, the condition, the
-     note), cramped for a long entry and one entry at a time. A full-screen dialog, opened from the *Lorebook* view of the
+     note), cramped for a long entry and one entry at a time. **First version done (2026-11-12, not yet tried in a browser):**
+     `TabDock` closable tabs (`setClosable`, `close`, `setOnClose`, `setCaption`, `getCurrentId`), `LorebookEditorDialog`
+     (list tab, entry tabs, Open / Open in new tab / Delete, header tokens and search and replace), `LorebookEntryEditor`,
+     the `MarkdownEditor` wrapper (4.1.2, our toolbar, debounced value), `LorebookTokens` shared with the view, the
+     **Full-screen editor** button of `LorebookView`, the layout and the open entries kept in the lorebook
+     (`$lorebookEditor`), *Open in the full-screen editor* on the rows of the view, mass edit / tag entries / activation preview
+     (also per entry, `focus`) from the editor, opening it from the book's *Lorebook* tab (the same view) with the book for the Lore Generator, the
+     Lore Generator and Lorebook VCS hooks, per-field saves with a content/note conflict that asks, read only during an agent run,
+     open tabs and the list reloaded at once on changes of agents and other windows (`LoreChanges`, after the commit, pushed),
+     the expand buttons of the story's `LorebookPreview` (desktop; opened without origin, so the Lore Generator there has no book).
+     Not done yet: images, jump between entries, entries of sub lorebooks in the list, localized tooltips of the Markdown toolbar, screenshots for the manual. A full-screen dialog, opened from the *Lorebook* view of the
      workspace and from the book's *Lorebook* tab (`ManuscriptLorebookPart`); the phone keeps `PhoneLorebookView`.
      - **Dock:** a detachable `TabDock` (like the story editor's). One fixed tab (not closable, not minimizable) with the
        list of entries: text only (name, enabled, order, tags, filter; the search, `LorebookEntryFilter` and sub
@@ -634,19 +644,33 @@ Most are 🧩 plugin-sized; the ones that need a core hook say so.
        of a lore entry. The option: *Send lore images* (per book or in the generation settings, off by default),
        and maybe a per-entry *send image* flag. Also: the images in the token count/budget, the activation preview and the
        lore usage report; the lorebook exports and backups (archive export, `.zip` backups, sharing a lorebook, cloning:
-       the resources must travel; SillyTavern export drops them). Upload in the editor: whether the Markdown editor lets
-       us hook paste/drop or an image toolbar button (the Flow wrapper exposes none), else a Vaadin `Upload` next to it
-       that inserts the link at the cursor (a `JavascriptLibrary` script for the cursor).
-     - **The content editor: FlowingCode MarkdownEditor** (`com.flowingcode.vaadin.addons:markdown-editor-addon`,
-       Apache 2.0, 2.0.3 of 2025-12-01, no release since; Vaadin 24-25 according to the README, built against 24.4.6, so
-       try it on 25.2 first). It wraps the React `@uiw/react-md-editor` (toolbar, edit / live split / preview modes,
-       light and dark theme), is a `HasValue` since 2.0, has `setPlaceholder`/`setMaxLength` and a separate
-       `MarkdownViewer`; React is already in our frontend bundle. To check in a spike before adopting it: the size
-       `mermaid` adds to the bundle; that toolbar actions and the sanitizer leave `{{macros}}`/Handlebars alone (the
-       content is a template; raw braces in the preview are fine); how often the value reaches the server; focus
-       (`DialogFocus`); whether Lumo variables and our CSS reach its React DOM; the image hooks above. Fallback: our
-       `TextArea` at full height with the `Markdown` preview in a split (no new dependency). Using it for the other long
-       text areas (book description, notes, prompt templates) is not decided.
+       the resources must travel; SillyTavern export drops them). Upload in the editor: paste, drop and an image button of
+       our editor wrapper (below).
+     - **The content editor:** our own thin wrapper of `@uiw/react-md-editor` (4.2.x, MIT; a `ReactAdapterComponent`
+       plus one `.tsx`, the `nohighlight` build, `rehype-sanitize` in the preview). Spike of 2026-11-12 (source reading,
+       nothing built yet) against **FlowingCode MarkdownEditor** 2.0.3 (`markdown-editor-addon`, the last release, 2025-12-01):
+       its Java side has only content, placeholder and max length, the toolbar is the editor's default and cannot be
+       changed (hiding a button by CSS, `data-name`, keeps its shortcut; only the React `commands`/`commandsFilter`
+       drop both); the image button only types `![image](url)` (no upload); every keystroke is a server round trip and a
+       value change (no debounce: with immediate saving one save per key); it always bundles `mermaid` 11.2.1; it pins
+       the editor at 4.0.4; Tab indents instead of moving the focus; `getMaxLength()` throws when never set. What works:
+       the light/dark sync (it watches `theme` on `<html>`, which `ColorScheme.Value.DARK` still writes), the sanitized
+       preview leaves `{{macros}}` as text, React and `ReactAdapter` are in our frontend already. The wrapper:
+       - commands: bold, italic, strikethrough, hr, headings, quote, inline code, code block, table, bullet, numbered
+         and check list (plain Markdown, fine for the model), edit/split/preview modes, and our own image button; left
+         out: link (Ctrl+L), image (Ctrl+K, markup only), comment (Ctrl+/; an HTML comment would reach the model), help (a
+         link to GitHub), fullscreen (Ctrl+0, the dialog is full screen);
+       - shortcuts are not hard-coded: each command carries its own `shortcuts` string and the editor builds the key
+         map from the command list it gets, so the wrapper sets or clears them per command (`{...title1, shortcuts:
+         undefined}`). They act only while the textarea has the focus and `preventDefault` the browser's key; `ctrlcmd`
+         is Ctrl or Cmd; matching is loose (a command fires when all its keys are among those pressed: Ctrl+Shift+B is
+         bold too). Drop the heading ones (Ctrl/Cmd+1-6 switch browser tabs), keep the rest; Ctrl+Enter is free;
+       - `defaultTabEnable` (Tab moves the focus); the value sent after a pause in typing, not per key; no `mermaid`;
+       - image upload: `onPaste`/`onDrop` of the textarea and our image button call one server method (the element's
+         `$server`) that stores the `Resource` and gets the link inserted at the cursor, no `executeJs`.
+       Still to check by building it: Vite 8, the bundle size, Lumo look in a dialog. Fallback: our `TextArea` at full
+       height with the `Markdown` preview in a split. Using it for the other long text areas (book description, notes,
+       prompt templates) is not decided.
      - **Lorebook VCS** (plugin `lorebookvcs`) binds to the editor like it does to the view: today it decorates
        `LorebookView.create` (the *Lorebook Revisions* panel of the toolbar: export/import of the history) and
        `createEntryDetailLayout` (the revision bar of an entry: `+`, `‹ ›`, `−`). In the editor the panel goes to the

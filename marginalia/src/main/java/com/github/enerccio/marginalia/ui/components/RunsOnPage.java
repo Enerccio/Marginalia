@@ -82,6 +82,16 @@ public final class RunsOnPage {
     }
 
     private static void inPage(UI ui, RequestAttributes scope, Runnable refresh) {
+        inPage(ui, scope, refresh, false);
+    }
+
+    /**
+     * Runs the refresh in the page with the request scope of the page.
+     *
+     * @param later also when this thread holds the page's session: after the request it is in now (the change that is told may be
+     *              in the middle of it)
+     */
+    static void inPage(UI ui, RequestAttributes scope, Runnable refresh, boolean later) {
         VaadinSession session = ui.getSession();
         if (session == null) {
             return;
@@ -95,7 +105,7 @@ public final class RunsOnPage {
                 refresh.run();
             }
         };
-        if (session.hasLock()) {
+        if (!later && session.hasLock()) {
             scoped.run();
             return;
         }

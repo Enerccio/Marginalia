@@ -61,6 +61,9 @@ changes you made in the book's *Lorebook* tab show at once.
 - The **pen** of an entry opens a small window with its name, whether it is used, the filter and how it is looked for, the content
   and the note; **Save** writes them (the tags, the order and the activation settings are changed in the book's *Lorebook* tab). Nothing
   can be changed while an agent works on the lorebook.
+- The **expand button** (⤢) opens the [full-screen lorebook editor](../lorebooks/lorebooks.md#the-full-screen-editor) (desktop only): the one
+  next to the search box on the lorebook, the one of an entry on that entry, the one of a sub lorebook (with *Include sub lorebooks*) on
+  that lorebook. The tab is loaded again when you close the editor.
 
 - Every entry is a row with its name and the pen; the arrow opens it to show its **content** (rendered as Markdown) and the **text that activates it** (the
   *Filtering Text/Pattern*, with a note when it is a regular expression).

@@ -5,6 +5,7 @@ covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/ui/components/TreantTree.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/ui/widgets/ChartJs.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/ui/widgets/GraphView.java
+  - marginalia/src/main/java/com/github/enerccio/marginalia/ui/widgets/MarkdownEditor.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/ui/JavascriptLibrary.java
   - marginalia/src/main/frontend
 verified: e677cd1e8
@@ -12,9 +13,9 @@ verified: e677cd1e8
 
 # Custom components
 
-Marginalia has almost no hand-written frontend code, but three components draw with a JavaScript library that Vaadin
-doesn't ship: a tree, a chart and a graph. This page documents them, how they get their library, and how to add
-another one. Plugins can use all three; a plugin can't bring a library of its own (see
+Marginalia has almost no hand-written frontend code, but four components use a JavaScript library that Vaadin
+doesn't ship: a tree, a chart, a graph and a Markdown editor. This page documents them, how they get their library, and
+how to add another one. Plugins can use all four; a plugin can't bring a library of its own (see
 [below](#components-in-plugins)).
 
 | Component | Library | Draws | Used by |
@@ -22,8 +23,9 @@ another one. Plugins can use all three; a plugin can't bring a library of its ow
 | [`TreantTree`](#treanttree) | [Treant.js](https://fperucic.github.io/treant-js/) (and Raphaël) | A tree of HTML nodes. | The story tree (`ManuscriptTreePart`, `PhoneManuscriptTreePart`). |
 | [`ChartJs`](#chartjs) | [Chart.js](https://www.chartjs.org/) | Bar, doughnut and other charts. | `TokenUsageDialog`, `AgentContextView` (the three charts of the Context tab of an agent's console). |
 | [`GraphView`](#graphview) | [Cytoscape.js](https://js.cytoscape.org/) | A graph (nodes and edges, cycles allowed). | The *Character Tracker* plugin (relationship map). |
+| [`MarkdownEditor`](#markdowneditor) | [@uiw/react-md-editor](https://github.com/uiwjs/react-md-editor) (React) | A Markdown editor with a toolbar and a preview. | The content of an entry in the full-screen lorebook editor (`LorebookEntryEditor`). |
 
-All three work the same way:
+The first three work the same way (the Markdown editor is a React component, see [its section](#markdowneditor)):
 
 1. The Java class is a `Div` annotated with `@NpmPackage` (the library, downloaded by the Vaadin frontend build) and
    `@JsModule` (the connector in `src/main/frontend`).
@@ -125,6 +127,32 @@ changes (a resizable dialog) with a `ResizeObserver`.
 Theme colors of the lines and labels are read from the Lumo variables when the graph is drawn and passed through a
 canvas, because the browser may compute a color to a form that Cytoscape can't parse. A theme change after that isn't
 followed until the graph is drawn again.
+
+## MarkdownEditor
+
+`ui/widgets/MarkdownEditor.java`, `frontend/markdown-editor.tsx`. npm packages `@uiw/react-md-editor` (pinned, 4.1.2;
+the `nohighlight` build, no syntax highlighter) and `rehype-sanitize`. Unlike the other three it is not a connector
+called through `JavascriptLibrary` but a React web component: the Java class extends Vaadin's `ReactAdapterComponent`
+(`@Tag("marginalia-markdown-editor")`), the `.tsx` defines the element with a `ReactAdapterElement` whose `render` returns
+the editor, and the two share **states** (`setState` / `addStateChangeListener` in Java, `hooks.useState` in the
+script): `value`, `placeholder`, `readOnly` and `preview` (`edit`, `live`, `preview`; `setMode`, `getMode`). The mode buttons of the toolbar write `preview` back, so `addModeChangeListener` hears the mode the user picked.
+
+- **The text is sent on a pause.** The script keeps what is typed in a React state and writes the `value` state
+  `SEND_DELAY_MS` (700 ms) after the last key, on blur and when the editor goes away, so a listener can save on every
+  change. A `value` set by the server replaces the text unless it is the echo of what was sent. The Java listener of the
+  state also hears the server's own `setState`; `MarkdownEditor` ignores a value equal to the one it has, so
+  `addValueChangeListener` hears only the user. In a test, a change of the user is
+  `editor.getElement().setPropertyJson("value", ...)` (`LorebookEntryEditorTest`).
+- **The toolbar is ours** (`commands`, `extraCommands`): bold, italic, strikethrough, line, headings (without their
+  Ctrl/Cmd+1..6 shortcuts, the browser's tab switching), quote, code, code block, table, the three lists, and the three
+  modes. Left out: link, image (it only types `![image](url)`), comment (an HTML comment would reach the model), help and
+  full screen (Ctrl+0). A command's shortcut is its `shortcuts` field, the editor builds the key map from the commands it
+  gets; matching is loose (Ctrl+Shift+B is bold too), Ctrl+Enter is not taken. `defaultTabEnable`: Tab moves the focus.
+- **The preview is sanitized** (`rehype-sanitize`): HTML in the text shows as text, `{{macros}}` stay as typed.
+- **Styling.** The editor renders into the light DOM, so the rules of `markdown-editor` in `shared-styles.css` reach it:
+  it fills its height and its variables (`--md-editor-*`, `--color-*`) are Lumo's, which follow the color scheme by
+  themselves; the script also sets `data-color-mode` from the `theme` attribute of `<html>` (a `MutationObserver`).
+- The toolbar's tooltips are the library's English ones.
 
 ## Adding a component for another library
 

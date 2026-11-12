@@ -16,6 +16,7 @@ Each row of the lorebook editor is one entry:
 | **Order** | Position of the entry in the prompt, see [Order and insertion](#order-and-insertion). New entries get `100`. |
 | **Tags** | Tags that activate the entry, see [Tags](#tags). |
 | ⌄ | Shows the details of the entry. |
+| expand | Opens the entry in the [full-screen editor](lorebooks.md#editing-in-full-screen) (desktop). |
 | trash | Deletes the entry (after confirming). |
 
 **Add Entry** in the toolbar adds an entry with order `100`. Changes are saved as you type.
@@ -259,6 +260,10 @@ and the number of the next part for the entries [limited to some parts](#limitin
 The text you type is the instructions of the turn for the [conditions](#a-condition-for-an-entry); with a book, its variables and the point of view,
 the present characters and the scene of its last part are used too (the commands of a condition are not run in the preview). Below the text, a line says how many entries
 would be used and about how many tokens of lore that is. The scan depth of the lorebook is used.
+
+In the [full-screen editor](lorebooks.md#editing-in-full-screen) the eye is also in the name row of every entry tab: the
+preview opens for that entry, its row is selected and a line above the table says whether it would be used and why, which
+changes as you type. Change the filter in the tab, then press **Refresh** in the preview to see the effect.
 
 ![Preview activation of a lorebook](../../images/lorebook-preview-activation.png)
 

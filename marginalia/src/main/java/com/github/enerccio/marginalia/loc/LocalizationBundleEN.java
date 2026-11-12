@@ -1065,6 +1065,14 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_RUN_HOLDS, "Holds");
         setValue(L.LABEL_END_RUN, "End");
         setValue(L.LABEL_REVIEW, "Review");
+        setValue(L.LABEL_FULL_SCREEN_EDITOR, "Full-screen editor");
+        setValue(L.LABEL_OPEN_IN_NEW_TAB, "Open in new tab");
+        setValue(L.LABEL_SHOW_NOTE, "Show note");
+        setValue(L.LABEL_KEEP_MY_TEXT, "Keep my text");
+        setValue(L.LABEL_LOAD_SAVED_TEXT, "Load the saved text");
+        setValue(L.LABEL_CHECK_AGAIN, "Check again");
+        setValue(L.LABEL_OPEN_IN_FULL_SCREEN_EDITOR, "Open in the full-screen editor");
+        setValue(L.LABEL_DONT_SCAN_ITS_CONTENT, "Don't scan its content");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -1857,6 +1865,11 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.MSG_AFTER_PART_FAILED, "What follows the new part failed at %s: %s");
         setValue(L.MSG_AFTER_PART_NOT_RUN, "Not run: %s.");
         setValue(L.MSG_CLOSE_OPEN_BOOK_FIRST, "Another book is open here, \"%s\". Close it first.");
+        setValue(L.MSG_ENTRY_CHANGED_ELSEWHERE, "This text was changed somewhere else after it was opened here. What you typed is not saved yet.");
+        setValue(L.MSG_ENTRY_DELETED_ELSEWHERE, "The entry was deleted somewhere else, its tab is closed.");
+        setValue(L.MSG_LAST_CHANGE_NOT_SAVED, "Your last change was not saved.");
+        setValue(L.MSG_ACTIVATION_PREVIEW_ENTRY_USED, "\"%s\" is used: %s.");
+        setValue(L.MSG_ACTIVATION_PREVIEW_ENTRY_NOT_USED, "\"%s\" is not used: %s.");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "minute hour day-of-month month day-of-week - e.g. \"0 3 * * *\" every day at 3:00, \"0 */6 * * *\" every 6 hours, \"30 2 * * 1\" Mondays at 2:30. @daily, @weekly and @monthly work too.");

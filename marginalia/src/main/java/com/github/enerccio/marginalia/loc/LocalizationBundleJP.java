@@ -1065,6 +1065,14 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_RUN_HOLDS, "保持");
         setValue(L.LABEL_END_RUN, "終了");
         setValue(L.LABEL_REVIEW, "確認");
+        setValue(L.LABEL_FULL_SCREEN_EDITOR, "全画面エディター");
+        setValue(L.LABEL_OPEN_IN_NEW_TAB, "新しいタブで開く");
+        setValue(L.LABEL_SHOW_NOTE, "メモを表示");
+        setValue(L.LABEL_KEEP_MY_TEXT, "自分のテキストを残す");
+        setValue(L.LABEL_LOAD_SAVED_TEXT, "保存済みのテキストを読み込む");
+        setValue(L.LABEL_CHECK_AGAIN, "再確認");
+        setValue(L.LABEL_OPEN_IN_FULL_SCREEN_EDITOR, "全画面エディターで開く");
+        setValue(L.LABEL_DONT_SCAN_ITS_CONTENT, "内容を走査しない");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -1857,6 +1865,11 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.MSG_AFTER_PART_FAILED, "新しいパートの後の処理が%sで失敗しました：%s");
         setValue(L.MSG_AFTER_PART_NOT_RUN, "実行されなかったもの：%s。");
         setValue(L.MSG_CLOSE_OPEN_BOOK_FIRST, "ここでは別の本「%s」が開いています。先に閉じてください。");
+        setValue(L.MSG_ENTRY_CHANGED_ELSEWHERE, "このテキストはここで開いた後に別の場所で変更されました。入力した内容はまだ保存されていません。");
+        setValue(L.MSG_ENTRY_DELETED_ELSEWHERE, "このエントリーは別の場所で削除されたため、タブを閉じました。");
+        setValue(L.MSG_LAST_CHANGE_NOT_SAVED, "最後の変更は保存されていません。");
+        setValue(L.MSG_ACTIVATION_PREVIEW_ENTRY_USED, "「%s」は使われます：%s。");
+        setValue(L.MSG_ACTIVATION_PREVIEW_ENTRY_NOT_USED, "「%s」は使われません：%s。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 時 日 月 曜日 - 例：\"0 3 * * *\" は毎日3:00、\"0 */6 * * *\" は6時間ごと、\"30 2 * * 1\" は毎週月曜日の2:30。@daily、@weekly、@monthly も使えます。");

@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.domain.repository.impl;
 
 import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
 import com.github.enerccio.marginalia.domain.repository.LorebookEntryRepository;
+import com.github.enerccio.marginalia.domain.service.LoreChanges;
 
 import com.github.enerccio.marginalia.domain.service.search.LikePatterns;
 import jakarta.persistence.TypedQuery;
@@ -14,6 +15,15 @@ public class JpaLorebookEntryRepository extends JpaExtendableRepository<Lorebook
     @Override
     protected Class<LorebookEntry> getEntityClass() {
         return LorebookEntry.class;
+    }
+
+    /**
+     * The open pages hear of the write after the commit (the full-screen lorebook editor of another window loads it again).
+     */
+    @Override
+    protected void changed(LorebookEntry entity) throws Exception {
+        super.changed(entity);
+        LoreChanges.written(entity);
     }
 
     @Override

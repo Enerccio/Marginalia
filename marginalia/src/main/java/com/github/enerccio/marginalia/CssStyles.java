@@ -52,6 +52,8 @@ public final class CssStyles {
     public static final String ORGANISE_PANE_ACTIVE = "organise-pane-active";
     public static final String ORGANISE_CURSOR_ROW = "organise-cursor-row";
     public static final String FLEX_SHRINK_0 = "flex-shrink-0";
+    /** In a wrapping flex layout: what follows starts a new line. */
+    public static final String FLEX_BREAK = "flex-break";
     public static final String GAP_S = "gap-s";
     public static final String MARGIN_LEFT_AUTO = "margin-left-auto";
     public static final String CURSOR_POINTER = "cursor-pointer";
@@ -98,6 +100,8 @@ public final class CssStyles {
     public static final String STORY_SCROLL_PANEL = "story-scroll-panel";
     public static final String READER_SCROLL_PANEL = "reader-scroll-panel";
     public static final String LAZY_LOAD_INDICATOR = "lazy-load-indicator";
+    /** The Markdown editor ({@code ui.widgets.MarkdownEditor}): fills its height, the colors and the font of Lumo. */
+    public static final String MARKDOWN_EDITOR = "markdown-editor";
     public static final String READER_CONTENT = "reader-content";
     public static final String FLOATING_BACK_BUTTON = "floating-back-button";
     public static final String FLOATING_STYLE_BUTTON = "floating-style-button";
@@ -309,6 +313,9 @@ public final class CssStyles {
     public static final String RUN_CORNER_STATUS = "run-corner-status";
     public static final String RUN_CORNER_TEXT = "run-corner-text";
     public static final String PART_BUSY = "part-busy";
+
+    /** A dense window: smaller fields, buttons, icons, text and gaps inside it (the full-screen lorebook editor). */
+    public static final String COMPACT_SIZES = "compact-sizes";
 
     private CssStyles() {
     }

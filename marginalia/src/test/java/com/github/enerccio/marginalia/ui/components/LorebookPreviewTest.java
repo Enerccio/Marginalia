@@ -237,4 +237,38 @@ class LorebookPreviewTest extends MarginaliaTestBase {
         assertThat(buttonsOfTheFirstRow(preview)).as("and the edit button").isEqualTo(2);
     }
 
+    @Test
+    void anEditablePreviewOnADesktopOpensTheFullScreenEditor() throws Exception {
+        Lorebook main = lorebook("main");
+        entry(main, "One", 1);
+        LorebookEntry two = entry(main, "Two", 2);
+
+        LorebookPreview preview = new LorebookPreview().create();
+        preview.setEditable(true);
+        preview.refresh(main);
+        assertThat(preview.getEditorButton().isVisible()).as("not without the editor allowed").isFalse();
+
+        preview.setFullScreenEditor(true);
+        preview.refresh(main);
+        assertThat(buttonsOfTheFirstRow(preview)).as("open in the editor, edit and the details").isEqualTo(3);
+        assertThat(preview.getEditorButton().isVisible()).isTrue();
+
+        com.github.enerccio.marginalia.ui.dialogs.LorebookEditorDialog dialog = preview.openEditor(main, two);
+        assertThat(dialog.getLorebook().getId()).isEqualTo(main.getId());
+        // which entry it shows is the editor's showEntry, see LorebookEditorDialogTest
+        assertThat(dialog.isOpened()).isTrue();
+    }
+
+    @Test
+    void aPreviewThatIsNotEditableHasNoEditorButtons() throws Exception {
+        Lorebook main = lorebook("main");
+        entry(main, "One", 1);
+
+        LorebookPreview preview = new LorebookPreview().create();
+        preview.setFullScreenEditor(true);
+        preview.refresh(main);
+
+        assertThat(buttonsOfTheFirstRow(preview)).isEqualTo(1);
+        assertThat(preview.getEditorButton().isVisible()).isFalse();
+    }
 }

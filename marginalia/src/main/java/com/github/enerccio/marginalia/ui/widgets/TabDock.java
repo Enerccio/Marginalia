@@ -54,6 +54,11 @@ import java.util.function.Consumer;
  * of the captions of the tabs.
  * A tab can be made {@linkplain #setMinimizable not minimizable} (the story, so that something is always on the screen).
  * <p>
+ * A tab can be made {@linkplain #setClosable closable} instead: it has a close button where the minimize button is, and
+ * {@linkplain #close closing} it removes the tab and its content and drops its place from the layout (the code that opened it
+ * hears of it through {@link #setOnClose}). A closable tab is never minimized, a dock whose tabs are all closable or not
+ * minimizable never shows the bar. Used by the lorebook editor, whose entry tabs come and go.
+ * <p>
  * A general widget: it knows nothing of the story, whoever needs detachable tabs can use it (and keep the layout where it
  * likes).
  */
@@ -120,6 +125,7 @@ public class TabDock extends Div implements Restorable {
         private DragSource<Tab> source;
         private DropTarget<Tab> drop;
         private Button minimizeButton;
+        private Button closeButton;
 
         private Entry(String id, String caption, TabDockIcon icon, Component content) {
             this.id = id;
@@ -165,6 +171,8 @@ public class TabDock extends Div implements Restorable {
     private String draggedIcon;
     // the tabs that have no minimize button
     private final Set<String> fixed = new HashSet<>();
+    // the tabs that have a close button instead of the minimize button
+    private final Set<String> closable = new HashSet<>();
     private final Div body = new Div();
     private final Div bar = new Div();
     private DockSide dockSide = DockSide.LEFT;
@@ -184,6 +192,7 @@ public class TabDock extends Div implements Restorable {
     private boolean arranging;
     private Runnable onLayoutChange;
     private Runnable onStateChange;
+    private Consumer<String> onClose;
 
     public TabDock() {
         this(true);
@@ -276,6 +285,9 @@ public class TabDock extends Div implements Restorable {
             makeDraggable(entry);
             makeMinimizable(entry);
         }
+        if (closable.contains(id)) {
+            makeClosable(entry);
+        }
         entries.put(id, entry);
         applyEnabled(entry);
 
@@ -289,6 +301,39 @@ public class TabDock extends Div implements Restorable {
         }
         arrange();
         return entry.tab;
+    }
+
+    /**
+     * Says where a tab that is not in the layout yet goes when it is {@linkplain #add added} (call it before): into the sheet of
+     * {@code withId} when that tab is in the dock, else into a new column right of the column of {@code rightOfId} (at the end
+     * without it). A tab the layout already places stays where it is.
+     */
+    @PublicAPI(from = "1.8.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "id", type = String.class),
+                    @APIParameter(name = "withId", type = String.class),
+                    @APIParameter(name = "rightOfId", type = String.class)},
+            locals = {@APILocals(name = "with", type = TabDock.Group.class),
+                    @APILocals(name = "group", type = TabDock.Group.class),
+                    @APILocals(name = "column", type = TabDock.Column.class),
+                    @APILocals(name = "beside", type = TabDock.Group.class)})
+    public void place(String id, String withId, String rightOfId) {
+        if (!detachable || id == null || groupOf(id) != null) {
+            return;
+        }
+        Group with = withId == null || !entries.containsKey(withId) ? null : groupOf(withId);
+        if (with != null) {
+            with.ids.add(id);
+            return;
+        }
+        Group group = new Group();
+        group.ids.add(id);
+        group.selectedId = id;
+        Column column = new Column();
+        column.groups.add(group);
+        Group beside = rightOfId == null ? null : groupOf(rightOfId);
+        int index = beside == null || columnOf(beside) == null ? columns.size() : columns.indexOf(columnOf(beside)) + 1;
+        columns.add(index, column);
     }
 
     /**
@@ -319,6 +364,16 @@ public class TabDock extends Div implements Restorable {
         arrange();
         stateChanged();
         return true;
+    }
+
+    /**
+     * @return the tab the user (or {@link #select}) showed last, null before any was shown that way or after it was minimized or
+     * closed
+     */
+    @PublicAPI(from = "1.8.0",
+            returns = @APIReturn(type = String.class))
+    public String getCurrentId() {
+        return currentId;
     }
 
     /**
@@ -398,6 +453,9 @@ public class TabDock extends Div implements Restorable {
         }
         if (entry.minimizeButton != null) {
             entry.minimizeButton.setEnabled(tabsEnabled);
+        }
+        if (entry.closeButton != null) {
+            entry.closeButton.setEnabled(tabsEnabled);
         }
         if (!enabled) {
             entry.content.getElement().setEnabled(false);
@@ -737,7 +795,7 @@ public class TabDock extends Div implements Restorable {
             returns = @APIReturn(type = boolean.class),
             parameters = {@APIParameter(name = "entry", type = TabDock.Entry.class)})
     private boolean isMinimizable(Entry entry) {
-        return detachable && !fixed.contains(entry.id);
+        return detachable && !fixed.contains(entry.id) && !closable.contains(entry.id);
     }
 
     /**
@@ -757,8 +815,8 @@ public class TabDock extends Div implements Restorable {
             fixed.add(id);
         }
         Entry entry = entries.get(id);
-        if (entry != null && entry.minimizeButton != null) {
-            entry.minimizeButton.setVisible(minimizable);
+        if (entry != null) {
+            applyButtons(entry);
         }
         arrange();
     }
@@ -797,10 +855,166 @@ public class TabDock extends Div implements Restorable {
         button.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE, ButtonVariant.LUMO_SMALL);
         button.addClassName(CssStyles.TAB_DOCK_MINIMIZE);
         button.setTooltipText(loc.getValue(L.LABEL_MINIMIZE));
-        button.setVisible(!fixed.contains(entry.id));
+        button.setVisible(!fixed.contains(entry.id) && !closable.contains(entry.id));
         button.addClickListener(event -> minimize(entry.id));
         entry.minimizeButton = button;
         entry.tab.add(button);
+    }
+
+    // ---- closing
+
+    /**
+     * Gives the tab a close button instead of the minimize button, or takes it away. A closable tab is not minimizable; one that
+     * is minimized when it becomes closable comes back. Works for tabs that are not in the dock yet.
+     */
+    @PublicAPI(from = "1.8.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "id", type = String.class),
+                    @APIParameter(name = "closable", type = boolean.class)},
+            locals = {@APILocals(name = "entry", type = TabDock.Entry.class)})
+    public void setClosable(String id, boolean closable) {
+        if (closable) {
+            this.closable.add(id);
+        } else {
+            this.closable.remove(id);
+        }
+        Entry entry = entries.get(id);
+        if (entry != null) {
+            applyButtons(entry);
+        }
+        arrange();
+    }
+
+    /**
+     * @return true when the tab has a close button
+     */
+    @PublicAPI(from = "1.8.0",
+            returns = @APIReturn(type = boolean.class),
+            parameters = {@APIParameter(name = "id", type = String.class)})
+    public boolean isClosable(String id) {
+        return closable.contains(id);
+    }
+
+    /**
+     * Closes the tab: it leaves the dock with its content, and unlike a {@linkplain #remove removed} tab it also leaves the
+     * layout (a sheet left without tabs is gone). The {@linkplain #setOnClose close listener} hears of it, also when the code
+     * closes the tab. Any tab can be closed by the code, the user closes the {@linkplain #setClosable closable} ones.
+     *
+     * @return false when there is no tab with this id in the dock
+     */
+    @PublicAPI(from = "1.8.0",
+            returns = @APIReturn(type = boolean.class),
+            parameters = {@APIParameter(name = "id", type = String.class)},
+            locals = {@APILocals(name = "entry", type = TabDock.Entry.class),
+                    @APILocals(name = "layoutBefore", type = JsonObject.class),
+                    @APILocals(name = "group", type = TabDock.Group.class)})
+    public boolean close(String id) {
+        Entry entry = entries.get(id);
+        if (entry == null) {
+            return false;
+        }
+        JsonObject layoutBefore = getLayout();
+        entries.remove(id);
+        Group group = groupOf(id);
+        if (group != null && group.sheet != null && group.sheet.getIndexOf(entry.tab) >= 0) {
+            arranging = true;
+            try {
+                group.sheet.remove(entry.tab);
+            } finally {
+                arranging = false;
+            }
+        }
+        takeOut(entry);
+        minimized.remove(id);
+        barOrder.remove(id);
+        pendingSelection.remove(id);
+        if (id.equals(currentId)) {
+            currentId = null;
+        }
+        layoutMoved(layoutBefore);
+        if (onClose != null) {
+            onClose.accept(id);
+        }
+        return true;
+    }
+
+    /**
+     * Called with the id of a tab after it was {@linkplain #close closed}.
+     */
+    @PublicAPI(from = "1.8.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "onClose", type = Consumer.class)})
+    public void setOnClose(Consumer<String> onClose) {
+        this.onClose = onClose;
+    }
+
+    /**
+     * Changes the text of the tab (a renamed entry); the icon of a minimized tab follows.
+     *
+     * @return false when there is no tab with this id in the dock
+     */
+    @PublicAPI(from = "1.8.0",
+            returns = @APIReturn(type = boolean.class),
+            parameters = {@APIParameter(name = "id", type = String.class),
+                    @APIParameter(name = "caption", type = String.class)},
+            locals = {@APILocals(name = "entry", type = TabDock.Entry.class)})
+    public boolean setCaption(String id, String caption) {
+        Entry entry = entries.get(id);
+        if (entry == null) {
+            return false;
+        }
+        if (Objects.equals(entry.tab.getLabel(), caption)) {
+            return true;
+        }
+        // the label is the text of the tab element: setting it drops the buttons, they go back after it
+        entry.tab.setLabel(caption);
+        if (entry.minimizeButton != null) {
+            entry.tab.add(entry.minimizeButton);
+        }
+        if (entry.closeButton != null) {
+            entry.closeButton.setAriaLabel(loc.getValue(L.LABEL_CLOSE) + ": " + caption);
+            entry.tab.add(entry.closeButton);
+        }
+        if (isMinimized(entry)) {
+            shownBar = new ArrayList<>();
+            refreshBar();
+        }
+        return true;
+    }
+
+    /**
+     * The close button, made when the tab becomes closable (a tab that never is has none).
+     */
+    @PublicAPI(from = "1.8.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "entry", type = TabDock.Entry.class)},
+            locals = {@APILocals(name = "button", type = Button.class)})
+    private void makeClosable(Entry entry) {
+        Button button = new Button(Solid.XMARK.create());
+        button.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE, ButtonVariant.LUMO_SMALL);
+        // placed and colored like the minimize button, which it replaces
+        button.addClassName(CssStyles.TAB_DOCK_MINIMIZE);
+        button.setTooltipText(loc.getValue(L.LABEL_CLOSE));
+        button.setAriaLabel(loc.getValue(L.LABEL_CLOSE) + ": " + entry.tab.getLabel());
+        button.addClickListener(event -> close(entry.id));
+        entry.closeButton = button;
+        entry.tab.add(button);
+    }
+
+    @PublicAPI(from = "1.8.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "entry", type = TabDock.Entry.class)})
+    private void applyButtons(Entry entry) {
+        if (entry.minimizeButton != null) {
+            entry.minimizeButton.setVisible(!fixed.contains(entry.id) && !closable.contains(entry.id));
+        }
+        if (entry.closeButton == null && closable.contains(entry.id)) {
+            makeClosable(entry);
+            applyEnabled(entry);
+        }
+        if (entry.closeButton != null) {
+            entry.closeButton.setVisible(closable.contains(entry.id));
+        }
     }
 
     /**

@@ -59,7 +59,7 @@ flowchart TB
 | `ui.workspace.parts`, `.admin` | The workspace tabs and the admin panels. |
 | `ui.dialogs` | Entity dialogs, the book window and generic dialogs. |
 | `ui.dialogs.manuscript` | The tabs of the book window (`ManuscriptDialogPart`). |
-| `ui.components` | Larger reusable components: `LorebookView`, `PhoneLorebookView`, `LorebookPreview`, `InvalidExtensionsWarning`, `HelpAssistantWidget`, `RunCorner` and `PageRuns`, `TreantTree`, `MessageImages`, `PartView`, `ThreadCopyRequestAttributes`. |
+| `ui.components` | Larger reusable components: `LorebookView`, `PhoneLorebookView`, `LorebookPreview`, `InvalidExtensionsWarning`, `HelpAssistantWidget`, `RunCorner` and `PageRuns`, `RunsOnPage` and `LoreChangesOnPage`, `TreantTree`, `MessageImages`, `PartView`, `ThreadCopyRequestAttributes`. |
 | `ui.widgets` | Small reusable widgets, among them `TrashGrid` (see [Trash](#trash)) and `WindowRun` (the request of a window the author waits in as a run of the panel, see [the runs](services.md#the-runs-and-what-they-hold)). |
 
 ## The shell, routes and login
@@ -379,6 +379,74 @@ puts the dragged icon at the place of the one it was dropped on and writes the r
 the bar keeping their slots. `getLayout()` adds `"barOrder":["id",...]` once the user has reordered, `setLayout` reads it. `add(id, caption, letters, content)` gives the letters of the icon, the
 initials of the caption (`TabDockIcons.letters`) are the default.
 
+**Closing (1.8.0).** A tab can be closable instead of minimizable: `setClosable(id, true)` (a set of ids, `closable`, like
+`fixed`; it works for tabs that are not there yet) gives the tab a close button (`makeClosable`, made only when the tab becomes
+closable, so a dock without closable tabs has no extra buttons) in place of the minimize button (`applyButtons` shows one or the
+other), and `isMinimizable` is false for it, so a minimized tab that becomes closable comes back. `close(id)` (the button, or code)
+removes the `Entry` and its `Tab`, takes the id out of its group (`takeOut`: an empty sheet and an empty column go), out of
+`minimized` and `barOrder`, runs `layoutMoved` (so `onLayoutChange` hears of it) and then `onClose` (`setOnClose`, a
+`Consumer<String>` of the id). Unlike `remove(content)`, which keeps the place of the tab in the layout, a closed tab is gone from
+it. `setCaption(id, caption)` renames a tab: `Tab.setLabel` sets the text of the element and so drops its children, the buttons are
+added again after it. `getCurrentId()` is the tab the user (or `select`) showed last. `place(id, withId, rightOfId)`, called before `add`, puts a tab the layout does not know into the sheet of `withId` or into a new column right of the one of `rightOfId`.
+
+**The full-screen lorebook editor (1.8.0).** `LorebookEditorDialog` (`ui.dialogs`, opened by **Full-screen editor** of
+`LorebookView.openEditor`, hidden while an agent locks the lorebook) is a `TabDock` with a fixed tab (`LIST_TAB`, not minimizable,
+not closable): a grid of the entries (enabled, name, order, *Open*, *Open in new tab*, *Delete*; double-click opens), the
+`LorebookEntryFilter` boxes, **Add Entry**, **Refresh**. Every entry opens in a closable tab, a `LorebookEntryEditor`
+(`ui.components`): name, order, enabled; a `Details` with the activation settings (the fields of
+`LorebookView.createEntryDetailLayout`, and the condition of `LoreConditionField`); the content in a
+[`MarkdownEditor`](custom-components.md#markdowneditor) and the note beside it (`Show note`); a footer with the token estimate and
+the template error / unknown names. Each change is saved at once (`lorebookEntryService.save`), invalid templates too. The tab ids
+are slots (`entry-1`, `entry-2`...), not entries: `openEntry(entry, newTab)` selects the tab that has the entry, else shows it in
+the slot the user had last (`recent`, kept up to date from `onStateChange` with `getCurrentId`; `add` with the same id replaces
+the content where the tab is) or in a new slot; `TabDock.place(id, withId, rightOfId)` puts a new slot into the sheet of the entry tab used last, the first one into a new column right of the list's. The list and the tabs share the entry objects (`loadEntries(false)` puts the
+tabs' objects into the list), so a change in a tab shows in the list (`entryChanged` refreshes it, the caption and the totals);
+after a search and replace or **Refresh** the list is loaded from the database and `reloadTabs` gives every tab its fresh entry
+(`LorebookEntryEditor.reload`: `copyFields` into the tab's object, then `showFields` sets the values of the existing components, nothing is built again; the list takes the tab's object back) or closes it. The token counts
+of the view and of the editor are one class, `LorebookTokens` (`of`, `recount`, `ofEnabled`, `withSubbooks`, `format`).
+The arrangement is kept in the lorebook, the attribute `LorebookEditorDialog.CONFIG_ATTRIBUTE` (`$lorebookEditor`:
+`{"layout": TabDock.getLayout(), "state": TabDock.storeState(), "tabs": [{"tab": "entry-2", "entry": "<uuid>"}, ...]}`, the tabs
+most recently used first), so it travels with backups (a clone copies it, but its entries have other uuids, so its tabs are
+skipped). `saveConfig` runs after a change of the layout (`setOnLayoutChange`), after a tab is opened or closed and when the dialog
+closes (the selected tabs are saved only then); it writes into the lorebook as `lorebookService.findForUser` returns it, not into
+the copy of the dialog, which may be older. `restoreConfig` (in `create`, after the entries are loaded) applies the layout, opens
+the stored tabs whose entries still exist (from the least recently used, so `recent` ends in the stored order; `nextTab` goes past
+the stored slot numbers) and the selection. `create` reloads the lorebook first, and `LorebookView.editorClosed` reloads it after
+the dialog, so a later save of the view (a rename) does not write the old attributes back.
+Saves are per field: `LorebookEntryEditor.saveField(getter, setter, value, guarded, after)` loads the entry
+(`lorebookEntryService.find`), sets the one field and saves that, then copies the stored state into the tab's object
+(`copyFields`: the list, the tag box and the Lorebook VCS revision bar hold it, so it is never swapped for another) and
+shows the stored state in the fields (`showFields`) when another field differed (changed elsewhere). The content and the note are `guarded`: when the stored
+value is neither what the tab had nor what was typed, nothing is saved and the footer's conflict bar offers *Keep my text*
+(the save again, unguarded) and *Load the saved text* (`reloadFromDatabase`). A deleted entry calls `setOnGone` (the dialog
+closes the tab), a save refused with a `ManuscriptLockedException` calls `setOnLocked`. The dialog's `checkLock`
+(`AgentRunService.findLockingRun`; in `create`, on every tab switch, before *Add Entry* and *Delete*, and from the lock bar's
+*Check again*) shows the lock bar and makes every tab `setReadOnly(true)` (the header but *Show note*, the settings, the
+content, the note), and when the run is gone makes them editable and calls `refresh`.
+While a conflict waits (`keepMine` set) an unguarded save of another field keeps the tab's texts in its object and does not
+show the fields again, so the typed text stays; *Keep my text* clears the conflict before it saves.
+**Density.** The dialog has the theme `no-padding` and its content and header the class `compact-sizes` (`CssStyles.COMPACT_SIZES`): it scales the Lumo size, space, font and icon properties down for everything inside and takes the padding off the `TabDock` panels; the list's tools but *Add Entry* are icon buttons with a tooltip, the entry settings are a wrapping `FlexLayout` (`createSettings` returns it, a `CssStyles.FLEX_BREAK` div ends the first line): the modes, the parts and the message range have fixed narrow widths, the filter, the tags and the condition grow into the rest of their line; the grid rows, field labels and `Details` lose their padding in `compact-sizes`. The mode of the `MarkdownEditor` (`getMode`, `addModeChangeListener`: the mode buttons of `markdown-editor.tsx` send the state `preview`) is kept per tab id (`LorebookEntryEditor.setEditorMode` / `setOnModeChange`, the `mode` of a tab in `$lorebookEditor`, saved when it changes); the list's enabled column has no title and is as wide as its mark, the row buttons are `LUMO_TERTIARY_INLINE` a few pixels apart.
+**Live changes.** `JpaLorebookEntryRepository.changed` (every save and delete of an entry) reports to `LoreChanges`
+(`domain.service`, static like `Runs`): the writes of one transaction become one `Change(lorebookIds, entryUuids, source)` after
+the commit (nothing on a rollback), `source` the `UI` that wrote them (`UI.getCurrent()`, `null` for a worker). The dialog
+listens while attached through `LoreChangesOnPage.listen(ui, ...)` (`ui.components`): the page's own changes are left out, the
+rest run in the page with its request scope (`RunsOnPage.inPage(..., later = true)`: `ui.access` and a push, after the request
+that is going on, also when that request holds the session, since the change may be told in the middle of a `saveField`).
+`loreChanged(lorebookIds, entryUuids, byWorker)` calls `LorebookEntryEditor.changedElsewhere` on the tabs of those entries
+(nothing while a conflict waits; nothing but the attributes when the fields the tab shows are the same, which is the tab's own
+save; else `copyFields` and `showFields`), `checkLock` for a worker's change, and `loadEntries(false)`.
+The list tab also opens `LorebookMassEditDialog`, `MultiTagDialog` (both `refresh` the dialog after) and
+`LorebookActivationPreviewDialog`; the entry tab's eye opens the preview with `focus(entry)` (the row selected, a line with
+the verdict of that entry). `showEntry(entry)` opens a tab on an entry the way *Open* does (the row button of `LorebookView`,
+`openEditorOn`).
+For extensions: `getLorebook`, `getOrigin` (the `LorebookView` it was opened from, the workspace's or the one of a book's
+*Lorebook* tab; the Lore Generator reads the book it put on that view), `refresh` (list and tabs from the database) and
+`reloadEntry(entry)` (one entry changed elsewhere: its tab reloads, the list keeps sharing the tab's object);
+`LorebookEntryEditor.reloadFromDatabase` and `getLorebook` (the dialog's lorebook, the entry's own is a lazy reference). `build` runs once per tab: a reload only puts the new values into the fields, so what a decorator of `build` adds (the locals
+`header`, `body`, `footer`) stays and keeps the tab's entry object, which is updated in place. The plugins hook `createList` (local `list`, field `grid`) and `LorebookEntryEditor.build`: Lorebook VCS puts
+its history panel above the list and the revision bar under the header, the Lore Generator a wand column into the grid and a
+wand button into the header.
+
 **Redrawing the story.** `StoryEditor.reloadStory()` (public since 1.7.0, a private method of `ManuscriptStoryPart` and `PhoneManuscriptStoryPart` before) loads the story again from the database: the mass delete uses it, and so does an extension that changed the text of parts behind the editor's back (the Conlang Translator after a range run).
 
 **Mass delete.** The settings menu item `StoryMenuKeys.MASS_DELETE` (`StoryEditor.toggleMassDelete` / `isMassDelete`, a check box
@@ -428,7 +496,7 @@ and the code that is about to show a part calls it: an entry of the outline, a h
 when the user chooses a branch).
 
 The tab with the id `ManuscriptStoryPart.LOREBOOK_TAB` (`lorebook`) of the left bar is the `LorebookPreview` (`ui.components`),
-a preview of the lore of the book with a search box (`LorebookEntryFilter`) and, after `setEditable(true)` (the story tabs do it, the shared-import preview does not), a pen per entry that opens `LorebookEntryEditDialog` (`ui.dialogs`: name, enabled, filter and mode, content, note; not while `AgentRunService.findLockingRun` says an agent works on the lorebook). The desktop story and the drawer of `PhoneManuscriptStoryPart` both have it (the book window of the phone has the `PhoneLorebookView`). It is a `TreeGrid` of
+a preview of the lore of the book with a search box (`LorebookEntryFilter`) and, after `setEditable(true)` (the story tabs do it, the shared-import preview does not), with `setFullScreenEditor(true)` (the desktop story only) an expand button next to the search box and in every row, `openEditor(book, entry)` (`LorebookEditorDialog` without origin, then `showEntry`; the preview is refreshed when it closes), and a pen per entry that opens `LorebookEntryEditDialog` (`ui.dialogs`: name, enabled, filter and mode, content, note; not while `AgentRunService.findLockingRun` says an agent works on the lorebook). The desktop story and the drawer of `PhoneManuscriptStoryPart` both have it (the book window of the phone has the `PhoneLorebookView`). It is a `TreeGrid` of
 `Row`s (a lorebook or one of its entries) over a `TreeData` it rebuilds in `refresh(lorebook)`: with the *Include sub
 lorebooks* checkbox the lorebook and every lorebook below it (found breadth first like `ProcessLorebookStep` does, each
 once, so a cycle ends) are the top level rows and their entries the children, otherwise the entries of the lorebook are the

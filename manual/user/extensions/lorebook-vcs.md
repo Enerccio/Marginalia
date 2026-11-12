@@ -13,6 +13,11 @@ story.
 Lorebook VCS works in the [phone layout](../phone.md#extensions): the panel is under the *Enabled* row of the lorebook, the revisions of an entry are at the top of its form.
 !!!
 
+!!!
+In the [full-screen editor](../lorebooks/lorebooks.md#editing-in-full-screen) the **Lorebook Revisions** row is above the list of
+entries, and the revision bar of an entry is under the name row of its tab. Switching a revision shows it in the tab at once.
+!!!
+
 A revision is a snapshot of the whole entry: name, content, note, enabled, order, filter and filtering mode, insertion
 mode, *Do not search its content for other entries*, tags and negative tags. (Revisions made before that flag existed
 read as off.)

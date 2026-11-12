@@ -17,16 +17,20 @@ import com.github.enerccio.marginalia.extensions.loregenerator.model.LoreGenerat
 import com.github.enerccio.marginalia.extensions.loregenerator.service.LoreGeneratorService;
 import com.github.enerccio.marginalia.extensions.loregenerator.ui.LoreGeneratorDialog;
 import com.github.enerccio.marginalia.extensions.loregenerator.ui.LoreGeneratorSettingsForm;
+import com.github.enerccio.marginalia.ui.components.LorebookEntryEditor;
 import com.github.enerccio.marginalia.ui.components.LorebookView;
 import com.github.enerccio.marginalia.ui.components.PhoneLorebookView;
+import com.github.enerccio.marginalia.ui.dialogs.LorebookEditorDialog;
 import com.github.enerccio.marginalia.ui.dialogs.ManuscriptDialog;
 import com.github.enerccio.marginalia.ui.dialogs.phone.PhoneManuscriptDialog;
 import com.github.enerccio.marginalia.utils.UIUtils;
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ComponentUtil;
 import com.vaadin.flow.component.accordion.Accordion;
 import com.vaadin.flow.component.accordion.AccordionPanel;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import org.osgi.framework.Bundle;
 import org.slf4j.Logger;
@@ -50,6 +54,8 @@ public class LoreGeneratorExtension implements MarginaliaExtension {
     private static final String PHONE_LOREBOOK_VIEW = "com.github.enerccio.marginalia.ui.components.PhoneLorebookView";
     private static final String PHONE_LOREBOOK_PART = "com.github.enerccio.marginalia.ui.workspace.phone.parts.PhoneLorebookPart";
     private static final String PHONE_MANUSCRIPT_LOREBOOK_PART = "com.github.enerccio.marginalia.ui.dialogs.phone.manuscript.PhoneManuscriptLorebookPart";
+    private static final String LOREBOOK_EDITOR_DIALOG = "com.github.enerccio.marginalia.ui.dialogs.LorebookEditorDialog";
+    private static final String LOREBOOK_ENTRY_EDITOR = "com.github.enerccio.marginalia.ui.components.LorebookEntryEditor";
     private static final String SETTINGS_PANEL_KEY = LoreGeneratorData.KEY + ".settingsPanel";
     private static final String GENERATE_COLUMN_KEY = LoreGeneratorData.KEY + ".generateColumn";
     /** On a lorebook view that is the Lorebook tab of a book: how to get that book (a {@code Callable<Manuscript>}). */
@@ -78,10 +84,15 @@ public class LoreGeneratorExtension implements MarginaliaExtension {
     private ExtensionDecorator lorebookViewDecorator;
     private ExtensionDecorator lorebookPartDecorator;
     private ExtensionDecorator bookLorebookPartDecorator;
+    private ExtensionDecorator editorListDecorator;
+    private ExtensionDecorator entryEditorDecorator;
 
     // the desktop LorebookView and the PhoneLorebookView
     private final Set<VerticalLayout> activeViews = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
     private final Set<Accordion> activeAccordions = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
+    // the full-screen lorebook editor: the grids of its list tab (the column is kept on the grid) and the buttons of its entry tabs
+    private final Set<Grid<?>> activeEditorGrids = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
+    private final Set<Component> activeEditorButtons = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
 
     @Override
     public void onExtensionLoad(Bundle bundle, OsgiService parentService, ExtensionService extensionService) {
@@ -199,6 +210,39 @@ public class LoreGeneratorExtension implements MarginaliaExtension {
             extensionService.registerDecorator(bookLorebookPartDecorator, MANUSCRIPT_LOREBOOK_PART, "create");
             extensionService.registerDecorator(bookLorebookPartDecorator, PHONE_MANUSCRIPT_LOREBOOK_PART, "create");
 
+            // the full-screen lorebook editor: the button in every row of its list of entries
+            editorListDecorator = new ExtensionDecorator() {
+                @Override
+                public void onMethodEnter(Object instrumented, ExtendableMethodContext context) throws Exception {}
+
+                @Override
+                public void onMethodLeave(Object instrumented, ExtendableMethodContext context, Throwable throwing) throws Exception {
+                    if (instrumented instanceof LorebookEditorDialog dialog) {
+                        addEditorGenerateColumn(dialog, context);
+                    }
+                }
+            };
+            extensionService.registerDecorator(editorListDecorator, LOREBOOK_EDITOR_DIALOG, "createList");
+
+            // and in the header of every entry tab; the tab builds its content again when it reloads the entry, the
+            // button comes back with it
+            entryEditorDecorator = new ExtensionDecorator() {
+                @Override
+                public void onMethodEnter(Object instrumented, ExtendableMethodContext context) throws Exception {}
+
+                @Override
+                public void onMethodLeave(Object instrumented, ExtendableMethodContext context, Throwable throwing) throws Exception {
+                    HorizontalLayout header = context.getLocalVariable("header", HorizontalLayout.class);
+                    if (instrumented instanceof LorebookEntryEditor editor && header != null) {
+                        Button button = new Button(T.localized(GENERATE_LORE_ENTRY), Solid.WAND_MAGIC_SPARKLES.create(),
+                                e -> openFromEditor(editor));
+                        header.add(button);
+                        activeEditorButtons.add(button);
+                    }
+                }
+            };
+            extensionService.registerDecorator(entryEditorDecorator, LOREBOOK_ENTRY_EDITOR, "build");
+
             // the commands for the command bar and for agents
             commands = new LoreGeneratorCommands(loreGeneratorService);
             commandService.registerCommands(commands);
@@ -255,6 +299,47 @@ public class LoreGeneratorExtension implements MarginaliaExtension {
         activeViews.add(lorebookView);
     }
 
+    /**
+     * The book of the lorebook view the editor was opened from (the Lorebook tab of a book), null for the lorebooks of the
+     * workspace.
+     */
+    @SuppressWarnings("unchecked")
+    private static Callable<Manuscript> bookOf(LorebookEditorDialog dialog) {
+        return dialog == null || dialog.getOrigin() == null ? null
+                : (Callable<Manuscript>) ComponentUtil.getData(dialog.getOrigin(), BOOK_KEY);
+    }
+
+    private void addEditorGenerateColumn(LorebookEditorDialog dialog, ExtendableMethodContext context) {
+        @SuppressWarnings("unchecked")
+        Grid<LorebookEntry> grid = context.getReflectiveFieldValue(dialog, "grid", Grid.class);
+        if (grid == null || ComponentUtil.getData(grid, GENERATE_COLUMN_KEY) != null) {
+            return;
+        }
+        Grid.Column<LorebookEntry> column = grid.addComponentColumn(entry -> {
+            Button button = new Button(Solid.WAND_MAGIC_SPARKLES.create(), e ->
+                    new LoreGeneratorDialog(loreGeneratorService, dialog.getLorebook(), entry, bookOf(dialog),
+                            () -> dialog.reloadEntry(entry)).open());
+            button.setThemeName("tertiary");
+            button.setTooltipText(T.localized(GENERATE_LORE_ENTRY));
+            return button;
+        }).setHeader("").setFlexGrow(0).setWidth(UIConstants.TOOL_COLUMN_SIZE);
+        ComponentUtil.setData(grid, GENERATE_COLUMN_KEY, column);
+        activeEditorGrids.add(grid);
+    }
+
+    private void openFromEditor(LorebookEntryEditor editor) {
+        LorebookEditorDialog dialog = editor.findAncestor(LorebookEditorDialog.class);
+        LorebookEntry entry = editor.getEntry();
+        Runnable changed = () -> {
+            if (dialog != null) {
+                dialog.reloadEntry(entry);
+            } else {
+                editor.reloadFromDatabase();
+            }
+        };
+        new LoreGeneratorDialog(loreGeneratorService, editor.getLorebook(), entry, bookOf(dialog), changed).open();
+    }
+
     @Override
     public void onExtensionUnload(Bundle bundle, OsgiService osgiService, ExtensionService extensionService) {
         if (commands != null) {
@@ -276,6 +361,31 @@ public class LoreGeneratorExtension implements MarginaliaExtension {
         }
         if (bookLorebookPartDecorator != null) {
             extensionService.unregisterDecorator(bookLorebookPartDecorator);
+        }
+        if (editorListDecorator != null) {
+            extensionService.unregisterDecorator(editorListDecorator);
+        }
+        if (entryEditorDecorator != null) {
+            extensionService.unregisterDecorator(entryEditorDecorator);
+        }
+        synchronized (activeEditorGrids) {
+            for (Grid<?> grid : activeEditorGrids) {
+                UIUtils.accessComponent(grid, () -> {
+                    @SuppressWarnings("unchecked")
+                    Grid.Column<LorebookEntry> column = (Grid.Column<LorebookEntry>) ComponentUtil.getData(grid, GENERATE_COLUMN_KEY);
+                    if (column != null) {
+                        ((Grid<LorebookEntry>) grid).removeColumn(column);
+                        ComponentUtil.setData(grid, GENERATE_COLUMN_KEY, null);
+                    }
+                });
+            }
+            activeEditorGrids.clear();
+        }
+        synchronized (activeEditorButtons) {
+            for (Component button : activeEditorButtons) {
+                UIUtils.accessComponent(button, button::removeFromParent);
+            }
+            activeEditorButtons.clear();
         }
         synchronized (activeViews) {
             for (VerticalLayout view : activeViews) {

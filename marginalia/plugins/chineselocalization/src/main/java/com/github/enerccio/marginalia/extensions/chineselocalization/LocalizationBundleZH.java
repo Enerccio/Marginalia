@@ -1073,6 +1073,14 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_RUN_HOLDS, "占用");
         setValue(L.LABEL_END_RUN, "结束");
         setValue(L.LABEL_REVIEW, "审阅");
+        setValue(L.LABEL_FULL_SCREEN_EDITOR, "全屏编辑器");
+        setValue(L.LABEL_OPEN_IN_NEW_TAB, "在新标签页中打开");
+        setValue(L.LABEL_SHOW_NOTE, "显示备注");
+        setValue(L.LABEL_KEEP_MY_TEXT, "保留我的文本");
+        setValue(L.LABEL_LOAD_SAVED_TEXT, "加载已保存的文本");
+        setValue(L.LABEL_CHECK_AGAIN, "重新检查");
+        setValue(L.LABEL_OPEN_IN_FULL_SCREEN_EDITOR, "在全屏编辑器中打开");
+        setValue(L.LABEL_DONT_SCAN_ITS_CONTENT, "不扫描其内容");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -1865,6 +1873,11 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.MSG_AFTER_PART_FAILED, "新部分之后的处理在%s处失败：%s");
         setValue(L.MSG_AFTER_PART_NOT_RUN, "未运行：%s。");
         setValue(L.MSG_CLOSE_OPEN_BOOK_FIRST, "此处已打开另一本书“%s”。请先将其关闭。");
+        setValue(L.MSG_ENTRY_CHANGED_ELSEWHERE, "此文本在此处打开后已在其他地方被修改。您输入的内容尚未保存。");
+        setValue(L.MSG_ENTRY_DELETED_ELSEWHERE, "此条目已在其他地方被删除，其标签页已关闭。");
+        setValue(L.MSG_LAST_CHANGE_NOT_SAVED, "您最后的更改未保存。");
+        setValue(L.MSG_ACTIVATION_PREVIEW_ENTRY_USED, "“%s”会被使用：%s。");
+        setValue(L.MSG_ACTIVATION_PREVIEW_ENTRY_NOT_USED, "“%s”不会被使用：%s。");
 
         // --- HELP ---
         setValue(L.HELP_BACKUP_SCHEDULE, "分 时 日 月 星期 - 例如：\"0 3 * * *\" 每天 3:00，\"0 */6 * * *\" 每 6 小时，\"30 2 * * 1\" 每周一 2:30。也可使用 @daily、@weekly 和 @monthly。");
