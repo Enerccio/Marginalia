@@ -14,7 +14,7 @@ covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/BackupFolders.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/BackupInheritance.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/OsgiServiceImpl.java
-verified: cec4f0cd1
+verified: e677cd1e8
 ---
 
 # Inherited settings
