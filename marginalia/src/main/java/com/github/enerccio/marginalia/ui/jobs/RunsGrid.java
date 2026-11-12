@@ -77,10 +77,23 @@ public class RunsGrid extends VerticalLayout {
         if (run.isWaitingForUser()) {
             return loc.getValue(L.MSG_RUN_WAITS_FOR_YOU);
         }
-        if (run.getText().getWaiting() > 0) {
-            return String.format(loc.getValue(L.MSG_WAITING_FOR_MODEL_AHEAD), run.getText().getWaiting());
+        if (Runs.BOOK_WINDOW.equals(run.getSource())) {
+            // it holds the book open, it does no work
+            return "";
         }
-        return run.getStage() == null ? "" : run.getStage().name();
+        // what the panel of the runs says: an empty column would look the same for a run that works and one that is stuck
+        Runs.Text written = run.getText();
+        String state;
+        if (written.getWaiting() > 0) {
+            state = String.format(loc.getValue(L.MSG_WAITING_FOR_MODEL_AHEAD), written.getWaiting());
+        } else if (!written.getAnswer().isEmpty()) {
+            state = loc.getValue(L.MSG_RUN_WRITING);
+        } else if (!written.getReasoning().isEmpty()) {
+            state = loc.getValue(L.MSG_RUN_THINKING);
+        } else {
+            state = loc.getValue(L.MSG_RUN_WORKING);
+        }
+        return run.getStage() == null ? state : state + " · " + run.getStage().name();
     }
 
     private Div actions(Runs.Run run) {
