@@ -7,6 +7,7 @@ import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.test.MarginaliaTestBase;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -18,6 +19,11 @@ import static org.assertj.core.api.Assertions.assertThat;
  * The app migration 3 → 4 copies {@code response} into {@code originalResponse} of the parts saved before it existed.
  */
 class OriginalResponseMigrationTest extends MarginaliaTestBase {
+
+    @BeforeEach
+    void quiet() {
+        quietBackgroundWriters();
+    }
 
     @Autowired
     private ApplicationContext context;

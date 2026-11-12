@@ -422,7 +422,8 @@ the window). On a phone the windows still cover the story, but they fold the sam
 
 **Close and Stop are two things.** The window's own **Stop** stops the model and the window stays with what arrived. **Close**
 while the model works does not stop it: the window folds into the panel and the model goes on in its queue; its answer is in the
-window when you open it again. Close a window whose model is done, or **Close** it in the panel, and it is gone. The same holds
+window when you open it again. Close a window whose model is done, or **Close** it in the panel, and it is gone; closing the book or the browser tab
+stops a folded window too. The same holds
 for the other windows that wait for a model: a **summary** (and *Create summaries*, *Rewrite all summaries*), the
 [Reviewer](../extensions/reviewer.md), the book description, the lore and outline generators, the image and manga generators, and
 the persona writer of Beta Readers. The audiobook's *Studio* and *Convert* windows do not block the page either; closing them never

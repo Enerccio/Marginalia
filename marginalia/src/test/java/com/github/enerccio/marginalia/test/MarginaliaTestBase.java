@@ -11,12 +11,18 @@ import com.github.enerccio.marginalia.domain.security.service.PermissionService;
 import com.github.enerccio.marginalia.domain.security.service.UserService;
 import com.github.enerccio.marginalia.domain.service.AIService;
 import com.github.enerccio.marginalia.domain.service.InferenceServices;
+import com.github.enerccio.marginalia.domain.service.ActivityTracker;
+import com.github.enerccio.marginalia.domain.service.ManuscriptSizeService;
+import com.github.enerccio.marginalia.domain.service.impl.ActivityTrackerImpl;
+import com.github.enerccio.marginalia.domain.service.impl.ManuscriptSizeServiceImpl;
 import com.github.enerccio.marginalia.test.llm.MockLLMScenario;
 import com.github.enerccio.marginalia.test.llm.MockLLMServer;
+import com.vaadin.flow.component.UI;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.junit.jupiter.web.SpringJUnitWebConfig;
+import org.springframework.test.util.AopTestUtils;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -67,6 +73,14 @@ public abstract class MarginaliaTestBase {
      */
     protected MockLLMScenario llm;
 
+    @Autowired
+    private ManuscriptSizeService sizeService;
+
+    @Autowired
+    private ActivityTracker activityTracker;
+
+    private boolean quietSizes;
+
     @BeforeEach
     void setUpMockLLM() {
         llm = MockLLMServer.shared().scenario();
@@ -77,6 +91,37 @@ public abstract class MarginaliaTestBase {
         llm.close();
         // the registry of runs is static: what a test left running holds nothing in the next one
         Runs.reset();
+        // a page a test made current stays on the thread of the fork: the next test's UI code would use it (no session)
+        UI.setCurrent(null);
+        if (quietSizes) {
+            quietSizes = false;
+            sizeImpl().setManual(false);
+            trackerImpl().setManual(false);
+        }
+    }
+
+    private ActivityTrackerImpl trackerImpl() {
+        return (ActivityTrackerImpl) AopTestUtils.getUltimateTargetObject(activityTracker);
+    }
+
+    private ManuscriptSizeServiceImpl sizeImpl() {
+        return (ManuscriptSizeServiceImpl) AopTestUtils.getUltimateTargetObject(sizeService);
+    }
+
+    /**
+     * For a test that rewrites whole tables in one transaction (a migration): what the background writers have pending from
+     * earlier tests (the sizes of the books they changed, the activity of their generations and agent runs) is written now, and
+     * the writers do not write by themselves until the test ends. Their delayed writes would otherwise land in the middle of the
+     * test's transaction, which then fails with SQLITE_BUSY (only after tests that changed many books).
+     */
+    protected void quietBackgroundWriters() {
+        quietSizes = true;
+        ManuscriptSizeServiceImpl sizes = sizeImpl();
+        sizes.setManual(true);
+        sizes.flush();
+        ActivityTrackerImpl tracker = trackerImpl();
+        tracker.setManual(true);
+        tracker.flush();
     }
 
     protected static String uniqueName(String prefix) {

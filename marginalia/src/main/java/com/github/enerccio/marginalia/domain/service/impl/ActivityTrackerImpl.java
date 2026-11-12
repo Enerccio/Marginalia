@@ -476,7 +476,7 @@ public class ActivityTrackerImpl implements ActivityTracker {
         try {
             worker.execute(() -> {
                 wakePending.set(false);
-                flushQuietly();
+                flushUnlessManual();
             });
         } catch (RejectedExecutionException e) {
             // the server is going down
@@ -489,9 +489,16 @@ public class ActivityTrackerImpl implements ActivityTracker {
             return;
         }
         try {
-            worker.schedule(this::flushQuietly, delayMillis, TimeUnit.MILLISECONDS);
+            worker.schedule(this::flushUnlessManual, delayMillis, TimeUnit.MILLISECONDS);
         } catch (RejectedExecutionException e) {
             // the server is going down
+        }
+    }
+
+    /** A flush the worker was given before the tracker became manual does not write either. */
+    private void flushUnlessManual() {
+        if (!manual) {
+            flushQuietly();
         }
     }
 

@@ -6,10 +6,13 @@ import com.github.enerccio.marginalia.domain.model.impl.*;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.security.permissions.PermissionType;
 import com.github.enerccio.marginalia.domain.service.AgentRunService;
+import com.github.enerccio.marginalia.domain.service.AgentRunner;
 import com.github.enerccio.marginalia.domain.service.AgentService;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.domain.service.ProtocolService;
+import org.junit.jupiter.api.AfterEach;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
  * Agents need a user who is allowed to have them, a manuscript and a model; the helpers make them.
@@ -27,6 +30,30 @@ public abstract class AgentTestBase extends MarginaliaTestBase {
 
     @Autowired
     protected ProtocolService protocolService;
+
+    @Autowired
+    private AgentRunner agentRunner;
+
+    @Autowired
+    private JdbcTemplate agentRunsJdbc;
+
+    /**
+     * A test that ends while a worker still works on a run (it sent a message and checked only what happens at once) leaves the
+     * worker writing into the shared database during the next test, whose own writes then fail with SQLITE_BUSY: wait for the
+     * workers (at most 20 s), before the mock model of the test is closed.
+     */
+    @AfterEach
+    void waitForTheAgentWorkers() throws InterruptedException {
+        long end = System.currentTimeMillis() + 20_000;
+        while (System.currentTimeMillis() < end && agentRunsJdbc.queryForList("SELECT id FROM agent_runs", Long.class).stream()
+                .anyMatch(id -> {
+                    AgentRun run = new AgentRun();
+                    run.setId(id);
+                    return agentRunner.isWorking(run);
+                })) {
+            Thread.sleep(25);
+        }
+    }
 
     /**
      * Creates a user who may use agents and logs them in.

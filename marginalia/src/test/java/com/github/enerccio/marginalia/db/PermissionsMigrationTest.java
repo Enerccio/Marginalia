@@ -9,6 +9,7 @@ import com.github.enerccio.marginalia.domain.security.permissions.PermissionType
 import com.github.enerccio.marginalia.domain.service.SettingService;
 import com.github.enerccio.marginalia.test.MarginaliaTestBase;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -22,6 +23,11 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @SuppressWarnings("deprecation")
 class PermissionsMigrationTest extends MarginaliaTestBase {
+
+    @BeforeEach
+    void quiet() {
+        quietBackgroundWriters();
+    }
 
     @Autowired
     private ApplicationContext context;

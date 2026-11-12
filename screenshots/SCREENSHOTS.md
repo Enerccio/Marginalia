@@ -73,7 +73,8 @@ itself when `llm/` or `dataset/` change (`node --watch`).
 
 Control endpoints: `POST /_queue {"reply": "...", "reasoning": "...", "status": 401, "message": "...", "toolCalls": [{"name": "...", "arguments": {...}}]}` (a one-shot answer
 that wins over the rules, used for `t2b` and for the error picture), `POST /_mode`, `GET /_log` (the last requests, also all in
-`.run/llm-requests.jsonl`), `POST /_reset`. When a new kind of request shows up, look at the log, then add a rule.
+`.run/llm-requests.jsonl`), `POST /_pace {"delayMs": 3000, "chunkDelayMs": 250}` (every answer that sets neither waits and
+streams that slowly, `{}` is the normal pace: to try by hand what happens while a model works), `POST /_reset` (also the pace). When a new kind of request shows up, look at the log, then add a rule.
 
 ## Commands
 

@@ -10,6 +10,24 @@ not needed so far).
 Read from the code at commit `f2f64a955`. Points marked **(check)** were not read to the end and must be confirmed before they are
 relied on.
 
+## Where the work stopped (2026-11-12)
+
+To pick up on another machine; delete this section when it is done.
+
+1. **Full suite.** The last full run (repo root, `mvn clean test -Dvaadin.skip=true -Dbuild.dir=/tmp/marginalia-build`) passed all
+   4,888 tests of the app; the plugins' tests were still running when the work stopped (their changed ones had passed one by one).
+   Run it once more from the root and look at the plugins. The two runs before failed on tests that disturbed each other in one
+   JVM, fixed in the same commit as this note: the current `UI` is cleared after every test (`MarginaliaTestBase`), the agent tests
+   wait for their workers (`AgentTestBase`), `quietBackgroundWriters()` for the migration tests, and the size worker and the activity
+   tracker no longer write from a run they scheduled before they were set manual. If another test fails only in the full run, look
+   for a background writer first (a thread dump at the failure shows it).
+2. **The browser check** below (section *The browser check*): the setup commands, then the list. Fix what it finds.
+3. **Developer docs:** `python3 tools/check_dev_docs.py` flags 33 pages (most from the earlier steps); review them against the code
+   and stamp each with `--stamp` in a commit of its own.
+4. Optional: a code review of the commits of this work (`097b30d14` onwards), mainly the fold / detach / close paths of
+   `FloatingWindow` and the plugins' `onDetach`.
+5. Then the open items of the steps below (Audiobook batches as runs, Review / finished runs in the panel, Side Query's tab name...).
+
 ## Summary
 
 - The pieces exist, but each of them is local: a flag of one page, a set inside one plugin, a log for the administrator. Nothing on
@@ -1003,8 +1021,8 @@ working as today (its own window); it only is not seen by the registry.
      panel (`closeForGood`) and the book window's detach stop it. A click on an entry of the panel opens its window or its Review.
      A window without parts is a run only while its model works. Test: `FloatingWindowTest`. Not done: **(check)** in a real
      browser (a folded dialog is detached: the plugins' `onDetach` now ask `isMinimised()`); the conlang designer, the translators'
-     `RangeDialog` (already modeless with Close and Stop apart) and the kind-A chats are unchanged; a folded window of a tab that
-     is closed while no book window is its owner goes on until its model is done;
+     `RangeDialog` (already modeless with Close and Stop apart) and the kind-A chats are unchanged. A folded window ends with its page
+     too (the `UI`'s detach), also when no book window owns it;
    - **(check)** in a real browser: the entries of these windows in the panel of another page, and the Stop from there.
 
 Steps 1 to 3 are small and already help: the model's connections are used in order, and an annotation or a redraft no longer
@@ -1012,6 +1030,61 @@ blocks the writing. Steps 4 to 6 give what the item's text asks for (the registr
 choice) and free the page during a generation. Step 7 puts everything that follows a generation in one ordered, visible place.
 Step 8 is what "a run that survives the closed page" means for the windows that hold their answer; it can be taken one window
 at a time or left out. The generation itself does not survive its page: leaving stops it.
+
+## The browser check
+
+The "(check)" notes of the steps above, as one session in a real browser. Tick a line when it works, or note what happened.
+
+**Setup** (the screenshot environment, its own data and ports, nothing touches `~/.marginalia`):
+
+```sh
+mvn package -DskipTests                         # repo root, into target/ (the IDE closed: it shares target/); the WAR and every plugin
+screenshots/bin/restore.sh 99-final --no-start  # the dataset: the book "Unregistered", lore, summaries, all plugins
+screenshots/bin/refresh-plugins.sh              # the plugin JARs of this commit
+screenshots/bin/start-llm.sh && screenshots/bin/start-app.sh
+curl -s -X POST localhost:8098/_pace -d '{"delayMs":3000,"chunkDelayMs":250}'   # a slow model: about 3 s queued, then word by word
+```
+
+Then <http://localhost:8099>, `admin` / `marginalia`; a second tab (or a private window as `jana`) for the "other page" lines.
+`curl -X POST localhost:8098/_pace -d '{}'` gives the normal pace back; `screenshots/bin/stop-app.sh` and `stop-llm.sh` at the end.
+
+**The folding windows** (step 8, built afterwards; each: start the model, *Close* while it writes, see the entry in the panel,
+click the entry, the window is back with the text going on; then *Stop* in the window: it stays with what arrived; then *Close*
+it in the panel of a folded one: the model stops):
+
+- [ ] annotate a part, and a range of parts; redraft a part, and a selected passage
+- [ ] a summary of a part, and a meta summary; *Create summaries* and *Rewrite all summaries* (one entry each, not two)
+- [ ] Reviewer; book description; lore generator; an Arc Outline generator
+- [ ] image generator (the prompt being written, then the picture; *Accept* of a folded one); manga generator (continuous)
+- [ ] Beta Readers persona writer; Audiobook Studio and Convert are only not modal (the page usable beside them)
+- [ ] the plugin windows while folded really go on: their text is complete when opened again (a folded dialog is detached;
+      the plugins' `onDetach` ask `isMinimised()`)
+- [ ] a folded window and the exit button of the book window: the window ends, its model stops
+- [ ] a folded window and a closed tab, without a book window (the lore generator from a lorebook, or *Create summaries* after
+      an import) and with one: the run leaves the panel of the second tab, its model stops
+- [ ] the windows stand at the right, can be moved and resized; on a narrow window (phone width) they are modal and full
+
+**The panel of the runs** (step 6):
+
+- [ ] the entries of these windows in the panel of the other tab, with the text going on; *Stop* from there stops the
+      window's model in the first tab
+- [ ] drag the panel by its grip with a book window open (the panel is in the top layer then); its place is kept on reload
+- [ ] the model's queue: two requests at once (a summary and a redraft) show "waiting, 1 before"
+
+**The generation** (steps 5 and 6c):
+
+- [ ] while a part is generated: lore, prompt and info tabs usable, an earlier part can be annotated and redrafted, the new
+      part and the ones before it can not be deleted or merged
+- [ ] the exit button asks and stops; a reload asks (the browser's own question)
+- [ ] `/next` in the command bar: the part streams into the story, the round button stops it, the result popover at the end;
+      a second `/next` while it runs is refused, the text stays in the field
+
+**What follows the part** (step 7, with automatic annotation on in the book):
+
+- [ ] after a generated part the annotation and the redraft run as one entry; a result to decide opens its window in the
+      generating page, and from *Review* in the panel of the other tab
+
+**Not on this list:** a phone in the background (6d) needs a real device.
 
 ## Open questions
 

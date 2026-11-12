@@ -31,8 +31,8 @@ import java.util.function.Supplier;
  * <b>Close and Stop are two things.</b> The window's own Stop stops the model and the window stays with what arrived. Closing the
  * window while the model works ({@link #setRunning}) folds it into the corner instead: the run goes on in the queue of the model and
  * in the panel of the runs, where the window opens again (its answer is there when the model is done) or is stopped and closed. Closing
- * it when the model does not work ends it, and so does closing the book window it was opened from (also while it is folded), which
- * stops the model. A page without a corner (no shell, as in the tests) has nowhere to fold to: there closing stops as before.
+ * it when the model does not work ends it, and so does closing the book window it was opened from or the tab of its page (also
+ * while it is folded), which stops the model. A page without a corner (no shell, as in the tests) has nowhere to fold to: there closing stops as before.
  * <p>
  * The window is in the {@link PageRuns} of its page (the corner) and, while the model works, a run of the {@link Runs}: its place in
  * the queue, what the model writes and a Stop in the panel of every page of the user. A window that holds parts ({@link #setParts},
@@ -70,6 +70,8 @@ public final class FloatingWindow {
     private final Component owner;
 
     private Registration ownerGone;
+    // the page itself: a window folded in a tab that is closed (or whose heartbeats stop) ends with it, also without a book window
+    private Registration pageGone;
     private PageRuns.Run run;
     private Runs.Run hold;
     // the run of the registry the window is a part of (what follows a generated part), instead of one of its own
@@ -210,6 +212,9 @@ public final class FloatingWindow {
             }
             if (owner != null && ownerGone == null) {
                 ownerGone = owner.addDetachListener(_ -> end(true));
+            }
+            if (pageGone == null) {
+                pageGone = ui.addDetachListener(_ -> end(true));
             }
         }
         run.setMinimised(false);
@@ -475,6 +480,10 @@ public final class FloatingWindow {
         if (ownerGone != null) {
             ownerGone.remove();
             ownerGone = null;
+        }
+        if (pageGone != null) {
+            pageGone.remove();
+            pageGone = null;
         }
         if (run != null) {
             run.remove();

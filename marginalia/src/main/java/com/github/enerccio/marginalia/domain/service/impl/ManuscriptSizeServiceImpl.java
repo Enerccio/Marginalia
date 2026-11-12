@@ -165,6 +165,10 @@ public class ManuscriptSizeServiceImpl extends OwnedServiceImpl<ManuscriptSize, 
     /** Measures what is due; what a later touch moved on is left for the next run. */
     private void runDue() {
         scheduled.set(false);
+        if (manual) {
+            // scheduled before the service became manual: what is pending waits for flush()
+            return;
+        }
         long now = System.currentTimeMillis();
         long next = Long.MAX_VALUE;
         List<Map.Entry<Long, Pending>> due = new ArrayList<>();
@@ -321,5 +325,9 @@ public class ManuscriptSizeServiceImpl extends OwnedServiceImpl<ManuscriptSize, 
      */
     public void setManual(boolean manual) {
         this.manual = manual;
+        if (!manual && !pending.isEmpty() && scheduled.compareAndSet(false, true)) {
+            // what was touched meanwhile is measured as if it had been touched now
+            schedule(delayMillis + 20);
+        }
     }
 }

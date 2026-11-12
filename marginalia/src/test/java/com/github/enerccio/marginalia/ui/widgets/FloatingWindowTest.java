@@ -7,6 +7,7 @@ import com.github.enerccio.marginalia.ui.components.RunCorner;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ComponentUtil;
+import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.dialog.Dialog;
 import org.junit.jupiter.api.AfterEach;
@@ -100,6 +101,26 @@ class FloatingWindowTest extends MarginaliaTestBase {
         floating.closeForGood();
         assertThat(stopped.get()).isEqualTo(1);
         assertThat(ended.get()).isEqualTo(1);
+        assertThat(run.isEnded()).isTrue();
+        assertThat(floating.isLive()).isFalse();
+        ui.remove(corner);
+    }
+
+    @Test
+    void aFoldedWindowEndsWithItsPage() {
+        RunCorner corner = new RunCorner();
+        ui.add(corner);
+        Dialog dialog = new Dialog();
+        FloatingWindow floating = window(dialog);
+        dialog.open();
+        floating.setRunning(true);
+        Runs.Run run = floating.holdForTest();
+        dialog.close();
+        assertThat(floating.isMinimised()).isTrue();
+
+        // the tab is closed: no book window owns the window, the page itself ends it
+        ComponentUtil.fireEvent(ui, new DetachEvent(ui));
+        assertThat(stopped.get()).isEqualTo(1);
         assertThat(run.isEnded()).isTrue();
         assertThat(floating.isLive()).isFalse();
         ui.remove(corner);
