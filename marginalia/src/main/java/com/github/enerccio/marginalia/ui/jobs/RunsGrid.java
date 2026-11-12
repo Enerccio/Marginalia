@@ -121,6 +121,8 @@ public class RunsGrid extends VerticalLayout {
     public void refresh() {
         List<Runs.Run> runs = Runs.all().stream().filter(run -> !run.isEnded()).toList();
         grid.setItems(runs);
+        // the counts and durations grow while a job runs: the widths measured on the first rows would cut them
+        grid.recalculateColumnWidths();
         summary.setText(runs.isEmpty() ? loc.getValue(L.MSG_RUNS_NONE) : "");
         summary.setVisible(runs.isEmpty());
     }

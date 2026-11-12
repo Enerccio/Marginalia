@@ -77,6 +77,8 @@ public class ActiveJobsGrid extends VerticalLayout {
         try {
             List<ActiveJob> jobs = jobService.active();
             grid.setItems(jobs);
+            // the counts and durations grow while a job runs: the widths measured on the first rows would cut them
+            grid.recalculateColumnWidths();
             int calls = jobs.stream().mapToInt(ActiveJob::runningCalls).sum();
             summary.setText(jobs.isEmpty() ? loc.getValue(L.MSG_JOBS_NONE_ACTIVE)
                     : String.format(loc.getValue(L.MSG_JOBS_ACTIVE_SUMMARY), jobs.size(), calls));
