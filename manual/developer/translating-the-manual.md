@@ -1,7 +1,7 @@
 ---
 label: Translating the manual
 order: 150
-verified: 5e6b15121
+verified: 8a8764342
 covers:
   - tools/manual_i18n.py
 ---
