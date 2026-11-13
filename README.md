@@ -25,6 +25,84 @@ Marginalia は、大規模言語モデル（LLM）と共同で長編小説を書
   次回ログイン時にも使われます。ログイン画面は英語です。
 - インストール方法は下の [Installation](#installation) を、マニュアル（英語）は上のリンクをご覧ください。
 
+## Français
+
+Marginalia est un outil auto-hébergé pour écrire de longs récits en collaboration avec des grands modèles de langage (LLM).
+Vous rédigez les consignes de chaque partie, le modèle écrit le texte, et Marginalia organise tout le reste : l'histoire
+ramifiée, le lore du monde (lorebooks), les résumés qui permettent aux longs livres de tenir dans le contexte du modèle et
+les réglages de prompt qui façonnent le style.
+
+- Il fonctionne dans le navigateur, comme petit serveur (Docker) ou comme application de bureau, avec n'importe quelle API
+  compatible OpenAI (OpenAI, OpenRouter, LiteLLM, llama.cpp, LM Studio, Ollama, vLLM, etc.).
+- L'interface est traduite en français. Choisissez le français dans le sélecteur **Langue** en bas de l'espace de travail :
+  le choix est enregistré dans votre compte et réutilisé à la prochaine connexion. L'écran de connexion reste en anglais.
+- Pour l'installation, voir [Installation](#installation) plus bas ; le manuel (en anglais) est accessible par le lien ci-dessus.
+
+## Español
+
+Marginalia es una herramienta autoalojada para escribir ficción larga junto con grandes modelos de lenguaje (LLM). Tú
+escribes las instrucciones de cada parte, el modelo redacta el texto y Marginalia ordena todo lo demás: la historia
+ramificada, el lore del mundo (lorebooks), los resúmenes que mantienen los libros largos dentro del contexto del modelo y
+los ajustes de prompt que dan forma al estilo.
+
+- Funciona en el navegador, como un pequeño servidor (Docker) o como aplicación de escritorio, con cualquier API compatible
+  con OpenAI (OpenAI, OpenRouter, LiteLLM, llama.cpp, LM Studio, Ollama, vLLM y otras).
+- La interfaz está traducida al español. Elige el español en el selector **Idioma** de la parte inferior del espacio de
+  trabajo: la elección se guarda en tu cuenta y se usa en el próximo inicio de sesión. La pantalla de inicio de sesión
+  siempre está en inglés.
+- Para la instalación, consulta [Installation](#installation) más abajo; el manual (en inglés) está en el enlace de arriba.
+
+## Deutsch
+
+Marginalia ist ein selbst gehostetes Werkzeug, um lange Prosa gemeinsam mit großen Sprachmodellen (LLMs) zu schreiben. Sie
+schreiben die Anweisungen für jeden Abschnitt, das Modell verfasst den Text, und Marginalia hält alles andere in Ordnung:
+die verzweigte Geschichte, das Weltwissen (Lorebooks), die Zusammenfassungen, die lange Bücher im Kontext des Modells
+halten, und die Prompt-Einstellungen, die den Stil prägen.
+
+- Es läuft im Browser, als kleiner Server (Docker) oder als Desktop-App, mit jeder OpenAI-kompatiblen API (OpenAI,
+  OpenRouter, LiteLLM, llama.cpp, LM Studio, Ollama, vLLM und weitere).
+- Die Oberfläche ist ins Deutsche übersetzt. Wählen Sie Deutsch im Auswahlfeld **Sprache** am unteren Rand des
+  Arbeitsbereichs: Die Wahl wird in Ihrem Konto gespeichert und bei der nächsten Anmeldung wieder verwendet. Die
+  Anmeldeseite ist immer auf Englisch.
+- Die Installation steht unten unter [Installation](#installation); das Handbuch (auf Englisch) finden Sie über den Link oben.
+
+## 한국어
+
+Marginalia는 대규모 언어 모델(LLM)과 함께 장편 소설을 쓰기 위한 셀프 호스팅 도구입니다. 각 장면의 지시문을 작성하면
+모델이 본문을 쓰고, Marginalia는 분기하는 이야기, 세계관 설정(로어북), 긴 작품을 모델의 컨텍스트에 담기 위한 요약,
+문체를 결정하는 프롬프트 설정을 관리합니다.
+
+- 브라우저에서 동작하며, 작은 서버(Docker) 또는 데스크톱 앱으로 사용할 수 있고, OpenAI 호환 API(OpenAI, OpenRouter,
+  LiteLLM, llama.cpp, LM Studio, Ollama, vLLM 등)를 지원합니다.
+- 화면은 한국어로 번역되어 있습니다. 작업 공간 하단의 **언어** 선택기에서 한국어를 고르면 설정이 계정에 저장되어 다음
+  로그인 때도 사용됩니다. 로그인 화면은 영어입니다.
+- 설치 방법은 아래 [Installation](#installation)을, 매뉴얼(영어)은 위의 링크를 참고하세요.
+
+## Italiano
+
+Marginalia è uno strumento self-hosted per scrivere narrativa lunga insieme a grandi modelli linguistici (LLM). Tu scrivi le
+istruzioni per ogni parte, il modello redige il testo e Marginalia tiene in ordine tutto il resto: la storia ramificata, il
+lore del mondo (lorebook), i riassunti che mantengono i libri lunghi entro il contesto del modello e le impostazioni dei
+prompt che danno forma allo stile.
+
+- Funziona nel browser, come piccolo server (Docker) o come app desktop, con qualsiasi API compatibile con OpenAI (OpenAI,
+  OpenRouter, LiteLLM, llama.cpp, LM Studio, Ollama, vLLM e altre).
+- L'interfaccia è tradotta in italiano. Scegli l'italiano nel selettore **Lingua** in fondo all'area di lavoro: la scelta
+  viene salvata nel tuo account e usata di nuovo al prossimo accesso. La schermata di accesso è sempre in inglese.
+- Per l'installazione vedi [Installation](#installation) più sotto; il manuale (in inglese) è raggiungibile dal link qui sopra.
+
+## 简体中文
+
+Marginalia 是一款自托管工具，用于与大型语言模型（LLM）共同创作长篇小说。你为每个段落写下指示，模型生成正文，
+Marginalia 则负责管理其余的一切：分支的故事、世界设定（Lorebook）、让长篇作品保持在模型上下文之内的摘要，以及决定
+文风的提示词设置。
+
+- 它在浏览器中运行，可以作为小型服务器（Docker）或桌面应用使用，支持任何与 OpenAI 兼容的 API（OpenAI、OpenRouter、
+  LiteLLM、llama.cpp、LM Studio、Ollama、vLLM 等）。
+- 简体中文界面由扩展 *Chinese localization* 提供：管理员在 *Admin → Extensions* 中加载它（见 [Extensions](#extensions)）后，
+  在工作区底部的**语言**选择器中选择「中文（简体）」，设置会保存到你的账户，下次登录时继续使用。登录界面始终为英文。
+- 安装方法见下方的 [Installation](#installation)；手册（英文）请见上方链接。
+
 ## Features
 
 - **Books with branching stories** - regenerate or swipe a part, branch from any point, navigate the story tree,
@@ -39,8 +117,8 @@ Marginalia は、大規模言語モデル（LLM）と共同で長編小説を書
   generation settings ("protocols") you can switch per book.
 - **Backups** - per-book backups with restore and copy, plus full database backups on a cron schedule.
 - **Multiple users** - each with their own books, lore and models; administrators manage users, backups and cleanup.
-- **Languages** - the interface is available in English and Japanese; every user picks their own language, and
-  extensions can add more (Simplified Chinese is included as a plugin).
+- **Languages** - the interface is available in English, Japanese, French, Spanish, German, Korean and Italian; every user
+  picks their own language, and extensions can add more (Simplified Chinese is included as a plugin).
 - **Published books** - share a read-only view of a book.
 - **Search and replace, commands** - search and replace in the story and in lorebooks (also with regular
   expressions), and a command line in the story editor with commands that read and change the book.

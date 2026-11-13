@@ -42,3 +42,6 @@ retype.manifest
 # Python bytecode (the screenshot and tool scripts)
 __pycache__/
 *.pyc
+
+# transient output of tools/manual_i18n.py (assembled sites, token usage of the translations)
+/build/
