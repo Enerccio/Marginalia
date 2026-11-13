@@ -398,12 +398,12 @@ the first time it is pushed; make it public in the package settings on GitHub so
 The sources of the manual are part of the repository, the generated site is not: Retype reads `manual/` and writes
 the static site to `docs/` (configured in `retype.yml`), which git ignores.
 
-The workflow `manual.yml` publishes it. It runs on a push to `master` that changes `manual/**`, `retype.yml`, the root
-`pom.xml` (the version in the label), `tools/retype_build.sh` or the workflow, and by hand (*workflow_dispatch*):
+The workflow `manual.yml` publishes it. It runs on a push to `master` that changes `manual/**`, `translations/**`, `retype.yml`, the root
+`pom.xml` (the version in the label), `tools/retype_build.sh`, `tools/manual_i18n.py` or the workflow, and by hand (*workflow_dispatch*):
 
 | Job | Does |
 |---|---|
-| `build` | Installs Retype (the version in `RETYPE_VERSION`, the one the manual is written with), runs `tools/retype_build.sh` and uploads `docs/` as a Pages artifact. |
+| `build` | Installs Retype (the version in `RETYPE_VERSION`, the one the manual is written with), runs `tools/retype_build.sh` (the English site in `docs/` and a site `docs/<language>` for every language that has translated pages, see [Translating the manual](translating-the-manual.md#the-site)) and uploads `docs/` as a Pages artifact. |
 | `deploy` | Publishes the artifact to GitHub Pages (environment `github-pages`). Not for pull requests: those only build, as a check. |
 
 So the published manual changes when a commit with a changed manual reaches `master`, nothing has to be rebuilt or

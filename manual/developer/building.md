@@ -324,7 +324,7 @@ exact version of the application. See [Plugin development](plugins/index.md).
 
 `marginalia/plugins/Dockerfile` and `docker-compose.yml` build everything in a container, so no local JDK or Maven is
 needed (this is how the Docker server is updated, see [Packaging](packaging.md#plugins)). The build context is the
-repository root; the image copies `pom.xml`, `marginalia/pom.xml`, `marginalia/src`, `manual/user` (packed into the application's classes, so a plugin build against it sees the same manual), `.git`, `marginalia/libs` and `marginalia/plugins`, runs
+repository root; the image copies `pom.xml`, `marginalia/pom.xml`, `marginalia/src`, `manual/user` and `translations` (packed into the application's classes, so a plugin build against it sees the same manual), `.git`, `marginalia/libs` and `marginalia/plugins`, runs
 `mvn install -DskipTests -Dvaadin.skip=true` for the application, `mvn install -N` for the parent POM, `mvn install -DskipTests` in every folder of `libs/` and `mvn package` in every folder of `plugins/` that has a `pom.xml`.
 The JARs are copied out when the container runs, because they go into a bind mount:
 
@@ -362,7 +362,7 @@ repository root, and the generated site is written to `docs/`, which git ignores
 ```sh
 npm install --global retypeapp     # or: dotnet tool install retypeapp --global
 retype start                       # live preview at http://localhost:5000
-tools/retype_build.sh              # writes docs/; plain `retype build` works too, without the version in the site
+tools/retype_build.sh              # writes docs/ and docs/<language> (the translated sites); plain `retype build` works too, without the version in the site and the languages
 ```
 
 Images go into `manual/images/`; most are taken by the scripts in

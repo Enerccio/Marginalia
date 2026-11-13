@@ -48,7 +48,7 @@ Marginalia/
 │   ├── src/test           tests
 │   ├── libs/              code that plugins share, embedded in their bundles (`translator-common`, `http-hooks`)
 │   └── plugins/           the twenty-nine bundled extensions, each a separate Maven project
-├── manual/                this manual (Retype sources); manual/user is also packed into the WAR for the help assistant
+├── manual/                this manual (Retype sources); manual/user and its translations are also packed into the WAR for the help assistant
 ├── Dockerfile, docker-compose.yml
 └── .github/workflows/     CI (desktop builds and releases)
 ```
