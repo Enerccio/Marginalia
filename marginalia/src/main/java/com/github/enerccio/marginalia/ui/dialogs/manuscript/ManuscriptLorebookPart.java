@@ -34,11 +34,13 @@ public class ManuscriptLorebookPart implements ManuscriptDialogPart {
     @Autowired
     private LorebookService lorebookService;
 
+    @PublicAPI(from = "1.1.0", type = ManuscriptDialog.class)
     private final ManuscriptDialog parent;
 
     private ComboBox<Lorebook> activeLorebookCombo;
     // which lorebook of the one of the book and its subbooks the view shows, the book keeps the lorebook of the first box
     private ComboBox<Lorebook> shownLorebookCombo;
+    @PublicAPI(from = "1.1.0", type = LorebookView.class)
     private LorebookView lorebookView;
     private boolean loading = false;
 

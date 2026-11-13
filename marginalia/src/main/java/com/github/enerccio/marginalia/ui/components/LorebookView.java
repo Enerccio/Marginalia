@@ -89,6 +89,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
     @Autowired
     private TagRelationService tagRelationService;
 
+    @PublicAPI(from = "1.1.0", type = Lorebook.class)
     private Lorebook currentLorebook;
     private boolean pinnedLorebook = false;
 
@@ -127,6 +128,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
     private Consumer<Lorebook> onOpenSubbook;
     private Button refreshButton;
 
+    @PublicAPI(from = "1.1.0", type = Grid.class)
     private Grid<LorebookEntry> grid;
     private Span lorebookTokensSpan;
     private Span allTokensSpan;

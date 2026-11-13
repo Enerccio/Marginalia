@@ -55,12 +55,15 @@ public class ManuscriptInfoPart implements ManuscriptDialogPart {
 
     private final ManuscriptDialog parent;
 
+    @PublicAPI(from = "1.1.0", type = TextField.class)
     private TextField nameField;
     private TagMultiComboBox tags;
+    @PublicAPI(from = "1.1.0", type = TextArea.class)
     private TextArea descriptionField;
     private InheritedLanguageCombo languageCombo;
     private HistoryLimitField historyLimitField;
     private ComboBox<AI> aiCombo;
+    @PublicAPI(from = "1.1.0", type = ComboBox.class)
     private ComboBox<Protocol> protocolCombo;
     private Checkbox publishedCheckbox;
     private Checkbox showImagesCheckbox;

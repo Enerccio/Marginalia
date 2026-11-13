@@ -80,6 +80,7 @@ public class ExportDialog extends Dialog implements LLMInteract {
     @Autowired
     private User user;
 
+    @PublicAPI(from = "1.1.0", type = Manuscript.class)
     private final Manuscript manuscript;
 
     /**
@@ -88,6 +89,7 @@ public class ExportDialog extends Dialog implements LLMInteract {
     private record StyleChoice(String text, PartStyle style) {
     }
 
+    @PublicAPI(from = "1.1.0", type = Select.class)
     private Select<Exporter> format;
     private Select<StyleChoice> styleChoice;
     private TextField fileName;

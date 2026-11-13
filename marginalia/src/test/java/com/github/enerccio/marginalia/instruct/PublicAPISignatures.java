@@ -3,6 +3,7 @@ package com.github.enerccio.marginalia.instruct;
 import com.github.enerccio.marginalia.domain.traits.Extendable;
 import com.github.enerccio.marginalia.domain.traits.PublicAPI;
 import net.bytebuddy.description.annotation.AnnotationDescription;
+import net.bytebuddy.description.field.FieldDescription;
 import net.bytebuddy.description.method.MethodDescription;
 import net.bytebuddy.description.method.ParameterDescription;
 import net.bytebuddy.description.type.TypeDescription;
@@ -30,9 +31,9 @@ import java.util.stream.Stream;
 import static net.bytebuddy.matcher.ElementMatchers.named;
 
 /**
- * Reads the signatures that plugins see on the {@code @Extendable} classes of the application - from the compiled
- * classes, through ByteBuddy's type pool (nothing is loaded or initialized) and the local variable table - and the
- * ones declared by {@link PublicAPI}. Used by {@code PublicAPISignatureTest}.
+ * Reads the signatures and fields that plugins see on the {@code @Extendable} classes of the application - from the
+ * compiled classes, through ByteBuddy's type pool (nothing is loaded or initialized) and the local variable table -
+ * and the ones declared by {@link PublicAPI}. Used by {@code PublicAPISignatureTest}.
  */
 final class PublicAPISignatures {
 
@@ -55,10 +56,21 @@ final class PublicAPISignatures {
      * one declared by its {@link PublicAPI} ({@code null} without the annotation).
      */
     record Method(String owner, String name, String descriptor, Signature actual, boolean namedParameters,
-                  String from, Signature declared) {
+                  String from, Signature declared, String declaredFieldType) {
 
         String where() {
             return owner + "." + name + descriptor;
+        }
+    }
+
+    /**
+     * A field of an {@code @Extendable} class that carries {@link PublicAPI}: the erased type the class has and the
+     * one declared.
+     */
+    record Field(String owner, String name, String actualType, String from, String declaredType) {
+
+        String where() {
+            return owner + "#" + name;
         }
     }
 
@@ -127,7 +139,8 @@ final class PublicAPISignatures {
                     .findFirst().orElse(null);
             result.add(new Method(type.getName(), method.getInternalName(), method.getDescriptor(), actual, named,
                     declared == null ? null : string(declared, "from"),
-                    declared == null ? null : declared(declared)));
+                    declared == null ? null : declared(declared),
+                    declared == null ? null : type(declared, "type")));
         }
         return result;
     }
@@ -146,6 +159,42 @@ final class PublicAPISignatures {
             }
         }
         return result;
+    }
+
+    /**
+     * The fields of the type that carry {@link PublicAPI}, wherever they are (a misplaced one is found by
+     * {@link #annotatedFieldsOutOfPlace}).
+     */
+    static List<Field> fields(TypeDescription type) {
+        List<Field> result = new ArrayList<>();
+        for (FieldDescription.InDefinedShape field : type.getDeclaredFields()) {
+            AnnotationDescription declared = publicApi(field);
+            if (declared != null) {
+                result.add(new Field(type.getName(), field.getName(), name(field.getType().asErasure()),
+                        string(declared, "from"), type(declared, "type")));
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Fields carrying {@link PublicAPI} that a plugin can't use through the context as the annotation promises:
+     * static or synthetic fields, or fields of a class that is not {@code @Extendable}.
+     */
+    static List<String> annotatedFieldsOutOfPlace(TypeDescription type) {
+        List<String> result = new ArrayList<>();
+        for (FieldDescription.InDefinedShape field : type.getDeclaredFields()) {
+            if (publicApi(field) != null && (!isExtendable(type) || field.isStatic() || field.isSynthetic())) {
+                result.add(type.getName() + "#" + field.getName());
+            }
+        }
+        return result;
+    }
+
+    private static AnnotationDescription publicApi(FieldDescription.InDefinedShape field) {
+        return field.getDeclaredAnnotations().stream()
+                .filter(annotation -> annotation.getAnnotationType().represents(PublicAPI.class))
+                .findFirst().orElse(null);
     }
 
     static boolean isInstrumented(MethodDescription method) {
@@ -269,16 +318,29 @@ final class PublicAPISignatures {
     }
 
     /**
+     * The annotation as it has to be written in the source for a field.
+     */
+    static String renderField(String from, String type, UnaryOperator<String> typeReference) {
+        return "@PublicAPI(from = \"" + from + "\", type = " + typeReference.apply(type) + ".class)";
+    }
+
+    static String renderField(String from, String type) {
+        return renderField(from, type, PublicAPISignatures::simpleName);
+    }
+
+    /**
      * {@link #render} with simple class names, for messages.
      */
     static String render(String from, Signature signature) {
-        return render(from, signature, name -> {
-            String dims = "";
-            while (name.endsWith("[]")) {
-                dims += "[]";
-                name = name.substring(0, name.length() - 2);
-            }
-            return name.substring(name.lastIndexOf('.') + 1).replace('$', '.') + dims;
-        });
+        return render(from, signature, PublicAPISignatures::simpleName);
+    }
+
+    private static String simpleName(String name) {
+        String dims = "";
+        while (name.endsWith("[]")) {
+            dims += "[]";
+            name = name.substring(0, name.length() - 2);
+        }
+        return name.substring(name.lastIndexOf('.') + 1).replace('$', '.') + dims;
     }
 }

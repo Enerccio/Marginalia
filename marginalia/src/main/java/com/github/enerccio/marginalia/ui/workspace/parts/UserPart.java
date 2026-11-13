@@ -183,8 +183,10 @@ public class UserPart implements WorkspaceComponent {
     private NotificationSettingsEditor notificationsEditor;
 
     // Tab 5 Extensions
+    @PublicAPI(from = "1.1.0", type = Accordion.class)
     private Accordion extensionSettings;
 
+    @PublicAPI(from = "1.1.0", type = UserSetting.class)
     private UserSetting userSetting;
 
     // true while refresh() (and the extension decorators around it) fills the fields

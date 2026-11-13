@@ -855,7 +855,8 @@ numbers of the older items stable), the rest is P3/P4.
     selection, popovers, scroll, lazy loading) is checked by hand. The screenshot pipeline already drives the real app with
     Playwright and a fake model: reuse it for a handful of asserting flows (log in, generate with streaming, swipe, edit and
     save, annotate a selection, phone width) as a separate, slower workflow.
-83. **Plugin API: a promise and a generated diff.** `@PublicAPI(from = ...)` already records when a method changed. A small
+83. **Plugin API: a promise and a generated diff.** (The tool is done: `tools/plugin_api_diff.py <tag> [<tag>]`, see
+    `extendable.md`, and it covers the fields plugins read, declared with `@PublicAPI(from, type)`; what is left is the rule.) `@PublicAPI(from = ...)` already records when a method changed. A small
     tool that prints the API changes between two tags (methods added / changed / removed per `@Extendable` class) would
     write the *plugin-visible changes* part of the CHANGELOG and make a rule possible: nothing is removed inside a minor
     version without one release of deprecation. Decide the rule first (25: "not frozen").

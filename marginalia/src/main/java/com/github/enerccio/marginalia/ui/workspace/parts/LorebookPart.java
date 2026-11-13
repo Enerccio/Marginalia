@@ -22,6 +22,7 @@ public class LorebookPart implements WorkspaceComponent {
     private Localization loc;
 
     private final Workspace workspace;
+    @PublicAPI(from = "1.1.0", type = LorebookView.class)
     private LorebookView lorebookView;
 
     public LorebookPart(Workspace workspace) {

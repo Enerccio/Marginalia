@@ -37,11 +37,13 @@ public class PhoneManuscriptLorebookPart implements PhoneManuscriptDialogPart {
     @Autowired
     private LorebookService lorebookService;
 
+    @PublicAPI(from = "1.1.0", type = PhoneManuscriptDialog.class)
     private final PhoneManuscriptDialog parent;
 
     private ComboBox<Lorebook> activeLorebookCombo;
     // which lorebook of the one of the book and its subbooks the view shows, the book keeps the lorebook of the first box
     private ComboBox<Lorebook> shownLorebookCombo;
+    @PublicAPI(from = "1.1.0", type = PhoneLorebookView.class)
     private PhoneLorebookView lorebookView;
     private boolean loading = false;
 

@@ -99,6 +99,7 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
     @Autowired
     private AgentRunService agentRunService;
 
+    @PublicAPI(from = "1.1.0", type = Lorebook.class)
     private Lorebook currentLorebook;
     private boolean pinnedLorebook = false;
 
@@ -118,6 +119,7 @@ public class PhoneLorebookView extends VerticalLayout implements Restorable, LLM
     private Checkbox lorebookEnabledCheckbox;
     private Span lorebookInfoSpan;
     private Span lorebookTokensSpan;
+    @PublicAPI(from = "1.1.0", type = Grid.class)
     private Grid<LorebookEntry> grid;
 
     // the lorebook menu and the settings of the lorebook, hidden while an agent locks it

@@ -15,7 +15,7 @@ covers:
 Most of what a plugin does starts with a **decorator**: an object whose `onMethodEnter` and `onMethodLeave` run
 before and after a method of an application class. Any method of a class annotated `@Extendable` can be decorated,
 private ones included, and the decorator can read the method's arguments and local variables and change what
-the method returns. This page explains how that works and how to use it. The signature of every such method is declared in the source with
+the method returns. This page explains how that works and how to use it. The signature of every such method, and the fields a plugin reads, are declared in the source with
 [`@PublicAPI`](#the-public-api), which is what plugins can rely on.
 
 ## Instrumentation
@@ -95,8 +95,8 @@ missing, arguments are called `arg0`, `arg1`... and locals `var<slot>`.
 
 ## The public API
 
-Everything a decorator can name - the class, the method, its arguments, its local variables - is a promise the
-application makes to the plugins. Every instrumented method of an `@Extendable` class (not a constructor, not static,
+Everything a decorator can name - the class, the method, its arguments, its local variables, the fields it reads - is a
+promise the application makes to the plugins. Every instrumented method of an `@Extendable` class (not a constructor, not static,
 not synthetic, with a body - the methods that can be decorated) therefore declares its signature with `@PublicAPI`
 (`domain.traits`):
 
@@ -122,14 +122,34 @@ like the others where a class overrides them, and a plugin can decorate them to 
 Types are class literals, so a refactoring that renames or moves a class in the IDE updates them too. They are erased
 (`List.class` for `List<String>`).
 
-**What counts as a change.** Renaming or retyping an argument or a local variable, adding or removing one, changing
-the return type, renaming or removing the method, or moving it to another class (a decorator registered for the old
-class and name is never called) can break a plugin. Adding a method does not, and neither does changing the body in a
-way that keeps the arguments, the locals and what they hold. For each change that can be seen:
+**Fields.** The same annotation goes on a field a plugin reads or writes with `getReflectiveFieldValue` /
+`setReflectiveFieldValue` (`sidebarList`, `leftBar`, `userSetting`...), with the type instead of the signature:
+
+```java
+@PublicAPI(from = "1.3.0", type = TabDock.class)
+private TabDock leftBar;
+```
+
+`type` is the erased declared type of the field (`boolean.class` for a primitive), `from` the first version in which
+the field has that name and type. Fields are **opt-in**: the `@Extendable` classes have about two thousand fields and
+almost all are private details, so only a field a plugin uses is declared, and what is declared is a promise like a
+method. It goes only on instance fields of an `@Extendable` class. The outer instance `this$0` of an inner class is
+compiler-generated and cannot carry an annotation; it exists as long as the inner class is not `static`.
+
+So when a plugin starts to read another field of the application, declare it (the field's class, name and type are in
+the table of [extension points](#extension-points)); a field a plugin reads that is
+not declared can be renamed by the next refactoring without anything failing.
+
+**What counts as a change.** Renaming or retyping an argument, a local variable or a declared field, adding or
+removing one, changing the return type, renaming or removing the method or the field, or moving it to another class (a
+decorator registered for the old class and name is never called) can break a plugin. Adding a method does not, and
+neither does changing the body in a way that keeps the arguments, the locals and what they hold. For each change that
+can be seen:
 
 1. update the annotation (see below) and set `from` to the current version of the project (`pom.xml`);
 2. search `marginalia/plugins/` for the class, method and variable names and fix the plugins;
-3. mention it in the release notes.
+3. mention it in the release notes: `python3 tools/plugin_api_diff.py <last release tag> --changelog` writes the list
+   from the annotations (see below).
 
 A new method starts with the current version in `from`. The methods that existed in 1.1.0 (the same class, name and
 argument names) were given `"1.1.0"` when the annotation was introduced; the local variables were not compared with 1.1.0.
@@ -139,20 +159,34 @@ ByteBuddy - the type pool, so nothing is loaded - and the local variable table, 
 
 - an instrumented method has no `@PublicAPI`;
 - the annotation differs from the compiled method (name or type of an argument, return type, a local that is missing,
-  extra or of another type);
+  extra or of another type), or the type of a declared field is not the compiled one;
 - a class is compiled without parameter names (`-parameters`), so the names would be `arg0`...;
 - `from` is not `major.minor.patch`, or the annotation is on a method that is not instrumented (a constructor, a static
-  or abstract method) or in a class that is not `@Extendable`.
+  or abstract method), on a static field, or in a class that is not `@Extendable`.
 
-The message names the method and prints the annotation to write, so after changing a method you run the test, paste
+The message names the method or field and prints the annotation to write, so after changing a method you run the test, paste
 what it says and review the difference - that difference is exactly the change a plugin would see. Methods that
 AspectJ adds to the `@Configurable` classes (`readResolve()`) have no source and are skipped.
 
-!!!
-`@PublicAPI` describes methods only. The fields a plugin reads with `getReflectiveFieldValue` (such as `sidebarList`
-or `this$0`) are not declared, so check `marginalia/plugins/` before renaming or retyping a field of an `@Extendable`
-class.
-!!!
+**The diff between two versions.** `tools/plugin_api_diff.py` reads the `@Extendable` classes and their `@PublicAPI`
+annotations straight from git (a tag, a branch or a commit; no checkout, no build) and lists what a plugin can notice:
+classes that stopped being `@Extendable` or moved, methods removed (a decorator for them never runs again), methods
+whose return type, arguments or locals changed, declared fields that were removed or retyped, and the methods, fields
+and classes that were added.
+
+```sh
+python3 tools/plugin_api_diff.py v1.7.0                 # v1.7.0 -> HEAD
+python3 tools/plugin_api_diff.py v1.6.0 v1.7.0          # two revisions
+python3 tools/plugin_api_diff.py v1.7.0 --worktree      # v1.7.0 -> the files on disk, uncommitted work included
+python3 tools/plugin_api_diff.py v1.7.0 --breaking      # only what can break a plugin
+python3 tools/plugin_api_diff.py v1.7.0 --changelog     # Markdown for the CHANGELOG
+python3 tools/plugin_api_diff.py v1.7.0 --check         # exit code 1 when something was removed or changed
+python3 tools/plugin_api_diff.py v1.7.0 --check-from    # exit code 1 when `from` was not raised for a change
+```
+
+`--check-from` compares `from` of every added or changed method, and of every changed field, with the version of the
+old revision: a change whose `from` is not newer was not given the version that contains it. Before 1.2.0 there is no
+`@PublicAPI`, so such a revision only has a list of classes.
 
 ## Registering a decorator
 
@@ -293,7 +327,8 @@ hook for what you want to do:
 2. Find the method that builds or refreshes it - preferably one that runs every time the component is (re)built, so
    that your change is applied again.
 3. Find how to reach the component: a local variable of that method (`getLocalVariable`), a field
-   (`getReflectiveFieldValue`), or the method's arguments.
+   (`getReflectiveFieldValue`; if the field is not yet declared with [`@PublicAPI`](#the-public-api), declare it), or
+   the method's arguments.
 4. Decide on enter or leave: almost always `onMethodLeave`, when the component exists. `onMethodEnter` is for
    reading state the method is about to overwrite, or replacing arguments - the bundled plugins save their settings
    in `UserPart.save`'s *enter*, so that the application's own `settingService.save(userSetting)` in the body

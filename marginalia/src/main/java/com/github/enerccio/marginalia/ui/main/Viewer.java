@@ -98,6 +98,7 @@ public class Viewer extends LoginCheckRoute implements HasUrlParameter<String> {
 
     private CssRegistry cssRegistry;
 
+    @PublicAPI(from = "1.1.0", type = String.class)
     private String manuscriptParam;
     private boolean isUserLoggedIn = false;
 

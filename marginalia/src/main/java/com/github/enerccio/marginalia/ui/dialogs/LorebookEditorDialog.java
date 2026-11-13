@@ -103,6 +103,7 @@ public class LorebookEditorDialog extends Dialog {
     private final LorebookTokens tokens = new LorebookTokens();
 
     private TabDock dock;
+    @PublicAPI(from = "1.8.0", type = Grid.class)
     private Grid<LorebookEntry> grid;
     private ListDataProvider<LorebookEntry> entryProvider;
     private final LorebookEntryFilter entryFilter = new LorebookEntryFilter();

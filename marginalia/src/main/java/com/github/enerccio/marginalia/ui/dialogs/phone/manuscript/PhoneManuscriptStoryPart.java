@@ -112,14 +112,17 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
     private final PhoneManuscriptDialog parent;
     private CancellationToken activeGenerationToken;
 
+    @PublicAPI(from = "1.1.0", type = AppLayout.class)
     private AppLayout layout;
     private DrawerToggle drawerToggle;
     private Span navTitle;
     private VerticalLayout centerLayout;
     private ScrollPanel centerContentPanel;
     private HorizontalLayout bottomControlsLayout;
+    @PublicAPI(from = "1.3.0", type = TabDock.class)
     private TabDock leftBar;
     private Span sidebarHeader;
+    @PublicAPI(from = "1.1.0", type = VerticalLayout.class)
     private VerticalLayout sidebarList;
 
     private MenuBar menuBar;
@@ -128,9 +131,12 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
     private BuiltMenu toolsMenu;
     private Button actionButton;
 
+    @PublicAPI(from = "1.1.0", type = Popover.class)
     private Popover newTurnPopover;
+    @PublicAPI(from = "1.2.0", type = NewTurnForm.class)
     private NewTurnForm newTurnForm;
 
+    @PublicAPI(from = "1.1.0", type = Manuscript.class)
     private Manuscript currentManuscript;
     private StoryActivity activity;
     private boolean isFrozen = false;
@@ -139,6 +145,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
     // not stored: the text a model wrote is highlighted in the cards
     private boolean showGeneratedDiff = false;
     private final StorySupport support = new StorySupport();
+    @PublicAPI(from = "1.4.0", type = StoryLazyLoader.class)
     private StoryLazyLoader<ChatMessageCard> lazyLoader;
     private StoryBranchSearch branchSearch;
     private StoryAnnotations annotations;
@@ -1138,6 +1145,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
      */
     @Extendable
     private class ChatMessageCard extends VerticalLayout implements StoryCard {
+        @PublicAPI(from = "1.1.0", type = ChatMessage.class)
         private ChatMessage message;
         private boolean isLast;
         private final int orderId;
@@ -1148,6 +1156,7 @@ public class PhoneManuscriptStoryPart implements PhoneManuscriptDialogPart, Stor
             massDelete.clicked(this.message.getId(), checked, shift);
             getClassNames().set(CssStyles.MARKED_FOR_DELETE, checked);
         });
+        @PublicAPI(from = "1.1.0", type = ContextMenu.class)
         private ContextMenu hamburgerMenu;
         private BuiltMenu cardMenu;
         private BuiltMenu textMenu;
