@@ -74,7 +74,7 @@ flowchart TB
   | `/` | `Main` | The workspace. |
   | `/view`, `/view/<uuid>` | `Viewer` | The reader: a list of the user's own books, and a book's active branch as text (own or published books, by link). |
   | `/reset` | `Reset` | No page: after the login it empties `UserSetting.workspaceState` and sends the browser to `/`, the way back into a workspace whose restored state freezes the browser. It builds no workspace. |
-  | `/jobs` | `JobsView` | The jobs that run now (`ActiveJobsGrid`, `ui.jobs`: who started them, how long they run, what they wait for; it reads `JobService.active()` again every few seconds while it is on the page), so an administrator sees at a glance whether the server is busy. It logs in like the other pages, builds no workspace and shows nothing to a user who is not an administrator. Not `@Extendable`. |
+  | `/jobs` | `JobsView` | The jobs that run now (`ActiveJobsGrid`, `ui.jobs`: who started them, how long they run, what they wait for; it reads `JobService.active()` again every few seconds while it is on the page, and `PolledRows` sends the grid a change only when what the rows show changed, as the page stays open for days), so an administrator sees at a glance whether the server is busy. It logs in like the other pages, builds no workspace and shows nothing to a user who is not an administrator. Not `@Extendable`. |
 
 `LoginCheckRoute` runs in the route's constructor (`showLogin()`):
 
