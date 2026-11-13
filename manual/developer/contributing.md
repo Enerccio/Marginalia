@@ -161,6 +161,7 @@ no build) sends one chat completion to the AI set up in your dev database `~/.ma
 The manual you are reading is in `manual/` (Markdown for [Retype](https://retype.com)); `docs/` is the generated site, which is not in the repository.
 
 - Change the Markdown in `manual/`, then run `tools/retype_build.sh` (`retype build` with the project version and commit in the site) to look at the result in `docs/` (ignored by git). The site is published by the `Manual` workflow when the change reaches `master`, see
+  The user manual can be translated with `tools/manual_i18n.py` (only the pages whose English text changed are sent again), see [Translating the manual](translating-the-manual.md).
   [Publishing the manual](packaging.md#publishing-the-manual).
 - Preview with `retype start`.
 - Write for the reader of that part: the [User guide](../user/index.md) talks about what users see and click (UI
