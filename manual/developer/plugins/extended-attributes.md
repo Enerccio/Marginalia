@@ -96,7 +96,7 @@ Rules:
   `updateEntryData`), not save a copy of the whole tree loaded earlier.
 
 - **Stale saves are reported.** `JpaBaseRepository` compares the `modification` of a detached copy with the one the
-  last save of the row wrote (`StaleSaves`, kept in memory for the rows saved since the start). A copy that is older
+  last save of the row wrote (`StaleSaves`, kept in memory for the rows saved since the start, for each database: the ids of two databases are the same numbers). A copy that is older
   logs a warning with the caller; in the tests of the build (`-Dtest.staleSaves=fail`, the default of the pom) the
   save fails with `StaleSaveException`. A copy older only than a bulk *touch* (a saved part touches its book) is not
   stale.
