@@ -81,6 +81,9 @@ class AudiobookLocalizationTest {
             if (!probe.of(PluginLocalizationBundle.DE).containsKey(text)) {
                 missing.add("de: " + text);
             }
+            if (!probe.of(PluginLocalizationBundle.KO).containsKey(text)) {
+                missing.add("ko: " + text);
+            }
         }
         assertEquals(List.of(), missing);
     }
@@ -91,7 +94,7 @@ class AudiobookLocalizationTest {
         List<String> texts = usedTexts();
 
         List<String> unused = new ArrayList<>();
-        for (Language language : List.of(PluginLocalizationBundle.JA, PluginLocalizationBundle.ZH, PluginLocalizationBundle.FR, PluginLocalizationBundle.ES, PluginLocalizationBundle.DE)) {
+        for (Language language : List.of(PluginLocalizationBundle.JA, PluginLocalizationBundle.ZH, PluginLocalizationBundle.FR, PluginLocalizationBundle.ES, PluginLocalizationBundle.DE, PluginLocalizationBundle.KO)) {
             for (String text : probe.of(language).keySet()) {
                 if (!texts.contains(text)) {
                     unused.add(language + ": " + text);
@@ -104,7 +107,7 @@ class AudiobookLocalizationTest {
     @Test
     void aTranslationKeepsThePlaceholdersOfTheText() {
         Probe probe = new Probe();
-        for (Language language : List.of(PluginLocalizationBundle.JA, PluginLocalizationBundle.ZH, PluginLocalizationBundle.FR, PluginLocalizationBundle.ES, PluginLocalizationBundle.DE)) {
+        for (Language language : List.of(PluginLocalizationBundle.JA, PluginLocalizationBundle.ZH, PluginLocalizationBundle.FR, PluginLocalizationBundle.ES, PluginLocalizationBundle.DE, PluginLocalizationBundle.KO)) {
             probe.of(language).forEach((text, translation) -> {
                 assertEquals(placeholders(text), placeholders(translation), language + ": " + text);
             });

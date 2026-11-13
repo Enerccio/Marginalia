@@ -12,6 +12,7 @@
                 <bean class="com.github.enerccio.marginalia.loc.LocalizationBundleFR" />
                 <bean class="com.github.enerccio.marginalia.loc.LocalizationBundleES" />
                 <bean class="com.github.enerccio.marginalia.loc.LocalizationBundleDE" />
+                <bean class="com.github.enerccio.marginalia.loc.LocalizationBundleKO" />
             </list>
         </property>
     </bean>

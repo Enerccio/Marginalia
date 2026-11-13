@@ -18,5 +18,6 @@ public class PlaceProviderLocalization extends PluginLocalizationBundle {
         fr(REAL_PLACES_OF_THE_EARTH, "Lieux réels de la Terre (Natural Earth, environ 18 000 lieux notables) : recherche par nom, type et pays, ce qui se trouve autour d'un lieu, la distance entre deux lieux.");
         es(REAL_PLACES_OF_THE_EARTH, "Lugares reales de la Tierra (Natural Earth, unos 18 000 destacados): búsqueda por nombre, tipo y país, qué hay alrededor de un lugar, la distancia entre dos lugares.");
         de(REAL_PLACES_OF_THE_EARTH, "Echte Orte der Erde (Natural Earth, etwa 18 000 bedeutende): Suche nach Name, Typ und Land, was um einen Ort herum liegt, die Entfernung zweier Orte.");
+        ko(REAL_PLACES_OF_THE_EARTH, "지구의 실제 장소 (Natural Earth, 주목할 만한 약 18,000곳): 이름, 유형, 국가로 검색하고, 장소 주변에 무엇이 있는지, 두 장소 사이의 거리를 확인합니다.");
     }
 }

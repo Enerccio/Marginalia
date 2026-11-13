@@ -18,5 +18,6 @@ public class NameGeneratorLocalization extends PluginLocalizationBundle {
         fr(NAMES_MADE_UP_BY_MARKOV, "Noms inventés par des chaînes de Markov entraînées sur des listes de noms : lieux, divinités, entreprises, noms de famille de pays... Les groupes (comme tous les noms amérindiens) choisissent une catégorie au hasard pour chaque nom.");
         es(NAMES_MADE_UP_BY_MARKOV, "Nombres inventados por cadenas de Markov entrenadas con listas de nombres: lugares, deidades, empresas, apellidos de países... Los grupos (como todos los nombres nativos americanos) eligen una categoría al azar para cada nombre.");
         de(NAMES_MADE_UP_BY_MARKOV, "Namen, die von Markov-Ketten erfunden werden, die auf Namenslisten trainiert sind: Orte, Gottheiten, Firmen, Nachnamen von Ländern ... Gruppen (wie alle indianischen Namen) wählen für jeden Namen zufällig eine Kategorie.");
+        ko(NAMES_MADE_UP_BY_MARKOV, "이름 목록(장소, 신, 회사, 국가별 성씨 등)으로 학습한 마르코프 체인이 만든 이름. 그룹(예: 모든 아메리카 원주민 이름)은 이름마다 무작위로 범주를 선택합니다.");
     }
 }

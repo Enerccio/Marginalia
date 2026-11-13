@@ -13,7 +13,7 @@ import java.util.Map;
  * sentences themselves, constants of the subclass ({@code String EXPORT_INSTRUCTIONS = "Export instructions"}): the code
  * asks for {@code bundle.localized(EXPORT_INSTRUCTIONS)} and the bundle returns the
  * translation into the language of the current session, the English key when it has none. A subclass fills the
- * translations in {@link #loadKeys()} with {@link #ja}, {@link #zh}, {@link #fr}, {@link #es}, {@link #de} or {@link #add}; text with values uses
+ * translations in {@link #loadKeys()} with {@link #ja}, {@link #zh}, {@link #fr}, {@link #es}, {@link #de}, {@link #ko} or {@link #add}; text with values uses
  * {@code String.format} placeholders in the key ({@code localized(FAILED).formatted(reason)}).
  * <p>
  * The built-in prompts of a plugin follow the prompt language of the user ({@code UserSetting.promptLanguage}, see
@@ -65,6 +65,10 @@ public abstract class PluginLocalizationBundle {
 
     protected void de(String message, String translation) {
         add(DE, message, translation);
+    }
+
+    protected void ko(String message, String translation) {
+        add(KO, message, translation);
     }
 
     /**

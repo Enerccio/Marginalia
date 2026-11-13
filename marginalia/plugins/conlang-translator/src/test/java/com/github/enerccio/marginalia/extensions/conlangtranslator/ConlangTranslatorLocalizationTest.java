@@ -66,6 +66,9 @@ class ConlangTranslatorLocalizationTest {
             if (!translations(PluginLocalizationBundle.DE).containsKey(text)) {
                 missing.add("de: " + text);
             }
+            if (!translations(PluginLocalizationBundle.KO).containsKey(text)) {
+                missing.add("ko: " + text);
+            }
         }
         assertTrue(missing.isEmpty(), "Missing translations:\n" + String.join("\n", missing));
     }
@@ -73,7 +76,7 @@ class ConlangTranslatorLocalizationTest {
     @Test
     void noTranslationIsLeftForATextThatIsGone() throws Exception {
         Set<String> texts = new HashSet<>(texts());
-        for (Object language : new Object[]{PluginLocalizationBundle.JA, PluginLocalizationBundle.ZH, PluginLocalizationBundle.FR, PluginLocalizationBundle.ES, PluginLocalizationBundle.DE}) {
+        for (Object language : new Object[]{PluginLocalizationBundle.JA, PluginLocalizationBundle.ZH, PluginLocalizationBundle.FR, PluginLocalizationBundle.ES, PluginLocalizationBundle.DE, PluginLocalizationBundle.KO}) {
             for (String key : translations(language).keySet()) {
                 assertTrue(texts.contains(key), "A translation of a text that is not a constant: " + key);
             }
@@ -82,7 +85,7 @@ class ConlangTranslatorLocalizationTest {
 
     @Test
     void aTranslationKeepsTheValuesOfItsText() throws Exception {
-        for (Object language : new Object[]{PluginLocalizationBundle.JA, PluginLocalizationBundle.ZH, PluginLocalizationBundle.FR, PluginLocalizationBundle.ES, PluginLocalizationBundle.DE}) {
+        for (Object language : new Object[]{PluginLocalizationBundle.JA, PluginLocalizationBundle.ZH, PluginLocalizationBundle.FR, PluginLocalizationBundle.ES, PluginLocalizationBundle.DE, PluginLocalizationBundle.KO}) {
             for (Map.Entry<String, String> entry : translations(language).entrySet()) {
                 assertEquals(placeholders(entry.getKey()), placeholders(entry.getValue()),
                         "The values of the text differ in its translation: " + entry.getKey() + " -> " + entry.getValue());

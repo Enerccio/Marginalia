@@ -429,7 +429,7 @@ Notification.show(T.localized(FAILED_TO_EXPORT).formatted(e.getMessage()));
 ```
 
 - The English text is a constant named after its words (`EXPORT_INSTRUCTIONS`), declared in the bundle class; the
-  Japanese, Chinese, French, Spanish and German translations are plain literals in `loadKeys`, the only place they appear. A call site passes
+  Japanese, Chinese, French, Spanish, German and Korean translations are plain literals in `loadKeys`, the only place they appear. A call site passes
   the constant and never a literal. Import the constants with a static wildcard import, and mind a constant whose name
   is also a type or a field of the class that uses it (`AI`, `SCENE`): the type or the field is hidden, or the field
   wins, so give the constant another name or qualify it with the bundle class.
@@ -476,8 +476,8 @@ public class LoreGeneratorLocalization extends PluginLocalizationBundle {
 String prompt = StringUtils.defaultIfBlank(settings.getCompactionPrompt(), T.defaults().compactionPrompt());
 ```
 
-- The keys are the constants of `PluginLocalizationBundle` (`JA`, `ZH`, `FR`, `ES`, and `DE`, `IT`, `KO`, which are prompt
-  languages only: the interface has no bundle for them). A language the map lacks gets the English prompts.
+- The keys are the constants of `PluginLocalizationBundle` (`JA`, `ZH`, `FR`, `ES`, `DE`, `KO`, and `IT`, which is a prompt
+  language only: the interface has no bundle for it). A language the map lacks gets the English prompts.
 - Ask `T.defaults()` when the prompt is used (the fallback supplier of an `InheritedSetting`, the placeholder of a field, the
   request), never keep the text in a static constant: it is the language of the session that asks.
 - A translation keeps every Handlebars tag and `String.format` placeholder, and every name the code relies on: the JSON fields

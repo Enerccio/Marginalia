@@ -536,7 +536,7 @@ All UI texts are looked up through the `Localization` bean by an `L` key (`loc.g
 (`LocalizationImpl`) holds one `LocalizationBundle` per `Language`: the texts of every key, the `Locale` and the date
 formats of that language, and the name shown in the language selector. The application ships `LocalizationBundleEN`
 (the default language, which has to be complete - the application doesn't start otherwise), `LocalizationBundleJP`,
-`LocalizationBundleFR`, `LocalizationBundleES` and `LocalizationBundleDE`;
+`LocalizationBundleFR`, `LocalizationBundleES`, `LocalizationBundleDE` and `LocalizationBundleKO`;
 they are listed in the `localization` bean in `container-config.xml`. Texts of template variables and macros (the
 hints shown next to prompt fields) are localized the same way.
 
@@ -548,6 +548,7 @@ flowchart LR
     Loc --> B4["LocalizationBundleFR"]
     Loc --> B5["LocalizationBundleES"]
     Loc --> B6["LocalizationBundleDE"]
+    Loc --> B7["LocalizationBundleKO"]
     Loc --> B3["bundles of extensions"]
     US["UserSetting.language"] -->|"Main, when the workspace opens"| SP
     LS["LanguageSelector"] -->|saves, then reloads the user's pages| US
