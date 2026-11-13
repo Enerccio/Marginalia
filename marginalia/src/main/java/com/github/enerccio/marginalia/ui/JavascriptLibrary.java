@@ -334,7 +334,10 @@ public final class JavascriptLibrary {
     /**
      * Puts the element back where the user had it after its content was replaced: at the bottom when it was stuck
      * there, otherwise at the same distance from the top, which is set again while the new content settles (its
-     * Markdown is rendered after it is in the page) until the user scrolls on their own.
+     * Markdown is rendered after it is in the page) until the user scrolls on their own. A story that is not seen when its
+     * content is replaced (another tab of the window, which hides it and loses its scroll, or another tab of the browser, which
+     * does not run animation frames or resize observers) is put back when it is seen again, from where it was when the content
+     * was replaced.
      *
      * @param element the scroll element
      * @param content the element whose size changes while the content settles
@@ -344,31 +347,59 @@ public final class JavascriptLibrary {
                 const el = $0;
                 const content = $1;
                 installSticky(el);
-                if (el._stick) {
-                  requestAnimationFrame(() => requestAnimationFrame(() => {
-                    el.scrollTop = el.scrollHeight;
-                    el._lastTop = el.scrollTop;
-                  }));
-                  return;
-                }
-                const top = el._lastTop;
                 if (el._restoreStop) el._restoreStop();
-                const apply = () => {
-                  if (Math.abs(el.scrollTop - top) > 1) el.scrollTop = top;
-                };
-                const observer = new ResizeObserver(apply);
+                // read now: the new content is shorter, the browser moves the scroll up and tells it later
+                const stick = el._stick;
+                const top = el._lastTop;
                 const events = ['wheel', 'touchstart', 'pointerdown', 'keydown'];
+                let observer = null;
+                let timer = null;
+                let waiting = null;
                 const stop = () => {
-                  observer.disconnect();
-                  clearTimeout(el._restoreTimer);
+                  if (observer) observer.disconnect();
+                  if (waiting) waiting();
+                  clearTimeout(timer);
                   events.forEach(name => el.removeEventListener(name, stop));
                   el._restoreStop = null;
                 };
                 el._restoreStop = stop;
-                events.forEach(name => el.addEventListener(name, stop, {passive: true}));
-                observer.observe(content);
-                el._restoreTimer = setTimeout(stop, 1500);
-                apply();
+                const restore = () => {
+                  if (stick) {
+                    requestAnimationFrame(() => requestAnimationFrame(() => {
+                      el.scrollTop = el.scrollHeight;
+                      el._lastTop = el.scrollTop;
+                      stop();
+                    }));
+                    return;
+                  }
+                  const apply = () => {
+                    if (Math.abs(el.scrollTop - top) > 1) el.scrollTop = top;
+                  };
+                  events.forEach(name => el.addEventListener(name, stop, {passive: true}));
+                  observer = new ResizeObserver(apply);
+                  observer.observe(content);
+                  timer = setTimeout(stop, 1500);
+                  apply();
+                };
+                const seen = () => !document.hidden && el.clientHeight > 0;
+                if (seen()) {
+                  restore();
+                  return;
+                }
+                const check = () => {
+                  if (waiting && seen()) {
+                    waiting();
+                    restore();
+                  }
+                };
+                const watcher = new ResizeObserver(check);
+                watcher.observe(el);
+                document.addEventListener('visibilitychange', check);
+                waiting = () => {
+                  watcher.disconnect();
+                  document.removeEventListener('visibilitychange', check);
+                  waiting = null;
+                };
                 """, element, content);
     }
 
