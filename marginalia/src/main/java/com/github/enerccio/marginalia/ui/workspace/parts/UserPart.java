@@ -991,7 +991,7 @@ public class UserPart implements WorkspaceComponent {
         }
     }
 
-    @PublicAPI(from = "1.1.0",
+    @PublicAPI(from = "1.8.0",
             returns = @APIReturn(type = void.class),
             locals = {@APILocals(name = "strategy", type = BackupService.BackupStrategy.class),
                     @APILocals(name = "masterTemplate", type = String.class),

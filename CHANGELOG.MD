@@ -6,7 +6,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
-u e
 ### Added
 
 - **Reviewer: the advanced option *Send original text*.** When the Real Language or Conlang Translator is loaded, the review can send the story as it is stored, with the translated speech, instead of the English a model reads.

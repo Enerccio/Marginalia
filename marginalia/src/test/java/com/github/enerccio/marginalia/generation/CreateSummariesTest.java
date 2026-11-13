@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -204,17 +205,18 @@ class CreateSummariesTest extends GenerationTestBase {
         llm.enqueue(MockLLMResponse.text("first"), MockLLMResponse.text("second"), MockLLMResponse.text("third"));
 
         Run run = new Run();
-        CancellationToken[] token = new CancellationToken[1];
+        // set by this thread, read by the summaries thread: needs a visible write
+        AtomicReference<CancellationToken> token = new AtomicReference<>();
         // stopped when the second one is about to be written
         run.beforeStep = () -> {
             if (run.steps.size() == 2) {
-                while (token[0] == null) {
+                while (token.get() == null) {
                     Thread.onSpinWait();
                 }
-                token[0].cancel();
+                token.get().cancel();
             }
         };
-        token[0] = summaryService.createSummaries(book(), plan, run);
+        token.set(summaryService.createSummaries(book(), plan, run));
         assertThat(run.outcome.get(60, TimeUnit.SECONDS)).isEqualTo("terminated after 1");
         assertThat(blocks()).extracting(b -> b.summary().getSummary()).containsExactly("first");
     }

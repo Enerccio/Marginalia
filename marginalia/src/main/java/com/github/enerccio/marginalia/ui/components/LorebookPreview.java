@@ -96,7 +96,7 @@ public class LorebookPreview extends VerticalLayout implements LLMInteract {
      * Builds the components (the injected services are there only after the constructor), call it once before
      * {@link #refresh}.
      */
-    @PublicAPI(from = "1.4.0",
+    @PublicAPI(from = "1.8.0",
             returns = @APIReturn(type = LorebookPreview.class),
             locals = {@APILocals(name = "searchRow", type = HorizontalLayout.class)})
     public LorebookPreview create() {
@@ -358,7 +358,7 @@ public class LorebookPreview extends VerticalLayout implements LLMInteract {
         return rows;
     }
 
-    @PublicAPI(from = "1.4.0",
+    @PublicAPI(from = "1.8.0",
             returns = @APIReturn(type = HorizontalLayout.class),
             parameters = {@APIParameter(name = "row", type = LorebookPreview.Row.class)},
             locals = {@APILocals(name = "name", type = Span.class),

@@ -709,7 +709,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
      * at the place the author picks, after the last part or before or after a part, see {@link BookImportDialog#showInto} and
      * {@link ArchiveImportService#insertParts}; the story is shown again.
      */
-    @PublicAPI(from = "1.4.0",
+    @PublicAPI(from = "1.8.0",
             returns = @APIReturn(type = void.class),
             locals = {@APILocals(name = "e", type = Exception.class)})
     @Override

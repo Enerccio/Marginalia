@@ -124,7 +124,7 @@ public class ManuscriptPart implements ManuscriptSection {
         return loc.getValue(L.LABEL_BOOKS);
     }
 
-    @PublicAPI(from = "1.7.0",
+    @PublicAPI(from = "1.8.0",
             returns = @APIReturn(type = Component.class),
             locals = {@APILocals(name = "headerLayout", type = HorizontalLayout.class),
                     @APILocals(name = "titleSpan", type = Span.class),

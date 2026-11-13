@@ -939,14 +939,14 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
         return span;
     }
 
-    @PublicAPI(from = "1.1.0",
+    @PublicAPI(from = "1.8.0",
             returns = @APIReturn(type = String.class),
             parameters = {@APIParameter(name = "count", type = long.class)})
     private String formatTokens(long count) {
         return tokens.format(count);
     }
 
-    @PublicAPI(from = "1.1.0",
+    @PublicAPI(from = "1.8.0",
             returns = @APIReturn(type = long.class),
             parameters = {@APIParameter(name = "entry", type = LorebookEntry.class)},
             locals = {@APILocals(name = "ex", type = Exception.class)})
@@ -997,7 +997,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
      * to the count of the lorebook. As the generation does, a disabled subbook is left out with its own subbooks, and a
      * lorebook that is a subbook twice counts once.
      */
-    @PublicAPI(from = "1.4.0",
+    @PublicAPI(from = "1.8.0",
             returns = @APIReturn(type = void.class),
             locals = {@APILocals(name = "e", type = Exception.class)})
     private void countTokensWithSubbooks() {

@@ -114,7 +114,7 @@ public class PhoneManuscriptPart implements ManuscriptSection {
         return loc.getValue(L.LABEL_BOOKS);
     }
 
-    @PublicAPI(from = "1.1.0",
+    @PublicAPI(from = "1.8.0",
             returns = @APIReturn(type = Component.class),
             locals = {@APILocals(name = "mainLayout", type = VerticalLayout.class),
                     @APILocals(name = "addBookButton", type = Button.class),
