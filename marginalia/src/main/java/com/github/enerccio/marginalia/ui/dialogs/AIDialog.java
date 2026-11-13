@@ -84,6 +84,8 @@ public class AIDialog extends Dialog implements LLMInteract {
     private IntegerField maxResponseField;
     private IntegerField maxConcurrentField;
     private Checkbox needsJailbreakCheckbox;
+    private Checkbox sendLoreImagesCheckbox;
+    private Checkbox loreImagesInSystemCheckbox;
     private TextArea jailbreakField;
     private Checkbox enabledReasoningCheckbox;
     private ComboBox<ReasoningEffort> reasoningEffortCombo;
@@ -166,6 +168,8 @@ public class AIDialog extends Dialog implements LLMInteract {
         generalFormLayout.setColspan(jailbreakField, 2);
         generalFormLayout.add(enabledReasoningCheckbox, reasoningEffortCombo);
         generalFormLayout.add(maxConcurrentField, 2);
+        generalFormLayout.add(sendLoreImagesCheckbox, 2);
+        generalFormLayout.add(loreImagesInSystemCheckbox, 2);
 
         tabSheet.add(loc.getValue(L.LABEL_GENERAL_SETTINGS), generalFormLayout);
 
@@ -311,6 +315,13 @@ public class AIDialog extends Dialog implements LLMInteract {
         maxConcurrentField.setHelperText(loc.getValue(L.HELP_AI_CONNECTIONS));
         maxConcurrentField.setWidthFull();
 
+        sendLoreImagesCheckbox = new Checkbox(loc.getValue(L.LABEL_SEND_LORE_IMAGES));
+        sendLoreImagesCheckbox.setHelperText(loc.getValue(L.HELP_SEND_LORE_IMAGES));
+        loreImagesInSystemCheckbox = new Checkbox(loc.getValue(L.LABEL_LORE_IMAGES_IN_SYSTEM));
+        loreImagesInSystemCheckbox.setHelperText(loc.getValue(L.HELP_LORE_IMAGES_IN_SYSTEM));
+        loreImagesInSystemCheckbox.setEnabled(false);
+        sendLoreImagesCheckbox.addValueChangeListener(event -> loreImagesInSystemCheckbox.setEnabled(Boolean.TRUE.equals(event.getValue())));
+
         needsJailbreakCheckbox = new Checkbox(loc.getValue(L.LABEL_NEEDS_JAILBREAK));
         jailbreakField = new TextArea(loc.getValue(L.LABEL_JAILBREAK));
         jailbreakField.setWidthFull();
@@ -399,6 +410,7 @@ public class AIDialog extends Dialog implements LLMInteract {
                     @APILocals(name = "factories", type = List.class)})
     private void updateDynamicFields(AIType type) {
         dynamicFormLayout.removeAll();
+        loreImagesInSystemCheckbox.setVisible(type == AIType.OPEN_AI_COMPATIBLE);
         if (type == AIType.OPEN_AI_COMPATIBLE) {
             HorizontalLayout apiKeyLayout = new HorizontalLayout();
             apiKeyLayout.setWidthFull();
@@ -508,6 +520,8 @@ public class AIDialog extends Dialog implements LLMInteract {
         maxResponseField.setValue(ai.getMaxCompletionTokens() != null && ai.getMaxCompletionTokens() > 0 ? ai.getMaxCompletionTokens() : DEFAULT_MAX_RESPONSE);
         // an AI without the setting has one connection, the field shows it
         maxConcurrentField.setValue(ai.getConnections());
+        sendLoreImagesCheckbox.setValue(ai.isSendLoreImages());
+        loreImagesInSystemCheckbox.setValue(ai.isLoreImagesInSystem());
         jailbreakField.setValue(StringUtils.defaultString(ai.getJailbreak()));
         needsJailbreakCheckbox.setValue(Boolean.TRUE.equals(ai.getNeedsJailbreak()));
         jailbreakField.setEnabled(Boolean.TRUE.equals(ai.getNeedsJailbreak()));
@@ -912,6 +926,9 @@ public class AIDialog extends Dialog implements LLMInteract {
             ai.setMaxCompletionTokens(maxResponse);
             // one connection at least, an emptied field is the default one
             ai.setMaxConcurrentRequests(Math.max(1, Objects.requireNonNullElse(maxConcurrentField.getValue(), 1)));
+            ai.setSendLoreImages(sendLoreImagesCheckbox.getValue());
+            // only the OpenAI-compatible request carries images in the system message
+            ai.setLoreImagesInSystem(type == AIType.OPEN_AI_COMPATIBLE && loreImagesInSystemCheckbox.getValue());
             ai.setJailbreak(jailbreakField.getValue());
             ai.setNeedsJailbreak(needsJailbreakCheckbox.getValue());
             ai.setEnabledReasoning(enabledReasoningCheckbox.getValue());

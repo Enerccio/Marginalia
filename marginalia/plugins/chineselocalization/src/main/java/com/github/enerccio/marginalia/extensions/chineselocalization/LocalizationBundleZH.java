@@ -1097,6 +1097,9 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_TEXT_ONLY, "仅文本");
         setValue(L.LABEL_TEXT_AND_PREVIEW, "文本和预览");
         setValue(L.LABEL_PREVIEW_ONLY, "仅预览");
+        setValue(L.LABEL_MENTIONED_IN, "提及于：");
+        setValue(L.LABEL_SEND_LORE_IMAGES, "发送设定图片");
+        setValue(L.LABEL_LORE_IMAGES_IN_SYSTEM, "将图片放入系统消息");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -2023,6 +2026,9 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.HELP_REDRAFT_LENGTH_PROMPT, "要求重写更短（更长）时，附加在您的指示之后的纯文本。它不是模板。留空则使用内置文本。");
         setValue(L.HELP_UPDATE, "无需登录服务器即可从 Git 检出更新 Docker 安装：拉取分支的最新版本，连同插件一起构建，然后重启 Marginalia。");
         setValue(L.HELP_AI_CONNECTIONS, "可同时发往该模型的请求数：所有用户、所有类型的请求（您的生成、侧边查询、智能体、插件）。超出的请求按到达顺序排队等待。只有一个槽位的服务器（例如一块 GPU）设为 1；能同时回答多个请求的云端模型可以设得更多。");
+        setValue(L.HELP_ENTRY_LINKS, "在内容中按住 Ctrl 点击（Mac 上为 Cmd+点击）另一个条目的名称或关键词即可打开它，同时按住 Shift 则在新标签页中打开。这里列出的是内容中提到本条目的条目：点击打开，Shift+点击在新标签页中打开。");
+        setValue(L.HELP_SEND_LORE_IMAGES, "将本轮使用的设定集条目内容中的图片与设定一起发送。仅适用于接受图片的模型：不支持视觉的模型会拒绝请求。");
+        setValue(L.HELP_LORE_IMAGES_IN_SYSTEM, "将设定块的图片直接放入系统消息，而不是放在其后的单独消息中。仅适用于在系统消息中接受图片的服务器和聊天模板；大多数都不支持。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景设定与世界观。");

@@ -8,9 +8,11 @@ import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
 import com.github.enerccio.marginalia.domain.model.impl.Tag;
 import com.github.enerccio.marginalia.domain.service.InferenceService;
+import com.github.enerccio.marginalia.domain.service.LoreImages;
 import com.github.enerccio.marginalia.domain.service.LorebookActivationService;
 import com.github.enerccio.marginalia.domain.service.LorebookActivationService.Verdict;
 import com.github.enerccio.marginalia.domain.service.impl.generation.*;
+import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LoreImage;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LorebookEntryVerdict;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.PrePromptData;
 import com.github.enerccio.marginalia.domain.templates.LorebookTemplateData;
@@ -80,8 +82,16 @@ public class ProcessLorebookStep extends GenerationStepBase {
                             StringBuilder builderUserPrompt = new StringBuilder();
                             // what each entry put into the prompt, kept with the prompt of the part (lore usage report)
                             LoreUsage usage = new LoreUsage();
+                            // the images of the entries go along only to a model that is set to take them
+                            boolean images = controller.getAi() != null && controller.getAi().isSendLoreImages();
+                            List<LoreImage> loreImages = new java.util.ArrayList<>();
                             for (LorebookEntry entry : finalActivatedEntries) {
                                 String payload = activationService.renderPayload(entry, templateData);
+                                if (images) {
+                                    for (LoreImages.Reference reference : LoreImages.references(entry.getPayload())) {
+                                        loreImages.add(new LoreImage(entry.getName(), reference.caption(), reference.uuid(), entry.getInsertionMode()));
+                                    }
+                                }
                                 if (StringUtils.isBlank(payload)) {
                                     continue;
                                 }
@@ -97,6 +107,7 @@ public class ProcessLorebookStep extends GenerationStepBase {
                             String lorebookContent = builder.toString().trim();
                             String lorebookUserContent = builderUserPrompt.toString().trim();
                             log.debug("Final lorebook content: {}, {}", lorebookContent, lorebookUserContent);
+                            controller.getProperties().put(GenerationProperties.LORE_IMAGES, loreImages);
                             controller.getPrePromptData().setLoreUsage(usage);
                             controller.getPrePromptData().setBackgroundLore(lorebookContent);
                             controller.getPrePromptData().setBackgroundLoreTokens(inferenceService.countTokens(lorebookContent));

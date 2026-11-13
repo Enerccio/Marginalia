@@ -67,6 +67,14 @@ public final class GenerationProperties {
     public static final String ACTIVATED_LOREBOOK_ENTRIES = "ACTIVATED_LOREBOOK_ENTRIES";
 
     /**
+     * {@code List<LoreImage>} the images in the content of the entries the turn uses, in the order of the entries, set at
+     * {@link Events#AFTER_PROCESS_LOREBOOK} when the AI of the generation is set to take them ({@code AI.isSendLoreImages}), else
+     * empty. Read back by the payload step: the images of the lore block go into a user message of their own right after the
+     * system prompt (answered by a short assistant message), the others onto the user's prompt.
+     */
+    public static final String LORE_IMAGES = "LORE_IMAGES";
+
+    /**
      * {@code LorebookTemplateData} used to render activated entries, available from {@link Events#AFTER_PROCESS_LOREBOOK}.
      */
     public static final String LOREBOOK_TEMPLATE_DATA = "LOREBOOK_TEMPLATE_DATA";

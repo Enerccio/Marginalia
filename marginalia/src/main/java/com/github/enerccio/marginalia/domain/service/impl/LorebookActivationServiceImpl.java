@@ -353,13 +353,13 @@ public class LorebookActivationServiceImpl implements LorebookActivationService 
     @Override
     public Verdict evaluateInContent(LorebookEntry entry, List<String> manuscriptTags, List<LorebookEntry> sources, LoreConditions conditions) {
         Verdict all = evaluate(entry, manuscriptTags,
-                sources.stream().map(LorebookEntry::getPayload).collect(java.util.stream.Collectors.joining("\n\n")),
+                sources.stream().map(source -> LoreImages.strip(source.getPayload())).collect(java.util.stream.Collectors.joining("\n\n")),
                 StoryText.NONE, null, conditions, true);
         if (all.reason() != Reason.FILTER_MATCHED) {
             return all;
         }
         for (LorebookEntry source : sources) {
-            if (evaluate(entry, manuscriptTags, source.getPayload(), StoryText.NONE, null, conditions, true).activated()) {
+            if (evaluate(entry, manuscriptTags, LoreImages.strip(source.getPayload()), StoryText.NONE, null, conditions, true).activated()) {
                 return new Verdict(Reason.LORE_MATCHED, entry.getFiltering() + " <- " + source.getName());
             }
         }
@@ -424,7 +424,8 @@ public class LorebookActivationServiceImpl implements LorebookActivationService 
 
     @Override
     public String renderPayload(LorebookEntry entry, LorebookTemplateData data) {
-        String payload = entry.getPayload();
+        // the model reads the text without the images (they go along as attachments, when the model takes them)
+        String payload = LoreImages.strip(entry.getPayload());
         if (StringUtils.isBlank(payload)) {
             return payload;
         }

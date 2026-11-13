@@ -9,9 +9,10 @@ import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Summary;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.SummaryService.BlockTexts;
-import com.github.enerccio.marginalia.test.MarginaliaTestBase;
 import com.github.enerccio.marginalia.domain.service.run.Runs;
+import com.github.enerccio.marginalia.test.MarginaliaTestBase;
 import com.github.enerccio.marginalia.ui.components.PageRuns;
+import com.github.enerccio.marginalia.ui.dialogs.ManuscriptWindow;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ModalityMode;
 import com.vaadin.flow.component.UI;
@@ -443,8 +444,8 @@ class RedraftDialogTest extends MarginaliaTestBase {
 
     @Test
     void closingTheBookEndsAFoldedWindow() {
-        // the book window, attached and modal as the browser would have it
-        Dialog bookWindow = new Dialog();
+        // the book window, attached and modal as the browser would have it (only a book's window ends the run, not any modal)
+        Dialog bookWindow = new BookWindow();
         ui.addModal(bookWindow);
         bookWindow.open();
         RedraftDialog dialog = RedraftDialog.create(book, part, saved -> {
@@ -523,5 +524,29 @@ class RedraftDialogTest extends MarginaliaTestBase {
 
         assertThat(applied.get()).isNull();
         assertThat(dialog.isOpened()).isFalse();
+    }
+
+    /**
+     * A stand-in for the window of a book: the run looks for a {@link ManuscriptWindow} among the open dialogs.
+     */
+    private static class BookWindow extends Dialog implements ManuscriptWindow {
+        private Runnable onClose;
+
+        @Override public void create() {}
+        @Override public Manuscript getManuscript() { return null; }
+        @Override public com.github.enerccio.marginalia.domain.model.impl.AI getAi() { return null; }
+        @Override public void selectStoryPart() {}
+        @Override public void reload() {}
+        @Override public void showMessage(Long messageId) {}
+        @Override public Runnable getOnClose() { return onClose; }
+        @Override public void setOnClose(Runnable onClose) { this.onClose = onClose; }
+        @Override public void setOnStateChange(Runnable onStateChange) {}
+        @Override public void stateChanged() {}
+        @Override public Manuscript refreshManuscript() { return null; }
+        @Override public Manuscript save() { return null; }
+        @Override public void freeze() {}
+        @Override public void unfreeze() {}
+        @Override public com.google.gson.JsonObject storeState() { return new com.google.gson.JsonObject(); }
+        @Override public void restoreState(com.google.gson.JsonObject self) {}
     }
 }

@@ -396,7 +396,18 @@ not closable): a grid of the entries (enabled, name, order, *Open*, *Open in new
 (`ui.components`): name, order, enabled; a `Details` with the activation settings (the fields of
 `LorebookView.createEntryDetailLayout`, and the condition of `LoreConditionField`); the content in a
 [`MarkdownEditor`](custom-components.md#markdowneditor) and the note beside it (`Show note`); a footer with the token estimate and
-the template error / unknown names. Each change is saved at once (`lorebookEntryService.save`), invalid templates too. The tab ids
+the template error / unknown names, then *Mentioned in:* with a link button per entry whose content names this one. **Links
+between entries:** `LorebookEntryEditor.setLinks(targets, open)` (the dialog passes its list `entries` and `openEntry`) makes
+`MarkdownEditor`'s link clicks (Ctrl/Cmd+click, Shift = new tab) open the entry named at the clicked position
+(`openLinkAt(text, position, newTab)`), and `showMentions` fill the footer; the dialog calls `showMentions` on every tab after
+`entryChanged` and `loadEntries`. Both use `LoreMentions` (`domain.service`, static): an entry is named by its name and its plain
+filter words (keywords, the whole text of a `TEXT` filter) as whole words ignoring case (no word boundary in Han, kana and Thai),
+and by the matches of a `REGEX` filter up to 200 characters; `entryAt` takes the longest name covering the caret and never the
+entry itself, `mentionedIn` the entries whose payload names it. **Images:** `storeImage(fileName, content)` (the
+`MarkdownEditor` uploader; refused while read only) stores the image with `resourceService.uploadImage(..., LorebookEntry.class,
+entry id)` and returns `LoreImages.markup(base name, uuid)`; `imageContent(uuid)` is the preview's image source (the user's
+own images only). The story's `LorebookPreview.createDetails` shows the text without the images and the images under it
+(`MessageImages`). Each change is saved at once (`lorebookEntryService.save`), invalid templates too. The tab ids
 are slots (`entry-1`, `entry-2`...), not entries: `openEntry(entry, newTab)` selects the tab that has the entry, else shows it in
 the slot the user had last (`recent`, kept up to date from `onStateChange` with `getCurrentId`; `add` with the same id replaces
 the content where the tab is) or in a new slot; `TabDock.place(id, withId, rightOfId)` puts a new slot into the sheet of the entry tab used last, the first one into a new column right of the list's. The list and the tabs share the entry objects (`loadEntries(false)` puts the

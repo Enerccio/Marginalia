@@ -10,6 +10,7 @@ import com.vaadin.flow.component.AbstractField;
 import com.vaadin.flow.component.AbstractField.ComponentValueChangeEvent;
 import com.vaadin.flow.component.ComponentUtil;
 import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.button.Button;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,6 +19,7 @@ import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.node.BaseJsonNode;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -32,6 +34,9 @@ class LorebookEntryEditorTest extends MarginaliaTestBase {
 
     @Autowired
     private LorebookEntryService lorebookEntryService;
+
+    @Autowired
+    private com.github.enerccio.marginalia.domain.service.ResourceService resourceService;
 
     // UI.setCurrent keeps a weak reference only
     private UI ui;
@@ -352,5 +357,64 @@ class LorebookEntryEditorTest extends MarginaliaTestBase {
                 .containsEntry("preview", "Preview only")
                 .containsKeys("italic", "strikethrough", "hr", "title", "quote", "code", "codeBlock", "table",
                         "unordered-list", "ordered-list", "checked-list", "edit", "live");
+    }
+
+    private static List<Button> linkButtons(LorebookEntryEditor editor) {
+        return editor.getMentionsBar().getChildren().filter(Button.class::isInstance).map(Button.class::cast).toList();
+    }
+
+    @Test
+    void theFooterListsTheEntriesThatNameThisOneAndOpensThem() throws Exception {
+        LorebookEntry lia = new LorebookEntry();
+        lia.setName("Lia");
+        lia.setUuid("lia");
+        lia.setPayload("She robbed Varro.");
+        LorebookEntry odo = new LorebookEntry();
+        odo.setName("Odo");
+        odo.setUuid("odo");
+        odo.setPayload("A priest.");
+        List<LorebookEntry> all = new ArrayList<>(List.of(entry, lia, odo));
+        List<String> opened = new ArrayList<>();
+        LorebookEntryEditor editor = editor();
+
+        // without links there is no list
+        assertThat(editor.getMentionsBar().isVisible()).isFalse();
+
+        editor.setLinks(() -> all, (target, newTab) -> opened.add(target.getName() + (newTab ? "+" : "")));
+        assertThat(linkButtons(editor)).extracting(Button::getText).containsExactly("Lia");
+
+        odo.setPayload("Odo blesses varro.");
+        editor.showMentions();
+        assertThat(linkButtons(editor)).extracting(Button::getText).containsExactly("Lia", "Odo");
+
+        linkButtons(editor).getLast().click();
+        assertThat(opened).containsExactly("Odo");
+
+        // a Ctrl+click in the content: the name of another entry opens it, its own name nothing
+        assertThat(editor.openLinkAt("Varro met Lia", 11, true)).isTrue();
+        assertThat(editor.openLinkAt("Varro met Lia", 1, false)).isFalse();
+        assertThat(opened).containsExactly("Odo", "Lia+");
+    }
+
+    @Test
+    void anImageAddedToTheContentIsAResourceOfTheEntry() throws Exception {
+        java.awt.image.BufferedImage picture = new java.awt.image.BufferedImage(3, 3, java.awt.image.BufferedImage.TYPE_INT_RGB);
+        java.io.ByteArrayOutputStream png = new java.io.ByteArrayOutputStream();
+        javax.imageio.ImageIO.write(picture, "png", png);
+        LorebookEntryEditor editor = editor();
+
+        String markup = editor.storeImage("portrait.png", png.toByteArray());
+
+        List<com.github.enerccio.marginalia.domain.service.LoreImages.Reference> images =
+                com.github.enerccio.marginalia.domain.service.LoreImages.references(markup);
+        assertThat(images).singleElement().extracting(com.github.enerccio.marginalia.domain.service.LoreImages.Reference::caption)
+                .isEqualTo("portrait");
+        com.github.enerccio.marginalia.domain.model.impl.Resource image = resourceService.findImage(images.getFirst().uuid());
+        assertThat(image.getObjectId()).isEqualTo(entry.getId());
+        assertThat(image.getClazz()).isEqualTo(LorebookEntry.class.getName());
+
+        editor.setReadOnly(true);
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> editor.storeImage("x.png", png.toByteArray()))
+                .isInstanceOf(IllegalStateException.class);
     }
 }

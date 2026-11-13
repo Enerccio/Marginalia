@@ -4,8 +4,8 @@ import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
-import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
+import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.AgentRunService;
 import com.github.enerccio.marginalia.domain.service.LorebookEntryService;
 import com.github.enerccio.marginalia.domain.service.LorebookService;
@@ -508,6 +508,8 @@ public class LorebookEditorDialog extends Dialog {
         editor[0] = new LorebookEntryEditor(entry, lorebookOf(entry), tokens, () -> entryChanged(editor[0])).create();
         editor[0].setOnLocked(agent -> locked(agent, true));
         editor[0].setOnGone(() -> entryGone(editor[0]));
+        // a link opens the entry as Open does (the reused tab) or as Open in new tab
+        editor[0].setLinks(() -> entries, this::openEntry);
         editor[0].setReadOnly(lockedBy != null);
         editor[0].setEditorMode(modes.get(id));
         editor[0].setOnModeChange(mode -> {
@@ -715,6 +717,8 @@ public class LorebookEditorDialog extends Dialog {
             entryProvider.refreshAll();
         }
         updateTotals();
+        // a changed content or name may name other entries now
+        tabs.values().forEach(LorebookEntryEditor::showMentions);
     }
 
     @PublicAPI(from = "1.8.0",
@@ -981,6 +985,7 @@ public class LorebookEditorDialog extends Dialog {
             grid.setItems(entryProvider);
             tokens.clear();
             updateTotals();
+            tabs.values().forEach(LorebookEntryEditor::showMentions);
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }

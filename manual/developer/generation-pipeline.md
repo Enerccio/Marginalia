@@ -212,7 +212,10 @@ Skipped when the book has no lorebook. Otherwise:
    one entry are visible in the following ones. A payload that fails to render is used as it is.
 6. **Insert**: payloads with `IN_LORE_BLOCK` are joined into `backgroundLore` (the master template's
    `{{backgroundLore}}`); payloads with `BEFORE_USER_PROMPT` are joined into `backgroundUserLore` and put in front of
-   the user prompt.
+   the user prompt. The images in the content (`![caption](resource:<uuid>)`, `LoreImages`) are not in the text:
+   `renderPayload` (and the recursion scan) strips them. When the AI has `sendLoreImages` they are listed in
+   `GenerationProperties.LORE_IMAGES` (`List<LoreImage>`: entry name, caption, resource uuid, insertion mode, in the order of
+   the entries, also those of an entry whose text is empty) for the payload step.
 
 Events: `BEFORE_PROCESS_LOREBOOK`, `PROCESS_LOREBOOKS` (the list in `LOREBOOKS` can be changed),
 `PROCESS_LOREBOOK_ENTRY` (once per entry, `LOREBOOK_ENTRY`; the entry is evaluated first and `LOREBOOK_VERDICT` holds
@@ -282,7 +285,16 @@ user       lore before user prompt + "\n\n" + rendered user prompt
 ```
 
 Earlier parts are sent as the model's own previous answers, each preceded by a short placeholder user turn. The final
-user message carries the instructions. Only the text of the parts is sent: the images attached to a part are not part of
+user message carries the instructions.
+
+**Lore images** (`LORE_IMAGES`, empty unless the AI has *Send lore images*): each resource once, read with
+`resourceService.findImage` and scaled by `ImageFiles.prepare` (an image that is gone or can't be read is left out with a
+warning), with a caption line `[ Images of the lore, in order: 1. Entry (caption); ... ]`. The images of `IN_LORE_BLOCK`
+entries go into a user message of their own right after the system message, answered by an assistant message
+(`LORE_IMAGES_ACKNOWLEDGED`), since the system role of most APIs takes text only; with `AI.loreImagesInSystem` (OpenAI
+compatible only) they are attachments of the system message instead, which `OpenAICompatibleInferenceService.toSystemMessage`
+writes as untyped JSON parts (`text`, `image_url`). The images of `BEFORE_USER_PROMPT` entries are attachments of the final
+user message, the caption after the prompt. Only the text of the parts is sent: the images attached to a part are not part of
 it and the model never sees them.
 
 An `LLMChatMessage` can carry `LLMAttachment`s (images, audio, files) for models that accept them, and the OpenAI

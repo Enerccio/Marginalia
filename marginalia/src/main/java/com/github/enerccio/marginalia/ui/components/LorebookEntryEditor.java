@@ -7,15 +7,15 @@ import com.github.enerccio.marginalia.domain.collections.FilteringMode;
 import com.github.enerccio.marginalia.domain.collections.InsertionMode;
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
-import com.github.enerccio.marginalia.domain.service.LorebookEntryService;
-import com.github.enerccio.marginalia.domain.service.ManuscriptLockedException;
-import com.github.enerccio.marginalia.domain.service.TemplateService;
+import com.github.enerccio.marginalia.domain.model.impl.Resource;
+import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.templates.LorebookTemplateData;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.LorebookActivationPreviewDialog;
 import com.github.enerccio.marginalia.ui.widgets.MarkdownEditor;
+import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.ui.widgets.TagMultiComboBox;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.button.Button;
@@ -33,20 +33,27 @@ import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.value.ValueChangeMode;
+import com.vaadin.flow.server.AbstractStreamResource;
+import com.vaadin.flow.server.StreamResource;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
+import java.io.ByteArrayInputStream;
+import java.util.List;
 import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * One entry of a lorebook in a tab of the lorebook editor ({@code LorebookEditorDialog}): a row with the name, whether it
  * is used and its order; the settings of the activation in a panel that can be folded; the content (a Markdown editor) and
  * the note side by side, the note only when it is asked for; and a footer with the token estimate of the content and what
- * is wrong with its template. Every change is saved at once, as in the rows of the lorebook view.
+ * is wrong with its template, and the entries whose content names this one. Ctrl+click on the name or a keyword of another
+ * entry in the content opens it ({@link #setLinks}). Every change is saved at once, as in the rows of the lorebook view.
  */
 @Configurable
 @Extendable
@@ -60,6 +67,9 @@ public class LorebookEntryEditor extends VerticalLayout {
 
     @Autowired
     private TemplateService templateService;
+
+    @Autowired
+    private ResourceService resourceService;
 
     private LorebookEntry entry;
     private final Lorebook lorebook;
@@ -103,6 +113,10 @@ public class LorebookEntryEditor extends VerticalLayout {
     private MarkdownEditor.Mode editorMode = MarkdownEditor.Mode.LIVE;
     private Consumer<MarkdownEditor.Mode> onModeChange;
     private boolean settingsOpened = true;
+    // the entries a link can open, and what opens one (the entry, in a new tab)
+    private Supplier<List<LorebookEntry>> linkTargets;
+    private BiConsumer<LorebookEntry, Boolean> onOpenLink;
+    private HorizontalLayout mentionsBar;
 
     /**
      * @param entry     the entry, saved with every change
@@ -201,6 +215,7 @@ public class LorebookEntryEditor extends VerticalLayout {
         hideConflict();
         validate();
         countTokens(false);
+        showMentions();
     }
 
     /**
@@ -340,6 +355,12 @@ public class LorebookEntryEditor extends VerticalLayout {
                     countTokens(true);
                 }));
 
+        contentEditor.addLinkClickListener(click -> openLinkAt(click.text(), click.position(), click.newTab()));
+        // images: stored as resources of the entry, shown in the preview from the user's images
+        contentEditor.setImageUploader(this::storeImage);
+        contentEditor.setOnUploadFailed(name -> Notification.error(loc.getValue(L.ERROR_INVALID_IMAGE)));
+        contentEditor.setImageSource(this::imageContent);
+
         noteField = new TextArea(loc.getValue(L.LABEL_NOTE));
         noteField.setSizeFull();
         noteField.setValue(StringUtils.defaultString(entry.getComment()));
@@ -381,15 +402,23 @@ public class LorebookEntryEditor extends VerticalLayout {
         conflictBar.setVisible(false);
         keepMine = null;
 
-        HorizontalLayout footer = new HorizontalLayout(tokensSpan, problemSpan, warningSpan, conflictBar);
+        mentionsBar = new HorizontalLayout();
+        mentionsBar.setSpacing(false);
+        mentionsBar.getThemeList().add("spacing-xs");
+        mentionsBar.setAlignItems(FlexComponent.Alignment.BASELINE);
+        mentionsBar.addClassName(CssStyles.FLEX_WRAP);
+
+        HorizontalLayout footer = new HorizontalLayout(tokensSpan, problemSpan, warningSpan, conflictBar, mentionsBar);
         footer.setWidthFull();
         footer.setAlignItems(FlexComponent.Alignment.BASELINE);
+        footer.addClassName(CssStyles.FLEX_WRAP);
 
         add(header, settings, body, footer);
         setFlexGrow(1, body);
 
         validate();
         countTokens(false);
+        showMentions();
         applyReadOnly();
     }
 
@@ -665,6 +694,132 @@ public class LorebookEntryEditor extends VerticalLayout {
         this.onModeChange = onModeChange;
     }
 
+    /**
+     * Stores an image the user put into the content: a resource linked to the entry, the Markdown that shows it.
+     *
+     * @return the Markdown put in at the cursor
+     */
+    @PublicAPI(from = "1.8.0",
+            returns = @APIReturn(type = String.class),
+            parameters = {@APIParameter(name = "fileName", type = String.class),
+                    @APIParameter(name = "content", type = byte[].class)},
+            locals = {@APILocals(name = "image", type = Resource.class)})
+    public String storeImage(String fileName, byte[] content) throws Exception {
+        if (readOnly) {
+            throw new IllegalStateException("The entry is read only");
+        }
+        Resource image = resourceService.uploadImage(fileName, content, LorebookEntry.class, entry.getId());
+        return LoreImages.markup(FilenameUtils.getBaseName(fileName), image.getUuid());
+    }
+
+    /**
+     * The content of an image of the user for the preview, null when the user has no such image.
+     */
+    @PublicAPI(from = "1.8.0",
+            returns = @APIReturn(type = AbstractStreamResource.class),
+            parameters = {@APIParameter(name = "uuid", type = String.class)},
+            locals = {@APILocals(name = "image", type = Resource.class),
+                    @APILocals(name = "stream", type = StreamResource.class),
+                    @APILocals(name = "e", type = Exception.class)})
+    private AbstractStreamResource imageContent(String uuid) {
+        try {
+            Resource image = resourceService.findImage(uuid);
+            if (image == null) {
+                return null;
+            }
+            StreamResource stream = new StreamResource(StringUtils.defaultIfBlank(image.getOriginalName(), uuid), () -> {
+                try {
+                    return new ByteArrayInputStream(resourceService.getResourceData(image));
+                } catch (Exception e) {
+                    throw new IllegalStateException(e);
+                }
+            });
+            stream.setContentType(image.getMimeType());
+            return stream;
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+            return null;
+        }
+    }
+
+    /**
+     * The links between entries: Ctrl+click on the name or a keyword of an entry in the content opens it, and the footer lists the
+     * entries whose content names this one ({@link LoreMentions}).
+     *
+     * @param targets the entries a link can open (the list of the editor), asked at every click
+     * @param open    opens an entry, in a new tab when the flag is set
+     */
+    @PublicAPI(from = "1.8.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "targets", type = Supplier.class),
+                    @APIParameter(name = "open", type = BiConsumer.class)})
+    public void setLinks(Supplier<List<LorebookEntry>> targets, BiConsumer<LorebookEntry, Boolean> open) {
+        this.linkTargets = targets;
+        this.onOpenLink = open;
+        showMentions();
+    }
+
+    /**
+     * Opens the entry the text names at the position (a Ctrl+click in the content or its preview); nothing when it names none.
+     *
+     * @return whether an entry was opened
+     */
+    @PublicAPI(from = "1.8.0",
+            returns = @APIReturn(type = boolean.class),
+            parameters = {@APIParameter(name = "text", type = String.class),
+                    @APIParameter(name = "position", type = int.class),
+                    @APIParameter(name = "newTab", type = boolean.class)},
+            locals = {@APILocals(name = "target", type = LorebookEntry.class)})
+    public boolean openLinkAt(String text, int position, boolean newTab) {
+        if (linkTargets == null || onOpenLink == null) {
+            return false;
+        }
+        LorebookEntry target = LoreMentions.entryAt(text, position, linkTargets.get(), entry);
+        if (target == null) {
+            return false;
+        }
+        onOpenLink.accept(target, newTab);
+        return true;
+    }
+
+    /**
+     * Lists in the footer the entries whose content names this one (again after a change of the entries of the editor).
+     */
+    @PublicAPI(from = "1.8.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "mentioning", type = List.class),
+                    @APILocals(name = "label", type = Span.class),
+                    @APILocals(name = "other", type = LorebookEntry.class),
+                    @APILocals(name = "link", type = Button.class),
+                    @APILocals(name = "none", type = Span.class)})
+    public void showMentions() {
+        if (mentionsBar == null) {
+            return;
+        }
+        mentionsBar.removeAll();
+        if (linkTargets == null || onOpenLink == null) {
+            mentionsBar.setVisible(false);
+            return;
+        }
+        List<LorebookEntry> mentioning = LoreMentions.mentionedIn(entry, linkTargets.get());
+        Span label = new Span(loc.getValue(L.LABEL_MENTIONED_IN));
+        label.addClassName(CssStyles.HINT_TEXT);
+        UIUtils.addTooltip(label, loc.getValue(L.HELP_ENTRY_LINKS));
+        mentionsBar.add(label);
+        for (LorebookEntry other : mentioning) {
+            Button link = new Button(StringUtils.defaultIfBlank(other.getName(), "?"),
+                    event -> onOpenLink.accept(other, event.isShiftKey() || event.isCtrlKey() || event.isMetaKey()));
+            link.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE, ButtonVariant.LUMO_SMALL);
+            mentionsBar.add(link);
+        }
+        if (mentioning.isEmpty()) {
+            Span none = new Span("—");
+            none.addClassName(CssStyles.HINT_TEXT);
+            mentionsBar.add(none);
+        }
+        mentionsBar.setVisible(true);
+    }
+
     @PublicAPI(from = "1.8.0",
             returns = @APIReturn(type = void.class))
     private void applyReadOnly() {
@@ -919,5 +1074,11 @@ public class LorebookEntryEditor extends VerticalLayout {
             returns = @APIReturn(type = HorizontalLayout.class))
     HorizontalLayout getConflictBar() {
         return conflictBar;
+    }
+
+    @PublicAPI(from = "1.8.0",
+            returns = @APIReturn(type = HorizontalLayout.class))
+    HorizontalLayout getMentionsBar() {
+        return mentionsBar;
     }
 }

@@ -437,4 +437,31 @@ class LorebookEditorDialogTest extends MarginaliaTestBase {
         assertThat(again.getIncludeSubbooks().getValue()).isTrue();
         assertThat(listed(again)).hasSize(3);
     }
+
+    @Test
+    void aClickOnTheNameOfAnotherEntryInTheContentOpensIt() throws Exception {
+        entry("Varro", "Varro serves in the Low City.", true);
+        entry("Low City", "The poor quarter.", true);
+        entry("Lia", "A thief.", true);
+        LorebookEditorDialog dialog = dialog();
+        dialog.openEntry(listed(dialog, "Varro"), false);
+        LorebookEntryEditor varro = dialog.getTabs().values().iterator().next();
+        String text = varro.getEntry().getPayload();
+
+        // nothing there: the tab stays
+        assertThat(varro.openLinkAt(text, text.indexOf("serves"), false)).isFalse();
+        assertThat(openNames(dialog)).containsExactly("Varro");
+
+        // with Shift a new tab
+        assertThat(varro.openLinkAt(text, text.indexOf("City"), true)).isTrue();
+        assertThat(openNames(dialog)).containsExactlyInAnyOrder("Varro", "Low City");
+
+        // without it the tab used last shows the entry
+        LorebookEntryEditor city = dialog.getTabs().values().stream()
+                .filter(editor -> editor.getEntry().getName().equals("Low City")).findFirst().orElseThrow();
+        dialog.openEntry(listed(dialog, "Varro"), false);
+        assertThat(varro.openLinkAt("Lia was here", 1, false)).isTrue();
+        assertThat(openNames(dialog)).containsExactlyInAnyOrder("Lia", "Low City");
+        assertThat(city.getEntry().getName()).isEqualTo("Low City");
+    }
 }

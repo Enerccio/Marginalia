@@ -3,10 +3,12 @@ package com.github.enerccio.marginalia.ui.components;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.collections.FilteringMode;
+import com.github.enerccio.marginalia.domain.model.ImageAttachment;
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.AgentRunService;
+import com.github.enerccio.marginalia.domain.service.LoreImages;
 import com.github.enerccio.marginalia.domain.service.LorebookEntryService;
 import com.github.enerccio.marginalia.domain.service.LorebookService;
 import com.github.enerccio.marginalia.domain.traits.*;
@@ -444,14 +446,15 @@ public class LorebookPreview extends VerticalLayout implements LLMInteract {
         return open;
     }
 
-    @PublicAPI(from = "1.4.0",
+    @PublicAPI(from = "1.8.0",
             returns = @APIReturn(type = VerticalLayout.class),
             parameters = {@APIParameter(name = "row", type = LorebookPreview.Row.class)},
             locals = {@APILocals(name = "details", type = VerticalLayout.class),
                     @APILocals(name = "entry", type = LorebookEntry.class),
                     @APILocals(name = "activation", type = Span.class),
                     @APILocals(name = "contentLabel", type = Span.class),
-                    @APILocals(name = "content", type = Markdown.class)})
+                    @APILocals(name = "content", type = Markdown.class),
+                    @APILocals(name = "images", type = List.class)})
     private VerticalLayout createDetails(Row row) {
         VerticalLayout details = new VerticalLayout();
         details.setWidthFull();
@@ -475,10 +478,15 @@ public class LorebookPreview extends VerticalLayout implements LLMInteract {
         if (StringUtils.isNotBlank(entry.getPayload())) {
             Span contentLabel = new Span(loc.getValue(L.LABEL_CONTENT) + ":");
             contentLabel.addClassName(CssStyles.TEXT_SEMIBOLD);
-            // entries are often written in Markdown
-            Markdown content = new Markdown(entry.getPayload());
+            // entries are often written in Markdown; the images are shown under the text (the Markdown can't load them)
+            Markdown content = new Markdown(StringUtils.defaultString(LoreImages.strip(entry.getPayload())));
             content.addClassNames(CssStyles.MIN_WIDTH_0, CssStyles.MAX_WIDTH_FULL);
             details.add(contentLabel, content);
+            List<LoreImages.Reference> images = LoreImages.references(entry.getPayload());
+            if (!images.isEmpty()) {
+                details.add(new MessageImages(images.stream()
+                        .map(image -> new ImageAttachment(image.uuid(), image.caption())).toList()));
+            }
         }
         return details;
     }

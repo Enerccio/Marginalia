@@ -152,7 +152,19 @@ script): `value`, `placeholder`, `readOnly` and `preview` (`edit`, `live`, `prev
 - **Styling.** The editor renders into the light DOM, so the rules of `markdown-editor` in `shared-styles.css` reach it:
   it fills its height and its variables (`--md-editor-*`, `--color-*`) are Lumo's, which follow the color scheme by
   themselves; the script also sets `data-color-mode` from the `theme` attribute of `<html>` (a `MutationObserver`).
-- The toolbar's tooltips are the library's English ones.
+- **Images.** `setImageUploader(uploader)` sets the state `images`: the toolbar gets an image button (a hidden file input),
+  and pasting or dropping image files into the textarea sends each to the `@ClientCallable` `uploadImage(fileName,
+  base64)`, whose answer (the Markdown the uploader returns) goes in at the cursor; a failure calls `setOnUploadFailed`.
+  `setImageSource(uuid -> AbstractStreamResource)` resolves the images whose address is `resource:<uuid>`: the server
+  registers a stream per uuid in the session's resource registry (unregistered on detach) and sends the addresses as the
+  state `imageUrls`; the preview's sanitize schema lets the `resource` protocol through for `src` and its `urlTransform`
+  puts the address in.
+- **Link clicks.** Ctrl/Cmd+click in the textarea or in the preview calls the `@ClientCallable` `linkClicked(typed, text,
+  position, newTab)` through the element's `$server`: in the textarea `text` is the whole value and `position` the caret,
+  in the preview the clicked text node and the offset in it (`caretPositionFromPoint` / `caretRangeFromPoint`), `newTab` is
+  Shift. The text typed but not sent yet goes along as `typed` and is taken as the user's change first, so a listener
+  that saves has it before the link opens. `addLinkClickListener` hears a `LinkClick(text, position, newTab)`; what is a
+  link there is the listener's business (`LorebookEntryEditor`, `LoreMentions`).
 
 ## Adding a component for another library
 

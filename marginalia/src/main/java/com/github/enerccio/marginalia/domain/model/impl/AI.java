@@ -69,6 +69,39 @@ public class AI extends ExtendableEntity {
     @ExtendedAttribute
     private Integer maxConcurrentRequests;
 
+    /**
+     * Whether the images in the content of the lorebook entries go to this model with the lore (the model must take images:
+     * a model without vision refuses the request). Off when never set.
+     */
+    @Transient
+    @ExtendedAttribute
+    private Boolean sendLoreImages;
+
+    public boolean isSendLoreImages() {
+        return Boolean.TRUE.equals(sendLoreImages);
+    }
+
+    public void setSendLoreImages(boolean sendLoreImages) {
+        this.sendLoreImages = sendLoreImages ? Boolean.TRUE : null;
+    }
+
+    /**
+     * The images of the entries of the lore block go into the system message itself (OpenAI-compatible models whose chat template
+     * takes images there), not into a user message of their own after it. Off when never set; used only with
+     * {@link #isSendLoreImages()}.
+     */
+    @Transient
+    @ExtendedAttribute
+    private Boolean loreImagesInSystem;
+
+    public boolean isLoreImagesInSystem() {
+        return Boolean.TRUE.equals(loreImagesInSystem);
+    }
+
+    public void setLoreImagesInSystem(boolean loreImagesInSystem) {
+        this.loreImagesInSystem = loreImagesInSystem ? Boolean.TRUE : null;
+    }
+
     /** The number as it is stored, null when it was never set; {@link #getConnections()} is what applies. */
     public Integer getMaxConcurrentRequests() {
         return maxConcurrentRequests;

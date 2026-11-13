@@ -1089,6 +1089,9 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_TEXT_ONLY, "Text only");
         setValue(L.LABEL_TEXT_AND_PREVIEW, "Text and preview");
         setValue(L.LABEL_PREVIEW_ONLY, "Preview only");
+        setValue(L.LABEL_MENTIONED_IN, "Mentioned in:");
+        setValue(L.LABEL_SEND_LORE_IMAGES, "Send lore images");
+        setValue(L.LABEL_LORE_IMAGES_IN_SYSTEM, "Images in the system message");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -2015,6 +2018,9 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_REDRAFT_LENGTH_PROMPT, "Plain text that is added to your instructions when the redraft is asked to be shorter (longer). It is not a template. Empty is the built-in text.");
         setValue(L.HELP_UPDATE, "Updates a Docker installation from its Git checkout without logging in to the server: the newest version of the branch is pulled and built, with the plugins, and Marginalia is restarted.");
         setValue(L.HELP_AI_CONNECTIONS, "How many requests may be on the way to this model at once: every request, of every user and of every kind (your generation, a side query, an agent, a plugin). The others wait their turn, in the order they came. 1 for a server with one slot (for example one GPU); a cloud model that answers several requests at once can have more.");
+        setValue(L.HELP_ENTRY_LINKS, "Ctrl+click (Cmd+click on a Mac) the name or a keyword of another entry in the content to open it, with Shift in a new tab. The entries listed here name this one in their content: click to open, Shift+click for a new tab.");
+        setValue(L.HELP_SEND_LORE_IMAGES, "Send the images in the content of the lorebook entries the turn uses along with the lore. Only for a model that accepts images: a model without vision refuses the request.");
+        setValue(L.HELP_LORE_IMAGES_IN_SYSTEM, "Put the images of the lore block into the system message itself instead of a message of their own after it. Only for a server and chat template that take images there; most do not.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Background lore and world context.");

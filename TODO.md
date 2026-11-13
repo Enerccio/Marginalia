@@ -596,7 +596,11 @@ Most are 🧩 plugin-sized; the ones that need a core hook say so.
      (`TabDock.place`), a reload that updates the fields in place instead of building the tab again.
      Then: the entries of the sub lorebooks in the list (*Include sub lorebooks*, *Add Entry* into a picked lorebook), the
      toolbar tooltips localized (`MarkdownEditor.localize`), the story's book handed to the editor for the Lore Generator.
-     Not done yet: images, jump between entries, screenshots for the manual (before the release). A full-screen dialog, opened from the *Lorebook* view of the
+     Then (2026-11-13): jumping between entries (`LoreMentions`: Ctrl/Cmd+click in the content or the preview, *Mentioned in* in
+     the footer); images in entries (`LoreImages`, `![caption](resource:<uuid>)`: paste, drop and the image button of
+     `MarkdownEditor`, the preview, *Send lore images* and *Images in the system message* per AI, the lore block's images in an
+     answered user message after the system prompt, copied with clones, shared copies, lorebook files and book backups).
+     Not done yet: the images in the token count/budget (and the activation preview, the lore usage report), screenshots for the manual (before the release). A full-screen dialog, opened from the *Lorebook* view of the
      workspace and from the book's *Lorebook* tab (`ManuscriptLorebookPart`); the phone keeps `PhoneLorebookView`.
      - **Dock:** a detachable `TabDock` (like the story editor's). One fixed tab (not closable, not minimizable) with the
        list of entries: text only (name, enabled, order, tags, filter; the search, `LorebookEntryFilter` and sub
@@ -633,7 +637,7 @@ Most are 🧩 plugin-sized; the ones that need a core hook say so.
        wand to the grid (`addGenerateColumn`). In the editor: the wand on the list tab (a new entry) and in the header of
        an entry tab (rewrite/extend this entry); the dialog gets `@Extendable` hooks for both and the plugin registers
        them, the generated text lands in the open tab.
-     - **Images in entries:** upload or paste an image into the content; it is stored as a `Resource` (`ResourceService`,
+     - ✅ (but the token count) **Images in entries:** upload or paste an image into the content; it is stored as a `Resource` (`ResourceService`,
        `objectId`/`clazz` = the entry) and referenced in the content (a Markdown image with a resource link, shown in the
        preview). In a generation the text goes into the prompt without the image markup, and the images (`LLMAttachment`,
        scaled by `ImageFiles.prepare`) go to the message where the entry's text lands: `BEFORE_USER_PROMPT` and a lore
@@ -682,7 +686,7 @@ Most are 🧩 plugin-sized; the ones that need a core hook say so.
        list tab (or the header) and the revision bar to the entry tab (above the details); switching a revision reloads
        that tab (the plugin's `refreshEntryRow` does it for the grid row). Also the undo of the editor: immediate save
        has none beyond the browser's, and a revision is the way back.
-     - **Jump between entries:** Ctrl+click on the name of another entry in the content opens it (in the reused tab,
+     - ✅ **Jump between entries:** Ctrl+click on the name of another entry in the content opens it (in the reused tab,
        Ctrl+Shift in a new one), and a *Mentioned in* list in the footer (the entries whose content names this one, what
        recursion would follow) with the same links.
      - **Test from the tab:** *Activation preview* on the entry tab (`LorebookActivationPreviewDialog` for this entry

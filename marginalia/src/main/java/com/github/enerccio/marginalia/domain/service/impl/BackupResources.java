@@ -18,7 +18,8 @@ import java.util.regex.Pattern;
  * {@code extendedContent}, which also holds the {@code attributes} of extensions) names by the uuid of a resource, whatever the extension wrote it for: the
  * audio of an audiobook, a font, a file of a plugin. The backup knows no more about them than the uuid, so they are found as uuids inside the text of
  * the data: a uuid that is the uuid of a resource of the user (or of the archive) is a reference, any other (the uuid of a part, of a lorebook) is left alone.
- * The files are not in the JSON.
+ * The content of the lorebook entries of the backup ({@code lorebooks[].entries[].payload}) is data too: the images of an entry are
+ * resources named in it ({@code ![caption](resource:<uuid>)}, see {@code LoreImages}). The files are not in the JSON.
  */
 final class BackupResources {
 
@@ -82,6 +83,32 @@ final class BackupResources {
         data(backup, change);
         if (backup.has("messages") && backup.get("messages").isJsonArray()) {
             messages(backup.getAsJsonArray("messages"), change);
+        }
+        if (backup.has("lorebooks") && backup.get("lorebooks").isJsonArray()) {
+            lorebooks(backup.getAsJsonArray("lorebooks"), change);
+        }
+    }
+
+    /** The content of the entries of the lorebooks; the uuids of the lorebooks and the entries are not looked at. */
+    private static void lorebooks(JsonArray lorebooks, java.util.function.UnaryOperator<String> change) {
+        for (JsonElement book : lorebooks) {
+            if (!book.isJsonObject() || !book.getAsJsonObject().has("entries") || !book.getAsJsonObject().get("entries").isJsonArray()) {
+                continue;
+            }
+            for (JsonElement element : book.getAsJsonObject().getAsJsonArray("entries")) {
+                if (!element.isJsonObject()) {
+                    continue;
+                }
+                JsonObject entry = element.getAsJsonObject();
+                JsonElement payload = entry.get("payload");
+                if (payload != null && payload.isJsonPrimitive() && payload.getAsJsonPrimitive().isString()) {
+                    String text = payload.getAsString();
+                    String changed = change.apply(text);
+                    if (!changed.equals(text)) {
+                        entry.addProperty("payload", changed);
+                    }
+                }
+            }
         }
     }
 

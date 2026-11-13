@@ -559,8 +559,7 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
                 continue;
             }
             switch (msg.getRole()) {
-                case SYSTEM -> messages.add(ChatCompletionMessageParam.ofSystem(
-                        ChatCompletionSystemMessageParam.builder().content(msg.getContent()).build()));
+                case SYSTEM -> messages.add(ChatCompletionMessageParam.ofSystem(toSystemMessage(msg)));
                 case USER -> messages.add(ChatCompletionMessageParam.ofUser(toUserMessage(msg)));
                 case ASSISTANT -> messages.add(ChatCompletionMessageParam.ofAssistant(toAssistantMessage(msg, ai.getReasoningPassthrough())));
                 case TOOL -> {
@@ -792,6 +791,32 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
             parts.add(toContentPart(attachment));
         }
         return builder.contentOfArrayOfContentParts(parts).build();
+    }
+
+    /**
+     * The system message: its text, and when it has images (the lore images of an AI set to send them there,
+     * {@code AI.isLoreImagesInSystem}) the text and the images as parts. The API types the parts of a system message as text
+     * only, so they are written as JSON; chat templates that take images there (and servers that pass them on) read them, the
+     * others refuse the request. Attachments that are not images are left out.
+     */
+    private static ChatCompletionSystemMessageParam toSystemMessage(LLMChatMessage msg) {
+        ChatCompletionSystemMessageParam.Builder builder = ChatCompletionSystemMessageParam.builder();
+        List<LLMAttachment> images = msg.getAttachments().stream()
+                .filter(attachment -> (attachment.getKind() != null ? attachment.getKind()
+                        : LLMAttachment.Kind.fromMimeType(attachment.getMimeType())) == LLMAttachment.Kind.IMAGE
+                        && attachment.toDataUrl() != null)
+                .toList();
+        if (images.isEmpty()) {
+            return builder.content(StringUtils.defaultString(msg.getContent())).build();
+        }
+        List<Object> parts = new ArrayList<>();
+        if (StringUtils.isNotEmpty(msg.getContent())) {
+            parts.add(Map.of("type", "text", "text", msg.getContent()));
+        }
+        for (LLMAttachment image : images) {
+            parts.add(Map.of("type", "image_url", "image_url", Map.of("url", image.toDataUrl())));
+        }
+        return builder.content(JsonValue.from(parts)).build();
     }
 
     private static ChatCompletionContentPart toContentPart(LLMAttachment attachment) {

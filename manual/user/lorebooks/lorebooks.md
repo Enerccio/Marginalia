@@ -117,6 +117,21 @@ under another one, and drag the splitters between them.
   text and the preview, or the preview, also when the window is opened again), and the **note** beside it when
   **Show note** is checked. The eye opens the [activation preview](entries.md#preview-activation) for this entry. The bottom line shows the estimated tokens of the content and, in red, what is wrong with its
   template (it is saved anyway). Close a tab with its **×**.
+- **Images in entries.** Paste an image into the content, drop one on it or pick one with the image button of the toolbar
+  (PNG, JPEG, GIF or WebP, up to 10 MB). It is stored with your files (the *Resources* tab) and the content gets a
+  line like `![Map](resource:…)` where the cursor was; the preview shows the image, and the text in brackets is its caption.
+  Delete the line to take the image out of the entry. The model reads the entry without these lines. The images
+  themselves are sent only when the model's settings say *Send lore images* (see [Inference providers](../inference-providers.md)).
+  Images travel with the lorebook: a clone, a copy of a shared lorebook, an exported lorebook file and a book backup
+  with its files carry them, and the copy gets images of its own. The SillyTavern export and the book exports leave them
+  out. The story's *Lorebook* tab shows them under the text of the entry. Images do not count in the token estimates yet.
+- **Jumping between entries.** Ctrl+click (Cmd+click on a Mac) the name or a keyword of another entry in the content, in
+  the text or in the preview, to open that entry in the tab you used last; with Shift too it opens in a new tab. The
+  bottom line also lists, after **Mentioned in:**, the entries whose content names this one; click one to open it,
+  Shift+click for a new tab. An entry is named by its name and by the words of its filter (each keyword, the whole text of
+  a *Text* filter, what a regular expression matches), as whole words, upper or lower case alike. This is close to what
+  [recursion](entries.md) follows but not the same: recursion also finds a keyword inside a longer word, needs all the
+  keywords of an *AND* filter and checks the tags and the condition.
 - The Markdown editor has a toolbar (bold, italic, strikethrough, a line, headings, quote, code, code block, table and the
   three kinds of lists) and, on the right, the views *edit*, *edit with preview* (the default) and *preview*. The usual
   keys work (Ctrl+B, Ctrl+I...); Tab moves to the next field instead of indenting. What you type is saved when you stop

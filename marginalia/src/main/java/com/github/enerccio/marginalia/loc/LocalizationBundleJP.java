@@ -1089,6 +1089,9 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_TEXT_ONLY, "テキストのみ");
         setValue(L.LABEL_TEXT_AND_PREVIEW, "テキストとプレビュー");
         setValue(L.LABEL_PREVIEW_ONLY, "プレビューのみ");
+        setValue(L.LABEL_MENTIONED_IN, "言及元：");
+        setValue(L.LABEL_SEND_LORE_IMAGES, "ロア画像を送る");
+        setValue(L.LABEL_LORE_IMAGES_IN_SYSTEM, "画像をシステムメッセージに入れる");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -2015,6 +2018,9 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_REDRAFT_LENGTH_PROMPT, "リライトを短く（長く）するよう求めたとき、指示の後ろに追加されるテキストです。テンプレートではありません。空の場合は組み込みのテキストになります。");
         setValue(L.HELP_UPDATE, "サーバーにログインせずに、Docker インストールを Git チェックアウトからアップデートします。ブランチの最新バージョンを取得してプラグインとともにビルドし、Marginalia を再起動します。");
         setValue(L.HELP_AI_CONNECTIONS, "このモデルへ同時に送れるリクエストの数です。すべてのユーザー、すべての種類のリクエスト（あなたの生成、サイドクエリ、エージェント、プラグイン）が対象で、超えた分は来た順に順番待ちになります。スロットが1つのサーバー（例：GPU 1枚）では1、同時に複数のリクエストに答えられるクラウドのモデルではそれ以上にしてください。");
+        setValue(L.HELP_ENTRY_LINKS, "本文中の別の項目の名前またはキーワードを Ctrl+クリック（Mac では Cmd+クリック）するとその項目を開きます。Shift も押すと新しいタブで開きます。ここに並ぶのは本文でこの項目に触れている項目です。クリックで開き、Shift+クリックで新しいタブに開きます。");
+        setValue(L.HELP_SEND_LORE_IMAGES, "そのターンで使われるロアブック項目の本文中の画像を、ロアと一緒に送ります。画像を受け付けるモデル専用です。画像に対応していないモデルはリクエストを拒否します。");
+        setValue(L.HELP_LORE_IMAGES_IN_SYSTEM, "ロアブロックの画像を、後に続く専用のメッセージではなくシステムメッセージ自体に入れます。システムメッセージで画像を受け付けるサーバーとチャットテンプレート専用です。多くは対応していません。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景設定と世界観の文脈。");

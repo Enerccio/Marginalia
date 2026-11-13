@@ -342,6 +342,23 @@ public class ResourceServiceImpl extends OwnedServiceImpl<Resource, ResourceRepo
 
     @Override
     @CommonTx
+    public Resource copyImageOf(String uuid, User owner) throws Exception {
+        if (StringUtils.isBlank(uuid) || owner == null) {
+            return null;
+        }
+        Resource original = getRepository().findByUuid(uuid, owner);
+        if (original == null || original.isDeleted() || original.getMimeType() == null || !original.getMimeType().startsWith("image/")) {
+            return null;
+        }
+        File file = fileOf(original, owner);
+        if (!file.isFile()) {
+            return null;
+        }
+        return uploadImage(StringUtils.defaultIfBlank(original.getOriginalName(), uuid), FileUtils.readFileToByteArray(file));
+    }
+
+    @Override
+    @CommonTx
     public Resource copy(Resource resource) throws Exception {
         Resource current = resource == null ? null : findForUser(resource.getUuid());
         if (current == null) {
