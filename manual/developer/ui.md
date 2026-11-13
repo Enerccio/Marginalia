@@ -1,7 +1,7 @@
 ---
 label: User interface
 order: 910
-verified: 8095daeae
+verified: 3cbdfc044
 covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/ui
 ---

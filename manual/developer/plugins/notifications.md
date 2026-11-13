@@ -9,7 +9,7 @@ covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/ui/notifications/NotificationSettingsEditor.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/ui/JavascriptLibrary.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/OsgiServiceImpl.java
-verified: f7e7de02b
+verified: 3cbdfc044
 ---
 
 # Desktop notifications
