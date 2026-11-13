@@ -369,6 +369,11 @@ one turn of two with `MergeTurnsDialog` (`ui.widgets`, since 1.8.0): `new MergeT
 with two `MergeTurnsDialog.Turn` records (a `null` title leaves the title field out); the fields are filled by
 `utils.TurnDetailsMerge` and `onMerge` gets the edited turn and returns whether the dialog may close.
 
+The list of such turns looks and works like the Planner's if each turn is a `TurnRow` (`ui.widgets`, since 1.8.0, the Converter does it for its turn
+details): `TurnRow.builder(content)` with `done(done, tooltip, onDone)` (the box that says the turn is written), `onClick(tooltip, run)` (a click
+on the content), `current(boolean)` (marks the row the *next unchecked* button went to) and the buttons `moveUp`, `moveDown`, `insert`, `merge`, `edit`
+and `delete`, each a `TurnRow.Action(tooltip, enabled, run)`; a button without an action is left out; `build()` returns the row, a `HorizontalLayout`.
+
 A dialog with an input follows the keyboard conventions of the application: `DialogFocus.onOpen(dialog, firstField)` puts the cursor into the first field, and
 `DialogShortcuts.submitWith(mainButton, fields...)` (`ui.widgets`) sends with <kbd>Enter</kbd> in a single line field and <kbd>Ctrl/Cmd+Enter</kbd> in a text area; list
 every input field, call it after the fields and the button exist (a null field is skipped) and never write an `addKeyDownListener(Key.ENTER)` yourself. A dialog
