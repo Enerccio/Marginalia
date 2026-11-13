@@ -4,6 +4,7 @@ import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
+import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
 import com.github.enerccio.marginalia.domain.service.AgentRunService;
 import com.github.enerccio.marginalia.domain.service.LorebookEntryService;
@@ -26,6 +27,7 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ModalityMode;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
@@ -44,6 +46,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
 import java.util.*;
+import java.util.concurrent.Callable;
 
 /**
  * The lorebook editor: a full screen window with the entries of one lorebook in a tab dock. One tab, which cannot be
@@ -75,6 +78,7 @@ public class LorebookEditorDialog extends Dialog {
     private static final String KEY_TAB = "tab";
     private static final String KEY_ENTRY = "entry";
     private static final String KEY_MODE = "mode";
+    private static final String KEY_SUBBOOKS = "subbooks";
 
     @Autowired
     private Localization loc;
@@ -93,6 +97,8 @@ public class LorebookEditorDialog extends Dialog {
 
     private Lorebook lorebook;
     private final LorebookView origin;
+    // the book the editor was opened for (the story's lorebook tab), null when it is not opened for one
+    private Callable<Manuscript> book;
     private final Runnable onClose;
     private final LorebookTokens tokens = new LorebookTokens();
 
@@ -115,6 +121,11 @@ public class LorebookEditorDialog extends Dialog {
     private String lockedBy;
 
     private List<LorebookEntry> entries = new ArrayList<>();
+    // the entries of the sub lorebooks are listed too: the lorebooks listed (this one first) and the lorebook of every entry
+    private Checkbox includeSubbooks;
+    private ComboBox<Lorebook> targetBook;
+    private List<Lorebook> books = new ArrayList<>();
+    private final Map<Long, Lorebook> entryBooks = new HashMap<>();
     private Map<Long, Set<String>> entryTags = new HashMap<>();
     // the entry tabs by their id; the id of a tab stays when another entry is shown in it
     private final Map<String, LorebookEntryEditor> tabs = new LinkedHashMap<>();
@@ -164,6 +175,23 @@ public class LorebookEditorDialog extends Dialog {
             returns = @APIReturn(type = LorebookView.class))
     public LorebookView getOrigin() {
         return origin;
+    }
+
+    /**
+     * The book the editor is opened for, as the database has it now (the story's *Lorebook* tab gives it), for extensions
+     * that work for a book (the Lore Generator bills its model); {@code null} when it was not opened for a book.
+     */
+    @PublicAPI(from = "1.8.0",
+            returns = @APIReturn(type = Callable.class))
+    public Callable<Manuscript> getBook() {
+        return book;
+    }
+
+    @PublicAPI(from = "1.8.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "book", type = Callable.class)})
+    public void setBook(Callable<Manuscript> book) {
+        this.book = book;
     }
 
     /**
@@ -289,6 +317,9 @@ public class LorebookEditorDialog extends Dialog {
             }
         });
 
+        // the list as it was left: with the sub lorebooks or not
+        includeSubbooks.setValue(storedSubbooks());
+        targetBook.setVisible(includeSubbooks.getValue());
         loadEntries(false);
         restoreConfig();
         dock.setOnLayoutChange(this::saveConfig);
@@ -338,7 +369,23 @@ public class LorebookEditorDialog extends Dialog {
         Button preview = new Button(Solid.EYE.create(), event -> openActivationPreview());
         iconOnly(preview, loc.getValue(L.LABEL_PREVIEW_ACTIVATION));
 
-        HorizontalLayout toolbar = new HorizontalLayout(newEntry, massEdit, tagEntries, preview, refresh, searchField, tagFilter, statusFilter);
+        includeSubbooks = new Checkbox(loc.getValue(L.LABEL_INCLUDE_SUB_LOREBOOKS));
+        includeSubbooks.addValueChangeListener(event -> {
+            if (event.isFromClient()) {
+                subbooksChanged();
+            }
+        });
+        // where Add Entry puts a new entry while the sub lorebooks are listed
+        targetBook = new ComboBox<>();
+        targetBook.setItemLabelGenerator(book -> StringUtils.defaultString(book.getName()));
+        targetBook.setAllowCustomValue(false);
+        targetBook.setWidth("10em");
+        targetBook.setAriaLabel(loc.getValue(L.LABEL_LOREBOOK));
+        targetBook.setTooltipText(loc.getValue(L.LABEL_LOREBOOK));
+        targetBook.setVisible(false);
+
+        HorizontalLayout toolbar = new HorizontalLayout(newEntry, targetBook, massEdit, tagEntries, preview, refresh, searchField,
+                tagFilter, statusFilter, includeSubbooks);
         toolbar.setWidthFull();
         toolbar.setAlignItems(FlexComponent.Alignment.CENTER);
         toolbar.setWrap(true);
@@ -350,8 +397,8 @@ public class LorebookEditorDialog extends Dialog {
         grid.addThemeVariants(GridVariant.LUMO_COMPACT, GridVariant.LUMO_ROW_STRIPES);
         // the column of the check mark is as narrow as the mark, it needs no title (the tooltip of the cell says it)
         grid.addComponentColumn(this::enabledMark).setFlexGrow(0).setWidth("2.5em");
-        grid.addColumn(entry -> StringUtils.defaultString(entry.getName())).setHeader(loc.getValue(L.LABEL_ENTRY_NAME))
-                .setSortable(true).setFlexGrow(1);
+        grid.addComponentColumn(this::nameCell).setHeader(loc.getValue(L.LABEL_ENTRY_NAME))
+                .setComparator(entry -> StringUtils.defaultString(entry.getName()).toLowerCase()).setFlexGrow(1);
         // a narrow list beside the open entries: the tags and the filter are in the entry tab
         grid.addColumn(LorebookEntry::getOrder).setHeader(loc.getValue(L.LABEL_ORDER)).setSortable(true)
                 .setFlexGrow(0).setWidth("5.5em");
@@ -458,7 +505,7 @@ public class LorebookEditorDialog extends Dialog {
         String with = recent.stream().filter(other -> !other.equals(id) && tabs.containsKey(other)).findFirst().orElse(null);
         dock.place(id, with, LIST_TAB);
         LorebookEntryEditor[] editor = new LorebookEntryEditor[1];
-        editor[0] = new LorebookEntryEditor(entry, lorebook, tokens, () -> entryChanged(editor[0])).create();
+        editor[0] = new LorebookEntryEditor(entry, lorebookOf(entry), tokens, () -> entryChanged(editor[0])).create();
         editor[0].setOnLocked(agent -> locked(agent, true));
         editor[0].setOnGone(() -> entryGone(editor[0]));
         editor[0].setReadOnly(lockedBy != null);
@@ -579,6 +626,7 @@ public class LorebookEditorDialog extends Dialog {
             }
         }
         config.add(KEY_TABS, open);
+        config.addProperty(KEY_SUBBOOKS, includeSubbooks.getValue());
         try {
             Lorebook fresh = lorebookService.findForUser(lorebook.getUuid());
             if (fresh == null) {
@@ -606,9 +654,14 @@ public class LorebookEditorDialog extends Dialog {
 
     @PublicAPI(from = "1.8.0",
             returns = @APIReturn(type = String.class),
-            parameters = {@APIParameter(name = "entry", type = LorebookEntry.class)})
+            parameters = {@APIParameter(name = "entry", type = LorebookEntry.class)},
+            locals = {@APILocals(name = "name", type = String.class),
+                    @APILocals(name = "book", type = Lorebook.class)})
     private String caption(LorebookEntry entry) {
-        return StringUtils.defaultIfBlank(entry.getName(), loc.getValue(L.LABEL_NEW_LOREBOOK_ENTRY));
+        String name = StringUtils.defaultIfBlank(entry.getName(), loc.getValue(L.LABEL_NEW_LOREBOOK_ENTRY));
+        Lorebook book = lorebookOf(entry);
+        // an entry of a sub lorebook says which one
+        return Objects.equals(book.getId(), lorebook.getId()) ? name : name + " (" + StringUtils.defaultString(book.getName()) + ")";
     }
 
     @PublicAPI(from = "1.8.0",
@@ -667,16 +720,18 @@ public class LorebookEditorDialog extends Dialog {
     @PublicAPI(from = "1.8.0",
             returns = @APIReturn(type = void.class),
             locals = {@APILocals(name = "entry", type = LorebookEntry.class),
+                    @APILocals(name = "target", type = Lorebook.class),
                     @APILocals(name = "uuid", type = String.class),
                     @APILocals(name = "listed", type = LorebookEntry.class),
                     @APILocals(name = "e", type = Exception.class)})
-    private void createEntry() {
+    void createEntry() {
         if (checkLock()) {
             return;
         }
         try {
             LorebookEntry entry = new LorebookEntry();
-            entry.setLorebook(lorebook);
+            Lorebook target = includeSubbooks.getValue() && targetBook.getValue() != null ? targetBook.getValue() : lorebook;
+            entry.setLorebook(target);
             entry.setName(loc.getValue(L.LABEL_NEW_LOREBOOK_ENTRY));
             entry.setEnabled(true);
             entry.setOrder(100);
@@ -771,7 +826,7 @@ public class LorebookEditorDialog extends Dialog {
         // an entry moved away is known by its tab
         List<LorebookEntryEditor> touched = tabs.values().stream()
                 .filter(editor -> entryUuids.contains(editor.getEntry().getUuid())).toList();
-        if (!lorebookIds.contains(lorebook.getId()) && touched.isEmpty()) {
+        if (books.stream().noneMatch(book -> lorebookIds.contains(book.getId())) && touched.isEmpty()) {
             return;
         }
         if (byWorker) {
@@ -886,12 +941,28 @@ public class LorebookEditorDialog extends Dialog {
             returns = @APIReturn(type = void.class),
             parameters = {@APIParameter(name = "fromDatabase", type = boolean.class)},
             locals = {@APILocals(name = "loaded", type = List.class),
+                    @APILocals(name = "book", type = Lorebook.class),
+                    @APILocals(name = "entry", type = LorebookEntry.class),
+                    @APILocals(name = "target", type = Lorebook.class),
                     @APILocals(name = "open", type = Map.class),
                     @APILocals(name = "tagNames", type = List.class),
                     @APILocals(name = "e", type = Exception.class)})
     private void loadEntries(boolean fromDatabase) {
         try {
-            List<LorebookEntry> loaded = lorebookEntryService.getEntriesForLorebook(lorebook.getId());
+            books = includeSubbooks != null && includeSubbooks.getValue() ? collectBooks() : new ArrayList<>(List.of(lorebook));
+            List<LorebookEntry> loaded = new ArrayList<>();
+            entryBooks.clear();
+            for (Lorebook book : books) {
+                for (LorebookEntry entry : lorebookEntryService.getEntriesForLorebook(book.getId())) {
+                    loaded.add(entry);
+                    entryBooks.put(entry.getId(), book);
+                }
+            }
+            Lorebook target = targetBook.getValue();
+            targetBook.setItems(books);
+            targetBook.setValue(target != null && books.stream().anyMatch(book -> Objects.equals(book.getId(), target.getId()))
+                    ? books.stream().filter(book -> Objects.equals(book.getId(), target.getId())).findFirst().orElse(lorebook)
+                    : books.getFirst());
             if (!fromDatabase) {
                 Map<String, LorebookEntry> open = new HashMap<>();
                 tabs.values().forEach(editor -> open.put(editor.getEntry().getUuid(), editor.getEntry()));
@@ -961,10 +1032,93 @@ public class LorebookEditorDialog extends Dialog {
     private void updateTotals() {
         withSubbooksSpan.setText("");
         try {
-            totalSpan.setText(tokens.format(tokens.ofEnabled(entries)));
+            // the total of this lorebook; Count with subbooks has the rest
+            totalSpan.setText(tokens.format(tokens.ofEnabled(entries.stream()
+                    .filter(entry -> Objects.equals(lorebookOf(entry).getId(), lorebook.getId())).toList())));
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
+    }
+
+    /**
+     * The lorebook of a listed entry: this one or one of its sub lorebooks (the entry's own reference is a lazy one).
+     */
+    @PublicAPI(from = "1.8.0",
+            returns = @APIReturn(type = Lorebook.class),
+            parameters = {@APIParameter(name = "entry", type = LorebookEntry.class)},
+            locals = {@APILocals(name = "book", type = Lorebook.class)})
+    public Lorebook lorebookOf(LorebookEntry entry) {
+        Lorebook book = entry == null || entry.getId() == null ? null : entryBooks.get(entry.getId());
+        return book == null ? lorebook : book;
+    }
+
+    /**
+     * The lorebook and every lorebook below it, each once, the nearest first (as the generation finds them).
+     */
+    @PublicAPI(from = "1.8.0",
+            returns = @APIReturn(type = List.class),
+            locals = {@APILocals(name = "found", type = List.class),
+                    @APILocals(name = "seen", type = Set.class),
+                    @APILocals(name = "queue", type = Deque.class),
+                    @APILocals(name = "book", type = Lorebook.class)})
+    private List<Lorebook> collectBooks() throws Exception {
+        List<Lorebook> found = new ArrayList<>();
+        Set<Long> seen = new HashSet<>();
+        Deque<Lorebook> queue = new ArrayDeque<>();
+        queue.add(lorebook);
+        while (!queue.isEmpty()) {
+            Lorebook book = queue.remove();
+            if (book.isDeleted() || !seen.add(book.getId())) {
+                continue;
+            }
+            found.add(book);
+            queue.addAll(lorebookService.getSubbooks(book));
+        }
+        return found;
+    }
+
+    /**
+     * The user listed the sub lorebooks or stopped: the list is loaded again (open tabs stay), the choice is kept.
+     */
+    @PublicAPI(from = "1.8.0",
+            returns = @APIReturn(type = void.class))
+    private void subbooksChanged() {
+        targetBook.setVisible(includeSubbooks.getValue());
+        loadEntries(false);
+        saveConfig();
+    }
+
+    @PublicAPI(from = "1.8.0",
+            returns = @APIReturn(type = boolean.class),
+            locals = {@APILocals(name = "stored", type = JsonElement.class),
+                    @APILocals(name = "flag", type = JsonElement.class)})
+    private boolean storedSubbooks() {
+        JsonElement stored = lorebook.getAttributes() == null ? null : lorebook.getAttributes().get(CONFIG_ATTRIBUTE);
+        if (stored == null || !stored.isJsonObject()) {
+            return false;
+        }
+        JsonElement flag = stored.getAsJsonObject().get(KEY_SUBBOOKS);
+        return flag != null && flag.isJsonPrimitive() && flag.getAsBoolean();
+    }
+
+    /**
+     * The name of the entry, and the lorebook of an entry of a sub lorebook (muted).
+     */
+    @PublicAPI(from = "1.8.0",
+            returns = @APIReturn(type = Component.class),
+            parameters = {@APIParameter(name = "entry", type = LorebookEntry.class)},
+            locals = {@APILocals(name = "cell", type = Span.class),
+                    @APILocals(name = "book", type = Lorebook.class),
+                    @APILocals(name = "bookName", type = Span.class)})
+    private Component nameCell(LorebookEntry entry) {
+        Span cell = new Span(StringUtils.defaultString(entry.getName()));
+        Lorebook book = lorebookOf(entry);
+        if (!Objects.equals(book.getId(), lorebook.getId())) {
+            Span bookName = new Span(" · " + StringUtils.defaultString(book.getName()));
+            bookName.addClassName(CssStyles.HINT_TEXT);
+            cell.add(bookName);
+        }
+        return cell;
     }
 
     @PublicAPI(from = "1.8.0",
@@ -979,6 +1133,18 @@ public class LorebookEditorDialog extends Dialog {
     }
 
     // for the tests
+
+    @PublicAPI(from = "1.8.0",
+            returns = @APIReturn(type = Checkbox.class))
+    Checkbox getIncludeSubbooks() {
+        return includeSubbooks;
+    }
+
+    @PublicAPI(from = "1.8.0",
+            returns = @APIReturn(type = ComboBox.class))
+    ComboBox<Lorebook> getTargetBook() {
+        return targetBook;
+    }
 
     @PublicAPI(from = "1.8.0",
             returns = @APIReturn(type = TabDock.class))

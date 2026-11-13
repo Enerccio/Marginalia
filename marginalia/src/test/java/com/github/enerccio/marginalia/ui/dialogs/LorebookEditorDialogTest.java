@@ -383,4 +383,58 @@ class LorebookEditorDialogTest extends MarginaliaTestBase {
         assertThat(columns.get(1).getAsJsonObject().getAsJsonArray("groups")).hasSize(1);
         assertThat(columns.get(1).toString()).contains("entry-1", "entry-2");
     }
+
+    private Lorebook withSubbook(String name) throws Exception {
+        Lorebook sub = new Lorebook();
+        sub.setName(name);
+        sub.setSubbooks(new ArrayList<>());
+        sub = lorebookService.save(sub);
+        Lorebook main = lorebookService.find(lorebook.getId());
+        main.setSubbooks(new ArrayList<>(List.of(sub)));
+        lorebook = lorebookService.save(main);
+        return sub;
+    }
+
+    private LorebookEntry entryIn(Lorebook book, String name) throws Exception {
+        LorebookEntry entry = new LorebookEntry();
+        entry.setLorebook(book);
+        entry.setName(name);
+        entry.setPayload("About " + name + ".");
+        entry.setEnabled(true);
+        return lorebookEntryService.save(entry);
+    }
+
+    @Test
+    void theEntriesOfTheSubLorebooksAreListedOnRequest() throws Exception {
+        entry("Varro", "A captain.", true);
+        Lorebook city = withSubbook("City");
+        entryIn(city, "Harbour");
+        LorebookEditorDialog dialog = dialog();
+        assertThat(listed(dialog)).extracting(LorebookEntry::getName).containsExactly("Varro");
+
+        dialog.getIncludeSubbooks().setValue(true);
+        com.vaadin.flow.component.ComponentUtil.fireEvent(dialog.getIncludeSubbooks(),
+                new com.vaadin.flow.component.AbstractField.ComponentValueChangeEvent<>(dialog.getIncludeSubbooks(),
+                        dialog.getIncludeSubbooks(), false, true));
+
+        assertThat(listed(dialog)).extracting(LorebookEntry::getName).containsExactlyInAnyOrder("Varro", "Harbour");
+        LorebookEntry harbour = listed(dialog, "Harbour");
+        assertThat(dialog.lorebookOf(harbour).getId()).isEqualTo(city.getId());
+        dialog.openEntry(harbour, false);
+        LorebookEntryEditor editor = dialog.getTabs().values().iterator().next();
+        // the tab works on the entry's own lorebook
+        assertThat(editor.getLorebook().getId()).isEqualTo(city.getId());
+
+        // a new entry goes to the lorebook picked for it
+        dialog.getTargetBook().setValue(dialog.getTargetBook().getListDataView().getItems()
+                .filter(book -> book.getId().equals(city.getId())).findFirst().orElseThrow());
+        dialog.createEntry();
+        assertThat(lorebookEntryService.getEntriesForLorebook(city.getId())).hasSize(2);
+
+        // the choice is kept with the layout
+        dialog.close();
+        LorebookEditorDialog again = dialog();
+        assertThat(again.getIncludeSubbooks().getValue()).isTrue();
+        assertThat(listed(again)).hasSize(3);
+    }
 }

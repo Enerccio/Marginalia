@@ -135,7 +135,7 @@ the `nohighlight` build, no syntax highlighter) and `rehype-sanitize`. Unlike th
 called through `JavascriptLibrary` but a React web component: the Java class extends Vaadin's `ReactAdapterComponent`
 (`@Tag("marginalia-markdown-editor")`), the `.tsx` defines the element with a `ReactAdapterElement` whose `render` returns
 the editor, and the two share **states** (`setState` / `addStateChangeListener` in Java, `hooks.useState` in the
-script): `value`, `placeholder`, `readOnly` and `preview` (`edit`, `live`, `preview`; `setMode`, `getMode`). The mode buttons of the toolbar write `preview` back, so `addModeChangeListener` hears the mode the user picked.
+script): `value`, `placeholder`, `readOnly` and `preview` (`edit`, `live`, `preview`; `setMode`, `getMode`). The mode buttons of the toolbar write `preview` back, so `addModeChangeListener` hears the mode the user picked. `localize(loc)` sends the tooltips of the toolbar in the page's language (state `labels`, a map by command name: `bold`, `heading1`..., `edit` / `live` / `preview`); the browser keeps the shortcut of a command after the text.
 
 - **The text is sent on a pause.** The script keeps what is typed in a React state and writes the `value` state
   `SEND_DELAY_MS` (700 ms) after the last key, on blur and when the editor goes away, so a listener can save on every

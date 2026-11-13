@@ -439,6 +439,12 @@ The list tab also opens `LorebookMassEditDialog`, `MultiTagDialog` (both `refres
 `LorebookActivationPreviewDialog`; the entry tab's eye opens the preview with `focus(entry)` (the row selected, a line with
 the verdict of that entry). `showEntry(entry)` opens a tab on an entry the way *Open* does (the row button of `LorebookView`,
 `openEditorOn`).
+**Sub lorebooks.** *Include sub lorebooks* (kept as `subbooks` in `$lorebookEditor`) loads the entries of every lorebook below
+(`collectBooks`, breadth first, each once) and keeps the lorebook of every entry (`lorebookOf(entry)`, public: the entry's own
+reference is lazy); the editor of a tab gets that lorebook, the caption and the name cell name it, *Add Entry* uses `targetBook`,
+the header total counts this lorebook only, `loreChanged` listens to all of them. `getBook` / `setBook` is the book the editor was
+opened for (`LorebookPreview.setBook`, given by the story part), which the Lore Generator prefers to the book on the origin view.
+The content's `MarkdownEditor.localize(loc)` sends the toolbar tooltips (state `labels`, by command name).
 For extensions: `getLorebook`, `getOrigin` (the `LorebookView` it was opened from, the workspace's or the one of a book's
 *Lorebook* tab; the Lore Generator reads the book it put on that view), `refresh` (list and tabs from the database) and
 `reloadEntry(entry)` (one entry changed elsewhere: its tab reloads, the list keeps sharing the tab's object);

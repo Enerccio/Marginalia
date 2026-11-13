@@ -253,8 +253,12 @@ class LorebookPreviewTest extends MarginaliaTestBase {
         assertThat(buttonsOfTheFirstRow(preview)).as("open in the editor, edit and the details").isEqualTo(3);
         assertThat(preview.getEditorButton().isVisible()).isTrue();
 
+        java.util.concurrent.Callable<com.github.enerccio.marginalia.domain.model.impl.Manuscript> book = () -> null;
+        preview.setBook(book);
         com.github.enerccio.marginalia.ui.dialogs.LorebookEditorDialog dialog = preview.openEditor(main, two);
         assertThat(dialog.getLorebook().getId()).isEqualTo(main.getId());
+        // the book of the story goes along (the Lore Generator bills it)
+        assertThat(dialog.getBook()).isSameAs(book);
         // which entry it shows is the editor's showEntry, see LorebookEditorDialogTest
         assertThat(dialog.isOpened()).isTrue();
     }

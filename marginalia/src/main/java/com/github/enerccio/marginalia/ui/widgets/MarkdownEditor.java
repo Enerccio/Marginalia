@@ -10,8 +10,13 @@ import com.vaadin.flow.component.react.ReactAdapterComponent;
 import com.vaadin.flow.function.SerializableConsumer;
 import com.vaadin.flow.shared.Registration;
 
+import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.Localization;
+
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -55,6 +60,7 @@ public class MarkdownEditor extends ReactAdapterComponent implements HasSize, Ha
     private final List<SerializableConsumer<Mode>> modeListeners = new ArrayList<>();
     private String value = "";
     private Mode mode = Mode.LIVE;
+    private Map<String, String> labels = Map.of();
 
     public MarkdownEditor() {
         addClassName(CssStyles.MARKDOWN_EDITOR);
@@ -103,6 +109,39 @@ public class MarkdownEditor extends ReactAdapterComponent implements HasSize, Ha
 
     public Mode getMode() {
         return mode;
+    }
+
+    /**
+     * The tooltips of the toolbar in the language of the page (the editor has English ones of its own), by the names of the
+     * commands of the editor; a keyboard shortcut of a command is added to its tooltip in the browser.
+     */
+    public void localize(Localization loc) {
+        Map<String, String> labels = new LinkedHashMap<>();
+        labels.put("bold", loc.getValue(L.LABEL_BOLD));
+        labels.put("italic", loc.getValue(L.LABEL_ITALIC));
+        labels.put("strikethrough", loc.getValue(L.LABEL_STRIKETHROUGH));
+        labels.put("hr", loc.getValue(L.LABEL_HORIZONTAL_LINE));
+        labels.put("title", loc.getValue(L.LABEL_HEADING));
+        for (int level = 1; level <= 6; level++) {
+            labels.put("heading" + level, String.format(loc.getValue(L.LABEL_HEADING_LEVEL), level));
+        }
+        labels.put("quote", loc.getValue(L.LABEL_QUOTE));
+        labels.put("code", loc.getValue(L.LABEL_INLINE_CODE));
+        labels.put("codeBlock", loc.getValue(L.LABEL_CODE_BLOCK));
+        labels.put("table", loc.getValue(L.LABEL_TABLE));
+        labels.put("unordered-list", loc.getValue(L.LABEL_BULLETED_LIST));
+        labels.put("ordered-list", loc.getValue(L.LABEL_NUMBERED_LIST));
+        labels.put("checked-list", loc.getValue(L.LABEL_CHECKLIST));
+        labels.put("edit", loc.getValue(L.LABEL_TEXT_ONLY));
+        labels.put("live", loc.getValue(L.LABEL_TEXT_AND_PREVIEW));
+        labels.put("preview", loc.getValue(L.LABEL_PREVIEW_ONLY));
+        this.labels = labels;
+        setState("labels", labels);
+    }
+
+    /** The tooltips given to {@link #localize}, by command name. */
+    public Map<String, String> getLabels() {
+        return labels;
     }
 
     /**

@@ -1073,6 +1073,22 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_CHECK_AGAIN, "再確認");
         setValue(L.LABEL_OPEN_IN_FULL_SCREEN_EDITOR, "全画面エディターで開く");
         setValue(L.LABEL_DONT_SCAN_ITS_CONTENT, "内容を走査しない");
+        setValue(L.LABEL_BOLD, "太字");
+        setValue(L.LABEL_ITALIC, "斜体");
+        setValue(L.LABEL_STRIKETHROUGH, "取り消し線");
+        setValue(L.LABEL_HORIZONTAL_LINE, "水平線");
+        setValue(L.LABEL_HEADING, "見出し");
+        setValue(L.LABEL_HEADING_LEVEL, "見出し %d");
+        setValue(L.LABEL_QUOTE, "引用");
+        setValue(L.LABEL_INLINE_CODE, "インラインコード");
+        setValue(L.LABEL_CODE_BLOCK, "コードブロック");
+        setValue(L.LABEL_TABLE, "表");
+        setValue(L.LABEL_BULLETED_LIST, "箇条書き");
+        setValue(L.LABEL_NUMBERED_LIST, "番号付きリスト");
+        setValue(L.LABEL_CHECKLIST, "チェックリスト");
+        setValue(L.LABEL_TEXT_ONLY, "テキストのみ");
+        setValue(L.LABEL_TEXT_AND_PREVIEW, "テキストとプレビュー");
+        setValue(L.LABEL_PREVIEW_ONLY, "プレビューのみ");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");

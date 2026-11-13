@@ -305,8 +305,14 @@ public class LoreGeneratorExtension implements MarginaliaExtension {
      */
     @SuppressWarnings("unchecked")
     private static Callable<Manuscript> bookOf(LorebookEditorDialog dialog) {
-        return dialog == null || dialog.getOrigin() == null ? null
-                : (Callable<Manuscript>) ComponentUtil.getData(dialog.getOrigin(), BOOK_KEY);
+        if (dialog == null) {
+            return null;
+        }
+        // opened for a book (the story's lorebook tab), else from the lorebook view of a book
+        if (dialog.getBook() != null) {
+            return dialog.getBook();
+        }
+        return dialog.getOrigin() == null ? null : (Callable<Manuscript>) ComponentUtil.getData(dialog.getOrigin(), BOOK_KEY);
     }
 
     private void addEditorGenerateColumn(LorebookEditorDialog dialog, ExtendableMethodContext context) {
@@ -317,7 +323,7 @@ public class LoreGeneratorExtension implements MarginaliaExtension {
         }
         Grid.Column<LorebookEntry> column = grid.addComponentColumn(entry -> {
             Button button = new Button(Solid.WAND_MAGIC_SPARKLES.create(), e ->
-                    new LoreGeneratorDialog(loreGeneratorService, dialog.getLorebook(), entry, bookOf(dialog),
+                    new LoreGeneratorDialog(loreGeneratorService, dialog.lorebookOf(entry), entry, bookOf(dialog),
                             () -> dialog.reloadEntry(entry)).open());
             button.setThemeName("tertiary");
             button.setTooltipText(T.localized(GENERATE_LORE_ENTRY));

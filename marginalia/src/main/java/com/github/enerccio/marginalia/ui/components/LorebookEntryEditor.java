@@ -326,6 +326,7 @@ public class LorebookEntryEditor extends VerticalLayout {
         contentEditor.setSizeFull();
         contentEditor.setValue(StringUtils.defaultString(entry.getPayload()));
         contentEditor.setMode(editorMode);
+        contentEditor.localize(loc);
         contentEditor.addModeChangeListener(mode -> {
             editorMode = mode;
             if (onModeChange != null) {

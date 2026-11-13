@@ -341,4 +341,16 @@ class LorebookEntryEditorTest extends MarginaliaTestBase {
         assertThat(contentEditor.getValue()).isEqualTo("Theirs.");
         assertThat(editor.getEntry()).isSameAs(entry);
     }
+
+    @Test
+    void theToolbarOfTheContentHasTooltipsInTheLanguageOfThePage() {
+        LorebookEntryEditor editor = editor();
+
+        assertThat(editor.getContentEditor().getLabels())
+                .containsEntry("bold", "Bold")
+                .containsEntry("heading2", "Heading 2")
+                .containsEntry("preview", "Preview only")
+                .containsKeys("italic", "strikethrough", "hr", "title", "quote", "code", "codeBlock", "table",
+                        "unordered-list", "ordered-list", "checked-list", "edit", "live");
+    }
 }

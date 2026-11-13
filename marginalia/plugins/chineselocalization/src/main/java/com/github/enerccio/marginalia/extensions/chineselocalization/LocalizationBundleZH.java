@@ -1081,6 +1081,22 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_CHECK_AGAIN, "重新检查");
         setValue(L.LABEL_OPEN_IN_FULL_SCREEN_EDITOR, "在全屏编辑器中打开");
         setValue(L.LABEL_DONT_SCAN_ITS_CONTENT, "不扫描其内容");
+        setValue(L.LABEL_BOLD, "粗体");
+        setValue(L.LABEL_ITALIC, "斜体");
+        setValue(L.LABEL_STRIKETHROUGH, "删除线");
+        setValue(L.LABEL_HORIZONTAL_LINE, "水平线");
+        setValue(L.LABEL_HEADING, "标题");
+        setValue(L.LABEL_HEADING_LEVEL, "%d 级标题");
+        setValue(L.LABEL_QUOTE, "引用");
+        setValue(L.LABEL_INLINE_CODE, "行内代码");
+        setValue(L.LABEL_CODE_BLOCK, "代码块");
+        setValue(L.LABEL_TABLE, "表格");
+        setValue(L.LABEL_BULLETED_LIST, "项目符号列表");
+        setValue(L.LABEL_NUMBERED_LIST, "编号列表");
+        setValue(L.LABEL_CHECKLIST, "清单");
+        setValue(L.LABEL_TEXT_ONLY, "仅文本");
+        setValue(L.LABEL_TEXT_AND_PREVIEW, "文本和预览");
+        setValue(L.LABEL_PREVIEW_ONLY, "仅预览");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");

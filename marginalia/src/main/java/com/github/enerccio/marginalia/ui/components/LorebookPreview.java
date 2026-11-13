@@ -5,6 +5,7 @@ import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.collections.FilteringMode;
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
+import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.AgentRunService;
 import com.github.enerccio.marginalia.domain.service.LorebookEntryService;
 import com.github.enerccio.marginalia.domain.service.LorebookService;
@@ -35,6 +36,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
 import java.util.*;
+import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -76,6 +78,7 @@ public class LorebookPreview extends VerticalLayout implements LLMInteract {
     private final LorebookEntryFilter filter = new LorebookEntryFilter();
     private boolean editable = false;
     private boolean fullScreenEditor = false;
+    private Callable<Manuscript> book;
     private Button editorButton;
     private TreeGrid<Row> grid;
     private Span noLorebook;
@@ -189,6 +192,16 @@ public class LorebookPreview extends VerticalLayout implements LLMInteract {
     }
 
     /**
+     * The book whose lore this is, handed to the full-screen editor (extensions there work for it).
+     */
+    @PublicAPI(from = "1.8.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "book", type = Callable.class)})
+    public void setBook(Callable<Manuscript> book) {
+        this.book = book;
+    }
+
+    /**
      * Opens the full-screen lorebook editor on the lorebook, and on the entry when there is one; the lore is loaded again when
      * it is closed. While an agent works on the lorebook the editor is read only.
      *
@@ -204,6 +217,7 @@ public class LorebookPreview extends VerticalLayout implements LLMInteract {
             return null;
         }
         LorebookEditorDialog dialog = new LorebookEditorDialog(book, () -> refresh(lastLorebook)).create();
+        dialog.setBook(this.book);
         dialog.open();
         if (entry != null) {
             dialog.showEntry(entry);

@@ -581,7 +581,7 @@ Most are 🧩 plugin-sized; the ones that need a core hook say so.
     the database. The one-way part exists: the Obsidian vault export (67); the two-way sync is not done.
 102. **Lorebook editor (full-screen, tabbed; desktop only).** The entries are edited in the expanding rows of the
      `LorebookView` grid (`createEntryDetailLayout`: a 160 px content area, the activation settings, the condition, the
-     note), cramped for a long entry and one entry at a time. **First version done (2026-11-12, not yet tried in a browser):**
+     note), cramped for a long entry and one entry at a time. **First version done (2026-11-12, tried in a browser 2026-11-13):**
      `TabDock` closable tabs (`setClosable`, `close`, `setOnClose`, `setCaption`, `getCurrentId`), `LorebookEditorDialog`
      (list tab, entry tabs, Open / Open in new tab / Delete, header tokens and search and replace), `LorebookEntryEditor`,
      the `MarkdownEditor` wrapper (4.1.2, our toolbar, debounced value), `LorebookTokens` shared with the view, the
@@ -590,8 +590,13 @@ Most are 🧩 plugin-sized; the ones that need a core hook say so.
      (also per entry, `focus`) from the editor, opening it from the book's *Lorebook* tab (the same view) with the book for the Lore Generator, the
      Lore Generator and Lorebook VCS hooks, per-field saves with a content/note conflict that asks, read only during an agent run,
      open tabs and the list reloaded at once on changes of agents and other windows (`LoreChanges`, after the commit, pushed),
-     the expand buttons of the story's `LorebookPreview` (desktop; opened without origin, so the Lore Generator there has no book).
-     Not done yet: images, jump between entries, entries of sub lorebooks in the list, localized tooltips of the Markdown toolbar, screenshots for the manual. A full-screen dialog, opened from the *Lorebook* view of the
+     the expand buttons of the story's `LorebookPreview` (desktop; opened without origin, so the Lore Generator there has no book),
+     a dense window (`compact-sizes`: the list without tags and filter columns, icon tools, settings in two wrapping rows),
+     the mode of the Markdown editor kept per tab, a new tab placed right of the list or beside the tab used last
+     (`TabDock.place`), a reload that updates the fields in place instead of building the tab again.
+     Then: the entries of the sub lorebooks in the list (*Include sub lorebooks*, *Add Entry* into a picked lorebook), the
+     toolbar tooltips localized (`MarkdownEditor.localize`), the story's book handed to the editor for the Lore Generator.
+     Not done yet: images, jump between entries, screenshots for the manual (before the release). A full-screen dialog, opened from the *Lorebook* view of the
      workspace and from the book's *Lorebook* tab (`ManuscriptLorebookPart`); the phone keeps `PhoneLorebookView`.
      - **Dock:** a detachable `TabDock` (like the story editor's). One fixed tab (not closable, not minimizable) with the
        list of entries: text only (name, enabled, order, tags, filter; the search, `LorebookEntryFilter` and sub

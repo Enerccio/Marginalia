@@ -9,8 +9,10 @@
  *   change of the value is a save of the entry.
  * - The preview is sanitized (rehype-sanitize): HTML in the text is shown as text, as the model gets it.
  * - The mode the user picks (edit / live / preview) goes to the server as the state "preview", so the page can keep it.
+ * - The tooltips of the toolbar come from the server (the state "labels", by command name) in the language of the page; the
+ *   keyboard shortcut of a command is kept after its text.
  */
-import {type MouseEvent, type ReactElement, useEffect, useRef, useState} from 'react';
+import {type MouseEvent, type ReactElement, useEffect, useMemo, useRef, useState} from 'react';
 import MDEditor, {
     bold,
     checkedListCommand,
@@ -43,17 +45,40 @@ const SEND_DELAY_MS = 700;
 
 const noShortcut = (command: any) => ({...command, shortcuts: undefined});
 
-const toolbar = [
-    bold, italic, strikethrough, hr,
-    group([title1, title2, title3, title4, title5, title6].map(noShortcut), {
-        name: 'title',
-        groupName: 'title',
-        buttonProps: {'aria-label': 'Insert title', title: 'Insert title'}
-    }),
-    divider, quote, code, codeBlock, table,
-    divider, unorderedListCommand, orderedListCommand, checkedListCommand
-];
-const modes = [codeEdit, codeLive, codePreview];
+type Labels = Record<string, string> | null | undefined;
+
+// the text of the server for the command, with the shortcut the editor's own tooltip names: "Bold (ctrl + b)"
+function localized(command: any, labels: Labels) {
+    const text = labels?.[command.name];
+    if (!text) {
+        return command;
+    }
+    const own: string = command.buttonProps?.title ?? '';
+    const shortcut = command.shortcuts ? /\([^)]*\)\s*$/.exec(own) : null;
+    const title = shortcut ? `${text} ${shortcut[0].trim()}` : text;
+    return {...command, buttonProps: {...command.buttonProps, 'aria-label': title, title}};
+}
+
+function toolbarOf(labels: Labels) {
+    return [
+        localized(bold, labels), localized(italic, labels), localized(strikethrough, labels), localized(hr, labels),
+        group([title1, title2, title3, title4, title5, title6].map(noShortcut).map(command => localized(command, labels)), {
+            name: 'title',
+            groupName: 'title',
+            buttonProps: {
+                'aria-label': labels?.title ?? 'Insert title',
+                title: labels?.title ?? 'Insert title'
+            }
+        }),
+        divider, localized(quote, labels), localized(code, labels), localized(codeBlock, labels), localized(table, labels),
+        divider, localized(unorderedListCommand, labels), localized(orderedListCommand, labels),
+        localized(checkedListCommand, labels)
+    ];
+}
+
+function modesOf(labels: Labels) {
+    return [codeEdit, codeLive, codePreview].map(command => localized(command, labels));
+}
 const MODE_CLASS = /w-md-editor-show-(edit|live|preview)/;
 
 // the color scheme of the page: Vaadin writes theme="dark" on <html> for the dark one
@@ -79,6 +104,9 @@ class MarkdownEditorElement extends ReactAdapterElement {
         const [placeholder] = hooks.useState<string>('placeholder');
         const [readOnly] = hooks.useState<boolean>('readOnly');
         const [preview, setPreview] = hooks.useState<string>('preview');
+        const [labels] = hooks.useState<Record<string, string>>('labels');
+        const toolbar = useMemo(() => toolbarOf(labels), [labels]);
+        const modes = useMemo(() => modesOf(labels), [labels]);
         const [text, setText] = useState<string>(value ?? '');
         const sent = useRef<string>(value ?? '');
         const pending = useRef<string | null>(null);

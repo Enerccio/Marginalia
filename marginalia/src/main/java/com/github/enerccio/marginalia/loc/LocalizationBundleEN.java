@@ -1073,6 +1073,22 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_CHECK_AGAIN, "Check again");
         setValue(L.LABEL_OPEN_IN_FULL_SCREEN_EDITOR, "Open in the full-screen editor");
         setValue(L.LABEL_DONT_SCAN_ITS_CONTENT, "Don't scan its content");
+        setValue(L.LABEL_BOLD, "Bold");
+        setValue(L.LABEL_ITALIC, "Italic");
+        setValue(L.LABEL_STRIKETHROUGH, "Strikethrough");
+        setValue(L.LABEL_HORIZONTAL_LINE, "Horizontal line");
+        setValue(L.LABEL_HEADING, "Heading");
+        setValue(L.LABEL_HEADING_LEVEL, "Heading %d");
+        setValue(L.LABEL_QUOTE, "Quote");
+        setValue(L.LABEL_INLINE_CODE, "Inline code");
+        setValue(L.LABEL_CODE_BLOCK, "Code block");
+        setValue(L.LABEL_TABLE, "Table");
+        setValue(L.LABEL_BULLETED_LIST, "Bulleted list");
+        setValue(L.LABEL_NUMBERED_LIST, "Numbered list");
+        setValue(L.LABEL_CHECKLIST, "Checklist");
+        setValue(L.LABEL_TEXT_ONLY, "Text only");
+        setValue(L.LABEL_TEXT_AND_PREVIEW, "Text and preview");
+        setValue(L.LABEL_PREVIEW_ONLY, "Preview only");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");

@@ -101,7 +101,9 @@ under another one, and drag the splitters between them.
 
 - The **Entries** tab lists the entries, with the search box and the tag and status filters of the lorebook page,
   **Add Entry**, **Mass edit**, **Tag entries**, **Preview activation** and **Refresh** (mass edit and tags show their
-  changes in the open tabs too). It can't be closed. Each row has three buttons:
+  changes in the open tabs too). With **Include sub lorebooks** it lists the entries of the
+  [sub lorebooks](#sub-lorebooks) too, each with the name of its lorebook; **Add Entry** then adds the entry to the lorebook
+  picked next to it, and the tab of such an entry names its lorebook. It can't be closed. Each row has three buttons:
   - **Open** (pen icon, also a double-click on the row) shows the entry in the entry tab you used last, or, when there is none,
     opens one in a column right of the list;
   - **Open in new tab** (arrow icon) adds a tab for the entry, next to the entry tab you used last;
