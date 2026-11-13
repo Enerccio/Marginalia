@@ -34,7 +34,7 @@ covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/bound/AgentSession.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/ui/dialogs/agent
   - marginalia/src/main/java/com/github/enerccio/marginalia/ui/workspace/parts/AgentPart.java
-verified: f7e7de02b
+verified: d3fd95f7f
 ---
 
 # Agents
