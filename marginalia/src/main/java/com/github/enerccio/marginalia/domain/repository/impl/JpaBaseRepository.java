@@ -103,7 +103,7 @@ public abstract class JpaBaseRepository<T extends BaseEntity> implements BaseRep
             entity = entityManager.merge(entity);
         }
         entityManager.flush();
-        StaleSaves.written(entity);
+        StaleSaves.written(entityManager.getEntityManagerFactory(), entity);
         if (touch) {
             changed(entity);
         }
@@ -116,7 +116,7 @@ public abstract class JpaBaseRepository<T extends BaseEntity> implements BaseRep
      */
     private void checkStale(T entity) {
         if (entity.getId() != null && !entityManager.contains(entity)) {
-            StaleSaves.check(entity);
+            StaleSaves.check(entityManager.getEntityManagerFactory(), entity);
         }
     }
 
@@ -141,7 +141,7 @@ public abstract class JpaBaseRepository<T extends BaseEntity> implements BaseRep
         Runs.deleting(entity);
         changed(entity);
         entityManager.remove(entityManager.contains(entity) ? entity : entityManager.merge(entity));
-        StaleSaves.removed(entity);
+        StaleSaves.removed(entityManager.getEntityManagerFactory(), entity);
         return null;
     }
 

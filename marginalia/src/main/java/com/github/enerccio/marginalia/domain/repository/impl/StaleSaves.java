@@ -7,9 +7,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.WeakHashMap;
 
 /**
  * Finds a <em>stale save</em>: an entity saved from a copy that was read before the last save of its row. A save writes the whole row
@@ -18,7 +20,8 @@ import java.util.Map;
  * ({@code ManuscriptService.update}, {@code ChatMessageService.update}): it reads the row fresh and saves it in one write transaction.
  * <p>
  * The check compares the {@code modification} of the copy with the one the last committed save of the row wrote, remembered here in
- * memory for the rows saved since the start (the most recent ones). Not with the {@code modification} in the database: the bulk updates
+ * memory for the rows saved since the start (the most recent ones), by the persistence unit that owns the row (the ids of two databases
+ * are the same numbers, a row of one is not the row of the other). Not with the {@code modification} in the database: the bulk updates
  * that only touch it (a saved part touches its book, a book its folder) change nothing a copy could put back, and a copy older than such
  * a touch is not stale. A row not saved since the start is not checked.
  * <p>
@@ -33,20 +36,18 @@ public final class StaleSaves {
     /** The system property that chooses the {@link Mode} (case does not matter). */
     public static final String PROPERTY = "marginalia.staleSaves";
 
-    /** How many rows are remembered; the oldest saves are forgotten first. */
+    /** How many rows are remembered for each persistence unit; the oldest saves are forgotten first. */
     private static final int REMEMBERED = 20_000;
 
     public enum Mode {OFF, LOG, FAIL}
 
     private static volatile Mode mode = readMode();
 
-    /** The modification the last committed save wrote, by the class and the id of the entity. */
-    private static final Map<String, Long> saved = new LinkedHashMap<>(1024, 0.75f, false) {
-        @Override
-        protected boolean removeEldestEntry(Map.Entry<String, Long> eldest) {
-            return size() > REMEMBERED;
-        }
-    };
+    /**
+     * The modification the last committed save wrote, by the persistence unit of the row (held weakly: a closed context takes its
+     * rows with it) and then by the class and the id of the entity.
+     */
+    private static final Map<Object, Map<String, Long>> saved = Collections.synchronizedMap(new WeakHashMap<>());
 
     private StaleSaves() {
     }
@@ -79,6 +80,16 @@ public final class StaleSaves {
         }
     }
 
+    /** The rows remembered for a persistence unit. */
+    private static Map<String, Long> rows(Object unit) {
+        return saved.computeIfAbsent(unit, u -> new LinkedHashMap<>(1024, 0.75f, false) {
+            @Override
+            protected boolean removeEldestEntry(Map.Entry<String, Long> eldest) {
+                return size() > REMEMBERED;
+            }
+        });
+    }
+
     private static String key(BaseEntity entity) {
         return type(entity).getName() + "#" + entity.getId();
     }
@@ -90,14 +101,17 @@ public final class StaleSaves {
 
     /**
      * Before the save of a detached copy of a stored row: reports it when the copy is older than the last save of the row.
+     *
+     * @param unit the persistence unit that owns the row (its {@code EntityManagerFactory})
      */
-    static void check(BaseEntity entity) {
+    static void check(Object unit, BaseEntity entity) {
         if (mode == Mode.OFF || entity.getId() == null || entity.getModification() == null) {
             return;
         }
         Long last;
-        synchronized (saved) {
-            last = saved.get(key(entity));
+        Map<String, Long> rows = rows(unit);
+        synchronized (rows) {
+            last = rows.get(key(entity));
         }
         long copy = entity.getModification().getTime();
         if (last == null || copy >= last) {
@@ -113,7 +127,7 @@ public final class StaleSaves {
     }
 
     /** After the row was written: its modification is remembered when the transaction commits. */
-    static void written(BaseEntity entity) {
+    static void written(Object unit, BaseEntity entity) {
         if (mode == Mode.OFF || entity.getId() == null || entity.getModification() == null) {
             return;
         }
@@ -123,43 +137,52 @@ public final class StaleSaves {
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                 @Override
                 public void afterCommit() {
-                    remember(key, modification);
+                    remember(unit, key, modification);
                 }
             });
         } else {
-            remember(key, modification);
+            remember(unit, key, modification);
         }
     }
 
     /** After a hard delete. */
-    static void removed(BaseEntity entity) {
+    static void removed(Object unit, BaseEntity entity) {
         if (entity.getId() == null) {
             return;
         }
-        synchronized (saved) {
-            saved.remove(key(entity));
+        Map<String, Long> rows = rows(unit);
+        synchronized (rows) {
+            rows.remove(key(entity));
         }
     }
 
-    private static void remember(String key, long modification) {
-        synchronized (saved) {
-            saved.merge(key, modification, Math::max);
+    private static void remember(Object unit, String key, long modification) {
+        Map<String, Long> rows = rows(unit);
+        synchronized (rows) {
+            rows.merge(key, modification, Math::max);
         }
     }
 
     /** Forgets every save (for a test that starts over). */
     public static void reset() {
-        synchronized (saved) {
-            saved.clear();
-        }
+        saved.clear();
     }
 
-    /** For a test. */
+    /** For a test: the last save of the row in any persistence unit. */
     static Date lastSave(BaseEntity entity) {
+        String key = key(entity);
+        Long last = null;
         synchronized (saved) {
-            Long last = saved.get(key(entity));
-            return last == null ? null : new Date(last);
+            for (Map<String, Long> rows : saved.values()) {
+                synchronized (rows) {
+                    Long value = rows.get(key);
+                    if (value != null && (last == null || value > last)) {
+                        last = value;
+                    }
+                }
+            }
         }
+        return last == null ? null : new Date(last);
     }
 
     /** The first frame of the application that is not the base of the services and repositories, nor a proxy. */
