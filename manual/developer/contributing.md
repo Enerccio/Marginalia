@@ -119,12 +119,12 @@ There is no formatter configuration in the repository; match the code around you
 - **The current user** comes from the session-scoped `User` bean; services check ownership (`findForUser`) - the UI
   must not be the only thing protecting other users' data.
 - **UI text** is never hard-coded: add a key to `loc/L.java` and the text to `loc/LocalizationBundleEN.java` (and to
-  `LocalizationBundleJP.java`, `LocalizationBundleFR.java`, `LocalizationBundleES.java`, `LocalizationBundleDE.java`, `LocalizationBundleKO.java` and the Chinese plugin's `LocalizationBundleZH.java`; a language without the key shows
+  `LocalizationBundleJP.java`, `LocalizationBundleFR.java`, `LocalizationBundleES.java`, `LocalizationBundleDE.java`, `LocalizationBundleKO.java`, `LocalizationBundleIT.java` and the Chinese plugin's `LocalizationBundleZH.java`; a language without the key shows
   the English text), and
   use `loc.getValue(L.KEY)` (see [User interface](ui.md#text)).
 - **Plugin UI text** goes through the `PluginLocalizationBundle` of the plugin: the English text is a `public static final String` constant
-  of the bundle class, named after its words, never a literal at the call site (`T.localized(EXPORT_INSTRUCTIONS)`); the Japanese, Chinese, French, Spanish, German and Korean
-  texts are `ja(...)` / `zh(...)` / `fr(...)` / `es(...)` / `de(...)` / `ko(...)` calls in `loadKeys()` that take the constant as the key (see
+  of the bundle class, named after its words, never a literal at the call site (`T.localized(EXPORT_INSTRUCTIONS)`); the Japanese, Chinese, French, Spanish, German, Korean and Italian
+  texts are `ja(...)` / `zh(...)` / `fr(...)` / `es(...)` / `de(...)` / `ko(...)` / `it(...)` calls in `loadKeys()` that take the constant as the key (see
   [Texts in several languages](plugins/ui-extensions.md#texts-in-several-languages)).
 - **Dialogs that take input** put the cursor into the first field when they open (`DialogFocus.onOpen`) and send from the keyboard with
   `DialogShortcuts.submitWith(mainButton, fields...)`: Enter in a single line field, Ctrl/Cmd+Enter in a text area (Enter there is a new

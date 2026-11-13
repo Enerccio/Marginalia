@@ -95,4 +95,18 @@ class BundleCompletenessTest {
             assertEquals(placeholders(en.getValue(key)), placeholders(text), key.name());
         }
     }
+
+    @Test
+    void italianHasEveryKeyAndMatchingPlaceholders() {
+        LocalizationBundle en = new LocalizationBundleEN();
+        LocalizationBundle it = new LocalizationBundleIT();
+
+        assertEquals(Language.of("it"), it.getLanguage());
+        for (L key : L.values()) {
+            String text = it.getValue(key);
+            assertNotNull(text, key.name());
+            assertFalse(text.isBlank(), key.name());
+            assertEquals(placeholders(en.getValue(key)), placeholders(text), key.name());
+        }
+    }
 }

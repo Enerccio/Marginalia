@@ -510,7 +510,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
 What to take from it:
 
 - a **language code** is the identity of a bundle: only one bundle per code exists. A second one is refused (and
-  logged) - an extension can add languages but not replace the English texts or the Japanese, French, Spanish, German and Korean ones of the application (the same holds for the prompts of `getPromptDefaults()`: the application's English, Japanese, French, Spanish, German, Italian and Korean prompts can't be replaced);
+  logged) - an extension can add languages but not replace the English texts or the Japanese, French, Spanish, German, Korean and Italian ones of the application (the same holds for the prompts of `getPromptDefaults()`: the application's English, Japanese, French, Spanish, German, Italian and Korean prompts can't be replaced);
 - a bundle **doesn't have to be complete**: a key it lacks is shown in the default language, and the application logs
   a warning listing the missing keys when the bundle is registered. A plugin built for an older version keeps working
   when the application adds keys;

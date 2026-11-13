@@ -129,6 +129,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(MANGA_GENERATOR, "Generador de manga");
         de(MANGA_GENERATOR, "Manga-Generator");
         ko(MANGA_GENERATOR, "만화 생성기");
+        it(MANGA_GENERATOR, "Generatore di manga");
 
         ja(OPEN_A_BOOK_FIRST, "先に本を開いてください");
         zh(OPEN_A_BOOK_FIRST, "请先打开一本书");
@@ -136,6 +137,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(OPEN_A_BOOK_FIRST, "Abre primero un libro");
         de(OPEN_A_BOOK_FIRST, "Öffne zuerst ein Buch");
         ko(OPEN_A_BOOK_FIRST, "먼저 책을 여세요");
+        it(OPEN_A_BOOK_FIRST, "Apri prima un libro");
 
         ja(NEW_MANGA, "新しいマンガ");
         zh(NEW_MANGA, "新建漫画");
@@ -143,6 +145,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(NEW_MANGA, "Nuevo manga");
         de(NEW_MANGA, "Neuer Manga");
         ko(NEW_MANGA, "새 만화");
+        it(NEW_MANGA, "Nuovo manga");
 
         ja(RENAME_THE_MANGA, "マンガの名前を変更");
         zh(RENAME_THE_MANGA, "重命名漫画");
@@ -150,6 +153,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(RENAME_THE_MANGA, "Renombrar el manga");
         de(RENAME_THE_MANGA, "Den Manga umbenennen");
         ko(RENAME_THE_MANGA, "만화 이름 바꾸기");
+        it(RENAME_THE_MANGA, "Rinomina il manga");
 
         ja(MOVE_THE_MANGA, "マンガを左へ移動");
         zh(MOVE_THE_MANGA, "将漫画左移");
@@ -157,6 +161,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(MOVE_THE_MANGA, "Mover el manga a la izquierda");
         de(MOVE_THE_MANGA, "Den Manga nach links verschieben");
         ko(MOVE_THE_MANGA, "만화를 왼쪽으로 이동");
+        it(MOVE_THE_MANGA, "Sposta il manga a sinistra");
 
         ja(MOVE_THE_MANGA_TO_THE_RIGHT, "マンガを右へ移動");
         zh(MOVE_THE_MANGA_TO_THE_RIGHT, "将漫画右移");
@@ -164,6 +169,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(MOVE_THE_MANGA_TO_THE_RIGHT, "Mover el manga a la derecha");
         de(MOVE_THE_MANGA_TO_THE_RIGHT, "Den Manga nach rechts verschieben");
         ko(MOVE_THE_MANGA_TO_THE_RIGHT, "만화를 오른쪽으로 이동");
+        it(MOVE_THE_MANGA_TO_THE_RIGHT, "Sposta il manga a destra");
 
         ja(DELETE_THE_MANGA, "マンガを削除");
         zh(DELETE_THE_MANGA, "删除漫画");
@@ -171,6 +177,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(DELETE_THE_MANGA, "Eliminar el manga");
         de(DELETE_THE_MANGA, "Den Manga löschen");
         ko(DELETE_THE_MANGA, "만화 삭제");
+        it(DELETE_THE_MANGA, "Elimina il manga");
 
         ja(TOKEN_BUDGET, "トークン予算");
         zh(TOKEN_BUDGET, "令牌预算");
@@ -178,6 +185,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(TOKEN_BUDGET, "Presupuesto de tokens");
         de(TOKEN_BUDGET, "Token-Budget");
         ko(TOKEN_BUDGET, "토큰 예산");
+        it(TOKEN_BUDGET, "Budget di token");
 
         ja(HOW_LONG_A_SCRIPT, "モデルに求めるスクリプトの長さ");
         zh(HOW_LONG_A_SCRIPT, "要求模型生成的脚本长度");
@@ -185,6 +193,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(HOW_LONG_A_SCRIPT, "Qué extensión de guion se le pide al modelo");
         de(HOW_LONG_A_SCRIPT, "Wie langes Skript vom Modell verlangt wird");
         ko(HOW_LONG_A_SCRIPT, "모델에 요청하는 스크립트의 길이");
+        it(HOW_LONG_A_SCRIPT, "Quanto lungo deve essere il copione richiesto al modello");
 
         ja(PARTS_PER_SECTION, "セクションあたりのパート数");
         zh(PARTS_PER_SECTION, "每节的段落数");
@@ -192,6 +201,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(PARTS_PER_SECTION, "Partes por sección");
         de(PARTS_PER_SECTION, "Abschnitte je Sektion");
         ko(PARTS_PER_SECTION, "섹션당 파트 수");
+        it(PARTS_PER_SECTION, "Parti per sezione");
 
         ja(HOW_MANY_PARTS, "新しいセクションが脚色する物語のパート数");
         zh(HOW_MANY_PARTS, "新的一节改编的故事段落数");
@@ -199,6 +209,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(HOW_MANY_PARTS, "Cuántas partes de la historia adapta una sección nueva");
         de(HOW_MANY_PARTS, "Wie viele Abschnitte der Geschichte eine neue Sektion adaptiert");
         ko(HOW_MANY_PARTS, "새 섹션이 각색하는 이야기의 파트 수");
+        it(HOW_MANY_PARTS, "Quante parti della storia adatta una nuova sezione");
 
         ja(CONTEXT_BEFORE, "前の文脈");
         zh(CONTEXT_BEFORE, "前文上下文");
@@ -206,6 +217,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(CONTEXT_BEFORE, "Contexto anterior");
         de(CONTEXT_BEFORE, "Kontext davor");
         ko(CONTEXT_BEFORE, "앞 컨텍스트");
+        it(CONTEXT_BEFORE, "Contesto prima");
 
         ja(PARTS_BEFORE_THE_ADAPTED_ONES, "脚色するパートの前にある、新しいセクションが背景としてモデルに渡すパート");
         zh(PARTS_BEFORE_THE_ADAPTED_ONES, "新的一节作为背景交给模型的、位于改编段落之前的段落");
@@ -213,6 +225,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(PARTS_BEFORE_THE_ADAPTED_ONES, "Partes anteriores a las adaptadas que una sección nueva da al modelo como trasfondo");
         de(PARTS_BEFORE_THE_ADAPTED_ONES, "Abschnitte vor den adaptierten, die eine neue Sektion dem Modell als Hintergrund gibt");
         ko(PARTS_BEFORE_THE_ADAPTED_ONES, "새 섹션이 모델에 배경으로 제공하는, 각색 대상 앞의 파트");
+        it(PARTS_BEFORE_THE_ADAPTED_ONES, "Parti prima di quelle adattate che una nuova sezione dà al modello come sfondo");
 
         ja(CONTEXT_AFTER, "後の文脈");
         zh(CONTEXT_AFTER, "后文上下文");
@@ -220,6 +233,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(CONTEXT_AFTER, "Contexto posterior");
         de(CONTEXT_AFTER, "Kontext danach");
         ko(CONTEXT_AFTER, "뒤 컨텍스트");
+        it(CONTEXT_AFTER, "Contesto dopo");
 
         ja(PARTS_AFTER_THE_ADAPTED_ONES, "脚色するパートの後にある、新しいセクションが背景としてモデルに渡すパート");
         zh(PARTS_AFTER_THE_ADAPTED_ONES, "新的一节作为背景交给模型的、位于改编段落之后的段落");
@@ -227,6 +241,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(PARTS_AFTER_THE_ADAPTED_ONES, "Partes posteriores a las adaptadas que una sección nueva da al modelo como trasfondo");
         de(PARTS_AFTER_THE_ADAPTED_ONES, "Abschnitte nach den adaptierten, die eine neue Sektion dem Modell als Hintergrund gibt");
         ko(PARTS_AFTER_THE_ADAPTED_ONES, "새 섹션이 모델에 배경으로 제공하는, 각색 대상 뒤의 파트");
+        it(PARTS_AFTER_THE_ADAPTED_ONES, "Parti dopo quelle adattate che una nuova sezione dà al modello come sfondo");
 
         ja(SCRIPT_PROMPT, "スクリプトのプロンプト");
         zh(SCRIPT_PROMPT, "脚本提示词");
@@ -234,6 +249,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(SCRIPT_PROMPT, "Prompt del guion");
         de(SCRIPT_PROMPT, "Skriptprompt");
         ko(SCRIPT_PROMPT, "스크립트 프롬프트");
+        it(SCRIPT_PROMPT, "Prompt del copione");
 
         ja(TAGS_PROMPT, "タグのプロンプト");
         zh(TAGS_PROMPT, "标签提示词");
@@ -241,6 +257,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(TAGS_PROMPT, "Prompt de las etiquetas");
         de(TAGS_PROMPT, "Tags-Prompt");
         ko(TAGS_PROMPT, "태그 프롬프트");
+        it(TAGS_PROMPT, "Prompt dei tag");
 
         ja(ADDITIONAL_RULES, "追加ルール");
         zh(ADDITIONAL_RULES, "附加规则");
@@ -248,6 +265,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(ADDITIONAL_RULES, "Reglas adicionales");
         de(ADDITIONAL_RULES, "Zusätzliche Regeln");
         ko(ADDITIONAL_RULES, "추가 규칙");
+        it(ADDITIONAL_RULES, "Regole aggiuntive");
 
         ja(PUT_IN_PLACE_OF_ADDITIONALRULES, "スクリプトのプロンプトの {{additionalRules}} の代わりに入ります");
         zh(PUT_IN_PLACE_OF_ADDITIONALRULES, "替换脚本提示词中的 {{additionalRules}}");
@@ -255,6 +273,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(PUT_IN_PLACE_OF_ADDITIONALRULES, "Se pone en lugar de {{additionalRules}} en el prompt del guion");
         de(PUT_IN_PLACE_OF_ADDITIONALRULES, "Wird im Skriptprompt anstelle von {{additionalRules}} eingesetzt");
         ko(PUT_IN_PLACE_OF_ADDITIONALRULES, "스크립트 프롬프트의 {{additionalRules}} 자리에 들어갑니다");
+        it(PUT_IN_PLACE_OF_ADDITIONALRULES, "Messe al posto di {{additionalRules}} nel prompt del copione");
 
         ja(COPY_ALL, "すべてコピー");
         zh(COPY_ALL, "全部复制");
@@ -262,6 +281,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(COPY_ALL, "Copiar todo");
         de(COPY_ALL, "Alles kopieren");
         ko(COPY_ALL, "모두 복사");
+        it(COPY_ALL, "Copia tutto");
 
         ja(ADD_SECTION, "セクションを追加");
         zh(ADD_SECTION, "添加一节");
@@ -269,6 +289,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(ADD_SECTION, "Añadir sección");
         de(ADD_SECTION, "Sektion hinzufügen");
         ko(ADD_SECTION, "섹션 추가");
+        it(ADD_SECTION, "Aggiungi sezione");
 
         ja(CONTINUOUS_MODE, "連続モード");
         zh(CONTINUOUS_MODE, "连续模式");
@@ -276,6 +297,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(CONTINUOUS_MODE, "Modo continuo");
         de(CONTINUOUS_MODE, "Dauermodus");
         ko(CONTINUOUS_MODE, "연속 모드");
+        it(CONTINUOUS_MODE, "Modalità continua");
 
         ja(STOP_CONTINUOUS_MODE, "連続モードを停止");
         zh(STOP_CONTINUOUS_MODE, "停止连续模式");
@@ -283,6 +305,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(STOP_CONTINUOUS_MODE, "Detener el modo continuo");
         de(STOP_CONTINUOUS_MODE, "Dauermodus beenden");
         ko(STOP_CONTINUOUS_MODE, "연속 모드 중지");
+        it(STOP_CONTINUOUS_MODE, "Ferma la modalità continua");
 
         ja(SCRIPTS_ONLY, "スクリプトのみ");
         zh(SCRIPTS_ONLY, "仅脚本");
@@ -290,6 +313,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(SCRIPTS_ONLY, "Solo guiones");
         de(SCRIPTS_ONLY, "Nur Skripte");
         ko(SCRIPTS_ONLY, "스크립트만");
+        it(SCRIPTS_ONLY, "Solo copioni");
 
         ja(TAGS_ONLY, "タグのみ");
         zh(TAGS_ONLY, "仅标签");
@@ -297,6 +321,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(TAGS_ONLY, "Solo etiquetas");
         de(TAGS_ONLY, "Nur Tags");
         ko(TAGS_ONLY, "태그만");
+        it(TAGS_ONLY, "Solo tag");
 
         ja(WHAT_THE_CONTINUOUS_MODE_GENERATES, "連続モードが生成するもの：一度に一種類ずつ行うので、モデルは同じプロンプトを使い続けます");
         zh(WHAT_THE_CONTINUOUS_MODE_GENERATES, "连续模式生成的内容：每次只生成一种，因此模型始终使用同一个提示词");
@@ -304,6 +329,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(WHAT_THE_CONTINUOUS_MODE_GENERATES, "Lo que genera el modo continuo: hace un tipo cada vez, para que el modelo conserve el mismo prompt");
         de(WHAT_THE_CONTINUOUS_MODE_GENERATES, "Was der Dauermodus generiert: Er erledigt jeweils eine Art, damit das Modell denselben Prompt behält");
         ko(WHAT_THE_CONTINUOUS_MODE_GENERATES, "연속 모드가 생성하는 것: 한 번에 한 종류씩 처리하므로 모델이 같은 프롬프트를 유지합니다");
+        it(WHAT_THE_CONTINUOUS_MODE_GENERATES, "Cosa genera la modalità continua: fa un tipo alla volta, così il modello mantiene lo stesso prompt");
 
         ja(GENERATE_THE_TAGS, "スクリプトがありタグのないセクションのタグを、なくなるか停止するまで生成します");
         zh(GENERATE_THE_TAGS, "为有脚本但没有标签的各节生成标签，直到没有为止或你停止");
@@ -311,6 +337,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(GENERATE_THE_TAGS, "Genera las etiquetas de las secciones que tienen guion pero no etiquetas, hasta que no quede ninguna o lo detengas");
         de(GENERATE_THE_TAGS, "Die Tags der Sektionen generieren, die ein Skript, aber keine Tags haben, bis es keine mehr gibt oder du ihn stoppst");
         ko(GENERATE_THE_TAGS, "스크립트는 있지만 태그가 없는 섹션의 태그를, 없어질 때까지 또는 중지할 때까지 생성합니다");
+        it(GENERATE_THE_TAGS, "Genera i tag delle sezioni che hanno un copione ma non i tag, finché non ce ne sono più o finché non la fermi");
 
         ja(GENERATE_THE_SCRIPT, "スクリプトのないセクションのスクリプトを生成し、物語の次のパートのセクションを追加してそのスクリプトを生成し続けます。物語のパートがなくなるか、停止するまで続きます");
         zh(GENERATE_THE_SCRIPT, "为没有脚本的各节生成脚本，并持续为故事的后续段落添加新的一节并生成脚本，直到故事用完或你停止为止");
@@ -318,6 +345,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(GENERATE_THE_SCRIPT, "Genera el guion de las secciones que no lo tienen, y sigue añadiendo secciones para las partes siguientes de la historia y generando sus guiones, hasta que se acabe la historia o lo detengas");
         de(GENERATE_THE_SCRIPT, "Das Skript der Sektionen generieren, die keines haben, und weiter Sektionen für die nächsten Abschnitte der Geschichte hinzufügen und ihre Skripte generieren, bis die Geschichte zu Ende ist oder du ihn stoppst");
         ko(GENERATE_THE_SCRIPT, "스크립트가 없는 섹션의 스크립트를 생성하고, 이야기가 끝나거나 중지할 때까지 이야기의 다음 파트를 위한 섹션을 계속 추가하며 스크립트를 생성합니다");
+        it(GENERATE_THE_SCRIPT, "Genera il copione delle sezioni che non ne hanno, e continua ad aggiungere sezioni per le parti successive della storia e a generarne i copioni, finché la storia non finisce o finché non la fermi");
 
         ja(CONTINUOUS_MODE_IS_FINISHED, "連続モードが完了しました：すべてのスクリプトにタグがあります");
         zh(CONTINUOUS_MODE_IS_FINISHED, "连续模式已完成：所有脚本都已有标签");
@@ -325,6 +353,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(CONTINUOUS_MODE_IS_FINISHED, "El modo continuo ha terminado: todos los guiones tienen sus etiquetas");
         de(CONTINUOUS_MODE_IS_FINISHED, "Der Dauermodus ist beendet: Jedes Skript hat seine Tags");
         ko(CONTINUOUS_MODE_IS_FINISHED, "연속 모드가 끝났습니다: 모든 스크립트에 태그가 있습니다");
+        it(CONTINUOUS_MODE_IS_FINISHED, "La modalità continua è terminata: ogni copione ha i suoi tag");
 
         ja(CONTINUOUS_MODE_IS_FINISHED_THERE, "連続モードが完了しました：物語のパートがもうありません");
         zh(CONTINUOUS_MODE_IS_FINISHED_THERE, "连续模式已完成：故事中没有更多段落了");
@@ -332,6 +361,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(CONTINUOUS_MODE_IS_FINISHED_THERE, "El modo continuo ha terminado: no quedan más partes de la historia");
         de(CONTINUOUS_MODE_IS_FINISHED_THERE, "Der Dauermodus ist beendet: Es gibt keine weiteren Abschnitte der Geschichte");
         ko(CONTINUOUS_MODE_IS_FINISHED_THERE, "연속 모드가 끝났습니다: 이야기의 파트가 더 없습니다");
+        it(CONTINUOUS_MODE_IS_FINISHED_THERE, "La modalità continua è terminata: non ci sono più parti della storia");
 
         ja(CONTINUOUS_MODE_STOPPED, "連続モードを停止しました");
         zh(CONTINUOUS_MODE_STOPPED, "连续模式已停止");
@@ -339,6 +369,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(CONTINUOUS_MODE_STOPPED, "Modo continuo detenido");
         de(CONTINUOUS_MODE_STOPPED, "Dauermodus gestoppt");
         ko(CONTINUOUS_MODE_STOPPED, "연속 모드가 중지되었습니다");
+        it(CONTINUOUS_MODE_STOPPED, "Modalità continua interrotta");
 
         ja(CONTINUOUS_MODE_STOPPED_THE_MODEL, "連続モードを停止しました：モデルが何も書きませんでした");
         zh(CONTINUOUS_MODE_STOPPED_THE_MODEL, "连续模式已停止：模型没有写出任何内容");
@@ -346,6 +377,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(CONTINUOUS_MODE_STOPPED_THE_MODEL, "Modo continuo detenido: el modelo no escribió nada");
         de(CONTINUOUS_MODE_STOPPED_THE_MODEL, "Dauermodus gestoppt: Das Modell hat nichts geschrieben");
         ko(CONTINUOUS_MODE_STOPPED_THE_MODEL, "연속 모드가 중지되었습니다: 모델이 아무것도 쓰지 않았습니다");
+        it(CONTINUOUS_MODE_STOPPED_THE_MODEL, "Modalità continua interrotta: il modello non ha scritto nulla");
 
         ja(THERE_IS_NO_MANGA, "この本にはまだマンガがありません。プラスで作成してください。");
         zh(THERE_IS_NO_MANGA, "这本书还没有漫画。请用加号创建一个。");
@@ -353,6 +385,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(THERE_IS_NO_MANGA, "Todavía no hay ningún manga en este libro. Crea uno con el signo más.");
         de(THERE_IS_NO_MANGA, "In diesem Buch gibt es noch keinen Manga. Erstelle einen mit dem Plus.");
         ko(THERE_IS_NO_MANGA, "이 책에는 아직 만화가 없습니다. 더하기 버튼으로 만드세요.");
+        it(THERE_IS_NO_MANGA, "Questo libro non ha ancora un manga. Creane uno con il più.");
 
         ja(CLOSE, "閉じる");
         zh(CLOSE, "关闭");
@@ -360,6 +393,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(CLOSE, "Cerrar");
         de(CLOSE, "Schließen");
         ko(CLOSE, "닫기");
+        it(CLOSE, "Chiudi");
 
         ja(NO_SECTIONS_YET_ADD_ONE, "セクションはまだありません。追加すると物語の最初のパートから始まります。");
         zh(NO_SECTIONS_YET_ADD_ONE, "还没有任何一节。添加一节，从故事的最初几段开始。");
@@ -367,6 +401,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(NO_SECTIONS_YET_ADD_ONE, "Todavía no hay secciones. Añade una para empezar con las primeras partes de la historia.");
         de(NO_SECTIONS_YET_ADD_ONE, "Noch keine Sektionen. Füge eine hinzu, um mit den ersten Abschnitten der Geschichte zu beginnen.");
         ko(NO_SECTIONS_YET_ADD_ONE, "아직 섹션이 없습니다. 이야기의 첫 파트부터 시작하도록 추가하세요.");
+        it(NO_SECTIONS_YET_ADD_ONE, "Ancora nessuna sezione. Aggiungine una per iniziare con le prime parti della storia.");
 
         ja(MANGA_SCRIPT, "マンガスクリプト %d");
         zh(MANGA_SCRIPT, "漫画脚本 %d");
@@ -374,6 +409,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(MANGA_SCRIPT, "Guion de manga %d");
         de(MANGA_SCRIPT, "Manga-Skript %d");
         ko(MANGA_SCRIPT, "만화 스크립트 %d");
+        it(MANGA_SCRIPT, "Copione del manga %d");
 
         ja(TITLE, "タイトル");
         zh(TITLE, "标题");
@@ -381,6 +417,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(TITLE, "Título");
         de(TITLE, "Titel");
         ko(TITLE, "제목");
+        it(TITLE, "Titolo");
 
         ja(SAVE, "保存");
         zh(SAVE, "保存");
@@ -388,6 +425,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(SAVE, "Guardar");
         de(SAVE, "Speichern");
         ko(SAVE, "저장");
+        it(SAVE, "Salva");
 
         ja(CANCEL, "キャンセル");
         zh(CANCEL, "取消");
@@ -395,6 +433,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(CANCEL, "Cancelar");
         de(CANCEL, "Abbrechen");
         ko(CANCEL, "취소");
+        it(CANCEL, "Annulla");
 
         ja(DELETE_THE_MANGA_THIS_CANNOT, "マンガ「%s」を削除しますか？ 元に戻せません。");
         zh(DELETE_THE_MANGA_THIS_CANNOT, "删除漫画“%s”？此操作无法撤销。");
@@ -402,6 +441,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(DELETE_THE_MANGA_THIS_CANNOT, "¿Eliminar el manga \"%s\"? No se puede deshacer.");
         de(DELETE_THE_MANGA_THIS_CANNOT, "Den Manga „%s“ löschen? Das kann nicht rückgängig gemacht werden.");
         ko(DELETE_THE_MANGA_THIS_CANNOT, "만화 \"%s\"을(를) 삭제하시겠습니까? 되돌릴 수 없습니다.");
+        it(DELETE_THE_MANGA_THIS_CANNOT, "Eliminare il manga \"%s\"? Non si può annullare.");
 
         ja(EMPTY_OR_UNCHANGED_THE_BUILT, "空または未変更の場合: 組み込みのテキストを使います");
         zh(EMPTY_OR_UNCHANGED_THE_BUILT, "留空或未修改：使用内置文本");
@@ -409,6 +449,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(EMPTY_OR_UNCHANGED_THE_BUILT, "Vacío o sin cambios: se usa el texto integrado");
         de(EMPTY_OR_UNCHANGED_THE_BUILT, "Leer oder unverändert: Der eingebaute Text wird verwendet");
         ko(EMPTY_OR_UNCHANGED_THE_BUILT, "비어 있거나 변경하지 않으면: 내장 텍스트를 사용합니다");
+        it(EMPTY_OR_UNCHANGED_THE_BUILT, "Vuoto o invariato: viene usato il testo integrato");
 
         ja(THE_STORY_HAS_NO_PARTS, "物語にはまだパートがありません");
         zh(THE_STORY_HAS_NO_PARTS, "故事还没有任何段落");
@@ -416,6 +457,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(THE_STORY_HAS_NO_PARTS, "La historia todavía no tiene partes");
         de(THE_STORY_HAS_NO_PARTS, "Die Geschichte hat noch keine Abschnitte");
         ko(THE_STORY_HAS_NO_PARTS, "이야기에 아직 파트가 없습니다");
+        it(THE_STORY_HAS_NO_PARTS, "La storia non ha ancora parti");
 
         ja(NO_NEW_PARTS, "別のセクションにできる新しい物語のパートがありません（物語は %d パート）");
         zh(NO_NEW_PARTS, "没有可再建一节的新故事段落（故事共有 %d 段）");
@@ -423,6 +465,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(NO_NEW_PARTS, "No hay partes nuevas de la historia para otra sección (la historia tiene %d partes)");
         de(NO_NEW_PARTS, "Keine neuen Abschnitte der Geschichte für eine weitere Sektion (die Geschichte hat %d Abschnitte)");
         ko(NO_NEW_PARTS, "다른 섹션을 위한 이야기의 새 파트가 없습니다 (이야기에 파트 %d개)");
+        it(NO_NEW_PARTS, "Nessuna nuova parte della storia per un'altra sezione (la storia ha %d parti)");
 
         ja(THERE_IS_NO_SCRIPT, "コピーするスクリプトもタグもありません");
         zh(THERE_IS_NO_SCRIPT, "没有可复制的脚本或标签");
@@ -430,6 +473,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(THERE_IS_NO_SCRIPT, "No hay guion ni etiquetas que copiar");
         de(THERE_IS_NO_SCRIPT, "Es gibt kein Skript und keine Tags zum Kopieren");
         ko(THERE_IS_NO_SCRIPT, "복사할 스크립트나 태그가 없습니다");
+        it(THERE_IS_NO_SCRIPT, "Non c'è un copione né tag da copiare");
 
         ja(ALL_SCRIPTS_AND_TAGS_COPIED, "すべてのスクリプトとタグをコピーしました");
         zh(ALL_SCRIPTS_AND_TAGS_COPIED, "已复制全部脚本和标签");
@@ -437,6 +481,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(ALL_SCRIPTS_AND_TAGS_COPIED, "Todos los guiones y etiquetas copiados");
         de(ALL_SCRIPTS_AND_TAGS_COPIED, "Alle Skripte und Tags kopiert");
         ko(ALL_SCRIPTS_AND_TAGS_COPIED, "모든 스크립트와 태그를 복사했습니다");
+        it(ALL_SCRIPTS_AND_TAGS_COPIED, "Tutti i copioni e i tag copiati");
 
         ja(SECTION, "セクション %d");
         zh(SECTION, "第 %d 节");
@@ -444,6 +489,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(SECTION, "Sección %d");
         de(SECTION, "Sektion %d");
         ko(SECTION, "섹션 %d");
+        it(SECTION, "Sezione %d");
 
         ja(SCRIPT, "スクリプト");
         zh(SCRIPT, "脚本");
@@ -451,6 +497,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(SCRIPT, "Guion");
         de(SCRIPT, "Skript");
         ko(SCRIPT, "스크립트");
+        it(SCRIPT, "Copione");
 
         ja(TAGS, "タグ");
         zh(TAGS, "标签");
@@ -458,6 +505,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(TAGS, "Etiquetas");
         de(TAGS, "Tags");
         ko(TAGS, "태그");
+        it(TAGS, "Tag");
 
         ja(OVERRIDE, "上書き");
         zh(OVERRIDE, "覆盖");
@@ -465,6 +513,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(OVERRIDE, "Sustituir");
         de(OVERRIDE, "Überschreiben");
         ko(OVERRIDE, "재정의");
+        it(OVERRIDE, "Sostituisci");
 
         ja(SCRIPT_PROMPT_OF_THIS_SECTION, "このセクションのスクリプトのプロンプト");
         zh(SCRIPT_PROMPT_OF_THIS_SECTION, "本节的脚本提示词");
@@ -472,6 +521,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(SCRIPT_PROMPT_OF_THIS_SECTION, "Prompt del guion de esta sección");
         de(SCRIPT_PROMPT_OF_THIS_SECTION, "Skriptprompt dieser Sektion");
         ko(SCRIPT_PROMPT_OF_THIS_SECTION, "이 섹션의 스크립트 프롬프트");
+        it(SCRIPT_PROMPT_OF_THIS_SECTION, "Prompt del copione di questa sezione");
 
         ja(TAGS_PROMPT_OF_THIS_SECTION, "このセクションのタグのプロンプト");
         zh(TAGS_PROMPT_OF_THIS_SECTION, "本节的标签提示词");
@@ -479,6 +529,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(TAGS_PROMPT_OF_THIS_SECTION, "Prompt de las etiquetas de esta sección");
         de(TAGS_PROMPT_OF_THIS_SECTION, "Tags-Prompt dieser Sektion");
         ko(TAGS_PROMPT_OF_THIS_SECTION, "이 섹션의 태그 프롬프트");
+        it(TAGS_PROMPT_OF_THIS_SECTION, "Prompt dei tag di questa sezione");
 
         ja(ADDITIONAL_RULES_OF_THIS_SECTION, "このセクションの追加ルール");
         zh(ADDITIONAL_RULES_OF_THIS_SECTION, "本节的附加规则");
@@ -486,6 +537,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(ADDITIONAL_RULES_OF_THIS_SECTION, "Reglas adicionales de esta sección");
         de(ADDITIONAL_RULES_OF_THIS_SECTION, "Zusätzliche Regeln dieser Sektion");
         ko(ADDITIONAL_RULES_OF_THIS_SECTION, "이 섹션의 추가 규칙");
+        it(ADDITIONAL_RULES_OF_THIS_SECTION, "Regole aggiuntive di questa sezione");
 
         ja(RULES_ADDENDUM, "ルールの追記");
         zh(RULES_ADDENDUM, "规则补充");
@@ -493,6 +545,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(RULES_ADDENDUM, "Complemento de las reglas");
         de(RULES_ADDENDUM, "Regelergänzung");
         ko(RULES_ADDENDUM, "규칙 추가분");
+        it(RULES_ADDENDUM, "Aggiunta alle regole");
 
         ja(RULES_ADDED_TO_THE_RULES, "マンガのルールに加えるルール");
         zh(RULES_ADDED_TO_THE_RULES, "加到漫画规则之后的规则");
@@ -500,6 +553,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(RULES_ADDED_TO_THE_RULES, "Reglas que se añaden a las reglas del manga");
         de(RULES_ADDED_TO_THE_RULES, "Regeln, die zu den Regeln des Mangas hinzugefügt werden");
         ko(RULES_ADDED_TO_THE_RULES, "만화의 규칙에 추가되는 규칙");
+        it(RULES_ADDED_TO_THE_RULES, "Regole aggiunte alle regole del manga");
 
         ja(ADAPT_FROM_PART, "脚色の開始パート");
         zh(ADAPT_FROM_PART, "改编起始段");
@@ -507,6 +561,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(ADAPT_FROM_PART, "Adaptar desde la parte");
         de(ADAPT_FROM_PART, "Adaptieren ab Abschnitt");
         ko(ADAPT_FROM_PART, "각색 시작 파트");
+        it(ADAPT_FROM_PART, "Adatta dalla parte");
 
         ja(TO_PART, "終了パート");
         zh(TO_PART, "至段");
@@ -514,6 +569,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(TO_PART, "hasta la parte");
         de(TO_PART, "bis Abschnitt");
         ko(TO_PART, "끝 파트");
+        it(TO_PART, "alla parte");
 
         ja(CONTEXT_FROM_PART, "文脈の開始パート");
         zh(CONTEXT_FROM_PART, "上下文起始段");
@@ -521,6 +577,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(CONTEXT_FROM_PART, "Contexto desde la parte");
         de(CONTEXT_FROM_PART, "Kontext ab Abschnitt");
         ko(CONTEXT_FROM_PART, "컨텍스트 시작 파트");
+        it(CONTEXT_FROM_PART, "Contesto dalla parte");
 
         ja(EDIT_THE_TEXT, "テキストを編集");
         zh(EDIT_THE_TEXT, "编辑文本");
@@ -528,6 +585,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(EDIT_THE_TEXT, "Editar el texto");
         de(EDIT_THE_TEXT, "Den Text bearbeiten");
         ko(EDIT_THE_TEXT, "텍스트 편집");
+        it(EDIT_THE_TEXT, "Modifica il testo");
 
         ja(COPY, "コピー");
         zh(COPY, "复制");
@@ -535,6 +593,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(COPY, "Copiar");
         de(COPY, "Kopieren");
         ko(COPY, "복사");
+        it(COPY, "Copia");
 
         ja(SHOW_THE_REQUEST_THE_MODEL, "モデルに送るリクエストを表示");
         zh(SHOW_THE_REQUEST_THE_MODEL, "显示发给模型的请求");
@@ -542,6 +601,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(SHOW_THE_REQUEST_THE_MODEL, "Mostrar la solicitud que recibe el modelo");
         de(SHOW_THE_REQUEST_THE_MODEL, "Die Anfrage anzeigen, die das Modell erhält");
         ko(SHOW_THE_REQUEST_THE_MODEL, "모델이 받는 요청 보기");
+        it(SHOW_THE_REQUEST_THE_MODEL, "Mostra la richiesta che riceve il modello");
 
         ja(DELETE_THIS_SECTION, "このセクションを削除しますか？");
         zh(DELETE_THIS_SECTION, "删除这一节？");
@@ -549,6 +609,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(DELETE_THIS_SECTION, "¿Eliminar esta sección?");
         de(DELETE_THIS_SECTION, "Diese Sektion löschen?");
         ko(DELETE_THIS_SECTION, "이 섹션을 삭제하시겠습니까?");
+        it(DELETE_THIS_SECTION, "Eliminare questa sezione?");
 
         ja(DELETE, "削除");
         zh(DELETE, "删除");
@@ -556,6 +617,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(DELETE, "Eliminar");
         de(DELETE, "Löschen");
         ko(DELETE, "삭제");
+        it(DELETE, "Elimina");
 
         ja(THOUGHT, "%s 秒間思考しました");
         zh(THOUGHT, "思考了 %s 秒");
@@ -563,6 +625,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(THOUGHT, "Pensó durante %s s");
         de(THOUGHT, "%s s nachgedacht");
         ko(THOUGHT, "%s초 동안 생각함");
+        it(THOUGHT, "Ha ragionato per %s s");
 
         ja(THINKING, "%s 秒間思考中");
         zh(THINKING, "已思考 %s 秒");
@@ -570,6 +633,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(THINKING, "Pensando durante %s s");
         de(THINKING, "Denkt seit %s s nach");
         ko(THINKING, "%s초 동안 생각하는 중");
+        it(THINKING, "Sta ragionando da %s s");
 
         ja(WAITING_FOR_THE_MODEL, "モデルを待っています...");
         zh(WAITING_FOR_THE_MODEL, "正在等待模型...");
@@ -577,6 +641,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(WAITING_FOR_THE_MODEL, "Esperando al modelo...");
         de(WAITING_FOR_THE_MODEL, "Warte auf das Modell ...");
         ko(WAITING_FOR_THE_MODEL, "모델을 기다리는 중...");
+        it(WAITING_FOR_THE_MODEL, "In attesa del modello...");
 
         ja(NO_TAGS_YET_GENERATE_THEM, "タグはまだありません。スクリプトから生成するか、自分で書いてください。");
         zh(NO_TAGS_YET_GENERATE_THEM, "还没有标签。可根据脚本生成，或自己编写。");
@@ -584,6 +649,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(NO_TAGS_YET_GENERATE_THEM, "Todavía no hay etiquetas. Genéralas a partir del guion, o escríbelas.");
         de(NO_TAGS_YET_GENERATE_THEM, "Noch keine Tags. Generiere sie aus dem Skript oder schreibe sie.");
         ko(NO_TAGS_YET_GENERATE_THEM, "아직 태그가 없습니다. 스크립트에서 생성하거나 직접 쓰세요.");
+        it(NO_TAGS_YET_GENERATE_THEM, "Ancora nessun tag. Generali dal copione, o scrivili.");
 
         ja(NO_SCRIPT_YET_GENERATE, "スクリプトはまだありません。生成するか、自分で書いてください。");
         zh(NO_SCRIPT_YET_GENERATE, "还没有脚本。可生成，或自己编写。");
@@ -591,6 +657,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(NO_SCRIPT_YET_GENERATE, "Todavía no hay guion. Genéralo, o escríbelo.");
         de(NO_SCRIPT_YET_GENERATE, "Noch kein Skript. Generiere es oder schreibe es.");
         ko(NO_SCRIPT_YET_GENERATE, "아직 스크립트가 없습니다. 생성하거나 직접 쓰세요.");
+        it(NO_SCRIPT_YET_GENERATE, "Ancora nessun copione. Generalo, o scrivilo.");
 
         ja(ABORT, "中止");
         zh(ABORT, "中止");
@@ -598,6 +665,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(ABORT, "Abortar");
         de(ABORT, "Abbrechen");
         ko(ABORT, "중단");
+        it(ABORT, "Interrompi");
 
         ja(GENERATE_TAGS, "タグを生成");
         zh(GENERATE_TAGS, "生成标签");
@@ -605,6 +673,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(GENERATE_TAGS, "Generar etiquetas");
         de(GENERATE_TAGS, "Tags generieren");
         ko(GENERATE_TAGS, "태그 생성");
+        it(GENERATE_TAGS, "Genera i tag");
 
         ja(GENERATE_SCRIPT, "スクリプトを生成");
         zh(GENERATE_SCRIPT, "生成脚本");
@@ -612,6 +681,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(GENERATE_SCRIPT, "Generar guion");
         de(GENERATE_SCRIPT, "Skript generieren");
         ko(GENERATE_SCRIPT, "스크립트 생성");
+        it(GENERATE_SCRIPT, "Genera il copione");
 
         ja(TAGS_COPIED, "タグをコピーしました");
         zh(TAGS_COPIED, "标签已复制");
@@ -619,6 +689,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(TAGS_COPIED, "Etiquetas copiadas");
         de(TAGS_COPIED, "Tags kopiert");
         ko(TAGS_COPIED, "태그를 복사했습니다");
+        it(TAGS_COPIED, "Tag copiati");
 
         ja(SCRIPT_COPIED, "スクリプトをコピーしました");
         zh(SCRIPT_COPIED, "脚本已复制");
@@ -626,6 +697,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(SCRIPT_COPIED, "Guion copiado");
         de(SCRIPT_COPIED, "Skript kopiert");
         ko(SCRIPT_COPIED, "스크립트를 복사했습니다");
+        it(SCRIPT_COPIED, "Copione copiato");
 
         ja(EMPTY_OR_UNCHANGED_THE_SETTING, "空または未変更の場合: マンガの設定を使います");
         zh(EMPTY_OR_UNCHANGED_THE_SETTING, "留空或未修改：使用漫画的设置");
@@ -633,6 +705,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(EMPTY_OR_UNCHANGED_THE_SETTING, "Vacío o sin cambios: se usa el ajuste del manga");
         de(EMPTY_OR_UNCHANGED_THE_SETTING, "Leer oder unverändert: Die Einstellung des Mangas wird verwendet");
         ko(EMPTY_OR_UNCHANGED_THE_SETTING, "비어 있거나 변경하지 않으면: 만화의 설정을 사용합니다");
+        it(EMPTY_OR_UNCHANGED_THE_SETTING, "Vuoto o invariato: viene usata l'impostazione del manga");
 
         ja(REQUEST, "リクエスト");
         zh(REQUEST, "请求");
@@ -640,6 +713,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(REQUEST, "Solicitud");
         de(REQUEST, "Anfrage");
         ko(REQUEST, "요청");
+        it(REQUEST, "Richiesta");
 
         ja(ABOUT_TOKENS, "約 %d トークン");
         zh(ABOUT_TOKENS, "约 %d 个令牌");
@@ -647,6 +721,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(ABOUT_TOKENS, "Unos %d tokens");
         de(ABOUT_TOKENS, "Etwa %d Tokens");
         ko(ABOUT_TOKENS, "약 %d 토큰");
+        it(ABOUT_TOKENS, "Circa %d token");
 
         ja(OF_THE_MODEL_HAS_ROOM, "（モデルの余裕: %d、返答分を除いたコンテキスト）");
         zh(OF_THE_MODEL_HAS_ROOM, "（模型可容纳 %d，即去掉回复后的上下文）");
@@ -654,6 +729,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(OF_THE_MODEL_HAS_ROOM, "de los %d que caben en el modelo (su contexto sin la respuesta)");
         de(OF_THE_MODEL_HAS_ROOM, "von %d, für die das Modell Platz hat (sein Kontext ohne die Antwort)");
         ko(OF_THE_MODEL_HAS_ROOM, "/ 모델이 수용할 수 있는 %d (응답을 뺀 컨텍스트)");
+        it(OF_THE_MODEL_HAS_ROOM, "su %d di cui il modello ha spazio (il suo contesto senza la risposta)");
 
         ja(LORE_ENTRIES, "ロアエントリ: %d");
         zh(LORE_ENTRIES, "设定条目：%d");
@@ -661,6 +737,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(LORE_ENTRIES, "Entradas de lore: %d");
         de(LORE_ENTRIES, "Lore-Einträge: %d");
         ko(LORE_ENTRIES, "로어 항목: %d개");
+        it(LORE_ENTRIES, "Voci del lore: %d");
 
         ja(MORE_DID_NOT_FIT, "（さらに %d 件は収まりませんでした）");
         zh(MORE_DID_NOT_FIT, "（另有 %d 条放不下）");
@@ -668,6 +745,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(MORE_DID_NOT_FIT, "(%d más no cabían)");
         de(MORE_DID_NOT_FIT, "(%d weitere passten nicht)");
         ko(MORE_DID_NOT_FIT, "(%d개 더 맞지 않음)");
+        it(MORE_DID_NOT_FIT, "(altre %d non ci stavano)");
 
         ja(THE_REQUEST_ABOUT_TOKENS, "リクエスト（約 %d トークン）がモデルの余裕（%d）を超えています");
         zh(THE_REQUEST_ABOUT_TOKENS, "请求（约 %d 个令牌）超出了模型可容纳的范围（%d）");
@@ -675,6 +753,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(THE_REQUEST_ABOUT_TOKENS, "La solicitud (unos %d tokens) supera lo que cabe en el modelo (%d)");
         de(THE_REQUEST_ABOUT_TOKENS, "Die Anfrage (etwa %d Tokens) ist größer, als das Modell Platz hat (%d)");
         ko(THE_REQUEST_ABOUT_TOKENS, "요청(약 %d 토큰)이 모델이 수용할 수 있는 양(%d)을 초과합니다");
+        it(THE_REQUEST_ABOUT_TOKENS, "La richiesta (circa %d token) supera ciò di cui il modello ha spazio (%d)");
 
         ja(LORE_ENTRIES_WERE_LEFT_OUT, "コンテキストに収めるため、ロアエントリ %d 件を除きました");
         zh(LORE_ENTRIES_WERE_LEFT_OUT, "为适应上下文，已省略 %d 条设定条目");
@@ -682,6 +761,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(LORE_ENTRIES_WERE_LEFT_OUT, "Se omitieron %d entradas de lore para ajustarse al contexto");
         de(LORE_ENTRIES_WERE_LEFT_OUT, "%d Lore-Einträge wurden weggelassen, damit es in den Kontext passt");
         ko(LORE_ENTRIES_WERE_LEFT_OUT, "컨텍스트에 맞추기 위해 로어 항목 %d개가 제외되었습니다");
+        it(LORE_ENTRIES_WERE_LEFT_OUT, "%d voci del lore sono state escluse per rientrare nel contesto");
 
         ja(RESET_TO_DEFAULT, "デフォルトに戻す");
         zh(RESET_TO_DEFAULT, "恢复默认");
@@ -689,6 +769,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(RESET_TO_DEFAULT, "Restablecer el valor predeterminado");
         de(RESET_TO_DEFAULT, "Auf Standard zurücksetzen");
         ko(RESET_TO_DEFAULT, "기본값으로 초기화");
+        it(RESET_TO_DEFAULT, "Ripristina i valori predefiniti");
 
         ja(A_NEW_MANGA_STARTS, "新しいマンガはこの設定で始まります。作成済みのマンガは自分の設定のままです。");
         zh(A_NEW_MANGA_STARTS, "新漫画以这些设置开始。已创建的漫画保留自己的设置。");
@@ -696,6 +777,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(A_NEW_MANGA_STARTS, "Un manga nuevo empieza con estos ajustes. Un manga que ya hayas creado conserva los suyos.");
         de(A_NEW_MANGA_STARTS, "Ein neuer Manga beginnt mit diesen Einstellungen. Ein bereits erstellter Manga behält seine eigenen.");
         ko(A_NEW_MANGA_STARTS, "새 만화는 이 설정으로 시작합니다. 이미 만든 만화는 자체 설정을 유지합니다.");
+        it(A_NEW_MANGA_STARTS, "Un nuovo manga parte con queste impostazioni. Un manga che hai già creato mantiene le sue.");
 
         ja(TEXT_BEFORE_EVERY_REQUEST, "すべてのリクエストの前に置くテキスト");
         zh(TEXT_BEFORE_EVERY_REQUEST, "每个请求之前的文本");
@@ -703,6 +785,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(TEXT_BEFORE_EVERY_REQUEST, "Texto antes de cada solicitud");
         de(TEXT_BEFORE_EVERY_REQUEST, "Text vor jeder Anfrage");
         ko(TEXT_BEFORE_EVERY_REQUEST, "모든 요청 앞의 텍스트");
+        it(TEXT_BEFORE_EVERY_REQUEST, "Testo prima di ogni richiesta");
 
         ja(PUT_INTO_THE_SYSTEM_MESSAGE, "システムメッセージの、ロアの前に入ります。すべてのマンガに共通する指示用です。");
         zh(PUT_INTO_THE_SYSTEM_MESSAGE, "放入系统消息中、设定之前。用于适用于你所有漫画的指令。");
@@ -710,6 +793,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(PUT_INTO_THE_SYSTEM_MESSAGE, "Se pone en el mensaje del sistema, antes del lore. Para instrucciones que valen para todos tus mangas.");
         de(PUT_INTO_THE_SYSTEM_MESSAGE, "Wird in die Systemnachricht vor der Lore gesetzt. Für Anweisungen, die für alle deine Mangas gelten.");
         ko(PUT_INTO_THE_SYSTEM_MESSAGE, "로어 앞의 시스템 메시지에 들어갑니다. 모든 만화에 적용되는 지시문용입니다.");
+        it(PUT_INTO_THE_SYSTEM_MESSAGE, "Messo nel messaggio di sistema, prima del lore. Per istruzioni valide per tutti i tuoi manga.");
 
         ja(CONTEXT_PARTS_BEFORE, "前の文脈のパート数");
         zh(CONTEXT_PARTS_BEFORE, "前文上下文段数");
@@ -717,6 +801,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(CONTEXT_PARTS_BEFORE, "Partes de contexto anteriores");
         de(CONTEXT_PARTS_BEFORE, "Kontextabschnitte davor");
         ko(CONTEXT_PARTS_BEFORE, "앞 컨텍스트 파트");
+        it(CONTEXT_PARTS_BEFORE, "Parti di contesto prima");
 
         ja(CONTEXT_PARTS_AFTER, "後の文脈のパート数");
         zh(CONTEXT_PARTS_AFTER, "后文上下文段数");
@@ -724,6 +809,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(CONTEXT_PARTS_AFTER, "Partes de contexto posteriores");
         de(CONTEXT_PARTS_AFTER, "Kontextabschnitte danach");
         ko(CONTEXT_PARTS_AFTER, "뒤 컨텍스트 파트");
+        it(CONTEXT_PARTS_AFTER, "Parti di contesto dopo");
 
         ja(DEFAULT_SCRIPT_PROMPT, "デフォルトのスクリプトのプロンプト");
         zh(DEFAULT_SCRIPT_PROMPT, "默认脚本提示词");
@@ -731,6 +817,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(DEFAULT_SCRIPT_PROMPT, "Prompt del guion predeterminado");
         de(DEFAULT_SCRIPT_PROMPT, "Standard-Skriptprompt");
         ko(DEFAULT_SCRIPT_PROMPT, "기본 스크립트 프롬프트");
+        it(DEFAULT_SCRIPT_PROMPT, "Prompt del copione predefinito");
 
         ja(EMPTY_OR_UNCHANGED_THE_BUILT_IN_PROMPT, "空または未変更の場合: 組み込みのプロンプトを使います");
         zh(EMPTY_OR_UNCHANGED_THE_BUILT_IN_PROMPT, "留空或未修改：使用内置提示词");
@@ -738,6 +825,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(EMPTY_OR_UNCHANGED_THE_BUILT_IN_PROMPT, "Vacío o sin cambios: se usa el prompt integrado");
         de(EMPTY_OR_UNCHANGED_THE_BUILT_IN_PROMPT, "Leer oder unverändert: Der eingebaute Prompt wird verwendet");
         ko(EMPTY_OR_UNCHANGED_THE_BUILT_IN_PROMPT, "비어 있거나 변경하지 않으면: 내장 프롬프트를 사용합니다");
+        it(EMPTY_OR_UNCHANGED_THE_BUILT_IN_PROMPT, "Vuoto o invariato: viene usato il prompt integrato");
 
         ja(DEFAULT_TAGS_PROMPT, "デフォルトのタグのプロンプト");
         zh(DEFAULT_TAGS_PROMPT, "默认标签提示词");
@@ -745,6 +833,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(DEFAULT_TAGS_PROMPT, "Prompt de las etiquetas predeterminado");
         de(DEFAULT_TAGS_PROMPT, "Standard-Tags-Prompt");
         ko(DEFAULT_TAGS_PROMPT, "기본 태그 프롬프트");
+        it(DEFAULT_TAGS_PROMPT, "Prompt dei tag predefinito");
 
         ja(DEFAULT_ADDITIONAL_RULES, "デフォルトの追加ルール");
         zh(DEFAULT_ADDITIONAL_RULES, "默认附加规则");
@@ -752,6 +841,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(DEFAULT_ADDITIONAL_RULES, "Reglas adicionales predeterminadas");
         de(DEFAULT_ADDITIONAL_RULES, "Standardmäßige zusätzliche Regeln");
         ko(DEFAULT_ADDITIONAL_RULES, "기본 추가 규칙");
+        it(DEFAULT_ADDITIONAL_RULES, "Regole aggiuntive predefinite");
 
         ja(THE_STORY_HAS_NO_TEXT, "このセクションのパートに物語のテキストがありません");
         zh(THE_STORY_HAS_NO_TEXT, "本节的段落中没有故事文本");
@@ -759,6 +849,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(THE_STORY_HAS_NO_TEXT, "La historia no tiene texto en las partes de esta sección");
         de(THE_STORY_HAS_NO_TEXT, "Die Geschichte hat in den Abschnitten dieser Sektion keinen Text");
         ko(THE_STORY_HAS_NO_TEXT, "이 섹션의 파트에 이야기 텍스트가 없습니다");
+        it(THE_STORY_HAS_NO_TEXT, "La storia non ha testo nelle parti di questa sezione");
 
         ja(GENERATE_OR_WRITE_THE_SCRIPT, "先にこのセクションのスクリプトを生成するか書いてください");
         zh(GENERATE_OR_WRITE_THE_SCRIPT, "请先生成或编写本节的脚本");
@@ -766,6 +857,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(GENERATE_OR_WRITE_THE_SCRIPT, "Genera o escribe primero el guion de la sección");
         de(GENERATE_OR_WRITE_THE_SCRIPT, "Generiere oder schreibe zuerst das Skript der Sektion");
         ko(GENERATE_OR_WRITE_THE_SCRIPT, "먼저 섹션의 스크립트를 생성하거나 쓰세요");
+        it(GENERATE_OR_WRITE_THE_SCRIPT, "Genera o scrivi prima il copione della sezione");
 
         ja(MANGA_GENERATOR_SETTINGS, "マンガジェネレーター設定");
         zh(MANGA_GENERATOR_SETTINGS, "漫画生成器设置");
@@ -773,6 +865,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(MANGA_GENERATOR_SETTINGS, "Ajustes del generador de manga");
         de(MANGA_GENERATOR_SETTINGS, "Einstellungen des Manga-Generators");
         ko(MANGA_GENERATOR_SETTINGS, "만화 생성기 설정");
+        it(MANGA_GENERATOR_SETTINGS, "Impostazioni del generatore di manga");
 
         ja(MANGA_GENERATOR_WRITE_A_SCRIPT, "マンガジェネレーター: スクリプトを作成");
         zh(MANGA_GENERATOR_WRITE_A_SCRIPT, "漫画生成器：撰写脚本");
@@ -780,6 +873,7 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(MANGA_GENERATOR_WRITE_A_SCRIPT, "Generador de manga: escribir un guion");
         de(MANGA_GENERATOR_WRITE_A_SCRIPT, "Manga-Generator: ein Skript schreiben");
         ko(MANGA_GENERATOR_WRITE_A_SCRIPT, "만화 생성기: 스크립트 쓰기");
+        it(MANGA_GENERATOR_WRITE_A_SCRIPT, "Generatore di manga: scrivi un copione");
 
         ja(MANGA_GENERATOR_WRITE_THE_IMAGE_TAGS, "マンガジェネレーター: 画像タグを作成");
         zh(MANGA_GENERATOR_WRITE_THE_IMAGE_TAGS, "漫画生成器：撰写图像标签");
@@ -787,5 +881,6 @@ public class MangaGeneratorLocalization extends PluginLocalizationBundle {
         es(MANGA_GENERATOR_WRITE_THE_IMAGE_TAGS, "Generador de manga: escribir las etiquetas de imagen");
         de(MANGA_GENERATOR_WRITE_THE_IMAGE_TAGS, "Manga-Generator: die Bild-Tags schreiben");
         ko(MANGA_GENERATOR_WRITE_THE_IMAGE_TAGS, "만화 생성기: 이미지 태그 쓰기");
+        it(MANGA_GENERATOR_WRITE_THE_IMAGE_TAGS, "Generatore di manga: scrivi i tag delle immagini");
     }
 }

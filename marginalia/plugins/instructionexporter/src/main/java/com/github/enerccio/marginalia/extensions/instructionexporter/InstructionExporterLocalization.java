@@ -23,6 +23,7 @@ public class InstructionExporterLocalization extends PluginLocalizationBundle {
         es(EXPORT_INSTRUCTIONS, "Exportar instrucciones");
         de(EXPORT_INSTRUCTIONS, "Anweisungen exportieren");
         ko(EXPORT_INSTRUCTIONS, "지시문 내보내기");
+        it(EXPORT_INSTRUCTIONS, "Esporta le istruzioni");
 
         ja(THERE_IS_NO_ACTIVE_BRANCH, "エクスポートするアクティブなブランチがありません");
         zh(THERE_IS_NO_ACTIVE_BRANCH, "没有可导出的活动分支");
@@ -30,6 +31,7 @@ public class InstructionExporterLocalization extends PluginLocalizationBundle {
         es(THERE_IS_NO_ACTIVE_BRANCH, "No hay ninguna rama activa que exportar");
         de(THERE_IS_NO_ACTIVE_BRANCH, "Es gibt keinen aktiven Zweig zum Exportieren");
         ko(THERE_IS_NO_ACTIVE_BRANCH, "내보낼 활성 분기가 없습니다");
+        it(THERE_IS_NO_ACTIVE_BRANCH, "Non c'è un ramo attivo da esportare");
 
         ja(THERE_IS_NOTHING_TO_EXPORT, "アクティブなブランチにエクスポートする内容がありません");
         zh(THERE_IS_NOTHING_TO_EXPORT, "活动分支中没有可导出的内容");
@@ -37,6 +39,7 @@ public class InstructionExporterLocalization extends PluginLocalizationBundle {
         es(THERE_IS_NOTHING_TO_EXPORT, "No hay nada que exportar en la rama activa");
         de(THERE_IS_NOTHING_TO_EXPORT, "Im aktiven Zweig gibt es nichts zu exportieren");
         ko(THERE_IS_NOTHING_TO_EXPORT, "활성 분기에 내보낼 것이 없습니다");
+        it(THERE_IS_NOTHING_TO_EXPORT, "Non c'è nulla da esportare nel ramo attivo");
 
         ja(COPIED_TO_CLIPBOARD, "クリップボードにコピーしました");
         zh(COPIED_TO_CLIPBOARD, "已复制到剪贴板");
@@ -44,6 +47,7 @@ public class InstructionExporterLocalization extends PluginLocalizationBundle {
         es(COPIED_TO_CLIPBOARD, "Copiado al portapapeles");
         de(COPIED_TO_CLIPBOARD, "In die Zwischenablage kopiert");
         ko(COPIED_TO_CLIPBOARD, "클립보드에 복사했습니다");
+        it(COPIED_TO_CLIPBOARD, "Copiato negli appunti");
 
         ja(FAILED_TO_EXPORT, "エクスポートに失敗しました: %s");
         zh(FAILED_TO_EXPORT, "导出失败：%s");
@@ -51,5 +55,6 @@ public class InstructionExporterLocalization extends PluginLocalizationBundle {
         es(FAILED_TO_EXPORT, "No se pudo exportar: %s");
         de(FAILED_TO_EXPORT, "Export fehlgeschlagen: %s");
         ko(FAILED_TO_EXPORT, "내보내기에 실패했습니다: %s");
+        it(FAILED_TO_EXPORT, "Esportazione non riuscita: %s");
     }
 }

@@ -842,7 +842,7 @@ runner's internals.
 | `AgentApprovalDialog` | One pending command, Approve / Deny. The console opens it only while it is open itself (an opened-change listener asks again when the console opens): both are modal and the one opened later lies on top, so a window opened before the console would be under it. |
 | `AgentLockCheck` | Called by the screens that open a book: tells which agent holds a locked book. |
 
-The console shows the model's results cut at `RESULT_LIMIT` (20 000), the same as the model got. Texts for the screens are `L` keys like any other (English, Japanese, French, Spanish, German, Korean and the Chinese plugin bundle).
+The console shows the model's results cut at `RESULT_LIMIT` (20 000), the same as the model got. Texts for the screens are `L` keys like any other (English, Japanese, French, Spanish, German, Korean, Italian and the Chinese plugin bundle).
 
 ## Writing commands for agents
 

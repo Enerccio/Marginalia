@@ -85,6 +85,7 @@ public class SideQueryLocalization extends PluginLocalizationBundle {
         es(SIDE_QUERY, "Consulta lateral");
         de(SIDE_QUERY, "Nebenabfrage");
         ko(SIDE_QUERY, "사이드 쿼리");
+        it(SIDE_QUERY, "Query laterale");
 
         ja(SIDEQUERY_SETTINGS, "サイドクエリ設定");
         zh(SIDEQUERY_SETTINGS, "侧边查询设置");
@@ -92,6 +93,7 @@ public class SideQueryLocalization extends PluginLocalizationBundle {
         es(SIDEQUERY_SETTINGS, "Ajustes de SideQuery");
         de(SIDEQUERY_SETTINGS, "Einstellungen der Nebenabfrage");
         ko(SIDEQUERY_SETTINGS, "사이드 쿼리 설정");
+        it(SIDEQUERY_SETTINGS, "Impostazioni della query laterale");
 
         ja(PROFILE, "プロファイル");
         zh(PROFILE, "配置文件");
@@ -99,6 +101,7 @@ public class SideQueryLocalization extends PluginLocalizationBundle {
         es(PROFILE, "Perfil");
         de(PROFILE, "Profil");
         ko(PROFILE, "프로필");
+        it(PROFILE, "Profilo");
 
         ja(NEW, "新規");
         zh(NEW, "新建");
@@ -106,6 +109,7 @@ public class SideQueryLocalization extends PluginLocalizationBundle {
         es(NEW, "Nuevo");
         de(NEW, "Neu");
         ko(NEW, "새로 만들기");
+        it(NEW, "Nuovo");
 
         ja(RENAME, "名前を変更");
         zh(RENAME, "重命名");
@@ -113,6 +117,7 @@ public class SideQueryLocalization extends PluginLocalizationBundle {
         es(RENAME, "Renombrar");
         de(RENAME, "Umbenennen");
         ko(RENAME, "이름 바꾸기");
+        it(RENAME, "Rinomina");
 
         ja(DELETE, "削除");
         zh(DELETE, "删除");
@@ -120,6 +125,7 @@ public class SideQueryLocalization extends PluginLocalizationBundle {
         es(DELETE, "Eliminar");
         de(DELETE, "Löschen");
         ko(DELETE, "삭제");
+        it(DELETE, "Elimina");
 
         ja(SIDEQUERY_MODEL_DEFAULT_MANUSCRIPT, "サイドクエリのモデル（デフォルト: 原稿のAI）");
         zh(SIDEQUERY_MODEL_DEFAULT_MANUSCRIPT, "侧边查询模型（默认：稿件的 AI）");
@@ -127,6 +133,7 @@ public class SideQueryLocalization extends PluginLocalizationBundle {
         es(SIDEQUERY_MODEL_DEFAULT_MANUSCRIPT, "Modelo de SideQuery (predeterminado: la IA del manuscrito)");
         de(SIDEQUERY_MODEL_DEFAULT_MANUSCRIPT, "Modell der Nebenabfrage (Standard: KI des Manuskripts)");
         ko(SIDEQUERY_MODEL_DEFAULT_MANUSCRIPT, "사이드 쿼리 모델 (기본값: 원고 AI)");
+        it(SIDEQUERY_MODEL_DEFAULT_MANUSCRIPT, "Modello della query laterale (predefinito: IA del manoscritto)");
 
         ja(SIDEQUERY_PROTOCOL_DEFAULT, "サイドクエリのプロトコル（デフォルト: 原稿のプロトコル）");
         zh(SIDEQUERY_PROTOCOL_DEFAULT, "侧边查询协议（默认：稿件的协议）");
@@ -134,6 +141,7 @@ public class SideQueryLocalization extends PluginLocalizationBundle {
         es(SIDEQUERY_PROTOCOL_DEFAULT, "Protocolo de SideQuery (predeterminado: el protocolo del manuscrito)");
         de(SIDEQUERY_PROTOCOL_DEFAULT, "Protokoll der Nebenabfrage (Standard: Protokoll des Manuskripts)");
         ko(SIDEQUERY_PROTOCOL_DEFAULT, "사이드 쿼리 프로토콜 (기본값: 원고 프로토콜)");
+        it(SIDEQUERY_PROTOCOL_DEFAULT, "Protocollo della query laterale (predefinito: protocollo del manoscritto)");
 
         ja(INITIAL_SYSTEM_QUERY, "最初のシステムクエリ");
         zh(INITIAL_SYSTEM_QUERY, "初始系统查询");
@@ -141,6 +149,7 @@ public class SideQueryLocalization extends PluginLocalizationBundle {
         es(INITIAL_SYSTEM_QUERY, "Consulta inicial del sistema");
         de(INITIAL_SYSTEM_QUERY, "Anfängliche Systemabfrage");
         ko(INITIAL_SYSTEM_QUERY, "초기 시스템 쿼리");
+        it(INITIAL_SYSTEM_QUERY, "Query di sistema iniziale");
 
         ja(INSTRUCTIONS_BEFORE_USER_INPUT, "ユーザー入力の前の指示");
         zh(INSTRUCTIONS_BEFORE_USER_INPUT, "用户输入之前的指令");
@@ -148,6 +157,7 @@ public class SideQueryLocalization extends PluginLocalizationBundle {
         es(INSTRUCTIONS_BEFORE_USER_INPUT, "Instrucciones antes de la entrada del usuario");
         de(INSTRUCTIONS_BEFORE_USER_INPUT, "Anweisungen vor der Benutzereingabe");
         ko(INSTRUCTIONS_BEFORE_USER_INPUT, "사용자 입력 앞의 지시문");
+        it(INSTRUCTIONS_BEFORE_USER_INPUT, "Istruzioni prima dell'input dell'utente");
 
         ja(ENABLE_AI_TAB_NAMING, "AIによるタブ名の自動設定を有効にする");
         zh(ENABLE_AI_TAB_NAMING, "启用 AI 自动命名标签页");
@@ -155,6 +165,7 @@ public class SideQueryLocalization extends PluginLocalizationBundle {
         es(ENABLE_AI_TAB_NAMING, "Activar el nombre de las pestañas por IA");
         de(ENABLE_AI_TAB_NAMING, "KI-Benennung der Tabs aktivieren");
         ko(ENABLE_AI_TAB_NAMING, "AI 탭 이름 짓기 사용");
+        it(ENABLE_AI_TAB_NAMING, "Abilita la denominazione delle schede con l'IA");
 
         ja(NEW_SIDEQUERY_PROFILE, "新しいサイドクエリのプロファイル");
         zh(NEW_SIDEQUERY_PROFILE, "新建侧边查询配置文件");
@@ -162,6 +173,7 @@ public class SideQueryLocalization extends PluginLocalizationBundle {
         es(NEW_SIDEQUERY_PROFILE, "Nuevo perfil de SideQuery");
         de(NEW_SIDEQUERY_PROFILE, "Neues Profil für die Nebenabfrage");
         ko(NEW_SIDEQUERY_PROFILE, "새 사이드 쿼리 프로필");
+        it(NEW_SIDEQUERY_PROFILE, "Nuovo profilo della query laterale");
 
         ja(PROFILE_NAME, "プロファイル名");
         zh(PROFILE_NAME, "配置文件名称");
@@ -169,6 +181,7 @@ public class SideQueryLocalization extends PluginLocalizationBundle {
         es(PROFILE_NAME, "Nombre del perfil");
         de(PROFILE_NAME, "Profilname");
         ko(PROFILE_NAME, "프로필 이름");
+        it(PROFILE_NAME, "Nome del profilo");
 
         ja(CREATE, "作成");
         zh(CREATE, "创建");
@@ -176,6 +189,7 @@ public class SideQueryLocalization extends PluginLocalizationBundle {
         es(CREATE, "Crear");
         de(CREATE, "Erstellen");
         ko(CREATE, "만들기");
+        it(CREATE, "Crea");
 
         ja(PROFILE_NAME_CANNOT_BE_EMPTY, "プロファイル名は空にできません");
         zh(PROFILE_NAME_CANNOT_BE_EMPTY, "配置文件名称不能为空");
@@ -183,6 +197,7 @@ public class SideQueryLocalization extends PluginLocalizationBundle {
         es(PROFILE_NAME_CANNOT_BE_EMPTY, "El nombre del perfil no puede estar vacío");
         de(PROFILE_NAME_CANNOT_BE_EMPTY, "Der Profilname darf nicht leer sein");
         ko(PROFILE_NAME_CANNOT_BE_EMPTY, "프로필 이름은 비워 둘 수 없습니다");
+        it(PROFILE_NAME_CANNOT_BE_EMPTY, "Il nome del profilo non può essere vuoto");
 
         ja(PROFILE_ALREADY_EXISTS, "プロファイルは既に存在します");
         zh(PROFILE_ALREADY_EXISTS, "配置文件已存在");
@@ -190,6 +205,7 @@ public class SideQueryLocalization extends PluginLocalizationBundle {
         es(PROFILE_ALREADY_EXISTS, "El perfil ya existe");
         de(PROFILE_ALREADY_EXISTS, "Das Profil existiert bereits");
         ko(PROFILE_ALREADY_EXISTS, "프로필이 이미 있습니다");
+        it(PROFILE_ALREADY_EXISTS, "Il profilo esiste già");
 
         ja(CANCEL, "キャンセル");
         zh(CANCEL, "取消");
@@ -197,6 +213,7 @@ public class SideQueryLocalization extends PluginLocalizationBundle {
         es(CANCEL, "Cancelar");
         de(CANCEL, "Abbrechen");
         ko(CANCEL, "취소");
+        it(CANCEL, "Annulla");
 
         ja(CANNOT_RENAME_PROFILE, "%s プロファイルの名前は変更できません");
         zh(CANNOT_RENAME_PROFILE, "无法重命名 %s 配置文件");
@@ -204,6 +221,7 @@ public class SideQueryLocalization extends PluginLocalizationBundle {
         es(CANNOT_RENAME_PROFILE, "No se puede renombrar el perfil %s");
         de(CANNOT_RENAME_PROFILE, "Das Profil %s kann nicht umbenannt werden");
         ko(CANNOT_RENAME_PROFILE, "%s 프로필의 이름을 바꿀 수 없습니다");
+        it(CANNOT_RENAME_PROFILE, "Impossibile rinominare il profilo %s");
 
         ja(RENAME_SIDEQUERY_PROFILE, "サイドクエリのプロファイル名を変更");
         zh(RENAME_SIDEQUERY_PROFILE, "重命名侧边查询配置文件");
@@ -211,6 +229,7 @@ public class SideQueryLocalization extends PluginLocalizationBundle {
         es(RENAME_SIDEQUERY_PROFILE, "Renombrar perfil de SideQuery");
         de(RENAME_SIDEQUERY_PROFILE, "Profil der Nebenabfrage umbenennen");
         ko(RENAME_SIDEQUERY_PROFILE, "사이드 쿼리 프로필 이름 바꾸기");
+        it(RENAME_SIDEQUERY_PROFILE, "Rinomina il profilo della query laterale");
 
         ja(NEW_PROFILE_NAME, "新しいプロファイル名");
         zh(NEW_PROFILE_NAME, "新配置文件名称");
@@ -218,6 +237,7 @@ public class SideQueryLocalization extends PluginLocalizationBundle {
         es(NEW_PROFILE_NAME, "Nombre nuevo del perfil");
         de(NEW_PROFILE_NAME, "Neuer Profilname");
         ko(NEW_PROFILE_NAME, "새 프로필 이름");
+        it(NEW_PROFILE_NAME, "Nuovo nome del profilo");
 
         ja(CANNOT_DELETE_PROFILE, "%s プロファイルは削除できません");
         zh(CANNOT_DELETE_PROFILE, "无法删除 %s 配置文件");
@@ -225,6 +245,7 @@ public class SideQueryLocalization extends PluginLocalizationBundle {
         es(CANNOT_DELETE_PROFILE, "No se puede eliminar el perfil %s");
         de(CANNOT_DELETE_PROFILE, "Das Profil %s kann nicht gelöscht werden");
         ko(CANNOT_DELETE_PROFILE, "%s 프로필을 삭제할 수 없습니다");
+        it(CANNOT_DELETE_PROFILE, "Impossibile eliminare il profilo %s");
 
         ja(MOVE_MESSAGE_UP, "メッセージを上へ移動");
         zh(MOVE_MESSAGE_UP, "上移消息");
@@ -232,6 +253,7 @@ public class SideQueryLocalization extends PluginLocalizationBundle {
         es(MOVE_MESSAGE_UP, "Subir el mensaje");
         de(MOVE_MESSAGE_UP, "Nachricht nach oben verschieben");
         ko(MOVE_MESSAGE_UP, "메시지 위로 이동");
+        it(MOVE_MESSAGE_UP, "Sposta il messaggio su");
 
         ja(MOVE_MESSAGE_DOWN, "メッセージを下へ移動");
         zh(MOVE_MESSAGE_DOWN, "下移消息");
@@ -239,6 +261,7 @@ public class SideQueryLocalization extends PluginLocalizationBundle {
         es(MOVE_MESSAGE_DOWN, "Bajar el mensaje");
         de(MOVE_MESSAGE_DOWN, "Nachricht nach unten verschieben");
         ko(MOVE_MESSAGE_DOWN, "메시지 아래로 이동");
+        it(MOVE_MESSAGE_DOWN, "Sposta il messaggio giù");
 
         ja(EDIT_MESSAGE, "メッセージを編集");
         zh(EDIT_MESSAGE, "编辑消息");
@@ -246,6 +269,7 @@ public class SideQueryLocalization extends PluginLocalizationBundle {
         es(EDIT_MESSAGE, "Editar mensaje");
         de(EDIT_MESSAGE, "Nachricht bearbeiten");
         ko(EDIT_MESSAGE, "메시지 편집");
+        it(EDIT_MESSAGE, "Modifica il messaggio");
 
         ja(COPIED_TO_CLIPBOARD, "クリップボードにコピーしました");
         zh(COPIED_TO_CLIPBOARD, "已复制到剪贴板");
@@ -253,6 +277,7 @@ public class SideQueryLocalization extends PluginLocalizationBundle {
         es(COPIED_TO_CLIPBOARD, "Copiado al portapapeles");
         de(COPIED_TO_CLIPBOARD, "In die Zwischenablage kopiert");
         ko(COPIED_TO_CLIPBOARD, "클립보드에 복사했습니다");
+        it(COPIED_TO_CLIPBOARD, "Copiato negli appunti");
 
         ja(COPY_MESSAGE, "メッセージをコピー");
         zh(COPY_MESSAGE, "复制消息");
@@ -260,6 +285,7 @@ public class SideQueryLocalization extends PluginLocalizationBundle {
         es(COPY_MESSAGE, "Copiar mensaje");
         de(COPY_MESSAGE, "Nachricht kopieren");
         ko(COPY_MESSAGE, "메시지 복사");
+        it(COPY_MESSAGE, "Copia il messaggio");
 
         ja(THINKING_PROCESS, "思考プロセス");
         zh(THINKING_PROCESS, "思考过程");
@@ -267,6 +293,7 @@ public class SideQueryLocalization extends PluginLocalizationBundle {
         es(THINKING_PROCESS, "Proceso de razonamiento");
         de(THINKING_PROCESS, "Denkprozess");
         ko(THINKING_PROCESS, "추론 과정");
+        it(THINKING_PROCESS, "Processo di ragionamento");
 
         ja(USER, "ユーザー");
         zh(USER, "用户");
@@ -274,6 +301,7 @@ public class SideQueryLocalization extends PluginLocalizationBundle {
         es(USER, "Usuario");
         de(USER, "Benutzer");
         ko(USER, "사용자");
+        it(USER, "Utente");
 
         ja(AI_LABEL, "AI");
         zh(AI_LABEL, "AI");
@@ -281,6 +309,7 @@ public class SideQueryLocalization extends PluginLocalizationBundle {
         es(AI_LABEL, "IA");
         de(AI_LABEL, "KI");
         ko(AI_LABEL, "AI");
+        it(AI_LABEL, "IA");
 
         ja(EDITING, "%s（編集中）");
         zh(EDITING, "%s（编辑中）");
@@ -288,6 +317,7 @@ public class SideQueryLocalization extends PluginLocalizationBundle {
         es(EDITING, "%s (editando)");
         de(EDITING, "%s (wird bearbeitet)");
         ko(EDITING, "%s (편집 중)");
+        it(EDITING, "%s (in modifica)");
 
         ja(SAVE, "保存");
         zh(SAVE, "保存");
@@ -295,6 +325,7 @@ public class SideQueryLocalization extends PluginLocalizationBundle {
         es(SAVE, "Guardar");
         de(SAVE, "Speichern");
         ko(SAVE, "저장");
+        it(SAVE, "Salva");
 
         ja(EXCLUDE_FROM_CONTEXT, "コンテキストから除外");
         zh(EXCLUDE_FROM_CONTEXT, "从上下文中排除");
@@ -302,6 +333,7 @@ public class SideQueryLocalization extends PluginLocalizationBundle {
         es(EXCLUDE_FROM_CONTEXT, "Excluir del contexto");
         de(EXCLUDE_FROM_CONTEXT, "Aus dem Kontext ausschließen");
         ko(EXCLUDE_FROM_CONTEXT, "컨텍스트에서 제외");
+        it(EXCLUDE_FROM_CONTEXT, "Escludi dal contesto");
 
         ja(INCLUDE_IN_CONTEXT, "コンテキストに含める");
         zh(INCLUDE_IN_CONTEXT, "包含在上下文中");
@@ -309,6 +341,7 @@ public class SideQueryLocalization extends PluginLocalizationBundle {
         es(INCLUDE_IN_CONTEXT, "Incluir en el contexto");
         de(INCLUDE_IN_CONTEXT, "In den Kontext aufnehmen");
         ko(INCLUDE_IN_CONTEXT, "컨텍스트에 포함");
+        it(INCLUDE_IN_CONTEXT, "Includi nel contesto");
 
         ja(LOREBOOK, "ロアブック");
         zh(LOREBOOK, "世界书");
@@ -316,6 +349,7 @@ public class SideQueryLocalization extends PluginLocalizationBundle {
         es(LOREBOOK, "Lorebook");
         de(LOREBOOK, "Lorebook");
         ko(LOREBOOK, "로어북");
+        it(LOREBOOK, "Lorebook");
 
         ja(CHAT_LOGS, "チャットログ");
         zh(CHAT_LOGS, "聊天记录");
@@ -323,6 +357,7 @@ public class SideQueryLocalization extends PluginLocalizationBundle {
         es(CHAT_LOGS, "Registros del chat");
         de(CHAT_LOGS, "Chat-Protokolle");
         ko(CHAT_LOGS, "채팅 기록");
+        it(CHAT_LOGS, "Registri delle chat");
 
         ja(STORY_PARTS_FROM_TO_NUMBERED, "開始〜終了のストーリーパート。アウトラインと同様に1から番号が付きます");
         zh(STORY_PARTS_FROM_TO_NUMBERED, "从 - 到的故事部分，编号从 1 开始，与大纲一致");
@@ -330,6 +365,7 @@ public class SideQueryLocalization extends PluginLocalizationBundle {
         es(STORY_PARTS_FROM_TO_NUMBERED, "Partes de la historia de la ... a la ..., numeradas desde 1 como en el esquema");
         de(STORY_PARTS_FROM_TO_NUMBERED, "Abschnitte der Geschichte von – bis, ab 1 nummeriert wie in der Gliederung");
         ko(STORY_PARTS_FROM_TO_NUMBERED, "이야기 파트 범위, 개요처럼 1부터 번호 매김");
+        it(STORY_PARTS_FROM_TO_NUMBERED, "Parti della storia da - a, numerate da 1 come nella struttura");
 
         ja(FIRST_STORY_PART_FROM_1, "最初のストーリーパート（1から）");
         zh(FIRST_STORY_PART_FROM_1, "第一个故事部分（从 1 开始）");
@@ -337,6 +373,7 @@ public class SideQueryLocalization extends PluginLocalizationBundle {
         es(FIRST_STORY_PART_FROM_1, "Primera parte de la historia (desde 1)");
         de(FIRST_STORY_PART_FROM_1, "Erster Abschnitt der Geschichte (ab 1)");
         ko(FIRST_STORY_PART_FROM_1, "첫 이야기 파트 (1부터)");
+        it(FIRST_STORY_PART_FROM_1, "Prima parte della storia (da 1)");
 
         ja(LAST_STORY_PART, "最後のストーリーパート");
         zh(LAST_STORY_PART, "最后一个故事部分");
@@ -344,6 +381,7 @@ public class SideQueryLocalization extends PluginLocalizationBundle {
         es(LAST_STORY_PART, "Última parte de la historia");
         de(LAST_STORY_PART, "Letzter Abschnitt der Geschichte");
         ko(LAST_STORY_PART, "마지막 이야기 파트");
+        it(LAST_STORY_PART, "Ultima parte della storia");
 
         ja(TO, "〜");
         zh(TO, "至");
@@ -351,6 +389,7 @@ public class SideQueryLocalization extends PluginLocalizationBundle {
         es(TO, "hasta");
         de(TO, "bis");
         ko(TO, "~");
+        it(TO, "a");
 
         ja(TOKENS_0, "トークン: 0");
         zh(TOKENS_0, "词元：0");
@@ -358,6 +397,7 @@ public class SideQueryLocalization extends PluginLocalizationBundle {
         es(TOKENS_0, "Tokens: 0");
         de(TOKENS_0, "Tokens: 0");
         ko(TOKENS_0, "토큰: 0");
+        it(TOKENS_0, "Token: 0");
 
         ja(TOKENS, "トークン: 約%d");
         zh(TOKENS, "词元：约 %d");
@@ -365,6 +405,7 @@ public class SideQueryLocalization extends PluginLocalizationBundle {
         es(TOKENS, "Tokens: ~%d");
         de(TOKENS, "Tokens: ~%d");
         ko(TOKENS, "토큰: ~%d");
+        it(TOKENS, "Token: ~%d");
 
         ja(SELECT_SAVED_QUERY, "-- 保存済みクエリを選択 --");
         zh(SELECT_SAVED_QUERY, "-- 选择已保存的查询 --");
@@ -372,6 +413,7 @@ public class SideQueryLocalization extends PluginLocalizationBundle {
         es(SELECT_SAVED_QUERY, "-- Seleccionar consulta guardada --");
         de(SELECT_SAVED_QUERY, "-- Gespeicherte Abfrage wählen --");
         ko(SELECT_SAVED_QUERY, "-- 저장된 쿼리 선택 --");
+        it(SELECT_SAVED_QUERY, "-- Seleziona una query salvata --");
 
         ja(SAVE_PROMPT, "プロンプトを保存");
         zh(SAVE_PROMPT, "保存提示词");
@@ -379,6 +421,7 @@ public class SideQueryLocalization extends PluginLocalizationBundle {
         es(SAVE_PROMPT, "Guardar prompt");
         de(SAVE_PROMPT, "Prompt speichern");
         ko(SAVE_PROMPT, "프롬프트 저장");
+        it(SAVE_PROMPT, "Salva il prompt");
 
         ja(SAVE_PROMPT_AS, "プロンプトを名前を付けて保存...");
         zh(SAVE_PROMPT_AS, "提示词另存为...");
@@ -386,6 +429,7 @@ public class SideQueryLocalization extends PluginLocalizationBundle {
         es(SAVE_PROMPT_AS, "Guardar prompt como...");
         de(SAVE_PROMPT_AS, "Prompt speichern unter ...");
         ko(SAVE_PROMPT_AS, "프롬프트를 다른 이름으로 저장...");
+        it(SAVE_PROMPT_AS, "Salva il prompt come...");
 
         ja(DELETE_SAVED_PROMPT, "保存済みプロンプトを削除");
         zh(DELETE_SAVED_PROMPT, "删除已保存的提示词");
@@ -393,6 +437,7 @@ public class SideQueryLocalization extends PluginLocalizationBundle {
         es(DELETE_SAVED_PROMPT, "Eliminar prompt guardado");
         de(DELETE_SAVED_PROMPT, "Gespeicherten Prompt löschen");
         ko(DELETE_SAVED_PROMPT, "저장된 프롬프트 삭제");
+        it(DELETE_SAVED_PROMPT, "Elimina il prompt salvato");
 
         ja(ENTER_QUERY, "クエリを入力...");
         zh(ENTER_QUERY, "输入查询……");
@@ -400,6 +445,7 @@ public class SideQueryLocalization extends PluginLocalizationBundle {
         es(ENTER_QUERY, "Escribe la consulta...");
         de(ENTER_QUERY, "Abfrage eingeben ...");
         ko(ENTER_QUERY, "쿼리 입력...");
+        it(ENTER_QUERY, "Inserisci la query...");
 
         ja(CANNOT_SAVE_AN_EMPTY_QUERY, "空のクエリは保存できません");
         zh(CANNOT_SAVE_AN_EMPTY_QUERY, "无法保存空查询");
@@ -407,6 +453,7 @@ public class SideQueryLocalization extends PluginLocalizationBundle {
         es(CANNOT_SAVE_AN_EMPTY_QUERY, "No se puede guardar una consulta vacía");
         de(CANNOT_SAVE_AN_EMPTY_QUERY, "Eine leere Abfrage kann nicht gespeichert werden");
         ko(CANNOT_SAVE_AN_EMPTY_QUERY, "빈 쿼리는 저장할 수 없습니다");
+        it(CANNOT_SAVE_AN_EMPTY_QUERY, "Impossibile salvare una query vuota");
 
         ja(SAVED_QUERY, "クエリを保存しました: %s");
         zh(SAVED_QUERY, "已保存查询：%s");
@@ -414,6 +461,7 @@ public class SideQueryLocalization extends PluginLocalizationBundle {
         es(SAVED_QUERY, "Consulta guardada: %s");
         de(SAVED_QUERY, "Abfrage gespeichert: %s");
         ko(SAVED_QUERY, "저장된 쿼리: %s");
+        it(SAVED_QUERY, "Query salvata: %s");
 
         ja(SAVE_QUERY_AS, "クエリを名前を付けて保存");
         zh(SAVE_QUERY_AS, "查询另存为");
@@ -421,6 +469,7 @@ public class SideQueryLocalization extends PluginLocalizationBundle {
         es(SAVE_QUERY_AS, "Guardar consulta como");
         de(SAVE_QUERY_AS, "Abfrage speichern unter");
         ko(SAVE_QUERY_AS, "쿼리를 다른 이름으로 저장");
+        it(SAVE_QUERY_AS, "Salva la query come");
 
         ja(QUERY_NAME, "クエリ名");
         zh(QUERY_NAME, "查询名称");
@@ -428,6 +477,7 @@ public class SideQueryLocalization extends PluginLocalizationBundle {
         es(QUERY_NAME, "Nombre de la consulta");
         de(QUERY_NAME, "Name der Abfrage");
         ko(QUERY_NAME, "쿼리 이름");
+        it(QUERY_NAME, "Nome della query");
 
         ja(NAME_CANNOT_BE_EMPTY, "名前は空にできません");
         zh(NAME_CANNOT_BE_EMPTY, "名称不能为空");
@@ -435,6 +485,7 @@ public class SideQueryLocalization extends PluginLocalizationBundle {
         es(NAME_CANNOT_BE_EMPTY, "El nombre no puede estar vacío");
         de(NAME_CANNOT_BE_EMPTY, "Der Name darf nicht leer sein");
         ko(NAME_CANNOT_BE_EMPTY, "이름은 비워 둘 수 없습니다");
+        it(NAME_CANNOT_BE_EMPTY, "Il nome non può essere vuoto");
 
         ja(SELECT_A_SAVED_QUERY, "削除する保存済みクエリを選択してください");
         zh(SELECT_A_SAVED_QUERY, "请选择要删除的已保存查询");
@@ -442,6 +493,7 @@ public class SideQueryLocalization extends PluginLocalizationBundle {
         es(SELECT_A_SAVED_QUERY, "Selecciona una consulta guardada para eliminarla");
         de(SELECT_A_SAVED_QUERY, "Wähle eine gespeicherte Abfrage zum Löschen");
         ko(SELECT_A_SAVED_QUERY, "삭제할 저장된 쿼리를 선택하세요");
+        it(SELECT_A_SAVED_QUERY, "Seleziona una query salvata da eliminare");
 
         ja(DELETED_QUERY, "クエリを削除しました: %s");
         zh(DELETED_QUERY, "已删除查询：%s");
@@ -449,6 +501,7 @@ public class SideQueryLocalization extends PluginLocalizationBundle {
         es(DELETED_QUERY, "Consulta eliminada: %s");
         de(DELETED_QUERY, "Abfrage gelöscht: %s");
         ko(DELETED_QUERY, "삭제된 쿼리: %s");
+        it(DELETED_QUERY, "Query eliminata: %s");
 
         ja(GENERATING_RESPONSE, "応答を生成中...");
         zh(GENERATING_RESPONSE, "正在生成回复……");
@@ -456,6 +509,7 @@ public class SideQueryLocalization extends PluginLocalizationBundle {
         es(GENERATING_RESPONSE, "Generando la respuesta...");
         de(GENERATING_RESPONSE, "Antwort wird generiert ...");
         ko(GENERATING_RESPONSE, "응답을 생성하는 중...");
+        it(GENERATING_RESPONSE, "Generazione della risposta...");
 
         ja(ERROR, "エラー: %s");
         zh(ERROR, "错误：%s");
@@ -463,6 +517,7 @@ public class SideQueryLocalization extends PluginLocalizationBundle {
         es(ERROR, "Error: %s");
         de(ERROR, "Fehler: %s");
         ko(ERROR, "오류: %s");
+        it(ERROR, "Errore: %s");
 
         ja(FAILED_TO_START_INFERENCE, "推論を開始できませんでした: %s");
         zh(FAILED_TO_START_INFERENCE, "无法启动推理：%s");
@@ -470,6 +525,7 @@ public class SideQueryLocalization extends PluginLocalizationBundle {
         es(FAILED_TO_START_INFERENCE, "No se pudo iniciar la inferencia: %s");
         de(FAILED_TO_START_INFERENCE, "Die Inferenz konnte nicht gestartet werden: %s");
         ko(FAILED_TO_START_INFERENCE, "추론을 시작하지 못했습니다: %s");
+        it(FAILED_TO_START_INFERENCE, "Impossibile avviare l'inferenza: %s");
 
         ja(ADDITIONAL_SOURCES, "追加ソース");
         zh(ADDITIONAL_SOURCES, "其他来源");
@@ -477,6 +533,7 @@ public class SideQueryLocalization extends PluginLocalizationBundle {
         es(ADDITIONAL_SOURCES, "Fuentes adicionales");
         de(ADDITIONAL_SOURCES, "Zusätzliche Quellen");
         ko(ADDITIONAL_SOURCES, "추가 소스");
+        it(ADDITIONAL_SOURCES, "Fonti aggiuntive");
 
         ja(ADDITIONAL_SOURCES_DATA, "追加ソース: 他の拡張機能のデータ");
         zh(ADDITIONAL_SOURCES_DATA, "其他来源：其他扩展的数据");
@@ -484,6 +541,7 @@ public class SideQueryLocalization extends PluginLocalizationBundle {
         es(ADDITIONAL_SOURCES_DATA, "Fuentes adicionales: datos de otras extensiones");
         de(ADDITIONAL_SOURCES_DATA, "Zusätzliche Quellen: Daten anderer Erweiterungen");
         ko(ADDITIONAL_SOURCES_DATA, "추가 소스: 다른 확장 기능의 데이터");
+        it(ADDITIONAL_SOURCES_DATA, "Fonti aggiuntive: dati di altre estensioni");
 
         ja(NO_OTHER_EXTENSION_OFFERS_DATA, "データを提供している他の拡張機能はありません。");
         zh(NO_OTHER_EXTENSION_OFFERS_DATA, "没有其他扩展提供数据。");
@@ -491,6 +549,7 @@ public class SideQueryLocalization extends PluginLocalizationBundle {
         es(NO_OTHER_EXTENSION_OFFERS_DATA, "Ninguna otra extensión ofrece datos.");
         de(NO_OTHER_EXTENSION_OFFERS_DATA, "Keine andere Erweiterung bietet Daten an.");
         ko(NO_OTHER_EXTENSION_OFFERS_DATA, "데이터를 제공하는 다른 확장 기능이 없습니다.");
+        it(NO_OTHER_EXTENSION_OFFERS_DATA, "Nessun'altra estensione offre dati.");
 
         ja(ABOUT_THE_BOOK, "ブックについて");
         zh(ABOUT_THE_BOOK, "关于本书");
@@ -498,6 +557,7 @@ public class SideQueryLocalization extends PluginLocalizationBundle {
         es(ABOUT_THE_BOOK, "Sobre el libro");
         de(ABOUT_THE_BOOK, "Über das Buch");
         ko(ABOUT_THE_BOOK, "책 정보");
+        it(ABOUT_THE_BOOK, "Informazioni sul libro");
 
         ja(ABOUT_STORY_PARTS_ADDED, "ストーリーパートについて（含まれる各パートに追加されます。チャットログが必要です）");
         zh(ABOUT_STORY_PARTS_ADDED, "关于故事部分（添加到每个包含的部分，需要聊天记录）");
@@ -505,6 +565,7 @@ public class SideQueryLocalization extends PluginLocalizationBundle {
         es(ABOUT_STORY_PARTS_ADDED, "Sobre las partes de la historia (se añaden a cada parte incluida, requiere Registros del chat)");
         de(ABOUT_STORY_PARTS_ADDED, "Über Abschnitte der Geschichte (zu jedem einbezogenen Abschnitt hinzugefügt, erfordert Chat-Protokolle)");
         ko(ABOUT_STORY_PARTS_ADDED, "이야기 파트 정보 (포함된 각 파트에 추가됨, 채팅 기록 필요)");
+        it(ABOUT_STORY_PARTS_ADDED, "Informazioni sulle parti della storia (aggiunte a ogni parte inclusa, richiede i registri delle chat)");
 
         ja(STOP, "停止");
         zh(STOP, "停止");
@@ -512,6 +573,7 @@ public class SideQueryLocalization extends PluginLocalizationBundle {
         es(STOP, "DETENER");
         de(STOP, "STOPP");
         ko(STOP, "중지");
+        it(STOP, "STOP");
 
         ja(SEND, "送信");
         zh(SEND, "发送");
@@ -519,6 +581,7 @@ public class SideQueryLocalization extends PluginLocalizationBundle {
         es(SEND, "ENVIAR");
         de(SEND, "SENDEN");
         ko(SEND, "보내기");
+        it(SEND, "INVIA");
 
         ja(RENAME_TAB, "タブ名を変更");
         zh(RENAME_TAB, "重命名标签页");
@@ -526,6 +589,7 @@ public class SideQueryLocalization extends PluginLocalizationBundle {
         es(RENAME_TAB, "Renombrar pestaña");
         de(RENAME_TAB, "Tab umbenennen");
         ko(RENAME_TAB, "탭 이름 바꾸기");
+        it(RENAME_TAB, "Rinomina la scheda");
 
         ja(TAB_NAME, "タブ名");
         zh(TAB_NAME, "标签页名称");
@@ -533,6 +597,7 @@ public class SideQueryLocalization extends PluginLocalizationBundle {
         es(TAB_NAME, "Nombre de la pestaña");
         de(TAB_NAME, "Tab-Name");
         ko(TAB_NAME, "탭 이름");
+        it(TAB_NAME, "Nome della scheda");
 
         ja(CANNOT_CLOSE_THE_LAST_TAB, "最後のタブは閉じられません");
         zh(CANNOT_CLOSE_THE_LAST_TAB, "无法关闭最后一个标签页");
@@ -540,6 +605,7 @@ public class SideQueryLocalization extends PluginLocalizationBundle {
         es(CANNOT_CLOSE_THE_LAST_TAB, "No se puede cerrar la última pestaña");
         de(CANNOT_CLOSE_THE_LAST_TAB, "Der letzte Tab kann nicht geschlossen werden");
         ko(CANNOT_CLOSE_THE_LAST_TAB, "마지막 탭은 닫을 수 없습니다");
+        it(CANNOT_CLOSE_THE_LAST_TAB, "Impossibile chiudere l'ultima scheda");
 
         ja(SIDEQUERY_ANSWER_A_QUESTION, "SideQuery: 質問に回答");
         zh(SIDEQUERY_ANSWER_A_QUESTION, "SideQuery：回答问题");
@@ -547,5 +613,6 @@ public class SideQueryLocalization extends PluginLocalizationBundle {
         es(SIDEQUERY_ANSWER_A_QUESTION, "SideQuery: responder a una pregunta");
         de(SIDEQUERY_ANSWER_A_QUESTION, "Nebenabfrage: eine Frage beantworten");
         ko(SIDEQUERY_ANSWER_A_QUESTION, "사이드 쿼리: 질문에 답하기");
+        it(SIDEQUERY_ANSWER_A_QUESTION, "Query laterale: rispondi a una domanda");
     }
 }

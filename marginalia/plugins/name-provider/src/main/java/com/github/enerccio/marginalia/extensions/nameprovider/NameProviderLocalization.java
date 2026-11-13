@@ -19,5 +19,6 @@ public class NameProviderLocalization extends PluginLocalizationBundle {
         es(REAL_NAMES_THE_MOST_COMMON, "Nombres reales: los nombres de pila y apellidos más comunes de unos 100 países, con la ortografía original. Los grupos (como los países nórdicos) eligen una lista al azar para cada nombre.");
         de(REAL_NAMES_THE_MOST_COMMON, "Echte Namen: die häufigsten Vor- und Nachnamen von etwa 100 Ländern, in der Originalschreibweise. Gruppen (wie die nordischen Länder) wählen für jeden Namen zufällig eine Liste.");
         ko(REAL_NAMES_THE_MOST_COMMON, "실제 이름: 약 100개국의 가장 흔한 이름과 성을 원래 철자로. 그룹(예: 북유럽 국가)은 이름마다 무작위로 목록을 선택합니다.");
+        it(REAL_NAMES_THE_MOST_COMMON, "Nomi reali: i nomi e i cognomi più comuni di circa 100 paesi, con l'ortografia originale. I gruppi (come i paesi nordici) scelgono un elenco a caso per ogni nome.");
     }
 }

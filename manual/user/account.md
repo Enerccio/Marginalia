@@ -51,9 +51,9 @@ The **Language** selector above the buttons switches the user interface to anoth
 your account: the page reloads with the new language, and so does every other page you have open (on another device
 too), and it is used again the next time you log in. The login screen itself is always in the default language.
 
-The list contains only the languages that are installed. English, Japanese, French, Spanish, German and Korean come with Marginalia; an administrator
+The list contains only the languages that are installed. English, Japanese, French, Spanish, German, Korean and Italian come with Marginalia; an administrator
 can add more by loading an [extension](extensions/index.md), for example
-[Chinese localization](extensions/chinese-localization.md). Texts a language doesn't translate are shown in English. The bundled extensions bring their own texts in Japanese, Chinese, French, Spanish, German and Korean (the Chinese ones show when the Chinese localization is loaded).
+[Chinese localization](extensions/chinese-localization.md). Texts a language doesn't translate are shown in English. The bundled extensions bring their own texts in Japanese, Chinese, French, Spanish, German, Korean and Italian (the Chinese ones show when the Chinese localization is loaded).
 Dates are written the way that language does. Your books and their texts are not translated, only the interface.
 
 ![The Language selector](../images/language-selector.png)
@@ -151,9 +151,6 @@ as soon as you pick another language), and so what the model is sent for generat
 and impersonate. The prompts of the plugins that have their own (Arc Outline, Beta Readers, Book Description Generator,
 Lore Generator, Manga Generator, SillyTavern Converter, Knowledge Tracker, Audiobook) and of the agents follow it too.
 It is independent of the language of the interface: you can use the application in English and send Japanese prompts.
-Italian and Korean are prompt languages only: the prompts, also those of the plugins, are translated,
-the interface is not.
-
 A model follows the instructions best in the language of the story, so pick the one your books are written in. Only the
 built-in prompts change: a prompt you wrote yourself, here or in a book or folder, stays as it is. An [agent](agents.md)
 reads its prompts and notices in its own language (*Language* in the agent's settings), not in this one.

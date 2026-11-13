@@ -24,6 +24,7 @@ public class PromptInspectorLocalization extends PluginLocalizationBundle {
         es(INSPECT_PROMPT_BEFORE_SENDING, "Inspeccionar el prompt antes de enviarlo");
         de(INSPECT_PROMPT_BEFORE_SENDING, "Prompt vor dem Senden prüfen");
         ko(INSPECT_PROMPT_BEFORE_SENDING, "전송 전에 프롬프트 검사");
+        it(INSPECT_PROMPT_BEFORE_SENDING, "Ispeziona il prompt prima dell'invio");
 
         ja(SEND_THIS_PROMPT_TO_THE_MODEL, "このプロンプトをモデルに送信しますか？");
         zh(SEND_THIS_PROMPT_TO_THE_MODEL, "要将此提示词发送给模型吗？");
@@ -31,6 +32,7 @@ public class PromptInspectorLocalization extends PluginLocalizationBundle {
         es(SEND_THIS_PROMPT_TO_THE_MODEL, "¿Enviar este prompt al modelo?");
         de(SEND_THIS_PROMPT_TO_THE_MODEL, "Diesen Prompt an das Modell senden?");
         ko(SEND_THIS_PROMPT_TO_THE_MODEL, "이 프롬프트를 모델에 전송하시겠습니까?");
+        it(SEND_THIS_PROMPT_TO_THE_MODEL, "Inviare questo prompt al modello?");
 
         ja(SEND, "送信");
         zh(SEND, "发送");
@@ -38,6 +40,7 @@ public class PromptInspectorLocalization extends PluginLocalizationBundle {
         es(SEND, "Enviar");
         de(SEND, "Senden");
         ko(SEND, "보내기");
+        it(SEND, "Invia");
 
         ja(CANCEL, "キャンセル");
         zh(CANCEL, "取消");
@@ -45,6 +48,7 @@ public class PromptInspectorLocalization extends PluginLocalizationBundle {
         es(CANCEL, "Cancelar");
         de(CANCEL, "Abbrechen");
         ko(CANCEL, "취소");
+        it(CANCEL, "Annulla");
 
         ja(ATTACHMENTS, "[添付 %d 件]");
         zh(ATTACHMENTS, "[%d 个附件]");
@@ -52,6 +56,7 @@ public class PromptInspectorLocalization extends PluginLocalizationBundle {
         es(ATTACHMENTS, "[%d adjunto(s)]");
         de(ATTACHMENTS, "[%d Anhang/Anhänge]");
         ko(ATTACHMENTS, "[첨부 파일 %d개]");
+        it(ATTACHMENTS, "[%d allegato/i]");
 
         ja(FAILED_TO_SAVE_THE_SETTING, "設定を保存できませんでした: %s");
         zh(FAILED_TO_SAVE_THE_SETTING, "无法保存设置：%s");
@@ -59,5 +64,6 @@ public class PromptInspectorLocalization extends PluginLocalizationBundle {
         es(FAILED_TO_SAVE_THE_SETTING, "No se pudo guardar el ajuste: %s");
         de(FAILED_TO_SAVE_THE_SETTING, "Die Einstellung konnte nicht gespeichert werden: %s");
         ko(FAILED_TO_SAVE_THE_SETTING, "설정을 저장하지 못했습니다: %s");
+        it(FAILED_TO_SAVE_THE_SETTING, "Impossibile salvare l'impostazione: %s");
     }
 }
