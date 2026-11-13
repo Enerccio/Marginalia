@@ -406,6 +406,16 @@
           <include>**/*.md</include>
         </includes>
       </resource>
+      <!-- its translations (tools/manual_i18n.py, translations/<language>/user/...) as classpath:/manual-translations/<language>/user/:
+           the help assistant reads the manual in the language of the user; a page that is not translated is English -->
+      <resource>
+        <directory>${project.basedir}/../translations</directory>
+        <targetPath>manual-translations</targetPath>
+        <filtering>false</filtering>
+        <includes>
+          <include>*/user/**/*.md</include>
+        </includes>
+      </resource>
     </resources>
     <plugins>
       <plugin>

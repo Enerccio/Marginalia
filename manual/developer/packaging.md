@@ -68,7 +68,9 @@ The user manual is packed too: `<resources>` in `marginalia/pom.xml` copies the 
 pictures, never filtered) to `classpath:/manual/`, where `ManualService` reads them (see
 [Services](services.md#the-manual)). The source folder is outside `marginalia/`, so a build that copies only
 `marginalia/src` must copy `manual/user` as well, as both Dockerfiles do (`/build/manual/user`); without it the WAR
-builds, with an empty manual.
+builds, with an empty manual. The same for the translations of the manual (`translations/<language>/user`, copied to
+`classpath:/manual-translations/<language>/user/`, read when the help assistant is asked in that language): the Dockerfiles copy
+`translations` (`/build/translations`), and without it the help is English only.
 
 The build also needs the Git history: `git-commit-id-plugin` writes the commit id and the closest tag into
 `git.properties`, and the WAR filters them into its build info. Build from a clone, not from a source archive.

@@ -1,4 +1,5 @@
-# Builds the manual (Retype, sources in manual/) and publishes it to GitHub Pages.
+# Builds the manual (Retype, sources in manual/) and publishes it to GitHub Pages: the English site and a site for every language that has
+# translated pages (translations/<language>, tools/manual_i18n.py; docs/<language>), which the in-app help links to.
 #
 # The generated site is not in the repository: the build job uploads it as a Pages artifact and the deploy job
 # publishes that (Settings → Pages → Source: GitHub Actions). Published on master only; a pull request that
@@ -14,16 +15,20 @@ on:
     branches: [master]
     paths:
       - 'manual/**'
+      - 'translations/**'
       - 'retype.yml'
       - 'pom.xml'
       - 'tools/retype_build.sh'
+      - 'tools/manual_i18n.py'
       - '.github/workflows/manual.yml'
   pull_request:
     paths:
       - 'manual/**'
+      - 'translations/**'
       - 'retype.yml'
       - 'pom.xml'
       - 'tools/retype_build.sh'
+      - 'tools/manual_i18n.py'
       - '.github/workflows/manual.yml'
   workflow_dispatch:
 
@@ -54,7 +59,7 @@ jobs:
         run: npm install --global "retypeapp@$RETYPE_VERSION"
 
       - name: Build the manual
-        # the script puts the project version and the commit into the label and the footer; writes docs/
+        # the script puts the project version and the commit into the label and the footer; writes docs/ and docs/<language>
         env:
           RETYPE_KEY: ${{ secrets.RETYPE_KEY }}
         run: |

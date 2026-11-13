@@ -201,7 +201,7 @@ Interfaces in `domain.service`, implementations in `domain.service.impl`:
 | `InferenceServices`, `InferenceService`, `InferenceSession`, `InferenceException`, `InferenceErrors` | Choosing and calling the model API; the kind of work a request belongs to (header `X-Session-ID`); classified failures and their localized texts. |
 | `FunctionRegistry` | The Java interfaces the model can call as functions, compiled once (see [Function calls](services.md#function-calls)). |
 | `TokenizerService` | Token counting. |
-| `ManualService` | The user manual packed into the WAR (`classpath:/manual/`), parsed once and searched in memory (BM25) for the help assistant. |
+| `ManualService` | The user manual packed into the WAR (`classpath:/manual/`, its translations `classpath:/manual-translations/<language>/`), parsed once and searched in memory (BM25) for the help assistant, which reads it in the language of the user. |
 | `HelpAssistantService`, `UnmeteredScope` | The help assistant: its settings (administrators), the AI it uses, who pays (`UnmeteredScope` is read by the inference services), `ask` with the manual tools and the screen. |
 | `TemplateService` | Rendering Handlebars templates with macros. |
 | `BackupService`, `DatabaseBackupService` | Book backups (restore, clone, export); database backups and their schedule. |

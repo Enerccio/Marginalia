@@ -4,6 +4,7 @@ order: 150
 verified: 8a8764342
 covers:
   - tools/manual_i18n.py
+  - tools/retype_build.sh
 ---
 
 # Translating the manual
@@ -47,6 +48,15 @@ that was finished. Commit the translations; they are the source of the translate
 `assemble` copies `manual/` and puts the translated pages over it: images and the developer manual are shared (the pictures show the
 English screens), an untranslated page is English. `override --lang de` prints the JSON for `retype build --override`: it moves the
 input and the output (`docs/de`, `<url>/de`) and adds a language link for English and every language that has translations to the top bar of the
-site. Retype has no language switcher of its own, so each language is its own build. Building the sites in the `Manual` workflow
-is not wired yet: per language `assemble`, then `retype build --override "$(python3 tools/manual_i18n.py override --lang de)"`
-(the English build needs the same links: `override --lang en`).
+site. Retype has no language switcher of its own, so each language is its own build. `tools/retype_build.sh` (also what the `Manual`
+workflow runs) builds the English site, then for every language of `python3 tools/manual_i18n.py languages` (the ones that have
+translated pages) the `assemble` and the build of its site, with the label, the footer and the links of `override`, so a language that
+has translations has a site. The in-app help links to these sites.
+
+## In the application
+
+The translated pages are also packed into the application (`translations/<language>/user` as `classpath:/manual-translations/`, see
+[Packaging](packaging.md)) and the help assistant reads the manual in the language of the user's page, with the links of that
+language's site; a page that is not translated is English, and a language without translations gets the English manual (see
+[Services](services.md#the-manual)). Outdated translations are used as they are (as `assemble` does), so run `status` before a release
+and `translate` for the languages the release is meant to have.

@@ -11,6 +11,7 @@ chunk of a page, so it runs on a Claude Code login (or an API key) with nothing 
   python3 tools/manual_i18n.py usage --lang de              tokens and cost per translated page (build/i18n-usage/<lang>.jsonl, not tracked)
   python3 tools/manual_i18n.py assemble --lang de --out build/i18n/de/manual   English tree + the translated pages over it
   python3 tools/manual_i18n.py override --lang de            the JSON for `retype build --override` of that language
+  python3 tools/manual_i18n.py languages                     the languages that have translated pages, one per line
   python3 tools/manual_i18n.py glossary --lang de [page.md]  the UI labels the translator is told to use (from LocalizationBundle*)
 
 Where things live
@@ -559,6 +560,13 @@ def cmd_override(args):
     return 0
 
 
+def cmd_languages(args):
+    """The languages that have translated pages: each gets its own site (docs/<lang>), see override."""
+    for lang in translated_languages():
+        print(lang)
+    return 0
+
+
 def cmd_glossary(args):
     text = read(os.path.join(MANUAL, args.page)) if args.page else '\n'.join(read(os.path.join(MANUAL, p)) for p in source_pages())
     gl = glossary(args.lang, text, limit=100000)
@@ -594,6 +602,7 @@ def main():
     p.add_argument('--only-current', action='store_true', help='outdated translations stay English')
     p.set_defaults(fn=cmd_assemble)
     p = sub.add_parser('override'); lang_arg(p); p.set_defaults(fn=cmd_override)
+    p = sub.add_parser('languages'); p.set_defaults(fn=cmd_languages)
     p = sub.add_parser('glossary'); lang_arg(p); p.add_argument('page', nargs='?'); p.set_defaults(fn=cmd_glossary)
     args = ap.parse_args()
     sys.exit(args.fn(args))

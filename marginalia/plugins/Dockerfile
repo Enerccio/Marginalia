@@ -16,6 +16,7 @@ RUN mvn dependency:go-offline -B
 # Vaadin frontend build (Node.js, npm, Vite) is skipped; the WAR of this build is not used and not production-ready.
 COPY marginalia/src ./src
 COPY manual/user /build/manual/user
+COPY translations /build/translations
 COPY .git /build/.git
 RUN mvn install -DskipTests -Dvaadin.skip=true -B \
     && mvn install -N -B -f /build/pom.xml

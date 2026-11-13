@@ -11,6 +11,8 @@ RUN mvn dependency:go-offline -B
 COPY marginalia/src ./src
 # the user manual (Markdown) is packed into the WAR for the in-app help, see <resources> in marginalia/pom.xml
 COPY manual/user /build/manual/user
+# and its translations (translations/<language>/user), read by the help in the language of the user
+COPY translations /build/translations
 COPY .git /build/.git
 RUN mvn clean package -DskipTests
 

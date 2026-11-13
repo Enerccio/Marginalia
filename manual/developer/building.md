@@ -56,8 +56,8 @@ What a build does, in order:
    packaged, so a run from `target/classes` has the placeholder and reports the version `dev`) for the footer of the page
    and the login screen. The resources
    step also copies the Markdown pages of the user manual (`../manual/user/**/*.md`, unfiltered) to `classpath:/manual/`
-   for the [help assistant](services.md#the-help-assistant); the folder is outside `marginalia/`, see
-   [Packaging](packaging.md).
+   for the [help assistant](services.md#the-help-assistant), and the translated ones (`../translations/*/user/**/*.md`) to
+   `classpath:/manual-translations/`; both folders are outside `marginalia/`, see [Packaging](packaging.md).
 2. `vaadin-maven-plugin` prepares the frontend (`prepare-frontend`): it generates `package.json`, `vite` config and
    the files in `src/main/frontend/generated/` (ignored by Git) and downloads Node.js if needed.
 3. `maven-compiler-plugin` compiles the sources, then `aspectj-maven-plugin` compiles them again with the AspectJ

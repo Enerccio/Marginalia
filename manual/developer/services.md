@@ -432,6 +432,19 @@ the sections (heading and page title weigh more than the body, light English ste
 support for Japanese or Chinese text). `getPage` tolerates a leading slash, an `#anchor` and a missing `.md`,
 `search(query, limit)` returns `ManualHit`s, best first.
 
+The manual is also read in the language of the user. The translated pages (`translations/<language>/user`, see
+[Translating the manual](translating-the-manual.md)) are packed as `classpath:/manual-translations/<language>/user/` and a
+language is loaded on its first use. `listPages(language)`, `getPage(language, path)` and `search(language, query, limit)` give the
+pages in that language, and an untranslated page, a language without translations (or a code that is not a plain language code, it goes
+into a classpath pattern) gives the English one. The search stays over the English text (the model asks with the words of the
+application, and `ManualIndex` can't split Japanese or Chinese), and each hit becomes the section at the same place of the translated
+page, since a translation keeps the headings of the page in their order (a page whose number of sections differs stays English).
+`ManualPage` and `ManualSection` carry the `language` of their text, and `url()` is the address on the site of that language
+(`<site>/<language>/user/...`, the English site is the one without a language); a heading that has an `<a id="english-id"></a>` line
+before it, as the translation tool writes it, gets that id as its anchor. The tools take the language
+(`ManualToolsImpl(manual, language)`, `HelpToolsImpl`, `InteractiveHelpToolsImpl`): the help assistant passes the language of the
+user's page (`Localization.getCurrentLanguage()`), the agents' `ManualTools` stay English.
+
 ### The help assistant
 
 `HelpAssistantService` is the model behind the help chat (`ui.components.HelpAssistantWidget`). `getSettings` / `saveSettings` are for
