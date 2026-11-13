@@ -28,7 +28,7 @@ Marginalia/
 │   └── images/              screenshots used by the manual and the READMEs
 ├── docs/                    generated manual (tools/retype_build.sh), ignored by git - a local copy for reading
 ├── screenshots/             scripted environment that takes the pictures of the manual (see its SCREENSHOTS.md)
-├── tools/                   check_dev_docs.py (stale developer pages), annotate_ui_maps.py (labels of the UI map figures), retype_build.sh (builds the manual into docs/ with the version in the label and footer), LocalLlm.java (a prompt on the dev AI), workset_run.sh (the dataset harness), gpu-control/ (the controller that starts and stops the containers that share one GPU), update-watcher/ (the host side of Admin → Update: watch.sh runs rebuild.sh when the application asks, install.sh makes it systemd units)
+├── tools/                   check_dev_docs.py (stale developer pages), annotate_ui_maps.py (labels of the UI map figures), retype_build.sh (builds the manual into docs/ with the version in the label and footer), plugin_api_diff.py (the plugin API changes between two git revisions), LocalLlm.java (a prompt on the dev AI), workset_run.sh (the dataset harness), gpu-control/ (the controller that starts and stops the containers that share one GPU), update-watcher/ (the host side of Admin → Update: watch.sh runs rebuild.sh when the application asks, install.sh makes it systemd units)
 ├── .github/workflows/
 │   ├── desktop.yml          CI: tests, desktop builds for 5 platforms, release upload
 │   ├── manual.yml           CI: builds the manual and publishes it to GitHub Pages

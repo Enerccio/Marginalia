@@ -437,8 +437,9 @@ The `instruct` tests check the bytecode that makes `@Extendable` methods extensi
 - `PublicAPISignatureTest` checks the [`@PublicAPI`](plugins/extendable.md#the-public-api) of every instrumented method
   of every `@Extendable` class of the application against the compiled classes (`target/classes`). It reads them with
   ByteBuddy's type pool and the local variable table (`PublicAPISignatures`), so the application classes are not
-  loaded or initialized, and it needs the classes compiled by `ajc` like the application. A failure names the method
-  and prints the annotation the method needs.
+  loaded or initialized, and it needs the classes compiled by `ajc` like the application. It checks the fields a
+  plugin reads (`@PublicAPI(from, type)` on a field, opt-in) the same way. A failure names the method or field and
+  prints the annotation it needs.
 
 The fixtures are compiled with the same `-parameters` and `preserveAllLocals` options as the application; if you
 change the compiler settings in `pom.xml`, these tests tell you whether extensions still see names of arguments and

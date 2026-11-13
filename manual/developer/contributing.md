@@ -150,6 +150,8 @@ no build) sends one chat completion to the AI set up in your dev database `~/.ma
 `java tools/LocalLlm.java --list`, then for example `java tools/LocalLlm.java --system-file sys.txt --user-file scene.txt --samples 3`. The other options (`--json-schema`,
 `--reasoning` to show the thinking, `--extra` for more raw JSON members of the request) are listed at the top of the file. Say "3 of 3 samples", not rates, and write down the model and the token numbers with the result.
 
+`python3 tools/plugin_api_diff.py <tag> [<tag>] [--changelog]` prints the `@PublicAPI` methods and fields that changed between two git revisions, for the plugin-visible part of the CHANGELOG (see [@Extendable hooks](plugins/extendable.md#the-public-api)).
+
 `tools/update-watcher` is the host side of *Admin → Update* of a Docker installation: `watch.sh` runs `bin/rebuild.sh` when the application asks for it, `install.sh` makes it systemd units (see [Packaging](packaging.md)).
 
 `tools/gpu-control` is a small controller (FastAPI, `gpu_control.py`, with its own README and compose file) that starts and stops the containers that take turns on one GPU (a speech server, ComfyUI), behind a Docker socket proxy; the Audiobook and the Image Generator call it through the requests before and after a batch, see [Setting up the speech server](../user/extensions/audiobook-server.md). `tools/workset_run.sh` runs the dataset harness with the plugins on the classpath ([The dataset book](testing.md#the-dataset-book)).
