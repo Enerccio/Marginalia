@@ -37,6 +37,7 @@ public class ActiveJobsGrid extends VerticalLayout {
     private JobService jobService;
 
     private final Grid<ActiveJob> grid = new Grid<>();
+    private final PolledRows<ActiveJob> rows = new PolledRows<>(grid, this::shownAs);
     private final Span summary = new Span();
     private int previousPollInterval = -1;
     private Registration pollRegistration;
@@ -73,12 +74,19 @@ public class ActiveJobsGrid extends VerticalLayout {
                 .collect(Collectors.joining(", "));
     }
 
+    /** Everything the row shows: the grid is sent a new row only when this changes. */
+    private String shownAs(ActiveJob job) {
+        return String.join("\u0001", job.login() == null ? "" : job.login(), job.kind(), job.label() == null ? "" : job.label(),
+                JobFormat.time(job.startedAt()), JobFormat.duration(job.startedAt(), null),
+                (job.callCount() - job.runningCalls()) + " / " + job.callCount(), inFlight(job));
+    }
+
     public void refresh() {
         try {
             List<ActiveJob> jobs = jobService.active();
-            grid.setItems(jobs);
-            // the counts and durations grow while a job runs: the widths measured on the first rows would cut them
-            grid.recalculateColumnWidths();
+            if (!rows.update(jobs)) {
+                return;
+            }
             int calls = jobs.stream().mapToInt(ActiveJob::runningCalls).sum();
             summary.setText(jobs.isEmpty() ? loc.getValue(L.MSG_JOBS_NONE_ACTIVE)
                     : String.format(loc.getValue(L.MSG_JOBS_ACTIVE_SUMMARY), jobs.size(), calls));

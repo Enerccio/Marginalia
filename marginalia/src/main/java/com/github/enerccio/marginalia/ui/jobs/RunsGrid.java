@@ -34,6 +34,7 @@ public class RunsGrid extends VerticalLayout {
     private Localization loc;
 
     private final Grid<Runs.Run> grid = new Grid<>();
+    private final PolledRows<Runs.Run> rows = new PolledRows<>(grid, this::shownAs);
     private final Span summary = new Span();
     private final List<Registration> registrations = new ArrayList<>();
 
@@ -118,11 +119,20 @@ public class RunsGrid extends VerticalLayout {
         return buttons;
     }
 
+    /** Everything the row shows, buttons included: the grid is sent a new row only when this changes. */
+    private String shownAs(Runs.Run run) {
+        return String.join("\u0001", run.getOwnerLogin() == null ? "" : run.getOwnerLogin(),
+                run.getBookName() == null ? bookId(run) : run.getBookName(), String.valueOf(run.getLabel()),
+                String.valueOf(run.getSource()), state(run), JobFormat.time(run.getStarted()),
+                JobFormat.duration(run.getStarted(), null), String.valueOf(run.getHolds().size()),
+                run.canStop() + "/" + run.isStopping());
+    }
+
     public void refresh() {
         List<Runs.Run> runs = Runs.all().stream().filter(run -> !run.isEnded()).toList();
-        grid.setItems(runs);
-        // the counts and durations grow while a job runs: the widths measured on the first rows would cut them
-        grid.recalculateColumnWidths();
+        if (!rows.update(runs)) {
+            return;
+        }
         summary.setText(runs.isEmpty() ? loc.getValue(L.MSG_RUNS_NONE) : "");
         summary.setVisible(runs.isEmpty());
     }
