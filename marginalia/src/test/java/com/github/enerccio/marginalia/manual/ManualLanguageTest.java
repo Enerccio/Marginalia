@@ -8,6 +8,8 @@ import com.github.enerccio.marginalia.domain.service.manual.ManualParser;
 import com.github.enerccio.marginalia.domain.service.manual.ManualToolsImpl;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -109,15 +111,32 @@ class ManualLanguageTest {
         assertThat(plain.get(0)).contains("URL: " + SITE + "user/books/story-editor/");
     }
 
-    @Test
-    void theLinksOfTheTranslatedPagesPointToExistingPages() {
+    @ParameterizedTest
+    @ValueSource(strings = {"es", "fr", "de", "it", "ja", "ko", "zh"})
+    void everyPageIsTranslatedAndKeepsTheStructureOfTheEnglishPage(String language) {
+        List<ManualPage> english = service.listPages();
+        List<ManualPage> translated = service.listPages(language);
+
+        assertThat(translated).extracting(ManualPage::path).containsExactlyElementsOf(english.stream().map(ManualPage::path).toList());
+        for (int i = 0; i < english.size(); i++) {
+            ManualPage page = translated.get(i);
+            assertThat(page.language()).as("%s of %s", page.path(), language).isEqualTo(language);
+            assertThat(page.url()).startsWith(SITE + language + "/user/");
+            // the search gives the section of the translation at the place of the English one: the headings are the same
+            assertThat(page.sections()).as("the sections of %s in %s", page.path(), language).hasSameSizeAs(english.get(i).sections());
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"es", "fr", "de", "it", "ja", "ko", "zh"})
+    void theLinksOfTheTranslatedPagesPointToExistingPages(String language) {
         Set<String> paths = service.listPages().stream().map(ManualPage::path).collect(Collectors.toSet());
         var link = java.util.regex.Pattern.compile("]\\(([^)#:\\s]+\\.md)[)#]");
 
-        for (ManualPage page : service.listPages("es")) {
+        for (ManualPage page : service.listPages(language)) {
             var m = link.matcher(page.text());
             while (m.find()) {
-                assertThat(paths).as("link %s in %s", m.group(1), page.path()).contains(m.group(1));
+                assertThat(paths).as("link %s in %s (%s)", m.group(1), page.path(), language).contains(m.group(1));
             }
         }
     }
@@ -149,13 +168,14 @@ class ManualLanguageTest {
     }
 
     /** The generated sites ({@code docs/<language>/}) have a page at the address of every translated page. */
-    @Test
-    void everyTranslatedPageHasAPageInTheGeneratedSite() {
-        Path site = Path.of("..", "docs", "es", "user");
-        assumeTrue(Files.isDirectory(site), "docs/es is not there");
+    @ParameterizedTest
+    @ValueSource(strings = {"es", "fr", "de", "it", "ja", "ko", "zh"})
+    void everyTranslatedPageHasAPageInTheGeneratedSite(String language) {
+        Path site = Path.of("..", "docs", language, "user");
+        assumeTrue(Files.isDirectory(site), "docs/" + language + " is not there");
 
-        for (ManualPage page : service.listPages("es")) {
-            String relative = page.url().substring((SITE + (page.language().equals("en") ? "" : page.language() + "/") + "user/").length());
+        for (ManualPage page : service.listPages(language)) {
+            String relative = page.url().substring((SITE + language + "/user/").length());
             assertThat(site.resolve(relative).resolve("index.html")).as("the site page of %s", page.path()).exists();
         }
     }
