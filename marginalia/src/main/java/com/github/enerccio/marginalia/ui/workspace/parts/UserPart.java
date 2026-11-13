@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.ui.workspace.parts;
 
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.Defaults;
+import com.github.enerccio.marginalia.bound.SessionPoint;
 import com.github.enerccio.marginalia.domain.collections.WebhookFormat;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
@@ -13,6 +14,7 @@ import com.github.enerccio.marginalia.domain.service.BackupService.BackupStrateg
 import com.github.enerccio.marginalia.domain.templates.*;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.Language;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.LLMInteract;
@@ -69,6 +71,9 @@ import java.util.concurrent.atomic.AtomicReference;
 public class UserPart implements WorkspaceComponent {
 
     private static final String CHANGE_TRACKED_KEY = UserPart.class.getName() + ".changeTracked";
+
+    @Autowired
+    private SessionPoint sessionPoint;
 
     @Autowired
     private Localization loc;
@@ -142,6 +147,7 @@ public class UserPart implements WorkspaceComponent {
     private Button agentWebhookTestButton;
 
     // Tab 2 fields
+    private ComboBox<Language> promptLanguageCombo;
     private TextAreaPopoverComponent masterTemplateField;
     private TextFieldPopOverComponent defaultPovField;
     private TextFieldPopOverComponent defaultTenseField;
@@ -233,6 +239,9 @@ public class UserPart implements WorkspaceComponent {
         FormLayout templatesFormLayout = new FormLayout();
         templatesFormLayout.setWidthFull();
         templatesFormLayout.addClassName(CssStyles.FORM_PADDING_BOTTOM);
+
+        templatesFormLayout.add(promptLanguageCombo);
+        templatesFormLayout.setColspan(promptLanguageCombo, 2);
 
         templatesFormLayout.add(masterTemplateField);
         templatesFormLayout.setColspan(masterTemplateField, 2);
@@ -537,68 +546,48 @@ public class UserPart implements WorkspaceComponent {
         agentWebhookAlwaysBox = new Checkbox(loc.getValue(L.LABEL_AGENT_WEBHOOK_ALWAYS));
         agentWebhookTestButton = new Button(loc.getValue(L.LABEL_AGENT_WEBHOOK_TEST), event -> sendTestMessage());
 
+        promptLanguageCombo = new ComboBox<>(loc.getValue(L.LABEL_PROMPT_LANGUAGE));
+        promptLanguageCombo.setItems(loc.getPromptLanguages());
+        promptLanguageCombo.setItemLabelGenerator(language -> loc.getDefaults(language).getDisplayName());
+        promptLanguageCombo.setAllowCustomValue(false);
+        promptLanguageCombo.setHelperText(loc.getValue(L.HELP_PROMPT_LANGUAGE));
+        promptLanguageCombo.addValueChangeListener(e -> showDefaultPrompts(e.getValue()));
+
         masterTemplateField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_MASTER_TEMPLATE));
         masterTemplateField.setWidthFull();
         ResizableTextArea.install(loc, masterTemplateField, "240px");
-        masterTemplateField.setPlaceholder(Defaults.DEFAULT_MASTER_TEMPLATE);
-        masterTemplateField.setPopoverContent(createTemplateHintPopoverContent(
-                masterTemplateField, masterTemplateField.getPopover(), MasterTemplateData.class, Defaults.DEFAULT_MASTER_TEMPLATE));
 
         defaultUserPromptField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_USER_PROMPT));
         defaultUserPromptField.setWidthFull();
         ResizableTextArea.install(loc, defaultUserPromptField, "240px");
-        defaultUserPromptField.setPlaceholder(Defaults.DEFAULT_USER_PROMPT);
-        defaultUserPromptField.setPopoverContent(createTemplateHintPopoverContent(
-                defaultUserPromptField, defaultUserPromptField.getPopover(), UserPromptData.class, Defaults.DEFAULT_USER_PROMPT));
 
         defaultStyleField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_STYLE));
         defaultStyleField.setWidthFull();
         ResizableTextArea.install(loc, defaultStyleField, "160px");
-        defaultStyleField.setPlaceholder(Defaults.DEFAULT_STYLE);
-        defaultStyleField.setPopoverContent(createTemplateHintPopoverContent(
-                defaultStyleField, defaultStyleField.getPopover(), null, Defaults.DEFAULT_STYLE));
 
         defaultPovField = new TextFieldPopOverComponent(loc.getValue(L.LABEL_POV));
         defaultPovField.setWidthFull();
-        defaultPovField.setPlaceholder(Defaults.DEFAULT_POV);
-        defaultPovField.setPopoverContent(createTemplateHintPopoverContent(
-                defaultPovField, defaultPovField.getPopover(), null, Defaults.DEFAULT_POV));
 
         defaultTenseField = new TextFieldPopOverComponent(loc.getValue(L.LABEL_TENSE));
         defaultTenseField.setWidthFull();
-        defaultTenseField.setPlaceholder(Defaults.DEFAULT_TENSE);
-        defaultTenseField.setPopoverContent(createTemplateHintPopoverContent(
-                defaultTenseField, defaultTenseField.getPopover(), null, Defaults.DEFAULT_TENSE));
 
         defaultSummaryPromptField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_SUMMARY_PROMPT));
         defaultSummaryPromptField.setWidthFull();
         ResizableTextArea.install(loc, defaultSummaryPromptField, "160px");
-        defaultSummaryPromptField.setPlaceholder(Defaults.DEFAULT_SUMMARY_PROMPT);
-        defaultSummaryPromptField.setPopoverContent(createTemplateHintPopoverContent(
-                defaultSummaryPromptField, defaultSummaryPromptField.getPopover(), SummaryTemplateData.class, Defaults.DEFAULT_SUMMARY_PROMPT));
 
         defaultMetaSummaryPromptField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_META_SUMMARY_PROMPT));
         defaultMetaSummaryPromptField.setWidthFull();
         ResizableTextArea.install(loc, defaultMetaSummaryPromptField, "160px");
-        defaultMetaSummaryPromptField.setPlaceholder(Defaults.DEFAULT_META_SUMMARY);
-        defaultMetaSummaryPromptField.setPopoverContent(createTemplateHintPopoverContent(
-                defaultMetaSummaryPromptField, defaultMetaSummaryPromptField.getPopover(), MetaSummaryTemplateData.class, Defaults.DEFAULT_META_SUMMARY));
 
         defaultAnnotateSystemPromptField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_ANNOTATE_SYSTEM_PROMPT));
         defaultAnnotateSystemPromptField.setWidthFull();
         defaultAnnotateSystemPromptField.setHelperText(loc.getValue(L.HELP_PART_SYSTEM_PROMPT));
         ResizableTextArea.install(loc, defaultAnnotateSystemPromptField, "160px");
-        defaultAnnotateSystemPromptField.setPlaceholder(Defaults.DEFAULT_ANNOTATE_SYSTEM_PROMPT);
-        defaultAnnotateSystemPromptField.setPopoverContent(createTemplateHintPopoverContent(
-                defaultAnnotateSystemPromptField, defaultAnnotateSystemPromptField.getPopover(), AnnotateTemplateData.class, Defaults.DEFAULT_ANNOTATE_SYSTEM_PROMPT));
 
         defaultAnnotatePromptField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_ANNOTATE_PROMPT));
         defaultAnnotatePromptField.setWidthFull();
         defaultAnnotatePromptField.setHelperText(loc.getValue(L.HELP_PART_LAST_PROMPT));
         ResizableTextArea.install(loc, defaultAnnotatePromptField, "160px");
-        defaultAnnotatePromptField.setPlaceholder(Defaults.DEFAULT_ANNOTATE_PROMPT);
-        defaultAnnotatePromptField.setPopoverContent(createTemplateHintPopoverContent(
-                defaultAnnotatePromptField, defaultAnnotatePromptField.getPopover(), AnnotateTemplateData.class, Defaults.DEFAULT_ANNOTATE_PROMPT));
 
         defaultAnnotateInstructionsField = new TextArea(loc.getValue(L.LABEL_ANNOTATE_INSTRUCTIONS));
         defaultAnnotateInstructionsField.setWidthFull();
@@ -609,37 +598,26 @@ public class UserPart implements WorkspaceComponent {
         defaultImpersonatePromptField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_IMPERSONATE_PROMPT));
         defaultImpersonatePromptField.setWidthFull();
         ResizableTextArea.install(loc, defaultImpersonatePromptField, "160px");
-        defaultImpersonatePromptField.setPlaceholder(Defaults.DEFAULT_IMPERSONATE_PROMPT);
-        defaultImpersonatePromptField.setPopoverContent(createTemplateHintPopoverContent(
-                defaultImpersonatePromptField, defaultImpersonatePromptField.getPopover(), ImpersonateTemplateData.class, Defaults.DEFAULT_IMPERSONATE_PROMPT));
 
         defaultRedraftSystemPromptField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_REDRAFT_SYSTEM_PROMPT));
         defaultRedraftSystemPromptField.setWidthFull();
         defaultRedraftSystemPromptField.setHelperText(loc.getValue(L.HELP_PART_SYSTEM_PROMPT));
         ResizableTextArea.install(loc, defaultRedraftSystemPromptField, "160px");
-        defaultRedraftSystemPromptField.setPlaceholder(Defaults.DEFAULT_REDRAFT_SYSTEM_PROMPT);
-        defaultRedraftSystemPromptField.setPopoverContent(createTemplateHintPopoverContent(
-                defaultRedraftSystemPromptField, defaultRedraftSystemPromptField.getPopover(), RedraftTemplateData.class, Defaults.DEFAULT_REDRAFT_SYSTEM_PROMPT));
 
         defaultRedraftPromptField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_REDRAFT_PROMPT));
         defaultRedraftPromptField.setWidthFull();
         defaultRedraftPromptField.setHelperText(loc.getValue(L.HELP_PART_LAST_PROMPT));
         ResizableTextArea.install(loc, defaultRedraftPromptField, "160px");
-        defaultRedraftPromptField.setPlaceholder(Defaults.DEFAULT_REDRAFT_PROMPT);
-        defaultRedraftPromptField.setPopoverContent(createTemplateHintPopoverContent(
-                defaultRedraftPromptField, defaultRedraftPromptField.getPopover(), RedraftTemplateData.class, Defaults.DEFAULT_REDRAFT_PROMPT));
 
         // plain texts that the redraft adds to the instructions when it is asked to be shorter or longer
         defaultRedraftShorterField = new TextArea(loc.getValue(L.LABEL_REDRAFT_SHORTER_PROMPT));
         defaultRedraftShorterField.setWidthFull();
         defaultRedraftShorterField.setHelperText(loc.getValue(L.HELP_REDRAFT_LENGTH_PROMPT));
-        defaultRedraftShorterField.setPlaceholder(Defaults.DEFAULT_REDRAFT_SHORTER);
         ResizableTextArea.install(loc, defaultRedraftShorterField, "100px");
 
         defaultRedraftLongerField = new TextArea(loc.getValue(L.LABEL_REDRAFT_LONGER_PROMPT));
         defaultRedraftLongerField.setWidthFull();
         defaultRedraftLongerField.setHelperText(loc.getValue(L.HELP_REDRAFT_LENGTH_PROMPT));
-        defaultRedraftLongerField.setPlaceholder(Defaults.DEFAULT_REDRAFT_LONGER);
         ResizableTextArea.install(loc, defaultRedraftLongerField, "100px");
 
         // plain text, not a template; what it follows is the placeholder (see refreshAgentPrompt)
@@ -665,6 +643,56 @@ public class UserPart implements WorkspaceComponent {
      * The prompt of the agents is for the users who may use agents; its placeholder is what a user without a prompt of
      * their own gets (the administrator's default, else the built-in one), and the info popover fills it in.
      */
+    /**
+     * Shows the built-in prompts of the language as the placeholders (and in the hints) of the template fields: what a field left
+     * empty stands for. Called when the settings are loaded and when the user picks another prompt language, before it is saved.
+     */
+    @PublicAPI(from = "1.8.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "language", type = Language.class)},
+            locals = {@APILocals(name = "defaults", type = Defaults.class)})
+    private void showDefaultPrompts(Language language) {
+        Defaults defaults = loc.getDefaults(language);
+        masterTemplateField.setPlaceholder(defaults.masterTemplate());
+        masterTemplateField.setPopoverContent(createTemplateHintPopoverContent(
+                masterTemplateField, masterTemplateField.getPopover(), MasterTemplateData.class, defaults.masterTemplate()));
+        defaultUserPromptField.setPlaceholder(defaults.userPrompt());
+        defaultUserPromptField.setPopoverContent(createTemplateHintPopoverContent(
+                defaultUserPromptField, defaultUserPromptField.getPopover(), UserPromptData.class, defaults.userPrompt()));
+        defaultStyleField.setPlaceholder(defaults.style());
+        defaultStyleField.setPopoverContent(createTemplateHintPopoverContent(
+                defaultStyleField, defaultStyleField.getPopover(), null, defaults.style()));
+        defaultPovField.setPlaceholder(defaults.pov());
+        defaultPovField.setPopoverContent(createTemplateHintPopoverContent(
+                defaultPovField, defaultPovField.getPopover(), null, defaults.pov()));
+        defaultTenseField.setPlaceholder(defaults.tense());
+        defaultTenseField.setPopoverContent(createTemplateHintPopoverContent(
+                defaultTenseField, defaultTenseField.getPopover(), null, defaults.tense()));
+        defaultSummaryPromptField.setPlaceholder(defaults.summaryPrompt());
+        defaultSummaryPromptField.setPopoverContent(createTemplateHintPopoverContent(
+                defaultSummaryPromptField, defaultSummaryPromptField.getPopover(), SummaryTemplateData.class, defaults.summaryPrompt()));
+        defaultMetaSummaryPromptField.setPlaceholder(defaults.metaSummaryPrompt());
+        defaultMetaSummaryPromptField.setPopoverContent(createTemplateHintPopoverContent(
+                defaultMetaSummaryPromptField, defaultMetaSummaryPromptField.getPopover(), MetaSummaryTemplateData.class, defaults.metaSummaryPrompt()));
+        defaultAnnotateSystemPromptField.setPlaceholder(defaults.annotateSystemPrompt());
+        defaultAnnotateSystemPromptField.setPopoverContent(createTemplateHintPopoverContent(
+                defaultAnnotateSystemPromptField, defaultAnnotateSystemPromptField.getPopover(), AnnotateTemplateData.class, defaults.annotateSystemPrompt()));
+        defaultAnnotatePromptField.setPlaceholder(defaults.annotatePrompt());
+        defaultAnnotatePromptField.setPopoverContent(createTemplateHintPopoverContent(
+                defaultAnnotatePromptField, defaultAnnotatePromptField.getPopover(), AnnotateTemplateData.class, defaults.annotatePrompt()));
+        defaultImpersonatePromptField.setPlaceholder(defaults.impersonatePrompt());
+        defaultImpersonatePromptField.setPopoverContent(createTemplateHintPopoverContent(
+                defaultImpersonatePromptField, defaultImpersonatePromptField.getPopover(), ImpersonateTemplateData.class, defaults.impersonatePrompt()));
+        defaultRedraftSystemPromptField.setPlaceholder(defaults.redraftSystemPrompt());
+        defaultRedraftSystemPromptField.setPopoverContent(createTemplateHintPopoverContent(
+                defaultRedraftSystemPromptField, defaultRedraftSystemPromptField.getPopover(), RedraftTemplateData.class, defaults.redraftSystemPrompt()));
+        defaultRedraftPromptField.setPlaceholder(defaults.redraftPrompt());
+        defaultRedraftPromptField.setPopoverContent(createTemplateHintPopoverContent(
+                defaultRedraftPromptField, defaultRedraftPromptField.getPopover(), RedraftTemplateData.class, defaults.redraftPrompt()));
+        defaultRedraftShorterField.setPlaceholder(defaults.redraftShorter());
+        defaultRedraftLongerField.setPlaceholder(defaults.redraftLonger());
+    }
+
     @PublicAPI(from = "1.4.0",
             returns = @APIReturn(type = void.class))
     private void refreshAgentPrompt() throws Exception {
@@ -851,6 +879,8 @@ public class UserPart implements WorkspaceComponent {
             dailyGoalMinutesField.setValue(userSetting.getDailyGoalMinutes());
             statisticsRecordingBox.setValue(userSetting.isStatisticsRecording());
             statisticsKeepMonthsField.setValue(userSetting.getStatisticsKeepMonths());
+            promptLanguageCombo.setValue(loc.resolvePromptLanguage(userSetting.getPromptLanguage()));
+            showDefaultPrompts(promptLanguageCombo.getValue());
             masterTemplateField.setValue(StringUtils.defaultString(userSetting.getMasterTemplate()));
             defaultPovField.setValue(StringUtils.defaultString(userSetting.getDefaultPov()));
             defaultTenseField.setValue(StringUtils.defaultString(userSetting.getDefaultTense()));
@@ -980,6 +1010,7 @@ public class UserPart implements WorkspaceComponent {
                     @APILocals(name = "selectedModel", type = AI.class),
                     @APILocals(name = "selectedProtocol", type = Protocol.class),
                     @APILocals(name = "storyPartsLimit", type = Integer.class),
+                    @APILocals(name = "promptLanguage", type = Language.class),
                     @APILocals(name = "e", type = Exception.class)})
     private void save() {
         if (userSetting == null) {
@@ -1052,6 +1083,8 @@ public class UserPart implements WorkspaceComponent {
             userSetting.setStatisticsRecording(statisticsRecordingBox.getValue() ? null : Boolean.FALSE);
             userSetting.setStatisticsKeepMonths(positiveOrNull(statisticsKeepMonthsField.getValue()));
 
+            Language promptLanguage = promptLanguageCombo.getValue() == null ? Language.EN : promptLanguageCombo.getValue();
+            userSetting.setPromptLanguage(Language.EN.equals(promptLanguage) ? null : promptLanguage.code());
             userSetting.setMasterTemplate(masterTemplate);
             userSetting.setDefaultPov(defaultPov);
             userSetting.setDefaultTense(defaultTense);
@@ -1078,6 +1111,7 @@ public class UserPart implements WorkspaceComponent {
             userSetting.setKeyBindings(KeyBindings.toStored(userSetting.getKeyBindings(), keyBindingsEditor.getValue()));
 
             settingService.save(userSetting);
+            sessionPoint.setPromptLanguage(promptLanguage);
             statisticsPolicyService.invalidate();
             statisticsPolicyService.prune(currentUser);
             if (stylesEditor != null) {

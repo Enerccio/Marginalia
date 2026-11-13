@@ -156,7 +156,7 @@ class LibraryDialogsTest {
         click(button(dialog, "Add the starter personas"));
         click(button(dialog, "Save"));
 
-        assertEquals(1 + 1 + BetaReadersDefaults.starterPersonas().size() - 1, applied.get().size());
+        assertEquals(1 + 1 + new BetaReadersDefaults().starterPersonas().size() - 1, applied.get().size());
         assertEquals(List.of(" athena ", "Mine"), names(applied.get()).subList(0, 2));
         assertEquals(1, applied.get().stream().filter(p -> p.getName().strip().equalsIgnoreCase("Athena")).count());
     }
@@ -270,7 +270,7 @@ class LibraryDialogsTest {
 
     @Test
     void theBuiltInMediumsComeBackByIdEvenWhenRenamed() {
-        List<Medium> source = new ArrayList<>(BetaReadersDefaults.builtInMediums());
+        List<Medium> source = new ArrayList<>(new BetaReadersDefaults().builtInMediums());
         source.get(1).setName("Film");
         source.remove(2);
         AtomicReference<List<Medium>> applied = new AtomicReference<>();

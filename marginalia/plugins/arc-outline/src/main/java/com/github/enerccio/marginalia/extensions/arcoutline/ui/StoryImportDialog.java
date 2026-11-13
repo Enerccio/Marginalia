@@ -12,7 +12,6 @@ import com.github.enerccio.marginalia.extensions.arcoutline.ArcOutlineExtension;
 import com.github.enerccio.marginalia.extensions.arcoutline.model.*;
 import com.github.enerccio.marginalia.extensions.arcoutline.service.ArcOutlineService;
 import com.github.enerccio.marginalia.extensions.arcoutline.service.ArcOutlineService.StoryMessage;
-import com.github.enerccio.marginalia.extensions.arcoutline.service.Defaults;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.html.Span;
@@ -95,7 +94,7 @@ public class StoryImportDialog extends GeneratorDialog {
 
     @Override
     protected String defaultPromptTemplate() {
-        return Defaults.IMPORT_PROMPT;
+        return T.defaults().importPrompt();
     }
 
     @Override

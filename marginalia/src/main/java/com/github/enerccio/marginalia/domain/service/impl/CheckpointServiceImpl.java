@@ -14,6 +14,8 @@ import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMToolCall;
 import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
+import com.github.enerccio.marginalia.loc.Language;
+import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.utils.TextDiff;
 import com.google.gson.JsonObject;
 import org.slf4j.Logger;
@@ -37,6 +39,9 @@ public class CheckpointServiceImpl implements CheckpointService {
 
     // a saved workspace is unpacked to the size it had, with some room for the folders
     private static final long UNPACK_SLACK_BYTES = 1024 * 1024;
+
+    @Autowired
+    private Localization loc;
 
     @Autowired
     @Lazy
@@ -613,6 +618,8 @@ public class CheckpointServiceImpl implements CheckpointService {
         // the plan kept is the one of the conversation before the rewind; the runner reads the one of the rows that are left
         fileSystemService.writePlan(back, null);
         List<LLMChatMessage> tell = new ArrayList<>();
+        // the author rewinds from the interface: the agent is told in its own language
+        Defaults defaults = loc.getDefaults(Language.of(back.getLanguage()));
         // a round that was cut in the middle: the calls that are left have no result, a model can't be sent that
         List<LLMChatMessage> kept = messageService.transcript(back);
         Set<String> answered = new HashSet<>();
@@ -628,11 +635,11 @@ public class CheckpointServiceImpl implements CheckpointService {
         if (calls != null) {
             for (LLMToolCall call : calls.getToolCalls()) {
                 if (!answered.contains(call.getId())) {
-                    tell.add(LLMChatMessage.ofToolResult(call.getId(), Defaults.AGENT_REWOUND_CALL));
+                    tell.add(LLMChatMessage.ofToolResult(call.getId(), defaults.agentRewoundCall()));
                 }
             }
         }
-        StringBuilder note = new StringBuilder(String.format(Defaults.AGENT_REWOUND, info.id(), info.round(), forgotten));
+        StringBuilder note = new StringBuilder(String.format(defaults.agentRewound(), info.id(), info.round(), forgotten));
         if (!restored.removedFiles().isEmpty()) {
             note.append(" The files you wrote after it are gone: ")
                     .append(restored.removedFiles().stream().limit(20).collect(java.util.stream.Collectors.joining(", ")))

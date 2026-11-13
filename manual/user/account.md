@@ -51,9 +51,9 @@ The **Language** selector above the buttons switches the user interface to anoth
 your account: the page reloads with the new language, and so does every other page you have open (on another device
 too), and it is used again the next time you log in. The login screen itself is always in the default language.
 
-The list contains only the languages that are installed. English and Japanese come with Marginalia; an administrator
+The list contains only the languages that are installed. English, Japanese, French, Spanish and German come with Marginalia; an administrator
 can add more by loading an [extension](extensions/index.md), for example
-[Chinese localization](extensions/chinese-localization.md). Texts a language doesn't translate are shown in English. The bundled extensions bring their own texts in Japanese and Chinese (the Chinese ones show when the Chinese localization is loaded).
+[Chinese localization](extensions/chinese-localization.md). Texts a language doesn't translate are shown in English. The bundled extensions bring their own texts in Japanese, Chinese, French, Spanish and German (the Chinese ones show when the Chinese localization is loaded).
 Dates are written the way that language does. Your books and their texts are not translated, only the interface.
 
 ![The Language selector](../images/language-selector.png)
@@ -119,6 +119,7 @@ The defaults for the [book prompts](books/prompts.md):
 
 | Field | |
 |---|---|
+| **Prompt language** | The language of the built-in prompts: English (the default), Japanese, French, Spanish, German, Italian, Korean, or Chinese when the [Chinese localization](extensions/chinese-localization.md) is loaded. See [Prompt language](#prompt-language) below. |
 | **Master Template** | The frame of the prompt, see [Master template](books/prompts.md#master-template). |
 | **Point of View (POV)**, **Tense** | The narrative voice and tense. |
 | **Style** | Style and tone guidelines. |
@@ -142,6 +143,20 @@ Further down, for a user who may use agents, are the prompts of the agents:
 
 Each field shows the built-in default in grey while it is empty, and has the hints popover with
 **Insert Default Template** and the available [variables and macros](templates/index.md).
+
+#### Prompt language
+
+**Prompt language** chooses the language of the built-in prompts: what an empty field stands for (the grey text changes
+as soon as you pick another language), and so what the model is sent for generation, summaries, redraft, annotations
+and impersonate. The prompts of the plugins that have their own (Arc Outline, Beta Readers, Book Description Generator,
+Lore Generator, Manga Generator, SillyTavern Converter, Knowledge Tracker, Audiobook) and of the agents follow it too.
+It is independent of the language of the interface: you can use the application in English and send Japanese prompts.
+Italian and Korean are prompt languages only: the prompts, also those of the plugins, are translated,
+the interface is not.
+
+A model follows the instructions best in the language of the story, so pick the one your books are written in. Only the
+built-in prompts change: a prompt you wrote yourself, here or in a book or folder, stays as it is. An [agent](agents.md)
+reads its prompts and notices in its own language (*Language* in the agent's settings), not in this one.
 
 These defaults apply to **every book whose own field is empty**, immediately - not only to new books. A book that
 sets its own value on its *Prompts* tab keeps it. So:

@@ -87,7 +87,7 @@ class AgentDialogTest extends AgentTestBase {
         AgentDialog dialog = dialog(null);
 
         assertThat(dialog.getSystemPromptField().getValue()).isEmpty();
-        assertThat(dialog.getSystemPromptField().getPlaceholder()).isEqualTo(Defaults.DEFAULT_AGENT_PROMPT);
+        assertThat(dialog.getSystemPromptField().getPlaceholder()).isEqualTo(new Defaults().agentPrompt());
         assertThat(dialog.getDestructiveCombo().getValue()).isEqualTo(DestructiveCommandMode.ASK);
         assertThat(dialog.getEnabledCheckbox().getValue()).isTrue();
         assertThat(dialog.getCommandsEditor().getPreset()).isEqualTo(AgentCommandPreset.NON_DESTRUCTIVE);
@@ -277,7 +277,7 @@ class AgentDialogTest extends AgentTestBase {
 
         button(dialog.getSystemPromptField().getPopover(), "Insert Default Template").click();
 
-        assertThat(dialog.getSystemPromptField().getValue()).isEqualTo(Defaults.DEFAULT_AGENT_PROMPT);
+        assertThat(dialog.getSystemPromptField().getValue()).isEqualTo(new Defaults().agentPrompt());
     }
 
     @Test
@@ -287,11 +287,11 @@ class AgentDialogTest extends AgentTestBase {
         dialog.getManuscriptCombo().setValue(dialog.getManuscriptCombo().getListDataView().getItems()
                 .filter(m -> m.getId().equals(book.getId())).findFirst().orElseThrow());
         assertThat(dialog.getCompactionPromptField().getValue()).isEmpty();
-        assertThat(dialog.getCompactionPromptField().getPlaceholder()).isEqualTo(Defaults.DEFAULT_AGENT_COMPACTION_PROMPT);
+        assertThat(dialog.getCompactionPromptField().getPlaceholder()).isEqualTo(new Defaults().agentCompactionPrompt());
         dialog.getNameField().setValue("Compacting");
         dialog.getModelPicker().setSelection(createAI(), protocol());
         button(dialog.getCompactionPromptField().getPopover(), "Insert Default Template").click();
-        assertThat(dialog.getCompactionPromptField().getValue()).isEqualTo(Defaults.DEFAULT_AGENT_COMPACTION_PROMPT);
+        assertThat(dialog.getCompactionPromptField().getValue()).isEqualTo(new Defaults().agentCompactionPrompt());
         dialog.getCompactionPromptField().setValue("Short summary please.");
 
         button(dialog, "OK").click();

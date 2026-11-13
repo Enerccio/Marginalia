@@ -57,6 +57,8 @@ public final class AgentRequestAttributes implements RequestAttributes, AutoClos
         snapshot.setFullName(user.getFullName());
         snapshot.setAdmin(user.isAdmin());
         sessionPoint.setLanguage(session.language());
+        // what the agent reads, the built-in prompts and the notices of the run included, is in the language of the agent
+        sessionPoint.setPromptLanguage(session.language());
         sessionAttributes.put(USER_TARGET_NAME, snapshot);
         sessionAttributes.put(AgenticSessionPoint.SCOPED_TARGET_NAME, sessionPoint);
     }

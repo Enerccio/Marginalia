@@ -11,15 +11,15 @@ import com.github.enerccio.marginalia.domain.service.agent.CheckpointStore.Info;
 import com.github.enerccio.marginalia.domain.service.agent.CheckpointStore.Kind;
 import com.github.enerccio.marginalia.domain.service.agent.ImageFiles;
 import com.github.enerccio.marginalia.domain.service.agent.RunTools;
-import com.github.enerccio.marginalia.domain.service.job.FinishedJob;
-import com.github.enerccio.marginalia.domain.service.job.JobStatus;
-import com.github.enerccio.marginalia.domain.service.job.Jobs;
 import com.github.enerccio.marginalia.domain.service.agent.VirtualFileSystem;
 import com.github.enerccio.marginalia.domain.service.agent.VirtualPath;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMAttachment;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMToolCall;
+import com.github.enerccio.marginalia.domain.service.job.FinishedJob;
+import com.github.enerccio.marginalia.domain.service.job.JobStatus;
+import com.github.enerccio.marginalia.domain.service.job.Jobs;
 import com.github.enerccio.marginalia.test.AgentTestBase;
 import com.github.enerccio.marginalia.test.TestImages;
 import com.github.enerccio.marginalia.test.commands.HelloWorldCommands;
@@ -35,8 +35,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Consumer;
 import java.util.concurrent.CountDownLatch;
+import java.util.function.Consumer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -476,13 +476,13 @@ class AgentRunnerTest extends AgentTestBase {
         AgentRun run = await(startRun(agent));
 
         assertThat(run.getStatus()).isEqualTo(AgentRunStatus.PAUSED);
-        assertThat(run.getStatusReason()).isEqualTo(Defaults.AGENT_REPEATING_PAUSED);
+        assertThat(run.getStatusReason()).isEqualTo(new Defaults().agentRepeatingPaused());
         // five rounds of calls and the answer without tools
         assertThat(run.getRounds()).isEqualTo(Defaults.AGENT_REPEAT_STOP_AFTER + 1);
         List<LLMChatMessage> transcript = transcript(run);
         List<String> notices = transcript.stream().filter(m -> m.getRole() == LLMRole.USER).map(LLMChatMessage::getContent).toList();
-        assertThat(notices).contains(String.format(Defaults.AGENT_REPEATING_NOTICE, Defaults.AGENT_REPEAT_NOTICE_AFTER),
-                Defaults.AGENT_REPEATING_NO_TOOLS);
+        assertThat(notices).contains(String.format(new Defaults().agentRepeatingNotice(), Defaults.AGENT_REPEAT_NOTICE_AFTER),
+                new Defaults().agentRepeatingNoTools());
         assertThat(transcript.getLast().getRole()).isEqualTo(LLMRole.ASSISTANT);
         assertThat(transcript.getLast().hasToolCalls()).isFalse();
         assertThat(transcript.getLast().getContent()).contains("I do not know what to do next");
@@ -503,12 +503,12 @@ class AgentRunnerTest extends AgentTestBase {
         AgentRun run = await(startRun(agent));
 
         assertThat(run.getStatus()).isEqualTo(AgentRunStatus.PAUSED);
-        assertThat(run.getStatusReason()).isEqualTo(Defaults.AGENT_REPEATING_PAUSED);
+        assertThat(run.getStatusReason()).isEqualTo(new Defaults().agentRepeatingPaused());
         List<LLMChatMessage> transcript = transcript(run);
         // the call of the answer that was not allowed is not in the transcript, so no call is left without a result
         assertThat(transcript.getLast().getRole()).isEqualTo(LLMRole.ASSISTANT);
         assertThat(transcript.getLast().hasToolCalls()).isFalse();
-        assertThat(transcript.getLast().getContent()).isEqualTo(Defaults.AGENT_REPEATING_NO_ANSWER);
+        assertThat(transcript.getLast().getContent()).isEqualTo(new Defaults().agentRepeatingNoAnswer());
     }
 
     @Test
@@ -526,7 +526,7 @@ class AgentRunnerTest extends AgentTestBase {
 
         assertThat(run.getStatus()).isEqualTo(AgentRunStatus.DONE);
         assertThat(transcript(run).stream().filter(m -> m.getRole() == LLMRole.USER).map(LLMChatMessage::getContent))
-                .doesNotContain(Defaults.AGENT_REPEATING_NO_TOOLS);
+                .doesNotContain(new Defaults().agentRepeatingNoTools());
     }
 
     @Test
@@ -760,7 +760,7 @@ class AgentRunnerTest extends AgentTestBase {
         assertThat(transcript).extracting(LLMChatMessage::getRole).containsExactly(LLMRole.USER, LLMRole.ASSISTANT,
                 LLMRole.TOOL, LLMRole.TOOL, LLMRole.USER, LLMRole.ASSISTANT);
         assertThat(transcript.get(2).getContent()).startsWith("Error:");
-        assertThat(transcript.get(3).getContent()).isEqualTo(Defaults.AGENT_SKIPPED_CALL);
+        assertThat(transcript.get(3).getContent()).isEqualTo(new Defaults().agentSkippedCall());
         assertThat(transcript.get(4).getContent()).isEqualTo("Never mind that.");
     }
 
@@ -1009,8 +1009,8 @@ class AgentRunnerTest extends AgentTestBase {
         List<LLMChatMessage> results = transcript(run).stream().filter(m -> m.getRole() == LLMRole.TOOL).toList();
         assertThat(results).hasSize(3);
         assertThat(results.get(0).getContent()).startsWith("Error:");
-        assertThat(results.get(1).getContent()).isEqualTo(Defaults.AGENT_AFTER_ERROR_SKIPPED_CALL);
-        assertThat(results.get(2).getContent()).isEqualTo(Defaults.AGENT_AFTER_ERROR_SKIPPED_CALL);
+        assertThat(results.get(1).getContent()).isEqualTo(new Defaults().agentAfterErrorSkippedCall());
+        assertThat(results.get(2).getContent()).isEqualTo(new Defaults().agentAfterErrorSkippedCall());
     }
 
     @Test
@@ -1028,9 +1028,9 @@ class AgentRunnerTest extends AgentTestBase {
         assertThat(messages.stream().filter(m -> m.getRole() == LLMRole.ASSISTANT && m.hasToolCalls()).findFirst().orElseThrow()
                 .getToolCalls()).hasSize(1);
         assertThat(messages.stream().anyMatch(m -> m.getRole() == LLMRole.USER
-                && String.format(Defaults.AGENT_ONE_CALL_NOTICE, 2, "get-book-info", 1).equals(m.getContent()))).isTrue();
+                && String.format(new Defaults().agentOneCallNotice(), 2, "get-book-info", 1).equals(m.getContent()))).isTrue();
         assertThat(llm.getCompletionRequests().getFirst().getMessages("system").getFirst()).as("told up front")
-                .contains(Defaults.AGENT_ONE_CALL_RULE);
+                .contains(new Defaults().agentOneCallRule());
     }
 
     @Test
@@ -1041,8 +1041,8 @@ class AgentRunnerTest extends AgentTestBase {
         await(startRun(agent));
 
         String system = llm.getCompletionRequests().getFirst().getMessages("system").getFirst();
-        assertThat(system).contains(String.format(Defaults.AGENT_SINGLE_CALLS_RULE, "regenerate-summary, request_compaction"))
-                .doesNotContain(Defaults.AGENT_ONE_CALL_RULE);
+        assertThat(system).contains(String.format(new Defaults().agentSingleCallsRule(), "regenerate-summary, request_compaction"))
+                .doesNotContain(new Defaults().agentOneCallRule());
     }
 
     @Test
@@ -1078,7 +1078,7 @@ class AgentRunnerTest extends AgentTestBase {
         List<LLMChatMessage> messages = transcript(run);
         assertThat(messages.stream().filter(m -> m.getRole() == LLMRole.TOOL)).hasSize(2);
         assertThat(messages.stream().anyMatch(m -> m.getRole() == LLMRole.USER
-                && String.format(Defaults.AGENT_SINGLE_CALL_NOTICE, "regenerate-summary", 3, 2).equals(m.getContent()))).isTrue();
+                && String.format(new Defaults().agentSingleCallNotice(), "regenerate-summary", 3, 2).equals(m.getContent()))).isTrue();
     }
 
     @Test
@@ -1091,7 +1091,7 @@ class AgentRunnerTest extends AgentTestBase {
         List<LLMChatMessage> messages = transcript(run);
         assertThat(messages.stream().filter(m -> m.getRole() == LLMRole.TOOL)).hasSize(1);
         assertThat(messages.stream().anyMatch(m -> m.getRole() == LLMRole.USER
-                && String.format(Defaults.AGENT_SINGLE_CALL_NOTICE, "request_compaction", 2, 1).equals(m.getContent()))).isTrue();
+                && String.format(new Defaults().agentSingleCallNotice(), "request_compaction", 2, 1).equals(m.getContent()))).isTrue();
     }
 
     @Test
@@ -1370,14 +1370,14 @@ class AgentRunnerTest extends AgentTestBase {
         llm.enqueue(MockLLMResponse.toolCall("ask_user", "{\"question\":\"What shall I do?\"}"));
         AgentRun run = agentRunService.start(agent);
 
-        runner.run(run, Defaults.AGENT_CONSOLE_START_MESSAGE);
+        runner.run(run, new Defaults().agentConsoleStartMessage());
         run = await(run);
 
         assertThat(run.getStatus()).isEqualTo(AgentRunStatus.IDLE);
         assertThat(run.getStatusReason()).contains("What shall I do?");
         List<LLMChatMessage> messages = transcript(run);
         assertThat(messages.getFirst().getRole()).isEqualTo(LLMRole.USER);
-        assertThat(messages.getFirst().getContent()).isEqualTo(Defaults.AGENT_CONSOLE_START_MESSAGE.strip());
+        assertThat(messages.getFirst().getContent()).isEqualTo(new Defaults().agentConsoleStartMessage().strip());
         assertThat(messages.stream().filter(m -> m.getRole() == LLMRole.USER)).as("no second start message").hasSize(1);
     }
 
@@ -1576,9 +1576,9 @@ class AgentRunnerTest extends AgentTestBase {
         assertThat(run.getStatus()).as(run.getStatusReason()).isEqualTo(AgentRunStatus.DONE);
         List<MockLLMRequest> requests = llm.getCompletionRequests();
         assertThat(requests).hasSize(3);
-        assertThat(requests.get(1).getMessages("user").getLast()).as("the request for the summary").startsWith(Defaults.DEFAULT_AGENT_COMPACTION_PROMPT.strip());
+        assertThat(requests.get(1).getMessages("user").getLast()).as("the request for the summary").startsWith(new Defaults().agentCompactionPrompt().strip());
         assertThat(requests.get(2).getMessages("tool")).as("the earlier rounds are gone").isEmpty();
-        assertThat(requests.get(2).getMessages("user")).anyMatch(text -> text.startsWith(Defaults.AGENT_AUTO_COMPACTED_NOTE)
+        assertThat(requests.get(2).getMessages("user")).anyMatch(text -> text.startsWith(new Defaults().agentAutoCompactedNote())
                 && text.contains("the book info"));
         assertThat(requests.get(2).getMessages("user")).as("no warning on top of it").noneMatch(text -> text.contains("Notice from the run"));
     }
@@ -1595,7 +1595,7 @@ class AgentRunnerTest extends AgentTestBase {
 
         await(startRun(agent));
 
-        assertThat(llm.getCompletionRequests().get(2).getMessages("user")).anyMatch(text -> text.startsWith(Defaults.AGENT_AUTO_COMPACTED_NOTE));
+        assertThat(llm.getCompletionRequests().get(2).getMessages("user")).anyMatch(text -> text.startsWith(new Defaults().agentAutoCompactedNote()));
     }
 
     @Test
@@ -1641,14 +1641,14 @@ class AgentRunnerTest extends AgentTestBase {
         assertThat(run.getStatus()).isEqualTo(AgentRunStatus.DONE);
         // the request for the summary: everything so far, then the prompt with the agent's own focus as the last message
         MockLLMRequest ask = llm.getCompletionRequests().get(2);
-        assertThat(ask.getMessages("user").getLast()).startsWith(Defaults.DEFAULT_AGENT_COMPACTION_PROMPT.strip())
+        assertThat(ask.getMessages("user").getLast()).startsWith(new Defaults().agentCompactionPrompt().strip())
                 .endsWith("You asked the summary to stress: the chapters");
         assertThat(ask.getMessages("tool")).as("the call has its result before the compaction").hasSize(2);
         // and the next round reads the summary only
         MockLLMRequest next = llm.getCompletionRequests().get(3);
         assertThat(next.getMessages("tool")).isEmpty();
-        assertThat(next.getMessages("user").getLast()).startsWith(Defaults.AGENT_SELF_COMPACTED_NOTE).contains("Notes in notes.md.");
-        assertThat(transcript(run).getFirst().getContent()).startsWith(Defaults.AGENT_SELF_COMPACTED_NOTE);
+        assertThat(next.getMessages("user").getLast()).startsWith(new Defaults().agentSelfCompactedNote()).contains("Notes in notes.md.");
+        assertThat(transcript(run).getFirst().getContent()).startsWith(new Defaults().agentSelfCompactedNote());
     }
 
     @Test
@@ -1900,7 +1900,7 @@ class AgentRunnerTest extends AgentTestBase {
         assertThat(llm.getCompletionRequests()).as("the agent is not asked to answer").hasSize(1);
         List<LLMChatMessage> transcript = transcript(run);
         assertThat(transcript).extracting(LLMChatMessage::getRole).containsExactly(LLMRole.USER, LLMRole.ASSISTANT, LLMRole.USER);
-        assertThat(transcript.getLast().getContent()).startsWith(Defaults.AGENT_AUTHOR_COMMAND_NOTE)
+        assertThat(transcript.getLast().getContent()).startsWith(new Defaults().agentAuthorCommandNote())
                 .contains("Command: /get-book-info").contains(agent.getManuscript().getName());
         assertThat(transcript).flatExtracting(LLMChatMessage::getToolCalls).as("no call of the agent").isEmpty();
     }
@@ -2140,13 +2140,13 @@ class AgentRunnerTest extends AgentTestBase {
         // the request: everything so far, and the compaction prompt with the focus as the last message, no tools called
         MockLLMRequest request = llm.lastCompletionRequest();
         String ask = request.getMessages("user").getLast();
-        assertThat(ask).startsWith(Defaults.DEFAULT_AGENT_COMPACTION_PROMPT.strip()).endsWith("The author wants the summary to stress: the counting");
+        assertThat(ask).startsWith(new Defaults().agentCompactionPrompt().strip()).endsWith("The author wants the summary to stress: the counting");
         assertThat(request.getMessages("tool")).hasSize(1);
         // what the model reads now is the summary alone
         List<LLMChatMessage> transcript = transcript(run);
         assertThat(transcript).hasSize(1);
         assertThat(transcript.getFirst().getRole()).isEqualTo(LLMRole.USER);
-        assertThat(transcript.getFirst().getContent()).startsWith(Defaults.AGENT_COMPACTED_NOTE)
+        assertThat(transcript.getFirst().getContent()).startsWith(new Defaults().agentCompactedNote())
                 .contains("Task: count parts. Done: counted.");
         // the user still has all of it, marked
         List<AgentMessage> rows = messageService.messages(run);
@@ -2156,14 +2156,14 @@ class AgentRunnerTest extends AgentTestBase {
         assertThat(rows.getLast().isCompacted()).isFalse();
         assertThat(messageService.count(run)).isEqualTo(5);
         assertThat(messageService.getContextTokens(run)).as("the summary with the system prompt and the tools, not the summary alone")
-                .isGreaterThan(transcript.getFirst().getContent().length() / 4 + Defaults.AGENT_RUNNER_NOTE.length() / 4);
+                .isGreaterThan(transcript.getFirst().getContent().length() / 4 + new Defaults().agentRunnerNote().length() / 4);
 
         // the agent goes on from the summary, with the next message of the author after it as one message
         runner.send(agentRunService.find(run.getId()), "Now the chapters.");
         run = await(run);
         List<String> users = llm.lastCompletionRequest().getMessages("user");
         assertThat(users).hasSize(1);
-        assertThat(users.getFirst()).startsWith(Defaults.AGENT_COMPACTED_NOTE).endsWith("Now the chapters.");
+        assertThat(users.getFirst()).startsWith(new Defaults().agentCompactedNote()).endsWith("Now the chapters.");
         assertThat(llm.lastCompletionRequest().getMessages("tool")).isEmpty();
     }
 
@@ -2176,7 +2176,7 @@ class AgentRunnerTest extends AgentTestBase {
         runner.command(agentRunService.find(run.getId()), "/compact");
         await(run);
 
-        assertThat(llm.lastCompletionRequest().getMessages("user").getLast()).isEqualTo(Defaults.DEFAULT_AGENT_COMPACTION_PROMPT.strip());
+        assertThat(llm.lastCompletionRequest().getMessages("user").getLast()).isEqualTo(new Defaults().agentCompactionPrompt().strip());
     }
 
     @Test
@@ -2344,7 +2344,7 @@ class AgentRunnerTest extends AgentTestBase {
 
         // the newest message always stays, so the model sees at least what it answered last
         assertThat(llm.lastCompletionRequest().getMessages("user")).as("only the compaction prompt was left").hasSize(1);
-        assertThat(transcript(run).getFirst().getContent()).contains(String.format(Defaults.AGENT_COMPACTED_TRIMMED, 3));
+        assertThat(transcript(run).getFirst().getContent()).contains(String.format(new Defaults().agentCompactedTrimmed(), 3));
     }
 
     @Test
@@ -2402,7 +2402,7 @@ class AgentRunnerTest extends AgentTestBase {
         assertThat(llm.getCompletionRequests()).as("the agent is not asked to answer").hasSize(1);
         assertThat(files.walk(VirtualPath.ROOT, 100)).extracting(e -> e.path().toString())
                 .containsExactlyInAnyOrder("/keep.md", "/drafts", "/drafts/two.txt", "/my notes", "/my notes/a.md");
-        assertThat(transcript(run).getLast().getContent()).startsWith(Defaults.AGENT_AUTHOR_COMMAND_NOTE)
+        assertThat(transcript(run).getLast().getContent()).startsWith(new Defaults().agentAuthorCommandNote())
                 .contains("Command: /clear-workspace").contains("Deleted 2 file(s) and 1 folder(s)").contains("/keep.md, /drafts/two.txt, /my notes");
     }
 

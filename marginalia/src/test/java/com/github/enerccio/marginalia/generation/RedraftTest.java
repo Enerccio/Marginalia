@@ -309,7 +309,7 @@ class RedraftTest extends GenerationTestBase {
 
     @Test
     void promptComesFromTheBookThenTheUserThenTheDefault() throws Exception {
-        assertThat(manuscriptService.getRedraftPrompt(manuscript)).isEqualTo(Defaults.DEFAULT_REDRAFT_PROMPT);
+        assertThat(manuscriptService.getRedraftPrompt(manuscript)).isEqualTo(new Defaults().redraftPrompt());
 
         UserSetting settings = settingService.getOrCreate(UserSetting.class);
         settings.setDefaultRedraftPrompt("USER {{text}}");
@@ -422,17 +422,17 @@ class RedraftTest extends GenerationTestBase {
         llm.enqueue(MockLLMResponse.text("SHORT"));
         redraftLength(3, "Keep the ending", RedraftService.Length.SHORTER);
         String shorter = between(prompt(), "=== AUTHOR'S INSTRUCTIONS START ===", "=== AUTHOR'S INSTRUCTIONS END ===");
-        assertThat(shorter).contains("Keep the ending").contains(Defaults.DEFAULT_REDRAFT_SHORTER).doesNotContain(Defaults.DEFAULT_REDRAFT_LONGER);
-        assertThat(shorter.indexOf("Keep the ending")).isLessThan(shorter.indexOf(Defaults.DEFAULT_REDRAFT_SHORTER));
+        assertThat(shorter).contains("Keep the ending").contains(new Defaults().redraftShorter()).doesNotContain(new Defaults().redraftLonger());
+        assertThat(shorter.indexOf("Keep the ending")).isLessThan(shorter.indexOf(new Defaults().redraftShorter()));
 
         llm.enqueue(MockLLMResponse.text("LONG"));
         redraftLength(3, "", RedraftService.Length.LONGER);
         String longer = between(prompt(), "=== AUTHOR'S INSTRUCTIONS START ===", "=== AUTHOR'S INSTRUCTIONS END ===");
-        assertThat(longer).contains(Defaults.DEFAULT_REDRAFT_LONGER).doesNotContain(Defaults.DEFAULT_REDRAFT_SHORTER).doesNotContain("Write the part again");
+        assertThat(longer).contains(new Defaults().redraftLonger()).doesNotContain(new Defaults().redraftShorter()).doesNotContain("Write the part again");
 
         llm.enqueue(MockLLMResponse.text("SAME"));
         redraftLength(3, "Keep the ending", RedraftService.Length.SAME);
-        assertThat(prompt()).doesNotContain(Defaults.DEFAULT_REDRAFT_SHORTER).doesNotContain(Defaults.DEFAULT_REDRAFT_LONGER);
+        assertThat(prompt()).doesNotContain(new Defaults().redraftShorter()).doesNotContain(new Defaults().redraftLonger());
     }
 
     @Test
@@ -445,7 +445,7 @@ class RedraftTest extends GenerationTestBase {
         redraftLength(3, "", RedraftService.Length.SHORTER);
 
         assertThat(between(prompt(), "=== AUTHOR'S INSTRUCTIONS START ===", "=== AUTHOR'S INSTRUCTIONS END ===")).contains("CUT IT DOWN")
-                .doesNotContain(Defaults.DEFAULT_REDRAFT_SHORTER);
+                .doesNotContain(new Defaults().redraftShorter());
     }
 
     @Test

@@ -13,7 +13,6 @@ import com.github.enerccio.marginalia.domain.service.tool.ToolSet;
 import com.github.enerccio.marginalia.extensions.loregenerator.LoreGeneratorExtension;
 import com.github.enerccio.marginalia.extensions.loregenerator.model.LoreEntryGeneration;
 import com.github.enerccio.marginalia.extensions.loregenerator.model.LoreGeneratorData;
-import com.github.enerccio.marginalia.extensions.loregenerator.service.Defaults;
 import com.github.enerccio.marginalia.extensions.loregenerator.service.LoreGeneratorService;
 import com.github.enerccio.marginalia.extensions.loregenerator.service.LoreGeneratorService.EntryLimit;
 import com.github.enerccio.marginalia.extensions.loregenerator.service.LoreGeneratorService.LoreScope;
@@ -134,7 +133,7 @@ public class LoreGeneratorDialog extends Dialog {
             UIUtils.internalServerError(loc, e);
             data = new LoreGeneratorData();
             data.setGenerationPrompts(new java.util.LinkedHashMap<>());
-            data.getGenerationPrompts().put(LoreGeneratorService.DEFAULT_GENERATION_PROMPT, Defaults.GENERATION_PROMPT);
+            data.getGenerationPrompts().put(LoreGeneratorService.DEFAULT_GENERATION_PROMPT, T.defaults().generationPrompt());
         }
     }
 

@@ -362,9 +362,9 @@ public class ConverterService {
 
     // --- the prompt ---
 
-    /** The template the prompt starts with: the user's or {@link Defaults#PROMPT}. */
+    /** The template the prompt starts with: the user's or {@link Defaults#prompt()}. */
     public String promptTemplate(ConverterData data) {
-        return StringUtils.defaultIfBlank(data.getPrompt(), Defaults.PROMPT);
+        return StringUtils.defaultIfBlank(data.getPrompt(), T.defaults().prompt());
     }
 
     /**

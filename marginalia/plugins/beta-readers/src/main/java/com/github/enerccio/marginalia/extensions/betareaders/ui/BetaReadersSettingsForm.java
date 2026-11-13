@@ -74,22 +74,22 @@ public class BetaReadersSettingsForm extends VerticalLayout {
         intro.addClassName(BetaReadersStyles.HINT);
 
         singlePrompt.setWidthFull();
-        singlePrompt.setPlaceholder(BetaReadersDefaults.SINGLE_PROMPT);
+        singlePrompt.setPlaceholder(T.defaults().singlePrompt());
         singlePrompt.setHelperText(T.localized(EMPTY_THE_BUILT_IN_PROMPT));
         ResizableTextArea.install(loc, singlePrompt, "160px");
-        singlePrompt.setPopoverContent(TemplateHints.create(loc, singlePrompt, singlePrompt.getPopover(), null, BetaReadersDefaults.SINGLE_PROMPT));
+        singlePrompt.setPopoverContent(TemplateHints.create(loc, singlePrompt, singlePrompt.getPopover(), null, T.defaults().singlePrompt()));
 
         groupPrompt.setWidthFull();
-        groupPrompt.setPlaceholder(BetaReadersDefaults.GROUP_PROMPT);
+        groupPrompt.setPlaceholder(T.defaults().groupPrompt());
         groupPrompt.setHelperText(T.localized(EMPTY_THE_BUILT_IN_PROMPT));
         ResizableTextArea.install(loc, groupPrompt, "160px");
-        groupPrompt.setPopoverContent(TemplateHints.create(loc, groupPrompt, groupPrompt.getPopover(), null, BetaReadersDefaults.GROUP_PROMPT));
+        groupPrompt.setPopoverContent(TemplateHints.create(loc, groupPrompt, groupPrompt.getPopover(), null, T.defaults().groupPrompt()));
 
         scene.setWidthFull();
-        scene.setPlaceholder(BetaReadersDefaults.SCENE);
+        scene.setPlaceholder(T.defaults().scene());
         scene.setHelperText(T.localized(EMPTY_THE_BUILT_IN_SCENE));
         ResizableTextArea.install(loc, scene, "100px");
-        scene.setPopoverContent(TemplateHints.create(loc, scene, scene.getPopover(), null, BetaReadersDefaults.SCENE));
+        scene.setPopoverContent(TemplateHints.create(loc, scene, scene.getPopover(), null, T.defaults().scene()));
 
         mediumCombo.setWidthFull();
         mediumCombo.setItemLabelGenerator(Medium::getName);

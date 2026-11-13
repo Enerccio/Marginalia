@@ -265,7 +265,7 @@ public class AudiobookExtension implements MarginaliaExtension, ExtensionHasCss 
                         .group(() -> T.localized(AUDIOBOOK))
                         .help(() -> T.localized(THE_INSTRUCTION_THAT_TELLS_THE_MODEL_WHO_SPEAKS_EACH_PIECE))
                         .userValue(() -> audiobookService.getSettings().getLabelPrompt())
-                        .fallback(() -> LabelPrompt.DEFAULT_TEMPLATE));
+                        .fallback(() -> T.defaults().labelTemplate()));
         // after a generated part, once its text is final (translated too): it is made into audio, when the book says so
         afterPartRegistration = storyGenerationService.addAfterPartBinding(new AfterPart.Binding(BatchNotifier.SOURCE + ".afterPart",
                 () -> T.localized(CONVERT_TO_AUDIO), AfterPart.Stage.MEDIA, AfterPart.Mode.PARALLEL, new AfterPart.Handler() {

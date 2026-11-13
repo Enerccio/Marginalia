@@ -17,20 +17,20 @@ class BetaReadersDefaultsTest {
 
     @Test
     void theStarterPersonasHaveANameAndADescriptionAndAUuidOfTheirOwn() {
-        List<Persona> personas = BetaReadersDefaults.starterPersonas();
+        List<Persona> personas = new BetaReadersDefaults().starterPersonas();
 
         assertEquals(List.of("Athena", "Vesper", "Ember", "Quill", "Nox", "Sable"), personas.stream().map(Persona::getName).toList());
         assertTrue(personas.stream().allMatch(p -> !p.getDescription().isBlank()));
         assertEquals(personas.size(), personas.stream().map(Persona::getUuid).distinct().count());
         assertTrue(personas.stream().allMatch(p -> p.getIcon() == null));
         // another call makes other personas, a library never shares a uuid with another one
-        Set<String> second = new HashSet<>(BetaReadersDefaults.starterPersonas().stream().map(Persona::getUuid).toList());
+        Set<String> second = new HashSet<>(new BetaReadersDefaults().starterPersonas().stream().map(Persona::getUuid).toList());
         assertTrue(personas.stream().noneMatch(p -> second.contains(p.getUuid())));
     }
 
     @Test
     void theBuiltInMediumsHaveFixedUniqueIdsAndTheDefaultIsAmongThem() {
-        List<Medium> mediums = BetaReadersDefaults.builtInMediums();
+        List<Medium> mediums = new BetaReadersDefaults().builtInMediums();
 
         assertEquals(List.of("book", "movie", "series", "manga", "audio-drama", "stage-play", "game"),
                 mediums.stream().map(Medium::getId).toList());
@@ -40,15 +40,15 @@ class BetaReadersDefaultsTest {
 
     @Test
     void bothPromptsHaveTheMediumSection() {
-        for (String prompt : List.of(BetaReadersDefaults.SINGLE_PROMPT, BetaReadersDefaults.GROUP_PROMPT)) {
+        for (String prompt : List.of(new BetaReadersDefaults().singlePrompt(), new BetaReadersDefaults().groupPrompt())) {
             assertTrue(prompt.contains("{{#medium}}") && prompt.contains("{{.}}") && prompt.contains("{{/medium}}"));
         }
-        assertNotEquals(BetaReadersDefaults.SINGLE_PROMPT, BetaReadersDefaults.GROUP_PROMPT);
+        assertNotEquals(new BetaReadersDefaults().singlePrompt(), new BetaReadersDefaults().groupPrompt());
     }
 
     @Test
     void newSettingsHaveTheLibrariesAndNothingToOverride() {
-        BetaReadersSettings settings = BetaReadersDefaults.newSettings();
+        BetaReadersSettings settings = new BetaReadersDefaults().newSettings();
 
         assertEquals(6, settings.getPersonas().size());
         assertEquals(7, settings.getMediums().size());

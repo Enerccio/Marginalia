@@ -45,9 +45,9 @@ class MangaServiceTest {
     void builtInPromptsHaveNoPlaceholderLeftAfterCompile() {
         Manga manga = new Manga();
 
-        assertFalse(MangaService.compile(Defaults.DEFAULT_PROMPT, manga, "").contains("{{"));
-        assertFalse(MangaService.compile(Defaults.DEFAULT_TAGS_PROMPT, manga, "").contains("{{"));
-        assertFalse(Defaults.DEFAULT_PROMPT.contains("====="), "the blocks are added by the service, not the prompt");
+        assertFalse(MangaService.compile(new Defaults().prompt(), manga, "").contains("{{"));
+        assertFalse(MangaService.compile(new Defaults().tagsPrompt(), manga, "").contains("{{"));
+        assertFalse(new Defaults().prompt().contains("====="), "the blocks are added by the service, not the prompt");
     }
 
     @Test

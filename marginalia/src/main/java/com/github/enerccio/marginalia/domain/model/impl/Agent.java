@@ -56,7 +56,7 @@ public class Agent extends ExtendableEntity {
 
     /**
      * What the model is asked when the author compacts the run; blank follows the default of the user, then of the
-     * application, then {@code Defaults.DEFAULT_AGENT_COMPACTION_PROMPT}.
+     * application, then {@code Defaults.agentCompactionPrompt()}.
      */
     @Transient
     @ExtendedAttribute

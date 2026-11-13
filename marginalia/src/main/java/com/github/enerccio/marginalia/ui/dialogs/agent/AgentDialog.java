@@ -16,8 +16,6 @@ import com.github.enerccio.marginalia.loc.Language;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.widgets.*;
-import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
-import com.github.enerccio.marginalia.ui.widgets.DialogShortcuts;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
@@ -40,7 +38,7 @@ import java.util.Objects;
 
 /**
  * Creates or edits an agent. The system prompt of a new agent is blank, which means it follows the default (the prompt
- * of the user's settings, the one of the application settings, then {@code Defaults.DEFAULT_AGENT_PROMPT}): the default
+ * of the user's settings, the one of the application settings, then {@code Defaults.agentPrompt()}): the default
  * is the placeholder of the field and the info popover fills it in to edit a copy. A new agent picks the book it works on (a book has at most one agent, and the book of an agent is not changed). The main
  * model is the AI and the protocol of the first model profile; the other profiles, the models of its sub-agents, are edited in the
  * table of {@link AgentModelsEditor}.

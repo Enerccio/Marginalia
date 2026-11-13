@@ -1,7 +1,6 @@
 package com.github.enerccio.marginalia.extensions.betareaders.ui;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
-import com.github.enerccio.marginalia.extensions.betareaders.model.BetaReadersDefaults;
 import com.github.enerccio.marginalia.extensions.betareaders.model.Medium;
 import com.github.enerccio.marginalia.extensions.betareaders.service.BetaReadersStore;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
@@ -60,7 +59,7 @@ public class MediumLibraryDialog extends LibraryDialog<Medium> {
 
     private void restoreBuiltIn() {
         int added = 0;
-        for (Medium builtIn : BetaReadersDefaults.builtInMediums()) {
+        for (Medium builtIn : T.defaults().builtInMediums()) {
             // by id: a built-in medium that was renamed is still there
             if (items().stream().noneMatch(medium -> builtIn.getId().equals(medium.getId()))) {
                 if (nameTaken(builtIn, builtIn.getName())) {

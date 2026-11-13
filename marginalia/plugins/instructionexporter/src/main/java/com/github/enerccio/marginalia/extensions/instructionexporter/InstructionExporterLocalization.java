@@ -19,17 +19,32 @@ public class InstructionExporterLocalization extends PluginLocalizationBundle {
     protected void loadKeys() {
         ja(EXPORT_INSTRUCTIONS, "指示をエクスポート");
         zh(EXPORT_INSTRUCTIONS, "导出指令");
+        fr(EXPORT_INSTRUCTIONS, "Exporter les instructions");
+        es(EXPORT_INSTRUCTIONS, "Exportar instrucciones");
+        de(EXPORT_INSTRUCTIONS, "Anweisungen exportieren");
 
         ja(THERE_IS_NO_ACTIVE_BRANCH, "エクスポートするアクティブなブランチがありません");
         zh(THERE_IS_NO_ACTIVE_BRANCH, "没有可导出的活动分支");
+        fr(THERE_IS_NO_ACTIVE_BRANCH, "Il n'y a aucune branche active à exporter");
+        es(THERE_IS_NO_ACTIVE_BRANCH, "No hay ninguna rama activa que exportar");
+        de(THERE_IS_NO_ACTIVE_BRANCH, "Es gibt keinen aktiven Zweig zum Exportieren");
 
         ja(THERE_IS_NOTHING_TO_EXPORT, "アクティブなブランチにエクスポートする内容がありません");
         zh(THERE_IS_NOTHING_TO_EXPORT, "活动分支中没有可导出的内容");
+        fr(THERE_IS_NOTHING_TO_EXPORT, "Il n'y a rien à exporter dans la branche active");
+        es(THERE_IS_NOTHING_TO_EXPORT, "No hay nada que exportar en la rama activa");
+        de(THERE_IS_NOTHING_TO_EXPORT, "Im aktiven Zweig gibt es nichts zu exportieren");
 
         ja(COPIED_TO_CLIPBOARD, "クリップボードにコピーしました");
         zh(COPIED_TO_CLIPBOARD, "已复制到剪贴板");
+        fr(COPIED_TO_CLIPBOARD, "Copié dans le presse-papiers");
+        es(COPIED_TO_CLIPBOARD, "Copiado al portapapeles");
+        de(COPIED_TO_CLIPBOARD, "In die Zwischenablage kopiert");
 
         ja(FAILED_TO_EXPORT, "エクスポートに失敗しました: %s");
         zh(FAILED_TO_EXPORT, "导出失败：%s");
+        fr(FAILED_TO_EXPORT, "Échec de l'export : %s");
+        es(FAILED_TO_EXPORT, "No se pudo exportar: %s");
+        de(FAILED_TO_EXPORT, "Export fehlgeschlagen: %s");
     }
 }

@@ -26,7 +26,7 @@ class BetaReadersInheritedTest {
 
     @BeforeEach
     void register() {
-        settings = BetaReadersDefaults.newSettings();
+        settings = new BetaReadersDefaults().newSettings();
         BetaReadersInherited.register(registry, OWNER, () -> settings,
                 () -> List.of(new Choice("ai-1", "Model one")), () -> List.of(new Choice("protocol-1", "Protocol one")));
     }
@@ -62,8 +62,8 @@ class BetaReadersInheritedTest {
     void thePromptsFallBackToTheBuiltInOnesAndTakeTheUserLevelFirst() {
         assertTrue(setting(BetaReadersInherited.SINGLE_PROMPT).userValue().isBlank());
         assertTrue(setting(BetaReadersInherited.GROUP_PROMPT).userValue().isBlank());
-        assertEquals(BetaReadersDefaults.SINGLE_PROMPT, setting(BetaReadersInherited.SINGLE_PROMPT).fallback());
-        assertEquals(BetaReadersDefaults.GROUP_PROMPT, setting(BetaReadersInherited.GROUP_PROMPT).fallback());
+        assertEquals(new BetaReadersDefaults().singlePrompt(), setting(BetaReadersInherited.SINGLE_PROMPT).fallback());
+        assertEquals(new BetaReadersDefaults().groupPrompt(), setting(BetaReadersInherited.GROUP_PROMPT).fallback());
 
         settings.setSinglePrompt("my one on one");
         settings.setGroupPrompt("my group");
@@ -75,8 +75,8 @@ class BetaReadersInheritedTest {
     @Test
     void theSceneFallsBackToAnOnlineChatAndTakesTheUserLevelFirst() {
         assertTrue(setting(BetaReadersInherited.SCENE).userValue().isBlank());
-        assertEquals(BetaReadersDefaults.SCENE, setting(BetaReadersInherited.SCENE).fallback());
-        assertTrue(BetaReadersDefaults.SCENE.contains("online chat"));
+        assertEquals(new BetaReadersDefaults().scene(), setting(BetaReadersInherited.SCENE).fallback());
+        assertTrue(new BetaReadersDefaults().scene().contains("online chat"));
 
         settings.setScene("A rainy bar.");
 

@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.domain.service.impl;
 
 import com.github.enerccio.marginalia.Configuration;
+import com.github.enerccio.marginalia.Defaults;
 import com.github.enerccio.marginalia.domain.security.AdminGuard;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.extensions.ExtensionHasLocalization;
@@ -97,6 +98,7 @@ public class OsgiServiceImpl implements OsgiService, ApplicationListener<Context
     private final Map<MarginaliaExtension, Set<ComponentBinding>> componentCallbacks = new ConcurrentHashMap<>();
     private final Map<ServiceReference<?>, LoadedExtension> loadedExtensions = new ConcurrentHashMap<>();
     private final Map<MarginaliaExtension, List<LocalizationBundle>> localizationBundles = new ConcurrentHashMap<>();
+    private final Map<MarginaliaExtension, List<Defaults>> promptDefaults = new ConcurrentHashMap<>();
     private final Set<WeakReference<ExtensionObserver>> observers = new HashSet<>();
     private final List<WeakReference<ExtensionListener>> extensionListeners = new CopyOnWriteArrayList<>();
     private final Map<String, String> sha256Cache = new ConcurrentHashMap<>();
@@ -759,12 +761,31 @@ public class OsgiServiceImpl implements OsgiService, ApplicationListener<Context
         } catch (RuntimeException e) {
             log.error("Extension {} failed to provide its localization bundles: {}", extension.getClass().getName(), e.getMessage(), e);
         }
+        List<Defaults> registeredDefaults = new ArrayList<>();
+        promptDefaults.put(extension, registeredDefaults);
+        try {
+            for (Defaults texts : hasLocalization.getPromptDefaults()) {
+                try {
+                    localization.registerDefaults(texts);
+                    registeredDefaults.add(texts);
+                } catch (RuntimeException e) {
+                    log.error("Extension {} prompts of {} are not registered: {}", extension.getClass().getName(),
+                            texts.getLanguage(), e.getMessage());
+                }
+            }
+        } catch (RuntimeException e) {
+            log.error("Extension {} failed to provide its prompts: {}", extension.getClass().getName(), e.getMessage(), e);
+        }
     }
 
     private void unregisterLocalizationBundles(MarginaliaExtension extension) {
         List<LocalizationBundle> registered = localizationBundles.remove(extension);
         if (registered != null) {
             registered.forEach(localization::unregisterBundle);
+        }
+        List<Defaults> registeredDefaults = promptDefaults.remove(extension);
+        if (registeredDefaults != null) {
+            registeredDefaults.forEach(localization::unregisterDefaults);
         }
     }
 

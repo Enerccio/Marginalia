@@ -588,39 +588,63 @@ public final class AgentDiagnostics {
         }
     }
 
-    // the kinds of the notices of the runner (the text of each with its values left open), null for a message of the author
-    private static final Map<Pattern, String> NOTICES = new LinkedHashMap<>();
+    /**
+     * The kinds of the notices of the runner (the text of each with its values left open) and how every notice begins, in
+     * each prompt language there is: a run tells its notices in the language of its agent, so each kind is recognized in
+     * all of them. Made again when an extension brings or takes away a language.
+     */
+    private record Notices(List<Defaults> languages, Map<Pattern, String> kinds, List<String> prefixes) {
 
-    static {
-        notice(Defaults.AGENT_UNREADABLE_CALL, "unreadable call");
-        notice(Defaults.AGENT_TOO_MANY_CALLS, "too many calls");
-        notice(Defaults.AGENT_ONE_CALL_NOTICE, "one call per round");
-        notice(Defaults.AGENT_SINGLE_CALL_NOTICE, "command made alone");
-        notice(Defaults.AGENT_CONTEXT_WARNING, "context warning");
-        notice(Defaults.AGENT_CONTEXT_CRITICAL, "context critical");
-        notice(Defaults.AGENT_SUBAGENTS_STILL_WORKING, "sub-agents still work");
-        notice(Defaults.AGENT_RESTORED, "restored");
-        notice(Defaults.AGENT_REWOUND, "rewound");
+        static Notices of(List<Defaults> languages) {
+            Map<Pattern, String> kinds = new LinkedHashMap<>();
+            List<String> prefixes = new ArrayList<>();
+            for (Defaults defaults : languages) {
+                kind(kinds, defaults.agentUnreadableCall(), "unreadable call");
+                kind(kinds, defaults.agentTooManyCalls(), "too many calls");
+                kind(kinds, defaults.agentOneCallNotice(), "one call per round");
+                kind(kinds, defaults.agentSingleCallNotice(), "command made alone");
+                kind(kinds, defaults.agentContextWarning(), "context warning");
+                kind(kinds, defaults.agentContextCritical(), "context critical");
+                kind(kinds, defaults.agentSubagentsStillWorking(), "sub-agents still work");
+                kind(kinds, defaults.agentRestored(), "restored");
+                kind(kinds, defaults.agentRewound(), "rewound");
+                prefixes.add(defaults.agentNoticePrefix());
+            }
+            return new Notices(languages, kinds, prefixes);
+        }
+
+        private static void kind(Map<Pattern, String> kinds, String format, String kind) {
+            // the parts of the text between the values, found one after the other from the start
+            String[] parts = format.replace("%%", "\0").split("%[-#+ 0,(\\d.$]*[a-zA-Z]", -1);
+            String pattern = Arrays.stream(parts).map(part -> Pattern.quote(part.replace("\0", "%")))
+                    .collect(Collectors.joining(".*?"));
+            kinds.put(Pattern.compile(pattern, Pattern.DOTALL), kind);
+        }
     }
 
-    private static void notice(String format, String kind) {
-        // the parts of the text between the values, found one after the other from the start
-        String[] parts = format.replace("%%", "\0").split("%[-#+ 0,(\\d.$]*[a-zA-Z]", -1);
-        String pattern = Arrays.stream(parts).map(part -> Pattern.quote(part.replace("\0", "%")))
-                .collect(Collectors.joining(".*?"));
-        NOTICES.put(Pattern.compile(pattern, Pattern.DOTALL), kind);
+    private static volatile Notices notices = Notices.of(Defaults.all());
+
+    private static Notices notices() {
+        Notices current = notices;
+        List<Defaults> languages = Defaults.all();
+        if (current.languages() != languages) {
+            current = Notices.of(languages);
+            notices = current;
+        }
+        return current;
     }
 
     private static String notice(String content) {
         if (content == null) {
             return null;
         }
-        for (Map.Entry<Pattern, String> notice : NOTICES.entrySet()) {
+        Notices current = notices();
+        for (Map.Entry<Pattern, String> notice : current.kinds().entrySet()) {
             if (notice.getKey().matcher(content).lookingAt()) {
                 return notice.getValue();
             }
         }
-        return content.startsWith("Notice from the run:") ? "other" : null;
+        return current.prefixes().stream().anyMatch(content::startsWith) ? "other" : null;
     }
 
     private static Telemetry telemetry(Scan scan) {

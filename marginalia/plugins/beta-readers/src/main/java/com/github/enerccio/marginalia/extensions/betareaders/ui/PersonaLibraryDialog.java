@@ -1,7 +1,6 @@
 package com.github.enerccio.marginalia.extensions.betareaders.ui;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
-import com.github.enerccio.marginalia.extensions.betareaders.model.BetaReadersDefaults;
 import com.github.enerccio.marginalia.extensions.betareaders.model.Persona;
 import com.github.enerccio.marginalia.extensions.betareaders.service.BetaReadersStore;
 import com.github.enerccio.marginalia.extensions.betareaders.service.PersonaIcons;
@@ -87,7 +86,7 @@ public class PersonaLibraryDialog extends LibraryDialog<Persona> {
 
     private void addStarters() {
         int added = 0;
-        for (Persona starter : BetaReadersDefaults.starterPersonas()) {
+        for (Persona starter : T.defaults().starterPersonas()) {
             if (!nameTaken(starter, starter.getName())) {
                 items().add(starter);
                 added++;

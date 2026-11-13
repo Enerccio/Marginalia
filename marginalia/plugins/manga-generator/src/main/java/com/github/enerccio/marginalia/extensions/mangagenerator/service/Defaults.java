@@ -3,16 +3,19 @@ package com.github.enerccio.marginalia.extensions.mangagenerator.service;
 /**
  * The built-in prompts. {@code {{tokenBudget}}} and {@code {{additionalRules}}} are replaced by the settings of the
  * manga, the rest of the text is sent as it is. The names of the blocks of the request are in the prompts, so a changed
- * prompt should keep them.
+ * prompt should keep them: they stay English in every language (a prompt the user wrote names them).
+ * <p>
+ * An object per prompt language ({@code MangaGeneratorLocalization.T.defaults()}), a translation overrides the prompts.
  */
-public final class Defaults {
+public class Defaults {
 
     public static final String MANUSCRIPT = "SOURCE MANUSCRIPT";
     public static final String LORE = "BACKGROUND LORE";
     public static final String PREVIOUS_SCRIPT = "PREVIOUS MANGA SCRIPT";
     public static final String SCRIPT = "GENERATED MANGA SCRIPT";
 
-    public static final String DEFAULT_PROMPT = """
+    public String prompt() {
+        return """
             You are an expert Manga Scriptwriter and Storyboard Director. Your task is to adapt the %1$s story text into a professional, highly visual manga script formatted by pages and panels. Keep the continuation of page numbers (if any).
 
             ### Content guidelines
@@ -44,8 +47,10 @@ public final class Defaults {
               - [Character Name] (Thought): "[Internal monologue]"
               - [SFX]: [Onomatopoeia description, e.g., *WHOOSH*, *THUD*, *RUMBLE*]
             """.formatted(MANUSCRIPT, PREVIOUS_SCRIPT, LORE);
+    }
 
-    public static final String DEFAULT_TAGS_PROMPT = """
+    public String tagsPrompt() {
+        return """
             You are an expert AI Image Generation Prompt Engineer specializing in high-fidelity anime tagging schema (Danbooru-style tokens mixed with composition descriptors).
             Your task is to analyze the provided %1$s and the corresponding %2$s. You have {{tokenBudget}} output token budget available.
 
@@ -58,7 +63,6 @@ public final class Defaults {
             - **scene**: [ Masterpiece, best quality, background object descriptions, perspective camera angles, illumination rules, and atmospheric conditions. e.g., masterpiece, best quality, dark theme, wide shot, cinematic lighting, crumbling castle ruins, night, full moon ]
 
             Strictly stick to this structural output format. Do not write any structural setup headers, summaries, or conversational dialogue commentary.""".formatted(MANUSCRIPT, SCRIPT, LORE);
-
-    private Defaults() {
     }
+
 }

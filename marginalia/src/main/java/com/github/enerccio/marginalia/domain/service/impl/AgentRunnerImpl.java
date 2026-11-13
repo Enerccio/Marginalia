@@ -13,9 +13,6 @@ import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.AgentService.ResolvedProfile;
 import com.github.enerccio.marginalia.domain.service.InferenceService.RoundUsage;
 import com.github.enerccio.marginalia.domain.service.agent.*;
-import com.github.enerccio.marginalia.domain.service.job.JobCallType;
-import com.github.enerccio.marginalia.domain.service.job.JobStatus;
-import com.github.enerccio.marginalia.domain.service.job.Jobs;
 import com.github.enerccio.marginalia.domain.service.agent.RunTools.Finding;
 import com.github.enerccio.marginalia.domain.service.agent.RunTools.PlanItem;
 import com.github.enerccio.marginalia.domain.service.agent.SubAgents.State;
@@ -31,9 +28,13 @@ import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMAtta
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMToolCall;
+import com.github.enerccio.marginalia.domain.service.job.JobCallType;
+import com.github.enerccio.marginalia.domain.service.job.JobStatus;
+import com.github.enerccio.marginalia.domain.service.job.Jobs;
 import com.github.enerccio.marginalia.domain.service.manual.ManualTools;
 import com.github.enerccio.marginalia.domain.service.manual.ManualToolsImpl;
 import com.github.enerccio.marginalia.domain.traits.BatchPolicy;
+import com.github.enerccio.marginalia.loc.Language;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes.InRequestScope;
 import com.google.gson.Gson;
@@ -883,7 +884,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                 if (!COMPACT.equals(name) && !CLEAR_WORKSPACE.equals(name)) {
                     // /compact changes nothing until its summary is stored, /clear-workspace deletes the same files again; the others
                     // may have changed something
-                    told.add(LLMChatMessage.of(LLMRole.USER, Defaults.AGENT_AUTHOR_COMMAND_INTERRUPTED + "\n\nCommand: "
+                    told.add(LLMChatMessage.of(LLMRole.USER, defaults().agentAuthorCommandInterrupted() + "\n\nCommand: "
                             + items.getFirst().command()));
                     items.removeFirst();
                 }
@@ -1110,6 +1111,13 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
         }
     }
 
+    /**
+     * The texts the agent reads, in the prompt language of the session (in a run, the language of its agent).
+     */
+    private Defaults defaults() {
+        return localization.getDefaults();
+    }
+
     private final class Worker implements Runnable {
 
         private final Long runId;
@@ -1181,6 +1189,11 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
         // the queued messages and commands of the author to deliver before the work goes on, null for none; a worker
         // for a run that waits only does these and leaves the run as it is
         private final List<Queued> initial;
+
+        // the texts the agent reads are in the language of its agent, also where no session of the run is at hand
+        private Defaults defaults() {
+            return localization.getDefaults(Language.of(run == null ? "en" : run.getLanguage()));
+        }
 
         Worker(AgentRun run, List<Queued> initial) {
             this.runId = run.getId();
@@ -1401,7 +1414,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                         log.warn("The model of agent run {} could not be asked: {}", run.getUuid(), e.getMessage(), e);
                         if (isUnreadableCall(e)) {
                             // the agent is told, in the transcript: a resume would ask the same question and get the same answer
-                            append(transcript, LLMChatMessage.of(LLMRole.USER, Defaults.AGENT_UNREADABLE_CALL));
+                            append(transcript, LLMChatMessage.of(LLMRole.USER, defaults().agentUnreadableCall()));
                             if (++unreadable <= MAX_UNREADABLE_CALLS) {
                                 log.info("Agent run {}: the agent wrote an unreadable call, it is told and asked again ({} of {})", run.getUuid(),
                                         unreadable, MAX_UNREADABLE_CALLS);
@@ -1439,14 +1452,14 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                     String singleName = single < 0 ? null : withoutRepeats(round.calls()).get(single).getName();
                     round = limitCalls(round, mode, singleCalls);
                     callNotice = round.calls().size() == asked ? null
-                            : mode == AgentBatchMode.NOT_BATCHED && asked - repeated > 1 ? String.format(Defaults.AGENT_ONE_CALL_NOTICE, asked - repeated, round.calls().getFirst().getName(), asked - repeated - 1)
+                            : mode == AgentBatchMode.NOT_BATCHED && asked - repeated > 1 ? String.format(defaults().agentOneCallNotice(), asked - repeated, round.calls().getFirst().getName(), asked - repeated - 1)
                             : singleName != null && round.calls().size() < asked - repeated
-                            ? String.format(Defaults.AGENT_SINGLE_CALL_NOTICE, singleName, asked - repeated, round.calls().size())
-                            : String.format(Defaults.AGENT_TOO_MANY_CALLS, asked, repeated, round.calls().size());
+                            ? String.format(defaults().agentSingleCallNotice(), singleName, asked - repeated, round.calls().size())
+                            : String.format(defaults().agentTooManyCalls(), asked, repeated, round.calls().size());
 
                     LLMChatMessage answer = round.calls().isEmpty()
                             ? LLMChatMessage.of(LLMRole.ASSISTANT, textOnly && StringUtils.isBlank(round.text())
-                            ? Defaults.AGENT_REPEATING_NO_ANSWER : round.text())
+                            ? defaults().agentRepeatingNoAnswer() : round.text())
                             : LLMChatMessage.ofToolCalls(StringUtils.isEmpty(round.text()) ? null : round.text(), round.calls());
                     // not stored with the message (the answer row has its own column), the next request may send it back
                     answer.setReasoning(round.reasoning());
@@ -1468,13 +1481,13 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                     log.info("Agent run {}: the agent repeated itself, it answered without tools and the run is paused", run.getUuid());
                     textOnly = false;
                     repeats.reset();
-                    pause(Defaults.AGENT_REPEATING_PAUSED);
+                    pause(defaults().agentRepeatingPaused());
                     return;
                 }
                 if (round.calls().isEmpty()) {
                     if (subAgents != null && subAgents.live() > 0) {
                         if (stillWorkingNotices++ < 1) {
-                            append(transcript, LLMChatMessage.of(LLMRole.USER, String.format(Defaults.AGENT_SUBAGENTS_STILL_WORKING,
+                            append(transcript, LLMChatMessage.of(LLMRole.USER, String.format(defaults().agentSubagentsStillWorking(),
                                     subAgents.live(), subAgents.all().stream().filter(sub -> !sub.state().isFinished()).map(Sub::handle)
                                             .collect(Collectors.joining(", ")))));
                             continue;
@@ -1504,23 +1517,23 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                     LLMToolCall call = round.calls().get(index);
                     if (paused || interrupts.contains(runId) || stopping()) {
                         paused = true;
-                        results.add(LLMChatMessage.ofToolResult(call.getId(), stopping() ? Defaults.AGENT_STOPPED_SKIPPED_CALL
-                                : Defaults.AGENT_PAUSED_SKIPPED_CALL));
+                        results.add(LLMChatMessage.ofToolResult(call.getId(), stopping() ? defaults().agentStoppedSkippedCall()
+                                : defaults().agentPausedSkippedCall()));
                         continue;
                     }
                     if (forced || inbox != null && inbox.isForced()) {
                         forced = true;
-                        results.add(LLMChatMessage.ofToolResult(call.getId(), Defaults.AGENT_SKIPPED_CALL));
+                        results.add(LLMChatMessage.ofToolResult(call.getId(), defaults().agentSkippedCall()));
                         continue;
                     }
                     if (failed) {
                         // an error ends the answer: what follows may need what the failed call did not do, the model reads the error first
-                        results.add(LLMChatMessage.ofToolResult(call.getId(), Defaults.AGENT_AFTER_ERROR_SKIPPED_CALL));
+                        results.add(LLMChatMessage.ofToolResult(call.getId(), defaults().agentAfterErrorSkippedCall()));
                         continue;
                     }
                     if (replayed && unsafeToRepeat(call)) {
                         // it may be done in part: the model checks, as for any call that was cut off
-                        results.add(LLMChatMessage.ofToolResult(call.getId(), Defaults.AGENT_INTERRUPTED_CALL));
+                        results.add(LLMChatMessage.ofToolResult(call.getId(), defaults().agentInterruptedCall()));
                         failed = true;
                         continue;
                     }
@@ -1541,11 +1554,11 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                             continue;
                         }
                         paused = true;
-                        results.add(LLMChatMessage.ofToolResult(call.getId(), stopping() ? Defaults.AGENT_STOPPED_CALL : Defaults.AGENT_PAUSED_CALL));
+                        results.add(LLMChatMessage.ofToolResult(call.getId(), stopping() ? defaults().agentStoppedCall() : defaults().agentPausedCall()));
                         continue;
                     } catch (Forced e) {
                         forced = true;
-                        results.add(LLMChatMessage.ofToolResult(call.getId(), Defaults.AGENT_FORCED_CALL));
+                        results.add(LLMChatMessage.ofToolResult(call.getId(), defaults().agentForcedCall()));
                         continue;
                     }
                     if (call.getId().equals(withdrawnCall)) {
@@ -1576,7 +1589,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                     if (run.getStatus() == AgentRunStatus.RUNNING) {
                         // nobody asked for it, the sub-agents were stopped by something else: the calls get their answer now
                         append(transcript, openCalls(round.calls(), transcript).stream()
-                                .map(open -> LLMChatMessage.ofToolResult(open.getId(), Defaults.AGENT_PAUSED_CALL)).toArray(LLMChatMessage[]::new));
+                                .map(open -> LLMChatMessage.ofToolResult(open.getId(), defaults().agentPausedCall())).toArray(LLMChatMessage[]::new));
                     }
                     continue;
                 }
@@ -1641,11 +1654,11 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                     if (verdict == RepeatDetector.Verdict.WARN) {
                         log.info("Agent run {}: the agent made the same calls with the same results {} times, it is told", run.getUuid(),
                                 Defaults.AGENT_REPEAT_NOTICE_AFTER);
-                        append(transcript, LLMChatMessage.of(LLMRole.USER, String.format(Defaults.AGENT_REPEATING_NOTICE,
+                        append(transcript, LLMChatMessage.of(LLMRole.USER, String.format(defaults().agentRepeatingNotice(),
                                 Defaults.AGENT_REPEAT_NOTICE_AFTER)));
                     } else if (verdict == RepeatDetector.Verdict.STOP) {
                         log.info("Agent run {}: the agent still repeats itself, the next request takes its tools away", run.getUuid());
-                        append(transcript, LLMChatMessage.of(LLMRole.USER, Defaults.AGENT_REPEATING_NO_TOOLS));
+                        append(transcript, LLMChatMessage.of(LLMRole.USER, defaults().agentRepeatingNoTools()));
                         textOnly = true;
                         continue;
                     }
@@ -1677,7 +1690,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
             } catch (Exception e) {
                 log.warn("Agent run {}: no checkpoint of the start: {}", run.getUuid(), e.getMessage());
                 dirty = true;
-                append(transcript, LLMChatMessage.of(LLMRole.USER, Defaults.AGENT_NO_START_CHECKPOINT + " " + e.getMessage()));
+                append(transcript, LLMChatMessage.of(LLMRole.USER, defaults().agentNoStartCheckpoint() + " " + e.getMessage()));
             }
         }
 
@@ -1714,7 +1727,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                     return null;
                 }
                 fullNoticeGiven = true;
-                return Defaults.AGENT_NO_AUTOMATIC_CHECKPOINT + " " + e.getMessage();
+                return defaults().agentNoAutomaticCheckpoint() + " " + e.getMessage();
             } finally {
                 changeLock.unlock();
             }
@@ -1737,7 +1750,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                 // what they said is kept, they are all over: the agent can still ask what came of them
                 restoreSubAgents(false);
                 dirty = false;
-                StringBuilder text = new StringBuilder(String.format(Defaults.AGENT_RESTORED, restored.checkpoint().id(),
+                StringBuilder text = new StringBuilder(String.format(defaults().agentRestored(), restored.checkpoint().id(),
                         restored.checkpoint().round()));
                 if (stopped) {
                     text.append(" Your sub-agents that were working were stopped.");
@@ -1831,7 +1844,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
             }
             int percent = (int) Math.min(100, used * 100 / cap);
             append(transcript, LLMChatMessage.of(LLMRole.USER, String.format(
-                    percent >= Defaults.AGENT_CONTEXT_CRITICAL_PERCENT ? Defaults.AGENT_CONTEXT_CRITICAL : Defaults.AGENT_CONTEXT_WARNING,
+                    percent >= Defaults.AGENT_CONTEXT_CRITICAL_PERCENT ? defaults().agentContextCritical() : defaults().agentContextWarning(),
                     percent, used, cap)));
         }
 
@@ -1958,7 +1971,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                     return;
                 }
                 if (CLEAR_WORKSPACE.equals(name)) {
-                    append(transcript, LLMChatMessage.of(LLMRole.USER, Defaults.AGENT_AUTHOR_COMMAND_NOTE + "\n\nCommand: " + line
+                    append(transcript, LLMChatMessage.of(LLMRole.USER, defaults().agentAuthorCommandNote() + "\n\nCommand: " + line
                             + "\n\nResult:\n" + clearWorkspace(commandArguments(line))));
                     return;
                 }
@@ -1973,7 +1986,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                 }
                 log.info("Agent run {}: /{} {} ({} characters)", run.getUuid(), name,
                         result.startsWith("Error:") ? "failed" : "done", result.length());
-                append(transcript, LLMChatMessage.of(LLMRole.USER, Defaults.AGENT_AUTHOR_COMMAND_NOTE + "\n\nCommand: " + line
+                append(transcript, LLMChatMessage.of(LLMRole.USER, defaults().agentAuthorCommandNote() + "\n\nCommand: " + line
                         + "\n\nResult:\n" + result));
             } finally {
                 ignoreForce = before;
@@ -2037,13 +2050,13 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                         : "The model called a tool instead of writing the summary");
             }
             StringBuilder message = new StringBuilder(switch (who) {
-                case AGENT -> Defaults.AGENT_SELF_COMPACTED_NOTE;
-                case AUTOMATIC -> Defaults.AGENT_AUTO_COMPACTED_NOTE;
-                case AUTHOR -> Defaults.AGENT_COMPACTED_NOTE;
+                case AGENT -> defaults().agentSelfCompactedNote();
+                case AUTOMATIC -> defaults().agentAutoCompactedNote();
+                case AUTHOR -> defaults().agentCompactedNote();
             })
                     .append("\n\n").append(text);
             if (dropped > 0) {
-                message.append("\n\n").append(String.format(Defaults.AGENT_COMPACTED_TRIMMED, dropped));
+                message.append("\n\n").append(String.format(defaults().agentCompactedTrimmed(), dropped));
             }
             if (!runTools.getPlan().isEmpty()) {
                 message.append("\n\nYour plan when this summary was written:\n").append(RunToolsImpl.render(runTools.getPlan()));
@@ -2161,8 +2174,8 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
         private void prepare(List<LLMChatMessage> transcript) throws Exception {
             if (transcript.isEmpty()) {
                 String note = fileSystemService.takeResumeNote(run);
-                append(transcript, LLMChatMessage.of(LLMRole.USER, note == null ? Defaults.DEFAULT_AGENT_START_MESSAGE
-                        : Defaults.DEFAULT_AGENT_START_MESSAGE + "\n\n" + note.strip()));
+                append(transcript, LLMChatMessage.of(LLMRole.USER, note == null ? defaults().agentStartMessage()
+                        : defaults().agentStartMessage() + "\n\n" + note.strip()));
                 return;
             }
             repairCalls(transcript, true);
@@ -2179,7 +2192,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
             }
             LLMChatMessage last = transcript.getLast();
             if (last.getRole() == LLMRole.ASSISTANT && !last.hasToolCalls() && !deliverQueued(transcript)) {
-                append(transcript, LLMChatMessage.of(LLMRole.USER, Defaults.DEFAULT_AGENT_RESUME_MESSAGE));
+                append(transcript, LLMChatMessage.of(LLMRole.USER, defaults().agentResumeMessage()));
             }
         }
 
@@ -2202,10 +2215,10 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                 told.add(sync.strip());
             }
             if (note != null) {
-                told.add(Defaults.AGENT_RESUME_NOTE + "\n" + note.strip());
+                told.add(defaults().agentResumeNote() + "\n" + note.strip());
             }
             if (goOn) {
-                told.add(Defaults.DEFAULT_AGENT_RESUME_MESSAGE);
+                told.add(defaults().agentResumeMessage());
             }
             return String.join("\n\n", told);
         }
@@ -2251,7 +2264,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                     return;
                 }
                 if (!open.isEmpty()) {
-                    append(transcript, open.stream().map(call -> LLMChatMessage.ofToolResult(call.getId(), Defaults.AGENT_INTERRUPTED_CALL))
+                    append(transcript, open.stream().map(call -> LLMChatMessage.ofToolResult(call.getId(), defaults().agentInterruptedCall()))
                             .toArray(LLMChatMessage[]::new));
                 }
             }
@@ -2332,7 +2345,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
             List<LLMChatMessage> results = new ArrayList<>();
             results.add(LLMChatMessage.ofToolResult(parked.getId(), result));
             for (LLMToolCall skipped : open.subList(1, open.size())) {
-                results.add(LLMChatMessage.ofToolResult(skipped.getId(), Defaults.AGENT_PAUSED_SKIPPED_CALL));
+                results.add(LLMChatMessage.ofToolResult(skipped.getId(), defaults().agentPausedSkippedCall()));
             }
             append(transcript, results.toArray(new LLMChatMessage[0]));
             return false;
@@ -2650,13 +2663,13 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                 parts.add(new SystemPart(AgentContext.Kind.INSTRUCTIONS, "Instructions of the author",
                         "# Instructions of the author\n\n" + instructions.strip()));
             }
-            parts.add(new SystemPart(AgentContext.Kind.NOTE, "Note of the runner", Defaults.AGENT_RUNNER_NOTE.strip()));
+            parts.add(new SystemPart(AgentContext.Kind.NOTE, "Note of the runner", defaults().agentRunnerNote().strip()));
             if (run.isInteractive()) {
-                parts.add(new SystemPart(AgentContext.Kind.NOTE, "Note for a conversation", Defaults.AGENT_INTERACTIVE_NOTE.strip()));
+                parts.add(new SystemPart(AgentContext.Kind.NOTE, "Note for a conversation", defaults().agentInteractiveNote().strip()));
             }
             if (maxSubagents > 0) {
-                parts.add(new SystemPart(AgentContext.Kind.NOTE, "Note about sub-agents", String.format(Defaults.AGENT_SUBAGENTS_NOTE.strip(),
-                        maxSubagents, maxSubagents == 1 ? Defaults.AGENT_SUBAGENTS_NOTE_ONE : Defaults.AGENT_SUBAGENTS_NOTE_MANY, requestSlots.cap())));
+                parts.add(new SystemPart(AgentContext.Kind.NOTE, "Note about sub-agents", String.format(defaults().agentSubagentsNote().strip(),
+                        maxSubagents, maxSubagents == 1 ? defaults().agentSubagentsNoteOne() : defaults().agentSubagentsNoteMany(), requestSlots.cap())));
             }
             String models = modelsNote();
             if (models != null) {
@@ -2679,12 +2692,12 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
         private String callsNote() {
             AgentBatchMode mode = agent == null ? AgentBatchMode.BATCHED : agent.batchModeOrDefault();
             if (mode == AgentBatchMode.NOT_BATCHED) {
-                return Defaults.AGENT_ONE_CALL_RULE;
+                return defaults().agentOneCallRule();
             }
             if (mode == AgentBatchMode.BATCHED && tools != null) {
                 String alone = tools.getDefinitions().stream().map(FunctionDefinition::getName).filter(singleCalls::contains).sorted()
                         .collect(Collectors.joining(", "));
-                return alone.isEmpty() ? null : String.format(Defaults.AGENT_SINGLE_CALLS_RULE, alone);
+                return alone.isEmpty() ? null : String.format(defaults().agentSingleCallsRule(), alone);
             }
             return null;
         }
@@ -2877,7 +2890,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
             if (StringUtils.isNotBlank(instructions)) {
                 system.append("\n\n# Instructions of the author\n\n").append(instructions.strip());
             }
-            system.append("\n\n").append(Defaults.AGENT_SUBAGENT_NOTE.strip());
+            system.append("\n\n").append(defaults().agentSubagentNote().strip());
             system.append("\n\nYour folder: ").append(sub.folder());
             if (model.contextCap() > 0 || model.responseCap() > 0) {
                 system.append("\n\n").append(limitsNote(model.contextCap(), model.responseCap()));
@@ -3328,7 +3341,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                     throw new SubStopped(State.CANCELLED, "The run was thrown away.");
                 } catch (Exception e) {
                     if (isUnreadableCall(e) && ++unreadable <= MAX_UNREADABLE_CALLS) {
-                        LLMChatMessage notice = LLMChatMessage.of(LLMRole.USER, Defaults.AGENT_UNREADABLE_CALL);
+                        LLMChatMessage notice = LLMChatMessage.of(LLMRole.USER, defaults().agentUnreadableCall());
                         storeSub(sub, List.of(notice));
                         conversation.add(notice);
                         continue;
@@ -3354,7 +3367,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                 if (round.calls().isEmpty()) {
                     String text = StringUtils.defaultString(round.text()).strip();
                     if (textOnly) {
-                        return Defaults.AGENT_REPEATING_SUBAGENT + (text.isEmpty() ? Defaults.AGENT_REPEATING_NO_ANSWER : text);
+                        return defaults().agentRepeatingSubagent() + (text.isEmpty() ? defaults().agentRepeatingNoAnswer() : text);
                     }
                     return text.isEmpty() ? "(The sub-agent gave no answer.)" : text;
                 }
@@ -3373,7 +3386,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                 for (LLMToolCall call : round.calls()) {
                     if (failed) {
                         // an error ends the answer, as for the agent
-                        LLMChatMessage skipped = LLMChatMessage.ofToolResult(call.getId(), Defaults.AGENT_AFTER_ERROR_SKIPPED_CALL);
+                        LLMChatMessage skipped = LLMChatMessage.ofToolResult(call.getId(), defaults().agentAfterErrorSkippedCall());
                         storeSub(sub, List.of(skipped));
                         conversation.add(skipped);
                         continue;
@@ -3397,7 +3410,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                             List<LLMChatMessage> answers = new ArrayList<>();
                             for (LLMToolCall open : openCalls(round.calls(), conversation)) {
                                 answers.add(LLMChatMessage.ofToolResult(open.getId(), open.getId().equals(call.getId())
-                                        ? Defaults.AGENT_PAUSED_CALL : Defaults.AGENT_PAUSED_SKIPPED_CALL));
+                                        ? defaults().agentPausedCall() : defaults().agentPausedSkippedCall()));
                             }
                             storeSub(sub, answers);
                         }
@@ -3410,7 +3423,7 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
                         log.info("Agent run {}: sub-agent {} repeats itself, {}", runId, sub.handle(),
                                 verdict == RepeatDetector.Verdict.WARN ? "it is told" : "the next request takes its tools away");
                         LLMChatMessage notice = LLMChatMessage.of(LLMRole.USER, verdict == RepeatDetector.Verdict.WARN
-                                ? String.format(Defaults.AGENT_REPEATING_NOTICE, Defaults.AGENT_REPEAT_NOTICE_AFTER) : Defaults.AGENT_REPEATING_NO_TOOLS);
+                                ? String.format(defaults().agentRepeatingNotice(), Defaults.AGENT_REPEAT_NOTICE_AFTER) : defaults().agentRepeatingNoTools());
                         storeSub(sub, List.of(notice));
                         conversation.add(notice);
                         textOnly = verdict == RepeatDetector.Verdict.STOP;
@@ -3483,9 +3496,9 @@ public class AgentRunnerImpl implements AgentRunner, SmartInitializingSingleton,
             for (LLMToolCall call : cutOff) {
                 String result;
                 if (failed) {
-                    result = Defaults.AGENT_AFTER_ERROR_SKIPPED_CALL;
+                    result = defaults().agentAfterErrorSkippedCall();
                 } else if (changes(call) && call.getId().equals(marker)) {
-                    result = Defaults.AGENT_INTERRUPTED_CALL;
+                    result = defaults().agentInterruptedCall();
                     failed = true;
                 } else {
                     if (subTools == null) {

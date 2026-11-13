@@ -11,44 +11,44 @@ import java.util.function.Function;
 
 /**
  * The text settings a book has, which a folder can set for the books in it too. A book uses its own, else the nearest
- * folder above it that sets one, else the one of the user settings, else the built-in default, see
+ * folder above it that sets one, else the one of the user settings, else the built-in default (in the prompt language of the user), see
  * {@link ManuscriptService#resolve}. A blank text is not set.
  */
 public enum PromptField {
-    MASTER_TEMPLATE(Manuscript::getTemplate, Folder::getTemplate, UserSetting::getMasterTemplate, Defaults.DEFAULT_MASTER_TEMPLATE),
-    POV(Manuscript::getPov, Folder::getPov, UserSetting::getDefaultPov, Defaults.DEFAULT_POV),
-    TENSE(Manuscript::getTense, Folder::getTense, UserSetting::getDefaultTense, Defaults.DEFAULT_TENSE),
-    STYLE(Manuscript::getStyle, Folder::getStyle, UserSetting::getDefaultStyle, Defaults.DEFAULT_STYLE),
+    MASTER_TEMPLATE(Manuscript::getTemplate, Folder::getTemplate, UserSetting::getMasterTemplate, Defaults::masterTemplate),
+    POV(Manuscript::getPov, Folder::getPov, UserSetting::getDefaultPov, Defaults::pov),
+    TENSE(Manuscript::getTense, Folder::getTense, UserSetting::getDefaultTense, Defaults::tense),
+    STYLE(Manuscript::getStyle, Folder::getStyle, UserSetting::getDefaultStyle, Defaults::style),
     USER_PROMPT(Manuscript::getUserPrompt, Folder::getUserPrompt, UserSetting::getDefaultUserPrompt,
-            Defaults.DEFAULT_USER_PROMPT),
+            Defaults::userPrompt),
     SUMMARY_PROMPT(Manuscript::getSummaryPrompt, Folder::getSummaryPrompt, UserSetting::getDefaultSummaryPrompt,
-            Defaults.DEFAULT_SUMMARY_PROMPT),
+            Defaults::summaryPrompt),
     META_SUMMARY_PROMPT(Manuscript::getMetaSummaryPrompt, Folder::getMetaSummaryPrompt,
-            UserSetting::getDefaultMetaSummaryPrompt, Defaults.DEFAULT_META_SUMMARY),
+            UserSetting::getDefaultMetaSummaryPrompt, Defaults::metaSummaryPrompt),
     REDRAFT_SYSTEM_PROMPT(Manuscript::getRedraftSystemPrompt, Folder::getRedraftSystemPrompt,
-            UserSetting::getDefaultRedraftSystemPrompt, Defaults.DEFAULT_REDRAFT_SYSTEM_PROMPT),
+            UserSetting::getDefaultRedraftSystemPrompt, Defaults::redraftSystemPrompt),
     REDRAFT_PROMPT(Manuscript::getRedraftPrompt, Folder::getRedraftPrompt, UserSetting::getDefaultRedraftPrompt,
-            Defaults.DEFAULT_REDRAFT_PROMPT),
+            Defaults::redraftPrompt),
     REDRAFT_SHORTER(Manuscript::getRedraftShorter, Folder::getRedraftShorter, UserSetting::getDefaultRedraftShorter,
-            Defaults.DEFAULT_REDRAFT_SHORTER),
+            Defaults::redraftShorter),
     REDRAFT_LONGER(Manuscript::getRedraftLonger, Folder::getRedraftLonger, UserSetting::getDefaultRedraftLonger,
-            Defaults.DEFAULT_REDRAFT_LONGER),
+            Defaults::redraftLonger),
     ANNOTATE_SYSTEM_PROMPT(Manuscript::getAnnotateSystemPrompt, Folder::getAnnotateSystemPrompt,
-            UserSetting::getDefaultAnnotateSystemPrompt, Defaults.DEFAULT_ANNOTATE_SYSTEM_PROMPT),
+            UserSetting::getDefaultAnnotateSystemPrompt, Defaults::annotateSystemPrompt),
     ANNOTATE_PROMPT(Manuscript::getAnnotatePrompt, Folder::getAnnotatePrompt, UserSetting::getDefaultAnnotatePrompt,
-            Defaults.DEFAULT_ANNOTATE_PROMPT),
+            Defaults::annotatePrompt),
     ANNOTATE_INSTRUCTIONS(Manuscript::getAnnotateInstructions, Folder::getAnnotateInstructions,
-            UserSetting::getDefaultAnnotateInstructions, ""),
+            UserSetting::getDefaultAnnotateInstructions, defaults -> ""),
     IMPERSONATE_PROMPT(Manuscript::getImpersonatePrompt, Folder::getImpersonatePrompt,
-            UserSetting::getDefaultImpersonatePrompt, Defaults.DEFAULT_IMPERSONATE_PROMPT);
+            UserSetting::getDefaultImpersonatePrompt, Defaults::impersonatePrompt);
 
     private final Function<Manuscript, String> book;
     private final Function<Folder, String> folder;
     private final Function<UserSetting, String> user;
-    private final String fallback;
+    private final Function<Defaults, String> fallback;
 
     PromptField(Function<Manuscript, String> book, Function<Folder, String> folder, Function<UserSetting, String> user,
-                String fallback) {
+                Function<Defaults, String> fallback) {
         this.book = book;
         this.folder = folder;
         this.user = user;
@@ -124,7 +124,10 @@ public enum PromptField {
         }
     }
 
-    public String fallback() {
-        return fallback;
+    /**
+     * The built-in text, in the language of the prompts given ({@code Localization.getDefaults()}).
+     */
+    public String fallback(Defaults defaults) {
+        return fallback.apply(defaults);
     }
 }

@@ -1100,6 +1100,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.LABEL_MENTIONED_IN, "提及于：");
         setValue(L.LABEL_SEND_LORE_IMAGES, "发送设定图片");
         setValue(L.LABEL_LORE_IMAGES_IN_SYSTEM, "将图片放入系统消息");
+        setValue(L.LABEL_PROMPT_LANGUAGE, "提示词语言");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "兼容 OpenAI");
@@ -2029,6 +2030,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.HELP_ENTRY_LINKS, "在内容中按住 Ctrl 点击（Mac 上为 Cmd+点击）另一个条目的名称或关键词即可打开它，同时按住 Shift 则在新标签页中打开。这里列出的是内容中提到本条目的条目：点击打开，Shift+点击在新标签页中打开。");
         setValue(L.HELP_SEND_LORE_IMAGES, "将本轮使用的设定集条目内容中的图片与设定一起发送。仅适用于接受图片的模型：不支持视觉的模型会拒绝请求。");
         setValue(L.HELP_LORE_IMAGES_IN_SYSTEM, "将设定块的图片直接放入系统消息，而不是放在其后的单独消息中。仅适用于在系统消息中接受图片的服务器和聊天模板；大多数都不支持。");
+        setValue(L.HELP_PROMPT_LANGUAGE, "内置提示词（生成、摘要、重写、批注、代笔、智能体）和插件提示词的语言。你自己写的提示词保持不变；界面语言另行设置。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景设定与世界观。");
@@ -2461,6 +2463,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
         setValue(L.DESC_TEMPLATE_EXPORT_WRITTEN_PERCENT, "作者撰写的词所占的百分比（整数）。");
         setValue(L.DESC_TEMPLATE_EXPORT_GENERATED_PERCENT, "模型生成的词所占的百分比（整数）。");
         setValue(L.DESC_TEMPLATE_EXPORT_MODELS, "生成了本书文本的模型，以逗号分隔（没有则为空）。");
+        setValue(L.DESC_AGENT_IMAGES_ARGUMENT, "工作区中图片文件（PNG、JPEG、GIF 或 WebP，由用户上传）的路径列表，最多 %d 个。命令的模型会查看这些图片，因此它必须支持图片。");
     }
 
     @Override

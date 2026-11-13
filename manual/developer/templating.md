@@ -5,6 +5,12 @@ verified: e677cd1e8
 covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/templates
   - marginalia/src/main/java/com/github/enerccio/marginalia/Defaults.java
+  - marginalia/src/main/java/com/github/enerccio/marginalia/DefaultsJA.java
+  - marginalia/src/main/java/com/github/enerccio/marginalia/DefaultsFR.java
+  - marginalia/src/main/java/com/github/enerccio/marginalia/DefaultsES.java
+  - marginalia/src/main/java/com/github/enerccio/marginalia/DefaultsDE.java
+  - marginalia/src/main/java/com/github/enerccio/marginalia/DefaultsIT.java
+  - marginalia/src/main/java/com/github/enerccio/marginalia/DefaultsKO.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/TemplateServiceImpl.java
 ---
 
@@ -18,8 +24,37 @@ What users can write is documented in the user guide: [Prompt templates](../user
 [Macro reference](../user/templates/macros.md).
 
 The texts of the [agents](agents.md) are the exception: the system prompt, the compaction prompt and the instructions of an
-agent (`Defaults.DEFAULT_AGENT_PROMPT` and the others around it) are plain text, put into the request as they are, with no
+agent (`Defaults.agentPrompt()` and the others around it) are plain text, put into the request as they are, with no
 Handlebars and no macros.
+
+## The built-in prompts and their languages
+
+The built-in templates (what an empty field of a book, a folder and the settings stands for) are the methods of `Defaults`
+(`masterTemplate()`, `userPrompt()`, `summaryPrompt()`, `redraftSystemPrompt()`, `agentRunnerNote()`...). `Defaults` is an
+object, not a set of constants: the English texts, with `DefaultsJA`, `DefaultsFR`, `DefaultsES`, `DefaultsDE`, `DefaultsIT` and `DefaultsKO` overriding every text method. Italian and Korean exist only as prompt languages, the interface has no bundle for them; the plugins with prompts translate all of them (`PluginLocalizationBundle.ES`, `DE`, `IT`, `KO` as keys of `forPromptLanguage`).
+An extension can bring more languages: `ExtensionHasLocalization.getPromptDefaults()` returns its `Defaults` subclasses,
+which `OsgiServiceImpl` registers with `Localization.registerDefaults` next to its UI bundles and removes on unload (the
+Chinese localization plugin brings `DefaultsZH` this way; a language that already has prompts is refused, the ones of the
+application can't be removed). `Localization.getDefaults()` returns the one of the **prompt language** of the session,
+`getDefaults(language)` the one of a language (English when it has none). `Defaults.builtIn()` lists the application's own,
+`Defaults.all()` every language there is now (a snapshot replaced when an extension adds or removes one) for code that has to
+recognize a text in any language (`AgentDiagnostics` rebuilds its patterns when the snapshot changes,
+`AgentTranscriptRenderer`).
+
+The prompt language is the user's setting `UserSetting.promptLanguage` (null is English; the combo box *Prompt language*
+of the Templates tab, `UserPart.showDefaultPrompts` puts the texts of the chosen language into the placeholders before it is
+saved). It is independent of the language of the interface: `Main.proceedWithLogin` and `UserPart.save` copy it into
+`SessionPoint.promptLanguage`, which `LocalizationImpl.getPromptLanguage()` reads (English without a session or for a language
+without texts). An agent run puts the language of its agent there instead (`AgentRequestAttributes`); the runner and
+`CheckpointServiceImpl` (rewind from the interface) ask for the language of the run explicitly. `PromptField.fallback(Defaults)`
+takes the texts, so `ManuscriptService.resolve` falls back to `fallback(loc.getDefaults())`.
+
+A translation keeps every Handlebars tag of the English text (the sections in the same order, the variables may move with
+the word order) and every `String.format` placeholder of the agent texts, and the notices of a run start with its
+`agentNoticePrefix()`: `DefaultsTranslationTest` checks all of it and that every text method is overridden, and
+`DefaultTemplatesTest` validates the templates of every language against their data classes. A new text is a method of
+`Defaults` plus its override in both translations. The plugins do the same with their own defaults object, see
+[Texts in several languages](plugins/ui-extensions.md#texts-in-several-languages).
 
 The code is in `domain/templates/` (data objects, context, variables), `domain/templates/macros/` (translator,
 helpers, macro registry) and `domain/service/impl/TemplateServiceImpl.java`.
@@ -66,7 +101,7 @@ parameters (`{{#if name}}`) are not checked.
 | Master template | `PrepareContentStep` (twice: token estimate on a fork, then for real) | `MasterTemplateData` | `backgroundLore`, `narrativePov`, `narrativeTense`, `style`, `summaries`, `annotations` (the open annotations marked `sendToPrompt` of the parts in the prompt; only the final render has them) |
 | Summary prompt | `SummaryServiceImpl.createSummaryPayload` | `SummaryTemplateData` | `backgroundLore`, `text` (the parts to summarize) |
 | Meta summary prompt | `SummaryServiceImpl.createMetaSummaryPayload` | `MetaSummaryTemplateData` | `backgroundLore`, `summaryBlocks` (the summaries to merge, oldest first) |
-| Redraft system prompt and redraft prompt | `RedraftServiceImpl.createPayload` (an estimation render of both on a fork, then for real: the system prompt is the system message, the story before the part follows as the earlier messages, the redraft prompt is the last message) | `RedraftTemplateData` | `text` (the part), `redraftInstructions` (with the snippet of the setting *Make it shorter* / *Make it longer* after them when the author asked for another length: plain text, `ManuscriptService.getRedraftShorter` / `getRedraftLonger`, inherited from the folder and the user, `Defaults.DEFAULT_REDRAFT_SHORTER` / `_LONGER`), `previousStory` (only a note that the story follows as messages), `summaries`, `followingStory`, `backgroundLore` (stored on the part), `narrativePov`, `narrativeTense`, `style`, and the turn of the part: `povCharacter`, `sceneSetting`, `presentCharacters`, `instructions`, `annotations` (the open annotations of the part when the redraft is asked to deal with them), and for the redraft of a passage `selection`, `selectionBefore`, `selectionAfter` (all `null` for the whole part, so `{{#selection}}` tells the cases apart) |
+| Redraft system prompt and redraft prompt | `RedraftServiceImpl.createPayload` (an estimation render of both on a fork, then for real: the system prompt is the system message, the story before the part follows as the earlier messages, the redraft prompt is the last message) | `RedraftTemplateData` | `text` (the part), `redraftInstructions` (with the snippet of the setting *Make it shorter* / *Make it longer* after them when the author asked for another length: plain text, `ManuscriptService.getRedraftShorter` / `getRedraftLonger`, inherited from the folder and the user, `Defaults.redraftShorter()` / `redraftLonger()`), `previousStory` (only a note that the story follows as messages), `summaries`, `followingStory`, `backgroundLore` (stored on the part), `narrativePov`, `narrativeTense`, `style`, and the turn of the part: `povCharacter`, `sceneSetting`, `presentCharacters`, `instructions`, `annotations` (the open annotations of the part when the redraft is asked to deal with them), and for the redraft of a passage `selection`, `selectionBefore`, `selectionAfter` (all `null` for the whole part, so `{{#selection}}` tells the cases apart) |
 | Impersonate prompt | `ImpersonateServiceImpl.createPayload` (an estimation render on a fork, then for real) | `ImpersonateTemplateData` | `impersonateInstructions` (the guidance of the author), `outline` (the plan a caller gives), `previousStory`, `summaries`, `backgroundLore` (stored on the last part), `instructionExamples` (the instructions of the last three parts that have some, oldest first), `narrativePov`, `narrativeTense`, `style`, `sceneSetting`, `povCharacter`, `presentCharacters` (of the request, else of the last part) |
 | Annotate system prompt and annotate prompt | `AnnotateServiceImpl.createPayload` (as the redraft) | `AnnotateTemplateData` | the variables of the redraft prompts with `annotateInstructions` instead of `redraftInstructions`, `annotations` (the open ones the part has), `facts` (what extensions know about the story at the part, from the `AnnotationFactsRegistry`, see [Facts for the annotation](plugins/annotation-facts.md); empty without a provider) and `outputFormat` (the description of the answer of the mode; the service writes it, a prompt of the author has to print it) |
 | Title page and front matter of an export | `ExporterBase` (the title page of every format that has one, `DEFAULT_EXPORT_HEADER_TEMPLATE`, and the YAML block of *Markdown with front matter* and the Obsidian vault, `DEFAULT_EXPORT_FRONT_MATTER_TEMPLATE`; the text is the text of the book, a folder above it, the user's own from *Settings → Exports* or the default, see [Services](services.md)) | `ExportHeaderTemplateData` / `ExportFrontMatterTemplateData` | the title page: `title`, `author`; the front matter: `title`, `author`, `language` and `exportDate`. Not part of a generation: no context, no macros of the story |

@@ -57,7 +57,7 @@ class SettingsInheritanceTest extends MarginaliaTestBase {
     void aBookWithoutAnythingUsesTheDefault() throws Exception {
         EffectiveSetting<String> style = manuscriptService.resolve(book(null), PromptField.STYLE);
 
-        assertThat(style.value()).isEqualTo(Defaults.DEFAULT_STYLE);
+        assertThat(style.value()).isEqualTo(new Defaults().style());
         assertThat(style.origin()).isEqualTo(Origin.DEFAULT);
         assertThat(style.folder()).isNull();
         assertThat(style.isCustom()).isFalse();
@@ -110,7 +110,7 @@ class SettingsInheritanceTest extends MarginaliaTestBase {
         assertThat(manuscriptService.resolve(nested, PromptField.POV).folder().getName()).isEqualTo("Sci-fi");
         assertThat(manuscriptService.getPov(nested)).isEqualTo("First person");
         // not set anywhere
-        assertThat(manuscriptService.getTense(nested)).isEqualTo(Defaults.DEFAULT_TENSE);
+        assertThat(manuscriptService.getTense(nested)).isEqualTo(new Defaults().tense());
     }
 
     @Test
@@ -130,14 +130,14 @@ class SettingsInheritanceTest extends MarginaliaTestBase {
     @Test
     void aChangeOfAFolderOrOfTheFolderOfTheBookIsSeenAtOnce() throws Exception {
         Manuscript nested = book(expanse);
-        assertThat(manuscriptService.getStyle(nested)).isEqualTo(Defaults.DEFAULT_STYLE);
+        assertThat(manuscriptService.getStyle(nested)).isEqualTo(new Defaults().style());
 
         change(scifi, folder -> folder.setStyle("hard science fiction"));
         assertThat(manuscriptService.getStyle(nested)).isEqualTo("hard science fiction");
 
         manuscriptService.moveToFolder(List.of(nested), null);
         Manuscript moved = manuscriptService.find(nested.getId());
-        assertThat(manuscriptService.getStyle(moved)).isEqualTo(Defaults.DEFAULT_STYLE);
+        assertThat(manuscriptService.getStyle(moved)).isEqualTo(new Defaults().style());
     }
 
     @Test
@@ -147,7 +147,7 @@ class SettingsInheritanceTest extends MarginaliaTestBase {
         // the book is left pointing at it (a cleanup race), the settings of a deleted folder are not applied
         folderService.delete(expanse, false);
 
-        assertThat(manuscriptService.getStyle(manuscriptService.find(nested.getId()))).isEqualTo(Defaults.DEFAULT_STYLE);
+        assertThat(manuscriptService.getStyle(manuscriptService.find(nested.getId()))).isEqualTo(new Defaults().style());
     }
 
     @Test

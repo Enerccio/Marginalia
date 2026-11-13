@@ -359,8 +359,8 @@ class AgentServiceTest extends AgentTestBase {
             loginAgentUser();
             Agent agent = agent();
             assertThat(agent.getSystemPrompt()).isBlank();
-            assertThat(agentService.getSystemPrompt(agent)).as("nothing set").isEqualTo(Defaults.DEFAULT_AGENT_PROMPT);
-            assertThat(agentService.getDefaultSystemPrompt()).isEqualTo(Defaults.DEFAULT_AGENT_PROMPT);
+            assertThat(agentService.getSystemPrompt(agent)).as("nothing set").isEqualTo(new Defaults().agentPrompt());
+            assertThat(agentService.getDefaultSystemPrompt()).isEqualTo(new Defaults().agentPrompt());
 
             loginAdmin();
             agentService.setAppSystemPrompt("The application's prompt");
@@ -444,7 +444,7 @@ class AgentServiceTest extends AgentTestBase {
             settingService.save(setting);
             assertThat(other.getId()).isNotEqualTo(agent.getOwner().getId());
 
-            assertThat(agentService.getSystemPrompt(agent)).isEqualTo(Defaults.DEFAULT_AGENT_PROMPT);
+            assertThat(agentService.getSystemPrompt(agent)).isEqualTo(new Defaults().agentPrompt());
         } finally {
             clearApplicationPrompt();
         }
@@ -464,7 +464,7 @@ class AgentServiceTest extends AgentTestBase {
             assertThat(agentService.getAppSystemPrompt()).isEqualTo("The application's prompt");
             agentService.setAppSystemPrompt("  ");
             assertThat(agentService.getAppSystemPrompt()).as("blank removes it").isEmpty();
-            assertThat(agentService.getAppDefaultSystemPrompt()).isEqualTo(Defaults.DEFAULT_AGENT_PROMPT);
+            assertThat(agentService.getAppDefaultSystemPrompt()).isEqualTo(new Defaults().agentPrompt());
         } finally {
             clearApplicationPrompt();
         }
@@ -513,8 +513,8 @@ class AgentServiceTest extends AgentTestBase {
         try {
             loginAgentUser();
             Agent agent = agent();
-            assertThat(agentService.getCompactionPrompt(agent)).isEqualTo(Defaults.DEFAULT_AGENT_COMPACTION_PROMPT);
-            assertThat(agentService.getDefaultCompactionPrompt()).isEqualTo(Defaults.DEFAULT_AGENT_COMPACTION_PROMPT);
+            assertThat(agentService.getCompactionPrompt(agent)).isEqualTo(new Defaults().agentCompactionPrompt());
+            assertThat(agentService.getDefaultCompactionPrompt()).isEqualTo(new Defaults().agentCompactionPrompt());
 
             loginAdmin();
             agentService.setAppCompactionPrompt("The application's compaction");

@@ -535,7 +535,8 @@ Everything is in `<user.home>/.marginalia/` (see also [The data folder](../user/
 All UI texts are looked up through the `Localization` bean by an `L` key (`loc.getValue(L.LABEL_SAVE)`). The bean
 (`LocalizationImpl`) holds one `LocalizationBundle` per `Language`: the texts of every key, the `Locale` and the date
 formats of that language, and the name shown in the language selector. The application ships `LocalizationBundleEN`
-(the default language, which has to be complete - the application doesn't start otherwise) and `LocalizationBundleJP`;
+(the default language, which has to be complete - the application doesn't start otherwise), `LocalizationBundleJP`,
+`LocalizationBundleFR`, `LocalizationBundleES` and `LocalizationBundleDE`;
 they are listed in the `localization` bean in `container-config.xml`. Texts of template variables and macros (the
 hints shown next to prompt fields) are localized the same way.
 
@@ -544,6 +545,9 @@ flowchart LR
     SP["SessionPoint<br/>(session scoped)<br/>language"] -->|current language| Loc["LocalizationImpl<br/>getValue(L)"]
     Loc --> B1["LocalizationBundleEN"]
     Loc --> B2["LocalizationBundleJP"]
+    Loc --> B4["LocalizationBundleFR"]
+    Loc --> B5["LocalizationBundleES"]
+    Loc --> B6["LocalizationBundleDE"]
     Loc --> B3["bundles of extensions"]
     US["UserSetting.language"] -->|"Main, when the workspace opens"| SP
     LS["LanguageSelector"] -->|saves, then reloads the user's pages| US
@@ -566,3 +570,9 @@ flowchart LR
 - **Adding a language to the application.** Copy `LocalizationBundleEN`, translate, add the class as a bean to the
   `bundles` list of `localization`. `BundleCompletenessTest` checks that a bundle has every key and the same
   `%s`/`%d` placeholders as the English text.
+- **The language of the prompts** is a second, independent choice: `UserSetting.promptLanguage`, copied into
+  `SessionPoint.promptLanguage` at the login and when the user saves the settings (in an agent run the language of the agent).
+  `Localization.getDefaults()` returns the built-in prompts (`Defaults`, `DefaultsJA`, `DefaultsFR`, `DefaultsES`, `DefaultsDE`, `DefaultsIT`, `DefaultsKO`, and those extensions register, such as
+  `DefaultsZH` of the Chinese localization) of that language,
+  English without a session; the plugins pick theirs with `PluginLocalizationBundle.forPromptLanguage`. See
+  [Templating](templating.md#the-built-in-prompts-and-their-languages).

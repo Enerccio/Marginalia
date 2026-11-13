@@ -16,9 +16,9 @@ import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.security.permissions.PermissionType;
 import com.github.enerccio.marginalia.domain.security.service.PermissionService;
 import com.github.enerccio.marginalia.domain.service.*;
-import com.github.enerccio.marginalia.domain.service.run.Runs;
 import com.github.enerccio.marginalia.domain.service.BackupService.BackupStrategy;
 import com.github.enerccio.marginalia.domain.service.agent.UuidPair;
+import com.github.enerccio.marginalia.domain.service.run.Runs;
 import com.github.enerccio.marginalia.domain.service.search.ManuscriptFilterValues;
 import com.github.enerccio.marginalia.domain.service.search.ManuscriptSearchCriteria;
 import com.github.enerccio.marginalia.domain.service.search.Sorter;
@@ -28,6 +28,7 @@ import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
 import com.github.enerccio.marginalia.extensions.InheritedSetting;
 import com.github.enerccio.marginalia.extensions.InheritedSettingRegistry;
 import com.github.enerccio.marginalia.extensions.InheritedSettingValues;
+import com.github.enerccio.marginalia.loc.Localization;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -54,6 +55,9 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
         return value != null && value.isJsonPrimitive() ? value.getAsString() : null;
     }
 
+
+    @Autowired
+    private Localization loc;
 
     @Autowired
     private SettingService settingService;
@@ -361,7 +365,7 @@ public class ManuscriptServiceImpl extends ExtendableServiceImpl<Manuscript, Man
         if (StringUtils.isNotBlank(fromUser)) {
             return new EffectiveSetting<>(fromUser, EffectiveSetting.Origin.USER, null);
         }
-        return new EffectiveSetting<>(field.fallback(), EffectiveSetting.Origin.DEFAULT, null);
+        return new EffectiveSetting<>(field.fallback(loc.getDefaults()), EffectiveSetting.Origin.DEFAULT, null);
     }
 
     @Override

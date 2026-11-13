@@ -190,7 +190,7 @@ class AgentSubagentsTest extends AgentTestBase {
         List<MockLLMRequest> subRequests = llm.getCompletionRequests().stream().filter(AgentSubagentsTest::isSub).toList();
         // five rounds of calls and the one without tools
         assertThat(subRequests).hasSize(Defaults.AGENT_REPEAT_STOP_AFTER + 1);
-        assertThat(subRequests.getLast().getMessages("user")).contains(Defaults.AGENT_REPEATING_NO_TOOLS);
+        assertThat(subRequests.getLast().getMessages("user")).contains(new Defaults().agentRepeatingNoTools());
         String result = messageService.transcript(run).stream().filter(message -> message.getRole() == LLMRole.TOOL).findFirst().orElseThrow().getContent();
         assertThat(result).contains("was stopped because it repeated").contains("I could not get past the book info.");
     }

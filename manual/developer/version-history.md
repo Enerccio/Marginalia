@@ -165,7 +165,7 @@ render.
 **The export.** `ExportOptions.authorship` (`withAuthorship`) is set by the `ExportDialog` (check box *Include authorship statement*, shown
 for exporters with `usesAuthorship()`, which `ExporterBase` returns true for) to the `BookAuthorship` of the exported range of the stored
 parts, computed before `ExportTextRegistry` changes the texts. `ExporterBase.export` ends with `writer.message(buildAuthorship(options), null)`:
-the Markdown of the `AUTHORSHIP_TEMPLATE` (`Defaults.DEFAULT_EXPORT_AUTHORSHIP_TEMPLATE`, the values of `ExportAuthorshipTemplateData`),
+the Markdown of the `AUTHORSHIP_TEMPLATE` (`ExporterBase.DEFAULT_EXPORT_AUTHORSHIP_TEMPLATE`, the values of `ExportAuthorshipTemplateData`),
 a template of the export settings like the title page.
 
 ## The limit and the pruning

@@ -413,8 +413,10 @@ public class InstructionExporterLocalization extends PluginLocalizationBundle {
     protected void loadKeys() {
         ja(EXPORT_INSTRUCTIONS, "指示をエクスポート");
         zh(EXPORT_INSTRUCTIONS, "导出指令");
+        fr(EXPORT_INSTRUCTIONS, "Exporter les instructions");
         ja(FAILED_TO_EXPORT, "エクスポートに失敗しました: %s");
         zh(FAILED_TO_EXPORT, "导出失败：%s");
+        fr(FAILED_TO_EXPORT, "Échec de l'export : %s");
     }
 }
 ```
@@ -427,12 +429,12 @@ Notification.show(T.localized(FAILED_TO_EXPORT).formatted(e.getMessage()));
 ```
 
 - The English text is a constant named after its words (`EXPORT_INSTRUCTIONS`), declared in the bundle class; the
-  Japanese and Chinese translations are plain literals in `loadKeys`, the only place they appear. A call site passes
+  Japanese, Chinese, French, Spanish and German translations are plain literals in `loadKeys`, the only place they appear. A call site passes
   the constant and never a literal. Import the constants with a static wildcard import, and mind a constant whose name
   is also a type or a field of the class that uses it (`AI`, `SCENE`): the type or the field is hidden, or the field
   wins, so give the constant another name or qualify it with the bundle class.
 
-- `ja` and `zh` are shortcuts for `add(Language, message, translation)`; add other languages the same way (the language
+- `ja`, `zh`, `fr` and `es` are shortcuts for `add(Language, message, translation)`; add other languages the same way (the language
   needs a bundle in `Localization`, see the [Chinese localization](example.md#walkthrough-chinese-localization)).
 - A text with values has the `String.format` placeholders in the key (`%s`, `%d`) and the values are put in with
   `formatted(...)`. When a language needs another order, number the placeholders in the key and in the translation
@@ -444,9 +446,45 @@ Notification.show(T.localized(FAILED_TO_EXPORT).formatted(e.getMessage()));
 - Without a session (startup, a worker thread that got no request attributes) the default language is used, so the
   title that a plugin registers in `onExtensionLoad` (`ToolService.registerProvider(..., "Name provider", ...)`) stays in
   English; the same holds for annotation values (`@CommandParameter(descriptionText = ...)`), which must be constants.
-- Texts for the model (prompts, the descriptions of functions and commands, the error messages of commands) stay in
-  English; only what the user reads is translated.
+- Texts for the model (the descriptions of functions and commands, the error messages of commands) stay in English. The
+  built-in **prompts** follow the prompt language of the user instead, see below.
 - For words the application has a key for (`L.LABEL_CANCEL`) the plugin can use `loc.getValue(...)` instead.
+
+#### Built-in prompts in the prompt language
+
+The prompts of a plugin follow the user's **Prompt language** (`UserSetting.promptLanguage`, `Localization.getPromptLanguage()`),
+not the language of the interface, and they are whole templates, not sentences. So a plugin keeps them as the application keeps
+its own (`Defaults`, see [Templating](../templating.md#the-built-in-prompts-and-their-languages)): a class with one method per
+prompt in English, and a subclass per translation that overrides every method. The bundle picks one with
+`forPromptLanguage(english, translations)` (`getPromptLanguage()` says which):
+
+```java
+public class LoreGeneratorLocalization extends PluginLocalizationBundle {
+
+    public static final LoreGeneratorLocalization T = new LoreGeneratorLocalization();
+
+    private final Defaults englishDefaults = new Defaults();
+    private final Map<Language, Defaults> translatedDefaults = Map.of(JA, new DefaultsJA(), ZH, new DefaultsZH(), FR, new DefaultsFR(),
+            ES, new DefaultsES(), DE, new DefaultsDE(), IT, new DefaultsIT(), KO, new DefaultsKO());
+
+    public Defaults defaults() {
+        return forPromptLanguage(englishDefaults, translatedDefaults);
+    }
+    ...
+}
+
+String prompt = StringUtils.defaultIfBlank(settings.getCompactionPrompt(), T.defaults().compactionPrompt());
+```
+
+- The keys are the constants of `PluginLocalizationBundle` (`JA`, `ZH`, `FR`, `ES`, and `DE`, `IT`, `KO`, which are prompt
+  languages only: the interface has no bundle for them). A language the map lacks gets the English prompts.
+- Ask `T.defaults()` when the prompt is used (the fallback supplier of an `InheritedSetting`, the placeholder of a field, the
+  request), never keep the text in a static constant: it is the language of the session that asks.
+- A translation keeps every Handlebars tag and `String.format` placeholder, and every name the code relies on: the JSON fields
+  the answer is parsed by and their values, markers the plugin writes into the request (`<<< WRITE THE CHAPTERS FOR THIS ARC`),
+  the names of tools and of the blocks of the request. The bundled plugins check it in a `...DefaultsTranslationTest`.
+- Arc Outline, Audiobook, Beta Readers, Book Description Generator, Knowledge Tracker, Lore Generator, Manga Generator and the
+  SillyTavern Converter do this.
 
 ### Telling the help assistant about your UI
 

@@ -22,35 +22,51 @@ class DefaultTemplatesTest extends TemplateTestBase {
 
     @Test
     void defaultsAreValid() throws Exception {
-        for (String template : new String[]{Defaults.DEFAULT_MASTER_TEMPLATE, Defaults.DEFAULT_USER_PROMPT,
-                Defaults.DEFAULT_SUMMARY_PROMPT, Defaults.DEFAULT_META_SUMMARY, Defaults.DEFAULT_REDRAFT_PROMPT, Defaults.DEFAULT_ANNOTATE_PROMPT}) {
+        for (String template : new String[]{new Defaults().masterTemplate(), new Defaults().userPrompt(),
+                new Defaults().summaryPrompt(), new Defaults().metaSummaryPrompt(), new Defaults().redraftPrompt(), new Defaults().annotatePrompt()}) {
             assertThat(templateService.isValidTemplate(template, "default").isValid()).isTrue();
         }
-        assertThat(templateService.isValidTemplate(Defaults.DEFAULT_MASTER_TEMPLATE, "default", MasterTemplateData.class).unknownNames()).isEmpty();
-        assertThat(templateService.isValidTemplate(Defaults.DEFAULT_USER_PROMPT, "default", UserPromptData.class).unknownNames()).isEmpty();
-        assertThat(templateService.isValidTemplate(Defaults.DEFAULT_SUMMARY_PROMPT, "default", SummaryTemplateData.class).unknownNames()).isEmpty();
-        assertThat(templateService.isValidTemplate(Defaults.DEFAULT_META_SUMMARY, "default", MetaSummaryTemplateData.class).unknownNames()).isEmpty();
-        assertThat(templateService.isValidTemplate(Defaults.DEFAULT_REDRAFT_PROMPT, "default", RedraftTemplateData.class).unknownNames()).isEmpty();
-        assertThat(templateService.isValidTemplate(Defaults.DEFAULT_ANNOTATE_PROMPT, "default", AnnotateTemplateData.class).unknownNames()).isEmpty();
+        assertThat(templateService.isValidTemplate(new Defaults().masterTemplate(), "default", MasterTemplateData.class).unknownNames()).isEmpty();
+        assertThat(templateService.isValidTemplate(new Defaults().userPrompt(), "default", UserPromptData.class).unknownNames()).isEmpty();
+        assertThat(templateService.isValidTemplate(new Defaults().summaryPrompt(), "default", SummaryTemplateData.class).unknownNames()).isEmpty();
+        assertThat(templateService.isValidTemplate(new Defaults().metaSummaryPrompt(), "default", MetaSummaryTemplateData.class).unknownNames()).isEmpty();
+        assertThat(templateService.isValidTemplate(new Defaults().redraftPrompt(), "default", RedraftTemplateData.class).unknownNames()).isEmpty();
+        assertThat(templateService.isValidTemplate(new Defaults().annotatePrompt(), "default", AnnotateTemplateData.class).unknownNames()).isEmpty();
+    }
+
+    @Test
+    void translatedDefaultsAreValid() throws Exception {
+        for (Defaults defaults : Defaults.builtIn()) {
+            String language = defaults.getLanguage().code();
+            assertThat(templateService.isValidTemplate(defaults.masterTemplate(), language, MasterTemplateData.class).unknownNames()).isEmpty();
+            assertThat(templateService.isValidTemplate(defaults.userPrompt(), language, UserPromptData.class).unknownNames()).isEmpty();
+            assertThat(templateService.isValidTemplate(defaults.summaryPrompt(), language, SummaryTemplateData.class).unknownNames()).isEmpty();
+            assertThat(templateService.isValidTemplate(defaults.metaSummaryPrompt(), language, MetaSummaryTemplateData.class).unknownNames()).isEmpty();
+            assertThat(templateService.isValidTemplate(defaults.redraftSystemPrompt(), language, RedraftTemplateData.class).unknownNames()).isEmpty();
+            assertThat(templateService.isValidTemplate(defaults.redraftPrompt(), language, RedraftTemplateData.class).unknownNames()).isEmpty();
+            assertThat(templateService.isValidTemplate(defaults.annotateSystemPrompt(), language, AnnotateTemplateData.class).unknownNames()).isEmpty();
+            assertThat(templateService.isValidTemplate(defaults.annotatePrompt(), language, AnnotateTemplateData.class).unknownNames()).isEmpty();
+            assertThat(templateService.isValidTemplate(defaults.impersonatePrompt(), language, ImpersonateTemplateData.class).unknownNames()).isEmpty();
+        }
     }
 
     @Test
     void masterTemplateWithAllSections() throws Exception {
         MasterTemplateData master = withContext(new MasterTemplateData(), true);
         master.setBackgroundLore("Dragons exist.");
-        master.setNarrativePov(Defaults.DEFAULT_POV);
-        master.setNarrativeTense(Defaults.DEFAULT_TENSE);
-        master.setStyle(Defaults.DEFAULT_STYLE);
+        master.setNarrativePov(new Defaults().pov());
+        master.setNarrativeTense(new Defaults().tense());
+        master.setStyle(new Defaults().style());
         master.setSummaries("Chapter one happened.");
 
-        String output = render(Defaults.DEFAULT_MASTER_TEMPLATE, master);
+        String output = render(new Defaults().masterTemplate(), master);
 
         assertClean(output);
         assertThat(output)
                 .contains("===== WORLD & LORE CONTEXT =====\nDragons exist.")
                 .contains("Narrative Voice: Third-Person Limited")
                 .contains("Tense: Past Tense")
-                .contains("Style & Tone Guidelines:\n" + Defaults.DEFAULT_STYLE)
+                .contains("Style & Tone Guidelines:\n" + new Defaults().style())
                 .contains("===== SUMMARY OF STORY SO FAR =====\nChapter one happened.");
     }
 
@@ -58,7 +74,7 @@ class DefaultTemplatesTest extends TemplateTestBase {
     void masterTemplateOmitsEmptySections() throws Exception {
         MasterTemplateData master = withContext(new MasterTemplateData(), false);
 
-        String output = render(Defaults.DEFAULT_MASTER_TEMPLATE, master);
+        String output = render(new Defaults().masterTemplate(), master);
 
         assertClean(output);
         assertThat(output).contains("===== SYSTEM ROLE =====")
@@ -72,7 +88,7 @@ class DefaultTemplatesTest extends TemplateTestBase {
         // MasterTemplateData without explicit style uses the generation context
         MasterTemplateData master = withContext(new MasterTemplateData(), true);
 
-        String output = render(Defaults.DEFAULT_MASTER_TEMPLATE, master);
+        String output = render(new Defaults().masterTemplate(), master);
 
         assertThat(output).contains("Narrative Voice: Third-Person Limited").contains("Style & Tone Guidelines:\nNoir");
     }
@@ -85,7 +101,7 @@ class DefaultTemplatesTest extends TemplateTestBase {
         prompt.setPresentCharacters("Bob");
         prompt.setInstructions("Alice & Bob talk about \"cargo\"");
 
-        String output = render(Defaults.DEFAULT_USER_PROMPT, prompt);
+        String output = render(new Defaults().userPrompt(), prompt);
 
         assertClean(output);
         assertThat(output)
@@ -99,7 +115,7 @@ class DefaultTemplatesTest extends TemplateTestBase {
     void userPromptWithoutInput() throws Exception {
         UserPromptData prompt = withContext(new UserPromptData(), false);
 
-        String output = render(Defaults.DEFAULT_USER_PROMPT, prompt);
+        String output = render(new Defaults().userPrompt(), prompt);
 
         assertClean(output);
         assertThat(output).doesNotContain("Point of View Character").doesNotContain("Plot Specifications")
@@ -112,7 +128,7 @@ class DefaultTemplatesTest extends TemplateTestBase {
         summary.setBackgroundLore("Dragons exist.");
         summary.setText("Alice walked to the harbour.");
 
-        String output = render(Defaults.DEFAULT_SUMMARY_PROMPT, summary);
+        String output = render(new Defaults().summaryPrompt(), summary);
 
         assertClean(output);
         assertThat(output).contains("=== BACKGROUND LORE ARCHIVE START ===\nDragons exist.")
@@ -124,7 +140,7 @@ class DefaultTemplatesTest extends TemplateTestBase {
         SummaryTemplateData summary = withContext(new SummaryTemplateData(), false);
         summary.setText("Alice walked to the harbour.");
 
-        String output = render(Defaults.DEFAULT_SUMMARY_PROMPT, summary);
+        String output = render(new Defaults().summaryPrompt(), summary);
 
         assertClean(output);
         assertThat(output).doesNotContain("BACKGROUND LORE ARCHIVE START").contains("Alice walked to the harbour.");
@@ -136,7 +152,7 @@ class DefaultTemplatesTest extends TemplateTestBase {
         meta.setBackgroundLore("Dragons exist.");
         meta.setSummaryBlocks("First ledger.\n\nSecond ledger.");
 
-        String output = render(Defaults.DEFAULT_META_SUMMARY, meta);
+        String output = render(new Defaults().metaSummaryPrompt(), meta);
 
         assertClean(output);
         assertThat(output).contains("=== BACKGROUND LORE ARCHIVE START ===\nDragons exist.")
@@ -148,7 +164,7 @@ class DefaultTemplatesTest extends TemplateTestBase {
         MetaSummaryTemplateData meta = withContext(new MetaSummaryTemplateData(), false);
         meta.setSummaryBlocks("First ledger.");
 
-        String output = render(Defaults.DEFAULT_META_SUMMARY, meta);
+        String output = render(new Defaults().metaSummaryPrompt(), meta);
 
         assertClean(output);
         assertThat(output).doesNotContain("BACKGROUND LORE ARCHIVE START").contains("First ledger.");
@@ -158,7 +174,7 @@ class DefaultTemplatesTest extends TemplateTestBase {
     void redraftPromptWithAllSections() throws Exception {
         RedraftTemplateData redraft = withContext(new RedraftTemplateData(), true);
         redraft.setBackgroundLore("Dragons exist.");
-        redraft.setNarrativePov(Defaults.DEFAULT_POV);
+        redraft.setNarrativePov(new Defaults().pov());
         redraft.setSummaries("Chapter one happened.");
         redraft.setPreviousStory("Alice sailed.");
         redraft.setFollowingStory("Bob waited.");
@@ -166,7 +182,7 @@ class DefaultTemplatesTest extends TemplateTestBase {
         redraft.setText("Alice walked to the harbour.");
         redraft.setRedraftInstructions("Add more dialogue.");
 
-        String output = render(Defaults.DEFAULT_REDRAFT_SYSTEM_PROMPT, redraft) + render(Defaults.DEFAULT_REDRAFT_PROMPT, redraft);
+        String output = render(new Defaults().redraftSystemPrompt(), redraft) + render(new Defaults().redraftPrompt(), redraft);
 
         assertClean(output);
         assertThat(output).contains("Narrative Voice: Third-Person Limited")
@@ -184,7 +200,7 @@ class DefaultTemplatesTest extends TemplateTestBase {
         RedraftTemplateData redraft = withContext(new RedraftTemplateData(), false);
         redraft.setText("Alice walked to the harbour.");
 
-        String output = render(Defaults.DEFAULT_REDRAFT_SYSTEM_PROMPT, redraft) + render(Defaults.DEFAULT_REDRAFT_PROMPT, redraft);
+        String output = render(new Defaults().redraftSystemPrompt(), redraft) + render(new Defaults().redraftPrompt(), redraft);
 
         assertClean(output);
         assertThat(output).doesNotContain("BACKGROUND LORE START").doesNotContain("SUMMARY OF THE STORY")
@@ -199,7 +215,7 @@ class DefaultTemplatesTest extends TemplateTestBase {
         redraft.setText("Alice walked to the harbour.");
         redraft.setAnnotations("- \"walked\": too slow\n- (the whole part): no weather");
 
-        String output = render(Defaults.DEFAULT_REDRAFT_SYSTEM_PROMPT, redraft) + render(Defaults.DEFAULT_REDRAFT_PROMPT, redraft);
+        String output = render(new Defaults().redraftSystemPrompt(), redraft) + render(new Defaults().redraftPrompt(), redraft);
 
         assertClean(output);
         assertThat(output).contains("=== AUTHOR'S NOTES ON PASSAGES OF THE PART START ===\n- \"walked\": too slow")
@@ -220,7 +236,7 @@ class DefaultTemplatesTest extends TemplateTestBase {
         annotate.setAnnotateInstructions("Flag continuity errors.");
         annotate.setOutputFormat("### OUTPUT FORMAT\nJSON please.");
 
-        String output = render(Defaults.DEFAULT_ANNOTATE_SYSTEM_PROMPT, annotate) + render(Defaults.DEFAULT_ANNOTATE_PROMPT, annotate);
+        String output = render(new Defaults().annotateSystemPrompt(), annotate) + render(new Defaults().annotatePrompt(), annotate);
 
         assertClean(output);
         assertThat(output).contains("=== BACKGROUND LORE START ===\nDragons exist.")
@@ -237,7 +253,7 @@ class DefaultTemplatesTest extends TemplateTestBase {
         AnnotateTemplateData annotate = withContext(new AnnotateTemplateData(), false);
         annotate.setText("Alice walked to the harbour.");
 
-        String output = render(Defaults.DEFAULT_ANNOTATE_SYSTEM_PROMPT, annotate) + render(Defaults.DEFAULT_ANNOTATE_PROMPT, annotate);
+        String output = render(new Defaults().annotateSystemPrompt(), annotate) + render(new Defaults().annotatePrompt(), annotate);
 
         assertClean(output);
         assertThat(output).doesNotContain("=== EXISTING NOTES START").doesNotContain("BACKGROUND LORE START").doesNotContain("STORY AFTER THE PART")
@@ -256,7 +272,7 @@ class DefaultTemplatesTest extends TemplateTestBase {
         impersonate.setOutline("Chapter 2: the siege");
         impersonate.setImpersonateInstructions("She confronts him.");
 
-        String output = render(Defaults.DEFAULT_IMPERSONATE_PROMPT, impersonate);
+        String output = render(new Defaults().impersonatePrompt(), impersonate);
 
         assertClean(output);
         assertThat(output).contains("=== BACKGROUND LORE START ===\nDragons exist.")
@@ -274,7 +290,7 @@ class DefaultTemplatesTest extends TemplateTestBase {
         ImpersonateTemplateData impersonate = withContext(new ImpersonateTemplateData(), false);
         impersonate.setPreviousStory("Alice sailed.");
 
-        String output = render(Defaults.DEFAULT_IMPERSONATE_PROMPT, impersonate);
+        String output = render(new Defaults().impersonatePrompt(), impersonate);
 
         assertClean(output);
         assertThat(output).doesNotContain("BACKGROUND LORE START").doesNotContain("SUMMARY OF THE STORY START")

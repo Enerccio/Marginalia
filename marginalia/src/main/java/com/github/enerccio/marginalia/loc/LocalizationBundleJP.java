@@ -1092,6 +1092,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.LABEL_MENTIONED_IN, "言及元：");
         setValue(L.LABEL_SEND_LORE_IMAGES, "ロア画像を送る");
         setValue(L.LABEL_LORE_IMAGES_IN_SYSTEM, "画像をシステムメッセージに入れる");
+        setValue(L.LABEL_PROMPT_LANGUAGE, "プロンプトの言語");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI 互換");
@@ -2021,6 +2022,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.HELP_ENTRY_LINKS, "本文中の別の項目の名前またはキーワードを Ctrl+クリック（Mac では Cmd+クリック）するとその項目を開きます。Shift も押すと新しいタブで開きます。ここに並ぶのは本文でこの項目に触れている項目です。クリックで開き、Shift+クリックで新しいタブに開きます。");
         setValue(L.HELP_SEND_LORE_IMAGES, "そのターンで使われるロアブック項目の本文中の画像を、ロアと一緒に送ります。画像を受け付けるモデル専用です。画像に対応していないモデルはリクエストを拒否します。");
         setValue(L.HELP_LORE_IMAGES_IN_SYSTEM, "ロアブロックの画像を、後に続く専用のメッセージではなくシステムメッセージ自体に入れます。システムメッセージで画像を受け付けるサーバーとチャットテンプレート専用です。多くは対応していません。");
+        setValue(L.HELP_PROMPT_LANGUAGE, "組み込みプロンプト（生成、要約、書き直し、注釈、代筆、エージェント）とプラグインのプロンプトの言語です。自分で書いたプロンプトはそのまま使われます。インターフェースの言語は別に設定します。");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "背景設定と世界観の文脈。");
@@ -2453,6 +2455,7 @@ public class LocalizationBundleJP extends LocalizationBundleBase {
         setValue(L.DESC_TEMPLATE_EXPORT_WRITTEN_PERCENT, "著者が書いた単語の割合（パーセント、整数）。");
         setValue(L.DESC_TEMPLATE_EXPORT_GENERATED_PERCENT, "モデルが生成した単語の割合（パーセント、整数）。");
         setValue(L.DESC_TEMPLATE_EXPORT_MODELS, "本のテキストを生成したモデル（カンマ区切り。ない場合は空）。");
+        setValue(L.DESC_AGENT_IMAGES_ARGUMENT, "ワークスペースにある画像ファイル（PNG、JPEG、GIF、WebP。ユーザーがアップロードします）のパスのリスト、最大 %d 個。コマンドのモデルが画像を見ます。モデルが画像に対応している必要があります。");
     }
 
     @Override

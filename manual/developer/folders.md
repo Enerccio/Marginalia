@@ -59,11 +59,11 @@ the same work (see [the story layout](ui.md)).
 ## Resolving a setting
 
 A book's setting is the first non-blank of: **the book, the folders above it (nearest first), the `UserSetting`, the built-in
-default** (`Defaults`). The code is in three places:
+default** (`Defaults`, in the prompt language of the user). The code is in three places:
 
 - `PromptField` (`domain/service`) is an enum of the fifteen text settings (`MASTER_TEMPLATE`, `POV`, `TENSE`, `STYLE` and the
   eleven prompts, `ANNOTATE_INSTRUCTIONS`, `REDRAFT_SHORTER` and `REDRAFT_LONGER` among them). It holds the getters of each level (`ofBook`, `ofFolder`, `ofUser`), the setters (`setOfBook`, `setOfFolder`,
-  which store a blank as null) and the built-in `fallback()`. A new inheritable setting is a new constant here plus the field on
+  which store a blank as null) and the built-in `fallback(Defaults)` (the resolver passes `loc.getDefaults()`). A new inheritable setting is a new constant here plus the field on
   `Manuscript` and `Folder`, and nothing else in the resolver.
 - `EffectiveSetting<T>(value, origin, folder)` is what the resolver returns: the value, where it is set (`Origin` is `BOOK`,
   `FOLDER`, `USER` or `DEFAULT`) and the folder when it is `FOLDER`. `isCustom()` is true for the book and the folders.

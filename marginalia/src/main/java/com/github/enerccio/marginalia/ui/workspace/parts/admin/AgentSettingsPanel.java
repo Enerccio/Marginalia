@@ -1,7 +1,6 @@
 package com.github.enerccio.marginalia.ui.workspace.parts.admin;
 
 import com.github.enerccio.marginalia.CssStyles;
-import com.github.enerccio.marginalia.Defaults;
 import com.github.enerccio.marginalia.domain.service.AgentService;
 import com.github.enerccio.marginalia.domain.service.AgentWebhookService;
 import com.github.enerccio.marginalia.domain.traits.APILocals;
@@ -62,9 +61,9 @@ public class AgentSettingsPanel implements LLMInteract {
 
         promptField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_AGENT_DEFAULT_PROMPT));
         promptField.setWidthFull();
-        promptField.setPlaceholder(Defaults.DEFAULT_AGENT_PROMPT);
+        promptField.setPlaceholder(loc.getDefaults().agentPrompt());
         promptField.setPopoverContent(TemplateHints.create(loc, promptField, promptField.getPopover(), null,
-                Defaults.DEFAULT_AGENT_PROMPT));
+                loc.getDefaults().agentPrompt()));
         ResizableTextArea.install(loc, promptField, "240px");
 
         Span compactionDescription = new Span(loc.getValue(L.HELP_AGENT_DEFAULT_COMPACTION_PROMPT_APP));
@@ -72,9 +71,9 @@ public class AgentSettingsPanel implements LLMInteract {
 
         compactionField = new TextAreaPopoverComponent(loc.getValue(L.LABEL_AGENT_DEFAULT_COMPACTION_PROMPT));
         compactionField.setWidthFull();
-        compactionField.setPlaceholder(Defaults.DEFAULT_AGENT_COMPACTION_PROMPT);
+        compactionField.setPlaceholder(loc.getDefaults().agentCompactionPrompt());
         compactionField.setPopoverContent(TemplateHints.create(loc, compactionField, compactionField.getPopover(), null,
-                Defaults.DEFAULT_AGENT_COMPACTION_PROMPT));
+                loc.getDefaults().agentCompactionPrompt()));
         ResizableTextArea.install(loc, compactionField, "240px");
 
         webhooksAllowed = new Checkbox(loc.getValue(L.LABEL_AGENT_WEBHOOKS_ALLOWED));

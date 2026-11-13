@@ -14,7 +14,6 @@ import com.github.enerccio.marginalia.extensions.stconverter.model.ConverterData
 import com.github.enerccio.marginalia.extensions.stconverter.model.TurnItem;
 import com.github.enerccio.marginalia.extensions.stconverter.service.ConverterService;
 import com.github.enerccio.marginalia.extensions.stconverter.service.ConverterService.ModelSelection;
-import com.github.enerccio.marginalia.extensions.stconverter.service.Defaults;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes.InRequestScope;
@@ -1179,11 +1178,11 @@ public class ConverterView extends VerticalLayout {
         area.setValue(service.promptTemplate(data));
         area.setHelperText(T.localized(VARIABLES_BACKGROUNDLORE_CHAT));
         dialog.add(area);
-        Button defaults = new Button(T.localized(DEFAULT), e -> area.setValue(Defaults.PROMPT));
+        Button defaults = new Button(T.localized(DEFAULT), e -> area.setValue(T.defaults().prompt()));
         Button cancel = new Button(T.localized(CANCEL), e -> dialog.close());
         Button save = new Button(T.localized(SAVE), e -> {
             String value = area.getValue();
-            data.setPrompt(StringUtils.isBlank(value) || value.strip().equals(Defaults.PROMPT.strip()) ? null : value);
+            data.setPrompt(StringUtils.isBlank(value) || value.strip().equals(T.defaults().prompt().strip()) ? null : value);
             persist();
             baseTokens = null;
             updateTokenInfo();

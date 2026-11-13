@@ -197,7 +197,7 @@ An exporter lists the templates it renders in `Exporter.getTemplates()` (`Export
 
 The exporters for other tools (registered after the first six, all with an own `getId()` because their file extension is taken or too general): `Ao3HtmlExporter` (`ao3-html`: the text of every chapter between `BEGIN` / `END` comments for the HTML editor of AO3, a renderer with soft breaks as spaces and no line breaks between tags, no templates), `FrontMatterMarkdownExporter` (`markdown-front-matter`: extends `MarkdownExporter`, writes `ExporterBase.FRONT_MATTER_TEMPLATE` (`ExportFrontMatterTemplateData`: `title` and `author` escaped for double quotes, `language`, `exportDate`) instead of the title page), `SillyTavernExporter` (`sillytavern`: implements `Exporter` directly, JSON Lines of `ChatMessage.instructions` as the user's and `response` as the character's messages) and `ObsidianExporter` (`obsidian`: a ZIP of notes, `usesLore()`; the first mention of an entry name in a note becomes `[[path|mention]]`). `Exporter.usesLore()` (default `false`) makes the dialog fill `ExportOptions.lore` through `ExporterService.collectLore` on the UI thread.
 
-`ExporterBase` does the common work: it renders the title page from `Defaults.DEFAULT_EXPORT_HEADER_TEMPLATE`
+`ExporterBase` does the common work: it renders the title page from `ExporterBase.DEFAULT_EXPORT_HEADER_TEMPLATE`
 (Handlebars, data `ExportHeaderTemplateData`), skips parts without text, reports progress and feeds the Markdown of
 each part to an `ExportWriter` that the exporter creates per export - exporters are shared between users, so any state
 must live in the writer. A part whose text has a Markdown heading is a chapter (`chapterTitle`, the same rule as the

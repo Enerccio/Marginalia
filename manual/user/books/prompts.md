@@ -14,7 +14,7 @@ and the summary and redraft prompts. They decide the voice of the book far more 
 
 Every field is optional. An empty field is inherited: from the nearest [folder](folders.md) above the book that sets it, else
 from the default in **Settings → Templates** (see [Account & settings](../account.md)), and when that is empty too, the
-built-in default. The value it inherits is shown in grey in the empty field.
+built-in default, in the [prompt language](../account.md#prompt-language) of your settings. The value it inherits is shown in grey in the empty field.
 
 So set what all your books share in *Settings*, what a series shares in its folder, and only what is special to a book on its
 *Prompts* tab. Changes are saved as you type.

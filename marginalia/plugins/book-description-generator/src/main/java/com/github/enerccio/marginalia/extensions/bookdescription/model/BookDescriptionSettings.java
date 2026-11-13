@@ -8,9 +8,9 @@ public class BookDescriptionSettings {
 
     public static final String KEY = "com.github.enerccio.marginalia.extensions.bookdescription.settings";
 
-    /** The prompt for the name and the description, see {@code Defaults.DESCRIPTION_PROMPT}. */
+    /** The prompt for the name and the description, see {@code Defaults.descriptionPrompt()}. */
     private String descriptionPrompt;
-    /** The prompt for the notes of a part of a long story, see {@code Defaults.NOTES_PROMPT}. */
+    /** The prompt for the notes of a part of a long story, see {@code Defaults.notesPrompt()}. */
     private String notesPrompt;
     /** Whether the summaries of the story stand in for the messages they cover. */
     private boolean useSummaries = true;

@@ -9,7 +9,6 @@ import com.github.enerccio.marginalia.extensions.mangagenerator.model.Manga;
 import com.github.enerccio.marginalia.extensions.mangagenerator.model.MangaData;
 import com.github.enerccio.marginalia.extensions.mangagenerator.model.MangaSection;
 import com.github.enerccio.marginalia.extensions.mangagenerator.model.MangaSettings;
-import com.github.enerccio.marginalia.extensions.mangagenerator.service.Defaults;
 import com.github.enerccio.marginalia.extensions.mangagenerator.service.MangaService;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
@@ -213,9 +212,9 @@ public class MangaDialog extends Dialog {
         contextRight.setTooltipText(T.localized(PARTS_AFTER_THE_ADAPTED_ONES));
 
         Button scriptPrompt = new Button(T.localized(SCRIPT_PROMPT), e -> editMangaText(T.localized(SCRIPT_PROMPT),
-                current().getPromptOverride(), Defaults.DEFAULT_PROMPT, current()::setPromptOverride));
+                current().getPromptOverride(), T.defaults().prompt(), current()::setPromptOverride));
         Button tagsPrompt = new Button(T.localized(TAGS_PROMPT), e -> editMangaText(T.localized(TAGS_PROMPT),
-                current().getTagsPromptOverride(), Defaults.DEFAULT_TAGS_PROMPT, current()::setTagsPromptOverride));
+                current().getTagsPromptOverride(), T.defaults().tagsPrompt(), current()::setTagsPromptOverride));
         Button rules = new Button(T.localized(ADDITIONAL_RULES), e -> editMangaText(T.localized(ADDITIONAL_RULES),
                 current().getAdditionalRules(), "", current()::setAdditionalRules));
         rules.setTooltipText(T.localized(PUT_IN_PLACE_OF_ADDITIONALRULES));

@@ -1,6 +1,10 @@
 package com.github.enerccio.marginalia.extensions.knowledgetracker;
 
 import com.github.enerccio.marginalia.extensions.PluginLocalizationBundle;
+import com.github.enerccio.marginalia.extensions.knowledgetracker.extract.*;
+import com.github.enerccio.marginalia.loc.Language;
+
+import java.util.Map;
 
 /**
  * Texts of the Knowledge Tracker in the languages besides English; the English text is the key.
@@ -8,6 +12,18 @@ import com.github.enerccio.marginalia.extensions.PluginLocalizationBundle;
 public class KnowledgeTrackerLocalization extends PluginLocalizationBundle {
 
     public static final KnowledgeTrackerLocalization T = new KnowledgeTrackerLocalization();
+
+    // the built-in prompts of the plugin, one object per prompt language
+    private final KnowledgeTrackerDefaults englishDefaults = new KnowledgeTrackerDefaults();
+    private final Map<Language, KnowledgeTrackerDefaults> translatedDefaults = Map.of(JA, new KnowledgeTrackerDefaultsJA(), ZH, new KnowledgeTrackerDefaultsZH(), FR, new KnowledgeTrackerDefaultsFR(), ES, new KnowledgeTrackerDefaultsES(), DE, new KnowledgeTrackerDefaultsDE(),
+            IT, new KnowledgeTrackerDefaultsIT(), KO, new KnowledgeTrackerDefaultsKO());
+
+    /**
+     * The built-in prompts of the plugin in the prompt language of the user.
+     */
+    public KnowledgeTrackerDefaults defaults() {
+        return forPromptLanguage(englishDefaults, translatedDefaults);
+    }
 
     public static final String KNOWLEDGE = "Knowledge";
     public static final String TRACK_A_CHARACTER = "Track a character";
@@ -196,515 +212,1061 @@ public class KnowledgeTrackerLocalization extends PluginLocalizationBundle {
     protected void loadKeys() {
         ja(KNOWLEDGE, "知識");
         zh(KNOWLEDGE, "认知");
+        fr(KNOWLEDGE, "Connaissances");
+        es(KNOWLEDGE, "Conocimiento");
+        de(KNOWLEDGE, "Wissen");
 
         ja(TRACK_A_CHARACTER, "キャラクターを追跡");
         zh(TRACK_A_CHARACTER, "追踪角色");
+        fr(TRACK_A_CHARACTER, "Suivre un personnage");
+        es(TRACK_A_CHARACTER, "Seguir a un personaje");
+        de(TRACK_A_CHARACTER, "Eine Figur verfolgen");
 
         ja(NEW_TRACKED_CHARACTER, "新しい追跡キャラクター");
         zh(NEW_TRACKED_CHARACTER, "新的被追踪角色");
+        fr(NEW_TRACKED_CHARACTER, "Nouveau personnage suivi");
+        es(NEW_TRACKED_CHARACTER, "Nuevo personaje seguido");
+        de(NEW_TRACKED_CHARACTER, "Neue verfolgte Figur");
 
         ja(EDIT_TRACKED_CHARACTER, "追跡キャラクターを編集");
         zh(EDIT_TRACKED_CHARACTER, "编辑被追踪的角色");
+        fr(EDIT_TRACKED_CHARACTER, "Modifier le personnage suivi");
+        es(EDIT_TRACKED_CHARACTER, "Editar personaje seguido");
+        de(EDIT_TRACKED_CHARACTER, "Verfolgte Figur bearbeiten");
 
         ja(NAME, "名前");
         zh(NAME, "名称");
+        fr(NAME, "Nom");
+        es(NAME, "Nombre");
+        de(NAME, "Name");
 
         ja(ALIASES, "別名");
         zh(ALIASES, "别名");
+        fr(ALIASES, "Autres noms");
+        es(ALIASES, "Alias");
+        de(ALIASES, "Aliasnamen");
 
         ja(OTHER_NAMES_THE_CHARACTER_IS_WRITTEN, "「登場人物」欄でこのキャラクターが書かれる他の名前（カンマ区切り）");
         zh(OTHER_NAMES_THE_CHARACTER_IS_WRITTEN, "该角色在“在场角色”栏中的其他写法，用逗号分隔");
+        fr(OTHER_NAMES_THE_CHARACTER_IS_WRITTEN, "Autres noms sous lesquels le personnage est écrit dans le champ des personnages présents, séparés par des virgules");
+        es(OTHER_NAMES_THE_CHARACTER_IS_WRITTEN, "Otros nombres con los que se escribe el personaje en el campo de personajes presentes, separados por comas");
+        de(OTHER_NAMES_THE_CHARACTER_IS_WRITTEN, "Andere Namen, unter denen die Figur im Feld „Anwesende Figuren“ geschrieben wird, durch Kommas getrennt");
 
         ja(SAVE, "保存");
         zh(SAVE, "保存");
+        fr(SAVE, "Enregistrer");
+        es(SAVE, "Guardar");
+        de(SAVE, "Speichern");
 
         ja(CANCEL, "キャンセル");
         zh(CANCEL, "取消");
+        fr(CANCEL, "Annuler");
+        es(CANCEL, "Cancelar");
+        de(CANCEL, "Abbrechen");
 
         ja(EDIT, "編集");
         zh(EDIT, "编辑");
+        fr(EDIT, "Modifier");
+        es(EDIT, "Editar");
+        de(EDIT, "Bearbeiten");
 
         ja(DELETE, "削除");
         zh(DELETE, "删除");
+        fr(DELETE, "Supprimer");
+        es(DELETE, "Eliminar");
+        de(DELETE, "Löschen");
 
         ja(COPY, "コピー");
         zh(COPY, "复制");
+        fr(COPY, "Copier");
+        es(COPY, "Copiar");
+        de(COPY, "Kopieren");
 
         ja(COPIED, "コピーしました");
         zh(COPIED, "已复制");
+        fr(COPIED, "Copié");
+        es(COPIED, "Copiado");
+        de(COPIED, "Kopiert");
 
         ja(GIVE_THE_CHARACTER_A_NAME, "キャラクターに名前を付けてください");
         zh(GIVE_THE_CHARACTER_A_NAME, "请给角色起个名字");
+        fr(GIVE_THE_CHARACTER_A_NAME, "Donnez un nom au personnage");
+        es(GIVE_THE_CHARACTER_A_NAME, "Ponle un nombre al personaje");
+        de(GIVE_THE_CHARACTER_A_NAME, "Gib der Figur einen Namen");
 
         ja(THE_NAME_OR_AN_ALIAS_IS_USED_BY, "名前または別名は「%s」で既に使われています");
         zh(THE_NAME_OR_AN_ALIAS_IS_USED_BY, "名称或别名已被“%s”使用");
+        fr(THE_NAME_OR_AN_ALIAS_IS_USED_BY, "Le nom ou un autre nom est déjà utilisé par %s");
+        es(THE_NAME_OR_AN_ALIAS_IS_USED_BY, "El nombre o un alias ya lo usa %s");
+        de(THE_NAME_OR_AN_ALIAS_IS_USED_BY, "Der Name oder ein Aliasname wird bereits von %s verwendet");
 
         ja(DELETE_THE_TRACKED_CHARACTER_AND_ALL, "追跡中のキャラクター「%s」と、その知識をすべて削除しますか？");
         zh(DELETE_THE_TRACKED_CHARACTER_AND_ALL, "要删除被追踪的角色“%s”及其所有已知信息吗？");
+        fr(DELETE_THE_TRACKED_CHARACTER_AND_ALL, "Supprimer le personnage suivi %s avec tout ce qu'il sait ?");
+        es(DELETE_THE_TRACKED_CHARACTER_AND_ALL, "¿Eliminar al personaje seguido %s con todo lo que sabe?");
+        de(DELETE_THE_TRACKED_CHARACTER_AND_ALL, "Die verfolgte Figur %s mit allem, was sie weiß, löschen?");
 
         ja(DELETE_THIS_ITEM_FOR_GOOD, "この項目を完全に削除しますか？「撤回」なら古い知識として残ります。");
         zh(DELETE_THIS_ITEM_FOR_GOOD, "要永久删除此条目吗？“撤回”会将其保留为旧认知。");
+        fr(DELETE_THIS_ITEM_FOR_GOOD, "Supprimer définitivement cet élément ? Retirer le garde comme ancienne connaissance.");
+        es(DELETE_THIS_ITEM_FOR_GOOD, "¿Eliminar este elemento definitivamente? Retirar lo conserva como conocimiento antiguo.");
+        de(DELETE_THIS_ITEM_FOR_GOOD, "Dieses Element endgültig löschen? „Zurückziehen“ behält es als altes Wissen.");
 
         ja(NO_CHARACTER_IS_TRACKED_YET, "追跡中のキャラクターはまだありません。ここで追加したキャラクターだけが、パートの登場人物に含まれている間だけモデルに説明されます。");
         zh(NO_CHARACTER_IS_TRACKED_YET, "尚未追踪任何角色。只有在此添加的角色，并且处于某一部分的在场角色之中时，才会向模型说明。");
+        fr(NO_CHARACTER_IS_TRACKED_YET, "Aucun personnage n'est encore suivi. Seuls les personnages ajoutés ici sont décrits au modèle, et seulement lorsqu'ils font partie des personnages présents d'une partie.");
+        es(NO_CHARACTER_IS_TRACKED_YET, "Todavía no se sigue a ningún personaje. Solo se describe al modelo a los personajes que añades aquí, y solo mientras estén entre los personajes presentes de una parte.");
+        de(NO_CHARACTER_IS_TRACKED_YET, "Noch wird keine Figur verfolgt. Nur die Figuren, die du hier hinzufügst, werden dem Modell beschrieben, und nur solange sie zu den anwesenden Figuren eines Abschnitts gehören.");
 
         ja(NOTHING_IS_KNOWN_YET, "まだ何も書かれていません。このキャラクターが知っていること、知らないことを追加してください。");
         zh(NOTHING_IS_KNOWN_YET, "尚无内容。请添加该角色知道和不知道的事情。");
+        fr(NOTHING_IS_KNOWN_YET, "Rien n'est encore écrit. Ajoutez ce que le personnage sait et ne sait pas.");
+        es(NOTHING_IS_KNOWN_YET, "Todavía no hay nada escrito. Añade lo que el personaje sabe y lo que no sabe.");
+        de(NOTHING_IS_KNOWN_YET, "Noch ist nichts geschrieben. Füge hinzu, was die Figur weiß und was nicht.");
 
         ja(ITEMS_ACTIVE_OLD, "有効 %d 件、古い %d 件");
         zh(ITEMS_ACTIVE_OLD, "有效 %d 条，旧的 %d 条");
+        fr(ITEMS_ACTIVE_OLD, "%d actifs, %d anciens");
+        es(ITEMS_ACTIVE_OLD, "%d activos, %d antiguos");
+        de(ITEMS_ACTIVE_OLD, "%d aktiv, %d alt");
 
         ja(SHOW_WHAT_THE_CHARACTER_KNOWS, "キャラクターの知識を表示");
         zh(SHOW_WHAT_THE_CHARACTER_KNOWS, "显示该角色的认知");
+        fr(SHOW_WHAT_THE_CHARACTER_KNOWS, "Afficher ce que sait le personnage");
+        es(SHOW_WHAT_THE_CHARACTER_KNOWS, "Mostrar lo que sabe el personaje");
+        de(SHOW_WHAT_THE_CHARACTER_KNOWS, "Anzeigen, was die Figur weiß");
 
         ja(SELECT_ITEMS, "項目を選択");
         zh(SELECT_ITEMS, "选择条目");
+        fr(SELECT_ITEMS, "Sélectionner des éléments");
+        es(SELECT_ITEMS, "Seleccionar elementos");
+        de(SELECT_ITEMS, "Elemente auswählen");
 
         ja(SELECT_ALL, "すべて選択");
         zh(SELECT_ALL, "全选");
+        fr(SELECT_ALL, "Tout sélectionner");
+        es(SELECT_ALL, "Seleccionar todo");
+        de(SELECT_ALL, "Alle auswählen");
 
         ja(DESELECT_ALL, "選択を解除");
         zh(DESELECT_ALL, "取消全选");
+        fr(DESELECT_ALL, "Tout désélectionner");
+        es(DESELECT_ALL, "Deseleccionar todo");
+        de(DESELECT_ALL, "Auswahl aufheben");
 
         ja(DELETE_SELECTED, "選択した項目を削除（%d）");
         zh(DELETE_SELECTED, "删除所选（%d）");
+        fr(DELETE_SELECTED, "Supprimer la sélection (%d)");
+        es(DELETE_SELECTED, "Eliminar la selección (%d)");
+        de(DELETE_SELECTED, "Ausgewählte löschen (%d)");
 
         ja(DELETE_N_ITEMS_FOR_GOOD, "%d 件の項目を完全に削除しますか？「撤回」なら古い知識として残ります。");
         zh(DELETE_N_ITEMS_FOR_GOOD, "要永久删除这 %d 个条目吗？“撤回”会将其保留为旧认知。");
+        fr(DELETE_N_ITEMS_FOR_GOOD, "Supprimer définitivement %d éléments ? Retirer les garde comme anciennes connaissances.");
+        es(DELETE_N_ITEMS_FOR_GOOD, "¿Eliminar %d elementos definitivamente? Retirar los conserva como conocimiento antiguo.");
+        de(DELETE_N_ITEMS_FOR_GOOD, "%d Elemente endgültig löschen? „Zurückziehen“ behält sie als altes Wissen.");
 
         ja(SELECT_THIS_ITEM, "この項目を選択");
         zh(SELECT_THIS_ITEM, "选择此条目");
+        fr(SELECT_THIS_ITEM, "Sélectionner cet élément");
+        es(SELECT_THIS_ITEM, "Seleccionar este elemento");
+        de(SELECT_THIS_ITEM, "Dieses Element auswählen");
 
         ja(ADD_KNOWLEDGE, "知識を追加");
         zh(ADD_KNOWLEDGE, "添加认知");
+        fr(ADD_KNOWLEDGE, "Ajouter une connaissance");
+        es(ADD_KNOWLEDGE, "Añadir conocimiento");
+        de(ADD_KNOWLEDGE, "Wissen hinzufügen");
 
         ja(NEW_ITEM, "新しい項目");
         zh(NEW_ITEM, "新条目");
+        fr(NEW_ITEM, "Nouvel élément");
+        es(NEW_ITEM, "Elemento nuevo");
+        de(NEW_ITEM, "Neues Element");
 
         ja(EDIT_ITEM, "項目を編集");
         zh(EDIT_ITEM, "编辑条目");
+        fr(EDIT_ITEM, "Modifier l'élément");
+        es(EDIT_ITEM, "Editar elemento");
+        de(EDIT_ITEM, "Element bearbeiten");
 
         ja(KIND, "種類");
         zh(KIND, "类型");
+        fr(KIND, "Genre");
+        es(KIND, "Tipo");
+        de(KIND, "Art");
 
         ja(KNOWS, "知っている");
         zh(KNOWS, "知道");
+        fr(KNOWS, "Sait");
+        es(KNOWS, "Sabe");
+        de(KNOWS, "Weiß");
 
         ja(DOES_NOT_KNOW, "知らない");
         zh(DOES_NOT_KNOW, "不知道");
+        fr(DOES_NOT_KNOW, "Ne sait pas");
+        es(DOES_NOT_KNOW, "No sabe");
+        de(DOES_NOT_KNOW, "Weiß nicht");
 
         ja(TEXT, "内容");
         zh(TEXT, "内容");
+        fr(TEXT, "Texte");
+        es(TEXT, "Texto");
+        de(TEXT, "Text");
 
         ja(WHAT_THE_CHARACTER_KNOWS_OR_DOES_NOT_KNOW, "人物、場所、秘密、出来事など何についてでも構いません。短い一文で、知らないことははっきり書いてください。");
         zh(WHAT_THE_CHARACTER_KNOWS_OR_DOES_NOT_KNOW, "可以是任何事：人物、地点、秘密、事件。一句简短的话；不知道的事请明确写出。");
+        fr(WHAT_THE_CHARACTER_KNOWS_OR_DOES_NOT_KNOW, "Sur n'importe quoi : une personne, un lieu, un secret, un événement. Une phrase courte ; écrivez explicitement ce qu'il ne sait pas.");
+        es(WHAT_THE_CHARACTER_KNOWS_OR_DOES_NOT_KNOW, "Sobre cualquier cosa: una persona, un lugar, un secreto, un suceso. Una frase corta; escribe explícitamente lo que no sabe.");
+        de(WHAT_THE_CHARACTER_KNOWS_OR_DOES_NOT_KNOW, "Über alles Mögliche: eine Person, einen Ort, ein Geheimnis, ein Ereignis. Ein kurzer Satz; schreibe ausdrücklich, was sie nicht weiß.");
 
         ja(WRITE_SOMETHING, "内容を入力してください");
         zh(WRITE_SOMETHING, "请输入内容");
+        fr(WRITE_SOMETHING, "Écrivez quelque chose");
+        es(WRITE_SOMETHING, "Escribe algo");
+        de(WRITE_SOMETHING, "Schreibe etwas");
 
         ja(RETRACT, "撤回");
         zh(RETRACT, "撤回");
+        fr(RETRACT, "Retirer");
+        es(RETRACT, "Retirar");
+        de(RETRACT, "Zurückziehen");
 
         ja(NOT_TRUE_ANY_MORE_KEEP_IT_AS_OLD, "もう正しくない：古い知識として残し、モデルには送りません");
         zh(NOT_TRUE_ANY_MORE_KEEP_IT_AS_OLD, "已不再成立：保留为旧认知，不发送给模型");
+        fr(NOT_TRUE_ANY_MORE_KEEP_IT_AS_OLD, "N'est plus vrai : le garder comme ancienne connaissance et ne pas l'envoyer au modèle");
+        es(NOT_TRUE_ANY_MORE_KEEP_IT_AS_OLD, "Ya no es cierto: conservarlo como conocimiento antiguo y no enviarlo al modelo");
+        de(NOT_TRUE_ANY_MORE_KEEP_IT_AS_OLD, "Stimmt nicht mehr: als altes Wissen behalten und nicht an das Modell senden");
 
         ja(RESTORE, "復元");
         zh(RESTORE, "恢复");
+        fr(RESTORE, "Restaurer");
+        es(RESTORE, "Restaurar");
+        de(RESTORE, "Wiederherstellen");
 
         ja(MAKE_IT_ACTIVE_AGAIN, "今後はまた有効にします");
         zh(MAKE_IT_ACTIVE_AGAIN, "从现在起重新生效");
+        fr(MAKE_IT_ACTIVE_AGAIN, "Le rendre de nouveau actif, à partir de maintenant");
+        es(MAKE_IT_ACTIVE_AGAIN, "Volver a activarlo, a partir de ahora");
+        de(MAKE_IT_ACTIVE_AGAIN, "Wieder aktiv machen, ab jetzt");
 
         ja(OLD_KNOWLEDGE, "古い知識（%d）");
         zh(OLD_KNOWLEDGE, "旧认知（%d）");
+        fr(OLD_KNOWLEDGE, "Anciennes connaissances (%d)");
+        es(OLD_KNOWLEDGE, "Conocimiento antiguo (%d)");
+        de(OLD_KNOWLEDGE, "Altes Wissen (%d)");
 
         ja(HAS_MET, "会ったことがある：%s");
         zh(HAS_MET, "见过：%s");
+        fr(HAS_MET, "A rencontré : %s");
+        es(HAS_MET, "Ha conocido a: %s");
+        de(HAS_MET, "Ist begegnet: %s");
 
         ja(SETTINGS, "設定");
         zh(SETTINGS, "设置");
+        fr(SETTINGS, "Paramètres");
+        es(SETTINGS, "Ajustes");
+        de(SETTINGS, "Einstellungen");
 
         ja(REFRESH, "更新");
         zh(REFRESH, "刷新");
+        fr(REFRESH, "Actualiser");
+        es(REFRESH, "Actualizar");
+        de(REFRESH, "Aktualisieren");
 
         ja(LET_THE_MODEL_READ_EARLIER_PARTS, "モデルが以前のパートを読めるようにする");
         zh(LET_THE_MODEL_READ_EARLIER_PARTS, "允许模型阅读之前的部分");
+        fr(LET_THE_MODEL_READ_EARLIER_PARTS, "Laisser le modèle lire les parties précédentes");
+        es(LET_THE_MODEL_READ_EARLIER_PARTS, "Dejar que el modelo lea partes anteriores");
+        de(LET_THE_MODEL_READ_EARLIER_PARTS, "Das Modell frühere Abschnitte lesen lassen");
 
         ja(WHEN_AN_ITEM_CAME_FROM_AN_EARLIER_PART, "モデルは、確信が持てないとき（たとえば噂で聞いたことが確認された場合）、項目を得たパートを読み返せます。読み返すたびにモデルへのやり取りが1回増えます。");
         zh(WHEN_AN_ITEM_CAME_FROM_AN_EARLIER_PART, "模型不确定时（例如传闻现在得到证实），可以阅读某条内容得知的那一部分。每次阅读都会让模型多一轮请求。");
+        fr(WHEN_AN_ITEM_CAME_FROM_AN_EARLIER_PART, "Le modèle peut lire la partie où un élément a été appris quand il a un doute (une rumeur désormais confirmée, par exemple). Chaque lecture est un tour de plus auprès du modèle.");
+        es(WHEN_AN_ITEM_CAME_FROM_AN_EARLIER_PART, "El modelo puede leer la parte en la que se aprendió un elemento cuando no está seguro (por ejemplo, un rumor que ahora se confirma). Cada lectura es un turno más para el modelo.");
+        de(WHEN_AN_ITEM_CAME_FROM_AN_EARLIER_PART, "Das Modell darf den Abschnitt lesen, in dem ein Element erfahren wurde, wenn es unsicher ist (zum Beispiel Gerüchte, die jetzt bestätigt sind). Jedes Lesen ist eine weitere Runde zum Modell.");
 
         ja(MET_PEOPLE, "会ったことがある人");
         zh(MET_PEOPLE, "见过的人");
+        fr(MET_PEOPLE, "A rencontré");
+        es(MET_PEOPLE, "Ha conocido a");
+        de(MET_PEOPLE, "Ist begegnet");
 
         ja(PEOPLE_THE_CHARACTER_HAS_MET, "キャラクターが会ったことのある人をコンマで区切って入力します。処理はストーリーで見つけた人を追加します。削除した人は、ストーリーを再度読み込んだ場合にのみ戻ります。");
         zh(PEOPLE_THE_CHARACTER_HAS_MET, "角色见过的人，用逗号分隔。处理时会加入故事中出现的人；删除的人只有在重新读取故事时才会再出现。");
+        fr(PEOPLE_THE_CHARACTER_HAS_MET, "Les personnes que le personnage a rencontrées, séparées par des virgules. Le traitement ajoute celles qu'il voit dans l'histoire ; celles que vous retirez ne reviennent que si l'histoire est relue.");
+        es(PEOPLE_THE_CHARACTER_HAS_MET, "Personas a las que ha conocido el personaje, separadas por comas. El procesamiento añade las que ve en la historia; las que quites solo vuelven si se vuelve a leer la historia.");
+        de(PEOPLE_THE_CHARACTER_HAS_MET, "Personen, denen die Figur begegnet ist, durch Kommas getrennt. Die Verarbeitung fügt die hinzu, die sie in der Geschichte sieht; die, die du entfernst, kommen nur wieder, wenn die Geschichte erneut gelesen wird.");
 
         ja(IN_PROMPT, "プロンプトに入れる");
         zh(IN_PROMPT, "加入提示词");
+        fr(IN_PROMPT, "Dans le prompt");
+        es(IN_PROMPT, "En el prompt");
+        de(IN_PROMPT, "Im Prompt");
 
         ja(INSERT_WHAT_THE_PRESENT_CHARACTERS_KNOW, "場面にいる追跡キャラクターの知識を、すべての生成のプロンプトに挿入します");
         zh(INSERT_WHAT_THE_PRESENT_CHARACTERS_KNOW, "将场景中被追踪角色的认知插入每次生成的提示词");
+        fr(INSERT_WHAT_THE_PRESENT_CHARACTERS_KNOW, "Insérer ce que savent les personnages suivis de la scène dans le prompt de chaque génération");
+        es(INSERT_WHAT_THE_PRESENT_CHARACTERS_KNOW, "Insertar en el prompt de cada generación lo que saben los personajes seguidos de la escena");
+        de(INSERT_WHAT_THE_PRESENT_CHARACTERS_KNOW, "Das, was die verfolgten Figuren der Szene wissen, in den Prompt jeder Generierung einfügen");
 
         ja(DEPTH, "深さ");
         zh(DEPTH, "深度");
+        fr(DEPTH, "Profondeur");
+        es(DEPTH, "Profundidad");
+        de(DEPTH, "Tiefe");
 
         ja(MESSAGES_AFTER_THE_KNOWLEDGE, "知識の後ろのメッセージ数: 0 = 指示の後、1 = 指示の直前");
         zh(MESSAGES_AFTER_THE_KNOWLEDGE, "认知之后的消息数：0 = 在指令之后，1 = 紧接在指令之前");
+        fr(MESSAGES_AFTER_THE_KNOWLEDGE, "Messages après les connaissances : 0 = après les instructions, 1 = juste avant elles");
+        es(MESSAGES_AFTER_THE_KNOWLEDGE, "Mensajes después del conocimiento: 0 = después de las instrucciones, 1 = justo antes de ellas");
+        de(MESSAGES_AFTER_THE_KNOWLEDGE, "Nachrichten nach dem Wissen: 0 = nach den Anweisungen, 1 = direkt davor");
 
         ja(ROLE, "ロール");
         zh(ROLE, "角色");
+        fr(ROLE, "Rôle");
+        es(ROLE, "Rol");
+        de(ROLE, "Rolle");
 
         ja(SYSTEM, "システム");
         zh(SYSTEM, "系统");
+        fr(SYSTEM, "Système");
+        es(SYSTEM, "Sistema");
+        de(SYSTEM, "System");
 
         ja(ASSISTANT, "アシスタント");
         zh(ASSISTANT, "助手");
+        fr(ASSISTANT, "Assistant");
+        es(ASSISTANT, "Asistente");
+        de(ASSISTANT, "Assistent");
 
         ja(USER, "ユーザー");
         zh(USER, "用户");
+        fr(USER, "Utilisateur");
+        es(USER, "Usuario");
+        de(USER, "Benutzer");
 
         ja(SAY_THAT_NOTHING_ELSE_IS_KNOWN, "それ以外は知らないと明記する");
         zh(SAY_THAT_NOTHING_ELSE_IS_KNOWN, "注明不知道其他任何事");
+        fr(SAY_THAT_NOTHING_ELSE_IS_KNOWN, "Dire que rien d'autre n'est connu");
+        es(SAY_THAT_NOTHING_ELSE_IS_KNOWN, "Indicar que no se sabe nada más");
+        de(SAY_THAT_NOTHING_ELSE_IS_KNOWN, "Sagen, dass sonst nichts bekannt ist");
 
         ja(THE_CHARACTER_HAS_NEVER_MET_OR_HEARD, "キャラクターは他の誰にも会ったことも聞いたこともなく、物語の秘密や計画や出来事を他には知らない、という一行を加えます");
         zh(THE_CHARACTER_HAS_NEVER_MET_OR_HEARD, "加一行说明：该角色没有见过也没有听说过其他任何人，也不知道故事中的其他秘密、计划或事件");
+        fr(THE_CHARACTER_HAS_NEVER_MET_OR_HEARD, "Ajouter une ligne disant que le personnage n'a jamais rencontré personne d'autre ni entendu parler de personne d'autre et ne sait rien d'autre des secrets de l'histoire");
+        es(THE_CHARACTER_HAS_NEVER_MET_OR_HEARD, "Añade una línea que dice que el personaje nunca ha conocido ni oído hablar de nadie más y no sabe nada más de los secretos de la historia");
+        de(THE_CHARACTER_HAS_NEVER_MET_OR_HEARD, "Eine Zeile hinzufügen, die besagt, dass die Figur niemand anderem begegnet ist oder von niemand anderem gehört hat und nichts sonst von den Geheimnissen der Geschichte weiß");
 
         ja(GIVE_THE_FACTS_TO_THE_ANNOTATION, "キャラクターの知識を注釈に渡す");
         zh(GIVE_THE_FACTS_TO_THE_ANNOTATION, "把角色所知内容提供给批注");
+        fr(GIVE_THE_FACTS_TO_THE_ANNOTATION, "Transmettre à l'annotation ce que savent les personnages");
+        es(GIVE_THE_FACTS_TO_THE_ANNOTATION, "Dar a la anotación lo que saben los personajes");
+        de(GIVE_THE_FACTS_TO_THE_ANNOTATION, "Das, was die Figuren wissen, an die Anmerkung geben");
 
         ja(WHEN_A_MODEL_ANNOTATES_A_PART, "モデルがパートに注釈を付けるとき（AIで注釈）、パートの始まりの時点で追跡中のキャラクターが知っていたことを伝え、知り得ないことに基づいて行動するキャラクターを指摘させます");
         zh(WHEN_A_MODEL_ANNOTATES_A_PART, "模型为某一段添加批注时（用 AI 批注），会被告知该段开始时被追踪角色所知道的内容，并指出依据其不可能知道的事情行事的角色");
+        fr(WHEN_A_MODEL_ANNOTATES_A_PART, "Quand un modèle annote une partie (Annoter avec l'IA), il est informé de ce que savaient les personnages suivis au début de la partie, et signale ceux qui agissent selon ce qu'ils ne peuvent pas savoir");
+        es(WHEN_A_MODEL_ANNOTATES_A_PART, "Cuando un modelo anota una parte (Anotar con IA), se le dice lo que sabían los personajes seguidos de la parte al comenzar, y señala a los que actúan según lo que no pueden saber");
+        de(WHEN_A_MODEL_ANNOTATES_A_PART, "Wenn ein Modell einen Abschnitt kommentiert („Mit KI kommentieren“), wird ihm gesagt, was die verfolgten Figuren des Abschnitts zu Beginn wussten, und es markiert die, die nach etwas handeln, das sie nicht wissen können");
 
         ja(SEPARATORS_OF_THIS_BOOK, "この本の区切り文字");
         zh(SEPARATORS_OF_THIS_BOOK, "本书的分隔符");
+        fr(SEPARATORS_OF_THIS_BOOK, "Séparateurs de ce livre");
+        es(SEPARATORS_OF_THIS_BOOK, "Separadores de este libro");
+        de(SEPARATORS_OF_THIS_BOOK, "Trennzeichen dieses Buchs");
 
         ja(MY_SEPARATORS, "自分の区切り文字（すべての本）");
         zh(MY_SEPARATORS, "我的分隔符（所有书）");
+        fr(MY_SEPARATORS, "Mes séparateurs (tous les livres)");
+        es(MY_SEPARATORS, "Mis separadores (todos los libros)");
+        de(MY_SEPARATORS, "Meine Trennzeichen (alle Bücher)");
 
         ja(SEPARATORS_HELP, "「登場人物」欄を名前に分ける方法。1行に1つ。空 = 自分の設定を使用、自分の設定も空 = 組み込み（, ; 改行 / | 、 ， ；）。and のような単語は前後の空白で区切り、\\n は改行です。");
         zh(SEPARATORS_HELP, "如何把“在场角色”栏拆分成名字。每行一个；留空 = 使用我的设置，我的也留空 = 使用内置的（, ; 换行 / | 、 ， ；）。像 and 这样的单词按前后空格拆分，\\n 表示换行。");
+        fr(SEPARATORS_HELP, "Comment le champ des personnages présents est découpé en noms. Un par ligne ; vide = le livre utilise les miens, les miens vides = ceux intégrés (, ; saut de ligne / | 、 ， ；). Un mot comme and découpe entre des espaces, \\n est un saut de ligne.");
+        es(SEPARATORS_HELP, "Cómo se divide en nombres el campo de personajes presentes. Uno por línea; vacío = el libro usa los míos, los míos vacíos = los integrados (, ; salto de línea / | 、 ， ；). Una palabra como y divide entre espacios, \\n es un salto de línea.");
+        de(SEPARATORS_HELP, "Wie das Feld „Anwesende Figuren“ in Namen aufgeteilt wird. Eines pro Zeile; leer = das Buch verwendet meine, meine leer = die eingebauten (, ; Zeilenumbruch / | 、 ， ；). Ein Wort wie „und“ trennt zwischen Leerzeichen, \\n ist ein Zeilenumbruch.");
 
         ja(PROCESSING, "処理");
         zh(PROCESSING, "处理");
+        fr(PROCESSING, "Traitement");
+        es(PROCESSING, "Procesamiento");
+        de(PROCESSING, "Verarbeitung");
 
         ja(PROCESSED_UP_TO_PART, "%d / %d パートまで処理済み");
         zh(PROCESSED_UP_TO_PART, "已处理到第 %d 部分（共 %d 部分）");
+        fr(PROCESSED_UP_TO_PART, "Traité jusqu'à la partie %d sur %d");
+        es(PROCESSED_UP_TO_PART, "Procesado hasta la parte %d de %d");
+        de(PROCESSED_UP_TO_PART, "Verarbeitet bis Abschnitt %d von %d");
 
         ja(NOTHING_IS_PROCESSED_YET, "まだ何も処理されていません（%d パート）");
         zh(NOTHING_IS_PROCESSED_YET, "尚未处理任何内容（共 %d 部分）");
+        fr(NOTHING_IS_PROCESSED_YET, "Rien n'est encore traité (%d parties)");
+        es(NOTHING_IS_PROCESSED_YET, "Todavía no se ha procesado nada (%d partes)");
+        de(NOTHING_IS_PROCESSED_YET, "Noch nichts verarbeitet (%d Abschnitte)");
 
         ja(PROCESS_NOW, "今すぐ処理");
         zh(PROCESS_NOW, "立即处理");
+        fr(PROCESS_NOW, "Traiter maintenant");
+        es(PROCESS_NOW, "Procesar ahora");
+        de(PROCESS_NOW, "Jetzt verarbeiten");
 
         ja(READ_N_PARTS_IN_N_REQUESTS, "%d 個のパートをモデルで %d 回のリクエストに分けて読みますか？物語の本文だけで約 %d トークンです。指示、ロアブック、キャラクターの知識が毎回のリクエストにさらに付きます。シリーズはいつでもキャンセルでき、適用済みの内容は残ります。");
         zh(READ_N_PARTS_IN_N_REQUESTS, "用模型分 %d 个部分、%d 次请求读取吗？仅故事正文就约 %d 个 token，每次请求还会附带指令、设定集和角色的知识。可随时取消该系列；已应用的内容会保留。");
+        fr(READ_N_PARTS_IN_N_REQUESTS, "Lire %d parties avec le modèle en %d requêtes ? Le texte de l'histoire seul fait environ %d jetons, les instructions, le lorebook et les connaissances des personnages sont envoyés en plus avec chaque requête. Vous pouvez annuler la série à tout moment ; ce qui a été appliqué reste.");
+        es(READ_N_PARTS_IN_N_REQUESTS, "¿Leer %d partes con el modelo en %d solicitudes? El texto de la historia por sí solo son unos %d tokens; las instrucciones, el lorebook y el conocimiento de los personajes se envían con cada solicitud además de eso. Puedes cancelar la serie en cualquier momento; lo que se aplicó se queda.");
+        de(READ_N_PARTS_IN_N_REQUESTS, "%d Abschnitte mit dem Modell in %d Anfragen lesen? Der Text der Geschichte allein umfasst etwa %d Tokens, die Anweisungen, das Lorebook und das Wissen der Figuren werden bei jeder Anfrage zusätzlich gesendet. Du kannst die Serie jederzeit abbrechen; was angewendet wurde, bleibt.");
         ja(ADDED_TO, "%s に追加");
         zh(ADDED_TO, "添加给 %s");
+        fr(ADDED_TO, "Ajouté à %s");
+        es(ADDED_TO, "Añadido a %s");
+        de(ADDED_TO, "Hinzugefügt zu %s");
         ja(RETRACTED_FROM, "%s から撤回");
         zh(RETRACTED_FROM, "从 %s 撤回");
+        fr(RETRACTED_FROM, "Retiré de %s");
+        es(RETRACTED_FROM, "Retirado de %s");
+        de(RETRACTED_FROM, "Zurückgezogen von %s");
         ja(REVERTED, "元に戻しました");
         zh(REVERTED, "已撤销");
+        fr(REVERTED, "Annulé");
+        es(REVERTED, "Revertido");
+        de(REVERTED, "Rückgängig gemacht");
         ja(REVERT_THIS_CHANGE, "この変更を元に戻す");
         zh(REVERT_THIS_CHANGE, "撤销此更改");
+        fr(REVERT_THIS_CHANGE, "Annuler cette modification");
+        es(REVERT_THIS_CHANGE, "Revertir este cambio");
+        de(REVERT_THIS_CHANGE, "Diese Änderung rückgängig machen");
         ja(APPLIED_AUTOMATICALLY, "自動で適用された変更 (%d)");
         zh(APPLIED_AUTOMATICALLY, "自动应用的更改 (%d)");
+        fr(APPLIED_AUTOMATICALLY, "Appliqué automatiquement (%d)");
+        es(APPLIED_AUTOMATICALLY, "Aplicados automáticamente (%d)");
+        de(APPLIED_AUTOMATICALLY, "Automatisch angewendet (%d)");
         ja(THE_ITEM_HAS_BEEN_CHANGED_SINCE, "項目はその後変更されたため、そのままにしました");
         zh(THE_ITEM_HAS_BEEN_CHANGED_SINCE, "该项此后已被更改，未做任何改动");
+        fr(THE_ITEM_HAS_BEEN_CHANGED_SINCE, "L'élément a été modifié depuis, il n'a pas été touché");
+        es(THE_ITEM_HAS_BEEN_CHANGED_SINCE, "El elemento cambió después, no se tocó");
+        de(THE_ITEM_HAS_BEEN_CHANGED_SINCE, "Das Element wurde seitdem geändert, es wurde nicht angetastet");
         ja(PROCESS_NEXT_PART, "次のパートを処理");
         zh(PROCESS_NEXT_PART, "处理下一部分");
+        fr(PROCESS_NEXT_PART, "Traiter la partie suivante");
+        es(PROCESS_NEXT_PART, "Procesar la parte siguiente");
+        de(PROCESS_NEXT_PART, "Nächsten Abschnitt verarbeiten");
         ja(READ_ONLY_THE_NEXT_PART_THAT_IS_NOT_PROCESSED, "まだ処理されていない最初のパートだけを読みます。一度に一歩ずつ進めたいときに使います");
         zh(READ_ONLY_THE_NEXT_PART_THAT_IS_NOT_PROCESSED, "只读取第一个尚未处理的部分，便于一步一步来");
+        fr(READ_ONLY_THE_NEXT_PART_THAT_IS_NOT_PROCESSED, "Lire seulement la première partie non encore traitée, pour avancer pas à pas");
+        es(READ_ONLY_THE_NEXT_PART_THAT_IS_NOT_PROCESSED, "Lee solo la primera parte que todavía no está procesada, para ir paso a paso");
+        de(READ_ONLY_THE_NEXT_PART_THAT_IS_NOT_PROCESSED, "Nur den ersten noch nicht verarbeiteten Abschnitt lesen, für einen Schritt nach dem anderen");
         ja(CHANGES_FROM_A_COMMAND_TO_REVIEW, "コマンドが見つけた変更 %d 件を確認する");
         zh(CHANGES_FROM_A_COMMAND_TO_REVIEW, "命令找到了 %d 项更改，请查看");
+        fr(CHANGES_FROM_A_COMMAND_TO_REVIEW, "%d modifications trouvées par une commande, examinez-les");
+        es(CHANGES_FROM_A_COMMAND_TO_REVIEW, "%d cambios encontrados por un comando, revísalos");
+        de(CHANGES_FROM_A_COMMAND_TO_REVIEW, "%d von einem Befehl gefundene Änderungen, prüfe sie");
         ja(THE_STORY_CHANGED_RUN_THE_COMMAND_AGAIN, "変更の待機中に物語が変わりました。コマンドをもう一度実行してください");
         zh(THE_STORY_CHANGED_RUN_THE_COMMAND_AGAIN, "等待期间故事已更改，请重新运行命令");
+        fr(THE_STORY_CHANGED_RUN_THE_COMMAND_AGAIN, "L'histoire a changé pendant que les modifications attendaient ; relancez la commande");
+        es(THE_STORY_CHANGED_RUN_THE_COMMAND_AGAIN, "La historia cambió mientras los cambios esperaban; ejecuta el comando de nuevo");
+        de(THE_STORY_CHANGED_RUN_THE_COMMAND_AGAIN, "Die Geschichte hat sich geändert, während die Änderungen warteten; führe den Befehl erneut aus");
         ja(WHAT_THE_MODEL_THOUGHT, "モデルの考え");
         zh(WHAT_THE_MODEL_THOUGHT, "模型的思考");
+        fr(WHAT_THE_MODEL_THOUGHT, "Ce que le modèle a pensé");
+        es(WHAT_THE_MODEL_THOUGHT, "Lo que pensó el modelo");
+        de(WHAT_THE_MODEL_THOUGHT, "Was das Modell gedacht hat");
         ja(TIDY_PARTS_OF_CONTEXT, "整理：文脈のパート数");
         zh(TIDY_PARTS_OF_CONTEXT, "整理：上下文部分数");
+        fr(TIDY_PARTS_OF_CONTEXT, "Rangement : parties de contexte");
+        es(TIDY_PARTS_OF_CONTEXT, "Ordenar: partes de contexto");
+        de(TIDY_PARTS_OF_CONTEXT, "Aufräumen: Kontextabschnitte");
         ja(THE_LAST_PROCESSED_PARTS_THE_TIDY_PASS_READS, "整理の際に文脈として読む、最後に処理されたパートの数");
         zh(THE_LAST_PROCESSED_PARTS_THE_TIDY_PASS_READS, "整理时作为上下文读取的最后已处理部分数");
+        fr(THE_LAST_PROCESSED_PARTS_THE_TIDY_PASS_READS, "Les dernières parties traitées que le rangement lit comme contexte");
+        es(THE_LAST_PROCESSED_PARTS_THE_TIDY_PASS_READS, "Las últimas partes procesadas que lee la pasada de ordenación como contexto");
+        de(THE_LAST_PROCESSED_PARTS_THE_TIDY_PASS_READS, "Die letzten verarbeiteten Abschnitte, die der Aufräumdurchgang als Kontext liest");
         ja(TIDY_FROM_N_ITEMS, "整理：この数以上の項目から");
         zh(TIDY_FROM_N_ITEMS, "整理：至少这么多项时");
+        fr(TIDY_FROM_N_ITEMS, "Rangement : à partir de ce nombre d'éléments");
+        es(TIDY_FROM_N_ITEMS, "Ordenar: desde esta cantidad de elementos");
+        de(TIDY_FROM_N_ITEMS, "Aufräumen: ab so vielen Elementen");
         ja(A_CHARACTER_WITH_FEWER_ITEMS_IS_NOT_TIDIED, "モデルが学習した項目がこれより少ないキャラクターは整理しません");
         zh(A_CHARACTER_WITH_FEWER_ITEMS_IS_NOT_TIDIED, "模型学到的项数少于此值的角色不会被整理");
+        fr(A_CHARACTER_WITH_FEWER_ITEMS_IS_NOT_TIDIED, "Un personnage ayant moins d'éléments appris par le modèle n'est pas rangé");
+        es(A_CHARACTER_WITH_FEWER_ITEMS_IS_NOT_TIDIED, "Un personaje con menos elementos aprendidos por el modelo no se ordena");
+        de(A_CHARACTER_WITH_FEWER_ITEMS_IS_NOT_TIDIED, "Eine Figur mit weniger vom Modell erfahrenen Elementen wird nicht aufgeräumt");
         ja(LOCKED_THE_TIDY_PASS_LEAVES_IT_ALONE, "ロック中：整理の対象外です。クリックで解除");
         zh(LOCKED_THE_TIDY_PASS_LEAVES_IT_ALONE, "已锁定：整理时不会处理。点击解锁");
+        fr(LOCKED_THE_TIDY_PASS_LEAVES_IT_ALONE, "Verrouillé : le rangement n'y touche pas. Cliquez pour déverrouiller");
+        es(LOCKED_THE_TIDY_PASS_LEAVES_IT_ALONE, "Bloqueado: la pasada de ordenación no lo toca. Haz clic para desbloquear");
+        de(LOCKED_THE_TIDY_PASS_LEAVES_IT_ALONE, "Gesperrt: Der Aufräumdurchgang lässt es in Ruhe. Klicken zum Entsperren");
         ja(LOCK_IT_SO_THAT_THE_TIDY_PASS_LEAVES_IT_ALONE, "整理の対象外にするためロックします（物語が矛盾すれば撤回はされます）");
         zh(LOCK_IT_SO_THAT_THE_TIDY_PASS_LEAVES_IT_ALONE, "锁定后整理时不会处理（故事若与之矛盾仍会撤回）");
+        fr(LOCK_IT_SO_THAT_THE_TIDY_PASS_LEAVES_IT_ALONE, "Le verrouiller pour que le rangement n'y touche pas (l'histoire peut toujours le contredire)");
+        es(LOCK_IT_SO_THAT_THE_TIDY_PASS_LEAVES_IT_ALONE, "Bloquéalo para que la pasada de ordenación no lo toque (la historia aún puede contradecirlo)");
+        de(LOCK_IT_SO_THAT_THE_TIDY_PASS_LEAVES_IT_ALONE, "Sperren, damit der Aufräumdurchgang es in Ruhe lässt (die Geschichte kann ihm trotzdem widersprechen)");
         ja(TIDY_KNOWLEDGE, "知識を整理");
         zh(TIDY_KNOWLEDGE, "整理知识");
+        fr(TIDY_KNOWLEDGE, "Ranger les connaissances");
+        es(TIDY_KNOWLEDGE, "Ordenar el conocimiento");
+        de(TIDY_KNOWLEDGE, "Wissen aufräumen");
         ja(DROP_OR_MERGE_ITEMS_THAT_ARE_NOT_WORTH_KEEPING, "残す価値のない項目をモデルが削除または統合します。ロックした項目と自分で書いた項目は対象外です");
         zh(DROP_OR_MERGE_ITEMS_THAT_ARE_NOT_WORTH_KEEPING, "模型会删除或合并不值得保留的项；已锁定的项和你写的项不会被处理");
+        fr(DROP_OR_MERGE_ITEMS_THAT_ARE_NOT_WORTH_KEEPING, "Le modèle abandonne ou fusionne les éléments qui ne valent pas d'être gardés ; les éléments verrouillés et ce que vous avez écrit ne sont pas touchés");
+        es(DROP_OR_MERGE_ITEMS_THAT_ARE_NOT_WORTH_KEEPING, "El modelo descarta o combina los elementos que no merece la pena conservar; los elementos bloqueados y lo que escribiste tú no se tocan");
+        de(DROP_OR_MERGE_ITEMS_THAT_ARE_NOT_WORTH_KEEPING, "Das Modell verwirft oder führt Elemente zusammen, die nicht aufbewahrenswert sind; gesperrte Elemente und das, was du geschrieben hast, werden nicht angetastet");
         ja(REVIEW_THE_TIDY, "整理の確認");
         zh(REVIEW_THE_TIDY, "查看整理结果");
+        fr(REVIEW_THE_TIDY, "Examiner le rangement");
+        es(REVIEW_THE_TIDY, "Revisar la ordenación");
+        de(REVIEW_THE_TIDY, "Das Aufräumen prüfen");
         ja(WHY, "理由：%s");
         zh(WHY, "原因：%s");
+        fr(WHY, "Pourquoi : %s");
+        es(WHY, "Motivo: %s");
+        de(WHY, "Warum: %s");
         ja(NOTHING_TO_TIDY, "整理：削除や統合するものはありません");
         zh(NOTHING_TO_TIDY, "整理：没有要删除或合并的内容");
+        fr(NOTHING_TO_TIDY, "Rangement : rien à abandonner ni à fusionner");
+        es(NOTHING_TO_TIDY, "Ordenar: nada que descartar ni combinar");
+        de(NOTHING_TO_TIDY, "Aufräumen: nichts zu verwerfen oder zusammenzuführen");
         ja(TIDY_DONE, "整理：%d 件が古い知識になり、統合した項目が %d 件追加されました");
         zh(TIDY_DONE, "整理：%d 项变为旧知识，新增 %d 项合并项");
+        fr(TIDY_DONE, "Rangement : %d élément(s) devenu(s) anciennes connaissances, %d élément(s) fusionné(s) ajouté(s)");
+        es(TIDY_DONE, "Ordenar: %d elemento(s) pasaron a ser conocimiento antiguo, %d elemento(s) combinado(s) añadido(s)");
+        de(TIDY_DONE, "Aufräumen: %d Element(e) wurden zu altem Wissen, %d zusammengeführte(s) Element(e) hinzugefügt");
         ja(AN_UNCHECKED_TIDY_CHANGE_LEAVES_THE_ITEMS, "チェックを外した変更では項目はそのままです。チェックを外した統合項目は追加されません。");
         zh(AN_UNCHECKED_TIDY_CHANGE_LEAVES_THE_ITEMS, "取消勾选的更改会保持原有项不变；取消勾选的合并项不会被添加。");
+        fr(AN_UNCHECKED_TIDY_CHANGE_LEAVES_THE_ITEMS, "Une modification décochée laisse ses éléments tels quels ; un élément fusionné décoché n'est pas ajouté.");
+        es(AN_UNCHECKED_TIDY_CHANGE_LEAVES_THE_ITEMS, "Un cambio que desmarques deja sus elementos como están; un elemento combinado sin marcar no se añade.");
+        de(AN_UNCHECKED_TIDY_CHANGE_LEAVES_THE_ITEMS, "Eine Änderung, die du abwählst, lässt ihre Elemente, wie sie sind; ein abgewähltes zusammengeführtes Element wird nicht hinzugefügt.");
         ja(TIDY_AUTOMATICALLY, "自動で整理する");
         zh(TIDY_AUTOMATICALLY, "自动整理");
+        fr(TIDY_AUTOMATICALLY, "Ranger automatiquement");
+        es(TIDY_AUTOMATICALLY, "Ordenar automáticamente");
+        de(TIDY_AUTOMATICALLY, "Automatisch aufräumen");
         ja(AT_THE_END_OF_A_RUN_THAT_APPLIES_ITS_CHANGES, "確認なしで変更を適用する実行の最後に、前回の整理から十分なパートを読んだ場合に整理します");
         zh(AT_THE_END_OF_A_RUN_THAT_APPLIES_ITS_CHANGES, "在不经确认就应用更改的运行结束时，若自上次整理后读取了足够多的部分，则自动整理");
+        fr(AT_THE_END_OF_A_RUN_THAT_APPLIES_ITS_CHANGES, "À la fin d'un traitement qui applique ses modifications sans demander, quand assez de parties ont été lues depuis le dernier rangement");
+        es(AT_THE_END_OF_A_RUN_THAT_APPLIES_ITS_CHANGES, "Al final de una ejecución que aplica sus cambios sin preguntar, cuando se han leído suficientes partes desde la última ordenación");
+        de(AT_THE_END_OF_A_RUN_THAT_APPLIES_ITS_CHANGES, "Am Ende eines Laufs, der seine Änderungen ohne Rückfrage anwendet, wenn seit dem letzten Aufräumen genug Abschnitte gelesen wurden");
         ja(TIDY_AFTER_N_PARTS, "整理するまでのパート数");
         zh(TIDY_AFTER_N_PARTS, "每隔多少部分整理一次");
+        fr(TIDY_AFTER_N_PARTS, "Ranger après ce nombre de parties");
+        es(TIDY_AFTER_N_PARTS, "Ordenar tras esta cantidad de partes");
+        de(TIDY_AFTER_N_PARTS, "Aufräumen nach so vielen Abschnitten");
         ja(REQUEST_N_CHANGES, "リクエスト %d：提案された変更 %d 件");
         zh(REQUEST_N_CHANGES, "请求 %d：提出 %d 项更改");
+        fr(REQUEST_N_CHANGES, "Requête %d : %d modification(s) proposée(s)");
+        es(REQUEST_N_CHANGES, "Solicitud %d: %d cambio(s) propuesto(s)");
+        de(REQUEST_N_CHANGES, "Anfrage %d: %d Änderung(en) vorgeschlagen");
         ja(TIDY_REQUEST_N_CHANGES, "整理リクエスト %d：提案された変更 %d 件");
         zh(TIDY_REQUEST_N_CHANGES, "整理请求 %d：提出 %d 项更改");
+        fr(TIDY_REQUEST_N_CHANGES, "Requête de rangement %d : %d modification(s) proposée(s)");
+        es(TIDY_REQUEST_N_CHANGES, "Solicitud de ordenación %d: %d cambio(s) propuesto(s)");
+        de(TIDY_REQUEST_N_CHANGES, "Aufräum-Anfrage %d: %d Änderung(en) vorgeschlagen");
         ja(THE_MODEL_SENT_NO_REASONING, "モデルは推論を送っていません");
         zh(THE_MODEL_SENT_NO_REASONING, "模型没有发送推理内容");
+        fr(THE_MODEL_SENT_NO_REASONING, "Le modèle n'a envoyé aucun raisonnement");
+        es(THE_MODEL_SENT_NO_REASONING, "El modelo no envió razonamiento");
+        de(THE_MODEL_SENT_NO_REASONING, "Das Modell hat kein Reasoning gesendet");
         ja(WHAT_THE_MODEL_ANSWERED, "モデルの回答");
         zh(WHAT_THE_MODEL_ANSWERED, "模型的回答");
+        fr(WHAT_THE_MODEL_ANSWERED, "Ce que le modèle a répondu");
+        es(WHAT_THE_MODEL_ANSWERED, "Lo que respondió el modelo");
+        de(WHAT_THE_MODEL_ANSWERED, "Was das Modell geantwortet hat");
         ja(LAST_RUN_WHAT_THE_MODEL_THOUGHT, "前回の実行：モデルの考え");
         zh(LAST_RUN_WHAT_THE_MODEL_THOUGHT, "上次运行：模型的思考");
+        fr(LAST_RUN_WHAT_THE_MODEL_THOUGHT, "Dernier traitement : ce que le modèle a pensé");
+        es(LAST_RUN_WHAT_THE_MODEL_THOUGHT, "Última ejecución: lo que pensó el modelo");
+        de(LAST_RUN_WHAT_THE_MODEL_THOUGHT, "Letzter Lauf: was das Modell gedacht hat");
         ja(THE_MODEL_IS_WRITING, "モデルが書いている内容");
         zh(THE_MODEL_IS_WRITING, "模型正在写的内容");
+        fr(THE_MODEL_IS_WRITING, "Ce que le modèle écrit");
+        es(THE_MODEL_IS_WRITING, "Lo que está escribiendo el modelo");
+        de(THE_MODEL_IS_WRITING, "Was das Modell schreibt");
         ja(READ_THE_PARTS_THAT_ARE_NOT_PROCESSED, "まだ処理されていないパートを読み、誰が誰に会ったかを記録します");
         zh(READ_THE_PARTS_THAT_ARE_NOT_PROCESSED, "读取尚未处理的部分，并记录谁见过谁");
+        fr(READ_THE_PARTS_THAT_ARE_NOT_PROCESSED, "Lire les parties pas encore traitées et noter qui a rencontré qui");
+        es(READ_THE_PARTS_THAT_ARE_NOT_PROCESSED, "Lee las partes que todavía no están procesadas y anota quién ha conocido a quién");
+        de(READ_THE_PARTS_THAT_ARE_NOT_PROCESSED, "Die noch nicht verarbeiteten Abschnitte lesen und festhalten, wer wem begegnet ist");
 
         ja(START_POINT, "開始位置");
         zh(START_POINT, "起点");
+        fr(START_POINT, "Point de départ");
+        es(START_POINT, "Punto de inicio");
+        de(START_POINT, "Startpunkt");
 
         ja(START_OF_THE_BOOK, "本の最初");
         zh(START_OF_THE_BOOK, "书的开头");
+        fr(START_OF_THE_BOOK, "Début du livre");
+        es(START_OF_THE_BOOK, "Inicio del libro");
+        de(START_OF_THE_BOOK, "Anfang des Buchs");
 
         ja(PARTS_BEFORE_THE_START_POINT, "これより前のパートは処理されません");
         zh(PARTS_BEFORE_THE_START_POINT, "此前的部分永远不会被处理");
+        fr(PARTS_BEFORE_THE_START_POINT, "Les parties d'avant ne sont jamais traitées");
+        es(PARTS_BEFORE_THE_START_POINT, "Las partes anteriores nunca se procesan");
+        de(PARTS_BEFORE_THE_START_POINT, "Abschnitte davor werden nie verarbeitet");
 
         ja(PROCESSED_PARTS, "処理済みのパート（%d）");
         zh(PROCESSED_PARTS, "已处理的部分（%d）");
+        fr(PROCESSED_PARTS, "Parties traitées (%d)");
+        es(PROCESSED_PARTS, "Partes procesadas (%d)");
+        de(PROCESSED_PARTS, "Verarbeitete Abschnitte (%d)");
 
         ja(CHANGED_SINCE_PROCESSED, "処理後に変更されました");
         zh(CHANGED_SINCE_PROCESSED, "处理后已更改");
+        fr(CHANGED_SINCE_PROCESSED, "Modifiée depuis le traitement");
+        es(CHANGED_SINCE_PROCESSED, "Modificada desde que se procesó");
+        de(CHANGED_SINCE_PROCESSED, "Seit der Verarbeitung geändert");
 
         ja(REPROCESS_FROM_HERE, "ここから再処理");
         zh(REPROCESS_FROM_HERE, "从此处重新处理");
+        fr(REPROCESS_FROM_HERE, "Retraiter à partir d'ici");
+        es(REPROCESS_FROM_HERE, "Volver a procesar desde aquí");
+        de(REPROCESS_FROM_HERE, "Ab hier neu verarbeiten");
 
         ja(REPROCESS_FROM_PART, "パート %d から再処理しますか？そのパートと以降のパートから得られた内容は破棄され、読み直されます。");
         zh(REPROCESS_FROM_PART, "要从第 %d 部分重新处理吗？由该部分及之后部分得到的内容会被丢弃并重新读取。");
+        fr(REPROCESS_FROM_PART, "Retraiter à partir de la partie %d ? Ce qui a été appris d'elle et des parties suivantes est abandonné et relu.");
+        es(REPROCESS_FROM_PART, "¿Volver a procesar desde la parte %d? Lo aprendido de ella y de las partes posteriores se descarta y se vuelve a leer.");
+        de(REPROCESS_FROM_PART, "Ab Abschnitt %d neu verarbeiten? Was daraus und aus den späteren Abschnitten erfahren wurde, wird verworfen und erneut gelesen.");
 
         ja(PROCESS_NEW_PARTS_AUTOMATICALLY, "新しいパートを自動で処理");
         zh(PROCESS_NEW_PARTS_AUTOMATICALLY, "自动处理新的部分");
+        fr(PROCESS_NEW_PARTS_AUTOMATICALLY, "Traiter automatiquement les nouvelles parties");
+        es(PROCESS_NEW_PARTS_AUTOMATICALLY, "Procesar las partes nuevas automáticamente");
+        de(PROCESS_NEW_PARTS_AUTOMATICALLY, "Neue Abschnitte automatisch verarbeiten");
 
         ja(BEFORE_A_GENERATION_THE_NEW_PARTS, "生成の前に、前回以降に書かれたパートを処理し、プロンプトが誰が誰に会ったかを把握できるようにします");
         zh(BEFORE_A_GENERATION_THE_NEW_PARTS, "生成之前先处理上次以来写下的部分，使提示词知道谁见过谁");
+        fr(BEFORE_A_GENERATION_THE_NEW_PARTS, "Avant une génération, traiter les parties écrites depuis la dernière fois, pour que le prompt sache qui a rencontré qui");
+        es(BEFORE_A_GENERATION_THE_NEW_PARTS, "Antes de una generación, procesa las partes escritas desde la última vez, para que el prompt sepa quién ha conocido a quién");
+        de(BEFORE_A_GENERATION_THE_NEW_PARTS, "Vor einer Generierung die seit dem letzten Mal geschriebenen Abschnitte verarbeiten, damit der Prompt weiß, wer wem begegnet ist");
 
         ja(PART_N, "パート %d");
         zh(PART_N, "第 %d 部分");
+        fr(PART_N, "Partie %d");
+        es(PART_N, "Parte %d");
+        de(PART_N, "Abschnitt %d");
 
         ja(PROCESSED_N_PARTS, "%d パートを処理しました");
         zh(PROCESSED_N_PARTS, "已处理 %d 个部分");
+        fr(PROCESSED_N_PARTS, "%d parties traitées");
+        es(PROCESSED_N_PARTS, "Se han procesado %d partes");
+        de(PROCESSED_N_PARTS, "%d Abschnitte verarbeitet");
 
         ja(NOTHING_NEW_TO_PROCESS, "処理するものはありません");
         zh(NOTHING_NEW_TO_PROCESS, "没有需要处理的内容");
+        fr(NOTHING_NEW_TO_PROCESS, "Rien de nouveau à traiter");
+        es(NOTHING_NEW_TO_PROCESS, "No hay nada nuevo que procesar");
+        de(NOTHING_NEW_TO_PROCESS, "Nichts Neues zu verarbeiten");
 
         ja(THE_BOOK_HAS_NO_PARTS_YET, "この本にはまだパートがありません");
         zh(THE_BOOK_HAS_NO_PARTS_YET, "这本书还没有任何部分");
+        fr(THE_BOOK_HAS_NO_PARTS_YET, "Le livre n'a pas encore de parties");
+        es(THE_BOOK_HAS_NO_PARTS_YET, "El libro todavía no tiene partes");
+        de(THE_BOOK_HAS_NO_PARTS_YET, "Das Buch hat noch keine Abschnitte");
 
         ja(PROCESSING_THE_STORY, "物語を処理中");
         zh(PROCESSING_THE_STORY, "正在处理故事");
+        fr(PROCESSING_THE_STORY, "Traitement de l'histoire");
+        es(PROCESSING_THE_STORY, "Procesando la historia");
+        de(PROCESSING_THE_STORY, "Die Geschichte wird verarbeitet");
 
         ja(PREPARING, "準備中…");
         zh(PREPARING, "准备中…");
+        fr(PREPARING, "Préparation…");
+        es(PREPARING, "Preparando…");
+        de(PREPARING, "Wird vorbereitet …");
 
         ja(ASKING_THE_MODEL_RUN, "モデルに質問中、%d 回目");
         zh(ASKING_THE_MODEL_RUN, "正在询问模型，第 %d 轮");
+        fr(ASKING_THE_MODEL_RUN, "Interrogation du modèle, passe %d");
+        es(ASKING_THE_MODEL_RUN, "Consultando al modelo, ejecución %d");
+        de(ASKING_THE_MODEL_RUN, "Das Modell wird gefragt, Lauf %d");
 
         ja(WAITING_FOR_YOUR_REVIEW, "%d 件の変更が確認を待っています");
         zh(WAITING_FOR_YOUR_REVIEW, "有 %d 项更改等待您审阅");
+        fr(WAITING_FOR_YOUR_REVIEW, "%d modifications attendent votre examen");
+        es(WAITING_FOR_YOUR_REVIEW, "%d cambios esperan tu revisión");
+        de(WAITING_FOR_YOUR_REVIEW, "%d Änderungen warten auf deine Prüfung");
 
         ja(APPLYING_THE_CHANGES, "変更を適用中");
         zh(APPLYING_THE_CHANGES, "正在应用更改");
+        fr(APPLYING_THE_CHANGES, "Application des modifications");
+        es(APPLYING_THE_CHANGES, "Aplicando los cambios");
+        de(APPLYING_THE_CHANGES, "Die Änderungen werden angewendet");
 
         ja(DONE_PARTS_ADDED_RETRACTED, "完了：%d パートを読み、%d 件追加、%d 件撤回");
         zh(DONE_PARTS_ADDED_RETRACTED, "完成：读取 %d 个部分，添加 %d 条，撤回 %d 条");
+        fr(DONE_PARTS_ADDED_RETRACTED, "Terminé : %d parties lues, %d ajoutés, %d retirés");
+        es(DONE_PARTS_ADDED_RETRACTED, "Hecho: %d partes leídas, %d añadidos, %d retirados");
+        de(DONE_PARTS_ADDED_RETRACTED, "Fertig: %d Abschnitte gelesen, %d hinzugefügt, %d zurückgezogen");
 
         ja(IT_FAILED, "失敗しました：%s");
         zh(IT_FAILED, "失败：%s");
+        fr(IT_FAILED, "Échec : %s");
+        es(IT_FAILED, "Ha fallado: %s");
+        de(IT_FAILED, "Fehlgeschlagen: %s");
 
         ja(STOPPED_PARTS_ADDED_RETRACTED, "停止：%d パートを読み、%d 件追加、%d 件撤回");
         zh(STOPPED_PARTS_ADDED_RETRACTED, "已停止：读取 %d 个部分，添加 %d 条，撤回 %d 条");
+        fr(STOPPED_PARTS_ADDED_RETRACTED, "Arrêté : %d parties lues, %d ajoutés, %d retirés");
+        es(STOPPED_PARTS_ADDED_RETRACTED, "Detenido: %d partes leídas, %d añadidos, %d retirados");
+        de(STOPPED_PARTS_ADDED_RETRACTED, "Gestoppt: %d Abschnitte gelesen, %d hinzugefügt, %d zurückgezogen");
 
         ja(REVIEW_CHANGES, "変更を確認");
         zh(REVIEW_CHANGES, "审阅更改");
+        fr(REVIEW_CHANGES, "Examiner les modifications");
+        es(REVIEW_CHANGES, "Revisar los cambios");
+        de(REVIEW_CHANGES, "Änderungen prüfen");
 
         ja(CLOSE, "閉じる");
         zh(CLOSE, "关闭");
+        fr(CLOSE, "Fermer");
+        es(CLOSE, "Cerrar");
+        de(CLOSE, "Schließen");
 
         ja(LOG, "ログ");
         zh(LOG, "日志");
+        fr(LOG, "Journal");
+        es(LOG, "Registro");
+        de(LOG, "Protokoll");
 
         ja(REVIEW_THE_CHANGES_RUN, "変更の確認（%d 回目）");
         zh(REVIEW_THE_CHANGES_RUN, "审阅更改（第 %d 轮）");
+        fr(REVIEW_THE_CHANGES_RUN, "Examiner les modifications (passe %d)");
+        es(REVIEW_THE_CHANGES_RUN, "Revisar los cambios (ejecución %d)");
+        de(REVIEW_THE_CHANGES_RUN, "Die Änderungen prüfen (Lauf %d)");
 
         ja(APPLY, "適用");
         zh(APPLY, "应用");
+        fr(APPLY, "Appliquer");
+        es(APPLY, "Aplicar");
+        de(APPLY, "Anwenden");
 
         ja(CHECK_ALL, "すべて選択");
         zh(CHECK_ALL, "全选");
+        fr(CHECK_ALL, "Tout cocher");
+        es(CHECK_ALL, "Marcar todo");
+        de(CHECK_ALL, "Alle markieren");
 
         ja(UNCHECK_ALL, "すべて解除");
         zh(UNCHECK_ALL, "全部取消");
+        fr(UNCHECK_ALL, "Tout décocher");
+        es(UNCHECK_ALL, "Desmarcar todo");
+        de(UNCHECK_ALL, "Markierung aller aufheben");
 
         ja(ADD, "追加");
         zh(ADD, "添加");
+        fr(ADD, "Ajout");
+        es(ADD, "Añadir");
+        de(ADD, "Hinzufügen");
 
         ja(CHANGE, "変更");
         zh(CHANGE, "更改");
+        fr(CHANGE, "Modification");
+        es(CHANGE, "Cambiar");
+        de(CHANGE, "Änderung");
 
         ja(ITEM, "項目");
         zh(ITEM, "条目");
+        fr(ITEM, "Élément");
+        es(ITEM, "Elemento");
+        de(ITEM, "Element");
 
         ja(EVIDENCE, "根拠");
         zh(EVIDENCE, "依据");
+        fr(EVIDENCE, "Preuve");
+        es(EVIDENCE, "Evidencia");
+        de(EVIDENCE, "Beleg");
 
         ja(IN_PART_N_QUOTE, "パート %d：「%s」");
         zh(IN_PART_N_QUOTE, "第 %d 部分：“%s”");
+        fr(IN_PART_N_QUOTE, "Dans la partie %d : « %s »");
+        es(IN_PART_N_QUOTE, "En la parte %d: \"%s\"");
+        de(IN_PART_N_QUOTE, "In Abschnitt %d: \"%s\"");
 
         ja(THE_QUOTE_IS_NOT_IN_THE_PART, "この引用はそのパートにありません。受け入れる前に確認してください");
         zh(THE_QUOTE_IS_NOT_IN_THE_PART, "该引文不在此部分中，接受前请先核对");
+        fr(THE_QUOTE_IS_NOT_IN_THE_PART, "Cette citation n'est pas dans cette partie, vérifiez-la avant d'accepter");
+        es(THE_QUOTE_IS_NOT_IN_THE_PART, "Esta cita no está en esa parte, compruébala antes de aceptar");
+        de(THE_QUOTE_IS_NOT_IN_THE_PART, "Dieses Zitat steht nicht in diesem Abschnitt, prüfe es, bevor du es übernimmst");
 
         ja(LEFT_OUT_N, "除外（%d）");
         zh(LEFT_OUT_N, "已排除（%d）");
+        fr(LEFT_OUT_N, "Omis (%d)");
+        es(LEFT_OUT_N, "Omitidos (%d)");
+        de(LEFT_OUT_N, "Weggelassen (%d)");
 
         ja(UNCHECKED_ADDITIONS_ARE_KEPT, "チェックを外した追加は古い知識として残ります。チェックを外した撤回は何も変更しません。");
         zh(UNCHECKED_ADDITIONS_ARE_KEPT, "取消勾选的添加会保留为旧认知；取消勾选的撤回不会改变任何内容。");
+        fr(UNCHECKED_ADDITIONS_ARE_KEPT, "Un ajout décoché est gardé comme ancienne connaissance ; un retrait décoché ne change rien.");
+        es(UNCHECKED_ADDITIONS_ARE_KEPT, "Una adición que desmarques se conserva como conocimiento antiguo; una retirada sin marcar no cambia nada.");
+        de(UNCHECKED_ADDITIONS_ARE_KEPT, "Eine Ergänzung, die du abwählst, wird als altes Wissen behalten; ein abgewähltes Zurückziehen ändert nichts.");
 
         ja(THE_STORY_CHANGED_WHILE_YOU_REVIEWED, "確認中に物語が変更されました。もう一度処理してください");
         zh(THE_STORY_CHANGED_WHILE_YOU_REVIEWED, "您审阅期间故事发生了变化，请重新处理");
+        fr(THE_STORY_CHANGED_WHILE_YOU_REVIEWED, "L'histoire a changé pendant votre examen des modifications ; traitez de nouveau");
+        es(THE_STORY_CHANGED_WHILE_YOU_REVIEWED, "La historia cambió mientras revisabas los cambios; procesa de nuevo");
+        de(THE_STORY_CHANGED_WHILE_YOU_REVIEWED, "Die Geschichte hat sich geändert, während du die Änderungen geprüft hast; verarbeite erneut");
 
         ja(CHANGES_TO_REVIEW, "確認待ちの変更 %d 件");
         zh(CHANGES_TO_REVIEW, "%d 项更改待审阅");
+        fr(CHANGES_TO_REVIEW, "%d modifications à examiner");
+        es(CHANGES_TO_REVIEW, "%d cambios que revisar");
+        de(CHANGES_TO_REVIEW, "%d Änderungen zu prüfen");
 
         ja(READ_WHAT_THE_CHARACTERS_LEARN, "モデルでキャラクターが知ったことを読み取る");
         zh(READ_WHAT_THE_CHARACTERS_LEARN, "用模型读取角色得知的内容");
+        fr(READ_WHAT_THE_CHARACTERS_LEARN, "Lire avec le modèle ce qu'apprennent les personnages");
+        es(READ_WHAT_THE_CHARACTERS_LEARN, "Leer lo que aprenden los personajes con el modelo");
+        de(READ_WHAT_THE_CHARACTERS_LEARN, "Mit dem Modell lesen, was die Figuren erfahren");
 
         ja(ASK_THE_MODEL_WHAT_EACH_TRACKED, "追跡中の各キャラクターがパートで知ったことをモデルに尋ね、変更として提案します。オフの場合、処理は誰が誰に会ったかを記録するだけです。");
         zh(ASK_THE_MODEL_WHAT_EACH_TRACKED, "询问模型每个被追踪的角色在这些部分中得知了什么，并作为更改提出。关闭时，处理只记录谁见过谁。");
+        fr(ASK_THE_MODEL_WHAT_EACH_TRACKED, "Demander au modèle ce que chaque personnage suivi a appris dans les parties et le proposer comme modifications. Désactivé : le traitement note seulement qui a rencontré qui.");
+        es(ASK_THE_MODEL_WHAT_EACH_TRACKED, "Pregunta al modelo qué aprendió cada personaje seguido en las partes y lo propone como cambios. Desactivado: el procesamiento solo anota quién ha conocido a quién.");
+        de(ASK_THE_MODEL_WHAT_EACH_TRACKED, "Das Modell fragen, was jede verfolgte Figur in den Abschnitten erfahren hat, und es als Änderungen vorschlagen. Aus: Die Verarbeitung hält nur fest, wer wem begegnet ist.");
 
         ja(ASK_BEFORE_APPLYING, "適用前に確認する");
         zh(ASK_BEFORE_APPLYING, "应用前先确认");
+        fr(ASK_BEFORE_APPLYING, "Demander avant d'appliquer");
+        es(ASK_BEFORE_APPLYING, "Preguntar antes de aplicar");
+        de(ASK_BEFORE_APPLYING, "Vor dem Anwenden fragen");
 
         ja(SHOW_WHAT_THE_MODEL_FOUND, "何かを適用する前に、モデルが見つけた内容を確認のために表示します。オフの場合は直ちに適用され、ログに記録されます。");
         zh(SHOW_WHAT_THE_MODEL_FOUND, "在应用任何内容之前，先显示模型找到的内容供审阅。关闭时会立即应用并记入日志。");
+        fr(SHOW_WHAT_THE_MODEL_FOUND, "Montrer ce que le modèle a trouvé pour examen avant toute application. Désactivé : c'est appliqué aussitôt et consigné.");
+        es(SHOW_WHAT_THE_MODEL_FOUND, "Muestra lo que encontró el modelo para revisarlo antes de aplicar nada. Desactivado: se aplica de inmediato y se registra.");
+        de(SHOW_WHAT_THE_MODEL_FOUND, "Zeigen, was das Modell gefunden hat, zur Prüfung, bevor etwas angewendet wird. Aus: Es wird sofort angewendet und protokolliert.");
 
         ja(PARTS_PER_RUN, "1回あたりのパート数");
         zh(PARTS_PER_RUN, "每轮处理的部分数");
+        fr(PARTS_PER_RUN, "Parties par passe");
+        es(PARTS_PER_RUN, "Partes por ejecución");
+        de(PARTS_PER_RUN, "Abschnitte je Lauf");
 
         ja(LOREBOOK_FOR_THE_MODEL, "モデルに渡すロアブック");
         zh(LOREBOOK_FOR_THE_MODEL, "提供给模型的设定集");
+        fr(LOREBOOK_FOR_THE_MODEL, "Lorebook pour le modèle");
+        es(LOREBOOK_FOR_THE_MODEL, "Lorebook para el modelo");
+        de(LOREBOOK_FOR_THE_MODEL, "Lorebook für das Modell");
 
         ja(ENTRIES_THE_PARTS_ACTIVATE, "パートが有効にするエントリ");
         zh(ENTRIES_THE_PARTS_ACTIVATE, "这些部分触发的条目");
+        fr(ENTRIES_THE_PARTS_ACTIVATE, "Entrées activées par les parties");
+        es(ENTRIES_THE_PARTS_ACTIVATE, "Entradas que activan las partes");
+        de(ENTRIES_THE_PARTS_ACTIVATE, "Einträge, die die Abschnitte aktivieren");
 
         ja(THE_WHOLE_LOREBOOK, "ロアブック全体");
         zh(THE_WHOLE_LOREBOOK, "整个设定集");
+        fr(THE_WHOLE_LOREBOOK, "Tout le lorebook");
+        es(THE_WHOLE_LOREBOOK, "Todo el lorebook");
+        de(THE_WHOLE_LOREBOOK, "Das gesamte Lorebook");
 
         ja(NO_LOREBOOK, "ロアブックなし");
         zh(NO_LOREBOOK, "不使用设定集");
+        fr(NO_LOREBOOK, "Pas de lorebook");
+        es(NO_LOREBOOK, "Sin lorebook");
+        de(NO_LOREBOOK, "Kein Lorebook");
 
         ja(MODEL_FOR_THE_EXTRACTION, "読み取りに使うモデル");
         zh(MODEL_FOR_THE_EXTRACTION, "用于读取的模型");
+        fr(MODEL_FOR_THE_EXTRACTION, "Modèle pour l'extraction");
+        es(MODEL_FOR_THE_EXTRACTION, "Modelo para la extracción");
+        de(MODEL_FOR_THE_EXTRACTION, "Modell für die Extraktion");
 
         ja(PROTOCOL_FOR_THE_EXTRACTION, "読み取りに使うプロトコル");
         zh(PROTOCOL_FOR_THE_EXTRACTION, "用于读取的协议");
+        fr(PROTOCOL_FOR_THE_EXTRACTION, "Protocole pour l'extraction");
+        es(PROTOCOL_FOR_THE_EXTRACTION, "Protocolo para la extracción");
+        de(PROTOCOL_FOR_THE_EXTRACTION, "Protokoll für die Extraktion");
 
         ja(THE_MODEL_OF_THE_BOOK, "本のモデル");
         zh(THE_MODEL_OF_THE_BOOK, "本书的模型");
+        fr(THE_MODEL_OF_THE_BOOK, "Le modèle du livre");
+        es(THE_MODEL_OF_THE_BOOK, "El modelo del libro");
+        de(THE_MODEL_OF_THE_BOOK, "Das Modell des Buchs");
 
         ja(SHOW_PART_IN_THE_STORY, "パート %d をストーリーで表示");
         zh(SHOW_PART_IN_THE_STORY, "在故事中显示第 %d 部分");
+        fr(SHOW_PART_IN_THE_STORY, "Afficher la partie %d dans l'histoire");
+        es(SHOW_PART_IN_THE_STORY, "Mostrar la parte %d en la historia");
+        de(SHOW_PART_IN_THE_STORY, "Abschnitt %d in der Geschichte anzeigen");
 
         ja(KNOWLEDGE_TRACKER_READ_THE_STORY, "ナレッジトラッカー: 物語を読み取り");
         zh(KNOWLEDGE_TRACKER_READ_THE_STORY, "知识追踪器：读取故事");
+        fr(KNOWLEDGE_TRACKER_READ_THE_STORY, "Suivi des connaissances : lire l'histoire");
+        es(KNOWLEDGE_TRACKER_READ_THE_STORY, "Seguimiento del conocimiento: leer la historia");
+        de(KNOWLEDGE_TRACKER_READ_THE_STORY, "Knowledge Tracker: die Geschichte lesen");
 
         ja(KNOWLEDGE_TRACKER, "ナレッジトラッカー");
         zh(KNOWLEDGE_TRACKER, "知识追踪器");
+        fr(KNOWLEDGE_TRACKER, "Suivi des connaissances");
+        es(KNOWLEDGE_TRACKER, "Seguimiento del conocimiento");
+        de(KNOWLEDGE_TRACKER, "Knowledge Tracker");
 
         ja(KNOWLEDGE_EXTRACTION_PROMPT, "知識の読み取りプロンプト");
         zh(KNOWLEDGE_EXTRACTION_PROMPT, "知识读取提示词");
+        fr(KNOWLEDGE_EXTRACTION_PROMPT, "Prompt d'extraction des connaissances");
+        es(KNOWLEDGE_EXTRACTION_PROMPT, "Prompt de extracción del conocimiento");
+        de(KNOWLEDGE_EXTRACTION_PROMPT, "Prompt zur Wissensextraktion");
 
         ja(KNOWLEDGE_TIDY_PROMPT, "知識の整理プロンプト");
         zh(KNOWLEDGE_TIDY_PROMPT, "知识整理提示词");
+        fr(KNOWLEDGE_TIDY_PROMPT, "Prompt de rangement des connaissances");
+        es(KNOWLEDGE_TIDY_PROMPT, "Prompt de ordenación del conocimiento");
+        de(KNOWLEDGE_TIDY_PROMPT, "Prompt zum Aufräumen des Wissens");
 
         ja(THE_SYSTEM_MESSAGE_THAT_TELLS_THE_MODEL, "登場人物が学ぶことを物語から読み取る方法をモデルに伝えるシステムメッセージ。プラグインが読み取るため、JSON の回答形式は維持してください。空 = 継承されたもの、なければ組み込みのテキスト。");
         zh(THE_SYSTEM_MESSAGE_THAT_TELLS_THE_MODEL, "告诉模型如何从故事中读取被追踪角色所得知内容的系统消息。请保留 JSON 回答格式，插件会读取它。留空 = 继承的设置，否则使用内置文本。");
+        fr(THE_SYSTEM_MESSAGE_THAT_TELLS_THE_MODEL, "Le message système qui indique au modèle comment lire l'histoire pour ce qu'apprennent les personnages suivis. Gardez le format de réponse JSON, le plugin le lit. Vide = celui hérité, sinon le texte intégré.");
+        es(THE_SYSTEM_MESSAGE_THAT_TELLS_THE_MODEL, "El mensaje del sistema que le dice al modelo cómo leer la historia para ver lo que aprenden los personajes seguidos. Conserva el formato de respuesta JSON, el plugin lo lee. Vacío = el heredado, si no el texto integrado.");
+        de(THE_SYSTEM_MESSAGE_THAT_TELLS_THE_MODEL, "Die Systemnachricht, die dem Modell sagt, wie es die Geschichte danach lesen soll, was die verfolgten Figuren erfahren. Behalte das JSON-Antwortformat bei, das Plugin liest es. Leer = der geerbte, sonst der eingebaute Text.");
 
         ja(THE_SYSTEM_MESSAGE_OF_THE_TIDY_PASS, "残す価値のない項目を削除・統合する整理パスのシステムメッセージ。プラグインが読み取るため、JSON の回答形式は維持してください。空 = 継承されたもの、なければ組み込みのテキスト。");
         zh(THE_SYSTEM_MESSAGE_OF_THE_TIDY_PASS, "整理阶段的系统消息，用于删除和合并不值得保留的条目。请保留 JSON 回答格式，插件会读取它。留空 = 继承的设置，否则使用内置文本。");
+        fr(THE_SYSTEM_MESSAGE_OF_THE_TIDY_PASS, "Le message système du rangement, qui abandonne et fusionne les éléments qui ne valent pas d'être gardés. Gardez le format de réponse JSON, le plugin le lit. Vide = celui hérité, sinon le texte intégré.");
+        es(THE_SYSTEM_MESSAGE_OF_THE_TIDY_PASS, "El mensaje del sistema de la pasada de ordenación, que descarta y combina los elementos que no merece la pena conservar. Conserva el formato de respuesta JSON, el plugin lo lee. Vacío = el heredado, si no el texto integrado.");
+        de(THE_SYSTEM_MESSAGE_OF_THE_TIDY_PASS, "Die Systemnachricht des Aufräumdurchgangs, der Elemente verwirft und zusammenführt, die nicht aufbewahrenswert sind. Behalte das JSON-Antwortformat bei, das Plugin liest es. Leer = der geerbte, sonst der eingebaute Text.");
 
         ja(MASS_CHANGES, "一括変更");
         zh(MASS_CHANGES, "批量修改");
+        fr(MASS_CHANGES, "Modifications en masse");
+        es(MASS_CHANGES, "Cambios masivos");
+        de(MASS_CHANGES, "Massenänderungen");
 
         ja(CHANGE_MANY_ITEMS_AT_ONCE, "追跡中の登場人物の多数の項目を一度に削除・撤回・復元し、JSON でエクスポート・インポートします");
         zh(CHANGE_MANY_ITEMS_AT_ONCE, "一次删除、撤回或恢复被追踪角色的多个条目；以 JSON 导出和导入");
+        fr(CHANGE_MANY_ITEMS_AT_ONCE, "Supprimer, retirer ou restaurer de nombreux éléments des personnages suivis d'un coup ; les exporter et les importer en JSON");
+        es(CHANGE_MANY_ITEMS_AT_ONCE, "Eliminar, retirar o restaurar muchos elementos de los personajes seguidos a la vez; exportarlos e importarlos como JSON");
+        de(CHANGE_MANY_ITEMS_AT_ONCE, "Viele Elemente der verfolgten Figuren auf einmal löschen, zurückziehen oder wiederherstellen; sie als JSON exportieren und importieren");
 
         ja(STATE, "状態");
         zh(STATE, "状态");
+        fr(STATE, "État");
+        es(STATE, "Estado");
+        de(STATE, "Zustand");
 
         ja(ACTIVE, "有効");
         zh(ACTIVE, "有效");
+        fr(ACTIVE, "Actif");
+        es(ACTIVE, "Activo");
+        de(ACTIVE, "Aktiv");
 
         ja(OLD_RETRACTED, "古い: 撤回");
         zh(OLD_RETRACTED, "旧：已撤回");
+        fr(OLD_RETRACTED, "Ancien : retiré");
+        es(OLD_RETRACTED, "Antiguo: retirado");
+        de(OLD_RETRACTED, "Alt: zurückgezogen");
 
         ja(OLD_DECLINED, "古い: レビューで却下");
         zh(OLD_DECLINED, "旧：审阅时被拒绝");
+        fr(OLD_DECLINED, "Ancien : refusé lors d'un examen");
+        es(OLD_DECLINED, "Antiguo: rechazado en una revisión");
+        de(OLD_DECLINED, "Alt: in einer Prüfung abgelehnt");
 
         ja(OLD_TIDIED, "古い: 整理済み");
         zh(OLD_TIDIED, "旧：已整理");
+        fr(OLD_TIDIED, "Ancien : rangé");
+        es(OLD_TIDIED, "Antiguo: ordenado");
+        de(OLD_TIDIED, "Alt: aufgeräumt");
 
         ja(ORIGIN, "出所");
         zh(ORIGIN, "来源");
+        fr(ORIGIN, "Origine");
+        es(ORIGIN, "Origen");
+        de(ORIGIN, "Herkunft");
 
         ja(INITIAL_STATE, "初期状態");
         zh(INITIAL_STATE, "初始状态");
+        fr(INITIAL_STATE, "État initial");
+        es(INITIAL_STATE, "Estado inicial");
+        de(INITIAL_STATE, "Anfangszustand");
 
         ja(WRITTEN_BY_HAND, "手書き");
         zh(WRITTEN_BY_HAND, "手动编写");
+        fr(WRITTEN_BY_HAND, "Écrit à la main");
+        es(WRITTEN_BY_HAND, "Escrito a mano");
+        de(WRITTEN_BY_HAND, "Von Hand geschrieben");
 
         ja(LEARNED_FROM_THE_STORY, "物語から学んだ");
         zh(LEARNED_FROM_THE_STORY, "从故事中得知");
+        fr(LEARNED_FROM_THE_STORY, "Appris de l'histoire");
+        es(LEARNED_FROM_THE_STORY, "Aprendido de la historia");
+        de(LEARNED_FROM_THE_STORY, "Aus der Geschichte erfahren");
 
         ja(PART, "パート");
         zh(PART, "部分");
+        fr(PART, "Partie");
+        es(PART, "Parte");
+        de(PART, "Abschnitt");
 
         ja(NO_ITEMS, "項目なし");
         zh(NO_ITEMS, "没有条目");
+        fr(NO_ITEMS, "Aucun élément");
+        es(NO_ITEMS, "Sin elementos");
+        de(NO_ITEMS, "Keine Elemente");
 
         ja(N_OF_N_SELECTED, "%d 件を選択（全 %d 件）");
         zh(N_OF_N_SELECTED, "已选 %d / %d");
+        fr(N_OF_N_SELECTED, "%d sur %d sélectionnés");
+        es(N_OF_N_SELECTED, "%d de %d seleccionados");
+        de(N_OF_N_SELECTED, "%d von %d ausgewählt");
 
         ja(RETRACT_SELECTED, "選択した項目を撤回（%d）");
         zh(RETRACT_SELECTED, "撤回所选（%d）");
+        fr(RETRACT_SELECTED, "Retirer la sélection (%d)");
+        es(RETRACT_SELECTED, "Retirar la selección (%d)");
+        de(RETRACT_SELECTED, "Ausgewählte zurückziehen (%d)");
 
         ja(RESTORE_SELECTED, "選択した項目を復元（%d）");
         zh(RESTORE_SELECTED, "恢复所选（%d）");
+        fr(RESTORE_SELECTED, "Restaurer la sélection (%d)");
+        es(RESTORE_SELECTED, "Restaurar la selección (%d)");
+        de(RESTORE_SELECTED, "Ausgewählte wiederherstellen (%d)");
 
         ja(N_ITEMS_RETRACTED, "%d 件の項目を撤回しました");
         zh(N_ITEMS_RETRACTED, "已撤回 %d 个条目");
+        fr(N_ITEMS_RETRACTED, "%d élément(s) retiré(s)");
+        es(N_ITEMS_RETRACTED, "%d elemento(s) retirado(s)");
+        de(N_ITEMS_RETRACTED, "%d Element(e) zurückgezogen");
 
         ja(N_ITEMS_RESTORED, "%d 件の項目を復元しました");
         zh(N_ITEMS_RESTORED, "已恢复 %d 个条目");
+        fr(N_ITEMS_RESTORED, "%d élément(s) restauré(s)");
+        es(N_ITEMS_RESTORED, "%d elemento(s) restaurado(s)");
+        de(N_ITEMS_RESTORED, "%d Element(e) wiederhergestellt");
 
         ja(N_ITEMS_DELETED, "%d 件の項目を削除しました");
         zh(N_ITEMS_DELETED, "已删除 %d 个条目");
+        fr(N_ITEMS_DELETED, "%d élément(s) supprimé(s)");
+        es(N_ITEMS_DELETED, "%d elemento(s) eliminado(s)");
+        de(N_ITEMS_DELETED, "%d Element(e) gelöscht");
 
         ja(EXPORT_TO_JSON, "JSON にエクスポート");
         zh(EXPORT_TO_JSON, "导出为 JSON");
+        fr(EXPORT_TO_JSON, "Exporter en JSON");
+        es(EXPORT_TO_JSON, "Exportar a JSON");
+        de(EXPORT_TO_JSON, "Als JSON exportieren");
 
         ja(IMPORT_FROM_JSON, "JSON からインポート");
         zh(IMPORT_FROM_JSON, "从 JSON 导入");
+        fr(IMPORT_FROM_JSON, "Importer depuis un JSON");
+        es(IMPORT_FROM_JSON, "Importar desde JSON");
+        de(IMPORT_FROM_JSON, "Aus JSON importieren");
 
         ja(IMPORTED_SUMMARY, "インポート完了: 新しい登場人物 %d、更新 %d、追加した項目 %d、既存 %d");
         zh(IMPORTED_SUMMARY, "已导入：新角色 %d 个，更新 %d 个，新增条目 %d 个，已存在 %d 个");
+        fr(IMPORTED_SUMMARY, "Importé : %d nouveau(x) personnage(s), %d mis à jour, %d élément(s) ajouté(s), %d déjà présents");
+        es(IMPORTED_SUMMARY, "Importado: %d personaje(s) nuevo(s), %d actualizado(s), %d elemento(s) añadido(s), %d ya estaban");
+        de(IMPORTED_SUMMARY, "Importiert: %d neue Figur(en), %d aktualisiert, %d Element(e) hinzugefügt, %d bereits vorhanden");
 
         ja(THE_FILE_IS_NOT_A_KNOWLEDGE_EXPORT, "ファイルはナレッジトラッカーのエクスポートではありません: %s");
         zh(THE_FILE_IS_NOT_A_KNOWLEDGE_EXPORT, "该文件不是知识追踪器的导出文件：%s");
+        fr(THE_FILE_IS_NOT_A_KNOWLEDGE_EXPORT, "Le fichier n'est pas un export du suivi des connaissances : %s");
+        es(THE_FILE_IS_NOT_A_KNOWLEDGE_EXPORT, "El archivo no es una exportación del Seguimiento del conocimiento: %s");
+        de(THE_FILE_IS_NOT_A_KNOWLEDGE_EXPORT, "Die Datei ist kein Knowledge-Tracker-Export: %s");
 
     }
 }

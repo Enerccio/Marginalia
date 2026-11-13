@@ -2,7 +2,8 @@ package com.github.enerccio.marginalia.extensions.loregenerator.service;
 
 public class Defaults {
 
-    public static String COMPACTION_PROMPT = """
+    public String compactionPrompt() {
+        return """
 [System Instruction: You are an expert data-compaction engine. Your sole task is to ingest the raw text provided below and convert it into a machine-readable, ultra-dense lore archive entry for an LLM's background memory.]
 
 CRITICAL RULES:
@@ -20,8 +21,10 @@ CRITICAL RULES:
 {{compactionData}}
 ==== END RAW SOURCE MATERIAL ====
 """;
+    }
 
-    public static String GENERATION_PROMPT = """
+    public String generationPrompt() {
+        return """
 [ You are an expert worldbuilder and a master of highly descriptive, atmospheric prose. Your task is to craft a detailed lore entry based strictly on the parameters provided below. Use vivid imagery and rich language while ensuring every core detail is seamlessly embedded. ]
 
 ### Input Parameters
@@ -40,5 +43,6 @@ CRITICAL RULES:
 ### Output
 Provide only the stylized lore entry. Do not include any introductory or concluding conversational filler.
 """;
+    }
 
 }

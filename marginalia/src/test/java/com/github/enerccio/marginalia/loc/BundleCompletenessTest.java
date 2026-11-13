@@ -39,4 +39,46 @@ class BundleCompletenessTest {
             assertEquals(placeholders(en.getValue(key)), placeholders(text), key.name());
         }
     }
+
+    @Test
+    void frenchHasEveryKeyAndMatchingPlaceholders() {
+        LocalizationBundle en = new LocalizationBundleEN();
+        LocalizationBundle fr = new LocalizationBundleFR();
+
+        assertEquals(Language.of("fr"), fr.getLanguage());
+        for (L key : L.values()) {
+            String text = fr.getValue(key);
+            assertNotNull(text, key.name());
+            assertFalse(text.isBlank(), key.name());
+            assertEquals(placeholders(en.getValue(key)), placeholders(text), key.name());
+        }
+    }
+
+    @Test
+    void spanishHasEveryKeyAndMatchingPlaceholders() {
+        LocalizationBundle en = new LocalizationBundleEN();
+        LocalizationBundle es = new LocalizationBundleES();
+
+        assertEquals(Language.of("es"), es.getLanguage());
+        for (L key : L.values()) {
+            String text = es.getValue(key);
+            assertNotNull(text, key.name());
+            assertFalse(text.isBlank(), key.name());
+            assertEquals(placeholders(en.getValue(key)), placeholders(text), key.name());
+        }
+    }
+
+    @Test
+    void germanHasEveryKeyAndMatchingPlaceholders() {
+        LocalizationBundle en = new LocalizationBundleEN();
+        LocalizationBundle de = new LocalizationBundleDE();
+
+        assertEquals(Language.of("de"), de.getLanguage());
+        for (L key : L.values()) {
+            String text = de.getValue(key);
+            assertNotNull(text, key.name());
+            assertFalse(text.isBlank(), key.name());
+            assertEquals(placeholders(en.getValue(key)), placeholders(text), key.name());
+        }
+    }
 }

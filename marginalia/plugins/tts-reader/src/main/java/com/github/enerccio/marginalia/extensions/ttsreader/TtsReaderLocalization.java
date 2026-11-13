@@ -30,12 +30,36 @@ public class TtsReaderLocalization extends PluginLocalizationBundle {
         ja(PITCH, "ピッチ");
 
         zh(READ_ALOUD, "朗读");
+        fr(READ_ALOUD, "Lire à voix haute");
+        es(READ_ALOUD, "Leer en voz alta");
+        de(READ_ALOUD, "Vorlesen");
         zh(PAUSE_READING, "暂停朗读");
+        fr(PAUSE_READING, "Mettre la lecture en pause");
+        es(PAUSE_READING, "Pausar la lectura");
+        de(PAUSE_READING, "Vorlesen pausieren");
         zh(STOP_READING, "停止朗读");
+        fr(STOP_READING, "Arrêter la lecture");
+        es(STOP_READING, "Detener la lectura");
+        de(STOP_READING, "Vorlesen stoppen");
         zh(READING_SETTINGS, "朗读设置");
+        fr(READING_SETTINGS, "Paramètres de lecture");
+        es(READING_SETTINGS, "Ajustes de lectura");
+        de(READING_SETTINGS, "Einstellungen zum Vorlesen");
         zh(VOICE, "语音");
+        fr(VOICE, "Voix");
+        es(VOICE, "Voz");
+        de(VOICE, "Stimme");
         zh(DEFAULT_VOICE_OF_THE_BOOK_LANGUAGE, "书籍语言的默认语音");
+        fr(DEFAULT_VOICE_OF_THE_BOOK_LANGUAGE, "Voix par défaut de la langue du livre");
+        es(DEFAULT_VOICE_OF_THE_BOOK_LANGUAGE, "Voz predeterminada del idioma del libro");
+        de(DEFAULT_VOICE_OF_THE_BOOK_LANGUAGE, "Standardstimme der Buchsprache");
         zh(SPEED, "语速");
+        fr(SPEED, "Vitesse");
+        es(SPEED, "Velocidad");
+        de(SPEED, "Geschwindigkeit");
         zh(PITCH, "音调");
+        fr(PITCH, "Hauteur");
+        es(PITCH, "Tono");
+        de(PITCH, "Tonhöhe");
     }
 }

@@ -2,7 +2,6 @@ package com.github.enerccio.marginalia.extensions.arcoutline.ui;
 
 import com.github.enerccio.marginalia.extensions.arcoutline.model.ArcOutlineSettings;
 import com.github.enerccio.marginalia.extensions.arcoutline.service.ArcOutlineService;
-import com.github.enerccio.marginalia.extensions.arcoutline.service.Defaults;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.ResizableTextArea;
 import com.github.enerccio.marginalia.ui.widgets.TemplateHints;
@@ -41,29 +40,29 @@ public class ArcOutlineSettingsForm extends VerticalLayout {
 
         generationPromptArea = new TextAreaPopoverComponent(T.localized(ARC_GENERATION_PROMPT));
         generationPromptArea.setWidthFull();
-        generationPromptArea.setPlaceholder(Defaults.GENERATION_PROMPT);
+        generationPromptArea.setPlaceholder(T.defaults().generationPrompt());
         generationPromptArea.setHelperText(T.localized(TEMPLATE_VARIABLES_BACKGROUNDLORE));
         ResizableTextArea.install(loc, generationPromptArea, "240px");
         generationPromptArea.setPopoverContent(TemplateHints.create(loc, generationPromptArea,
-                generationPromptArea.getPopover(), null, Defaults.GENERATION_PROMPT));
+                generationPromptArea.getPopover(), null, T.defaults().generationPrompt()));
         add(generationPromptArea);
 
         chapterGenerationPromptArea = new TextAreaPopoverComponent(T.localized(CHAPTER_GENERATION_PROMPT));
         chapterGenerationPromptArea.setWidthFull();
-        chapterGenerationPromptArea.setPlaceholder(Defaults.CHAPTER_GENERATION_PROMPT);
+        chapterGenerationPromptArea.setPlaceholder(T.defaults().chapterGenerationPrompt());
         chapterGenerationPromptArea.setHelperText(T.localized(TEMPLATE_VARIABLES_BACKGROUNDLORE_OUTLINE));
         ResizableTextArea.install(loc, chapterGenerationPromptArea, "240px");
         chapterGenerationPromptArea.setPopoverContent(TemplateHints.create(loc, chapterGenerationPromptArea,
-                chapterGenerationPromptArea.getPopover(), null, Defaults.CHAPTER_GENERATION_PROMPT));
+                chapterGenerationPromptArea.getPopover(), null, T.defaults().chapterGenerationPrompt()));
         add(chapterGenerationPromptArea);
 
         importPromptArea = new TextAreaPopoverComponent(T.localized(STORY_IMPORT_PROMPT));
         importPromptArea.setWidthFull();
-        importPromptArea.setPlaceholder(Defaults.IMPORT_PROMPT);
+        importPromptArea.setPlaceholder(T.defaults().importPrompt());
         importPromptArea.setHelperText(T.localized(TEMPLATE_VARIABLES_BACKGROUNDLORE_EXISTINGARCS));
         ResizableTextArea.install(loc, importPromptArea, "240px");
         importPromptArea.setPopoverContent(TemplateHints.create(loc, importPromptArea,
-                importPromptArea.getPopover(), null, Defaults.IMPORT_PROMPT));
+                importPromptArea.getPopover(), null, T.defaults().importPrompt()));
         add(importPromptArea);
 
         refresh();

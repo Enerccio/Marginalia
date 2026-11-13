@@ -30,6 +30,8 @@ import org.springframework.beans.factory.annotation.Configurable;
 import java.util.*;
 import java.util.concurrent.*;
 
+import static com.github.enerccio.marginalia.extensions.arcoutline.ArcOutlineLocalization.T;
+
 @Configurable
 public class ArcOutlineService {
 
@@ -296,30 +298,30 @@ public class ArcOutlineService {
     }
 
     /**
-     * The prompt template the dialog starts with: the user's or {@link Defaults#GENERATION_PROMPT}.
+     * The prompt template the dialog starts with: the user's or {@link Defaults#generationPrompt()}.
      */
     public String generationPrompt(ArcOutlineSettings settings) {
-        return StringUtils.defaultIfBlank(settings.getGenerationPrompt(), Defaults.GENERATION_PROMPT);
+        return StringUtils.defaultIfBlank(settings.getGenerationPrompt(), T.defaults().generationPrompt());
     }
 
     /**
-     * The prompt template the chapter dialog starts with: the user's or {@link Defaults#CHAPTER_GENERATION_PROMPT}.
+     * The prompt template the chapter dialog starts with: the user's or {@link Defaults#chapterGenerationPrompt()}.
      */
     public String chapterGenerationPrompt(ArcOutlineSettings settings) {
-        return StringUtils.defaultIfBlank(settings.getChapterGenerationPrompt(), Defaults.CHAPTER_GENERATION_PROMPT);
+        return StringUtils.defaultIfBlank(settings.getChapterGenerationPrompt(), T.defaults().chapterGenerationPrompt());
     }
 
     /**
-     * The prompt template the import dialog starts with: the user's or {@link Defaults#IMPORT_PROMPT}.
+     * The prompt template the import dialog starts with: the user's or {@link Defaults#importPrompt()}.
      */
     public String importPrompt(ArcOutlineSettings settings) {
-        return StringUtils.defaultIfBlank(settings.getImportPrompt(), Defaults.IMPORT_PROMPT);
+        return StringUtils.defaultIfBlank(settings.getImportPrompt(), T.defaults().importPrompt());
     }
 
     // --- the plot wizard ---
 
     public String wizardPrompt(WizardOptions options) {
-        return StringUtils.defaultIfBlank(options.getPrompt(), Defaults.WIZARD_PROMPT);
+        return StringUtils.defaultIfBlank(options.getPrompt(), T.defaults().wizardPrompt());
     }
 
     /** The conversations of the book as they are stored now. */
@@ -425,9 +427,9 @@ public class ArcOutlineService {
             }
         }
         data.setMode(switch (options.getMode()) {
-            case EXPLORE -> Defaults.MODE_EXPLORE;
-            case CHALLENGE -> Defaults.MODE_CHALLENGE;
-            case EXPAND -> Defaults.MODE_EXPAND;
+            case EXPLORE -> T.defaults().modeExplore();
+            case CHALLENGE -> T.defaults().modeChallenge();
+            case EXPAND -> T.defaults().modeExpand();
             case FREE -> "";
         });
         return new WizardPrompt(templateService.processTemplate(template, "plotWizard", data), summaryCount, partCount);

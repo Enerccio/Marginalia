@@ -136,7 +136,7 @@ public class UserSetting extends Setting {
 
     /**
      * The system prompt of the agents of the user that have none of their own; blank is the one of the application
-     * settings, and then {@code Defaults.DEFAULT_AGENT_PROMPT}.
+     * settings, and then {@code Defaults.agentPrompt()}.
      */
     @ExtendedAttribute
     @Transient
@@ -173,7 +173,7 @@ public class UserSetting extends Setting {
 
     /**
      * The compaction prompt of the agents of the user that have none of their own; blank is the one of the application
-     * settings, and then {@code Defaults.DEFAULT_AGENT_COMPACTION_PROMPT}.
+     * settings, and then {@code Defaults.agentCompactionPrompt()}.
      */
     @ExtendedAttribute
     @Transient
@@ -200,6 +200,14 @@ public class UserSetting extends Setting {
     @ExtendedAttribute
     @Transient
     private String language;
+
+    /**
+     * Code of the language of the built-in prompts ({@code Localization.getDefaults()}), {@code null} for English.
+     * Independent of the language of the UI.
+     */
+    @ExtendedAttribute
+    @Transient
+    private String promptLanguage;
 
     /**
      * How many parts of a book the story and the reader load at a time (the story the last ones, the reader the first
@@ -577,6 +585,14 @@ public class UserSetting extends Setting {
 
     public void setLanguage(String language) {
         this.language = language;
+    }
+
+    public String getPromptLanguage() {
+        return promptLanguage;
+    }
+
+    public void setPromptLanguage(String promptLanguage) {
+        this.promptLanguage = promptLanguage;
     }
 
     public String getBackupStrategyValue() {

@@ -259,7 +259,7 @@ public class MangaService {
         }
 
         String userPrompt = compile(StringUtils.defaultIfBlank(
-                        StringUtils.defaultIfBlank(section.getPromptOverride(), manga.getPromptOverride()), Defaults.DEFAULT_PROMPT),
+                        StringUtils.defaultIfBlank(section.getPromptOverride(), manga.getPromptOverride()), T.defaults().prompt()),
                 manga, rules(manga, section, true));
         String boundary = boundaryRules(section);
         if (!boundary.isEmpty()) {
@@ -286,7 +286,7 @@ public class MangaService {
         String source = partsText(branch, section.getContextStart(), section.getContextEnd(), partTexts::forModel);
 
         String userPrompt = compile(StringUtils.defaultIfBlank(
-                        StringUtils.defaultIfBlank(section.getTagsPromptOverride(), manga.getTagsPromptOverride()), Defaults.DEFAULT_TAGS_PROMPT),
+                        StringUtils.defaultIfBlank(section.getTagsPromptOverride(), manga.getTagsPromptOverride()), T.defaults().tagsPrompt()),
                 manga, rules(manga, section, false));
         String after = block(Defaults.MANUSCRIPT, source) + "\n\n" + block(Defaults.SCRIPT, section.getScript().strip());
         return assemble(manuscript, branch, settings, source, after, userPrompt);

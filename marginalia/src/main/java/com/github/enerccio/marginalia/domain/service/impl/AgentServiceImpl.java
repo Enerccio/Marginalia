@@ -1,6 +1,5 @@
 package com.github.enerccio.marginalia.domain.service.impl;
 
-import com.github.enerccio.marginalia.Defaults;
 import com.github.enerccio.marginalia.domain.model.AgentModelProfile;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.Agent;
@@ -17,6 +16,7 @@ import com.github.enerccio.marginalia.domain.security.service.PermissionService;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
+import com.github.enerccio.marginalia.loc.Localization;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +25,9 @@ import org.springframework.context.annotation.Lazy;
 import java.util.*;
 
 public class AgentServiceImpl extends ExtendableServiceImpl<Agent, AgentRepository> implements AgentService {
+
+    @Autowired
+    private Localization loc;
 
     @Autowired
     @Lazy
@@ -278,7 +281,7 @@ public class AgentServiceImpl extends ExtendableServiceImpl<Agent, AgentReposito
     @CommonTxReadOnly
     public String getAppDefaultSystemPrompt() throws Exception {
         AppSettings app = settingService.findOrBlank(AppSettings.class, null);
-        return StringUtils.isNotBlank(app.getDefaultAgentPrompt()) ? app.getDefaultAgentPrompt() : Defaults.DEFAULT_AGENT_PROMPT;
+        return StringUtils.isNotBlank(app.getDefaultAgentPrompt()) ? app.getDefaultAgentPrompt() : loc.getDefaults().agentPrompt();
     }
 
     @Override
@@ -328,7 +331,7 @@ public class AgentServiceImpl extends ExtendableServiceImpl<Agent, AgentReposito
     public String getAppDefaultCompactionPrompt() throws Exception {
         AppSettings app = settingService.findOrBlank(AppSettings.class, null);
         return StringUtils.isNotBlank(app.getDefaultAgentCompactionPrompt())
-                ? app.getDefaultAgentCompactionPrompt() : Defaults.DEFAULT_AGENT_COMPACTION_PROMPT;
+                ? app.getDefaultAgentCompactionPrompt() : loc.getDefaults().agentCompactionPrompt();
     }
 
     @Override

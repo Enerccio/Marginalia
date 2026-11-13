@@ -1,6 +1,6 @@
 # Chinese localization
 
-Adds Simplified Chinese (中文（简体）) to the languages of the Marginalia user interface.
+Adds Simplified Chinese (中文（简体）) to the languages of the Marginalia user interface and of its built-in prompts.
 
 ![The story editor in Chinese](../../../manual/images/plugin-chineselocalization.png)
 
@@ -15,6 +15,8 @@ another one.
 ## How it works
 
 The plugin has no user interface code. Its extension implements `ExtensionHasLocalization` and returns a
-`LocalizationBundle` - `LocalizationBundleZH`, the Chinese text of every key of `L`. Marginalia registers the bundle
-when the extension is loaded and removes it when it is unloaded. It is the example for localization in the developer
+`LocalizationBundle` - `LocalizationBundleZH`, the Chinese text of every key of `L` - and, from `getPromptDefaults()`,
+`DefaultsZH`, the built-in prompts in Chinese (a subclass of `Defaults`; `DefaultsZHTest` checks that it translates every
+text and keeps the Handlebars tags and placeholders). Marginalia registers both when the extension is loaded, so Chinese is
+offered as a *Prompt language* too, and removes them when it is unloaded. It is the example for localization in the developer
 manual (*Plugin development → Example plugin*), copy it to add another language.

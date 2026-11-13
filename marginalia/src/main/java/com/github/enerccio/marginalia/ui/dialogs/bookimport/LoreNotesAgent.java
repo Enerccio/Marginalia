@@ -6,6 +6,8 @@ import com.github.enerccio.marginalia.domain.model.impl.Agent;
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.*;
+import com.github.enerccio.marginalia.loc.Language;
+import com.github.enerccio.marginalia.loc.Localization;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
@@ -42,6 +44,9 @@ public final class LoreNotesAgent {
         /** The book has an agent already (a book can have only one). */
         HAS_AGENT
     }
+
+    @Autowired
+    private Localization loc;
 
     @Autowired
     private AgentService agentService;
@@ -107,10 +112,15 @@ public final class LoreNotesAgent {
         }
 
         Agent agent = new Agent();
-        agent.setName(Defaults.AGENT_LORE_NOTES_NAME);
+        // the instructions are in the prompt language of the user, the agent reads its commands in the same one when it can
+        Language promptLanguage = loc.getPromptLanguage();
+        if (!Language.EN.equals(promptLanguage) && loc.getAvailableLanguages().contains(promptLanguage)) {
+            agent.setLanguage(promptLanguage.code());
+        }
+        agent.setName(loc.getDefaults().agentLoreNotesName());
         agent.setManuscript(book);
         agent.setModelProfiles(List.of(new AgentModelProfile(MAIN_ROLE, aiService.find(book.getAi()).getUuid(), protocolService.find(book.getProtocol()).getUuid())));
-        agent.setInstructions(Defaults.AGENT_LORE_NOTES_INSTRUCTIONS);
+        agent.setInstructions(loc.getDefaults().agentLoreNotesInstructions());
         agent.setAllowedCommands(COMMANDS);
         agent = agentService.save(agent);
 

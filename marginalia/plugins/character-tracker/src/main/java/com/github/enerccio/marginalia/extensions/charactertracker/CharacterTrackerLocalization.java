@@ -73,179 +73,356 @@ public class CharacterTrackerLocalization extends PluginLocalizationBundle {
     protected void loadKeys() {
         ja(CHARACTERS, "キャラクター");
         zh(CHARACTERS, "角色");
+        fr(CHARACTERS, "Personnages");
+        es(CHARACTERS, "Personajes");
+        de(CHARACTERS, "Figuren");
 
         ja(RELATIONSHIP_MAP, "関係図");
         zh(RELATIONSHIP_MAP, "关系图");
+        fr(RELATIONSHIP_MAP, "Carte des relations");
+        es(RELATIONSHIP_MAP, "Mapa de relaciones");
+        de(RELATIONSHIP_MAP, "Beziehungskarte");
 
         ja(THERE_ARE_NO_RELATIONSHIPS, "関係はまだありません。キャラクターのダイアログで追加してください。");
         zh(THERE_ARE_NO_RELATIONSHIPS, "还没有任何关系。请在角色的对话框中添加。");
+        fr(THERE_ARE_NO_RELATIONSHIPS, "Il n'y a pas encore de relations. Ajoutez-les dans la fenêtre d'un personnage.");
+        es(THERE_ARE_NO_RELATIONSHIPS, "Todavía no hay relaciones. Añádelas en el cuadro de diálogo de un personaje.");
+        de(THERE_ARE_NO_RELATIONSHIPS, "Es gibt noch keine Beziehungen. Füge sie im Dialog einer Figur hinzu.");
 
         ja(DOUBLE_CLICK_A_CHARACTER, "キャラクターをダブルクリックすると、そのキャラクターを中心にマップを配置します。ドラッグで移動、スクロールで拡大縮小できます。");
         zh(DOUBLE_CLICK_A_CHARACTER, "双击角色可围绕该角色重新排列关系图。拖动可移动，滚动可缩放。");
+        fr(DOUBLE_CLICK_A_CHARACTER, "Double-cliquez sur un personnage pour organiser la carte autour de lui. Faites glisser pour déplacer, la molette pour zoomer.");
+        es(DOUBLE_CLICK_A_CHARACTER, "Haz doble clic en un personaje para organizar el mapa a su alrededor. Arrastra para mover, usa la rueda para ampliar.");
+        de(DOUBLE_CLICK_A_CHARACTER, "Doppelklicke auf eine Figur, um die Karte um sie herum anzuordnen. Ziehen zum Verschieben, Scrollen zum Zoomen.");
 
         ja(CLOSE, "閉じる");
         zh(CLOSE, "关闭");
+        fr(CLOSE, "Fermer");
+        es(CLOSE, "Cerrar");
+        de(CLOSE, "Schließen");
 
         ja(ADD, "追加");
         zh(ADD, "添加");
+        fr(ADD, "Ajouter");
+        es(ADD, "Añadir");
+        de(ADD, "Hinzufügen");
 
         ja(ADD_NEW_CHARACTER, "新しいキャラクターを追加");
         zh(ADD_NEW_CHARACTER, "添加新角色");
+        fr(ADD_NEW_CHARACTER, "Ajouter un nouveau personnage");
+        es(ADD_NEW_CHARACTER, "Añadir personaje nuevo");
+        de(ADD_NEW_CHARACTER, "Neue Figur hinzufügen");
 
         ja(MORE_ACTIONS, "その他の操作");
         zh(MORE_ACTIONS, "更多操作");
+        fr(MORE_ACTIONS, "Plus d'actions");
+        es(MORE_ACTIONS, "Más acciones");
+        de(MORE_ACTIONS, "Weitere Aktionen");
 
         ja(IMPORT_LORE_ENTRIES_AS_CHARACTERS, "ロアエントリをキャラクターとしてインポート");
         zh(IMPORT_LORE_ENTRIES_AS_CHARACTERS, "将世界书条目导入为角色");
+        fr(IMPORT_LORE_ENTRIES_AS_CHARACTERS, "Importer des entrées de lore comme personnages");
+        es(IMPORT_LORE_ENTRIES_AS_CHARACTERS, "Importar entradas de lore como personajes");
+        de(IMPORT_LORE_ENTRIES_AS_CHARACTERS, "Lore-Einträge als Figuren importieren");
 
         ja(CHARACTERS_IN_THE_PROMPT, "プロンプト内のキャラクター");
         zh(CHARACTERS_IN_THE_PROMPT, "提示词中的角色");
+        fr(CHARACTERS_IN_THE_PROMPT, "Personnages dans le prompt");
+        es(CHARACTERS_IN_THE_PROMPT, "Personajes en el prompt");
+        de(CHARACTERS_IN_THE_PROMPT, "Figuren im Prompt");
 
         ja(IN_PROMPT, "プロンプトに含める");
         zh(IN_PROMPT, "加入提示词");
+        fr(IN_PROMPT, "Dans le prompt");
+        es(IN_PROMPT, "En el prompt");
+        de(IN_PROMPT, "Im Prompt");
 
         ja(INSERT_THE_CHARACTERS_AND_THEIR, "すべての生成のプロンプトに、キャラクターとその関係を挿入します");
         zh(INSERT_THE_CHARACTERS_AND_THEIR, "将角色及其关系插入每次生成的提示词");
+        fr(INSERT_THE_CHARACTERS_AND_THEIR, "Insérer les personnages et leurs relations dans le prompt de chaque génération");
+        es(INSERT_THE_CHARACTERS_AND_THEIR, "Insertar los personajes y sus relaciones en el prompt de cada generación");
+        de(INSERT_THE_CHARACTERS_AND_THEIR, "Die Figuren und ihre Beziehungen in den Prompt jeder Generierung einfügen");
 
         ja(DEPTH, "深さ");
         zh(DEPTH, "深度");
+        fr(DEPTH, "Profondeur");
+        es(DEPTH, "Profundidad");
+        de(DEPTH, "Tiefe");
 
         ja(MESSAGES_AFTER_THE_CHARACTERS, "キャラクターの後ろのメッセージ数: 0 = 指示の後、1 = 指示の直前");
         zh(MESSAGES_AFTER_THE_CHARACTERS, "角色之后的消息数：0 = 在指令之后，1 = 紧接在指令之前");
+        fr(MESSAGES_AFTER_THE_CHARACTERS, "Messages après les personnages : 0 = après les instructions, 1 = juste avant elles");
+        es(MESSAGES_AFTER_THE_CHARACTERS, "Mensajes después de los personajes: 0 = después de las instrucciones, 1 = justo antes de ellas");
+        de(MESSAGES_AFTER_THE_CHARACTERS, "Nachrichten nach den Figuren: 0 = nach den Anweisungen, 1 = direkt davor");
 
         ja(ROLE_OF_THE_MESSAGE, "キャラクターを含むメッセージのロール");
         zh(ROLE_OF_THE_MESSAGE, "包含角色的消息的角色");
+        fr(ROLE_OF_THE_MESSAGE, "Rôle du message contenant les personnages");
+        es(ROLE_OF_THE_MESSAGE, "Rol del mensaje con los personajes");
+        de(ROLE_OF_THE_MESSAGE, "Rolle der Nachricht mit den Figuren");
 
         ja(SYSTEM, "システム");
         zh(SYSTEM, "系统");
+        fr(SYSTEM, "Système");
+        es(SYSTEM, "Sistema");
+        de(SYSTEM, "System");
 
         ja(ASSISTANT, "アシスタント");
         zh(ASSISTANT, "助手");
+        fr(ASSISTANT, "Assistant");
+        es(ASSISTANT, "Asistente");
+        de(ASSISTANT, "Assistent");
 
         ja(USER, "ユーザー");
         zh(USER, "用户");
+        fr(USER, "Utilisateur");
+        es(USER, "Usuario");
+        de(USER, "Benutzer");
 
         ja(IMPORTED_CHARACTERS, "%d人のキャラクターをインポートしました");
         zh(IMPORTED_CHARACTERS, "已导入 %d 个角色");
+        fr(IMPORTED_CHARACTERS, "%d personnages importés");
+        es(IMPORTED_CHARACTERS, "Se han importado %d personajes");
+        de(IMPORTED_CHARACTERS, "%d Figuren importiert");
 
         ja(SHOW_ICON_AND_NOTE, "アイコンとメモを表示");
         zh(SHOW_ICON_AND_NOTE, "显示图标和备注");
+        fr(SHOW_ICON_AND_NOTE, "Afficher l'icône et la note");
+        es(SHOW_ICON_AND_NOTE, "Mostrar icono y nota");
+        de(SHOW_ICON_AND_NOTE, "Symbol und Notiz anzeigen");
 
         ja(EDIT_CHARACTER, "キャラクターを編集");
         zh(EDIT_CHARACTER, "编辑角色");
+        fr(EDIT_CHARACTER, "Modifier le personnage");
+        es(EDIT_CHARACTER, "Editar personaje");
+        de(EDIT_CHARACTER, "Figur bearbeiten");
 
         ja(DELETE_CHARACTER, "キャラクターを削除");
         zh(DELETE_CHARACTER, "删除角色");
+        fr(DELETE_CHARACTER, "Supprimer le personnage");
+        es(DELETE_CHARACTER, "Eliminar personaje");
+        de(DELETE_CHARACTER, "Figur löschen");
 
         ja(NO_ICON_OR_NOTE, "アイコンもメモもありません");
         zh(NO_ICON_OR_NOTE, "没有图标或备注");
+        fr(NO_ICON_OR_NOTE, "Ni icône ni note");
+        es(NO_ICON_OR_NOTE, "Sin icono ni nota");
+        de(NO_ICON_OR_NOTE, "Kein Symbol und keine Notiz");
 
         ja(DELETE_THE_CHARACTER_AND_ALL, "キャラクター「%s」とそのすべての関係を削除しますか？");
         zh(DELETE_THE_CHARACTER_AND_ALL, "要删除角色“%s”及其所有关系吗？");
+        fr(DELETE_THE_CHARACTER_AND_ALL, "Supprimer le personnage %s et toutes ses relations ?");
+        es(DELETE_THE_CHARACTER_AND_ALL, "¿Eliminar al personaje %s y todas sus relaciones?");
+        de(DELETE_THE_CHARACTER_AND_ALL, "Die Figur %s und alle ihre Beziehungen löschen?");
 
         ja(THIS_CHARACTER_OTHER_CHARACTER, "このキャラクター → 他のキャラクター");
         zh(THIS_CHARACTER_OTHER_CHARACTER, "此角色 → 其他角色");
+        fr(THIS_CHARACTER_OTHER_CHARACTER, "Ce personnage → autre personnage");
+        es(THIS_CHARACTER_OTHER_CHARACTER, "Este personaje → otro personaje");
+        de(THIS_CHARACTER_OTHER_CHARACTER, "Diese Figur → andere Figur");
 
         ja(OTHER_CHARACTER_THIS_CHARACTER, "他のキャラクター → このキャラクター");
         zh(OTHER_CHARACTER_THIS_CHARACTER, "其他角色 → 此角色");
+        fr(OTHER_CHARACTER_THIS_CHARACTER, "Autre personnage → ce personnage");
+        es(OTHER_CHARACTER_THIS_CHARACTER, "Otro personaje → este personaje");
+        de(OTHER_CHARACTER_THIS_CHARACTER, "Andere Figur → diese Figur");
 
         ja(BOTH_WAYS, "双方向（↔）");
         zh(BOTH_WAYS, "双向（↔）");
+        fr(BOTH_WAYS, "Dans les deux sens (↔)");
+        es(BOTH_WAYS, "En ambos sentidos (↔)");
+        de(BOTH_WAYS, "In beide Richtungen (↔)");
 
         ja(NEW_CHARACTER, "新しいキャラクター");
         zh(NEW_CHARACTER, "新角色");
+        fr(NEW_CHARACTER, "Nouveau personnage");
+        es(NEW_CHARACTER, "Personaje nuevo");
+        de(NEW_CHARACTER, "Neue Figur");
 
         ja(SAVE_THE_CHARACTER_TO_ADD, "関係を追加するには、先にキャラクターを保存してください。");
         zh(SAVE_THE_CHARACTER_TO_ADD, "请先保存角色，再添加其关系。");
+        fr(SAVE_THE_CHARACTER_TO_ADD, "Enregistrez le personnage pour ajouter ses relations.");
+        es(SAVE_THE_CHARACTER_TO_ADD, "Guarda el personaje para añadir sus relaciones.");
+        de(SAVE_THE_CHARACTER_TO_ADD, "Speichere die Figur, um ihre Beziehungen hinzuzufügen.");
 
         ja(SAVE, "保存");
         zh(SAVE, "保存");
+        fr(SAVE, "Enregistrer");
+        es(SAVE, "Guardar");
+        de(SAVE, "Speichern");
 
         ja(CANCEL, "キャンセル");
         zh(CANCEL, "取消");
+        fr(CANCEL, "Annuler");
+        es(CANCEL, "Cancelar");
+        de(CANCEL, "Abbrechen");
 
         ja(NAME, "名前");
         zh(NAME, "名称");
+        fr(NAME, "Nom");
+        es(NAME, "Nombre");
+        de(NAME, "Name");
 
         ja(TAGLINE, "キャッチフレーズ");
         zh(TAGLINE, "标语");
+        fr(TAGLINE, "Accroche");
+        es(TAGLINE, "Lema");
+        de(TAGLINE, "Kurzbeschreibung");
 
         ja(NOTE, "メモ");
         zh(NOTE, "备注");
+        fr(NOTE, "Note");
+        es(NOTE, "Nota");
+        de(NOTE, "Notiz");
 
         ja(ICON, "アイコン");
         zh(ICON, "图标");
+        fr(ICON, "Icône");
+        es(ICON, "Icono");
+        de(ICON, "Symbol");
 
         ja(THE_FILE, "ファイルは読み取れる画像ではありません");
         zh(THE_FILE, "该文件不是可读取的图片");
+        fr(THE_FILE, "Le fichier n'est pas une image lisible");
+        es(THE_FILE, "El archivo no es una imagen que se pueda leer");
+        de(THE_FILE, "Die Datei ist kein lesbares Bild");
 
         ja(UPLOAD_ICON, "アイコンをアップロード");
         zh(UPLOAD_ICON, "上传图标");
+        fr(UPLOAD_ICON, "Téléverser une icône");
+        es(UPLOAD_ICON, "Subir icono");
+        de(UPLOAD_ICON, "Symbol hochladen");
 
         ja(THE_FILE_IS_NOT_AN_IMAGE, "ファイルが画像ではないか、大きすぎます");
         zh(THE_FILE_IS_NOT_AN_IMAGE, "该文件不是图片，或者太大");
+        fr(THE_FILE_IS_NOT_AN_IMAGE, "Le fichier n'est pas une image ou il est trop gros");
+        es(THE_FILE_IS_NOT_AN_IMAGE, "El archivo no es una imagen o es demasiado grande");
+        de(THE_FILE_IS_NOT_AN_IMAGE, "Die Datei ist kein Bild oder sie ist zu groß");
 
         ja(REMOVE_ICON, "アイコンを削除");
         zh(REMOVE_ICON, "移除图标");
+        fr(REMOVE_ICON, "Retirer l'icône");
+        es(REMOVE_ICON, "Quitar icono");
+        de(REMOVE_ICON, "Symbol entfernen");
 
         ja(ICON_SCALED_DOWN, "アイコン（最大 %1$d x %1$d ピクセルに縮小されます）");
         zh(ICON_SCALED_DOWN, "图标（将缩小到最大 %1$d x %1$d 像素）");
+        fr(ICON_SCALED_DOWN, "Icône (réduite à %1$d x %1$d pixels au plus)");
+        es(ICON_SCALED_DOWN, "Icono (reducido a un máximo de %1$d x %1$d píxeles)");
+        de(ICON_SCALED_DOWN, "Symbol (auf höchstens %1$d x %1$d Pixel verkleinert)");
 
         ja(COLOR, "色");
         zh(COLOR, "颜色");
+        fr(COLOR, "Couleur");
+        es(COLOR, "Color");
+        de(COLOR, "Farbe");
 
         ja(CHARACTER, "キャラクター");
         zh(CHARACTER, "角色");
+        fr(CHARACTER, "Personnage");
+        es(CHARACTER, "Personaje");
+        de(CHARACTER, "Figur");
 
         ja(DELETE_RELATIONSHIP, "関係を削除");
         zh(DELETE_RELATIONSHIP, "删除关系");
+        fr(DELETE_RELATIONSHIP, "Supprimer la relation");
+        es(DELETE_RELATIONSHIP, "Eliminar relación");
+        de(DELETE_RELATIONSHIP, "Beziehung löschen");
 
         ja(RELATIONSHIPS, "関係");
         zh(RELATIONSHIPS, "关系");
+        fr(RELATIONSHIPS, "Relations");
+        es(RELATIONSHIPS, "Relaciones");
+        de(RELATIONSHIPS, "Beziehungen");
 
         ja(SEARCH_CHARACTER, "キャラクターを検索");
         zh(SEARCH_CHARACTER, "搜索角色");
+        fr(SEARCH_CHARACTER, "Rechercher un personnage");
+        es(SEARCH_CHARACTER, "Buscar personaje");
+        de(SEARCH_CHARACTER, "Figur suchen");
 
         ja(DIRECTION, "方向");
         zh(DIRECTION, "方向");
+        fr(DIRECTION, "Sens");
+        es(DIRECTION, "Dirección");
+        de(DIRECTION, "Richtung");
 
         ja(ADD_RELATIONSHIP, "関係を追加");
         zh(ADD_RELATIONSHIP, "添加关系");
+        fr(ADD_RELATIONSHIP, "Ajouter une relation");
+        es(ADD_RELATIONSHIP, "Añadir relación");
+        de(ADD_RELATIONSHIP, "Beziehung hinzufügen");
 
         ja(CHOOSE_A_CHARACTER_AND_ENTER, "キャラクターを選択し、関係の名前を入力してください");
         zh(CHOOSE_A_CHARACTER_AND_ENTER, "请选择角色并输入关系的名称");
+        fr(CHOOSE_A_CHARACTER_AND_ENTER, "Choisissez un personnage et saisissez le nom de la relation");
+        es(CHOOSE_A_CHARACTER_AND_ENTER, "Elige un personaje e introduce el nombre de la relación");
+        de(CHOOSE_A_CHARACTER_AND_ENTER, "Wähle eine Figur und gib den Namen der Beziehung ein");
 
         ja(THERE_IS_NO_OTHER_CHARACTER, "他のキャラクターはまだいません");
         zh(THERE_IS_NO_OTHER_CHARACTER, "还没有其他角色");
+        fr(THERE_IS_NO_OTHER_CHARACTER, "Il n'y a pas encore d'autre personnage");
+        es(THERE_IS_NO_OTHER_CHARACTER, "Todavía no hay otro personaje");
+        de(THERE_IS_NO_OTHER_CHARACTER, "Es gibt noch keine andere Figur");
 
         ja(THERE_ARE_UNSAVED_CHANGES_DISCARD, "保存されていない変更があります。破棄しますか？");
         zh(THERE_ARE_UNSAVED_CHANGES_DISCARD, "有未保存的更改。要放弃吗？");
+        fr(THERE_ARE_UNSAVED_CHANGES_DISCARD, "Il y a des modifications non enregistrées. Les abandonner ?");
+        es(THERE_ARE_UNSAVED_CHANGES_DISCARD, "Hay cambios sin guardar. ¿Descartarlos?");
+        de(THERE_ARE_UNSAVED_CHANGES_DISCARD, "Es gibt nicht gespeicherte Änderungen. Verwerfen?");
 
         ja(THE_NAME_IS_REQUIRED, "名前は必須です");
         zh(THE_NAME_IS_REQUIRED, "名称为必填项");
+        fr(THE_NAME_IS_REQUIRED, "Le nom est obligatoire");
+        es(THE_NAME_IS_REQUIRED, "El nombre es obligatorio");
+        de(THE_NAME_IS_REQUIRED, "Der Name ist erforderlich");
 
         ja(THE_LOREBOOK_OF_THE_BOOK, "このブックのロアブックにはエントリがありません。");
         zh(THE_LOREBOOK_OF_THE_BOOK, "该书的世界书中没有条目。");
+        fr(THE_LOREBOOK_OF_THE_BOOK, "Le lorebook du livre n'a pas d'entrées.");
+        es(THE_LOREBOOK_OF_THE_BOOK, "El lorebook del libro no tiene entradas.");
+        de(THE_LOREBOOK_OF_THE_BOOK, "Das Lorebook des Buchs hat keine Einträge.");
 
         ja(IMPORT, "インポート");
         zh(IMPORT, "导入");
+        fr(IMPORT, "Importer");
+        es(IMPORT, "Importar");
+        de(IMPORT, "Importieren");
 
         ja(EMPTY, "（空）");
         zh(EMPTY, "（空）");
+        fr(EMPTY, "(vide)");
+        es(EMPTY, "(vacío)");
+        de(EMPTY, "(leer)");
 
         ja(IMPORT_D, "インポート（%d）");
         zh(IMPORT_D, "导入（%d）");
+        fr(IMPORT_D, "Importer (%d)");
+        es(IMPORT_D, "Importar (%d)");
+        de(IMPORT_D, "Importieren (%d)");
 
         ja(DELETE_THE_RELATIONSHIP, "関係「%s」を削除しますか？");
         zh(DELETE_THE_RELATIONSHIP, "要删除关系“%s”吗？");
+        fr(DELETE_THE_RELATIONSHIP, "Supprimer la relation %s ?");
+        es(DELETE_THE_RELATIONSHIP, "¿Eliminar la relación %s?");
+        de(DELETE_THE_RELATIONSHIP, "Die Beziehung %s löschen?");
 
         ja(PICK_THE_POV_CHARACTER, "視点キャラクターを選択");
         zh(PICK_THE_POV_CHARACTER, "选择视角角色");
+        fr(PICK_THE_POV_CHARACTER, "Choisir le personnage du point de vue");
+        es(PICK_THE_POV_CHARACTER, "Elige el personaje del punto de vista");
+        de(PICK_THE_POV_CHARACTER, "Die POV-Figur wählen");
 
         ja(ADD_A_PRESENT_CHARACTER, "登場キャラクターを追加");
         zh(ADD_A_PRESENT_CHARACTER, "添加在场角色");
+        fr(ADD_A_PRESENT_CHARACTER, "Ajouter un personnage présent");
+        es(ADD_A_PRESENT_CHARACTER, "Añadir un personaje presente");
+        de(ADD_A_PRESENT_CHARACTER, "Eine anwesende Figur hinzufügen");
 
         ja(THERE_ARE_NO_CHARACTERS_YET, "キャラクターはまだいません");
         zh(THERE_ARE_NO_CHARACTERS_YET, "还没有角色");
+        fr(THERE_ARE_NO_CHARACTERS_YET, "Il n'y a pas encore de personnages");
+        es(THERE_ARE_NO_CHARACTERS_YET, "Todavía no hay personajes");
+        de(THERE_ARE_NO_CHARACTERS_YET, "Es gibt noch keine Figuren");
     }
 }

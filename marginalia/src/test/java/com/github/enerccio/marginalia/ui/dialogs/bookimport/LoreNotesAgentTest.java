@@ -73,8 +73,8 @@ class LoreNotesAgentTest extends AgentTestBase {
 
         Agent agent = loreNotes.start(book);
 
-        assertThat(agent.getName()).isEqualTo(Defaults.AGENT_LORE_NOTES_NAME);
-        assertThat(agent.getInstructions()).isEqualTo(Defaults.AGENT_LORE_NOTES_INSTRUCTIONS);
+        assertThat(agent.getName()).isEqualTo(new Defaults().agentLoreNotesName());
+        assertThat(agent.getInstructions()).isEqualTo(new Defaults().agentLoreNotesInstructions());
         assertThat(agent.getAllowedCommands()).contains("get-part", "create-lore-entry").doesNotContain("delete-lore-entry", "delete-lorebook");
         // the model of the book is the model of the agent
         assertThat(agent.getModelProfiles()).hasSize(1);
@@ -89,7 +89,7 @@ class LoreNotesAgentTest extends AgentTestBase {
         Manuscript book = bookWithModel();
         loreNotes.start(book);
         assertThat(loreNotes.check(book)).isEqualTo(LoreNotesAgent.Problem.HAS_AGENT);
-        assertThat(loreNotes.existingAgentName(book)).isEqualTo(Defaults.AGENT_LORE_NOTES_NAME);
+        assertThat(loreNotes.existingAgentName(book)).isEqualTo(new Defaults().agentLoreNotesName());
         assertThatThrownBy(() -> loreNotes.start(book)).isInstanceOf(IllegalStateException.class);
     }
 

@@ -147,7 +147,7 @@ public class AppSettings extends Setting {
 
     /**
      * The system prompt of the agents that have none of their own and whose user has none in the settings; blank is
-     * {@code Defaults.DEFAULT_AGENT_PROMPT}.
+     * {@code Defaults.agentPrompt()}.
      */
     @Transient
     @ExtendedAttribute
@@ -155,7 +155,7 @@ public class AppSettings extends Setting {
 
     /**
      * The compaction prompt of the agents that have none of their own and whose user has none in the settings; blank is
-     * {@code Defaults.DEFAULT_AGENT_COMPACTION_PROMPT}.
+     * {@code Defaults.agentCompactionPrompt()}.
      */
     @Transient
     @ExtendedAttribute

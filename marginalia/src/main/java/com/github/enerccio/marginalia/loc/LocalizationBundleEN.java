@@ -1092,6 +1092,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.LABEL_MENTIONED_IN, "Mentioned in:");
         setValue(L.LABEL_SEND_LORE_IMAGES, "Send lore images");
         setValue(L.LABEL_LORE_IMAGES_IN_SYSTEM, "Images in the system message");
+        setValue(L.LABEL_PROMPT_LANGUAGE, "Prompt language");
 
         // --- ENUM ---
         setValue(L.ENUM_AI_TYPE_OPEN_AI_COMPATIBLE, "OpenAI Compatible");
@@ -2021,6 +2022,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.HELP_ENTRY_LINKS, "Ctrl+click (Cmd+click on a Mac) the name or a keyword of another entry in the content to open it, with Shift in a new tab. The entries listed here name this one in their content: click to open, Shift+click for a new tab.");
         setValue(L.HELP_SEND_LORE_IMAGES, "Send the images in the content of the lorebook entries the turn uses along with the lore. Only for a model that accepts images: a model without vision refuses the request.");
         setValue(L.HELP_LORE_IMAGES_IN_SYSTEM, "Put the images of the lore block into the system message itself instead of a message of their own after it. Only for a server and chat template that take images there; most do not.");
+        setValue(L.HELP_PROMPT_LANGUAGE, "The language of the built-in prompts (generation, summaries, redraft, annotations, impersonate, agents) and of the plugins' prompts. The prompts you wrote yourself stay as they are; the language of the interface is set apart.");
 
         // --- DESC ---
         setValue(L.DESC_TEMPLATE_BACKGROUND_LORE, "Background lore and world context.");
@@ -2453,6 +2455,7 @@ public class LocalizationBundleEN extends LocalizationBundleBase {
         setValue(L.DESC_TEMPLATE_EXPORT_WRITTEN_PERCENT, "Share of the words the author wrote, in percent (a whole number).");
         setValue(L.DESC_TEMPLATE_EXPORT_GENERATED_PERCENT, "Share of the words a model generated, in percent (a whole number).");
         setValue(L.DESC_TEMPLATE_EXPORT_MODELS, "The models that generated text of the book, separated by commas (empty when there is none).");
+        setValue(L.DESC_AGENT_IMAGES_ARGUMENT, "A list of paths of image files of your workspace (PNG, JPEG, GIF or WebP; the user uploads them), at most %d. The model of the command looks at them; it must be able to.");
 
     }
 

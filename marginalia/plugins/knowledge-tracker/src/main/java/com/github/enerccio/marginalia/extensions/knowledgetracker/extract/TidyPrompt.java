@@ -14,6 +14,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.github.enerccio.marginalia.extensions.knowledgetracker.KnowledgeTrackerLocalization.T;
+
 /**
  * The request of the tidy pass: what the tracked characters know is read again, with the last parts of the story for context, and the
  * model says which items are not worth keeping and which belong together. Only the items the model learned and the user did not lock are
@@ -22,18 +24,6 @@ import java.util.Map;
  * Pure, no state.
  */
 public final class TidyPrompt {
-
-    public static final String SYSTEM = """
-            You tidy what the characters of a story know. You get the TRACKED characters with the numbered items they know or do not know, the items that stay as they are (for comparison only) and the last parts of the story for context. The items are sent to a writing model so that it does not give a character knowledge it cannot have; every item costs room and must be worth it.
-
-            Rules:
-            1. drop an item that is not worth keeping: trivia (a detail of the scene, small talk, a joke, a mood, an object), an event that every character in the scene saw together (the story already holds it), something later events overtook, or something that says the same as another item or as an item that stays.
-            2. merge two or more items about the same thing into one item that keeps every fact of them. Do not add anything that is not in the items.
-            3. NEVER drop or merge a secret, an identity, a relationship, a feeling that was revealed, a plan, a promise, a discovery, or anything another character does not know, even when the last parts do not mention it: an item that has not come up lately is not a reason to drop it.
-            4. When in doubt keep it. Report only what you are sure of; empty lists are normal.
-            5. Every drop and every merge needs a short reason.
-
-            Answer with JSON only, no other text: {"characters":[{"name":"...","drop":[{"item":N,"reason":"..."}],"merge":[{"items":[N,N],"kind":"knows|does-not-know","text":"...","reason":"..."}]}]}. A character with nothing to do has empty lists.""";
 
     private TidyPrompt() {
     }
@@ -44,11 +34,11 @@ public final class TidyPrompt {
      * @return a request without characters ({@link Request#isEmpty()}) when there is nothing to tidy
      */
     public static Request build(KnowledgeState state, List<Part> recent, int minItems) {
-        return build(state, recent, minItems, SYSTEM);
+        return build(state, recent, minItems, T.defaults().tidySystem());
     }
 
     /**
-     * @param system the system message, the one the book inherits; blank = the built-in {@link #SYSTEM}
+     * @param system the system message, the one the book inherits; blank = the built-in {@link KnowledgeTrackerDefaults#tidySystem()}
      */
     public static Request build(KnowledgeState state, List<Part> recent, int minItems, String system) {
         StringBuilder user = new StringBuilder("[Tracked characters]\n");
@@ -81,7 +71,7 @@ public final class TidyPrompt {
                         .append(StringUtils.defaultString(part.text()).strip()).append("\n\n");
             }
         }
-        return new Request(StringUtils.isBlank(system) ? SYSTEM : system.strip(), user.toString().stripTrailing(), new Numbering(numbered, List.of()), List.copyOf(included));
+        return new Request(StringUtils.isBlank(system) ? T.defaults().tidySystem() : system.strip(), user.toString().stripTrailing(), new Numbering(numbered, List.of()), List.copyOf(included));
     }
 
     private static String line(KnowledgeItem item) {

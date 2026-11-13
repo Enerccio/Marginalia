@@ -22,7 +22,6 @@ import com.github.enerccio.marginalia.extensions.arcoutline.model.WizardOptions.
 import com.github.enerccio.marginalia.extensions.arcoutline.service.ArcOutlineService;
 import com.github.enerccio.marginalia.extensions.arcoutline.service.ArcOutlineService.ModelSelection;
 import com.github.enerccio.marginalia.extensions.arcoutline.service.ArcOutlineService.WizardPrompt;
-import com.github.enerccio.marginalia.extensions.arcoutline.service.Defaults;
 import com.github.enerccio.marginalia.extensions.arcoutline.service.WizardContext;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
@@ -380,11 +379,11 @@ public class PlotWizardDialog extends Dialog {
         promptArea.setMinHeight("160px");
         promptArea.setMaxHeight("30vh");
         promptArea.setHelperText(T.localized(VARIABLES).formatted("{{backgroundLore}}, {{outline}}, {{summaries}}, {{story}}, {{mode}}"));
-        promptArea.setPopoverContent(TemplateHints.create(loc, promptArea, promptArea.getPopover(), null, Defaults.WIZARD_PROMPT));
+        promptArea.setPopoverContent(TemplateHints.create(loc, promptArea, promptArea.getPopover(), null, T.defaults().wizardPrompt()));
         promptArea.addValueChangeListener(e -> {
             if (e.isFromClient()) {
                 // the default is not stored, so that it can change with a new version
-                options.setPrompt(e.getValue().strip().equals(Defaults.WIZARD_PROMPT.strip()) ? null : e.getValue());
+                options.setPrompt(e.getValue().strip().equals(T.defaults().wizardPrompt().strip()) ? null : e.getValue());
                 optionsChanged();
             }
         });
@@ -832,7 +831,7 @@ public class PlotWizardDialog extends Dialog {
         WizardPrompt prompt = service.buildWizardPrompt(manuscript, outline.get(), options, promptArea.getValue(), capacity);
         String system = WizardContext.withSummary(prompt.system(), WizardContext.lastSummary(chat.getMessages()));
         if (!functions.isEmpty()) {
-            system = WizardContext.withTools(system, Defaults.WIZARD_TOOLS_PROMPT, names.hint());
+            system = WizardContext.withTools(system, T.defaults().wizardToolsPrompt(), names.hint());
         }
         List<WizardMessage> history = WizardContext.sinceSummary(chat.getMessages());
         if (capacity > 0) {
@@ -889,7 +888,7 @@ public class PlotWizardDialog extends Dialog {
                     .append(WizardContext.withCalls(message.getText(), message.getCalls()).strip()).append("\n\n");
         }
         List<LLMChatMessage> payload = new ArrayList<>();
-        payload.add(LLMChatMessage.of(LLMRole.SYSTEM, WizardContext.summaryPrompt(Defaults.WIZARD_SUMMARY_PROMPT, note)));
+        payload.add(LLMChatMessage.of(LLMRole.SYSTEM, WizardContext.summaryPrompt(T.defaults().wizardSummaryPrompt(), note)));
         payload.add(LLMChatMessage.of(LLMRole.USER, transcript.toString().stripTrailing()));
         start(payload, true, FunctionSet.empty());
     }

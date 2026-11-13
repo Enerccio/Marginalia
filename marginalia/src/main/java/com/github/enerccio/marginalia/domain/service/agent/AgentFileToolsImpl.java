@@ -40,6 +40,7 @@ public final class AgentFileToolsImpl implements AgentFileTools {
     private final VirtualFileSystem fs;
     private final long regexMillis;
     private final CommandResults commandResults;
+    private final Supplier<Defaults> defaults;
 
     public AgentFileToolsImpl(VirtualFileSystem fs) {
         this(fs, REGEX_MILLIS);
@@ -60,9 +61,17 @@ public final class AgentFileToolsImpl implements AgentFileTools {
     }
 
     public AgentFileToolsImpl(VirtualFileSystem fs, long regexMillis, CommandResults commandResults) {
+        this(fs, regexMillis, commandResults, Defaults::new);
+    }
+
+    /**
+     * @param defaults the texts the agent reads in its language ({@code Localization::getDefaults}, resolved at every call)
+     */
+    public AgentFileToolsImpl(VirtualFileSystem fs, long regexMillis, CommandResults commandResults, Supplier<Defaults> defaults) {
         this.fs = fs;
         this.regexMillis = regexMillis;
         this.commandResults = commandResults;
+        this.defaults = defaults;
     }
 
     private void run(FunctionContinuation<String> done, String tool, Supplier<String> action) {
@@ -177,7 +186,7 @@ public final class AgentFileToolsImpl implements AgentFileTools {
             // the whole file is in front of the model: this is the moment it may copy it into a call, writing it out again at the
             // speed of its output, so it is told once more that the file itself can be passed
             return from == 1 && shownTo == total && !lineCut && text.length() >= Defaults.AGENT_FILE_HINT_FROM
-                    ? result + "\n" + String.format(Defaults.AGENT_FILE_HINT, file) : result;
+                    ? result + "\n" + String.format(defaults.get().agentFileHint(), file) : result;
         });
     }
 

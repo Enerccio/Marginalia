@@ -231,7 +231,7 @@ class ImpersonateTest extends GenerationTestBase {
 
     @Test
     void promptComesFromTheBookThenTheUserThenTheDefault() throws Exception {
-        assertThat(manuscriptService.getImpersonatePrompt(manuscript)).isEqualTo(Defaults.DEFAULT_IMPERSONATE_PROMPT);
+        assertThat(manuscriptService.getImpersonatePrompt(manuscript)).isEqualTo(new Defaults().impersonatePrompt());
 
         UserSetting settings = settingService.getOrCreate(UserSetting.class);
         settings.setDefaultImpersonatePrompt("USER {{previousStory}}");

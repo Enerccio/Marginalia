@@ -427,13 +427,14 @@ chineselocalization/
 ├── pom.xml
 └── src/main/java/com/github/enerccio/marginalia/extensions/chineselocalization/
     ├── ChineseLocalizationActivator.java   registers the extension service
-    ├── ChineseLocalizationExtension.java   returns the bundle
+    ├── ChineseLocalizationExtension.java   returns the bundle and the prompts
+    ├── DefaultsZH.java                     the built-in prompts in Chinese
     └── LocalizationBundleZH.java           the texts
 ```
 
 The `pom.xml` is the one of the other plugins without what the plugin doesn't use: it needs only the application
-(`classes` classifier) and the Felix framework, both `provided`, and the bundle plugin - no AspectJ, since there is
-no `@Configurable` class, and no Vaadin.
+(`classes` classifier) and the Felix framework, both `provided`, JUnit for its test, and the bundle plugin - no AspectJ,
+since there is no `@Configurable` class, and no Vaadin.
 
 **The extension** implements `MarginaliaExtension` as always - both methods stay empty, there is nothing to set up -
 and `ExtensionHasLocalization`:
@@ -453,11 +454,20 @@ public class ChineseLocalizationExtension implements MarginaliaExtension, Extens
     public List<LocalizationBundle> getLocalizationBundles() {
         return List.of(new LocalizationBundleZH());
     }
+
+    @Override
+    public List<Defaults> getPromptDefaults() {
+        return List.of(new DefaultsZH());
+    }
 }
 ```
 
-Marginalia calls `getLocalizationBundles()` right after `onExtensionLoad` and registers the bundles in
-`Localization`; when the extension is unloaded they are removed again. Nothing else is needed: the language shows
+Marginalia calls `getLocalizationBundles()` and `getPromptDefaults()` right after `onExtensionLoad` and registers the
+bundles and the prompts in `Localization` (`registerBundle`, `registerDefaults`); when the extension is unloaded they are
+removed again. `getPromptDefaults()` is optional (none by default): `DefaultsZH` extends the application's `Defaults` and
+overrides every text with its Chinese prompt, which adds Chinese to the *Prompt language* of the settings, independent of
+the language of the interface. `DefaultsZHTest` checks that it translates every text and keeps the Handlebars tags and the
+placeholders of the English one. Nothing else is needed: the language shows
 up in the `LanguageSelector` of every workspace the next time it is attached, and a user who picks it is shown the
 whole UI in it after the page reloads.
 
@@ -500,7 +510,7 @@ public class LocalizationBundleZH extends LocalizationBundleBase {
 What to take from it:
 
 - a **language code** is the identity of a bundle: only one bundle per code exists. A second one is refused (and
-  logged) - an extension can add languages but not replace the English texts or the Japanese ones of the application;
+  logged) - an extension can add languages but not replace the English texts or the Japanese, French, Spanish and German ones of the application (the same holds for the prompts of `getPromptDefaults()`: the application's English, Japanese, French, Spanish, German, Italian and Korean prompts can't be replaced);
 - a bundle **doesn't have to be complete**: a key it lacks is shown in the default language, and the application logs
   a warning listing the missing keys when the bundle is registered. A plugin built for an older version keeps working
   when the application adds keys;

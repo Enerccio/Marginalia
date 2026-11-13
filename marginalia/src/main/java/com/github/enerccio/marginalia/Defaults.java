@@ -1,8 +1,92 @@
 package com.github.enerccio.marginalia;
 
+import com.github.enerccio.marginalia.loc.Language;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * The built-in prompts and the texts the application sends to the model (the agent's notices), in English. An object, not
+ * constants: {@code Localization.getDefaults()} returns the one of the prompt language of the session (the user's setting
+ * {@code UserSetting.promptLanguage}, in an agent run the language of the agent), {@code getDefaults(language)} the one of a
+ * language. A subclass translates them ({@link DefaultsJA}, {@link DefaultsFR}, {@link DefaultsES},
+ * {@link DefaultsDE}, {@link DefaultsIT}, {@link DefaultsKO}; an extension can bring more, as the Chinese
+ * localization does); what it does not override stays English.
+ * The numbers (limits of agent runs) do not depend on the language and are constants.
+ */
 public class Defaults {
 
-    public static final String DEFAULT_MASTER_TEMPLATE = """
+    /**
+     * The texts of the languages the application itself has, English first.
+     */
+    public static List<Defaults> builtIn() {
+        return BUILT_IN;
+    }
+
+    /**
+     * The texts of every prompt language there is now: the built-in ones, then the ones extensions registered (through
+     * {@code Localization.registerDefaults}). {@code Localization} serves them; code that has no {@code Localization} at
+     * hand and has to recognize a text in any language (a notice in a transcript) uses this. The list is a snapshot that
+     * is replaced, not changed, when a language comes or goes, so a caller can keep it and compare by identity.
+     */
+    public static List<Defaults> all() {
+        return all;
+    }
+
+    /**
+     * Adds the texts of a language brought by an extension; called by {@code Localization}.
+     *
+     * @throws IllegalArgumentException when the language already has texts
+     */
+    public static synchronized void register(Defaults texts) {
+        if (all.stream().anyMatch(known -> known.getLanguage().equals(texts.getLanguage()))) {
+            throw new IllegalArgumentException("Language " + texts.getLanguage() + " already has built-in prompts");
+        }
+        List<Defaults> next = new ArrayList<>(all);
+        next.add(texts);
+        all = List.copyOf(next);
+    }
+
+    /**
+     * Removes the texts registered by {@link #register}; the built-in ones stay.
+     */
+    public static synchronized void unregister(Defaults texts) {
+        if (BUILT_IN.contains(texts) || !all.contains(texts)) {
+            return;
+        }
+        List<Defaults> next = new ArrayList<>(all);
+        next.remove(texts);
+        all = List.copyOf(next);
+    }
+
+    private static final List<Defaults> BUILT_IN = List.of(new Defaults(), new DefaultsJA(), new DefaultsFR(),
+            new DefaultsES(), new DefaultsDE(), new DefaultsIT(), new DefaultsKO());
+
+    private static volatile List<Defaults> all = BUILT_IN;
+
+    /**
+     * The language of the texts, also the key under which {@code Localization} keeps them.
+     */
+    public Language getLanguage() {
+        return Language.EN;
+    }
+
+    /**
+     * The name of the language in the language itself, for the choice of the prompt language.
+     */
+    public String getDisplayName() {
+        return "English";
+    }
+
+    /**
+     * How every notice of an agent run to its agent begins ({@link #agentContextWarning()} and the others start with it).
+     */
+    public String agentNoticePrefix() {
+        return "Notice from the run:";
+    }
+
+    public String masterTemplate() {
+        return """
 ===== SYSTEM ROLE =====
 You are an expert fiction author writing the ongoing narrative "MANUSCRIPT CHRONICLE". Your objective is to produce rich, immersive, and seamless story continuations.
 
@@ -32,20 +116,28 @@ The author marked these passages of the story above for you. Take the notes into
 
 
 """;
+    }
 
-    public static final String DEFAULT_POV = "Third-Person Limited";
+    public String pov() {
+        return "Third-Person Limited";
+    }
 
-    public static final String DEFAULT_TENSE = "Past Tense";
+    public String tense() {
+        return "Past Tense";
+    }
 
-    public static final String DEFAULT_STYLE = """
+    public String style() {
+        return """
 - Tone: Immersive, atmospheric, and grounded in the immediate physical environment.
 - Pacing: Balanced narrative rhythm; alternate between action, dialogue, and visceral sensory details without dragging.
 - Dialogue: Natural, character-distinct, and subtext-driven. Minimize dialog tags (prefer action beats over "he said / she said").
 - Sensory Detail: Focus heavily on tangible sights, sounds, textures, and atmospheric beats rather than internal reflection alone.
 - Prose Elegance: Use active verbs, varied sentence lengths, and concrete imagery. Avoid purple prose, cliché metaphors, or modern colloquialisms unless appropriate to the character.
 """;
+    }
 
-    public static final String DEFAULT_USER_PROMPT = """
+    public String userPrompt() {
+        return """
 Write the next section of **MANUSCRIPT CHRONICLE** using the following specifications.
 
 {{#povCharacter}}Point of View Character: {{.}}{{/povCharacter}}
@@ -62,8 +154,10 @@ Write the next section of **MANUSCRIPT CHRONICLE** using the following specifica
 3. **Continuity:** Maintain the established tone, pacing, point of view (POV), tense, and narrative voice.
 4. **Direct Output:** Output ONLY the story text continuation. Do not include titles, chapter headings, intro remarks, or outro summaries.
 """;
+    }
 
-    public static final String DEFAULT_SUMMARY_PROMPT = """
+    public String summaryPrompt() {
+        return """
 ### OBJECTIVE
 Write a compact event ledger of the MANUSCRIPT CHRONICLE, for a language model to read later as the memory of what happened. Chronological, grouped by place.
 
@@ -98,8 +192,10 @@ Example of the style (another story):
 {{text}}
 === MANUSCRIPT CHRONICLE END ===
 """;
+    }
 
-    public static final String DEFAULT_META_SUMMARY = """
+    public String metaSummaryPrompt() {
+        return """
 ### OBJECTIVE
 Execute Level-2 Context Consolidation Protocol. Aggregate sequential event ledgers into a consolidated arc ledger while maintaining strict structural parity with the source syntax. Reduce input token volume by roughly 50% by merging adjacent beats into composite causal chains.
 
@@ -129,8 +225,10 @@ Execute Level-2 Context Consolidation Protocol. Aggregate sequential event ledge
 {{summaryBlocks}}
 === PREVIOUSLY SUMMARIZED BLOCKS END ===
 """;
+    }
 
-    public static final String DEFAULT_REDRAFT_SYSTEM_PROMPT = """
+    public String redraftSystemPrompt() {
+        return """
 ### OBJECTIVE
 Redraft one part of the ongoing narrative "MANUSCRIPT CHRONICLE". Rewrite the PART TO REDRAFT the way the AUTHOR'S INSTRUCTIONS ask, so that it stays a seamless piece of the story: it must still fit what comes before it and lead into what follows it.
 {{#selection}}The author selected only one PASSAGE of the part, marked in it by [[PASSAGE TO REDRAFT]] and [[/PASSAGE TO REDRAFT]]: rewrite just that passage and leave the rest of the part as it is.
@@ -166,8 +264,10 @@ Redraft one part of the ongoing narrative "MANUSCRIPT CHRONICLE". Rewrite the PA
 
 {{/previousStory}}
 """;
+    }
 
-    public static final String DEFAULT_REDRAFT_PROMPT = """
+    public String redraftPrompt() {
+        return """
 {{#backgroundLore}}=== BACKGROUND LORE START ===
 {{.}}
 === BACKGROUND LORE END ===
@@ -195,18 +295,24 @@ Redraft one part of the ongoing narrative "MANUSCRIPT CHRONICLE". Rewrite the PA
 === AUTHOR'S NOTES ON PASSAGES OF THE PART END ===
 {{/annotations}}
 """;
+    }
 
     /**
      * Added to the instructions of a redraft that is asked to be shorter (plain text, not a template).
      */
-    public static final String DEFAULT_REDRAFT_SHORTER = "Make the redrafted text noticeably shorter than the original, by about a third to a half: cut what is redundant, tighten the prose and drop the least important details, but keep every event, line and fact that the story relies on.";
+    public String redraftShorter() {
+        return "Make the redrafted text noticeably shorter than the original, by about a third to a half: cut what is redundant, tighten the prose and drop the least important details, but keep every event, line and fact that the story relies on.";
+    }
 
     /**
      * Added to the instructions of a redraft that is asked to be longer (plain text, not a template).
      */
-    public static final String DEFAULT_REDRAFT_LONGER = "Make the redrafted text noticeably longer than the original, by about half again to twice as long: develop it with more sensory detail, interiority, dialogue and pacing, but do not add events the author did not ask for and do not change what happens.";
+    public String redraftLonger() {
+        return "Make the redrafted text noticeably longer than the original, by about half again to twice as long: develop it with more sensory detail, interiority, dialogue and pacing, but do not add events the author did not ask for and do not change what happens.";
+    }
 
-    public static final String DEFAULT_ANNOTATE_SYSTEM_PROMPT = """
+    public String annotateSystemPrompt() {
+        return """
 ### OBJECTIVE
 Review one part of the ongoing narrative "MANUSCRIPT CHRONICLE" as its editor and annotate it: find the passages of the PART TO REVIEW that have a problem in the sense of the EDITOR'S TASK and write a short note for the author about each of them.
 
@@ -234,8 +340,10 @@ Review one part of the ongoing narrative "MANUSCRIPT CHRONICLE" as its editor an
 
 {{/previousStory}}
 """;
+    }
 
-    public static final String DEFAULT_ANNOTATE_PROMPT = """
+    public String annotatePrompt() {
+        return """
 {{#backgroundLore}}=== BACKGROUND LORE START ===
 {{.}}
 === BACKGROUND LORE END ===
@@ -268,12 +376,14 @@ Review one part of the ongoing narrative "MANUSCRIPT CHRONICLE" as its editor an
 
 {{outputFormat}}
 """;
+    }
 
     /**
      * What the model is asked when the author wants it to draft the instructions of the next turn (impersonate), rendered as
      * Handlebars template with {@link com.github.enerccio.marginalia.domain.templates.ImpersonateTemplateData}.
      */
-    public static final String DEFAULT_IMPERSONATE_PROMPT = """
+    public String impersonatePrompt() {
+        return """
 ### OBJECTIVE
 Write the instructions for the next turn of the ongoing narrative "MANUSCRIPT CHRONICLE" in the place of its author. The instructions are what the author types into the "instructions" box before the model writes the next part of the story: a short plot specification of what happens in that part. Read the story so far and the AUTHOR'S GUIDANCE and write the instructions the author would give.
 
@@ -324,44 +434,15 @@ Write the instructions for the next turn of the ongoing narrative "MANUSCRIPT CH
 {{#impersonateInstructions}}{{.}}{{/impersonateInstructions}}{{^impersonateInstructions}}No guidance: continue the story where it leads.{{/impersonateInstructions}}
 === AUTHOR'S GUIDANCE END ===
 """;
-
-    /**
-     * Markdown of the authorship statement at the end of an exported book, rendered as Handlebars template with
-     * {@link com.github.enerccio.marginalia.domain.templates.ExportAuthorshipTemplateData}.
-     */
-    public static final String DEFAULT_EXPORT_AUTHORSHIP_TEMPLATE = """
-## Authorship
-
-Of the {{totalWords}} words of this text, {{writtenWords}} ({{writtenPercent}} %) were written by the author{{#author}}, {{.}}{{/author}}, and {{generatedWords}} ({{generatedPercent}} %) were generated by an AI model{{#models}} ({{.}}){{/models}}.
-""";
-
-    /**
-     * The YAML front matter of the formats that have one, rendered as Handlebars template with
-     * {@link com.github.enerccio.marginalia.domain.templates.ExportFrontMatterTemplateData}.
-     */
-    public static final String DEFAULT_EXPORT_FRONT_MATTER_TEMPLATE = """
----
-title: "{{title}}"{{#author}}
-author: "{{.}}"{{/author}}
-lang: {{language}}
-date: {{exportDate}}
----
-""";
-
-    public static final String DEFAULT_EXPORT_HEADER_TEMPLATE = """
-# {{title}}
-{{#author}}
-
-*{{.}}*
-{{/author}}
-""";
+    }
 
     /**
      * What an agent is told to be (its system prompt) when neither the agent nor the user's settings nor the
      * application settings say otherwise, see {@code AgentService.getSystemPrompt}. Plain text, the instructions of the
      * user ("agents.md") come after it.
      */
-    public static final String DEFAULT_AGENT_PROMPT = """
+    public String agentPrompt() {
+        return """
 You are an editorial agent working on a long work of fiction ("MANUSCRIPT CHRONICLE") for its author. You work on your own for a long time, step by step, using the tools you are given, and you report to the author.
 
 How you work:
@@ -374,13 +455,15 @@ How you work:
 
 When you are done, or when you cannot go on, answer with a short report: what you did, what you found, what you changed, and what the author should check.
 """;
+    }
 
     /**
      * What the model is asked when the author compacts a run ({@code /compact}): it reads its whole transcript and writes
      * the summary that takes its place. Plain text, the focus the author gave comes after it. A default of
      * {@code AgentService.getCompactionPrompt}.
      */
-    public static final String DEFAULT_AGENT_COMPACTION_PROMPT = """
+    public String agentCompactionPrompt() {
+        return """
 Your work so far is going to be compacted: everything above this message will be dropped from your memory and replaced by the summary you write now. Write that summary for yourself, so that you can go on exactly where you are without the conversation.
 
 Write it as plain text, in sections, and keep what you would need and cannot find again quickly:
@@ -392,16 +475,20 @@ Write it as plain text, in sections, and keep what you would need and cannot fin
 
 Do not call any tool and do not do any of the work now, only write the summary. Be complete but compact; leave out what you can read again with a tool.
 """;
+    }
 
     /**
      * The name of the agent the import offers to take the lore notes of a book ({@code LoreNotesAgent}).
      */
-    public static final String AGENT_LORE_NOTES_NAME = "Lore notes";
+    public String agentLoreNotesName() {
+        return "Lore notes";
+    }
 
     /**
      * The instructions ("agents.md") of the agent that takes the lore notes of a book after an import.
      */
-    public static final String AGENT_LORE_NOTES_INSTRUCTIONS = """
+    public String agentLoreNotesInstructions() {
+        return """
 Task: read the story of this book and take notes for its lorebook.
 
 1. Call get-book-info, list-lorebooks and list-lore-entries first: the lorebook of the book is the one to write to, and what it holds already must not be written again (update an entry when the story tells more about it).
@@ -412,18 +499,23 @@ Task: read the story of this book and take notes for its lorebook.
 
 Do not change the story, do not delete anything and do not touch the entries that were there before except to add facts the story gives.
 """;
+    }
 
     /**
      * Starts the message that holds the summary of a compacted run, in the transcript the model reads.
      */
-    public static final String AGENT_COMPACTED_NOTE = "Your earlier work on this run was compacted at the author's request. "
+    public String agentCompactedNote() {
+        return "Your earlier work on this run was compacted at the author's request. "
             + "This summary, written by you, is all that is left of it:";
+    }
 
     /**
      * Starts the message that holds the summary of a run that compacted itself with {@code request_compaction}.
      */
-    public static final String AGENT_SELF_COMPACTED_NOTE = "Your earlier work on this run was compacted at your own request. "
+    public String agentSelfCompactedNote() {
+        return "Your earlier work on this run was compacted at your own request. "
             + "This summary, written by you, is all that is left of it:";
+    }
 
     /**
      * From this share of the context cap (in percent) the runner reminds the agent after every round that the context fills up.
@@ -444,50 +536,63 @@ Do not change the story, do not delete anything and do not touch the entries tha
     /**
      * Starts the message that holds the summary of a run that the runner compacted because the context was nearly full.
      */
-    public static final String AGENT_AUTO_COMPACTED_NOTE = "Your earlier work on this run was compacted automatically because "
+    public String agentAutoCompactedNote() {
+        return "Your earlier work on this run was compacted automatically because "
             + "your context was nearly full. This summary, written by you, is all that is left of it:";
+    }
 
     /**
      * The reminder of a context that is filling up, a message of the run to the agent: the share, the tokens, the cap.
      */
-    public static final String AGENT_CONTEXT_WARNING = "Notice from the run: your context is %d%% full (about %d of %d tokens). "
+    public String agentContextWarning() {
+        return "Notice from the run: your context is %d%% full (about %d of %d tokens). "
             + "Earlier rounds will have to go. Put what you must not lose into files of your workspace now (what is done, "
             + "what you found, the paths, what you are doing and the next step) and update your plan, then call "
             + "request_compaction so that the earlier rounds are replaced by a summary. Do not start a long read or write first.";
+    }
 
     /**
      * The same, once the context is nearly full: the run stops when the cap is reached.
      */
-    public static final String AGENT_CONTEXT_CRITICAL = "Notice from the run: your context is %d%% full (about %d of %d tokens) "
+    public String agentContextCritical() {
+        return "Notice from the run: your context is %d%% full (about %d of %d tokens) "
             + "and the run stops when it is full. Save your notes to a file in your workspace and call request_compaction "
             + "now, before anything else.";
+    }
 
     /**
      * Added to the summary when the oldest part of the run did not fit the context of the model and was left out of it.
      */
-    public static final String AGENT_COMPACTED_TRIMMED = "(The oldest %d message(s) of the run did not fit the context of the model "
+    public String agentCompactedTrimmed() {
+        return "(The oldest %d message(s) of the run did not fit the context of the model "
             + "when this summary was written, they are not in it.)";
+    }
 
     /**
      * Starts the message that tells the agent about a command the author ran from the console; the text of the command and
      * its result follow.
      */
-    public static final String AGENT_AUTHOR_COMMAND_NOTE = "The author ran a command from the console. You did not call it. "
+    public String agentAuthorCommandNote() {
+        return "The author ran a command from the console. You did not call it. "
             + "What it read is below, what it changed (if anything) is changed in your working copy, so what you read earlier may be out of date.";
+    }
 
     /**
      * Told to the agent when the server stopped while a command of the author was running and the command can't be run again (it may
      * be done in part). The line of the command follows.
      */
-    public static final String AGENT_AUTHOR_COMMAND_INTERRUPTED = "The author ran a command from the console, and the server stopped "
+    public String agentAuthorCommandInterrupted() {
+        return "The author ran a command from the console, and the server stopped "
             + "while it was running. It was not run again, it may be done in part: check what it should have changed in your working copy "
             + "before you rely on it.";
+    }
 
     /**
      * What the runner adds to the system prompt of an agent: how the run ends and what the tools are for. The prompt
      * and the instructions of the author come before it.
      */
-    public static final String AGENT_RUNNER_NOTE = """
+    public String agentRunnerNote() {
+        return """
 How this run works:
 - You work in rounds: you call tools, you get their results, you call more. A reply without a tool call ends your turn and the run waits for the author to write to you, so do not reply with a plain text while there is work left.
 - When the task is done, call finish with your report. If you need a decision that only the author can make, call ask_user.
@@ -502,90 +607,108 @@ How this run works:
 - What you write costs time and counts against the limit of your answer, so do not write out text you already have: do not copy a result or a file into a call (use save_command_result or @file:/path), do not repeat a result back, and keep what you say between calls to a sentence. The long texts belong in the files you write and in your report.
 - A text argument of a command, and the content of write_file and append_file, can be given as @file:/path (the whole value): the contents of that file of your workspace are used. Write a long text to a file once, check it, and pass it that way instead of writing it again in the call. A result of a command you pass to the next command as @result (the result of the last call) or @result:3 (the result with that number; list_command_results shows the last ten), the same in write_file and append_file, so you never write it out again. Where a handle is expected, @result also works for a result that has one (the one of create-part). A result you want to keep (a generated text) is saved with save_command_result right after the call; then pass the file as @file:/path. To join several files into one use merge_files, to copy a file or a folder copy_file, to unpack a zip file (for example one the author uploaded) into a folder unzip_file, to find files by name pass a glob such as *.md to list_files or grep_files.
 """;
+    }
 
     /**
      * Added to the note of the runner when the author talks with the agent in the console: finish does not end the run.
      */
-    public static final String AGENT_INTERACTIVE_NOTE = """
+    public String agentInteractiveNote() {
+        return """
 This run is a conversation with the author, who is in the console. Calling finish gives the author your report and the run waits for their next message; it does not end the run, the author ends it. Do not call finish before the author's request is done, and when they ask for something else after your report, do it.
 """;
-
-    /**
-     * Added to the description of every parameter that takes images, of a command the agent may call.
-     */
-    public static final String AGENT_IMAGES_ARGUMENT_HINT = "A list of paths of image files of your workspace (PNG, JPEG, GIF "
-            + "or WebP; the user uploads them), at most " + com.github.enerccio.marginalia.domain.service.agent.CommandFunctions.MAX_IMAGES
-            + ". The model of the command looks at them; it must be able to.";
+    }
 
     /**
      * The first message of a run, the task is in the system prompt and the instructions.
      */
-    public static final String DEFAULT_AGENT_START_MESSAGE = """
+    public String agentStartMessage() {
+        return """
 Start now. Your task is in your instructions. The author is not watching, so do the work with your tools and call finish with your report when you are done.""";
+    }
 
     /**
      * The first message of a run started from the console: the author is there, so the agent asks for the task instead
      * of working on its instructions.
      */
-    public static final String AGENT_CONSOLE_START_MESSAGE = """
+    public String agentConsoleStartMessage() {
+        return """
 The author has opened the console and is watching. Do not start any work yet: call ask_user right now and ask the author what they want you to do. When they answer, do what they ask.""";
+    }
 
     /**
      * Sent when a run goes on after the model had ended its turn with a reply and was paused.
      */
-    public static final String DEFAULT_AGENT_RESUME_MESSAGE = "Go on with your task. If you have finished it, call finish with your report.";
+    public String agentResumeMessage() {
+        return "Go on with your task. If you have finished it, call finish with your report.";
+    }
 
     /**
      * Put before the note the author wrote with a resume.
      */
-    public static final String AGENT_RESUME_NOTE = "The author resumed the run with this note:";
+    public String agentResumeNote() {
+        return "The author resumed the run with this note:";
+    }
 
     /**
      * The result given to the model for a call that was in flight when the run was interrupted.
      */
-    public static final String AGENT_INTERRUPTED_CALL = "Error: this call was interrupted when the run was paused or the server "
+    public String agentInterruptedCall() {
+        return "Error: this call was interrupted when the run was paused or the server "
             + "stopped, so it is unknown whether it was done. Check the state with a read tool before you repeat it.";
+    }
 
     /**
      * The result given to the model for the call that was going on when the author forced a message in: the round was
      * thrown away.
      */
-    public static final String AGENT_FORCED_CALL = "Error: this call was cut off because the author sent a message and the "
+    public String agentForcedCall() {
+        return "Error: this call was cut off because the author sent a message and the "
             + "rest of the round was thrown away, so it is unknown whether it was done. Check the state with a read tool "
             + "before you repeat it.";
+    }
 
     /**
      * Tells the agent that the checkpoint of the start of its run could not be made; the reason follows.
      */
-    public static final String AGENT_NO_START_CHECKPOINT = "Notice from the run: no checkpoint of the start of the run could be made.";
+    public String agentNoStartCheckpoint() {
+        return "Notice from the run: no checkpoint of the start of the run could be made.";
+    }
 
     /**
      * Tells the agent, once, that the runner could not make its automatic checkpoint before a change; the reason follows.
      */
-    public static final String AGENT_NO_AUTOMATIC_CHECKPOINT = "Notice from the run: no automatic checkpoint could be made before "
+    public String agentNoAutomaticCheckpoint() {
+        return "Notice from the run: no automatic checkpoint could be made before "
             + "your last change, so it can't be undone. Delete checkpoints you do not need with checkpoint_delete.";
+    }
 
     /**
      * Tells the agent that its run went back to a checkpoint: the number and the round of it.
      */
-    public static final String AGENT_RESTORED = "Notice from the run: the run went back to checkpoint %s (made in round %d). Your "
+    public String agentRestored() {
+        return "Notice from the run: the run went back to checkpoint %s (made in round %d). Your "
             + "working copy of the book and your workspace are as they were then; what you read since may be out of date. The "
             + "handles you were given for the items that were there still work, the ones of items you made later point at "
             + "nothing.";
+    }
 
     /**
      * The notice after the author rewound the run to a checkpoint: the number of the checkpoint, the round it was made in and
      * how many messages the agent forgets.
      */
-    public static final String AGENT_REWOUND = "Notice from the run: the author rewound the run to checkpoint %s (made in round %d). Your "
+    public String agentRewound() {
+        return "Notice from the run: the author rewound the run to checkpoint %s (made in round %d). Your "
             + "working copy of the book and your workspace are as they were then, and the %d message(s) that came after that point "
             + "are gone from your memory: what you read, wrote or decided in them did not happen, so do it again if it is still needed. "
             + "The handles you were given for the items that were there still work, the ones of items you made later point at nothing.";
+    }
 
     /**
      * The answer to a call of the last kept round whose work the rewind undid.
      */
-    public static final String AGENT_REWOUND_CALL = "Error: this call was not made, the author rewound the run to a point before it.";
+    public String agentRewoundCall() {
+        return "Error: this call was not made, the author rewound the run to a point before it.";
+    }
 
     /**
      * The most calls of one answer that are made; a model that falls into a loop can write hundreds of the same call, and
@@ -597,25 +720,33 @@ The author has opened the console and is watching. Do not start any work yet: ca
      * Added to the system prompt of an agent that may have sub-agents: how many can work at once, and how many requests to the
      * model the run can have in the air.
      */
-    public static final String AGENT_SUBAGENTS_NOTE = """
+    public String agentSubagentsNote() {
+        return """
 Sub-agents: you can start up to %d sub-agent(s) working at once with spawn_agent. A sub-agent has its own conversation, the commands and files of its model (the same as yours unless the list of models says otherwise) and the same book and workspace, and answers with a text; it does not see your conversation, so give it the whole task. %s The run can have %d request(s) to the model in the air at once, you and your sub-agents together, so the others wait their turn.""";
+    }
 
     /**
      * The part of the note above for a limit of one sub-agent: spawning waits for it.
      */
-    public static final String AGENT_SUBAGENTS_NOTE_ONE = "With a limit of one, spawn_agent waits until the sub-agent is done and returns its answer, you are parked meanwhile.";
+    public String agentSubagentsNoteOne() {
+        return "With a limit of one, spawn_agent waits until the sub-agent is done and returns its answer, you are parked meanwhile.";
+    }
 
     /**
      * The part of the note above for a limit of more: spawning returns at once until the limit is reached.
      */
-    public static final String AGENT_SUBAGENTS_NOTE_MANY = "spawn_agent returns a handle at once; collect the answer with await_agent, look at them with agent_status, stop one with cancel_agent. "
+    public String agentSubagentsNoteMany() {
+        return "spawn_agent returns a handle at once; collect the answer with await_agent, look at them with agent_status, stop one with cancel_agent. "
             + "The call that reaches the limit waits until one ends and returns what ended. Do not end your turn while sub-agents work.";
+    }
 
     /**
      * Added to the system prompt of a sub-agent: what it is and how it ends.
      */
-    public static final String AGENT_SUBAGENT_NOTE = """
+    public String agentSubagentNote() {
+        return """
 You are a sub-agent: another agent started you for one task, which is your first message. You share its book, and what you change there stays; you can read its whole workspace, but you can write only in the folder that is named below as yours. You can not start sub-agents, finish, ask the author or make checkpoints. Do the task with your tools, then reply with a text and no call: that text is your answer to the agent, nothing else is passed (it is also saved as result.md in your folder). Keep it short and concrete (what you found or changed, handles and paths); if it is long, write it to a file in your folder and give the path. If you can not do the task, say why.""";
+    }
 
     /**
      * Most rounds a sub-agent may use.
@@ -630,16 +761,20 @@ You are a sub-agent: another agent started you for one task, which is your first
     /**
      * Told to the agent that ends its turn while sub-agents still work.
      */
-    public static final String AGENT_SUBAGENTS_STILL_WORKING = "Notice from the run: %d sub-agent(s) still work (%s). Wait for their answers with "
+    public String agentSubagentsStillWorking() {
+        return "Notice from the run: %d sub-agent(s) still work (%s). Wait for their answers with "
             + "await_agent or stop them with cancel_agent; if you end your turn again they are stopped.";
+    }
 
     /**
      * The notice after a round whose calls were cut: the number of calls it had, the number made, and how many of them were
      * repeats of a call that reads only.
      */
-    public static final String AGENT_TOO_MANY_CALLS = "Notice from the run: your last answer had %d calls, %d of them repeats of a call you had "
+    public String agentTooManyCalls() {
+        return "Notice from the run: your last answer had %d calls, %d of them repeats of a call you had "
             + "already made in it. Only %d were made. Do not repeat a call: its result is the same, and the calls that read need to be made "
             + "once. Go on with the next step of your task.";
+    }
 
     /**
      * How many rounds that changed nothing and are the same as one of the last {@link #AGENT_REPEAT_WINDOW} (same calls, same
@@ -652,108 +787,140 @@ You are a sub-agent: another agent started you for one task, which is your first
     /**
      * The notice after a round that is the same as two earlier ones: it learned nothing, the next one will not either.
      */
-    public static final String AGENT_REPEATING_NOTICE = "Notice from the run: you have now made these same calls %d times and got the "
+    public String agentRepeatingNotice() {
+        return "Notice from the run: you have now made these same calls %d times and got the "
             + "same results each time, nothing has changed. Repeating them again will not help. Do something different: use what you "
             + "already have, try another tool or other arguments, or call ask_user (or finish) and say what is blocking you.";
+    }
 
     /**
      * The message before the one request that is made without the tools: the agent that repeats itself has to say what it is doing.
      */
-    public static final String AGENT_REPEATING_NO_TOOLS = "Notice from the run: you kept repeating the same calls with the same results "
+    public String agentRepeatingNoTools() {
+        return "Notice from the run: you kept repeating the same calls with the same results "
             + "even after you were told, so your tools are taken away for this answer and the run ends its turn after it. Answer in plain "
             + "text: say what you were trying to do, what you already know, and what is blocking you or what you need from the author.";
+    }
 
     /**
      * The reason of the pause after such an answer.
      */
-    public static final String AGENT_REPEATING_PAUSED = "The agent repeated the same calls with the same results and was stopped; "
+    public String agentRepeatingPaused() {
+        return "The agent repeated the same calls with the same results and was stopped; "
             + "its last answer says what it was doing. Rewind or write to it to go on.";
+    }
 
     /**
      * What a sub-agent that was stopped for repeating itself answers its parent, in front of what it said.
      */
-    public static final String AGENT_REPEATING_SUBAGENT = "(The sub-agent was stopped because it repeated the same calls with the same results. This is what it said:)\n";
+    public String agentRepeatingSubagent() {
+        return "(The sub-agent was stopped because it repeated the same calls with the same results. This is what it said:)\n";
+    }
 
     /**
      * What stands in for the answer of a model that gave no text when its tools were taken away.
      */
-    public static final String AGENT_REPEATING_NO_ANSWER = "(The agent gave no explanation.)";
+    public String agentRepeatingNoAnswer() {
+        return "(The agent gave no explanation.)";
+    }
 
     /**
      * The result given to the calls of an answer that were not made because a call before them failed: the model reads the
      * error first, the calls after it may need what it did not do.
      */
-    public static final String AGENT_AFTER_ERROR_SKIPPED_CALL = "Error: this call was not made because an earlier call of the same "
+    public String agentAfterErrorSkippedCall() {
+        return "Error: this call was not made because an earlier call of the same "
             + "answer failed. Fix that first, then make this call again if it is still needed.";
+    }
 
     /**
      * Said to an agent that makes one call per round when its answer had more calls: only the first was made.
      */
-    public static final String AGENT_ONE_CALL_NOTICE = "Notice from the run: this run lets you make one call per answer. Your last answer had "
+    public String agentOneCallNotice() {
+        return "Notice from the run: this run lets you make one call per answer. Your last answer had "
             + "%d calls; only the first, %s, was made. The other %d were NOT made, so nothing they would have done has happened. Make them "
             + "one at a time, each in an answer of its own, after you have read the result of the one before.";
+    }
 
     /**
      * Told to an agent that makes one call per answer, in its system message, so it does not write calls that are thrown away (the
      * time it spends writing them is lost).
      */
-    public static final String AGENT_ONE_CALL_RULE = "# Calls\n\nIn this run you make one call per answer, although the tool interface lets you "
+    public String agentOneCallRule() {
+        return "# Calls\n\nIn this run you make one call per answer, although the tool interface lets you "
             + "write several: only the first call of an answer is made, the others are dropped without being made, and the time you spent "
             + "writing them is lost. Write exactly one call, then stop and wait for its result. Decide each next step after you have seen "
             + "the last result.";
+    }
 
     /**
      * Told to an agent that may batch its calls, in its system message: the commands that are made alone (the name list is joined).
      */
-    public static final String AGENT_SINGLE_CALLS_RULE = "# Calls\n\nThese are made alone in an answer: %s. Call one of them in an answer of "
+    public String agentSingleCallsRule() {
+        return "# Calls\n\nThese are made alone in an answer: %s. Call one of them in an answer of "
             + "its own, after the calls that must come before it have run; calls written after it in the same answer are not made.";
+    }
 
     /**
      * Said to an agent whose answer had a call of a command that is made alone: the calls from it on (or only it, when it came
      * first) were not made.
      */
-    public static final String AGENT_SINGLE_CALL_NOTICE = "Notice from the run: %1$s is made alone in an answer, and your last answer "
+    public String agentSingleCallNotice() {
+        return "Notice from the run: %1$s is made alone in an answer, and your last answer "
             + "had %2$d calls. Only %3$d were made, the ones from %1$s on were dropped. Call %1$s in an answer of its own; the other "
             + "calls, if you still need them, in the answers after it.";
+    }
 
     /**
      * The result given to the model for a call that had not begun when the author forced a message in.
      */
-    public static final String AGENT_SKIPPED_CALL = "Error: this call was not made because the author sent a message and the "
+    public String agentSkippedCall() {
+        return "Error: this call was not made because the author sent a message and the "
             + "rest of the round was thrown away.";
+    }
 
     /**
      * The result given to the call that was going on when the author paused the run at once.
      */
-    public static final String AGENT_PAUSED_CALL = "Error: this call was cut off because the author paused the run at once, so it "
+    public String agentPausedCall() {
+        return "Error: this call was cut off because the author paused the run at once, so it "
             + "is unknown whether it was done. Check the state with a read tool before you repeat it.";
+    }
 
     /**
      * The result given to the calls of the round that were not made because the author paused the run at once.
      */
-    public static final String AGENT_PAUSED_SKIPPED_CALL = "Error: this call was not made because the author paused the run at once.";
+    public String agentPausedSkippedCall() {
+        return "Error: this call was not made because the author paused the run at once.";
+    }
 
     /**
      * The result given to the call that was going on when the author stopped the run.
      */
-    public static final String AGENT_STOPPED_CALL = "Error: this call was cut off because the author stopped the run, so it "
+    public String agentStoppedCall() {
+        return "Error: this call was cut off because the author stopped the run, so it "
             + "is unknown whether it was done. Check the state with a read tool before you repeat it.";
+    }
 
     /**
      * The result given to the calls of the round that were not made because the author stopped the run.
      */
-    public static final String AGENT_STOPPED_SKIPPED_CALL = "Error: this call was not made because the author stopped the run.";
+    public String agentStoppedSkippedCall() {
+        return "Error: this call was not made because the author stopped the run.";
+    }
 
     /**
      * Added to the result of {@code read_file} when the whole file is shown and has at least {@link #AGENT_FILE_HINT_FROM}
      * characters: the model is about to use the text in a call, and writing it out again costs it the time of every token, while
      * the reference to the file costs nothing. {@code %s} is the path of the file.
      */
-    public static final String AGENT_FILE_HINT = "[To use this text in a command or in write_file, pass @file:%s as the argument "
+    public String agentFileHint() {
+        return "[To use this text in a command or in write_file, pass @file:%s as the argument "
             + "instead of writing the text out.]";
+    }
 
     /**
-     * The shortest file (in characters) whose {@code read_file} result gets the {@link #AGENT_FILE_HINT}.
+     * The shortest file (in characters) whose {@code read_file} result gets the {@link #agentFileHint()}.
      */
     public static final int AGENT_FILE_HINT_FROM = 500;
 
@@ -761,10 +928,12 @@ You are a sub-agent: another agent started you for one task, which is your first
      * What the agent is told when the model server could not read the arguments of a call it wrote (an answer that ended in the middle
      * of the text, by the limit of one answer or because the model stopped, is the usual reason; not the size of the context): the answer is gone, so nothing was done, and the same request would fail the same way.
      */
-    public static final String AGENT_UNREADABLE_CALL = "Your last answer could not be used: the model server could not read the "
+    public String agentUnreadableCall() {
+        return "Your last answer could not be used: the model server could not read the "
             + "arguments of the call you wrote as JSON (the answer most likely ended in the middle of the text: the longest answer you can "
             + "write is limited, get_run_status tells how much, and that has nothing to do with how full your context is). Nothing "
             + "was done. Make the call again with less text in it: write long text to a file of the workspace in several smaller "
             + "steps (write_file, then append_file) and use the file, instead of putting it all in one call.";
+    }
 
 }

@@ -118,6 +118,7 @@ public class Main extends LoginCheckRoute implements LLMInteract {
             sessionManager.userLoggedIn(user, VaadinSession.getCurrent());
 
             sessionPoint.setLanguage(loc.resolveLanguage(settingService.getOrCreate(UserSetting.class).getLanguage()));
+            sessionPoint.setPromptLanguage(loc.resolvePromptLanguage(settingService.getOrCreate(UserSetting.class).getPromptLanguage()));
             ThemeSwitch.apply(settingService.getOrCreate(UserSetting.class).getThemeMode());
             UiProblems.attach(sessionPoint);
 

@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.loc;
 
 
+import com.github.enerccio.marginalia.Defaults;
 import com.github.enerccio.marginalia.bound.SessionPoint;
 import com.github.enerccio.marginalia.domain.collections.*;
 import com.github.enerccio.marginalia.domain.model.Setting;
@@ -332,6 +333,77 @@ public class LocalizationImpl implements Localization, InitializingBean {
         Language language = bundle.getLanguage();
         if (!language.equals(defaultLanguage)) {
             bundles.remove(language, bundle);
+        }
+    }
+
+    @Override
+    public Defaults getDefaults() {
+        return getDefaults(getPromptLanguage());
+    }
+
+    @Override
+    public Defaults getDefaults(Language language) {
+        Defaults english = null;
+        for (Defaults texts : Defaults.all()) {
+            if (texts.getLanguage().equals(language)) {
+                return texts;
+            }
+            if (texts.getLanguage().equals(Language.EN)) {
+                english = texts;
+            }
+        }
+        return english;
+    }
+
+    @Override
+    public List<Defaults> getAllDefaults() {
+        return Defaults.all();
+    }
+
+    @Override
+    public void registerDefaults(Defaults texts) {
+        Defaults.register(texts);
+    }
+
+    @Override
+    public void unregisterDefaults(Defaults texts) {
+        Defaults.unregister(texts);
+    }
+
+    @Override
+    public Language getPromptLanguage() {
+        Language language = sessionPromptLanguage();
+        return hasPrompts(language) ? language : Language.EN;
+    }
+
+    @Override
+    public List<Language> getPromptLanguages() {
+        return Defaults.all().stream().map(Defaults::getLanguage).toList();
+    }
+
+    @Override
+    public Language resolvePromptLanguage(String code) {
+        if (code == null || code.isBlank()) {
+            return Language.EN;
+        }
+        Language language = Language.of(code);
+        return hasPrompts(language) ? language : Language.EN;
+    }
+
+    private static boolean hasPrompts(Language language) {
+        return language != null && Defaults.all().stream().anyMatch(texts -> texts.getLanguage().equals(language));
+    }
+
+    private Language sessionPromptLanguage() {
+        if (sessionPoint == null || RequestContextHolder.getRequestAttributes() == null) {
+            return null;
+        }
+        try {
+            return sessionPoint.getPromptLanguage();
+        } catch (RuntimeException e) {
+            // the session is gone
+            log.trace("No session to read the prompt language from: {}", e.getMessage());
+            return null;
         }
     }
 

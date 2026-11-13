@@ -147,7 +147,7 @@ class ReadingPartsTest {
         List<Part> run = branch().subList(3, 5);
         ExtractionPrompt.Request plain = ExtractionPrompt.build(state(), "", run, null);
 
-        assertEquals(ExtractionPrompt.SYSTEM, plain.system());
+        assertEquals(new KnowledgeTrackerDefaults().extractionSystem(), plain.system());
         assertFalse(plain.user().contains("learned in part"));
         assertTrue(plain.user().contains("#1 (POV"));
         assertEquals(plain.user(), ExtractionPrompt.build(state(), "", run, null, null).user());
@@ -163,10 +163,10 @@ class ReadingPartsTest {
 
         ExtractionPrompt.Request reading = ExtractionPrompt.build(state(), "", run, null, ExtractionPrompt.Readable.of(branch, run), "My own rules.");
         assertTrue(reading.system().startsWith("My own rules.\n\n"));
-        assertTrue(reading.system().endsWith(ExtractionPrompt.READING));
+        assertTrue(reading.system().endsWith(new KnowledgeTrackerDefaults().readingNote()));
 
         // blank = the tested wording
-        assertEquals(ExtractionPrompt.SYSTEM, ExtractionPrompt.build(state(), "", run, null, null, "  ").system());
-        assertEquals(ExtractionPrompt.SYSTEM, ExtractionPrompt.build(state(), "", run, null, null, null).system());
+        assertEquals(new KnowledgeTrackerDefaults().extractionSystem(), ExtractionPrompt.build(state(), "", run, null, null, "  ").system());
+        assertEquals(new KnowledgeTrackerDefaults().extractionSystem(), ExtractionPrompt.build(state(), "", run, null, null, null).system());
     }
 }

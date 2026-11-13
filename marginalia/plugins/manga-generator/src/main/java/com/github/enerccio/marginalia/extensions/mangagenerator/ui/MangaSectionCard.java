@@ -11,7 +11,6 @@ import com.github.enerccio.marginalia.extensions.mangagenerator.MangaGeneratorEx
 import com.github.enerccio.marginalia.extensions.mangagenerator.MangaGeneratorLog;
 import com.github.enerccio.marginalia.extensions.mangagenerator.model.Manga;
 import com.github.enerccio.marginalia.extensions.mangagenerator.model.MangaSection;
-import com.github.enerccio.marginalia.extensions.mangagenerator.service.Defaults;
 import com.github.enerccio.marginalia.extensions.mangagenerator.service.MangaService;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
@@ -341,11 +340,11 @@ public class MangaSectionCard extends VerticalLayout {
     // --- overrides ---
 
     private String inheritedPrompt() {
-        return StringUtils.defaultIfBlank(manga.getPromptOverride(), Defaults.DEFAULT_PROMPT);
+        return StringUtils.defaultIfBlank(manga.getPromptOverride(), T.defaults().prompt());
     }
 
     private String inheritedTagsPrompt() {
-        return StringUtils.defaultIfBlank(manga.getTagsPromptOverride(), Defaults.DEFAULT_TAGS_PROMPT);
+        return StringUtils.defaultIfBlank(manga.getTagsPromptOverride(), T.defaults().tagsPrompt());
     }
 
     private void editOverride(String title, String current, String inherited, Consumer<String> setter) {
