@@ -8,7 +8,7 @@ covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/ui/widgets/MarkdownEditor.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/ui/JavascriptLibrary.java
   - marginalia/src/main/frontend
-verified: f7e7de02b
+verified: 49ceb6e03
 ---
 
 # Custom components
