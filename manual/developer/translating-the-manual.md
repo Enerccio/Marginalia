@@ -1,7 +1,7 @@
 ---
 label: Translating the manual
 order: 150
-verified: 8a8764342
+verified: 8a278a19f
 covers:
   - tools/manual_i18n.py
   - tools/retype_build.sh
