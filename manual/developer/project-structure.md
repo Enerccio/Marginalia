@@ -206,6 +206,7 @@ Interfaces in `domain.service`, implementations in `domain.service.impl`:
 | `TemplateService` | Rendering Handlebars templates with macros. |
 | `BackupService`, `DatabaseBackupService` | Book backups (restore, clone, export); database backups and their schedule. |
 | `LoreChanges` | The static notice of the lorebook entries written, told after the commit (see [Services](services.md)). |
+| `LoreImages`, `LoreMentions` | Static helpers of the lorebook entry content: `LoreImages` finds, strips, replaces and writes the image markup (`![caption](resource:<uuid>)`) of an entry; `LoreMentions` finds where a text names entries (the links between entries of the editor, *Mentioned in*). See [Services](services.md) and [UI](ui.md). |
 | `service.run` (`Runs`), `AIGate`, `GenerationView` | The registry of the runs of the books: what runs, who started it, its Stop, what it holds, its live text; the refusals with the name of a run (see [Services](services.md#the-runs-and-what-they-hold)). `AIGate` (`AIGateImpl`) is the queue of the connections of an AI. `GenerationView` is what the story shows of a generation a command started (the command bar's `progressInStory` commands). |
 | `UpdateService` | Admin → Update: reads the status the update watcher of a Docker host writes and asks it for an update (files in `<data>/update`). |
 | `CleanupService`, `TrashService` | Purging soft-deleted data that is no longer referenced; listing, restoring and (parts, entries) permanently deleting it (one bean, `CleanupServiceImpl`, shares the reference model). |

@@ -178,6 +178,16 @@ there). The new uuids are written into the data of the parts by `BackupResources
 book) in the resources whose link is empty or stale, also those that only the data of a part names (`linkOtherResources`). `ManuscriptBackup.imageCount` counts
 all the resources a backup points to. The ZIP is only a transfer format, a stored backup stays a JSON file.
 
+**Images of lorebook entries.** The content of an entry may show images, resources named in it as `![caption](resource:<uuid>)`
+(`LoreImages`: `references`, `uuids`, `markup`, `replace`, `strip`). Wherever the content leaves the entry they are taken along or
+left out: the model, the exports and the activation scan read the text with `LoreImages.strip`
+(`LorebookActivationService.renderPayload`, `evaluateInContent`, `ExporterServiceImpl`, the SillyTavern export); a backup finds the uuids in
+`lorebooks[].entries[].payload` (`BackupResources.lorebooks`) and rewrites them like those of the parts; the lorebook export file
+carries the images in an `images` object (uuid, name, mime type, base64), which `importLorebook` stores with `uploadImage` (an image
+that is not in the file becomes a copy of the user's own, if there is one); `cloneLorebook` copies the images
+(`ResourceService.copy`) so that the copy deletes its own; `importShared` takes copies of the images of the other user with
+`ResourceService.copyImageOf(uuid, owner)`, which the caller may use only for an image shown by an entry of a lorebook that user shares.
+
 The automatic book backups (`BackupStrategy.AFTER_N_MESSAGES` / `AFTER_N_MINUTES`) are triggered by the story editor
 after a part is generated (`ManuscriptStoryPart`), not by a service - code that generates parts without the editor
 doesn't take them.

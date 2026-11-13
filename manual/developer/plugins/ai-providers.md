@@ -129,6 +129,13 @@ What a service has to take care of itself, because nothing above it does:
 | **Functions** | When a `FunctionSet` is passed, offer its definitions, run the calls the model makes with `FunctionSet.call(...)` (asynchronously, in the request scope), report each with `onFunctionCall`, ask again with the results, up to `MAX_FUNCTION_ROUNDS`. See `callFunctions` in the Google plugin. |
 | **Tokens** | `countTokens` is called very often (every part of the prompt): do not make a request for it per call. `TokenizerService.countTokensApprox` is local. A provider with real tokenizers (several, or a different one per URL) overrides `ExtensionAIFactory.createTokenizerResolver()` and calls `TokenizerService.countTokens(ai, text)` from `countTokens`. The `TokenizerResolver` gives each of its AIs a `TokenizerKey` (`TokenizerKey.of(id)` or `TokenizerKey.of(id, secret)`, which keeps only an HMAC fingerprint of the secret; AIs with an equal key share the tokenizer that worked) and the `TokenizerStrategy` list to try for it. It is asked for the AIs of the provider only, once per registered factory. `countTokens` is also called inside read-write transactions (they hold the database write lock): `TokenizerService` counts approximately there, a provider that does not use it must not make a slow request in `countTokens`. |
 
+**Images of the lore.** An AI with `isSendLoreImages()` gets the images of the activated lorebook entries as image
+attachments (`LLMAttachment`): of a user message of their own after the system prompt (answered by a short assistant
+message) or of the final user message, see [Generation pipeline](../generation-pipeline.md). A provider needs nothing
+for it beyond sending the image attachments of any message. Only the OpenAI-compatible service also writes the
+attachments of a *system* message (`AI.isLoreImagesInSystem()`, `toSystemMessage`); the AI dialog shows that checkbox for
+the OpenAI-compatible type only, so an extension provider never gets the flag.
+
 ## Tokenizers for OpenAI-compatible AIs
 
 A plugin that is not a provider can still bring a tokenizer for the AIs of the type OpenAI-compatible (a custom endpoint, a
