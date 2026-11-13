@@ -32,10 +32,10 @@
       "translated_at": "2026-11-13T17:51:34Z"
     },
     "user/administration/help-assistant.md": {
-      "chunks": 2,
+      "chunks": 5,
       "model": "haiku",
-      "source_sha": "2377815820998b055b3ea310d250083cfb3f81ca0f4c80c5a4aac5ec3c8aca79",
-      "translated_at": "2026-11-13T17:52:16Z"
+      "source_sha": "807a72e2868e179ce86186db3e04569687e0b333dfb774df8e33e4c20103c5ed",
+      "translated_at": "2026-11-13T21:43:35Z"
     },
     "user/administration/index.md": {
       "chunks": 1,
@@ -148,8 +148,8 @@
     "user/books/story-editor.md": {
       "chunks": 9,
       "model": "haiku",
-      "source_sha": "199b5ac31b44de372edda6b8aaa04c0ec2c509d1f6872025a18c7a7ea6db47d5",
-      "translated_at": "2026-11-13T17:57:22Z"
+      "source_sha": "73db62fbbed3b43db8f01e73aa4429d5f7e2c268823ba6280b564993b750b36b",
+      "translated_at": "2026-11-13T21:42:05Z"
     },
     "user/books/styling-guide.md": {
       "chunks": 2,
@@ -436,8 +436,8 @@
     "user/lorebooks/lorebooks.md": {
       "chunks": 4,
       "model": "haiku",
-      "source_sha": "1fe5dcec4b0de12927e81b86636af69e1da7a53ff59b27e7b9f333d39156b978",
-      "translated_at": "2026-11-13T18:05:07Z"
+      "source_sha": "345bfb315ca60372d77fa2a2e5b689d49b2fa507404f718d65477da4336ca17d",
+      "translated_at": "2026-11-13T21:42:12Z"
     },
     "user/phone.md": {
       "chunks": 2,
