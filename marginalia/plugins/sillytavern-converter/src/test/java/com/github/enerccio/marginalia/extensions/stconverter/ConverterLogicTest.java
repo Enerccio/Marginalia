@@ -114,6 +114,28 @@ class ConverterLogicTest {
     }
 
     @Test
+    void newTurnsKeepTheOrderTheAuthorMadeByMoving() {
+        List<TurnItem> existing = new ArrayList<>(List.of(item(1, 5, true), item(6, 10, true), item(16, 20, false)));
+        assertEquals(1, ConverterService.moveTurn(existing, 0, 1));
+        // 6-10, 1-5, 16-20: the new turn goes before the first one that is after it in the chat, nothing is sorted again
+        ConverterService.mergeTurns(existing, List.of(item(11, 15, false)), 11, 15);
+
+        assertEquals(List.of("6-10", "1-5", "11-15", "16-20"), existing.stream().map(TurnItem::messages).toList());
+    }
+
+    @Test
+    void aTurnMovesOnePlaceAndNotOverTheEnds() {
+        List<TurnItem> turns = new ArrayList<>(List.of(item(1, 5, false), item(6, 10, false), item(11, 15, false)));
+
+        assertEquals(0, ConverterService.moveTurn(turns, 1, -1));
+        assertEquals(List.of("6-10", "1-5", "11-15"), turns.stream().map(TurnItem::messages).toList());
+        assertEquals(-1, ConverterService.moveTurn(turns, 0, -1));
+        assertEquals(-1, ConverterService.moveTurn(turns, 2, 1));
+        assertEquals(-1, ConverterService.moveTurn(turns, 1, 2));
+        assertEquals(List.of("6-10", "1-5", "11-15"), turns.stream().map(TurnItem::messages).toList());
+    }
+
+    @Test
     void twoTurnsAreJoinedIntoOneThatCoversBoth() {
         ConverterData data = new ConverterData();
         data.setTurns(new ArrayList<>(List.of(item(1, 5, true), item(6, 10, true), item(11, 15, false))));

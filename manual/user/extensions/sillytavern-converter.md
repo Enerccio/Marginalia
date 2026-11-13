@@ -104,7 +104,10 @@ The model is told to cover every message of the range exactly once; numbers outs
   settings and the instructions under each other, the present characters of both, the POV character of the first; when the
   second turn has another one the form says which). Change what does not fit and press **Merge**
   (or <kbd>Ctrl/Cmd+Enter</kbd>): the two rows become one that covers the messages of both, ticked only when both were.
-- Running the wand again for a range **replaces** the earlier turns that touch the range, except the ticked ones.
+- The arrows of a turn **move it up or down** in the list, to write the turns in another order than the chat has them (a turn
+  keeps the messages it covers). Turns made from the parts of a book can't be moved, their order is that of the parts.
+- Running the wand again for a range **replaces** the earlier turns that touch the range, except the ticked ones; the new
+  turns go to their place in the order of the chat and the order you made by moving turns is kept.
 
 ![The turn details the model prepared](../../images/plugin-stconverter-turns.png)
 

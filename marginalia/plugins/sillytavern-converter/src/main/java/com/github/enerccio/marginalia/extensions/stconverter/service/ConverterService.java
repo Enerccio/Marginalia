@@ -626,8 +626,9 @@ public class ConverterService {
 
     /**
      * Puts the new turns into the turn details: the turns the author has not reviewed that cover a message of the range
-     * {@code from} to {@code to} are replaced by the new ones, the reviewed ones stay (the author has written them already),
-     * and all are in the order of the chat.
+     * {@code from} to {@code to} are replaced by the new ones, the reviewed ones stay (the author has written them already).
+     * Each new turn goes before the first turn that is after it in the order of the chat, so the list stays in the order of the
+     * chat, and an order the author made by moving turns ({@link #moveTurn}) is not undone.
      *
      * @return how many turns were replaced
      */
@@ -635,9 +636,30 @@ public class ConverterService {
         int before = existing.size();
         existing.removeIf(turn -> !turn.isReviewed() && turn.getFirstMessage() <= to && turn.getLastMessage() >= from);
         int replaced = before - existing.size();
-        existing.addAll(added);
-        existing.sort(Comparator.comparingInt(TurnItem::getFirstMessage).thenComparingInt(TurnItem::getLastMessage));
+        Comparator<TurnItem> byChat = Comparator.comparingInt(TurnItem::getFirstMessage).thenComparingInt(TurnItem::getLastMessage);
+        for (TurnItem turn : added) {
+            int at = 0;
+            while (at < existing.size() && byChat.compare(existing.get(at), turn) <= 0) {
+                at++;
+            }
+            existing.add(at, turn);
+        }
         return replaced;
+    }
+
+    /**
+     * Moves the turn {@code index} (from 0) one place up ({@code delta} -1) or down (1) in the list, to make the order the author
+     * wants to write the turns in. The turn keeps the messages it covers.
+     *
+     * @return the new index of the turn, -1 when it can't move that way
+     */
+    public static int moveTurn(List<TurnItem> turns, int index, int delta) {
+        int target = index + delta;
+        if (Math.abs(delta) != 1 || index < 0 || index >= turns.size() || target < 0 || target >= turns.size()) {
+            return -1;
+        }
+        Collections.swap(turns, index, target);
+        return target;
     }
 
     /**

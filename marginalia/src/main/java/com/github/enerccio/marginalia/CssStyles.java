@@ -296,6 +296,7 @@ public final class CssStyles {
     // --- Planner tab of the story editor (ui.dialogs.story.PlannerPanel) ---
     public static final String PLANNER_SCENE = "planner-scene";
     public static final String PLANNER_SCENE_DONE = "planner-scene-done";
+    public static final String PLANNER_SCENE_CURRENT = "planner-scene-current";
     public static final String PLANNER_SCENE_MAIN = "planner-scene-main";
     public static final String PLANNER_SCENE_TEXT = "planner-scene-text";
 

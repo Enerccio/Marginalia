@@ -9,14 +9,12 @@ import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.MergeTurnsDialog;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
+import com.github.enerccio.marginalia.ui.widgets.TurnRow;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.google.gson.JsonObject;
-import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
@@ -141,71 +139,36 @@ public class PlannerPanel extends VerticalLayout {
      * @param next the scene after this one, null for the last scene
      */
     private Component row(Manuscript current, PlannedScene scene, PlannedScene next, int index) {
-        Checkbox done = new Checkbox(scene.isDone());
-        done.setTooltipText(loc.getValue(scene.isDone() ? L.LABEL_MARK_NOT_DONE : L.LABEL_MARK_DONE));
-        done.setAriaLabel(loc.getValue(scene.isDone() ? L.LABEL_MARK_NOT_DONE : L.LABEL_MARK_DONE));
-        done.addValueChangeListener(e -> {
-            if (e.isFromClient()) {
-                run(() -> plannerService.setDone(current, scene.getUuid(), e.getValue()));
-            }
-        });
-
         Span title = new Span(scene.getTitle());
         title.addClassNames(CssStyles.TEXT_BOLD, CssStyles.WRAP_ANYWHERE);
-        Div main = new Div(title);
-        main.addClassName(CssStyles.PLANNER_SCENE_MAIN);
+        Div content = new Div(title);
         String detail = StringUtils.firstNonBlank(scene.getInstructions(), scene.getSceneSetting());
         if (StringUtils.isNotBlank(detail)) {
             Div text = new Div(new Span(detail));
             text.addClassName(CssStyles.PLANNER_SCENE_TEXT);
-            main.add(text);
+            content.add(text);
         }
-        main.setTitle(loc.getValue(L.LABEL_USE_IN_NEXT_TURN));
-        main.addClickListener(_ -> {
-            if (!host.open(scene)) {
-                Notification.warning(loc.getValue(L.MSG_PLANNER_NO_TURN_FORM));
-            }
-        });
-
-        // two lines of three, so that the text of the scene keeps its room in a narrow tab
-        HorizontalLayout moving = new HorizontalLayout(
-                button(Solid.ARROW_UP, L.LABEL_MOVE_UP, index > 0, _ -> run(() -> plannerService.move(current, scene.getUuid(), -1))),
-                button(Solid.ARROW_DOWN, L.LABEL_MOVE_DOWN, next != null, _ -> run(() -> plannerService.move(current, scene.getUuid(), 1))),
-                button(Solid.PLUS, L.LABEL_INSERT_SCENE_BELOW, true, _ -> new PlannedSceneDialog(loc, loc.getValue(L.LABEL_NEW_SCENE), new PlannedScene(), added ->
-                        run(() -> plannerService.insert(current, scene.getUuid(), added))).open()));
-        HorizontalLayout changing = new HorizontalLayout(
-                button(Solid.CODE_MERGE, L.LABEL_MERGE_WITH_NEXT_SCENE, next != null, _ -> merge(current, scene, next)),
-                button(Solid.PEN, L.LABEL_EDIT, true, _ -> new PlannedSceneDialog(loc, loc.getValue(L.LABEL_EDIT_SCENE), scene, changed ->
-                        run(() -> plannerService.update(current, changed))).open()),
-                button(Solid.TRASH, L.LABEL_DELETE, true, _ -> confirmDelete(current, scene)));
-        for (HorizontalLayout line : List.of(moving, changing)) {
-            line.setSpacing(false);
-            line.setPadding(false);
-        }
-        VerticalLayout buttons = new VerticalLayout(moving, changing);
-        buttons.setSpacing(false);
-        buttons.setPadding(false);
-        buttons.setWidth(null);
-
-        HorizontalLayout row = new HorizontalLayout(done, main, buttons);
-        row.setWidthFull();
-        row.setAlignItems(FlexComponent.Alignment.START);
-        row.setSpacing(false);
-        row.expand(main);
-        row.addClassName(CssStyles.PLANNER_SCENE);
-        if (scene.isDone()) {
-            row.addClassName(CssStyles.PLANNER_SCENE_DONE);
-        }
-        return row;
+        String doneTooltip = loc.getValue(scene.isDone() ? L.LABEL_MARK_NOT_DONE : L.LABEL_MARK_DONE);
+        return TurnRow.builder(content)
+                .done(scene.isDone(), doneTooltip, value -> run(() -> plannerService.setDone(current, scene.getUuid(), value)))
+                .onClick(loc.getValue(L.LABEL_USE_IN_NEXT_TURN), () -> {
+                    if (!host.open(scene)) {
+                        Notification.warning(loc.getValue(L.MSG_PLANNER_NO_TURN_FORM));
+                    }
+                })
+                .moveUp(action(L.LABEL_MOVE_UP, index > 0, () -> run(() -> plannerService.move(current, scene.getUuid(), -1))))
+                .moveDown(action(L.LABEL_MOVE_DOWN, next != null, () -> run(() -> plannerService.move(current, scene.getUuid(), 1))))
+                .insert(action(L.LABEL_INSERT_SCENE_BELOW, true, () -> new PlannedSceneDialog(loc, loc.getValue(L.LABEL_NEW_SCENE),
+                        new PlannedScene(), added -> run(() -> plannerService.insert(current, scene.getUuid(), added))).open()))
+                .merge(action(L.LABEL_MERGE_WITH_NEXT_SCENE, next != null, () -> merge(current, scene, next)))
+                .edit(action(L.LABEL_EDIT, true, () -> new PlannedSceneDialog(loc, loc.getValue(L.LABEL_EDIT_SCENE), scene,
+                        changed -> run(() -> plannerService.update(current, changed))).open()))
+                .delete(action(L.LABEL_DELETE, true, () -> confirmDelete(current, scene)))
+                .build();
     }
 
-    private Button button(Solid icon, L tooltip, boolean enabled, ComponentEventListener<ClickEvent<Button>> listener) {
-        Button button = new Button(icon.create(), listener);
-        button.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
-        button.setTooltipText(loc.getValue(tooltip));
-        button.setAriaLabel(loc.getValue(tooltip));
-        button.setEnabled(enabled);
-        return button;
+    private TurnRow.Action action(L tooltip, boolean enabled, Runnable run) {
+        return new TurnRow.Action(loc.getValue(tooltip), enabled, run);
     }
 
     private void confirmDelete(Manuscript current, PlannedScene scene) {

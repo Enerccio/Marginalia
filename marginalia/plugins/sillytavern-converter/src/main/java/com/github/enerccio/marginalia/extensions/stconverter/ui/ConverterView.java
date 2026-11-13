@@ -14,6 +14,7 @@ import com.github.enerccio.marginalia.extensions.stconverter.model.ConverterData
 import com.github.enerccio.marginalia.extensions.stconverter.model.TurnItem;
 import com.github.enerccio.marginalia.extensions.stconverter.service.ConverterService;
 import com.github.enerccio.marginalia.extensions.stconverter.service.ConverterService.ModelSelection;
+import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes.InRequestScope;
@@ -21,6 +22,7 @@ import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
 import com.github.enerccio.marginalia.ui.widgets.*;
 import com.github.enerccio.marginalia.utils.UIUtils;
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -128,7 +130,7 @@ public class ConverterView extends VerticalLayout {
     private Span chatSummary;
     private Grid<Row> chatGrid;
     private Span turnSummary;
-    private Grid<TurnItem> turnGrid;
+    private VerticalLayout turnList;
 
     /** The range the wand works on and the message the last click started it at, from 1. */
     private int from = 1;
@@ -357,9 +359,14 @@ public class ConverterView extends VerticalLayout {
         turnHeader.setAlignItems(FlexComponent.Alignment.CENTER);
         turnHeader.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
         turnHeader.addClassName(STConverterStyles.PAD);
-        buildTurnGrid();
-        turnsPanel.add(turnHeader, turnGrid);
-        turnsPanel.setFlexGrow(1, turnGrid);
+        // the same rows as the scenes of the Planner
+        turnList = new VerticalLayout();
+        turnList.setPadding(false);
+        turnList.setSpacing(false);
+        turnList.setWidthFull();
+        turnList.addClassName(CssStyles.OVERFLOW_AUTO);
+        turnsPanel.add(turnHeader, turnList);
+        turnsPanel.setFlexGrow(1, turnList);
 
         tabs = new TabSheet();
         tabs.setWidthFull();
@@ -426,56 +433,53 @@ public class ConverterView extends VerticalLayout {
         });
     }
 
-    private void buildTurnGrid() {
-        turnGrid = new Grid<>();
-        turnGrid.setSizeFull();
-        turnGrid.addThemeVariants(GridVariant.LUMO_WRAP_CELL_CONTENT, GridVariant.LUMO_COMPACT, GridVariant.LUMO_ROW_STRIPES);
-        turnGrid.addComponentColumn(turn -> reviewedBox(turn.isReviewed(), checked -> {
-            turn.setReviewed(checked);
-            turnCursor = data.getTurns().indexOf(turn) + 1;
-            persist();
-            turnGrid.getDataProvider().refreshItem(turn);
-            refreshTurnSummary();
-        })).setHeader("✓").setWidth(phone ? "40px" : "45px").setFlexGrow(0);
-        if (!phone) {
-            turnGrid.addColumn(TurnItem::messages).setHeader(T.localized(MSGS)).setWidth("65px").setFlexGrow(0);
+    /** One row of the turn details: the same as a scene of the Planner, with the buttons that fit what the source allows. */
+    private Component turnRow(TurnItem turn, int index) {
+        List<TurnItem> turns = data.getTurns();
+        boolean hasNext = index < turns.size() - 1;
+        // the turn details of a book are its instructions, read from the stored parts each time: they can't be moved or deleted
+        // (merging is kept with the book)
+        boolean own = !data.isBookSource();
+        TurnRow.Builder row = TurnRow.builder(turnContent(turn))
+                .done(turn.isReviewed(), loc.getValue(turn.isReviewed() ? L.LABEL_MARK_NOT_DONE : L.LABEL_MARK_DONE), checked -> {
+                    turn.setReviewed(checked);
+                    turnCursor = turns.indexOf(turn) + 1;
+                    persist();
+                    refreshTurns();
+                })
+                .onClick(T.localized(CLICK_TO_PUT_THE_TURN), () -> {
+                    if (!opener.open(turn)) {
+                        Notification.warning(T.localized(THE_NEW_TURN_FORM));
+                    }
+                })
+                .current(index + 1 == turnCursor)
+                .merge(new TurnRow.Action(T.localized(MERGE_WITH_THE_NEXT_TURN), hasNext, () -> openMergeDialog(turn)));
+        if (own) {
+            row.moveUp(new TurnRow.Action(loc.getValue(L.LABEL_MOVE_UP), index > 0, () -> moveTurn(turn, -1)))
+                    .moveDown(new TurnRow.Action(loc.getValue(L.LABEL_MOVE_DOWN), hasNext, () -> moveTurn(turn, 1)))
+                    .delete(new TurnRow.Action(T.localized(DELETE_THE_TURN_DETAILS), true, () -> {
+                        turns.remove(turn);
+                        persist();
+                        refreshTurns();
+                    }));
         }
-        // the narrow tab has no room for a column of the numbers, they are the first line of the turn
-        turnGrid.addComponentColumn(turn -> turnContent(turn, phone)).setHeader(T.localized(TURN)).setFlexGrow(1);
-        turnGrid.addComponentColumn(turn -> {
-            Button delete = new Button(Solid.TRASH.create(), e -> {
-                data.getTurns().remove(turn);
-                persist();
-                refreshTurns();
-            });
-            delete.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_ERROR);
-            delete.setTooltipText(T.localized(DELETE_THE_TURN_DETAILS));
-            // the turn details of a book are its instructions, read from the stored parts each time
-            delete.setVisible(!data.isBookSource());
-            Button merge = new Button(Solid.CODE_MERGE.create(), e -> openMergeDialog(turn));
-            merge.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_TERTIARY);
-            merge.setTooltipText(T.localized(MERGE_WITH_THE_NEXT_TURN));
-            // the last turn has none after it
-            merge.setVisible(data.getTurns().indexOf(turn) < data.getTurns().size() - 1);
-            return new Div(merge, delete);
-        }).setWidth(phone ? "44px" : "50px").setFlexGrow(0);
-        turnGrid.setPartNameGenerator(turn -> STConverterStyles.PART_CLICKABLE
-                + (turn.isReviewed() ? " " + STConverterStyles.PART_REVIEWED : "")
-                + (data.getTurns().indexOf(turn) + 1 == turnCursor ? " " + STConverterStyles.PART_CURRENT : ""));
-        turnGrid.addItemClickListener(e -> {
-            if (!opener.open(e.getItem())) {
-                Notification.warning(T.localized(THE_NEW_TURN_FORM));
-            }
-        });
-        turnGrid.setTooltipGenerator(turn -> T.localized(CLICK_TO_PUT_THE_TURN));
+        return row.build();
+    }
+
+    private void moveTurn(TurnItem turn, int delta) {
+        int moved = ConverterService.moveTurn(data.getTurns(), data.getTurns().indexOf(turn), delta);
+        if (moved < 0) {
+            return;
+        }
+        turnCursor = moved + 1;
+        persist();
+        refreshTurns();
     }
 
     /** The four fields of a turn in one element, each under a bold line with its name (the fields without text are left out). */
-    private static Div turnContent(TurnItem turn, boolean withMessages) {
+    private static Div turnContent(TurnItem turn) {
         Div content = new Div();
-        if (withMessages) {
-            addField(content, T.localized(MSGS), turn.messages());
-        }
+        addField(content, T.localized(MSGS), turn.messages());
         addField(content, T.localized(SCENE_SETTING), turn.getSceneSetting());
         addField(content, T.localized(POV_CHARACTER), turn.getPovCharacter());
         addField(content, T.localized(PRESENT_CHARACTERS), turn.getPresentCharacters());
@@ -488,7 +492,7 @@ public class ConverterView extends VerticalLayout {
             return;
         }
         Div name = new Div(new Span(label));
-        name.addClassName(CssStyles.TEXT_BOLD);
+        name.addClassName(STConverterStyles.FIELD);
         Div value = new Div(new Span(text));
         value.addClassNames(CssStyles.PRE_WRAP, CssStyles.WRAP_ANYWHERE);
         content.add(name, value);
@@ -702,15 +706,19 @@ public class ConverterView extends VerticalLayout {
             return;
         }
         turnCursor = index + 1;
-        turnGrid.getDataProvider().refreshAll();
-        turnGrid.scrollToIndex(index);
+        refreshTurns();
+        turnList.getComponentAt(index).getElement().callJsFunction("scrollIntoView");
     }
 
     // --- the turn details ---
 
     private void refreshTurns() {
         turnCursor = Math.min(turnCursor, data.getTurns().size());
-        turnGrid.setItems(new ArrayList<>(data.getTurns()));
+        turnList.removeAll();
+        List<TurnItem> turns = data.getTurns();
+        for (int i = 0; i < turns.size(); i++) {
+            turnList.add(turnRow(turns.get(i), i));
+        }
         refreshTurnSummary();
     }
 

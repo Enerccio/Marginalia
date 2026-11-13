@@ -1955,6 +1955,11 @@ vaadin-dialog-overlay.agent-console-phone .help-message-user {
     text-decoration: line-through;
 }
 
+/* The row the "next unchecked" button went to (the turn details of the Converter use the same rows) */
+.planner-scene-current {
+    box-shadow: inset 3px 0 0 var(--lumo-primary-color);
+}
+
 
 /* the corner of the page where the windows of model runs are folded (RunCorner): bottom left, the help assistant has the right */
 .run-corner-root {

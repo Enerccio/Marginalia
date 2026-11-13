@@ -22,6 +22,8 @@ public final class STConverterStyles {
     public static final String PAD = "stc-pad";
     public static final String ELLIPSIS = "stc-ellipsis";
     public static final String HINT = "stc-hint";
+    /** The name of a field in a row of the turn details. */
+    public static final String FIELD = "stc-field";
     /** Part name of the cells of the messages in the range that the wand works on. */
     public static final String PART_IN_RANGE = "stc-in-range";
     /** Part name of the cells of the rows the user has reviewed. */
