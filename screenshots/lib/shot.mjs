@@ -115,8 +115,10 @@ export async function login(page, who = users.admin, path = '/') {
  * workspace the flows start from: closes it (the flows open their book themselves).
  */
 export async function closeRestoredBook(page) {
+  // the book window comes some time after the workspace (later on a busy machine): wait for it up to 5 seconds
   await sleep(1200);
   const book = page.locator('vaadin-dialog[opened]').filter({ has: page.getByRole('tab', { name: 'Branch view', exact: true }) });
+  for (let i = 0; i < 8 && !(await book.count()); i++) await sleep(500);
   if (!(await book.count())) return;
   console.log('  (closed the book that the workspace autosave reopened)');
   await book.last().getByRole('button', { name: 'Exit', exact: true }).click();
@@ -202,6 +204,16 @@ export async function main(fn, opts = {}) {
   }
 }
 
+/** A book that another window of the same user has open asks first: "Open it here and close it there?" (1.8.0): answers Open here. */
+export async function openHere(page) {
+  const btn = page.getByRole('button', { name: 'Open here', exact: true });
+  // (isVisible has no timeout: waitFor does)
+  if (await btn.waitFor({ state: 'visible', timeout: 2000 }).then(() => true, () => false)) {
+    await btn.click();
+    await idle(page, 600);
+  }
+}
+
 /** Opens a book from the Books tab (the pen button of its row) and waits for the book window. */
 export async function openBook(page, name = 'Unregistered') {
   await openTab(page, 'Books');
@@ -215,6 +227,7 @@ export async function openBook(page, name = 'Unregistered') {
     if (pen && (best === null || Math.abs(pen.y - box.y) < best.distance)) best = { index: i, distance: Math.abs(pen.y - box.y) };
   }
   await pens.nth(best.index).click();
+  await openHere(page);
   await page.getByText('Branch view', { exact: true }).first().waitFor();
   await idle(page, 800);
 }

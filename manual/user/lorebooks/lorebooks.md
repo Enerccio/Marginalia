@@ -99,6 +99,8 @@ The lorebook in the editor is refreshed when the window is closed after a change
 on long entries (the expand button in the row of an entry opens the window on that entry); the *Lorebook* tab of a book's window has the same button, for the lorebook shown there. The window is titled with the name of the lorebook. It is a set of tabs like the [story editor](../books/story-editor.md)'s: drag a tab to put it beside or
 under another one, and drag the splitters between them.
 
+![The full-screen lorebook editor: the list of entries and two entries open in tabs](../../images/lorebook-fullscreen.png)
+
 - The **Entries** tab lists the entries, with the search box and the tag and status filters of the lorebook page,
   **Add Entry**, **Mass edit**, **Tag entries**, **Preview activation** and **Refresh** (mass edit and tags show their
   changes in the open tabs too). With **Include sub lorebooks** it lists the entries of the

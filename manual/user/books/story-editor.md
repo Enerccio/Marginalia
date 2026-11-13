@@ -423,6 +423,8 @@ scroll and edit the story while the model writes. Drag a window by its title to 
 goes on, **Open** (or a click on the entry) brings the window back and **Stop** stops the model (once it is done, **Close** closes
 the window). On a phone the windows still cover the story, but they fold the same way.
 
+![The redraft window beside the story while the model writes, and the run in the panel at the bottom left](../../images/redraft-beside-story.png)
+
 **Close and Stop are two things.** The window's own **Stop** stops the model and the window stays with what arrived. **Close**
 while the model works does not stop it: the window folds into the panel and the model goes on in its queue; its answer is in the
 window when you open it again. Close a window whose model is done, or **Close** it in the panel, and it is gone; closing the book or the browser tab
@@ -454,6 +456,8 @@ the command bar that takes a while (*Draft instructions*, a summary...: its wind
 windows in which you wait for an answer are listed too while the model answers: **Impersonate**, the help assistant, a quick
 translation, the Conlang designer, a chat of Side Query, Beta Readers or the plot wizard. It lists your runs from **all your open
 pages** (another tab, the phone), not only the ones started on this page. Nothing running, nothing shown.
+
+![The panel of the runs opened: the redraft folded into it, with the end of the model's text, Open and Stop](../../images/runs-panel.png)
 
 - **Closed** it is a small bar: the first run, how many more (*Translating the speech of the part... · 2 more*) and a moving bar
   while a model works. Click it to open the list; it opens by itself when you fold a window into it.

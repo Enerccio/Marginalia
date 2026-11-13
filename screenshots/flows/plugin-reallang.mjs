@@ -151,7 +151,7 @@ await main(async ({ page }) => {
     await fill(page, 'Search for', 'Maybe');
     await fill(page, 'Replace with', 'Perhaps');
     await dialog(page).getByRole('button', { name: 'Search', exact: true }).click();
-    await page.getByText('Found ', { exact: false }).first().waitFor({ timeout: 30000 }).catch(() => {});
+    await page.getByText(/^Found \d+ match/).first().waitFor({ timeout: 30000 }).catch(() => {});
     await idle(page, 1200);
     // the row of the first speech opens: the matches in it
     await dialog(page).locator('vaadin-grid-tree-toggle').first().click().catch(() => {});

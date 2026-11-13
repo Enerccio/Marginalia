@@ -152,6 +152,8 @@ characters... would show in the outline, the prompt and the token numbers of the
 | `shoot-book` | `13-db-backup` | the book window: About, Prompts, the story (hero, turn details, prompt, token usage, highlight), Branch view, Backups |
 | `shoot-book-extra` | `13-db-backup` | the reasoning of a part, the backup dialogs, export dialogs (PDF), import of a backup as a new book |
 | `shoot-lorebook-tab` | `13-db-backup` | the read only *Lorebook* tab of the story editor with two entries opened: `story-lorebook-tab` |
+| `shoot-lorebook-editor` | `13-db-backup` (copy, discarded) | the full-screen lorebook editor with two entries in tabs: `lorebook-fullscreen` |
+| `shoot-runs` | `13-db-backup` (copy, discarded) | the redraft window beside the story while the fake model answers slowly (`/_pace`), folded into the panel of the runs: `redraft-beside-story`, `runs-panel` |
 | `shoot-phone` | `13-db-backup` | the phone layout (Chrome as a phone: 402x874, touch, mobile user agent), the search and replace windows of the story and of the lorebook, and the reading view of the viewer (`viewer-reading`; its list is taken by `shoot-folders`) |
 | `shoot-extra --only <part>` | a **copy** of `13-db-backup`, discarded | `language` (selector, Japanese), `quick-start` (a new book, an error of the model), `context-warning`, `verification` (a patched plugin, a stopped one) |
 | `shoot-plugin-characters` | `21-chaptermarker` | Character Tracker: list, dialog, the question when a changed dialog is cancelled, map (2x pixel ratio), import dialog |

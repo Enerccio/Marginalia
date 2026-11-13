@@ -4,7 +4,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
-import {bookTab, dialog, idle, login, main, openBook, press, sleep, snap, snapDialog} from '../lib/shot.mjs';
+import {bookTab, dialog, idle, login, main, openBook, openHere, press, sleep, snap, snapDialog} from '../lib/shot.mjs';
 import {clickSummaries} from '../lib/story.mjs';
 
 await main(async ({ page }) => {
@@ -50,6 +50,7 @@ await main(async ({ page }) => {
   await login(page);
   await sleep(800);
   await page.locator('vaadin-button:has(vaadin-icon[icon$=":pencil"])').first().click();
+  await openHere(page);
   await sleep(2500);
   await page.getByRole('tab', { name: 'Story', exact: true }).first().click();
   await idle(page, 1500);

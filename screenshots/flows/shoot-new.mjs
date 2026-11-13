@@ -28,6 +28,7 @@ import {
     sleep,
     snap,
     snapDialog,
+    closeRestoredBook,
 } from '../lib/shot.mjs';
 import {clickSummaries, fillTurn, openStoryMenu, partAction, parts, sideTab, widenSidebar} from '../lib/story.mjs';
 
@@ -214,6 +215,7 @@ await main(async ({ page }) => {
     const summaries = page.locator('vaadin-dialog[opened]').filter({ hasText: 'Resummarize all summaries' }).last();
     if (await summaries.count()) await summaries.getByRole('button', { name: 'Close', exact: true }).click();
     await idle(page, 500);
+    await closeRestoredBook(page);          // the book window of the section before can still be open (the Summaries window no longer blocks it)
     await openBook(page);
     await bookTab(page, 'Story');
     await widenSidebar(page, 700);

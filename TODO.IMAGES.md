@@ -11,6 +11,10 @@ Screenshots that show the painting (*Interior of a Cottage in Scheveningen* by W
 
 ## 1.8.0
 
+Retaken on 2026-11-13 (all flows of `bin/shoot-all.sh`, 67 changed pictures published; the ones that differed only by dates were left). New: `lorebook-fullscreen` (`shoot-lorebook-editor`),
+`redraft-beside-story` and `runs-panel` (`shoot-runs`). `redraft-dialog`, `annotate-ai-proposals` and `annotate-ai-batch` are now the narrower side windows. Not taken: the *This book is open in another window* question,
+the Run panel on a phone, the folded windows of the other generators, the updates page of the administration (needs a Docker server).
+
 The jobs come from `shoot-jobs` (run by `bin/shoot-jobs.sh`: the dataset gets fifteen jobs from `bin/seed-jobs.py` first, and a real generation is in flight for `jobs-live`):
 `jobs-live`, `admin-jobs`, `admin-jobs-calls`, `admin-jobs-failed`, `admin-jobs-old`, `admin-jobs-delete`. Not taken: the phone layout of the Jobs tab, the page `/jobs` with several jobs
 (agent runs and an audiobook conversion running together).

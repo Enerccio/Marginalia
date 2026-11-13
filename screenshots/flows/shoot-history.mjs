@@ -2,7 +2,7 @@
 // the history window (history-dialog, history-clear), the Include versions check box of the branch view with a part found
 // through an old version (history-search), the settings menu with the book wide actions (history-menu) and the phone layout
 // (phone-history). Run on a COPY of 13-db-backup: it changes the last part and the Info of nothing else.
-import {bookTab, closeDialog, fill, idle, launch, login, main, openBook, press, section, sleep, snap, snapDialog, menuItem} from '../lib/shot.mjs';
+import {bookTab, closeDialog, fill, idle, launch, login, main, openBook, openHere, press, section, sleep, snap, snapDialog, menuItem} from '../lib/shot.mjs';
 import {clickCogs, parts, partAction} from '../lib/story.mjs';
 
 // the open menu: the list box of the last menu that has items
@@ -125,6 +125,7 @@ await main(async ({ page }) => {
       await login(p);
       await sleep(800);
       await p.locator('vaadin-button:has(vaadin-icon[icon$=":pencil"])').first().click();
+      await openHere(p);
       await sleep(2500);
       await p.getByRole('tab', { name: 'Story', exact: true }).first().click();
       await idle(p, 1500);
