@@ -46,4 +46,17 @@
     <module>marginalia/plugins/story-notes</module>
     <module>marginalia/plugins/tts-reader</module>
   </modules>
+
+  <dependencies>
+    <!-- Every module gets the servlet API (provided: the server or the desktop launcher has it). The application declares it too,
+         but a provided dependency does not pass to the modules that depend on it, and the AspectJ compiler of a plugin needs the
+         servlet types that the Vaadin classes refer to (VaadinSession is an HttpSessionBindingListener): without them a plugin
+         build failed or not depending on the order the compiler went through the types. -->
+    <dependency>
+      <groupId>jakarta.servlet</groupId>
+      <artifactId>jakarta.servlet-api</artifactId>
+      <version>6.1.0</version>
+      <scope>provided</scope>
+    </dependency>
+  </dependencies>
 </project>

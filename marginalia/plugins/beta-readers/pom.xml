@@ -72,14 +72,6 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- the dialogs are built in the tests without a browser, which Vaadin does only with the servlet API -->
-        <dependency>
-            <groupId>jakarta.servlet</groupId>
-            <artifactId>jakarta.servlet-api</artifactId>
-            <version>6.1.0</version>
-            <scope>test</scope>
-        </dependency>
-
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>

@@ -56,14 +56,6 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- the AspectJ compiler needs the servlet types that the Vaadin classes the dialog uses refer to (the application has them) -->
-        <dependency>
-            <groupId>jakarta.servlet</groupId>
-            <artifactId>jakarta.servlet-api</artifactId>
-            <version>6.1.0</version>
-            <scope>provided</scope>
-        </dependency>
-
         <!-- FontAwesome Addon -->
         <dependency>
             <groupId>com.flowingcode.addons</groupId>
