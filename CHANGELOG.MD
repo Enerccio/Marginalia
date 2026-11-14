@@ -7,11 +7,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
-### Fixed
-
-- **Statistics: the Books tab shows its whole table again.** The grid of the books was squeezed to a strip of two rows; it fills the tab like the grid of the days.
-- **Exports of long books no longer run out of memory.** Every export is written into a temporary file and downloaded from it, instead of being built and copied in memory; the images of a book are read part by part. Audiobook: the m4b, the one mp3, the zip and *The whole audiobook* are made from the stored files of the parts by ffmpeg and the joiners, file to file (an m4b of a book stored as wav failed with `OutOfMemoryError`). API: `Exporter.exportTo(options, messages, progress, Path target)` (`export` now has a default, implement one of the two); `ExporterBase.open(options, OutputStream)` and `ExportWriter.finish()` returns nothing; `ExportDialog.showResult` takes the `Path` of the file.
-
 ## [1.8.0] - 2026-11-14
 
 Everything below is new since 1.7.0. Migration `V28`; plugins have to be rebuilt with the application.
@@ -61,6 +56,9 @@ Everything below is new since 1.7.0. Migration `V28`; plugins have to be rebuilt
 - **The right click menu of a part no longer makes the selected text look deselected.**
 - **Audiobook: the narrator's pieces and the labels.** The pieces the labelling model leaves out are the narrator's, and the labels are stored complete, so a run no longer asks the model again and gets other voices for the same text (*Remove labels* asks again). A labelled book run again without the labelling box keeps its labels instead of turning its dialogue into narration. Third person narration is read by the narrator, not by the character it is told about, also for older labels.
 - **Audiobook: the studio said *invalid value* for the default pause of 0.12 s,** and the reason of a failed conversion is written to the extension log.
+- **Statistics: the Books tab shows its whole table again.** The grid of the books was squeezed to a strip of two rows; it fills the tab like the grid of the days.
+- **Exports of long books no longer run out of memory.** Every export is written into a temporary file and downloaded from it, instead of being built and copied in memory; the images of a book are read part by part. Audiobook: the m4b, the one mp3, the zip and *The whole audiobook* are made from the stored files of the parts by ffmpeg and the joiners, file to file (an m4b of a book stored as wav failed with `OutOfMemoryError`). API: `Exporter.exportTo(options, messages, progress, Path target)` (`export` now has a default, implement one of the two); `ExporterBase.open(options, OutputStream)` and `ExportWriter.finish()` returns nothing; `ExportDialog.showResult` takes the `Path` of the file.
+- **A stop that came the moment a request was made no longer leaves the job hanging.** The request ended without telling anyone, so a summaries batch or a command bar generation stopped at that moment never finished and kept its book busy.
 
 ## [1.7.0] - 2026-11-09
 

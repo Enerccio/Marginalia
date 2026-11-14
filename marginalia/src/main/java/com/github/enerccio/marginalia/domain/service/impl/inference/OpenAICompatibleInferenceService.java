@@ -448,8 +448,11 @@ public class OpenAICompatibleInferenceService implements InferenceService, Initi
         CompletableFuture.runAsync(() -> {
             try {
                 wrapper.run(() -> {
-                    if (request.cancellationToken().isCancelled())
+                    if (request.cancellationToken().isCancelled()) {
+                        // stopped before the request went out: the caller still hears that it ended
+                        request.callback().onCancel();
                         return;
+                    }
                     // from the moment the request is sent to the end of the answer (the recorder below is called whichever way it ends)
                     ActivityTracker.Registration generating = generating(request);
                     StreamResponse<ChatCompletionChunk> streamResponse;
