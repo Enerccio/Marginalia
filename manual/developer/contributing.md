@@ -162,7 +162,7 @@ The manual you are reading is in `manual/` (Markdown for [Retype](https://retype
 
 - Change the Markdown in `manual/`, then run `tools/retype_build.sh` (`retype build` with the project version and commit in the site, for the English site and for each language that has translations) to look at the result in `docs/` (ignored by git). The site is published by the `Manual` workflow when the change reaches `master`, see
   [Publishing the manual](packaging.md#publishing-the-manual).
-  The user manual can be translated with `tools/manual_i18n.py` (only the pages whose English text changed are sent again), see [Translating the manual](translating-the-manual.md).
+  The user manual can be translated with `tools/manual_i18n.py` (only the pages whose English text changed are sent again, and the code, the link targets and the tags are not sent at all, they are put back in the answer; `verify` checks that), see [Translating the manual](translating-the-manual.md).
 - Preview with `retype start`.
 - Write for the reader of that part: the [User guide](../user/index.md) talks about what users see and click (UI
   names in *italics*, no class names), the developer guide about code (paths relative to the main package, class
