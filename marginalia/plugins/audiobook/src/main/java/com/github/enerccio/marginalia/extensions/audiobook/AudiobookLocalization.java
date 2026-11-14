@@ -38,6 +38,8 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
     public static final String ADD_A_BACKEND = "Add a backend";
     public static final String DELETE_THE_BACKEND = "Delete the backend";
     public static final String NEW_BACKEND = "New backend";
+    public static final String DUPLICATE_THE_BACKEND = "Duplicate the backend: the same address, keys, voice and requests before and after a batch, to change what differs (another model)";
+    public static final String COPY_OF = "%s (copy)";
     public static final String NAME = "Name";
     public static final String ADDRESS = "Address";
     public static final String BASE_ADDRESS_OF_THE_SPEECH_SERVER = "Base address of the speech server (Chatterbox-TTS-Server), for example http://localhost:8004, or the address your proxy forwards to it";
@@ -48,6 +50,8 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
     public static final String MODEL_TURBO = "Chatterbox Turbo (English, sound tags)";
     public static final String MODEL_ORIGINAL = "Chatterbox (English, exaggeration)";
     public static final String MODEL_MULTILINGUAL = "Chatterbox Multilingual (23 languages)";
+    public static final String MODEL_HIGGS = "Higgs Audio v3 in ComfyUI (emotions, sounds; non-commercial license)";
+    public static final String COMFYUI_ADDRESS_HELP = "The address of ComfyUI with the TTS Audio Suite nodes, for example http://gpu-server:8188";
     public static final String THE_MODEL_THE_SERVER_IS_ASKED_TO_LOAD = "The model the requests before a batch have to leave loaded; a book that needs another one picks another backend";
     public static final String THE_SERVER_IS_LOCAL = "The server is on this machine or on my network";
     public static final String ALLOWS_ADDRESSES_OF_THE_LOCAL_NETWORK = "Allows the addresses of the local network; leave it off for a server in the cloud";
@@ -144,6 +148,35 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
     public static final String A_CLIP_OR_THE_FILE_OF_A_VOICE_OF_THE_SERVER = "A clip, or a voice file (Henry.wav)";
     public static final String ADD_A_CLIP = "Add a clip";
     public static final String THE_CLIP_COULD_NOT_BE_ADDED = "The clip could not be added: %s";
+    public static final String VOICES_AND_CLIPS = "Voices and clips";
+    public static final String VOICES_AND_CLIPS_HELP = "Your actors and the reference clips their voices are cloned from. A voice model copies the recording, not only the voice: a clip with background sound (a film, a room, music) gives every line a whoosh or a room. Use a clean recording with real pauses, and clean a clip by hand for the best result (the noise reduction of Audacity, or a vocal remover for a clip from a film).";
+    public static final String CLIPS = "Clips";
+    public static final String LENGTH = "Length";
+    public static final String QUALITY = "Quality";
+    public static final String USED_BY = "Used by";
+    public static final String OTHER_VOICES = "Other voices";
+    public static final String REPLACE = "Replace...";
+    public static final String CLEAN_WITH_FFMPEG = "Clean with ffmpeg";
+    public static final String CLEAN_WITH_FFMPEG_HELP = "Makes a cleaned copy (less steady hiss and hum) to hear and compare; music, effects and other voices of a film stay";
+    public static final String DELETE_THE_CLIP = "Delete the clip";
+    public static final String THE_CLIP_IS_USED = "The clip is used and can't be deleted: %s";
+    public static final String THE_CLIP_IS_DELETED = "The clip %s is deleted.";
+    public static final String GRADE_CLEAN = "Clean";
+    public static final String GRADE_FAIR = "Fair";
+    public static final String GRADE_POOR = "Poor";
+    public static final String NOT_MEASURED = "Not measured (an mp3 needs ffmpeg)";
+    public static final String PROBLEM_BACKGROUND = "background sound under the voice (its quietest parts are only %.0f dB under the speech): the generated lines will carry it";
+    public static final String PROBLEM_SOME_BACKGROUND = "some background sound (its quietest parts are %.0f dB under the speech)";
+    public static final String PROBLEM_CLIPPED = "distorted: the loudest parts are clipped";
+    public static final String PROBLEM_TOO_SHORT = "short (%.0f s): 12 to 30 seconds clone better";
+    public static final String PROBLEM_TOO_LONG = "long (%.0f s): Chatterbox uses only its first 30 seconds";
+    public static final String REPLACE_THE_CLIP = "Replace the clip";
+    public static final String REPLACE_WITH = "Replace it with";
+    public static final String REPLACE_HELP = "Every voice of your actors and every narrator of your backends that uses the clip gets the new one; the parts are made again with it. The old clip stays until you delete it.";
+    public static final String THE_CLIP_WAS_REPLACED = "%d voices now use %s.";
+    public static final String THE_CLEANED_CLIP_IS_READY = "The cleaned copy %s is among the clips (%s). Play it, and replace the clip with it if it sounds better.";
+    public static final String THE_CLIP_COULD_NOT_BE_CLEANED = "The clip could not be cleaned: %s";
+    public static final String A_CLIP_WITH_PROBLEMS = "%s: %s. For the best result clean the recording by hand, or clean it with ffmpeg in Voices and clips (Audiobook Settings).";
     public static final String ADD_A_CHARACTER = "Add a character";
     public static final String ADD_THE_CHARACTERS_OF_THE_BOOK = "Add the characters of the book";
     public static final String CHARACTERS_ADDED = "Characters added: %s";
@@ -350,6 +383,22 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
         ko(NEW_BACKEND, "새 백엔드");
         it(NEW_BACKEND, "Nuovo backend");
 
+        ja(DUPLICATE_THE_BACKEND, "バックエンドを複製: 同じアドレス、キー、声、バッチ前後のリクエストで、違う部分 (別のモデル) だけを変更します");
+        zh(DUPLICATE_THE_BACKEND, "复制后端：相同的地址、密钥、声音以及批处理前后的请求，只需修改不同之处（另一个模型）");
+        fr(DUPLICATE_THE_BACKEND, "Dupliquer le moteur : même adresse, mêmes clés, même voix et mêmes requêtes avant et après un lot, pour ne changer que ce qui diffère (un autre modèle)");
+        es(DUPLICATE_THE_BACKEND, "Duplicar el backend: la misma dirección, claves, voz y solicitudes antes y después de un lote, para cambiar solo lo que difiere (otro modelo)");
+        de(DUPLICATE_THE_BACKEND, "Backend duplizieren: dieselbe Adresse, dieselben Schlüssel, dieselbe Stimme und dieselben Anfragen vor und nach einem Stapel, um nur das Abweichende zu ändern (ein anderes Modell)");
+        ko(DUPLICATE_THE_BACKEND, "백엔드 복제: 같은 주소, 키, 목소리, 배치 전후 요청으로 다른 부분(다른 모델)만 바꿉니다");
+        it(DUPLICATE_THE_BACKEND, "Duplica il backend: stesso indirizzo, chiavi, voce e richieste prima e dopo un batch, per cambiare solo ciò che differisce (un altro modello)");
+
+        ja(COPY_OF, "%s (コピー)");
+        zh(COPY_OF, "%s（副本）");
+        fr(COPY_OF, "%s (copie)");
+        es(COPY_OF, "%s (copia)");
+        de(COPY_OF, "%s (Kopie)");
+        ko(COPY_OF, "%s (사본)");
+        it(COPY_OF, "%s (copia)");
+
         ja(NAME, "名前");
         zh(NAME, "名称");
         fr(NAME, "Nom");
@@ -429,6 +478,22 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
         de(MODEL_MULTILINGUAL, "Chatterbox Multilingual (23 Sprachen)");
         ko(MODEL_MULTILINGUAL, "Chatterbox Multilingual (23개 언어)");
         it(MODEL_MULTILINGUAL, "Chatterbox Multilingual (23 lingue)");
+
+        ja(MODEL_HIGGS, "ComfyUI の Higgs Audio v3 (感情、音。非商用ライセンス)");
+        zh(MODEL_HIGGS, "ComfyUI 中的 Higgs Audio v3（情感、声音；非商业许可）");
+        fr(MODEL_HIGGS, "Higgs Audio v3 dans ComfyUI (émotions, sons ; licence non commerciale)");
+        es(MODEL_HIGGS, "Higgs Audio v3 en ComfyUI (emociones, sonidos; licencia no comercial)");
+        de(MODEL_HIGGS, "Higgs Audio v3 in ComfyUI (Emotionen, Geräusche; nicht-kommerzielle Lizenz)");
+        ko(MODEL_HIGGS, "ComfyUI의 Higgs Audio v3 (감정, 소리; 비상업용 라이선스)");
+        it(MODEL_HIGGS, "Higgs Audio v3 in ComfyUI (emozioni, suoni; licenza non commerciale)");
+
+        ja(COMFYUI_ADDRESS_HELP, "TTS Audio Suite のノードがある ComfyUI のアドレス。例: http://gpu-server:8188");
+        zh(COMFYUI_ADDRESS_HELP, "装有 TTS Audio Suite 节点的 ComfyUI 地址，例如 http://gpu-server:8188");
+        fr(COMFYUI_ADDRESS_HELP, "L'adresse de ComfyUI avec les nœuds de TTS Audio Suite, par exemple http://gpu-server:8188");
+        es(COMFYUI_ADDRESS_HELP, "La dirección de ComfyUI con los nodos de TTS Audio Suite, por ejemplo http://gpu-server:8188");
+        de(COMFYUI_ADDRESS_HELP, "Die Adresse von ComfyUI mit den Nodes der TTS Audio Suite, zum Beispiel http://gpu-server:8188");
+        ko(COMFYUI_ADDRESS_HELP, "TTS Audio Suite 노드가 있는 ComfyUI 주소, 예: http://gpu-server:8188");
+        it(COMFYUI_ADDRESS_HELP, "L'indirizzo di ComfyUI con i nodi di TTS Audio Suite, per esempio http://gpu-server:8188");
 
         ja(THE_MODEL_THE_SERVER_IS_ASKED_TO_LOAD, "バッチの前のリクエストが読み込んだ状態にしておくモデル。別のモデルが必要な本は別のバックエンドを選びます");
         zh(THE_MODEL_THE_SERVER_IS_ASKED_TO_LOAD, "批处理前的请求应让服务器加载的模型；需要其他模型的书请选用另一个后端");
@@ -1191,6 +1256,238 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
         de(THE_CLIP_COULD_NOT_BE_ADDED, "Der Clip konnte nicht hinzugefügt werden: %s");
         ko(THE_CLIP_COULD_NOT_BE_ADDED, "클립을 추가할 수 없었습니다: %s");
         it(THE_CLIP_COULD_NOT_BE_ADDED, "Non è stato possibile aggiungere la clip: %s");
+
+        ja(VOICES_AND_CLIPS, "声とクリップ");
+        zh(VOICES_AND_CLIPS, "声音与片段");
+        fr(VOICES_AND_CLIPS, "Voix et extraits");
+        es(VOICES_AND_CLIPS, "Voces y clips");
+        de(VOICES_AND_CLIPS, "Stimmen und Clips");
+        ko(VOICES_AND_CLIPS, "목소리와 클립");
+        it(VOICES_AND_CLIPS, "Voci e clip");
+
+        ja(VOICES_AND_CLIPS_HELP, "アクターと、その声の元になる参照クリップです。音声モデルは声だけでなく録音そのものを真似ます。背景音 (映画、部屋の響き、音楽) のあるクリップでは、どのセリフにもノイズや響きが乗ります。本当の間 (ま) がある綺麗な録音を使い、最良の結果のためにはクリップを手で整えてください (Audacity のノイズ除去、映画のクリップならボーカル抽出ツール)。");
+        zh(VOICES_AND_CLIPS_HELP, "您的演员及其声音所克隆的参考片段。语音模型复制的是录音本身，而不只是声音：带有背景声（电影、房间回响、音乐）的片段会让每一句都带上杂音或回响。请使用带有真正停顿的干净录音，并手动清理片段以获得最佳效果（Audacity 的降噪，或对电影片段使用人声分离工具）。");
+        fr(VOICES_AND_CLIPS_HELP, "Vos acteurs et les extraits de référence dont leurs voix sont clonées. Un modèle de voix copie l'enregistrement, pas seulement la voix : un extrait avec un fond sonore (un film, une pièce, de la musique) donne à chaque réplique un souffle ou une acoustique. Utilisez un enregistrement propre avec de vraies pauses, et nettoyez un extrait à la main pour le meilleur résultat (la réduction de bruit d'Audacity, ou un séparateur de voix pour un extrait de film).");
+        es(VOICES_AND_CLIPS_HELP, "Tus actores y los clips de referencia de los que se clonan sus voces. Un modelo de voz copia la grabación, no solo la voz: un clip con sonido de fondo (una película, una sala, música) da a cada frase un soplido o una acústica. Usa una grabación limpia con pausas reales y limpia el clip a mano para el mejor resultado (la reducción de ruido de Audacity, o un separador de voz para un clip de película).");
+        de(VOICES_AND_CLIPS_HELP, "Deine Schauspieler und die Referenzclips, aus denen ihre Stimmen geklont werden. Ein Stimmmodell kopiert die Aufnahme, nicht nur die Stimme: Ein Clip mit Hintergrundgeräuschen (ein Film, ein Raum, Musik) gibt jeder Zeile ein Rauschen oder einen Raumklang. Nimm eine saubere Aufnahme mit echten Pausen und bereinige einen Clip für das beste Ergebnis von Hand (die Rauschunterdrückung von Audacity oder ein Stimmentrenner für einen Filmclip).");
+        ko(VOICES_AND_CLIPS_HELP, "배우와 그 목소리를 복제할 참조 클립입니다. 음성 모델은 목소리만이 아니라 녹음 자체를 따라 합니다. 배경음(영화, 방의 울림, 음악)이 있는 클립은 모든 대사에 잡음이나 울림을 남깁니다. 실제 쉼이 있는 깨끗한 녹음을 쓰고, 가장 좋은 결과를 위해 클립을 직접 정리하세요(Audacity의 노이즈 감소, 영화 클립에는 보컬 분리 도구).");
+        it(VOICES_AND_CLIPS_HELP, "I tuoi attori e le clip di riferimento da cui si clonano le loro voci. Un modello vocale copia la registrazione, non solo la voce: una clip con suoni di fondo (un film, una stanza, musica) dà a ogni battuta un fruscio o un ambiente. Usa una registrazione pulita con pause vere e pulisci la clip a mano per il miglior risultato (la riduzione del rumore di Audacity, o un separatore vocale per una clip da un film).");
+
+        ja(CLIPS, "クリップ");
+        zh(CLIPS, "片段");
+        fr(CLIPS, "Extraits");
+        es(CLIPS, "Clips");
+        de(CLIPS, "Clips");
+        ko(CLIPS, "클립");
+        it(CLIPS, "Clip");
+
+        ja(LENGTH, "長さ");
+        zh(LENGTH, "时长");
+        fr(LENGTH, "Durée");
+        es(LENGTH, "Duración");
+        de(LENGTH, "Länge");
+        ko(LENGTH, "길이");
+        it(LENGTH, "Durata");
+
+        ja(QUALITY, "品質");
+        zh(QUALITY, "质量");
+        fr(QUALITY, "Qualité");
+        es(QUALITY, "Calidad");
+        de(QUALITY, "Qualität");
+        ko(QUALITY, "품질");
+        it(QUALITY, "Qualità");
+
+        ja(USED_BY, "使用箇所");
+        zh(USED_BY, "使用者");
+        fr(USED_BY, "Utilisé par");
+        es(USED_BY, "Usado por");
+        de(USED_BY, "Verwendet von");
+        ko(USED_BY, "사용처");
+        it(USED_BY, "Usata da");
+
+        ja(OTHER_VOICES, "ほかの声");
+        zh(OTHER_VOICES, "其他声音");
+        fr(OTHER_VOICES, "Autres voix");
+        es(OTHER_VOICES, "Otras voces");
+        de(OTHER_VOICES, "Weitere Stimmen");
+        ko(OTHER_VOICES, "다른 목소리");
+        it(OTHER_VOICES, "Altre voci");
+
+        ja(REPLACE, "置き換え...");
+        zh(REPLACE, "替换...");
+        fr(REPLACE, "Remplacer...");
+        es(REPLACE, "Reemplazar...");
+        de(REPLACE, "Ersetzen...");
+        ko(REPLACE, "교체...");
+        it(REPLACE, "Sostituisci...");
+
+        ja(CLEAN_WITH_FFMPEG, "ffmpeg で整える");
+        zh(CLEAN_WITH_FFMPEG, "用 ffmpeg 清理");
+        fr(CLEAN_WITH_FFMPEG, "Nettoyer avec ffmpeg");
+        es(CLEAN_WITH_FFMPEG, "Limpiar con ffmpeg");
+        de(CLEAN_WITH_FFMPEG, "Mit ffmpeg bereinigen");
+        ko(CLEAN_WITH_FFMPEG, "ffmpeg로 정리");
+        it(CLEAN_WITH_FFMPEG, "Pulisci con ffmpeg");
+
+        ja(CLEAN_WITH_FFMPEG_HELP, "整えたコピー (一定のヒスノイズやハムを減らしたもの) を作り、聞き比べられるようにします。映画の音楽、効果音、ほかの声は残ります");
+        zh(CLEAN_WITH_FFMPEG_HELP, "生成一个清理后的副本（减少持续的嘶声和嗡声）以便试听比较；电影中的音乐、音效和其他人声会保留");
+        fr(CLEAN_WITH_FFMPEG_HELP, "Crée une copie nettoyée (moins de souffle et de ronflement constants) à écouter et comparer ; la musique, les effets et les autres voix d'un film restent");
+        es(CLEAN_WITH_FFMPEG_HELP, "Crea una copia limpia (menos siseo y zumbido constantes) para escuchar y comparar; la música, los efectos y otras voces de una película se quedan");
+        de(CLEAN_WITH_FFMPEG_HELP, "Erzeugt eine bereinigte Kopie (weniger gleichmäßiges Rauschen und Brummen) zum Anhören und Vergleichen; Musik, Effekte und andere Stimmen eines Films bleiben");
+        ko(CLEAN_WITH_FFMPEG_HELP, "정리된 사본(일정한 히스와 험을 줄인 것)을 만들어 들어 보고 비교할 수 있게 합니다. 영화의 음악, 효과음, 다른 목소리는 남습니다");
+        it(CLEAN_WITH_FFMPEG_HELP, "Crea una copia pulita (meno fruscio e ronzio costanti) da ascoltare e confrontare; musica, effetti e altre voci di un film restano");
+
+        ja(DELETE_THE_CLIP, "クリップを削除");
+        zh(DELETE_THE_CLIP, "删除片段");
+        fr(DELETE_THE_CLIP, "Supprimer l'extrait");
+        es(DELETE_THE_CLIP, "Eliminar el clip");
+        de(DELETE_THE_CLIP, "Clip löschen");
+        ko(DELETE_THE_CLIP, "클립 삭제");
+        it(DELETE_THE_CLIP, "Elimina la clip");
+
+        ja(THE_CLIP_IS_USED, "このクリップは使われているため削除できません: %s");
+        zh(THE_CLIP_IS_USED, "该片段正在使用，无法删除：%s");
+        fr(THE_CLIP_IS_USED, "L'extrait est utilisé et ne peut pas être supprimé : %s");
+        es(THE_CLIP_IS_USED, "El clip está en uso y no se puede eliminar: %s");
+        de(THE_CLIP_IS_USED, "Der Clip wird verwendet und kann nicht gelöscht werden: %s");
+        ko(THE_CLIP_IS_USED, "클립이 사용 중이라 삭제할 수 없습니다: %s");
+        it(THE_CLIP_IS_USED, "La clip è in uso e non può essere eliminata: %s");
+
+        ja(THE_CLIP_IS_DELETED, "クリップ %s を削除しました。");
+        zh(THE_CLIP_IS_DELETED, "片段 %s 已删除。");
+        fr(THE_CLIP_IS_DELETED, "L'extrait %s est supprimé.");
+        es(THE_CLIP_IS_DELETED, "El clip %s se ha eliminado.");
+        de(THE_CLIP_IS_DELETED, "Der Clip %s ist gelöscht.");
+        ko(THE_CLIP_IS_DELETED, "클립 %s을(를) 삭제했습니다.");
+        it(THE_CLIP_IS_DELETED, "La clip %s è stata eliminata.");
+
+        ja(GRADE_CLEAN, "良好");
+        zh(GRADE_CLEAN, "干净");
+        fr(GRADE_CLEAN, "Propre");
+        es(GRADE_CLEAN, "Limpio");
+        de(GRADE_CLEAN, "Sauber");
+        ko(GRADE_CLEAN, "깨끗함");
+        it(GRADE_CLEAN, "Pulita");
+
+        ja(GRADE_FAIR, "まずまず");
+        zh(GRADE_FAIR, "一般");
+        fr(GRADE_FAIR, "Correct");
+        es(GRADE_FAIR, "Aceptable");
+        de(GRADE_FAIR, "Brauchbar");
+        ko(GRADE_FAIR, "보통");
+        it(GRADE_FAIR, "Discreta");
+
+        ja(GRADE_POOR, "不十分");
+        zh(GRADE_POOR, "较差");
+        fr(GRADE_POOR, "Médiocre");
+        es(GRADE_POOR, "Deficiente");
+        de(GRADE_POOR, "Mangelhaft");
+        ko(GRADE_POOR, "나쁨");
+        it(GRADE_POOR, "Scarsa");
+
+        ja(NOT_MEASURED, "未測定 (mp3 には ffmpeg が必要)");
+        zh(NOT_MEASURED, "未测量（mp3 需要 ffmpeg）");
+        fr(NOT_MEASURED, "Non mesuré (un mp3 nécessite ffmpeg)");
+        es(NOT_MEASURED, "Sin medir (un mp3 necesita ffmpeg)");
+        de(NOT_MEASURED, "Nicht gemessen (eine mp3 braucht ffmpeg)");
+        ko(NOT_MEASURED, "측정 안 됨(mp3는 ffmpeg 필요)");
+        it(NOT_MEASURED, "Non misurata (un mp3 richiede ffmpeg)");
+
+        ja(PROBLEM_BACKGROUND, "声の下に背景音があります (最も静かな部分が話し声より %.0f dB しか小さくありません)。生成されたセリフにも乗ります");
+        zh(PROBLEM_BACKGROUND, "声音下有背景声（最安静的部分只比说话声低 %.0f dB）：生成的语句也会带上它");
+        fr(PROBLEM_BACKGROUND, "fond sonore sous la voix (ses parties les plus calmes ne sont que %.0f dB sous la parole) : les répliques générées le porteront");
+        es(PROBLEM_BACKGROUND, "sonido de fondo bajo la voz (sus partes más silenciosas están solo %.0f dB por debajo del habla): las frases generadas lo llevarán");
+        de(PROBLEM_BACKGROUND, "Hintergrundgeräusch unter der Stimme (die leisesten Stellen liegen nur %.0f dB unter der Sprache): die erzeugten Zeilen tragen es mit");
+        ko(PROBLEM_BACKGROUND, "목소리 아래에 배경음이 있습니다(가장 조용한 부분이 말소리보다 %.0f dB만 낮음). 생성된 대사에도 남습니다");
+        it(PROBLEM_BACKGROUND, "suono di fondo sotto la voce (le parti più silenziose sono solo %.0f dB sotto il parlato): le battute generate lo porteranno");
+
+        ja(PROBLEM_SOME_BACKGROUND, "いくらか背景音があります (最も静かな部分が話し声より %.0f dB 小さい)");
+        zh(PROBLEM_SOME_BACKGROUND, "有一些背景声（最安静的部分比说话声低 %.0f dB）");
+        fr(PROBLEM_SOME_BACKGROUND, "un peu de fond sonore (ses parties les plus calmes sont %.0f dB sous la parole)");
+        es(PROBLEM_SOME_BACKGROUND, "algo de sonido de fondo (sus partes más silenciosas están %.0f dB por debajo del habla)");
+        de(PROBLEM_SOME_BACKGROUND, "etwas Hintergrundgeräusch (die leisesten Stellen liegen %.0f dB unter der Sprache)");
+        ko(PROBLEM_SOME_BACKGROUND, "약간의 배경음(가장 조용한 부분이 말소리보다 %.0f dB 낮음)");
+        it(PROBLEM_SOME_BACKGROUND, "un po' di suono di fondo (le parti più silenziose sono %.0f dB sotto il parlato)");
+
+        ja(PROBLEM_CLIPPED, "歪んでいます: 最も大きな部分がクリップしています");
+        zh(PROBLEM_CLIPPED, "失真：最响的部分被削波");
+        fr(PROBLEM_CLIPPED, "distordu : les parties les plus fortes sont écrêtées");
+        es(PROBLEM_CLIPPED, "distorsionado: las partes más fuertes están saturadas");
+        de(PROBLEM_CLIPPED, "verzerrt: die lautesten Stellen sind übersteuert");
+        ko(PROBLEM_CLIPPED, "왜곡됨: 가장 큰 부분이 클리핑됨");
+        it(PROBLEM_CLIPPED, "distorta: le parti più forti sono saturate");
+
+        ja(PROBLEM_TOO_SHORT, "短すぎます (%.0f 秒)。12〜30 秒の方がうまく複製できます");
+        zh(PROBLEM_TOO_SHORT, "太短（%.0f 秒）：12 到 30 秒克隆效果更好");
+        fr(PROBLEM_TOO_SHORT, "court (%.0f s) : 12 à 30 secondes se clonent mieux");
+        es(PROBLEM_TOO_SHORT, "corto (%.0f s): de 12 a 30 segundos se clonan mejor");
+        de(PROBLEM_TOO_SHORT, "kurz (%.0f s): 12 bis 30 Sekunden lassen sich besser klonen");
+        ko(PROBLEM_TOO_SHORT, "짧음(%.0f초): 12~30초가 더 잘 복제됩니다");
+        it(PROBLEM_TOO_SHORT, "breve (%.0f s): da 12 a 30 secondi si clonano meglio");
+
+        ja(PROBLEM_TOO_LONG, "長すぎます (%.0f 秒)。Chatterbox は最初の 30 秒だけを使います");
+        zh(PROBLEM_TOO_LONG, "太长（%.0f 秒）：Chatterbox 只使用前 30 秒");
+        fr(PROBLEM_TOO_LONG, "long (%.0f s) : Chatterbox n'en utilise que les 30 premières secondes");
+        es(PROBLEM_TOO_LONG, "largo (%.0f s): Chatterbox solo usa sus primeros 30 segundos");
+        de(PROBLEM_TOO_LONG, "lang (%.0f s): Chatterbox verwendet nur die ersten 30 Sekunden");
+        ko(PROBLEM_TOO_LONG, "김(%.0f초): Chatterbox는 처음 30초만 사용합니다");
+        it(PROBLEM_TOO_LONG, "lunga (%.0f s): Chatterbox ne usa solo i primi 30 secondi");
+
+        ja(REPLACE_THE_CLIP, "クリップを置き換え");
+        zh(REPLACE_THE_CLIP, "替换片段");
+        fr(REPLACE_THE_CLIP, "Remplacer l'extrait");
+        es(REPLACE_THE_CLIP, "Reemplazar el clip");
+        de(REPLACE_THE_CLIP, "Clip ersetzen");
+        ko(REPLACE_THE_CLIP, "클립 교체");
+        it(REPLACE_THE_CLIP, "Sostituisci la clip");
+
+        ja(REPLACE_WITH, "置き換え先");
+        zh(REPLACE_WITH, "替换为");
+        fr(REPLACE_WITH, "Le remplacer par");
+        es(REPLACE_WITH, "Reemplazarlo por");
+        de(REPLACE_WITH, "Ersetzen durch");
+        ko(REPLACE_WITH, "교체할 클립");
+        it(REPLACE_WITH, "Sostituiscila con");
+
+        ja(REPLACE_HELP, "このクリップを使うアクターの声とバックエンドのナレーターがすべて新しいクリップになり、パートはそれで作り直されます。古いクリップは削除するまで残ります。");
+        zh(REPLACE_HELP, "所有使用该片段的演员声音和后端旁白都会改用新片段，各部分会用它重新生成。旧片段会保留，直到您删除它。");
+        fr(REPLACE_HELP, "Chaque voix de vos acteurs et chaque narrateur de vos moteurs qui utilise l'extrait reçoit le nouveau ; les parties sont refaites avec lui. L'ancien extrait reste jusqu'à ce que vous le supprimiez.");
+        es(REPLACE_HELP, "Cada voz de tus actores y cada narrador de tus backends que usa el clip recibe el nuevo; las partes se vuelven a hacer con él. El clip antiguo se queda hasta que lo elimines.");
+        de(REPLACE_HELP, "Jede Stimme deiner Schauspieler und jeder Erzähler deiner Backends, die den Clip verwenden, bekommt den neuen; die Teile werden damit neu erstellt. Der alte Clip bleibt, bis du ihn löschst.");
+        ko(REPLACE_HELP, "이 클립을 쓰는 배우의 목소리와 백엔드의 내레이터가 모두 새 클립을 쓰게 되고, 파트는 그것으로 다시 만들어집니다. 이전 클립은 삭제할 때까지 남습니다.");
+        it(REPLACE_HELP, "Ogni voce dei tuoi attori e ogni narratore dei tuoi backend che usa la clip riceve quella nuova; le parti vengono rifatte con essa. La vecchia clip resta finché non la elimini.");
+
+        ja(THE_CLIP_WAS_REPLACED, "%d 個の声が %s を使うようになりました。");
+        zh(THE_CLIP_WAS_REPLACED, "现在有 %d 个声音使用 %s。");
+        fr(THE_CLIP_WAS_REPLACED, "%d voix utilisent maintenant %s.");
+        es(THE_CLIP_WAS_REPLACED, "%d voces usan ahora %s.");
+        de(THE_CLIP_WAS_REPLACED, "%d Stimmen verwenden jetzt %s.");
+        ko(THE_CLIP_WAS_REPLACED, "이제 %d개의 목소리가 %s을(를) 사용합니다.");
+        it(THE_CLIP_WAS_REPLACED, "%d voci ora usano %s.");
+
+        ja(THE_CLEANED_CLIP_IS_READY, "整えたコピー %s がクリップに加わりました (%s)。再生して、良ければ元のクリップと置き換えてください。");
+        zh(THE_CLEANED_CLIP_IS_READY, "清理后的副本 %s 已加入片段（%s）。请播放试听，若效果更好就用它替换原片段。");
+        fr(THE_CLEANED_CLIP_IS_READY, "La copie nettoyée %s est parmi les extraits (%s). Écoutez-la et remplacez l'extrait par elle si elle sonne mieux.");
+        es(THE_CLEANED_CLIP_IS_READY, "La copia limpia %s está entre los clips (%s). Reprodúcela y reemplaza el clip con ella si suena mejor.");
+        de(THE_CLEANED_CLIP_IS_READY, "Die bereinigte Kopie %s ist bei den Clips (%s). Spiele sie ab und ersetze den Clip durch sie, wenn sie besser klingt.");
+        ko(THE_CLEANED_CLIP_IS_READY, "정리된 사본 %s이(가) 클립에 추가되었습니다(%s). 재생해 보고 더 낫다면 원래 클립을 이것으로 교체하세요.");
+        it(THE_CLEANED_CLIP_IS_READY, "La copia pulita %s è tra le clip (%s). Ascoltala e sostituisci la clip con essa se suona meglio.");
+
+        ja(THE_CLIP_COULD_NOT_BE_CLEANED, "クリップを整えられませんでした: %s");
+        zh(THE_CLIP_COULD_NOT_BE_CLEANED, "无法清理该片段：%s");
+        fr(THE_CLIP_COULD_NOT_BE_CLEANED, "L'extrait n'a pas pu être nettoyé : %s");
+        es(THE_CLIP_COULD_NOT_BE_CLEANED, "No se pudo limpiar el clip: %s");
+        de(THE_CLIP_COULD_NOT_BE_CLEANED, "Der Clip konnte nicht bereinigt werden: %s");
+        ko(THE_CLIP_COULD_NOT_BE_CLEANED, "클립을 정리할 수 없습니다: %s");
+        it(THE_CLIP_COULD_NOT_BE_CLEANED, "Non è stato possibile pulire la clip: %s");
+
+        ja(A_CLIP_WITH_PROBLEMS, "%s: %s。最良の結果のために録音を手で整えるか、「声とクリップ」(オーディオブック設定) で ffmpeg を使って整えてください。");
+        zh(A_CLIP_WITH_PROBLEMS, "%s：%s。为获得最佳效果，请手动清理录音，或在“声音与片段”（有声书设置）中用 ffmpeg 清理。");
+        fr(A_CLIP_WITH_PROBLEMS, "%s : %s. Pour le meilleur résultat, nettoyez l'enregistrement à la main, ou avec ffmpeg dans Voix et extraits (Paramètres du livre audio).");
+        es(A_CLIP_WITH_PROBLEMS, "%s: %s. Para el mejor resultado limpia la grabación a mano, o con ffmpeg en Voces y clips (Ajustes del audiolibro).");
+        de(A_CLIP_WITH_PROBLEMS, "%s: %s. Für das beste Ergebnis bereinige die Aufnahme von Hand oder mit ffmpeg unter Stimmen und Clips (Hörbuch-Einstellungen).");
+        ko(A_CLIP_WITH_PROBLEMS, "%s: %s. 가장 좋은 결과를 위해 녹음을 직접 정리하거나, 목소리와 클립(오디오북 설정)에서 ffmpeg로 정리하세요.");
+        it(A_CLIP_WITH_PROBLEMS, "%s: %s. Per il miglior risultato pulisci la registrazione a mano, o con ffmpeg in Voci e clip (Impostazioni dell'audiolibro).");
 
         ja(ADD_A_CHARACTER, "登場人物を追加");
         zh(ADD_A_CHARACTER, "添加人物");

@@ -3,6 +3,7 @@ package com.github.enerccio.marginalia.extensions.audiobook.label;
 import com.github.enerccio.marginalia.domain.service.TemplateService;
 import com.github.enerccio.marginalia.domain.service.impl.TemplateServiceImpl;
 import com.github.enerccio.marginalia.domain.service.structured.StructuredOutputs;
+import com.github.enerccio.marginalia.extensions.audiobook.model.BackendConfig;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -149,6 +150,19 @@ class LabelingTest {
         assertEquals("Label the pieces. Known: Marta. Choose from " + LabelPrompt.data(List.of("Marta")).getDeliveries() + ".", system);
         assertEquals(sys(), LabelPrompt.system(TEMPLATES, "   ", List.of()), "a blank template is the built-in one");
         assertNotEquals(LabelService.cacheKey("text", sys("Marta")), LabelService.cacheKey("text", system), "another instruction, other labels");
+    }
+
+    @Test
+    void theTagsOfferedAreThoseOfTheSpeechModelAndSoAreTheLabels() throws Exception {
+        String turbo = LabelPrompt.system(TEMPLATES, null, List.of("Marta"), BackendConfig.MODEL_TURBO);
+        String higgs = LabelPrompt.system(TEMPLATES, null, List.of("Marta"), BackendConfig.MODEL_HIGGS);
+        String original = LabelPrompt.system(TEMPLATES, null, List.of("Marta"), BackendConfig.MODEL_ORIGINAL);
+
+        assertTrue(higgs.contains("[moan]") && higgs.contains("[pant]") && higgs.contains("[cry]"), higgs);
+        assertFalse(turbo.contains("[moan]"));
+        assertEquals(turbo, original, "a model without tags gets Turbo's, as before (the script drops them)");
+        assertEquals(turbo, sys("Marta"));
+        assertNotEquals(LabelService.cacheKey("text", turbo), LabelService.cacheKey("text", higgs), "labels made for Turbo are not taken for Higgs");
     }
 
     @Test

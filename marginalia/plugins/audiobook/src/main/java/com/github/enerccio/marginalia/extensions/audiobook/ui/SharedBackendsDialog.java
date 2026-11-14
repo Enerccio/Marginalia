@@ -45,6 +45,7 @@ public class SharedBackendsDialog extends Dialog {
 
     private final Select<SharedBackend> picker = new Select<>();
     private final Button deleteButton = new Button(Solid.TRASH.create(), e -> deleteBackend());
+    private final Button duplicateButton = new Button(Solid.COPY.create(), e -> duplicateBackend());
     private final BackendEditor editor;
     private final Checkbox allUsers = new Checkbox(T.localized(ALL_USERS_MAY_USE_IT));
     private final MultiSelectComboBox<User> users = new MultiSelectComboBox<>(T.localized(THESE_USERS_MAY_USE_IT));
@@ -82,7 +83,9 @@ public class SharedBackendsDialog extends Dialog {
         add.setTooltipText(T.localized(ADD_A_BACKEND));
         deleteButton.setThemeName("tertiary icon");
         deleteButton.setTooltipText(T.localized(DELETE_THE_BACKEND));
-        HorizontalLayout bar = new HorizontalLayout(picker, add, deleteButton);
+        duplicateButton.setThemeName("tertiary icon");
+        duplicateButton.setTooltipText(T.localized(DUPLICATE_THE_BACKEND));
+        HorizontalLayout bar = new HorizontalLayout(picker, add, duplicateButton, deleteButton);
         bar.setAlignItems(FlexComponent.Alignment.END);
 
         users.setItems(service.usersToShareWith());
@@ -122,6 +125,7 @@ public class SharedBackendsDialog extends Dialog {
     private void show(SharedBackend shared) {
         current = shared;
         deleteButton.setEnabled(shared != null);
+        duplicateButton.setEnabled(shared != null);
         accessSection.setVisible(shared != null);
         editor.show(shared == null ? null : shared.getConfig());
         if (shared != null) {
@@ -146,6 +150,20 @@ public class SharedBackendsDialog extends Dialog {
         commit();
         SharedBackend created = new SharedBackend();
         created.getConfig().setName(T.localized(NEW_BACKEND));
+        settings.getBackends().add(created);
+        refreshPicker(created);
+    }
+
+    /** A copy of the server with the same users allowed. */
+    private void duplicateBackend() {
+        if (current == null) {
+            return;
+        }
+        commit();
+        SharedBackend created = new SharedBackend();
+        created.setConfig(current.getConfig().duplicate(T.localized(COPY_OF).formatted(current.getConfig().getName())));
+        created.setAllUsers(current.isAllUsers());
+        created.setUserUuids(current.getUserUuids());
         settings.getBackends().add(created);
         refreshPicker(created);
     }

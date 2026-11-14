@@ -7,6 +7,7 @@ import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.extensions.audiobook.AudiobookLog;
 import com.github.enerccio.marginalia.extensions.audiobook.audio.AudioKind;
 import com.github.enerccio.marginalia.extensions.audiobook.label.Delivery;
+import com.github.enerccio.marginalia.extensions.audiobook.label.HiggsText;
 import com.github.enerccio.marginalia.extensions.audiobook.label.ScriptFromLabels;
 import com.github.enerccio.marginalia.extensions.audiobook.model.BackendConfig;
 import com.github.enerccio.marginalia.extensions.audiobook.queue.ConversionJob;
@@ -383,9 +384,14 @@ public class StudioDialog extends Dialog {
         double newIntensity = number(intensity, old.intensity());
         Delivery newDelivery = delivery.getValue() == null ? deliveryOf(old) : delivery.getValue();
         boolean turbo = BackendConfig.MODEL_TURBO.equals(entry.model());
+        boolean higgs = BackendConfig.MODEL_HIGGS.equals(entry.model());
         // the intensity of a model that has an exaggeration moves it, unless it was set by hand in the same go
-        if (newIntensity != old.intensity() && entry.exaggeration() == old.entry().exaggeration() && !turbo) {
+        if (newIntensity != old.intensity() && entry.exaggeration() == old.entry().exaggeration() && !turbo && !higgs) {
             entry = withExaggeration(entry, ScriptFromLabels.exaggeration(newIntensity));
+        }
+        // on Higgs the delivery is the tokens at the start of the text: they follow the delivery, unless the text was changed by hand in the same go
+        if (higgs && (!newDelivery.name().equals(old.delivery()) || newIntensity != old.intensity()) && entry.text().equals(old.entry().text())) {
+            entry = withText(entry, HiggsText.withDelivery(entry.text(), newDelivery, newIntensity));
         }
         // another delivery asks the cast for the voice of that mood, unless the voice was set by hand in the same go
         if (!newDelivery.name().equals(old.delivery()) && entry.voice().equals(old.entry().voice())) {
@@ -406,6 +412,11 @@ public class StudioDialog extends Dialog {
     private static ScriptEntry withExaggeration(ScriptEntry e, double value) {
         return new ScriptEntry(e.speaker(), e.text(), e.voice(), e.model(), e.language(), value, e.cfgWeight(), e.temperature(), e.speed(), e.seed(), e.chunkSize(),
                 e.format(), e.pauseAfter());
+    }
+
+    private static ScriptEntry withText(ScriptEntry e, String text) {
+        return new ScriptEntry(e.speaker(), text, e.voice(), e.model(), e.language(), e.exaggeration(), e.cfgWeight(), e.temperature(), e.speed(), e.seed(),
+                e.chunkSize(), e.format(), e.pauseAfter());
     }
 
     private static ScriptEntry withVoice(ScriptEntry e, VoiceRef voice) {
@@ -443,6 +454,7 @@ public class StudioDialog extends Dialog {
         StudioSegment old = segment(selected);
         double lower = Math.max(0, Math.round((old.intensity() - 0.15) * 100) / 100.0);
         ScriptEntry entry = BackendConfig.MODEL_TURBO.equals(old.entry().model()) ? old.entry()
+                : BackendConfig.MODEL_HIGGS.equals(old.entry().model()) ? withText(old.entry(), HiggsText.withDelivery(old.entry().text(), deliveryOf(old), lower))
                 : withExaggeration(old.entry(), ScriptFromLabels.exaggeration(lower));
         // on Turbo the intensity changes nothing in the sound: a new seed makes the difference audible
         StudioSegment changed = old.edited(entry).withDelivery(old.delivery(), lower);

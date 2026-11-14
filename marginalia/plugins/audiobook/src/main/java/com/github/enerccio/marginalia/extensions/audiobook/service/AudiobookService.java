@@ -400,6 +400,91 @@ public class AudiobookService {
         }
     }
 
+    /** The bytes of a clip of the user, null when it is gone. */
+    public byte[] clipBytes(String uuid) {
+        try {
+            var resource = resourceService.findForUser(uuid);
+            return resource == null ? null : resourceService.getResourceData(resource);
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    /** How fit the clip is to be a reference voice; null when it can't be measured here (an mp3 without ffmpeg) or is gone. */
+    public com.github.enerccio.marginalia.extensions.audiobook.audio.ClipQuality.Result measureClip(String uuid) {
+        byte[] bytes = clipBytes(uuid);
+        if (bytes == null) {
+            return null;
+        }
+        try {
+            return com.github.enerccio.marginalia.extensions.audiobook.audio.ClipQuality.measure(bytes);
+        } catch (BackendException e) {
+            AudiobookLog.get().warn("The clip {} could not be measured: {}", uuid, e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * A cleaned copy of the clip as a new clip of the user ({@code <name> (cleaned).wav}), made with ffmpeg ({@code Ffmpeg.cleanVoice}); the clip itself is
+     * left as it is, so the copy can be heard before it replaces it.
+     */
+    public Clip cleanClip(String uuid) throws BackendException {
+        byte[] bytes = clipBytes(uuid);
+        if (bytes == null) {
+            throw new BackendException("The clip is gone");
+        }
+        var quality = com.github.enerccio.marginalia.extensions.audiobook.audio.ClipQuality.measure(bytes);
+        if (quality == null) {
+            throw new BackendException("The clip can't be read without ffmpeg");
+        }
+        byte[] cleaned = com.github.enerccio.marginalia.extensions.audiobook.audio.Ffmpeg.cleanVoice(bytes, quality.floorDb());
+        String name = clips().stream().filter(c -> c.uuid().equals(uuid)).map(Clip::name).findFirst().orElse("clip");
+        String base = name.replaceFirst("(?i)\\.(wav|mp3)$", "");
+        return uploadClip(base + " (cleaned).wav", cleaned, "audio/wav");
+    }
+
+    /** The places of the actors and own backends that use the clip. */
+    public List<AudiobookSettings.VoiceUse> clipUses(String uuid) {
+        return getSettings().usesOf("clip:" + uuid);
+    }
+
+    /**
+     * Puts the clip {@code to} wherever the clip {@code from} is used (actors with their mood and language voices, own backends), at once. The old clip
+     * stays among the resources.
+     *
+     * @return how many places changed
+     */
+    public int replaceClip(String from, String to) {
+        try {
+            UserSetting userSetting = settingService.getOrCreate(UserSetting.class);
+            AudiobookSettings settings = getSettings();
+            int changed = settings.replaceVoice("clip:" + from, "clip:" + to);
+            if (changed > 0) {
+                saveSettings(settings, userSetting);
+                settingService.save(userSetting);
+            }
+            return changed;
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    /**
+     * Deletes a clip nobody uses (soft: the cleanup of the resources removes the file later).
+     *
+     * @return false when an actor or a backend still uses it (nothing is deleted)
+     */
+    public boolean deleteClip(String uuid) {
+        if (!clipUses(uuid).isEmpty()) {
+            return false;
+        }
+        try {
+            return resourceService.softDelete(List.of(uuid)) > 0;
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
     /** Puts a clip among the resources of the user; the result is what a voice names ({@code clip:<uuid>}). */
     public Clip uploadClip(String filename, byte[] content, String contentType) {
         try {
@@ -414,7 +499,8 @@ public class AudiobookService {
 
     /** The backend for the settings of a server; its key is opened here. */
     public SpeechBackend createBackend(BackendConfig config) {
-        return new ChatterboxBackend(config, config.getProtectedApiKey() == null ? null : reveal(config.getProtectedApiKey()));
+        String key = config.getProtectedApiKey() == null ? null : reveal(config.getProtectedApiKey());
+        return config.isHiggs() ? new HiggsComfyBackend(config, key) : new ChatterboxBackend(config, key);
     }
 
     /**
@@ -1123,7 +1209,7 @@ public class AudiobookService {
                 clip ? clipName.apply(entry.voice().id()) : entry.voice().id(), entry.language(), entry.exaggeration(), entry.cfgWeight(),
                 entry.temperature(), entry.speed(), entry.seed(), entry.format(), entry.chunkSize());
         return new com.google.gson.GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create().toJson(com.google.gson.JsonParser.parseString(
-                ChatterboxBackend.bodyOf(request, entry.model())));
+                BackendConfig.MODEL_HIGGS.equals(entry.model()) ? HiggsComfyBackend.workflowOf(request) : ChatterboxBackend.bodyOf(request, entry.model())));
     }
 
     /** The names of the characters the book tells: the point of view and the present characters of its parts. */
@@ -1163,12 +1249,12 @@ public class AudiobookService {
 
     /**
      * The labelling instruction for a book: its own setting, else the nearest folder's, else the user's, else the built-in one
-     * ({@link LabelPrompt#SETTING}), with the characters filled in.
+     * ({@link LabelPrompt#SETTING}), with the characters and the sound tags of the speech model filled in.
      */
-    private String labelPrompt(String bookId, List<String> characters) throws Exception {
+    private String labelPrompt(String bookId, List<String> characters, String model) throws Exception {
         Manuscript book = manuscriptService.findForUser(bookId);
         String template = book == null ? null : manuscriptService.resolveExtension(book, LabelPrompt.SETTING).value();
-        return LabelPrompt.system(templateService, template, characters);
+        return LabelPrompt.system(templateService, template, characters, model);
     }
 
     /** The cast of the book as it is when a job runs. */
@@ -1214,7 +1300,7 @@ public class AudiobookService {
             kept = labelStore.findForText(partUuid, text);
             if (kept == null) {
                 // labels stored before the text was remembered with them: found by the key they were made under, when nothing changed since
-                kept = labelStore.find(partUuid, LabelService.cacheKey(text, labelPrompt(bookId, characters)));
+                kept = labelStore.find(partUuid, LabelService.cacheKey(text, labelPrompt(bookId, characters, backend.getModel())));
             }
         }
         if (pieces.isEmpty() || (options == null && kept == null)) {
@@ -1225,7 +1311,7 @@ public class AudiobookService {
                 AudiobookLog.get().info("Labels of part {}: the stored ones are read, the model is not asked ({} pieces)", partUuid, pieces.size());
                 kept.forEach(l -> labels.putIfAbsent(l.id(), l));
             } else {
-                String system = labelPrompt(bookId, characters);
+                String system = labelPrompt(bookId, characters, backend.getModel());
                 LabelService.Result asked = LabelService.labels(partUuid, text, pieces, system,
                         new LlmLabelModel(inferenceServices.forAIOrThrow(options.ai()), options.protocol()), new PartLabelStore(chatMessageService));
                 AudiobookLog.get().info("Labels of part {}: {} ({} pieces)", partUuid, asked.fromStore() ? "from the store"

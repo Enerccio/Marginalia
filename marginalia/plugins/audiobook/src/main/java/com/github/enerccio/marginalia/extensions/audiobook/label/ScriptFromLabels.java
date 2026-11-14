@@ -14,8 +14,8 @@ import java.util.regex.Pattern;
 /**
  * Makes the script of a part from its pieces and their labels. This is where the book is protected from the model: the words of a piece are the
  * words of the book, a tagged text is taken only when it is the piece plus allowed tags, and a label that is missing or odd becomes the narrator
- * reading neutrally. Who speaks a piece is the model's call, also for narration (a letter in its writer's voice). What the labelling says is turned into what the engine has: the sound tags only for the Turbo model, the intensity into
- * {@code exaggeration} only for the models that have one.
+ * reading neutrally. Who speaks a piece is the model's call, also for narration (a letter in its writer's voice). What the labelling says is turned into what the engine has: the sound tags only for the models that voice them
+ * (Turbo, Higgs), the intensity into {@code exaggeration} only for the models that have one, the delivery into Higgs's emotion tokens ({@link HiggsText}).
  */
 public final class ScriptFromLabels {
 
@@ -58,6 +58,8 @@ public final class ScriptFromLabels {
     public static StudioScript studio(String text, List<Piece> pieces, Map<Integer, PieceLabel> labels, BackendConfig backend, VoiceChooser voice,
                                       Set<String> availableModels, int seed, SpokenForm form) {
         List<StudioSegment> entries = new ArrayList<>();
+        // Higgs only: Turbo books keep the script (and the audio) they had
+        Map<Integer, String> cues = backend.isHiggs() ? SoundCues.find(pieces, labels, Tags.HIGGS) : Map.of();
         for (int i = 0; i < pieces.size(); i++) {
             Piece piece = pieces.get(i);
             PieceLabel label = labels.get(piece.id());
@@ -66,14 +68,23 @@ public final class ScriptFromLabels {
 
             String model = backend.getModel();
             String language = Languages.ofScript(piece.text());
-            if (language != null && availableModels.contains(BackendConfig.MODEL_MULTILINGUAL)) {
+            // Higgs reads many languages itself: the piece stays with the voice of the book
+            if (language != null && !backend.isHiggs() && availableModels.contains(BackendConfig.MODEL_MULTILINGUAL)) {
                 model = BackendConfig.MODEL_MULTILINGUAL;
             } else {
                 language = null;
             }
             boolean turbo = BackendConfig.MODEL_TURBO.equals(model);
+            boolean higgs = BackendConfig.MODEL_HIGGS.equals(model);
             Delivery delivery = label == null || label.delivery() == null ? Delivery.NEUTRAL : label.delivery();
-            String said = form.apply(spoken(piece, label, turbo), piece.heading());
+            // on Higgs whatever the narrator reads is read plainly: no sounds, no mood (also a speech the model left to the narrator)
+            boolean plain = higgs && NARRATOR.equals(speaker);
+            String said = form.apply(plain ? piece.text() : withCue(spoken(piece, label, Tags.forModel(model)), higgs ? cues.get(piece.id()) : null),
+                    piece.heading());
+            if (higgs && !said.isEmpty()) {
+                // Higgs voices the delivery and the sounds as tokens in the text
+                said = HiggsText.render(said, piece.kind() == Piece.Kind.SPEECH && !plain, delivery, intensity);
+            }
             if (said.isEmpty()) {
                 // a scene break: nothing is read, the pause before it is longer (and none when nothing follows)
                 if (!entries.isEmpty()) {
@@ -85,8 +96,8 @@ public final class ScriptFromLabels {
                 continue;
             }
             entries.add(StudioSegment.made(new ScriptEntry(speaker, said, voice.choose(speaker, delivery, language), model, language,
-                    // Turbo has no exaggeration: a constant keeps the cache from missing for a value that changes nothing
-                    turbo ? 0.5 : exaggeration(intensity), backend.getCfgWeight(), backend.getTemperature(),
+                    // Turbo and Higgs have no exaggeration: a constant keeps the cache from missing for a value that changes nothing
+                    turbo || higgs ? 0.5 : exaggeration(intensity), backend.getCfgWeight(), backend.getTemperature(),
                     backend.getSpeed(), seed, backend.getChunkSize(), backend.getFormat(), pause(pieces, i)), piece.text(), delivery.name(), intensity));
         }
         return new StudioScript(entries, Hashes.sha256(text == null ? "" : text), StudioScript.Status.DRAFT);
@@ -119,15 +130,20 @@ public final class ScriptFromLabels {
      * The words of the piece, with the tags of the model when they are valid and the engine can use them. A tagged text that differs in any word
      * from the piece (or has a bracket that is not an allowed tag) is thrown away.
      */
-    static String spoken(Piece piece, PieceLabel label, boolean turbo) {
-        if (!turbo || piece.kind() != Piece.Kind.SPEECH || label == null || label.taggedText() == null || label.taggedText().isBlank()) {
+    static String spoken(Piece piece, PieceLabel label, List<String> tags) {
+        if (tags.isEmpty() || piece.kind() != Piece.Kind.SPEECH || label == null || label.taggedText() == null || label.taggedText().isBlank()) {
             return piece.text();
         }
         String tagged = label.taggedText().strip();
-        if (Tags.count(tagged) == 0 || !Tags.onlyAllowed(tagged)) {
+        if (Tags.count(tagged, tags) == 0 || !Tags.onlyAllowed(tagged, tags)) {
             return piece.text();
         }
         return PieceSplitter.normalize(tagged).equals(PieceSplitter.normalize(piece.text())) ? tagged : piece.text();
+    }
+
+    /** The words with the sound the narration gives them ({@link SoundCues}) at their start, unless the model put a tag in already. */
+    static String withCue(String spoken, String cue) {
+        return cue == null || Tags.count(spoken, Tags.ALL) > 0 ? spoken : "[" + cue + "] " + spoken;
     }
 
     /** The pause after piece {@code i}, by where it is: after a heading, between paragraphs, before "he said", else a breath. */

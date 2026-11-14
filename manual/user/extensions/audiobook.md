@@ -32,28 +32,53 @@ that you named; the audio is stored in your own installation, as resources linke
 
 ### Backends
 
-A backend is a speech server and the model it speaks with. Add one with **+**.
+A backend is a speech server and the model it speaks with. Add one with **+**. **Duplicate** copies the selected one (address, keys, GPU name,
+voice, defaults and the requests before and after a batch) under a new name: the quick way to a backend of another model on the same machine,
+for example Higgs next to Chatterbox, where you then change the model, the address and the start and stop requests.
 
 | Setting | What it does |
 |---|---|
 | Name | The name shown in the Convert dialog. |
 | Address | The base address of the speech server, or of what forwards to it, for example `http://localhost:8004`. |
 | Api key | Sent as a bearer token if the server (or your proxy) wants one. It is stored encrypted and not shown again; type a new one to replace it, or **Remove the key**. |
-| Speech model | **Chatterbox Turbo** (English, with sound tags such as `[sigh]`, the fastest and the default), **Chatterbox** (English, with an *exaggeration* of the delivery) or **Chatterbox Multilingual** (23 languages). The requests before a batch must leave this model loaded. A book that needs another model uses another backend. |
+| Speech model | **Chatterbox Turbo** (English, with sound tags such as `[sigh]`, the fastest and the default), **Chatterbox** (English, with an *exaggeration* of the delivery), **Chatterbox Multilingual** (23 languages) or **Higgs Audio v3 in ComfyUI** (many languages, voices the mood of a line and sounds such as crying, panting or a moan; see [below](#higgs-audio-v3-emotions-and-sounds)). The requests before a batch must leave this model loaded. A book that needs another model uses another backend. |
 | GPU (name) | Optional. Servers that share one GPU, also those of the [Image Generator](image-generator.md), get the same name here: their work then waits for each other, and a backend for another model waits for the others to be done. Empty: only batches to this address wait for each other. |
 | The server is on this machine or on my network | Allows addresses of the local network. Leave it off for a server in the cloud: it then cannot be made to call your own machine. |
 | Timeout of a request | How long to wait for one piece of speech. |
 | Restart the server after (pieces) | For a speech server that leaks memory and is killed by the system in a long batch: after this many pieces the requests after the batch and then the requests before it are made again in the middle of the batch (stop, start, load), and the work goes on with a fresh server. 0 (the default) never does it. A server that dies is started again whatever this says, see [Troubleshooting](audiobook-server.md#troubleshooting). |
 | Key of the requests around a batch | The key the requests before and after a batch carry as `Authorization: Bearer`. It is stored encrypted and not shown again (**Remove the key** clears it), so it does not have to be written into the headers of each request, where it would be readable. Empty: the *Api key* above is used, which is what you want when one proxy such as LiteLLM serves everything. A request that has an `Authorization` header of its own keeps it. |
 | Narrator voice | The narrator of a book that has no cast. A voice file of the server is written `predefined:Henry.wav`. |
-| Defaults of a segment | Temperature, CFG weight, speed and chunk size that a piece starts with (the studio can change them for one piece). |
+| Defaults of a segment | Temperature, CFG weight, speed and chunk size that a piece starts with (the studio can change them for one piece). Higgs uses only the temperature. |
 | Before a batch, After a batch | The requests made around a batch of parts: *before* frees the graphics card and starts the speech server, *after* stops it. See [One GPU for the model and the speech](audiobook-server.md#one-gpu-for-the-model-and-the-speech). Empty does nothing. |
 
 **Test connection** does what a batch does: it makes the requests before a batch (so a speech server that is stopped is started), asks the server whether it is there and has a model loaded,
 and makes the requests after the batch. Without any requests it only asks.
 
 A book that has pieces in another script (Japanese in an English book) sends them to the multilingual model, if you have a backend
-for it, with their language; they stay on the model of the book when you have none.
+for it, with their language; they stay on the model of the book when you have none. A Higgs book keeps them: Higgs reads them itself, in the same voice.
+
+### Higgs Audio v3: emotions and sounds
+
+With a **Higgs Audio v3 in ComfyUI** backend the labels of the language model are heard. The address of the backend is your ComfyUI
+(with the TTS Audio Suite nodes, see [Setting up the speech server](audiobook-server.md#higgs-audio-v3-in-comfyui)).
+
+- The **delivery** of a piece of speech is spoken: sad, angry, joyful, amused, tense, fearful, surprised, tender, sarcastic, pleading, desperate,
+  disgusted, aroused, a whisper or a shout. A strong one (intensity 0.8 and more) is more expressive, a faint one (below 0.2) is read plainly.
+  The narrator reads plainly.
+- The language model may put more **sounds** into speech than for Chatterbox Turbo: laugh, chuckle, giggle, sigh, gasp, cough, clear throat,
+  sniff, sneeze, groan, cry, sob, scream, pant, moan, hum and shush.
+- The program also reads the **narration around each speech** (English) and gives the speech the sound it names, where the model put none:
+  *"You look funny," she giggled.* gets a giggle, *She burst out laughing. "Careful!"* a laugh, *a soft moan escaped her lips. "Yes..."* a moan,
+  *panting* or *out of breath* panting, *cried quietly* or *burst into tears* crying. It leaves out what only looks like a sound: *"Stop!" she cried.*
+  (an exclamation), *moaned about the weather*, *the wind moaned*, *the floorboards groaned*, *stifled a giggle*, *didn't laugh*, and a sound the narration
+  gives another named character. *"You look funny," he mocked her.* gets a sarcastic or amused delivery and no sound. The narration itself is read as written.
+- **The narrator is always read plainly**: no sounds and no mood, also for a speech the model left to the narrator.
+- Higgs needs no clip per mood: one clip of a voice is enough. It copies the recording of the clip, so a clean one matters more than with Chatterbox
+  ([A good clip](#a-good-clip)).
+- Every piece is made by ComfyUI and its memory is emptied after it (a few seconds a piece), which keeps some graphics cards from crashing.
+- Higgs often goes on after the last word of a piece (a breath, the start of another sound) and the clip ends in the middle of it, which is heard as
+  a short "whoosh" before the pause. With **ffmpeg** the extension cuts that tail and fades each piece out; without it the pieces stay as Higgs made them.
+- The Higgs Audio v3 model is under a **research and non-commercial licence**: an audiobook you sell needs a licence from Boson AI.
 
 ### Shared speech servers
 
@@ -77,6 +102,31 @@ your account; any book can give an actor to its narrator and its characters.
 **Preview** next to a voice (in the actor, the settings and the cast) has a short sentence spoken with it (in the language of the voice for a language) and plays it, starting the speech server if the requests before a batch do that. The actors are listed by name.
 
 ![An actor with a voice for a mood](../../images/plugin-audiobook-actor.png)
+
+### Voices and clips
+
+**Voices and clips** (next to the actors) is one window for your actors and the clips their voices are cloned from:
+
+- **Actors**: each with its voice, how many other voices (moods, languages) it has and the worst quality of its clips; add, edit or delete one.
+- **Clips**: each with its length, its **quality** and where it is used (actors, with the mood or language, and the narrators of your backends).
+  Select a clip to read what is wrong with it, **Play** it, **Replace...** it, **Clean with ffmpeg** (with ffmpeg) or delete it (only when nothing uses it).
+- **Replace...** puts another clip, one of yours or one you upload there, everywhere the clip is used. The parts are made again with the new voice;
+  the old clip stays until you delete it.
+- **Clean with ffmpeg** makes a cleaned copy beside the clip (less steady hiss and hum), measured again, to play and compare; replace the clip with it if
+  it sounds better. It does not remove music, effects or other voices.
+
+#### A good clip
+
+A voice model copies the **recording**, not only the voice: the room, a hiss, the music under a film scene come back in every line, often as a soft
+"whoosh" under the words that no filter of the result removes. So:
+
+- Use a clean recording of one speaker with real pauses (a voice actor's sample, a reading made at home in a quiet room), 12 to 30 seconds. A clip cut
+  from a film or a series is the worst case.
+- The quality marks are measured from the clip: **Clean** (the pauses are at least 45 dB under the speech), **Fair** (35 to 45 dB, or longer than 30 s,
+  which Chatterbox cuts), **Poor** (background sound, under 35 dB; distorted; shorter than 8 s). A clip that is not clean is reported when you add it.
+- For the best result clean a clip by hand: the noise reduction of [Audacity](https://www.audacityteam.org/) with a noise profile taken from a pause of the
+  clip, or a vocal remover such as [Ultimate Vocal Remover](https://github.com/Anjok07/ultimatevocalremovergui) for a clip with music. The ffmpeg cleanup only
+  lowers a steady noise: on a film clip it gained about 3 dB in the test and the clip stayed *Poor*.
 
 ### Converting new parts by itself
 
@@ -170,7 +220,7 @@ piece and make the part.
 - **Annotate** makes the script of the part (with the language model if you ask for it, else with the narrator) and shows the pieces in a
   table: speaker, delivery, intensity, the spoken text and a mark for a piece you changed. While it runs a **Stop** button appears beside it and ends the request to the language model.
 - Select a piece to edit its **speaker**, the **spoken text**, the **delivery**, the **intensity** (the exaggeration of the voice, for the models
-  that have one), the **language**, the **seed**, the **pause after** it. **Apply** keeps the change and **locks** the piece: a new annotation leaves a locked piece as it is.
+  that have one; on Higgs the delivery and the intensity are the marks such as `<|emotion:sadness|>` at the start of the spoken text, which follow them when you change them), the **language**, the **seed**, the **pause after** it. **Apply** keeps the change and **locks** the piece: a new annotation leaves a locked piece as it is.
   **Unlock** gives it back to the annotation. *The request the speech server gets* shows the exact request.
 - **Hear** makes the audio of a piece (only that piece, the speech server is started for it); **Another take** makes it again with a new
   seed, and the **takes** are kept so you can choose the one you like (*Use this take and hear it*). A good voice is often a matter of
@@ -264,6 +314,6 @@ list of the *Settings* page there are two lines: **Convert to audio** (the batch
 
 - Mp3 and wav only (no opus); the loudness of the pieces is what the voices give.
 - No sound effects or ambience.
-- One speech engine, Chatterbox. Other engines are the next step.
+- Two speech engines, Chatterbox and Higgs Audio v3 (in ComfyUI).
 - The audition of a voice outside a segment.
 - The cast is not part of a book's backup of your *actors*: a restored book keeps its cast, but names actors that must exist in your account.

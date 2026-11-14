@@ -19,6 +19,12 @@ final class Multipart {
         return this;
     }
 
+    /** Adds a text field. The values are made by the caller from a fixed alphabet, so they need no escaping. */
+    Multipart field(String name, String value) {
+        write("--" + boundary + "\r\nContent-Disposition: form-data; name=\"" + name + "\"\r\n\r\n" + value + "\r\n");
+        return this;
+    }
+
     String contentType() {
         return "multipart/form-data; boundary=" + boundary;
     }

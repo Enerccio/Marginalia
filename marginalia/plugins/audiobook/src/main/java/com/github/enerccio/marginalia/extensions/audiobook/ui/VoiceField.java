@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.extensions.audiobook.ui;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.extensions.audiobook.AudiobookLog;
+import com.github.enerccio.marginalia.extensions.audiobook.service.AudiobookService;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;
@@ -51,7 +52,9 @@ public class VoiceField extends CustomField<String> {
 
         InMemoryUploadHandler handler = new InMemoryUploadHandler((metadata, data) -> {
             try {
-                setValue("clip:" + choices.upload(metadata.fileName(), data, metadata.contentType()).uuid());
+                AudiobookService.Clip clip = choices.upload(metadata.fileName(), data, metadata.contentType());
+                setValue("clip:" + clip.uuid());
+                VoicesDialog.warnAbout(clip.name(), choices.service().measureClip(clip.uuid()));
             } catch (RuntimeException e) {
                 AudiobookLog.get().warn("The clip could not be added: {}", e.getMessage(), e);
                 Notification.error(T.localized(THE_CLIP_COULD_NOT_BE_ADDED).formatted(e.getMessage()));

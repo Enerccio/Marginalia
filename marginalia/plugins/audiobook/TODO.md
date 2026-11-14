@@ -1,7 +1,7 @@
 # Audiobook - TODO
 
 Status: **working, not finished**: steps 1 to 8, 10, 11 and 12 below are built and were checked in the application and on the author's server (queue, player, labelling, cast, studio,
-spoken form, automatic conversion, export, commands, manual); missing are the sound effects (9b), other engines (9) and the items listed as *Not done*
+spoken form, automatic conversion, export, commands, manual) and a second engine, Higgs Audio v3 in ComfyUI (step 9, 2026-11-14); missing are the sound effects (9b) and the items listed as *Not done*
 under each step. What stands below was tried on the author's own server on 2026-11-08 (an AMD R9700 Pro, LiteLLM in front
 of everything); a line says **Decided** when it is, **Not tried** / **Open** when it is not. Numbers are one listener, one machine, few samples.
 
@@ -313,7 +313,47 @@ audiobook can also read the English source of a speech (dubbing) as a per-langua
    checked to be the same word, is a later idea); the rules are **English only** (numbers in Czech, Japanese counters, kana readings by a dictionary of the language: none); roman numerals and dates in the body, "St."
    (saint or street), "No. 5", a number next to a unit ("5 km"), phone numbers, and "$5 million" are read plainly or wrongly; the dictionary is per book (no user-level or folder-level one, no import from the
    conlang translator plugin, whose words could fill it); no check that a respelling is read as meant (hear it in the studio).
-9. **Engines with their own API** (a tagged multi-speaker script like Dia's `[S1]` / `[S2]`) as more backends, or a generic HTTP template backend (the same gap the Image Generator has).
+9. ✅/◐ **Engines with their own API.** **Higgs Audio v3 in ComfyUI** is the second engine (`BackendConfig.MODEL_HIGGS`, `HiggsComfyBackend`, `HiggsText`), done 2026-11-14:
+   the backend posts a built-in workflow of the TTS Audio Suite nodes (`HiggsAudioV3EngineNode` -> `UnifiedTTSTextNode` with `LoadAudio` + `CharacterVoicesNode` for a clip ->
+   `SaveAudioMP3` 128k, or `SaveAudio` flac converted to wav), polls `/history`, fetches `/view`, uploads clips with `/upload/image`, reads voices and clips from `/object_info`, and
+   calls `POST /free {"free_memory": true}` after every piece. `HiggsText` turns the labels into Higgs tokens in the entry text: the delivery of a piece of speech into
+   `<|emotion:...|>` / `<|style:whispering|>` / `<|style:shouting|>` (from intensity 0.2; `<|prosody:expressive_high|>` from 0.8), a sound tag into `<|sfx:...|>` plus the sound written
+   out, or only the sound written out where Higgs has no token (groan, pant, moan, gasp, clear throat, shush). The labelling offers the tags of the book's model (`Tags.forModel`;
+   17 for Higgs) and eight more deliveries (fearful, surprised, tender, sarcastic, pleading, desperate, disgusted, aroused); a Higgs book allows a tag per 30 words, not 80.
+   **What was found on the author's server** (AMD R9700, ROCm 7.2, `yanwk/comfyui-boot:rocm`, torch 2.13.0+rocm7.2, TTS Audio Suite v5.10.8):
+   - **Higgs v3 works**: 20 test clips in the author's cloned voice (laugh, cry, groan, pant, moan, scream, whisper, sigh, each with emotion tags) were all judged good by the author;
+     groan, pant and moan, which have no token, came out right as an emotion plus the sound written out. sdpa and eager attention both sounded fine.
+   - **The ROCm crash**: generating again on the engine the suite keeps loaded crashed the GPU (`HSA_STATUS_ERROR_EXCEPTION ... code: 0x1016`, ComfyUI aborts) at the third piece
+     without anything in between, never with `/free` between pieces (17 of 17 with `free_memory` only, the weights stay loaded; 25 of 25 with a full unload). The cost is about 3.4 s
+     a piece (ComfyUI runs the voice and engine nodes again). Not known which half of `free_memory` (the emptied CUDA cache or the reset node cache) avoids it.
+   - **Fish Audio S2 Pro does not work** on that card: constant -1.0 samples (NaN). The default SDPA kernels give wrong values there (the codec's round trip of a clip correlated 0.04
+     with the original on the GPU, 0.68 with math attention and on the CPU); with math attention and an fp32 codec the text model still gives NaN. Its load peaks at about 19 GB of host RAM.
+   - **Setup traps** (in the server how-to): pip into `/root/.local` (`PIP_USER=true` + a volume) with `PIP_CONSTRAINT` on the installed torch/numpy versions; never the suite's whole
+     `install.py` (it can reinstall a CUDA torch); `librosa` is not in its `requirements.txt`.
+   **Labelling for Higgs** (`gemma-4-31b-it-MM` through LiteLLM, thinking off, a 20-piece kitchen scene written for the test, 3 samples per variant, about 1084 completion tokens, 55 s):
+   speakers right in 9 of 9; *"You look funny," he mocked her* -> SARCASTIC 9 of 9; *"You look funny," she giggled* -> AMUSED, no `[giggle]`, 9 of 9; `[groan]` and `[pant]` put into
+   the speech that the narration just before describes, 9 of 9; "burst out laughing", "a long, contented moan" and "cried quietly" before a speech got no tag (0 of 9). The limit of
+   one tag per 80 words was not the reason (30 gave the same), nor was the wording (a sentence asking for the sounds the narration names around a speech changed nothing, 3 samples).
+   **So the code adds them** (`SoundCues`, Higgs only so Turbo books keep their audio): the narration next to a speech in its paragraph (an attribution after it, lower case,
+   or the narration before it) is searched for a sound (English verbs and phrases: giggled, burst out laughing, a soft moan, whimpered, panting, out of breath, cried quietly, burst
+   into tears...), skipping denials (stifled, didn't, fought back), complaints (moaned about), things (the wind moaned, the floorboards groaned), another named speaker, and a bare
+   "she cried" (an exclamation); the sound goes to the start of the speech when the model gave it no tag. On the kitchen scene it added the giggle, the laugh, the moan and the crying the
+   model had left out; the audio was made (69 s). The narrator is read plainly on Higgs: no sound and no mood, also for a speech the model gave the narrator.
+   **The "whoosh"** (heard by the author at the end of most pieces): 13 of 20 pieces of the scene ended at -30 to -40 dB straight into the pause instead of fading;
+   after the last word Higgs breathes or starts another sound and the clip ends in it (the single sigh clip too: "...so much", a short gap, a rising sound cut at the
+   end). `BreathTrim` (with ffmpeg: the piece comes as flac, is trimmed, faded out over 40 ms and stored as mp3 96k or wav) cuts a tail after a gap of 150 ms (quiet, at most
+   0.6 s) or 250 ms (at most 0.25 s), else 250 ms after the last voiced window. A first rule that also cut the hissy end after the last voiced window took the "ch" of "much"
+   (the author heard "so mu-"): an unvoiced end is a consonant as often as a breath. The author found the trimmed scene right; a softer whoosh inside some pieces ("Mmmh...
+   Finally", "she whispered") is generated with the words and stays.
+   **The whoosh inside the lines was the reference clip.** The first test clip (`vtest.wav`, cut from a film) has no real pause in 12.5 s and its quietest parts at
+   -47 dB, 28 dB under the speech; a low-pass (5k, 7k), ffmpeg `afftdn` and an Audacity-like profile reduction of the output made no audible difference (the author).
+   With a clip from a voice actor's database (`vtest2.wav`, 17 s, pauses at -64 dB, 55 dB under the speech) the same scene had **no artifacts** (the author's ears).
+   So the plugin measures clips (`ClipQuality`: Clean from a 45 dB margin, Poor under 35 dB, distorted or shorter than 8 s) in **Voices and clips** (`VoicesDialog`:
+   actors and clips, play, replace everywhere, clean a copy with ffmpeg, delete unused) and reports a clip that is not clean when it is added. `Ffmpeg.cleanVoice`
+   (high-pass 70 Hz + `afftdn` at the measured floor) lowered the film clip's floor by 3 dB only (still Poor): the advice is to clean a clip by hand.
+   **Open:** other languages of the narration for the cues, the default hooks of the form for
+   ComfyUI (`/gpu/comfy/start`, `/gpu/comfy/stop`), a run in the application, a long part, more voices. Other engines (a tagged multi-speaker script like Dia's `[S1]` / `[S2]`, a
+   generic HTTP template backend) are still not done.
 9b. **Sound effects and ambience** (after the speech works): cues next to the segments of a part, proposed by the LLM from the text with a position and a kind (`one-shot` or `bed`); each cue a prompt for the
    sound backend (ComfyUI with the graph above, another backend, cached by prompt and seed; the prompt describes a single sound, dry) or a file of the user's own library; the mix with ffmpeg (levels, ducking
    under speech, fades, one-shots placed at irregular intervals, a bed under a stretch of segments).

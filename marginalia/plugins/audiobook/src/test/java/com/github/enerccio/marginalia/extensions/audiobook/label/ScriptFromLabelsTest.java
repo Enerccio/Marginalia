@@ -172,6 +172,80 @@ class ScriptFromLabelsTest {
     }
 
     @Test
+    void higgsVoicesTheDeliveryAndTheSoundsOfSpeech() {
+        BackendConfig higgs = new BackendConfig();
+        higgs.setModel(BackendConfig.MODEL_HIGGS);
+        PartScript script = build(labels(
+                label(6, "Jonas", Delivery.AMUSED, 0.5, "[chuckle] Then you won't mind."),
+                label(4, "Marta", Delivery.SAD, 0.9, "Years. [sob]"),
+                label(2, "Marta", Delivery.WHISPER, 0.1, ""),
+                label(1, "Narrator", Delivery.TENSE, 0.8, "[sigh] Marta coughed at the dust.")), higgs, Set.of());
+
+        assertEquals("<|emotion:amusement|><|sfx:laughter|>Heh. Then you won't mind.", script.entries().get(6).text());
+        assertEquals("<|emotion:sadness|><|prosody:expressive_high|>Years. <|sfx:crying|>", script.entries().get(4).text(), "a strong delivery is more expressive");
+        assertEquals("<|sfx:cough|>Khh. Nobody has been here,", script.entries().get(2).text(),
+                "a hint of a whisper is read plainly; the cough is the one of the narration before it (Marta coughed at the dust)");
+        assertEquals("Marta coughed at the dust.", script.entries().get(1).text(), "the narrator reads plainly, without tags");
+        assertEquals(BackendConfig.MODEL_HIGGS, script.entries().get(6).model());
+        assertEquals(0.5, script.entries().get(4).exaggeration(), "no exaggeration on Higgs: a constant");
+    }
+
+    @Test
+    void onHiggsTheNarrationGivesItsSoundToTheSpeechTheModelLeftUntagged() {
+        String text = "\"You look funny,\" she giggled.\n\nShe burst out laughing. \"Careful!\"\n\nTomas groaned. \"[sigh] Fine.\"";
+        List<Piece> pieces = PieceSplitter.split(text);
+        Map<Integer, PieceLabel> labels = labels(label(0, "Mira", Delivery.AMUSED, 0.5, ""), label(3, "Mira", Delivery.TENSE, 0.5, ""),
+                label(5, "Tomas", Delivery.NEUTRAL, 0.5, "[sigh] Fine."));
+        BackendConfig higgs = new BackendConfig();
+        higgs.setModel(BackendConfig.MODEL_HIGGS);
+
+        PartScript script = ScriptFromLabels.build(text, pieces, labels, higgs, VOICE, Set.of(), 1);
+        PartScript turbo = ScriptFromLabels.build(text, pieces, labels, new BackendConfig(), VOICE, Set.of(), 1);
+
+        assertEquals("<|emotion:amusement|><|sfx:laughter|>Hehe! You look funny,", script.entries().get(0).text());
+        assertEquals("<|emotion:fear|><|sfx:laughter|>Haha! Careful!", script.entries().get(3).text());
+        assertEquals("<|sfx:sigh|>Haah. Fine.", script.entries().get(5).text(), "the model's tag wins over the groan of the narration");
+        assertEquals("You look funny,", turbo.entries().get(0).text(), "Turbo books keep their script");
+    }
+
+    @Test
+    void onHiggsTheNarratorIsImmuneToSoundsAndMoods() {
+        String text = "Mira giggled. \"Nobody comes here.\"";
+        List<Piece> pieces = PieceSplitter.split(text);
+        BackendConfig higgs = new BackendConfig();
+        higgs.setModel(BackendConfig.MODEL_HIGGS);
+
+        // the model left the speech to the narrator, gave it a mood and a tag
+        PartScript script = ScriptFromLabels.build(text, pieces, labels(label(1, "Narrator", Delivery.AMUSED, 0.9, "[laugh] Nobody comes here.")), higgs,
+                VOICE, Set.of(), 1);
+
+        assertEquals("Mira giggled.", script.entries().get(0).text());
+        assertEquals("Nobody comes here.", script.entries().get(1).text());
+    }
+
+    @Test
+    void higgsHasTagsTurboHasNot() {
+        BackendConfig higgs = new BackendConfig();
+        higgs.setModel(BackendConfig.MODEL_HIGGS);
+        PieceLabel moan = label(6, "Jonas", Delivery.NEUTRAL, 0.5, "[moan] Then you won't mind.");
+
+        assertEquals("Mmmh... Then you won't mind.", build(labels(moan), higgs, Set.of()).entries().get(6).text(), "no token: the sound written out");
+        assertEquals("Then you won't mind.", build(labels(moan), new BackendConfig(), Set.of()).entries().get(6).text(), "Turbo has no moan");
+    }
+
+    @Test
+    void aPieceInAnotherScriptStaysWithHiggs() {
+        String text = "\"こんにちは。\" she said.";
+        BackendConfig higgs = new BackendConfig();
+        higgs.setModel(BackendConfig.MODEL_HIGGS);
+
+        PartScript script = ScriptFromLabels.build(text, PieceSplitter.split(text), Map.of(), higgs, VOICE, Set.of(BackendConfig.MODEL_MULTILINGUAL), 1);
+
+        assertEquals(BackendConfig.MODEL_HIGGS, script.entries().getFirst().model(), "Higgs reads it itself, in the voice of the book");
+        assertNull(script.entries().getFirst().language());
+    }
+
+    @Test
     void intensityBecomesExaggerationOnlyWhereTheModelHasOne() {
         PartScript turbo = build(labels(label(2, "Marta", Delivery.SHOUT, 1.0, "")), new BackendConfig(), Set.of());
         assertEquals(0.5, turbo.entries().get(2).exaggeration(), "a constant for Turbo: the cache must not miss for nothing");

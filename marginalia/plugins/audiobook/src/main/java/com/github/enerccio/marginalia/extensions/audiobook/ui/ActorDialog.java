@@ -73,6 +73,23 @@ public class ActorDialog extends Dialog {
         close();
     }
 
+    /** Asks, then deletes the actor at once; {@code done} runs after the delete. */
+    static void confirmDelete(AudiobookService service, Actor doomed, Runnable done) {
+        if (doomed == null) {
+            return;
+        }
+        com.vaadin.flow.component.confirmdialog.ConfirmDialog confirm = new com.vaadin.flow.component.confirmdialog.ConfirmDialog();
+        confirm.setHeader(T.localized(DELETE_THE_ACTOR));
+        confirm.setText(T.localized(THE_ACTOR_IS_DELETED).formatted(nameOf(doomed)));
+        confirm.setCancelable(true);
+        confirm.setConfirmText(T.localized(DELETE));
+        confirm.addConfirmListener(e -> {
+            service.deleteActor(doomed.getId());
+            done.run();
+        });
+        confirm.open();
+    }
+
     /** What the user sees for an actor in a box; the empty choice of a box has none. */
     static String nameOf(Actor actor) {
         return actor == null ? "" : actor.getName().isBlank() ? T.localized(NEW_ACTOR) : actor.getName();

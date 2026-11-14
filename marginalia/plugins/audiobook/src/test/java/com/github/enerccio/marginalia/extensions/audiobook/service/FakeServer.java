@@ -37,6 +37,11 @@ class FakeServer implements AutoCloseable {
         });
     }
 
+    /** Forgets the handler of a path (to answer it differently). */
+    void off(String path) {
+        server.removeContext(path);
+    }
+
     void json(String path, int status, String body) {
         on(path, exchange -> reply(exchange, status, "application/json", body.getBytes(StandardCharsets.UTF_8)));
     }

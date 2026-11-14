@@ -33,7 +33,7 @@ check of a connection, not a poll of the server) as a **call** of the job of the
 `Jobs` in [Services](../../services.md)). It records the host of `baseUrl` (never the path or the query), the model, the start and the end, and how it
 ended: a `BackendException` with the message `Cancelled` is a cancelled call, any other failure a failed one (the exception is thrown again). A call
 outside of a job becomes a job of its own with the kind `autoKind` (the name of the plugin); a plugin that does a unit of work of many calls (a chapter
-converted piece by piece) opens a job around them with `Jobs.open`. The Audiobook wraps `ChatterboxBackend.synthesize`, the Image Generator
+converted piece by piece) opens a job around them with `Jobs.open`. The Audiobook wraps `ChatterboxBackend.synthesize` and `HiggsComfyBackend.synthesize`, the Image Generator
 `OpenAiImagesBackend.generate` and `ComfyUiBackend.generate` (there the call is the whole run, queued and polled until the image is there).
 
 ## The guard: `UrlGuard`

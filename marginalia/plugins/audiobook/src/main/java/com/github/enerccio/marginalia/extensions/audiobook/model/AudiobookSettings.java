@@ -111,6 +111,69 @@ public class AudiobookSettings {
         list.add(actor);
     }
 
+    /**
+     * One place that names a voice: an actor's own voice ({@code slot} null), an actor's voice for a mood or a language ({@code slot} is the key of
+     * {@link Role#getVariants()}, {@code mood:WHISPER}, {@code lang:ja}), or the narrator of a backend.
+     */
+    public record VoiceUse(boolean backend, String owner, String slot) {
+    }
+
+    /** Every place of the actors and the user's own backends that names the voice ({@code clip:<uuid>}). */
+    public List<VoiceUse> usesOf(String voice) {
+        List<VoiceUse> uses = new ArrayList<>();
+        if (voice == null || voice.isBlank()) {
+            return uses;
+        }
+        for (Actor actor : getActors()) {
+            if (voice.equals(actor.getVoice())) {
+                uses.add(new VoiceUse(false, actor.getName(), null));
+            }
+            actor.getVariants().forEach((slot, v) -> {
+                if (voice.equals(v)) {
+                    uses.add(new VoiceUse(false, actor.getName(), slot));
+                }
+            });
+        }
+        for (BackendConfig backend : getBackends()) {
+            if (voice.equals(backend.getNarratorVoice().strip())) {
+                uses.add(new VoiceUse(true, backend.getName(), null));
+            }
+        }
+        return uses;
+    }
+
+    /**
+     * Puts the voice {@code to} wherever {@code from} is named: an actor's voice and its mood and language voices, a backend's narrator. The casts of the
+     * books name actors, not voices, so they follow. The cache keys of the audio name the voice, so what was made with the old one is made again.
+     *
+     * @return how many places changed
+     */
+    public int replaceVoice(String from, String to) {
+        if (from == null || from.isBlank() || to == null || to.isBlank() || from.equals(to)) {
+            return 0;
+        }
+        int changed = 0;
+        for (Actor actor : getActors()) {
+            if (from.equals(actor.getVoice())) {
+                actor.setVoice(to);
+                changed++;
+            }
+            for (var entry : actor.getVariants().entrySet()) {
+                if (from.equals(entry.getValue())) {
+                    entry.setValue(to);
+                    changed++;
+                }
+            }
+        }
+        for (BackendConfig backend : getBackends()) {
+            if (from.equals(backend.getNarratorVoice().strip())) {
+                backend.setNarratorVoice(to);
+                changed++;
+            }
+        }
+        return changed;
+    }
+
     public BackendConfig find(String id) {
         if (id == null) {
             return null;

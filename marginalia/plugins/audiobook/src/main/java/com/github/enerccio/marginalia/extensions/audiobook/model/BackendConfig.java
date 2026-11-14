@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * One speech server (Chatterbox-TTS-Server) with the requests that make room for it on the GPU. Kept in the settings of the user; the api
+ * One speech server (Chatterbox-TTS-Server, or ComfyUI for Higgs Audio v3) with the requests that make room for it on the GPU. Kept in the settings of the user; the api
  * key is stored protected ({@code InferenceServices.protectSecret}), never in plain text. One backend is one model: a book that needs
  * another model (a language Turbo can't read) picks another backend, whose start requests load that model.
  */
@@ -17,8 +17,13 @@ public class BackendConfig implements Cloneable {
     public static final String MODEL_TURBO = "chatterbox-turbo";
     public static final String MODEL_ORIGINAL = "chatterbox";
     public static final String MODEL_MULTILINGUAL = "chatterbox-multilingual";
+    /**
+     * Higgs Audio v3 in ComfyUI (the TTS Audio Suite nodes): not a Chatterbox server, the address is the one of ComfyUI. Emotions and sounds are tokens in
+     * the text ({@code HiggsText}).
+     */
+    public static final String MODEL_HIGGS = "higgs-audio-v3";
 
-    public static final List<String> MODELS = List.of(MODEL_TURBO, MODEL_ORIGINAL, MODEL_MULTILINGUAL);
+    public static final List<String> MODELS = List.of(MODEL_TURBO, MODEL_ORIGINAL, MODEL_MULTILINGUAL, MODEL_HIGGS);
     /** Mp3 (joined without decoding, see {@code Mp3Joiner}) or wav (lossless, see {@code WavJoiner}); opus can't be joined. */
     public static final List<String> FORMATS = List.of("mp3", "wav");
 
@@ -118,6 +123,11 @@ public class BackendConfig implements Cloneable {
         this.model = model;
     }
 
+    /** True when the server is a ComfyUI with Higgs Audio v3, not a Chatterbox-TTS-Server. */
+    public boolean isHiggs() {
+        return MODEL_HIGGS.equals(getModel());
+    }
+
     public String getGpu() {
         return gpu == null ? "" : gpu;
     }
@@ -174,6 +184,18 @@ public class BackendConfig implements Cloneable {
 
     public String getFormat() {
         return format == null || !FORMATS.contains(format) ? "mp3" : format;
+    }
+
+    /**
+     * A copy with its own id and the given name: everything else the same (the address, the protected keys as they are stored, the voice, the defaults
+     * and the requests before and after a batch), nothing shared with this one. For a backend of another model on the same machine.
+     */
+    public BackendConfig duplicate(String name) {
+        com.google.gson.Gson gson = new com.google.gson.Gson();
+        BackendConfig copy = gson.fromJson(gson.toJson(this), BackendConfig.class);
+        copy.id = UUID.randomUUID().toString();
+        copy.name = name;
+        return copy;
     }
 
     /** A copy that asks the server for this format: the storage of the installation decides it, not the backend. */

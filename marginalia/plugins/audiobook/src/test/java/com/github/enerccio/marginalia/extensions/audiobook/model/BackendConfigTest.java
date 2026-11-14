@@ -102,4 +102,39 @@ class BackendConfigTest {
         assertSame(first, settings.selected());
         assertNull(settings.find(null));
     }
+
+    @Test
+    void aDuplicateHasEverythingButTheIdAndTheNameAndSharesNothing() {
+        BackendConfig chatterbox = new BackendConfig();
+        chatterbox.setName("Chatterbox");
+        chatterbox.setBaseUrl("http://litellm:4000");
+        chatterbox.setProtectedApiKey("protected-key");
+        chatterbox.setGpu("r9700");
+        chatterbox.setNarratorVoice("clip:abc");
+        chatterbox.setTemperature(0.6);
+        HttpHook unload = new HttpHook();
+        unload.setUrl("http://litellm:4000/v1/chat/completions");
+        unload.setHeaders("X-Llama-Unload: all");
+        chatterbox.setBeforeHooks(java.util.List.of(unload));
+        HttpHook stop = new HttpHook();
+        stop.setUrl("http://litellm:4000/gpu/tts/stop");
+        chatterbox.setAfterHooks(java.util.List.of(stop));
+
+        BackendConfig higgs = chatterbox.duplicate("Chatterbox (copy)");
+
+        assertNotEquals(chatterbox.getId(), higgs.getId());
+        assertEquals("Chatterbox (copy)", higgs.getName());
+        assertEquals("http://litellm:4000", higgs.getBaseUrl());
+        assertEquals("protected-key", higgs.getProtectedApiKey(), "the key as it is stored: nothing to type again");
+        assertEquals("r9700", higgs.getGpu());
+        assertEquals("clip:abc", higgs.getNarratorVoice());
+        assertEquals(0.6, higgs.getTemperature());
+        assertEquals("X-Llama-Unload: all", higgs.getBeforeHooks().getFirst().getHeaders());
+        assertEquals("http://litellm:4000/gpu/tts/stop", higgs.getAfterHooks().getFirst().getUrl());
+
+        higgs.getAfterHooks().getFirst().setUrl("http://litellm:4000/gpu/comfy/stop");
+        higgs.setModel(BackendConfig.MODEL_HIGGS);
+        assertEquals("http://litellm:4000/gpu/tts/stop", chatterbox.getAfterHooks().getFirst().getUrl(), "the requests are not shared");
+        assertEquals(BackendConfig.MODEL_TURBO, chatterbox.getModel());
+    }
 }

@@ -34,6 +34,37 @@ Run Chatterbox-TTS-Server in a container (or from source) so that `GET /api/mode
 In the backend (*Settings → Extension Settings → Audiobook Settings*) put its address, tick *The server is on this machine or on my network* if it is, press **Test connection**: *the server answers, the model is loaded* is what you want.
 The extension speaks to `/tts` (the full set of parameters: voice, language, exaggeration, CFG weight, temperature, speed, seed) and `GET /api/model-info`, `/get_predefined_voices`, `/get_reference_files`, `/upload_reference`. If a proxy is between you and the server, it has to pass all of these.
 
+## Higgs Audio v3 in ComfyUI
+
+A backend with the speech model **Higgs Audio v3 in ComfyUI** talks to a [ComfyUI](https://github.com/comfyanonymous/ComfyUI) with the nodes of the
+[TTS Audio Suite](https://github.com/diodiogod/TTS-Audio-Suite), not to Chatterbox-TTS-Server. Its address is the one of ComfyUI (for example
+`http://gpu-server:8188`). It was set up on the same AMD R9700 in the `yanwk/comfyui-boot:rocm` image.
+
+1. **Install the suite** into the `custom_nodes` folder of ComfyUI (`git clone https://github.com/diodiogod/TTS-Audio-Suite`). Its Python packages go into the
+   container. To keep them when the container is recreated, give pip a folder on a volume: add `PIP_USER=true` to the environment of the container and mount
+   `./storage/local:/root/.local`.
+2. **Never let pip replace the torch of the image** (a CUDA build would replace the ROCm one). Write the installed versions into a file and install with it as a
+   constraint:
+   ```sh
+   PIP_USER=false python3 -m pip list --format=freeze | grep -iE '^(torch|torchaudio|torchvision|numpy|numba|transformers)==' > /root/.local/keep.txt
+   PIP_CONSTRAINT=/root/.local/keep.txt python3 -m pip install -r requirements.txt
+   PIP_CONSTRAINT=/root/.local/keep.txt python3 -m pip install librosa
+   ```
+   Do not run the suite's `install.py` as a whole: it may reinstall torch. `librosa` is not in its `requirements.txt` and the suite does not load without it.
+3. **The model**: `hf download bosonai/higgs-audio-v3-tts-4b --local-dir <ComfyUI>/models/TTS/higgs_audio_v3/higgs-audio-v3-tts-4b` (about 8 GB), or let the
+   suite download it the first time. It needs about 8 GB of the graphics card.
+4. **Test connection** in the backend says *the server answers* with the model of the node when ComfyUI and the node are there.
+
+What the extension does with it: it uploads the clips of the cast into the input folder of ComfyUI (`POST /upload/image`, under a name made from the clip), lists
+the voices of the suite and the clips with `GET /object_info`, posts a workflow of its own to `/prompt` for every piece, waits on `/history` and fetches the audio
+from `/view`: with ffmpeg on the Marginalia side as flac, which it trims after the last word, fades out and stores as mp3 or wav; without ffmpeg as the mp3 of ComfyUI, untrimmed (wav storage then does not work). **After every piece it calls `POST /free` with
+`{"free_memory": true}`**: on the R9700 the third piece in a row on the loaded model crashed the graphics card (`HSA_STATUS_ERROR_EXCEPTION`, ComfyUI exits);
+emptying the memory between pieces keeps the model loaded and avoids it, for about 3 seconds a piece. ComfyUI is started and stopped around a batch with the
+same kind of requests as the speech server ([the requests](#the-requests)).
+
+The **Fish Audio S2 Pro** engine of the suite did not work on that card: its audio came out as invalid numbers (NaN). The Higgs Audio v3 weights are under a
+research and non-commercial licence.
+
 ## One GPU for the model and the speech
 
 A card that holds the language model has no room for the speech model. The plan is the same for any proxy:
@@ -63,6 +94,9 @@ in front of everything and one key, the lists are:
 | Before 2 | `POST http://litellm:4000/gpu/tts/start` | | | Starts the speech container and answers when the server is ready (about 13 s). |
 | Before 3 (only if the server starts without a model) | `POST http://litellm:4000/gpu/tts/load` | | | Loads the model (8 to 14 s, 50 s the first time it is downloaded). |
 | After 1 | `POST http://litellm:4000/gpu/tts/stop` | | | Stops the container (under a second). |
+
+For a **Higgs** backend *Before 2* is `POST http://litellm:4000/gpu/comfy/start` (it answers when ComfyUI is up, about 15 s; the model is loaded with the first
+piece), there is no *Before 3*, and *After 1* is `POST http://litellm:4000/gpu/comfy/stop`. The two pass-throughs are in the README of `tools/gpu-control`.
 
 The language model comes back by itself: the next ordinary request makes the router load it (about a minute for a big model; with the
 [prompt cache hook](../prompt-cache.md) the cache of your session is restored), so no request after the batch is needed for it.

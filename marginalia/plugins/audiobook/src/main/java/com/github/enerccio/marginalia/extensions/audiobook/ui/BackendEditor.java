@@ -79,6 +79,7 @@ public class BackendEditor extends VerticalLayout {
         model.setItemLabelGenerator(BackendEditor::modelLabel);
         model.setWidth("22em");
         model.setHelperText(T.localized(THE_MODEL_THE_SERVER_IS_ASKED_TO_LOAD));
+        model.addValueChangeListener(e -> showFieldsOf(e.getValue()));
         test.setTooltipText(T.localized(TEST_HELP));
         local.getElement().setProperty("title", T.localized(ALLOWS_ADDRESSES_OF_THE_LOCAL_NETWORK));
         narratorVoice.setWidthFull();
@@ -125,6 +126,15 @@ public class BackendEditor extends VerticalLayout {
         addClassName(AudiobookStyles.SECTION);
     }
 
+    /** Higgs (ComfyUI) has none of the speech server's cfg weight, speed and chunk size, and its address is the one of ComfyUI. */
+    private void showFieldsOf(String chosen) {
+        boolean higgs = BackendConfig.MODEL_HIGGS.equals(chosen);
+        cfgWeight.setVisible(!higgs);
+        speed.setVisible(!higgs);
+        chunkSize.setVisible(!higgs);
+        baseUrl.setHelperText(T.localized(higgs ? COMFYUI_ADDRESS_HELP : BASE_ADDRESS_OF_THE_SPEECH_SERVER));
+    }
+
     /** The first field, for the focus of a dialog. */
     public TextField nameField() {
         return name;
@@ -144,6 +154,7 @@ public class BackendEditor extends VerticalLayout {
         return switch (model) {
             case BackendConfig.MODEL_ORIGINAL -> T.localized(MODEL_ORIGINAL);
             case BackendConfig.MODEL_MULTILINGUAL -> T.localized(MODEL_MULTILINGUAL);
+            case BackendConfig.MODEL_HIGGS -> T.localized(MODEL_HIGGS);
             default -> T.localized(MODEL_TURBO);
         };
     }
