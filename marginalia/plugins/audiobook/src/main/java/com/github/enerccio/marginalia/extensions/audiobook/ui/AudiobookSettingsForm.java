@@ -90,6 +90,14 @@ public class AudiobookSettingsForm extends VerticalLayout {
                 refreshInUse();
             }
         });
+        editor.onRename(() -> {
+            if (current != null) {
+                picker.getListDataView().refreshItem(current);
+                if (inUse.getListDataView().contains(current)) {
+                    inUse.getListDataView().refreshItem(current);
+                }
+            }
+        });
         addButton.setThemeName("tertiary icon");
         addButton.setTooltipText(T.localized(ADD_A_BACKEND));
         deleteButton.setThemeName("tertiary icon");

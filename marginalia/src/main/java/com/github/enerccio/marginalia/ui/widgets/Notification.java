@@ -1,7 +1,7 @@
 package com.github.enerccio.marginalia.ui.widgets;
 
-import com.github.enerccio.marginalia.utils.UiProblems;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
+import com.github.enerccio.marginalia.utils.UiProblems;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.notification.NotificationVariant;
@@ -71,7 +71,8 @@ public class Notification extends com.vaadin.flow.component.notification.Notific
         }
         com.vaadin.flow.component.notification.Notification notification = new com.vaadin.flow.component.notification.Notification();
         notification.addThemeVariants(notificationVariant);
-        notification.setDuration(duration);
+        // an error stays until the user closes it: one that disappears before it is read is no help (the duration of an error is ignored)
+        notification.setDuration(notificationVariant == NotificationVariant.LUMO_ERROR ? DURATION_INFINITE : duration);
         notification.add(getMessage(message, notification, htmlEscape));
         notification.open();
     }

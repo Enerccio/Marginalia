@@ -644,12 +644,13 @@ public class AudiobookService {
                     }
                 }
             } catch (BackendException e) {
+                AudiobookLog.get().warn("Testing the connection failed: {}", e.getMessage(), e);
                 result = null;
-                error = e.getMessage();
+                error = com.github.enerccio.marginalia.extensions.httphooks.Http.describe(e);
             } catch (RuntimeException e) {
                 AudiobookLog.get().warn("Testing the connection failed: {}", e.getMessage(), e);
                 result = null;
-                error = String.valueOf(e.getMessage());
+                error = com.github.enerccio.marginalia.extensions.httphooks.Http.describe(e);
             }
             done.accept(result, error);
         });

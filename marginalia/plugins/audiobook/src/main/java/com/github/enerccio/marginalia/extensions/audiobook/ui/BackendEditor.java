@@ -135,6 +135,19 @@ public class BackendEditor extends VerticalLayout {
         baseUrl.setHelperText(T.localized(higgs ? COMFYUI_ADDRESS_HELP : BASE_ADDRESS_OF_THE_SPEECH_SERVER));
     }
 
+    /**
+     * Calls the listener when the user renames the open backend; the name is already in it. The boxes that list the backends refresh its label
+     * with it (a label is made when the items are set).
+     */
+    public void onRename(Runnable listener) {
+        name.addValueChangeListener(e -> {
+            if (e.isFromClient() && current != null) {
+                current.setName(name.getValue().strip());
+                listener.run();
+            }
+        });
+    }
+
     /** The first field, for the focus of a dialog. */
     public TextField nameField() {
         return name;
@@ -272,7 +285,7 @@ public class BackendEditor extends VerticalLayout {
             if (answer == null) {
                 Notification.error(T.localized(CONNECTION_FAILED).formatted(error));
             } else if (error != null) {
-                Notification.warning(error);
+                Notification.warning(error, Notification.DURATION_INFINITE);
             } else if (answer.modelLoaded()) {
                 Notification.success(ran + T.localized(THE_SERVER_ANSWERS_THE_MODEL_IS_LOADED).formatted(StringUtils.defaultString(answer.model())));
             } else {

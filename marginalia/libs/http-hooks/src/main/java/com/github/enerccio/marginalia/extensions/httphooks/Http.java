@@ -56,7 +56,7 @@ public final class Http {
             if (e instanceof CappedBody.TooBig || e.getCause() instanceof CappedBody.TooBig) {
                 throw new BackendException("The answer of " + request.uri().getHost() + " is too big", e);
             }
-            throw new ServerGoneException("Cannot reach " + request.uri().getHost() + ": " + e.getMessage(), e);
+            throw new ServerGoneException("Cannot reach " + request.uri().getHost() + ": " + describe(e), e);
         }
     }
 
@@ -91,8 +91,25 @@ public final class Http {
             if (cause instanceof CappedBody.TooBig || cause.getCause() instanceof CappedBody.TooBig) {
                 throw new BackendException("The answer of " + request.uri().getHost() + " is too big", e);
             }
-            throw new ServerGoneException("Cannot reach " + request.uri().getHost() + ": " + cause.getMessage(), e);
+            throw new ServerGoneException("Cannot reach " + request.uri().getHost() + ": " + describe(cause), e);
         }
+    }
+
+    /**
+     * What went wrong, for a message: the first message in the chain of causes, else the name of the exception. The client's
+     * {@code ConnectException} (connection refused, no route) has no message of its own, it would read "null".
+     */
+    public static String describe(Throwable error) {
+        for (Throwable t = error; t != null; t = t.getCause() == t ? null : t.getCause()) {
+            if (t.getMessage() != null && !t.getMessage().isBlank()) {
+                return t.getMessage();
+            }
+        }
+        if (error == null) {
+            return "unknown error";
+        }
+        String name = error.getClass().getSimpleName();
+        return "ConnectException".equals(name) ? "connection refused or no route to it (ConnectException)" : name;
     }
 
     /** The answer as text for an error message, cut short. */

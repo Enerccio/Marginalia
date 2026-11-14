@@ -12,6 +12,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **Audiobook: Voices and clips.** One window (Audiobook Settings, next to the actors) for the actors and their reference clips: each clip with its length, a quality mark measured from the clip (*Clean*, *Fair*, *Poor*: background sound, distortion, length) and where it is used; play it, **replace** it everywhere it is used, make a **cleaned copy** with ffmpeg, delete it when unused. A clip that is not clean is reported when it is added, with how to clean it. API (audiobook plugin): `ClipQuality`, `Ffmpeg.cleanVoice`, `AudiobookSettings.usesOf` / `replaceVoice`, `AudiobookService.measureClip` / `cleanClip` / `replaceClip` / `deleteClip`, `VoicesDialog`.
 - **Audiobook: Higgs Audio v3 through ComfyUI as a speech model.** A backend can speak with Higgs Audio v3 in a ComfyUI with the TTS Audio Suite nodes: the delivery the language model gives a line (sad, whispered, sarcastic, pleading...) is voiced, and speech can carry sounds Chatterbox lacks (cry, sob, scream, pant, moan, giggle...). A **Duplicate** button copies a backend (also a shared one) with its keys and requests, for a second model on the same machine. Sounds the narration names around a line (*she giggled*, *burst out laughing*, *a soft moan*, *cried quietly*) are added to it by the program; the narrator always reads plainly. With ffmpeg the breath Higgs adds after the last word of a piece (a "whoosh" before the pause) is cut. The labelling offers the tags of the book's model, and eight new deliveries (fearful, surprised, tender, sarcastic, pleading, desperate, disgusted, aroused). See *Audiobook → Higgs Audio v3* and the speech server page. API (audiobook plugin): `BackendConfig.MODEL_HIGGS`, `HiggsComfyBackend`, `HiggsText`, `SoundCues`, `BreathTrim`, `Tags.forModel` (replaces `Tags.ALLOWED`), `LabelPrompt.system(..., model)`.
 
+### Changed
+
+- **Error notifications stay until they are closed.** They used to disappear after 6 to 10 seconds, often before they were read; success and warning messages still go away by themselves.
+
+### Fixed
+
+- **Audiobook, image generator: "null" as the error of a server that can't be reached.** A refused connection (the server is down or not reachable from Marginalia) showed *Cannot reach host: null*; it now says what failed, and a failed connection test of the audiobook writes its cause to the extension log.
+- **Audiobook: a renamed backend kept its old name in the backend boxes** (the settings and the shared speech servers) until the page was opened again. Its failed connection test stays on the screen until it is closed.
+
 ## [1.8.0] - 2026-11-14
 
 Everything below is new since 1.7.0. Migration `V28`; plugins have to be rebuilt with the application.

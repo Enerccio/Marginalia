@@ -662,7 +662,7 @@ page (`service.find(id)`) and wraps them in a `BackendTableItem` subclass. It al
 | `JobsPanel` (`ui.workspace.parts.admin`) | The *Jobs* tab of `AdminPart`: the log of the jobs that ended, `JobHistoryGrid` (`ui.jobs`): a list filtered by user, kind, status and age (*older than* a number of days) and read page by page (`JobService.search` / `count`), a job opens into its calls (`JobService.calls`), and *delete* removes the jobs the filter matches for good (`JobService.purge`; the log is never cleaned by itself). `JobFormat` formats the times, durations and statuses of both job lists. What runs now is on the page `/jobs`, see [Jobs](services.md). The panel implements `LLMInteract`; it and the two grids are not `@Extendable`. |
 | `ChartJs` | A [Chart.js](https://www.chartjs.org/) chart: `setChartConfig(json)` takes a Chart.js configuration (`type`, `data`, `options`) as JSON and draws it responsively into the element (height 320px, the `chart-js` style). Used by `TokenUsageDialog` (doughnut of the prompt sections, bar chart of the payload messages), opened from *Token Usage* in the part menu of the desktop and phone story editors, and by the statistics windows (`StatisticCharts`). |
 | `TrashGrid` | Deleted objects with a restore button and a button that deletes parts and entries for good, see [Trash](#trash). |
-| `Notification` | `Notification.success(...)` / `error(...)` with Marginalia's durations and variants. |
+| `Notification` | `Notification.success(...)` / `warning(...)` / `error(...)` with Marginalia's durations and variants; an error stays until the user closes it (its duration is ignored). |
 
 ### Trash
 

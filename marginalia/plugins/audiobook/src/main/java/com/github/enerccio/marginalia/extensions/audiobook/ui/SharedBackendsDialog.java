@@ -78,6 +78,11 @@ public class SharedBackendsDialog extends Dialog {
                 show(e.getValue());
             }
         });
+        editor.onRename(() -> {
+            if (current != null) {
+                picker.getListDataView().refreshItem(current);
+            }
+        });
         Button add = new Button(Solid.PLUS.create(), e -> addBackend());
         add.setThemeName("tertiary icon");
         add.setTooltipText(T.localized(ADD_A_BACKEND));
