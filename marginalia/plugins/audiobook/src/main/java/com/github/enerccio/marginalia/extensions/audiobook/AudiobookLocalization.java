@@ -324,6 +324,9 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
 
     public static final String GPU_NAME = "GPU (name)";
     public static final String GPU_NAME_HELP = "Optional. Name the GPU when this server shares it with other servers (an image server, another speech server), and give the same name there: they then wait for each other instead of unloading each other's model. Empty: only requests to this address wait for each other.";
+    public static final String OTHER_SAMPLES = "Other samples: with sounds, in a mood";
+    public static final String READ_PLAINLY = "Read plainly";
+    public static final String WITH_SOUNDS = "With sounds (sigh, laugh, gasp)";
 
     @Override
     protected void loadKeys() {
@@ -2609,5 +2612,29 @@ public class AudiobookLocalization extends PluginLocalizationBundle {
         de(GPU_NAME_HELP, "Optional. Gib der GPU einen Namen, wenn dieser Server sie mit anderen Servern teilt (einem Bildserver, einem anderen Sprachserver), und gib dort denselben Namen an: Sie warten dann aufeinander, statt gegenseitig ihr Modell zu entladen. Leer: Nur Anfragen an diese Adresse warten aufeinander.");
         ko(GPU_NAME_HELP, "선택 사항. 이 서버가 GPU를 다른 서버(이미지 서버, 다른 음성 서버)와 공유할 때 GPU 이름을 지정하고 그쪽에도 같은 이름을 지정하세요: 그러면 서로의 모델을 언로드하는 대신 서로를 기다립니다. 비워 두면 이 주소로의 요청끼리만 서로 기다립니다.");
         it(GPU_NAME_HELP, "Facoltativo. Indica il nome della GPU quando questo server la condivide con altri server (un server di immagini, un altro server vocale), e indica lì lo stesso nome: si aspettano allora a vicenda invece di scaricare il modello l'uno dell'altro. Vuoto: si aspettano solo le richieste a questo indirizzo.");
+
+        ja(OTHER_SAMPLES, "他のサンプル: 効果音付き、感情付き");
+        zh(OTHER_SAMPLES, "其他试听：带声音、带语气");
+        fr(OTHER_SAMPLES, "Autres échantillons : avec des sons, dans une humeur");
+        es(OTHER_SAMPLES, "Otras muestras: con sonidos, con un estado de ánimo");
+        de(OTHER_SAMPLES, "Weitere Hörproben: mit Lauten, in einer Stimmung");
+        ko(OTHER_SAMPLES, "다른 샘플: 소리 포함, 감정 포함");
+        it(OTHER_SAMPLES, "Altri campioni: con suoni, in uno stato d'animo");
+
+        ja(READ_PLAINLY, "普通に読む");
+        zh(READ_PLAINLY, "平实朗读");
+        fr(READ_PLAINLY, "Lecture neutre");
+        es(READ_PLAINLY, "Leer sin más");
+        de(READ_PLAINLY, "Neutral lesen");
+        ko(READ_PLAINLY, "평이하게 읽기");
+        it(READ_PLAINLY, "Lettura neutra");
+
+        ja(WITH_SOUNDS, "効果音付き (ため息、笑い、息をのむ)");
+        zh(WITH_SOUNDS, "带声音（叹气、笑、倒吸气）");
+        fr(WITH_SOUNDS, "Avec des sons (soupir, rire, souffle coupé)");
+        es(WITH_SOUNDS, "Con sonidos (suspiro, risa, jadeo)");
+        de(WITH_SOUNDS, "Mit Lauten (Seufzen, Lachen, Keuchen)");
+        ko(WITH_SOUNDS, "소리 포함 (한숨, 웃음, 헉)");
+        it(WITH_SOUNDS, "Con suoni (sospiro, risata, sussulto)");
     }
 }

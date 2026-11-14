@@ -99,7 +99,9 @@ voice file of the server, with voices of its own for a **mood** (a whisper, a sh
 Japanese). The language wins over the mood, and without a voice for them the voice of the actor reads. Your actors are kept in
 your account; any book can give an actor to its narrator and its characters.
 
-**Preview** next to a voice (in the actor, the settings and the cast) has a short sentence spoken with it (in the language of the voice for a language) and plays it, starting the speech server if the requests before a batch do that. The actors are listed by name.
+**Preview** next to a voice (in the actor, the settings and the cast) has a few sentences spoken with it (a short one in the language of the voice for a language) and plays it, starting the speech server if the requests before a batch do that. The arrow beside it offers other samples: **with sounds** (a sigh, a laugh, a gasp) for the models that voice them (Chatterbox Turbo, Higgs Audio v3), and for Higgs every **mood** of the labelling (sad, whispered, sarcastic...). The actors are listed by name.
+
+While **Voices and clips**, an actor or the cast is open, the speech server stays up for the samples: the requests before a batch run once (when *Voices and clips* opens, or with the first sample in the others), the next samples come at once, and the requests after a batch run when the last of these windows is closed. A window left open for five minutes without a sample gives the server back, and the next sample starts it again.
 
 ![An actor with a voice for a mood](../../images/plugin-audiobook-actor.png)
 

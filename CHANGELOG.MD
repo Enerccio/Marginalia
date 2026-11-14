@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- **Audiobook: samples of a voice come quickly while a voice window is open, and there are more of them.** *Voices and clips* starts the speech server when it opens and stops it when it closes (an actor or the cast with the first sample), so only the first sample waits for the requests around a batch; after five minutes without a sample the server is given back. The sample is longer, and an arrow beside **Preview** offers it with sounds (Chatterbox Turbo, Higgs) or in a mood (Higgs). API (audiobook plugin): `PreviewWarmth`, `AudiobookService.holdForSamples` / `sampleModel` / `preview(voice, language, sounds, mood, done)`, `VoicePreview` is a `Composite` (`holdWhileOpen`).
 - **Error notifications stay until they are closed.** They used to disappear after 6 to 10 seconds, often before they were read; success and warning messages still go away by themselves.
 
 ### Fixed

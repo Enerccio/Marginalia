@@ -39,6 +39,8 @@ public class ActorDialog extends Dialog {
         this.saved = saved;
 
         setHeaderTitle(T.localized(ACTOR));
+        // the speech server stays up for the samples while the window is open, from the first sample
+        VoicePreview.holdWhileOpen(this, service, false);
         setWidth("min(50em, 95vw)");
         setCloseOnOutsideClick(false);
 

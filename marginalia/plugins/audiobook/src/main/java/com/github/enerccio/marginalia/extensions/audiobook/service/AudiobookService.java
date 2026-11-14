@@ -90,6 +90,12 @@ public class AudiobookService {
     public static final int SEED = 42;
 
     private final Map<Long, ConversionQueue> queues = new ConcurrentHashMap<>();
+    /** The speech server kept up for the samples of the windows a user has open, see {@link #holdForSamples}. */
+    private final Map<Long, PreviewWarmth> warmths = new ConcurrentHashMap<>();
+    /** A server kept for samples is given back after this long without one. */
+    static final long SAMPLE_IDLE_MILLIS = 5 * 60 * 1000;
+    private static final long SAMPLE_IDLE_CHECK_SECONDS = 30;
+    private java.util.concurrent.ScheduledExecutorService idleWatch;
     private GenerationTracker tracker;
 
     private final Gson gson = new Gson();
@@ -611,7 +617,11 @@ public class AudiobookService {
 
     /** Runs {@code work} on a thread of its own in the request context of the caller (the services work for the user who asked). */
     private void inBackground(String name, Runnable work) {
-        RequestAttributes scope = ThreadCopyRequestAttributes.create();
+        inScope(ThreadCopyRequestAttributes.create(), name, work);
+    }
+
+    /** Runs the work on a thread of its own in the request scope given (taken earlier from a page). */
+    private static void inScope(RequestAttributes scope, String name, Runnable work) {
         Thread.ofVirtual().name(name).start(() -> {
             try (ThreadCopyRequestAttributes.InRequestScope ignored = new ThreadCopyRequestAttributes.InRequestScope(scope)) {
                 work.run();
@@ -665,28 +675,77 @@ public class AudiobookService {
             "he", "שלום, אני הקול של הספר הזה. ככה אני מדבר.",
             "ar", "مرحبًا، أنا صوت هذا الكتاب. هكذا أتحدث.",
             "hi", "नमस्ते, मैं इस किताब की आवाज़ हूँ। मैं ऐसे बोलता हूँ।");
-    private static final String SAMPLE = "Hello, I am a voice of this book. This is how I sound when I read to you.";
+    /** The sample of the language of the book: long enough to hear the voice settle, with a question and a pause. */
+    static final String SAMPLE = "Hello, I am a voice of this book. This is how I sound when I read to you: the quiet parts, the questions, and the "
+            + "moments when something unexpected happens. Shall we begin? The story is waiting, and I would very much like to hear how it ends.";
+    /** The sample with sounds: the tags are voiced by the models that can ({@link Tags#forModel}), left out for the others. */
+    static final String SAMPLE_WITH_SOUNDS = "[sigh] What a long day it has been. And then she told me the whole story, from the very beginning, and I "
+            + "simply could not keep a straight face. [laugh] Can you believe it? [gasp] Wait... did you hear that? [chuckle] Never mind. It was only the wind.";
+    /** How strongly a mood of a sample is voiced (Higgs): strong enough to be heard. */
+    static final double SAMPLE_MOOD_INTENSITY = 0.8;
 
     /**
-     * Speaks a short sentence with a voice so the user can hear it before using it (the requests around a batch start and stop the server, so it
-     * takes a while when the server is stopped). A voice for a language speaks a sentence in it, with the multilingual backend when there is one.
+     * What a sample says.
+     *
+     * @param model  the speech model of the backend
+     * @param code   the language of a voice of another language (its own short sentence, read plainly), null for the language of the book
+     * @param sounds with sounds (laugh, sigh, gasp, chuckle) where the model voices them
+     * @param mood   how it is said (Higgs Audio v3 only), null or neutral for plainly
+     */
+    static String sampleText(String model, String code, boolean sounds, Delivery mood) {
+        if (code != null) {
+            return SAMPLES.getOrDefault(code, SAMPLE);
+        }
+        String text = sounds ? SAMPLE_WITH_SOUNDS : SAMPLE;
+        if (BackendConfig.MODEL_HIGGS.equals(model)) {
+            return HiggsText.render(text, true, mood == null ? Delivery.NEUTRAL : mood, SAMPLE_MOOD_INTENSITY);
+        }
+        return Tags.forModel(model).isEmpty() ? Tags.strip(text) : text;
+    }
+
+    /** The backend a sample of a voice of the language is made with: the multilingual one for another language when there is one, else the selected one. */
+    private BackendConfig sampleBackend(String language) {
+        BackendConfig multilingual = language == null ? null : backendForModel(BackendConfig.MODEL_MULTILINGUAL);
+        return multilingual != null ? multilingual : selectedBackend();
+    }
+
+    /** The speech model a sample of a voice of the language is made with (what the choices of the sample depend on), null without a backend. */
+    public String sampleModel(String language) {
+        BackendConfig backend = sampleBackend(language);
+        return backend == null ? null : backend.getModel();
+    }
+
+    /** {@link #preview(String, String, boolean, Delivery, BiConsumer)} read plainly. */
+    public void preview(String voice, String language, BiConsumer<byte[], String> done) {
+        preview(voice, language, false, null, done);
+    }
+
+    /**
+     * Speaks a sample with a voice so the user can hear it before using it. The requests around a batch start and stop the server, so it takes a
+     * while when the server is stopped, unless a window keeps it up ({@link #holdForSamples}). A voice for a language speaks a sentence in it, with
+     * the multilingual backend when there is one.
      *
      * @param voice    {@code clip:<uuid>} or {@code predefined:<file>}
      * @param language the code, null for the language of the book
+     * @param sounds   the sample with sounds the model can voice
+     * @param mood     how it is said (Higgs Audio v3), null for plainly
      * @param done     called from a thread of its own with the mp3, or with the message of what failed
      */
-    public void preview(String voice, String language, BiConsumer<byte[], String> done) {
+    public void preview(String voice, String language, boolean sounds, Delivery mood, BiConsumer<byte[], String> done) {
+        PreviewWarmth warmth = warmths.get(currentUserId());
         inBackground("audiobook-preview", () -> {
             try {
-                BackendConfig multilingual = language == null ? null : backendForModel(BackendConfig.MODEL_MULTILINGUAL);
-                BackendConfig backend = multilingual != null ? multilingual : selectedBackend();
-                String code = multilingual != null ? language : null;
+                BackendConfig backend = sampleBackend(language);
+                String code = backend != null && language != null && BackendConfig.MODEL_MULTILINGUAL.equals(backend.getModel()) ? language : null;
                 if (backend == null) {
                     done.accept(null, T.localized(NO_BACKEND_YET));
                     return;
                 }
                 VoiceRef ref = VoiceRef.parse(voice);
-                String sentence = code == null ? SAMPLE : SAMPLES.getOrDefault(code, SAMPLE);
+                String sentence = sampleText(backend.getModel(), code, sounds, mood);
+                if (warmth != null) {
+                    warmth.ensure(backend);
+                }
                 ClipVoices clips = new ClipVoices(resourceService);
                 byte[] audio = runBatch(backend, null, speaker -> {
                     Voices.Resolved resolved = clips.resolve(speaker, ref);
@@ -704,6 +763,60 @@ public class AudiobookService {
         });
     }
 
+    /**
+     * Keeps the speech server up for the samples while a window is open ({@link PreviewWarmth}): the first sample (or the opening, with
+     * {@code warmUp}) runs the requests before a batch, the next ones are made at once, and the requests after it run when the returned action is
+     * called (the window closes) or after {@link #SAMPLE_IDLE_MILLIS} without a sample. Call from the page (it reads the user); the returned action
+     * may be called more than once and from any thread.
+     *
+     * @param warmUp start the server of the selected backend at once, not with the first sample
+     */
+    public Runnable holdForSamples(boolean warmUp) {
+        Long userId = currentUserId();
+        PreviewWarmth warmth = warmths.computeIfAbsent(userId, id -> new PreviewWarmth(c -> before(c), c -> after(c), SAMPLE_IDLE_MILLIS,
+                System::currentTimeMillis));
+        warmth.open();
+        RequestAttributes scope = ThreadCopyRequestAttributes.create();
+        watchIdle(warmth, scope);
+        if (warmUp) {
+            inScope(scope, "audiobook-warm-up", () -> {
+                try {
+                    warmth.ensure(selectedBackend());
+                } catch (BackendException | RuntimeException e) {
+                    AudiobookLog.get().warn("The speech server could not be started for the samples: {}", e.getMessage());
+                }
+            });
+        }
+        java.util.concurrent.atomic.AtomicBoolean closed = new java.util.concurrent.atomic.AtomicBoolean();
+        return () -> {
+            if (closed.compareAndSet(false, true)) {
+                inScope(scope, "audiobook-warm-end", warmth::close);
+            }
+        };
+    }
+
+    /** Gives a held server back once no sample came for a while; the watch ends when no window is open. */
+    private synchronized void watchIdle(PreviewWarmth warmth, RequestAttributes scope) {
+        if (idleWatch == null) {
+            idleWatch = Executors.newSingleThreadScheduledExecutor(r -> {
+                Thread thread = new Thread(r, "audiobook-sample-idle");
+                thread.setDaemon(true);
+                return thread;
+            });
+        }
+        java.util.concurrent.atomic.AtomicReference<java.util.concurrent.ScheduledFuture<?>> self = new java.util.concurrent.atomic.AtomicReference<>();
+        self.set(idleWatch.scheduleWithFixedDelay(() -> {
+            try (ThreadCopyRequestAttributes.InRequestScope ignored = new ThreadCopyRequestAttributes.InRequestScope(scope)) {
+                warmth.releaseIfIdle();
+                if (!warmth.inUse() && self.get() != null) {
+                    self.get().cancel(false);
+                }
+            } catch (RuntimeException e) {
+                AudiobookLog.get().warn("Giving the speech server back after the samples failed: {}", e.getMessage(), e);
+            }
+        }, SAMPLE_IDLE_CHECK_SECONDS, SAMPLE_IDLE_CHECK_SECONDS, java.util.concurrent.TimeUnit.SECONDS));
+    }
+
     // --- the conversion ---
 
     /** Starts watching the generations (see {@link GenerationTracker}); called when the extension loads. */
@@ -717,6 +830,17 @@ public class AudiobookService {
     public synchronized void shutdown() {
         queues.values().forEach(ConversionQueue::close);
         queues.clear();
+        if (idleWatch != null) {
+            idleWatch.shutdownNow();
+            idleWatch = null;
+        }
+        // a server kept up for samples is given back (its requests after a batch run), not left on the GPU
+        for (PreviewWarmth warmth : warmths.values()) {
+            while (warmth.inUse()) {
+                warmth.close();
+            }
+        }
+        warmths.clear();
         if (tracker != null) {
             tracker.close();
             tracker = null;

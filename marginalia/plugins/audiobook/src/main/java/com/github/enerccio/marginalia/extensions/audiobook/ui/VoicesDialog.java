@@ -62,6 +62,8 @@ public class VoicesDialog extends Dialog {
         this.actorsChanged = actorsChanged;
         this.voiceReplaced = voiceReplaced;
         setHeaderTitle(T.localized(VOICES_AND_CLIPS));
+        // the speech server stays up for the samples while the window is open, started when it opens
+        VoicePreview.holdWhileOpen(this, service, true);
         setWidth("min(70em, 96vw)");
         setCloseOnOutsideClick(false);
 
