@@ -12,6 +12,7 @@ chunk of a page, so it runs on a Claude Code login (or an API key) with nothing 
   python3 tools/manual_i18n.py assemble --lang de --out build/i18n/de/manual   English tree + the translated pages over it
   python3 tools/manual_i18n.py override --lang de            the JSON for `retype build --override` of that language
   python3 tools/manual_i18n.py languages                     the languages that have translated pages, one per line
+  python3 tools/manual_i18n.py verify --lang de              the pages that changed code, links or tags of the English page (--list: paths only)
   python3 tools/manual_i18n.py glossary --lang de [page.md]  the UI labels the translator is told to use (from LocalizationBundle*)
 
 Where things live
@@ -34,6 +35,7 @@ How a page is translated
 Chinese has no bundle in the application (it is the plugin `chineselocalization`), so it is translated without a glossary.
 """
 import argparse
+import collections
 import concurrent.futures
 import datetime
 import fnmatch
@@ -242,6 +244,104 @@ def front_matter_keys(text):
     return sorted(re.findall(r'^([A-Za-z_]+):', fm, flags=re.M))
 
 
+# ------------------------------------------------------------------------------------------------ what stays as it is
+
+# The model never sees what must not change: it is replaced by placeholders before the request and the original text is put back in the
+# answer, so no translator can change a macro, a command, a path, a link or a tag. ⟦B3⟧ is a whole code block (alone on its line, with the
+# indentation of its opening fence), ⟦C7⟧ a piece of inline `code`, ⟦L2⟧ the target of a link or an image (`[text](⟦L2⟧)`: the text is
+# translated), ⟦U1⟧ a URL in the text and ⟦H4⟧ an HTML tag or comment.
+KINDS = 'BCLUH'
+PLACEHOLDER = re.compile(r'⟦([BCLUH])(\d+)⟧')
+_BLOCK_LINE = re.compile(r'^\s*⟦B(\d+)⟧\s*$')
+_INLINE_CODE = re.compile(r'(?<!`)(`+)(?!`)(.+?)(?<!`)\1(?!`)', re.S)
+_LINK_TARGET = re.compile(r'(\]\()([^)\s]+)')
+_HTML = re.compile(r'<!--.*?-->|</?[A-Za-z][^<>\n]*>')
+_URL = re.compile(r'https?://[^\s)>\]"\'`⟦⟧]+')
+
+
+def mask_code(text):
+    """Returns (masked text, store); the store has a list of the original texts for each kind of placeholder (a block with its fence lines, an
+    inline span with its backticks, the target of a link without the parentheses, a URL, a tag)."""
+    store = {k: [] for k in KINDS}
+
+    def put(kind, original):
+        store[kind].append(original)
+        return '⟦%s%d⟧' % (kind, len(store[kind]) - 1)
+
+    def mask_line(line):
+        line = _INLINE_CODE.sub(lambda m: put('C', m.group(0)), line)
+        line = _LINK_TARGET.sub(lambda m: m.group(1) + put('L', m.group(2)), line)
+        line = _HTML.sub(lambda m: put('H', m.group(0)), line)
+        return _URL.sub(lambda m: put('U', m.group(0)), line)
+
+    def dangling(piece):
+        return '`' in _INLINE_CODE.sub('', piece)
+
+    lines = text.split('\n')
+    out, fence, cur = [], None, []
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        i += 1
+        m = FENCE.match(line)
+        if fence is None:
+            if m:
+                fence, cur = m.group(1), [line]
+                continue
+            # an inline code span can run over the end of the line (CommonMark): the next lines of the paragraph are joined while
+            # that closes it, otherwise the backticks would pair up wrongly
+            if dangling(line):
+                for k in range(1, 5):
+                    if i - 1 + k >= len(lines) or not lines[i - 1 + k].strip() or FENCE.match(lines[i - 1 + k]):
+                        break
+                    candidate = '\n'.join(lines[i - 1:i + k])
+                    if not dangling(candidate):
+                        line, i = candidate, i + k
+                        break
+            out.append(mask_line(line))
+            continue
+        cur.append(line)
+        if m and m.group(1) == fence:
+            out.append(re.match(r'\s*', cur[0]).group(0) + put('B', '\n'.join(cur)))
+            fence, cur = None, []
+    out.extend(cur)     # a fence that is never closed stays as it is: the number of fences then differs and the chunk is rejected
+    return '\n'.join(out), store
+
+
+def unmask_code(text, store):
+    lines = []
+    for line in text.split('\n'):
+        m = _BLOCK_LINE.match(line)
+        lines.append(store['B'][int(m.group(1))] if m and int(m.group(1)) < len(store['B']) else line)
+    return PLACEHOLDER.sub(lambda m: store[m.group(1)][int(m.group(2))] if int(m.group(2)) < len(store[m.group(1)]) else m.group(0),
+                           '\n'.join(lines))
+
+
+def validate_placeholders(store, out):
+    """Every placeholder of the request is in the answer exactly once, the blocks alone on their line. (An inline one may move in its sentence:
+    the word order of the language can need it.)"""
+    problems = []
+    want = collections.Counter((k, i) for k in KINDS for i in range(len(store[k])))
+    got = collections.Counter((k, int(n)) for k, n in PLACEHOLDER.findall(out))
+    name = lambda key: '⟦%s%d⟧' % key
+    missing = sorted(want - got)
+    extra = sorted(got - want)
+    if missing:
+        problems.append('placeholders missing or written differently (copy each one exactly, without spaces inside the brackets): %s' % ' '.join(name(k) for k in missing[:8]))
+    if extra:
+        problems.append('placeholders that are not in the text or are written twice: %s' % ' '.join(name(k) for k in extra[:8]))
+    alone = sum(1 for line in out.split('\n') if _BLOCK_LINE.match(line))
+    if not missing and not extra and alone != len(store['B']):
+        problems.append('a code block placeholder ⟦B<n>⟧ must be alone on its line')
+    return problems
+
+
+def code_of(text):
+    """What of a page must not change, as a Counter of (kind, original text): what `verify` looks for in a translation."""
+    _masked, store = mask_code(text)
+    return collections.Counter((k, t) for k in KINDS for t in store[k])
+
+
 def validate_chunk(lang, src, out):
     problems = []
     if not out.strip():
@@ -330,10 +430,14 @@ Answer with the translated Markdown only: no comment, no preface, no code fence 
 
 Rules:
 1. Keep the structure exactly: the same headings (same levels, same number), paragraphs, list items and nesting, tables (same columns and rows), block quotes, \
-admonitions (`!!!`), blank lines, bold and italic marks, and the same number of fenced code blocks.
-2. Never translate or change: code blocks and inline `code`, Handlebars/macro text such as `{{{{char}}}}`, file names and paths, URLs, the target of a link \
+admonitions (`!!!`), blank lines, bold and italic marks, and the same placeholders for the code blocks.
+2. Never translate or change: Handlebars/macro text outside code, file names and paths, URLs, the target of a link \
 `[text](target)` and of an image `![alt](target)` (character for character, anchors included: `#branching-from-an-earlier-part` stays English even though the heading it points to is translated), HTML tags and attributes, keyboard keys (Ctrl, Enter, Esc...), \
 numbers, and the names Marginalia, SillyTavern, Handlebars, Docker, Jetty, Vaadin, OpenAI, Anthropic, Claude, Gemini, LiteLLM, llama.cpp and other product names.
+   What must not change has been taken out of the text and replaced by placeholders: ⟦B<n>⟧ is a whole code block (it is alone on its line), ⟦C<n>⟧ a piece of \
+inline code (a command, a macro, a path, a name), ⟦L<n>⟧ the target of a link or an image (`[text](⟦L2⟧)`: translate the text, keep the placeholder), ⟦U<n>⟧ a URL and ⟦H<n>⟧ an HTML \
+tag. Copy every placeholder exactly as it is, once, with no space added inside the brackets and nothing translated or explained; they are replaced by the \
+original text afterwards. A placeholder inside a sentence may move when the grammar of {name} needs it.
 3. Translate the text of links and the alt text of images, the cells of tables, and the text of headings.
 4. Front matter (the block between two `---` lines at the start): translate only the value of `label:` (and `title:` if there is one); keep every other line.
 5. The names of buttons, menu items, tabs and fields of the application are written in bold (or italic) in the manual. When the glossary below gives the text \
@@ -386,20 +490,24 @@ def add_usage(total, usage):
 
 
 def translate_chunk(lang, chunk, args):
-    system = system_prompt(lang, chunk)
-    request = chunk
+    masked, store = mask_code(chunk)
+    system = system_prompt(lang, masked)
+    request = masked
     problems = []
     usage = {}
     for attempt in range(args.retries + 1):
         out, used = call_claude(system, request, args.model, args.effort, args.timeout)
         add_usage(usage, used)     # the retries count too
-        out = repair_links(chunk, out)
-        problems = validate_chunk(lang, chunk, out)
+        problems = validate_placeholders(store, out)
+        if not problems:
+            # the code of the source is put back, character for character
+            out = repair_links(chunk, unmask_code(out, store))
+            problems = validate_chunk(lang, chunk, out)
         if not problems:
             return out, usage
         print('  retry (attempt %d): %s' % (attempt + 1, '; '.join(problems)[:600]), flush=True)
         request = ('%s\n\n---\nYour previous translation of the text above was rejected: %s\nTranslate the text above again, '
-                   'fixing this; the answer is the translation only.' % (chunk, '; '.join(problems)))
+                   'fixing this; the answer is the translation only.' % (masked, '; '.join(problems)))
     raise RuntimeError('chunk failed validation: ' + '; '.join(problems))
 
 
@@ -560,6 +668,29 @@ def cmd_override(args):
     return 0
 
 
+def cmd_verify(args):
+    """Pages of a translation that lost or changed something that must not change: a code block, inline code, the target of a link, a URL or a
+    tag of the English page (what `translate` takes out of the text before the request and puts back, see mask_code). What a translation has
+    more (the `<a id>` anchor lines) is not looked at."""
+    bad = []
+    for p in selected_pages(args):
+        tp = os.path.join(TRANSLATIONS, args.lang, p)
+        if not os.path.isfile(tp):
+            continue
+        lost = code_of(read(os.path.join(MANUAL, p))) - code_of(read(tp))
+        if lost:
+            bad.append(p)
+            if not args.list:
+                kinds = collections.Counter(k for k, _t in lost.elements())
+                sample = ', '.join('%s %s' % (k, t.replace('\n', ' ')[:40]) for (k, t) in list(lost)[:3])
+                print('%s: %d lost (%s), e.g. %s' % (p, sum(lost.values()), ' '.join('%s%d' % kv for kv in sorted(kinds.items())), sample))
+    if args.list:
+        print('\n'.join(bad))
+    else:
+        print('%s: %d of the pages changed what must not change' % (args.lang, len(bad)), file=sys.stderr)
+    return 1 if bad else 0
+
+
 def cmd_languages(args):
     """The languages that have translated pages: each gets its own site (docs/<lang>), see override."""
     for lang in translated_languages():
@@ -603,6 +734,7 @@ def main():
     p.set_defaults(fn=cmd_assemble)
     p = sub.add_parser('override'); lang_arg(p); p.set_defaults(fn=cmd_override)
     p = sub.add_parser('languages'); p.set_defaults(fn=cmd_languages)
+    p = sub.add_parser('verify'); lang_arg(p); p.add_argument('--only', action='append'); p.add_argument('--list', action='store_true', help='only the paths of the pages, for --only of translate'); p.set_defaults(fn=cmd_verify)
     p = sub.add_parser('glossary'); lang_arg(p); p.add_argument('page', nargs='?'); p.set_defaults(fn=cmd_glossary)
     args = ap.parse_args()
     sys.exit(args.fn(args))

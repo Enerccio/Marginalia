@@ -22,6 +22,7 @@ python3 tools/manual_i18n.py translate --lang de --only user/books/prompts --lim
 python3 tools/manual_i18n.py usage --lang de                  # tokens and cost per translated page (build/i18n-usage/, not tracked)
 python3 tools/manual_i18n.py glossary --lang de user/books/prompts.md   # the UI labels the model is told to use
 python3 tools/manual_i18n.py assemble --lang de --out build/i18n/de/manual
+python3 tools/manual_i18n.py verify --lang de                 # pages that changed code, link targets, URLs or tags of the English page (--list: the paths only)
 ```
 
 ## What is stored
@@ -34,6 +35,12 @@ that was finished. Commit the translations; they are the source of the translate
 ## How a page is translated
 
 - A page is split at `## ` headings (outside code fences) into chunks of up to `--chunk-words` (1500) words, the biggest pages have 14000.
+- **What must not change never reaches the model.** Before the request the code blocks (` ``` ` and `~~~`), the inline `code`, the targets of links
+  and images, the URLs and the HTML tags are replaced by placeholders (`⟦B3⟧` a whole block alone on its line, `⟦C7⟧` inline code, `⟦L2⟧` a link target,
+  `⟦U1⟧` a URL, `⟦H4⟧` a tag) and put back, character for character, in the answer, so no translator can change a macro, a command, a path or a
+  link; the text of links, the headings and the prose are translated, the text inside a code block is not (a comment in a snippet, the labels of a
+  diagram and an example paragraph stay English). An answer that loses, repeats or alters a placeholder is rejected and asked again with the
+  placeholders named (an inline one may move in its sentence: the word order of a language can need it).
 - The system prompt holds the rules (keep the structure, never translate code, link targets, macros, keys and product names,
   only the `label:` of the front matter) and a **glossary**: the labels of `LocalizationBundleEN` that the chunk shows in bold,
   italic or code, with their text from the bundle of that language, so the manual says what the screen says. A label that is
@@ -42,6 +49,10 @@ that was finished. Commit the translations; they are the source of the translate
   a plausible length). A chunk that fails is asked again with the problems named (`--retries`, 2); a page with a failed chunk is not written and the run
   exits with 1.
 - A heading whose id changes with its translation gets an `<a id="english-id"></a>` line before it, so `page.md#english-id` links of other pages work.
+
+`verify --lang de` is the same rule applied to the pages that are there: it lists those that lost or changed something of the English page (what a
+translation has more, the `<a id>` lines, is not looked at), `--list` prints their paths for `translate --force --only`. `ManualLanguageTest` checks the
+code blocks and the inline code of every page in every language, so a translation that changes them fails the build.
 
 ## The site
 
