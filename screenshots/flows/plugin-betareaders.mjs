@@ -38,7 +38,7 @@ async function install(page) {
     console.log('  already installed beta-readers');
     return;
   }
-  const jar = path.join(repo, 'marginalia/plugins/beta-readers/target/beta-readers-1.8.0.jar');
+  const jar = path.join(repo, 'marginalia/plugins/beta-readers/target/beta-readers-1.9.0.jar');
   if (!fs.existsSync(jar)) throw new Error('not built: ' + jar);
   await page.locator('vaadin-upload input[type=file]').setInputFiles(jar);
   await idle(page, 4000);

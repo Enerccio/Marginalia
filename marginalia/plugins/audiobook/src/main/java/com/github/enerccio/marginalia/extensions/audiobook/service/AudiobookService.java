@@ -1060,8 +1060,9 @@ public class AudiobookService {
             if (state == AudioState.OLDER_THAN_THE_SCRIPT) {
                 return AudiobookExporter.PartAudio.missing(T.localized(AUDIO_OLDER_THAN_THE_SCRIPT));
             }
-            byte[] bytes = new ResourceAudioStore(resourceService, chatMessageService).partBytes(partUuid);
-            return bytes == null ? AudiobookExporter.PartAudio.missing(T.localized(NO_AUDIO)) : AudiobookExporter.PartAudio.of(bytes);
+            // the file of the part is read by the export where it is, it is never loaded here
+            java.io.File file = new ResourceAudioStore(resourceService, chatMessageService).partFile(partUuid);
+            return file == null || !file.isFile() ? AudiobookExporter.PartAudio.missing(T.localized(NO_AUDIO)) : AudiobookExporter.PartAudio.of(file.toPath());
         } catch (Exception e) {
             AudiobookLog.get().warn("The audio of a part could not be read for the export: {}", e.getMessage(), e);
             return AudiobookExporter.PartAudio.missing(String.valueOf(e.getMessage()));

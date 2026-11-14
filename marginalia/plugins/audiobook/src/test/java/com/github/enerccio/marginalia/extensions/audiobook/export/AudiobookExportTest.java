@@ -47,8 +47,8 @@ class AudiobookExportTest {
     void theZipHasATaggedFileForEveryChapterAndAPlaylist() throws Exception {
         byte[] tone = tone();
 
-        Map<String, byte[]> files = unzip(AudiobookFiles.zip(
-                List.of(new AudiobookFiles.Chapter("The Arch", tone), new AudiobookFiles.Chapter("Who/What?", tone)), "The Book", "An Author"));
+        Map<String, byte[]> files = unzip(AudiobookFilesFixture.zip(
+                List.of(AudiobookFilesFixture.chapter("The Arch", tone), AudiobookFilesFixture.chapter("Who/What?", tone)), "The Book", "An Author"));
 
         assertEquals(List.of("01 - The Arch.mp3", "02 - Who_What_.mp3", "playlist.m3u8"), new ArrayList<>(files.keySet()));
         byte[] first = files.get("01 - The Arch.mp3");
@@ -67,10 +67,10 @@ class AudiobookExportTest {
         byte[] tone = tone();
         List<AudiobookFiles.Chapter> many = new ArrayList<>();
         for (int i = 0; i < 100; i++) {
-            many.add(new AudiobookFiles.Chapter("C" + i, tone));
+            many.add(AudiobookFilesFixture.chapter("C" + i, tone));
         }
 
-        Map<String, byte[]> files = unzip(AudiobookFiles.zip(many, "B", "A"));
+        Map<String, byte[]> files = unzip(AudiobookFilesFixture.zip(many, "B", "A"));
 
         assertTrue(files.containsKey("001 - C0.mp3"));
         assertTrue(files.containsKey("100 - C99.mp3"));
@@ -81,7 +81,7 @@ class AudiobookExportTest {
         byte[] tone = tone();
         double length = Mp3Joiner.seconds(tone);
 
-        byte[] file = AudiobookFiles.oneFile(List.of(new AudiobookFiles.Chapter("One", tone), new AudiobookFiles.Chapter("Two", tone)), "The Book", "A");
+        byte[] file = AudiobookFilesFixture.oneFile(List.of(AudiobookFilesFixture.chapter("One", tone), AudiobookFilesFixture.chapter("Two", tone)), "The Book", "A");
 
         int tagSize = (file[6] & 0x7f) << 21 | (file[7] & 0x7f) << 14 | (file[8] & 0x7f) << 7 | (file[9] & 0x7f);
         byte[] tag = java.util.Arrays.copyOf(file, 10 + tagSize);
@@ -109,7 +109,7 @@ class AudiobookExportTest {
 
     @Test
     void aPartWithoutUpToDateAudioIsLeftOutAndSaidSo() throws Exception {
-        byte[] tone = tone();
+        java.nio.file.Path tone = AudiobookFilesFixture.file(tone());
         List<ChatMessage> parts = List.of(part("# One\n\ntext"), part("# Two\n\ntext"), part("three"));
         List<Integer> ticks = new ArrayList<>();
 

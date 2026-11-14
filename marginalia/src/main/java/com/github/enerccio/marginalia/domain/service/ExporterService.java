@@ -8,6 +8,8 @@ import com.github.enerccio.marginalia.domain.templates.TemplateData;
 import com.github.enerccio.marginalia.ui.dialogs.ProgressBarDialog;
 import org.apache.commons.lang3.StringUtils;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -54,11 +56,36 @@ public interface ExporterService {
         String getMimeType();
 
         /**
+         * Writes the exported file. The export dialog calls this one: the file is a temporary file the download is served from, so an export
+         * never has to be held in memory. An exporter implements this method or {@link #export(ExportOptions, List, ProgressBarDialog)}
+         * (the default of each calls the other); a large export should implement this one and write into the file as it goes.
+         *
+         * @param chatMessages messages to export in the story order
+         * @param progress     dialog to report finished messages to with {@link ProgressBarDialog#updateProgress()}
+         * @param target       file to write the export into (it exists and is empty; the exporter may also replace it, by a move or by a
+         *                     program that writes it); leaving it empty is a valid result when the exporter ended the progress dialog itself
+         */
+        default void exportTo(ExportOptions options, List<ChatMessage> chatMessages, ProgressBarDialog progress, Path target) throws Exception {
+            Files.write(target, export(options, chatMessages, progress));
+        }
+
+        /**
+         * The exported file in memory, for an exporter whose files are always small, and for the callers that want the bytes (the default
+         * writes {@link #exportTo} into a temporary file and reads it).
+         *
          * @param chatMessages messages to export in the story order
          * @param progress     dialog to report finished messages to with {@link ProgressBarDialog#updateProgress()}
          * @return content of the exported file
          */
-        byte[] export(ExportOptions options, List<ChatMessage> chatMessages, ProgressBarDialog progress) throws Exception;
+        default byte[] export(ExportOptions options, List<ChatMessage> chatMessages, ProgressBarDialog progress) throws Exception {
+            Path file = Files.createTempFile("marginalia-export-", "." + getFileExtension());
+            try {
+                exportTo(options, chatMessages, progress, file);
+                return Files.readAllBytes(file);
+            } finally {
+                Files.deleteIfExists(file);
+            }
+        }
 
         /**
          * @return whether the exporter looks at {@link ExportOptions#style()} (a format that has fonts, sizes and colors: HTML, EPUB, PDF,

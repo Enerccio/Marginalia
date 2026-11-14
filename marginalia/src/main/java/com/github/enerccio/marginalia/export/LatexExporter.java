@@ -3,7 +3,8 @@ package com.github.enerccio.marginalia.export;
 import com.github.enerccio.marginalia.domain.service.ExporterService.ExportOptions;
 import org.apache.commons.lang3.StringUtils;
 
-import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.regex.Pattern;
@@ -44,8 +45,8 @@ public class LatexExporter extends ExporterBase {
     }
 
     @Override
-    protected ExportWriter open(ExportOptions options) {
-        return new LatexWriter(options);
+    protected ExportWriter open(ExportOptions options, OutputStream out) {
+        return new LatexWriter(options, out);
     }
 
     /**
@@ -287,12 +288,17 @@ public class LatexExporter extends ExporterBase {
     private static class LatexWriter implements ExportWriter {
         private final ExportOptions options;
         private final List<Piece> pieces = new ArrayList<>();
-        private final Map<String, byte[]> images = new LinkedHashMap<>();
+        // the images go into the zip as they come, the text at the end
+        private final ZipOutputStream zip;
+        private final String book;
+        private int images;
         private String titlePage;
         private boolean contents;
 
-        private LatexWriter(ExportOptions options) {
+        private LatexWriter(ExportOptions options, OutputStream out) {
             this.options = options;
+            this.zip = new ZipOutputStream(out, StandardCharsets.UTF_8);
+            this.book = folderName(options.bookName());
         }
 
         @Override
@@ -323,10 +329,13 @@ public class LatexExporter extends ExporterBase {
         }
 
         @Override
-        public void images(List<ExportImage> images) {
+        public void images(List<ExportImage> images) throws IOException {
             for (ExportImage image : images) {
-                String file = "image-" + (this.images.size() + 1) + "." + image.extension();
-                this.images.put("images/" + file, image.data());
+                this.images++;
+                String file = "image-" + this.images + "." + image.extension();
+                zip.putNextEntry(new ZipEntry(book + "/images/" + file));
+                zip.write(image.data());
+                zip.closeEntry();
                 StringBuilder figure = new StringBuilder("\\begin{figure}[htbp]\n\\centering\n\\includegraphics[");
                 // the width is a part of the width of the text, the images are never wider than it
                 figure.append("width=").append(width(image)).append("\\textwidth,keepaspectratio]{images/").append(file).append("}\n");
@@ -342,21 +351,12 @@ public class LatexExporter extends ExporterBase {
         }
 
         @Override
-        public byte[] finish() throws Exception {
-            String book = folderName(options.bookName());
-            Map<String, byte[]> files = new LinkedHashMap<>();
-            files.put("main.tex", main().getBytes(StandardCharsets.UTF_8));
-            files.putAll(images);
-
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
-            try (ZipOutputStream zip = new ZipOutputStream(out, StandardCharsets.UTF_8)) {
-                for (Map.Entry<String, byte[]> file : files.entrySet()) {
-                    zip.putNextEntry(new ZipEntry(book + "/" + file.getKey()));
-                    zip.write(file.getValue());
-                    zip.closeEntry();
-                }
-            }
-            return out.toByteArray();
+        public void finish() throws Exception {
+            zip.putNextEntry(new ZipEntry(book + "/main.tex"));
+            zip.write(main().getBytes(StandardCharsets.UTF_8));
+            zip.closeEntry();
+            // the stream itself is closed by the exporter
+            zip.finish();
         }
 
         private static boolean hasCjk(List<Piece> pieces, String titlePage) {
