@@ -361,6 +361,11 @@ public class StatisticsView extends VerticalLayout {
         VerticalLayout layout = new VerticalLayout(showDeleted, booksGrid);
         layout.setPadding(false);
         layout.setSpacing(false);
+        if (!compact) {
+            // the grid is 100% high: the layout must fill the tab, the grid takes what the check box leaves
+            layout.setHeightFull();
+            layout.expand(booksGrid);
+        }
         return layout;
     }
 
