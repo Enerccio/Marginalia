@@ -40,6 +40,6 @@ public class ImageGeneratorDefaultsJA extends ImageGeneratorDefaults {
 
     @Override
     public String styleHeader() {
-        return "絵のスタイルはプロンプトに自動で追加されます。別の画材やスタイルを描写しないでください";
+        return "絵はこのスタイルで作られます。プロンプトはこのスタイルから書き始め、すべてのフレーズや文をこれに合わせてください。スタイルが写真でない限り、写真やカメラの用語 (photo、cinematic、レンズ、被写界深度) は使わず、別の画材も描写しないこと";
     }
 }

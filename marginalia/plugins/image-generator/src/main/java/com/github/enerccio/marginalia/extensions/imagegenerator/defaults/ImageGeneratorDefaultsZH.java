@@ -40,6 +40,6 @@ public class ImageGeneratorDefaultsZH extends ImageGeneratorDefaults {
 
     @Override
     public String styleHeader() {
-        return "图片的风格会自动添加到你的提示词中，不要描述其他媒介或风格";
+        return "图片采用这种风格。提示词要以它开头，每个短语或句子都要符合它：除非风格是照片，否则不要使用摄影或镜头术语（photo、cinematic、镜头、景深），也不要描述其他媒介";
     }
 }

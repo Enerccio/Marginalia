@@ -40,6 +40,6 @@ public class ImageGeneratorDefaultsDE extends ImageGeneratorDefaults {
 
     @Override
     public String styleHeader() {
-        return "Der Stil des Bilds wird deinem Prompt automatisch hinzugefügt, beschreibe kein anderes Medium und keinen anderen Stil";
+        return "Das Bild wird in diesem Stil gemacht. Beginne den Prompt damit und halte jeden Ausdruck und Satz ihm treu: keine Foto- oder Kamerabegriffe (Foto, cinematic, Objektiv, Schärfentiefe), außer der Stil ist eine Fotografie, und kein anderes Medium";
     }
 }

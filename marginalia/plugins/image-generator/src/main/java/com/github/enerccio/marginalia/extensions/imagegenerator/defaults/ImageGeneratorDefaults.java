@@ -43,6 +43,6 @@ public class ImageGeneratorDefaults {
 
     /** Line before the style, which is put in front of the prompt by itself. */
     public String styleHeader() {
-        return "The style of the picture is added to your prompt by itself, do not describe another medium or style";
+        return "The picture is made in this style. Begin the prompt with it, and keep every phrase or sentence true to it: no photographic or camera terms (photo, cinematic, lens, depth of field) unless the style is a photograph, and no other medium";
     }
 }

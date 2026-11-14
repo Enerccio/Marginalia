@@ -15,6 +15,8 @@ import com.github.enerccio.marginalia.extensions.imagegenerator.model.BackendCon
 import com.github.enerccio.marginalia.extensions.imagegenerator.model.ImageSettings;
 import com.github.enerccio.marginalia.extensions.imagegenerator.service.*;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes;
+import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes.InRequestScope;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
 import com.github.enerccio.marginalia.ui.widgets.*;
 import com.github.enerccio.marginalia.utils.UIUtils;
@@ -35,10 +37,12 @@ import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextArea;
+import com.vaadin.flow.server.Command;
 import com.vaadin.flow.server.StreamResource;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
+import org.springframework.web.context.request.RequestAttributes;
 
 import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
@@ -80,6 +84,11 @@ public class ImageGeneratorDialog extends Dialog {
     private boolean freeing;
     /** What is stored in the part, so an unchanged window is not saved again. */
     private PartImageValues partValues;
+    /**
+     * The request context of the window, taken when it opens: the callbacks of the worker threads (the model, the backend, the list of
+     * LoRAs) run without one, and the services need it for the session's user.
+     */
+    private final RequestAttributes requestAttributes = ThreadCopyRequestAttributes.create();
     private final IntegerField width = new IntegerField(T.localized(WIDTH));
     private final IntegerField height = new IntegerField(T.localized(HEIGHT));
     private final ComboBox<String> loraBox = new ComboBox<>(T.localized(LORA));
@@ -266,6 +275,15 @@ public class ImageGeneratorDialog extends Dialog {
         }
     }
 
+    /** {@code ui.access} in the request context of the window, for a callback of another thread that uses the services. */
+    private void inRequest(UI ui, Command command) {
+        ui.access(() -> {
+            try (InRequestScope scope = new InRequestScope(requestAttributes)) {
+                command.execute();
+            }
+        });
+    }
+
     // --- what the window used for the part ---
 
     /** The window opens with what was used for the part last time; a part without it keeps the book's and the backend's values. */
@@ -370,7 +388,7 @@ public class ImageGeneratorDialog extends Dialog {
             }
             List<String> found = names;
             String message = error;
-            ui.access(() -> {
+            inRequest(ui, () -> {
                 if (backendSelect.getValue() != backend) {
                     return;
                 }
@@ -448,7 +466,7 @@ public class ImageGeneratorDialog extends Dialog {
             updateButtons();
             Thread.ofVirtual().name("image-generator-release").start(() -> {
                 String error = held.end();
-                ui.access(() -> {
+                inRequest(ui, () -> {
                     freeing = false;
                     status.setText("");
                     if (error != null) {
@@ -479,7 +497,7 @@ public class ImageGeneratorDialog extends Dialog {
             promptToken = service.streamPrompt(ai, protocol, request.payload(), new ImageGeneratorService.PromptListener() {
                 @Override
                 public void onProgress(String text) {
-                    ui.access(() -> {
+                    inRequest(ui, () -> {
                         if (writing) {
                             prompt.setValue(text.strip());
                             UIPushGuard.push(ui);
@@ -489,7 +507,7 @@ public class ImageGeneratorDialog extends Dialog {
 
                 @Override
                 public void onDone(boolean cancelled, Throwable error) {
-                    ui.access(() -> {
+                    inRequest(ui, () -> {
                         writing = false;
                         status.setText("");
                         if (error != null) {
@@ -585,7 +603,7 @@ public class ImageGeneratorDialog extends Dialog {
             }
             byte[] result = bytes;
             String message = error;
-            ui.access(() -> {
+            inRequest(ui, () -> {
                 making = false;
                 status.setText("");
                 if (message != null) {
@@ -612,7 +630,7 @@ public class ImageGeneratorDialog extends Dialog {
         if (session == null || !backend.getId().equals(sessionBackendId)) {
             releaseSession();
             sessionBackendId = backend.getId();
-            session = service.createSession(backend, error -> ui.access(() -> {
+            session = service.createSession(backend, error -> inRequest(ui, () -> {
                 Notification.success(T.localized(THE_BACKEND_WAS_RELEASED));
                 if (error != null) {
                     Notification.warning(T.localized(THE_AFTER_HOOK_FAILED).formatted(error));

@@ -40,6 +40,6 @@ public class ImageGeneratorDefaultsIT extends ImageGeneratorDefaults {
 
     @Override
     public String styleHeader() {
-        return "Lo stile dell'immagine viene aggiunto al tuo prompt automaticamente, non descrivere un altro mezzo né un altro stile";
+        return "L'immagine è fatta in questo stile. Inizia il prompt con esso e mantieni ogni espressione o frase fedele a esso: niente termini fotografici o di ripresa (foto, cinematografico, obiettivo, profondità di campo) a meno che lo stile sia una fotografia, e nessun altro mezzo";
     }
 }

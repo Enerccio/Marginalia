@@ -40,6 +40,6 @@ public class ImageGeneratorDefaultsKO extends ImageGeneratorDefaults {
 
     @Override
     public String styleHeader() {
-        return "그림의 스타일은 프롬프트에 자동으로 추가됩니다. 다른 매체나 스타일을 묘사하지 마세요";
+        return "그림은 이 스타일로 만들어집니다. 프롬프트를 이 스타일로 시작하고 모든 구와 문장을 이에 맞추세요. 스타일이 사진이 아니라면 사진이나 카메라 용어(photo, cinematic, 렌즈, 피사계 심도)를 쓰지 말고, 다른 매체도 묘사하지 마세요";
     }
 }

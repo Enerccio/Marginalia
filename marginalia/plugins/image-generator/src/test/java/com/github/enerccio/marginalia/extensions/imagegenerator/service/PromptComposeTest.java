@@ -81,7 +81,8 @@ class PromptComposeTest {
     @Test
     void theStyleIsToldToTheWriterOnlyWhenThereIsOne() {
         String withStyle = ImageGeneratorService.compose("x", "", "scene", "", "  muted pencil sketch  ").get(1).getContent();
-        assertTrue(withStyle.contains("do not describe another medium or style:\nmuted pencil sketch"));
+        assertTrue(withStyle.contains("Begin the prompt with it"));
+        assertTrue(withStyle.contains("and no other medium:\nmuted pencil sketch"));
 
         assertFalse(ImageGeneratorService.compose("x", "", "scene", "", "  ").get(1).getContent().contains("style"));
         assertFalse(ImageGeneratorService.compose("x", "", "scene", "").get(1).getContent().contains("style"));
