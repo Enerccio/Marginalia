@@ -60,7 +60,7 @@ What you set in the panel is your default. A book (its *Prompts* tab) or a [fold
      writer follows it. It is for this window only.
 2. Choose the backend and press **Generate**. The image is made from the **Prompt** with the **Style** in front, and the
    **Negative prompt**; both start with the book's (or your default) and a change is for this window only (the style is also told
-   to the prompt writer). Under *Size* you can change the size for this window.
+   to the prompt writer). The size starts with the backend's and can be changed for this window.
 3. The image appears. **Reroll** makes another one with a new seed, **Discard** drops it, **Accept** adds it to the part and closes
    the window. **Abort** stops an image that is being made (ComfyUI is told to interrupt the job).
 

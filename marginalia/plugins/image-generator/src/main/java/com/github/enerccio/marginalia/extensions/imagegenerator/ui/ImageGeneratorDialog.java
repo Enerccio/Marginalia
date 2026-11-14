@@ -25,7 +25,6 @@ import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
-import com.vaadin.flow.component.details.Details;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Image;
@@ -93,7 +92,6 @@ public class ImageGeneratorDialog extends Dialog {
     private final IntegerField height = new IntegerField(T.localized(HEIGHT));
     private final ComboBox<String> loraBox = new ComboBox<>(T.localized(LORA));
     private final NumberField loraStrength = new NumberField(T.localized(LORA_STRENGTH));
-    private final HorizontalLayout loraRow = new HorizontalLayout(loraBox, loraStrength);
     private List<String> loraItems = new ArrayList<>();
     private final Button generate = new Button(T.localized(GENERATE), Solid.IMAGE.create(), e -> generate());
     private final Button accept = new Button(T.localized(ACCEPT), Solid.CHECK.create(), e -> accept());
@@ -144,7 +142,7 @@ public class ImageGeneratorDialog extends Dialog {
         backendSelect.setLabel(T.localized(BACKEND));
         backendSelect.setItems(settings.getBackends());
         backendSelect.setItemLabelGenerator(b -> StringUtils.defaultIfBlank(b.getName(), T.localized(NEW_BACKEND)));
-        backendSelect.setWidth("16em");
+        backendSelect.setWidth("12em");
         BackendConfig selected = settings.find(settings.getSelectedBackendId());
         if (selected == null && !settings.getBackends().isEmpty()) {
             selected = settings.getBackends().getFirst();
@@ -152,7 +150,7 @@ public class ImageGeneratorDialog extends Dialog {
         backendSelect.setValue(selected);
         backendSelect.addValueChangeListener(e -> backendChanged(e.getValue()));
 
-        HorizontalLayout top = new HorizontalLayout(modelPicker, writePrompt, backendSelect);
+        HorizontalLayout top = new HorizontalLayout(modelPicker, writePrompt);
         top.setWidthFull();
         top.setWrap(true);
         top.setAlignItems(FlexComponent.Alignment.END);
@@ -161,9 +159,11 @@ public class ImageGeneratorDialog extends Dialog {
         sendLore.getElement().setProperty("title", T.localized(THE_ENTRIES_THE_PART_ACTIVATES));
         sendLore.addValueChangeListener(e -> rememberSendLore(e.getValue()));
         details.setWidthFull();
-        // as tall as the style and the negative prompt next to it
+        // with the check box under it as tall as the style and the negative prompt next to it; the explanation is the placeholder
+        // (a helper line would make the window taller)
         ResizableTextArea.install(loc, details, "116px");
-        details.setHelperText(T.localized(WHAT_THE_PICTURE_MUST_SHOW));
+        details.setPlaceholder(T.localized(WHAT_THE_PICTURE_MUST_SHOW));
+        details.getElement().setProperty("title", T.localized(WHAT_THE_PICTURE_MUST_SHOW));
         style.setWidthFull();
         ResizableTextArea.install(loc, style, "56px");
         // a helper line would make the window taller
@@ -176,16 +176,20 @@ public class ImageGeneratorDialog extends Dialog {
         ResizableTextArea.install(loc, negative, "56px");
         width.setMin(64);
         width.setStepButtonsVisible(true);
+        width.setWidth("8em");
         height.setMin(64);
         height.setStepButtonsVisible(true);
+        height.setWidth("8em");
         initLora();
-        Details more = new Details(T.localized(SIZE), new HorizontalLayout(width, height));
-        more.setWidthFull();
+        // what makes the image, in one row that wraps on a narrow screen
+        HorizontalLayout imageRow = new HorizontalLayout(backendSelect, loraBox, loraStrength, width, height);
+        imageRow.setWidthFull();
+        imageRow.setWrap(true);
+        imageRow.setAlignItems(FlexComponent.Alignment.END);
         // the details on one side, the two texts of the book on the other (one under the other on a narrow screen)
-        VerticalLayout bookTexts = new VerticalLayout(style, negative);
-        bookTexts.setPadding(false);
-        bookTexts.setSpacing(true);
-        Div split = new Div(details, bookTexts);
+        VerticalLayout detailsColumn = compact(new VerticalLayout(details, sendLore));
+        VerticalLayout bookTexts = compact(new VerticalLayout(style, negative));
+        Div split = new Div(detailsColumn, bookTexts);
         split.addClassName(ImageStyles.SPLIT);
         style.setValue(service.resolveStyle(manuscript));
         bookNegative = StringUtils.defaultString(service.resolveNegative(manuscript)).strip();
@@ -198,16 +202,16 @@ public class ImageGeneratorDialog extends Dialog {
         discard.setVisible(false);
         generate.setThemeName("primary");
 
+        // the frame of the image takes room only when it shows something
+        preview.setVisible(false);
         if (settings.getBackends().isEmpty()) {
             Span hint = new Span(T.localized(NO_BACKEND_YET));
             hint.addClassName(CssStyles.HINT_TEXT);
             preview.add(hint);
+            preview.setVisible(true);
         }
 
-        VerticalLayout content = new VerticalLayout(top, sendLore, split, prompt, loraRow, more, status, preview);
-        content.setPadding(false);
-        content.setSpacing(true);
-        add(content);
+        add(compact(new VerticalLayout(top, split, prompt, imageRow, status, preview)));
 
         getFooter().add(new Button(T.localized(CLOSE), e -> close()), discard, accept, generate);
         DialogShortcuts.submitWith(writePrompt, details);
@@ -260,7 +264,7 @@ public class ImageGeneratorDialog extends Dialog {
     }
 
     private void applyBackendDefaults(BackendConfig backend) {
-        loraRow.setVisible(backend != null && backend.usesLora());
+        setLoraVisible(backend != null && backend.usesLora());
         if (backend == null) {
             return;
         }
@@ -335,11 +339,24 @@ public class ImageGeneratorDialog extends Dialog {
 
     // --- the LoRA ---
 
+    /** A layout without padding and with the small gap between its rows. */
+    private static VerticalLayout compact(VerticalLayout layout) {
+        layout.setPadding(false);
+        layout.setSpacing(false);
+        layout.getThemeList().add("spacing-xs");
+        return layout;
+    }
+
+    private void setLoraVisible(boolean visible) {
+        loraBox.setVisible(visible);
+        loraStrength.setVisible(visible);
+    }
+
     private void initLora() {
         loraBox.setAllowCustomValue(true);
         loraBox.setClearButtonVisible(true);
         loraBox.setPlaceholder(T.localized(NO_LORA));
-        loraBox.setWidth("24em");
+        loraBox.setWidth("18em");
         // a file the list misses (a subfolder, a server that does not list)
         loraBox.addCustomValueSetListener(e -> {
             String typed = e.getDetail().strip();
@@ -351,9 +368,8 @@ public class ImageGeneratorDialog extends Dialog {
         loraStrength.setMin(-5);
         loraStrength.setMax(5);
         loraStrength.setStepButtonsVisible(true);
-        loraStrength.setWidth("10em");
-        loraRow.setAlignItems(FlexComponent.Alignment.END);
-        loraRow.setVisible(false);
+        loraStrength.setWidth("8em");
+        setLoraVisible(false);
     }
 
     private void setLoraItems(List<String> names, String selected) {
@@ -650,11 +666,13 @@ public class ImageGeneratorDialog extends Dialog {
         resource.setCacheTime(0);
         preview.removeAll();
         preview.add(new Image(resource, ""));
+        preview.setVisible(true);
     }
 
     private void discard() {
         image = null;
         preview.removeAll();
+        preview.setVisible(false);
         updateButtons();
     }
 

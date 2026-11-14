@@ -36,7 +36,6 @@ public class ImageGeneratorLocalization extends PluginLocalizationBundle {
     public static final String NEGATIVE_PROMPT = "Negative prompt";
     public static final String WIDTH = "Width";
     public static final String HEIGHT = "Height";
-    public static final String SIZE = "Size";
     public static final String GENERATE = "Generate";
     public static final String REROLL = "Reroll";
     public static final String ACCEPT = "Accept";
@@ -212,14 +211,6 @@ public class ImageGeneratorLocalization extends PluginLocalizationBundle {
         de(HEIGHT, "Höhe");
         ko(HEIGHT, "높이");
         it(HEIGHT, "Altezza");
-
-        ja(SIZE, "サイズ");
-        zh(SIZE, "尺寸");
-        fr(SIZE, "Taille");
-        es(SIZE, "Tamaño");
-        de(SIZE, "Größe");
-        ko(SIZE, "크기");
-        it(SIZE, "Dimensioni");
 
         ja(GENERATE, "生成");
         zh(GENERATE, "生成");
