@@ -405,7 +405,7 @@ plugins/<name>/
 | Read Aloud (`tts-reader`) | `extensions.ttsreader` | Activator, extension (one decorator of `Viewer.renderManuscriptReadingView`), the control component `TtsControl`, `tts-reader.js` (the reading, in the browser) and `tts-reader.css`. |
 | Chinese localization | `extensions.chineselocalization` | Activator, extension and one `LocalizationBundle` - a language, no UI code. |
 
-`plugins/Dockerfile` and `plugins/docker-compose.yml` build all of them in a container (JARs end up in `plugins/build/`,
+`plugins/docker-compose.yml` (stage `plugins` of the root `Dockerfile`) builds all of them in a container (JARs end up in `plugins/build/`,
 ignored by Git), see [Packaging](packaging.md#building-the-plugins-in-docker).
 
 See [Plugin development](plugins/index.md).

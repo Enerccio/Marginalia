@@ -6,7 +6,7 @@ covers:
   - marginalia/libs
   - pom.xml
   - install-plugins.sh
-  - marginalia/plugins/Dockerfile
+  - Dockerfile
   - .github/workflows/server.yml
   - .github/workflows/desktop.yml
 verified: 8a278a19f
@@ -65,7 +65,7 @@ own class loader. The consequences are the rules of a library:
    bundle, they are not exported.
 3. Build the library **before** the plugin: `mvn install -DskipTests` in `marginalia/libs/translator-common` puts it in the local Maven repository, where a plugin built on
    its own (`mvn package` in its folder) finds it. `mvn package` / `mvn install` in the repository root builds in the right order by itself.
-   `install-plugins.sh`, `marginalia/plugins/Dockerfile` and the workflows `server.yml` and `desktop.yml` have a step for it: a library you add needs no change in them
+   `install-plugins.sh`, the root `Dockerfile` (stage `plugins-build`) and the workflows `server.yml` and `desktop.yml` have a step for it: a library you add needs no change in them
    when it lives in `marginalia/libs/`.
 4. The CSS and the texts of a library's screens are in the library (`translatorcommon.css`, `TranslatorCommonLocalization`). The plugin's `ExtensionHasCss` returns the
    library's CSS together with its own (`CommonStyles.css() + "\n" + MyStyles.css()`); the same rules from two plugins are harmless.

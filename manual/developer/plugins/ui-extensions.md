@@ -350,6 +350,12 @@ reviewerService.saveSettings(form.save(), userSetting);     // writes into userS
 Changes in the panel's fields are tracked like the application's own: any value change outside of
 `UserPart.refresh` (and its decorators) locks the workspace navigation until the user saves or discards. Fill the form
 in the `refresh` decorator, not later (e.g. from a background thread), or the loaded values count as changes.
+Fields the panel builds later (the rows of a list, the fields of another item it shows after a selection) are tracked
+after the next change: `UserPart` walks its layout again after every change (`trackAllChanges`). A change that is not a
+value change of a field (a row added or removed, a button that clears a stored key) is reported with
+`SettingsChanges.changed(component)` (`ui.widgets`): the nearest ancestor that listens (`UserPart` listens on its layout
+with `SettingsChanges.listen`) marks the settings as changed and tracks the new fields; outside of the settings page the call
+does nothing. `HookListEditor` of `http-hooks` reports its *Add a request* and its bin this way.
 
 Saving on enter lets the application's own `settingService.save(userSetting)` store the plugin's values too. Note that
 `save()` returns early when the application's own fields don't validate - then the plugin's values are not stored

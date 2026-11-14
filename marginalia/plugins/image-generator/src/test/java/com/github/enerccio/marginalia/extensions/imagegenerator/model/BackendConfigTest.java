@@ -88,4 +88,23 @@ class BackendConfigTest {
         assertEquals("x.safetensors", read.getLora());
         assertEquals(0.0, read.getLoraStrength());
     }
+
+    @Test
+    void theInstructionFollowsThePromptForm() {
+        BackendConfig old = GSON.fromJson("{\"name\": \"ComfyUI\"}", BackendConfig.class);
+        assertFalse(old.hasPromptForm());
+        assertEquals(PromptForm.TAGS, old.getPromptForm());
+        assertEquals(PromptForm.TAGS.instruction(), old.instructionFor(null));
+        assertEquals("my words", old.instructionFor("my words"), "a backend from before keeps the instruction the user had");
+
+        old.setPromptForm(PromptForm.SENTENCES);
+        assertEquals(PromptForm.SENTENCES.instruction(), old.instructionFor("my words"));
+
+        old.setPromptForm(PromptForm.CUSTOM);
+        assertEquals(PromptForm.TAGS.instruction(), old.instructionFor("my words"), "free text left empty writes tags");
+        old.setPromptInstruction("Write a haiku.");
+        BackendConfig read = GSON.fromJson(GSON.toJson(old), BackendConfig.class);
+        assertEquals(PromptForm.CUSTOM, read.getPromptForm());
+        assertEquals("Write a haiku.", read.instructionFor(null));
+    }
 }

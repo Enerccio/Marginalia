@@ -74,8 +74,9 @@ docker compose -f marginalia/plugins/docker-compose.yml build
 docker compose -f marginalia/plugins/docker-compose.yml run --rm plugins
 ```
 
-Run both from the repository root. `rebuild.sh` / `rebuild.bat` in the root use this to update a Docker server and
-copy the JARs into `data/extensions`.
+Run both from the repository root. The image is the stage `plugins` of the root `Dockerfile`, which shares the
+application build with the application image. `rebuild.sh` / `rebuild.bat` in the root use this to update a Docker
+server and copy the JARs into `data/extensions`, and the application is compiled once for both.
 
 ## Writing a plugin
 

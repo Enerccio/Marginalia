@@ -7,7 +7,6 @@ covers:
   - marginalia/pom.xml
   - marginalia/src/main/java/com/github/enerccio/tools
   - Dockerfile
-  - marginalia/plugins/Dockerfile
   - marginalia/plugins/docker-compose.yml
   - install-plugins.sh
   - marginalia/libs
@@ -322,10 +321,13 @@ exact version of the application. See [Plugin development](plugins/index.md).
 
 ### In Docker
 
-`marginalia/plugins/Dockerfile` and `docker-compose.yml` build everything in a container, so no local JDK or Maven is
-needed (this is how the Docker server is updated, see [Packaging](packaging.md#plugins)). The build context is the
-repository root; the image copies `pom.xml`, `marginalia/pom.xml`, `marginalia/src`, `manual/user` and `translations` (packed into the application's classes, so a plugin build against it sees the same manual), `.git`, `marginalia/libs` and `marginalia/plugins`, runs
-`mvn install -DskipTests -Dvaadin.skip=true` for the application, `mvn install -N` for the parent POM, `mvn install -DskipTests` in every folder of `libs/` and `mvn package` in every folder of `plugins/` that has a `pom.xml`.
+`marginalia/plugins/docker-compose.yml` builds everything in a container, so no local JDK or Maven is
+needed (this is how the Docker server is updated, see [Packaging](packaging.md#building-the-plugins-in-docker)). It
+builds the target `plugins` of the root `Dockerfile`, which starts from the stage that builds the application image:
+the build context is the repository root, the image copies `pom.xml`, `marginalia/pom.xml`, `marginalia/src`,
+`manual/user` and `translations` (packed into the application's classes, so a plugin build against it sees the same manual), `.git`, `marginalia/libs` and `marginalia/plugins`, runs
+`mvn clean install -DskipTests` for the application (the full build, frontend included: the stage is shared with the
+image, so a host that builds both compiles the application once), `mvn install -N` for the parent POM, `mvn install -DskipTests` in every folder of `libs/` and `mvn package` in every folder of `plugins/` that has a `pom.xml`.
 The JARs are copied out when the container runs, because they go into a bind mount:
 
 ```sh
@@ -337,7 +339,8 @@ A new plugin folder with a `pom.xml` is picked up without changes to the Dockerf
 
 `-Dvaadin.skip=true` turns off every goal of `vaadin-maven-plugin`, so the frontend (Node.js download, npm, Vite
 bundle) is not built; the plugins need only the classes JAR. The WAR of such a build has no frontend bundle and must not
-be deployed. Use the flag the same way for any build that only installs the classes JAR for plugins. Maven cannot tell
+be deployed. Use the flag for any build that only installs the classes JAR for plugins (the workflows do; the Docker
+build doesn't, it shares the application build with the image). Maven cannot tell
 that the goal was just `install` (it runs the whole lifecycle up to `package` first), so the flag has to be given.
 
 ## Database schema changes

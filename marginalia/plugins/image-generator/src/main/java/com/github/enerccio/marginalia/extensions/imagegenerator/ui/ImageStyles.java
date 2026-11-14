@@ -14,6 +14,8 @@ public final class ImageStyles {
     public static final String PREVIEW = "imagegen-preview";
     public static final String STATUS = "imagegen-status";
     public static final String SECTION = "imagegen-section";
+    /** Two halves side by side that wrap under each other when the window is narrow. */
+    public static final String SPLIT = "imagegen-split";
 
     private static final String RESOURCE = "/image-generator.css";
 

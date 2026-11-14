@@ -1,6 +1,10 @@
 package com.github.enerccio.marginalia.extensions.imagegenerator;
 
 import com.github.enerccio.marginalia.extensions.PluginLocalizationBundle;
+import com.github.enerccio.marginalia.extensions.imagegenerator.defaults.*;
+import com.github.enerccio.marginalia.loc.Language;
+
+import java.util.Map;
 
 /**
  * Texts of the Image Generator in the languages besides English; the English text is the key.
@@ -8,6 +12,17 @@ import com.github.enerccio.marginalia.extensions.PluginLocalizationBundle;
 public class ImageGeneratorLocalization extends PluginLocalizationBundle {
 
     public static final ImageGeneratorLocalization T = new ImageGeneratorLocalization();
+
+    // the built-in prompt texts, one object per prompt language
+    private final ImageGeneratorDefaults englishDefaults = new ImageGeneratorDefaults();
+    private final Map<Language, ImageGeneratorDefaults> translatedDefaults = Map.of(JA, new ImageGeneratorDefaultsJA(), ZH,
+            new ImageGeneratorDefaultsZH(), FR, new ImageGeneratorDefaultsFR(), ES, new ImageGeneratorDefaultsES(), DE,
+            new ImageGeneratorDefaultsDE(), IT, new ImageGeneratorDefaultsIT(), KO, new ImageGeneratorDefaultsKO());
+
+    /** The built-in prompt texts in the prompt language of the user. */
+    public ImageGeneratorDefaults defaults() {
+        return forPromptLanguage(englishDefaults, translatedDefaults);
+    }
 
     public static final String IMAGE_GENERATOR = "Image Generator";
     public static final String GENERATE_IMAGE = "Generate image";
@@ -21,7 +36,7 @@ public class ImageGeneratorLocalization extends PluginLocalizationBundle {
     public static final String NEGATIVE_PROMPT = "Negative prompt";
     public static final String WIDTH = "Width";
     public static final String HEIGHT = "Height";
-    public static final String SIZE_AND_NEGATIVE_PROMPT = "Size and negative prompt";
+    public static final String SIZE = "Size";
     public static final String GENERATE = "Generate";
     public static final String REROLL = "Reroll";
     public static final String ACCEPT = "Accept";
@@ -39,7 +54,6 @@ public class ImageGeneratorLocalization extends PluginLocalizationBundle {
     public static final String STYLE = "Style";
     public static final String PUT_IN_FRONT_OF_EVERY_PROMPT = "Put in front of every prompt, for the look of the book (for example: watercolor, soft light)";
     public static final String INSTRUCTION_FOR_THE_PROMPT_WRITER = "Instruction for the prompt writer";
-    public static final String EMPTY_OR_UNCHANGED_THE_BUILT_IN_TEXT = "Empty or unchanged: the built-in text is used";
     public static final String BACKENDS = "Backends";
     public static final String ADD_A_BACKEND = "Add a backend";
     public static final String DELETE_THE_BACKEND = "Delete the backend";
@@ -89,6 +103,15 @@ public class ImageGeneratorLocalization extends PluginLocalizationBundle {
     public static final String LORA_STRENGTH = "LoRA strength";
     public static final String NO_LORA = "None";
     public static final String THE_LORAS_COULD_NOT_BE_READ = "The LoRAs of the server could not be read: %s";
+    public static final String STYLE_FOR_THIS_WINDOW = "The style of the book (its Prompts tab, a folder or your settings); a change here is for this window only";
+    public static final String NEGATIVE_PROMPT_HELP = "What the pictures must not show. A turbo model that runs without guidance (CFG 1) ignores it";
+    public static final String FREEING_THE_IMAGE_BACKEND = "Freeing the image backend for the language model…";
+    public static final String A_BOOK_OR_A_FOLDER_CAN_CHANGE_THESE = "These are your defaults: a book or a folder can change the style and the negative prompt in its Prompts tab, under Extension Settings.";
+    public static final String PROMPT_FORM = "Prompt form";
+    public static final String TAGS_FORM = "Tags (SDXL, Pony, Illustrious)";
+    public static final String SENTENCES_FORM = "Descriptive sentences (Flux, Krea, Qwen-Image, Z-Image)";
+    public static final String FREE_TEXT = "Free text";
+    public static final String PROMPT_FORM_HELP = "How the language model writes the prompt: what the image model of this backend understands best";
 
     @Override
     protected void loadKeys() {
@@ -188,13 +211,13 @@ public class ImageGeneratorLocalization extends PluginLocalizationBundle {
         ko(HEIGHT, "높이");
         it(HEIGHT, "Altezza");
 
-        ja(SIZE_AND_NEGATIVE_PROMPT, "サイズとネガティブプロンプト");
-        zh(SIZE_AND_NEGATIVE_PROMPT, "尺寸和负面提示词");
-        fr(SIZE_AND_NEGATIVE_PROMPT, "Taille et prompt négatif");
-        es(SIZE_AND_NEGATIVE_PROMPT, "Tamaño y prompt negativo");
-        de(SIZE_AND_NEGATIVE_PROMPT, "Größe und negativer Prompt");
-        ko(SIZE_AND_NEGATIVE_PROMPT, "크기와 네거티브 프롬프트");
-        it(SIZE_AND_NEGATIVE_PROMPT, "Dimensione e prompt negativo");
+        ja(SIZE, "サイズ");
+        zh(SIZE, "尺寸");
+        fr(SIZE, "Taille");
+        es(SIZE, "Tamaño");
+        de(SIZE, "Größe");
+        ko(SIZE, "크기");
+        it(SIZE, "Dimensioni");
 
         ja(GENERATE, "生成");
         zh(GENERATE, "生成");
@@ -331,14 +354,6 @@ public class ImageGeneratorLocalization extends PluginLocalizationBundle {
         de(INSTRUCTION_FOR_THE_PROMPT_WRITER, "Anweisung für den Prompt-Schreiber");
         ko(INSTRUCTION_FOR_THE_PROMPT_WRITER, "프롬프트 작성자에게 주는 지시문");
         it(INSTRUCTION_FOR_THE_PROMPT_WRITER, "Istruzione per chi scrive il prompt");
-
-        ja(EMPTY_OR_UNCHANGED_THE_BUILT_IN_TEXT, "空または未変更の場合は組み込みのテキストを使います");
-        zh(EMPTY_OR_UNCHANGED_THE_BUILT_IN_TEXT, "留空或未更改：使用内置文本");
-        fr(EMPTY_OR_UNCHANGED_THE_BUILT_IN_TEXT, "Vide ou inchangé : le texte intégré est utilisé");
-        es(EMPTY_OR_UNCHANGED_THE_BUILT_IN_TEXT, "Vacío o sin cambios: se usa el texto integrado");
-        de(EMPTY_OR_UNCHANGED_THE_BUILT_IN_TEXT, "Leer oder unverändert: Der eingebaute Text wird verwendet");
-        ko(EMPTY_OR_UNCHANGED_THE_BUILT_IN_TEXT, "비어 있거나 변경하지 않으면: 내장 텍스트를 사용합니다");
-        it(EMPTY_OR_UNCHANGED_THE_BUILT_IN_TEXT, "Vuoto o invariato: viene usato il testo integrato");
 
         ja(BACKENDS, "バックエンド");
         zh(BACKENDS, "后端");
@@ -718,5 +733,77 @@ public class ImageGeneratorLocalization extends PluginLocalizationBundle {
         de(THE_LORAS_COULD_NOT_BE_READ, "Die LoRAs des Servers konnten nicht gelesen werden: %s");
         ko(THE_LORAS_COULD_NOT_BE_READ, "서버의 LoRA를 읽을 수 없습니다: %s");
         it(THE_LORAS_COULD_NOT_BE_READ, "Impossibile leggere le LoRA del server: %s");
+
+        ja(STYLE_FOR_THIS_WINDOW, "本のスタイル (本の「プロンプト」タブ、フォルダー、またはあなたの設定)。ここでの変更はこのウィンドウだけに適用されます");
+        zh(STYLE_FOR_THIS_WINDOW, "本书的风格（书的“提示词”选项卡、文件夹或你的设置）；在此处的更改只对本窗口有效");
+        fr(STYLE_FOR_THIS_WINDOW, "Le style du livre (son onglet Prompts, un dossier ou vos paramètres) ; une modification ici ne vaut que pour cette fenêtre");
+        es(STYLE_FOR_THIS_WINDOW, "El estilo del libro (su pestaña Prompts, una carpeta o tus ajustes); un cambio aquí solo vale para esta ventana");
+        de(STYLE_FOR_THIS_WINDOW, "Der Stil des Buchs (sein Tab „Prompts“, ein Ordner oder deine Einstellungen); eine Änderung hier gilt nur für dieses Fenster");
+        ko(STYLE_FOR_THIS_WINDOW, "책의 스타일(책의 프롬프트 탭, 폴더 또는 내 설정). 여기서 바꾼 내용은 이 창에만 적용됩니다");
+        it(STYLE_FOR_THIS_WINDOW, "Lo stile del libro (la sua scheda Prompt, una cartella o le tue impostazioni); una modifica qui vale solo per questa finestra");
+
+        ja(NEGATIVE_PROMPT_HELP, "画像に描いてはいけないもの。ガイダンスなし (CFG 1) で動くターボモデルでは無視されます");
+        zh(NEGATIVE_PROMPT_HELP, "图片中不应出现的内容。不使用引导（CFG 1）运行的 turbo 模型会忽略它");
+        fr(NEGATIVE_PROMPT_HELP, "Ce que les images ne doivent pas montrer. Un modèle turbo qui tourne sans guidage (CFG 1) l'ignore");
+        es(NEGATIVE_PROMPT_HELP, "Lo que las imágenes no deben mostrar. Un modelo turbo que funciona sin guía (CFG 1) lo ignora");
+        de(NEGATIVE_PROMPT_HELP, "Was die Bilder nicht zeigen dürfen. Ein Turbo-Modell ohne Guidance (CFG 1) ignoriert ihn");
+        ko(NEGATIVE_PROMPT_HELP, "그림에 나오면 안 되는 것. 가이던스 없이(CFG 1) 동작하는 터보 모델은 이를 무시합니다");
+        it(NEGATIVE_PROMPT_HELP, "Ciò che le immagini non devono mostrare. Un modello turbo che funziona senza guida (CFG 1) lo ignora");
+
+        ja(FREEING_THE_IMAGE_BACKEND, "言語モデルのために画像バックエンドを解放しています…");
+        zh(FREEING_THE_IMAGE_BACKEND, "正在为语言模型释放图像后端…");
+        fr(FREEING_THE_IMAGE_BACKEND, "Libération du backend d'images pour le modèle de langage…");
+        es(FREEING_THE_IMAGE_BACKEND, "Liberando el backend de imágenes para el modelo de lenguaje…");
+        de(FREEING_THE_IMAGE_BACKEND, "Das Bild-Backend wird für das Sprachmodell freigegeben…");
+        ko(FREEING_THE_IMAGE_BACKEND, "언어 모델을 위해 이미지 백엔드를 해제하는 중…");
+        it(FREEING_THE_IMAGE_BACKEND, "Liberazione del backend di immagini per il modello linguistico…");
+
+        ja(A_BOOK_OR_A_FOLDER_CAN_CHANGE_THESE, "これはあなたの既定値です。本やフォルダーは「プロンプト」タブの「拡張機能の設定」で、スタイルとネガティブプロンプトを変更できます。");
+        zh(A_BOOK_OR_A_FOLDER_CAN_CHANGE_THESE, "这些是你的默认值：书或文件夹可以在其“提示词”选项卡的“扩展设置”中更改风格和负面提示词。");
+        fr(A_BOOK_OR_A_FOLDER_CAN_CHANGE_THESE, "Ce sont vos valeurs par défaut : un livre ou un dossier peut changer le style et le prompt négatif dans son onglet Prompts, sous Paramètres des extensions.");
+        es(A_BOOK_OR_A_FOLDER_CAN_CHANGE_THESE, "Estos son tus valores predeterminados: un libro o una carpeta puede cambiar el estilo y el prompt negativo en su pestaña Prompts, en Ajustes de extensiones.");
+        de(A_BOOK_OR_A_FOLDER_CAN_CHANGE_THESE, "Das sind deine Standardwerte: Ein Buch oder ein Ordner kann Stil und Negativ-Prompt in seinem Tab „Prompts“ unter „Erweiterungseinstellungen“ ändern.");
+        ko(A_BOOK_OR_A_FOLDER_CAN_CHANGE_THESE, "이 값은 기본값입니다. 책이나 폴더는 프롬프트 탭의 확장 설정에서 스타일과 네거티브 프롬프트를 바꿀 수 있습니다.");
+        it(A_BOOK_OR_A_FOLDER_CAN_CHANGE_THESE, "Questi sono i tuoi valori predefiniti: un libro o una cartella può cambiare lo stile e il prompt negativo nella sua scheda Prompt, in Impostazioni delle estensioni.");
+
+        ja(PROMPT_FORM, "プロンプトの形式");
+        zh(PROMPT_FORM, "提示词形式");
+        fr(PROMPT_FORM, "Forme du prompt");
+        es(PROMPT_FORM, "Forma del prompt");
+        de(PROMPT_FORM, "Form des Prompts");
+        ko(PROMPT_FORM, "프롬프트 형식");
+        it(PROMPT_FORM, "Forma del prompt");
+
+        ja(TAGS_FORM, "タグ (SDXL、Pony、Illustrious)");
+        zh(TAGS_FORM, "标签（SDXL、Pony、Illustrious）");
+        fr(TAGS_FORM, "Tags (SDXL, Pony, Illustrious)");
+        es(TAGS_FORM, "Etiquetas (SDXL, Pony, Illustrious)");
+        de(TAGS_FORM, "Tags (SDXL, Pony, Illustrious)");
+        ko(TAGS_FORM, "태그 (SDXL, Pony, Illustrious)");
+        it(TAGS_FORM, "Tag (SDXL, Pony, Illustrious)");
+
+        ja(SENTENCES_FORM, "説明文 (Flux、Krea、Qwen-Image、Z-Image)");
+        zh(SENTENCES_FORM, "描述性句子（Flux、Krea、Qwen-Image、Z-Image）");
+        fr(SENTENCES_FORM, "Phrases descriptives (Flux, Krea, Qwen-Image, Z-Image)");
+        es(SENTENCES_FORM, "Frases descriptivas (Flux, Krea, Qwen-Image, Z-Image)");
+        de(SENTENCES_FORM, "Beschreibende Sätze (Flux, Krea, Qwen-Image, Z-Image)");
+        ko(SENTENCES_FORM, "설명 문장 (Flux, Krea, Qwen-Image, Z-Image)");
+        it(SENTENCES_FORM, "Frasi descrittive (Flux, Krea, Qwen-Image, Z-Image)");
+
+        ja(FREE_TEXT, "自由記述");
+        zh(FREE_TEXT, "自定义文本");
+        fr(FREE_TEXT, "Texte libre");
+        es(FREE_TEXT, "Texto libre");
+        de(FREE_TEXT, "Freier Text");
+        ko(FREE_TEXT, "자유 텍스트");
+        it(FREE_TEXT, "Testo libero");
+
+        ja(PROMPT_FORM_HELP, "言語モデルがプロンプトをどう書くか。このバックエンドの画像モデルが最もよく理解する形式を選びます");
+        zh(PROMPT_FORM_HELP, "语言模型如何撰写提示词：选择此后端的图像模型最能理解的形式");
+        fr(PROMPT_FORM_HELP, "Comment le modèle de langage écrit le prompt : ce que le modèle d'images de ce backend comprend le mieux");
+        es(PROMPT_FORM_HELP, "Cómo escribe el prompt el modelo de lenguaje: lo que mejor entiende el modelo de imágenes de este backend");
+        de(PROMPT_FORM_HELP, "Wie das Sprachmodell den Prompt schreibt: was das Bildmodell dieses Backends am besten versteht");
+        ko(PROMPT_FORM_HELP, "언어 모델이 프롬프트를 쓰는 방식: 이 백엔드의 이미지 모델이 가장 잘 이해하는 형식");
+        it(PROMPT_FORM_HELP, "Come il modello linguistico scrive il prompt: ciò che il modello di immagini di questo backend capisce meglio");
     }
 }

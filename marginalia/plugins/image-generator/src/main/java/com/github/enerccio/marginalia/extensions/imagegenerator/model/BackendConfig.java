@@ -38,6 +38,7 @@ public class BackendConfig {
     private String gpu = "";
     private int width = DEFAULT_WIDTH;
     private int height = DEFAULT_HEIGHT;
+    /** Saved before the negative prompt was a setting of the user and the book: read once by the settings panel, not used otherwise. */
     private String negativePrompt = "";
     private int timeoutSeconds = DEFAULT_TIMEOUT_SECONDS;
     /** Made in order before the first image of a session (unload the language model, start the image server...). */
@@ -49,6 +50,10 @@ public class BackendConfig {
     private HttpHook after;
     /** The session is over this many seconds after the last image; 0 for never (it ends with the window). */
     private int idleSeconds = DEFAULT_IDLE_SECONDS;
+    /** How the prompt is written for this backend; null in settings saved before: see {@link #instructionFor}. */
+    private PromptForm promptForm;
+    /** The instruction of {@link PromptForm#CUSTOM}. */
+    private String promptInstruction;
     /** ComfyUI: the LoRA last chosen in the window for {@code {{lora}}}; null for none. */
     private String lora;
     /** ComfyUI: the strength last chosen for {@code {{lora_strength}}}; null for the default. */
@@ -155,6 +160,7 @@ public class BackendConfig {
         this.height = height;
     }
 
+    /** See {@link #negativePrompt}: only for taking over an old setting. */
     public String getNegativePrompt() {
         return negativePrompt == null ? "" : negativePrompt;
     }
@@ -204,6 +210,44 @@ public class BackendConfig {
 
     public void setIdleSeconds(int idleSeconds) {
         this.idleSeconds = idleSeconds;
+    }
+
+    /** The form chosen; a backend saved before the choice existed writes tags, or the instruction the user had then. */
+    public PromptForm getPromptForm() {
+        return promptForm == null ? PromptForm.TAGS : promptForm;
+    }
+
+    /** Whether the form was chosen (a backend saved before the choice existed has none). */
+    public boolean hasPromptForm() {
+        return promptForm != null;
+    }
+
+    public void setPromptForm(PromptForm promptForm) {
+        this.promptForm = promptForm;
+    }
+
+    public String getPromptInstruction() {
+        return promptInstruction == null ? "" : promptInstruction;
+    }
+
+    public void setPromptInstruction(String promptInstruction) {
+        this.promptInstruction = promptInstruction;
+    }
+
+    /**
+     * The instruction the prompt writer gets for this backend.
+     *
+     * @param legacy the one instruction of the user from before the backends had their own (null for none): a backend that never chose
+     *               a form keeps using it
+     */
+    public String instructionFor(String legacy) {
+        if (promptForm == null) {
+            return legacy == null || legacy.isBlank() ? PromptForm.TAGS.instruction() : legacy;
+        }
+        if (promptForm == PromptForm.CUSTOM) {
+            return getPromptInstruction().isBlank() ? PromptForm.TAGS.instruction() : promptInstruction;
+        }
+        return promptForm.instruction();
     }
 
     public String getLora() {

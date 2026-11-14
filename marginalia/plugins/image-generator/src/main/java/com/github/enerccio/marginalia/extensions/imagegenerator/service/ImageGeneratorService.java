@@ -15,8 +15,11 @@ import com.github.enerccio.marginalia.extensions.PartTextRegistry;
 import com.github.enerccio.marginalia.extensions.httphooks.BackendException;
 import com.github.enerccio.marginalia.extensions.httphooks.GpuGate;
 import com.github.enerccio.marginalia.extensions.httphooks.HookRunner;
+import com.github.enerccio.marginalia.extensions.imagegenerator.ImageGeneratorLocalization;
+import com.github.enerccio.marginalia.extensions.imagegenerator.defaults.ImageGeneratorDefaults;
 import com.github.enerccio.marginalia.extensions.imagegenerator.model.BackendConfig;
 import com.github.enerccio.marginalia.extensions.imagegenerator.model.ImageSettings;
+import com.github.enerccio.marginalia.extensions.imagegenerator.model.PromptForm;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import org.apache.commons.lang3.StringUtils;
@@ -175,7 +178,7 @@ public class ImageGeneratorService {
      * @param details  what the user wants in the picture, may be empty
      */
     public PromptRequest buildPromptRequest(ImageSettings settings, Manuscript manuscript, ChatMessage message, AI ai, Protocol protocol,
-                                            boolean withLore, String details) throws Exception {
+                                            boolean withLore, String details, String style, String instruction) throws Exception {
         String scene = sceneText(message, partTexts.forModel(message));
         Lore lore = new Lore("", 0, 0);
         if (withLore) {
@@ -183,7 +186,7 @@ public class ImageGeneratorService {
             int limit = TokenLimits.promptTokens(ai, protocol);
             long budget = Long.MAX_VALUE;
             if (limit > 0) {
-                List<LLMChatMessage> bare = compose(settings.getPromptInstruction(), "", scene, details);
+                List<LLMChatMessage> bare = compose(instruction, "", scene, details, style);
                 long fixed = 0;
                 for (LLMChatMessage m : bare) {
                     fixed += service.countTokensApprox(m.getContent());
@@ -192,7 +195,7 @@ public class ImageGeneratorService {
             }
             lore = buildLore(manuscript, message, matchedText(message, details, partTexts.forModel(message)), budget, service);
         }
-        return new PromptRequest(compose(settings.getPromptInstruction(), lore.text(), scene, details), lore.used(), lore.skipped());
+        return new PromptRequest(compose(instruction, lore.text(), scene, details, style), lore.used(), lore.skipped());
     }
 
     /** The scene of the part as the prompt writer reads it. */
@@ -203,10 +206,11 @@ public class ImageGeneratorService {
     /** As {@link #sceneText(ChatMessage)}, with the text of the part as a model reads it. */
     static String sceneText(ChatMessage message, String text) {
         StringBuilder scene = new StringBuilder();
-        append(scene, "Scene setting", message.getSceneSetting());
-        append(scene, "Point of view", message.getPovCharacter());
-        append(scene, "Characters present", message.getPresentCharacters());
-        append(scene, "Text", text);
+        ImageGeneratorDefaults labels = ImageGeneratorLocalization.T.defaults();
+        append(scene, labels.sceneSetting(), message.getSceneSetting());
+        append(scene, labels.pointOfView(), message.getPovCharacter());
+        append(scene, labels.charactersPresent(), message.getPresentCharacters());
+        append(scene, labels.text(), text);
         return scene.toString().strip();
     }
 
@@ -231,13 +235,21 @@ public class ImageGeneratorService {
     }
 
     static List<LLMChatMessage> compose(String instruction, String lore, String scene, String details) {
+        return compose(instruction, lore, scene, details, null);
+    }
+
+    /** @param style the style put in front of the prompt; the writer is told it, so the prompt does not describe another one */
+    static List<LLMChatMessage> compose(String instruction, String lore, String scene, String details, String style) {
         StringBuilder system = new StringBuilder(instruction);
         if (StringUtils.isNotBlank(lore)) {
             system.append("\n\n===== LOREBOOK START =====\n\n").append(lore.strip()).append("\n\n===== LOREBOOK END =====");
         }
         StringBuilder user = new StringBuilder(scene);
         if (StringUtils.isNotBlank(details)) {
-            user.append("\n\nDetails the picture must follow:\n").append(details.strip());
+            user.append("\n\n").append(ImageGeneratorLocalization.T.defaults().detailsHeader()).append(":\n").append(details.strip());
+        }
+        if (StringUtils.isNotBlank(style)) {
+            user.append("\n\n").append(ImageGeneratorLocalization.T.defaults().styleHeader()).append(":\n").append(style.strip());
         }
         List<LLMChatMessage> payload = new ArrayList<>();
         payload.add(LLMChatMessage.of(LLMRole.SYSTEM, system.toString()));
@@ -401,11 +413,48 @@ public class ImageGeneratorService {
         return token[0];
     }
 
-    /** The prompt as it goes to the backend: the style of the user in front. */
-    public String withStyle(ImageSettings settings, String prompt) {
-        String prefix = settings.getStylePrefix().strip();
+    /** The prompt as it goes to the backend: the style in front. */
+    public static String withStyle(String style, String prompt) {
+        String prefix = StringUtils.defaultString(style).strip();
         String text = StringUtils.defaultString(prompt).strip();
         return prefix.isEmpty() ? text : prefix + (prefix.endsWith(",") ? " " : ", ") + text;
+    }
+
+    // --- the settings of a book (book, folders, user, default) ---
+
+    /** The keys of the settings a book and a folder can change. */
+    public static final String STYLE_SETTING = "imagegenerator.style";
+    public static final String NEGATIVE_SETTING = "imagegenerator.negativePrompt";
+
+    /** The style of the book's pictures; empty for none. */
+    public String resolveStyle(Manuscript manuscript) {
+        return resolve(manuscript, STYLE_SETTING, getSettings().getStylePrefix());
+    }
+
+    /** The negative prompt the book sets (or a folder, or the user); empty for none. */
+    public String resolveNegative(Manuscript manuscript) {
+        return resolve(manuscript, NEGATIVE_SETTING, getSettings().getNegativePrompt());
+    }
+
+    /** The instruction the prompt writer gets for the backend (its prompt form); without a backend the tags one. */
+    public String instructionFor(BackendConfig backend) {
+        String legacy = getSettings().getStoredPromptInstruction();
+        return backend == null ? PromptForm.TAGS.instruction() : backend.instructionFor(legacy);
+    }
+
+    private String resolve(Manuscript manuscript, String key, String userLevel) {
+        if (manuscript == null) {
+            return StringUtils.defaultString(userLevel);
+        }
+        String value;
+        try {
+            value = manuscriptService.resolveExtension(manuscript, key).value();
+        } catch (Exception e) {
+            ImageGeneratorLogs.warn("Reading the setting {} of the book failed: {}", key, e.getMessage());
+            value = null;
+        }
+        // the plugin may not be registered (a test, an unload in between): the user level is still known here
+        return StringUtils.isBlank(value) ? StringUtils.defaultString(userLevel) : value;
     }
 
     // --- the backend ---

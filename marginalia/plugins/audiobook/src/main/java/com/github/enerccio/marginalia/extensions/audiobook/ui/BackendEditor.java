@@ -5,7 +5,9 @@ import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.extensions.audiobook.model.BackendConfig;
 import com.github.enerccio.marginalia.extensions.audiobook.service.AudiobookService;
 import com.github.enerccio.marginalia.extensions.httphooks.ui.HookListEditor;
+import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
+import com.github.enerccio.marginalia.ui.widgets.SettingsChanges;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
@@ -20,6 +22,8 @@ import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextField;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Configurable;
 
 import java.util.List;
 
@@ -30,7 +34,11 @@ import static com.github.enerccio.marginalia.extensions.audiobook.AudiobookLocal
  * test of the connection. Shown for the backends of the user in {@link AudiobookSettingsForm} and for the shared ones of the administrator in
  * {@link SharedBackendsDialog}. {@link #show} fills the fields, {@link #commit} puts them back into the backend that is shown.
  */
+@Configurable(preConstruction = true)
 public class BackendEditor extends VerticalLayout {
+
+    @Autowired
+    private Localization loc;
 
     private final AudiobookService service;
     private BackendConfig current;
@@ -52,12 +60,15 @@ public class BackendEditor extends VerticalLayout {
     private final NumberField cfgWeight = new NumberField(T.localized(CFG_WEIGHT));
     private final NumberField speed = new NumberField(T.localized(SPEED));
     private final IntegerField chunkSize = new IntegerField(T.localized(CHUNK_SIZE));
-    private final HookListEditor before = new HookListEditor(hookLabels(), AudiobookStyles.SECTION);
-    private final HookListEditor after = new HookListEditor(hookLabels(), AudiobookStyles.SECTION);
+    private final HookListEditor before;
+    private final HookListEditor after;
     private final Button test = new Button(T.localized(TEST_CONNECTION), Solid.PLUG.create(), e -> testConnection());
 
     public BackendEditor(AudiobookService service) {
         this.service = service;
+        // built here, not with the fields: the localization is injected before the body runs
+        this.before = new HookListEditor(hookLabels(), AudiobookStyles.SECTION, loc);
+        this.after = new HookListEditor(hookLabels(), AudiobookStyles.SECTION, loc);
         this.voiceChoices = new VoiceChoices(service);
         this.narratorVoice = new VoiceField(T.localized(NARRATOR_VOICE), voiceChoices);
 
@@ -183,6 +194,7 @@ public class BackendEditor extends VerticalLayout {
             current.setProtectedHooksKey(null);
             hooksKey.clear();
             updateKeyState();
+            SettingsChanges.changed(this);
         }
     }
 
@@ -191,6 +203,8 @@ public class BackendEditor extends VerticalLayout {
             current.setProtectedApiKey(null);
             apiKey.clear();
             updateKeyState();
+            // the field was empty already: no value change tells the settings page
+            SettingsChanges.changed(this);
         }
     }
 

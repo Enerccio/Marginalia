@@ -74,6 +74,10 @@ public class ImageGeneratorDialog extends Dialog {
     private final TextArea details = new TextArea(T.localized(DETAILS));
     private final TextArea prompt = new TextArea(T.localized(PROMPT));
     private final TextArea negative = new TextArea(T.localized(NEGATIVE_PROMPT));
+    private final TextArea style = new TextArea(T.localized(STYLE));
+    /** The negative prompt of the book (book, folders, user). */
+    private String bookNegative = "";
+    private boolean freeing;
     private final IntegerField width = new IntegerField(T.localized(WIDTH));
     private final IntegerField height = new IntegerField(T.localized(HEIGHT));
     private final ComboBox<String> loraBox = new ComboBox<>(T.localized(LORA));
@@ -146,23 +150,34 @@ public class ImageGeneratorDialog extends Dialog {
         sendLore.getElement().setProperty("title", T.localized(THE_ENTRIES_THE_PART_ACTIVATES));
         sendLore.addValueChangeListener(e -> rememberSendLore(e.getValue()));
         details.setWidthFull();
-        details.setMinHeight("4em");
-        details.setMaxHeight("10em");
+        // as tall as the style and the negative prompt next to it
+        ResizableTextArea.install(loc, details, "116px");
         details.setHelperText(T.localized(WHAT_THE_PICTURE_MUST_SHOW));
+        style.setWidthFull();
+        ResizableTextArea.install(loc, style, "56px");
+        // a helper line would make the window taller
+        style.getElement().setProperty("title", T.localized(STYLE_FOR_THIS_WINDOW));
 
         prompt.setWidthFull();
-        prompt.setMinHeight("8em");
-        prompt.setMaxHeight("16em");
+        ResizableTextArea.install(loc, prompt, "160px");
 
         negative.setWidthFull();
-        negative.setMinHeight("4em");
+        ResizableTextArea.install(loc, negative, "56px");
         width.setMin(64);
         width.setStepButtonsVisible(true);
         height.setMin(64);
         height.setStepButtonsVisible(true);
         initLora();
-        Details more = new Details(T.localized(SIZE_AND_NEGATIVE_PROMPT), new VerticalLayout(new HorizontalLayout(width, height), negative));
+        Details more = new Details(T.localized(SIZE), new HorizontalLayout(width, height));
         more.setWidthFull();
+        // the details on one side, the two texts of the book on the other (one under the other on a narrow screen)
+        VerticalLayout bookTexts = new VerticalLayout(style, negative);
+        bookTexts.setPadding(false);
+        bookTexts.setSpacing(true);
+        Div split = new Div(details, bookTexts);
+        split.addClassName(ImageStyles.SPLIT);
+        style.setValue(service.resolveStyle(manuscript));
+        bookNegative = StringUtils.defaultString(service.resolveNegative(manuscript)).strip();
 
         status.addClassName(ImageStyles.STATUS);
         preview.addClassName(ImageStyles.PREVIEW);
@@ -178,27 +193,21 @@ public class ImageGeneratorDialog extends Dialog {
             preview.add(hint);
         }
 
-        VerticalLayout content = new VerticalLayout(top, sendLore, details, prompt, loraRow, more, status, preview);
+        VerticalLayout content = new VerticalLayout(top, sendLore, split, prompt, loraRow, more, status, preview);
         content.setPadding(false);
         content.setSpacing(true);
         add(content);
 
         getFooter().add(new Button(T.localized(CLOSE), e -> close()), discard, accept, generate);
         DialogShortcuts.submitWith(writePrompt, details);
-        DialogShortcuts.submitWith(generate, prompt, negative, width, height, loraStrength);
+        DialogShortcuts.submitWith(generate, prompt, negative, style, width, height, loraStrength);
 
         applyBackendDefaults(selected);
         updateButtons();
         addDetachListener(this::detached);
 
-        // the part is the whole prompt when nothing else is there: write it right away
-        if (message != null && StringUtils.isNotBlank(message.getResponse())) {
-            addOpenedChangeListener(e -> {
-                if (e.isOpened() && prompt.isEmpty() && !writing) {
-                    writePrompt();
-                }
-            });
-        }
+        // the prompt is written when asked: the details and the lorebook choice are filled in first
+        DialogFocus.onOpen(this, details);
     }
 
     // --- model and backend ---
@@ -245,7 +254,7 @@ public class ImageGeneratorDialog extends Dialog {
         }
         width.setValue(backend.getWidth());
         height.setValue(backend.getHeight());
-        negative.setValue(backend.getNegativePrompt());
+        negative.setValue(bookNegative);
         if (backend.usesLora()) {
             setLoraItems(List.of(), backend.getLora());
             loraStrength.setValue(backend.getLoraStrength());
@@ -351,17 +360,41 @@ public class ImageGeneratorDialog extends Dialog {
         }
         AI ai = modelPicker.getAi();
         Protocol protocol = modelPicker.getProtocol();
-        if (ai == null || protocol == null || message == null) {
+        if (ai == null || protocol == null || message == null || freeing) {
             return;
         }
         UI ui = UI.getCurrent();
+        if (session != null) {
+            // the image model may hold the GPU the language model needs: let it go first (the after hooks), the next image
+            // runs the before hooks again
+            ImageSession held = session;
+            session = null;
+            sessionBackendId = null;
+            freeing = true;
+            status.setText(T.localized(FREEING_THE_IMAGE_BACKEND));
+            updateButtons();
+            Thread.ofVirtual().name("image-generator-release").start(() -> {
+                String error = held.end();
+                ui.access(() -> {
+                    freeing = false;
+                    status.setText("");
+                    if (error != null) {
+                        Notification.warning(T.localized(THE_AFTER_HOOK_FAILED).formatted(error));
+                    }
+                    updateButtons();
+                    writePrompt();
+                    UIPushGuard.push(ui);
+                });
+            });
+            return;
+        }
         writing = true;
         prompt.clear();
         status.setText(T.localized(WAITING_FOR_THE_MODEL));
         updateButtons();
         try {
             ImageGeneratorService.PromptRequest request = service.buildPromptRequest(settings, manuscript, message, ai, protocol,
-                    sendLore.getValue(), details.getValue());
+                    sendLore.getValue(), details.getValue(), style.getValue(), service.instructionFor(backendSelect.getValue()));
             if (request.skippedLore() > 0) {
                 Notification.warning(T.localized(LORE_ENTRIES_DID_NOT_FIT).formatted(request.skippedLore()));
             }
@@ -437,7 +470,7 @@ public class ImageGeneratorDialog extends Dialog {
             }
             return;
         }
-        String text = service.withStyle(settings, prompt.getValue());
+        String text = ImageGeneratorService.withStyle(style.getValue(), prompt.getValue());
         if (StringUtils.isBlank(text)) {
             Notification.warning(T.localized(THE_PROMPT_IS_EMPTY));
             return;
@@ -552,9 +585,9 @@ public class ImageGeneratorDialog extends Dialog {
     private void updateButtons() {
         boolean hasBackend = backendSelect.getValue() != null;
         writePrompt.setText(writing ? T.localized(ABORT) : T.localized(WRITE_THE_PROMPT));
-        writePrompt.setEnabled(!making && message != null);
+        writePrompt.setEnabled(!making && !freeing && message != null);
         generate.setText(making ? T.localized(ABORT) : image == null ? T.localized(GENERATE) : T.localized(REROLL));
-        generate.setEnabled(hasBackend && !writing);
+        generate.setEnabled(hasBackend && !writing && !freeing);
         accept.setVisible(image != null);
         accept.setEnabled(!making);
         discard.setVisible(image != null);

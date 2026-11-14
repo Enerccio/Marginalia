@@ -24,7 +24,8 @@ spoken by stable-diffusion.cpp, LiteLLM and many hosted services).
 | Model | OpenAI images API only: the `model` of the request. |
 | Workflow | ComfyUI only: a workflow saved in ComfyUI with **Save (API Format)**. Write `{{prompt}}`, `{{negative}}`, `{{seed}}`, `{{width}}` and `{{height}}` where they go, and `{{lora}}` / `{{lora_strength}}` in a LoRA loader to [choose the LoRA in the window](#choosing-a-lora). |
 | The server is on this machine or on my network | Allows addresses of the local network. Leave it off for a server in the cloud: it then cannot be made to call your own machine. |
-| Width, Height, Negative prompt | What the window starts with (you can change them there for one image). |
+| Width, Height | What the window starts with (you can change them there for one image). |
+| Prompt form | How the language model writes the prompt for this backend, to suit its image model: **Tags** (short comma separated phrases, for SDXL, Pony, Illustrious), **Descriptive sentences** (a paragraph, for Flux, Krea, Qwen-Image, Z-Image) or **Free text**, your own instruction for the prompt writer (it starts from the one that was chosen). A backend made before this setting existed writes tags, or uses the instruction you had set then as its free text. The built-in instructions are in your [prompt language](../account.md#prompt-language) and ask for the image prompt in English, which image models read best. |
 | Timeout | How long to wait for one image. |
 | Release after idle | See [One GPU](#one-gpu-for-the-model-and-the-images). |
 
@@ -32,25 +33,33 @@ spoken by stable-diffusion.cpp, LiteLLM and many hosted services).
 
 **Test connection** checks the address and the key.
 
-The panel also has the **Style** put in front of every prompt (the look of the book, for example *watercolor, soft light*) and the
-**Instruction for the prompt writer**, the text the model is given to write the prompt from a part. Empty or unchanged uses the
-built-in one.
+The panel also has two texts that a book can change:
+
+- **Style** - put in front of every prompt: the look of the pictures, for example *watercolor, soft light*. The prompt writer is
+  told it too, so the prompt does not describe another style.
+- **Negative prompt** - what the pictures must not show. A turbo model that runs without guidance (CFG 1) ignores it. The negative
+  prompt a backend had before is taken over here the first time you open the panel.
+
+What you set in the panel is your default. A book (its *Prompts* tab) or a [folder](../folders.md) can set its own under
+*Extension Settings → Image Generator*; a book uses its own, else the nearest folder's, else yours.
 
 ## Making an image
 
 ![Generate image in the menu of a part](../../images/plugin-imagegenerator-menu.png)
 
-1. Choose **Generate image** in the menu of a part. The model of the window (the book's by default, the last choice is remembered)
-   starts writing the prompt of the part; you can stop it with **Abort**, change the prompt, or press **Write the prompt with the
-   model** to write it again. Before you write it again you can fill in:
+1. Choose **Generate image** in the menu of a part. Nothing is sent to a model yet: first fill in what the prompt writer should
+   follow, then press **Write the prompt with the model** (or <kbd>Ctrl+Enter</kbd> in *Details*). The model of the window (the
+   book's by default, the last choice is remembered) writes the prompt of the part; you can stop it with **Abort**, change the
+   prompt, write it yourself, or write it again. These apply only to writing the prompt, not to the image itself:
    - **Send lorebook entries** - the entries of the book's lorebook (and its sub lorebooks) go to the model as in a generation, so
      it knows how the characters and places look. An entry is sent when its filters are found in the part: its text, instructions,
      scene setting, point of view and characters present, or in your *Details*. Entries that are always on come too. Only as many
      fit as the context of the model allows (a notice tells how many were left out). The choice is remembered.
    - **Details** - what the picture must show or how it must look (*at night, close up on her face, the red dress*); the prompt
      writer follows it. It is for this window only.
-2. Choose the backend and press **Generate**. Under *Size and negative prompt* you can change the size and the negative prompt for
-   this window.
+2. Choose the backend and press **Generate**. The image is made from the **Prompt** with the **Style** in front, and the
+   **Negative prompt**; both start with the book's (or your default) and a change is for this window only (the style is also told
+   to the prompt writer). Under *Size* you can change the size for this window.
 3. The image appears. **Reroll** makes another one with a new seed, **Discard** drops it, **Accept** adds it to the part and closes
    the window. **Abort** stops an image that is being made (ComfyUI is told to interrupt the job).
 
@@ -87,6 +96,10 @@ each backend can have two lists of requests that you set up:
 
 With `llama-server` in router mode behind LiteLLM, the *before* request can unload the language model through the proxy: see
 [Freeing the GPU for another model](../prompt-cache.md#freeing-the-gpu-for-another-model).
+
+Writing the prompt again after an image (**Write the prompt with the model**) first lets the image backend go: the *after*
+requests are made and the window waits for them, so the language model finds the GPU free. The next **Generate** makes the *before*
+requests again.
 
 Both moments take a **list of requests**, made one after the other (**Add a request** adds one, the bin removes one). A swap often needs
 several: unload the language model, then start the image server, and after the images stop it. Each request has an address, a method

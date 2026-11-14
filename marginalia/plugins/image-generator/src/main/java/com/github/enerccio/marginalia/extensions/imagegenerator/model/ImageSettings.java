@@ -8,23 +8,20 @@ public class ImageSettings {
 
     public static final String KEY = "com.github.enerccio.marginalia.extensions.imagegenerator";
 
-    public static final String DEFAULT_PROMPT_INSTRUCTION =
-            "You write prompts for an image generation model. From the scene below, write one prompt that describes the picture "
-                    + "of its most visual moment: who is there (looks, clothes, pose), where, the light and the mood. Use short "
-                    + "comma separated phrases, no sentences, no names of people (describe them), no text in the picture. "
-                    + "Answer with the prompt only.";
 
     private List<BackendConfig> backends = new ArrayList<>();
     private String selectedBackendId;
     /** The model that writes the prompts, null for the one of the book. */
     private Long selectedAiId;
     private Long selectedProtocolId;
-    /** Replaces the built-in instruction of the prompt writer. */
+    /** The one instruction of the prompt writer from before the backends had a prompt form: a backend saved then keeps it as its free text. */
     private String promptInstruction;
     /** Whether the lorebook entries a part activates go to the prompt writer; remembered from the last window. */
     private boolean sendLore;
-    /** Added in front of every prompt, for the style of the book. */
+    /** Added in front of every prompt, for the style of the book: the user level, a book or a folder can change it. */
     private String stylePrefix = "";
+    /** The negative prompt of the user level (a book or a folder can change it); blank: the backend's. */
+    private String negativePrompt = "";
 
     public List<BackendConfig> getBackends() {
         if (backends == null) {
@@ -61,8 +58,9 @@ public class ImageSettings {
         this.selectedProtocolId = selectedProtocolId;
     }
 
-    public String getPromptInstruction() {
-        return promptInstruction == null || promptInstruction.isBlank() ? DEFAULT_PROMPT_INSTRUCTION : promptInstruction;
+    /** What the user set, null when the built-in instruction is used. */
+    public String getStoredPromptInstruction() {
+        return promptInstruction == null || promptInstruction.isBlank() ? null : promptInstruction;
     }
 
     public void setPromptInstruction(String promptInstruction) {
@@ -83,6 +81,14 @@ public class ImageSettings {
 
     public void setStylePrefix(String stylePrefix) {
         this.stylePrefix = stylePrefix;
+    }
+
+    public String getNegativePrompt() {
+        return negativePrompt == null ? "" : negativePrompt;
+    }
+
+    public void setNegativePrompt(String negativePrompt) {
+        this.negativePrompt = negativePrompt;
     }
 
     public BackendConfig find(String id) {

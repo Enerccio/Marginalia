@@ -94,9 +94,12 @@ image and `release` when it ends; every image is made in `exclusive`.
 ## The settings form: `HookListEditor`
 
 `ui.HookListEditor` (Vaadin) is the form of a list of hooks, one row for each request with a button that removes it and one that adds a request. A plugin builds it with
-its own localized `Labels` and a CSS class for the frame of a row, shows a list with `show(hooks, reveal)` and reads it back with `read(protect)` (empty rows left out). The headers are
+its own localized `Labels`, a CSS class for the frame of a row and the application's `Localization` (`HookListEditor(labels, rowClassName, loc)`:
+the headers and the body are then `ResizableTextArea`s; the library is not woven, so the plugin passes the `loc` of its own `@Configurable` form,
+created in the constructor body, not in a field initializer; the two-argument constructor leaves them plain), shows a list with `show(hooks, reveal)` and reads it back with `read(protect)` (empty rows left out). The headers are
 shown opened and stored protected, so the plugin passes the functions of `InferenceServices` (`revealSecret`, `protectSecret`). The Image Generator and the Audiobook use it for their
-before and after lists.
+before and after lists. Adding or removing a request is reported to the settings page with `SettingsChanges.changed` (see
+[UI extensions](../ui-extensions.md)), so it counts as an unsaved change; `show` does not report (it is loading).
 
 ## Using it
 

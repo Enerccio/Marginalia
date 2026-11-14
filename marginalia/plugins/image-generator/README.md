@@ -7,11 +7,18 @@ part menu.
 ## Usage
 
 1. Add a backend in *Settings → Extension Settings → Image Generator Settings* (see below) and save the settings.
-2. Choose **Generate image** in the menu of a part. The model of the window (by default the book's) writes the prompt of the part;
-   change it as you like, or write it yourself. **Write the prompt with the model** writes it again. **Send lorebook entries**
+2. Choose **Generate image** in the menu of a part. Nothing runs when the window opens: **Write the prompt with the model** has the
+   model of the window (by default the book's) write the prompt of the part; change it as you like, or write it yourself. **Send lorebook entries**
    sends the entries the part activates (filters matched against its text, instructions, scene setting, point of view, characters
    present and your details; as many as fit the context), **Details** is what you want in the picture.
-3. **Generate** makes the image, **Reroll** another one (a new seed). **Accept** adds the image to the part, **Discard** drops it.
+3. **Generate** makes the image from the prompt with the **Style** in front and the **Negative prompt**, **Reroll** another one (a new
+   seed). **Accept** adds the image to the part, **Discard** drops it. Writing the prompt again after an image first ends the image
+   session (its *after* requests, so a shared GPU is free for the language model).
+
+**Style** and **Negative prompt** are inherited settings (`imagegenerator.style`, `imagegenerator.negativePrompt`): a book or a folder
+sets them in *Prompts → Extension Settings*, else the user's panel, else none. The window starts with the book's value and can change it
+for itself. The instruction of the prompt writer belongs to the backend, its **Prompt form** (`PromptForm`): *Tags*, *Descriptive
+sentences* (both built in) or *Free text*; a backend saved before the choice keeps the user's old instruction (`BackendConfig.instructionFor`).
 
 ## Backends
 

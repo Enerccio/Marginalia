@@ -77,4 +77,20 @@ class PromptComposeTest {
         assertEquals("Only text\n", ImageGeneratorService.matchedText(message, null));
         assertEquals("Text:\nOnly text", ImageGeneratorService.sceneText(message));
     }
+
+    @Test
+    void theStyleIsToldToTheWriterOnlyWhenThereIsOne() {
+        String withStyle = ImageGeneratorService.compose("x", "", "scene", "", "  muted pencil sketch  ").get(1).getContent();
+        assertTrue(withStyle.contains("do not describe another medium or style:\nmuted pencil sketch"));
+
+        assertFalse(ImageGeneratorService.compose("x", "", "scene", "", "  ").get(1).getContent().contains("style"));
+        assertFalse(ImageGeneratorService.compose("x", "", "scene", "").get(1).getContent().contains("style"));
+    }
+
+    @Test
+    void theStyleGoesInFrontOfThePrompt() {
+        assertEquals("watercolor, a harbor", ImageGeneratorService.withStyle(" watercolor ", "a harbor"));
+        assertEquals("watercolor, a harbor", ImageGeneratorService.withStyle("watercolor,", "a harbor"));
+        assertEquals("a harbor", ImageGeneratorService.withStyle(null, " a harbor "));
+    }
 }

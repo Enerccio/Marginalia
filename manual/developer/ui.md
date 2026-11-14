@@ -154,7 +154,9 @@ front (the admin part is created, and refreshed, only when the user is an admini
 
 `Workspace.setNavigationLocked(true)` disables the other tabs and the *Admin* and *Logout* buttons, so the user can't
 leave the active tab. `UserPart` locks it while the settings have unsaved changes: it listens to every `HasValue`
-in its layout (extension settings panels included) and unlocks on *Save*, *Discard Changes* or `refresh()`.
+in its layout (extension settings panels included; after every change it walks the layout again, `trackAllChanges`, so fields
+built since are tracked too, and a form reports a change that is no value change with `SettingsChanges.changed`) and unlocks on
+*Save*, *Discard Changes* or `refresh()`.
 
 `Main.proceedWithLogin` picks `PhoneWorkspace` instead when the body of the page is narrower than 768 px
 (`ExtendedClientDetails.getBodyClientWidth()`). The choice is made once per login: resizing or rotating the device

@@ -7,7 +7,6 @@ covers:
   - Dockerfile
   - docker-compose.yml
   - docker-entrypoint.sh
-  - marginalia/plugins/Dockerfile
   - marginalia/plugins/docker-compose.yml
   - rebuild.sh
   - rebuild.bat
@@ -67,9 +66,9 @@ every WAR from `mvn package` - the Docker image, the `desktop` profile, a WAR de
 The user manual is packed too: `<resources>` in `marginalia/pom.xml` copies the Markdown pages of `manual/user` (no
 pictures, never filtered) to `classpath:/manual/`, where `ManualService` reads them (see
 [Services](services.md#the-manual)). The source folder is outside `marginalia/`, so a build that copies only
-`marginalia/src` must copy `manual/user` as well, as both Dockerfiles do (`/build/manual/user`); without it the WAR
+`marginalia/src` must copy `manual/user` as well, as the `Dockerfile` does (`/build/manual/user`); without it the WAR
 builds, with an empty manual. The same for the translations of the manual (`translations/<language>/user`, copied to
-`classpath:/manual-translations/<language>/user/`, read when the help assistant is asked in that language): the Dockerfiles copy
+`classpath:/manual-translations/<language>/user/`, read when the help assistant is asked in that language): the Dockerfile copies
 `translations` (`/build/translations`), and without it the help is English only.
 
 The build also needs the Git history: `git-commit-id-plugin` writes the commit id and the closest tag into
@@ -77,14 +76,21 @@ The build also needs the Git history: `git-commit-id-plugin` writes the commit i
 
 ## Docker image
 
-The `Dockerfile` in the repository root has two stages:
+The `Dockerfile` in the repository root builds the image and, in two more stages, the
+[plugins](#building-the-plugins-in-docker); the image is its last stage, the default target:
 
 1. **builder** (`maven:3.9-eclipse-temurin-25`)
    - copies the parent `pom.xml` and `marginalia/pom.xml` and runs `mvn dependency:go-offline`, so the dependency layer is cached while only
      the sources change;
-   - copies `marginalia/src`, `manual/user` (the manual packed into the WAR) and `.git` (for `git-commit-id-plugin`);
-   - runs `mvn clean package -DskipTests`.
-2. **runtime** (`jetty:12-jdk25-eclipse-temurin`)
+   - copies `marginalia/src`, `manual/user` (the manual packed into the WAR), `translations` and `.git` (for `git-commit-id-plugin`);
+   - runs `mvn clean install -DskipTests` and `mvn install -N` for the parent POM: the WAR for the image, and the
+     classes JAR and the parent POM in the local Maven repository for the plugin stages. The same step then deletes
+     what no later stage needs (`node_modules`, Node.js in `~/.vaadin`, the npm cache, `target/` except the WAR, the
+     WAR's copy in `~/.m2`): otherwise these tens of thousands of files end up in the layer, and the classic builder
+     (no BuildKit) pauses for a long time after the build while it writes them.
+2. **plugins-build** and **plugins**, used only by the plugin build (see below); BuildKit skips them when it builds the
+   image, the classic builder builds them too.
+3. **runtime** (`jetty:12-jdk25-eclipse-temurin`)
    - creates a Jetty base with the modules `server, http, ee11-deploy, ee11-websocket-jakarta, ee11-webapp,
      ee11-jsp` (the WebSocket module is required for Vaadin push);
    - deploys the WAR as `webapps/ROOT.war`, so Marginalia is at `/`;
@@ -102,7 +108,7 @@ The `Dockerfile` in the repository root has two stages:
 Tests are skipped in the image build - they run in CI. `.dockerignore` keeps `marginalia/target/`, `.idea/`, the
 server's `data/` folder, `marginalia/node_modules/` and the plugin `target/` and `build/` folders out of the build context
 (the plugin sources are in it, because the [plugin image](#building-the-plugins-in-docker) is built from the same
-context).
+Dockerfile).
 
 `docker-compose.yml` builds the image and sets the runtime configuration:
 
@@ -247,7 +253,7 @@ cd plugins/reviewer && mvn package        # target/reviewer-1.9.0.jar
 ```
 
 A plugin that uses a shared library (the two translators, which embed `translator-common`; the Image Generator and the Audiobook, which embed `http-hooks`) needs the library installed first:
-`cd marginalia/libs/translator-common && mvn install -DskipTests`. The workflows and the plugins `Dockerfile` do that for every folder of `marginalia/libs/`
+`cd marginalia/libs/translator-common && mvn install -DskipTests`. The workflows and the `plugins-build` stage of the `Dockerfile` do that for every folder of `marginalia/libs/`
 before they build the plugins ([Libraries for plugins](plugins/libraries/index.md)).
 
 `server.yml` builds all the plugins against the freshly installed application and attaches the JARs to the release
@@ -258,13 +264,16 @@ application. See [Plugin development](plugins/index.md).
 
 ### Building the plugins in Docker
 
-`marginalia/plugins/Dockerfile` is a separate build environment for the plugins, used by servers that build from
-source (and by anyone without a local JDK/Maven). Its `builder` stage (Maven + JDK 25, like the main `Dockerfile`)
-installs the application into the image's local Maven repository (with `-Dvaadin.skip=true`: the plugins need only the
-classes JAR, so the frontend is not built, see [Building](building.md)), installs the libraries of `marginalia/libs` and builds every plugin against them (`mvn package -DskipTests`: the plugin tests are not run in the image); the final
-stage is a small Alpine image that holds the JARs in `/jars`. Its command copies them to `/output`, replacing the
-`*.jar` files there, so the compose file (`marginalia/plugins/docker-compose.yml`, build context `../..`) mounts
-`marginalia/plugins/build` as `/output`. The plugins are built one after the other and none of them needs another one
+The plugins are built by the stages `plugins-build` and `plugins` of the root `Dockerfile`, used by servers that
+build from source (and by anyone without a local JDK/Maven). `plugins-build` starts from the `builder` stage of the
+image, whose application is already installed into the local Maven repository, installs the libraries of
+`marginalia/libs` and builds every plugin against them (`mvn package -DskipTests`: the plugin tests are not run in the
+image); `plugins` is a small Alpine image that holds the JARs in `/jars`. Its command copies them to `/output`,
+replacing the `*.jar` files there, so the compose file (`marginalia/plugins/docker-compose.yml`, build context `../..`,
+target `plugins`) mounts `marginalia/plugins/build` as `/output`. Because the image and the plugins share the `builder`
+stage, a host that builds both (as `rebuild.sh` does) compiles the application once: the second build takes the stage
+from Docker's build cache (same instructions, same files, `.git` included). Building only the plugins therefore builds
+the whole application, frontend included. The plugins are built one after the other and none of them needs another one
 installed first (the Lore Generator finds the Name generator at run time, not at build time); only the libraries come before them. The Name generator's
 build clones the sources of its names from GitHub (the Maven image has `git`); without network it keeps the tables
 committed in the repository, see its [README](https://github.com/Enerccio/Marginalia/blob/master/marginalia/plugins/name-generator/README.md):

@@ -932,14 +932,33 @@ public class UserPart implements WorkspaceComponent {
             returns = @APIReturn(type = void.class))
     private void finishLoading() {
         mainLayout.getElement().getNode().runWhenAttached(ui -> ui.beforeClientResponse(mainLayout, ctx -> {
-            trackChanges(mainLayout);
-            // a TabSheet keeps only the content of the selected tab in the component tree
-            for (int i = 0; i < tabSheet.getTabCount(); i++) {
-                trackChanges(tabSheet.getComponent(tabSheet.getTabAt(i)));
-            }
+            trackAllChanges();
+            // a form reports what is not a value change of a tracked field (a row added or removed, a key removed), see SettingsChanges
+            Runnable reported = () -> {
+                if (!loading) {
+                    trackAllChanges();
+                    setChanged(true);
+                }
+            };
+            SettingsChanges.listen(mainLayout, reported);
+            SettingsChanges.listen(tabSheet, reported);
             loading = false;
             setChanged(false);
         }));
+    }
+
+    /**
+     * Tracks the fields of the whole part; the ones tracked already are skipped, so it is run again after every change to pick up the
+     * fields a form built since (the rows of a list, the fields of another item it shows).
+     */
+    @PublicAPI(from = "1.9.0",
+            returns = @APIReturn(type = void.class))
+    private void trackAllChanges() {
+        trackChanges(mainLayout);
+        // a TabSheet keeps only the content of the selected tab in the component tree
+        for (int i = 0; i < tabSheet.getTabCount(); i++) {
+            trackChanges(tabSheet.getComponent(tabSheet.getTabAt(i)));
+        }
     }
 
     /**
@@ -961,6 +980,8 @@ public class UserPart implements WorkspaceComponent {
             field.addValueChangeListener(e -> {
                 if (!loading) {
                     setChanged(true);
+                    // the form may have built new fields in its own listener of this change (it runs first)
+                    trackAllChanges();
                 }
             });
         }
