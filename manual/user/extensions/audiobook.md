@@ -201,6 +201,10 @@ An administrator chooses it for the whole installation in *Settings → Extensio
 The choice applies to what is made from then on. Parts made before keep their audio and are understood as they are; a part of both kinds (a locked piece of the studio from before) is joined as wav, and an export of
 parts of both kinds works, but needs ffmpeg.
 
+An export of the whole book is made from the stored files of the parts into temporary files of the server and downloaded from there, so its
+length is not limited by the memory of the application, but the temporary folder needs room for about twice the audio of the book (with wav,
+about 350 MB an hour) while it is made.
+
 ![The export dialog with the audiobook formats](../../images/plugin-audiobook-export.png)
 
 ## Automatic conversion

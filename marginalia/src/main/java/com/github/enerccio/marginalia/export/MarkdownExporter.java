@@ -2,6 +2,10 @@ package com.github.enerccio.marginalia.export;
 
 import com.github.enerccio.marginalia.domain.service.ExporterService.ExportOptions;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
@@ -30,26 +34,41 @@ public class MarkdownExporter extends ExporterBase {
     }
 
     @Override
-    protected ExportWriter open(ExportOptions options) {
-        return new MarkdownWriter();
+    protected ExportWriter open(ExportOptions options, OutputStream out) throws Exception {
+        return new MarkdownWriter(out, null);
     }
 
-    private static class MarkdownWriter implements ExportWriter {
-        private final StringBuilder out = new StringBuilder();
+    /**
+     * Writes the blocks into the file as they come, an empty line between two of them.
+     */
+    protected static class MarkdownWriter implements ExportWriter {
+        private final Writer out;
+        private boolean written;
+
+        /**
+         * @param start text the file starts with as it is (the front matter), null for none
+         */
+        protected MarkdownWriter(OutputStream out, String start) throws IOException {
+            this.out = new OutputStreamWriter(out, StandardCharsets.UTF_8);
+            if (start != null) {
+                this.out.write(start);
+                written = true;
+            }
+        }
 
         @Override
-        public void titlePage(String markdown) {
+        public void titlePage(String markdown) throws IOException {
             // the template leaves an empty line more where the author starts
             block(markdown.replaceAll("\\n{3,}", "\n\n"));
         }
 
         @Override
-        public void message(String markdown, Chapter chapter) {
+        public void message(String markdown, Chapter chapter) throws IOException {
             block(markdown);
         }
 
         @Override
-        public void images(List<ExportImage> images) {
+        public void images(List<ExportImage> images) throws IOException {
             for (ExportImage image : images) {
                 String caption = image.caption().replaceAll("\\s+", " ");
                 String source = "data:" + image.mimeType() + ";base64," + Base64.getEncoder().encodeToString(image.data());
@@ -61,15 +80,22 @@ public class MarkdownExporter extends ExporterBase {
         }
 
         @Override
-        public byte[] finish() {
-            String text = out.toString().stripTrailing();
-            return (text.isEmpty() ? text : text + "\n").getBytes(StandardCharsets.UTF_8);
+        public void finish() throws IOException {
+            if (written) {
+                out.write('\n');
+            }
+            // the stream is closed by the exporter
+            out.flush();
         }
 
-        private void block(String markdown) {
+        private void block(String markdown) throws IOException {
             String text = markdown.strip();
             if (!text.isEmpty()) {
-                out.append(text).append("\n\n");
+                if (written) {
+                    out.write("\n\n");
+                }
+                out.write(text);
+                written = true;
             }
         }
 

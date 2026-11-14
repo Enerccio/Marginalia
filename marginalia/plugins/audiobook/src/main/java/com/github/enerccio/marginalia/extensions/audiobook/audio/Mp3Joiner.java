@@ -3,6 +3,10 @@ package com.github.enerccio.marginalia.extensions.audiobook.audio;
 import com.github.enerccio.marginalia.extensions.httphooks.BackendException;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 
 /**
@@ -60,6 +64,7 @@ public final class Mp3Joiner {
         if (pieces.isEmpty()) {
             throw new BackendException("There is nothing to join");
         }
+        // all of them are checked before anything is joined
         Audio[] parsed = new Audio[pieces.size()];
         for (int i = 0; i < parsed.length; i++) {
             parsed[i] = parse(pieces.get(i), i);
@@ -67,15 +72,60 @@ public final class Mp3Joiner {
                 throw new BackendException("Piece " + (i + 1) + " has another sample rate or channel mode than the first");
             }
         }
-        Header first = parsed[0].header();
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        double[] starts = new double[parsed.length];
+        try {
+            Marks marks = joinInto(parsed.length, i -> parsed[i], pauses, out);
+            return new Joined(out.toByteArray(), marks.starts());
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    /**
+     * Where the pieces start in the joined audio and how long it is, in seconds.
+     */
+    public record Marks(double[] starts, double seconds) {
+    }
+
+    /**
+     * Joins mp3 files into the stream: one piece is read into memory at a time (a part of a book, a few megabytes), the joined audio is
+     * never held.
+     *
+     * @param pauses seconds of silence after each piece (the last one is not used); null or short means no pause
+     * @throws BackendException when a piece is not mp3 (Layer III), or the pieces differ in sample rate or channel mode
+     */
+    public static Marks joinTo(List<Path> pieces, List<Double> pauses, OutputStream out) throws BackendException, IOException {
+        if (pieces.isEmpty()) {
+            throw new BackendException("There is nothing to join");
+        }
+        return joinInto(pieces.size(), i -> {
+            try {
+                return parse(Files.readAllBytes(pieces.get(i)), i);
+            } catch (IOException e) {
+                throw new BackendException("The audio could not be read: " + e.getMessage(), e);
+            }
+        }, pauses, out);
+    }
+
+    private interface Pieces {
+        Audio get(int index) throws BackendException;
+    }
+
+    private static Marks joinInto(int count, Pieces pieces, List<Double> pauses, OutputStream out) throws BackendException, IOException {
+        Header first = null;
+        double[] starts = new double[count];
         long framesSoFar = 0;
-        for (int i = 0; i < parsed.length; i++) {
+        for (int i = 0; i < count; i++) {
+            Audio audio = pieces.get(i);
+            if (first == null) {
+                first = audio.header();
+            } else if (!audio.header().format().equals(first.format())) {
+                throw new BackendException("Piece " + (i + 1) + " has another sample rate or channel mode than the first");
+            }
             starts[i] = framesSoFar * (double) first.samplesPerFrame() / first.sampleRate();
-            framesSoFar += frames(parsed[i]);
-            out.write(parsed[i].bytes(), parsed[i].start(), parsed[i].end() - parsed[i].start());
-            double seconds = pauses == null || i >= pauses.size() || i == parsed.length - 1 || pauses.get(i) == null ? 0 : pauses.get(i);
+            framesSoFar += frames(audio);
+            out.write(audio.bytes(), audio.start(), audio.end() - audio.start());
+            double seconds = pauses == null || i >= pauses.size() || i == count - 1 || pauses.get(i) == null ? 0 : pauses.get(i);
             int frames = (int) Math.round(seconds * first.sampleRate() / first.samplesPerFrame());
             framesSoFar += Math.max(frames, 0);
             if (frames > 0) {
@@ -85,7 +135,7 @@ public final class Mp3Joiner {
                 }
             }
         }
-        return new Joined(out.toByteArray(), starts);
+        return new Marks(starts, framesSoFar * (double) first.samplesPerFrame() / first.sampleRate());
     }
 
     private static int frames(Audio audio) {

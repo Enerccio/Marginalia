@@ -12,7 +12,10 @@ import org.openpdf.text.pdf.draw.DottedLineSeparator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayOutputStream;
+import java.io.BufferedOutputStream;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -90,8 +93,8 @@ public class PdfExporter extends ExporterBase {
     }
 
     @Override
-    protected ExportWriter open(ExportOptions options) {
-        return new PdfWriterAdapter(options);
+    protected ExportWriter open(ExportOptions options, OutputStream out) {
+        return new PdfWriterAdapter(options, out);
     }
 
     /**
@@ -136,9 +139,11 @@ public class PdfExporter extends ExporterBase {
         private final List<Chapter> chapterOf = new ArrayList<>();
         private List<Chapter> chapters = List.of();
         private String titleMarkdown;
+        private final OutputStream out;
 
-        private PdfWriterAdapter(ExportOptions options) {
+        private PdfWriterAdapter(ExportOptions options, OutputStream out) {
             this.options = options;
+            this.out = out;
         }
 
         @Override
@@ -163,29 +168,47 @@ public class PdfExporter extends ExporterBase {
         }
 
         @Override
-        public byte[] finish() throws Exception {
+        public void finish() throws Exception {
+            // each pass is written into a temporary file (the PDF of a book with images is large), the last one is the result
+            Path file = Files.createTempFile("marginalia-pdf-", ".pdf");
+            try {
+                finish(file);
+                Files.copy(file, out);
+            } finally {
+                Files.deleteIfExists(file);
+            }
+        }
+
+        private void finish(Path file) throws Exception {
             Map<Integer, Float> reserve = new HashMap<>();
             // the largest room each page was ever asked for: when the layout does not settle, the last passes keep at least that much and so it does
             Map<Integer, Float> largest = new HashMap<>();
-            PdfRendering rendering = new PdfRendering(options, titleMarkdown, chapters, messages, chapterOf, Map.of(), reserve);
-            byte[] result = rendering.render();
+            PdfRendering rendering = render(file, Map.of(), reserve);
             for (int pass = 1; pass < MAX_PASSES && !rendering.isSettled(chapters); pass++) {
                 rendering.needed.forEach((page, height) -> largest.merge(page, height, Math::max));
                 reserve = pass >= MAX_PASSES - 2 ? new HashMap<>(largest) : new HashMap<>(rendering.needed);
-                rendering = new PdfRendering(options, titleMarkdown, chapters, messages, chapterOf, rendering.chapterPages, reserve);
-                result = rendering.render();
+                rendering = render(file, rendering.chapterPages, reserve);
             }
             if (!rendering.uncovered.isEmpty()) {
                 StringBuilder missing = new StringBuilder();
                 rendering.uncovered.stream().limit(20).forEach(cp -> missing.append(String.format("U+%04X ", cp)));
                 log.warn("{} different characters of the book are in none of the fonts of the PDF and are not drawn: {}", rendering.uncovered.size(), missing.toString().strip());
             }
-            return result;
+        }
+
+        /**
+         * One pass of the layout, written into the file (what was in it is replaced).
+         */
+        private PdfRendering render(Path file, Map<String, Integer> shownPages, Map<Integer, Float> reserve) throws Exception {
+            try (OutputStream pass = new BufferedOutputStream(Files.newOutputStream(file))) {
+                PdfRendering rendering = new PdfRendering(options, titleMarkdown, chapters, messages, chapterOf, shownPages, reserve, pass);
+                rendering.render();
+                return rendering;
+            }
         }
     }
 
     private static class PdfRendering {
-        private final ByteArrayOutputStream bytes = new ByteArrayOutputStream();
         private final Document document = new Document(PageSize.A5, MARGIN_SIDE, MARGIN_SIDE, MARGIN_TOP, MARGIN_BOTTOM);
         private final PrintStyle style;
         private final float bodySize;
@@ -224,7 +247,7 @@ public class PdfExporter extends ExporterBase {
         final Set<Integer> uncovered = new TreeSet<>();
 
         private PdfRendering(ExportOptions options, String titleMarkdown, List<Chapter> chapters, List<List<Part>> messages,
-                             List<Chapter> chapterOf, Map<String, Integer> shownPages, Map<Integer, Float> reserve) throws Exception {
+                             List<Chapter> chapterOf, Map<String, Integer> shownPages, Map<Integer, Float> reserve, OutputStream out) throws Exception {
             this.reserve = reserve;
             this.titleMarkdown = titleMarkdown;
             this.chapters = chapters;
@@ -245,7 +268,7 @@ public class PdfExporter extends ExporterBase {
             code = Liberation.MONO.create(Math.round(bodySize * 10 / 12));
             small = Liberation.SERIF.create(Math.round(bodySize * 10 / 12));
 
-            writer = PdfWriter.getInstance(document, bytes);
+            writer = PdfWriter.getInstance(document, out);
             // the first page is laid out with the room its notes need, the later ones are set when the page before them ends
             document.setMargins(MARGIN_SIDE, MARGIN_SIDE, MARGIN_TOP, MARGIN_BOTTOM + reserve.getOrDefault(1, 0f));
             writer.setPageEvent(new PdfPageEventHelper() {
@@ -461,7 +484,7 @@ public class PdfExporter extends ExporterBase {
             return chunks;
         }
 
-        private byte[] render() throws Exception {
+        private void render() throws Exception {
             if (titleMarkdown != null) {
                 walk(titleMarkdown, titleSink);
                 document.newPage();
@@ -492,7 +515,6 @@ public class PdfExporter extends ExporterBase {
                 document.add(new Paragraph(" "));
             }
             document.close();
-            return bytes.toByteArray();
         }
 
         /**

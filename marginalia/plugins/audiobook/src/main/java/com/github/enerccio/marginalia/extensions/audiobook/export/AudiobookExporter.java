@@ -7,6 +7,9 @@ import com.github.enerccio.marginalia.extensions.httphooks.BackendException;
 import com.github.enerccio.marginalia.ui.dialogs.ProgressBarDialog;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
@@ -35,10 +38,10 @@ public final class AudiobookExporter implements ExporterService.Exporter {
         }
     }
 
-    /** The audio of a part for the export. */
-    public record PartAudio(byte[] audio, String problem) {
+    /** The audio of a part for the export: the file it is stored in (only read), or why there is none. */
+    public record PartAudio(Path audio, String problem) {
 
-        public static PartAudio of(byte[] audio) {
+        public static PartAudio of(Path audio) {
             return new PartAudio(audio, null);
         }
 
@@ -84,15 +87,39 @@ public final class AudiobookExporter implements ExporterService.Exporter {
     record Gathered(List<AudiobookFiles.Chapter> chapters, List<String> left) {
     }
 
-    /** The whole audiobook, one mp3 with the chapters marked; {@code audio} is null when no part has audio, {@code left} says which parts were left out and why. */
-    public record Whole(byte[] audio, List<String> left) {
+    /**
+     * The whole audiobook, one mp3 with the chapters marked.
+     *
+     * @param audio a temporary file the caller serves and deletes; null when no part has audio
+     * @param left  which parts were left out and why
+     */
+    public record Whole(Path audio, List<String> left) {
     }
 
-    /** Joins the audio of the parts into one file (the parts without up to date audio are left out and named). */
+    /** Joins the audio of the parts into one temporary file (the parts without up to date audio are left out and named). */
     public static Whole wholeBook(List<ChatMessage> parts, Function<ChatMessage, PartAudio> source, String book, String author) throws BackendException {
         Gathered gathered = gather(parts, source, () -> {
         });
-        return new Whole(gathered.chapters().isEmpty() ? null : AudiobookFiles.oneFile(gathered.chapters(), book, author), gathered.left());
+        if (gathered.chapters().isEmpty()) {
+            return new Whole(null, gathered.left());
+        }
+        Path file;
+        try {
+            file = Files.createTempFile("audiobook-", ".mp3");
+        } catch (IOException e) {
+            throw new BackendException("The audiobook could not be made: " + e.getMessage(), e);
+        }
+        try {
+            AudiobookFiles.oneFile(gathered.chapters(), book, author, file);
+        } catch (BackendException | RuntimeException e) {
+            try {
+                Files.deleteIfExists(file);
+            } catch (IOException ignored) {
+                // a temporary file that stays is not worth hiding the error
+            }
+            throw e;
+        }
+        return new Whole(file, gathered.left());
     }
 
     static Gathered gather(List<ChatMessage> parts, Function<ChatMessage, PartAudio> source, Runnable tick) {
@@ -128,8 +155,9 @@ public final class AudiobookExporter implements ExporterService.Exporter {
         }
     }
 
+    /** Writes the audiobook straight into the file of the export dialog, from the files of the parts. */
     @Override
-    public byte[] export(ExporterService.ExportOptions options, List<ChatMessage> parts, ProgressBarDialog progress) throws Exception {
+    public void exportTo(ExporterService.ExportOptions options, List<ChatMessage> parts, ProgressBarDialog progress, Path target) throws Exception {
         Gathered gathered = gather(parts, source, progress::updateProgress);
         if (gathered.chapters().isEmpty()) {
             String message = gathered.left().isEmpty() ? T.localized(NO_PART_TO_EXPORT)
@@ -140,7 +168,7 @@ public final class AudiobookExporter implements ExporterService.Exporter {
                     progress.close();
                     Notification.warning(message, Notification.DURATION_LONGER);
                 });
-                return new byte[0];
+                return;
             }
             throw new IllegalStateException(message);
         }
@@ -149,10 +177,10 @@ public final class AudiobookExporter implements ExporterService.Exporter {
             AudiobookLog.get().info("Audiobook export: {}", message);
             progress.vaadinLocked(() -> Notification.warning(message));
         }
-        return switch (format) {
-            case ZIP -> AudiobookFiles.zip(gathered.chapters(), options.bookName(), options.author());
-            case MP3 -> AudiobookFiles.oneFile(gathered.chapters(), options.bookName(), options.author());
-            case M4B -> AudiobookFiles.m4b(gathered.chapters(), options.bookName(), options.author());
-        };
+        switch (format) {
+            case ZIP -> AudiobookFiles.zip(gathered.chapters(), options.bookName(), options.author(), target);
+            case MP3 -> AudiobookFiles.oneFile(gathered.chapters(), options.bookName(), options.author(), target);
+            case M4B -> AudiobookFiles.m4b(gathered.chapters(), options.bookName(), options.author(), target);
+        }
     }
 }

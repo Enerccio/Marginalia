@@ -2,6 +2,10 @@ package com.github.enerccio.marginalia.extensions.audiobook.audio;
 
 import com.github.enerccio.marginalia.extensions.httphooks.BackendException;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 
 /**
@@ -32,6 +36,16 @@ public enum AudioKind {
         return audio != null && audio.length > 12 && audio[0] == 'R' && audio[1] == 'I' && audio[2] == 'F' && audio[3] == 'F' && audio[8] == 'W' ? WAV : MP3;
     }
 
+    /** The kind of the audio of a file, from its first bytes. */
+    public static AudioKind of(Path file) throws BackendException {
+        try (InputStream in = Files.newInputStream(file)) {
+            byte[] start = in.readNBytes(13);
+            return start.length > 12 ? of(start) : MP3;
+        } catch (IOException e) {
+            throw new BackendException("The audio could not be read: " + e.getMessage(), e);
+        }
+    }
+
     /** The kind of a format name ({@code "wav"}, anything else is mp3). */
     public static AudioKind ofName(String name) {
         return "wav".equalsIgnoreCase(name) ? WAV : MP3;
@@ -39,6 +53,18 @@ public enum AudioKind {
 
     public static double seconds(byte[] audio) throws BackendException {
         return of(audio) == WAV ? WavJoiner.seconds(audio) : Mp3Joiner.seconds(audio);
+    }
+
+    /** The length of the audio of a file: a wav from its header, an mp3 from its frames (the file is read, it is one part). */
+    public static double seconds(Path file) throws BackendException {
+        if (of(file) == WAV) {
+            return WavJoiner.seconds(file);
+        }
+        try {
+            return Mp3Joiner.seconds(Files.readAllBytes(file));
+        } catch (IOException e) {
+            throw new BackendException("The audio could not be read: " + e.getMessage(), e);
+        }
     }
 
     /**

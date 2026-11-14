@@ -5,7 +5,9 @@ import com.github.enerccio.marginalia.domain.styles.PartStyle;
 import com.github.enerccio.marginalia.domain.styles.PartStyleRegistry;
 import org.apache.commons.lang3.StringUtils;
 
-import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
@@ -66,29 +68,65 @@ public class EpubExporter extends ExporterBase {
     }
 
     @Override
-    protected ExportWriter open(ExportOptions options) {
-        return new EpubWriter(options);
+    protected ExportWriter open(ExportOptions options, OutputStream out) throws IOException {
+        return new EpubWriter(options, out);
     }
 
+    /**
+     * Writes the book into the zip as it comes: the images and the parts of the text as soon as they are complete, the navigation and the
+     * package document (which list them) at the end.
+     */
     private static class EpubWriter implements ExportWriter {
         private final ExportOptions options;
         private final PartStyle style;
-        private final List<String> parts = new ArrayList<>();
+        private final ZipOutputStream zip;
+        private final String language;
+        // the files of the reading order (the title page and the parts of the text)
+        private final List<String> files = new ArrayList<>();
+        private boolean hasTitlePage;
+        private int partCount;
         private final StringBuilder current = new StringBuilder();
         private final List<Chapter> chapters = new ArrayList<>();
         // number of the part (file) a chapter is in, by the number of the chapter
         private final Map<Integer, Integer> chapterParts = new HashMap<>();
-        private final List<ExportImage> images = new ArrayList<>();
-        private String titlePage;
+        // the type of each image that was written, by its number - 1
+        private final List<String> imageTypes = new ArrayList<>();
 
-        private EpubWriter(ExportOptions options) {
+        private EpubWriter(ExportOptions options, OutputStream out) throws IOException {
             this.options = options;
             this.style = options.style() != null ? options.style() : PartStyleRegistry.epubExportStyle();
+            this.language = StringUtils.defaultIfBlank(options.language(), "en");
+            zip = new ZipOutputStream(out);
+            // the mimetype must be the first entry and must not be compressed
+            byte[] mimetype = "application/epub+zip".getBytes(StandardCharsets.US_ASCII);
+            ZipEntry mimetypeEntry = new ZipEntry("mimetype");
+            mimetypeEntry.setMethod(ZipEntry.STORED);
+            mimetypeEntry.setSize(mimetype.length);
+            mimetypeEntry.setCompressedSize(mimetype.length);
+            CRC32 crc = new CRC32();
+            crc.update(mimetype);
+            mimetypeEntry.setCrc(crc.getValue());
+            zip.putNextEntry(mimetypeEntry);
+            zip.write(mimetype);
+            zip.closeEntry();
+
+            add(zip, "META-INF/container.xml", """
+                    <?xml version="1.0" encoding="UTF-8"?>
+                    <container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">
+                      <rootfiles>
+                        <rootfile full-path="OEBPS/content.opf" media-type="application/oebps-package+xml"/>
+                      </rootfiles>
+                    </container>
+                    """);
+            // the stylesheet of the chosen style comes after the base one, without its custom CSS (the nesting of it is not understood by every reader)
+            add(zip, "OEBPS/style.css", styled() ? STYLE + style.toPrintCss(false) : STYLE);
         }
 
         @Override
-        public void titlePage(String markdown) {
-            titlePage = "<div class=\"title-page\">\n" + toHtml(markdown) + "</div>\n";
+        public void titlePage(String markdown) throws IOException {
+            hasTitlePage = true;
+            files.add("title.xhtml");
+            add(zip, "OEBPS/title.xhtml", page(language, options.bookName(), "<div class=\"title-page\">\n" + toHtml(markdown) + "</div>\n"));
         }
 
         @Override
@@ -97,85 +135,65 @@ public class EpubExporter extends ExporterBase {
         }
 
         @Override
-        public void message(String markdown, Chapter chapter) {
+        public void message(String markdown, Chapter chapter) throws IOException {
             message(List.of(new TextPart(markdown)), chapter);
         }
 
         @Override
-        public void message(List<Part> pieces, Chapter chapter) {
-            String html = toHtml(pieces, image -> {
-                images.add(image);
-                return "images/image" + images.size() + "." + image.extension();
-            });
+        public void message(List<Part> pieces, Chapter chapter) throws IOException {
+            String html;
+            try {
+                html = toHtml(pieces, image -> {
+                    String name = "images/image" + (imageTypes.size() + 1) + "." + image.extension();
+                    try {
+                        zip.putNextEntry(new ZipEntry("OEBPS/" + name));
+                        zip.write(image.data());
+                        zip.closeEntry();
+                    } catch (IOException e) {
+                        throw new UncheckedIOException(e);
+                    }
+                    imageTypes.add(image.mimeType());
+                    return name;
+                });
+            } catch (UncheckedIOException e) {
+                throw e.getCause();
+            }
             if (chapter == null) {
                 current.append(html);
             } else {
-                chapterParts.put(chapter.number(), this.parts.size() + 1);
+                chapterParts.put(chapter.number(), partCount + 1);
                 current.append("<section class=\"chapter\" id=\"").append(chapter.anchor()).append("\">\n").append(html).append("</section>\n");
             }
             if (current.length() >= PART_SIZE) {
-                this.parts.add(current.toString());
-                current.setLength(0);
+                writePart();
             }
         }
 
+        private void writePart() throws IOException {
+            partCount++;
+            String file = "part" + partCount + ".xhtml";
+            files.add(file);
+            add(zip, "OEBPS/" + file, page(language, options.bookName(), inStyle(current.toString())));
+            current.setLength(0);
+        }
+
         @Override
-        public byte[] finish() throws Exception {
-            if (!current.isEmpty() || parts.isEmpty()) {
-                parts.add(current.toString());
+        public void finish() throws Exception {
+            if (!current.isEmpty() || partCount == 0) {
+                writePart();
             }
-            String language = StringUtils.defaultIfBlank(options.language(), "en");
-
-            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-            try (ZipOutputStream zip = new ZipOutputStream(bytes)) {
-                // the mimetype must be the first entry and must not be compressed
-                byte[] mimetype = "application/epub+zip".getBytes(StandardCharsets.US_ASCII);
-                ZipEntry mimetypeEntry = new ZipEntry("mimetype");
-                mimetypeEntry.setMethod(ZipEntry.STORED);
-                mimetypeEntry.setSize(mimetype.length);
-                mimetypeEntry.setCompressedSize(mimetype.length);
-                CRC32 crc = new CRC32();
-                crc.update(mimetype);
-                mimetypeEntry.setCrc(crc.getValue());
-                zip.putNextEntry(mimetypeEntry);
-                zip.write(mimetype);
-                zip.closeEntry();
-
-                add(zip, "META-INF/container.xml", """
-                        <?xml version="1.0" encoding="UTF-8"?>
-                        <container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">
-                          <rootfiles>
-                            <rootfile full-path="OEBPS/content.opf" media-type="application/oebps-package+xml"/>
-                          </rootfiles>
-                        </container>
-                        """);
-                // the stylesheet of the chosen style comes after the base one, without its custom CSS (the nesting of it is not understood by every reader)
-                add(zip, "OEBPS/style.css", styled() ? STYLE + style.toPrintCss(false) : STYLE);
-                for (int i = 0; i < images.size(); i++) {
-                    zip.putNextEntry(new ZipEntry("OEBPS/images/image" + (i + 1) + "." + images.get(i).extension()));
-                    zip.write(images.get(i).data());
-                    zip.closeEntry();
-                }
-
-                List<String> files = new ArrayList<>();
-                List<String> labels = new ArrayList<>();
-                if (titlePage != null) {
-                    files.add("title.xhtml");
-                    labels.add(options.bookName());
-                    add(zip, "OEBPS/title.xhtml", page(language, options.bookName(), titlePage));
-                }
-                for (int i = 0; i < parts.size(); i++) {
-                    String file = "part" + (i + 1) + ".xhtml";
-                    files.add(file);
-                    labels.add(parts.size() == 1 ? options.bookName() : options.bookName() + " (" + (i + 1) + ")");
-                    add(zip, "OEBPS/" + file, page(language, options.bookName(), inStyle(parts.get(i))));
-                }
-
-                add(zip, "OEBPS/nav.xhtml", navigation(language, files, labels));
-                // with chapters the navigation is also a page of the book, after the title page
-                add(zip, "OEBPS/content.opf", packageDocument(language, files, chapters.isEmpty() ? -1 : titlePage == null ? 0 : 1));
+            List<String> labels = new ArrayList<>();
+            if (hasTitlePage) {
+                labels.add(options.bookName());
             }
-            return bytes.toByteArray();
+            for (int i = 0; i < partCount; i++) {
+                labels.add(partCount == 1 ? options.bookName() : options.bookName() + " (" + (i + 1) + ")");
+            }
+            add(zip, "OEBPS/nav.xhtml", navigation(language, files, labels));
+            // with chapters the navigation is also a page of the book, after the title page
+            add(zip, "OEBPS/content.opf", packageDocument(language, files, chapters.isEmpty() ? -1 : hasTitlePage ? 1 : 0));
+            // the stream itself is closed by the exporter
+            zip.finish();
         }
 
         private boolean styled() {
@@ -187,7 +205,7 @@ public class EpubExporter extends ExporterBase {
             return styled() ? "<div class=\"" + style.getCssClass() + "\"><div class=\"chat-message-markdown\">\n" + body + "</div></div>\n" : body;
         }
 
-        private static void add(ZipOutputStream zip, String name, String content) throws Exception {
+        private static void add(ZipOutputStream zip, String name, String content) throws IOException {
             zip.putNextEntry(new ZipEntry(name));
             zip.write(content.getBytes(StandardCharsets.UTF_8));
             zip.closeEntry();
@@ -252,9 +270,9 @@ public class EpubExporter extends ExporterBase {
                         .append("\" media-type=\"application/xhtml+xml\"/>\n");
                 spine.append("<itemref idref=\"c").append(i).append("\"/>\n");
             }
-            for (int i = 0; i < images.size(); i++) {
+            for (int i = 0; i < imageTypes.size(); i++) {
                 manifest.append("<item id=\"image").append(i + 1).append("\" href=\"images/image").append(i + 1).append('.')
-                        .append(images.get(i).extension()).append("\" media-type=\"").append(images.get(i).mimeType()).append("\"/>\n");
+                        .append(imageTypes.get(i).substring("image/".length())).append("\" media-type=\"").append(imageTypes.get(i)).append("\"/>\n");
             }
             String author = StringUtils.isBlank(options.author()) ? "" :
                     "<dc:creator>" + escapeXml(options.author().trim()) + "</dc:creator>\n";

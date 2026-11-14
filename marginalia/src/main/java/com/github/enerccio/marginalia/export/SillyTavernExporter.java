@@ -9,7 +9,11 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import org.apache.commons.lang3.StringUtils;
 
-import java.io.ByteArrayOutputStream;
+import java.io.BufferedOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Date;
@@ -44,11 +48,16 @@ public class SillyTavernExporter implements Exporter {
     }
 
     @Override
-    public byte[] export(ExportOptions options, List<ChatMessage> chatMessages, ProgressBarDialog progress) throws Exception {
+    public void exportTo(ExportOptions options, List<ChatMessage> chatMessages, ProgressBarDialog progress, Path target) throws Exception {
+        try (OutputStream out = new BufferedOutputStream(Files.newOutputStream(target))) {
+            write(options, chatMessages, progress, out);
+        }
+    }
+
+    private void write(ExportOptions options, List<ChatMessage> chatMessages, ProgressBarDialog progress, OutputStream out) throws IOException {
         String user = StringUtils.defaultIfBlank(StringUtils.trimToNull(options.author()), "User");
         String character = StringUtils.defaultIfBlank(StringUtils.trimToNull(options.bookName()), "Story");
 
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
         JsonObject header = new JsonObject();
         header.addProperty("user_name", user);
         header.addProperty("character_name", character);
@@ -75,7 +84,6 @@ public class SillyTavernExporter implements Exporter {
             line(out, answer);
             progress.updateProgress();
         }
-        return out.toByteArray();
     }
 
     private static JsonObject entry(String name, boolean isUser, String date, String text) {
@@ -89,9 +97,9 @@ public class SillyTavernExporter implements Exporter {
         return entry;
     }
 
-    private static void line(ByteArrayOutputStream out, JsonObject json) {
+    private static void line(OutputStream out, JsonObject json) throws IOException {
         // Gson writes a line break in a string as \n, so the object stays on one line
-        out.writeBytes(GSON.toJson(json).getBytes(StandardCharsets.UTF_8));
+        out.write(GSON.toJson(json).getBytes(StandardCharsets.UTF_8));
         out.write('\n');
     }
 }

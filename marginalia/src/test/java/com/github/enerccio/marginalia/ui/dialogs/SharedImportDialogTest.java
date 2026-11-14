@@ -127,9 +127,37 @@ class SharedImportDialogTest extends MarginaliaTestBase {
                 .isEqualTo(author.getFullName() == null || author.getFullName().isBlank() ? author.getLogin() : author.getFullName());
     }
 
+    /**
+     * The tests share the database with the other test classes of their context, which share lorebooks and protocols too: they are
+     * made private, so that nothing is shared while the test runs, whatever ran before it.
+     */
+    private void nobodySharesAnything() throws Exception {
+        for (Lorebook book : lorebookService.findAllShared()) {
+            loginAs(owner(book));
+            book.setShared(false);
+            lorebookService.save(book);
+            loginAs(reader);
+        }
+        for (Protocol protocol : protocolService.findAllShared()) {
+            loginAs(owner(protocol));
+            protocol.setShared(false);
+            protocolService.save(protocol);
+            loginAs(reader);
+        }
+    }
+
+    /** The owner as the current user: only the id counts (the owner of the entity may be a proxy that cannot be read any more). */
+    private static User owner(com.github.enerccio.marginalia.domain.model.OwnedEntity entity) {
+        User owner = new User();
+        owner.setId(entity.getOwner().getId());
+        owner.setLogin("owner-" + owner.getId());
+        return owner;
+    }
+
     @Test
     void saysSoWhenNobodySharesAnything() throws Exception {
         loginAs(reader);
+        nobodySharesAnything();
 
         SharedImportDialog<Lorebook, Lorebook> lorebooks = SharedImportDialog.forLorebooks(loc, lorebookService, copy -> {
         });

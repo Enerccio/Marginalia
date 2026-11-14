@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.extensions.audiobook.audio;
 
 import com.github.enerccio.marginalia.extensions.audiobook.export.AudiobookFiles;
+import com.github.enerccio.marginalia.extensions.audiobook.export.AudiobookFilesFixture;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -42,7 +43,7 @@ class FfmpegTest {
         assumeTrue(Ffmpeg.available(), "ffmpeg is not installed");
         byte[] tone = tone();
 
-        byte[] m4b = AudiobookFiles.m4b(List.of(new AudiobookFiles.Chapter("The Arch", tone), new AudiobookFiles.Chapter("Who", tone)), "The Book", "An Author");
+        byte[] m4b = AudiobookFilesFixture.m4b(List.of(AudiobookFilesFixture.chapter("The Arch", tone), AudiobookFilesFixture.chapter("Who", tone)), "The Book", "An Author");
 
         String head = new String(m4b, 0, 32, StandardCharsets.ISO_8859_1);
         assertEquals("ftyp", head.substring(4, 8));

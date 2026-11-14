@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.extensions.audiobook.audio;
 
 import com.github.enerccio.marginalia.extensions.audiobook.export.AudiobookFiles;
+import com.github.enerccio.marginalia.extensions.audiobook.export.AudiobookFilesFixture;
 import com.github.enerccio.marginalia.extensions.httphooks.BackendException;
 import org.junit.jupiter.api.Test;
 
@@ -33,6 +34,25 @@ class WavJoinerTest {
         assertArrayEquals(new double[]{0, 1.5, 3.75}, joined.starts(), 0.0001);
         assertEquals(AudioKind.WAV, AudioKind.of(joined.audio()));
         assertEquals(FORMAT, WavJoiner.formatOf(joined.audio()));
+    }
+
+    @Test
+    void filesAreJoinedIntoTheStreamAsTheSamplesTheJoinInMemoryHas() throws Exception {
+        List<byte[]> pieces = List.of(wav(1, 7), wav(2, 9), wav(1, 11));
+        Mp3Joiner.Joined inMemory = WavJoiner.joinMarked(pieces, List.of(0.5, 0.25));
+        java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+
+        WavJoiner.Marks marks = WavJoiner.joinRaw(List.of(AudiobookFilesFixture.file(pieces.get(0)), AudiobookFilesFixture.file(pieces.get(1)),
+                AudiobookFilesFixture.file(pieces.get(2))), List.of(0.5, 0.25), out);
+
+        // the same samples without the header
+        assertArrayEquals(java.util.Arrays.copyOfRange(inMemory.audio(), 44, inMemory.audio().length), out.toByteArray());
+        assertArrayEquals(inMemory.starts(), marks.starts(), 0.0001);
+        assertEquals(4.75, marks.seconds(), 0.0001);
+        assertEquals(FORMAT, marks.format());
+        // only the header of a file is read for its length and format
+        assertEquals(2, WavJoiner.seconds(AudiobookFilesFixture.file(pieces.get(1))), 0.0001);
+        assertEquals(AudioKind.WAV, AudioKind.of(AudiobookFilesFixture.file(pieces.get(1))));
     }
 
     @Test
@@ -78,10 +98,10 @@ class WavJoinerTest {
     @Test
     void anAudiobookOfWavPartsIsAnMp3WithChaptersAndAnM4bEncodedOnce() throws Exception {
         assumeTrue(Ffmpeg.available(), "ffmpeg is not installed");
-        List<AudiobookFiles.Chapter> chapters = List.of(new AudiobookFiles.Chapter("One", wav(2, 3)), new AudiobookFiles.Chapter("Two", wav(2, 3)));
+        List<AudiobookFiles.Chapter> chapters = List.of(AudiobookFilesFixture.chapter("One", wav(2, 3)), AudiobookFilesFixture.chapter("Two", wav(2, 3)));
 
-        byte[] mp3 = AudiobookFiles.oneFile(chapters, "Book", "Author");
-        byte[] m4b = AudiobookFiles.m4b(chapters, "Book", "Author");
+        byte[] mp3 = AudiobookFilesFixture.oneFile(chapters, "Book", "Author");
+        byte[] m4b = AudiobookFilesFixture.m4b(chapters, "Book", "Author");
 
         assertEquals("ID3", new String(mp3, 0, 3, StandardCharsets.ISO_8859_1));
         assertTrue(new String(mp3, StandardCharsets.ISO_8859_1).contains("CHAP"));
@@ -111,12 +131,12 @@ class WavJoinerTest {
             mp3 = in.readAllBytes();
         }
         // one part was made when the storage was mp3, the next two after it was changed to wav, and the wav is not at the format of the mp3
-        List<AudiobookFiles.Chapter> chapters = List.of(new AudiobookFiles.Chapter("Old", mp3), new AudiobookFiles.Chapter("New", wav(2, 3)),
-                new AudiobookFiles.Chapter("Newer", wav(1, 3)));
+        List<AudiobookFiles.Chapter> chapters = List.of(AudiobookFilesFixture.chapter("Old", mp3), AudiobookFilesFixture.chapter("New", wav(2, 3)),
+                AudiobookFilesFixture.chapter("Newer", wav(1, 3)));
 
-        byte[] one = AudiobookFiles.oneFile(chapters, "Book", "Author");
-        byte[] m4b = AudiobookFiles.m4b(chapters, "Book", "Author");
-        byte[] zip = AudiobookFiles.zip(chapters, "Book", "Author");
+        byte[] one = AudiobookFilesFixture.oneFile(chapters, "Book", "Author");
+        byte[] m4b = AudiobookFilesFixture.m4b(chapters, "Book", "Author");
+        byte[] zip = AudiobookFilesFixture.zip(chapters, "Book", "Author");
 
         assertEquals("ID3", new String(one, 0, 3, StandardCharsets.ISO_8859_1));
         // three chapter frames (the titles are UTF-16 in the tag)

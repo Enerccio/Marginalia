@@ -2,6 +2,8 @@ package com.github.enerccio.marginalia.export;
 
 import com.github.enerccio.marginalia.domain.service.ExporterService.ExportOptions;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
@@ -23,12 +25,17 @@ public class TxtExporter extends ExporterBase {
     }
 
     @Override
-    protected ExportWriter open(ExportOptions options) {
-        return new TxtWriter();
+    protected ExportWriter open(ExportOptions options, OutputStream out) {
+        return new TxtWriter(out);
     }
 
     private static class TxtWriter implements ExportWriter, BlockSink {
         private final StringBuilder out = new StringBuilder();
+        private final OutputStream file;
+
+        private TxtWriter(OutputStream file) {
+            this.file = file;
+        }
 
         @Override
         public void titlePage(String markdown) throws Exception {
@@ -49,8 +56,8 @@ public class TxtExporter extends ExporterBase {
         }
 
         @Override
-        public byte[] finish() {
-            return out.toString().getBytes(StandardCharsets.UTF_8);
+        public void finish() throws IOException {
+            file.write(out.toString().getBytes(StandardCharsets.UTF_8));
         }
 
         @Override

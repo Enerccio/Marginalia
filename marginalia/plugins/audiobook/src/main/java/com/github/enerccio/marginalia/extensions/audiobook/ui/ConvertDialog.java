@@ -34,6 +34,10 @@ import com.vaadin.flow.server.StreamResource;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.function.Consumer;
 
@@ -82,6 +86,8 @@ public class ConvertDialog extends Dialog {
     private final Set<String> queuedLabelled = new HashSet<>();
     private final Element audio = new Element("audio");
     private final Div wholeLink = new Div();
+    /** The temporary file of the whole audiobook the link offers, deleted when another one replaces it or the window goes. */
+    private Path wholeFile;
     private int parts;
 
     public ConvertDialog(Manuscript manuscript, AudiobookService service) {
@@ -174,6 +180,7 @@ public class ConvertDialog extends Dialog {
         VerticalLayout content = new VerticalLayout(hint, form, labelling, labelHint, grid, planning, player, wholeLink);
         content.setPadding(false);
         add(content);
+        addDetachListener(e -> replaceWholeFile(null));
 
         Button stop = new Button(T.localized(STOP_ALL), Solid.STOP.create(), e -> queue.cancelAll());
         Button clear = new Button(T.localized(CLEAR_FINISHED), Solid.BROOM.create(), e -> {
@@ -374,6 +381,11 @@ public class ConvertDialog extends Dialog {
         UI ui = UI.getCurrent();
         Notification.success(T.localized(THE_AUDIOBOOK_IS_BEING_JOINED));
         service.wholeAudiobookInBackground(manuscript, (whole, error) -> ui.access(() -> {
+            if (!isAttached()) {
+                // the window was closed while the book was joined
+                delete(whole == null ? null : whole.audio());
+                return;
+            }
             if (error != null) {
                 Notification.error(T.localized(THE_CONVERSION_COULD_NOT_BE_STARTED).formatted(error));
                 return;
@@ -385,13 +397,46 @@ public class ConvertDialog extends Dialog {
             if (!whole.left().isEmpty()) {
                 Notification.warning(T.localized(PARTS_LEFT_OUT_OF_THE_AUDIOBOOK).formatted(String.join(", ", whole.left())));
             }
-            StreamResource resource = new StreamResource(AudiobookFiles.fileSafe(manuscript.getName()) + ".mp3", () -> new ByteArrayInputStream(whole.audio()));
+            Path file = whole.audio();
+            replaceWholeFile(file);
+            // served from the temporary file, the audiobook is never in memory
+            StreamResource resource = new StreamResource(AudiobookFiles.fileSafe(manuscript.getName()) + ".mp3", () -> {
+                try {
+                    return Files.newInputStream(file);
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
+            });
             resource.setContentType("audio/mpeg");
-            Anchor link = new Anchor(resource, T.localized(DOWNLOAD_THE_AUDIOBOOK_FILE).formatted(whole.audio().length / (1024 * 1024) + 1));
+            long size;
+            try {
+                size = Files.size(file);
+            } catch (IOException e) {
+                size = 0;
+            }
+            Anchor link = new Anchor(resource, T.localized(DOWNLOAD_THE_AUDIOBOOK_FILE).formatted(size / (1024 * 1024) + 1));
             link.getElement().setAttribute("download", true);
             wholeLink.removeAll();
             wholeLink.add(link);
         }));
+    }
+
+    /** Keeps the file of the new whole audiobook (null for none) and deletes the one before it. */
+    private void replaceWholeFile(Path file) {
+        if (wholeFile != null && !wholeFile.equals(file)) {
+            delete(wholeFile);
+        }
+        wholeFile = file;
+    }
+
+    private static void delete(Path file) {
+        if (file != null) {
+            try {
+                Files.deleteIfExists(file);
+            } catch (IOException | RuntimeException e) {
+                // a temporary file that stays is not worth an error
+            }
+        }
     }
 
     /** The state of the job of a part; when the model labelled the part it is a link to what the model said. */

@@ -30,6 +30,21 @@ class Mp3JoinerTest {
     }
 
     @Test
+    void filesAreJoinedIntoTheStreamAsTheJoinInMemoryDoes() throws Exception {
+        byte[] tone = tone();
+        Mp3Joiner.Joined inMemory = Mp3Joiner.joinMarked(List.of(tone, tone, tone), List.of(1.0, 0.5));
+        java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+        java.nio.file.Path file = com.github.enerccio.marginalia.extensions.audiobook.export.AudiobookFilesFixture.file(tone);
+
+        Mp3Joiner.Marks marks = Mp3Joiner.joinTo(List.of(file, file, file), List.of(1.0, 0.5), out);
+
+        assertArrayEquals(inMemory.audio(), out.toByteArray());
+        assertArrayEquals(inMemory.starts(), marks.starts(), 0.0001);
+        assertEquals(Mp3Joiner.seconds(inMemory.audio()), marks.seconds(), 0.0001);
+        assertEquals(Mp3Joiner.seconds(tone), AudioKind.seconds(file), 0.0001);
+    }
+
+    @Test
     void theTagsAndTheInfoFrameAreCutOff() throws Exception {
         byte[] tone = tone();
         assertEquals(1, count(tone, "ID3"));
