@@ -91,6 +91,13 @@ The **mode** is what the before hook leaves loaded (the Audiobook: its address a
 In the Image Generator the `ImageSession` (one per window: it holds the backend while the user rerolls, and ends on accept, close or idle time) calls `acquire` before its first
 image and `release` when it ends; every image is made in `exclusive`.
 
+## A key for the requests: `HookKeys`
+
+A proxy in front of the models (LiteLLM) wants its key on the unload request too. `HookKeys.withBearer(hooks, key, reveal)` returns copies of the
+requests with `Authorization: Bearer <key>` added to every one that has no `Authorization` header of its own (the stored requests are not changed,
+empty ones are left out, a blank key returns the list as it is), so a plugin keeps the key encrypted in one field of its backend instead of in the
+headers of every request. The Audiobook and the Image Generator pass their *Key of the requests*, else the api key.
+
 ## The settings form: `HookListEditor`
 
 `ui.HookListEditor` (Vaadin) is the form of a list of hooks, one row for each request with a button that removes it and one that adds a request. A plugin builds it with

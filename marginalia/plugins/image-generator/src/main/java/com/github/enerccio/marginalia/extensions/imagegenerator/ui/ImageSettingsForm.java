@@ -69,6 +69,8 @@ public class ImageSettingsForm extends VerticalLayout {
     private final TextField baseUrl = new TextField(T.localized(ADDRESS));
     private final PasswordField apiKey = new PasswordField(T.localized(API_KEY));
     private final Button removeKey = new Button(T.localized(REMOVE_THE_KEY), e -> removeKey());
+    private final PasswordField hooksKey = new PasswordField(T.localized(KEY_OF_THE_REQUESTS));
+    private final Button removeHooksKey = new Button(T.localized(REMOVE_THE_KEY), e -> removeHooksKey());
     private final TextField model = new TextField(T.localized(MODEL));
     private final TextArea workflow = new TextArea(T.localized(WORKFLOW));
     private final Select<PromptForm> promptForm = new Select<>();
@@ -152,6 +154,10 @@ public class ImageSettingsForm extends VerticalLayout {
         apiKey.setWidth("20em");
         apiKey.setRevealButtonVisible(false);
         removeKey.setThemeName("tertiary small");
+        hooksKey.setWidth("20em");
+        hooksKey.setRevealButtonVisible(false);
+        hooksKey.setHelperText(T.localized(KEY_OF_THE_REQUESTS_HELP));
+        removeHooksKey.setThemeName("tertiary small");
         model.setWidth("16em");
         workflow.setWidthFull();
         // a workflow is hundreds of lines of JSON: it scrolls inside the field unless expanded
@@ -176,12 +182,14 @@ public class ImageSettingsForm extends VerticalLayout {
         Details afterDetails = new Details(T.localized(AFTER_THE_LAST_IMAGE), after);
         Span hookHint = new Span(T.localized(A_REQUEST_MADE_AROUND_THE_IMAGES));
         hookHint.addClassName(CssStyles.HINT_TEXT);
+        HorizontalLayout hooksCredentials = new HorizontalLayout(hooksKey, removeHooksKey);
+        hooksCredentials.setAlignItems(FlexComponent.Alignment.BASELINE);
 
         editor.setPadding(false);
         editor.setSpacing(true);
         gpu.setWidth("14em");
         gpu.setHelperText(T.localized(GPU_NAME_HELP));
-        editor.add(identity, baseUrl, gpu, credentials, workflow, promptForm, instruction, local, numbers, hookHint, beforeDetails,
+        editor.add(identity, baseUrl, gpu, credentials, workflow, promptForm, instruction, local, numbers, hookHint, hooksCredentials, beforeDetails,
                 afterDetails, test);
         editor.addClassName(ImageStyles.SECTION);
 
@@ -279,6 +287,15 @@ public class ImageSettingsForm extends VerticalLayout {
         }
     }
 
+    private void removeHooksKey() {
+        if (current != null) {
+            current.setProtectedHooksKey(null);
+            hooksKey.clear();
+            updateKeyState();
+            SettingsChanges.changed(this);
+        }
+    }
+
     /** Fills the fields with the backend. */
     private void show(BackendConfig config) {
         current = config;
@@ -293,6 +310,7 @@ public class ImageSettingsForm extends VerticalLayout {
             type.setValue(config.getType());
             baseUrl.setValue(config.getBaseUrl());
             apiKey.clear();
+            hooksKey.clear();
             model.setValue(StringUtils.defaultString(config.getModel()));
             // a backend from before the choice: the instruction the user had then becomes its free text
             String legacy = settings.getStoredPromptInstruction();
@@ -331,6 +349,10 @@ public class ImageSettingsForm extends VerticalLayout {
             current.setProtectedApiKey(service.protect(apiKey.getValue().strip()));
             apiKey.clear();
         }
+        if (!hooksKey.isEmpty()) {
+            current.setProtectedHooksKey(service.protect(hooksKey.getValue().strip()));
+            hooksKey.clear();
+        }
         current.setModel(StringUtils.defaultIfBlank(model.getValue().strip(), null));
         current.setPromptForm(promptForm.getValue() == null ? PromptForm.TAGS : promptForm.getValue());
         current.setPromptInstruction(StringUtils.defaultIfBlank(instruction.getValue(), null));
@@ -361,6 +383,9 @@ public class ImageSettingsForm extends VerticalLayout {
         boolean stored = current != null && current.getProtectedApiKey() != null;
         apiKey.setPlaceholder(stored ? T.localized(STORED_TYPE_TO_REPLACE) : "");
         removeKey.setVisible(stored);
+        boolean hooksStored = current != null && current.getProtectedHooksKey() != null;
+        hooksKey.setPlaceholder(hooksStored ? T.localized(STORED_TYPE_TO_REPLACE) : "");
+        removeHooksKey.setVisible(hooksStored);
     }
 
     private void updateVisibility() {

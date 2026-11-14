@@ -107,4 +107,16 @@ class BackendConfigTest {
         assertEquals(PromptForm.CUSTOM, read.getPromptForm());
         assertEquals("Write a haiku.", read.instructionFor(null));
     }
+
+    @Test
+    void theLorasTheServerListedAreRemembered() {
+        BackendConfig config = GSON.fromJson("{\"name\": \"ComfyUI\"}", BackendConfig.class);
+        assertTrue(config.getKnownLoras().isEmpty());
+
+        config.setKnownLoras(List.of("a.safetensors", "styles/b.safetensors"));
+        config.getKnownLoras().clear();
+        BackendConfig read = GSON.fromJson(GSON.toJson(config), BackendConfig.class);
+
+        assertEquals(List.of("a.safetensors", "styles/b.safetensors"), read.getKnownLoras(), "a copy is handed out, the stored list stays");
+    }
 }

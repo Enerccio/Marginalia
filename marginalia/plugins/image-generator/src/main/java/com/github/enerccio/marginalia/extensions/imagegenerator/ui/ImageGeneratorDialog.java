@@ -78,6 +78,8 @@ public class ImageGeneratorDialog extends Dialog {
     /** The negative prompt of the book (book, folders, user). */
     private String bookNegative = "";
     private boolean freeing;
+    /** What is stored in the part, so an unchanged window is not saved again. */
+    private PartImageValues partValues;
     private final IntegerField width = new IntegerField(T.localized(WIDTH));
     private final IntegerField height = new IntegerField(T.localized(HEIGHT));
     private final ComboBox<String> loraBox = new ComboBox<>(T.localized(LORA));
@@ -203,6 +205,7 @@ public class ImageGeneratorDialog extends Dialog {
         DialogShortcuts.submitWith(generate, prompt, negative, style, width, height, loraStrength);
 
         applyBackendDefaults(selected);
+        restorePartValues();
         updateButtons();
         addDetachListener(this::detached);
 
@@ -256,9 +259,59 @@ public class ImageGeneratorDialog extends Dialog {
         height.setValue(backend.getHeight());
         negative.setValue(bookNegative);
         if (backend.usesLora()) {
-            setLoraItems(List.of(), backend.getLora());
+            // what the server listed last: it may not run before the first image (its before hooks start it)
+            setLoraItems(backend.getKnownLoras(), backend.getLora());
             loraStrength.setValue(backend.getLoraStrength());
             loadLoras(backend);
+        }
+    }
+
+    // --- what the window used for the part ---
+
+    /** The window opens with what was used for the part last time; a part without it keeps the book's and the backend's values. */
+    private void restorePartValues() {
+        partValues = service.partValues(message);
+        if (partValues == null) {
+            return;
+        }
+        if (partValues.details() != null) {
+            details.setValue(partValues.details());
+        }
+        if (partValues.style() != null) {
+            style.setValue(partValues.style());
+        }
+        if (partValues.negative() != null) {
+            negative.setValue(partValues.negative());
+        }
+        if (partValues.prompt() != null) {
+            prompt.setValue(partValues.prompt());
+        }
+        if (partValues.width() != null && partValues.width() > 0) {
+            width.setValue(partValues.width());
+        }
+        if (partValues.height() != null && partValues.height() > 0) {
+            height.setValue(partValues.height());
+        }
+    }
+
+    /** Keeps what the window shows with the part (after the prompt was written and when an image is made), if it changed. */
+    private void rememberPartValues() {
+        if (message == null) {
+            return;
+        }
+        PartImageValues values = new PartImageValues(details.getValue(), style.getValue(), negative.getValue(), prompt.getValue(),
+                width.getValue(), height.getValue());
+        if (values.equals(partValues)) {
+            return;
+        }
+        try {
+            message = service.rememberPartValues(message, values);
+            partValues = values;
+            // the card keeps its own copy of the part: a stale one would drop the values with its next save
+            onChanged.accept(message);
+        } catch (Exception e) {
+            // an agent working on the book, a part deleted meanwhile: the image is still made, only not remembered
+            ImageGeneratorLog.get().warn("Remembering the values of the window failed: {}", e.getMessage());
         }
     }
 
@@ -323,12 +376,32 @@ public class ImageGeneratorDialog extends Dialog {
                 }
                 if (found != null) {
                     setLoraItems(found, loraBox.getValue());
-                } else {
+                    rememberKnownLoras(backend, found);
+                } else if (backend.getKnownLoras().isEmpty()) {
+                    // with a list from before nothing is missing: the server is probably just not started yet
                     Notification.warning(T.localized(THE_LORAS_COULD_NOT_BE_READ).formatted(message));
                 }
                 UIPushGuard.push(ui);
             });
         });
+    }
+
+    /** Keeps the list the server gave with the backend, for a window that opens while the server is not running. */
+    private void rememberKnownLoras(BackendConfig backend, List<String> names) {
+        if (backend.getKnownLoras().equals(names)) {
+            return;
+        }
+        backend.setKnownLoras(names);
+        try {
+            ImageSettings changed = service.getSettings();
+            BackendConfig stored = changed.find(backend.getId());
+            if (stored != null) {
+                stored.setKnownLoras(names);
+                service.saveSettings(changed);
+            }
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
     }
 
     /** Keeps the LoRA of the window with the backend, for the next window. */
@@ -427,6 +500,7 @@ public class ImageGeneratorDialog extends Dialog {
                             new DesktopNotifier(ui).failed(ImageGeneratorExtension.NOTIFY_PROMPT, false, manuscript.getName());
                         } else if (!cancelled) {
                             new DesktopNotifier(ui).finished(ImageGeneratorExtension.NOTIFY_PROMPT, false, manuscript.getName());
+                            rememberPartValues();
                         }
                         updateButtons();
                         UIPushGuard.push(ui);
@@ -483,6 +557,7 @@ public class ImageGeneratorDialog extends Dialog {
         ImageRequest request = new ImageRequest(text, negative.getValue(), ImageGeneratorService.newSeed(),
                 width.getValue() == null ? backend.getWidth() : width.getValue(),
                 height.getValue() == null ? backend.getHeight() : height.getValue(), lora, strength);
+        rememberPartValues();
         UI ui = UI.getCurrent();
         ImageSession active = session(backend, ui);
         AtomicBoolean cancel = new AtomicBoolean();
@@ -517,6 +592,10 @@ public class ImageGeneratorDialog extends Dialog {
                     Notification.error(T.localized(GENERATING_FAILED).formatted(message));
                 } else if (result != null) {
                     showImage(result);
+                    if (backend.usesLora() && backendSelect.getValue() == backend) {
+                        // the server runs now (the before hooks started it): its list is current
+                        loadLoras(backend);
+                    }
                 }
                 if (message != null) {
                     new DesktopNotifier(ui).failed(ImageGeneratorExtension.NOTIFY_IMAGE, false, manuscript.getName());

@@ -20,10 +20,7 @@ import com.github.enerccio.marginalia.extensions.audiobook.queue.Voices;
 import com.github.enerccio.marginalia.extensions.audiobook.script.*;
 import com.github.enerccio.marginalia.extensions.audiobook.studio.StudioScript;
 import com.github.enerccio.marginalia.extensions.audiobook.studio.StudioStore;
-import com.github.enerccio.marginalia.extensions.httphooks.BackendException;
-import com.github.enerccio.marginalia.extensions.httphooks.GpuGate;
-import com.github.enerccio.marginalia.extensions.httphooks.HookRunner;
-import com.github.enerccio.marginalia.extensions.httphooks.HttpHook;
+import com.github.enerccio.marginalia.extensions.httphooks.*;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -589,30 +586,7 @@ public class AudiobookService {
      */
     private List<HttpHook> withKey(List<HttpHook> hooks, BackendConfig config) {
         String protectedKey = config.getProtectedHooksKey() != null && !config.getProtectedHooksKey().isBlank() ? config.getProtectedHooksKey() : config.getProtectedApiKey();
-        String key = protectedKey == null ? null : reveal(protectedKey);
-        if (hooks == null || key == null || key.isBlank()) {
-            return hooks;
-        }
-        List<HttpHook> copies = new ArrayList<>();
-        for (HttpHook hook : hooks) {
-            if (hook == null || hook.isEmpty()) {
-                continue;
-            }
-            String headers = hook.headersText(this::reveal);
-            if (headers != null && headers.lines().anyMatch(line -> line.strip().toLowerCase(java.util.Locale.ROOT).startsWith("authorization:"))) {
-                copies.add(hook);
-                continue;
-            }
-            HttpHook copy = new HttpHook();
-            copy.setUrl(hook.getUrl());
-            copy.setMethod(hook.getMethod());
-            copy.setBody(hook.getBody());
-            copy.setTimeoutSeconds(hook.getTimeoutSeconds());
-            copy.setWaitSeconds(hook.getWaitSeconds());
-            copy.setHeaders((headers == null || headers.isBlank() ? "" : headers + "\n") + "Authorization: Bearer " + key.strip());
-            copies.add(copy);
-        }
-        return copies;
+        return HookKeys.withBearer(hooks, protectedKey == null ? null : reveal(protectedKey), this::reveal);
     }
 
     /** Runs {@code work} on a thread of its own in the request context of the caller (the services work for the user who asked). */

@@ -20,7 +20,8 @@ spoken by stable-diffusion.cpp, LiteLLM and many hosted services).
 |---|---|
 | Name, Type | The name shown in the window. **ComfyUI** or **OpenAI images API**. |
 | Address | The base address of the server, for example `http://localhost:8188` for ComfyUI. |
-| Api key | Sent as a bearer token. It is stored encrypted and not shown again; type a new one to replace it, or **Remove the key**. |
+| Api key | Sent as a bearer token to the image server. It is stored encrypted and not shown again; type a new one to replace it, or **Remove the key**. |
+| Key of the requests around the images | Sent as `Authorization: Bearer` with every request [before and after the images](#one-gpu-for-the-model-and-the-images) that has no `Authorization` header of its own, for example the key of a LiteLLM proxy. Stored encrypted. Empty: the api key is used. |
 | Model | OpenAI images API only: the `model` of the request. |
 | Workflow | ComfyUI only: a workflow saved in ComfyUI with **Save (API Format)**. Write `{{prompt}}`, `{{negative}}`, `{{seed}}`, `{{width}}` and `{{height}}` where they go, and `{{lora}}` / `{{lora_strength}}` in a LoRA loader to [choose the LoRA in the window](#choosing-a-lora). |
 | The server is on this machine or on my network | Allows addresses of the local network. Leave it off for a server in the cloud: it then cannot be made to call your own machine. |
@@ -69,6 +70,10 @@ What you set in the panel is your default. A book (its *Prompts* tab) or a [fold
 
 The open part shows the new image under its text at once.
 
+The window remembers what you used for each part: the details, style, negative prompt, prompt and size are kept with the part when the
+prompt has been written and when you generate, and the next time you open the window on that part it starts with them. A part you never
+made an image for starts with the book's style and negative prompt.
+
 ## Choosing a LoRA
 
 A LoRA is a small add-on to the image model, usually for a style. With ComfyUI you can choose it in the window instead of saving the
@@ -80,8 +85,10 @@ workflow again for each one:
    also type the name of a file the list does not show.
 3. **None** (an empty LoRA) takes the LoRA loaders out of the workflow, so the image is made without them.
 
-The LoRA and the strength you generate with are remembered for the backend and are there the next time. When the server can't be
-asked for its LoRAs, a notice says so and the last choice stays.
+The LoRA and the strength you generate with are remembered for the backend and are there the next time. So is the list: a server
+that shares the GPU is often not running when the window opens (the requests before the first image start it), so the window offers
+the LoRAs the server listed last and asks again after the first image. Only when it has never been able to ask does a notice say that
+the LoRAs could not be read; you can still type the name of a file.
 
 ## One GPU for the model and the images
 

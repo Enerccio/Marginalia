@@ -112,6 +112,8 @@ public class ImageGeneratorLocalization extends PluginLocalizationBundle {
     public static final String SENTENCES_FORM = "Descriptive sentences (Flux, Krea, Qwen-Image, Z-Image)";
     public static final String FREE_TEXT = "Free text";
     public static final String PROMPT_FORM_HELP = "How the language model writes the prompt: what the image model of this backend understands best";
+    public static final String KEY_OF_THE_REQUESTS = "Key of the requests around the images";
+    public static final String KEY_OF_THE_REQUESTS_HELP = "Sent as Authorization: Bearer with every request before and after the images that has no Authorization header of its own (a proxy such as LiteLLM wants it), stored encrypted and never shown again. Empty: the api key above is used.";
 
     @Override
     protected void loadKeys() {
@@ -805,5 +807,21 @@ public class ImageGeneratorLocalization extends PluginLocalizationBundle {
         de(PROMPT_FORM_HELP, "Wie das Sprachmodell den Prompt schreibt: was das Bildmodell dieses Backends am besten versteht");
         ko(PROMPT_FORM_HELP, "언어 모델이 프롬프트를 쓰는 방식: 이 백엔드의 이미지 모델이 가장 잘 이해하는 형식");
         it(PROMPT_FORM_HELP, "Come il modello linguistico scrive il prompt: ciò che il modello di immagini di questo backend capisce meglio");
+
+        ja(KEY_OF_THE_REQUESTS, "画像の前後のリクエストのキー");
+        zh(KEY_OF_THE_REQUESTS, "图片前后请求的密钥");
+        fr(KEY_OF_THE_REQUESTS, "Clé des requêtes autour des images");
+        es(KEY_OF_THE_REQUESTS, "Clave de las solicitudes alrededor de las imágenes");
+        de(KEY_OF_THE_REQUESTS, "Schlüssel der Anfragen rund um die Bilder");
+        ko(KEY_OF_THE_REQUESTS, "이미지 전후 요청의 키");
+        it(KEY_OF_THE_REQUESTS, "Chiave delle richieste attorno alle immagini");
+
+        ja(KEY_OF_THE_REQUESTS_HELP, "画像の前後のリクエストのうち、独自の Authorization ヘッダーを持たないものすべてに Authorization: Bearer として付けられます (LiteLLM などのプロキシが必要とします)。暗号化して保存され、再表示されません。空: 上の API キーを使います。");
+        zh(KEY_OF_THE_REQUESTS_HELP, "作为 Authorization: Bearer 附加到图片前后每个没有自己 Authorization 请求头的请求（LiteLLM 等代理需要它），加密保存且不再显示。留空：使用上面的 API 密钥。");
+        fr(KEY_OF_THE_REQUESTS_HELP, "Envoyée comme Authorization: Bearer avec chaque requête avant et après les images qui n'a pas d'en-tête Authorization à elle (un proxy comme LiteLLM la demande), stockée chiffrée et jamais réaffichée. Vide : la clé d'API ci-dessus est utilisée.");
+        es(KEY_OF_THE_REQUESTS_HELP, "Se envía como Authorization: Bearer con cada solicitud anterior y posterior a las imágenes que no tenga su propia cabecera Authorization (un proxy como LiteLLM la pide), se guarda cifrada y no se vuelve a mostrar. Vacío: se usa la clave de API de arriba.");
+        de(KEY_OF_THE_REQUESTS_HELP, "Wird als Authorization: Bearer bei jeder Anfrage vor und nach den Bildern gesendet, die keinen eigenen Authorization-Header hat (ein Proxy wie LiteLLM verlangt ihn), verschlüsselt gespeichert und nie wieder angezeigt. Leer: Der API-Schlüssel oben wird verwendet.");
+        ko(KEY_OF_THE_REQUESTS_HELP, "이미지 전후의 요청 중 자체 Authorization 헤더가 없는 모든 요청에 Authorization: Bearer로 전송되며(LiteLLM 같은 프록시가 요구합니다), 암호화되어 저장되고 다시 표시되지 않습니다. 비워 두면 위의 API 키를 사용합니다.");
+        it(KEY_OF_THE_REQUESTS_HELP, "Inviata come Authorization: Bearer con ogni richiesta prima e dopo le immagini che non ha un'intestazione Authorization propria (un proxy come LiteLLM la richiede), memorizzata cifrata e mai più mostrata. Vuoto: viene usata la chiave API qui sopra.");
     }
 }

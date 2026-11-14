@@ -25,6 +25,11 @@ public class BackendConfig {
     private String baseUrl = "";
     /** Protected with the key of the installation. */
     private String protectedApiKey;
+    /**
+     * The key of the requests before and after the images, protected like the api key: sent as {@code Authorization: Bearer} with every
+     * request that has none of its own. Null: the api key.
+     */
+    private String protectedHooksKey;
     /** OpenAI: the {@code model} of the request. */
     private String model;
     /** ComfyUI: the workflow with the placeholders. */
@@ -56,6 +61,11 @@ public class BackendConfig {
     private String promptInstruction;
     /** ComfyUI: the LoRA last chosen in the window for {@code {{lora}}}; null for none. */
     private String lora;
+    /**
+     * ComfyUI: the LoRA files the server listed the last time it could be asked. A server that shares the GPU is often not running
+     * when a window opens (its before hooks start it), so the window offers these until it can ask again.
+     */
+    private List<String> knownLoras;
     /** ComfyUI: the strength last chosen for {@code {{lora_strength}}}; null for the default. */
     private Double loraStrength;
 
@@ -97,6 +107,14 @@ public class BackendConfig {
 
     public void setProtectedApiKey(String protectedApiKey) {
         this.protectedApiKey = protectedApiKey;
+    }
+
+    public String getProtectedHooksKey() {
+        return protectedHooksKey;
+    }
+
+    public void setProtectedHooksKey(String protectedHooksKey) {
+        this.protectedHooksKey = protectedHooksKey;
     }
 
     public String getModel() {
@@ -256,6 +274,15 @@ public class BackendConfig {
 
     public void setLora(String lora) {
         this.lora = lora;
+    }
+
+    /** The LoRA files the server listed last (a copy), empty when it never could. */
+    public List<String> getKnownLoras() {
+        return knownLoras == null ? new ArrayList<>() : new ArrayList<>(knownLoras);
+    }
+
+    public void setKnownLoras(List<String> knownLoras) {
+        this.knownLoras = knownLoras == null ? null : new ArrayList<>(knownLoras);
     }
 
     public double getLoraStrength() {

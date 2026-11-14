@@ -24,7 +24,7 @@ sentences* (both built in) or *Free text*; a backend saved before the choice kee
 
 | Type | What it talks to |
 |---|---|
-| **ComfyUI** | A ComfyUI server. Paste a workflow saved with *Save (API Format)* and write `{{prompt}}`, `{{negative}}`, `{{seed}}`, `{{width}}` and `{{height}}` where they go (`"seed": {{seed}}` and `"seed": "{{seed}}"` both work). The workflow is posted to `/prompt`, `/history/<id>` is polled and the image is fetched from `/view`. **Abort** interrupts the job. `{{lora}}` (the file) and `{{lora_strength}}` (a number) in a LoRA loader make the LoRA selectable in the window: the list is `GET /models/loras`, the choice is remembered per backend, and with none chosen every node whose input is exactly `{{lora}}` is taken out of the graph (its users get its `model` input for output 0, its `clip` input for output 1). |
+| **ComfyUI** | A ComfyUI server. Paste a workflow saved with *Save (API Format)* and write `{{prompt}}`, `{{negative}}`, `{{seed}}`, `{{width}}` and `{{height}}` where they go (`"seed": {{seed}}` and `"seed": "{{seed}}"` both work). The workflow is posted to `/prompt`, `/history/<id>` is polled and the image is fetched from `/view`. **Abort** interrupts the job. `{{lora}}` (the file) and `{{lora_strength}}` (a number) in a LoRA loader make the LoRA selectable in the window: the list is `GET /models/loras` (remembered per backend as `knownLoras`, offered while the server is not running and read again after an image), the choice is remembered per backend, and with none chosen every node whose input is exactly `{{lora}}` is taken out of the graph (its users get its `model` input for output 0, its `clip` input for output 1). |
 | **OpenAI images API** | `POST <address>/v1/images/generations` (an address that ends with `/v1` is used as it is). Answers with `b64_json` or an `url` are both accepted. Also served by stable-diffusion.cpp, LiteLLM and many hosted services; the api key is sent as a bearer token. |
 
 The api key and the headers of the hooks are stored encrypted. A backend marked **The server is on this machine or on my network**
@@ -42,6 +42,11 @@ makes requests you configure around the images of a window:
 - **After the last image** - a request made when you accept, discard, close the window, or when **Release after idle** seconds
   passed since the last image (so a forgotten window doesn't keep the GPU). The ComfyUI example: `POST <address>/free` with the body
   `{"unload_models": true, "free_memory": true}`.
+
+Every request without an `Authorization` header of its own gets `Authorization: Bearer` with the backend's **Key of the requests around
+the images** (empty: the api key), so a proxy such as LiteLLM accepts the unload (`HookKeys.withBearer` of `http-hooks`, shared with the
+Audiobook). The window keeps what it used for a part (details, style, negative prompt, prompt, size) in the part's attributes under the
+plugin's key (`PartImageValues`) and opens with it again.
 
 Both moments take a list of requests, made in order (each with its own timeout and an optional wait after it): the *before* list stops at the first failure, the *after* list is made completely and the first failure is reported. The backend stays held while you reroll, so only the first image pays for the swap. If a proxy in front of the models swaps them
 by the model name, leave both empty. Windows of several users on the same server address share one gate: the first request runs for

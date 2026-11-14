@@ -14,6 +14,7 @@ import com.github.enerccio.marginalia.domain.templates.TemplateVariables;
 import com.github.enerccio.marginalia.extensions.PartTextRegistry;
 import com.github.enerccio.marginalia.extensions.httphooks.BackendException;
 import com.github.enerccio.marginalia.extensions.httphooks.GpuGate;
+import com.github.enerccio.marginalia.extensions.httphooks.HookKeys;
 import com.github.enerccio.marginalia.extensions.httphooks.HookRunner;
 import com.github.enerccio.marginalia.extensions.imagegenerator.ImageGeneratorLocalization;
 import com.github.enerccio.marginalia.extensions.imagegenerator.defaults.ImageGeneratorDefaults;
@@ -420,6 +421,35 @@ public class ImageGeneratorService {
         return prefix.isEmpty() ? text : prefix + (prefix.endsWith(",") ? " " : ", ") + text;
     }
 
+    // --- what the window used for a part ---
+
+    /** What the window last used for the part, null when nothing (or something unreadable) is stored. */
+    public PartImageValues partValues(ChatMessage part) {
+        if (part == null || part.getAttributes() == null || !part.getAttributes().has(ImageSettings.KEY)) {
+            return null;
+        }
+        try {
+            return gson.fromJson(part.getAttributes().get(ImageSettings.KEY), PartImageValues.class);
+        } catch (RuntimeException e) {
+            return null;
+        }
+    }
+
+    /**
+     * Keeps what the window used with the part: only this key of a freshly loaded copy is written, the rest of the part (changed by
+     * someone else since) is left alone.
+     *
+     * @return the saved part
+     */
+    public ChatMessage rememberPartValues(ChatMessage part, PartImageValues values) throws Exception {
+        return chatMessageService.update(part, current -> {
+            if (current.getAttributes() == null) {
+                current.setAttributes(new com.google.gson.JsonObject());
+            }
+            current.getAttributes().add(ImageSettings.KEY, gson.toJsonTree(values));
+        });
+    }
+
     // --- the settings of a book (book, folders, user, default) ---
 
     /** The keys of the settings a book and a folder can change. */
@@ -473,12 +503,15 @@ public class ImageGeneratorService {
      */
     public ImageSession createSession(BackendConfig config, Consumer<String> onIdleEnd) {
         UnaryOperator<String> reveal = this::reveal;
+        // a proxy (LiteLLM) wants its key on the unload request too: the key of the requests, else the api key
+        String protectedKey = StringUtils.isNotBlank(config.getProtectedHooksKey()) ? config.getProtectedHooksKey() : config.getProtectedApiKey();
+        String key = protectedKey == null ? null : reveal(protectedKey);
         return new ImageSession(createBackend(config),
                 // before: in order, the first failure stops the image (the next request must not load a model on a full GPU)
-                () -> HookRunner.runAll(config.getBeforeHooks(), config.isLocal(), reveal),
+                () -> HookRunner.runAll(HookKeys.withBearer(config.getBeforeHooks(), key, reveal), config.isLocal(), reveal),
                 // after: every request is made, also when one failed (every container must be stopped); the first failure is reported
                 () -> {
-                    String error = HookRunner.runAllRegardless(config.getAfterHooks(), config.isLocal(), reveal);
+                    String error = HookRunner.runAllRegardless(HookKeys.withBearer(config.getAfterHooks(), key, reveal), config.isLocal(), reveal);
                     if (error != null) {
                         throw new BackendException(error);
                     }
