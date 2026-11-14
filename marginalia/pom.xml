@@ -6,7 +6,7 @@
   <parent>
     <groupId>io.github.enerccio</groupId>
     <artifactId>marginalia-parent</artifactId>
-    <version>1.7.0</version>
+    <version>1.8.0</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
@@ -26,7 +26,9 @@
     <junit.version>6.0.3</junit.version>
     <test.forks>3</test.forks>
     <!-- the heap of each test JVM: without it the JVM takes a quarter of the RAM (4 GB on 16 GB) and keeps it, three forks and Maven fill the machine; -Dtest.heap=-Xmx3g for a test that needs more -->
-    <test.heap>-Xmx1536m</test.heap>
+    <test.heap>-Xmx1g</test.heap>
+    <!-- a save of an entity from a copy older than its row fails the test (StaleSaves); -Dtest.staleSaves=log only logs it -->
+    <test.staleSaves>fail</test.staleSaves>
     <!-- where everything is built: classes, woven classes, test home, WAR. -Dbuild.dir=/some/folder builds elsewhere, so a run does not
          share target/ with the IDE, which compiles into it too -->
     <build.dir>${project.basedir}/target</build.dir>
@@ -404,6 +406,16 @@
           <include>**/*.md</include>
         </includes>
       </resource>
+      <!-- its translations (tools/manual_i18n.py, translations/<language>/user/...) as classpath:/manual-translations/<language>/user/:
+           the help assistant reads the manual in the language of the user; a page that is not translated is English -->
+      <resource>
+        <directory>${project.basedir}/../translations</directory>
+        <targetPath>manual-translations</targetPath>
+        <filtering>false</filtering>
+        <includes>
+          <include>*/user/**/*.md</include>
+        </includes>
+      </resource>
     </resources>
     <plugins>
       <plugin>
@@ -478,13 +490,44 @@
                is bound to one Spring context. -Dtest.forks=1 runs them one after another -->
           <forkCount>${test.forks}</forkCount>
           <reuseForks>true</reuseForks>
-          <!-- RuntimeInstrumentationTest installs the ByteBuddy agent into the test JVM. The headless flags keep AWT
+          <!-- RuntimeInstrumentationTest installs the ByteBuddy agent (the fallback of development runs) into the test
+               JVM. The headless flags keep AWT
                (ImageIO/Graphics2D in the image tests) from putting a Java icon in the macOS Dock and stealing focus -->
           <argLine>${test.heap} -XX:+EnableDynamicAgentLoading -Djdk.attach.allowAttachSelf=true -Djava.awt.headless=true -Dapple.awt.UIElement=true</argLine>
           <systemPropertyVariables>
             <marginalia.test.home>${project.build.directory}/test-home</marginalia.test.home>
+            <!-- BuildTimeWeaverTest: the classes under test went through the weave-extendable step above -->
+            <marginalia.test.woven>true</marginalia.test.woven>
+            <marginalia.staleSaves>${test.staleSaves}</marginalia.staleSaves>
           </systemPropertyVariables>
         </configuration>
+      </plugin>
+
+      <!-- The hooks of the extensions are woven into the @Extendable classes at build time (BuildTimeWeaver, after
+           the AspectJ compiler), so the packaged application needs no instrumentation agent. exec:java runs it in
+           the Maven JVM with the compile class path: a forked JVM would get a command line too long for Windows,
+           the java task of Ant needs a security manager. Woven classes are marked and skipped, so it is safe on a
+           folder that was compiled only in part -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>3.5.0</version>
+        <executions>
+          <execution>
+            <id>weave-extendable</id>
+            <phase>process-classes</phase>
+            <goals>
+              <goal>java</goal>
+            </goals>
+            <configuration>
+              <mainClass>com.github.enerccio.marginalia.instruct.BuildTimeWeaver</mainClass>
+              <classpathScope>compile</classpathScope>
+              <arguments>
+                <argument>${project.build.outputDirectory}</argument>
+              </arguments>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
 
       <plugin>
@@ -649,10 +692,11 @@
         <desktop.skipFull>true</desktop.skipFull>
         <desktop.pluginsDir>${project.build.directory}/desktop-plugins</desktop.pluginsDir>
         <desktop.jetty.version>12.1.10</desktop.jetty.version>
-        <!-- JDK modules of the runtime image: the app, Jetty, the ByteBuddy agent (jdk.attach, java.instrument)
-             and the tray icon / browser opening (java.desktop) -->
+        <!-- JDK modules of the runtime image: the app, Jetty, the tray icon / browser opening (java.desktop) and
+             the ByteBuddy agent (jdk.attach, java.instrument). The packaged application is woven at build time and
+             does not install the agent; the modules stay for -Dmarginalia.extendable.agent=true -->
         <desktop.modules>java.base,java.compiler,java.datatransfer,java.desktop,java.instrument,java.logging,java.management,java.naming,java.net.http,java.prefs,java.rmi,java.scripting,java.security.jgss,java.security.sasl,java.sql,java.sql.rowset,java.transaction.xa,java.xml,java.xml.crypto,jdk.attach,jdk.charsets,jdk.crypto.ec,jdk.localedata,jdk.management,jdk.naming.dns,jdk.net,jdk.unsupported,jdk.zipfs</desktop.modules>
-        <desktop.javaOptions>-Djdk.attach.allowAttachSelf=true -XX:+EnableDynamicAgentLoading --enable-native-access=ALL-UNNAMED</desktop.javaOptions>
+        <desktop.javaOptions>--enable-native-access=ALL-UNNAMED</desktop.javaOptions>
       </properties>
 
       <build>

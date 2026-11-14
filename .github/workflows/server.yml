@@ -17,6 +17,7 @@ on:
     paths:
       - 'marginalia/**'
       - 'manual/user/**'
+      - 'translations/**'
       - 'pom.xml'
       - 'Dockerfile'
       - 'docker-entrypoint.sh'

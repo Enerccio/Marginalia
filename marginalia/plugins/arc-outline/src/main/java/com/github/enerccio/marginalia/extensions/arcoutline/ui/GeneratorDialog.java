@@ -7,6 +7,7 @@ import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.service.*;
+import com.github.enerccio.marginalia.domain.service.run.Runs;
 import com.github.enerccio.marginalia.domain.service.structured.PartialJson;
 import com.github.enerccio.marginalia.domain.service.tool.ToolSelection;
 import com.github.enerccio.marginalia.domain.service.tool.ToolSet;
@@ -72,6 +73,8 @@ public abstract class GeneratorDialog extends Dialog {
 
     private boolean generating;
     private CancellationToken running;
+    // not modal: closing it while the model writes folds it into the corner, the generation goes on
+    private final FloatingWindow floating;
 
     protected GeneratorDialog(ArcOutlineService service, Manuscript manuscript, String header, String saveLabel) {
         this.service = service;
@@ -79,16 +82,14 @@ public abstract class GeneratorDialog extends Dialog {
         this.saveLabel = saveLabel;
 
         setHeaderTitle(header);
-        setWidth("90vw");
+        setWidth("min(1200px, 90vw)");
         setHeight("90vh");
-        // closing while the model runs would leave it running without anyone to read it
+        // Esc would fold a running window by accident
         setCloseOnEsc(false);
         setCloseOnOutsideClick(false);
-        addOpenedChangeListener(e -> {
-            if (!e.isOpened()) {
-                stop();
-            }
-        });
+        // closed for good (also from the corner, or with the book), it stops the model
+        floating = new FloatingWindow(this, "arc-outline", () -> header + " \u00b7 " + manuscript.getName(), this::stop)
+                .book(manuscript);
     }
 
     // --- what the subclass provides ---
@@ -345,7 +346,8 @@ public abstract class GeneratorDialog extends Dialog {
             UI ui = UI.getCurrent();
             generating = true;
             updateControls();
-            try (InferenceSession _ = InferenceSession.open("arc-outline"); UsageContext _ = UsageContext.open(manuscript)) {
+            try (InferenceSession _ = InferenceSession.open("arc-outline"); UsageContext _ = UsageContext.open(manuscript);
+                 Runs.Binding _ = floating.bind()) {
                 running = inference.stream(service.toPayload(prompt), modelPicker.getProtocol(), schema, tools.functions(),
                         callback(ui));
             } catch (Exception e) {
@@ -475,7 +477,7 @@ public abstract class GeneratorDialog extends Dialog {
         promptArea.setEnabled(!generating);
         setInputsEnabled(!generating);
         toolsButton.setEnabled(!generating);
-        exitButton.setEnabled(!generating);
+        floating.setRunning(generating);
         saveButton.setEnabled(!generating && hasResult());
 
         generateButton.setText(generating ? T.localized(STOP) : T.localized(GENERATE));

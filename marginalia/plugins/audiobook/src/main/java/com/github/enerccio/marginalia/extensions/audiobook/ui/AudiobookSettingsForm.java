@@ -4,11 +4,10 @@ import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.extensions.audiobook.audio.AudioKind;
 import com.github.enerccio.marginalia.extensions.audiobook.audio.Ffmpeg;
+import com.github.enerccio.marginalia.extensions.audiobook.label.LabelPromptData;
 import com.github.enerccio.marginalia.extensions.audiobook.model.Actor;
 import com.github.enerccio.marginalia.extensions.audiobook.model.AudiobookSettings;
 import com.github.enerccio.marginalia.extensions.audiobook.model.AutoMode;
-import com.github.enerccio.marginalia.extensions.audiobook.label.LabelPrompt;
-import com.github.enerccio.marginalia.extensions.audiobook.label.LabelPromptData;
 import com.github.enerccio.marginalia.extensions.audiobook.model.BackendConfig;
 import com.github.enerccio.marginalia.extensions.audiobook.service.AudiobookService;
 import com.github.enerccio.marginalia.loc.Localization;
@@ -145,10 +144,10 @@ public class AudiobookSettingsForm extends VerticalLayout {
         normalizeSection.addClassName(AudiobookStyles.SECTION);
 
         labelPrompt.setWidthFull();
-        labelPrompt.setPlaceholder(LabelPrompt.DEFAULT_TEMPLATE);
+        labelPrompt.setPlaceholder(T.defaults().labelTemplate());
         labelPrompt.setHelperText(T.localized(THE_INSTRUCTION_THAT_TELLS_THE_MODEL_WHO_SPEAKS_EACH_PIECE));
         ResizableTextArea.install(loc, labelPrompt, "240px");
-        labelPrompt.setPopoverContent(TemplateHints.create(loc, labelPrompt, labelPrompt.getPopover(), LabelPromptData.class, LabelPrompt.DEFAULT_TEMPLATE));
+        labelPrompt.setPopoverContent(TemplateHints.create(loc, labelPrompt, labelPrompt.getPopover(), LabelPromptData.class, T.defaults().labelTemplate()));
         VerticalLayout labelSection = new VerticalLayout(labelPrompt);
         labelSection.setPadding(false);
         labelSection.addClassName(AudiobookStyles.SECTION);

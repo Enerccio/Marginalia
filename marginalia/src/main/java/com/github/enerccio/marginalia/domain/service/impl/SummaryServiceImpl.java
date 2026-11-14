@@ -1,8 +1,13 @@
 package com.github.enerccio.marginalia.domain.service.impl;
 
+import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.domain.service.NotificationService;
+import com.github.enerccio.marginalia.domain.service.run.Runs;
 import com.github.enerccio.marginalia.Constants;
 import com.github.enerccio.marginalia.domain.collections.SummaryType;
 import com.github.enerccio.marginalia.domain.components.SummaryNode;
+import com.github.enerccio.marginalia.domain.components.SummaryPlanner;
 import com.github.enerccio.marginalia.domain.components.TokenLimits;
 import com.github.enerccio.marginalia.domain.listener.ExtendableEntityListener;
 import com.github.enerccio.marginalia.domain.model.impl.*;
@@ -13,6 +18,9 @@ import com.github.enerccio.marginalia.domain.service.InferenceService.InferenceA
 import com.github.enerccio.marginalia.domain.service.InferenceService.InferenceAsyncController;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
+import com.github.enerccio.marginalia.domain.service.job.JobCallType;
+import com.github.enerccio.marginalia.domain.service.job.JobStatus;
+import com.github.enerccio.marginalia.domain.service.job.Jobs;
 import com.github.enerccio.marginalia.domain.templates.MetaSummaryTemplateData;
 import com.github.enerccio.marginalia.domain.templates.SummaryTemplateData;
 import com.github.enerccio.marginalia.domain.templates.TemplateContext;
@@ -47,11 +55,17 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
     private final ExtendableEntityListener extendableListener = new ExtendableEntityListener();
 
     @Autowired
+    private Localization loc;
+
+    @Autowired
     @Lazy
     private SummaryService self;
 
     @Autowired
     private MessagePromptService messagePromptService;
+
+    @Autowired
+    private LorebookActivationService loreActivationService;
 
     @Autowired
     private ChatMessageService chatMessageService;
@@ -221,6 +235,229 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
 
     @Override
     @CommonTxReadOnly
+    public List<ChatMessage> unsummarizedParts(Manuscript manuscript) throws Exception {
+        if (manuscript == null || manuscript.getActiveLeaf() == null) {
+            return List.of();
+        }
+        List<ChatMessage> branch = chatMessageService.getBranchFromLeaf(manuscript.getActiveLeaf());
+        int last = -1;
+        for (int i = 0; i < branch.size(); i++) {
+            if (branch.get(i).getSummary() != null) {
+                last = i;
+            }
+        }
+        return new ArrayList<>(branch.subList(last + 1, branch.size()));
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public List<ChatMessage> planSummaries(Manuscript manuscript, SummaryPlanner.Options options, ChatMessage to) throws Exception {
+        List<ChatMessage> parts = unsummarizedParts(manuscript);
+        if (to != null) {
+            int end = -1;
+            for (int i = 0; i < parts.size(); i++) {
+                if (Objects.equals(parts.get(i).getId(), to.getId())) {
+                    end = i;
+                }
+            }
+            if (end < 0) {
+                throw new IllegalArgumentException("The part is not one without a summary");
+            }
+            parts = parts.subList(0, end + 1);
+        }
+        long limit = 0;
+        if (manuscript.getAi() != null) {
+            // room for the prompt of the summary and its instructions is kept, the parts are not the whole request
+            limit = TokenLimits.promptTokens(aiService.find(manuscript.getAi()), protocolService.find(manuscript.getProtocol())) * 8L / 10;
+        }
+        return SummaryPlanner.plan(parts, options, limit);
+    }
+
+    @Override
+    @CommonTxReadOnly
+    public CancellationToken createSummaries(Manuscript manuscript, List<ChatMessage> parts, BatchCallback callback) throws Exception {
+        if (manuscript == null || callback == null || parts == null || parts.isEmpty() || manuscript.getAi() == null) {
+            return null;
+        }
+        agentRunService.checkNotLocked(manuscript);
+        if (inferenceServices.forAIOrThrow(aiService.find(manuscript.getAi())) == null) {
+            return null;
+        }
+        // a run of the book: it is not deleted or replaced under the batch; given back when the batch reports its end
+        Runs.Run held = summaryRun(manuscript, null);
+        SummaryBatch batch = new SummaryBatch(manuscript, List.copyOf(parts), endingWith(held, callback));
+        // on a thread of its own: it calls services, each in a transaction of its own
+        held.setOnStop(batch.token::cancel);
+        Thread.ofVirtual().name("summaries").start(() -> {
+            // its requests report to the run (the panel), also the ones made later from their callbacks
+            try (Runs.Binding _ = held.bind()) {
+                batch.run(0);
+            }
+        });
+        return batch.token;
+    }
+
+    /**
+     * @param notice the source of the notification the panel sends when the batch ends after its page is gone, null for none
+     */
+    private Runs.Run summaryRun(Manuscript manuscript, String notice) {
+        return Runs.run("summaries", () -> loc.getValue(L.LABEL_GENERATING_SUMMARY)).book(manuscript)
+                .hold(manuscript, Runs.Mode.READ).quiet().currentPage().notifies(notice, false, manuscript.getName()).start();
+    }
+
+    /** The callback of a batch that ends its run before it reports the end. */
+    private static BatchCallback endingWith(Runs.Run run, BatchCallback callback) {
+        return new BatchCallback() {
+            @Override
+            public void onStep(int number, int total, ChatMessage part) throws Exception {
+                callback.onStep(number, total, part);
+            }
+
+            @Override
+            public void onSummaryProgress(String reasoning, String summary) throws Exception {
+                callback.onSummaryProgress(reasoning, summary);
+            }
+
+            @Override
+            public void onFinished(int count) throws Exception {
+                run.end(Runs.Outcome.FINISHED);
+                callback.onFinished(count);
+            }
+
+            @Override
+            public void onTerminated(int done) throws Exception {
+                run.end(Runs.Outcome.STOPPED);
+                callback.onTerminated(done);
+            }
+
+            @Override
+            public void onError(Throwable throwable, int done) throws Exception {
+                run.end(Runs.Outcome.FAILED);
+                callback.onError(throwable, done);
+            }
+        };
+    }
+
+    /** The callback of a resummary that ends its run before it reports the end. */
+    private static ResummaryCallback endingWith(Runs.Run run, ResummaryCallback callback) {
+        return new ResummaryCallback() {
+            @Override
+            public void onStep(int number, int total, ChatMessage part, boolean meta) throws Exception {
+                callback.onStep(number, total, part, meta);
+            }
+
+            @Override
+            public void onSummaryProgress(String reasoning, String summary) throws Exception {
+                callback.onSummaryProgress(reasoning, summary);
+            }
+
+            @Override
+            public void onFinished(int count) throws Exception {
+                run.end(Runs.Outcome.FINISHED);
+                callback.onFinished(count);
+            }
+
+            @Override
+            public void onTerminated() throws Exception {
+                run.end(Runs.Outcome.STOPPED);
+                callback.onTerminated();
+            }
+
+            @Override
+            public void onError(Throwable throwable) throws Exception {
+                run.end(Runs.Outcome.FAILED);
+                callback.onError(throwable);
+            }
+        };
+    }
+
+    /**
+     * One run of {@link #createSummaries}: a summary after the other, the next one starts when the previous one is stored.
+     */
+    private final class SummaryBatch {
+        final CancellationToken token = new CancellationToken();
+
+        private final Manuscript manuscript;
+        private final List<ChatMessage> parts;
+        private final BatchCallback callback;
+        private final RequestAttributes attributes = ThreadCopyRequestAttributes.create();
+
+        SummaryBatch(Manuscript manuscript, List<ChatMessage> parts, BatchCallback callback) {
+            this.manuscript = manuscript;
+            this.parts = parts;
+            this.callback = callback;
+        }
+
+        void run(int index) {
+            try (InRequestScope _ = new InRequestScope(attributes)) {
+                if (token.isCancelled()) {
+                    callback.onTerminated(index);
+                    return;
+                }
+                if (index >= parts.size()) {
+                    callback.onFinished(parts.size());
+                    return;
+                }
+                callback.onStep(index + 1, parts.size(), parts.get(index));
+                ChatMessage part = chatMessageService.find(parts.get(index));
+                Runnable[] unregister = new Runnable[1];
+                CancellationToken step = self.createSummary(manuscript, part, new AsyncCallback() {
+                    @Override
+                    public void onSummaryProgress(String reasoning, String summary) throws Exception {
+                        callback.onSummaryProgress(reasoning, summary);
+                    }
+
+                    @Override
+                    public void onSummaryFinished(Summary summary) {
+                        release(unregister);
+                        // not on the thread of the answer: the next request is started from a thread of its own
+                        Thread.ofVirtual().name("summaries").start(() -> run(index + 1));
+                    }
+
+                    @Override
+                    public void onSummaryTerminated() throws Exception {
+                        release(unregister);
+                        try (InRequestScope _ = new InRequestScope(attributes)) {
+                            callback.onTerminated(index);
+                        }
+                    }
+
+                    @Override
+                    public void onError(Throwable throwable) throws Exception {
+                        release(unregister);
+                        fail(throwable, index);
+                    }
+                });
+                if (step == null) {
+                    fail(new IllegalStateException("The summary of the part " + part.getId() + " was not started"), index);
+                    return;
+                }
+                unregister[0] = token.onCancel(step::cancel);
+            } catch (Exception e) {
+                fail(e, index);
+            }
+        }
+
+        // the answer can arrive before the registration of the cancel is made
+        private void release(Runnable[] unregister) {
+            Runnable registered = unregister[0];
+            if (registered != null) {
+                registered.run();
+            }
+        }
+
+        private void fail(Throwable error, int done) {
+            log.error("Failed to create the summaries", error);
+            try (InRequestScope _ = new InRequestScope(attributes)) {
+                callback.onError(error, done);
+            } catch (Exception e) {
+                log.error("Failed to report the error of creating the summaries", e);
+            }
+        }
+    }
+
+    @Override
+    @CommonTxReadOnly
     public CancellationToken resummarize(Manuscript manuscript, ResummaryCallback callback) throws Exception {
         if (manuscript == null || callback == null || manuscript.getAi() == null || manuscript.getActiveLeaf() == null) {
             return null;
@@ -252,10 +489,16 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
             planResummary(root, tree, steps);
         }
 
-        ResummaryRun run = new ResummaryRun(manuscript, ai, protocol, inferenceService, tree, attached, roots, steps, callback);
+        Runs.Run held = summaryRun(manuscript, NotificationService.RESUMMARIZE);
+        ResummaryRun run = new ResummaryRun(manuscript, ai, protocol, inferenceService, tree, attached, roots, steps, endingWith(held, callback));
         // on a thread of its own: building a request calls services (each in its own transaction), which does not work
         // in the thread of this one, not even after its commit
-        Thread.ofVirtual().name("resummarize").start(() -> run.run(0));
+        held.setOnStop(run.token::cancel);
+        Thread.ofVirtual().name("resummarize").start(() -> {
+            try (Runs.Binding _ = held.bind()) {
+                run.run(0);
+            }
+        });
         return run.token;
     }
 
@@ -321,6 +564,8 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
         private final Map<SummaryNode, ResummaryResult> results = new IdentityHashMap<>();
         // the new text of the summaries that are stored on a part, by uuid: the hash of a meta summary is made of them
         private final Map<String, String> newTexts = new HashMap<>();
+        // the job of the whole run (its requests go one after another, on different threads), null until the first step
+        private Jobs.Handle job;
 
         ResummaryRun(Manuscript manuscript, AI ai, Protocol protocol, InferenceService inferenceService, List<ChatMessage> tree,
                      Summary[] attached, List<SummaryNode> roots, List<ResummaryStep> steps, ResummaryCallback callback) {
@@ -337,12 +582,19 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
 
         void run(int index) {
             try (InRequestScope _ = new InRequestScope(attributes)) {
+                if (job == null) {
+                    // ends in endJob, from whichever thread the last request answers on
+                    job = Jobs.openAsync(InferenceSession.SUMMARY, "Rewrite of the summaries, " + steps.size() + " steps", JobCallType.LLM);
+                    job.close();
+                }
                 if (token.isCancelled()) {
+                    endJob(JobStatus.CANCELLED);
                     callback.onTerminated();
                     return;
                 }
                 if (index >= steps.size()) {
                     store();
+                    endJob(JobStatus.COMPLETED);
                     callback.onFinished(steps.size());
                     return;
                 }
@@ -354,10 +606,12 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
                     throw new IllegalStateException("Nothing to summarize at the part " + tree.get(step.index()).getId());
                 }
                 if (token.isCancelled()) {
+                    endJob(JobStatus.CANCELLED);
                     callback.onTerminated();
                     return;
                 }
-                try (InferenceSession _ = InferenceSession.open(InferenceSession.SUMMARY); UsageContext _ = UsageContext.open(manuscript)) {
+                try (Jobs.Scope _ = job.enter(); InferenceSession _ = InferenceSession.open(InferenceSession.SUMMARY);
+                     UsageContext _ = UsageContext.open(manuscript)) {
                     // a stop reaches the request also while the server still reads the prompt
                     StepCallback stepCallback = new StepCallback(index, step, prepared.hash());
                     stepCallback.unregister = token.onCancel(inferenceService.stream(prepared.payload(), protocol, stepCallback)::cancel);
@@ -367,7 +621,14 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
             }
         }
 
+        private void endJob(JobStatus status) {
+            if (job != null) {
+                job.finish(status);
+            }
+        }
+
         private void fail(Throwable error) {
+            endJob(JobStatus.FAILED);
             log.error("Failed to write the summaries again", error);
             try (InRequestScope _ = new InRequestScope(attributes)) {
                 callback.onError(error);
@@ -499,6 +760,7 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
             @Override
             public void onCancel() throws Exception {
                 unregister.run();
+                endJob(JobStatus.CANCELLED);
                 try (InRequestScope _ = new InRequestScope(attributes)) {
                     callback.onTerminated();
                 }
@@ -914,7 +1176,9 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
         String jailbreak = Boolean.TRUE.equals(ai.getNeedsJailbreak()) && StringUtils.isNotBlank(ai.getJailbreak())
                 ? ai.getJailbreak() + "\n\n" : "";
 
-        template.setBackgroundLore(StringUtils.defaultString(messagePromptService.getBackgroundLore(from)));
+        // the lore as the lorebooks are now; the lore the part was written with only when the book has no lorebook
+        String lore = loreActivationService.currentBackgroundLore(manuscript, from);
+        template.setBackgroundLore(StringUtils.defaultString(lore != null ? lore : messagePromptService.getBackgroundLore(from)));
 
         String prompt = jailbreak + templateService.processTemplate(systemPrompt, "summaryPrompt", template);
         long tokens = inferenceService.countTokens(prompt);
@@ -1017,7 +1281,9 @@ public class SummaryServiceImpl extends ExtendableServiceImpl<Summary, SummaryRe
         String jailbreak = Boolean.TRUE.equals(ai.getNeedsJailbreak()) && StringUtils.isNotBlank(ai.getJailbreak())
                 ? ai.getJailbreak() + "\n\n" : "";
 
-        template.setBackgroundLore(StringUtils.defaultString(messagePromptService.getBackgroundLore(from)));
+        // the lore as the lorebooks are now; the lore the part was written with only when the book has no lorebook
+        String lore = loreActivationService.currentBackgroundLore(manuscript, from);
+        template.setBackgroundLore(StringUtils.defaultString(lore != null ? lore : messagePromptService.getBackgroundLore(from)));
         template.setSummaryBlocks("");
 
         long summaryTokens = 0;

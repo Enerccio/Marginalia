@@ -7,6 +7,7 @@ import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
+import com.github.enerccio.marginalia.domain.service.run.Runs;
 import com.github.enerccio.marginalia.extensions.sidequery.SideQueryExtension;
 import com.github.enerccio.marginalia.extensions.sidequery.SideQueryLog;
 import com.github.enerccio.marginalia.extensions.sidequery.model.*;
@@ -72,6 +73,8 @@ public class SideQueryTabContent extends VerticalLayout {
 
     private CancellationToken activeToken;
     private boolean namingTab;
+    // the answer as a run: the panel of the runs shows it (its place in the queue of the model, a Stop), also in the other pages
+    private final WindowRun request = WindowRun.of(this, SideQueryExtension.NOTIFY_QUERY, () -> T.localized(SIDE_QUERY));
 
     public SideQueryTabContent(SideQueryService sideQueryService,
                                Manuscript manuscript,
@@ -92,6 +95,7 @@ public class SideQueryTabContent extends VerticalLayout {
         this.onSaveCallback = onSaveCallback;
         this.generationStateListener = generationStateListener;
         this.onRenamed = onRenamed;
+        request.book(manuscript);
 
         setSizeFull();
         setPadding(false);
@@ -379,9 +383,7 @@ public class SideQueryTabContent extends VerticalLayout {
 
     private void handleSend() {
         if (activeToken != null) {
-            activeToken.cancel();
-            activeToken = null;
-            setGeneratingState(false);
+            stopAnswer();
             return;
         }
 
@@ -401,6 +403,15 @@ public class SideQueryTabContent extends VerticalLayout {
         displayMessages();
 
         startAiGeneration();
+    }
+
+    private void stopAnswer() {
+        request.finished();
+        if (activeToken != null) {
+            activeToken.cancel();
+            activeToken = null;
+            setGeneratingState(false);
+        }
     }
 
     private void handleUndo() {
@@ -471,6 +482,7 @@ public class SideQueryTabContent extends VerticalLayout {
 
                 @Override
                 public void onCompletion() {
+                    request.finished();
                     ui.access(() -> {
                         activeToken = null;
                         triggerSave();
@@ -484,6 +496,7 @@ public class SideQueryTabContent extends VerticalLayout {
 
                 @Override
                 public void onCancel() {
+                    request.finished();
                     ui.access(() -> {
                         activeToken = null;
                         triggerSave();
@@ -495,6 +508,7 @@ public class SideQueryTabContent extends VerticalLayout {
 
                 @Override
                 public void onError(Throwable exception) {
+                    request.finished();
                     ui.access(() -> {
                         activeToken = null;
                         aiCard.updateContent(T.localized(ERROR).formatted(InferenceErrors.messageOf(loc, exception)));
@@ -511,11 +525,13 @@ public class SideQueryTabContent extends VerticalLayout {
                     return activeToken == null || activeToken.isCancelled();
                 }
             };
-            try (InferenceSession _ = InferenceSession.open(SideQueryService.SESSION_KIND); UsageContext _ = UsageContext.open(manuscript)) {
+            try (InferenceSession _ = InferenceSession.open(SideQueryService.SESSION_KIND); UsageContext _ = UsageContext.open(manuscript);
+                 Runs.Binding _ = request.start(this::stopAnswer)) {
                 activeToken = service.stream(payload, targetProtocol, queryCallback);
             }
 
         } catch (Exception e) {
+            request.finished();
             SideQueryMessage aiMsg = new SideQueryMessage();
             aiMsg.setFromUser(false);
             aiMsg.setContents(T.localized(FAILED_TO_START_INFERENCE).formatted(e.getMessage()));

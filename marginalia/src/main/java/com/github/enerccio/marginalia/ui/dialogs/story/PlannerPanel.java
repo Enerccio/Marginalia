@@ -7,15 +7,14 @@ import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.PlannerService;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.widgets.MergeTurnsDialog;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
+import com.github.enerccio.marginalia.ui.widgets.TurnRow;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.google.gson.JsonObject;
 import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.ComponentEventListener;
-import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
@@ -32,8 +31,10 @@ import java.util.function.Supplier;
 /**
  * The Planner, a tab of the story editor: the scenes the author plans to write, a list they fill by hand. <b>+</b> adds a scene (a
  * title and the turn details), the box in front of a scene says it is written, a click on a scene puts its details into the new turn
- * form, the arrows move it, the pen edits it and the trash can deletes it. The list is read again when the scenes change
- * ({@link PlannerService#onChange}), also when a model added one.
+ * form, the arrows move it, the plus in its row adds a scene under it, the merge button makes one scene of it and the next one
+ * ({@link MergeTurnsDialog}), the pen edits it and the trash can deletes it. <b>Import from the branch</b> adds a scene for every
+ * part of the branch the book is on. The list is read again when the scenes change ({@link PlannerService#onChange}), also when
+ * a model added one.
  */
 @Configurable(preConstruction = true)
 public class PlannerPanel extends VerticalLayout {
@@ -85,7 +86,11 @@ public class PlannerPanel extends VerticalLayout {
         });
         add.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         summary.addClassName(CssStyles.TEXT_SECONDARY);
-        HorizontalLayout bar = new HorizontalLayout(add, summary);
+        Button importBranch = new Button(loc.getValue(L.LABEL_IMPORT_FROM_BRANCH), Solid.FILE_IMPORT.create(), _ -> confirmImport());
+        importBranch.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+        importBranch.setTooltipText(loc.getValue(L.HELP_PLANNER_IMPORT_FROM_BRANCH));
+        HorizontalLayout bar = new HorizontalLayout(add, importBranch, summary);
+        bar.setWrap(true);
         bar.setAlignItems(FlexComponent.Alignment.CENTER);
         bar.setPadding(true);
 
@@ -126,65 +131,44 @@ public class PlannerPanel extends VerticalLayout {
             return;
         }
         for (int i = 0; i < scenes.size(); i++) {
-            list.add(row(current, scenes.get(i), i, scenes.size()));
+            list.add(row(current, scenes.get(i), i < scenes.size() - 1 ? scenes.get(i + 1) : null, i));
         }
     }
 
-    private Component row(Manuscript current, PlannedScene scene, int index, int count) {
-        Checkbox done = new Checkbox(scene.isDone());
-        done.setTooltipText(loc.getValue(scene.isDone() ? L.LABEL_MARK_NOT_DONE : L.LABEL_MARK_DONE));
-        done.setAriaLabel(loc.getValue(scene.isDone() ? L.LABEL_MARK_NOT_DONE : L.LABEL_MARK_DONE));
-        done.addValueChangeListener(e -> {
-            if (e.isFromClient()) {
-                run(() -> plannerService.setDone(current, scene.getUuid(), e.getValue()));
-            }
-        });
-
+    /**
+     * @param next the scene after this one, null for the last scene
+     */
+    private Component row(Manuscript current, PlannedScene scene, PlannedScene next, int index) {
         Span title = new Span(scene.getTitle());
         title.addClassNames(CssStyles.TEXT_BOLD, CssStyles.WRAP_ANYWHERE);
-        Div main = new Div(title);
-        main.addClassName(CssStyles.PLANNER_SCENE_MAIN);
+        Div content = new Div(title);
         String detail = StringUtils.firstNonBlank(scene.getInstructions(), scene.getSceneSetting());
         if (StringUtils.isNotBlank(detail)) {
             Div text = new Div(new Span(detail));
             text.addClassName(CssStyles.PLANNER_SCENE_TEXT);
-            main.add(text);
+            content.add(text);
         }
-        main.setTitle(loc.getValue(L.LABEL_USE_IN_NEXT_TURN));
-        main.addClickListener(_ -> {
-            if (!host.open(scene)) {
-                Notification.warning(loc.getValue(L.MSG_PLANNER_NO_TURN_FORM));
-            }
-        });
-
-        HorizontalLayout buttons = new HorizontalLayout(
-                button(Solid.ARROW_UP, L.LABEL_MOVE_UP, index > 0, _ -> run(() -> plannerService.move(current, scene.getUuid(), -1))),
-                button(Solid.ARROW_DOWN, L.LABEL_MOVE_DOWN, index < count - 1, _ -> run(() -> plannerService.move(current, scene.getUuid(), 1))),
-                button(Solid.PEN, L.LABEL_EDIT, true, _ -> new PlannedSceneDialog(loc, loc.getValue(L.LABEL_EDIT_SCENE), scene, changed ->
-                        run(() -> plannerService.update(current, changed))).open()),
-                button(Solid.TRASH, L.LABEL_DELETE, true, _ -> confirmDelete(current, scene)));
-        buttons.setSpacing(false);
-        buttons.setPadding(false);
-
-        HorizontalLayout row = new HorizontalLayout(done, main, buttons);
-        row.setWidthFull();
-        row.setAlignItems(FlexComponent.Alignment.START);
-        row.setSpacing(false);
-        row.expand(main);
-        row.addClassName(CssStyles.PLANNER_SCENE);
-        if (scene.isDone()) {
-            row.addClassName(CssStyles.PLANNER_SCENE_DONE);
-        }
-        return row;
+        String doneTooltip = loc.getValue(scene.isDone() ? L.LABEL_MARK_NOT_DONE : L.LABEL_MARK_DONE);
+        return TurnRow.builder(content)
+                .done(scene.isDone(), doneTooltip, value -> run(() -> plannerService.setDone(current, scene.getUuid(), value)))
+                .onClick(loc.getValue(L.LABEL_USE_IN_NEXT_TURN), () -> {
+                    if (!host.open(scene)) {
+                        Notification.warning(loc.getValue(L.MSG_PLANNER_NO_TURN_FORM));
+                    }
+                })
+                .moveUp(action(L.LABEL_MOVE_UP, index > 0, () -> run(() -> plannerService.move(current, scene.getUuid(), -1))))
+                .moveDown(action(L.LABEL_MOVE_DOWN, next != null, () -> run(() -> plannerService.move(current, scene.getUuid(), 1))))
+                .insert(action(L.LABEL_INSERT_SCENE_BELOW, true, () -> new PlannedSceneDialog(loc, loc.getValue(L.LABEL_NEW_SCENE),
+                        new PlannedScene(), added -> run(() -> plannerService.insert(current, scene.getUuid(), added))).open()))
+                .merge(action(L.LABEL_MERGE_WITH_NEXT_SCENE, next != null, () -> merge(current, scene, next)))
+                .edit(action(L.LABEL_EDIT, true, () -> new PlannedSceneDialog(loc, loc.getValue(L.LABEL_EDIT_SCENE), scene,
+                        changed -> run(() -> plannerService.update(current, changed))).open()))
+                .delete(action(L.LABEL_DELETE, true, () -> confirmDelete(current, scene)))
+                .build();
     }
 
-    private Button button(Solid icon, L tooltip, boolean enabled, ComponentEventListener<ClickEvent<Button>> listener) {
-        Button button = new Button(icon.create(), listener);
-        button.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
-        button.setTooltipText(loc.getValue(tooltip));
-        button.setAriaLabel(loc.getValue(tooltip));
-        button.setEnabled(enabled);
-        return button;
+    private TurnRow.Action action(L tooltip, boolean enabled, Runnable run) {
+        return new TurnRow.Action(loc.getValue(tooltip), enabled, run);
     }
 
     private void confirmDelete(Manuscript current, PlannedScene scene) {
@@ -198,10 +182,48 @@ public class PlannerPanel extends VerticalLayout {
         confirm.open();
     }
 
-    /** Runs a change of the scenes; the list is drawn again by the listener of the service. */
-    private void run(Change change) {
+    /** Shows the two scenes joined, for the author to edit, and makes one scene of them. */
+    private void merge(Manuscript current, PlannedScene scene, PlannedScene next) {
+        new MergeTurnsDialog(loc, loc.getValue(L.LABEL_MERGE_WITH_NEXT_SCENE), toTurn(scene), toTurn(next), PlannerService.MAX_TITLE_LENGTH,
+                merged -> run(() -> plannerService.merge(current, scene.getUuid(), next.getUuid(), new PlannedScene(merged.title(),
+                        merged.sceneSetting(), merged.povCharacter(), merged.presentCharacters(), merged.instructions())))).open();
+    }
+
+    private static MergeTurnsDialog.Turn toTurn(PlannedScene scene) {
+        return new MergeTurnsDialog.Turn(StringUtils.defaultString(scene.getTitle()), scene.getSceneSetting(), scene.getPovCharacter(),
+                scene.getPresentCharacters(), scene.getInstructions());
+    }
+
+    private void confirmImport() {
+        Manuscript current = book.get();
+        if (current == null) {
+            return;
+        }
+        ConfirmDialog confirm = new ConfirmDialog();
+        confirm.setHeader(loc.getValue(L.LABEL_IMPORT_FROM_BRANCH));
+        confirm.setText(loc.getValue(L.MSG_PLANNER_IMPORT_CONFIRM));
+        confirm.setCancelable(true);
+        confirm.setConfirmText(loc.getValue(L.LABEL_IMPORT));
+        confirm.addConfirmListener(_ -> run(() -> {
+            int added = plannerService.importBranch(current);
+            if (added == 0) {
+                Notification.warning(loc.getValue(L.MSG_PLANNER_IMPORT_NONE));
+            } else {
+                Notification.success(loc.getValue(L.MSG_PLANNER_IMPORTED).formatted(added));
+            }
+        }));
+        confirm.open();
+    }
+
+    /**
+     * Runs a change of the scenes; the list is drawn again by the listener of the service.
+     *
+     * @return false when the change failed (the reason is shown)
+     */
+    private boolean run(Change change) {
         try {
             change.run();
+            return true;
         } catch (IllegalArgumentException | IllegalStateException e) {
             Notification.warning(e.getMessage());
             refresh();
@@ -209,6 +231,7 @@ public class PlannerPanel extends VerticalLayout {
             UIUtils.internalServerError(loc, e);
             refresh();
         }
+        return false;
     }
 
     private interface Change {

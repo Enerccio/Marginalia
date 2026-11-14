@@ -140,6 +140,7 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
 
     private final Agent agent;
     // whether the console is the one of a phone: see the description of the class
+    @PublicAPI(from = "1.4.0", type = boolean.class)
     private final boolean phone;
     private Runnable onChange;
     // the names of the tabs, for the title on a phone where the tabs show icons only
@@ -152,6 +153,7 @@ public class AgentConsoleDialog extends Dialog implements LLMInteract {
     private Button closeButton;
 
     // the latest run of the agent, null when it never ran
+    @PublicAPI(from = "1.4.0", type = AgentRun.class)
     private AgentRun run;
     // how much of the transcript of the run is shown
     private Long shownRunId;

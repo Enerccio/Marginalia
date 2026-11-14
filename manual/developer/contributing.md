@@ -1,7 +1,7 @@
 ---
 label: Contributing
 order: 870
-verified: 817e5239b
+verified: 16e77d0d1
 covers:
   - CONTRIBUTING.md
   - CLAUDE.md
@@ -119,12 +119,12 @@ There is no formatter configuration in the repository; match the code around you
 - **The current user** comes from the session-scoped `User` bean; services check ownership (`findForUser`) - the UI
   must not be the only thing protecting other users' data.
 - **UI text** is never hard-coded: add a key to `loc/L.java` and the text to `loc/LocalizationBundleEN.java` (and to
-  `LocalizationBundleJP.java` and to the Chinese plugin's `LocalizationBundleZH.java`; a language without the key shows
+  `LocalizationBundleJP.java`, `LocalizationBundleFR.java`, `LocalizationBundleES.java`, `LocalizationBundleDE.java`, `LocalizationBundleKO.java`, `LocalizationBundleIT.java` and the Chinese plugin's `LocalizationBundleZH.java`; a language without the key shows
   the English text), and
   use `loc.getValue(L.KEY)` (see [User interface](ui.md#text)).
 - **Plugin UI text** goes through the `PluginLocalizationBundle` of the plugin: the English text is a `public static final String` constant
-  of the bundle class, named after its words, never a literal at the call site (`T.localized(EXPORT_INSTRUCTIONS)`); the Japanese and Chinese
-  texts are `ja(...)` / `zh(...)` calls in `loadKeys()` that take the constant as the key (see
+  of the bundle class, named after its words, never a literal at the call site (`T.localized(EXPORT_INSTRUCTIONS)`); the Japanese, Chinese, French, Spanish, German, Korean and Italian
+  texts are `ja(...)` / `zh(...)` / `fr(...)` / `es(...)` / `de(...)` / `ko(...)` / `it(...)` calls in `loadKeys()` that take the constant as the key (see
   [Texts in several languages](plugins/ui-extensions.md#texts-in-several-languages)).
 - **Dialogs that take input** put the cursor into the first field when they open (`DialogFocus.onOpen`) and send from the keyboard with
   `DialogShortcuts.submitWith(mainButton, fields...)`: Enter in a single line field, Ctrl/Cmd+Enter in a text area (Enter there is a new
@@ -150,14 +150,19 @@ no build) sends one chat completion to the AI set up in your dev database `~/.ma
 `java tools/LocalLlm.java --list`, then for example `java tools/LocalLlm.java --system-file sys.txt --user-file scene.txt --samples 3`. The other options (`--json-schema`,
 `--reasoning` to show the thinking, `--extra` for more raw JSON members of the request) are listed at the top of the file. Say "3 of 3 samples", not rates, and write down the model and the token numbers with the result.
 
+`python3 tools/plugin_api_diff.py <tag> [<tag>] [--changelog]` prints the `@PublicAPI` methods and fields that changed between two git revisions, for the plugin-visible part of the CHANGELOG (see [@Extendable hooks](plugins/extendable.md#the-public-api)).
+
+`tools/update-watcher` is the host side of *Admin → Update* of a Docker installation: `watch.sh` runs `bin/rebuild.sh` when the application asks for it, `install.sh` makes it systemd units (see [Packaging](packaging.md)).
+
 `tools/gpu-control` is a small controller (FastAPI, `gpu_control.py`, with its own README and compose file) that starts and stops the containers that take turns on one GPU (a speech server, ComfyUI), behind a Docker socket proxy; the Audiobook and the Image Generator call it through the requests before and after a batch, see [Setting up the speech server](../user/extensions/audiobook-server.md). `tools/workset_run.sh` runs the dataset harness with the plugins on the classpath ([The dataset book](testing.md#the-dataset-book)).
 
 ## Documentation
 
-The manual you are reading is in `manual/` (Markdown for [Retype](https://retype.com)); `docs/` is the generated site.
+The manual you are reading is in `manual/` (Markdown for [Retype](https://retype.com)); `docs/` is the generated site, which is not in the repository.
 
-- Change the Markdown in `manual/`, then run `tools/retype_build.sh` (`retype build` with the project version and commit in the site) and commit `docs/` in the same pull request. Never edit
-  files in `docs/` by hand.
+- Change the Markdown in `manual/`, then run `tools/retype_build.sh` (`retype build` with the project version and commit in the site, for the English site and for each language that has translations) to look at the result in `docs/` (ignored by git). The site is published by the `Manual` workflow when the change reaches `master`, see
+  [Publishing the manual](packaging.md#publishing-the-manual).
+  The user manual can be translated with `tools/manual_i18n.py` (only the pages whose English text changed are sent again, and the code, the link targets and the tags are not sent at all, they are put back in the answer; `verify` checks that), see [Translating the manual](translating-the-manual.md).
 - Preview with `retype start`.
 - Write for the reader of that part: the [User guide](../user/index.md) talks about what users see and click (UI
   names in *italics*, no class names), the developer guide about code (paths relative to the main package, class

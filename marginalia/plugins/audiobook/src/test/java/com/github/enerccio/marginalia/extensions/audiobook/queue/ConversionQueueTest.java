@@ -190,6 +190,100 @@ class ConversionQueueTest {
     }
 
     @Test
+    void aBatchIsOneJobOfTheLogAndTheRequestsOfItsWorkerThreadAreItsCalls() throws Exception {
+        queue(Set.of(BackendConfig.MODEL_TURBO));
+        PartScript script = script("One.\n\nTwo.");
+        List<com.github.enerccio.marginalia.domain.service.job.FinishedJob> ended = new CopyOnWriteArrayList<>();
+        java.util.function.Consumer<com.github.enerccio.marginalia.domain.service.job.FinishedJob> sink = ended::add;
+        com.github.enerccio.marginalia.domain.service.job.Jobs.addSink(sink);
+        try {
+            ConversionJob job = queue.submit("p1", "Part 1", () -> {
+                // the labelling request, made on the worker thread while the script is made
+                com.github.enerccio.marginalia.domain.service.job.Jobs.beginCall(
+                        com.github.enerccio.marginalia.domain.service.job.JobCallType.LLM, "labelling model", "m")
+                        .finish(com.github.enerccio.marginalia.domain.service.job.JobStatus.COMPLETED, null);
+                return script;
+            });
+            assertEquals(State.DONE, finished(job).state());
+            long end = System.currentTimeMillis() + 5000;
+            while (ended.isEmpty() && System.currentTimeMillis() < end) {
+                Thread.sleep(10);
+            }
+        } finally {
+            com.github.enerccio.marginalia.domain.service.job.Jobs.removeSink(sink);
+        }
+
+        assertEquals(1, ended.size());
+        assertEquals("audiobook", ended.get(0).kind());
+        assertEquals("Conversion of 1 part", ended.get(0).label());
+        assertEquals(com.github.enerccio.marginalia.domain.service.job.JobStatus.COMPLETED, ended.get(0).status());
+        assertEquals(1, ended.get(0).calls().size());
+        assertEquals("labelling model", ended.get(0).calls().get(0).backend());
+    }
+
+    @Test
+    void aRunIsToldToTheApplicationWithItsPartsAndItsEnd() throws Exception {
+        queue(Set.of(BackendConfig.MODEL_TURBO));
+        PartScript script = script("One.\n\nTwo.");
+        List<List<String>> started = new CopyOnWriteArrayList<>();
+        List<String> ends = new CopyOnWriteArrayList<>();
+        List<Runnable> stops = new CopyOnWriteArrayList<>();
+        queue.setRunWatch((titles, stop) -> {
+            started.add(titles);
+            stops.add(stop);
+            String thread = Thread.currentThread().getName();
+            // the end is told on the thread of the run, which the application bound to its run
+            return (stopped, failed) -> ends.add(stopped + "/" + failed + "/" + thread.equals(Thread.currentThread().getName()));
+        });
+
+        finished(queue.submit("p1", "Part 1", () -> script));
+        assertTrue(queue.awaitIdle(5, java.util.concurrent.TimeUnit.SECONDS));
+
+        assertEquals(List.of(List.of("Part 1")), started);
+        assertEquals(List.of("false/false/true"), ends);
+        assertEquals(1, stops.size());
+    }
+
+    @Test
+    void theJobSaysWhichPiecesTheModelLabelsAndKeepsWhatItSaid() throws Exception {
+        queue(Set.of(BackendConfig.MODEL_TURBO));
+        PartScript script = script("One.\n\nTwo.");
+        List<String> messages = new CopyOnWriteArrayList<>();
+        queue.addListener(snapshot -> messages.add(snapshot.message()));
+
+        ConversionJob job = queue.submit("p1", "Part 1", () -> {
+            // what the labelling does on this thread: a window, then what the model writes for it
+            com.github.enerccio.marginalia.extensions.audiobook.label.LabelWatch.window(0, 16, 40);
+            com.github.enerccio.marginalia.extensions.audiobook.label.LabelWatch.current().chunk(true, "Let me think. ");
+            com.github.enerccio.marginalia.extensions.audiobook.label.LabelWatch.current().chunk(false, "{\"labels\":[]}");
+            com.github.enerccio.marginalia.extensions.audiobook.label.LabelWatch.window(16, 32, 40);
+            com.github.enerccio.marginalia.extensions.audiobook.label.LabelWatch.current().chunk(false, "second");
+            return script;
+        });
+        ConversionJob.Snapshot done = finished(job);
+
+        assertEquals(State.DONE, done.state(), done.message());
+        assertTrue(messages.contains("Labelling pieces 1-16 of 40"), messages.toString());
+        assertTrue(messages.contains("Labelling pieces 17-32 of 40"), messages.toString());
+        List<LabelTrace.Window> windows = queue.trace(job.id()).windows();
+        assertEquals(2, windows.size());
+        assertEquals("pieces 1-16 of 40", windows.get(0).title());
+        assertEquals("Let me think. ", windows.get(0).reasoning());
+        assertEquals("{\"labels\":[]}", windows.get(0).output());
+        assertEquals("second", windows.get(1).output());
+        assertNull(queue.trace("nobody"));
+    }
+
+    @Test
+    void aJobWithoutLabellingHasNothingToShow() throws Exception {
+        queue(Set.of(BackendConfig.MODEL_TURBO));
+        ConversionJob job = queue.submit("p1", "Part 1", () -> script("One."));
+        finished(job);
+
+        assertTrue(queue.trace(job.id()).isEmpty());
+    }
+
+    @Test
     void aPartThatIsUpToDateCostsNoBatchAtAll() throws Exception {
         queue(Set.of(BackendConfig.MODEL_TURBO));
         PartScript script = script("One.\n\nTwo.");

@@ -70,7 +70,9 @@ public class GoogleGenAiFactory implements ExtensionAIFactory {
         TokenizerStrategy google = new TokenizerStrategy() {
             @Override
             public long countTokens(AI ai, String text) throws Exception {
-                if (!(inferenceServices.forAI(ai) instanceof GoogleGenAiInferenceService service)) {
+                InferenceService found = inferenceServices.forAI(ai);
+                GoogleGenAiInferenceService service = found == null ? null : found.unwrap(GoogleGenAiInferenceService.class);
+                if (service == null) {
                     throw new IllegalStateException("The extension " + EXTENSION_ID + " is not loaded");
                 }
                 return service.countTokensOnline(text);

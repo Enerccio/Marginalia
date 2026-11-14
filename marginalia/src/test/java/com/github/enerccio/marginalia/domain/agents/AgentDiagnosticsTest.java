@@ -210,7 +210,7 @@ class AgentDiagnosticsTest {
         rows.user("Go");
         rows.round(1000, 1000, "read_file", "get-part");
         rows.result("c1", "x".repeat(8000), 10);
-        rows.result("c2", Defaults.AGENT_PAUSED_CALL, 10);
+        rows.result("c2", new Defaults().agentPausedCall(), 10);
 
         Report report = report(rows);
 
@@ -295,11 +295,11 @@ class AgentDiagnosticsTest {
     void theNoticesOfTheRunAreCountedApartFromTheMessagesOfTheAuthor() {
         Rows rows = new Rows();
         rows.user("Go");
-        rows.user(Defaults.AGENT_UNREADABLE_CALL);
-        rows.user(String.format(Defaults.AGENT_TOO_MANY_CALLS, 4, 3, 1));
-        rows.user(String.format(Defaults.AGENT_TOO_MANY_CALLS, 5, 2, 3));
-        rows.user(String.format(Defaults.AGENT_ONE_CALL_NOTICE, 3, "read_file", 2));
-        rows.user(String.format(Defaults.AGENT_SINGLE_CALL_NOTICE, "regenerate-summary", 3, 2));
+        rows.user(new Defaults().agentUnreadableCall());
+        rows.user(String.format(new Defaults().agentTooManyCalls(), 4, 3, 1));
+        rows.user(String.format(new Defaults().agentTooManyCalls(), 5, 2, 3));
+        rows.user(String.format(new Defaults().agentOneCallNotice(), 3, "read_file", 2));
+        rows.user(String.format(new Defaults().agentSingleCallNotice(), "regenerate-summary", 3, 2));
         rows.user("Notice from the run: something else");
         rows.user("Please go on");
 

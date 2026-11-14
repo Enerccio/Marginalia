@@ -10,30 +10,14 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
 
+import static com.github.enerccio.marginalia.extensions.knowledgetracker.KnowledgeTrackerLocalization.T;
+
 /**
  * The request that asks the model what the tracked characters learned in a few parts of the story. The wording is the
  * one that was tested against a real model (see TODO.md); change it together with that test.
  */
 public final class ExtractionPrompt {
 
-    /** The system message. */
-    public static final String SYSTEM = """
-            You keep track of what the characters of a story know. You get the world (lorebook, when given), the TRACKED characters with the numbered items of what each knows or does not know now, and the new story MESSAGES (numbered). Report, for each tracked character, only what changed in these messages.
-
-            Rules:
-            1. add: knowledge the character GAINS in these messages: what it saw, heard, read, was told or worked out itself. Not what the reader knows, not what only the narrator says, not what other characters know.
-            2. Do NOT add global knowledge that a member of that world has anyway (who the king is for a subject of the kingdom, common customs, the language, the geography of their own home), and nothing that follows from the character itself as the world text describes it (its species, body, abilities, history, family, trade).
-            3. Do NOT add anything the items of the character already say.
-            4. retract: the number of an item that the messages clearly contradict (for example "has never met X" after they meet). Only when the text shows the contradiction. An item saying a character does not know Y is retracted only if the character learns Y in these messages. An item that says more than one thing is retracted only when the messages contradict all of it; when only a part is contradicted, leave the item and add what was learned. Judge an item by how the messages END: when the character is told, reminded of or works out again what the item says later in these messages (it asks who someone is, and is then told), the item is true at the end, so do not retract it and do not add it again.
-            5. Never infer. When in doubt, report nothing. A character that is not present, or does not see or hear an event (private thoughts, whispers, a closed letter), learns nothing from it.
-            6. Every change needs an evidence quote copied from the messages and the number of the message.
-            7. Only record knowledge that could matter later in the story: secrets, identities, relationships and feelings that were revealed, plans, promises, discoveries, and facts that another character does not know. Do NOT record events that every character present saw or heard together (the story text itself holds them), small talk, jokes, moods, weather, objects and details of the setting, what a character did itself, or the same fact for several characters. At most 3 additions per character, usually 0 or 1. When nothing matters, report nothing.
-
-            Answer with JSON only, no other text: {"characters":[{"name":"...","retract":[{"item":N,"evidence":"...","message":N}],"add":[{"kind":"knows|does-not-know","text":"...","evidence":"...","message":N}]}]}. A character with no changes has empty lists.""";
-
-    /** Added to the system message when the model may read earlier parts ({@code read_part}). */
-    public static final String READING = """
-            You may also call read_part with the number of an earlier part of the story. The items that were learned in an earlier part say so ("learned in part N") and the messages say which part they are. When an item came from hearsay, a rumour, a plan or an introduction and these messages seem to confirm, repeat or contradict it, or the item alone does not tell you what the character knew at that point, read that part first and then decide, instead of guessing. Do not read parts for any other reason (at most %d). Your final answer is still the JSON only.""".formatted(PartReader.MAX_READS);
 
     /**
      * The story the model may read from: the parts of the active branch, of which the first {@code readable} (the ones before the
@@ -106,16 +90,16 @@ public final class ExtractionPrompt {
      *                 can read say so, the messages say their part and the system message tells about the function
      */
     public static Request build(KnowledgeState state, String lore, List<Part> parts, Collection<String> separators, Readable readable) {
-        return build(state, lore, parts, separators, readable, SYSTEM);
+        return build(state, lore, parts, separators, readable, T.defaults().extractionSystem());
     }
 
     /**
-     * @param system the system message, the one the book inherits; blank = the built-in {@link #SYSTEM}. The instructions about
+     * @param system the system message, the one the book inherits; blank = the built-in {@link KnowledgeTrackerDefaults#extractionSystem()}. The instructions about
      *               {@code read_part} are added to it when {@code readable} is given.
      */
     public static Request build(KnowledgeState state, String lore, List<Part> parts, Collection<String> separators, Readable readable,
                                 String system) {
-        String instructions = StringUtils.isBlank(system) ? SYSTEM : system.strip();
+        String instructions = StringUtils.isBlank(system) ? T.defaults().extractionSystem() : system.strip();
         List<Set<String>> present = new ArrayList<>();
         for (Part part : parts) {
             present.add(PresentCharacters.normalizedNames(part.presentCharacters(), separators));
@@ -170,7 +154,7 @@ public final class ExtractionPrompt {
                     .append("; present: ").append(StringUtils.defaultString(part.presentCharacters()).strip()).append(")\n")
                     .append(StringUtils.defaultString(part.text()).strip()).append("\n\n");
         }
-        return new Request(readable != null ? instructions + "\n\n" + READING : instructions, user.toString().stripTrailing(), new Numbering(numbered, List.copyOf(parts)),
+        return new Request(readable != null ? instructions + "\n\n" + T.defaults().readingNote() : instructions, user.toString().stripTrailing(), new Numbering(numbered, List.copyOf(parts)),
                 List.copyOf(where.keySet()));
     }
 }

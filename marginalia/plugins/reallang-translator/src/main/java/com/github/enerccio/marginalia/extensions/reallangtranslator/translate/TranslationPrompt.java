@@ -22,7 +22,7 @@ public final class TranslationPrompt {
             You translate the direct speech of a story into %1$s. The story is written in English. You do not rewrite the story: you only report which direct speech is spoken in %1$s, and what it is in %1$s.
 
             For EVERY piece of direct speech in the PART (the words the characters say aloud, inside quotation marks) give one entry, in the order they appear:
-            - "quote": the speech copied exactly from the PART, character for character, without the quotation marks. A quotation that has several sentences may be one entry or one entry for each sentence; the quotes of the entries never overlap.
+            - "quote": the speech copied exactly from the PART, character for character, without the quotation marks. A quotation that has several sentences may be one entry or one entry for each sentence; the quotes of the entries never overlap. A quote is one unbroken piece of the PART: when narration or a dialogue tag (Hiroko said.) stands between two quotation marks, they are two entries, never one quote that skips the narration.
             - "speaker": who says it.
             - "language": "%1$s" when the speech is spoken in it, or "none" when it is spoken in English or in another language that is not %1$s.
             - "text": the speech in %1$s, %3$s Do not add quotation marks: the story has them. Empty when the language is "none".
@@ -40,6 +40,10 @@ public final class TranslationPrompt {
             Answer with one JSON object only, no other text, in this form:
             {"translations":[{"quote":"...","speaker":"...","language":"...","text":"...","reading":"","understood":true,"register":"","choice":"..."}],"names":[{"source":"...","written":"...","reading":"","note":""}]}
             When the PART has no direct speech, the lists are empty.""";
+
+    /** Said in the user message when the PART holds speeches that are translated already (a run that only writes the missing ones). */
+    static final String PARTLY_TRANSLATED = "The PART is partly translated already: a speech that is not written in English any more is finished. Give no entry for it; "
+            + "give entries only for the direct speech that is still written in English.\n";
 
     private TranslationPrompt() {
     }
@@ -76,8 +80,17 @@ public final class TranslationPrompt {
      * @param glossary the active entries of the merged glossary (see {@link Glossary}); may be empty
      */
     public static Request build(RealLanguage language, List<GlossaryEntry> glossary, Speakers speakers, String partText, Scene scene) {
+        return build(language, glossary, speakers, partText, scene, false);
+    }
+
+    /**
+     * @param partText   the part as the model reads it: the source, or, for a run that writes only the missing speeches, the part as it is stored
+     *                   with the translated speeches in it
+     * @param translated whether {@code partText} holds speeches that are translated already; the model is told to leave them
+     */
+    public static Request build(RealLanguage language, List<GlossaryEntry> glossary, Speakers speakers, String partText, Scene scene, boolean translated) {
         List<GlossaryEntry> sent = glossary.size() <= WHOLE_GLOSSARY ? glossary : Glossary.relevant(glossary, partText);
-        return new Request(system(language, speakers) + glossaryBlock(sent), user(language, speakers, partText, scene));
+        return new Request(system(language, speakers) + glossaryBlock(sent), user(language, speakers, partText, scene, translated));
     }
 
     static String system(RealLanguage language, Speakers speakers) {
@@ -160,6 +173,10 @@ public final class TranslationPrompt {
     }
 
     static String user(RealLanguage language, Speakers speakers, String partText, Scene scene) {
+        return user(language, speakers, partText, scene, false);
+    }
+
+    static String user(RealLanguage language, Speakers speakers, String partText, Scene scene, boolean translated) {
         StringBuilder user = new StringBuilder();
         String characters = characters(language, speakers, scene, partText);
         if (!characters.isEmpty()) {
@@ -174,6 +191,9 @@ public final class TranslationPrompt {
         }
         if (scene != null && !scene.present().isBlank()) {
             user.append("Characters present: ").append(scene.present().strip()).append('\n');
+        }
+        if (translated) {
+            user.append('\n').append(PARTLY_TRANSLATED);
         }
         user.append("\nPART:\n").append(partText == null ? "" : partText.strip()).append('\n');
         return user.toString();

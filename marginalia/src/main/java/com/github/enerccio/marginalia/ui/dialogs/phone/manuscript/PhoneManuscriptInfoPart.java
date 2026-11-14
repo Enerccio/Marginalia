@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.ui.dialogs.phone.manuscript;
 
+import com.github.enerccio.marginalia.ui.dialogs.manuscript.GenerationHold;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
@@ -57,12 +58,15 @@ public class PhoneManuscriptInfoPart implements PhoneManuscriptDialogPart {
 
     private final PhoneManuscriptDialog parent;
 
+    @PublicAPI(from = "1.1.0", type = TextField.class)
     private TextField nameField;
     private TagMultiComboBox tags;
+    @PublicAPI(from = "1.1.0", type = TextArea.class)
     private TextArea descriptionField;
     private InheritedLanguageCombo languageCombo;
     private HistoryLimitField historyLimitField;
     private ComboBox<AI> aiCombo;
+    @PublicAPI(from = "1.1.0", type = ComboBox.class)
     private ComboBox<Protocol> protocolCombo;
     private Checkbox publishedCheckbox;
     private Checkbox showImagesCheckbox;
@@ -271,6 +275,17 @@ public class PhoneManuscriptInfoPart implements PhoneManuscriptDialogPart {
         totalTokenCountSpan.setText(loc.getValue(L.LABEL_TOTAL_TOKEN_COUNT) + ": " + totalTokens);
         branchWordCountSpan.setText(loc.getValue(L.LABEL_BRANCH_WORD_COUNT) + ": " + branchWords);
         branchTokenCountSpan.setText(loc.getValue(L.LABEL_BRANCH_TOKEN_COUNT) + ": " + branchTokens);
+    }
+
+    /**
+     * Free from the inference on: the generation does not need the settings of the book (its prompt is built), only its part.
+     */
+    @PublicAPI(from = "1.8.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "hold", type = GenerationHold.class)})
+    @Override
+    public void setHold(GenerationHold hold) {
+        setFrozen(hold != null && hold.isWhole());
     }
 
     @PublicAPI(from = "1.1.0",

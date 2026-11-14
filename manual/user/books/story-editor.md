@@ -61,6 +61,9 @@ changes you made in the book's *Lorebook* tab show at once.
 - The **pen** of an entry opens a small window with its name, whether it is used, the filter and how it is looked for, the content
   and the note; **Save** writes them (the tags, the order and the activation settings are changed in the book's *Lorebook* tab). Nothing
   can be changed while an agent works on the lorebook.
+- The **expand button** (⤢) opens the [full-screen lorebook editor](../lorebooks/lorebooks.md#editing-in-full-screen) (desktop only): the one
+  next to the search box on the lorebook, the one of an entry on that entry, the one of a sub lorebook (with *Include sub lorebooks*) on
+  that lorebook. The tab is loaded again when you close the editor.
 
 - Every entry is a row with its name and the pen; the arrow opens it to show its **content** (rendered as Markdown) and the **text that activates it** (the
   *Filtering Text/Pattern*, with a note when it is a regular expression).
@@ -82,6 +85,15 @@ fields as the new turn form.
 ![The Planner tab with four scenes, the first one written](../../images/planner-tab.png)
 
 - **Add scene** opens a form for a new scene; it goes to the end of the list. The pen edits a scene, the arrows move it up or down, the trash can deletes it.
+- The **+** in the row of a scene **inserts a new scene** right under it, between that scene and the next one.
+- The merge button of a scene **merges it with the next one**: a form opens with the details of both already joined (the two titles, the scene settings
+  and the instructions under each other, the present characters of both, the POV character of the first; when the second scene has another one the form
+  says which). Change what does not fit and press **Merge** (or <kbd>Ctrl/Cmd+Enter</kbd>): the two scenes become one, in the place of the first. It is
+  done only when both were.
+- **Import from the branch** adds a scene for every part of the branch the book is on (from the first part to the newest) that has turn details: its
+  scene setting, POV character, present characters and instructions, with the first line of the instructions as the title. Parts without turn details
+  are left out, and the scenes come after the ones you have, not done. Use it to plan a rewrite of a story you have written: import, merge the turns
+  that belong together, insert what is missing, then write the scenes on a new branch or in a copy of the book.
 - The box in front of a scene says it is **done** (written): the title is struck through and the scene is dimmed. Nothing checks it for you, tick it
   when you have written the scene. The line above the list counts how many are done.
 - **Click a scene** to put its details into the **new turn form** (the form opens, with the scene setting, POV, present characters and instructions of the
@@ -124,7 +136,8 @@ the extension is back.
 The story is always somewhere: its tab can't be closed, and a tab that lives in a panel together with other tabs is hidden
 while another one is selected. Whatever shows a part brings the story back: clicking an entry of the outline, a hit of the
 search, choosing a branch in the [story tree](branches-and-story-tree.md), and starting a generation select the **Story** tab
-first. While a generation runs the other tabs are disabled and only the story stays usable, so you can stop it.
+first. While a generation prepares its prompt (usually a few seconds) the other tabs are disabled; once the model writes, they are
+usable again, see [below](#while-a-part-is-generated).
 
 ### Minimizing tabs
 
@@ -177,7 +190,27 @@ The new part appears at the end and fills in as the model writes it. For [reason
 the reasoning appears first under **View Reasoning**.
 
 While a part is being generated, the **+** button turns into a red **Stop** button. Stopping keeps the text written so
-far as the part. The rest of the book window is disabled until the generation finishes or is stopped.
+far as the part.
+
+### While a part is generated
+
+For the first few seconds, while the prompt is put together from the book, the whole book window waits. As soon as the model starts
+writing, only the new part and the parts before it are held:
+
+- **The new part** can't be touched until it is finished: no edit, no menu.
+- **The parts before it** stay where they are: you can edit, annotate and redraft them, but not delete, merge or branch them, and the
+  story stays on its branch (no swipe, no switch of the branch). A change to an earlier part, or to the lore, does not reach the
+  part being written: its prompt was put together already. It counts for what comes after.
+- **Everything else is free**: the lore, the book's settings and prompt, the tabs of the left bar (side query, arc outline, notes...),
+  the command bar. A request to the model waits for a free connection of the model if the generation has the only one.
+- **Waiting**: a second turn, search and replace, an import into the book and the mass delete. The tree and backup tabs also wait.
+
+What the window greys out is also refused when a command, an agent or an extension asks for it: Marginalia names what is in the way
+(*This is in use: …*).
+
+**Leaving the book stops the generation.** The exit button asks first; *Yes* is the same as **Stop**: what arrived is kept. Closing
+the browser tab does the same, and the browser asks before the tab is closed or reloaded while a part is generated. A short loss
+of the network, or a laptop closed for a minute, is not leaving: the page comes back and shows what arrived meanwhile.
 
 When the model returns an error (server not reachable, wrong API key, context too long...), the error is shown.
 If no text arrived yet, the story stays as it was: a new part or swipe is removed and a regenerated part gets its
@@ -226,8 +259,8 @@ The settings menu (⚙) in the bottom bar groups what acts on the whole story. *
 | Sub menu | Items |
 |---|---|
 | **Appearance** | **Change Styles For Text**, **Highlight Generated Text** and **Annotations in the margin** (desktop only, the last one) |
-| **Analysis** | **Annotate a range of parts with AI**, **Automatic annotation**, **Branch Tokens**, **Lore Usage**, **Statistics** |
-| **Import & export** | **Import from archive**, **Export story** (and the items of extensions that import or export, such as **Export instructions**) |
+| **Analysis** | **Annotate a range of parts with AI**, **Create summaries**, **Take lore notes with an agent**, **Automatic annotation**, **Branch Tokens**, **Lore Usage**, **Statistics** |
+| **Import & export** | **Import**, **Export story** (and the items of extensions that import or export, such as **Export instructions**) |
 | **Cleanup** | **Clear history of the book**, **Empty trash of the history**, **Mass delete** |
 | **Layout** (desktop only) | **Save layout as my default**, **Restore default layout** |
 
@@ -339,7 +372,8 @@ between it and the one you clicked before; a ticked part is tinted red. Then pre
 one by one behind a progress bar that can't be stopped. They are deleted as a single part is: the parts that followed a deleted
 part continue from the part before it, and the deleted parts go to the trash. Then the story is shown again and the mass delete
 is off. **Cancel** in the bar, or choosing **Mass delete** again, turns it off without deleting anything. Starting a
-generation also turns it off.
+generation also turns it off. A ticked part that a window or a translation works on is left in the story, and Marginalia says what
+has it.
 
 ![Mass delete with some parts ticked](../../images/story-mass-delete.png)
 
@@ -351,7 +385,9 @@ old one in the middle of the story, and keeps what you do not ask to change. Cho
 1. Write what should change in **Instructions for the redraft**: *add more dialogue between the two*, *make the fight
    longer*, *remove the explanation of the map*, *keep the ending as it is*. Empty instructions write the part again with
    the same events.
-2. Choose **Redraft**. The text streams into **Redrafted text**; **Stop** ends it early. Choose **Redraft again** for
+2. Choose **Length** if the part should get **Shorter** or **Longer** (the default is **Same length**): a sentence that asks for it
+   is added after your instructions (see [Redraft Shorter Prompt and Redraft Longer Prompt](prompts.md#redraft-shorter-and-longer)).
+   Choose **Redraft**. The text streams into **Redrafted text**; **Stop** ends it early. Choose **Redraft again** for
    another try, with other instructions if you like. **Differences** shows what changed against the part, word by word.
    When the part has open [annotations](annotations.md), **Deal with the open annotations of the part** (checked at first)
    gives them to the model as well, and **Apply** marks them resolved.
@@ -362,8 +398,9 @@ old one in the middle of the story, and keeps what you do not ask to change. Cho
 
 The model gets the [redraft prompts](prompts.md#redraft-prompt): the part, your instructions, the story before
 the part (the older story as [summaries](summaries.md) where there are valid ones, the rest as text, the newest part first
-when it does not all fit), as much of the story after the part as fits (up to a quarter of the room), the lore the part
-was written with, the point of view, tense and style of the book, and the scene setting, point of view character, present
+when it does not all fit), as much of the story after the part as fits (up to a quarter of the room), the lore the
+lorebooks give that part now (worked out again for the part's turn, so an edit of an entry reaches the redraft; the lore
+the part was written with is used only when the book has no lorebook), the point of view, tense and style of the book, and the scene setting, point of view character, present
 characters and instructions of the turn the part came from. The story after the part is there so the new text still leads
 into it: events the following parts rely on should stay.
 
@@ -376,6 +413,72 @@ When a summary describes the part (the part has one, or a newer part of the bran
 right thing (the redraft changed the wording, not what happens): **Apply** then works out their hash again and they stay
 valid. Leave it unchecked when the events changed, and make the summaries again.
 
+The window does not block the story, see [Working beside the window](#working-beside-the-redraft-and-annotation-windows).
+
+### Working beside the redraft and annotation windows
+
+On a computer the **Redraft** and **Annotate with AI** windows stand at the right of the story and leave it usable: you can read,
+scroll and edit the story while the model writes. Drag a window by its title to move it, or by its edge to resize it. The arrow
+(⌄) in the title folds a window into the [panel of the runs](#the-panel-of-the-runs) at the bottom left of the page: the model
+goes on, **Open** (or a click on the entry) brings the window back and **Stop** stops the model (once it is done, **Close** closes
+the window). On a phone the windows still cover the story, but they fold the same way.
+
+![The redraft window beside the story while the model writes, and the run in the panel at the bottom left](../../images/redraft-beside-story.png)
+
+**Close and Stop are two things.** The window's own **Stop** stops the model and the window stays with what arrived. **Close**
+while the model works does not stop it: the window folds into the panel and the model goes on in its queue; its answer is in the
+window when you open it again. Close a window whose model is done, or **Close** it in the panel, and it is gone; closing the book or the browser tab
+stops a folded window too. The same holds
+for the other windows that wait for a model: a **summary** (and *Create summaries*, *Rewrite all summaries*), the
+[Reviewer](../extensions/reviewer.md), the book description, the lore and outline generators, the image and manga generators, and
+the persona writer of Beta Readers. The audiobook's *Studio* and *Convert* windows do not block the page either; closing them never
+stopped the conversion.
+
+While a window is open (or folded) on a part, the part shows what it is doing next to its menu (*Redrafting · The book*), and
+**Regenerate**, **Swipe**, **Redraft**, **Annotate with AI**, **Merge into previous** and **Delete** are off for that part, so the
+window does not lose its part. Editing the part stays possible. Closing the book closes its windows and stops their models. A part a
+[translator](../extensions/real-language-translator.md) is working on shows *Translating the speech of the part...* the same way, and
+two translators never work on one part at once: the second one says that the part is in use.
+
+- When you **Apply** a redraft of the whole part and the part was changed after the window was opened (you edited it meanwhile),
+  Marginalia asks first: **Differences** then compares the part as it is now with the redraft, so you see what applying would
+  replace; choose **Apply anyway** or **Cancel**. A redraft that [applies itself](annotations.md#annotating-every-new-part-automatically) does
+  not do it when the part was changed: the window waits for you instead.
+- When the part was deleted before you **Apply** the redraft or add the annotations, the window says so, writes nothing and
+  closes.
+
+### The panel of the runs
+
+Everything that works on your books with a model right now is listed at the bottom left of every page: a generation, a
+redraft or an annotation, a translation by the [Real Language](../extensions/real-language-translator.md) or
+[Conlang](../extensions/conlang-translator.md) translator, a rewrite of the summaries, the Knowledge Tracker reading the story, an [Audiobook](../extensions/audiobook.md) conversion, a command of
+the command bar that takes a while (*Draft instructions*, a summary...: its window stands at the side and folds like the others). The
+windows in which you wait for an answer are listed too while the model answers: **Impersonate**, the help assistant, a quick
+translation, the Conlang designer, a chat of Side Query, Beta Readers or the plot wizard. It lists your runs from **all your open
+pages** (another tab, the phone), not only the ones started on this page. Nothing running, nothing shown.
+
+![The panel of the runs opened: the redraft folded into it, with the end of the model's text, Open and Stop](../../images/runs-panel.png)
+
+- **Closed** it is a small bar: the first run, how many more (*Translating the speech of the part... · 2 more*) and a moving bar
+  while a model works. Click it to open the list; it opens by itself when you fold a window into it.
+- **Open**, each run shows what it does, the book, how long it runs, what it waits for and the end of what the model writes:
+  - *Waiting for the model: 2 requests before this one* when the model is busy with other requests (see
+    *Connections* in [Inference providers](../inference-providers.md));
+  - *The model is thinking...* or *The model is writing...*, with the end of its thinking or of its answer below;
+  - *Waits for you* when the run waits for a decision of yours (a redraft to apply, a proposal of the Knowledge Tracker to review,
+    the Prompt Inspector's question before a generation, a command of the plot wizard to allow).
+- **Stop** stops the run, wherever it was started. **Open**, or a click on the entry, shows a folded window again (only on the
+  page it was opened on) or the run itself; it is **Review** when the run waits for you. A run of the Knowledge Tracker opens its
+  book on this page (when no other book is open here; otherwise you are asked to close that one first), switches to the Knowledge tab
+  and shows the review. **Close** closes a window for good (and stops its model).
+- On a computer you can move the panel by its grip (⋮ at its left); it stays where you leave it in this browser. In the lower half of
+  the page it grows upwards when you open it, as in its corner, and it is always kept inside the page. When it stands where the round
+  button of the [help assistant](../administration/help-assistant.md) is (over a book both are in the bottom left corner), the button moves aside
+  and comes back when the place is free.
+
+When a run you started ends after its page was closed, another open page of yours sends its [notification](../account.md#notifications)
+(for the runs that have one, such as the rewrite of the summaries).
+
 ### Redrafting only a passage
 
 To rewrite a few sentences and leave the rest of the part alone, select them in the text of the part and **right click** (a
@@ -387,6 +490,28 @@ redrafted text; **Apply** puts the redrafted text in the place of the selection 
 space or line break at the edges of the selection. With open [annotations](annotations.md) the check box offers only the ones
 whose passage overlaps the selection. If the part was changed after you selected the text (in another window), **Apply** refuses
 and you select it again. While the part is edited the selection in the editor is used, and the edit is saved first.
+
+
+### What follows a generated part
+
+When a part you generated (from the page or the command bar) is complete, the book may do more with it by itself, in this order:
+
+1. **Annotate**: the [automatic annotation](annotations.md#annotating-every-new-part-automatically) reviews the part.
+2. **Redraft**: the part is written again to address the notes.
+3. **Translate**: the [Real language](../extensions/real-language-translator.md) and [Conlang](../extensions/conlang-translator.md) translators translate its speeches.
+4. **Knowledge**: the [Knowledge Tracker](../extensions/knowledge-tracker.md) reads it.
+5. **Audio**: the [Audiobook](../extensions/audiobook.md) makes it into audio.
+
+Only the steps the book has switched on run. They run on the server, so the page can be closed, and they are one entry in the
+[panel of the runs](#the-panel-of-the-runs): *After part 14: Annotate ✓ · Redraft … · Translate*, with the model's text and one
+**Stop**. What changes the text comes first, so the tracker and the audio get the final text. A step that waits for you (notes or a redraft
+to choose) opens its window, and the entry has **Review** to open it in another page.
+
+- **Stop**, closing a window that waits for you, or a step that fails ends it there: what was done stays, the rest is not run, and a
+  message names what is left, to do by hand (each step has its own action on the part).
+- While the **redraft** runs, the next part can't be generated (you'd be told by which run); while the other steps run, it can.
+- The part can't be deleted until its text is final; generating it again ends what followed its earlier version.
+- An [agent](../agents.md) does these steps by its own commands: nothing follows a part an agent generated.
 
 ## Merging a part into the previous one
 
@@ -611,20 +736,49 @@ The [Summaries overview](summaries.md#search-and-replace-in-the-summaries) has t
 The same search and replace can be run from the [command line](../commands/index.md#commands-that-come-with-marginalia)
 with `/search-replace-parts`; it asks before it replaces.
 
-## Importing text files
+## Importing into the book
 
-The settings menu (⚙) has **Import from archive**. Upload a `.zip` of `.md` (Markdown) files and every file is added as
-a **part** at the end of the story: the first one after the last part of the active branch (the first part of an empty
-book), each next one after the one before. The files are taken in the order of their names, numbers inside the names
-compared as numbers (`2.md` before `10.md`), also in folders of the archive. Folders, hidden files (`.name`), the
-`__MACOSX` folder and files that are not `.md` are skipped. The file is the text of the part as it is, it is not sent to
-the model and not changed; the parts count as written by you. The summaries are not made, do that in the
-[summaries](summaries.md) window.
+The settings menu (⚙) has **Import** (under **Import & export**). It is the window of the Books tab that makes a new book of
+a file (see [Managing books](managing-books.md#creating-a-book)), for the book you are in: the parts are **added to the
+story** instead. The **Source** is one of the zip archive of `.md` files, a document (Word, LibreOffice, RTF, Markdown, plain
+text, EPUB), the zip of an Obsidian vault or the zip of a Scrivener project; each has the same text and the same options as there
+(the words per part and the heading level of the chapters), and a line tells what the import will make. The chats of SillyTavern
+and LM Studio are not offered: they are a tree of branches, which has no place in the middle of a story.
 
-The import shows a progress bar with the number of files done. **Stop** ends it after the part that is being stored: the parts
-that were already added stay in the story (the import is not undone), and a message tells how many of the files were imported.
+**Put the parts** says where they go:
 
-The **import** button of the Books tab does the same into a new book, see [Managing books](managing-books.md#creating-a-book).
+- **At the end of the story**: after the last part of the active branch (the first part of an empty book).
+- **Before a part** or **After a part**: pick the part from the list (the numbers are the places in the active branch, with the
+  start of the text). The parts are put between two parts: everything that followed the place, all its branches, follows the new
+  parts, and no part is changed or made again. The end of the story stays where it was (the story is that many parts longer).
+  The summaries that cover the place are outdated, as they describe the story without the new parts: the
+  [summaries](summaries.md) window shows them and makes them again.
+
+![The import window of a book](../images/book-import-into.png)
+
+The parts of an archive are the files in the order of their names, numbers inside the names compared as numbers (`2.md`
+before `10.md`), also in folders of the archive. Folders, hidden files (`.name`), the `__MACOSX` folder and files that are not
+`.md` are skipped. The file is the text of the part as it is, it is not sent to the model and not changed; all the parts count
+as written by you.
+
+The import shows a progress bar with the number of parts done. **Stop** ends it after the part that is being stored: the parts
+that were already added stay in the story (the import is not undone), and a message tells how many were imported.
+
+### After an import
+
+When the parts are in the book, a window **Import finished** offers the two things that make a long story easier to write on (a book that
+was just imported as a new one is opened first, and the window is in front of it). Both are also in the settings menu (⚙, **Analysis**), so
+they can be done later or again:
+
+- **Create summaries...** writes the summaries of what was imported, see [Create summaries](summaries.md#create-summaries). Do it first: an agent
+  locks the book while it works.
+- **Take lore notes with an agent...** starts an [agent](../agents.md) that reads the story and writes the characters, places, things and
+  terms it finds as entries of the book's lorebook, see [Lore notes](../agents.md#lore-notes-of-an-imported-book).
+
+**Not now** closes the window and does neither.
+
+![The window after an import](../../images/import-finished.png)
+
 The same import into a lorebook is described in [Import & export](../lorebooks/import-export.md#importing-an-archive-of-text-files).
 
 ## Exporting the story

@@ -4,6 +4,7 @@ import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.components.TokenLimits;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
+import com.github.enerccio.marginalia.domain.service.run.Runs;
 import com.github.enerccio.marginalia.extensions.bookdescription.BookDescriptionExtension;
 import com.github.enerccio.marginalia.extensions.bookdescription.model.BookDescriptionSettings;
 import com.github.enerccio.marginalia.extensions.bookdescription.model.OutputFormat;
@@ -19,10 +20,7 @@ import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes.InRequestScope;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
-import com.github.enerccio.marginalia.ui.widgets.DesktopNotifier;
-import com.github.enerccio.marginalia.ui.widgets.DialogShortcuts;
-import com.github.enerccio.marginalia.ui.widgets.ModelProtocolPicker;
-import com.github.enerccio.marginalia.ui.widgets.Notification;
+import com.github.enerccio.marginalia.ui.widgets.*;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.UIDetachedException;
@@ -104,6 +102,8 @@ public class BookDescriptionDialog extends Dialog {
     private final StringBuilder notesText = new StringBuilder();
     private boolean generating;
     private Thread worker;
+    // not modal: closing it while the model writes folds it into the corner, the generation goes on
+    private final FloatingWindow floating;
 
     public BookDescriptionDialog(BookDescriptionService service, Manuscript manuscript, BookTarget target) {
         this.service = service;
@@ -111,16 +111,14 @@ public class BookDescriptionDialog extends Dialog {
         this.target = target;
 
         setHeaderTitle(T.localized(GENERATE_NAME_AND_DESCRIPTION));
-        setWidth("90vw");
+        setWidth("min(1200px, 90vw)");
         setHeight("90vh");
-        // closing while the model runs would leave it running without anyone to read it
+        // Esc would fold a running window by accident
         setCloseOnEsc(false);
         setCloseOnOutsideClick(false);
-        addOpenedChangeListener(e -> {
-            if (!e.isOpened()) {
-                stop();
-            }
-        });
+        // closed for good (also from the corner, or with the book), it stops the model
+        floating = new FloatingWindow(this, BookDescriptionExtension.NOTIFY_GENERATE,
+                () -> T.localized(GENERATE_NAME_AND_DESCRIPTION) + " \u00b7 " + manuscript.getName(), this::stop).book(manuscript);
 
         try {
             branch = service.activeBranch(manuscript);
@@ -423,6 +421,8 @@ public class BookDescriptionDialog extends Dialog {
         generating = true;
         updateControls();
         status.setText(T.localized(WRITING_THE_DESCRIPTION));
+        // the panel of the runs shows what the model writes and its place in the queue
+        Runs.Run run = floating.getRun();
 
         Progress progress = new Progress() {
             @Override
@@ -454,7 +454,7 @@ public class BookDescriptionDialog extends Dialog {
         String descriptionTemplate = descriptionPrompt;
         String notesTemplate = notesPrompt;
         worker = new Thread(() -> {
-            try (InRequestScope _ = new InRequestScope(attributes)) {
+            try (InRequestScope _ = new InRequestScope(attributes); Runs.Binding _ = run == null ? null : run.bind()) {
                 Result result = service.generate(model, manuscript, sent, descriptionTemplate, notesTemplate, format, progress);
                 show(ui, () -> finished(result));
             } catch (CancellationException e) {
@@ -574,7 +574,7 @@ public class BookDescriptionDialog extends Dialog {
         toField.setEnabled(!generating && hasStory);
         useSummaries.setEnabled(!generating);
         formatSelect.setEnabled(!generating);
-        closeButton.setEnabled(!generating);
+        floating.setRunning(generating);
         generateButton.setEnabled(generating || hasStory);
         copyName.setEnabled(!generating && StringUtils.isNotBlank(nameField.getValue()));
         copyDescription.setEnabled(!generating && StringUtils.isNotBlank(descriptionField.getValue()));

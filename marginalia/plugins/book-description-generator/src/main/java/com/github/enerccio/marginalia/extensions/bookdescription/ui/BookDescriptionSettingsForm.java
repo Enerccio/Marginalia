@@ -2,7 +2,6 @@ package com.github.enerccio.marginalia.extensions.bookdescription.ui;
 
 import com.github.enerccio.marginalia.extensions.bookdescription.model.BookDescriptionSettings;
 import com.github.enerccio.marginalia.extensions.bookdescription.service.BookDescriptionService;
-import com.github.enerccio.marginalia.extensions.bookdescription.service.Defaults;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.ResizableTextArea;
 import com.github.enerccio.marginalia.ui.widgets.TemplateHints;
@@ -38,8 +37,8 @@ public class BookDescriptionSettingsForm extends VerticalLayout {
         setPadding(true);
         setSpacing(true);
 
-        descriptionPromptArea = prompt(T.localized(BOOK_DESCRIPTION_PROMPT), T.localized(THE_PROMPT_THAT_WRITES_THE_NAME), Defaults.DESCRIPTION_PROMPT);
-        notesPromptArea = prompt(T.localized(BOOK_NOTES_PROMPT), T.localized(THE_PROMPT_THAT_WRITES_NOTES), Defaults.NOTES_PROMPT);
+        descriptionPromptArea = prompt(T.localized(BOOK_DESCRIPTION_PROMPT), T.localized(THE_PROMPT_THAT_WRITES_THE_NAME), T.defaults().descriptionPrompt());
+        notesPromptArea = prompt(T.localized(BOOK_NOTES_PROMPT), T.localized(THE_PROMPT_THAT_WRITES_NOTES), T.defaults().notesPrompt());
         add(descriptionPromptArea, notesPromptArea);
 
         refresh();

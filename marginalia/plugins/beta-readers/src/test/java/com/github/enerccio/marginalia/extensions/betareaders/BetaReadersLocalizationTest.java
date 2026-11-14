@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 /**
- * Every text the plugin shows is a constant of {@link BetaReadersLocalization} and has a Japanese and a Chinese
+ * Every text the plugin shows is a constant of {@link BetaReadersLocalization} and has a Japanese, a Chinese and a French
  * translation; the sources ask for it as {@code T.localized(CONSTANT)}, never with a literal.
  */
 class BetaReadersLocalizationTest {
@@ -59,7 +59,7 @@ class BetaReadersLocalizationTest {
     }
 
     @Test
-    void everyTextHasAJapaneseAndAChineseTranslation() throws IllegalAccessException {
+    void everyTextHasAJapaneseAChineseAndAFrenchTranslation() throws IllegalAccessException {
         Probe probe = new Probe();
         List<String> texts = usedTexts();
         assertFalse(texts.isEmpty());
@@ -72,6 +72,21 @@ class BetaReadersLocalizationTest {
             if (!probe.of(PluginLocalizationBundle.ZH).containsKey(text)) {
                 missing.add("zh: " + text);
             }
+            if (!probe.of(PluginLocalizationBundle.FR).containsKey(text)) {
+                missing.add("fr: " + text);
+            }
+            if (!probe.of(PluginLocalizationBundle.ES).containsKey(text)) {
+                missing.add("es: " + text);
+            }
+            if (!probe.of(PluginLocalizationBundle.DE).containsKey(text)) {
+                missing.add("de: " + text);
+            }
+            if (!probe.of(PluginLocalizationBundle.KO).containsKey(text)) {
+                missing.add("ko: " + text);
+            }
+            if (!probe.of(PluginLocalizationBundle.IT).containsKey(text)) {
+                missing.add("it: " + text);
+            }
         }
         assertEquals(List.of(), missing);
     }
@@ -82,7 +97,7 @@ class BetaReadersLocalizationTest {
         List<String> texts = usedTexts();
 
         List<String> unused = new ArrayList<>();
-        for (Language language : List.of(PluginLocalizationBundle.JA, PluginLocalizationBundle.ZH)) {
+        for (Language language : List.of(PluginLocalizationBundle.JA, PluginLocalizationBundle.ZH, PluginLocalizationBundle.FR, PluginLocalizationBundle.ES, PluginLocalizationBundle.DE, PluginLocalizationBundle.KO, PluginLocalizationBundle.IT)) {
             for (String text : probe.of(language).keySet()) {
                 if (!texts.contains(text)) {
                     unused.add(language + ": " + text);
@@ -95,7 +110,7 @@ class BetaReadersLocalizationTest {
     @Test
     void aTranslationKeepsThePlaceholdersOfTheText() {
         Probe probe = new Probe();
-        for (Language language : List.of(PluginLocalizationBundle.JA, PluginLocalizationBundle.ZH)) {
+        for (Language language : List.of(PluginLocalizationBundle.JA, PluginLocalizationBundle.ZH, PluginLocalizationBundle.FR, PluginLocalizationBundle.ES, PluginLocalizationBundle.DE, PluginLocalizationBundle.KO, PluginLocalizationBundle.IT)) {
             probe.of(language).forEach((text, translation) -> {
                 assertEquals(placeholders(text), placeholders(translation), language + ": " + text);
             });

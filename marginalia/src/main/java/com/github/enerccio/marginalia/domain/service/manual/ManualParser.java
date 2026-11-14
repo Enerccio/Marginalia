@@ -19,6 +19,8 @@ public final class ManualParser {
     private static final Pattern HEADING = Pattern.compile("^(#{1,6})\\s+(.*?)\\s*#*\\s*$");
     private static final Pattern IMAGE = Pattern.compile("!\\[[^\\]]*]\\([^)]*\\)");
     private static final Pattern PAGE_LINK = Pattern.compile("\\[([^\\]]*)]\\(([^)#:\\s]+\\.md)(#[^)\\s]*)?\\)");
+    /** The line the translation tool puts before a heading whose id changed with its translation, so that links by the English id work. */
+    private static final Pattern EXPLICIT_ID = Pattern.compile("^<a id=\"([^\"]+)\"></a>$");
     private static final Pattern ADMONITION = Pattern.compile("^!!!\\s*(\\S*)\\s*(.*)$");
     private static final int DESCRIPTION_LENGTH = 240;
 
@@ -26,6 +28,14 @@ public final class ManualParser {
     }
 
     public static ManualPage parse(String path, String source) {
+        return parse(ManualPage.ENGLISH, path, source);
+    }
+
+    /**
+     * @param language the code of the language the page is written in; the pages of the other languages are translations that keep
+     *                 the structure of the English page (the same headings in the same order)
+     */
+    public static ManualPage parse(String language, String path, String source) {
         String text = source.replace("\r\n", "\n").replace('\r', '\n');
         String label = null;
         if (text.startsWith("---\n")) {
@@ -45,34 +55,47 @@ public final class ManualParser {
         String parent = null;
         boolean fenced = false;
         String firstH1 = null;
+        // the id of the heading that follows, when the page gives one
+        String explicitId = null;
+        List<String> kept = new ArrayList<>();
         for (String line : lines) {
             if (isFence(line)) {
                 fenced = !fenced;
             }
+            if (!fenced) {
+                Matcher id = EXPLICIT_ID.matcher(line.strip());
+                if (id.matches()) {
+                    explicitId = id.group(1);
+                    continue;
+                }
+            }
+            kept.add(line);
             Matcher m = fenced ? null : HEADING.matcher(line);
             if (m != null && m.matches()) {
                 int level = m.group(1).length();
                 String headingText = stripMarkup(m.group(2));
+                String headingId = explicitId;
+                explicitId = null;
                 if (level == 1 && firstH1 == null) {
                     firstH1 = headingText;
                     continue;
                 }
                 if (level == 2 || level == 3) {
-                    flush(sections, path, title(firstH1, label, path), heading, anchor, current);
+                    flush(sections, language, path, title(firstH1, label, path), heading, anchor, current);
                     current = new ArrayList<>();
                     parent = level == 2 ? headingText : parent;
                     heading = level == 3 && parent != null ? parent + " > " + headingText : headingText;
-                    anchor = slug(headingText);
+                    anchor = headingId != null ? headingId : slug(headingText);
                     continue;
                 }
             }
             current.add(line);
         }
         title = title(firstH1, label, path);
-        flush(sections, path, title, heading, anchor, current);
+        flush(sections, language, path, title, heading, anchor, current);
 
-        String whole = String.join("\n", lines).strip();
-        return new ManualPage(path, title, describe(sections), whole, List.copyOf(sections));
+        String whole = String.join("\n", kept).strip();
+        return new ManualPage(path, title, describe(sections), whole, List.copyOf(sections), language);
     }
 
     /** Heading anchor as Retype writes it: lower case, punctuation dropped, spaces turned to hyphens. */
@@ -186,13 +209,13 @@ public final class ManualParser {
         return String.join("/", parts);
     }
 
-    private static void flush(List<ManualSection> sections, String path, String pageTitle, String heading,
+    private static void flush(List<ManualSection> sections, String language, String path, String pageTitle, String heading,
                               String anchor, List<String> lines) {
         String text = String.join("\n", lines).strip();
         if (text.isEmpty()) {
             return;
         }
-        sections.add(new ManualSection(path, pageTitle, heading == null ? pageTitle : heading, anchor, text));
+        sections.add(new ManualSection(path, pageTitle, heading == null ? pageTitle : heading, anchor, text, language));
     }
 
     /** First paragraph of the introduction as plain text, shortened. */

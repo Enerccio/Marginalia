@@ -49,7 +49,12 @@ public class CommandScopesImpl implements CommandScopes {
 
     @Override
     public CommandScope session() {
-        return new SessionScope();
+        return new SessionScope(null);
+    }
+
+    @Override
+    public CommandScope session(GenerationView view) {
+        return new SessionScope(view);
     }
 
     @Override
@@ -156,6 +161,17 @@ public class CommandScopesImpl implements CommandScopes {
      * The user at the command bar: the book they have open, asking them by a dialog.
      */
     private final class SessionScope extends BookScope {
+
+        private final GenerationView view;
+
+        SessionScope(GenerationView view) {
+            this.view = view;
+        }
+
+        @Override
+        public GenerationView getGenerationView() {
+            return view;
+        }
 
         @Override
         Manuscript book() throws Exception {

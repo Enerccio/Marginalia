@@ -398,7 +398,7 @@ public final class CommandFunctions {
         schema.put("type", "array");
         schema.set("items", JSON.createObjectNode().put("type", "string"));
         String text = forms.stream().map(p -> p.description().get(lookup)).filter(t -> !t.isBlank()).findFirst().orElse("");
-        schema.put("description", (text.isEmpty() ? "" : text + " ") + Defaults.AGENT_IMAGES_ARGUMENT_HINT);
+        schema.put("description", (text.isEmpty() ? "" : text + " ") + String.format(lookup.apply(L.DESC_AGENT_IMAGES_ARGUMENT), MAX_IMAGES));
         return schema;
     }
 

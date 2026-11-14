@@ -21,6 +21,7 @@ on:
     paths:
       - 'marginalia/**'
       - 'manual/user/**'
+      - 'translations/**'
       - 'pom.xml'
       - '.github/workflows/desktop.yml'
   workflow_dispatch:

@@ -9,6 +9,11 @@
             <list>
                 <bean class="com.github.enerccio.marginalia.loc.LocalizationBundleEN" />
                 <bean class="com.github.enerccio.marginalia.loc.LocalizationBundleJP" />
+                <bean class="com.github.enerccio.marginalia.loc.LocalizationBundleFR" />
+                <bean class="com.github.enerccio.marginalia.loc.LocalizationBundleES" />
+                <bean class="com.github.enerccio.marginalia.loc.LocalizationBundleDE" />
+                <bean class="com.github.enerccio.marginalia.loc.LocalizationBundleKO" />
+                <bean class="com.github.enerccio.marginalia.loc.LocalizationBundleIT" />
             </list>
         </property>
     </bean>

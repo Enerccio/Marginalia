@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.extensions.conlangtranslator;
 
+import com.github.enerccio.marginalia.domain.service.run.Runs;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.domain.model.impl.AnchoredPassage;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
@@ -38,6 +39,7 @@ import com.github.enerccio.marginalia.ui.main.ApplicationEntryPoint;
 import com.github.enerccio.marginalia.ui.main.Main;
 import com.github.enerccio.marginalia.ui.main.Viewer;
 import com.github.enerccio.marginalia.ui.menu.StoryMenuItem;
+import com.github.enerccio.marginalia.ui.menu.StoryMenuKeys;
 import com.github.enerccio.marginalia.ui.menu.StoryMenuRegistry;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.ui.widgets.TabDock;
@@ -52,7 +54,9 @@ import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
+import java.util.concurrent.CancellationException;
 import java.util.*;
+import java.util.function.BiConsumer;
 
 import static com.github.enerccio.marginalia.extensions.conlangtranslator.ConlangTranslatorLocalization.*;
 
@@ -70,6 +74,8 @@ public class ConlangTranslatorExtension implements MarginaliaExtension, Extensio
 
     private static final String MENU_ITEM_KEY = "conlangtranslator.translate";
     private static final String SELECTION_ITEM_KEY = "conlangtranslator.selection";
+    private static final String MISSING_ITEM_KEY = "conlangtranslator.missing";
+    private static final String MISSING_SELECTION_ITEM_KEY = "conlangtranslator.missingSelection";
     private static final String RANGE_ITEM_KEY = "conlangtranslator.range";
     private static final String BOOK_TAB_ID = "conlang-translator";
     private static final String BOOK_VIEW_KEY = "com.github.enerccio.marginalia.extensions.conlangtranslator.bookView";
@@ -124,7 +130,9 @@ public class ConlangTranslatorExtension implements MarginaliaExtension, Extensio
 
     private TranslationRuns runs;
     private RangeRuns rangeRuns;
-    private ExtensionDecorator partFinishedDecorator;
+    private Registration afterPartRegistration;
+    /** The id of the step after a generated part. */
+    public static final String NOTIFY_AFTER_PART = BookSettings.KEY.substring(0, BookSettings.KEY.lastIndexOf('.')) + ".translate";
     private Registration cleanupRegistration;
     private UnderstandingPrompt understandingPrompt;
     private ExtensionDecorator userPartDecorator;
@@ -146,7 +154,7 @@ public class ConlangTranslatorExtension implements MarginaliaExtension, Extensio
         com.github.enerccio.marginalia.extensions.translatorcommon.service.PluginLog.set(log);
         owner = bundle.getSymbolicName();
         runs = new TranslationRuns(translationService, log);
-        rangeRuns = new RangeRuns(this::rangeWork, "conlang-translator-range", log);
+        rangeRuns = new RangeRuns(this::rangeWork, "conlang-translator-range", log, () -> T.localized(TRANSLATING_THE_SPEECH), Runs.Mode.WRITE);
         nameBridge = new NameGeneratorBridge(bundle, library, log);
         try {
             passageKinds.register(kind);
@@ -157,15 +165,23 @@ public class ConlangTranslatorExtension implements MarginaliaExtension, Extensio
                     library::aiChoices, library::protocolChoices);
             registerSettingsPanel(extensionService);
 
-            menuRegistry.register(owner, StoryMenuItem.card(MENU_ITEM_KEY, l -> T.localized(TRANSLATE_THE_SPEECH),
-                            (story, card) -> translateByHand(story.getCurrentManuscript(), card))
-                    .icon(Solid.LANGUAGE::create));
+            // the items are there only for a book that has a language of this plugin
+            menuRegistry.register(owner, StoryMenuItem.card(MENU_ITEM_KEY, l -> T.localized(TRANSLATE_DIALOGS_CONSTRUCTED),
+                            (story, card) -> translateByHand(story, card, false))
+                    .icon(Solid.LANGUAGE::create).path(StoryMenuKeys.GROUP_TRANSLATE).visibleWhen((story, card) -> hasLanguage(story)));
+            // the speeches the model left in English, without translating the ones that are translated: the whole part, or the selected text
+            menuRegistry.register(owner, StoryMenuItem.card(MISSING_ITEM_KEY, l -> T.localized(TRANSLATE_MISSING_DIALOGS_CONSTRUCTED),
+                            (story, card) -> translateByHand(story, card, true))
+                    .icon(Solid.LANGUAGE::create).path(StoryMenuKeys.GROUP_TRANSLATE).visibleWhen((story, card) -> hasLanguage(story)));
+            menuRegistry.register(owner, StoryMenuItem.text(MISSING_SELECTION_ITEM_KEY, l -> T.localized(TRANSLATE_MISSING_DIALOGS_IN_SELECTION_CONSTRUCTED),
+                            (story, card) -> translateSelectedDialogs(story, card))
+                    .icon(Solid.LANGUAGE::create).path(StoryMenuKeys.GROUP_TRANSLATE).visibleWhen((story, card) -> hasLanguage(story)));
             // the right click on a selected sentence (the menu of the text): the author's own sentence in the language
-            menuRegistry.register(owner, StoryMenuItem.text(SELECTION_ITEM_KEY, l -> T.localized(TRANSLATE_THE_SELECTION),
-                            (story, card) -> translateSelection(story.getCurrentManuscript(), card))
-                    .icon(Solid.LANGUAGE::create));
-            menuRegistry.register(owner, StoryMenuItem.tools(RANGE_ITEM_KEY, l -> T.localized(TRANSLATE_PARTS), this::openRange)
-                    .icon(Solid.LAYER_GROUP::create));
+            menuRegistry.register(owner, StoryMenuItem.text(SELECTION_ITEM_KEY, l -> T.localized(TRANSLATE_SELECTED_TEXT_CONSTRUCTED),
+                            (story, card) -> translateSelection(story, card))
+                    .icon(Solid.LANGUAGE::create).path(StoryMenuKeys.GROUP_TRANSLATE).visibleWhen((story, card) -> hasLanguage(story)));
+            menuRegistry.register(owner, StoryMenuItem.tools(RANGE_ITEM_KEY, l -> T.localized(TRANSLATE_PARTS_CONSTRUCTED), this::openRange)
+                    .icon(Solid.LAYER_GROUP::create).visibleWhen((story, card) -> hasLanguage(story)));
 
             // the Name generator asks this provider for the categories of names of the user who asks
             nameBridge.start();
@@ -175,22 +191,20 @@ public class ConlangTranslatorExtension implements MarginaliaExtension, Extensio
             registerViewer(extensionService);
             registerExport(extensionService);
 
-            // a generated part is final once the automatic annotation and redraft (if the book has them) are done
-            partFinishedDecorator = new ExtensionDecorator() {
+            // after a generated part, once the annotation and the redraft (if the book has them) are done: its speeches are translated
+            afterPartRegistration = storyGenerationService.addAfterPartBinding(new AfterPart.Binding(NOTIFY_AFTER_PART,
+                    () -> T.localized(TRANSLATE), AfterPart.Stage.TRANSFORM, AfterPart.Mode.SEQUENTIAL, new AfterPart.Handler() {
                 @Override
-                public void onMethodEnter(Object instrumented, ExtendableMethodContext context) {
+                public boolean appliesTo(Manuscript book) throws Exception {
+                    BookSettings settings = translationService.settings(book);
+                    return settings.isAuto() && settings.getLanguageId() != null;
                 }
 
                 @Override
-                public void onMethodLeave(Object instrumented, ExtendableMethodContext context, Throwable throwing) throws Exception {
-                    if (throwing == null) {
-                        translateFinishedPart(context.getReflectiveFieldValue(instrumented, "manuscript", Manuscript.class),
-                                context.getMethodArgument("part", ChatMessage.class),
-                                context.getReflectiveFieldValue(instrumented, "onChanged", Runnable.class));
-                    }
+                public void run(AfterPart.Context context) throws Exception {
+                    translateFinishedPart(context);
                 }
-            };
-            extensionService.registerDecorator(partFinishedDecorator, "com.github.enerccio.marginalia.ui.dialogs.story.AutoAnnotate", "finished");
+            }));
 
             // a part that is generated again has a new English text: the passages of the old one go
             cleanupRegistration = storyGenerationService.addEventListener(Events.AFTER_CLEANUP, this::dropRegenerated);
@@ -469,36 +483,41 @@ public class ConlangTranslatorExtension implements MarginaliaExtension, Extensio
     /**
      * The action of the menu of a part: translates its speech on a worker thread and shows what came of it.
      */
-    private void translateByHand(Manuscript manuscript, StoryCard card) {
+    private void translateByHand(StoryEditor story, StoryCard card, boolean missingOnly) {
+        Manuscript manuscript = story.getCurrentManuscript();
         if (manuscript == null || card == null || card.getMessage() == null) {
             return;
         }
         List<LanguageRef> languages = languagesOf(manuscript);
         if (languages.isEmpty()) {
             // the translation tells what is missing
-            translatePart(manuscript, card, null);
+            translatePart(story, manuscript, card, null, missingOnly);
             return;
         }
         // a book with several languages asks which one (or all of them)
-        LanguageChoiceDialog.ask(languages, true, languageId -> translatePart(manuscript, card, languageId));
+        LanguageChoiceDialog.ask(languages, true, languageId -> translatePart(story, manuscript, card, languageId, missingOnly));
     }
 
-    private void translatePart(Manuscript manuscript, StoryCard card, String languageId) {
+    private void translatePart(StoryEditor story, Manuscript manuscript, StoryCard card, String languageId, boolean missingOnly) {
         ChatMessage part = card.getMessage();
         Notification.success(T.localized(TRANSLATING_THE_SPEECH));
-        boolean started = runs.start(manuscript, part, languageId, (outcome, failure) -> {
+        BiConsumer<Outcome, Throwable> done = (outcome, failure) -> {
             report(outcome, failure);
             if (outcome != null && outcome.status() == TranslationService.Status.TRANSLATED) {
-                try {
-                    card.updateResponse(translationService.find(part).getResponse());
-                } catch (Exception e) {
-                    log.warn("Failed to show the translated part: {}", e.getMessage(), e);
-                }
+                // the story is drawn again, so the marks of the new passages are there (it keeps the passages it read before)
+                story.reloadStory();
             }
-        });
+        };
+        boolean started = missingOnly ? runs.startMissing(manuscript, part, languageId, done) : runs.start(manuscript, part, languageId, done);
         if (!started) {
             Notification.error(T.localized(THE_PART_IS_BEING_TRANSLATED));
         }
+    }
+
+    /** Whether the book the story shows has a language of this plugin, the translation is of no use without one. */
+    private boolean hasLanguage(StoryEditor story) {
+        Manuscript manuscript = story == null ? null : story.getCurrentManuscript();
+        return manuscript != null && !languagesOf(manuscript).isEmpty();
     }
 
     /** The languages of the book that are in the library; none when they can't be read. */
@@ -512,9 +531,40 @@ public class ConlangTranslatorExtension implements MarginaliaExtension, Extensio
     }
 
     /**
+     * The item of the menu of the text that translates the speeches in the selected text that are not translated: what the model missed in a part,
+     * without a translation by hand of each. The translated speeches in the selection stay as they are.
+     */
+    private void translateSelectedDialogs(StoryEditor story, StoryCard card) {
+        Manuscript manuscript = story.getCurrentManuscript();
+        if (manuscript == null || card == null || card.getMessage() == null) {
+            return;
+        }
+        List<LanguageRef> languages = languagesOf(manuscript);
+        if (languages.isEmpty()) {
+            Notification.error(T.localized(THE_BOOK_HAS_NO_LANGUAGE));
+            return;
+        }
+        card.withSelection(range -> LanguageChoiceDialog.ask(languages, false, languageId -> {
+            ChatMessage part = card.getMessage();
+            String expected = part.getResponse();
+            Notification.success(T.localized(TRANSLATING_THE_SPEECH));
+            boolean started = runs.startMissingIn(manuscript, part, expected, range[0], range[1], languageId, (outcome, failure) -> {
+                report(outcome, failure);
+                if (outcome != null && outcome.status() == TranslationService.Status.TRANSLATED) {
+                    story.reloadStory();
+                }
+            });
+            if (!started) {
+                Notification.error(T.localized(THE_PART_IS_BEING_TRANSLATED));
+            }
+        }));
+    }
+
+    /**
      * The item of the menu of the text: translates the sentence the author selected on a worker thread, and shows the part again.
      */
-    private void translateSelection(Manuscript manuscript, StoryCard card) {
+    private void translateSelection(StoryEditor story, StoryCard card) {
+        Manuscript manuscript = story.getCurrentManuscript();
         if (manuscript == null || card == null || card.getMessage() == null) {
             return;
         }
@@ -530,11 +580,7 @@ public class ConlangTranslatorExtension implements MarginaliaExtension, Extensio
             boolean started = runs.startSelection(manuscript, part, expected, range[0], range[1], languageId, (outcome, failure) -> {
                 report(outcome, failure);
                 if (outcome != null && outcome.status() == TranslationService.Status.TRANSLATED) {
-                    try {
-                        card.updateResponse(translationService.find(part).getResponse());
-                    } catch (Exception e) {
-                        log.warn("Failed to show the translated part: {}", e.getMessage(), e);
-                    }
+                    story.reloadStory();
                 }
             });
             if (!started) {
@@ -544,27 +590,25 @@ public class ConlangTranslatorExtension implements MarginaliaExtension, Extensio
     }
 
     /**
-     * The new part is final: when the book translates by itself, a run starts on a worker thread, and the story is loaded again when it is
-     * over. Otherwise nothing happens. A failure never reaches the story.
+     * The step after a generated part: the speeches of the part are translated on this thread, the panel of the runs shows it, its Stop
+     * stops it. The story is shown again when something was written; what the translation says is told in the page that generated.
      */
-    private void translateFinishedPart(Manuscript manuscript, ChatMessage part, Runnable onChanged) {
+    private void translateFinishedPart(AfterPart.Context context) throws Exception {
+        RunProgress progress = new RunProgress();
+        context.onStop(progress::stop);
+        Outcome outcome;
         try {
-            if (manuscript == null || part == null) {
-                return;
-            }
-            BookSettings settings = translationService.settings(manuscript);
-            if (!settings.isAuto() || settings.getLanguageId() == null) {
-                return;
-            }
-            runs.start(manuscript, part, (outcome, failure) -> {
-                report(outcome, failure);
-                if (outcome != null && outcome.status() == TranslationService.Status.TRANSLATED && onChanged != null) {
-                    onChanged.run();
-                }
-            });
-        } catch (Exception e) {
-            log.warn("Failed to start the translation of a finished part: {}", e.getMessage(), e);
+            outcome = runs.translateNow(context.getManuscript(), context.getPart(), progress);
+        } catch (CancellationException e) {
+            throw new AfterPart.Stopped();
         }
+        if (outcome.status() == TranslationService.Status.TRANSLATED) {
+            context.changed();
+        } else if (outcome.status() == TranslationService.Status.NOTHING_TO_TRANSLATE) {
+            context.skip();
+            return;
+        }
+        context.accessUI(_ -> report(outcome, null));
     }
 
     private void report(Outcome outcome, Throwable failure) {
@@ -639,9 +683,9 @@ public class ConlangTranslatorExtension implements MarginaliaExtension, Extensio
         }
         inheritedSettingRegistry.unregisterAll(owner);
         menuRegistry.unregisterAll(owner);
-        if (partFinishedDecorator != null) {
-            extensionService.unregisterDecorator(partFinishedDecorator);
-            partFinishedDecorator = null;
+        if (afterPartRegistration != null) {
+            afterPartRegistration.unregister();
+            afterPartRegistration = null;
         }
         if (cleanupRegistration != null) {
             cleanupRegistration.unregister();

@@ -89,6 +89,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
     @Autowired
     private TagRelationService tagRelationService;
 
+    @PublicAPI(from = "1.1.0", type = Lorebook.class)
     private Lorebook currentLorebook;
     private boolean pinnedLorebook = false;
 
@@ -112,6 +113,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
     private TagMultiComboBox tagMultiComboBox;
 
     private Button addEntryButton;
+    private Button editorButton;
     private Button searchReplaceButton;
     private Button massEditButton;
     private Button previewActivationButton;
@@ -126,6 +128,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
     private Consumer<Lorebook> onOpenSubbook;
     private Button refreshButton;
 
+    @PublicAPI(from = "1.1.0", type = Grid.class)
     private Grid<LorebookEntry> grid;
     private Span lorebookTokensSpan;
     private Span allTokensSpan;
@@ -133,7 +136,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
     private HorizontalLayout tokensRow;
 
     private List<LorebookEntry> currentEntries = new ArrayList<>();
-    private final Map<Long, Long> entryTokens = new HashMap<>();
+    private final LorebookTokens tokens = new LorebookTokens();
 
     // uuids of the entries whose details are opened, kept over reloading the entries
     private final Set<String> openEntries = new LinkedHashSet<>();
@@ -248,6 +251,8 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
         addEntryButton = new Button(loc.getValue(L.LABEL_ADD_ENTRY), Solid.PLUS_CIRCLE.create(), event -> createNewEntry());
         addEntryButton.setThemeName("primary");
 
+        editorButton = new Button(loc.getValue(L.LABEL_FULL_SCREEN_EDITOR), Solid.EXPAND_ALT.create(), event -> openEditor());
+
         searchReplaceButton = new Button(loc.getValue(L.LABEL_SEARCH_AND_REPLACE), Solid.EXCHANGE_ALT.create(), event -> openSearchReplaceDialog());
 
         massEditButton = new Button(loc.getValue(L.LABEL_MASS_EDIT), Solid.TABLE.create(), event -> openMassEditDialog());
@@ -287,7 +292,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
         controlsLayout.setWrap(true);
 
         // what is done with the entries of the selected lorebook is a row of its own, apart from what is done with the lorebooks
-        entriesRow = new HorizontalLayout(addEntryButton, searchReplaceButton, massEditButton, tagEntriesButton, previewActivationButton, refreshButton, entrySearchField, entryTagFilter, entryStatusFilter, deleteSelectedButton);
+        entriesRow = new HorizontalLayout(addEntryButton, editorButton, searchReplaceButton, massEditButton, tagEntriesButton, previewActivationButton, refreshButton, entrySearchField, entryTagFilter, entryStatusFilter, deleteSelectedButton);
         entriesRow.setWidthFull();
         entriesRow.setAlignItems(Alignment.END);
         entriesRow.setWrap(true);
@@ -721,7 +726,12 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
             });
             deleteBtn.setThemeName("error tertiary");
 
-            actions.add(toggleDetails, deleteBtn);
+            Button fullScreen = new Button(Solid.EXPAND_ALT.create(), event -> openEditorOn(entry));
+            fullScreen.setThemeName("tertiary");
+            fullScreen.setTooltipText(loc.getValue(L.LABEL_OPEN_IN_FULL_SCREEN_EDITOR));
+            fullScreen.setAriaLabel(loc.getValue(L.LABEL_OPEN_IN_FULL_SCREEN_EDITOR));
+
+            actions.add(toggleDetails, fullScreen, deleteBtn);
             return actions;
         }).setHeader("").setFlexGrow(0).setWidth(UIConstants.TOOL_COLUMN_SIZE_HUGE);
 
@@ -929,20 +939,24 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
         return span;
     }
 
-    @PublicAPI(from = "1.1.0",
+    @PublicAPI(from = "1.8.0",
             returns = @APIReturn(type = String.class),
-            parameters = {@APIParameter(name = "tokens", type = long.class)})
-    private String formatTokens(long tokens) {
-        return "~" + tokens + " " + loc.getValue(L.LABEL_TOKENS);
+            parameters = {@APIParameter(name = "count", type = long.class)})
+    private String formatTokens(long count) {
+        return tokens.format(count);
     }
 
-    @PublicAPI(from = "1.1.0",
+    @PublicAPI(from = "1.8.0",
             returns = @APIReturn(type = long.class),
             parameters = {@APIParameter(name = "entry", type = LorebookEntry.class)},
-            locals = {@APILocals(name = "cached", type = Long.class)})
+            locals = {@APILocals(name = "ex", type = Exception.class)})
     private long tokensOf(LorebookEntry entry) {
-        Long cached = entry.getId() != null ? entryTokens.get(entry.getId()) : null;
-        return cached != null ? cached : recountEntry(entry);
+        try {
+            return tokens.of(entry);
+        } catch (Exception ex) {
+            UIUtils.internalServerError(loc, ex);
+            return 0;
+        }
     }
 
     @PublicAPI(from = "1.1.0",
@@ -950,16 +964,12 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
             parameters = {@APIParameter(name = "entry", type = LorebookEntry.class)},
             locals = {@APILocals(name = "ex", type = Exception.class)})
     private long recountEntry(LorebookEntry entry) {
-        long tokens = 0;
         try {
-            tokens = tokenizerService.countTokensApprox(StringUtils.defaultString(entry.getPayload()));
+            return tokens.recount(entry);
         } catch (Exception ex) {
             UIUtils.internalServerError(loc, ex);
+            return 0;
         }
-        if (entry.getId() != null) {
-            entryTokens.put(entry.getId(), tokens);
-        }
-        return tokens;
     }
 
     @PublicAPI(from = "1.1.0",
@@ -987,40 +997,15 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
      * to the count of the lorebook. As the generation does, a disabled subbook is left out with its own subbooks, and a
      * lorebook that is a subbook twice counts once.
      */
-    @PublicAPI(from = "1.4.0",
+    @PublicAPI(from = "1.8.0",
             returns = @APIReturn(type = void.class),
-            locals = {@APILocals(name = "seen", type = Set.class),
-                    @APILocals(name = "queue", type = Deque.class),
-                    @APILocals(name = "book", type = Lorebook.class),
-                    @APILocals(name = "entry", type = LorebookEntry.class),
-                    @APILocals(name = "e", type = Exception.class)})
+            locals = {@APILocals(name = "e", type = Exception.class)})
     private void countTokensWithSubbooks() {
         if (currentLorebook == null) {
             return;
         }
         try {
-            long total = 0;
-            Set<Long> seen = new HashSet<>();
-            Deque<Lorebook> queue = new ArrayDeque<>();
-            queue.add(currentLorebook);
-            while (!queue.isEmpty()) {
-                Lorebook book = queue.remove();
-                if (book.getId() == null || !seen.add(book.getId())) {
-                    continue;
-                }
-                // the lorebook shown counts whether it is enabled or not, as its own count does
-                if (book != currentLorebook && !book.isEnabled()) {
-                    continue;
-                }
-                for (LorebookEntry entry : lorebookEntryService.getEntriesForLorebook(book.getId())) {
-                    if (entry.isEnabled()) {
-                        total += book == currentLorebook ? tokensOf(entry)
-                                : tokenizerService.countTokensApprox(StringUtils.defaultString(entry.getPayload()));
-                    }
-                }
-                queue.addAll(lorebookService.getSubbooks(book));
-            }
-            allTokensSpan.setText(String.format(loc.getValue(L.LABEL_TOKENS_WITH_SUBBOOKS), total));
+            allTokensSpan.setText(tokens.formatWithSubbooks(tokens.withSubbooks(currentLorebook)));
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
@@ -1146,6 +1131,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
         descriptionButton.setEnabled(hasLorebook);
         subLorebooksCombo.setEnabled(hasLorebook);
         addEntryButton.setEnabled(hasLorebook);
+        editorButton.setEnabled(hasLorebook);
         searchReplaceButton.setEnabled(hasLorebook);
         massEditButton.setEnabled(hasLorebook);
         previewActivationButton.setEnabled(hasLorebook);
@@ -1203,7 +1189,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
             currentEntries.forEach(old -> grid.setDetailsVisible(old, false));
             grid.setItems(new ArrayList<>());
             currentEntries = new ArrayList<>();
-            entryTokens.clear();
+            tokens.clear();
             updateLorebookTokens();
         }
     }
@@ -1239,6 +1225,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
         descriptionButton.setVisible(!locked);
         deleteLorebookButton.setVisible(!locked && !pinnedLorebook);
         addEntryButton.setVisible(!locked);
+        editorButton.setVisible(!locked);
         searchReplaceButton.setVisible(!locked);
         massEditButton.setVisible(!locked);
         tagEntriesButton.setVisible(!locked);
@@ -1281,7 +1268,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
             currentEntries.forEach(old -> grid.setDetailsVisible(old, false));
             grid.setItems(new ArrayList<>());
             currentEntries = new ArrayList<>();
-            entryTokens.clear();
+            tokens.clear();
             updateLorebookTokens();
             return;
         }
@@ -1300,7 +1287,7 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
             grid.setItems(entryProvider);
             showOpenEntries(entries);
             currentEntries = entries;
-            entryTokens.clear();
+            tokens.clear();
             updateLorebookTokens();
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
@@ -1495,6 +1482,52 @@ public class LorebookView extends VerticalLayout implements Restorable, LLMInter
         LorebookMassEditDialog dialog = new LorebookMassEditDialog(currentLorebook, this::refreshEntries);
         dialog.create();
         dialog.open();
+    }
+
+    /**
+     * Opens the lorebook editor (the entries in tabs, full screen) on the lorebook; the entries are shown again when it is
+     * closed.
+     */
+    @PublicAPI(from = "1.8.0",
+            returns = @APIReturn(type = void.class))
+    private void openEditor() {
+        openEditorOn(null);
+    }
+
+    /**
+     * Opens the lorebook editor with the entry in a tab (as <i>Open</i> there), or as it was left when {@code entry} is null.
+     */
+    @PublicAPI(from = "1.8.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "entry", type = LorebookEntry.class)},
+            locals = {@APILocals(name = "dialog", type = LorebookEditorDialog.class)})
+    private void openEditorOn(LorebookEntry entry) {
+        if (currentLorebook == null) {
+            return;
+        }
+        LorebookEditorDialog dialog = new LorebookEditorDialog(currentLorebook, this, this::editorClosed).create();
+        dialog.open();
+        dialog.showEntry(entry);
+    }
+
+    /**
+     * The editor saved its arrangement into the lorebook: the view takes the lorebook as it is now, or a later save here
+     * (the name, a setting) would write the old attributes back; and it shows the entries again.
+     */
+    @PublicAPI(from = "1.8.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "fresh", type = Lorebook.class),
+                    @APILocals(name = "e", type = Exception.class)})
+    private void editorClosed() {
+        try {
+            Lorebook fresh = currentLorebook == null ? null : lorebookService.findForUser(currentLorebook.getUuid());
+            if (fresh != null) {
+                currentLorebook = fresh;
+            }
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+        updateSelectedLorebook();
     }
 
     /**

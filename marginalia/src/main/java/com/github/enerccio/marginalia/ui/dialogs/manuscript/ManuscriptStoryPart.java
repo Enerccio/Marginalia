@@ -10,17 +10,17 @@ import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationRequest;
+import com.github.enerccio.marginalia.domain.service.run.Runs;
 import com.github.enerccio.marginalia.domain.styles.PartStyle;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.RestorableState;
-import com.github.enerccio.marginalia.ui.components.CommandBar;
-import com.github.enerccio.marginalia.ui.components.CommandResultView;
-import com.github.enerccio.marginalia.ui.components.LorebookPreview;
-import com.github.enerccio.marginalia.ui.components.MessageImages;
+import com.github.enerccio.marginalia.ui.components.*;
 import com.github.enerccio.marginalia.ui.dialogs.*;
+import com.github.enerccio.marginalia.ui.dialogs.bookimport.AfterImportDialog;
+import com.github.enerccio.marginalia.ui.dialogs.bookimport.BookImportDialog;
 import com.github.enerccio.marginalia.ui.dialogs.search.ManuscriptSearchReplaceDialog;
 import com.github.enerccio.marginalia.ui.dialogs.story.*;
 import com.github.enerccio.marginalia.ui.menu.*;
@@ -30,7 +30,6 @@ import com.github.enerccio.marginalia.ui.shortcuts.ShortcutActions;
 import com.github.enerccio.marginalia.ui.shortcuts.ShortcutRegistry;
 import com.github.enerccio.marginalia.ui.styles.PartStyleApplier;
 import com.github.enerccio.marginalia.ui.widgets.*;
-import com.github.enerccio.marginalia.utils.MarkdownArchive;
 import com.github.enerccio.marginalia.utils.TextMarkup;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.google.gson.JsonElement;
@@ -51,6 +50,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.popover.Popover;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.dom.Element;
+import com.vaadin.flow.shared.Registration;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
@@ -141,24 +141,31 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
     private VerticalLayout centerLayout;
     private ScrollPanel centerContentPanel;
     private HorizontalLayout bottomControlsLayout;
+    @PublicAPI(from = "1.3.0", type = TabDock.class)
     private TabDock leftBar;
     private Span sidebarHeader;
+    @PublicAPI(from = "1.1.0", type = VerticalLayout.class)
     private VerticalLayout sidebarList;
     private LorebookPreview lorebookPreview;
 
     private MenuBar menuBar;
     private CommandBar commandBar;
+    // the page of the command bar, read by the command that starts a generation (another thread)
+    private volatile UI commandPage;
     private CommandResultView commandResultView;
     private MenuItem summariesMenuItem;
     private MenuItem cogsMenuItem;
     private BuiltMenu toolsMenu;
     private Button actionButton;
 
+    @PublicAPI(from = "1.1.0", type = Popover.class)
     private Popover newTurnPopover;
+    @PublicAPI(from = "1.2.0", type = NewTurnForm.class)
     private NewTurnForm newTurnForm;
     // the keys of the user for the shortcuts, null while the shortcuts are off (not the desktop app)
     private KeyBindings keyBindings;
 
+    @PublicAPI(from = "1.1.0", type = Manuscript.class)
     private Manuscript currentManuscript;
     private StoryActivity activity;
     private boolean isFrozen = false;
@@ -169,6 +176,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
 
     private final StoryCards<ChatMessageCard> cards = new StoryCards<>();
     private final StorySupport support = new StorySupport();
+    @PublicAPI(from = "1.4.0", type = StoryLazyLoader.class)
     private StoryLazyLoader<ChatMessageCard> lazyLoader;
     private StoryBranchSearch branchSearch;
     private StoryAnnotations annotations;
@@ -294,10 +302,13 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
                     @APILocals(name = "action", type = ShortcutAction.class),
                     @APILocals(name = "e", type = Exception.class)})
     private void handleShortcut(String actionId) {
-        if (isFrozen) {
-            if (ShortcutActions.STORY_STOP.equals(actionId) && activeGenerationToken != null) {
-                activeGenerationToken.cancel();
-            }
+        if (isFrozen && ShortcutActions.STORY_STOP.equals(actionId)) {
+            stopGeneration();
+            return;
+        }
+        if (isFrozen && (parent == null || parent.getHold() == null || parent.getHold().isWhole()
+                || ShortcutActions.STORY_NEW_TURN.equals(actionId) || ShortcutActions.STORY_GENERATE.equals(actionId))) {
+            // while the prompt is prepared nothing, while the part is written no second turn
             return;
         }
         switch (actionId) {
@@ -403,11 +414,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
 
         actionButton.addClickListener(event -> {
             if (this.isFrozen && parent != null) {
-                if (activeGenerationToken != null) {
-                    activeGenerationToken.cancel();
-                } else {
-                    parent.unfreeze();
-                }
+                stopGeneration();
             }
         });
 
@@ -431,7 +438,57 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
         commandResultView = new CommandResultView();
         commandResultView.create(commandBar);
         commandBar.setResultTarget(commandResultView);
+        // a generation by a command of the bar streams into the story as one of the round button
+        commandBar.addAttachListener(event -> commandPage = event.getUI());
+        commandBar.addDetachListener(_ -> commandPage = null);
+        commandBar.setGenerationView(new GenerationView() {
+            @Override
+            public Object getPage() {
+                return commandPage;
+            }
+
+            @Override
+            public GenerationListener show(Manuscript book, GenerationRequest request) {
+                return showCommandGeneration(book, request);
+            }
+        });
         return commandBar;
+    }
+
+    /**
+     * A command of the bar starts a generation of the book (on the thread of the command): the story gets ready for it as for the round
+     * button, on its page, and the listener it returns shows the part streaming in. Null when the tab is not on a page or shows
+     * another book.
+     */
+    @PublicAPI(from = "1.8.0",
+            returns = @APIReturn(type = GenerationListener.class),
+            parameters = {@APIParameter(name = "book", type = Manuscript.class),
+                    @APIParameter(name = "request", type = GenerationRequest.class)},
+            locals = {@APILocals(name = "ui", type = UI.class),
+                    @APILocals(name = "shown", type = Manuscript.class),
+                    @APILocals(name = "listener", type = StoryGenerationListener.class),
+                    @APILocals(name = "e", type = RuntimeException.class)})
+    private GenerationListener showCommandGeneration(Manuscript book, GenerationRequest request) {
+        UI ui = commandPage;
+        Manuscript shown = currentManuscript;
+        if (ui == null || book == null || shown == null || !Objects.equals(book.getId(), shown.getId())) {
+            return null;
+        }
+        StoryGenerationListener<ChatMessageCard> listener = generationListener(ui, request, false);
+        try {
+            // before the listener's first call: the accesses of a page run in order
+            ui.access(() -> {
+                autosaveAndSwapAllToMarkdown();
+                showStory();
+                lazyLoader.showTail();
+                parent.freeze();
+                UIPushGuard.push(ui);
+            });
+        } catch (RuntimeException e) {
+            // the page is gone
+            return null;
+        }
+        return listener;
     }
 
     /**
@@ -648,16 +705,57 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
     }
 
     /**
-     * Asks for a zip archive of {@code .md} files and adds a part for each file to the end of the story, see
-     * {@link ArchiveImportService#appendParts}; the story is shown again.
+     * Opens the import into the book (an archive of {@code .md} files, a document, an Obsidian vault, a Scrivener project): the parts are added
+     * at the place the author picks, after the last part or before or after a part, see {@link BookImportDialog#showInto} and
+     * {@link ArchiveImportService#insertParts}; the story is shown again.
      */
-    @PublicAPI(from = "1.4.0",
-            returns = @APIReturn(type = void.class))
+    @PublicAPI(from = "1.8.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "e", type = Exception.class)})
     @Override
     public void openArchiveImportDialog() {
-        ArchiveUploadDialog.show(loc.getValue(L.LABEL_IMPORT_FROM_ARCHIVE), loc.getValue(L.MSG_IMPORT_ARCHIVE_TO_BOOK),
-                (archive, fileName) -> new ArchiveImportRunner().appendParts(parent.refreshManuscript(), MarkdownArchive.read(archive),
-                        imported -> load(parent.refreshManuscript())));
+        try {
+            BookImportDialog.showInto(parent.refreshManuscript(), imported -> {
+                load(parent.refreshManuscript());
+                // the summaries and the lore notes of what was just imported
+                if (imported != null) {
+                    AfterImportDialog.show(parent.refreshManuscript(), this::reloadStory);
+                }
+            });
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+    }
+
+    /**
+     * Opens <i>Create summaries</i>: summaries for the story after the newest summary, cut by tokens, chapters or parts, see
+     * {@link CreateSummariesDialog}; the story is shown again.
+     */
+    @PublicAPI(from = "1.8.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "e", type = Exception.class)})
+    @Override
+    public void openCreateSummariesDialog() {
+        try {
+            new CreateSummariesDialog(parent.refreshManuscript(), this::reloadStory).show();
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+    }
+
+    /**
+     * Asks whether an agent should take the lore notes of the book and starts it, see {@link AfterImportDialog#startLoreNotes}.
+     */
+    @PublicAPI(from = "1.8.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "e", type = Exception.class)})
+    @Override
+    public void openLoreNotesDialog() {
+        try {
+            AfterImportDialog.startLoreNotes(parent.refreshManuscript());
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
     }
 
     /**
@@ -1082,6 +1180,9 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
     private void createLorebookTab() {
         lorebookPreview = new LorebookPreview().create();
         lorebookPreview.setEditable(true);
+        // the phone's story part has no full-screen editor
+        lorebookPreview.setFullScreenEditor(true);
+        lorebookPreview.setBook(parent::refreshManuscript);
         leftBar.add(LOREBOOK_TAB, loc.getValue(L.LABEL_LOREBOOK), TabDockIcon.LOREBOOK, lorebookPreview);
     }
 
@@ -1191,51 +1292,113 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
                     currentManuscript,
                     turnInput,
                     request,
-                    new StoryGenerationListener<>(ui, request, cards, centerContentPanel, ChatMessageCard::new, parent,
-                            loc, new StoryGenerationListener.Callbacks() {
-                        @Override
-                        public void generationEnded() {
-                            activeGenerationToken = null;
-                        }
-
-                        @Override
-                        public void partGenerated() {
-                            checkAndApplyBackupStrategy();
-                        }
-
-                        @Override
-                        public void partCompleted(ChatMessage message) {
-                            try {
-                                new AutoAnnotate(parent.refreshManuscript(), () -> {
-                                    try {
-                                        load(parent.refreshManuscript());
-                                    } catch (Exception e) {
-                                        UIUtils.internalServerError(loc, e);
-                                    }
-                                }).run(message);
-                            } catch (Exception e) {
-                                UIUtils.internalServerError(loc, e);
-                            }
-                        }
-
-                        @Override
-                        public void turnDiscarded() {
-                            newTurnForm.keepTypedValues();
-                        }
-
-                        @Override
-                        public void reloadManuscript() throws Exception {
-                            currentManuscript = parent.refreshManuscript();
-                        }
-
-                        @Override
-                        public void renderStory() {
-                            lazyLoader.keepViewportWhile(() -> renderStoryContent());
-                        }
-                    })
+                    generationListener(ui, request, true)
             );
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
+        }
+    }
+
+    /**
+     * What shows a generation in the story: the card of the new part streams, the story is drawn again at the end.
+     *
+     * @param own whether the tab started it (the round button, with the new turn form): else a command did, which has the token and the
+     *            turn of its own
+     */
+    @PublicAPI(from = "1.8.0",
+            returns = @APIReturn(type = StoryGenerationListener.class),
+            parameters = {@APIParameter(name = "ui", type = UI.class),
+                    @APIParameter(name = "request", type = GenerationRequest.class),
+                    @APIParameter(name = "own", type = boolean.class)})
+    private StoryGenerationListener<ChatMessageCard> generationListener(UI ui, GenerationRequest request, boolean own) {
+        return new StoryGenerationListener<>(ui, request, cards, centerContentPanel, ChatMessageCard::new, parent,
+                loc, new StoryGenerationListener.Callbacks() {
+            @Override
+            public void generationEnded() {
+                if (own) {
+                    activeGenerationToken = null;
+                }
+            }
+
+            @Override
+            public void partGenerated() {
+                checkAndApplyBackupStrategy();
+            }
+
+            @Override
+            public void partCompleted(ChatMessage message) {
+                try {
+                    new AutoAnnotate(parent.refreshManuscript(), () -> {
+                        try {
+                            load(parent.refreshManuscript());
+                        } catch (Exception e) {
+                            UIUtils.internalServerError(loc, e);
+                        }
+                    }).finished(message);
+                } catch (Exception e) {
+                    UIUtils.internalServerError(loc, e);
+                }
+            }
+
+            @Override
+            public void turnDiscarded() {
+                if (own) {
+                    newTurnForm.keepTypedValues();
+                }
+            }
+
+            @Override
+            public void reloadManuscript() throws Exception {
+                currentManuscript = parent.refreshManuscript();
+            }
+
+            @Override
+            public void renderStory() {
+                lazyLoader.keepViewportWhile(() -> renderStoryContent());
+            }
+        });
+    }
+
+    /**
+     * The Stop of the round button: the generation this tab started, else the one the window follows (started by a command or a
+     * plugin), else the window just lets go.
+     */
+    @PublicAPI(from = "1.8.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "generation", type = Runs.Run.class)})
+    private void stopGeneration() {
+        if (activeGenerationToken != null) {
+            activeGenerationToken.cancel();
+            return;
+        }
+        Runs.Run generation = currentManuscript == null ? null : Runs.generationOf(currentManuscript.getId());
+        if (generation != null) {
+            generation.stop();
+        } else {
+            parent.unfreeze();
+        }
+    }
+
+    /**
+     * Follows what the generation of the book holds: while it prepares, everything as {@link #setFrozen setFrozen(true)}; from the
+     * inference on the story works on, with the round button as Stop: only the card of the new part is frozen, the parts before it keep
+     * their place (no delete, merge, branch), and what works over the whole book (a new turn, the mass delete, search and replace, an
+     * import) waits. The server refuses the same.
+     */
+    @PublicAPI(from = "1.8.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "hold", type = GenerationHold.class)})
+    @Override
+    public void setHold(GenerationHold hold) {
+        setFrozen(hold != null);
+        if (hold != null && !hold.isWhole()) {
+            leftBar.setTabsEnabled(true, STORY_TAB);
+            menuBar.setEnabled(true);
+            commandBar.setEnabled(true);
+        }
+        cards.setHold(hold == null || hold.isWhole() ? null : hold);
+        if (hold != null && hold.isWhole()) {
+            cards.setFrozen(true);
         }
     }
 
@@ -1480,6 +1643,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
 
     @Extendable
     private class ChatMessageCard extends HorizontalLayout implements StoryCard {
+        @PublicAPI(from = "1.1.0", type = ChatMessage.class)
         private ChatMessage message;
         private boolean isLast;
         private final int orderId;
@@ -1490,6 +1654,7 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
             massDelete.clicked(this.message.getId(), checked, shift);
             getClassNames().set(CssStyles.MARKED_FOR_DELETE, checked);
         });
+        @PublicAPI(from = "1.1.0", type = ContextMenu.class)
         private ContextMenu hamburgerMenu;
         private BuiltMenu cardMenu;
         private BuiltMenu textMenu;
@@ -1516,6 +1681,13 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
 
         private Popover detailsPopover;
         private TurnDetailsForm detailsForm;
+
+        // what a window of the model (annotate, redraft) does to the part, null when none is open on it
+        private String busyWith;
+        // a generation continues the branch of the part: no delete, merge or branch
+        private boolean keptInPlace;
+        private final Span busyBadge = new Span();
+        private Registration busyRegistration;
 
         public ChatMessageCard(ChatMessage message, int orderId) {
             this(message, false, orderId);
@@ -1549,8 +1721,21 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
 
             createHamburgerMenu();
 
+            busyBadge.addClassName(CssStyles.PART_BUSY);
+            busyBadge.setVisible(false);
+            addAttachListener(event -> {
+                busyRegistration = RunsOnPage.listen(event.getUI(), this::refreshBusy);
+                refreshBusy();
+            });
+            addDetachListener(event -> {
+                if (busyRegistration != null) {
+                    busyRegistration.remove();
+                    busyRegistration = null;
+                }
+            });
+
             // the badge of the annotations is added to the header when the card has its markdown
-            HorizontalLayout actions = new HorizontalLayout(menuBtn);
+            HorizontalLayout actions = new HorizontalLayout(busyBadge, menuBtn);
             actions.setSpacing(false);
             actions.setPadding(false);
             actions.setAlignItems(FlexComponent.Alignment.CENTER);
@@ -1614,6 +1799,40 @@ public class ManuscriptStoryPart implements ManuscriptDialogPart, StoryEditor {
             setAlignSelf(FlexComponent.Alignment.START, massDeleteBox);
             setFlexGrow(1, contentLayout);
             setFlexGrow(0, metaLayout);
+        }
+
+        @PublicAPI(from = "1.8.0",
+                returns = @APIReturn(type = String.class))
+        @Override
+        public String getBusyWith() {
+            return busyWith;
+        }
+
+        @PublicAPI(from = "1.8.0",
+                returns = @APIReturn(type = void.class),
+                parameters = {@APIParameter(name = "kept", type = boolean.class)})
+        @Override
+        public void setKeptInPlace(boolean kept) {
+            this.keptInPlace = kept;
+        }
+
+        @PublicAPI(from = "1.8.0",
+                returns = @APIReturn(type = boolean.class))
+        @Override
+        public boolean isKeptInPlace() {
+            return keptInPlace;
+        }
+
+        /**
+         * Shows on the card the run that works on the part (a window of the model, a translation), read from the {@link Runs}.
+         */
+        @PublicAPI(from = "1.8.0",
+                returns = @APIReturn(type = void.class))
+        private void refreshBusy() {
+            busyWith = message == null || message.getId() == null ? null
+                    : Runs.busyWith(message.getId());
+            busyBadge.setText(StringUtils.defaultString(busyWith));
+            busyBadge.setVisible(busyWith != null);
         }
 
         @PublicAPI(from = "1.6.0",

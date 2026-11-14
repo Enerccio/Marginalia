@@ -210,6 +210,46 @@ class OsgiServiceImplTest {
     }
 
     @Test
+    void extensionBuiltForAnotherVersionFailsAloneAndIsMarkedInvalid() throws Exception {
+        writeJar("a.jar", bundle("test.a", "1.0.0"));
+        writeJar("l.jar", bundle("test.l", "1.0.0", "X-Test-Link-Error-Load"));
+        writeJar("z.jar", bundle("test.z", "1.0.0", "X-Test-Link-Error-Language"));
+
+        service.start();
+
+        assertThat(bundleNamed("test.a").getState()).isEqualTo(Bundle.ACTIVE);
+        for (String name : List.of("test.l", "test.z")) {
+            Bundle failed = bundleNamed(name);
+            assertThat(failed.getState()).isNotEqualTo(Bundle.ACTIVE);
+            assertThat(TestExtensionActivator.UNLOADED).containsEntry(name + ":1.0.0", 1);
+            assertThat(service.getVerificationReport(failed).valid()).isFalse();
+            assertThat(service.getVerificationReport(failed).text()).contains("another version of Marginalia");
+        }
+        assertThat(service.getVerificationReport(bundleNamed("test.z")).text()).contains("NoSuchFieldError", "LABEL_GONE");
+        assertThat(service.getInvalidExtensions()).extracting(Bundle::getSymbolicName).containsExactlyInAnyOrder("test.l", "test.z");
+        assertThat(log.errors()).anyMatch(m -> m.contains("l.jar")).anyMatch(m -> m.contains("z.jar"));
+
+        // the next start keeps them stopped by the report, without loading them again
+        service.restart();
+        assertThat(TestExtensionActivator.LOADED).containsEntry("test.l:1.0.0", 1).containsEntry("test.z:1.0.0", 1);
+        assertThat(bundleNamed("test.a").getState()).isEqualTo(Bundle.ACTIVE);
+    }
+
+    @Test
+    void uploadBuiltForAnotherVersionIsRejectedAndKeepsTheInstalledVersion() throws Exception {
+        writeJar("a.jar", bundle("test.a", "1.0.0"));
+        service.start();
+
+        assertThatThrownBy(() -> service.installPackage("a.jar", bundle("test.a", "2.0.0", "X-Test-Link-Error-Load")))
+                .isInstanceOf(ExtensionVerificationException.class)
+                .hasMessageContaining("NoSuchMethodError");
+
+        Bundle restored = bundleNamed("test.a");
+        assertThat(restored.getVersion().toString()).isEqualTo("1.0.0");
+        assertThat(restored.getState()).isEqualTo(Bundle.ACTIVE);
+    }
+
+    @Test
     void onlyTheNewestVersionOfAnExtensionIsLoadedAtStart() throws Exception {
         writeJar("a-1.0.0.jar", bundle("test.a", "1.0.0"));
         writeJar("a-1.0.10.jar", bundle("test.a", "1.0.10"));

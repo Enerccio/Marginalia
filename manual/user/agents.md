@@ -258,7 +258,7 @@ The agent is told the roles, the descriptions and the commands of each model, an
 
 ## One model, several agents
 
-A local server often has one slot (one GPU): ask it for two answers at once and both crawl or time out. Set **Concurrent requests of agents** in the [settings of the model](inference-providers.md#general-settings) (1 for one slot) and the requests of your agents to it take turns, in the order they came: the others wait, their runs stay *Running*, and a **Pause** or **Stop** ends the wait. It counts the model requests of all the agents of all users who use that model, the commands that write with it included. It does not hold up your own writing in the story window, and that does not count against the agents either.
+A local server often has one slot (one GPU): ask it for two answers at once and both crawl or time out. The **Connections** of the [model](inference-providers.md#general-settings) (1 unless you set more) make every request to it take turns, in the order they came: the requests of your agents, of other users' agents and your own writing in the story window. A run that waits stays *Running*, and a **Pause** or **Stop** ends the wait at once. Between two answers of the model an agent holds no connection, so your generation can go in between.
 
 ## When you are not there
 
@@ -473,7 +473,7 @@ of two thousand parts). You can restore while the agent does not work; the agent
 | **Write the book with the model of the agent** | On (the default): the commands that have a model write something - the next turn, swipes, summaries, and the commands of extensions such as the Lore Generator and the Arc Outline - use the model above, whatever model your book has. Off: they use the model of your book (an extension command falls back to your default model from [Settings](account.md) when the book has none). That is how you mix models: a strong one that thinks and a cheaper or more fluent one that writes. A command can still name another model profile of the agent. |
 | **Calls in one answer** | How many of the calls the agent writes in one answer are made. *All together, ignore the batch policies*: every call (the fastest). *Together, commands marked Alone by themselves* (the default): the calls are made together, but a command whose **Batch** column says *Alone*, as one that makes a call to a model, is made in an answer of its own, and the agent is told. *One call per answer*: only the first call is made and the agent writes the next after it has read the result; slower (every call is a round of its own, with the thinking of the model) but it can react to each result. An **error always ends the answer**, in every mode: the calls after the failed one are not made (they are answered "not made because an earlier call failed") and the agent reads the error first. |
 | **The model sees images** | Tick it when the model takes images (the API of the model does not say, so you do). The agent then has `view_image` and you can attach images to your messages; without it it never gets a picture. |
-| **Language** | The language of everything the agent reads: the descriptions of its commands, their results and their errors. English is the default and the safest choice, because the commands and their parameters are in English whatever the language is (the descriptions in another language mix both), and models, small ones above all, use tools more reliably that way. The list holds the languages installed in the application (an extension can add one, like the Chinese localization). It has **nothing to do with the language of the book**: the agent is told to write the text of the book in the language of the book, which it can read with `get-book-info`. A run keeps the language it was started with, a change applies to the next run. |
+| **Language** | The language of everything the agent reads: the descriptions of its commands, their results and their errors, and the built-in texts of the run (its default system prompt, the notices of the run, the compaction prompt) when they exist in that language (English, Japanese, Chinese); the [prompt language](account.md#prompt-language) of your settings does not apply to agents. English is the default and the safest choice, because the commands and their parameters are in English whatever the language is (the descriptions in another language mix both), and models, small ones above all, use tools more reliably that way. The list holds the languages installed in the application (an extension can add one, like the Chinese localization). It has **nothing to do with the language of the book**: the agent is told to write the text of the book in the language of the book, which it can read with `get-book-info`. A run keeps the language it was started with, a change applies to the next run. |
 | **Destructive commands** | What happens when the agent wants a command that changes or removes data: *Run them*, *Ask first* (a [window](#asking-you) asks you to approve it) or *Refuse them*. |
 | **Most rounds**, **Token budget of a run**, **Context limit** | Optional limits of one run. The limit your administrator gave you applies in any case. |
 | **Most sub-agents** | How many [sub-agents](#sub-agents) the agent can have working at once, 0 to 10. Empty or zero is none. |
@@ -536,6 +536,28 @@ agent of that book. You can have as many agents, clones included, as your admini
 at the limit **New agent** and **Clone** are off and say why.
 
 ![Cloning an agent](../images/agent-clone.png)
+
+## Lore notes of an imported book
+
+After you [import](books/story-editor.md#after-an-import) a manuscript the application offers an agent that takes the lore of the book:
+**Take lore notes with an agent...** (the same item is in the settings menu ⚙ of a story, **Analysis**). It asks first:
+
+![The question before the agent starts](../images/lore-notes-confirm.png)
+
+Then it makes an agent
+called **Lore notes** for the book, with the model and the protocol of the book, and starts it (its console opens).
+
+- It reads the story from the first part to the last, a few parts at a time, and keeps its notes in the files of its workspace
+  (characters, places, things, terms) so that it can go on after a pause. The summaries help it find its way, the parts are its source.
+- It then writes one entry for each character, place, thing, group or term into the lorebook of the book (a lorebook is made for the book
+  when it has none), with the names the story uses as the filter, in the language of the book. It adds facts to an entry that exists and does not
+  write the same thing twice.
+- It may read the story and the lorebooks and write entries; it cannot change the story and cannot delete anything.
+
+It is an agent like any other: the book is [locked](#the-book-is-locked) while it works, it works on a [copy](#the-working-copy), and what
+it wrote is yours only after you [review it](#reviewing-the-result) and take it over. Read the entries before you do: it only knows what the
+text says, and a long book costs many requests. The instructions are the ones of the agent (**Edit** shows them, you can change them before you start it again).
+It is refused when you may not use agents, when the book has no model, and when the book has an agent already (a book has one).
 
 ## The book is locked
 

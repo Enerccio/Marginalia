@@ -15,15 +15,22 @@ public class HelpToolsImpl extends ManualToolsImpl implements HelpTools {
      * @param uiState where the screen is read, null when the request does not come from a page
      */
     public HelpToolsImpl(ManualService manual, UiStateSource uiState) {
-        this(manual, uiState, false);
+        this(manual, ManualPage.ENGLISH, uiState, false);
+    }
+
+    /**
+     * @param language code of the language of the user, the manual is read in it
+     */
+    public HelpToolsImpl(ManualService manual, String language, UiStateSource uiState) {
+        this(manual, language, uiState, false);
     }
 
     /**
      * @param interactive whether the screen is read with what the elements offer to do (the model has {@link
      *                    InteractiveHelpTools} then)
      */
-    protected HelpToolsImpl(ManualService manual, UiStateSource uiState, boolean interactive) {
-        super(manual);
+    protected HelpToolsImpl(ManualService manual, String language, UiStateSource uiState, boolean interactive) {
+        super(manual, language);
         this.uiState = uiState;
         this.interactive = interactive;
     }

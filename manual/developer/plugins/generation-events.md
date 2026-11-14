@@ -1,7 +1,7 @@
 ---
 label: Generation events
 order: 65
-verified: d163441bd
+verified: f7e7de02b
 covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/generation
   - marginalia/plugins/authorsnote
@@ -218,6 +218,7 @@ Points worth copying:
 | Know how a generation ended (notify, count, clean up) | `AFTER_CLEANUP` | read `OUTCOME` (`COMPLETED` / `CANCELLED` / `FAILED`) and `FAILURE`; the event is emitted for every generation and its listeners run also when the user stopped it, `getMessage()` is the part (`null` when it was removed). Tell the data of generations that run at the same time apart by `RUN_ID` |
 | Force a lore entry in or out | `PROCESS_LOREBOOK_ENTRY` | replace the `LOREBOOK_VERDICT` property (the activation's `Verdict` for the `LOREBOOK_ENTRY`) with `new Verdict(Reason.EXTENSION_ACTIVATED or EXTENSION_SKIPPED, why)`; the entry is used by the verdict that is left. The event comes again, with `LOREBOOK_SCAN_DEPTH` n > 0 and a `LORE_MATCHED` verdict, for an entry the content of the used entries brought in (the scan depth of the lorebook); replacing that verdict with `EXTENSION_SKIPPED` keeps it out, and then its own content is not searched |
 | See why lore entries were used or left out | `PROCESS_ACTIVATED_ENTRIES` | read the `LOREBOOK_VERDICTS` property (`LorebookEntryVerdict`: the entry, its final `Verdict` with the `Reason` and detail, and the `depth` (the scan pass that found it, 0 for the prompt), for every evaluated entry); it is a record, removing entries from `ACTIVATED_LOREBOOK_ENTRIES` does not change it |
+| Read or change the images of the lore | `AFTER_PROCESS_LOREBOOK` (set), `AFTER_PREPARE_PAYLOAD` (the messages) | the `LORE_IMAGES` property (`List<LoreImage>`: entry name, caption, resource uuid, insertion mode, in the order of the entries) is filled only when the AI has `sendLoreImages`, else it is empty; the payload step reads it back and sends the images with the lore (see [Generation pipeline](../generation-pipeline.md)). The text of the entries the model reads has the image markup stripped (`LoreImages.strip`) |
 | Reserve room for text added later | `BEFORE_PREPARE_CONTENT` | add to `PrePromptData.reservedTokens` |
 | Shorten the story sent to the model | `AFTER_MANUSCRIPT_CONCATENATION` | replace `MANUSCRIPT_CHRONICLE` |
 | Change the instructions of the turn | `AFTER_PREPARE_CONSTANT_DATA` | change the processed user prompt in `PrePromptData` |

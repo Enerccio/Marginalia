@@ -3,13 +3,10 @@ package com.github.enerccio.marginalia.domain.service.impl;
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
-import com.github.enerccio.marginalia.domain.service.ExportSettingsService;
-import com.github.enerccio.marginalia.domain.service.ExporterService;
-import com.github.enerccio.marginalia.extensions.InheritedSettingRegistry;
-import com.github.enerccio.marginalia.domain.service.LorebookEntryService;
-import com.github.enerccio.marginalia.domain.service.LorebookService;
+import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
 import com.github.enerccio.marginalia.export.*;
+import com.github.enerccio.marginalia.extensions.InheritedSettingRegistry;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -79,7 +76,7 @@ public class ExporterServiceImpl implements ExporterService, InitializingBean {
             }
             for (LorebookEntry entry : lorebookEntryService.getEntriesForLorebook(lorebook)) {
                 if (entry.isEnabled()) {
-                    lore.add(new ExportLoreEntry(lorebook.getName(), entry.getName(), entry.getPayload(), entry.getCachedTags(), entry.getComment()));
+                    lore.add(new ExportLoreEntry(lorebook.getName(), entry.getName(), LoreImages.strip(entry.getPayload()), entry.getCachedTags(), entry.getComment()));
                 }
             }
         }

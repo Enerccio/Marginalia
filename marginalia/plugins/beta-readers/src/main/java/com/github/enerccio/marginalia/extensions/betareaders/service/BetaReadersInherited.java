@@ -44,17 +44,17 @@ public final class BetaReadersInherited {
                 .group(() -> T.localized(BETA_READERS))
                 .help(() -> T.localized(THE_SYSTEM_PROMPT))
                 .userValue(() -> settings.get().getSinglePrompt())
-                .fallback(() -> BetaReadersDefaults.SINGLE_PROMPT));
+                .fallback(() -> T.defaults().singlePrompt()));
         registry.register(owner, InheritedSetting.textArea(GROUP_PROMPT, () -> T.localized(PROMPT_OF_A_GROUP_CHAT))
                 .group(() -> T.localized(BETA_READERS))
                 .help(() -> T.localized(THE_SYSTEM_PROMPT_OF_A_CHAT))
                 .userValue(() -> settings.get().getGroupPrompt())
-                .fallback(() -> BetaReadersDefaults.GROUP_PROMPT));
+                .fallback(() -> T.defaults().groupPrompt()));
         registry.register(owner, InheritedSetting.textArea(SCENE, () -> T.localized(BetaReadersLocalization.SCENE))
                 .group(() -> T.localized(BETA_READERS))
                 .help(() -> T.localized(WHERE_AND_HOW_THE_CONVERSATION))
                 .userValue(() -> settings.get().getScene())
-                .fallback(() -> BetaReadersDefaults.SCENE));
+                .fallback(() -> T.defaults().scene()));
         registry.register(owner, InheritedSetting.choice(MEDIUM, () -> T.localized(BetaReadersLocalization.MEDIUM),
                         () -> settings.get().getMediums().stream().map(BetaReadersInherited::choice).toList())
                 .group(() -> T.localized(BETA_READERS))

@@ -32,7 +32,7 @@ class BetaReadersStoreTest {
 
     @Test
     void theSettingsComeBackAsTheyWereWritten() {
-        BetaReadersSettings settings = BetaReadersDefaults.newSettings();
+        BetaReadersSettings settings = new BetaReadersDefaults().newSettings();
         settings.setSinglePrompt("one on one");
         settings.setGroupPrompt("group");
         settings.setMedium("manga");
@@ -154,7 +154,7 @@ class BetaReadersStoreTest {
     void withoutSettingsOrABookThereIsNothing() {
         assertTrue(BetaReadersStore.available(null, null).isEmpty());
         assertEquals(1, BetaReadersStore.available(null, bookWith("Mara")).size());
-        assertEquals(6, BetaReadersStore.available(BetaReadersDefaults.newSettings(), null).size());
+        assertEquals(6, BetaReadersStore.available(new BetaReadersDefaults().newSettings(), null).size());
     }
 
     private static BookData bookWith(String name) {

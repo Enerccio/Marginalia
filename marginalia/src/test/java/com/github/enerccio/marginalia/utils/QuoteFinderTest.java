@@ -72,4 +72,15 @@ class QuoteFinderTest {
         assertThat(QuoteFinder.findExact(TEXT, "John waited at the end of the pier.", null, null, -1)).isNotNull();
         assertThat(QuoteFinder.findExact(TEXT, "john waited at the end of the pier.", null, null, -1)).isNull();
     }
+
+    @Test
+    void aQuoteThatJoinsTwoQuotationsAcrossADialogueTagIsFoundWhole() {
+        String text = "Rie stiffened. \"You're so diligent about the rules, Ishida-san,\" Hiroko said. \"It's almost a shame you're such a liar.\" Rie did not answer.";
+        String quote = "You're so diligent about the rules, Ishida-san. It's almost a shame you're such a liar.";
+
+        QuoteFinder.Match match = QuoteFinder.find(text, quote, null, null, -1);
+
+        assertThat(match.exact()).isFalse();
+        assertThat(found(text, match)).isEqualTo("You're so diligent about the rules, Ishida-san,\" Hiroko said. \"It's almost a shame you're such a liar");
+    }
 }

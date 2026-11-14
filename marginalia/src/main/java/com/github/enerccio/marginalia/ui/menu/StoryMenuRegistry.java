@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.ui.menu;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
+import com.github.enerccio.marginalia.domain.service.run.Runs;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.story.BookHistoryActions;
@@ -389,7 +390,7 @@ public class StoryMenuRegistry implements InitializingBean {
 
     private void registerToolsItems() {
         application(StoryMenuItem.tools(StoryMenuKeys.SEARCH_REPLACE, L.LABEL_SEARCH_AND_REPLACE, StoryEditor::openSearchReplaceDialog)
-                .icon(Solid.EXCHANGE_ALT::create).actionId(ShortcutActions.STORY_SEARCH_REPLACE).defaultKey("Ctrl+Shift+h")
+                .enabledWhen((part, card) -> notGenerating(part)).icon(Solid.EXCHANGE_ALT::create).actionId(ShortcutActions.STORY_SEARCH_REPLACE).defaultKey("Ctrl+Shift+h")
                 .separatorAfter());
 
         group(APPLICATION, MenuKind.TOOLS, StoryMenuKeys.GROUP_APPEARANCE, L.LABEL_APPEARANCE).icon(Solid.PALETTE::create);
@@ -412,6 +413,10 @@ public class StoryMenuRegistry implements InitializingBean {
 
         application(StoryMenuItem.tools(StoryMenuKeys.ANNOTATE_RANGE, L.LABEL_ANNOTATE_BATCH, StoryEditor::openAnnotateRangeDialog)
                 .icon(Solid.COMMENT_DOTS::create).path(StoryMenuKeys.GROUP_ANALYSIS));
+        application(StoryMenuItem.tools(StoryMenuKeys.CREATE_SUMMARIES, L.LABEL_CREATE_SUMMARIES, StoryEditor::openCreateSummariesDialog)
+                .icon(Solid.ALIGN_LEFT::create).path(StoryMenuKeys.GROUP_ANALYSIS));
+        application(StoryMenuItem.tools(StoryMenuKeys.LORE_NOTES, L.LABEL_TAKE_LORE_NOTES, StoryEditor::openLoreNotesDialog)
+                .icon(Solid.FILE_ALT::create).path(StoryMenuKeys.GROUP_ANALYSIS));
         application(StoryMenuItem.tools(StoryMenuKeys.AUTO_ANNOTATE, L.LABEL_AUTO_ANNOTATE, StoryEditor::openAutoAnnotateDialog)
                 .icon(Solid.ROBOT::create).checkedWhen(StoryEditor::isAutoAnnotate).path(StoryMenuKeys.GROUP_ANALYSIS));
         application(StoryMenuItem.tools(StoryMenuKeys.BRANCH_TOKENS, L.LABEL_BRANCH_TOKENS, StoryEditor::openBranchTokensDialog)
@@ -421,8 +426,8 @@ public class StoryMenuRegistry implements InitializingBean {
         application(StoryMenuItem.tools(StoryMenuKeys.STATISTICS, L.LABEL_STATISTICS, StoryEditor::openStatisticsDialog)
                 .icon(Solid.CHART_LINE::create).path(StoryMenuKeys.GROUP_ANALYSIS));
 
-        application(StoryMenuItem.tools(StoryMenuKeys.IMPORT_ARCHIVE, L.LABEL_IMPORT_FROM_ARCHIVE, StoryEditor::openArchiveImportDialog)
-                .icon(Solid.FILE_IMPORT::create).path(StoryMenuKeys.GROUP_IMPORT_EXPORT));
+        application(StoryMenuItem.tools(StoryMenuKeys.IMPORT_ARCHIVE, L.LABEL_IMPORT, StoryEditor::openArchiveImportDialog)
+                .enabledWhen((part, card) -> notGenerating(part)).icon(Solid.FILE_IMPORT::create).path(StoryMenuKeys.GROUP_IMPORT_EXPORT));
         application(StoryMenuItem.tools(StoryMenuKeys.EXPORT, L.LABEL_EXPORT_STORY, StoryEditor::openExportDialog)
                 .icon(Solid.FILE_EXPORT::create).path(StoryMenuKeys.GROUP_IMPORT_EXPORT));
 
@@ -433,7 +438,7 @@ public class StoryMenuRegistry implements InitializingBean {
                         part -> new BookHistoryActions(part.getCurrentManuscript()).emptyTrash())
                 .icon(Solid.TRASH_RESTORE::create).path(StoryMenuKeys.GROUP_CLEAN_UP));
         application(StoryMenuItem.tools(StoryMenuKeys.MASS_DELETE, L.LABEL_MASS_DELETE, StoryEditor::toggleMassDelete)
-                .icon(Solid.TRASH::create).checkedWhen(StoryEditor::isMassDelete).path(StoryMenuKeys.GROUP_CLEAN_UP));
+                .enabledWhen((part, card) -> notGenerating(part)).icon(Solid.TRASH::create).checkedWhen(StoryEditor::isMassDelete).path(StoryMenuKeys.GROUP_CLEAN_UP));
 
         application(StoryMenuItem.tools(StoryMenuKeys.SAVE_LAYOUT_AS_DEFAULT, L.LABEL_SAVE_LAYOUT_AS_DEFAULT, StoryEditor::saveLayoutAsDefault)
                 .icon(Solid.TABLE_COLUMNS::create).phone(false).path(StoryMenuKeys.GROUP_LAYOUT));
@@ -450,14 +455,15 @@ public class StoryMenuRegistry implements InitializingBean {
         application(StoryMenuItem.card(StoryMenuKeys.DISCARD, L.LABEL_DISCARD_CHANGES, (part, card) -> card.discardEdit())
                 .visibleWhen((part, card) -> card != null && card.isEditing()));
         application(StoryMenuItem.card(StoryMenuKeys.REGENERATE, L.LABEL_REGENERATE, (part, card) -> card.regenerate())
-                .visibleWhen((part, card) -> card != null && card.isLast())
+                .visibleWhen((part, card) -> card != null && card.isLast()).enabledWhen((part, card) -> notBusy(card))
                 .actionId(ShortcutActions.STORY_REGENERATE).defaultKey("r"));
         application(StoryMenuItem.card(StoryMenuKeys.SWIPE, L.LABEL_SWIPE, (part, card) -> card.swipe())
-                .visibleWhen((part, card) -> card != null && card.isLast())
+                .visibleWhen((part, card) -> card != null && card.isLast()).enabledWhen((part, card) -> notBusy(card))
                 .actionId(ShortcutActions.STORY_SWIPE).defaultKey("s"));
         // the text that is redrafted is the saved one
         application(StoryMenuItem.card(StoryMenuKeys.REDRAFT, L.LABEL_REDRAFT, (part, card) -> card.redraft())
-                .visibleWhen((part, card) -> card != null && !card.isEditing() && StringUtils.isNotBlank(card.getMessage().getResponse())));
+                .visibleWhen((part, card) -> card != null && !card.isEditing() && StringUtils.isNotBlank(card.getMessage().getResponse()))
+                .enabledWhen((part, card) -> notBusy(card)));
         application(StoryMenuItem.card(StoryMenuKeys.HISTORY, L.LABEL_HISTORY, (part, card) -> card.openHistory())
                 .contextLabel((loc, part, card) -> card == null || card.getHistoryCount() == 0 ? loc.getValue(L.LABEL_HISTORY)
                         : String.format(loc.getValue(L.LABEL_HISTORY_WITH_COUNT), card.getHistoryCount()))
@@ -467,10 +473,12 @@ public class StoryMenuRegistry implements InitializingBean {
                 .visibleWhen((part, card) -> card != null && !card.getMessage().getImages().isEmpty()).separatorAfter());
 
         group(APPLICATION, MenuKind.CARD, StoryMenuKeys.GROUP_ANNOTATE, L.LABEL_ANNOTATIONS);
+        group(APPLICATION, MenuKind.CARD, StoryMenuKeys.GROUP_TRANSLATE, L.LABEL_TRANSLATE).icon(Solid.LANGUAGE::create);
         application(StoryMenuItem.card(StoryMenuKeys.ANNOTATE_PART, L.LABEL_ANNOTATE_PART, (part, card) -> card.annotatePart())
                 .visibleWhen((part, card) -> card != null && card.getMessage().getId() != null).path(StoryMenuKeys.GROUP_ANNOTATE));
         application(StoryMenuItem.card(StoryMenuKeys.ANNOTATE_WITH_AI, L.LABEL_ANNOTATE_WITH_AI, (part, card) -> card.annotateWithAi())
-                .visibleWhen((part, card) -> hasText(card) && !card.isEditing()).path(StoryMenuKeys.GROUP_ANNOTATE));
+                .visibleWhen((part, card) -> hasText(card) && !card.isEditing()).enabledWhen((part, card) -> notBusy(card))
+                .path(StoryMenuKeys.GROUP_ANNOTATE));
 
         group(APPLICATION, MenuKind.CARD, StoryMenuKeys.GROUP_SUMMARY, L.LABEL_SUMMARY);
         application(StoryMenuItem.card(StoryMenuKeys.SUMMARY, L.LABEL_GENERATE_SUMMARY, (part, card) -> card.openSummaryDialog())
@@ -491,20 +499,46 @@ public class StoryMenuRegistry implements InitializingBean {
 
         group(APPLICATION, MenuKind.CARD, StoryMenuKeys.GROUP_BRANCH_MERGE, L.LABEL_BRANCH_AND_MERGE).separatorAfter();
         application(StoryMenuItem.card(StoryMenuKeys.BRANCH, L.LABEL_BRANCH_STORY, (part, card) -> card.branch())
-                .path(StoryMenuKeys.GROUP_BRANCH_MERGE));
+                .enabledWhen((part, card) -> notKeptInPlace(card)).path(StoryMenuKeys.GROUP_BRANCH_MERGE));
         application(StoryMenuItem.card(StoryMenuKeys.MERGE, L.LABEL_MERGE_INTO_PREVIOUS, (part, card) -> card.mergeIntoPrevious())
-                .visibleWhen((part, card) -> card != null && card.getMessage().getParent() != null).path(StoryMenuKeys.GROUP_BRANCH_MERGE));
+                .visibleWhen((part, card) -> card != null && card.getMessage().getParent() != null)
+                .enabledWhen((part, card) -> notBusy(card) && notKeptInPlace(card)).path(StoryMenuKeys.GROUP_BRANCH_MERGE));
 
         // the last, whatever extensions add
         application(StoryMenuItem.card(StoryMenuKeys.DELETE, L.LABEL_DELETE, (part, card) -> card.confirmDelete())
-                .position(MenuPosition.last()));
+                .enabledWhen((part, card) -> notBusy(card) && notKeptInPlace(card)).position(MenuPosition.last()));
+    }
+
+    /**
+     * The actions that would take the part away from a window of the model that works on it (or start a second one) are off while
+     * the window is there, see {@link StoryCard#getBusyWith()}.
+     */
+    private static boolean notBusy(StoryCard card) {
+        return card == null || card.getBusyWith() == null;
+    }
+
+    /**
+     * What works over the whole book (search and replace, an import into it, the mass delete) waits while a part of it is generated.
+     */
+    private static boolean notGenerating(StoryEditor part) {
+        return part == null || part.getCurrentManuscript() == null || Runs.generationOf(part.getCurrentManuscript().getId()) == null;
+    }
+
+    /**
+     * A generation continues the branch of the part: it stays where it is, see {@link StoryCard#isKeptInPlace()}.
+     */
+    private static boolean notKeptInPlace(StoryCard card) {
+        return card == null || !card.isKeptInPlace();
     }
 
     private void registerTextItems() {
+        // the translations of the extensions; the group is hidden while nothing is in it
+        group(APPLICATION, MenuKind.TEXT, StoryMenuKeys.GROUP_TRANSLATE, L.LABEL_TRANSLATE).icon(Solid.LANGUAGE::create);
         // only here, not in the menu of the part: opening that menu takes the selection away
         application(StoryMenuItem.text(StoryMenuKeys.TEXT_ANNOTATE_SELECTION, L.LABEL_ANNOTATE_SELECTION, (part, card) -> card.annotateSelection())
                 .actionId(ShortcutActions.STORY_ANNOTATE_SELECTION).defaultKey("a"));
-        application(StoryMenuItem.text(StoryMenuKeys.TEXT_REDRAFT_SELECTION, L.LABEL_REDRAFT_SELECTION, (part, card) -> card.redraftSelection()));
+        application(StoryMenuItem.text(StoryMenuKeys.TEXT_REDRAFT_SELECTION, L.LABEL_REDRAFT_SELECTION, (part, card) -> card.redraftSelection())
+                .enabledWhen((part, card) -> notBusy(card)));
         application(StoryMenuItem.text(StoryMenuKeys.TEXT_COPY, L.LABEL_COPY, (part, card) -> card.copySelection()));
     }
 }

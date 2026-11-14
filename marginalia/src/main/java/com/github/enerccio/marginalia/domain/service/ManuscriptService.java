@@ -191,6 +191,17 @@ public interface ManuscriptService extends ExtendableService<Manuscript, Manuscr
     String getRedraftPrompt(Manuscript manuscript) throws Exception;
 
     /**
+     * What is added to the instructions of a redraft that is asked to be shorter (plain text): the one of the book, else the nearest
+     * folder above it that sets one, else the one of the user, else the built in one.
+     */
+    String getRedraftShorter(Manuscript manuscript) throws Exception;
+
+    /**
+     * As {@link #getRedraftShorter} for a redraft that is asked to be longer.
+     */
+    String getRedraftLonger(Manuscript manuscript) throws Exception;
+
+    /**
      * The system message of the annotation, see {@link #getRedraftSystemPrompt}.
      */
     String getAnnotateSystemPrompt(Manuscript manuscript) throws Exception;

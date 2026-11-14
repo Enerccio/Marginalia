@@ -8,7 +8,7 @@ covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/command/CommandScope.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/CommandScopes.java
   - marginalia/src/test/java/com/github/enerccio/marginalia/command
-verified: d163441bd
+verified: d3fd95f7f
 ---
 
 # Writing commands
@@ -218,6 +218,10 @@ A part of the work that can't be abandoned (a transaction that is being written)
 Tell the user what is going on with `context.setStatus("Taking a backup of Dune")` (the main line) and
 `context.setSubStatus("Chapter 3 of 12")` (the detail under it); they appear in the progress window. Set them as the work
 advances, `null` clears a line.
+
+`progressInStory = true` is for a command that generates a part of the story and shows it there itself, through
+`context.getScope().getGenerationView()` (see [The command bar](command-bar.md#running-and-asynchronous-commands)): the bar of the
+story then opens no progress window for it. Only the core's `next`, `swipe` and `regenerate` use it; it requires `async`.
 
 Blocking calls (`Thread.sleep`, a network call) are interrupted when the run is cancelled; let the `InterruptedException`
 end the command or set the interrupt flag again and return. A command that is stopped should not call `setReturn`; if it

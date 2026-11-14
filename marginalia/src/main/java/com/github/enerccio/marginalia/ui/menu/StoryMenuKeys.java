@@ -16,14 +16,19 @@ public final class StoryMenuKeys {
     public static final String GROUP_SUMMARY = "summary";
     public static final String GROUP_INSPECT = "inspect";
     public static final String GROUP_BRANCH_MERGE = "branchMerge";
+    // in the menu of a part and in the menu of its text: the translations of the extensions (translators of speech) go here
+    public static final String GROUP_TRANSLATE = "translate";
 
     // --- TOOLS ---
     public static final String CHANGE_STYLES = "tools.changeStyles";
     public static final String HIGHLIGHT_GENERATED = "tools.highlightGenerated";
     public static final String ANNOTATIONS_IN_MARGIN = "tools.annotationsInMargin";
     public static final String SEARCH_REPLACE = "tools.searchReplace";
+    // the import into the book; the key is from the time it only took archives, it is kept so that menus the users arranged stay
     public static final String IMPORT_ARCHIVE = "tools.importArchive";
     public static final String ANNOTATE_RANGE = "tools.annotateRange";
+    public static final String CREATE_SUMMARIES = "tools.createSummaries";
+    public static final String LORE_NOTES = "tools.loreNotes";
     public static final String AUTO_ANNOTATE = "tools.autoAnnotate";
     public static final String BRANCH_TOKENS = "tools.branchTokens";
     public static final String LORE_USAGE = "tools.loreUsage";

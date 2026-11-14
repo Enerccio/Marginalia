@@ -3,6 +3,7 @@ package com.github.enerccio.marginalia.extensions.audiobook.service;
 import com.github.enerccio.marginalia.extensions.audiobook.model.BackendConfig;
 import com.github.enerccio.marginalia.extensions.httphooks.BackendException;
 import com.github.enerccio.marginalia.extensions.httphooks.Http;
+import com.github.enerccio.marginalia.extensions.httphooks.ServerGoneException;
 import com.github.enerccio.marginalia.extensions.httphooks.UrlGuard;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -51,6 +52,12 @@ public class ChatterboxBackend implements SpeechBackend {
 
     @Override
     public byte[] synthesize(SpeechRequest request, Cancel cancel) throws BackendException {
+        return com.github.enerccio.marginalia.extensions.httphooks.JobCalls.track(
+                com.github.enerccio.marginalia.domain.service.job.JobCallType.AUDIO, "audiobook", config.getBaseUrl(),
+                config.getModel(), () -> speak(request, cancel));
+    }
+
+    private byte[] speak(SpeechRequest request, Cancel cancel) throws BackendException {
         if (request.text() == null || request.text().isBlank()) {
             throw new BackendException("There is nothing to say");
         }
@@ -65,7 +72,7 @@ public class ChatterboxBackend implements SpeechBackend {
                 .POST(HttpRequest.BodyPublishers.ofString(body(request))).build(), MAX_AUDIO_BYTES,
                 cancel == null ? null : cancel::isCancelled);
         if (response.statusCode() == 503) {
-            throw new BackendException("The speech server has no model loaded (503). Either nothing loaded it (add a request before the batch that does), or something unloaded it during the batch: look for /api/unload in the log of the server and compare it with the log of this extension.");
+            throw new ServerGoneException("The speech server has no model loaded (503). Either nothing loaded it (add a request before the batch that does), or something unloaded it during the batch: look for /api/unload in the log of the server and compare it with the log of this extension.");
         }
         Http.requireOk(response, "Making the speech");
         String type = response.headers().firstValue("Content-Type").orElse("").toLowerCase(Locale.ROOT);

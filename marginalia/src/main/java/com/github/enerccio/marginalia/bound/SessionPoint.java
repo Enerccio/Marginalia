@@ -22,6 +22,8 @@ public class SessionPoint {
 
     private volatile Language language;
 
+    private volatile Language promptLanguage;
+
     private volatile Workspace workspace;
 
     private final List<LLMChatMessage> helpChat = Collections.synchronizedList(new ArrayList<>());
@@ -59,6 +61,19 @@ public class SessionPoint {
 
     public void setLanguage(Language language) {
         this.language = language;
+    }
+
+    /**
+     * Language of the built-in prompts of this session ({@code Localization.getDefaults()}), {@code null} until one is
+     * set (English is used then). Set from the settings of the user at the login and when the user changes it; in an
+     * agent run the language of the agent.
+     */
+    public Language getPromptLanguage() {
+        return promptLanguage;
+    }
+
+    public void setPromptLanguage(Language promptLanguage) {
+        this.promptLanguage = promptLanguage;
     }
 
     /**

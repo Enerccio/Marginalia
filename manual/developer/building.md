@@ -1,7 +1,7 @@
 ---
 label: Building from source
 order: 990
-verified: 817e5239b
+verified: 8a278a19f
 covers:
   - pom.xml
   - marginalia/pom.xml
@@ -42,7 +42,7 @@ application is the Maven project in `marginalia/`:
 
 ```sh
 cd marginalia
-mvn package                  # builds and tests, WAR in target/marginalia-1.7.0.war
+mvn package                  # builds and tests, WAR in target/marginalia-1.8.0.war
 mvn package -DskipTests      # the same without tests
 mvn install -DskipTests      # also installs the WAR and the classes JAR into ~/.m2 (needed by plugins)
 mvn -N install                                # (repository root, once) installs the parent POM, the installed POMs refer to it
@@ -56,25 +56,27 @@ What a build does, in order:
    packaged, so a run from `target/classes` has the placeholder and reports the version `dev`) for the footer of the page
    and the login screen. The resources
    step also copies the Markdown pages of the user manual (`../manual/user/**/*.md`, unfiltered) to `classpath:/manual/`
-   for the [help assistant](services.md#the-help-assistant); the folder is outside `marginalia/`, see
-   [Packaging](packaging.md).
+   for the [help assistant](services.md#the-help-assistant), and the translated ones (`../translations/*/user/**/*.md`) to
+   `classpath:/manual-translations/`; both folders are outside `marginalia/`, see [Packaging](packaging.md).
 2. `vaadin-maven-plugin` prepares the frontend (`prepare-frontend`): it generates `package.json`, `vite` config and
    the files in `src/main/frontend/generated/` (ignored by Git) and downloads Node.js if needed.
 3. `maven-compiler-plugin` compiles the sources, then `aspectj-maven-plugin` compiles them again with the AspectJ
-   compiler and weaves the Spring aspects in (see [AspectJ weaving](#aspectj-weaving) below). The woven classes in
-   `target/classes` are the ones that get packaged.
+   compiler and weaves the Spring aspects in (see [AspectJ weaving](#aspectj-weaving) below). Then `BuildTimeWeaver`
+   (`exec-maven-plugin`, `weave-extendable`, phase `process-classes`) puts the hooks of the extensions into the
+   `@Extendable` classes (see [Extension hooks](#extension-hooks)). The woven classes in `target/classes` are the
+   ones that get packaged.
 4. Tests run (`maven-surefire-plugin`), see [Running the tests](#running-the-tests).
 5. `vaadin-maven-plugin` builds the frontend bundle (`build-frontend`).
-6. `maven-war-plugin` packages `target/marginalia-1.7.0.war` (about 185 MB) and, because of `attachClasses`, also
-   `target/marginalia-1.7.0-classes.jar` - the application classes that plugins compile against.
+6. `maven-war-plugin` packages `target/marginalia-1.8.0.war` (about 185 MB) and, because of `attachClasses`, also
+   `target/marginalia-1.8.0-classes.jar` - the application classes that plugins compile against.
 
 Outputs in `marginalia/target/`:
 
 | Path | |
 |---|---|
-| `marginalia-1.7.0.war` | The web application. |
-| `marginalia-1.7.0/` | The same WAR, exploded (production mode). |
-| `marginalia-1.7.0-classes.jar` | Application classes, the compile dependency of plugins. |
+| `marginalia-1.8.0.war` | The web application. |
+| `marginalia-1.8.0/` | The same WAR, exploded (production mode). |
+| `marginalia-1.8.0-classes.jar` | Application classes, the compile dependency of plugins. |
 | `surefire-reports/` | Test reports. |
 | `test-home/` | Data folders created by tests (safe to delete). |
 
@@ -106,7 +108,7 @@ the classpath or the working directory.
 To check a WAR:
 
 ```sh
-unzip -p target/marginalia-1.7.0.war WEB-INF/classes/META-INF/VAADIN/config/flow-build-info.json   # "productionMode" : true
+unzip -p target/marginalia-1.8.0.war WEB-INF/classes/META-INF/VAADIN/config/flow-build-info.json   # "productionMode" : true
 ```
 
 ### AspectJ weaving
@@ -124,6 +126,18 @@ make sure the AspectJ compiler is used too (see [IntelliJ IDEA](#intellij-idea))
 
 The compiler also keeps parameter names (`-parameters`) and all local variables (`preserveAllLocals`): extensions
 read method arguments and local variables of `@Extendable` methods by name, so don't remove these options.
+
+### Extension hooks
+
+The hooks that let extensions decorate the methods of `@Extendable` classes are a second, separate weaving: the
+Maven build runs `BuildTimeWeaver` on `target/classes` after the AspectJ compiler and marks every class it rewrote
+with `@Woven` (details in [@Extendable hooks](plugins/extendable.md#instrumentation)). The packaged application
+therefore needs no agent.
+
+The IDE does not run that step. A class compiled by the IDE has no hooks, and the application makes up for it at
+start: outside of the packaged WAR it installs a ByteBuddy agent that instruments the `@Extendable` classes without
+the mark (see [JVM options](#jvm-options)). Nothing has to be set up for it, and a `target/classes` with classes of
+both kinds works. To weave by hand, `mvn process-classes` does it (woven classes are skipped).
 
 The IDE (with the `ajc` compiler) compiles into the same `target/` as Maven, and a class compiled by the other one is overwritten (or
 left unwoven, with `null` `@Autowired` fields). To keep a Maven run apart from an open IDE, move the output with `-Dbuild.dir=/tmp/marginalia-build`
@@ -150,15 +164,23 @@ installation (you'll be asked to create the administrator again).
 
 ### JVM options
 
-The extension mechanism installs a ByteBuddy agent into the running JVM when the application starts. On a JDK this
-works without options, but recent JDKs print a warning about dynamically loaded agents. To silence it and allow the
-agent to attach to its own process, add:
+The packaged application (the WAR in a servlet container, Docker, the desktop app) needs no JVM option for the
+extensions: its `@Extendable` classes were woven by the build.
+
+A development run (`mvn jetty:run`, the IDE) installs a ByteBuddy agent into the running JVM when the application
+starts, for the classes the build did not weave (see [Extension hooks](#extension-hooks)). On a current JDK this
+works without options, but the JDK prints a warning about dynamically loaded agents, and a later JDK will refuse
+the agent unless it is allowed. To silence the warning and allow the agent to attach to its own process, add:
 
 ```
 -XX:+EnableDynamicAgentLoading -Djdk.attach.allowAttachSelf=true
 ```
 
-These are the options the desktop app and the tests use.
+These are the options the tests use. If the JVM refuses the agent, the application still starts: an error in the log
+says so, and only the classes woven by a Maven build have hooks.
+
+`-Dmarginalia.extendable.agent=true` installs the agent in the packaged application as well (for an extension with
+`@Extendable` classes of its own), `=false` never installs it.
 
 ### IntelliJ IDEA
 
@@ -181,7 +203,7 @@ IntelliJ builds the exploded WAR itself, without the Vaadin plugin, so the appli
   `target/classes/META-INF/VAADIN/config/flow-build-info.json` to the same path under `src/main/resources/`
   (ignored by Git and never packaged into the WAR, but IntelliJ copies it into the exploded WAR on every build).
 
-Don't deploy `target/marginalia-1.7.0/` (the exploded WAR from `mvn package`) from the IDE - it is a production build.
+Don't deploy `target/marginalia-1.8.0/` (the exploded WAR from `mvn package`) from the IDE - it is a production build.
 
 ![IntelliJ IDEA Tomcat run configuration](../images/dev-intellij-tomcat.png)
 
@@ -202,9 +224,8 @@ export JETTY_HOME=/path/to/jetty-home-12.1.10
 mkdir -p ~/jetty-marginalia && cd ~/jetty-marginalia
 java -jar $JETTY_HOME/start.jar --create-startd \
      --add-modules=server,http,ee11-deploy,ee11-websocket-jakarta,ee11-webapp,ee11-jsp
-cp /path/to/Marginalia/marginalia/target/marginalia-1.7.0.war webapps/ROOT.war
-java -XX:+EnableDynamicAgentLoading -Djdk.attach.allowAttachSelf=true -Duser.home=/path/to/dev-home \
-     -jar $JETTY_HOME/start.jar jetty.http.port=8080
+cp /path/to/Marginalia/marginalia/target/marginalia-1.8.0.war webapps/ROOT.war
+java -Duser.home=/path/to/dev-home -jar $JETTY_HOME/start.jar jetty.http.port=8080
 ```
 
 Marginalia is then at `http://localhost:8080/`. `ee11-websocket-jakarta` is required: the UI is updated through a
@@ -284,7 +305,7 @@ cd marginalia
 mvn install -DskipTests
 
 cd plugins/chaptermarker          # or anthropic, arc-outline, audiobook, authorsnote, beta-readers, book-description-generator, character-tracker, conlang-translator, gemma4toolsfix, google-genai, image-generator, instructionexporter, knowledge-tracker, lore-generator, lorebookvcs, manga-generator, name-generator, name-provider, place-provider, prompt-history, prompt-inspector, reallang-translator, reviewer, sidequery, sillytavern-converter, story-notes, tts-reader, chineselocalization
-mvn package                       # target/chaptermarker-1.7.0.jar
+mvn package                       # target/chaptermarker-1.8.0.jar
 ```
 
 ### Shared libraries
@@ -303,7 +324,7 @@ exact version of the application. See [Plugin development](plugins/index.md).
 
 `marginalia/plugins/Dockerfile` and `docker-compose.yml` build everything in a container, so no local JDK or Maven is
 needed (this is how the Docker server is updated, see [Packaging](packaging.md#plugins)). The build context is the
-repository root; the image copies `pom.xml`, `marginalia/pom.xml`, `marginalia/src`, `manual/user` (packed into the application's classes, so a plugin build against it sees the same manual), `.git`, `marginalia/libs` and `marginalia/plugins`, runs
+repository root; the image copies `pom.xml`, `marginalia/pom.xml`, `marginalia/src`, `manual/user` and `translations` (packed into the application's classes, so a plugin build against it sees the same manual), `.git`, `marginalia/libs` and `marginalia/plugins`, runs
 `mvn install -DskipTests -Dvaadin.skip=true` for the application, `mvn install -N` for the parent POM, `mvn install -DskipTests` in every folder of `libs/` and `mvn package` in every folder of `plugins/` that has a `pom.xml`.
 The JARs are copied out when the container runs, because they go into a bind mount:
 
@@ -335,15 +356,16 @@ the output before using it: Hibernate's SQLite updates are a starting point, not
 ## Building the manual
 
 The manual is a [Retype](https://retype.com) site. Sources are in `manual/`, the configuration is `retype.yml` in the
-repository root, and the generated site is written to `docs/` and served by GitHub Pages from the `master` branch.
+repository root, and the generated site is written to `docs/`, which git ignores: the published manual is built by a workflow
+([Publishing the manual](packaging.md#publishing-the-manual)), the local one is for reading and checking.
 
 ```sh
 npm install --global retypeapp     # or: dotnet tool install retypeapp --global
 retype start                       # live preview at http://localhost:5000
-tools/retype_build.sh              # writes docs/; plain `retype build` works too, without the version in the site
+tools/retype_build.sh              # writes docs/ and docs/<language> (the translated sites); plain `retype build` works too, without the version in the site and the languages
 ```
 
-Commit `docs/` together with the changed sources. Images go into `manual/images/`; most are taken by the scripts in
+Images go into `manual/images/`; most are taken by the scripts in
 `screenshots/` (see [Contributing](contributing.md#documentation)), the few that cannot be are listed in `TODO.IMAGES.md`.
 
 ## Troubleshooting
@@ -355,4 +377,5 @@ Commit `docs/` together with the changed sources. Images go into `manual/images/
 | `Schema-validation: missing column ...` on start | An entity was changed without a Flyway migration. Add one ([Database schema changes](#database-schema-changes)). |
 | The frontend build fails downloading Node.js or npm packages | It needs internet access on the first build. Behind a proxy, configure it for Maven and npm, or delete `~/.vaadin` and `node_modules` and try again. |
 | A plugin fails with `NoSuchMethodError` / `ClassNotFoundException` | It was built against another version of the application. Run `mvn install` in `marginalia/` (and `mvn -N install` in the root) and rebuild the plugin. |
-| `WARNING: A Java agent has been loaded dynamically` | Add the [JVM options](#jvm-options). |
+| `WARNING: A Java agent has been loaded dynamically` | A development run installed the agent for classes the build did not weave. Add the [JVM options](#jvm-options). |
+| `The instrumentation agent could not be installed` in the log, extensions do nothing on some screens | The JVM refused the agent and some `@Extendable` classes were compiled by the IDE. Add the [JVM options](#jvm-options) or run `mvn process-classes` ([Extension hooks](#extension-hooks)). |

@@ -102,6 +102,7 @@ public class ConverterService {
                     BookSource source = BookSourceReader.read(file);
                     lines = BookSourceReader.toLines(source);
                     List<TurnItem> turns = BookSourceReader.toTurns(source);
+                    applyJoined(turns, data.getJoinedTurns());
                     Set<Integer> reviewedTurns = new HashSet<>(data.getReviewedTurns());
                     for (int i = 0; i < turns.size(); i++) {
                         turns.get(i).setReviewed(reviewedTurns.contains(i + 1));
@@ -122,6 +123,7 @@ public class ConverterService {
                     // its turn details were read from the resource, they are nothing without it
                     data.setSourceKind(null);
                     data.setTurns(new ArrayList<>());
+                    data.setJoinedTurns(new ArrayList<>());
                 }
                 data.setChat(new ArrayList<>());
             }
@@ -130,15 +132,6 @@ public class ConverterService {
     }
 
     public void save(Manuscript manuscript, ConverterData data) throws Exception {
-        Manuscript current = manuscriptService.find(manuscript);
-        if (current == null) {
-            current = manuscript;
-        }
-        JsonObject attrs = current.getAttributes();
-        if (attrs == null) {
-            attrs = new JsonObject();
-            current.setAttributes(attrs);
-        }
         List<Integer> reviewed = new ArrayList<>();
         for (int i = 0; i < data.getChat().size(); i++) {
             if (data.getChat().get(i).isReviewed()) {
@@ -160,8 +153,14 @@ public class ConverterService {
         } else {
             stored.remove("reviewedTurns");
         }
-        attrs.add(ConverterData.KEY, stored);
-        manuscriptService.save(current);
+        manuscriptService.update(manuscript, current -> {
+            JsonObject attrs = current.getAttributes();
+            if (attrs == null) {
+                attrs = new JsonObject();
+                current.setAttributes(attrs);
+            }
+            attrs.add(ConverterData.KEY, stored);
+        });
     }
 
     // --- the chat ---
@@ -190,6 +189,7 @@ public class ConverterService {
         data.setChat(lines);
         data.setReviewed(new ArrayList<>());
         data.setReviewedTurns(new ArrayList<>());
+        data.setJoinedTurns(new ArrayList<>());
         data.setTurns(new ArrayList<>());
         return lines.size();
     }
@@ -246,6 +246,7 @@ public class ConverterService {
         data.setChat(BookSourceReader.toLines(source));
         data.setReviewed(new ArrayList<>());
         data.setReviewedTurns(new ArrayList<>());
+        data.setJoinedTurns(new ArrayList<>());
         data.setTurns(BookSourceReader.toTurns(source));
         return source.getParts().size();
     }
@@ -262,6 +263,7 @@ public class ConverterService {
         data.setChat(new ArrayList<>());
         data.setReviewed(new ArrayList<>());
         data.setReviewedTurns(new ArrayList<>());
+        data.setJoinedTurns(new ArrayList<>());
         data.setTurns(new ArrayList<>());
     }
 
@@ -360,9 +362,9 @@ public class ConverterService {
 
     // --- the prompt ---
 
-    /** The template the prompt starts with: the user's or {@link Defaults#PROMPT}. */
+    /** The template the prompt starts with: the user's or {@link Defaults#prompt()}. */
     public String promptTemplate(ConverterData data) {
-        return StringUtils.defaultIfBlank(data.getPrompt(), Defaults.PROMPT);
+        return StringUtils.defaultIfBlank(data.getPrompt(), T.defaults().prompt());
     }
 
     /**
@@ -624,8 +626,9 @@ public class ConverterService {
 
     /**
      * Puts the new turns into the turn details: the turns the author has not reviewed that cover a message of the range
-     * {@code from} to {@code to} are replaced by the new ones, the reviewed ones stay (the author has written them already),
-     * and all are in the order of the chat.
+     * {@code from} to {@code to} are replaced by the new ones, the reviewed ones stay (the author has written them already).
+     * Each new turn goes before the first turn that is after it in the order of the chat, so the list stays in the order of the
+     * chat, and an order the author made by moving turns ({@link #moveTurn}) is not undone.
      *
      * @return how many turns were replaced
      */
@@ -633,8 +636,81 @@ public class ConverterService {
         int before = existing.size();
         existing.removeIf(turn -> !turn.isReviewed() && turn.getFirstMessage() <= to && turn.getLastMessage() >= from);
         int replaced = before - existing.size();
-        existing.addAll(added);
-        existing.sort(Comparator.comparingInt(TurnItem::getFirstMessage).thenComparingInt(TurnItem::getLastMessage));
+        Comparator<TurnItem> byChat = Comparator.comparingInt(TurnItem::getFirstMessage).thenComparingInt(TurnItem::getLastMessage);
+        for (TurnItem turn : added) {
+            int at = 0;
+            while (at < existing.size() && byChat.compare(existing.get(at), turn) <= 0) {
+                at++;
+            }
+            existing.add(at, turn);
+        }
         return replaced;
+    }
+
+    /**
+     * Moves the turn {@code index} (from 0) one place up ({@code delta} -1) or down (1) in the list, to make the order the author
+     * wants to write the turns in. The turn keeps the messages it covers.
+     *
+     * @return the new index of the turn, -1 when it can't move that way
+     */
+    public static int moveTurn(List<TurnItem> turns, int index, int delta) {
+        int target = index + delta;
+        if (Math.abs(delta) != 1 || index < 0 || index >= turns.size() || target < 0 || target >= turns.size()) {
+            return -1;
+        }
+        Collections.swap(turns, index, target);
+        return target;
+    }
+
+    /**
+     * Makes one turn of the turn {@code index} (from 0) and the one after it: it covers the messages of both, has the turn
+     * details given (what the author made of the two in the merge dialog) and is ticked when both were. For the parts of a
+     * book the turn is also kept in {@link ConverterData#getJoinedTurns()}, because the turn details of a book are read from
+     * its resource each time.
+     *
+     * @return the merged turn
+     * @throws IllegalArgumentException when there is no turn after the turn {@code index}
+     */
+    public static TurnItem joinTurns(ConverterData data, int index, String sceneSetting, String povCharacter, String presentCharacters,
+                                     String instructions) {
+        List<TurnItem> turns = data.getTurns();
+        if (index < 0 || index + 1 >= turns.size()) {
+            throw new IllegalArgumentException("There is no turn to merge with");
+        }
+        TurnItem first = turns.get(index);
+        TurnItem second = turns.get(index + 1);
+        TurnItem merged = new TurnItem(Math.min(first.getFirstMessage(), second.getFirstMessage()),
+                Math.max(first.getLastMessage(), second.getLastMessage()),
+                StringUtils.trimToEmpty(sceneSetting), StringUtils.trimToEmpty(povCharacter), StringUtils.trimToEmpty(presentCharacters),
+                StringUtils.trimToEmpty(instructions));
+        merged.setReviewed(first.isReviewed() && second.isReviewed());
+        turns.set(index, merged);
+        turns.remove(index + 1);
+        if (data.isBookSource()) {
+            data.getJoinedTurns().removeIf(turn -> covers(merged, turn));
+            data.getJoinedTurns().add(merged);
+        }
+        return merged;
+    }
+
+    /**
+     * Puts the turns the author merged into the turns read from the parts of a book: each takes the place of the turns of
+     * the parts it covers. A merged turn that reaches past the last part (the resource is not the one it was made of) is
+     * left out.
+     */
+    public static void applyJoined(List<TurnItem> turns, List<TurnItem> joined) {
+        int parts = turns.size();
+        for (TurnItem merged : joined) {
+            if (merged.getFirstMessage() < 1 || merged.getLastMessage() > parts || merged.getFirstMessage() > merged.getLastMessage()) {
+                continue;
+            }
+            turns.removeIf(turn -> covers(merged, turn));
+            turns.add(merged);
+        }
+        turns.sort(Comparator.comparingInt(TurnItem::getFirstMessage).thenComparingInt(TurnItem::getLastMessage));
+    }
+
+    private static boolean covers(TurnItem outer, TurnItem inner) {
+        return inner.getFirstMessage() >= outer.getFirstMessage() && inner.getLastMessage() <= outer.getLastMessage();
     }
 }

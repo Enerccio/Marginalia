@@ -52,7 +52,9 @@ public final class CommandUtils {
     public static SessionPoint getSessionPoint() {
         RequestAttributes attributes = RequestContextHolder.getRequestAttributes();
         if (attributes instanceof ServletRequestAttributes servlet) {
-            ServletContext servletContext = servlet.getRequest().getServletContext();
+            // a worker thread's copy keeps the context: its request is over and recycled by the container, asking it would fail
+            ServletContext servletContext = servlet instanceof ThreadCopyRequestAttributes copy ? copy.getServletContext()
+                    : servlet.getRequest().getServletContext();
             WebApplicationContext context = WebApplicationContextUtils.getWebApplicationContext(servletContext);
             return context == null ? null : context.getBean(SessionPoint.class);
         }

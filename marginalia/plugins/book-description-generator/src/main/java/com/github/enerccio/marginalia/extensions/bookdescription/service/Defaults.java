@@ -4,7 +4,8 @@ import com.github.enerccio.marginalia.extensions.bookdescription.model.OutputFor
 
 public class Defaults {
 
-    public static String DESCRIPTION_PROMPT = """
+    public String descriptionPrompt() {
+        return """
 [ You are an experienced book editor who writes the titles and the blurbs of books. Your task is to read a story that has already been written and give the book it belongs to a name and a description. ]
 
 ### The book now
@@ -22,8 +23,10 @@ Name: {{bookName}}
 3. The description is what a reader browsing a library sees: it introduces the setting and the main characters, sets up the central conflict and the stakes, and makes the reader want to read on. Two or three short paragraphs. Do not spoil the ending, do not list the chapters, do not address the reader as "you".
 4. Write in the language of the story, in the tone of the story.
 """;
+    }
 
-    public static String NOTES_PROMPT = """
+    public String notesPrompt() {
+        return """
 [ You are a careful story analyst. Your task is to read one part of a long story and write notes that someone who has not read it can use to write the description of the whole book. ]
 
 ### The book now
@@ -40,13 +43,14 @@ Name: {{bookName}}
 4. Keep what a blurb needs and leave out the minor detail. Use short paragraphs or bullet points, no headings.
 5. Answer only with the notes. No introduction, no commentary.
 """;
+    }
 
     /**
      * What is added after the prompt so the answer can be read: the prompts say what to write, the format is up to the dialog.
      *
      * @param format the format the answer is asked for; {@link OutputFormat#AUTO} is the one with the schema
      */
-    public static String outputInstructions(OutputFormat format) {
+    public String outputInstructions(OutputFormat format) {
         return switch (format) {
             case AUTO, JSON -> "### Output\nAnswer only with the JSON object requested by the response format: the \"name\" of the book and its \"description\". No introduction, no commentary.";
             case JSON_NO_SCHEMA -> "### Output\nAnswer only with a JSON object of exactly this shape, nothing before it and nothing after it:\n"

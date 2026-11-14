@@ -65,6 +65,14 @@
         <property name="repository" ref="usageRepository" />
     </bean>
 
+    <bean id="jobRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaJobRepository">
+        <property name="entityManager" ref="em"/>
+    </bean>
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.JobServiceImpl">
+        <property name="repository" ref="jobRepository" />
+    </bean>
+
     <bean id="manuscriptStatisticRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaManuscriptStatisticRepository">
         <property name="entityManager" ref="em"/>
     </bean>
@@ -210,6 +218,8 @@
     <bean class="com.github.enerccio.marginalia.domain.service.impl.RedraftServiceImpl" />
     <bean class="com.github.enerccio.marginalia.domain.service.impl.ImpersonateServiceImpl" />
     <bean class="com.github.enerccio.marginalia.domain.service.impl.AnnotateServiceImpl" />
+    <!-- the automatic annotation and redraft of a generated part: steps of what follows a generation -->
+    <bean class="com.github.enerccio.marginalia.ui.dialogs.story.AutoAnnotateSteps" />
     <bean class="com.github.enerccio.marginalia.domain.service.impl.PlannerServiceImpl" />
 
     <bean id="agentRepository" class="com.github.enerccio.marginalia.domain.repository.impl.JpaAgentRepository">
@@ -323,6 +333,8 @@
     <bean class="com.github.enerccio.marginalia.domain.service.impl.BackupServiceImpl" />
 
     <bean class="com.github.enerccio.marginalia.domain.service.impl.DatabaseBackupServiceImpl" />
+
+    <bean class="com.github.enerccio.marginalia.domain.service.impl.UpdateServiceImpl" />
 
     <bean class="com.github.enerccio.marginalia.domain.service.impl.ExporterServiceImpl" />
 

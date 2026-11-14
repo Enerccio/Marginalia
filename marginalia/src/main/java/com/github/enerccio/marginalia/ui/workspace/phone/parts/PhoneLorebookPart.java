@@ -25,6 +25,7 @@ public class PhoneLorebookPart implements WorkspaceComponent {
     private Localization loc;
 
     private final Workspace workspace;
+    @PublicAPI(from = "1.1.0", type = PhoneLorebookView.class)
     private PhoneLorebookView lorebookView;
 
     public PhoneLorebookPart(Workspace workspace) {

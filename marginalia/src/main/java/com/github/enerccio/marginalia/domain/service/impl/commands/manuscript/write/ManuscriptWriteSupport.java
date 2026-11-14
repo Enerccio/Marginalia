@@ -5,7 +5,6 @@ import com.github.enerccio.marginalia.domain.model.impl.AI;
 import com.github.enerccio.marginalia.domain.model.impl.Agent;
 import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
-import com.github.enerccio.marginalia.domain.service.AIGate;
 import com.github.enerccio.marginalia.domain.service.AgentService;
 import com.github.enerccio.marginalia.domain.service.CancellationToken;
 import com.github.enerccio.marginalia.domain.service.SummaryService.SummaryBlock;
@@ -38,9 +37,6 @@ public abstract class ManuscriptWriteSupport extends ManuscriptReadSupport {
 
     @Autowired
     protected TagService tagService;
-
-    @Autowired
-    protected AIGate aiGate;
 
     @Autowired
     protected AgentService agentService;
@@ -194,29 +190,6 @@ public abstract class ManuscriptWriteSupport extends ManuscriptReadSupport {
                 throw cause instanceof Exception exception ? exception : e;
             }
         }
-    }
-
-    /**
-     * A place at the AI for the request a command of an agent makes with it (the cap of the AI, see {@link AIGate}); to be
-     * closed when the request is over. The user at the command bar and an AI that is not known get none to wait for.
-     *
-     * @throws CancellationException when the command was stopped while it waited
-     */
-    protected AIGate.Permit placeAt(CommandContext context, AI ai) throws Exception {
-        if (ai == null || context.getScope().getRun() == null) {
-            return () -> {
-            };
-        }
-        CompletableFuture<AIGate.Permit> place = aiGate.acquire(ai);
-        if (!place.isDone()) {
-            context.setStatus(loc.getValue(L.MSG_COMMAND_WAITING_FOR_MODEL));
-        }
-        AIGate.Permit permit = await(context, place, null);
-        if (permit == null) {
-            place.cancel(true);
-            throw new CancellationException(loc.getValue(L.ERROR_COMMAND_GENERATION_CANCELLED));
-        }
-        return permit;
     }
 
     /**

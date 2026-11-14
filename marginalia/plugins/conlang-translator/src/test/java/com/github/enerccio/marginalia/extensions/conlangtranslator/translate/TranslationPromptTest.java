@@ -1,11 +1,11 @@
 package com.github.enerccio.marginalia.extensions.conlangtranslator.translate;
 
-import com.github.enerccio.marginalia.extensions.translatorcommon.model.CharacterNote;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.model.Language;
-import com.github.enerccio.marginalia.extensions.translatorcommon.model.Speakers;
-import com.github.enerccio.marginalia.extensions.translatorcommon.model.SpeakersMode;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.translate.TranslationPrompt.Request;
 import com.github.enerccio.marginalia.extensions.conlangtranslator.translate.TranslationPrompt.Scene;
+import com.github.enerccio.marginalia.extensions.translatorcommon.model.CharacterNote;
+import com.github.enerccio.marginalia.extensions.translatorcommon.model.Speakers;
+import com.github.enerccio.marginalia.extensions.translatorcommon.model.SpeakersMode;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -124,5 +124,17 @@ class TranslationPromptTest {
         language.setHyphenStructural(true);
 
         assertTrue(TranslationPrompt.build(language, new Speakers(), PART, Scene.none(), 0).system().contains("A hyphen is a part of a word of this language"));
+    }
+
+    @Test
+    void aPartThatIsTranslatedAlreadyIsSaidSoInTheUserMessageAndNotInTheSystemMessage() {
+        Language language = TestLanguages.vrakht();
+        Request plain = TranslationPrompt.build(language, new Speakers(), PART, Scene.none(), 0);
+        Request partly = TranslationPrompt.build(language, new Speakers(), PART, Scene.none(), 0, true);
+
+        assertFalse(plain.user().contains("translated already"));
+        assertTrue(partly.user().contains("partly translated already"), partly.user());
+        assertTrue(partly.user().indexOf("partly translated") < partly.user().indexOf("PART:\n"));
+        assertEquals(plain.system(), partly.system(), "the system message stays the same, so it can be cached");
     }
 }

@@ -8,6 +8,8 @@
 //   POST /_queue   {"reply":"text","reasoning":"...","status":429,"message":"...","delayMs":0}   (one-shot, FIFO)
 //                  {"toolCalls":[{"name":"get_ui_state","arguments":{"path":""}}]}               the model calls functions
 //   POST /_mode    {"mode":"slow"|null}      rules can look at ctx.mode (e.g. to produce an error)
+//   POST /_pace    {"delayMs":3000,"chunkDelayMs":250}   every answer that sets neither waits / streams this slowly ({} = normal),
+//                                           to try by hand what happens while a model works (folding a window, a second tab, Stop)
 //   GET  /_log                              the last requests (messages flattened), newest last
 //   POST /_reset                            clears queue, mode and log
 import http from 'node:http';
@@ -23,6 +25,7 @@ fs.mkdirSync(path.dirname(logFile), { recursive: true });
 const MODELS = ['marginalia-demo-12b', 'marginalia-demo-reasoner', 'marginalia-demo-small'];
 let queue = [];
 let mode = null;
+let pace = {};
 let log = [];
 
 const flatten = c => typeof c === 'string' ? c
@@ -89,6 +92,7 @@ async function chat(req, res, body) {
   answer ??= { reply: 'The mock server has no rule for this request.', rule: '(default)' };
   console.log(`${new Date().toISOString()} chat ${body.model} stream=${ctx.stream} rule=${answer.rule ?? '(queued)'}`);
 
+  answer = { ...pace, ...answer };
   if (answer.delayMs) await sleep(answer.delayMs);
   if (answer.status) {
     return sendJson(res, answer.status, { error: { message: answer.message ?? 'error', type: 'server_error', code: null, param: null } });
@@ -184,7 +188,13 @@ http.createServer(async (req, res) => {
     }
     if (req.method === 'POST' && p === '/_queue') { queue.push(body); return sendJson(res, 200, { queued: queue.length }); }
     if (req.method === 'POST' && p === '/_mode') { mode = body.mode ?? null; return sendJson(res, 200, { mode }); }
-    if (req.method === 'POST' && p === '/_reset') { queue = []; mode = null; log = []; return sendJson(res, 200, {}); }
+    if (req.method === 'POST' && p === '/_pace') {
+      pace = {};
+      if (Number(body.delayMs) > 0) pace.delayMs = Number(body.delayMs);
+      if (Number(body.chunkDelayMs) > 0) pace.chunkDelayMs = Number(body.chunkDelayMs);
+      return sendJson(res, 200, pace);
+    }
+    if (req.method === 'POST' && p === '/_reset') { queue = []; mode = null; pace = {}; log = []; return sendJson(res, 200, {}); }
     if (req.method === 'GET' && p === '/_log') return sendJson(res, 200, log);
     sendJson(res, 404, { error: { message: 'unsupported ' + req.method + ' ' + p } });
   } catch (e) {

@@ -13,9 +13,12 @@ import com.github.enerccio.marginalia.extensions.lorebookvcs.service.LorebookVCS
 import com.github.enerccio.marginalia.extensions.lorebookvcs.ui.LoreEntryRevisionPanel;
 import com.github.enerccio.marginalia.extensions.lorebookvcs.ui.LorebookVCSGlobalPanel;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.components.LorebookEntryEditor;
 import com.github.enerccio.marginalia.ui.components.LorebookView;
 import com.github.enerccio.marginalia.ui.components.PhoneLorebookView;
+import com.github.enerccio.marginalia.ui.dialogs.LorebookEditorDialog;
 import com.github.enerccio.marginalia.utils.UIUtils;
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ComponentUtil;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -43,10 +46,14 @@ public class LorebookVCSExtension implements MarginaliaExtension {
     private final LorebookVCSService vcsService = new LorebookVCSService();
     private ExtensionDecorator viewCreateDecorator;
     private ExtensionDecorator detailLayoutDecorator;
+    private ExtensionDecorator editorListDecorator;
+    private ExtensionDecorator entryEditorDecorator;
 
     // the desktop LorebookView and the PhoneLorebookView
     private final Set<VerticalLayout> activeViews = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
     private final Set<VerticalLayout> activeDetailLayouts = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
+    // the panels in the full-screen lorebook editor: the history panel on its list tab, the revision bar of its entry tabs
+    private final Set<Component> activeEditorPanels = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
 
     @Override
     public void onExtensionLoad(Bundle bundle, OsgiService parentService, ExtensionService extensionService) {
@@ -141,6 +148,57 @@ public class LorebookVCSExtension implements MarginaliaExtension {
                     "createEntryDetailLayout"
             );
 
+            // the full-screen lorebook editor: the history of the lorebook above its list of entries
+            editorListDecorator = new ExtensionDecorator() {
+                @Override
+                public void onMethodEnter(Object instrumented, ExtendableMethodContext context) throws Exception {}
+
+                @Override
+                public void onMethodLeave(Object instrumented, ExtendableMethodContext context, Throwable throwing) throws Exception {
+                    if (instrumented instanceof LorebookEditorDialog dialog) {
+                        VerticalLayout list = context.getLocalVariable("list", VerticalLayout.class);
+                        if (list != null) {
+                            // an import changes the entries: the list and the open tabs show them again
+                            LorebookVCSGlobalPanel globalPanel = new LorebookVCSGlobalPanel(vcsService, dialog::getLorebook, dialog::refresh);
+                            list.addComponentAsFirst(globalPanel);
+                            activeEditorPanels.add(globalPanel);
+                        }
+                    }
+                }
+            };
+            extensionService.registerDecorator(editorListDecorator,
+                    "com.github.enerccio.marginalia.ui.dialogs.LorebookEditorDialog", "createList");
+
+            // and the revision bar of an entry under the header of its tab; the tab builds its content again when it
+            // reloads the entry (a revision applied), so the bar comes back with the entry as it is now
+            entryEditorDecorator = new ExtensionDecorator() {
+                @Override
+                public void onMethodEnter(Object instrumented, ExtendableMethodContext context) throws Exception {}
+
+                @Override
+                public void onMethodLeave(Object instrumented, ExtendableMethodContext context, Throwable throwing) throws Exception {
+                    if (instrumented instanceof LorebookEntryEditor editor) {
+                        HorizontalLayout header = context.getLocalVariable("header", HorizontalLayout.class);
+                        LorebookEntry entry = editor.getEntry();
+                        Lorebook lorebook = entry == null ? null : editor.getLorebook();
+                        if (header != null && lorebook != null) {
+                            LoreEntryRevisionPanel revPanel = new LoreEntryRevisionPanel(vcsService, lorebook, entry, () -> {
+                                LorebookEditorDialog dialog = editor.findAncestor(LorebookEditorDialog.class);
+                                if (dialog != null) {
+                                    dialog.reloadEntry(editor.getEntry());
+                                } else {
+                                    editor.reloadFromDatabase();
+                                }
+                            });
+                            int index = editor.indexOf(header);
+                            editor.addComponentAtIndex(index < 0 ? 0 : index + 1, revPanel);
+                            activeEditorPanels.add(revPanel);
+                        }
+                    }
+                }
+            };
+            extensionService.registerDecorator(entryEditorDecorator,
+                    "com.github.enerccio.marginalia.ui.components.LorebookEntryEditor", "build");
         } catch (Exception e) {
             // there may be no UI (loading at startup), the extension service logs it and skips the extension
             throw new IllegalStateException("Failed to load the Lorebook VCS extension", e);
@@ -195,6 +253,12 @@ public class LorebookVCSExtension implements MarginaliaExtension {
         if (detailLayoutDecorator != null) {
             extensionService.unregisterDecorator(detailLayoutDecorator);
         }
+        if (editorListDecorator != null) {
+            extensionService.unregisterDecorator(editorListDecorator);
+        }
+        if (entryEditorDecorator != null) {
+            extensionService.unregisterDecorator(entryEditorDecorator);
+        }
 
         // Remove the panels from the lorebook views of all users - change each one in its own session
         synchronized (activeViews) {
@@ -221,6 +285,13 @@ public class LorebookVCSExtension implements MarginaliaExtension {
                 });
             }
             activeDetailLayouts.clear();
+        }
+
+        synchronized (activeEditorPanels) {
+            for (Component panel : activeEditorPanels) {
+                UIUtils.accessComponent(panel, panel::removeFromParent);
+            }
+            activeEditorPanels.clear();
         }
     }
 }

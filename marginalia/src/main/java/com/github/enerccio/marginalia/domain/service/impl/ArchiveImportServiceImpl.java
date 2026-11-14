@@ -31,21 +31,23 @@ public class ArchiveImportServiceImpl implements ArchiveImportService {
 
     @Override
     @NoTx
-    public ImportResult<Manuscript> appendParts(Manuscript manuscript, MarkdownArchive.Content content, BooleanSupplier stopped,
-                                                Runnable onStored) throws Exception {
-        List<MarkdownArchive.Item> items = content.items();
-        // every createPart is a transaction of its own and stores the part as the active leaf of the book
-        ChatMessage last = manuscript.getActiveLeaf();
+    public ImportResult<Manuscript> insertParts(Manuscript manuscript, Insertion place, List<String> texts, RevisionDetail source,
+                                                BooleanSupplier stopped, Runnable onStored) throws Exception {
+        // every part is a transaction of its own; at the end a part is stored as the active leaf of the book, in the middle the
+        // part is put between two parts and what followed the place follows it, so the next part goes after this one
+        RevisionOrigin origin = RevisionOrigin.human(source, false).uncounted();
+        ChatMessage last = place.end() ? manuscript.getActiveLeaf() : place.after();
         int imported = 0;
-        for (MarkdownArchive.Item item : items) {
+        for (String text : texts) {
             if (stopped.getAsBoolean()) {
                 break;
             }
-            last = chatMessageService.createPart(manuscript, last, item.text(), null, RevisionOrigin.human(RevisionDetail.ARCHIVE_IMPORT, false).uncounted());
+            last = place.end() ? chatMessageService.createPart(manuscript, last, text, null, origin)
+                    : chatMessageService.insertPart(manuscript, last, text, null, origin);
             imported++;
             onStored.run();
         }
-        return new ImportResult<>(manuscriptService.find(manuscript), imported, items.size());
+        return new ImportResult<>(manuscriptService.find(manuscript), imported, texts.size());
     }
 
     @Override

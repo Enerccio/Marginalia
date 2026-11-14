@@ -28,7 +28,9 @@ public class NewTurnForm implements Restorable {
     private final Localization loc;
 
     private TextArea sceneSettingField;
+    @PublicAPI(from = "1.2.0", type = TextField.class)
     private TextField povCharacterField;
+    @PublicAPI(from = "1.2.0", type = TextArea.class)
     private TextArea presentCharactersField;
     private TextArea instructionsField;
     private Button generateButton;

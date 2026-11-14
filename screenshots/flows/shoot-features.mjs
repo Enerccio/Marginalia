@@ -8,8 +8,26 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {execFileSync} from 'node:child_process';
 import {
-  bookListMenu, bookTab, CONTENT, dialog, fill, idle, llm, login, main, menuItem, openBook, openTab, pick, press, root, section,
-  sleep, snap, snapDialog, snapPopover
+    bookTab,
+    CONTENT,
+    dialog,
+    fill,
+    idle,
+    llm,
+    login,
+    main,
+    menuItem,
+    openBook,
+    openImport,
+    openTab,
+    pick,
+    press,
+    root,
+    section,
+    sleep,
+    snap,
+    snapDialog,
+    snapPopover
 } from '../lib/shot.mjs';
 import {clickCogs, clickPlus, partAction, parts, sideTab} from '../lib/story.mjs';
 import {CHAT_FILE} from '../dataset/stchat.mjs';
@@ -258,9 +276,7 @@ await main(async ({ page }) => {
 
   await section(page, 'sillytavern-import', async () => {
     await openTab(page, 'Books');
-    await bookListMenu(page, 'Import', 'Import from SillyTavern');
-    await idle(page, 800);
-    const d = dialog(page);
+    const d = await openImport(page, 'Import from SillyTavern');
     await d.locator('vaadin-upload input[type=file]').setInputFiles(path.join(root, 'dataset/build', CHAT_FILE));
     await idle(page, 2500);
     await snapDialog(page, 'sillytavern-import');

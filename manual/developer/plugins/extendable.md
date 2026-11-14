@@ -1,7 +1,7 @@
 ---
 label: "@Extendable hooks"
 order: 90
-verified: 85a73bd53
+verified: 8095daeae
 covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/instruct
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/ExtensionService.java
@@ -15,23 +15,47 @@ covers:
 Most of what a plugin does starts with a **decorator**: an object whose `onMethodEnter` and `onMethodLeave` run
 before and after a method of an application class. Any method of a class annotated `@Extendable` can be decorated,
 private ones included, and the decorator can read the method's arguments and local variables and change what
-the method returns. This page explains how that works and how to use it. The signature of every such method is declared in the source with
+the method returns. This page explains how that works and how to use it. The signature of every such method, and the fields a plugin reads, are declared in the source with
 [`@PublicAPI`](#the-public-api), which is what plugins can rely on.
 
 ## Instrumentation
 
 ```mermaid
 flowchart LR
-    Init["RuntimeInstrumentationInitializer<br/>(Spring bean, at startup)"] -->|ByteBuddyAgent.install| Agent["agent"]
-    Agent -->|"classes annotated @Extendable<br/>in com.github.enerccio.*"| Vis["ExtendableMethodVisitor<br/>rewrites each method"]
+    Build["BuildTimeWeaver<br/>(Maven, process-classes)"] -->|"@Extendable classes<br/>of target/classes"| Vis["ExtendableMethodVisitor<br/>rewrites each method"]
+    Init["RuntimeInstrumentationInitializer<br/>(agent, development runs only)"] -->|"@Extendable classes<br/>without @Woven"| Vis
     Vis --> Code["instrumented method"]
     Code -->|enter / leave| Holder["ExtensionServiceHolder"] --> ES["ExtensionServiceImpl<br/>decorators by class + method name"]
 ```
 
-`RuntimeInstrumentationInitializer` installs a ByteBuddy agent into the running JVM when the Spring context starts.
-The agent transforms every class annotated `@Extendable` whose name starts with `com.github.enerccio` - classes
-loaded later when they are loaded, classes already loaded by retransformation. Only method bodies change; the class
-keeps its fields and methods (`disableClassFormatChanges`), which is what makes retransformation possible.
+The hooks get into a class in one of two ways, both with the same rewriting (`ExtendableWeaving`):
+
+- **At build time.** The Maven build runs `BuildTimeWeaver` on `target/classes` after the AspectJ compiler
+  (`weave-extendable`, phase `process-classes`). It rewrites every class that declares `@Extendable`, in place, and
+  marks it with `@Woven` (package `instruct`; never written in the sources). A class with the mark is skipped, so the
+  step can run again on a folder where only some classes were compiled anew. This is what the WAR, the Docker image and
+  the desktop app contain: **the packaged application starts without an agent** and needs no JVM option for it.
+- **By the agent, as a fallback of development runs.** A class compiled by the IDE, or swapped into a running JVM,
+  is not woven. So where the application does not run from the packaged WAR (`mvn jetty:run`, the IDE),
+  `RuntimeInstrumentationInitializer` installs a ByteBuddy agent into the running JVM when the Spring context starts.
+  The agent transforms every class annotated `@Extendable` and not `@Woven` whose name starts with
+  `com.github.enerccio` - classes loaded later when they are loaded, classes already loaded by retransformation. A
+  `target/classes` where the IDE compiled a few classes over a Maven build is handled class by class. If the JVM
+  refuses the agent, the start goes on and an error in the log says that the unwoven classes have no hooks.
+
+The packaged WAR says that it was woven with the resource `META-INF/build-info/woven.properties`
+(`src/main/resources-release`, like the release `logback.xml`). It is not trusted blindly: at start the class files
+of `WEB-INF/classes` are checked (`ExtendableWeaving.unwovenClasses`, headers only), and if an `@Extendable` class
+has no mark - an exploded WAR put together by the IDE can carry the resource over classes the IDE compiled - the
+agent is installed after all, with a warning in the log. The system property `marginalia.extendable.agent`
+overrules both (`true` installs the agent in the packaged application too, `false` never installs it). The weaver only
+sees the classes of the application: an extension that has `@Extendable` classes of its own gets hooks only with
+`-Dmarginalia.extendable.agent=true` (plus the [JVM options](../building.md#jvm-options) of the agent).
+
+Only method bodies change; the class keeps its fields and methods, which is what makes retransformation by the agent
+possible (`disableClassFormatChanges`). The hooks find the service through `ExtensionServiceHolder`, where the
+`ExtensionServiceImpl` of the running Spring context binds itself; without a service (plain unit tests) an
+instrumented method runs as if it had no hooks.
 
 `ExtendableMethodVisitor` rewrites every method that is not a constructor, not static and not synthetic (lambda
 bodies are synthetic). In pseudo-code, an instrumented method looks like this:
@@ -71,8 +95,8 @@ missing, arguments are called `arg0`, `arg1`... and locals `var<slot>`.
 
 ## The public API
 
-Everything a decorator can name - the class, the method, its arguments, its local variables - is a promise the
-application makes to the plugins. Every instrumented method of an `@Extendable` class (not a constructor, not static,
+Everything a decorator can name - the class, the method, its arguments, its local variables, the fields it reads - is a
+promise the application makes to the plugins. Every instrumented method of an `@Extendable` class (not a constructor, not static,
 not synthetic, with a body - the methods that can be decorated) therefore declares its signature with `@PublicAPI`
 (`domain.traits`):
 
@@ -98,14 +122,34 @@ like the others where a class overrides them, and a plugin can decorate them to 
 Types are class literals, so a refactoring that renames or moves a class in the IDE updates them too. They are erased
 (`List.class` for `List<String>`).
 
-**What counts as a change.** Renaming or retyping an argument or a local variable, adding or removing one, changing
-the return type, renaming or removing the method, or moving it to another class (a decorator registered for the old
-class and name is never called) can break a plugin. Adding a method does not, and neither does changing the body in a
-way that keeps the arguments, the locals and what they hold. For each change that can be seen:
+**Fields.** The same annotation goes on a field a plugin reads or writes with `getReflectiveFieldValue` /
+`setReflectiveFieldValue` (`sidebarList`, `leftBar`, `userSetting`...), with the type instead of the signature:
+
+```java
+@PublicAPI(from = "1.3.0", type = TabDock.class)
+private TabDock leftBar;
+```
+
+`type` is the erased declared type of the field (`boolean.class` for a primitive), `from` the first version in which
+the field has that name and type. Fields are **opt-in**: the `@Extendable` classes have about two thousand fields and
+almost all are private details, so only a field a plugin uses is declared, and what is declared is a promise like a
+method. It goes only on instance fields of an `@Extendable` class. The outer instance `this$0` of an inner class is
+compiler-generated and cannot carry an annotation; it exists as long as the inner class is not `static`.
+
+So when a plugin starts to read another field of the application, declare it (the field's class, name and type are in
+the table of [extension points](#extension-points)); a field a plugin reads that is
+not declared can be renamed by the next refactoring without anything failing.
+
+**What counts as a change.** Renaming or retyping an argument, a local variable or a declared field, adding or
+removing one, changing the return type, renaming or removing the method or the field, or moving it to another class (a
+decorator registered for the old class and name is never called) can break a plugin. Adding a method does not, and
+neither does changing the body in a way that keeps the arguments, the locals and what they hold. For each change that
+can be seen:
 
 1. update the annotation (see below) and set `from` to the current version of the project (`pom.xml`);
 2. search `marginalia/plugins/` for the class, method and variable names and fix the plugins;
-3. mention it in the release notes.
+3. mention it in the release notes: `python3 tools/plugin_api_diff.py <last release tag> --changelog` writes the list
+   from the annotations (see below).
 
 A new method starts with the current version in `from`. The methods that existed in 1.1.0 (the same class, name and
 argument names) were given `"1.1.0"` when the annotation was introduced; the local variables were not compared with 1.1.0.
@@ -115,20 +159,34 @@ ByteBuddy - the type pool, so nothing is loaded - and the local variable table, 
 
 - an instrumented method has no `@PublicAPI`;
 - the annotation differs from the compiled method (name or type of an argument, return type, a local that is missing,
-  extra or of another type);
+  extra or of another type), or the type of a declared field is not the compiled one;
 - a class is compiled without parameter names (`-parameters`), so the names would be `arg0`...;
 - `from` is not `major.minor.patch`, or the annotation is on a method that is not instrumented (a constructor, a static
-  or abstract method) or in a class that is not `@Extendable`.
+  or abstract method), on a static field, or in a class that is not `@Extendable`.
 
-The message names the method and prints the annotation to write, so after changing a method you run the test, paste
+The message names the method or field and prints the annotation to write, so after changing a method you run the test, paste
 what it says and review the difference - that difference is exactly the change a plugin would see. Methods that
 AspectJ adds to the `@Configurable` classes (`readResolve()`) have no source and are skipped.
 
-!!!
-`@PublicAPI` describes methods only. The fields a plugin reads with `getReflectiveFieldValue` (such as `sidebarList`
-or `this$0`) are not declared, so check `marginalia/plugins/` before renaming or retyping a field of an `@Extendable`
-class.
-!!!
+**The diff between two versions.** `tools/plugin_api_diff.py` reads the `@Extendable` classes and their `@PublicAPI`
+annotations straight from git (a tag, a branch or a commit; no checkout, no build) and lists what a plugin can notice:
+classes that stopped being `@Extendable` or moved, methods removed (a decorator for them never runs again), methods
+whose return type, arguments or locals changed, declared fields that were removed or retyped, and the methods, fields
+and classes that were added.
+
+```sh
+python3 tools/plugin_api_diff.py v1.7.0                 # v1.7.0 -> HEAD
+python3 tools/plugin_api_diff.py v1.6.0 v1.7.0          # two revisions
+python3 tools/plugin_api_diff.py v1.7.0 --worktree      # v1.7.0 -> the files on disk, uncommitted work included
+python3 tools/plugin_api_diff.py v1.7.0 --breaking      # only what can break a plugin
+python3 tools/plugin_api_diff.py v1.7.0 --changelog     # Markdown for the CHANGELOG
+python3 tools/plugin_api_diff.py v1.7.0 --check         # exit code 1 when something was removed or changed
+python3 tools/plugin_api_diff.py v1.7.0 --check-from    # exit code 1 when `from` was not raised for a change
+```
+
+`--check-from` compares `from` of every added or changed method, and of every changed field, with the version of the
+old revision: a change whose `from` is not newer was not given the version that contains it. Before 1.2.0 there is no
+`@PublicAPI`, so such a revision only has a list of classes.
 
 ## Registering a decorator
 
@@ -269,7 +327,8 @@ hook for what you want to do:
 2. Find the method that builds or refreshes it - preferably one that runs every time the component is (re)built, so
    that your change is applied again.
 3. Find how to reach the component: a local variable of that method (`getLocalVariable`), a field
-   (`getReflectiveFieldValue`), or the method's arguments.
+   (`getReflectiveFieldValue`; if the field is not yet declared with [`@PublicAPI`](#the-public-api), declare it), or
+   the method's arguments.
 4. Decide on enter or leave: almost always `onMethodLeave`, when the component exists. `onMethodEnter` is for
    reading state the method is about to overwrite, or replacing arguments - the bundled plugins save their settings
    in `UserPart.save`'s *enter*, so that the application's own `settingService.save(userSetting)` in the body
@@ -290,12 +349,14 @@ Methods the bundled plugins use, as examples:
 | `ManuscriptStoryPart$ChatMessageCard` | `refreshSummaryMenuItems()` | fields `hamburgerMenu`, `message` | Runs each time the menu of the part is about to open, after it reloaded `message` (before the registry refreshes its items). |
 | `ManuscriptStoryPart$ChatMessageCard` | `autosaveAndSwapToMarkdown()` | fields `message`, `this$0` (the outer `ManuscriptStoryPart`) | React to an edited part (Chapter Marker). |
 | `ManuscriptStoryPart$ChatMessageCard` | `saveEdit()` (from 1.7.0) | field `message` | The author finished editing a part. Asks first when the new text would make summaries outdated (back to the editor, save anyway, save and revalidate); the save itself is `autosaveAndSwapToMarkdown()` after it. |
-| `AutoAnnotate` | `finished(part)` (from 1.7.0) | argument `part`; field `manuscript` (private) | Nothing more will happen to a generated part by itself: at once when the book has no automatic annotation, else after the notes were added and, with the redraft on, after it was applied. Not called when the author closes a window of the run. Read the final text of the new part (Knowledge Tracker). |
+| `AutoAnnotate` | `finished(part)` (from 1.7.0, **deprecated** in 1.8.0) | argument `part`; field `manuscript` (private) | The text of a generated part is final: called in the page that generated (not when it is gone) once the steps of [what follows the part](after-part.md) that change the text are over, at once when there are none; not when they were stopped or failed. Replaced by a binding to a stage (`EXTRACT`, `MEDIA`), which also runs without a page; the four bundled plugins moved to bindings. `AutoAnnotate.run` is deprecated too: nothing calls it. |
 | `ManuscriptStoryPart$ChatMessageCard` | `openHistory()` / `getHistoryCount()` / `comparePrompt()` (from 1.6.0) | field `message` | Open the [version history](../version-history.md) of the part / the number in the label of its menu item. |
 | `UserPart` | `refresh()` / `save()` | fields `extensionSettings`, `userSetting` | Add a settings panel; save its values (Reviewer, Side Query, Lore Generator). |
 | `LorebookView` | `create()` | local `lorebookHeaderLayout`; field `grid` | Add a panel above the lorebook header (Lorebook VCS); add a column to the entry grid (Lore Generator). |
 | `LorebookPart` | `refresh()` | field `lorebookView` | Reach the view of the workspace tab, which was built when the page opened (Lore Generator). |
 | `LorebookView` | `createEntryDetailLayout(entry)` | argument `entry`; local `detailsLayout` | Add a panel to each entry's details (Lorebook VCS). |
+| `LorebookEditorDialog` | `createList()` | local `list`; field `grid`; `getLorebook()`, `lorebookOf(entry)`, `getBook()`, `getOrigin()`, `refresh()`, `reloadEntry(entry)` | Add a panel above the list of the full-screen editor (Lorebook VCS); add a column to its grid (Lore Generator). |
+| `LorebookEntryEditor` | `build()` | local `header`; `getEntry()`, `getLorebook()`, `reloadFromDatabase()` | Add a bar under the header of an entry tab (Lorebook VCS) or a button into it (Lore Generator); built once per tab, a reload keeps it. |
 | `DesktopWorkspace`, `PhoneWorkspace`, `AdminPart`, `ManuscriptDialog`, `PhoneManuscriptDialog` | `getLLMState()` / `getInteraction()` | `getCurrentReturn` / `setCurrentReturn` | Tell the help assistant about what the plugin added to the screen, or let it open it. Not used by a bundled plugin yet. `AdminPart` is created only for administrators (`DesktopWorkspace.create()`), so it is decorated only on their pages. |
 | `UserPart` (and `PhoneSettingsPart`), `AIPart`, `ProtocolPart`, `ManuscriptPart` and their phone versions | `getLLMState()` / `getInteraction()` | `getCurrentReturn` / `setCurrentReturn` | The same for the settings tabs and the lists of models, protocols and books (`open-tab:`, `open-dialog:`). Not used by a bundled plugin yet. |
 | `AIDialog` | `getLLMProblems()` | `getCurrentReturn` / `setCurrentReturn` | Add what a plugin's own checks find wrong with the form (a list of lines, never a value). Not used by a bundled plugin yet. |
@@ -395,6 +456,13 @@ Checked decorators (2):
   opens it. An upload that is invalid is rejected like one that fails to start: its JAR is deleted, the replaced version
   is put back and the report is shown to the administrator. A verification that can't be done (an unreadable JAR) fails
   the extension too.
+- An extension built for another version that passes the verification can still name something this version doesn't
+  have (a removed `L` key, a renamed method): the JVM throws a `LinkageError` (`NoSuchFieldError`, `NoSuchMethodError`,
+  `NoClassDefFoundError`) when that code first runs, usually in `onExtensionLoad` or in its localization bundles. Such an
+  `Error` would pass every `catch (Exception)` up to the start of the application, so `startBundle` catches it, stops
+  the bundle and turns it into a failed verification: it writes a `.invalid` report with the error and throws
+  `ExtensionVerificationException`. The extension then fails alone, and stays unstarted until the JAR or the
+  application changes.
 - Unloading an extension deletes its reports with the JAR.
 
 Verification can't know about everything: a warning is not a failure, and an extension with no errors can still break

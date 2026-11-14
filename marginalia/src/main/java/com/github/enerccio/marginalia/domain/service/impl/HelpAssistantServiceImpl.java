@@ -21,6 +21,7 @@ import com.github.enerccio.marginalia.domain.service.manual.*;
 import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
 import com.github.enerccio.marginalia.domain.traits.NoTx;
+import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.components.ThreadCopyRequestAttributes;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,6 +53,9 @@ public class HelpAssistantServiceImpl implements HelpAssistantService {
 
     @Autowired
     private ManualService manualService;
+
+    @Autowired
+    private Localization localization;
 
     @Autowired
     private User currentUser;
@@ -165,14 +169,16 @@ public class HelpAssistantServiceImpl implements HelpAssistantService {
         // the books of the user: only when they turned it on, what is read goes to the AI of the administrator
         boolean books = isBooksAllowed();
         List<LLMChatMessage> payload = new ArrayList<>();
-        payload.add(LLMChatMessage.of(LLMRole.SYSTEM, instructions() + HelpPrompts.PROBLEMS
+        // the manual the model reads is in the language of the user's page, with the links of that language's site
+        String language = localization.getCurrentLanguage().code();
+        payload.add(LLMChatMessage.of(LLMRole.SYSTEM, instructions(language) + HelpPrompts.PROBLEMS
                 + (interactive ? HelpPrompts.INTERACTIVE : "") + (adminData ? HelpPrompts.ADMIN_DATA : "")
                 + (books ? HelpPrompts.BOOKS : "")));
         payload.addAll(history);
         FunctionRegistry registry = inferenceServices.getFunctionRegistry();
         FunctionSet tools = interactive
-                ? registry.bind(InteractiveHelpTools.class, new InteractiveHelpToolsImpl(manualService, uiState))
-                : registry.bind(HelpTools.class, new HelpToolsImpl(manualService, uiState));
+                ? registry.bind(InteractiveHelpTools.class, new InteractiveHelpToolsImpl(manualService, language, uiState))
+                : registry.bind(HelpTools.class, new HelpToolsImpl(manualService, language, uiState));
         if (adminData) {
             AdminDataSource data = new HelpAdminData(adminGuard, osgiService, userService, databaseBackupService,
                     cleanupService, ThreadCopyRequestAttributes.create());
@@ -192,19 +198,19 @@ public class HelpAssistantServiceImpl implements HelpAssistantService {
 
     /**
      * The prompt for the current user (administrators have their own, an administrator can change both) with the
-     * index of the manual in place of {@code {{manualIndex}}}.
+     * index of the manual (in the language of the user, a page that is not translated in English) in place of {@code {{manualIndex}}}.
      */
-    private String instructions() throws Exception {
+    private String instructions(String language) throws Exception {
         boolean administrator = adminGuard.isAdmin();
         AppSettings app = settingService.getOrCreateApp(AppSettings.class);
         String stored = administrator ? app.getHelpPromptAdmin() : app.getHelpPromptUser();
         String prompt = StringUtils.isBlank(stored) ? HelpPrompts.defaultPrompt(administrator) : stored;
-        return prompt.replace(HelpPrompts.MANUAL_INDEX, manualIndex());
+        return prompt.replace(HelpPrompts.MANUAL_INDEX, manualIndex(language));
     }
 
-    private String manualIndex() {
+    private String manualIndex(String language) {
         StringBuilder sb = new StringBuilder();
-        for (ManualPage page : manualService.listPages()) {
+        for (ManualPage page : manualService.listPages(language)) {
             String description = page.description().length() > 110 ? page.description().substring(0, 110) + "..." : page.description();
             sb.append("- ").append(page.path()).append(": ").append(page.title());
             if (!description.isEmpty()) {

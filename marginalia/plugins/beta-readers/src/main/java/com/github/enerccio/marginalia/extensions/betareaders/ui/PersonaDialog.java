@@ -2,16 +2,14 @@ package com.github.enerccio.marginalia.extensions.betareaders.ui;
 
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.domain.service.CancellationToken;
+import com.github.enerccio.marginalia.domain.service.run.Runs;
 import com.github.enerccio.marginalia.extensions.betareaders.BetaReadersExtension;
 import com.github.enerccio.marginalia.extensions.betareaders.model.Persona;
 import com.github.enerccio.marginalia.extensions.betareaders.service.NoModelException;
 import com.github.enerccio.marginalia.extensions.betareaders.service.PersonaIcons;
 import com.github.enerccio.marginalia.extensions.betareaders.service.PersonaWriter;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
-import com.github.enerccio.marginalia.ui.widgets.DesktopNotifier;
-import com.github.enerccio.marginalia.ui.widgets.DialogFocus;
-import com.github.enerccio.marginalia.ui.widgets.DialogShortcuts;
-import com.github.enerccio.marginalia.ui.widgets.Notification;
+import com.github.enerccio.marginalia.ui.widgets.*;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -52,6 +50,7 @@ public class PersonaDialog extends Dialog {
     private final TextArea brief = new TextArea(T.localized(WHAT_THE_PERSONA_IS_LIKE));
     private final Button write = new Button(T.localized(WRITE_WITH_THE_MODEL), Solid.WAND_MAGIC_SPARKLES.create());
     private CancellationToken running;
+    private final FloatingWindow floating;
     private final Image preview = new Image();
     private Button removeIcon;
     private String icon;
@@ -84,6 +83,9 @@ public class PersonaDialog extends Dialog {
         setMaxWidth("96vw");
         setMaxHeight("90vh");
         setCloseOnOutsideClick(false);
+        setCloseOnEsc(false);
+        // not modal: closing it while the model writes folds it into the corner; closed for good, it stops the model
+        floating = new FloatingWindow(this, BetaReadersExtension.NOTIFY_PERSONA, () -> header, this::stopWriting);
 
         name.setRequiredIndicatorVisible(true);
         name.setWidthFull();
@@ -127,6 +129,12 @@ public class PersonaDialog extends Dialog {
         return writer;
     }
 
+    private void stopWriting() {
+        if (running != null) {
+            running.cancel();
+        }
+    }
+
     private void writeOrStop() {
         if (running != null) {
             running.cancel();
@@ -139,6 +147,7 @@ public class PersonaDialog extends Dialog {
         UI ui = UI.getCurrent();
         try {
             setWriting(true);
+            try (Runs.Binding _ = floating.bind()) {
             running = generator.start(brief.getValue(), takenNames.get(), outcome -> {
                 if (UI.getCurrent() == ui) {
                     written(outcome);
@@ -149,6 +158,7 @@ public class PersonaDialog extends Dialog {
                     });
                 }
             });
+            }
         } catch (Exception e) {
             setWriting(false);
             Notification.warning(e instanceof NoModelException ? T.localized(THERE_IS_NO_MODEL)
@@ -183,6 +193,7 @@ public class PersonaDialog extends Dialog {
     }
 
     private void setWriting(boolean value) {
+        floating.setRunning(value);
         write.setText(value ? T.localized(STOP) : T.localized(WRITE_WITH_THE_MODEL));
         write.setIcon(value ? Solid.STOP.create() : Solid.WAND_MAGIC_SPARKLES.create());
         brief.setReadOnly(value);
@@ -252,6 +263,7 @@ public class PersonaDialog extends Dialog {
         persona.setDescription(StringUtils.defaultString(description.getValue()));
         persona.setIcon(icon);
         onSaved.run();
-        close();
+        // saved: what the model still writes is not wanted
+        floating.closeForGood();
     }
 }

@@ -1357,6 +1357,121 @@ class TabDockTest extends MarginaliaTestBase {
         assertThat(dock.isMinimized(LOREBOOK)).isFalse();
     }
 
+    // ---- closing
+
+    @Test
+    void aClosableTabHasACloseButtonInsteadOfMinimizing() throws Exception {
+        login();
+        TabDock dock = dock("a", "b");
+        dock.setClosable("b", true);
+
+        assertThat(dock.isClosable("b")).isTrue();
+        assertThat(dock.minimize("b")).isFalse();
+        List<Button> visible = descendants(tab(dock, "B"), Button.class).stream().filter(Button::isVisible).toList();
+        assertThat(visible).hasSize(1);
+        // A keeps its minimize button only
+        assertThat(descendants(tab(dock, "A"), Button.class)).hasSize(1);
+
+        dock.setClosable("b", false);
+        assertThat(descendants(tab(dock, "B"), Button.class).get(0).isVisible()).isTrue();
+        assertThat(dock.minimize("b")).isTrue();
+    }
+
+    @Test
+    void closingRemovesTheTabAndItsPlaceInTheLayout() throws Exception {
+        login();
+        TabDock dock = dock("a", "b", "c");
+        dock.setLayout(columns("\"a\"", null, "\"b\"", "\"c\""));
+        dock.setClosable("b", true);
+        List<String> closed = new java.util.ArrayList<>();
+        List<JsonObject> changes = new java.util.ArrayList<>();
+        dock.setOnClose(closed::add);
+        dock.setOnLayoutChange(() -> changes.add(dock.getLayout()));
+
+        click(visibleButton(tab(dock, "B")));
+
+        assertThat(closed).containsExactly("b");
+        assertThat(changes).hasSize(1);
+        assertThat(dock.getLayout()).isEqualTo(columns("\"a\"", null, "\"c\""));
+        assertThat(captions(sheets(dock).get(1))).containsExactly("C");
+        // added again it is a new tab, in the first sheet
+        dock.add("b", "B", new Div());
+        assertThat(captions(sheets(dock).get(0))).containsExactly("A", "B");
+    }
+
+    @Test
+    void closingTheLastTabOfASheetDropsTheSheet() throws Exception {
+        login();
+        TabDock dock = dock("a", "b");
+        dock.setLayout(columns("\"a\"", null, "\"b\""));
+        assertThat(columnBoxes(dock)).hasSize(2);
+
+        assertThat(dock.close("b")).isTrue();
+
+        assertThat(columnBoxes(dock)).hasSize(1);
+        assertThat(dock.getLayout()).isEqualTo(layout("\"a\""));
+        assertThat(dock.close("b")).isFalse();
+    }
+
+    @Test
+    void aMinimizedTabThatBecomesClosableComesBack() throws Exception {
+        login();
+        TabDock dock = dock("a", "b");
+        dock.minimize("b");
+        assertThat(bar(dock).isVisible()).isTrue();
+
+        dock.setClosable("b", true);
+
+        assertThat(dock.isMinimized("b")).isFalse();
+        assertThat(bar(dock).isVisible()).isFalse();
+        assertThat(captions(sheets(dock).get(0))).containsExactly("A", "B");
+    }
+
+    @Test
+    void aTabOfANotDetachableDockCanBeClosable() throws Exception {
+        login();
+        TabDock dock = new TabDock(false);
+        dock.setClosable("a", true);
+        dock.add("a", "A", new Div());
+        dock.add("b", "B", new Div());
+
+        assertThat(descendants(dock, Button.class)).hasSize(1);
+        click(descendants(dock, Button.class).get(0));
+        assertThat(captions(sheets(dock).get(0))).containsExactly("B");
+    }
+
+    @Test
+    void theCaptionChangesAndKeepsTheButton() throws Exception {
+        login();
+        TabDock dock = dock("a", "b");
+        dock.setClosable("b", true);
+
+        assertThat(dock.setCaption("b", "Renamed")).isTrue();
+
+        Tab tab = tab(dock, "Renamed");
+        assertThat(visibleButton(tab)).isNotNull();
+        click(visibleButton(tab));
+        assertThat(captions(sheets(dock).get(0))).containsExactly("A");
+        assertThat(dock.setCaption("b", "Gone")).isFalse();
+    }
+
+    @Test
+    void closeButtonsAreFrozenWithTheTabs() throws Exception {
+        login();
+        TabDock dock = dock("a", "b");
+        dock.setClosable("b", true);
+        Button close = visibleButton(tab(dock, "B"));
+
+        dock.setTabsEnabled(false, "a");
+        assertThat(close.isEnabled()).isFalse();
+        dock.setTabsEnabled(true, null);
+        assertThat(close.isEnabled()).isTrue();
+    }
+
+    private static Button visibleButton(Tab tab) {
+        return descendants(tab, Button.class).stream().filter(Button::isVisible).findFirst().orElseThrow();
+    }
+
     /**
      * The content of a dialog is not in the UI in the test, the drag and drop events need it: the dock is moved there.
      */

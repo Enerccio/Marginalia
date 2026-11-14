@@ -131,10 +131,10 @@ The story tab is one column of parts. The differences from the [story editor](bo
 
 - The **outline** (and the tabs extensions add next to it, such as the [Author's Note](extensions/authors-note.md))
   is in a **drawer**. Open it with the button at the top left.
-- The **Summaries** button and the settings menu (⚙, with *Change Styles For Text*, *Search and replace*, *Import from archive*, *Mass delete* and *Export story*) are in the top bar, not
+- The **Summaries** button and the settings menu (⚙, with *Change Styles For Text*, *Search and replace*, *Import*, *Mass delete* and *Export story*) are in the top bar, not
   at the bottom.
 - The **+** button for a new part is at the bottom.
-- The **Summaries** window has its menu bar (*Search and replace*, *Resummarize all summaries*, *Export Summaries*, *Import Summaries*) in a row of its own;
+- The **Summaries** window has its menu bar (*Search and replace*, *Create summaries...*, *Resummarize all summaries*, *Export Summaries*, *Import Summaries*) in a row of its own;
   on a narrow screen the items are behind the **⋯** button. [Importing summaries](books/summaries.md#export-and-import-of-the-summaries)
   is the same window as on the desktop, in the width of the screen.
 
@@ -164,7 +164,7 @@ The story tab is one column of parts. The differences from the [story editor](bo
 ## Administration
 
 An administrator has the tab **Admin** in the drawer, with the same tabs as the [desktop page](administration/index.md) in a row you scroll sideways:
-*Users*, *Database Backups*, *Cleanup*, *Resource Files*, *Help assistant*, *Agents* and *Extensions*. The lists (users, backups, extensions) are
+*Users*, *Database Backups*, *Cleanup*, *Resource Files*, *Help assistant*, *Agents*, *Update* and *Extensions*. The lists (users, backups, extensions) are
 cards with their buttons under the text, and the toolbars wrap onto a second line. Installing an extension (*Load Extension*) and uploading a database backup open the file chooser of the phone. Other users do not get the tab.
 
 ![The users of the Admin tab on a phone](../images/phone-admin-users.png)
@@ -198,7 +198,7 @@ Marginalia:
 | [Chapter Marker](extensions/chapter-marker.md) | Works. Chapter titles are in the outline drawer. |
 | [Character Tracker](extensions/character-tracker.md) | Works. The Characters tab is in the outline drawer. |
 | [Story Notes](extensions/story-notes.md) | Works. The Notes tab is in the outline drawer; the page dialog fits the screen, a long page is easier to write in landscape. |
-| [Conlang Translator](extensions/conlang-translator.md) | Partly. The panel in *Settings → Extension Settings*, the editor, the review and the wizard work (the lexicon grid scrolls sideways), and so does the tap on a translated speech in the viewer; the story side (**Translate the speech**, **Translate parts**, the click in the story) was not tried on a phone, see [Limits](extensions/conlang-translator.md#limits). |
+| [Conlang Translator](extensions/conlang-translator.md) | Partly. The panel in *Settings → Extension Settings*, the editor, the review and the wizard work (the lexicon grid scrolls sideways), and so does the tap on a translated speech in the viewer; the story side (**Translate dialogs**, **Translate parts (constructed language)**, the click in the story) was not tried on a phone, see [Limits](extensions/conlang-translator.md#limits). |
 | [Converter](extensions/sillytavern-converter.md) | Works. The Converter tab is in the outline drawer; the range of the chat is chosen with two taps, see [On a phone](extensions/sillytavern-converter.md#on-a-phone). |
 | [Instruction Exporter](extensions/instruction-exporter.md) | Works. **Export instructions** is in the settings menu of the story. |
 | [Manga Generator](extensions/manga-generator.md) | Works. **Manga Generator** is in the settings menu of the story; its window is large, so landscape is easier. |

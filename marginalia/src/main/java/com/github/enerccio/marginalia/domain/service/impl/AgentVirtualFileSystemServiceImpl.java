@@ -11,6 +11,7 @@ import com.github.enerccio.marginalia.domain.service.agent.*;
 import com.github.enerccio.marginalia.domain.service.function.FunctionSet;
 import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
+import com.github.enerccio.marginalia.loc.Localization;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import jakarta.persistence.EntityManager;
@@ -47,6 +48,9 @@ public class AgentVirtualFileSystemServiceImpl implements AgentVirtualFileSystem
 
     @Autowired
     private Configuration configuration;
+
+    @Autowired
+    private Localization loc;
 
     @Autowired
     @Lazy
@@ -157,7 +161,7 @@ public class AgentVirtualFileSystemServiceImpl implements AgentVirtualFileSystem
 
     @Override
     public FunctionSet getFileTools(VirtualFileSystem fileSystem, CommandResults commandResults) {
-        return inferenceServices.getFunctionRegistry().bind(AgentFileTools.class, new AgentFileToolsImpl(fileSystem, commandResults));
+        return inferenceServices.getFunctionRegistry().bind(AgentFileTools.class, new AgentFileToolsImpl(fileSystem, AgentFileToolsImpl.REGEX_MILLIS, commandResults, loc::getDefaults));
     }
 
     @Override

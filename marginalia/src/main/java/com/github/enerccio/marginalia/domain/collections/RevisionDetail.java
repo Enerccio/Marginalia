@@ -38,6 +38,10 @@ public enum RevisionDetail {
      */
     LMSTUDIO_IMPORT,
     /**
+     * Imported from a document (Word, LibreOffice).
+     */
+    DOCUMENT_IMPORT,
+    /**
      * The text was put into another language by an extension: what it says is the same
      * ({@code ChatMessageService#replaceText}).
      */

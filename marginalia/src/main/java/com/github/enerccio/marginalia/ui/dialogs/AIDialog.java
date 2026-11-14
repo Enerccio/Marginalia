@@ -45,6 +45,7 @@ import org.springframework.beans.factory.annotation.Configurable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Configurable
@@ -83,6 +84,8 @@ public class AIDialog extends Dialog implements LLMInteract {
     private IntegerField maxResponseField;
     private IntegerField maxConcurrentField;
     private Checkbox needsJailbreakCheckbox;
+    private Checkbox sendLoreImagesCheckbox;
+    private Checkbox loreImagesInSystemCheckbox;
     private TextArea jailbreakField;
     private Checkbox enabledReasoningCheckbox;
     private ComboBox<ReasoningEffort> reasoningEffortCombo;
@@ -165,6 +168,8 @@ public class AIDialog extends Dialog implements LLMInteract {
         generalFormLayout.setColspan(jailbreakField, 2);
         generalFormLayout.add(enabledReasoningCheckbox, reasoningEffortCombo);
         generalFormLayout.add(maxConcurrentField, 2);
+        generalFormLayout.add(sendLoreImagesCheckbox, 2);
+        generalFormLayout.add(loreImagesInSystemCheckbox, 2);
 
         tabSheet.add(loc.getValue(L.LABEL_GENERAL_SETTINGS), generalFormLayout);
 
@@ -303,11 +308,19 @@ public class AIDialog extends Dialog implements LLMInteract {
         maxResponseField.setHelperText(loc.getValue(L.HELP_AI_MAX_RESPONSE));
         maxResponseField.setWidthFull();
 
-        maxConcurrentField = new IntegerField(loc.getValue(L.LABEL_MAX_CONCURRENT_REQUESTS));
+        maxConcurrentField = new IntegerField(loc.getValue(L.LABEL_CONNECTIONS));
+        maxConcurrentField.setRequired(true);
         maxConcurrentField.setMin(1);
         maxConcurrentField.setStepButtonsVisible(true);
-        maxConcurrentField.setHelperText(loc.getValue(L.HELP_AI_MAX_CONCURRENT_REQUESTS));
+        maxConcurrentField.setHelperText(loc.getValue(L.HELP_AI_CONNECTIONS));
         maxConcurrentField.setWidthFull();
+
+        sendLoreImagesCheckbox = new Checkbox(loc.getValue(L.LABEL_SEND_LORE_IMAGES));
+        sendLoreImagesCheckbox.setHelperText(loc.getValue(L.HELP_SEND_LORE_IMAGES));
+        loreImagesInSystemCheckbox = new Checkbox(loc.getValue(L.LABEL_LORE_IMAGES_IN_SYSTEM));
+        loreImagesInSystemCheckbox.setHelperText(loc.getValue(L.HELP_LORE_IMAGES_IN_SYSTEM));
+        loreImagesInSystemCheckbox.setEnabled(false);
+        sendLoreImagesCheckbox.addValueChangeListener(event -> loreImagesInSystemCheckbox.setEnabled(Boolean.TRUE.equals(event.getValue())));
 
         needsJailbreakCheckbox = new Checkbox(loc.getValue(L.LABEL_NEEDS_JAILBREAK));
         jailbreakField = new TextArea(loc.getValue(L.LABEL_JAILBREAK));
@@ -397,6 +410,7 @@ public class AIDialog extends Dialog implements LLMInteract {
                     @APILocals(name = "factories", type = List.class)})
     private void updateDynamicFields(AIType type) {
         dynamicFormLayout.removeAll();
+        loreImagesInSystemCheckbox.setVisible(type == AIType.OPEN_AI_COMPATIBLE);
         if (type == AIType.OPEN_AI_COMPATIBLE) {
             HorizontalLayout apiKeyLayout = new HorizontalLayout();
             apiKeyLayout.setWidthFull();
@@ -504,7 +518,10 @@ public class AIDialog extends Dialog implements LLMInteract {
         // older providers may have no limits stored - offer the defaults, saving requires a value
         maxContextField.setValue(ai.getMaxContext() != null && ai.getMaxContext() > 0 ? ai.getMaxContext() : DEFAULT_MAX_CONTEXT);
         maxResponseField.setValue(ai.getMaxCompletionTokens() != null && ai.getMaxCompletionTokens() > 0 ? ai.getMaxCompletionTokens() : DEFAULT_MAX_RESPONSE);
-        maxConcurrentField.setValue(ai.getMaxConcurrentRequests() != null && ai.getMaxConcurrentRequests() > 0 ? ai.getMaxConcurrentRequests() : null);
+        // an AI without the setting has one connection, the field shows it
+        maxConcurrentField.setValue(ai.getConnections());
+        sendLoreImagesCheckbox.setValue(ai.isSendLoreImages());
+        loreImagesInSystemCheckbox.setValue(ai.isLoreImagesInSystem());
         jailbreakField.setValue(StringUtils.defaultString(ai.getJailbreak()));
         needsJailbreakCheckbox.setValue(Boolean.TRUE.equals(ai.getNeedsJailbreak()));
         jailbreakField.setEnabled(Boolean.TRUE.equals(ai.getNeedsJailbreak()));
@@ -907,7 +924,11 @@ public class AIDialog extends Dialog implements LLMInteract {
             ai.setShared(sharedCheckbox.isVisible() && sharedCheckbox.getValue());
             ai.setMaxContext(maxContext);
             ai.setMaxCompletionTokens(maxResponse);
-            ai.setMaxConcurrentRequests(maxConcurrentField.getValue());
+            // one connection at least, an emptied field is the default one
+            ai.setMaxConcurrentRequests(Math.max(1, Objects.requireNonNullElse(maxConcurrentField.getValue(), 1)));
+            ai.setSendLoreImages(sendLoreImagesCheckbox.getValue());
+            // only the OpenAI-compatible request carries images in the system message
+            ai.setLoreImagesInSystem(type == AIType.OPEN_AI_COMPATIBLE && loreImagesInSystemCheckbox.getValue());
             ai.setJailbreak(jailbreakField.getValue());
             ai.setNeedsJailbreak(needsJailbreakCheckbox.getValue());
             ai.setEnabledReasoning(enabledReasoningCheckbox.getValue());

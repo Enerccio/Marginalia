@@ -8,6 +8,9 @@ import com.github.enerccio.marginalia.domain.service.CancellationToken;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.SummaryService;
 import com.github.enerccio.marginalia.domain.service.SummaryService.SummaryBlock;
+import com.github.enerccio.marginalia.domain.service.job.FinishedJob;
+import com.github.enerccio.marginalia.domain.service.job.JobStatus;
+import com.github.enerccio.marginalia.domain.service.job.Jobs;
 import com.github.enerccio.marginalia.test.GenerationTestBase;
 import com.github.enerccio.marginalia.test.llm.MockLLMResponse;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,10 +18,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -206,6 +211,54 @@ class ResummarizeTest extends GenerationTestBase {
         assertThat(prompt(before)).contains("part 1").contains("part 2").doesNotContain("part 3");
         assertThat(prompt(before + 1)).contains("part 3").contains("part 4").doesNotContain("part 5");
         assertThat(prompt(before + 2)).contains("part 5").contains("part 6").doesNotContain("part 7");
+    }
+
+    @Test
+    void theWholeRunIsOneJobWithARequestPerStep() throws Exception {
+        summarize(2, "S2");
+        summarize(4, "S4");
+        summarize(6, "S6");
+        List<FinishedJob> ended = Collections.synchronizedList(new ArrayList<>());
+        Consumer<FinishedJob> sink = ended::add;
+        Jobs.addSink(sink);
+        try {
+            llm.enqueue(MockLLMResponse.text("R2"), MockLLMResponse.text("R4"), MockLLMResponse.text("R6"));
+            assertThat(resummarize(new Run())).isEqualTo("finished 3");
+        } finally {
+            Jobs.removeSink(sink);
+        }
+
+        assertThat(ended).singleElement().satisfies(job -> {
+            assertThat(job.kind()).isEqualTo("summary");
+            assertThat(job.status()).isEqualTo(JobStatus.COMPLETED);
+            assertThat(job.calls()).hasSize(3);
+        });
+    }
+
+    @Test
+    void aStoppedRunIsACancelledJob() throws Exception {
+        summarize(2, "S2");
+        summarize(4, "S4");
+        List<FinishedJob> ended = Collections.synchronizedList(new ArrayList<>());
+        Consumer<FinishedJob> sink = ended::add;
+        Jobs.addSink(sink);
+        try {
+            llm.enqueue(MockLLMResponse.text("R2"), MockLLMResponse.text("R4"));
+            Run run = new Run();
+            AtomicReference<CancellationToken> token = new AtomicReference<>();
+            // stop before the second step is asked
+            run.beforeStep = () -> {
+                if (run.steps.size() == 2 && token.get() != null) {
+                    token.get().cancel();
+                }
+            };
+            token.set(summaryService.resummarize(book(), run));
+            assertThat(run.outcome.get(60, TimeUnit.SECONDS)).isEqualTo("terminated");
+        } finally {
+            Jobs.removeSink(sink);
+        }
+
+        assertThat(ended).singleElement().satisfies(job -> assertThat(job.status()).isEqualTo(JobStatus.CANCELLED));
     }
 
     @Test

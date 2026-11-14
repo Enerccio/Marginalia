@@ -1,7 +1,7 @@
 ---
 label: Domain model
 order: 960
-verified: 85a73bd53
+verified: d3fd95f7f
 covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/model
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/traits
@@ -78,7 +78,7 @@ erDiagram
     TagRelation }o--|| Folder : "objectId + clazz"
 ```
 
-Every entity except `User` has an owner, so each user has a separate set of books, lorebooks, providers, protocols
+Every entity except `User` has an owner (the [job log](#the-job-log-job-jobcall) is the one place where it can be empty), so each user has a separate set of books, lorebooks, providers, protocols
 and settings. The relationships between them never cross users: a book can only use the owner's provider, protocol
 and lorebook.
 
@@ -286,7 +286,7 @@ joins on is a real column: relations, `name`, `enabled`, `ordinal`, `published`,
 | `published` | column | Readable by everyone at `/view/<uuid>`. |
 | `agentic` | column | The working copy of an agent. The lists of the UI leave these books out (`ManuscriptService.findAllRegularForUser`, `searchRegularManuscripts`); `findAllAgenticForUser` and `searchAgenticManuscripts` return only them, `findAllForUser` and `searchManuscripts` both kinds. |
 | `lastOpened` | column | When the owner last opened the book; orders the book lists. |
-| `template`, `pov`, `tense`, `style`, `userPrompt`, `summaryPrompt`, `metaSummaryPrompt`, `redraftSystemPrompt`, `redraftPrompt`, `annotateSystemPrompt`, `annotatePrompt`, `annotateInstructions`, `impersonatePrompt` | JSON | The book's prompt overrides (*Prompts* tab); empty means inherited: the folders above the book, then the user's defaults from `UserSetting`, then `Defaults` (see [Folders](folders.md#resolving-a-setting)). |
+| `template`, `pov`, `tense`, `style`, `userPrompt`, `summaryPrompt`, `metaSummaryPrompt`, `redraftSystemPrompt`, `redraftPrompt`, `redraftShorter`, `redraftLonger`, `annotateSystemPrompt`, `annotatePrompt`, `annotateInstructions`, `impersonatePrompt` | JSON | The book's prompt overrides (*Prompts* tab); empty means inherited: the folders above the book, then the user's defaults from `UserSetting`, then `Defaults` (see [Folders](folders.md#resolving-a-setting)). |
 | `language` | JSON | Language of the story (`Language`; null is inherited from the folders, English at the end of the chain; `getLanguage()` still says English then and `getOwnLanguage()` null): the `lang` of the story views, which the browser uses for hyphenation and justification, and the language of the exports. |
 | `showBookStyles` | JSON | Legacy story display option (the Book style on or off). Read only while `partStyle` is not set, never written any more. |
 | `partStyle` | JSON | The id of the text style the author chose for this book (a built in style or one of the user, see [Text styles](ui.md#text-styles)); empty follows the default style of the user. |
@@ -368,7 +368,7 @@ only `builtPromptTokens`; whoever needs the text asks `MessagePromptService`:
 
 | Method | |
 |---|---|
-| `getBuiltPrompt(part)`, `getBackgroundLore(part)` | The texts, `null` when the part has none (it was typed by the author, or made before prompts were kept). One query each; the summary, redraft, annotate and impersonate services read the lore this way, the story editor, `/show-prompt` and the reviewer the prompt. |
+| `getBuiltPrompt(part)`, `getBackgroundLore(part)` | The texts, `null` when the part has none (it was typed by the author, or made before prompts were kept). One query each; the impersonate service reads the lore this way, the summary, redraft and annotate services only when the book has no lorebook (otherwise they ask `LorebookActivationService.currentBackgroundLore`, the lore as the lorebooks are now, not the one the part was written with), the story editor, `/show-prompt` and the reviewer the prompt. |
 | `store(part, prompt, lore, loreUsage)` | Replaces the prompt of the part (`store(part, prompt, lore)` is the same with no usage); two empty texts and no usage remove it. Called by `GenerateNewMessageStep` after the part is saved (a regenerated part gets the new prompt; the old one is kept in the `ORIGINAL_PROMPT` property, which `CleanupStep` puts back with `ORIGINAL_MESSAGE` when no text arrived). |
 | `getLoreUsage(part)` | The lore entries the generation of the part used (`LoreUsage`), `null` when none was recorded. See below. |
 | `copy(from, to)` | Branching a part (`ChatMessageService.branch`) and creating a part in the book from a working copy of an agent (`AgentMergeService`) copy the prompt with it. `ChatMessage.copyOf` / `loadFrom` do not. |
@@ -568,6 +568,8 @@ Both use joined inheritance: a base table with the common fields and one table p
 | `uri`, `model`, `modelName`, `apiKey` | columns (`ais_openaicompat`) | Base URL, the model id sent to the API, its label in the model list, the API key (encrypted, see [Encrypted columns](database.md#encrypted-columns)). |
 | `extensionId` | column (`ais_extension`, `ExtensionAI` only) | The extension that provides the AI, the id of its `ExtensionAIFactory`. The settings of the provider are in `getSettings()`, the object under that id in the dynamic attributes (`attributes_<id>`); secrets in it are encrypted with `InferenceServices.protectSecret`. See [Inference providers from a plugin](plugins/ai-providers.md). |
 | `additionalParameters` | JSON (`additionalParameters_*`) | Extra fields added to every request; they win over the protocol's settings. |
+| `maxConcurrentRequests` | JSON | The connections of the AI (the field *Connections*): how many requests of any kind and user may be on the way to it at once, the rest waits in order (`AIGate`, see [Services](services.md)). `getConnections()` is what applies: one when it is not set. |
+| `sendLoreImages`, `loreImagesInSystem` | JSON | *Send lore images*: whether the images in the content of the activated lorebook entries (`![caption](resource:<uuid>)`, see `LoreImages`) go to this model with the lore (the model must take images). `loreImagesInSystem` (*Images in the system message*, used only with the first, OpenAI-compatible only) puts them into the system message itself instead of a user message of their own after it. Both are `false` when never set (stored as nothing), `isSendLoreImages()` / `isLoreImagesInSystem()` read them, `AIServiceImpl` copies them with the AI, and the AI dialog has a checkbox for each. See [Generation pipeline](generation-pipeline.md). |
 | `requestTimeoutSeconds`, `maxRetries` | JSON | Wait for the API (read timeout) and retries of a request; `null` = the defaults of `OpenAICompatibleInferenceService` (300 s, 2 retries). |
 | `reasoningPassthrough` | JSON (`OpenAICompatible` only) | `ReasoningPassthrough` (`domain.collections`): `NONE` (the default, stored as nothing), `TOOL_CALLS` or `ALWAYS`. Whether the thinking of an answer goes back to the model as `reasoning_content` of its message: with `TOOL_CALLS` only while the tool calls of one answer go on, with `ALWAYS` also with earlier answers that have it. Read by `OpenAICompatibleInferenceService.toAssistantMessage`; cloned with the AI; the AI dialog shows it in the per type tab. |
 
@@ -679,7 +681,7 @@ values are extended attributes.
 | Class | Owner | Contains |
 |---|---|---|
 | `AppSettings` | none (one per installation) | Data versions (`dbVersion`, `appVersion`), the database backup schedule (`backupScheduleEnabled`, `backupSchedule`, `backupKeep`, `lastScheduledBackup`, `backupScheduleChanged`), the writing statistics (`statisticsRecording`, `statisticsKeepMonths`, the instance side of the privacy controls, see [Writing statistics](#writing-statistics-manuscriptstatistic-activityinterval-manuscriptsize); extended attributes), the help assistant (`helpAiUuid`, `helpAdminData` (may it read the data of the Admin page for an administrator), and the prompts `helpPromptAdmin` / `helpPromptUser`, null = the default; the uuid, not the id; written only by `HelpAssistantService.saveSettings`). The switches `userAisAllowed` and `helpEnabled` and the settings `helpApplyLimits` and `helpInteractions` are replaced by the permissions `CREATE_AI` and `HELPER` with the attributes `helperApplyLimits` and `helperInteractions` (V15 / app version 5); the fields stay, deprecated, only for `PermissionsMigration`. |
-| `UserSetting` | each user | Default model and protocol (ids, `@CleanupReference(WEAK)`), default prompts (`masterTemplate`, `defaultPov`, `defaultTense`, `defaultStyle`, `defaultUserPrompt`, `defaultSummaryPrompt`, `defaultMetaSummaryPrompt`, `defaultRedraftSystemPrompt`, `defaultRedraftPrompt`, `defaultAnnotateSystemPrompt`, `defaultAnnotatePrompt`, `defaultAnnotateInstructions`, `defaultImpersonatePrompt`), default book backup strategy, how many parts the story and the viewer load at a time (`storyPartsLimit`, empty loads all), the code of the language of the UI (`language`, see [Localization](architecture.md#localization)), where the user left the workspace (`workspaceState`, a JSON object written by the workspace autosave, see [User interface](ui.md#remembering-where-the-user-was)), the favorite books (`favoriteBooks`, uuids), the default arrangement of the story tabs (`defaultStoryLayout`) whether the help assistant may look at the books (`helpAssistantBooks`, false by default) and the user's side of the statistics privacy controls (`statisticsRecording`, `statisticsKeepMonths`, extended attributes). |
+| `UserSetting` | each user | Default model and protocol (ids, `@CleanupReference(WEAK)`), default prompts (`masterTemplate`, `defaultPov`, `defaultTense`, `defaultStyle`, `defaultUserPrompt`, `defaultSummaryPrompt`, `defaultMetaSummaryPrompt`, `defaultRedraftSystemPrompt`, `defaultRedraftPrompt`, `defaultRedraftShorter`, `defaultRedraftLonger`, `defaultAnnotateSystemPrompt`, `defaultAnnotatePrompt`, `defaultAnnotateInstructions`, `defaultImpersonatePrompt`), default book backup strategy, how many parts the story and the viewer load at a time (`storyPartsLimit`, empty loads all), the code of the language of the UI (`language`, see [Localization](architecture.md#localization)), the code of the language of the built-in prompts (`promptLanguage`, null is English, see [Templating](templating.md#the-built-in-prompts-and-their-languages)), where the user left the workspace (`workspaceState`, a JSON object written by the workspace autosave, see [User interface](ui.md#remembering-where-the-user-was)), the favorite books (`favoriteBooks`, uuids), the default arrangement of the story tabs (`defaultStoryLayout`) whether the help assistant may look at the books (`helpAssistantBooks`, false by default) and the user's side of the statistics privacy controls (`statisticsRecording`, `statisticsKeepMonths`, extended attributes). |
 
 `SettingService.getOrCreate(UserSetting.class)` returns the current user's settings, creating them on first use;
 `getOrCreateApp(AppSettings.class)` the installation's. A function that only reads uses `findOrBlank(cls, user)` instead (a missing setting is a blank one that is not stored, so a read-only transaction does not write: creating the row there fails with `SQLITE_BUSY` when another connection wrote in between; `find` returns `null`). Extensions keep their settings in the `attributes` of
@@ -779,11 +781,34 @@ Besides the rows an agent has files: its **workspace** (`<application folder>/ag
 and, for each run, a folder (`agent-runs/<run uuid>`). They are not rows and not in the backups of the database; the cleanup, deleting
 for good and cloning an agent take care of them, see [Files of an agent](agents.md#files-of-an-agent).
 
+## The job log (`Job`, `JobCall`)
+
+`Job` (`jobs`, an `OwnedEntity`) is one unit of work that talked to an external AI and `JobCall` (`job_calls`, a
+`BaseEntity`) one call it made: a request to a model, to a speech or an image server. Metadata only, never the text.
+They are the administrator's log (*Admin → Jobs*), see `Jobs` and `JobService` in [Services](services.md): a running job
+is in memory only, the rows are written by the writer thread of `JobServiceImpl` when the job ends.
+
+| Field | |
+|---|---|
+| `Job.owner`, `ownerLogin` | The user the job ran for and their login at that time, which stays readable when the user is renamed or purged. Both are `null` for a job of a thread without a user. |
+| `Job.kind`, `label` | What it was: the kind of the `InferenceSession` (`generation`, `summary`, `agent`..., `untagged`) or the kind the caller gave (`audiobook`), and a text for the list. |
+| `status` (both) | `JobStatus` by name: `COMPLETED`, `FAILED` or `CANCELLED` once written (`RUNNING` only in memory). |
+| `startedAt`, `endedAt` (both) | Start and end. |
+| `Job.callCount`, `failedCalls` | All calls the job made and how many failed; a job with more than `Jobs.MAX_KEPT_CALLS` calls (5000) keeps only the first ones as rows. |
+| `JobCall.job` | The job (`OWNED_BY`). |
+| `JobCall.callType` | `JobCallType` by name (`LLM`, `AUDIO`, `IMAGE`, `OTHER`). |
+| `JobCall.backend`, `model` | The name of the AI, or the host of the speech or image server (never the path or the query), and the model id. |
+| `JobCall.error` | The message of a failure, cut to 300 characters. |
+
+Neither is an `ExtendableEntity` and neither is part of a backup of a book. The rows are not soft deleted:
+`JobService.purge(JobFilter)` deletes the jobs of a filter and their calls for good, and nothing else ever deletes
+them, except the cleanup of a purged user, which takes the user's jobs along (`owner` is `OWNED_BY`).
+
 ## Resources
 
 `Resource` (`resources`, an `OwnedEntity`) is an uploaded file: the images attached to parts
 (`ChatMessage.getImages()`, see [Extended attributes](#extendableentity---extended-attributes)) and the files that extensions keep with a part (the audio of the Audiobook, linked to the part). A backup
-carries the uuids of both and the export packs the files, see [Resources in backups](services.md#resources-in-backups).
+carries the uuids of both and the export packs the files, see *Resources in backups* under [Books and the story](services.md#books-and-the-story).
 
 | Field | |
 |---|---|
@@ -804,7 +829,7 @@ references between rows and decides what may go. Each reference has a policy (`@
 | Policy | Meaning | Used for |
 |---|---|---|
 | `STRONG` (default) | The referenced row can't be purged while the reference exists. | `Manuscript.ai`, `.protocol`, `.lorebook`, `.activeLeaf` |
-| `OWNED_BY` | The referencing row belongs to the referenced one and is purged with it. | `ChatMessage.parentScript`, `.parent`; `Folder.parent`; `LorebookEntry.lorebook`; `TagRelation.tag`, `.objectId`; every `owner` |
+| `OWNED_BY` | The referencing row belongs to the referenced one and is purged with it. | `ChatMessage.parentScript`, `.parent`; `Folder.parent`; `LorebookEntry.lorebook`; `TagRelation.tag`, `.objectId`; `JobCall.job`; every `owner` |
 | `OWNS` | The referenced row belongs to the referencing one and is purged with it, unless referenced elsewhere. | `ChatMessage.summary` |
 | `WEAK` | The reference doesn't block the purge; it is cleared when the referenced row goes. | `Lorebook.subbooks`, `Manuscript.folder`, `UserSetting.defaultModel`, `.defaultProtocol` |
 

@@ -2,9 +2,7 @@ package com.github.enerccio.marginalia.extensions.knowledgetracker.model;
 
 import com.github.enerccio.marginalia.extensions.knowledgetracker.scene.PresentCharacters;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Predicate;
 
 /**
@@ -54,6 +52,52 @@ public class TrackedCharacter {
 
     public boolean deleteItem(String itemId) {
         return getItems().removeIf(item -> item.getId().equals(itemId));
+    }
+
+    /**
+     * Deletes the items with these ids for good.
+     *
+     * @return how many items were deleted
+     */
+    public int deleteItems(Collection<String> itemIds) {
+        int before = getItems().size();
+        Set<String> ids = new HashSet<>(itemIds);
+        getItems().removeIf(item -> ids.contains(item.getId()));
+        return before - getItems().size();
+    }
+
+    /**
+     * Retracts by hand the active items with these ids (they become old knowledge); old ones are left as they are.
+     *
+     * @return how many items were retracted
+     */
+    public int retractItems(Collection<String> itemIds) {
+        Set<String> ids = new HashSet<>(itemIds);
+        int count = 0;
+        for (KnowledgeItem item : getItems()) {
+            if (item.isActive() && ids.contains(item.getId())) {
+                item.retractByHand();
+                count++;
+            }
+        }
+        return count;
+    }
+
+    /**
+     * Makes the old items with these ids active again, see {@link KnowledgeItem#restore}; active ones are left as they are.
+     *
+     * @return how many items were restored
+     */
+    public int restoreItems(Collection<String> itemIds) {
+        Set<String> ids = new HashSet<>(itemIds);
+        int count = 0;
+        for (KnowledgeItem item : getItems()) {
+            if (!item.isActive() && ids.contains(item.getId())) {
+                item.restore();
+                count++;
+            }
+        }
+        return count;
     }
 
     /**

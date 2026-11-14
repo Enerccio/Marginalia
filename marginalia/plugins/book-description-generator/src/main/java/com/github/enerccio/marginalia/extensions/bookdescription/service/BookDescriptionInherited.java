@@ -31,11 +31,11 @@ public final class BookDescriptionInherited {
                 .group(() -> T.localized(BOOK_DESCRIPTION_GENERATOR))
                 .help(() -> T.localized(THE_PROMPT_THAT_WRITES_THE_NAME))
                 .userValue(() -> settings.get().getDescriptionPrompt())
-                .fallback(() -> Defaults.DESCRIPTION_PROMPT));
+                .fallback(() -> T.defaults().descriptionPrompt()));
         registry.register(owner, InheritedSetting.textArea(NOTES_PROMPT, () -> T.localized(BOOK_NOTES_PROMPT))
                 .group(() -> T.localized(BOOK_DESCRIPTION_GENERATOR))
                 .help(() -> T.localized(THE_PROMPT_THAT_WRITES_NOTES))
                 .userValue(() -> settings.get().getNotesPrompt())
-                .fallback(() -> Defaults.NOTES_PROMPT));
+                .fallback(() -> T.defaults().notesPrompt()));
     }
 }

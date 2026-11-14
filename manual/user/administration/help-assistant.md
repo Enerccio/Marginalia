@@ -17,7 +17,8 @@ the answers up in the manual (it can search it and read its pages), names the pa
 changes nothing and does not see the user's books unless the user allows it (see [Your books](#your-books)). It can also look at what went wrong when something fails (see
 [When something goes wrong](#when-something-goes-wrong)) and take the user somewhere, if you allow it (see
 [Showing the way](#showing-the-way)). The conversation is kept until the user logs out (closing the panel
-or reloading the page keeps it), the broom button clears it.
+or reloading the page keeps it), the broom button clears it. It reads the manual in the language of the user's interface when the manual
+is translated into it, and the links lead to the manual in that language; a page that is not translated is read in English.
 
 ![The help assistant answering a question](../../images/help-assistant.png)
 

@@ -57,7 +57,7 @@ public class WizardOptions {
     private java.util.Set<ToolGroup> toolGroups;
     /** Whether the author is asked before the model runs a command that changes or deletes what exists (adding is not asked). */
     private boolean askBeforeChanging = true;
-    /** The template of the system prompt, blank for {@code Defaults.WIZARD_PROMPT}. */
+    /** The template of the system prompt, blank for {@code Defaults.wizardPrompt()}. */
     private String prompt;
 
     public Mode getMode() {

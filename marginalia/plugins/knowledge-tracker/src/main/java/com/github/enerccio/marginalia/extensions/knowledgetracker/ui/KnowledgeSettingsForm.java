@@ -1,8 +1,6 @@
 package com.github.enerccio.marginalia.extensions.knowledgetracker.ui;
 
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.extract.ExtractionPrompt;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.extract.TidyPrompt;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.service.KnowledgeInherited;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.service.KnowledgeStateService;
 import com.github.enerccio.marginalia.loc.Localization;
@@ -37,8 +35,8 @@ public class KnowledgeSettingsForm extends VerticalLayout {
         setPadding(true);
         setSpacing(true);
 
-        extractionPromptArea = prompt(T.localized(KNOWLEDGE_EXTRACTION_PROMPT), T.localized(THE_SYSTEM_MESSAGE_THAT_TELLS_THE_MODEL), ExtractionPrompt.SYSTEM);
-        tidyPromptArea = prompt(T.localized(KNOWLEDGE_TIDY_PROMPT), T.localized(THE_SYSTEM_MESSAGE_OF_THE_TIDY_PASS), TidyPrompt.SYSTEM);
+        extractionPromptArea = prompt(T.localized(KNOWLEDGE_EXTRACTION_PROMPT), T.localized(THE_SYSTEM_MESSAGE_THAT_TELLS_THE_MODEL), T.defaults().extractionSystem());
+        tidyPromptArea = prompt(T.localized(KNOWLEDGE_TIDY_PROMPT), T.localized(THE_SYSTEM_MESSAGE_OF_THE_TIDY_PASS), T.defaults().tidySystem());
         add(extractionPromptArea, tidyPromptArea);
 
         refresh();

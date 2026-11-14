@@ -54,7 +54,7 @@ public class PartStudioStore implements StudioStore {
                     ? part.getAttributes().getAsJsonObject(ResourceAudioStore.KEY) : new JsonObject();
             index.add(STUDIO, gson.toJsonTree(script));
             part.getAttributes().add(ResourceAudioStore.KEY, index);
-            messages.save(part);
+            ResourceAudioStore.writeIndex(messages, part, STUDIO);
         } catch (RuntimeException e) {
             throw e;
         } catch (Exception e) {

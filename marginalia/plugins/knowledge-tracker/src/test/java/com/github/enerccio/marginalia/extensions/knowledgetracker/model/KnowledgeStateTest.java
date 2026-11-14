@@ -188,6 +188,20 @@ class KnowledgeStateTest {
     }
 
     @Test
+    void severalItemsAreDeletedAtOnceActiveAndOldAlike() {
+        TrackedCharacter fiora = fiora();
+        KnowledgeItem a = KnowledgeItem.initial("knows the harbor", ItemKind.KNOWS);
+        KnowledgeItem b = KnowledgeItem.initial("has not met Thomas", ItemKind.DOES_NOT_KNOW);
+        KnowledgeItem c = KnowledgeItem.initial("knows Mara", ItemKind.KNOWS);
+        b.retractByHand();
+        fiora.getItems().addAll(List.of(a, b, c));
+
+        assertEquals(2, fiora.deleteItems(List.of(b.getId(), c.getId(), "no-such-id")));
+        assertEquals(List.of(a), fiora.getItems());
+        assertEquals(0, fiora.deleteItems(List.of()));
+    }
+
+    @Test
     void anOldOrPartialStoredFormGetsDefaults() {
         KnowledgeState back = new Gson().fromJson("{\"characters\":[{\"name\":\"Fiora\"}]}", KnowledgeState.class);
         assertTrue(back.getSettings().isClosedWorld());

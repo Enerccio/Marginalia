@@ -7,7 +7,8 @@ import java.util.List;
 
 /**
  * {@link ManualTools} over a {@link ManualService}. The answers are short enough for a small model: a handful of
- * sections, a page cut at {@link #MAX_PAGE_CHARS}.
+ * sections, a page cut at {@link #MAX_PAGE_CHARS}. The text and the addresses are those of the language the tools are made for
+ * (English without one, and for a page that is not translated).
  */
 public class ManualToolsImpl implements ManualTools {
 
@@ -16,14 +17,23 @@ public class ManualToolsImpl implements ManualTools {
     static final int MAX_PAGE_CHARS = 12000;
 
     private final ManualService manual;
+    private final String language;
 
     public ManualToolsImpl(ManualService manual) {
+        this(manual, ManualPage.ENGLISH);
+    }
+
+    /**
+     * @param language code of the language of the user, the pages are read in it when they are translated
+     */
+    public ManualToolsImpl(ManualService manual, String language) {
         this.manual = manual;
+        this.language = language == null ? ManualPage.ENGLISH : language;
     }
 
     @Override
     public void searchManual(FunctionContinuation<String> done, String query) {
-        List<ManualHit> hits = manual.search(query, SEARCH_HITS);
+        List<ManualHit> hits = manual.search(language, query, SEARCH_HITS);
         if (hits.isEmpty()) {
             done.complete("Nothing in the manual matches \"" + query + "\". Try other keywords or read a page from the index.");
             return;
@@ -40,7 +50,7 @@ public class ManualToolsImpl implements ManualTools {
 
     @Override
     public void readManualPage(FunctionContinuation<String> done, String path) {
-        manual.getPage(path).ifPresentOrElse(
+        manual.getPage(language, path).ifPresentOrElse(
                 page -> done.complete("# " + page.title() + "\nPage: " + page.path() + "\nURL: " + page.url() + "\n\n" + cut(page.text(), MAX_PAGE_CHARS)),
                 () -> done.fail("There is no manual page \"" + path + "\". Use a path from the page index."));
     }

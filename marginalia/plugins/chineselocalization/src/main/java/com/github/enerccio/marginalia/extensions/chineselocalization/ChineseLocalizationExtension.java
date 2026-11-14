@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.extensions.chineselocalization;
 
+import com.github.enerccio.marginalia.Defaults;
 import com.github.enerccio.marginalia.domain.service.ExtensionService;
 import com.github.enerccio.marginalia.domain.service.OsgiService;
 import com.github.enerccio.marginalia.extensions.ExtensionHasLocalization;
@@ -10,9 +11,9 @@ import org.osgi.framework.Bundle;
 import java.util.List;
 
 /**
- * Adds Simplified Chinese to the languages of the UI. There is nothing to do on load or unload: Marginalia registers
- * the bundles returned by {@link #getLocalizationBundles()} after the extension is loaded and removes them when it is
- * unloaded.
+ * Adds Simplified Chinese to the languages of the UI and of the built-in prompts. There is nothing to do on load or
+ * unload: Marginalia registers the bundles returned by {@link #getLocalizationBundles()} and the prompts of
+ * {@link #getPromptDefaults()} after the extension is loaded and removes them when it is unloaded.
  */
 public class ChineseLocalizationExtension implements MarginaliaExtension, ExtensionHasLocalization {
 
@@ -27,6 +28,11 @@ public class ChineseLocalizationExtension implements MarginaliaExtension, Extens
     @Override
     public List<LocalizationBundle> getLocalizationBundles() {
         return List.of(new LocalizationBundleZH());
+    }
+
+    @Override
+    public List<Defaults> getPromptDefaults() {
+        return List.of(new DefaultsZH());
     }
 
 }

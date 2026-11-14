@@ -38,7 +38,7 @@ await main(async ({ page }) => {
     await snapDialog(page, 'search-replace-dialog', 0);
 
     await dialog(page).getByRole('button', { name: 'Search', exact: true }).click();
-    await page.getByText('Found ', { exact: false }).first().waitFor({ timeout: 30000 });
+    await page.getByText(/^Found \d+ match/).first().waitFor({ timeout: 30000 });
     await idle(page, 1200);
     await page.mouse.click(406, 519);                      // open the first row, Story #2: the matches in it
     await idle(page, 900);
@@ -50,7 +50,7 @@ await main(async ({ page }) => {
     await page.getByLabel('Search in summaries', { exact: true }).uncheck({ force: true });
     await page.getByLabel('Revalidate all summaries', { exact: true }).uncheck({ force: true });
     await dialog(page).getByRole('button', { name: 'Search', exact: true }).click();
-    await page.getByText('Found ', { exact: false }).first().waitFor({ timeout: 30000 });
+    await page.getByText(/^Found \d+ match/).first().waitFor({ timeout: 30000 });
     await idle(page, 1200);
     await page.getByRole('button', { name: 'Replace', exact: true }).click();
     await idle(page, 1200);
@@ -72,7 +72,7 @@ await main(async ({ page }) => {
     await fill(page, 'Search for', 'Mizuki');
     await fill(page, 'Replace with', 'Mizuko');
     await dialog(page).getByRole('button', { name: 'Search', exact: true }).click();
-    await page.getByText('Found ', { exact: false }).first().waitFor({ timeout: 30000 });
+    await page.getByText(/^Found \d+ match/).first().waitFor({ timeout: 30000 });
     await idle(page, 1200);
     await page.mouse.click(406, 591);                      // open the row of Mizuki Hayashida: the matches in it
     await idle(page, 900);

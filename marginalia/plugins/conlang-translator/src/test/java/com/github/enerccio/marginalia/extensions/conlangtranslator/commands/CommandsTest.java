@@ -125,6 +125,8 @@ class CommandsTest {
             Map.entry("TranslationService.translate", "conlang-translate-part"),
             Map.entry("TranslationService.revert", "conlang-revert-to-source"),
             Map.entry("TranslationService.translateSelection", "conlang-translate-sentence"),
+            Map.entry("TranslationService.translateMissing", "conlang-translate-part"),
+            Map.entry("TranslationService.translateMissingIn", "conlang-translate-part"),
             // BookConlang
             Map.entry("BookConlang.languageOf", "conlang-status"),
             Map.entry("BookConlang.languages", "conlang-status"),
@@ -169,7 +171,10 @@ class CommandsTest {
             Map.entry("RangeRuns.start", "conlang-translate-range"),
             Map.entry("TranslationRuns.isRunning", "ui only: the progress of a dialog"),
             Map.entry("TranslationRuns.start", "conlang-translate-part"),
-            Map.entry("TranslationRuns.startSelection", "conlang-translate-sentence"));
+            Map.entry("TranslationRuns.startMissing", "conlang-translate-part"),
+            Map.entry("TranslationRuns.startMissingIn", "conlang-translate-part"),
+            Map.entry("TranslationRuns.startSelection", "conlang-translate-sentence"),
+            Map.entry("TranslationRuns.translateNow", "conlang-translate-part"));
 
     @Test
     void everyOperationOfAServiceHasACommand() {

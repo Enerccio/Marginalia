@@ -144,4 +144,12 @@ public @interface Command {
      */
     String[] linkedCommand() default {};
 
+    /**
+     * Whether the command shows its progress in the story itself: it generates a part, which streams into the story tab that the command
+     * bar belongs to ({@link com.github.enerccio.marginalia.domain.service.command.CommandScope#getGenerationView()}), and the round
+     * button of the story stops it. The command bar then opens no progress window for it. Only for an {@link #async()} command; the
+     * same for all the overloads of a command. {@code false} by default.
+     */
+    boolean progressInStory() default false;
+
 }

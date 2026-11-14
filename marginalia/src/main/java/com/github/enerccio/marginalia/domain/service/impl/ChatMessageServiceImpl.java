@@ -10,12 +10,14 @@ import com.github.enerccio.marginalia.domain.model.impl.Summary;
 import com.github.enerccio.marginalia.domain.repository.ChatMessageRepository;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.SummaryService.SummaryBlock;
+import com.github.enerccio.marginalia.domain.service.run.Runs;
 import com.github.enerccio.marginalia.domain.service.impl.inference.tokenizer.JavaTokkitStrategy;
 import com.github.enerccio.marginalia.domain.service.search.FulltextHit;
 import com.github.enerccio.marginalia.domain.service.search.FulltextQuery;
 import com.github.enerccio.marginalia.domain.traits.CommonTx;
 import com.github.enerccio.marginalia.domain.traits.CommonTxReadOnly;
 import com.github.enerccio.marginalia.domain.traits.NoTx;
+import com.github.enerccio.marginalia.utils.WordCounter;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Hibernate;
 import org.slf4j.Logger;
@@ -27,14 +29,11 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, ChatMessageRepository> implements ChatMessageService {
 
     private static final Logger log = LoggerFactory.getLogger(ChatMessageServiceImpl.class);
     private static final int SNIPPET_RADIUS = 60;
-    private static final Pattern WORD_PATTERN = Pattern.compile("\\w+", Pattern.UNICODE_CHARACTER_CLASS);
 
     @Autowired
     private ManuscriptService manuscriptService;
@@ -123,6 +122,18 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
         ChatMessage saved = super.save(message);
         touchSize(saved);
         return saved;
+    }
+
+    @Override
+    @CommonTx
+    public ChatMessage update(ChatMessage part, PartChange change) throws Exception {
+        // by id and without the current user, like save: a generation calls this from threads that have no session
+        ChatMessage fresh = part == null ? null : find(part.getId());
+        if (fresh == null || fresh.isDeleted()) {
+            throw new IllegalStateException("The part no longer exists");
+        }
+        change.apply(fresh);
+        return save(fresh);
     }
 
     /**
@@ -654,24 +665,31 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
 
         getRepository().reparentChildren(message, parent);
 
-        if (manuscript != null && manuscript.getActiveLeaf() != null) {
-            if (manuscript.getActiveLeaf().getId().equals(message.getId())) {
-                manuscript.setActiveLeaf(parent);
-            }
-        }
-
         delete(message, hard, counting);
-        // the active leaf may have moved - it must not stay on the deleted part in the database
-        return manuscript != null ? manuscriptService.save(manuscript) : null;
+        if (manuscript == null) {
+            return null;
+        }
+        // the copy of the caller follows too, as it always did
+        moveLeafOff(manuscript, message, parent);
+        Manuscript stored = manuscript.getId() == null ? null : manuscriptService.find(manuscript.getId());
+        if (stored == null || stored.isDeleted()) {
+            return manuscript;
+        }
+        // the active leaf must not stay on the deleted part in the database; the rest of the book is the stored one, not the
+        // copy of the caller, which is older than the delete (it touched the book)
+        return manuscriptService.update(stored, fresh -> moveLeafOff(fresh, message, parent));
+    }
+
+    private static void moveLeafOff(Manuscript book, ChatMessage deleted, ChatMessage parent) {
+        if (book.getActiveLeaf() != null && book.getActiveLeaf().getId().equals(deleted.getId())) {
+            book.setActiveLeaf(parent);
+        }
     }
 
     @Override
     @NoTx
     public int countWords(String text) {
-        Matcher matcher = WORD_PATTERN.matcher(text);
-        int count = 0;
-        while (matcher.find()) count++;
-        return count;
+        return WordCounter.count(text);
     }
 
 
@@ -807,6 +825,8 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
                                       String generated) throws Exception {
         Manuscript book = ownBook(manuscript);
         ChatMessage stored = ownPart(book, message);
+        // the part a generation writes now is not changed by hand
+        Runs.check(stored, Runs.Operation.EDIT);
         String newText = text == null ? "" : text;
         String oldText = stored.getResponse();
         // the text that is replaced is in the history, whoever wrote it
@@ -850,6 +870,8 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
         Manuscript book = ownBook(manuscript);
         ChatMessage later = ownPart(book, part);
         ChatMessage previous = mergeTarget(book, later);
+        Runs.check(later, Runs.Operation.MOVE);
+        Runs.check(previous, Runs.Operation.EDIT);
         PartMerge.Join joined = join == null ? PartMerge.Join.suggest(previous.getResponse(), later.getResponse()) : join;
         messageRevisionService.ensureCurrent(previous);
 
@@ -978,6 +1000,10 @@ public class ChatMessageServiceImpl extends ExtendableServiceImpl<ChatMessage, C
         ChatMessage above = after == null ? null : ownPart(book, after);
         if (!hasAnyMessages(book)) {
             return createPart(book, null, text, input, tokens, origin);
+        }
+        // what followed the part moves under the new one: not on the branch a generation writes the end of
+        for (ChatMessage moved : above == null ? getRepository().findRootMessages(book) : List.of(above)) {
+            Runs.check(moved, Runs.Operation.MOVE);
         }
         ChatMessage created = newPart(text, input, tokens);
         ChatMessage saved = above == null ? createRoot(book, created) : addChild(above, created);

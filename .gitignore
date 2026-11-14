@@ -23,6 +23,8 @@ retype.manifest
 /src/main/bundles/README.md
 /target/
 /marginalia/plugins/build
+# the commit the running container was built from (rebuild.sh, rebuild.bat)
+/.rebuild-deployed
 /tmp/
 
 # screenshot environment (screenshots/SCREENSHOTS.md): data, run state, tooling, step backups, work-in-progress images
@@ -40,3 +42,6 @@ retype.manifest
 # Python bytecode (the screenshot and tool scripts)
 __pycache__/
 *.pyc
+
+# transient output of tools/manual_i18n.py (assembled sites, token usage of the translations)
+/build/

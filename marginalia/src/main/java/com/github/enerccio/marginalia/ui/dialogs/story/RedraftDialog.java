@@ -8,14 +8,15 @@ import com.github.enerccio.marginalia.domain.model.impl.Annotation;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.*;
+import com.github.enerccio.marginalia.domain.service.run.Runs;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
+import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
 import com.github.enerccio.marginalia.ui.widgets.*;
 import com.github.enerccio.marginalia.utils.TextMarkup;
 import com.github.enerccio.marginalia.utils.UIUtils;
-import com.vaadin.flow.component.ModalityMode;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
@@ -25,6 +26,7 @@ import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.markdown.Markdown;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.tabs.TabSheet;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.data.value.ValueChangeMode;
@@ -80,6 +82,8 @@ public class RedraftDialog extends Dialog {
     private final boolean applyAutomatically;
 
     private final TextArea instructions = new TextArea();
+    // whether the model is also asked to make the text shorter or longer (the snippet of the setting goes after the instructions)
+    private final Select<RedraftService.Length> length = new Select<>();
     private final Checkbox withAnnotations = new Checkbox();
     // shown when a summary describes the part: the summaries the applied redraft makes outdated get their hash again
     private final Checkbox revalidateSummaries = new Checkbox();
@@ -98,12 +102,19 @@ public class RedraftDialog extends Dialog {
     private boolean hasRedraft;
     // the reasoning the model wrote the text of the field with, it goes to the history of the part
     private String redraftReasoning;
+    // not modal on the desktop, can be folded into the corner of the page; the card of the part shows it as busy
+    private final FloatingWindow floating;
+    // opened on the result of the step after a generated part: told when the window is closed without applying
+    private Runnable onClosedWithout;
+    private boolean applied;
 
     /**
      * @param onApplied gets the part with the redrafted text, after it was stored
      */
-    public static void open(Manuscript manuscript, ChatMessage part, Consumer<ChatMessage> onApplied) {
-        create(manuscript, part, null, onApplied).open();
+    public static RedraftDialog open(Manuscript manuscript, ChatMessage part, Consumer<ChatMessage> onApplied) {
+        RedraftDialog dialog = create(manuscript, part, null, onApplied);
+        dialog.open();
+        return dialog;
     }
 
     /**
@@ -111,8 +122,10 @@ public class RedraftDialog extends Dialog {
      *
      * @param passage the selected text as offsets in the text of the part
      */
-    public static void open(Manuscript manuscript, ChatMessage part, RedraftService.Passage passage, Consumer<ChatMessage> onApplied) {
-        create(manuscript, part, passage, onApplied).open();
+    public static RedraftDialog open(Manuscript manuscript, ChatMessage part, RedraftService.Passage passage, Consumer<ChatMessage> onApplied) {
+        RedraftDialog dialog = create(manuscript, part, passage, onApplied);
+        dialog.open();
+        return dialog;
     }
 
     /**
@@ -121,40 +134,59 @@ public class RedraftDialog extends Dialog {
      * @param apply     whether the redraft is applied without asking when the model is done, and the dialog closes
      * @param onApplied gets the part with the redrafted text, after it was stored (not called when the dialog was closed before)
      */
-    static void openAuto(Manuscript manuscript, ChatMessage part, boolean apply, Consumer<ChatMessage> onApplied) {
+    static RedraftDialog openAuto(Manuscript manuscript, ChatMessage part, boolean apply, Consumer<ChatMessage> onApplied) {
         RedraftDialog dialog = createAuto(manuscript, part, apply, onApplied);
         dialog.open();
         dialog.startOrStop();
+        return dialog;
     }
 
     /**
      * @return the dialog of the automatic redraft, not opened and not started
      */
     static RedraftDialog createAuto(Manuscript manuscript, ChatMessage part, boolean apply, Consumer<ChatMessage> onApplied) {
-        return new RedraftDialog(manuscript, part, null, onApplied, true, apply);
+        return new RedraftDialog(manuscript, part, null, onApplied, true, apply, null);
+    }
+
+    /**
+     * Opens the dialog on the redraft the step after a generated part made ({@link AutoAnnotateSteps}, the model is done): the author
+     * applies it, changes it or closes the window. The window is a part of the entry of what follows the part in the panel of the runs.
+     *
+     * @param baseText the text of the part the redraft was made from: when the part was changed since, applying asks first
+     * @param phase    the run of what follows the part
+     * @param onClosed the window was closed for good without applying (that stops what follows the part)
+     */
+    static RedraftDialog openResult(Manuscript manuscript, ChatMessage part, String baseText, String reasoning, String text, Runs.Run phase,
+                                    Consumer<ChatMessage> onApplied, Runnable onClosed) {
+        RedraftDialog dialog = new RedraftDialog(manuscript, part, null, onApplied, true, false, baseText);
+        dialog.floating.partOf(phase);
+        dialog.onClosedWithout = onClosed;
+        dialog.showResult(reasoning, text);
+        dialog.open();
+        return dialog;
     }
 
     /**
      * @return the dialog, not opened
      */
     static RedraftDialog create(Manuscript manuscript, ChatMessage part, Consumer<ChatMessage> onApplied) {
-        return new RedraftDialog(manuscript, part, null, onApplied, false, false);
+        return new RedraftDialog(manuscript, part, null, onApplied, false, false, null);
     }
 
     /**
      * @return the dialog for the passage of the part, not opened
      */
     static RedraftDialog create(Manuscript manuscript, ChatMessage part, RedraftService.Passage passage, Consumer<ChatMessage> onApplied) {
-        return new RedraftDialog(manuscript, part, passage, onApplied, false, false);
+        return new RedraftDialog(manuscript, part, passage, onApplied, false, false, null);
     }
 
     private RedraftDialog(Manuscript manuscript, ChatMessage part, RedraftService.Passage passage, Consumer<ChatMessage> onApplied,
-                          boolean automatic, boolean applyAutomatically) {
+                          boolean automatic, boolean applyAutomatically, String baseText) {
         this.manuscript = manuscript;
         this.part = part;
         // a selection inside a passage that an extension keeps in another form is redrafted, and replaced, as a whole
         this.passage = passage == null ? null : redraftService.widen(part, passage);
-        this.partText = StringUtils.defaultString(part.getResponse());
+        this.partText = baseText != null ? baseText : StringUtils.defaultString(part.getResponse());
         this.selected = this.passage == null ? partText : partText.substring(this.passage.start(), this.passage.end());
         this.onApplied = onApplied;
         this.automatic = automatic;
@@ -165,7 +197,9 @@ public class RedraftDialog extends Dialog {
         setHeight("85vh");
         setCloseOnEsc(false);
         setCloseOnOutsideClick(false);
-        setModality(ModalityMode.STRICT);
+        floating = new FloatingWindow(this, () -> getHeaderTitle() + " \u00b7 " + manuscript.getName(), this::stopRunning)
+                .size("min(680px, 95vw)", "80vh");
+        floating.setParts(manuscript, List.of(part));
 
         Span info = new Span(loc.getValue(passage == null ? L.MSG_REDRAFT_INFO : L.MSG_REDRAFT_SELECTION_INFO));
         info.addClassName(CssStyles.HINT_TEXT);
@@ -181,6 +215,15 @@ public class RedraftDialog extends Dialog {
         instructions.setWidthFull();
         instructions.setMinRows(3);
         instructions.setMaxRows(8);
+
+        length.setLabel(loc.getValue(L.LABEL_REDRAFT_LENGTH));
+        length.setItems(RedraftService.Length.values());
+        length.setItemLabelGenerator(l -> loc.getValue(switch (l) {
+            case SAME -> L.LABEL_REDRAFT_SAME_LENGTH;
+            case SHORTER -> L.LABEL_SHORTER;
+            case LONGER -> L.LABEL_LONGER;
+        }));
+        length.setValue(RedraftService.Length.SAME);
 
         withAnnotations.setLabel(loc.getValue(passage == null ? L.LABEL_REDRAFT_WITH_ANNOTATIONS : L.LABEL_REDRAFT_WITH_ANNOTATIONS_SELECTION));
         withAnnotations.setVisible(false);
@@ -239,9 +282,9 @@ public class RedraftDialog extends Dialog {
             redrafted.addClassName(CssStyles.GAP_S);
             tabs.add(loc.getValue(L.LABEL_REDRAFTED_TEXT), redrafted);
             tabs.add(loc.getValue(L.LABEL_REDRAFT_ORIGINAL_TEXT), originalWithAnnotations());
-            content = new VerticalLayout(info, instructions, withAnnotations, revalidateSummaries, start, tabs);
+            content = new VerticalLayout(info, instructions, length, withAnnotations, revalidateSummaries, start, tabs);
         } else {
-            content = new VerticalLayout(info, instructions, withAnnotations, revalidateSummaries, start, reasoningDetails, result, changesDetails);
+            content = new VerticalLayout(info, instructions, length, withAnnotations, revalidateSummaries, start, reasoningDetails, result, changesDetails);
         }
         if (passage != null) {
             content.addComponentAtIndex(1, selection);
@@ -254,17 +297,50 @@ public class RedraftDialog extends Dialog {
         apply.setText(loc.getValue(L.LABEL_APPLY));
         apply.setThemeName("primary");
         apply.setEnabled(false);
-        apply.addClickListener(_ -> apply());
+        apply.addClickListener(_ -> apply(false, false));
         Button close = new Button(loc.getValue(L.LABEL_CLOSE), _ -> close());
         getFooter().add(close, apply);
         DialogShortcuts.submitWith(start, instructions);
         DialogFocus.onOpen(this, instructions);
+    }
 
-        addOpenedChangeListener(e -> {
-            if (!e.isOpened() && generating && cancellationToken != null) {
-                cancellationToken.cancel();
+    /**
+     * Stops the model when the window is closed (also folded, or with its book): nothing is applied.
+     */
+    private void stopRunning() {
+        if (generating && cancellationToken != null && !cancellationToken.isCancelled()) {
+            cancellationToken.cancel();
+        }
+        Runnable closed = onClosedWithout;
+        onClosedWithout = null;
+        if (closed != null && !applied) {
+            closed.run();
+        }
+    }
+
+    /**
+     * Shows a redraft the model made without the window: the annotations it was given are the open ones of the part.
+     */
+    private void showResult(String reasoning, String text) {
+        try {
+            addressed.clear();
+            if (withAnnotations.isVisible() && withAnnotations.getValue()) {
+                addressed.addAll(openAnnotations());
             }
-        });
+        } catch (Exception e) {
+            UIUtils.internalServerError(loc, e);
+        }
+        result.setVisible(true);
+        finish(reasoning, text);
+    }
+
+    /**
+     * Closes the window, also when it is folded into the corner; that ends its run.
+     */
+    @Override
+    public void close() {
+        super.close();
+        floating.closed();
     }
 
     /**
@@ -332,6 +408,14 @@ public class RedraftDialog extends Dialog {
         completed(null, text);
     }
 
+    void applyForTest() {
+        apply(false, false);
+    }
+
+    FloatingWindow floatingForTest() {
+        return floating;
+    }
+
     private L title() {
         return passage == null ? L.LABEL_REDRAFT : L.LABEL_REDRAFT_SELECTION;
     }
@@ -350,6 +434,9 @@ public class RedraftDialog extends Dialog {
      */
     private void showGenerating(boolean running) {
         generating = running;
+        if (floating != null) {
+            floating.setRunning(running);
+        }
         setHeaderTitle(loc.getValue(running ? L.LABEL_REDRAFTING : title()));
         if (running) {
             start.setText(loc.getValue(L.LABEL_STOP));
@@ -359,6 +446,7 @@ public class RedraftDialog extends Dialog {
             start.setThemeName("primary");
         }
         instructions.setReadOnly(running);
+        length.setReadOnly(running);
         withAnnotations.setReadOnly(running);
         revalidateSummaries.setReadOnly(running);
         result.setReadOnly(running);
@@ -424,8 +512,11 @@ public class RedraftDialog extends Dialog {
             if (give) {
                 addressed.addAll(openAnnotations());
             }
-            cancellationToken = redraftService.redraft(manuscript, part, instructions.getValue(), null,
-                    com.github.enerccio.marginalia.domain.service.impl.generation.GenerationOptions.defaults(), give, passage, callback);
+            try (Runs.Binding _ = floating == null ? null : floating.bind()) {
+                cancellationToken = redraftService.redraft(manuscript, part, instructions.getValue(), null,
+                        com.github.enerccio.marginalia.domain.service.impl.generation.GenerationOptions.defaults(), give, passage,
+                        length.getValue(), callback);
+            }
             if (cancellationToken == null) {
                 showGenerating(false);
                 Notification.error(loc.getValue(L.ERROR_REDRAFT_FAILED));
@@ -453,8 +544,8 @@ public class RedraftDialog extends Dialog {
      */
     private void completed(String reasoning, String text) {
         finish(reasoning, text);
-        if (applyAutomatically && isOpened() && hasRedraft) {
-            apply();
+        if (applyAutomatically && floating.isLive() && hasRedraft) {
+            apply(false, true);
         }
     }
 
@@ -490,20 +581,36 @@ public class RedraftDialog extends Dialog {
         }
     }
 
-    private void apply() {
+    /**
+     * Replaces the text of the part (of the passage) with the redraft.
+     *
+     * @param changedIsFine the author said to apply even though the part was changed after the window was opened
+     * @param byItself      the window applies the redraft as the model is done: a changed part waits for the author instead
+     */
+    private void apply(boolean changedIsFine, boolean byItself) {
         String text = result.getValue();
         if (StringUtils.isBlank(text)) {
             return;
         }
         try {
+            // the window does not hold the page: the part may have been deleted or edited meanwhile
+            ChatMessage current = chatMessageService.find(part);
+            if (current == null || current.isDeleted()) {
+                Notification.warning(loc.getValue(L.MSG_RUN_PART_GONE));
+                close();
+                return;
+            }
+            String stored = StringUtils.defaultString(current.getResponse());
             if (passage != null) {
                 // the text of the part is the one the passage was selected in
-                String stored = StringUtils.defaultString(chatMessageService.find(part).getResponse());
                 if (!stored.equals(partText)) {
                     Notification.error(loc.getValue(L.MSG_REDRAFT_SELECTION_CHANGED));
                     return;
                 }
                 text = replacePassage(partText, passage, text);
+            } else if (!changedIsFine && !stored.equals(partText)) {
+                partChanged(stored, byItself);
+                return;
             }
             ChatMessageService.PartEdit edit = chatMessageService.updateResponse(manuscript, part, text,
                     RevisionOrigin.model(RevisionSource.REDRAFT, modelAndProtocol(), false, redraftReasoning));
@@ -521,11 +628,30 @@ public class RedraftDialog extends Dialog {
                 Notification.warning(loc.getValue(L.MSG_REDRAFT_APPLIED) + " "
                         + String.format(loc.getValue(L.MSG_REDRAFT_OUTDATED_SUMMARIES), edit.outdated().size()));
             }
+            applied = true;
             close();
             onApplied.accept(edit.message());
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
+    }
+
+    /**
+     * The part was changed after the window was opened (the author edited it while the model wrote): applying would replace that edit.
+     * The author decides; a redraft that would have been applied by itself waits for that too.
+     */
+    private void partChanged(String stored, boolean byItself) {
+        // what applying would change in the part as it is now
+        changes.show(stored, result.getValue());
+        changesDetails.setVisible(true);
+        changesDetails.setOpened(true);
+        if (byItself) {
+            Notification.warning(loc.getValue(L.MSG_REDRAFT_PART_CHANGED_WAITS));
+            return;
+        }
+        ConfirmDialog.show(loc.getValue(L.MSG_REDRAFT_PART_CHANGED), loc.getValue(L.LABEL_APPLY_ANYWAY), loc.getValue(L.LABEL_CANCEL),
+                () -> apply(true, false), () -> {
+                }, false);
     }
 
     /**

@@ -146,18 +146,18 @@ public class ReviewerService {
      * @param profileUuid uuid of the profile, {@code null} for the globally selected one
      */
     public Manuscript saveManuscriptProfile(Manuscript manuscript, String profileUuid) throws Exception {
-        manuscript = manuscriptService.find(manuscript);
-        JsonObject attrs = manuscript.getAttributes();
-        if (attrs == null) {
-            attrs = new JsonObject();
-            manuscript.setAttributes(attrs);
-        }
-        if (profileUuid == null) {
-            attrs.remove(MANUSCRIPT_PROFILE_KEY);
-        } else {
-            attrs.addProperty(MANUSCRIPT_PROFILE_KEY, profileUuid);
-        }
-        return manuscriptService.save(manuscript);
+        return manuscriptService.update(manuscript, current -> {
+            JsonObject attrs = current.getAttributes();
+            if (attrs == null) {
+                attrs = new JsonObject();
+                current.setAttributes(attrs);
+            }
+            if (profileUuid == null) {
+                attrs.remove(MANUSCRIPT_PROFILE_KEY);
+            } else {
+                attrs.addProperty(MANUSCRIPT_PROFILE_KEY, profileUuid);
+            }
+        });
     }
 
     public List<ReviewerProfile> getProfiles(ReviewerSettings settings) {
@@ -211,24 +211,27 @@ public class ReviewerService {
     }
 
     public ChatMessage saveReviewData(ChatMessage message, ReviewData data) throws Exception {
-        message = chatMessageService.find(message);
-        JsonObject attrs = message.getAttributes();
-        if (attrs == null) {
-            attrs = new JsonObject();
-            message.setAttributes(attrs);
-        }
-        attrs.add(ReviewerSettings.KEY, gson.toJsonTree(data));
-        return chatMessageService.save(message);
+        return chatMessageService.update(message, current -> {
+            JsonObject attrs = current.getAttributes();
+            if (attrs == null) {
+                attrs = new JsonObject();
+                current.setAttributes(attrs);
+            }
+            attrs.add(ReviewerSettings.KEY, gson.toJsonTree(data));
+        });
     }
 
     public ChatMessage deleteReviewData(ChatMessage message) throws Exception {
-        message = chatMessageService.find(message);
-        JsonObject attrs = message.getAttributes();
-        if (attrs != null && attrs.has(ReviewerSettings.KEY)) {
-            attrs.remove(ReviewerSettings.KEY);
-            message = chatMessageService.save(message);
+        ChatMessage current = chatMessageService.find(message);
+        JsonObject attrs = current.getAttributes();
+        if (attrs == null || !attrs.has(ReviewerSettings.KEY)) {
+            return current;
         }
-        return message;
+        return chatMessageService.update(current, fresh -> {
+            if (fresh.getAttributes() != null) {
+                fresh.getAttributes().remove(ReviewerSettings.KEY);
+            }
+        });
     }
 
     public List<LLMChatMessage> buildChatCompletePrompts(
@@ -282,10 +285,11 @@ public class ReviewerService {
                 if (stopMessage != null && stopMessage.getId().equals(msg.getId())) {
                     break;
                 }
-                String response = partTexts.forModel(msg);
+                String response = partText(msg, advancedOptions);
                 if (StringUtils.isBlank(response)) continue;
 
-                long msgTokens = msg.getTokenCount() > 0
+                // the stored count is of the text a model reads, the stored text is counted again
+                long msgTokens = msg.getTokenCount() > 0 && !advancedOptions.isOriginalText()
                         ? msg.getTokenCount()
                         : countTokens(inferenceService, response);
 
@@ -308,7 +312,7 @@ public class ReviewerService {
                 payload.add(LLMChatMessage.of(LLMRole.SYSTEM, "Summaries of the story so far:\n" + summaryText));
             }
             for (ChatMessage msg : selectedMessages) {
-                payload.add(LLMChatMessage.of(LLMRole.ASSISTANT, partTexts.forModel(msg)));
+                payload.add(LLMChatMessage.of(LLMRole.ASSISTANT, partText(msg, advancedOptions)));
             }
             payload.add(LLMChatMessage.of(LLMRole.USER, reviewPrompt));
 
@@ -330,11 +334,30 @@ public class ReviewerService {
             }
 
             payload.add(LLMChatMessage.of(LLMRole.USER, "[ Generate more story ]"));
-            payload.add(LLMChatMessage.of(LLMRole.ASSISTANT, partTexts.forModel(targetMessage)));
+            payload.add(LLMChatMessage.of(LLMRole.ASSISTANT, partText(targetMessage, advancedOptions)));
             payload.add(LLMChatMessage.of(LLMRole.USER, reviewPrompt));
         }
 
         return payload;
+    }
+
+    /**
+     * Whether an extension (a translator) gives a model another text than the stored one, so that *sending the original text* makes a
+     * difference.
+     */
+    public boolean hasModelTextTransformers() {
+        return partTexts.isActive();
+    }
+
+    /**
+     * The text of a part for the review: what a model reads (the source of the translated speech), or the text as it is stored (the
+     * translation) when the option asks for the original.
+     */
+    private String partText(ChatMessage part, AdvancedOptions advancedOptions) {
+        if (advancedOptions != null && advancedOptions.isOriginalText()) {
+            return StringUtils.defaultString(part.getResponse());
+        }
+        return partTexts.forModel(part);
     }
 
     /**

@@ -34,8 +34,35 @@ Open a character with the arrow on its card to see what it knows:
 | **Retract** (the circle with a slash) | The item is not true any more (*has not met Thomas* after they meet). It is not deleted: it becomes *old knowledge* and is no longer sent to the model. |
 | **Lock** (the padlock, on items the model learned) | The [tidy pass](#tidying-the-knowledge) never sees a locked item: use it for what must stay, a betrayal, a secret. The story can still contradict a locked item (a character who loses their memory): the reading of the story retracts it as usual. |
 | **Delete** | Removes an item for good, after a question. Retract keeps it, so use it when in doubt. |
+| **Select items** (next to **Add knowledge**) | Delete many items quickly: every item of the character, old ones included, gets a check box. **Select all** / **Deselect all** ticks or clears them, **Delete selected (n)** removes the ticked ones for good after one question, **Cancel** leaves the selection. |
 | **Has met** | The people the character has met, noted by [processing](#processing). Processing can note a name that is not a person (a note in the present characters field): open **Edit** and change the **Has met** list, one name after another separated by commas. The names you write stay when the story is read again; one you remove comes back only if the part it was seen in is read again. |
 | **Old knowledge (n)** | Collapsed by default. Each old item can be **copied**, **edited**, **restored** (it is active again, from now on) or deleted. |
+
+### Mass changes
+
+The **Mass changes** button (the list icon next to **Track a character**) opens a window with every tracked character and
+all its items, old ones too, in a grid with check boxes: the kind, the text, the state (*Active*, or old: *retracted*,
+*declined in a review*, *tidied*), where it comes from (*Initial state*, *Written by hand*, *Learned from the story*) and
+the part it was learned in. Tick items in as many grids as you like (the box in the header of a grid ticks all its items,
+**Select all** / **Deselect all** in the bottom bar all the items of all the characters), then:
+
+| | |
+|---|---|
+| **Retract selected (n)** | The ticked active items become old knowledge, as **Retract** does for one. |
+| **Restore selected (n)** | The ticked old items are active again, from now on. |
+| **Delete selected (n)** | Removes the ticked items for good, after one question. |
+
+The counts on the buttons say how many of the ticked items each one changes. The ticks stay after a change, so retracted
+items can be deleted next.
+
+**Export to JSON** (at the top of the window) downloads the tracked characters of the book (names, aliases, items with their
+kind, state, origin and lock, the people they have met) as a file; nothing of the processing, so it fits any book.
+**Import from JSON** reads such a file into the book and only adds: a character whose name the book tracks already (as a
+name or an alias) gets the aliases, items and met people it does not have yet (an item with the same kind and text is
+skipped), the others become new tracked characters; an alias another character already has is left out. An imported item
+has no part of this book behind it, so a reprocess never drops it: one the model learned counts as written by hand, an old
+one stays old. The message after the import says how many characters were added or updated and how many items were added
+or were there already.
 
 ## What goes into the prompt
 
@@ -122,8 +149,8 @@ addition does in the review), a retracted item becomes active again. A row whose
 by hand since is left alone. The log keeps the last 200 changes.
 
 With **Ask before applying** off the new part is read as soon as it is final: when the generation is over, or, if the
-book has the automatic annotation (and redraft) on, when that is done, so the model reads the text you keep and works
-while you read it. The next generation then finds the knowledge up to date and does not wait. What is left (a run you
+book has the automatic annotation (and redraft) or a translation on, when that is done, so the model reads the text you keep and works
+while you read it. It is a step of [what follows the part](../books/story-editor.md#what-follows-a-generated-part). The next generation then finds the knowledge up to date and does not wait. What is left (a run you
 stopped, a window you closed) is read before the next generation, as before.
 
 While the model works a small **progress panel** floats over the page. It is **not modal**: you can keep reading and

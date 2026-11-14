@@ -10,15 +10,31 @@ import java.util.List;
  * @param description the first paragraph of the page, shortened
  * @param text        the whole page as Markdown, pictures removed
  * @param sections    the page split by its headings
+ * @param language    the code of the language the text is in ({@code en} for the original, the others are translations)
  */
-public record ManualPage(String path, String title, String description, String text, List<ManualSection> sections) {
+public record ManualPage(String path, String title, String description, String text, List<ManualSection> sections, String language) {
 
-    /** Where the published manual is: the user guide on the GitHub pages of the project (built from {@code manual/}). */
+    /** The published manual, the user guide on the GitHub pages of the project (built from {@code manual/}), the English site. */
     public static final String WEB_BASE = "https://enerccio.github.io/Marginalia/user/";
 
-    /** The address of the page in the published manual, e.g. {@code .../user/books/story-editor/}. */
+    /** The root of the sites of the other languages: {@code <SITE_BASE><language>/user/}. */
+    public static final String SITE_BASE = "https://enerccio.github.io/Marginalia/";
+
+    public ManualPage {
+        language = language == null || language.isBlank() ? ENGLISH : language;
+    }
+
+    /** An English page. */
+    public ManualPage(String path, String title, String description, String text, List<ManualSection> sections) {
+        this(path, title, description, text, sections, ENGLISH);
+    }
+
+    /** The code of the language of the manual as it is written. */
+    public static final String ENGLISH = "en";
+
+    /** The address of the page in the published manual, in the language of its text, e.g. {@code .../user/books/story-editor/}. */
     public String url() {
-        return url(path, "");
+        return url(path, "", language);
     }
 
     /**
@@ -26,6 +42,11 @@ public record ManualPage(String path, String title, String description, String t
      * {@code .md} (and {@code index}), as the site writes it.
      */
     public static String url(String path, String anchor) {
+        return url(path, anchor, ENGLISH);
+    }
+
+    /** As {@link #url(String, String)} in the site of a language; the site of {@code en} is the original one. */
+    public static String url(String path, String anchor, String language) {
         String address = path.endsWith(".md") ? path.substring(0, path.length() - 3) : path;
         if (address.equals("index")) {
             address = "";
@@ -34,6 +55,7 @@ public record ManualPage(String path, String title, String description, String t
         } else {
             address += "/";
         }
-        return WEB_BASE + address + (anchor == null || anchor.isEmpty() ? "" : "#" + anchor);
+        String base = language == null || language.equals(ENGLISH) ? WEB_BASE : SITE_BASE + language + "/user/";
+        return base + address + (anchor == null || anchor.isEmpty() ? "" : "#" + anchor);
     }
 }

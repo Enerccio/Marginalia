@@ -450,15 +450,12 @@ public class ImageGeneratorService {
      * @throws IllegalArgumentException when the bytes are not a supported image or are too big
      */
     public ChatMessage attach(ChatMessage message, byte[] image, String filename) throws Exception {
-        ChatMessage current = chatMessageService.find(message);
-        if (current == null) {
-            current = message;
-        }
-        Resource resource = resourceService.uploadImage(filename, image, ChatMessage.class, current.getId());
-        List<ImageAttachment> images = current.getImages();
-        images.add(new ImageAttachment(resource.getUuid(), ""));
-        current.setImages(images);
-        return chatMessageService.save(current);
+        Resource resource = resourceService.uploadImage(filename, image, ChatMessage.class, message.getId());
+        return chatMessageService.update(message, current -> {
+            List<ImageAttachment> images = current.getImages();
+            images.add(new ImageAttachment(resource.getUuid(), ""));
+            current.setImages(images);
+        });
     }
 
     /** The new seed of a try. */

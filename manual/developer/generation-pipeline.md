@@ -1,10 +1,11 @@
 ---
 label: Generation pipeline
 order: 930
-verified: d163441bd
+verified: f7e7de02b
 covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/generation
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/StoryGenerationServiceImpl.java
+  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/AfterPartPhase.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/SummaryServiceImpl.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/components
 ---
@@ -50,20 +51,24 @@ CancellationToken token = storyGenerationService.generateNextTurn(
 ```
 
 `generateNextTurn` is `@NoTx` and returns immediately with a `CancellationToken`; `token.cancel()` stops the
-generation. By default it must be called on a thread with a request (the UI thread): it captures the session in
+generation. It is a run of the book in the `Runs` (one generation of a book at a time: a second one throws `Runs.HeldException`).
+The run is in the stage `PREPARE` until the `INFERENCE` step starts; then it holds the new part (`WRITE`) and the branch above it
+(`STRUCTURE`) and moves to `INFERENCE`, which frees the rest of the book in its window and on the server (edits of the earlier parts,
+the lore, the settings); it is given back when `CLEANUP` starts. See *The runs and what they hold* in [services](services.md). By default it must be called on a thread with a request (the UI thread): it captures the session in
 `ThreadCopyRequestAttributes` so the steps run as the user who started the generation (see
 [The current user](services.md#the-current-user)).
 
 ### Generation options
 
 The form above is a shortcut for `generateNextTurn(manuscript, input, request, listener, GenerationOptions.defaults())`.
-`GenerationOptions(ai, protocol, context)` lets a caller that is not the book window decide three things, each
+`GenerationOptions(ai, protocol, context)` lets a caller that is not the book window decide these things, each
 optional (`null` = the default):
 
 | Option | Default | Use |
 |---|---|---|
 | `ai`, `protocol` | The book's | Generate with another model, e.g. a specialist model of an agent. Only this generation uses them, the book is never changed (and the steps' saves persist nothing about them). `withModel(ai, protocol)`. |
 | `context` | `ThreadCopyRequestAttributes.create()`, a copy of the calling thread's session | A `RequestAttributes` that resolves the session scoped beans (the user) for a caller without an HTTP request, such as a background run. `withContext(attributes)`. |
+| `page` | `UI.getCurrent()` of the calling thread | The page (a Vaadin `UI`) the run of the generation belongs to, for a caller on another thread that starts it for a page: the commands of the story's command bar. A closed page stops it, and what follows the part opens its windows there. `withPage(ui)`. |
 
 If there is neither a request nor a `context`, the call throws `IllegalStateException`.
 
@@ -207,7 +212,10 @@ Skipped when the book has no lorebook. Otherwise:
    one entry are visible in the following ones. A payload that fails to render is used as it is.
 6. **Insert**: payloads with `IN_LORE_BLOCK` are joined into `backgroundLore` (the master template's
    `{{backgroundLore}}`); payloads with `BEFORE_USER_PROMPT` are joined into `backgroundUserLore` and put in front of
-   the user prompt.
+   the user prompt. The images in the content (`![caption](resource:<uuid>)`, `LoreImages`) are not in the text:
+   `renderPayload` (and the recursion scan) strips them. When the AI has `sendLoreImages` they are listed in
+   `GenerationProperties.LORE_IMAGES` (`List<LoreImage>`: entry name, caption, resource uuid, insertion mode, in the order of
+   the entries, also those of an entry whose text is empty) for the payload step.
 
 Events: `BEFORE_PROCESS_LOREBOOK`, `PROCESS_LOREBOOKS` (the list in `LOREBOOKS` can be changed),
 `PROCESS_LOREBOOK_ENTRY` (once per entry, `LOREBOOK_ENTRY`; the entry is evaluated first and `LOREBOOK_VERDICT` holds
@@ -277,7 +285,16 @@ user       lore before user prompt + "\n\n" + rendered user prompt
 ```
 
 Earlier parts are sent as the model's own previous answers, each preceded by a short placeholder user turn. The final
-user message carries the instructions. Only the text of the parts is sent: the images attached to a part are not part of
+user message carries the instructions.
+
+**Lore images** (`LORE_IMAGES`, empty unless the AI has *Send lore images*): each resource once, read with
+`resourceService.findImage` and scaled by `ImageFiles.prepare` (an image that is gone or can't be read is left out with a
+warning), with a caption line `[ Images of the lore, in order: 1. Entry (caption); ... ]`. The images of `IN_LORE_BLOCK`
+entries go into a user message of their own right after the system message, answered by an assistant message
+(`LORE_IMAGES_ACKNOWLEDGED`), since the system role of most APIs takes text only; with `AI.loreImagesInSystem` (OpenAI
+compatible only) they are attachments of the system message instead, which `OpenAICompatibleInferenceService.toSystemMessage`
+writes as untyped JSON parts (`text`, `image_url`). The images of `BEFORE_USER_PROMPT` entries are attachments of the final
+user message, the caption after the prompt. Only the text of the parts is sent: the images attached to a part are not part of
 it and the model never sees them.
 
 An `LLMChatMessage` can carry `LLMAttachment`s (images, audio, files) for models that accept them, and the OpenAI
@@ -394,6 +411,24 @@ wins over an error the stop caused; otherwise `FAILED`) and, when an error was r
 `FailureTrackingListener`, so it does not matter which step reported it), `FAILURE` (`GenerationFailure`: the first
 message and the exception). `getMessage()` of the event is the part with the text that arrived, `null` when it was
 removed. The listener of the caller (`onComplete`, `onCancelled`) has been told by then.
+
+## After the part
+
+When a generation **completed** (`OUTCOME` is `COMPLETED`, the part exists) and was started with `GenerationOptions.afterPart()` true
+(the default; `StoryGenerationCommands` passes `withoutAfterPart()` for an agent), the engine goes on after `AFTER_CLEANUP` with a
+second phase, `AfterPartPhase`: the steps bound to the stages of `AfterPart` (`REVIEW`, `REWRITE`, `TRANSFORM`, `EXTRACT`, `MEDIA`),
+see [After the part](plugins/after-part.md). It is not a step of the engine and shares nothing of its stop and error path: the
+generation is over (its token, its run and its page are done with, `CLEANUP` has run), the phase has its own run of the registry
+(`Runs.AFTER_PART`, one entry in the panel), its own stop and its own end. It runs on the engine's executor with the generation's
+request attributes, and gets a copy of the properties, the request, the AI, the protocol and the turn input. The listener of the
+caller hears `onPartChanged` (a step changed the part: the story tab shows it again) and `onPartFinal` (the text-changing stages are
+over, or there were none; the tab calls the deprecated `AutoAnnotate.finished` there), and `onWarning` with the stop or the failure.
+A regeneration of a part ends the phase of its earlier generation (`endAfterPart` in `generateNextTurn`).
+
+The core binds two steps, `AutoAnnotateSteps` (`ui.dialogs.story`, a bean of `services-config.xml`): the automatic annotation
+(`REVIEW`) and the redraft that addresses its notes (`REWRITE`), with the settings of the book (`Manuscript.autoAnnotate*`); a result
+the book does not take without asking opens `AnnotateDialog.openResult` / `RedraftDialog.openResult` in the page that generated and
+from the panel's Review, a window that is a part of the phase's entry (`FloatingWindow.partOf`).
 
 ## Prompt data
 

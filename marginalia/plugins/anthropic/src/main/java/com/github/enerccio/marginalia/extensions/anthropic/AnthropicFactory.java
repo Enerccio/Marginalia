@@ -70,7 +70,9 @@ public class AnthropicFactory implements ExtensionAIFactory {
         TokenizerStrategy anthropic = new TokenizerStrategy() {
             @Override
             public long countTokens(AI ai, String text) throws Exception {
-                if (!(inferenceServices.forAI(ai) instanceof AnthropicInferenceService service)) {
+                InferenceService found = inferenceServices.forAI(ai);
+                AnthropicInferenceService service = found == null ? null : found.unwrap(AnthropicInferenceService.class);
+                if (service == null) {
                     throw new IllegalStateException("The extension " + EXTENSION_ID + " is not loaded");
                 }
                 return service.countTokensOnline(text);

@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.domain.service.command;
 
 import com.github.enerccio.marginalia.domain.model.impl.*;
+import com.github.enerccio.marginalia.domain.service.GenerationView;
 
 /**
  * What a command works on and who answers its questions: the book, the lorebooks of the book and the way to ask for a
@@ -46,6 +47,14 @@ public interface CommandScope {
      * An AI and the protocol to ask it with; the protocol may be null.
      */
     record ModelChoice(AI ai, Protocol protocol) {
+    }
+
+    /**
+     * The story that shows a generation the command starts (the story tab of the command bar the user typed the command into), null
+     * when nothing does (an agent, a template, a command bar that is not in a story): the generation then runs with no page.
+     */
+    default GenerationView getGenerationView() {
+        return null;
     }
 
     /**

@@ -26,6 +26,9 @@ import java.util.concurrent.ConcurrentHashMap;
  *     <li>{@code X-Test-Fail-Start} - the activator throws</li>
  *     <li>{@code X-Test-Fail-Load} - {@code onExtensionLoad} throws</li>
  *     <li>{@code X-Test-Language} - the extension brings a localization bundle of the language with this code</li>
+ *     <li>{@code X-Test-Link-Error-Load} - {@code onExtensionLoad} fails as code built for another version does
+ *     ({@code NoSuchFieldError})</li>
+ *     <li>{@code X-Test-Link-Error-Language} - its localization bundle names a key this version doesn't have</li>
  * </ul>
  * Loads and unloads are counted per {@code symbolicName:version}.
  */
@@ -56,6 +59,9 @@ public class TestExtensionActivator implements BundleActivator {
 
         @Override
         public List<LocalizationBundle> getLocalizationBundles() {
+            if (bundle != null && bundle.getHeaders().get("X-Test-Link-Error-Language") != null) {
+                throw new NoSuchFieldError("Class L does not have member field 'L LABEL_GONE'");
+            }
             String code = bundle == null ? null : bundle.getHeaders().get("X-Test-Language");
             return code == null ? List.of() : List.of(new TestLanguageBundle(Language.of(code)));
         }
@@ -66,6 +72,9 @@ public class TestExtensionActivator implements BundleActivator {
             LOADED.merge(key(bundle), 1, Integer::sum);
             if (bundle.getHeaders().get("X-Test-Fail-Load") != null) {
                 throw new IllegalStateException("load of " + key(bundle) + " failed");
+            }
+            if (bundle.getHeaders().get("X-Test-Link-Error-Load") != null) {
+                throw new NoSuchMethodError("'void Gone.method()'");
             }
         }
 

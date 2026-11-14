@@ -121,6 +121,20 @@ public class Manuscript extends ExtendableEntity {
     @Transient
     private String redraftPrompt;
 
+    /**
+     * Added to the instructions of a redraft asked to be shorter. Part of the inherited text settings, see {@code PromptField.REDRAFT_SHORTER}.
+     */
+    @ExtendedAttribute
+    @Transient
+    private String redraftShorter;
+
+    /**
+     * Added to the instructions of a redraft asked to be longer. Part of the inherited text settings, see {@code PromptField.REDRAFT_LONGER}.
+     */
+    @ExtendedAttribute
+    @Transient
+    private String redraftLonger;
+
     @ExtendedAttribute
     @Transient
     private String annotateSystemPrompt;
@@ -429,6 +443,22 @@ public class Manuscript extends ExtendableEntity {
 
     public void setRedraftPrompt(String redraftPrompt) {
         this.redraftPrompt = redraftPrompt;
+    }
+
+    public String getRedraftShorter() {
+        return redraftShorter;
+    }
+
+    public void setRedraftShorter(String redraftShorter) {
+        this.redraftShorter = redraftShorter;
+    }
+
+    public String getRedraftLonger() {
+        return redraftLonger;
+    }
+
+    public void setRedraftLonger(String redraftLonger) {
+        this.redraftLonger = redraftLonger;
     }
 
     public String getSummaryPrompt() {

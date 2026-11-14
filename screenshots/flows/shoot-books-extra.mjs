@@ -2,11 +2,38 @@
 // edit), importing a zip of .md files. Run on a COPY of 13-db-backup, it is discarded: a lorebook with two subbooks is imported
 // (dataset/lorebook.mjs, `companion`) and a book is imported from the archive.
 // Pictures: multi-tag-books, lorebook-sub-lorebooks, lorebook-mass-edit, multi-tag-entries, archive-upload, archive-entry-names,
-// archive-progress, archive-lorebook-upload.
+// archive-progress, archive-lorebook-upload, and (1.8.0) import-source (the import window with the Source selector open), document-import (a Word
+// document uploaded, with its options), book-import-into (the same window opened from the settings menu of a book, the place picked), and
+// import-finished (what is offered after an import), summaries-create (Create summaries by chapters), lore-notes-confirm (the agent that takes the lore notes).
 import fs from 'node:fs';
 import path from 'node:path';
 import {execFileSync} from 'node:child_process';
-import {bookListMenu, closeDialog, dialog, idle, login, main, openTab, outDir, pick, press, root, section, sleep, snap, snapDialog} from '../lib/shot.mjs';
+import {openStoryMenu} from '../lib/story.mjs';
+import {
+    bookListMenu,
+    bookTab,
+    closeDialog,
+    DESKTOP,
+    dialog,
+    dialogBox,
+    field,
+    idle,
+    llm,
+    login,
+    main,
+    menuItem,
+    openBook,
+    openImport,
+    openTab,
+    outDir,
+    pick,
+    pickSelect,
+    root,
+    section,
+    sleep,
+    snap,
+    snapDialog
+} from '../lib/shot.mjs';
 
 execFileSync('node', [path.join(root, 'dataset/lorebook.mjs')], { stdio: 'inherit' });
 
@@ -23,6 +50,40 @@ const zipOf = (zipName, files) => {
   return zip;
 };
 fs.mkdirSync(archiveDir, { recursive: true });
+
+// a .docx made by hand (a zip of XML): the styles give "Title" and "heading 1" their built in names, the way Word does
+const xml = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+function manuscriptDocx() {
+  const parts = JSON.parse(fs.readFileSync(path.join(root, 'dataset/unregistered-parts.json'), 'utf8')).map(p => p.reply);
+  const chapters = [['The Cellar Tour', [0, 1]], ['The Bricked Archway', [2, 3]], ['What the River Keeps', [4, 5]]];
+  const paragraph = (text, style) => `<w:p>${style ? `<w:pPr><w:pStyle w:val="${style}"/></w:pPr>` : ''}<w:r><w:t xml:space="preserve">${xml(text)}</w:t></w:r></w:p>`;
+  let body = paragraph('Unregistered', 'Title');
+  for (const [title, indexes] of chapters) {
+    body += paragraph(title, 'Heading1');
+    for (const i of indexes) for (const text of parts[i].split(/\n\s*\n/)) if (text.trim()) body += paragraph(text.trim().replace(/\s*\n\s*/g, ' '));
+  }
+  const dir = path.join(archiveDir, '_docx');
+  fs.rmSync(dir, { recursive: true, force: true });
+  fs.mkdirSync(path.join(dir, '_rels'), { recursive: true });
+  fs.mkdirSync(path.join(dir, 'word/_rels'), { recursive: true });
+  const ns = 'xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"';
+  fs.writeFileSync(path.join(dir, '[Content_Types].xml'), '<?xml version="1.0" encoding="UTF-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
+    + '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/>'
+    + '<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>'
+    + '<Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/></Types>');
+  fs.writeFileSync(path.join(dir, '_rels/.rels'), '<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+    + '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>');
+  fs.writeFileSync(path.join(dir, 'word/_rels/document.xml.rels'), '<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+    + '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>');
+  fs.writeFileSync(path.join(dir, 'word/styles.xml'), `<?xml version="1.0" encoding="UTF-8"?><w:styles ${ns}>`
+    + '<w:style w:type="paragraph" w:styleId="Title"><w:name w:val="Title"/></w:style>'
+    + '<w:style w:type="paragraph" w:styleId="Heading1"><w:name w:val="heading 1"/></w:style></w:styles>');
+  fs.writeFileSync(path.join(dir, 'word/document.xml'), `<?xml version="1.0" encoding="UTF-8"?><w:document ${ns}><w:body>${body}</w:body></w:document>`);
+  const docx = path.join(archiveDir, 'Unregistered draft.docx');
+  fs.rmSync(docx, { force: true });
+  execFileSync('zip', ['-q', '-r', docx, '[Content_Types].xml', '_rels', 'word'], { cwd: dir });
+  return docx;
+}
 const bookZip = zipOf('Notes from the Cellar.zip', {
   '01 The Stairs.md': 'The stone stairs were wet when the last group came up from the cellar. Nobody spoke; breath hung in the air in small clouds.\n',
   '02 The Iron Ring.md': 'The iron ring in the wall smelled of rust and old rope. Everybody reached for it, and nobody asked why it was there.\n',
@@ -34,18 +95,141 @@ const loreZip = zipOf('Valley Places.zip', {
   'Ledger House.md': 'A square stone building by the bridge. Nobody goes there for pleasure, and everybody has a line in it.\n',
 });
 
+// the window that offers the summaries and the lore notes once the parts are in the book: it is in front of the book that was opened
+const afterImport = async (page, picture) => {
+  const win = page.getByRole('button', { name: 'Not now', exact: true });
+  await win.waitFor({ timeout: 15000 });
+  await idle(page, 500);
+  if (picture) await snapDialog(page, picture, 0);
+  return win;
+};
+const notNow = async page => {
+  await page.getByRole('button', { name: 'Not now', exact: true }).click();
+  await idle(page, 700);
+};
+
 await main(async ({ page }) => {
   await login(page);
 
   // a book from a zip of .md files
   await section(page, 'archive-book', async () => {
     await openTab(page, 'Books');
-    await bookListMenu(page, 'Import', 'Import from archive');
-    await idle(page, 900);
-    await snapDialog(page, 'archive-upload', -1);
+    const d = await openImport(page);
+    await idle(page, 400);
+    // the selector with its sources
+    await field(d, 'Source').click();
+    await idle(page, 500);
+    await snap(page, 'import-source');
+    await page.keyboard.press('Escape');
+    await idle(page, 400);
     await page.locator('vaadin-upload input[type=file]').last().setInputFiles(bookZip);
     await idle(page, 2500);
-    // the book is made and opened
+    await snapDialog(page, 'archive-upload', -1);
+    await dialog(page).getByRole('button', { name: 'Import', exact: true }).click();
+    await idle(page, 3000);
+    // the book is made and opened, the window of what to do next is in front of it
+    await afterImport(page);
+    await notNow(page);
+    await page.getByRole('button', { name: 'Exit', exact: true }).first().click();
+    await idle(page, 1000);
+  });
+
+  // a Word manuscript: a title, three chapters with Heading 1 (the text of the story of the dataset), cut into parts of about 500 words
+  await section(page, 'document-import', async () => {
+    await openTab(page, 'Books');
+    const d = await openImport(page, 'Import from a document');
+    await page.locator('vaadin-upload input[type=file]').last().setInputFiles(manuscriptDocx());
+    await idle(page, 2500);
+    const words = d.locator('vaadin-integer-field').first();
+    await words.locator('input').fill('500');
+    await words.locator('input').dispatchEvent('change');
+    await idle(page, 800);
+    // a taller window, so the dialog shows down to its last option
+    await page.setViewportSize({ width: DESKTOP.width, height: 1150 });
+    await idle(page, 600);
+    await snapDialog(page, 'document-import', -1);
+    await page.setViewportSize(DESKTOP);
+    await idle(page, 400);
+    await dialog(page).getByRole('button', { name: 'Import', exact: true }).click();
+    await idle(page, 3500);
+    await snap(page, '_document-imported');
+    // the window that offers the summaries and the lore notes (import-finished.png)
+    await afterImport(page, 'import-finished');
+    await notNow(page);
+    await page.getByRole('button', { name: 'Exit', exact: true }).first().click();
+    await idle(page, 1000);
+  });
+
+  // the import window from the settings menu of a book: the parts go after the second part of the story, what followed them follows them
+  await section(page, 'book-import-into', async () => {
+    await openBook(page, 'Notes from the Cellar');
+    await bookTab(page, 'Story');
+    await openStoryMenu(page);
+    await page.getByRole('menuitem', { name: /^Import & export/ }).first().click();
+    await idle(page, 400);
+    await menuItem(page, 'Import').click();
+    await idle(page, 900);
+    const d = dialog(page);
+    await pick(d, 'Source', 'Import from a document');
+    await idle(page, 500);
+    await page.locator('vaadin-upload input[type=file]').last().setInputFiles(manuscriptDocx());
+    await idle(page, 2500);
+    const words = d.locator('vaadin-integer-field').first();
+    await words.locator('input').fill('500');
+    await words.locator('input').dispatchEvent('change');
+    await idle(page, 600);
+    await d.locator('vaadin-radio-button').filter({ hasText: 'After a part' }).click();
+    await idle(page, 500);
+    await field(d, 'Part').click();
+    await idle(page, 500);
+    await page.getByRole('option').nth(1).click();
+    await idle(page, 600);
+    await page.setViewportSize({ width: DESKTOP.width, height: 1250 });
+    await idle(page, 600);
+    await snapDialog(page, 'book-import-into', 0);
+    await page.setViewportSize(DESKTOP);
+    await idle(page, 400);
+    await dialog(page).getByRole('button', { name: 'Import', exact: true }).click();
+    await idle(page, 3500);
+    // the story shows the new parts between the second and the third
+    await snap(page, '_book-imported');
+    await afterImport(page);
+    // the summaries of the story: by chapters (the imported parts start with their chapter heading), a chapter needs 500 tokens to end a summary
+    await page.getByRole('button', { name: /^Create summaries/ }).click();
+    await idle(page, 900);
+    const cs = dialog(page);
+    await pickSelect(cs, 'Chapters');
+    await idle(page, 500);
+    const min = cs.locator('vaadin-integer-field').nth(1);
+    await min.locator('input').fill('500');
+    // Tab leaves the field, which sends the value to the server (Enter would press Start)
+    await min.locator('input').press('Tab');
+    // the line under the options is written by the server: wait for the plan of the new minimum (three blocks, the rest included)
+    await cs.getByText(/^3 summaries for 9 parts/).waitFor({ timeout: 10000 });
+    await idle(page, 400);
+    await snap(page, 'summaries-create', { clip: await dialogBox(page, 'Cut the story by').boundingBox() });
+    // started: the fake model answers slowly, so the window can be seen at work (three summaries, one for each block)
+    await llm('/_reset', {});
+    for (const text of [
+      '* The tour comes up from the cellar, wet and silent; the counting goes wrong twice.\n* The iron ring in the wall smells of rust.',
+      '* The bricked archway breathes. Mizuki says so in Japanese and Tomáš, who has lied about knowing the language, understands her.',
+      '* They wake in wet reeds under an enormous moon and decide to follow the river to the light on the water.',
+    ]) await llm('/_queue', { reply: text, delayMs: 3000 });
+    await dialog(page).getByRole('button', { name: 'Start', exact: true }).click();
+    await page.getByText(/^Summary 2 of 3$/).waitFor({ timeout: 30000 });
+    await idle(page, 1500);
+    await snap(page, 'summaries-create-progress', { clip: await dialogBox(page, 'Create summaries').boundingBox() });
+    // the window closes itself when the last summary is written
+    await page.getByText(/^Summary 3 of 3$/).waitFor({ timeout: 30000 });
+    await page.getByRole('button', { name: /^Create summaries/ }).waitFor({ timeout: 30000 });
+    await idle(page, 800);
+    // the question before an agent takes the lore notes
+    await page.getByRole('button', { name: /^Take lore notes/ }).click();
+    await idle(page, 900);
+    await snap(page, 'lore-notes-confirm', { clip: await dialogBox(page, 'An agent reads').boundingBox() });
+    await dialog(page).getByRole('button', { name: /^(No|Cancel)$/ }).first().click();
+    await idle(page, 600);
+    await notNow(page);
     await page.getByRole('button', { name: 'Exit', exact: true }).first().click();
     await idle(page, 1000);
   });

@@ -49,6 +49,11 @@ public class BackendConfig implements Cloneable {
     /** How long one speech request may take, in seconds. */
     private int timeoutSeconds = DEFAULT_TIMEOUT_SECONDS;
     /**
+     * Restart the server (the requests after the batch and before it) after this many pieces; 0: never. For a server that leaks memory and is
+     * killed by the system in the middle of a long batch.
+     */
+    private int restartEveryPieces;
+    /**
      * The voice of the narrator for the plain script: {@code predefined:Henry.wav} (a voice that comes with the server) or {@code clip:<uuid of a
      * resource>} (a reference clip of the user). The cast of the book replaces it (see TODO.md).
      */
@@ -148,6 +153,15 @@ public class BackendConfig implements Cloneable {
 
     public void setTimeoutSeconds(int timeoutSeconds) {
         this.timeoutSeconds = timeoutSeconds;
+    }
+
+    /** After how many pieces the server is restarted during a batch, 0 for never. */
+    public int getRestartEveryPieces() {
+        return Math.max(0, restartEveryPieces);
+    }
+
+    public void setRestartEveryPieces(int restartEveryPieces) {
+        this.restartEveryPieces = restartEveryPieces;
     }
 
     public String getNarratorVoice() {

@@ -4,9 +4,12 @@ import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.extensions.reallangtranslator.service.TranslationService.Outcome;
 import com.github.enerccio.marginalia.extensions.translatorcommon.service.PartRuns;
+import com.github.enerccio.marginalia.extensions.translatorcommon.service.RunProgress;
 import org.slf4j.Logger;
 
 import java.util.function.BiConsumer;
+
+import static com.github.enerccio.marginalia.extensions.reallangtranslator.ReallangTranslatorLocalization.*;
 
 /**
  * Runs the translations of parts on worker threads, see {@link PartRuns}.
@@ -18,7 +21,8 @@ public final class TranslationRuns {
 
     public TranslationRuns(TranslationService service, Logger log) {
         this.service = service;
-        this.runs = new PartRuns<>("reallang-translator", log);
+        // the card of the part shows it while it works
+        this.runs = new PartRuns<>("reallang-translator", log, () -> T.localized(TRANSLATING_THE_SPEECH));
     }
 
     /**
@@ -40,12 +44,47 @@ public final class TranslationRuns {
     }
 
     /**
+     * Translates the part into all the languages of the book on this thread (a step after a generated part, which waits for it), see
+     * {@link PartRuns#run}.
+     *
+     * @param progress the requests report to it, its stop stops them
+     * @throws java.util.concurrent.CancellationException when it was stopped
+     */
+    public Outcome translateNow(Manuscript manuscript, ChatMessage part, RunProgress progress) throws Exception {
+        return runs.run(part, () -> service.translate(manuscript, part, null), progress);
+    }
+
+    /**
      * Translates the part into one language of the book on a worker thread, the rules of {@link #start(Manuscript, ChatMessage, BiConsumer)} apply.
      *
      * @param languageId the language (its id in the library), null for all of the book's
      */
     public boolean start(Manuscript manuscript, ChatMessage part, String languageId, BiConsumer<Outcome, Throwable> done) {
-        return runs.start(part, () -> service.translate(manuscript, part, languageId), done);
+        return start(manuscript, part, languageId, null, done);
+    }
+
+    /**
+     * As above, the requests to the model report to the progress (and a stop of it stops the run); null for none.
+     */
+    public boolean start(Manuscript manuscript, ChatMessage part, String languageId, RunProgress progress, BiConsumer<Outcome, Throwable> done) {
+        return runs.start(part, () -> service.translate(manuscript, part, languageId), done, progress);
+    }
+
+    /**
+     * Translates the speeches of the part that are not translated yet, see {@link TranslationService#translateMissing}; the rules of {@link #start} apply.
+     *
+     * @param languageId the language (its id in the library), null for all of the book's
+     */
+    public boolean startMissing(Manuscript manuscript, ChatMessage part, String languageId, RunProgress progress, BiConsumer<Outcome, Throwable> done) {
+        return runs.start(part, () -> service.translateMissing(manuscript, part, languageId), done, progress);
+    }
+
+    /**
+     * Translates the speeches that are not translated yet in the range of the part, see {@link TranslationService#translateMissingIn}.
+     */
+    public boolean startMissingIn(Manuscript manuscript, ChatMessage part, String expected, int from, int to, String languageId, RunProgress progress,
+                                  BiConsumer<Outcome, Throwable> done) {
+        return runs.start(part, () -> service.translateMissingIn(manuscript, part, expected, from, to, languageId), done, progress);
     }
 
     /**
@@ -60,6 +99,14 @@ public final class TranslationRuns {
      */
     public boolean startSelection(Manuscript manuscript, ChatMessage part, String expected, int from, int to, String languageId,
                                   BiConsumer<Outcome, Throwable> done) {
-        return runs.start(part, () -> service.translateSelection(manuscript, part, expected, from, to, languageId), done);
+        return startSelection(manuscript, part, expected, from, to, languageId, null, done);
+    }
+
+    /**
+     * As above, the request to the model reports to the progress (and a stop of it stops the run); null for none.
+     */
+    public boolean startSelection(Manuscript manuscript, ChatMessage part, String expected, int from, int to, String languageId,
+                                  RunProgress progress, BiConsumer<Outcome, Throwable> done) {
+        return runs.start(part, () -> service.translateSelection(manuscript, part, expected, from, to, languageId), done, progress);
     }
 }

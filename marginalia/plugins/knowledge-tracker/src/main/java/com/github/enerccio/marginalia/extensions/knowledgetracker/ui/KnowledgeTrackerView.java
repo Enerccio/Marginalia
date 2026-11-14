@@ -72,6 +72,8 @@ public class KnowledgeTrackerView extends VerticalLayout {
     /** Ids of the characters that are shown open and of those whose old knowledge is open; kept over a refresh. */
     private final Set<String> open = new HashSet<>();
     private final Set<String> oldOpen = new HashSet<>();
+    /** The characters whose items are in selection mode, with the ids of the items that are ticked; kept over a refresh. */
+    private final Map<String, Set<String>> selecting = new HashMap<>();
 
     private final VerticalLayout list = new VerticalLayout();
     private Button settingsButton;
@@ -84,6 +86,7 @@ public class KnowledgeTrackerView extends VerticalLayout {
     private final Runnable runRefresh = UiAccess.coalesced(this, () -> {
         state = loadState();
         refresh();
+        reloadMassChanges();
     });
     /**
      * The tab shows the state, which a run changes only when it applies something (the {@code onChange} below tells) and the buttons
@@ -100,7 +103,10 @@ public class KnowledgeTrackerView extends VerticalLayout {
         state = loadState();
         showSettingsState();
         refresh();
+        reloadMassChanges();
     });
+    /** The open <b>Mass changes</b> window, {@code null} when there is none. */
+    private MassChangesDialog massChanges;
     /** Removes the listener that reads the state again when a command changes it, set while the view is attached. */
     private Runnable changeRegistration;
 
@@ -184,7 +190,12 @@ public class KnowledgeTrackerView extends VerticalLayout {
         reload.setAriaLabel(T.localized(REFRESH));
         reload.setTooltipText(T.localized(REFRESH));
 
-        HorizontalLayout buttons = new HorizontalLayout(add, reload, settingsButton);
+        Button mass = new Button(Solid.TABLE_LIST.create(), _ -> openMassChanges());
+        mass.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_ICON);
+        mass.setAriaLabel(T.localized(MASS_CHANGES));
+        mass.setTooltipText(T.localized(CHANGE_MANY_ITEMS_AT_ONCE));
+
+        HorizontalLayout buttons = new HorizontalLayout(add, mass, reload, settingsButton);
         buttons.setAlignItems(Alignment.CENTER);
         buttons.setPadding(true);
         buttons.setSpacing(false);
@@ -853,6 +864,18 @@ public class KnowledgeTrackerView extends VerticalLayout {
         run.addListener(runListener);
     }
 
+    /** Whether the tab is the one of this book. */
+    public boolean isFor(Manuscript book) {
+        return book != null && manuscript.getUuid().equals(book.getUuid());
+    }
+
+    /** Shows the run (the panel of the runs was clicked): its progress, and the review when its proposal waits. */
+    public void showRun(ExtractionRun run) {
+        watch(run);
+        showProgress(run);
+        progressPanel.openReview();
+    }
+
     private void showProgress(ExtractionRun run) {
         if (progressPanel != null) {
             progressPanel.close();
@@ -900,6 +923,24 @@ public class KnowledgeTrackerView extends VerticalLayout {
         }
     }
 
+    /** <b>Mass changes</b>: the items of all the characters in grids with check boxes, export and import. */
+    private void openMassChanges() {
+        massChanges = new MassChangesDialog(manuscript.getName(), () -> state, this::persist, positions::get);
+        massChanges.addOpenedChangeListener(e -> {
+            if (!e.isOpened()) {
+                massChanges = null;
+            }
+        });
+        massChanges.open();
+    }
+
+    /** The state was read again: the open mass changes window shows it. */
+    private void reloadMassChanges() {
+        if (massChanges != null) {
+            massChanges.reload();
+        }
+    }
+
     private void openCharacterDialog(TrackedCharacter character) {
         new TrackedCharacterDialog(state, character, this::persist).open();
     }
@@ -909,6 +950,7 @@ public class KnowledgeTrackerView extends VerticalLayout {
             state.deleteCharacter(character.getId());
             open.remove(character.getId());
             oldOpen.remove(character.getId());
+            selecting.remove(character.getId());
             persist();
         });
     }
@@ -959,6 +1001,8 @@ public class KnowledgeTrackerView extends VerticalLayout {
         Div body = new Div();
         body.addClassName(KnowledgeTrackerStyles.BODY);
 
+        Set<String> selected = selecting.get(character.getId());
+        Runnable[] selectionChanged = {() -> { }};
         // the newest knowledge on top: the items are stored in the order they were added
         List<KnowledgeItem> active = newestFirst(character.activeItems());
         if (active.isEmpty()) {
@@ -967,12 +1011,10 @@ public class KnowledgeTrackerView extends VerticalLayout {
             body.add(none);
         }
         for (KnowledgeItem item : active) {
-            body.add(createItem(character, item, false));
+            body.add(createItem(character, item, false, selected, () -> selectionChanged[0].run()));
         }
 
-        Button addItem = new Button(T.localized(ADD_KNOWLEDGE), Solid.PLUS.create(), _ -> openItemDialog(character, null));
-        addItem.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
-        body.add(addItem);
+        body.add(createItemBar(character, selected, selectionChanged));
 
         if (!character.getMet().isEmpty()) {
             String names = String.join(", ", character.getMet().stream().map(MetPerson::getName).toList());
@@ -986,7 +1028,7 @@ public class KnowledgeTrackerView extends VerticalLayout {
             VerticalLayout oldItems = new VerticalLayout();
             oldItems.setPadding(false);
             oldItems.setSpacing(false);
-            old.forEach(item -> oldItems.add(createItem(character, item, true)));
+            old.forEach(item -> oldItems.add(createItem(character, item, true, selected, () -> selectionChanged[0].run())));
             // collapsed by default; whether it is open is a convenience of this view
             Details details = new Details(T.localized(OLD_KNOWLEDGE).formatted(old.size()), oldItems);
             details.addClassName(KnowledgeTrackerStyles.OLD);
@@ -1003,7 +1045,64 @@ public class KnowledgeTrackerView extends VerticalLayout {
         return body;
     }
 
-    private Component createItem(TrackedCharacter character, KnowledgeItem item, boolean old) {
+    /**
+     * The buttons under the active items: add knowledge and select. In selection mode (the items have check boxes) select all, delete
+     * the ticked items after one question, and leave the mode.
+     *
+     * @param selected         the ids of the ticked items, {@code null} when the character is not in selection mode
+     * @param selectionChanged set to what updates the delete button when a check box is ticked
+     */
+    private Component createItemBar(TrackedCharacter character, Set<String> selected, Runnable[] selectionChanged) {
+        Div bar = new Div();
+        bar.addClassName(KnowledgeTrackerStyles.ITEM_BAR);
+        if (selected == null) {
+            Button addItem = new Button(T.localized(ADD_KNOWLEDGE), Solid.PLUS.create(), _ -> openItemDialog(character, null));
+            addItem.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
+            Button select = new Button(T.localized(SELECT_ITEMS), Solid.LIST_CHECK.create(), _ -> {
+                selecting.put(character.getId(), new HashSet<>());
+                // the old items are part of the selection: show them
+                oldOpen.add(character.getId());
+                refresh();
+            });
+            select.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
+            select.setEnabled(!character.getItems().isEmpty());
+            bar.add(addItem, select);
+            return bar;
+        }
+        Button delete = new Button(Solid.TRASH.create(), _ -> {
+            List<String> ids = new ArrayList<>(selected);
+            ConfirmDialog.show(T.localized(DELETE_N_ITEMS_FOR_GOOD).formatted(ids.size()), () -> {
+                character.deleteItems(ids);
+                selecting.remove(character.getId());
+                persist();
+            });
+        });
+        delete.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_SMALL);
+        selectionChanged[0] = () -> {
+            delete.setText(T.localized(DELETE_SELECTED).formatted(selected.size()));
+            delete.setEnabled(!selected.isEmpty());
+        };
+        selectionChanged[0].run();
+
+        boolean all = !character.getItems().isEmpty() && selected.size() == character.getItems().size();
+        Button toggleAll = new Button(T.localized(all ? DESELECT_ALL : SELECT_ALL), Solid.CHECK_DOUBLE.create(), _ -> {
+            selected.clear();
+            if (!all) {
+                character.getItems().forEach(item -> selected.add(item.getId()));
+            }
+            refresh();
+        });
+        toggleAll.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
+        Button done = new Button(T.localized(CANCEL), _ -> {
+            selecting.remove(character.getId());
+            refresh();
+        });
+        done.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
+        bar.add(delete, toggleAll, done);
+        return bar;
+    }
+
+    private Component createItem(TrackedCharacter character, KnowledgeItem item, boolean old, Set<String> selected, Runnable selectionChanged) {
         boolean knows = item.getKind() == ItemKind.KNOWS;
         Span kind = new Span(knows ? T.localized(KNOWS) : T.localized(DOES_NOT_KNOW));
         kind.addClassName(KnowledgeTrackerStyles.KIND);
@@ -1020,6 +1119,23 @@ public class KnowledgeTrackerView extends VerticalLayout {
         Component source = createSourceLink(item);
         if (source != null) {
             text.add(source);
+        }
+
+        if (selected != null) {
+            // selection mode: a check box instead of the buttons, ticking changes only the delete button, not the whole tab
+            Checkbox tick = new Checkbox(selected.contains(item.getId()));
+            tick.setAriaLabel(T.localized(SELECT_THIS_ITEM));
+            tick.addValueChangeListener(e -> {
+                if (e.getValue()) {
+                    selected.add(item.getId());
+                } else {
+                    selected.remove(item.getId());
+                }
+                selectionChanged.run();
+            });
+            Div selectable = new Div(tick, kind, text);
+            selectable.addClassName(KnowledgeTrackerStyles.ITEM);
+            return selectable;
         }
 
         Div actions = new Div();

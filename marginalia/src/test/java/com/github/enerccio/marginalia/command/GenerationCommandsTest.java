@@ -4,9 +4,17 @@ import com.github.enerccio.marginalia.domain.model.impl.*;
 import com.github.enerccio.marginalia.domain.service.AnnotationService;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.CommandService;
+import com.github.enerccio.marginalia.domain.service.GenerationListener;
+import com.github.enerccio.marginalia.domain.service.GenerationView;
 import com.github.enerccio.marginalia.domain.service.SummaryService;
 import com.github.enerccio.marginalia.domain.service.command.CommandContext;
+import com.github.enerccio.marginalia.domain.service.command.CommandException;
+import com.github.enerccio.marginalia.domain.service.command.CommandRun;
 import com.github.enerccio.marginalia.domain.service.command.CommandScope;
+import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationRequest;
+import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationRequestType;
+import com.github.enerccio.marginalia.domain.service.run.Runs;
+import com.github.enerccio.marginalia.test.llm.MockLLMResponse;
 import com.github.enerccio.marginalia.test.GenerationTestBase;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -14,6 +22,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.List;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
@@ -43,6 +55,8 @@ class GenerationCommandsTest extends GenerationTestBase {
     private Manuscript manuscript;
     private ChatMessage first, second;
     private boolean answer = true;
+    // the story the commands are typed into, null for none
+    private GenerationView view;
 
     @BeforeEach
     void setUp() throws Exception {
@@ -82,6 +96,11 @@ class GenerationCommandsTest extends GenerationTestBase {
             @Override
             public boolean confirm(CommandContext context, String question) {
                 return answer;
+            }
+
+            @Override
+            public GenerationView getGenerationView() {
+                return view;
             }
 
             @Override
@@ -314,5 +333,130 @@ class GenerationCommandsTest extends GenerationTestBase {
     void impersonateIsNotForAgents() {
         assertThat(commands.getCommands()).filteredOn(definition -> definition.commandName().equals("impersonate"))
                 .isNotEmpty().noneMatch(definition -> definition.availableForAgent());
+    }
+
+    /**
+     * A story that shows the generations of the commands: it records what its listener is told, and the page its generation belongs
+     * to.
+     */
+    private static final class Story implements GenerationView {
+        final Object page = new Object();
+        final List<String> events = new CopyOnWriteArrayList<>();
+        final List<Object> pagesOfTheRun = new CopyOnWriteArrayList<>();
+        volatile GenerationRequestType shownType;
+
+        @Override
+        public Object getPage() {
+            return page;
+        }
+
+        @Override
+        public GenerationListener show(Manuscript book, GenerationRequest request) {
+            shownType = request.getRequestType();
+            return new GenerationListener() {
+                @Override
+                public void onNodeCreated(ChatMessage message) {
+                    events.add("created");
+                    Runs.Run generation = Runs.generationOf(book.getId());
+                    pagesOfTheRun.add(generation == null ? "none" : generation.getPage());
+                }
+
+                @Override
+                public void onReasoningChunk(String chunk, ChatMessage message) {
+                }
+
+                @Override
+                public void onResponseChunk(String chunk, ChatMessage message) {
+                    events.add("chunk");
+                }
+
+                @Override
+                public void onMetricsUpdated(ChatMessage message) {
+                }
+
+                @Override
+                public void onComplete(ChatMessage message) {
+                    events.add("complete");
+                }
+
+                @Override
+                public void onCancelled(ChatMessage partialMessage) {
+                    events.add(partialMessage == null ? "cancelled:nothing" : "cancelled");
+                }
+
+                @Override
+                public void onError(Throwable cause) {
+                    events.add("error");
+                }
+
+                @Override
+                public void onSimpleError(String error) {
+                    events.add("error");
+                }
+
+                @Override
+                public void askQuestion(String question, Runnable yes, Runnable no) {
+                    yes.run();
+                }
+            };
+        }
+    }
+
+    @Test
+    void theStoryOfTheCommandBarShowsTheGenerationOnItsPage() throws Exception {
+        llm.fallback(MockLLMResponse.chunks("Night ", "fell."));
+        Story story = new Story();
+        view = story;
+
+        JsonObject result = json("/next");
+
+        assertThat(part(result).getResponse()).isEqualTo("Night fell.");
+        assertThat(story.shownType).isEqualTo(GenerationRequestType.NEW_MESSAGE);
+        assertThat(story.events).startsWith("created").contains("chunk").endsWith("complete");
+        assertThat(story.pagesOfTheRun).as("a closed page stops it, what follows the part opens there").containsExactly(story.page);
+    }
+
+    @Test
+    void theRoundButtonStopsTheGenerationOfACommandAndTheCommandEndsStopped() throws Exception {
+        CountDownLatch gate = new CountDownLatch(1);
+        llm.fallback(MockLLMResponse.chunks("Night ", "fell.").waitFor(gate));
+        Story story = new Story();
+        view = story;
+
+        CommandRun command = commands.executeLine("/next", false, scope());
+        Runs.Run generation = null;
+        for (int i = 0; i < 600 && generation == null; i++) {
+            generation = Runs.generationOf(manuscript.getId());
+            if (generation == null) {
+                Thread.sleep(50);
+            }
+        }
+        assertThat(generation).as("the generation of the command runs").isNotNull();
+        // what the round button does for a generation the tab did not start
+        generation.stop();
+        gate.countDown();
+
+        assertThatThrownBy(() -> command.get(60, TimeUnit.SECONDS)).isInstanceOf(ExecutionException.class)
+                .cause().isInstanceOf(CommandException.class).cause().isInstanceOf(CancellationException.class);
+        assertThat(story.events).anyMatch(event -> event.startsWith("cancelled"));
+    }
+
+    @Test
+    void aRefusedGenerationLetsTheStoryGo() throws Exception {
+        Story story = new Story();
+        view = story;
+        Runs.Run other = Runs.run(Runs.GENERATION, () -> "another generation").book(book()).start();
+        try {
+            assertThatThrownBy(() -> run("/next")).isInstanceOf(ExecutionException.class);
+        } finally {
+            other.end();
+        }
+        assertThat(story.events).containsExactly("cancelled:nothing");
+    }
+
+    @Test
+    void onlyTheGenerationsOfTheStoryShowTheirProgressInIt() {
+        assertThat(commands.getCommands()).filteredOn(definition -> definition.progressInStory())
+                .extracting(definition -> definition.commandName()).containsOnly("next", "swipe", "regenerate");
     }
 }

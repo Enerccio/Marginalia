@@ -60,15 +60,56 @@ public class AI extends ExtendableEntity {
     private String limits;
 
     /**
-     * How many requests of agents may be on the way to this AI at once, the rest waits (see {@code AIGate}); null or zero is no
-     * cap. A server with one slot (a single GPU) sets one.
+     * The connections of this AI: how many requests may be on the way to it at once, every request of every user and every kind
+     * (the generation, a side query, an agent, a plugin); the rest waits in the order it came (see {@code AIGate}). Null (or
+     * less than one) is one connection, see {@link #getConnections()}: a local server with one slot (a single GPU) needs no
+     * setting, a cloud model that answers several at once sets more.
      */
     @Transient
     @ExtendedAttribute
     private Integer maxConcurrentRequests;
 
+    /**
+     * Whether the images in the content of the lorebook entries go to this model with the lore (the model must take images:
+     * a model without vision refuses the request). Off when never set.
+     */
+    @Transient
+    @ExtendedAttribute
+    private Boolean sendLoreImages;
+
+    public boolean isSendLoreImages() {
+        return Boolean.TRUE.equals(sendLoreImages);
+    }
+
+    public void setSendLoreImages(boolean sendLoreImages) {
+        this.sendLoreImages = sendLoreImages ? Boolean.TRUE : null;
+    }
+
+    /**
+     * The images of the entries of the lore block go into the system message itself (OpenAI-compatible models whose chat template
+     * takes images there), not into a user message of their own after it. Off when never set; used only with
+     * {@link #isSendLoreImages()}.
+     */
+    @Transient
+    @ExtendedAttribute
+    private Boolean loreImagesInSystem;
+
+    public boolean isLoreImagesInSystem() {
+        return Boolean.TRUE.equals(loreImagesInSystem);
+    }
+
+    public void setLoreImagesInSystem(boolean loreImagesInSystem) {
+        this.loreImagesInSystem = loreImagesInSystem ? Boolean.TRUE : null;
+    }
+
+    /** The number as it is stored, null when it was never set; {@link #getConnections()} is what applies. */
     public Integer getMaxConcurrentRequests() {
         return maxConcurrentRequests;
+    }
+
+    /** The connections that apply: the setting, one when there is none. */
+    public int getConnections() {
+        return maxConcurrentRequests == null || maxConcurrentRequests < 1 ? 1 : maxConcurrentRequests;
     }
 
     public void setMaxConcurrentRequests(Integer maxConcurrentRequests) {

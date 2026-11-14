@@ -81,8 +81,8 @@ class TidyTest {
     @Test
     void anInheritedSystemMessageReplacesTheBuiltInOne() {
         assertEquals("Tidy my way.", TidyPrompt.build(state(), List.of(RECENT), 3, " Tidy my way. ").system());
-        assertEquals(TidyPrompt.SYSTEM, TidyPrompt.build(state(), List.of(RECENT), 3, "").system());
-        assertEquals(TidyPrompt.SYSTEM, TidyPrompt.build(state(), List.of(RECENT), 3, null).system());
+        assertEquals(new KnowledgeTrackerDefaults().tidySystem(), TidyPrompt.build(state(), List.of(RECENT), 3, "").system());
+        assertEquals(new KnowledgeTrackerDefaults().tidySystem(), TidyPrompt.build(state(), List.of(RECENT), 3, null).system());
     }
 
     @Test

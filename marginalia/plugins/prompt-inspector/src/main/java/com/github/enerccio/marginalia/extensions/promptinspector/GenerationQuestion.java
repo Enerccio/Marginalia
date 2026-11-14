@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.extensions.promptinspector;
 
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationControllerEvent;
 import com.github.enerccio.marginalia.domain.service.impl.generation.GenerationControllerEvent.EventChain;
+import com.github.enerccio.marginalia.domain.service.run.Runs;
 import org.slf4j.Logger;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -11,7 +12,8 @@ import java.util.concurrent.atomic.AtomicReference;
  * Asks the user a question in the middle of a generation and lets the generation go on by the answer. The listener that
  * calls {@link #ask} holds the {@link EventChain}: nothing is blocked while the question is open, the generation is just not
  * going on until the chain is released, so whatever can end the question must release it, exactly once: the answer, a stop
- * from another window, the page of the user going away.
+ * from another window, the page of the user going away. While it is open the run of the generation waits for the user (the panel of
+ * the runs says so).
  */
 final class GenerationQuestion {
 
@@ -54,11 +56,16 @@ final class GenerationQuestion {
         AtomicBoolean answered = new AtomicBoolean();
         AtomicReference<View> view = new AtomicReference<>();
         AtomicReference<Runnable> unsubscribe = new AtomicReference<>(() -> { });
+        // the generation's run (the listener is called on its thread): the panel shows that it waits for the user
+        Runs.Run run = Runs.current();
 
         // whatever answers first lets the generation go on, once
         Runnable proceed = () -> {
             if (answered.compareAndSet(false, true)) {
                 unsubscribe.get().run();
+                if (run != null) {
+                    run.setWaitingForUser(false);
+                }
                 chain.next();
             }
         };
@@ -109,6 +116,13 @@ final class GenerationQuestion {
             unsubscribe.get().run();
             // an answer cannot have come, but the cancellation may have: then the chain has gone on already
             return answered.get();
+        }
+        if (run != null && !answered.get()) {
+            run.setWaitingForUser(true);
+            // answered meanwhile: the mark is taken back
+            if (answered.get()) {
+                run.setWaitingForUser(false);
+            }
         }
         return true;
     }

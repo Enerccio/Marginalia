@@ -186,7 +186,7 @@ class LabelingTest {
     }
 
     @Test
-    void incompleteLabelsAreUsedButNotStored() throws Exception {
+    void piecesTheModelLeftOutAreTheNarratorAndTheLabelsAreStored() throws Exception {
         Map<String, List<PieceLabel>> stored = new HashMap<>();
         LabelStore store = new LabelStore() {
             public List<PieceLabel> find(String partId, String key) {
@@ -202,7 +202,12 @@ class LabelingTest {
         LabelService.Result result = LabelService.labels("p1", "text", pieces(3), sys(), half, store);
 
         assertEquals(2, result.missing());
-        assertTrue(stored.isEmpty(), "the next run asks again");
+        assertEquals(3, result.labels().size());
+        assertEquals("Narrator", result.labels().get(2).speaker());
+        assertEquals(Delivery.NEUTRAL, result.labels().get(2).delivery());
+        assertEquals(1, stored.size(), "stored complete: the next run does not ask again");
+        assertEquals(3, stored.values().iterator().next().size());
+        assertTrue(LabelService.labels("p1", "text", pieces(3), sys(), half, store).fromStore());
     }
 
     @Test

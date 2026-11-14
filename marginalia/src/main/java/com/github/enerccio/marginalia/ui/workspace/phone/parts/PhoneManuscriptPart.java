@@ -114,26 +114,12 @@ public class PhoneManuscriptPart implements ManuscriptSection {
         return loc.getValue(L.LABEL_BOOKS);
     }
 
-    /**
-     * The button that imports a conversation of LM Studio (a method of its own, so that the locals of {@link #create()} that plugins read
-     * stay the same).
-     */
-    @PublicAPI(from = "1.7.0",
-            returns = @APIReturn(type = Button.class),
-            locals = {@APILocals(name = "button", type = Button.class)})
-    private Button createImportLmStudioButton() {
-        Button button = new Button(Solid.COMMENT_DOTS.create(), event -> new NewBookAction(this::openManuscript, currentFolder).runFromLmStudio());
-        button.setTooltipText(loc.getValue(L.LABEL_IMPORT_FROM_LMSTUDIO));
-        return button;
-    }
-
-    @PublicAPI(from = "1.1.0",
+    @PublicAPI(from = "1.8.0",
             returns = @APIReturn(type = Component.class),
             locals = {@APILocals(name = "mainLayout", type = VerticalLayout.class),
                     @APILocals(name = "addBookButton", type = Button.class),
                     @APILocals(name = "refreshButton", type = Button.class),
-                    @APILocals(name = "importArchiveButton", type = Button.class),
-                    @APILocals(name = "importSillyTavernButton", type = Button.class),
+                    @APILocals(name = "importButton", type = Button.class),
                     @APILocals(name = "statisticsButton", type = Button.class),
                     @APILocals(name = "newFolderButton", type = Button.class),
                     @APILocals(name = "manageButton", type = Button.class),
@@ -157,10 +143,8 @@ public class PhoneManuscriptPart implements ManuscriptSection {
 
         Button refreshButton = new Button(Solid.REFRESH.create(), event -> refreshGrid());
 
-        Button importArchiveButton = new Button(Solid.FILE_IMPORT.create(), event -> new NewBookAction(this::openManuscript, currentFolder).runFromArchive());
-        importArchiveButton.setTooltipText(loc.getValue(L.LABEL_IMPORT_FROM_ARCHIVE));
-        Button importSillyTavernButton = new Button(Solid.COMMENTS.create(), event -> new NewBookAction(this::openManuscript, currentFolder).runFromSillyTavern());
-        importSillyTavernButton.setTooltipText(loc.getValue(L.LABEL_IMPORT_FROM_SILLYTAVERN));
+        Button importButton = new Button(Solid.FILE_IMPORT.create(), event -> new NewBookAction(this::openManuscript, currentFolder).runImport());
+        importButton.setTooltipText(loc.getValue(L.LABEL_IMPORT));
 
         searchButton = new Button(Solid.SEARCH.create(), event -> openSearchDialog());
         searchButton.setTooltipText(loc.getValue(L.LABEL_ADVANCED_SEARCH));
@@ -175,7 +159,7 @@ public class PhoneManuscriptPart implements ManuscriptSection {
         manageButton.setAriaLabel(loc.getValue(L.LABEL_MANAGE));
         createManageMenu(manageButton);
 
-        HorizontalLayout headerLayout = new HorizontalLayout(addBookButton, newFolderButton, searchButton, statisticsButton, importArchiveButton, importSillyTavernButton, createImportLmStudioButton(), refreshButton, manageButton);
+        HorizontalLayout headerLayout = new HorizontalLayout(addBookButton, newFolderButton, searchButton, statisticsButton, importButton, refreshButton, manageButton);
         headerLayout.setWidthFull();
         headerLayout.addClassName(CssStyles.FLEX_WRAP);
         headerLayout.setAlignItems(FlexComponent.Alignment.CENTER);
@@ -351,9 +335,13 @@ public class PhoneManuscriptPart implements ManuscriptSection {
 
         Button editButton = new Button(Solid.PENCIL.create(), _ -> {
             try {
-                if (!new AgentLockCheck().refuses(manuscript)) {
-                    openManuscript(manuscript);
-                }
+                new BookWindows().open(manuscript, () -> {
+                    try {
+                        openManuscript(manuscript);
+                    } catch (Exception ex) {
+                        UIUtils.internalServerError(loc, ex);
+                    }
+                }, false);
             } catch (Exception e) {
                 UIUtils.internalServerError(loc, e);
             }
@@ -639,9 +627,13 @@ public class PhoneManuscriptPart implements ManuscriptSection {
             locals = {@APILocals(name = "e", type = Exception.class)})
     private void openFound(Manuscript manuscript) {
         try {
-            if (!new AgentLockCheck().refuses(manuscript)) {
-                openManuscript(manuscript);
-            }
+            new BookWindows().open(manuscript, () -> {
+                try {
+                    openManuscript(manuscript);
+                } catch (Exception ex) {
+                    UIUtils.internalServerError(loc, ex);
+                }
+            }, false);
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
@@ -742,7 +734,13 @@ public class PhoneManuscriptPart implements ManuscriptSection {
         try {
             Manuscript manuscript = manuscriptService.findForUser(uuid);
             if (manuscript != null) {
-                openManuscript(manuscript);
+                new BookWindows().open(manuscript, () -> {
+                    try {
+                        openManuscript(manuscript);
+                    } catch (Exception ex) {
+                        UIUtils.internalServerError(loc, ex);
+                    }
+                }, false);
             }
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
@@ -780,6 +778,15 @@ public class PhoneManuscriptPart implements ManuscriptSection {
     @Override
     public ManuscriptWindow getOpenWindow() {
         return openDialog;
+    }
+
+    @PublicAPI(from = "1.8.0",
+            returns = @APIReturn(type = boolean.class),
+            parameters = {@APIParameter(name = "book", type = Manuscript.class),
+                    @APIParameter(name = "then", type = java.util.function.Consumer.class)})
+    @Override
+    public boolean openBook(Manuscript book, java.util.function.Consumer<ManuscriptWindow> then) {
+        return new BookWindows().openFor(getOpenWindow(), book, this::openManuscript, then);
     }
 
     @PublicAPI(from = "1.3.0",
@@ -873,8 +880,14 @@ public class PhoneManuscriptPart implements ManuscriptSection {
             String manuscriptUuid = RestorableState.string(dialogState, "manuscript");
             if (manuscriptUuid != null && grid != null) {
                 Manuscript manuscript = manuscriptService.findForUser(manuscriptUuid);
-                if (manuscript != null && !new AgentLockCheck().refuses(manuscript)) {
-                    openManuscript(manuscript).restoreState(dialogState);
+                if (manuscript != null) {
+                    new BookWindows().open(manuscript, () -> {
+                        try {
+                            openManuscript(manuscript).restoreState(dialogState);
+                        } catch (Exception e) {
+                            UIUtils.internalServerError(loc, e);
+                        }
+                    }, true);
                 }
             }
         } catch (Exception e) {

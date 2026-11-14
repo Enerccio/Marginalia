@@ -31,6 +31,15 @@ public interface ResourceService extends OwnedService<Resource, ResourceReposito
     Resource copy(Resource resource) throws Exception;
 
     /**
+     * A new image of the current user with the content of an image of another user: the images of a lorebook that user shared, when
+     * the current user takes a copy of it. The caller has checked that the user may see the image (it is shown by an entry of a
+     * lorebook shared with them by its owner).
+     *
+     * @return the copy, null when the owner has no such image (or it is deleted)
+     */
+    Resource copyImageOf(String uuid, User owner) throws Exception;
+
+    /**
      * Largest image {@link #uploadImage} accepts.
      */
     int MAX_IMAGE_BYTES = 10 * 1024 * 1024;

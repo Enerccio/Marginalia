@@ -1,7 +1,7 @@
 ---
 label: Packaging & releases
 order: 880
-verified: 817e5239b
+verified: 8a278a19f
 covers:
   - pom.xml
   - Dockerfile
@@ -11,10 +11,13 @@ covers:
   - marginalia/plugins/docker-compose.yml
   - rebuild.sh
   - rebuild.bat
+  - tools/update-watcher
+  - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/UpdateServiceImpl.java
   - .github
   - marginalia/src/desktop
   - marginalia/pom.xml
   - retype.yml
+  - tools/retype_build.sh
 ---
 
 # Packaging & releases
@@ -25,7 +28,7 @@ For everyday builds see [Building from source](building.md).
 
 ```mermaid
 flowchart LR
-    src["marginalia/ sources"] --> war["marginalia-1.7.0.war"]
+    src["marginalia/ sources"] --> war["marginalia-1.8.0.war"]
     war --> docker["Docker image<br/>Jetty 12 + WAR"]
     war --> desktop["Desktop distribution<br/>jlink runtime + Jetty + WAR + launcher"]
     desktop --> portable["portable archive<br/>marginalia-&lt;v&gt;-&lt;os&gt;-&lt;arch&gt;"]
@@ -42,11 +45,11 @@ flowchart LR
 | Docker image | `Dockerfile`, `docker compose build`, `.github/workflows/server.yml` | `ghcr.io/enerccio/marginalia` (amd64 + arm64) for `master` and `v*` tags; or built from source with compose. |
 | Desktop archives and installers | `mvn package -Pdesktop`, `.github/workflows/desktop.yml` | Attached to GitHub releases for `v*` tags. |
 | Plugin JARs | `mvn package` in `marginalia/plugins/<plugin>`, `.github/workflows/server.yml` | Attached to GitHub releases for `v*` tags. |
-| Manual | `retype build` | `docs/`, served by GitHub Pages. |
+| Manual | `tools/retype_build.sh`, `.github/workflows/manual.yml` | The site on GitHub Pages, for `master`. |
 
 ## The WAR
 
-`mvn package` in `marginalia/` produces `target/marginalia-1.7.0.war` (see
+`mvn package` in `marginalia/` produces `target/marginalia-1.8.0.war` (see
 [Building the application](building.md#building-the-application)). The WAR always runs in Vaadin production mode:
 `build-frontend` writes the production `flow-build-info.json` into it, and a development one left in
 `src/main/resources` is never packaged (see [Development and production mode](building.md#development-and-production-mode)).
@@ -65,7 +68,9 @@ The user manual is packed too: `<resources>` in `marginalia/pom.xml` copies the 
 pictures, never filtered) to `classpath:/manual/`, where `ManualService` reads them (see
 [Services](services.md#the-manual)). The source folder is outside `marginalia/`, so a build that copies only
 `marginalia/src` must copy `manual/user` as well, as both Dockerfiles do (`/build/manual/user`); without it the WAR
-builds, with an empty manual.
+builds, with an empty manual. The same for the translations of the manual (`translations/<language>/user`, copied to
+`classpath:/manual-translations/<language>/user/`, read when the help assistant is asked in that language): the Dockerfiles copy
+`translations` (`/build/translations`), and without it the help is English only.
 
 The build also needs the Git history: `git-commit-id-plugin` writes the commit id and the closest tag into
 `git.properties`, and the WAR filters them into its build info. Build from a clone, not from a source archive.
@@ -166,12 +171,12 @@ Outputs in `target/desktop/`:
 
 | Path | |
 |---|---|
-| `marginalia-1.7.0/` | The portable folder: `bin/marginalia`, `bin/marginalia.bat`, `app/`, `server/`, `runtime/`. |
+| `marginalia-1.8.0/` | The portable folder: `bin/marginalia`, `bin/marginalia.bat`, `app/`, `server/`, `runtime/`. |
 | `package/` | The app image: `Marginalia.app` (macOS), `Marginalia/Marginalia.exe` (Windows), `Marginalia/bin/Marginalia` (Linux). |
-| `marginalia-1.7.0-<os>-<arch>.tar.gz` / `.zip` | Archive of the portable folder (`.zip` on Windows). |
-| `marginalia-1.7.0-<os>-<arch>-app.tar.gz` / `.zip` | Archive of the app image. |
-| `marginalia-1.7.0-<os>-<arch>.deb` / `.dmg` / `.msi` | The installer: `.deb` on Linux, `.dmg` on macOS, `.msi` on Windows. |
-| `marginalia-1.7.0-<os>-<arch>-full.deb` / `.dmg` / `.msi` | The installer with the plugins (only when `desktop.skipFull=false`). |
+| `marginalia-1.8.0-<os>-<arch>.tar.gz` / `.zip` | Archive of the portable folder (`.zip` on Windows). |
+| `marginalia-1.8.0-<os>-<arch>-app.tar.gz` / `.zip` | Archive of the app image. |
+| `marginalia-1.8.0-<os>-<arch>.deb` / `.dmg` / `.msi` | The installer: `.deb` on Linux, `.dmg` on macOS, `.msi` on Windows. |
+| `marginalia-1.8.0-<os>-<arch>-full.deb` / `.dmg` / `.msi` | The installer with the plugins (only when `desktop.skipFull=false`). |
 
 `<os>` is `linux`, `macos` or `windows`, `<arch>` is Java's `os.arch` (`aarch64`...), except that `amd64` is written `x86_64` on every system. Archives are made with
 `tar` so the executable bits of the launchers survive.
@@ -204,9 +209,11 @@ The icon is `src/desktop/icons/marginalia.{icns,ico,png}` (made from `src/main/w
 picks the file for the OS (`desktop.icon`) for `jpackage --icon`, and copies the PNG into the launcher jar for the tray
 icon. The browser favicon is `AppShellConfig` (SVG) plus the PNG that Vaadin's `@PWA` reads from `icons/icon.png`.
 
-The JVM options needed by the extension agent (`-Djdk.attach.allowAttachSelf=true -XX:+EnableDynamicAgentLoading`,
-plus `--enable-native-access=ALL-UNNAMED` for SQLite) are passed by `jpackage --java-options` and by the scripts in
-`bin/`. The scripts add `MARGINALIA_JAVA_OPTS`. Keep the three places in sync - the `desktop.javaOptions` property
+The JVM option `--enable-native-access=ALL-UNNAMED` (for SQLite) is passed by `jpackage --java-options` and by the
+scripts in `bin/`. The options of the extension agent are no longer among them: the `@Extendable` classes of the WAR
+are woven by the build and the packaged application installs no agent (the modules `jdk.attach` and
+`java.instrument` stay in the runtime image for `-Dmarginalia.extendable.agent=true`, see
+[@Extendable hooks](plugins/extendable.md#instrumentation)). The scripts add `MARGINALIA_JAVA_OPTS`. Keep the three places in sync - the `desktop.javaOptions` property
 and both scripts. On macOS, `-Dapple.awt.UIElement=true` keeps the app out of the Dock; it lives only in the tray.
 
 Command-line options are described in [Desktop app](../user/getting-started/desktop-app.md#options).
@@ -236,7 +243,7 @@ one exact version of the application:
 ```sh
 mvn -N install                            # the parent POM in the repository root
 cd marginalia && mvn install -DskipTests
-cd plugins/reviewer && mvn package        # target/reviewer-1.7.0.jar
+cd plugins/reviewer && mvn package        # target/reviewer-1.8.0.jar
 ```
 
 A plugin that uses a shared library (the two translators, which embed `translator-common`; the Image Generator and the Audiobook, which embed `http-hooks`) needs the library installed first:
@@ -254,7 +261,7 @@ application. See [Plugin development](plugins/index.md).
 `marginalia/plugins/Dockerfile` is a separate build environment for the plugins, used by servers that build from
 source (and by anyone without a local JDK/Maven). Its `builder` stage (Maven + JDK 25, like the main `Dockerfile`)
 installs the application into the image's local Maven repository (with `-Dvaadin.skip=true`: the plugins need only the
-classes JAR, so the frontend is not built, see [Building](building.md)), installs the libraries of `marginalia/libs` and builds every plugin against them; the final
+classes JAR, so the frontend is not built, see [Building](building.md)), installs the libraries of `marginalia/libs` and builds every plugin against them (`mvn package -DskipTests`: the plugin tests are not run in the image); the final
 stage is a small Alpine image that holds the JARs in `/jars`. Its command copies them to `/output`, replacing the
 `*.jar` files there, so the compose file (`marginalia/plugins/docker-compose.yml`, build context `../..`) mounts
 `marginalia/plugins/build` as `/output`. The plugins are built one after the other and none of them needs another one
@@ -270,14 +277,38 @@ docker compose -f marginalia/plugins/docker-compose.yml run --rm plugins
 The JARs are not copied while the image is built, because a bind mount exists only when a container runs.
 
 `rebuild.sh` (Linux, macOS) and `rebuild.bat` (Windows) in the repository root update a Docker server: when the
-upstream branch has new commits they stop the container, `git pull`, build the plugins as above, copy the JARs into
-`data/extensions` (overwriting the installed ones; extensions load on start) and run `docker compose up -d --build`.
-`--force` skips the check for new commits. The two scripts must be kept in step; `.gitattributes` keeps the shell
-script on LF and the batch file on CRLF.
+upstream of the checked out branch (`@{u}`, never a fixed branch name) has new commits they `git pull`, build the
+plugins as above and the image (`docker compose build`) while the old container still runs, then `docker compose
+down`, copy the JARs into `data/extensions` (overwriting the installed ones; extensions load on start) and
+`docker compose up -d`. `--force` skips the check for new commits, `--stop-first` stops the container before the
+build (the old order, for a host short of memory). The commit the running container was built from is kept in
+`.rebuild-deployed` (ignored by Git), written before the pull and after a successful start: a run that failed after
+the pull leaves it behind the checkout, so the next run builds again although there is nothing to pull. As root in a
+checkout of another user `rebuild.sh` runs git as the owner of the checkout (`runuser`). The two scripts must be kept
+in step; `.gitattributes` keeps the shell script on LF and the batch file on CRLF.
+
+### Update from the application
+
+Admin → Update ([user manual](../user/administration/updates.md)) updates a Docker server without giving the
+container access to Docker or to the checkout. The two sides only share files in `<data folder>/update`:
+
+| File | Written by | |
+|---|---|---|
+| `request` | the application (`UpdateService.requestUpdate`, administrators only) | Asks for an update; the content (login, time) is only printed to the log. |
+| `status.properties` | the watcher | `state` (`idle`, `running`), `branch`, `upstream`, `local`, `remote` (commits), `fetchFailed`, `checked`, `lastRun` (seconds since 1970), `lastResult` (`ok`, `failed`). Replaced atomically. |
+| `update.log` | the watcher | The output of the last `rebuild.sh`. |
+
+`tools/update-watcher/watch.sh` runs on the host (the systemd units written by `install.sh` next to it: a `.path`
+unit on `request` and a 15 minute `.timer`, both starting one oneshot `.service`; or cron). When `request` is there
+it removes it, writes `state=running` and runs `rebuild.sh --force` (`MARGINALIA_REBUILD_ARGS`); then, and on every
+run of the timer, it fetches and writes the status. A request older than an hour is dropped. `UpdateServiceImpl`
+treats a status older than an hour (three while `running`) as no watcher, and reports an update when `remote` is not
+the commit of the running build (`BuildInfo`), so the application never names a branch. `UpdatePanel` is the tab.
 
 ## Continuous integration
 
-Two workflows, `desktop.yml` (tests and the desktop archives) and `server.yml` (WAR, plugins, Docker image). Both run
+Three workflows: `desktop.yml` (tests and the desktop archives), `server.yml` (WAR, plugins, Docker image) and
+`manual.yml` (the manual, see [Publishing the manual](#publishing-the-manual)). The first two run
 on pushes to `master`, on `v*` tags, on pull requests that change `marginalia/**` or the workflow, and by hand
 (*workflow_dispatch*). A newer run on the same ref cancels the running one.
 
@@ -341,17 +372,18 @@ the first time it is pushed; make it public in the package settings on GitHub so
    requires a version of the form `x.y.z` with `x` ≥ 1.
 2. **Database.** If the release changes the schema, check that the migrations upgrade a database of the previous
    release (keep a copy of one around) - `FlywayMigrationTest` covers only the migrations themselves.
-3. **Manual.** Update the manual for user-visible changes, run `tools/retype_build.sh`, commit `docs/`.
+3. **Manual.** Update the manual for user-visible changes and check it with `tools/retype_build.sh`; it is published
+   when the release reaches `master`.
 4. **Test.** `mvn test`, and `mvn package -Pdesktop` on at least your own platform; start the app and generate a part
    against a real model.
 5. **Tag.** Commit, then create and push the tag:
 
    ```sh
-   git tag v1.7.0
-   git push origin master v1.7.0
+   git tag v1.8.0
+   git push origin master v1.8.0
    ```
 
-6. **Release.** Create the GitHub release for the tag (by hand or `gh release create v1.7.0`) with the release
+6. **Release.** Create the GitHub release for the tag (by hand or `gh release create v1.8.0`) with the release
    notes. `desktop.yml` attaches the desktop archives and installers (twenty files) when its matrix finishes, `server.yml` the WAR and the
    plugin JARs and pushes the Docker image - whichever finishes first creates the release if it doesn't exist yet
    (`softprops/action-gh-release`).
@@ -363,7 +395,21 @@ the first time it is pushed; make it public in the package settings on GitHub so
 
 ## Publishing the manual
 
-The manual is part of the repository: Retype reads `manual/` and writes the static site to `docs/` (configured in
-`retype.yml`). GitHub Pages serves `docs/` from the `master` branch, so the published manual changes when a commit
-with a new `docs/` reaches `master`. Rebuild and commit `docs/` in the same change as the sources - see
-[Building the manual](building.md#building-the-manual).
+The sources of the manual are part of the repository, the generated site is not: Retype reads `manual/` and writes
+the static site to `docs/` (configured in `retype.yml`), which git ignores.
+
+The workflow `manual.yml` publishes it. It runs on a push to `master` that changes `manual/**`, `translations/**`, `retype.yml`, the root
+`pom.xml` (the version in the label), `tools/retype_build.sh`, `tools/manual_i18n.py` or the workflow, and by hand (*workflow_dispatch*):
+
+| Job | Does |
+|---|---|
+| `build` | Installs Retype (the version in `RETYPE_VERSION`, the one the manual is written with), runs `tools/retype_build.sh` (the English site in `docs/` and a site `docs/<language>` for every language that has translated pages, see [Translating the manual](translating-the-manual.md#the-site)) and uploads `docs/` as a Pages artifact. |
+| `deploy` | Publishes the artifact to GitHub Pages (environment `github-pages`). Not for pull requests: those only build, as a check. |
+
+So the published manual changes when a commit with a changed manual reaches `master`, nothing has to be rebuilt or
+committed by hand. This needs *Settings → Pages → Source: GitHub Actions* in the repository. Retype needs no key
+(the free version has no page limit); with a secret `RETYPE_KEY` the build uses it.
+
+The checkout must not contain a `docs/` folder: on the runner Retype fails to write over one that came from the
+repository ("Failed to deploy" for a part of the files), which is one more reason it is not committed. To read the
+manual locally see [Building the manual](building.md#building-the-manual).

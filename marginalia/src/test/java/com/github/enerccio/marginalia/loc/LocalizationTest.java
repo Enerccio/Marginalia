@@ -146,6 +146,82 @@ class LocalizationTest extends MarginaliaTestBase {
     }
 
     @Test
+    void promptLanguageIsEnglishWithoutSetting() {
+        assertEquals(Language.EN, loc.getPromptLanguage());
+        assertEquals(Language.EN, loc.getDefaults().getLanguage());
+        assertEquals(java.util.List.of(Language.EN, Language.of("ja"), Language.of("fr"),
+                Language.of("es"), Language.of("de"), Language.of("it"), Language.of("ko")), loc.getPromptLanguages());
+        assertEquals(Language.EN, loc.resolvePromptLanguage(null));
+        assertEquals(Language.EN, loc.resolvePromptLanguage("cs"));
+        assertEquals(Language.of("fr"), loc.resolvePromptLanguage("fr"));
+        // Chinese comes with the Chinese localization extension, not with the application
+        assertEquals(Language.EN, loc.resolvePromptLanguage("zh"));
+    }
+
+    @Test
+    void sessionPromptLanguageSelectsDefaultsApartFromTheInterface() {
+        try {
+            sessionPoint.setPromptLanguage(Language.of("ja"));
+            assertEquals(Language.of("ja"), loc.getPromptLanguage());
+            assertEquals(new com.github.enerccio.marginalia.DefaultsJA().masterTemplate(), loc.getDefaults().masterTemplate());
+            assertEquals(loc.getDefaults().masterTemplate(),
+                    com.github.enerccio.marginalia.domain.service.PromptField.MASTER_TEMPLATE.fallback(loc.getDefaults()));
+            // the interface stays English
+            assertEquals("Yes", loc.getValue(L.LABEL_YES));
+            // a language without prompts falls back to English
+            sessionPoint.setPromptLanguage(CS);
+            assertEquals(Language.EN, loc.getPromptLanguage());
+            assertEquals(new com.github.enerccio.marginalia.Defaults().masterTemplate(), loc.getDefaults().masterTemplate());
+        } finally {
+            sessionPoint.setPromptLanguage(null);
+        }
+        assertEquals("Français", loc.getDefaults(Language.of("fr")).getDisplayName());
+        assertEquals(Language.EN, loc.getDefaults(CS).getLanguage());
+    }
+
+    @Test
+    void anExtensionAddsAndTakesAwayAPromptLanguage() {
+        com.github.enerccio.marginalia.Defaults czech = new com.github.enerccio.marginalia.Defaults() {
+            @Override
+            public Language getLanguage() {
+                return CS;
+            }
+
+            @Override
+            public String getDisplayName() {
+                return "Čeština";
+            }
+        };
+        loc.registerDefaults(czech);
+        try {
+            assertEquals(CS, loc.resolvePromptLanguage("cs"));
+            assertEquals(CS, loc.getPromptLanguages().getLast());
+            assertEquals("Čeština", loc.getDefaults(CS).getDisplayName());
+            assertTrue(loc.getAllDefaults().contains(czech));
+            // a language has one set of prompts
+            assertThrows(IllegalArgumentException.class, () -> loc.registerDefaults(czech));
+        } finally {
+            loc.unregisterDefaults(czech);
+        }
+        assertEquals(Language.EN, loc.resolvePromptLanguage("cs"));
+        assertFalse(loc.getAllDefaults().contains(czech));
+        // the prompts of the application can't be taken away
+        loc.unregisterDefaults(loc.getDefaults(Language.of("ja")));
+        assertEquals(Language.of("ja"), loc.resolvePromptLanguage("ja"));
+    }
+
+    @Test
+    void userPromptLanguageIsSaved() throws Exception {
+        login();
+        UserSetting setting = settingService.getOrCreate(UserSetting.class);
+        assertNull(setting.getPromptLanguage());
+        setting.setPromptLanguage("ja");
+        settingService.save(setting);
+
+        assertEquals("ja", settingService.getOrCreate(UserSetting.class).getPromptLanguage());
+    }
+
+    @Test
     void allKeysHaveEnglishText() {
         LocalizationBundleEN en = new LocalizationBundleEN();
         for (L key : L.values()) {

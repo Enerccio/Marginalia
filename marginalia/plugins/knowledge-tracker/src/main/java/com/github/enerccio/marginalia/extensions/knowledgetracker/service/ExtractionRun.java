@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.extensions.knowledgetracker.service;
 
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
+import com.github.enerccio.marginalia.domain.service.run.Runs;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.extract.ChangeApplier;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.extract.TidyTrigger;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.model.BookSettings;
@@ -20,6 +21,9 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 
+import static com.github.enerccio.marginalia.extensions.knowledgetracker.KnowledgeTrackerLocalization.KNOWLEDGE_TRACKER_READ_THE_STORY;
+import static com.github.enerccio.marginalia.extensions.knowledgetracker.KnowledgeTrackerLocalization.T;
+
 /**
  * One processing run of a book on a worker thread: reads the next parts (a series of runs of N parts), asks the model what
  * the tracked characters learned, and either waits for the user to review the proposal (guided) or applies it at once
@@ -30,6 +34,9 @@ import java.util.function.Consumer;
 public final class ExtractionRun {
 
     private static final Logger log = LoggerFactory.getLogger(ExtractionRun.class);
+
+    /** The source of its runs in the core's registry. */
+    public static final String SOURCE = "knowledge-tracker";
 
     public enum Phase {
         PREPARING, ASKING, REVIEW, APPLYING, DONE, FAILED, CANCELLED;
@@ -104,6 +111,8 @@ public final class ExtractionRun {
     private final CompletableFuture<Void> finished = new CompletableFuture<>();
 
     private volatile Status status;
+    /** The run of the core's registry: the panel of the runs shows it (what the model writes, Stop), a delete of the book names it. */
+    private volatile Runs.Run registryRun;
     private volatile Thread worker;
     private volatile boolean cancelled;
     private volatile CompletableFuture<Boolean> decision;
@@ -196,8 +205,27 @@ public final class ExtractionRun {
         liveListeners.remove(listener);
     }
 
+    /** Called on the thread of the user's request (the page and the user of the registry's run). */
     void start() {
+        registryRun = Runs.run(SOURCE, () -> T.localized(KNOWLEDGE_TRACKER_READ_THE_STORY)).book(manuscript).quiet().currentPage()
+                .onStop(this::cancel).start();
         worker = Thread.ofVirtual().name("knowledge-tracker-run").start(this::work);
+    }
+
+    /** The book the run reads. */
+    public Manuscript getManuscript() {
+        return manuscript;
+    }
+
+    /**
+     * What a click on the run's entry in the panel of the runs does, in the page of the click (shows the run and its review); null for
+     * nothing.
+     */
+    public void setOnOpen(Runnable open) {
+        Runs.Run registered = registryRun;
+        if (registered != null) {
+            registered.setOnOpen(open);
+        }
     }
 
     /** The user reviewed the proposal (the changes carry their choices): apply it. */
@@ -233,7 +261,7 @@ public final class ExtractionRun {
     // --- the work ---
 
     private void work() {
-        try (InRequestScope _ = new InRequestScope(attributes)) {
+        try (InRequestScope _ = new InRequestScope(attributes); Runs.Binding _ = registryRun.bind()) {
             BookSettings settings = stateService.load(manuscript).getSettings();
             if (tidy) {
                 tidyWithModel();
@@ -252,6 +280,8 @@ public final class ExtractionRun {
                 publish(Phase.FAILED, status.run(), null, String.valueOf(e.getMessage()));
             }
         } finally {
+            Phase phase = status.phase();
+            registryRun.end(phase == Phase.DONE ? Runs.Outcome.FINISHED : phase == Phase.FAILED ? Runs.Outcome.FAILED : Runs.Outcome.STOPPED);
             finished.complete(null);
         }
     }
@@ -394,6 +424,10 @@ public final class ExtractionRun {
 
     private void publish(Phase phase, int run, Proposal proposal, String message, int partsRead, int added, int retracted) {
         status = new Status(phase, run, partsRead, added, retracted, proposal, message, List.copyOf(lines));
+        Runs.Run registered = registryRun;
+        if (registered != null) {
+            registered.setWaitingForUser(phase == Phase.REVIEW);
+        }
         notifyListeners();
     }
 

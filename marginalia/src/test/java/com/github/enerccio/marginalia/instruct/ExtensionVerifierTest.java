@@ -1,6 +1,7 @@
 package com.github.enerccio.marginalia.instruct;
 
 import com.github.enerccio.marginalia.instruct.fixture.verify.VerifyFixtures;
+import com.github.enerccio.marginalia.instruct.fixture.verify.VerifyTarget;
 import com.github.enerccio.marginalia.instruct.verify.ExtensionVerification;
 import com.github.enerccio.marginalia.instruct.verify.ExtensionVerifier;
 import org.junit.jupiter.api.Test;
@@ -11,8 +12,11 @@ import org.osgi.framework.Version;
 import java.io.File;
 import java.lang.reflect.Proxy;
 import java.net.URI;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.jar.Attributes;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
@@ -31,6 +35,13 @@ class ExtensionVerifierTest {
     File folder;
 
     private ExtensionVerification verify(String extension) throws Exception {
+        return verify(extension, getClass().getClassLoader());
+    }
+
+    /**
+     * @param runtime class loader of the application the extension is checked against
+     */
+    private ExtensionVerification verify(String extension, ClassLoader runtime) throws Exception {
         File jar = jarOf(extension);
         Bundle bundle = (Bundle) Proxy.newProxyInstance(getClass().getClassLoader(), new Class<?>[]{Bundle.class}, (proxy, method, args) ->
                 switch (method.getName()) {
@@ -40,7 +51,43 @@ class ExtensionVerifierTest {
                     case "loadClass" -> throw new ClassNotFoundException((String) args[0]);
                     default -> throw new UnsupportedOperationException(method.getName());
                 });
-        return new ExtensionVerifier(getClass().getClassLoader()).verify(bundle, jar);
+        return new ExtensionVerifier(runtime).verify(bundle, jar);
+    }
+
+    /**
+     * The application as the Maven build leaves it: the classes the fixture extensions decorate are woven by
+     * {@link BuildTimeWeaver} and come, with their class files, from the woven folder.
+     */
+    private ClassLoader wovenApplication() throws Exception {
+        Path root = Path.of(VerifyFixtures.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+        String fixtures = VerifyFixtures.class.getPackageName().replace('.', '/');
+        Path woven = folder.toPath().resolve("woven");
+        Files.createDirectories(woven.resolve(fixtures));
+        try (Stream<Path> files = Files.list(root.resolve(fixtures))) {
+            for (Path file : files.toList()) {
+                Files.copy(file, woven.resolve(fixtures).resolve(file.getFileName().toString()));
+            }
+        }
+        assertThat(BuildTimeWeaver.weave(woven, getClass().getClassLoader()).woven()).isPositive();
+        String prefix = VerifyFixtures.class.getPackageName() + ".";
+        return new URLClassLoader(new URL[]{woven.toUri().toURL()}, getClass().getClassLoader()) {
+            @Override
+            protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+                synchronized (getClassLoadingLock(name)) {
+                    if (!name.startsWith(prefix)) {
+                        return super.loadClass(name, resolve);
+                    }
+                    Class<?> loaded = findLoadedClass(name);
+                    return loaded != null ? loaded : findClass(name);
+                }
+            }
+
+            @Override
+            public URL getResource(String name) {
+                URL own = findResource(name);
+                return own != null ? own : super.getResource(name);
+            }
+        };
     }
 
     /**
@@ -140,6 +187,22 @@ class ExtensionVerifierTest {
         assertThat(result.warnings()).hasSize(2)
                 .anyMatch(w -> w.contains("not a constant"))
                 .anyMatch(w -> w.contains("decorator registered for VerifyTarget.render could not be determined"));
+    }
+
+    @Test
+    void applicationWovenAtBuildTimeIsCheckedLikeTheCompiledOne() throws Exception {
+        ClassLoader woven = wovenApplication();
+        assertThat(woven.loadClass(VerifyTarget.class.getName()).isAnnotationPresent(Woven.class)).isTrue();
+
+        for (String extension : List.of("Valid", "BrokenTargets", "BrokenAccess", "Dynamic")) {
+            ExtensionVerification compiled = verify(extension);
+            ExtensionVerification built = verify(extension, woven);
+
+            assertThat(built.errors()).as(extension).isEqualTo(compiled.errors());
+            assertThat(built.warnings()).as(extension).isEqualTo(compiled.warnings());
+            assertThat(built.checked()).as(extension).isEqualTo(compiled.checked());
+            assertThat(built.valid()).as(extension).isEqualTo(compiled.valid());
+        }
     }
 
     @Test

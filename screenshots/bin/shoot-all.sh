@@ -61,6 +61,10 @@ run shoot-styles.mjs                              # imports the horror style, sa
 on 13-db-backup
 run plugin-imagegenerator.mjs                     # installs the Image Generator, adds a backend (the fake model draws one fixed picture), makes an image of the last part: a copy, discarded
 on 13-db-backup
+run shoot-lorebook-editor.mjs                    # the full-screen lorebook editor, nothing saved: a copy, discarded
+on 13-db-backup
+run shoot-runs.mjs                                # the redraft window beside the story folded into the panel of the runs (the fake model answers slowly): a copy, discarded
+on 13-db-backup
 run shoot-books-extra.mjs                        # imports a lorebook with subbooks and a book from a zip: a copy, discarded
 on 13-db-backup
 run shoot-new.mjs                                 # installs three plugins, a generation, an edited part under a summary: a copy, discarded
@@ -74,8 +78,8 @@ run plugin-arcoutline-wizard.mjs                  # the plot wizard: a conversat
 # application verifies it again at the start
 on 13-db-backup
 "$SHOT_ROOT/bin/stop-app.sh" >/dev/null
-cp out/broken/authorsnote-1.7.0.jar "$SHOT_HOME/.marginalia/extensions/authorsnote-1.7.0.jar"
-rm -f "$SHOT_HOME/.marginalia/extensions/authorsnote-1.7.0.valid"
+cp out/broken/authorsnote-1.8.0.jar "$SHOT_HOME/.marginalia/extensions/authorsnote-1.8.0.jar"
+rm -f "$SHOT_HOME/.marginalia/extensions/authorsnote-1.8.0.valid"
 "$SHOT_ROOT/bin/start-app.sh" >/dev/null
 run shoot-invalid-extensions.mjs                  # a copy, discarded
 # plugin screens

@@ -168,8 +168,16 @@ class AgentTranscriptRenderer {
         return block;
     }
 
+    // the run wrote the note in the language of its agent
+    private static String authorCommandNote(String content) {
+        if (content == null) {
+            return null;
+        }
+        return Defaults.all().stream().map(Defaults::agentAuthorCommandNote).filter(content::startsWith).findFirst().orElse(null);
+    }
+
     private static boolean isAuthorCommand(String content) {
-        return content != null && content.startsWith(Defaults.AGENT_AUTHOR_COMMAND_NOTE);
+        return authorCommandNote(content) != null;
     }
 
     /**
@@ -182,7 +190,7 @@ class AgentTranscriptRenderer {
                     @APILocals(name = "line", type = String.class),
                     @APILocals(name = "bubble", type = Div.class)})
     private Div authorCommandBubble(String content) {
-        String body = content.substring(Defaults.AGENT_AUTHOR_COMMAND_NOTE.length()).strip();
+        String body = content.substring(authorCommandNote(content).length()).strip();
         int result = body.indexOf("\n\nResult:\n");
         String line = (result < 0 ? body : body.substring(0, result)).replaceFirst("^Command:\\s*", "");
         Div bubble = new Div(text(loc.getValue(L.LABEL_COMMAND) + ": " + line, true));

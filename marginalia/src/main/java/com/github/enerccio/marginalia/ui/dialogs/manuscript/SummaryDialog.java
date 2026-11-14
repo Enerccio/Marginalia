@@ -8,16 +8,17 @@ import com.github.enerccio.marginalia.domain.service.CancellationToken;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.NotificationService;
 import com.github.enerccio.marginalia.domain.service.SummaryService;
+import com.github.enerccio.marginalia.domain.service.run.Runs;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
 import com.github.enerccio.marginalia.ui.widgets.DesktopNotifier;
+import com.github.enerccio.marginalia.ui.widgets.FloatingWindow;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.ui.widgets.ScrollPanel;
 import com.github.enerccio.marginalia.utils.UIUtils;
-import com.vaadin.flow.component.ModalityMode;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.details.Details;
@@ -31,9 +32,15 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
+import java.util.List;
+
 /**
  * Shows the summary of a part and generates it. Generates a meta summary when {@code metaTo} is given: it merges the
  * summaries from the part to {@code metaTo} (see {@link SummaryService#createMetaSummary}).
+ * <p>
+ * Not modal ({@link FloatingWindow}): the author works on while the model writes. <i>Stop</i> stops the model, <i>Close</i> while
+ * it writes folds the window into the corner of the page and the summary goes on; the summarized part is held
+ * {@link Runs.Mode#READ} (not deleted or merged away) meanwhile.
  */
 @Configurable(preConstruction = true)
 @Extendable
@@ -53,6 +60,8 @@ public class SummaryDialog extends Dialog implements LLMInteract {
     private final ChatMessage metaTo;
 
     private final Button actionButton;
+    private final Button closeButton;
+    private final FloatingWindow floating;
     private final Details reasoningDetails;
     private final Markdown reasoningMarkdown;
     private final TextArea summaryArea;
@@ -75,11 +84,15 @@ public class SummaryDialog extends Dialog implements LLMInteract {
         setHeaderTitle(isGenerating
                 ? loc.getValue(metaTo == null ? L.LABEL_GENERATING_SUMMARY : L.LABEL_GENERATING_META_SUMMARY)
                 : loc.getValue(L.LABEL_SUMMARY));
-        setWidth("700px");
+        setWidth("min(700px, 95vw)");
         setHeight("500px");
         setCloseOnEsc(false);
         setCloseOnOutsideClick(false);
-        setModality(ModalityMode.STRICT);
+        floating = new FloatingWindow(this, NotificationService.SUMMARY,
+                () -> getHeaderTitle() + " \u00b7 " + manuscript.getName(), this::stopGeneration).book(manuscript);
+        if (isGenerating) {
+            floating.holdParts(manuscript, metaTo == null ? List.of(message) : List.of(message, metaTo), Runs.Mode.READ);
+        }
 
         VerticalLayout layout = new VerticalLayout();
         layout.setSizeFull();
@@ -114,20 +127,20 @@ public class SummaryDialog extends Dialog implements LLMInteract {
         footer.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
 
         actionButton = new Button();
+        // while the model writes: folds the window, the summary goes on
+        closeButton = new Button(loc.getValue(L.LABEL_CLOSE), _ -> close());
         updateActionButtonState(isGenerating);
 
         actionButton.addClickListener(_ -> {
             if (isGeneratingState) {
-                if (cancellationToken != null && !cancellationToken.isCancelled()) {
-                    cancellationToken.cancel();
-                }
+                stopGeneration();
                 updateActionButtonState(false);
             } else {
                 close();
             }
         });
 
-        footer.add(actionButton);
+        footer.add(closeButton, actionButton);
         getFooter().add(footer);
 
         if (!isGenerating) {
@@ -142,11 +155,27 @@ public class SummaryDialog extends Dialog implements LLMInteract {
             returns = @APIReturn(type = void.class),
             parameters = {@APIParameter(name = "action", type = Runnable.class)})
     public void onClosed(Runnable action) {
-        addOpenedChangeListener(e -> {
-            if (!e.isOpened()) {
-                action.run();
-            }
-        });
+        // not when it is only folded into the corner while the model writes
+        floating.addEndListener(action);
+    }
+
+    /**
+     * Closes the window, also when it is folded into the corner; closing it while the model writes folds it.
+     */
+    @PublicAPI(from = "1.8.0",
+            returns = @APIReturn(type = void.class))
+    @Override
+    public void close() {
+        super.close();
+        floating.closed();
+    }
+
+    @PublicAPI(from = "1.8.0",
+            returns = @APIReturn(type = void.class))
+    private void stopGeneration() {
+        if (cancellationToken != null && !cancellationToken.isCancelled()) {
+            cancellationToken.cancel();
+        }
     }
 
     @PublicAPI(from = "1.1.0",
@@ -154,6 +183,8 @@ public class SummaryDialog extends Dialog implements LLMInteract {
             parameters = {@APIParameter(name = "generating", type = boolean.class)})
     private void updateActionButtonState(boolean generating) {
         this.isGeneratingState = generating;
+        floating.setRunning(generating);
+        closeButton.setVisible(generating);
         if (generating) {
             actionButton.setText(loc.getValue(L.LABEL_STOP));
             actionButton.setThemeName("error primary");
@@ -213,8 +244,9 @@ public class SummaryDialog extends Dialog implements LLMInteract {
                 ui.access(() -> {
                     try {
                         if (metaTo == null) {
+                            // the author may have changed the part meanwhile: only the summary is written
                             dialogMessage.setSummary(summary);
-                            chatMessageService.save(dialogMessage);
+                            chatMessageService.update(dialogMessage, part -> part.setSummary(summary));
                         }
                         setHeaderTitle(loc.getValue(L.LABEL_SUMMARY));
                         updateActionButtonState(false);
@@ -248,9 +280,10 @@ public class SummaryDialog extends Dialog implements LLMInteract {
         };
 
         try {
-            cancellationToken = metaTo == null
+            // the panel of the runs shows what the model writes and its place in the queue
+            cancellationToken = floating.send(() -> metaTo == null
                     ? summaryService.createSummary(manuscript, dialogMessage, callback)
-                    : summaryService.createMetaSummary(manuscript, dialogMessage, metaTo, callback);
+                    : summaryService.createMetaSummary(manuscript, dialogMessage, metaTo, callback));
 
             if (cancellationToken == null) {
                 setHeaderTitle(loc.getValue(L.LABEL_SUMMARY_ERROR));

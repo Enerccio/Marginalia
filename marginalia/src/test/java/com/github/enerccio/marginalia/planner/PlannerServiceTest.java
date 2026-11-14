@@ -1,7 +1,9 @@
 package com.github.enerccio.marginalia.planner;
 
 import com.github.enerccio.marginalia.domain.model.PlannedScene;
+import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
+import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.domain.service.PlannerService;
 import com.github.enerccio.marginalia.test.MarginaliaTestBase;
@@ -26,6 +28,9 @@ class PlannerServiceTest extends MarginaliaTestBase {
 
     @Autowired
     private ManuscriptService manuscriptService;
+
+    @Autowired
+    private ChatMessageService chatMessageService;
 
     private Manuscript book;
 
@@ -191,5 +196,152 @@ class PlannerServiceTest extends MarginaliaTestBase {
             plannerService.add(book, scene("Scene " + i));
         }
         assertThatThrownBy(() -> plannerService.add(book, scene("one too many"))).isInstanceOf(IllegalStateException.class);
+    }
+
+    // --- insert between scenes ---
+
+    @Test
+    void aSceneIsInsertedAfterTheSceneGiven() throws Exception {
+        PlannedScene a = plannerService.add(book, scene("A"));
+        PlannedScene c = plannerService.add(book, scene("C"));
+
+        PlannedScene b = plannerService.insert(book, a.getUuid(), scene("B"));
+        plannerService.insert(book, c.getUuid(), scene("D"));
+
+        assertThat(titles()).containsExactly("A", "B", "C", "D");
+        assertThat(b.getUuid()).isNotIn(a.getUuid(), c.getUuid());
+        assertThat(plannerService.list(book).get(1).isDone()).isFalse();
+    }
+
+    @Test
+    void insertNeedsTheSceneItGoesAfterAndATitle() throws Exception {
+        PlannedScene a = plannerService.add(book, scene("A"));
+
+        assertThatThrownBy(() -> plannerService.insert(book, "no-such-scene", scene("B"))).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> plannerService.insert(book, a.getUuid(), scene(" "))).isInstanceOf(IllegalArgumentException.class);
+        assertThat(titles()).containsExactly("A");
+    }
+
+    // --- merge ---
+
+    @Test
+    void twoScenesBecomeOneInThePlaceOfTheFirst() throws Exception {
+        PlannedScene a = plannerService.add(book, scene("A"));
+        PlannedScene b = plannerService.add(book, scene("B"));
+        PlannedScene c = plannerService.add(book, scene("C"));
+        AtomicInteger told = new AtomicInteger();
+        plannerService.onChange(book, told::incrementAndGet);
+
+        PlannedScene merged = plannerService.merge(book, a.getUuid(), b.getUuid(),
+                new PlannedScene(" A and B ", "the harbor, then the ship", "Anna", "Anna, John, Mara", "Both things happen."));
+
+        assertThat(titles()).containsExactly("A and B", "C");
+        PlannedScene stored = plannerService.list(book).get(0);
+        assertThat(stored.getUuid()).isEqualTo(a.getUuid()).isEqualTo(merged.getUuid());
+        assertThat(stored.getSceneSetting()).isEqualTo("the harbor, then the ship");
+        assertThat(stored.getPresentCharacters()).isEqualTo("Anna, John, Mara");
+        assertThat(stored.getInstructions()).isEqualTo("Both things happen.");
+        assertThat(plannerService.list(book).get(1).getUuid()).isEqualTo(c.getUuid());
+        assertThat(told.get()).isEqualTo(1);
+    }
+
+    @Test
+    void theMergedSceneIsDoneOnlyWhenBothWere() throws Exception {
+        PlannedScene a = plannerService.add(book, scene("A"));
+        PlannedScene b = plannerService.add(book, scene("B"));
+        PlannedScene c = plannerService.add(book, scene("C"));
+        plannerService.setDone(book, a.getUuid(), true);
+        plannerService.setDone(book, b.getUuid(), true);
+
+        assertThat(plannerService.merge(book, a.getUuid(), b.getUuid(), scene("AB")).isDone()).isTrue();
+        assertThat(plannerService.merge(book, a.getUuid(), c.getUuid(), scene("ABC")).isDone()).isFalse();
+        assertThat(titles()).containsExactly("ABC");
+    }
+
+    @Test
+    void mergeNeedsTwoScenesOfTheBookAndATitle() throws Exception {
+        PlannedScene a = plannerService.add(book, scene("A"));
+        PlannedScene b = plannerService.add(book, scene("B"));
+
+        assertThatThrownBy(() -> plannerService.merge(book, a.getUuid(), a.getUuid(), scene("AA"))).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> plannerService.merge(book, a.getUuid(), "no-such-scene", scene("AB"))).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> plannerService.merge(book, a.getUuid(), b.getUuid(), scene(""))).isInstanceOf(IllegalArgumentException.class);
+        assertThat(titles()).containsExactly("A", "B");
+    }
+
+    // --- import from the branch ---
+
+    private ChatMessage part(ChatMessage parent, String instructions, String setting, String pov, String present) throws Exception {
+        ChatMessage message = new ChatMessage();
+        message.setResponse("the text of the part");
+        message.setInstructions(instructions);
+        message.setSceneSetting(setting);
+        message.setPovCharacter(pov);
+        message.setPresentCharacters(present);
+        Thread.sleep(3);
+        return parent == null ? chatMessageService.createRoot(book, message) : chatMessageService.addChild(parent, message);
+    }
+
+    @Test
+    void thePartsOfTheBranchBecomeScenesAtTheEnd() throws Exception {
+        plannerService.add(book, scene("Planned before"));
+        ChatMessage root = part(null, null, null, null, null);
+        ChatMessage first = part(root, "Anna finds the letter.\nShe reads it twice.", "a harbor at night", "Anna", "Anna, John");
+        ChatMessage other = part(first, "The other branch.", null, null, null);
+        ChatMessage second = part(first, " ", "the ship", null, null);
+        assertThat(other.getId()).isNotNull();
+        book = manuscriptService.find(book);
+        book.setActiveLeaf(second);
+        book = manuscriptService.save(book);
+
+        int added = plannerService.importBranch(book);
+
+        // the first part has no turn details, the other branch is not the one the book is on
+        assertThat(added).isEqualTo(2);
+        assertThat(titles()).containsExactly("Planned before", "Anna finds the letter.", "the ship");
+        PlannedScene scene = plannerService.list(book).get(1);
+        assertThat(scene.getInstructions()).isEqualTo("Anna finds the letter.\nShe reads it twice.");
+        assertThat(scene.getSceneSetting()).isEqualTo("a harbor at night");
+        assertThat(scene.getPovCharacter()).isEqualTo("Anna");
+        assertThat(scene.getPresentCharacters()).isEqualTo("Anna, John");
+        assertThat(scene.isDone()).isFalse();
+    }
+
+    @Test
+    void aLongFirstLineIsCutForTheTitle() throws Exception {
+        ChatMessage root = part(null, "x".repeat(300), null, null, null);
+        book = manuscriptService.find(book);
+        book.setActiveLeaf(root);
+        book = manuscriptService.save(book);
+
+        plannerService.importBranch(book);
+
+        assertThat(titles().get(0)).hasSize(PlannerService.IMPORTED_TITLE_LENGTH).endsWith("…");
+        assertThat(plannerService.list(book).get(0).getInstructions()).hasSize(300);
+    }
+
+    @Test
+    void aBookWithoutPartsImportsNothing() throws Exception {
+        AtomicInteger told = new AtomicInteger();
+        plannerService.onChange(book, told::incrementAndGet);
+
+        assertThat(plannerService.importBranch(book)).isZero();
+        assertThat(titles()).isEmpty();
+        assertThat(told.get()).isZero();
+    }
+
+    @Test
+    void nothingIsImportedWhenTheScenesDoNotFit() throws Exception {
+        for (int i = 0; i < PlannerService.MAX_SCENES - 1; i++) {
+            plannerService.add(book, scene("Scene " + i));
+        }
+        ChatMessage root = part(null, "one", null, null, null);
+        ChatMessage leaf = part(root, "two", null, null, null);
+        book = manuscriptService.find(book);
+        book.setActiveLeaf(leaf);
+        book = manuscriptService.save(book);
+
+        assertThatThrownBy(() -> plannerService.importBranch(book)).isInstanceOf(IllegalStateException.class);
+        assertThat(plannerService.list(book)).hasSize(PlannerService.MAX_SCENES - 1);
     }
 }

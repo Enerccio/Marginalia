@@ -2,8 +2,6 @@ package com.github.enerccio.marginalia.extensions.knowledgetracker.service;
 
 import com.github.enerccio.marginalia.extensions.InheritedSetting;
 import com.github.enerccio.marginalia.extensions.InheritedSettingRegistry;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.extract.ExtractionPrompt;
-import com.github.enerccio.marginalia.extensions.knowledgetracker.extract.TidyPrompt;
 
 import static com.github.enerccio.marginalia.extensions.knowledgetracker.KnowledgeTrackerLocalization.*;
 
@@ -31,12 +29,12 @@ public final class KnowledgeInherited {
                 .group(() -> T.localized(KNOWLEDGE_TRACKER))
                 .help(() -> T.localized(THE_SYSTEM_MESSAGE_THAT_TELLS_THE_MODEL))
                 .userValue(() -> user.get(EXTRACTION_PROMPT))
-                .fallback(() -> ExtractionPrompt.SYSTEM));
+                .fallback(() -> T.defaults().extractionSystem()));
         registry.register(owner, InheritedSetting.textArea(TIDY_PROMPT, () -> T.localized(KNOWLEDGE_TIDY_PROMPT))
                 .group(() -> T.localized(KNOWLEDGE_TRACKER))
                 .help(() -> T.localized(THE_SYSTEM_MESSAGE_OF_THE_TIDY_PASS))
                 .userValue(() -> user.get(TIDY_PROMPT))
-                .fallback(() -> TidyPrompt.SYSTEM));
+                .fallback(() -> T.defaults().tidySystem()));
     }
 
     /** The user level of the prompts. */

@@ -1,0 +1,158 @@
+---
+label: Copias de seguridad de libros
+order: 50
+---
+
+# Copias de seguridad de libros
+
+Una copia de seguridad de un libro es una instantánea de un libro: sus ajustes y prompts, todas las partes de todas las ramas, los resúmenes, las etiquetas y el libro de lore. Usa las copias de seguridad para volver a un estado anterior de la historia, para hacer una copia de un libro o para trasladar un libro a otra instalación de Marginalia o a otro usuario.
+
+Las copias de seguridad de libros son independientes de las [copias de seguridad de la base de datos](../administration/database-backups.md) que los administradores hacen de toda la instalación.
+
+![La pestaña Copias de seguridad de un libro](../../images/book-backups.png)
+
+<a id="taking-a-backup"></a>
+
+## Hacer una copia de seguridad
+
+En la pestaña **Copias de seguridad** del libro, haz clic en **Hacer copia de seguridad**. La copia aparece en la parte superior de la lista con su **Fecha**, el número de **Mensajes** (partes) que contiene y el número de **Imágenes** (las [imágenes de las partes](story-editor.md#images)) que usan sus partes.
+
+Las copias de seguridad también pueden hacerse automáticamente, véase [más abajo](#automatic-backups).
+
+Una copia contiene todo el árbol de la historia, los resúmenes y las [anotaciones](annotations.md) de las partes; al restaurarla, al copiar un libro o al importar una copia, las notas vuelven con ella.
+
+<a id="the-history-of-the-parts"></a>
+
+## El historial de las partes
+
+Una copia de seguridad no contiene el [historial de versiones](version-history.md) de las partes salvo que lo pidas: marca **Incluir el historial de versiones** junto a **Hacer copia de seguridad** (viene desmarcada por defecto, porque el historial puede ocupar varias veces el tamaño de la historia). Al restaurar una copia así, como libro o como copia, las versiones vuelven con sus nombres, el razonamiento de las generadas y la papelera del historial; las versiones se recortan hasta el límite del libro al que llegan. Las copias automáticas nunca tienen historial. Restaurar una copia sin historial da a cada parte una primera versión, igual que con un libro anterior al historial.
+
+<a id="backups-and-folders"></a>
+
+## Copias de seguridad y carpetas
+
+Una copia recuerda las [carpetas](folders.md) en las que estaba su libro, desde la superior hacia abajo, cada una con su nombre, descripción, idioma y los ajustes de texto que establece. **Restaurar como libro nuevo** y **Clonar copia de seguridad** colocan el nuevo libro en la carpeta que indica la copia si todavía la tienes; si no, en las carpetas con los mismos nombres (si tienes una, se usa tal cual; si falta, se crea con los ajustes que tenía). Una copia sin carpeta, o con carpetas que no pueden crearse, se restaura en el nivel superior. **Restaurar** sobre un libro (completo o solo mensajes) mantiene el libro en su carpeta. Las etiquetas de una carpeta no están en la copia. Las copias antiguas se restauran como antes.
+
+<a id="pictures-in-a-backup"></a>
+
+## Imágenes en una copia de seguridad
+
+Una copia recuerda **qué imágenes** tienen las partes (y sus pies de foto), pero **no los archivos de imagen**. Así las copias, y también las automáticas, ocupan poco. Las imágenes permanecen en tus [Recursos](../resources.md). Para llevar las imágenes junto con una copia, inclúyelas al [exportarla](#exporting-and-importing).
+
+<a id="restoring-a-backup"></a>
+
+## Restaurar una copia de seguridad
+
+Haz clic en **Restaurar** junto a la copia y elige:
+
+| Opción | Qué se restaura |
+|---|---|
+| **Restauración completa** | Todo: nombre, descripción, publicación, prompts y demás ajustes del libro, etiquetas, modelo, protocolo, libro de lore y todas las partes. |
+| **Restaurar solo los mensajes** | Solo las partes (todas las ramas) y los resúmenes. Los ajustes, prompts y libro de lore actuales del libro se mantienen tal como están. |
+
+!!!warning
+Restaurar sustituye **todas las partes** del libro por las de la copia. Las partes escritas después de la copia se pierden. Haz antes una copia del estado actual por si luego lo quieres recuperar.
+!!!
+
+La ventana del libro se cierra y vuelve a abrirse con el libro restaurado.
+
+Las imágenes de las partes restauradas, y cualquier otro archivo al que apunten las partes (el audio de un [audiolibro](../extensions/audiobook.md), por ejemplo), son los que enumera la copia, siempre que sigas teniéndolos en [Recursos](../resources.md). Un recurso que hayas borrado desde entonces ya no está en la parte. Restaurar no recupera archivos borrados, salvo que la copia proceda de una exportación con los recursos que [importaste](#importing-a-backup).
+
+El **modelo y el protocolo** se buscan entre tus proveedores de inferencia y protocolos: primero el exacto de la copia y luego uno con el mismo nombre. Si no existe ninguno, el libro conserva su modelo o protocolo actual.
+
+Los **libros de lore** de la copia se comparan con los tuyos. Cuando existe un libro de lore con el mismo nombre pero distinta identidad, Marginalia pregunta para cada uno si quieres **Vincular al existente** o **Crear nuevo** a partir de la copia. Los libros de lore que no tienes en absoluto pueden importarse (**Importar**) o dejarse fuera (**No importar**).
+
+![Elegir qué hacer con los libros de lore](../../images/lorebook-import.png)
+
+<a id="copying-a-book"></a>
+
+## Copiar un libro
+
+**Clonar copia de seguridad** crea un libro nuevo a partir de la copia, con un nombre que tú indicas. El libro original no se modifica. Úsalo para probar algo arriesgado con una copia del libro, o para empezar un libro nuevo desde la misma apertura.
+
+Si la copia apunta a recursos (imágenes, el audio de un audiolibro, otros archivos), Marginalia pregunta **Con recursos** o **Sin recursos**:
+
+- *Con recursos* da al nuevo libro **sus propias copias** de ellos (los mismos archivos, con nuevas entradas en [Recursos](../resources.md)), de modo que borrar o reemplazar una imagen en un libro no afecta al otro. Los recursos que hayas borrado desde que se hizo la copia se dejan fuera.
+- *Sin recursos* clona solo el texto.
+
+![Clonar con o sin recursos](../../images/backup-clone-images.png)
+<a id="exporting-and-importing"></a>
+
+## Exportar e importar
+
+**Exportar** descarga la copia de seguridad como archivo JSON (`<book name>_backup.json`). Guárdalo como copia adicional o llévalo a otra instalación.
+
+Si la copia apunta a recursos, Marginalia pregunta si quieres empaquetarlos (las imágenes de las partes y cualquier otro archivo que citen sus datos, como el audio de un audiolibro):
+
+![Exportar una copia de seguridad que tiene imágenes](../../images/backup-export-images.png)
+
+- **Sin recursos** descarga el JSON de inmediato, como se ha descrito. Los recursos solo se mencionan en él.
+- **Con recursos** empaqueta la copia y todos sus recursos en un **archivo ZIP** (`<book name>_backup.zip`). Una barra de progreso muestra cuántos se han completado; el archivo se construye en disco un archivo cada vez, así que incluso un libro con muchos archivos grandes no consume mucha memoria. Un audiolibro de una obra larga ocupa cientos de megabytes: empaquétalo solo cuando lo necesites. Cuando esté listo, haz clic en **Descargar**. El archivo se conserva solo hasta que cierres ese diálogo.
+
+Si un recurso no se puede empaquetar porque lo has eliminado o porque su archivo falta, el diálogo indica cuántos se han dejado fuera.
+
+La casilla **Incluir los ajustes heredados en la exportación** (activada por defecto, junto a los botones de exportación) decide qué dice el archivo sobre los ajustes que el libro recibe de sus [carpetas](folders.md#where-the-settings-of-a-book-come-from). Activada, el idioma, la plantilla maestra, el punto de vista, el tiempo verbal, el estilo y las instrucciones que el libro no define por sí mismo se escriben en el archivo como valores propios, tomados de las carpetas en las que estaba la copia cuando se hizo (primero la más cercana) y, después, de tus ajustes; así el libro se comporta igual en una instalación o en una cuenta que no tenga esas carpetas ni esos ajustes. Los valores predeterminados integrados no se escriben. Desactivada, el archivo solo contiene lo que el libro define por sí mismo. El archivo nunca indica en qué carpeta está el libro: dónde se archiva un libro es una elección local. (La exportación de la historia, [Exportar un libro](export.md), escribe solo el texto y no tiene ajustes).
+
+El ZIP contiene `backup.json` (el mismo JSON), `resources.json` (la lista de los recursos) y los archivos. No hace falta descomprimirlo: las dos formas de volver a cargar una copia aceptan tanto `.zip` como `.json`.
+
+Hay dos formas de volver a cargar un archivo de copia de seguridad:
+
+- **Importar copia de seguridad** en la pestaña *Copias de seguridad* añade el archivo a la lista de copias de **este libro**. No cambia nada hasta que lo *restaures*.
+- **Importar copia de seguridad como libro nuevo** en la pestaña *Ajustes* crea un **libro nuevo** a partir del archivo.
+
+Ambas aceptan un archivo `.json` o `.zip`. El archivo se sube al servidor y se lee desde allí, así que una copia grande no supone ningún problema.
+
+<a id="importing-a-backup"></a>
+
+### Importar una copia de seguridad
+
+Cuando el archivo es un ZIP con imágenes, las imágenes se añaden primero a tus [Recursos](../resources.md) y la copia las usa después. Una imagen que ya tienes (el mismo archivo) no se vuelve a guardar: se usa la existente, así que importar tu propia exportación no añade nada. Un archivo JSON sin imágenes se importa tal cual.
+
+Al importar **como libro nuevo**, el libro nuevo recibe **sus propias entradas** en Recursos, incluso si ya tienes las mismas imágenes: las entradas apuntan a los mismos archivos, así que no se ocupa espacio en disco dos veces. Si el archivo no tiene imágenes (un JSON simple), el libro nuevo recibe copias de las imágenes que el archivo enumera y que todavía tienes; las que no tienes se dejan fuera. Todo lo que haya en el archivo que no sea una imagen utilizable (que no sea PNG, JPEG, GIF o WebP, o que sea demasiado grande) se ignora.
+
+<a id="importing-a-backup-as-a-new-book"></a>
+
+### Importar una copia de seguridad como libro nuevo
+
+1. Abre la pestaña **Ajustes** y haz clic en **Importar copia de seguridad como libro nuevo**.
+2. Escribe el **Nombre del libro nuevo**: la subida se habilita en cuanto se rellena el nombre.
+3. Sube el archivo de copia de seguridad.
+4. Decide sobre los libros de consulta (lorebooks), si se te pregunta.
+
+El libro nuevo aparece en la pestaña *Libros*.
+
+<a id="deleting-backups"></a>
+
+## Eliminar copias de seguridad
+
+El botón de la papelera elimina una copia de seguridad de forma definitiva. Las copias automáticas no se rotan: permanecen hasta que las elimines.
+
+<a id="automatic-backups"></a>
+
+## Copias de seguridad automáticas
+
+Marginalia puede hacer una copia de seguridad por sí sola mientras escribes. Define el valor predeterminado para todos los libros en **Ajustes → Ajustes generales → Estrategia de copias de seguridad**:
+
+| Estrategia | |
+|---|---|
+| **Sin copias de seguridad** | No hay copias automáticas. |
+| **Tras N mensajes** | Una copia después de cada *N* partes generadas. |
+| **Tras N minutos** | Una copia tras una parte generada cuando han pasado al menos *N* minutos desde la última copia automática. |
+
+Para usar otra estrategia en un solo libro, marca **Ajuste propio de cada manuscrito** en su pestaña *Copias de seguridad* y elige allí la estrategia y el número. Al desmarcarla, el libro vuelve al valor predeterminado de *Ajustes*.
+
+Las copias automáticas solo se hacen después de generar una parte, así que un libro que solo lees no recibe copias nuevas.
+
+<a id="where-backups-are-stored"></a>
+
+## Dónde se guardan las copias de seguridad
+
+Cada copia de seguridad es un archivo JSON en la carpeta de datos de Marginalia:
+
+```
+~/.marginalia/data/<your login>/backups/manuscripts/<book id>/
+```
+
+Con la [versión Docker](../getting-started/docker-server.md) esta carpeta es `./data/data/<login>/...` en el host. Los archivos no están en la base de datos, así que una [copia de seguridad de la base de datos](../administration/database-backups.md) no los contiene. Incluye toda la carpeta `.marginalia` en tus propias copias de seguridad.
+
+Los archivos de imagen tampoco están en las copias de seguridad: están en la carpeta `data/<your login>/images`, junto a `backups`. Tampoco están en una [copia de seguridad de la base de datos](../administration/database-backups.md); consúltalo allí.

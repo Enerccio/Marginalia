@@ -493,8 +493,8 @@ class AgentPartTest extends AgentTestBase {
         AgentRun run = agentRunService.findUnfinished(agent);
         assertThat(run.getStatus()).isEqualTo(AgentRunStatus.RUNNING);
         assertThat(takenUp).extracting(AgentRun::getUuid).containsExactly(run.getUuid());
-        assertThat(firstMessages).containsExactly(Defaults.AGENT_CONSOLE_START_MESSAGE);
-        assertThat(Defaults.AGENT_CONSOLE_START_MESSAGE).contains("ask_user");
+        assertThat(firstMessages).containsExactly(new Defaults().agentConsoleStartMessage());
+        assertThat(new Defaults().agentConsoleStartMessage()).contains("ask_user");
         assertThat(part.getLastDialog()).isInstanceOf(AgentConsoleDialog.class);
         assertThat(part.getLastDialog().isOpened()).isTrue();
         // a conversation: the agent's finish does not end it

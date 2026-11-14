@@ -4,6 +4,7 @@ import com.github.enerccio.marginalia.domain.components.LoreConditions;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
+import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LorebookEntryVerdict;
 import com.github.enerccio.marginalia.domain.templates.LorebookTemplateData;
 
@@ -327,5 +328,15 @@ public interface LorebookActivationService {
      * context, so a following entry sees them.
      */
     String renderPayload(LorebookEntry entry, LorebookTemplateData data);
+
+    /**
+     * The lore block ({@code IN_LORE_BLOCK} entries) the turn that wrote the part would get from the lorebooks as they are
+     * now: the entries are activated for the turn stored with the part (its instructions, scene, point of view, who is
+     * present, the story in front of it) and rendered, without the events of a generation. What the part was written with is
+     * kept in its prompt and does not follow later changes of the lore; this does.
+     *
+     * @return the lore, empty when no entry is used; null when the book has no lorebook (nothing to refresh from)
+     */
+    String currentBackgroundLore(Manuscript manuscript, ChatMessage part) throws Exception;
 
 }

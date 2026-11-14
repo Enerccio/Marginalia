@@ -7,8 +7,10 @@ import com.github.enerccio.marginalia.domain.collections.InsertionMode;
 import com.github.enerccio.marginalia.domain.model.ExtendableEntity;
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
+import com.github.enerccio.marginalia.domain.model.impl.Resource;
 import com.github.enerccio.marginalia.domain.model.impl.Tag;
 import com.github.enerccio.marginalia.domain.repository.LorebookRepository;
+import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.agent.UuidPair;
 import com.github.enerccio.marginalia.domain.traits.CommonTx;
@@ -22,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 
 import java.util.*;
+import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
 public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, LorebookRepository> implements LorebookService {
@@ -39,6 +42,9 @@ public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, Loreboo
 
     @Autowired
     private TagService tagService;
+
+    @Autowired
+    private ResourceService resourceService;
 
     @Autowired
     @Lazy
@@ -274,6 +280,8 @@ public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, Loreboo
             entries.add(marshalEntry(entry, false));
         }
         content.add("entries", entries);
+        // the copy has images of its own: a resource deleted in one of them stays in the other
+        remapImages(entries, memoized(this::copyOwnImage));
 
         Lorebook copy = new Lorebook();
         copy.setName(StringUtils.isBlank(name) ? original.getName() : name);
@@ -325,6 +333,21 @@ public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, Loreboo
             }
             bookObj.add("subbooks", subbooks);
             decisions.put(getString(bookObj, "uuid"), LorebookDecision.CREATE);
+        }
+
+        // the images are the other user's: the user gets copies of their own (only those the shared entries show)
+        User owner = original.getOwner();
+        UnaryOperator<String> adopt = memoized(uuid -> {
+            try {
+                Resource image = resourceService.copyImageOf(uuid, owner);
+                return image == null ? null : image.getUuid();
+            } catch (Exception e) {
+                log.warn("The image {} of the shared lorebook can't be copied", uuid, e);
+                return null;
+            }
+        });
+        for (JsonElement element : lorebooks) {
+            remapImages(entriesOf(element.getAsJsonObject()), adopt);
         }
 
         Lorebook copy = importLorebooks(lorebooks, decisions).get(uuids.get(original.getUuid()));
@@ -493,7 +516,31 @@ public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, Loreboo
         root.addProperty("format", EXPORT_FORMAT);
         root.addProperty("version", EXPORT_VERSION);
         root.addProperty("root", book.getUuid());
-        root.add("lorebooks", marshalLorebooks(book));
+        JsonArray lorebooks = marshalLorebooks(book);
+        root.add("lorebooks", lorebooks);
+        // the images of the entries travel in the file
+        JsonObject images = new JsonObject();
+        for (JsonElement element : lorebooks) {
+            for (JsonElement entry : entriesOf(element.getAsJsonObject())) {
+                for (String uuid : LoreImages.uuids(getString(entry.getAsJsonObject(), "payload"))) {
+                    if (images.has(uuid)) {
+                        continue;
+                    }
+                    Resource image = resourceService.findImage(uuid);
+                    if (image == null) {
+                        continue;
+                    }
+                    JsonObject imageObj = new JsonObject();
+                    imageObj.addProperty("name", image.getOriginalName());
+                    imageObj.addProperty("mimeType", image.getMimeType());
+                    imageObj.addProperty("data", Base64.getEncoder().encodeToString(resourceService.getResourceData(image)));
+                    images.add(uuid, imageObj);
+                }
+            }
+        }
+        if (!images.isEmpty()) {
+            root.add(IMAGES_KEY, images);
+        }
         return gson.toJson(root);
     }
 
@@ -537,7 +584,8 @@ public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, Loreboo
         obj.add("key", toJsonArray(keys.primary()));
         obj.add("keysecondary", toJsonArray(keys.secondary()));
         obj.addProperty("comment", entry.getName());
-        obj.addProperty("content", StringUtils.defaultString(entry.getPayload()));
+        // SillyTavern can't show the images of the entry
+        obj.addProperty("content", StringUtils.defaultString(LoreImages.strip(entry.getPayload())));
         obj.addProperty("constant", keys.constant());
         obj.addProperty("selective", !keys.secondary().isEmpty());
         obj.addProperty("selectiveLogic", SillyTavernEntryConverter.AND_ALL);
@@ -591,6 +639,26 @@ public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, Loreboo
 
         // explicit file import always creates new lorebooks
         JsonArray lorebooks = rootObj.getAsJsonArray("lorebooks");
+        // the images of the file become images of the user (one that is not in the file: a copy of the user's own, if they have it)
+        JsonObject images = rootObj.has(IMAGES_KEY) && rootObj.get(IMAGES_KEY).isJsonObject() ? rootObj.getAsJsonObject(IMAGES_KEY) : new JsonObject();
+        UnaryOperator<String> adopt = memoized(uuid -> {
+            JsonElement embedded = images.get(uuid);
+            if (embedded != null && embedded.isJsonObject()) {
+                try {
+                    byte[] data = Base64.getDecoder().decode(StringUtils.defaultString(getString(embedded.getAsJsonObject(), "data")));
+                    return resourceService.uploadImage(StringUtils.defaultIfBlank(getString(embedded.getAsJsonObject(), "name"), uuid), data).getUuid();
+                } catch (Exception e) {
+                    log.warn("The image {} of the lorebook file can't be stored", uuid, e);
+                    return null;
+                }
+            }
+            return copyOwnImage(uuid);
+        });
+        for (JsonElement element : lorebooks) {
+            if (element.isJsonObject()) {
+                remapImages(entriesOf(element.getAsJsonObject()), adopt);
+            }
+        }
         Map<String, LorebookDecision> decisions = new HashMap<>();
         for (JsonElement element : lorebooks) {
             String uuid = element.isJsonObject() ? getString(element.getAsJsonObject(), "uuid") : null;
@@ -856,6 +924,48 @@ public class LorebookServiceImpl extends ExtendableServiceImpl<Lorebook, Loreboo
             }
         }
         return resolved;
+    }
+
+    /** The images of the entries of a lorebook export file, by the uuid they have in the entries. */
+    static final String IMAGES_KEY = "images";
+
+    private static JsonArray entriesOf(JsonObject bookObj) {
+        return bookObj.has("entries") && bookObj.get("entries").isJsonArray() ? bookObj.getAsJsonArray("entries") : new JsonArray();
+    }
+
+    /**
+     * Writes other resources into the images of the entries (in their {@code payload}).
+     *
+     * @param adopt the uuid of the resource that is to replace one, null keeps the image as it is
+     */
+    private void remapImages(JsonArray entries, UnaryOperator<String> adopt) {
+        for (JsonElement element : entries) {
+            if (!element.isJsonObject()) {
+                continue;
+            }
+            JsonObject entry = element.getAsJsonObject();
+            String payload = getString(entry, "payload");
+            if (payload != null && !LoreImages.uuids(payload).isEmpty()) {
+                entry.addProperty("payload", LoreImages.replace(payload, adopt));
+            }
+        }
+    }
+
+    /** Each uuid is adopted once, an image shown twice gets one copy. */
+    private static UnaryOperator<String> memoized(UnaryOperator<String> adopt) {
+        Map<String, java.util.Optional<String>> done = new HashMap<>();
+        return uuid -> done.computeIfAbsent(uuid, key -> java.util.Optional.ofNullable(adopt.apply(key))).orElse(null);
+    }
+
+    /** A copy of an image of the user (the same file), null when the user has no such image. */
+    private String copyOwnImage(String uuid) {
+        try {
+            Resource own = resourceService.findImage(uuid);
+            return own == null ? null : resourceService.copy(own).getUuid();
+        } catch (Exception e) {
+            log.warn("The image {} of a lorebook entry can't be copied", uuid, e);
+            return null;
+        }
     }
 
     private JsonObject marshalEntry(LorebookEntry entry, boolean uuid) throws Exception {

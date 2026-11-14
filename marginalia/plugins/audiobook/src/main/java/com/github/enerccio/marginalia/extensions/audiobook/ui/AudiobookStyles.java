@@ -20,6 +20,7 @@ public final class AudiobookStyles {
     public static final String PLAYER_STATUS = "audiobook-player-status";
     public static final String PLAYER_SPEED = "audiobook-player-speed";
     public static final String PLAYER_OFFER = "audiobook-player-offer";
+    public static final String CONVERT_AUDIO = "audiobook-convert-audio";
 
     private static final String RESOURCE = "/audiobook.css";
 

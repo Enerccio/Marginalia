@@ -29,7 +29,7 @@ covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/ui/dialogs/story/BookHistoryActions.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/ui/widgets/HistoryLimitField.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/ui/dialogs/permissions/VersionHistoryPermissionComponent.java
-verified: d163441bd
+verified: f7e7de02b
 ---
 
 # Version history
@@ -91,7 +91,7 @@ state the part had, then changes it, then records.
 | `RedraftServiceImpl` (dialog and command) | `REDRAFT` with the reasoning the redraft got |
 | the editor, `storeResponse` | `HUMAN` |
 | manuscript commands (`ManuscriptWriteSupport`), `AgentMergeServiceImpl`, Replace | `AUTOMATIC` with `RevisionDetail.COMMAND`, `AGENT_MERGE`, `REPLACE` (agent flag set for the first two) |
-| archive, SillyTavern and LM Studio import | `HUMAN` with `ARCHIVE_IMPORT` / `SILLYTAVERN_IMPORT` / `LMSTUDIO_IMPORT`, `GENERATE` for a chat that has a model |
+| archive, document, SillyTavern and LM Studio import | `HUMAN` with `ARCHIVE_IMPORT` / `DOCUMENT_IMPORT` / `SILLYTAVERN_IMPORT` / `LMSTUDIO_IMPORT`, `GENERATE` for a chat that has a model |
 | `ChatMessageService.replaceText` (an extension puts the text of a part into another language: the part is not flagged as edited, the summaries stay valid) | the origin the caller gives, `RevisionOrigin.automatic(RevisionDetail.TRANSLATION, false)` for a translation |
 | a branch (`ChatMessageService` copy) | `DUPLICATE` with `BRANCH` |
 | `mergeIntoPrevious` | `MERGE` on the surviving part; the merged part's history goes with it |
@@ -165,7 +165,7 @@ render.
 **The export.** `ExportOptions.authorship` (`withAuthorship`) is set by the `ExportDialog` (check box *Include authorship statement*, shown
 for exporters with `usesAuthorship()`, which `ExporterBase` returns true for) to the `BookAuthorship` of the exported range of the stored
 parts, computed before `ExportTextRegistry` changes the texts. `ExporterBase.export` ends with `writer.message(buildAuthorship(options), null)`:
-the Markdown of the `AUTHORSHIP_TEMPLATE` (`Defaults.DEFAULT_EXPORT_AUTHORSHIP_TEMPLATE`, the values of `ExportAuthorshipTemplateData`),
+the Markdown of the `AUTHORSHIP_TEMPLATE` (`ExporterBase.DEFAULT_EXPORT_AUTHORSHIP_TEMPLATE`, the values of `ExportAuthorshipTemplateData`),
 a template of the export settings like the title page.
 
 ## The limit and the pruning

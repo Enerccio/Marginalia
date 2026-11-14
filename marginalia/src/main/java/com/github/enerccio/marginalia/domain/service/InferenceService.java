@@ -18,6 +18,15 @@ public interface InferenceService {
     List<String> getModels();
 
     /**
+     * The service of the provider as the given class, through the wrappers {@code InferenceServices.forAI} puts around it (the
+     * connections of the AI, the listeners); null when it is not one. For a method of a provider that is not in this interface
+     * (counting tokens online): {@code forAI(ai) instanceof X} is never true.
+     */
+    default <T> T unwrap(Class<T> type) {
+        return type.isInstance(this) ? type.cast(this) : null;
+    }
+
+    /**
      * Checks that the provider works with the configured model: lists the models and makes a minimal completion.
      * Failures are thrown ({@link InferenceException} for what the provider answered).
      *
@@ -135,6 +144,11 @@ public interface InferenceService {
             }
 
             @Override
+            public void onWaiting(int ahead) {
+                callback.onWaiting(ahead);
+            }
+
+            @Override
             public void onCancel() throws Exception {
                 callback.onCancel();
             }
@@ -225,6 +239,16 @@ public interface InferenceService {
         default void onFunctionCall(LLMToolCall call, String result, boolean failed) throws Exception {
         }
 
+        /**
+         * The request waits for a connection of the AI (see {@code AIGate}) and is not sent yet: {@code ahead} requests are
+         * before it (the ones on their way and the ones that wait longer, at least one). Told when it starts to wait and again
+         * whenever the number changes, on the thread that moved the queue; zero once, when its turn came and it is sent. A request
+         * that found a free connection is never told. It must not take long; what it throws is ignored. A view says "waiting for
+         * the model" instead of looking stuck.
+         */
+        default void onWaiting(int ahead) {
+        }
+
     }
 
     /** What every asynchronous call ends in besides the result. */
@@ -240,6 +264,10 @@ public interface InferenceService {
 
         /** Same as {@link InferenceAsyncCallback#onFunctionCall}. */
         default void onFunctionCall(LLMToolCall call, String result, boolean failed) throws Exception {
+        }
+
+        /** Same as {@link InferenceAsyncCallback#onWaiting}. */
+        default void onWaiting(int ahead) {
         }
 
     }

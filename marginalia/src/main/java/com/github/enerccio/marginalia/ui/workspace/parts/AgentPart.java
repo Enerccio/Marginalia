@@ -3,7 +3,6 @@ package com.github.enerccio.marginalia.ui.workspace.parts;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
-import com.github.enerccio.marginalia.Defaults;
 import com.github.enerccio.marginalia.domain.collections.AgentRunStatus;
 import com.github.enerccio.marginalia.domain.model.impl.Agent;
 import com.github.enerccio.marginalia.domain.model.impl.AgentRun;
@@ -15,6 +14,7 @@ import com.github.enerccio.marginalia.domain.service.AgentRunner;
 import com.github.enerccio.marginalia.domain.service.AgentService;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
+import com.github.enerccio.marginalia.loc.Language;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.LLMInteraction;
@@ -666,7 +666,9 @@ public class AgentPart implements WorkspaceComponent {
             parameters = {@APIParameter(name = "agent", type = Agent.class)})
     void startInConsole(Agent agent) {
         if (perform(() -> {
-            agentRunner.run(agentRunService.start(agent, true), Defaults.AGENT_CONSOLE_START_MESSAGE);
+            // the agent reads it in its own language, like the rest of its run
+            agentRunner.run(agentRunService.start(agent, true),
+                    loc.getDefaults(Language.of(agent.getLanguage() == null ? "en" : agent.getLanguage())).agentConsoleStartMessage());
             return null;
         })) {
             openConsole(agent);

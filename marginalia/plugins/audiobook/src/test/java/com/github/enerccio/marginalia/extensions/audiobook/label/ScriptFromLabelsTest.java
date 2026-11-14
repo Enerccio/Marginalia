@@ -51,6 +51,19 @@ class ScriptFromLabelsTest {
     }
 
     @Test
+    void plainNarrationIsTheNarratorWhateverTheModelSaysAndOnlyItalicsCanBeACharacter() {
+        // the model takes the character the narration is about ("She watched as Percy...") for the speaker; a thought in italics is the character's
+        String text = "She watched as Percy crossed the room.\n\n*Not again,* she thought.\n\nShe breathed *deeply*.\n\n_Dear Luna, come home._";
+        List<Piece> pieces = PieceSplitter.split(text);
+        assertEquals(4, pieces.size());
+
+        PartScript script = ScriptFromLabels.build(text, pieces, labels(label(0, "Luna", Delivery.CALM, 0.4, ""), label(1, "Luna", Delivery.CALM, 0.4, ""),
+                label(2, "Luna", Delivery.CALM, 0.4, ""), label(3, "Percy", Delivery.CALM, 0.4, "")), new BackendConfig(), VOICE, Set.of(), 1);
+
+        assertEquals(List.of("Narrator", "Luna", "Narrator", "Percy"), script.entries().stream().map(ScriptEntry::speaker).toList());
+    }
+
+    @Test
     void narrationThatTheModelGivesToACharacterIsReadByTheCharacter() {
         // a letter: no quotation marks, so the code calls it narration; the model knows it is Snape's
         String text = "The handwriting was unmistakable.\n\n*Albus, you are a liability.*\n\n*S. Snape*\n\nPeter lowered the letter.";

@@ -1,7 +1,7 @@
 ---
 label: Extending the UI
 order: 70
-verified: 817e5239b
+verified: 3cbdfc044
 covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/ui
   - marginalia/src/main/java/com/github/enerccio/marginalia/instruct
@@ -275,7 +275,8 @@ rename the item and the user has a key stored), and `.hintAction((story, card) -
 **4. Where it goes: groups, paths and positions.** The menus are trees. An item names the group it is in with `path(..)`: names separated by `/`, outermost first
 (`"Whatever/Is"` shows the item as Whatever, Is, the item). The groups are made when a menu is built, so nothing is registered first, and everyone who
 names the same group shares it. The application has the groups of `StoryMenuKeys` (`GROUP_ANALYSIS`, `GROUP_IMPORT_EXPORT`, `GROUP_SUMMARY`...), an extension that fits one
-puts its item there (Instruction Exporter is `.path(StoryMenuKeys.GROUP_IMPORT_EXPORT)`). A slash that is part of a name is written `\/`.
+puts its item there (Instruction Exporter is `.path(StoryMenuKeys.GROUP_IMPORT_EXPORT)`; the translators put their items of the menu of a part
+and of its text under `GROUP_TRANSLATE`, which the application declares in both menus and hides while nothing is in it). A slash that is part of a name is written `\/`.
 
 For an extension without translations a literal name is enough, the last name of the path is the text of the item:
 
@@ -363,6 +364,16 @@ register it in the `InheritedSettingRegistry` and the *Prompts* tab and the fold
 Plugin dialogs and components are ordinary Vaadin classes in the bundle. Annotate them `@Configurable` to inject
 services. Follow the application's conventions ([User interface → Conventions](../ui.md#conventions)).
 
+A plugin that keeps turn details (scene setting, POV character, present characters, instructions) can let the author make
+one turn of two with `MergeTurnsDialog` (`ui.widgets`, since 1.8.0): `new MergeTurnsDialog(loc, header, first, second, maxTitleLength, onMerge).open()`
+with two `MergeTurnsDialog.Turn` records (a `null` title leaves the title field out); the fields are filled by
+`utils.TurnDetailsMerge` and `onMerge` gets the edited turn and returns whether the dialog may close.
+
+The list of such turns looks and works like the Planner's if each turn is a `TurnRow` (`ui.widgets`, since 1.8.0, the Converter does it for its turn
+details): `TurnRow.builder(content)` with `done(done, tooltip, onDone)` (the box that says the turn is written), `onClick(tooltip, run)` (a click
+on the content), `current(boolean)` (marks the row the *next unchecked* button went to) and the buttons `moveUp`, `moveDown`, `insert`, `merge`, `edit`
+and `delete`, each a `TurnRow.Action(tooltip, enabled, run)`; a button without an action is left out; `build()` returns the row, a `HorizontalLayout`.
+
 A dialog with an input follows the keyboard conventions of the application: `DialogFocus.onOpen(dialog, firstField)` puts the cursor into the first field, and
 `DialogShortcuts.submitWith(mainButton, fields...)` (`ui.widgets`) sends with <kbd>Enter</kbd> in a single line field and <kbd>Ctrl/Cmd+Enter</kbd> in a text area; list
 every input field, call it after the fields and the button exist (a null field is skipped) and never write an `addKeyDownListener(Key.ENTER)` yourself. A dialog
@@ -407,8 +418,10 @@ public class InstructionExporterLocalization extends PluginLocalizationBundle {
     protected void loadKeys() {
         ja(EXPORT_INSTRUCTIONS, "指示をエクスポート");
         zh(EXPORT_INSTRUCTIONS, "导出指令");
+        fr(EXPORT_INSTRUCTIONS, "Exporter les instructions");
         ja(FAILED_TO_EXPORT, "エクスポートに失敗しました: %s");
         zh(FAILED_TO_EXPORT, "导出失败：%s");
+        fr(FAILED_TO_EXPORT, "Échec de l'export : %s");
     }
 }
 ```
@@ -421,12 +434,12 @@ Notification.show(T.localized(FAILED_TO_EXPORT).formatted(e.getMessage()));
 ```
 
 - The English text is a constant named after its words (`EXPORT_INSTRUCTIONS`), declared in the bundle class; the
-  Japanese and Chinese translations are plain literals in `loadKeys`, the only place they appear. A call site passes
+  Japanese, Chinese, French, Spanish, German, Korean and Italian translations are plain literals in `loadKeys`, the only place they appear. A call site passes
   the constant and never a literal. Import the constants with a static wildcard import, and mind a constant whose name
   is also a type or a field of the class that uses it (`AI`, `SCENE`): the type or the field is hidden, or the field
   wins, so give the constant another name or qualify it with the bundle class.
 
-- `ja` and `zh` are shortcuts for `add(Language, message, translation)`; add other languages the same way (the language
+- `ja`, `zh`, `fr` and `es` are shortcuts for `add(Language, message, translation)`; add other languages the same way (the language
   needs a bundle in `Localization`, see the [Chinese localization](example.md#walkthrough-chinese-localization)).
 - A text with values has the `String.format` placeholders in the key (`%s`, `%d`) and the values are put in with
   `formatted(...)`. When a language needs another order, number the placeholders in the key and in the translation
@@ -438,9 +451,44 @@ Notification.show(T.localized(FAILED_TO_EXPORT).formatted(e.getMessage()));
 - Without a session (startup, a worker thread that got no request attributes) the default language is used, so the
   title that a plugin registers in `onExtensionLoad` (`ToolService.registerProvider(..., "Name provider", ...)`) stays in
   English; the same holds for annotation values (`@CommandParameter(descriptionText = ...)`), which must be constants.
-- Texts for the model (prompts, the descriptions of functions and commands, the error messages of commands) stay in
-  English; only what the user reads is translated.
+- Texts for the model (the descriptions of functions and commands, the error messages of commands) stay in English. The
+  built-in **prompts** follow the prompt language of the user instead, see below.
 - For words the application has a key for (`L.LABEL_CANCEL`) the plugin can use `loc.getValue(...)` instead.
+
+#### Built-in prompts in the prompt language
+
+The prompts of a plugin follow the user's **Prompt language** (`UserSetting.promptLanguage`, `Localization.getPromptLanguage()`),
+not the language of the interface, and they are whole templates, not sentences. So a plugin keeps them as the application keeps
+its own (`Defaults`, see [Templating](../templating.md#the-built-in-prompts-and-their-languages)): a class with one method per
+prompt in English, and a subclass per translation that overrides every method. The bundle picks one with
+`forPromptLanguage(english, translations)` (`getPromptLanguage()` says which):
+
+```java
+public class LoreGeneratorLocalization extends PluginLocalizationBundle {
+
+    public static final LoreGeneratorLocalization T = new LoreGeneratorLocalization();
+
+    private final Defaults englishDefaults = new Defaults();
+    private final Map<Language, Defaults> translatedDefaults = Map.of(JA, new DefaultsJA(), ZH, new DefaultsZH(), FR, new DefaultsFR(),
+            ES, new DefaultsES(), DE, new DefaultsDE(), IT, new DefaultsIT(), KO, new DefaultsKO());
+
+    public Defaults defaults() {
+        return forPromptLanguage(englishDefaults, translatedDefaults);
+    }
+    ...
+}
+
+String prompt = StringUtils.defaultIfBlank(settings.getCompactionPrompt(), T.defaults().compactionPrompt());
+```
+
+- The keys are the constants of `PluginLocalizationBundle` (`JA`, `ZH`, `FR`, `ES`, `DE`, `KO` and `IT`). A language the map lacks gets the English prompts.
+- Ask `T.defaults()` when the prompt is used (the fallback supplier of an `InheritedSetting`, the placeholder of a field, the
+  request), never keep the text in a static constant: it is the language of the session that asks.
+- A translation keeps every Handlebars tag and `String.format` placeholder, and every name the code relies on: the JSON fields
+  the answer is parsed by and their values, markers the plugin writes into the request (`<<< WRITE THE CHAPTERS FOR THIS ARC`),
+  the names of tools and of the blocks of the request. The bundled plugins check it in a `...DefaultsTranslationTest`.
+- Arc Outline, Audiobook, Beta Readers, Book Description Generator, Knowledge Tracker, Lore Generator, Manga Generator and the
+  SillyTavern Converter do this.
 
 ### Telling the help assistant about your UI
 
@@ -556,6 +604,11 @@ takes the request context with it: on the thread of the page `RequestAttributes 
 `try (ThreadCopyRequestAttributes.InRequestScope scope = new ThreadCopyRequestAttributes.InRequestScope(attributes)) { ... }`. The copy holds the
 attributes of the session as they were (the `user` bean above all), so the worker can still write its result when the last page of the browser was
 closed meanwhile and the session was invalidated; showing it is another matter (`ui.access` and `UIDetachedException`).
+
+Work the author should see and be able to stop is a **run of the registry**, shown in the panel of the runs of every page: a window
+in which the model works is a `FloatingWindow`, a single request of a window a `WindowRun`, work on the server a `Runs.run(...)` bound
+on its worker thread (see the table in [Plugin development](index.md)). A run that waits for the author sets `setOnOpen`, and to show
+its result next to the story it opens the book with `BookWindows.openHere(book, then)`.
 
 A **generation listener** runs on the worker thread of the generation, where there is no page to capture. To show the user
 something from there (a dialog the generation waits for), use `GenerationControllerEvent.accessUI(action)`: it runs the action on

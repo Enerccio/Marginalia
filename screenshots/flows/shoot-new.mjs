@@ -7,10 +7,30 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import {
-  bookListMenu, bookTab, closeDialog, CONTENT, DESKTOP, dialog, field, fill, idle, llm, login, main, menuItem, openBook, openTab, outDir, pick, press, repo, section, sleep, snap, snapDialog,
+    bookTab,
+    closeDialog,
+    DESKTOP,
+    dialog,
+    fill,
+    idle,
+    llm,
+    login,
+    main,
+    menuItem,
+    openBook,
+    openImport,
+    openTab,
+    outDir,
+    pick,
+    press,
+    repo,
+    section,
+    sleep,
+    snap,
+    snapDialog,
+    closeRestoredBook,
 } from '../lib/shot.mjs';
-import {clickPlus, clickSummaries, fillTurn, openStoryMenu, parts, partAction, sideTab, widenSidebar} from '../lib/story.mjs';
-import {metaSummary} from '../dataset/story.mjs';
+import {clickSummaries, fillTurn, openStoryMenu, partAction, parts, sideTab, widenSidebar} from '../lib/story.mjs';
 
 const DESCRIPTION = 'A Czech cellar guide who learned Japanese from novels and a Japanese nurse on holiday step through a bricked archway and wake in a river valley held by an empire that speaks Vrakht. She knows he understands her; he does not know why she has not said so.';
 
@@ -57,7 +77,7 @@ await main(async ({ page }) => {
     await page.getByText('Extensions', { exact: true }).first().click();
     await idle(page, 800);
     for (const name of ['book-description-generator', 'prompt-inspector', 'prompt-history']) {
-      const jar = path.join(repo, 'marginalia/plugins', name, 'target', `${name}-1.7.0.jar`);
+      const jar = path.join(repo, 'marginalia/plugins', name, 'target', `${name}-1.8.0.jar`);
       if (!fs.existsSync(jar)) throw new Error('not built: ' + jar);
       await page.locator('vaadin-upload input[type=file]').setInputFiles(jar);
       await idle(page, 4000);
@@ -195,6 +215,7 @@ await main(async ({ page }) => {
     const summaries = page.locator('vaadin-dialog[opened]').filter({ hasText: 'Resummarize all summaries' }).last();
     if (await summaries.count()) await summaries.getByRole('button', { name: 'Close', exact: true }).click();
     await idle(page, 500);
+    await closeRestoredBook(page);          // the book window of the section before can still be open (the Summaries window no longer blocks it)
     await openBook(page);
     await bookTab(page, 'Story');
     await widenSidebar(page, 700);
@@ -230,12 +251,11 @@ await main(async ({ page }) => {
     fs.mkdirSync(dir, { recursive: true });
     const file = path.join(dir, '1793958287215.conversation.json');
     fs.writeFileSync(file, JSON.stringify(LM_STUDIO));
-    await page.getByRole('button', { name: 'Exit', exact: true }).last().click();
-    await idle(page, 1000);
+    // the book of the section before is open (nothing is open when this section runs alone)
+    const exit = page.getByRole('button', { name: 'Exit', exact: true });
+    if (await exit.count()) { await exit.last().click(); await idle(page, 1000); }
     await openTab(page, 'Books');
-    await bookListMenu(page, 'Import', 'Import from LM Studio');
-    await idle(page, 800);
-    const d = dialog(page);
+    const d = await openImport(page, 'Import from LM Studio');
     await d.locator('vaadin-upload input[type=file]').setInputFiles(file);
     await idle(page, 2500);
     await snapDialog(page, 'lmstudio-import');

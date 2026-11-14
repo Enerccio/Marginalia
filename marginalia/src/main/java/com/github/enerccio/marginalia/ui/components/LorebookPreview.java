@@ -3,15 +3,19 @@ package com.github.enerccio.marginalia.ui.components;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.collections.FilteringMode;
+import com.github.enerccio.marginalia.domain.model.ImageAttachment;
 import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
 import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
+import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.AgentRunService;
+import com.github.enerccio.marginalia.domain.service.LoreImages;
 import com.github.enerccio.marginalia.domain.service.LorebookEntryService;
 import com.github.enerccio.marginalia.domain.service.LorebookService;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.LLMInteract;
+import com.github.enerccio.marginalia.ui.dialogs.LorebookEditorDialog;
 import com.github.enerccio.marginalia.ui.dialogs.LorebookEntryEditDialog;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.utils.UIUtils;
@@ -34,6 +38,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
 import java.util.*;
+import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -41,7 +46,8 @@ import java.util.function.Predicate;
  * Preview of the lore of a story, for a quick look without leaving the story: the entries of its lorebook,
  * each opens to its content and the text that activates it. A search box above the list limits it to the entries with the
  * text in their name, content, note or filter. It changes nothing unless the owner makes it {@link #setEditable editable}:
- * an entry then has an edit button that opens a small dialog for its text (the lorebook editor has the rest). With the sub lorebooks included,
+ * an entry then has an edit button that opens a small dialog for its text (the lorebook editor has the rest), and, where the
+ * owner {@link #setFullScreenEditor allows it} (a desktop), a button that opens the full-screen lorebook editor on it. With the sub lorebooks included,
  * the lorebook and every lorebook below it (however deep) is a top level row with its entries under it, otherwise
  * the entries of the lorebook of the story are the top level rows. The content of an entry is rendered as Markdown.
  * <p>
@@ -73,6 +79,9 @@ public class LorebookPreview extends VerticalLayout implements LLMInteract {
     private TextField searchField;
     private final LorebookEntryFilter filter = new LorebookEntryFilter();
     private boolean editable = false;
+    private boolean fullScreenEditor = false;
+    private Callable<Manuscript> book;
+    private Button editorButton;
     private TreeGrid<Row> grid;
     private Span noLorebook;
 
@@ -87,8 +96,9 @@ public class LorebookPreview extends VerticalLayout implements LLMInteract {
      * Builds the components (the injected services are there only after the constructor), call it once before
      * {@link #refresh}.
      */
-    @PublicAPI(from = "1.4.0",
-            returns = @APIReturn(type = LorebookPreview.class))
+    @PublicAPI(from = "1.8.0",
+            returns = @APIReturn(type = LorebookPreview.class),
+            locals = {@APILocals(name = "searchRow", type = HorizontalLayout.class)})
     public LorebookPreview create() {
         setSizeFull();
         setPadding(false);
@@ -114,6 +124,19 @@ public class LorebookPreview extends VerticalLayout implements LLMInteract {
             }
         });
 
+        editorButton = new Button(Solid.EXPAND_ALT.create(), event -> openEditor(lastLorebook, null));
+        editorButton.setThemeName("tertiary");
+        editorButton.addClassName(CssStyles.FLEX_SHRINK_0);
+        editorButton.setTooltipText(loc.getValue(L.LABEL_FULL_SCREEN_EDITOR));
+        editorButton.setAriaLabel(loc.getValue(L.LABEL_FULL_SCREEN_EDITOR));
+        editorButton.setVisible(false);
+        HorizontalLayout searchRow = new HorizontalLayout(searchField, editorButton);
+        searchRow.setWidthFull();
+        searchRow.setPadding(false);
+        searchRow.setSpacing(false);
+        searchRow.setAlignItems(FlexComponent.Alignment.CENTER);
+        searchRow.setFlexGrow(1, searchField);
+
         noLorebook = new Span(loc.getValue(L.MSG_NO_STORY_LOREBOOK));
         noLorebook.addClassNames(CssStyles.HINT_TEXT, CssStyles.WHITE_SPACE_NORMAL);
 
@@ -126,7 +149,7 @@ public class LorebookPreview extends VerticalLayout implements LLMInteract {
         grid.addExpandListener(e -> e.getItems().forEach(row -> closedBooks.remove(row.book().getUuid())));
         grid.addCollapseListener(e -> e.getItems().forEach(row -> closedBooks.add(row.book().getUuid())));
 
-        add(searchField, includeSubbooks, noLorebook, grid);
+        add(searchRow, includeSubbooks, noLorebook, grid);
         setFlexGrow(1, grid);
         return this;
     }
@@ -157,6 +180,54 @@ public class LorebookPreview extends VerticalLayout implements LLMInteract {
     }
 
     /**
+     * Lets an {@link #setEditable editable} preview open the full-screen lorebook editor: on the lorebook (next to the search box),
+     * on a lorebook and on an entry (a button in its row). Off by default: the editor is for a desktop.
+     */
+    @PublicAPI(from = "1.8.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "fullScreenEditor", type = boolean.class)})
+    public void setFullScreenEditor(boolean fullScreenEditor) {
+        this.fullScreenEditor = fullScreenEditor;
+        if (grid != null) {
+            grid.getDataProvider().refreshAll();
+        }
+    }
+
+    /**
+     * The book whose lore this is, handed to the full-screen editor (extensions there work for it).
+     */
+    @PublicAPI(from = "1.8.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "book", type = Callable.class)})
+    public void setBook(Callable<Manuscript> book) {
+        this.book = book;
+    }
+
+    /**
+     * Opens the full-screen lorebook editor on the lorebook, and on the entry when there is one; the lore is loaded again when
+     * it is closed. While an agent works on the lorebook the editor is read only.
+     *
+     * @return the editor, {@code null} without a lorebook
+     */
+    @PublicAPI(from = "1.8.0",
+            returns = @APIReturn(type = LorebookEditorDialog.class),
+            parameters = {@APIParameter(name = "book", type = Lorebook.class),
+                    @APIParameter(name = "entry", type = LorebookEntry.class)},
+            locals = {@APILocals(name = "dialog", type = LorebookEditorDialog.class)})
+    LorebookEditorDialog openEditor(Lorebook book, LorebookEntry entry) {
+        if (book == null) {
+            return null;
+        }
+        LorebookEditorDialog dialog = new LorebookEditorDialog(book, () -> refresh(lastLorebook)).create();
+        dialog.setBook(this.book);
+        dialog.open();
+        if (entry != null) {
+            dialog.showEntry(entry);
+        }
+        return dialog;
+    }
+
+    /**
      * Loads the lore again.
      *
      * @param lorebook the lorebook of the story, {@code null} when it has none
@@ -178,6 +249,7 @@ public class LorebookPreview extends VerticalLayout implements LLMInteract {
             grid.setVisible(root != null);
             includeSubbooks.setVisible(root != null);
             searchField.setVisible(root != null);
+            editorButton.setVisible(root != null && editable && fullScreenEditor);
             if (root == null) {
                 grid.setDataProvider(new TreeDataProvider<>(new TreeData<>()));
                 return;
@@ -286,11 +358,13 @@ public class LorebookPreview extends VerticalLayout implements LLMInteract {
         return rows;
     }
 
-    @PublicAPI(from = "1.4.0",
+    @PublicAPI(from = "1.8.0",
             returns = @APIReturn(type = HorizontalLayout.class),
             parameters = {@APIParameter(name = "row", type = LorebookPreview.Row.class)},
             locals = {@APILocals(name = "name", type = Span.class),
                     @APILocals(name = "layout", type = HorizontalLayout.class),
+                    @APILocals(name = "tooltip", type = L.class),
+                    @APILocals(name = "open", type = Button.class),
                     @APILocals(name = "toggle", type = Button.class),
                     @APILocals(name = "edit", type = Button.class)})
     private HorizontalLayout createRow(Row row) {
@@ -308,6 +382,14 @@ public class LorebookPreview extends VerticalLayout implements LLMInteract {
         layout.setAlignItems(FlexComponent.Alignment.CENTER);
         layout.setFlexGrow(1, name);
 
+        if (editable && fullScreenEditor) {
+            L tooltip = isBook ? L.LABEL_FULL_SCREEN_EDITOR : L.LABEL_OPEN_IN_FULL_SCREEN_EDITOR;
+            Button open = new Button(Solid.EXPAND_ALT.create(), event -> openEditor(row.book(), row.entry()));
+            open.setThemeName("tertiary small");
+            open.addClassName(CssStyles.FLEX_SHRINK_0);
+            UIUtils.addTooltip(open, loc.getValue(tooltip));
+            layout.add(open);
+        }
         if (!isBook) {
             Button toggle = new Button((grid.isDetailsVisible(row) ? Solid.ANGLE_UP : Solid.ANGLE_DOWN).create(), event ->
                     event.getSource().setIcon((toggleDetails(row) ? Solid.ANGLE_UP : Solid.ANGLE_DOWN).create()));
@@ -364,14 +446,15 @@ public class LorebookPreview extends VerticalLayout implements LLMInteract {
         return open;
     }
 
-    @PublicAPI(from = "1.4.0",
+    @PublicAPI(from = "1.8.0",
             returns = @APIReturn(type = VerticalLayout.class),
             parameters = {@APIParameter(name = "row", type = LorebookPreview.Row.class)},
             locals = {@APILocals(name = "details", type = VerticalLayout.class),
                     @APILocals(name = "entry", type = LorebookEntry.class),
                     @APILocals(name = "activation", type = Span.class),
                     @APILocals(name = "contentLabel", type = Span.class),
-                    @APILocals(name = "content", type = Markdown.class)})
+                    @APILocals(name = "content", type = Markdown.class),
+                    @APILocals(name = "images", type = List.class)})
     private VerticalLayout createDetails(Row row) {
         VerticalLayout details = new VerticalLayout();
         details.setWidthFull();
@@ -395,10 +478,15 @@ public class LorebookPreview extends VerticalLayout implements LLMInteract {
         if (StringUtils.isNotBlank(entry.getPayload())) {
             Span contentLabel = new Span(loc.getValue(L.LABEL_CONTENT) + ":");
             contentLabel.addClassName(CssStyles.TEXT_SEMIBOLD);
-            // entries are often written in Markdown
-            Markdown content = new Markdown(entry.getPayload());
+            // entries are often written in Markdown; the images are shown under the text (the Markdown can't load them)
+            Markdown content = new Markdown(StringUtils.defaultString(LoreImages.strip(entry.getPayload())));
             content.addClassNames(CssStyles.MIN_WIDTH_0, CssStyles.MAX_WIDTH_FULL);
             details.add(contentLabel, content);
+            List<LoreImages.Reference> images = LoreImages.references(entry.getPayload());
+            if (!images.isEmpty()) {
+                details.add(new MessageImages(images.stream()
+                        .map(image -> new ImageAttachment(image.uuid(), image.caption())).toList()));
+            }
         }
         return details;
     }
@@ -407,6 +495,12 @@ public class LorebookPreview extends VerticalLayout implements LLMInteract {
             returns = @APIReturn(type = TextField.class))
     TextField getSearchField() {
         return searchField;
+    }
+
+    @PublicAPI(from = "1.8.0",
+            returns = @APIReturn(type = Button.class))
+    Button getEditorButton() {
+        return editorButton;
     }
 
     /**

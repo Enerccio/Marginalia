@@ -406,6 +406,12 @@ vaadin-markdown.agent-report td {
     flex-wrap: wrap;
 }
 
+/* In a wrapping flex layout: what follows starts a new line. */
+.flex-break {
+    flex-basis: 100%;
+    height: 0;
+}
+
 .flex-shrink-0 {
     flex-shrink: 0;
 }
@@ -975,6 +981,13 @@ vaadin-markdown.agent-report td {
     outline: 2px solid var(--lumo-warning-color);
 }
 
+/* The selection of a text, remembered while its context menu is open (JavascriptLibrary.rememberSelectionOnContextMenu), which the menu
+   takes away visually; painted with the CSS Custom Highlight API, so it is a name and not a class */
+::highlight(marginalia-remembered-selection) {
+    background-color: var(--lumo-primary-color-50pct);
+    color: var(--lumo-body-text-color);
+}
+
 /* Annotations: the passage a note is about is underlined with a wave (a block would clash with the highlight of the generated
    text), coloured by who wrote the note; a note inside another one is underlined lower so both can be seen */
 .annotation-mark {
@@ -1349,6 +1362,13 @@ vaadin-grid::part(history-row-deleted) {
 /* Help assistant (ui.components.HelpAssistantWidget): a round button fixed in the bottom right corner that opens a chat panel above it */
 .help-root {
     display: contents;
+}
+
+/* the button and the panel step aside while the panel of the runs stands where the button is (JavascriptLibrary.keepClearOf) */
+.help-root > .help-fab,
+.help-root > .help-panel {
+    translate: var(--keep-clear-shift, 0px) 0;
+    transition: translate 0.15s ease-out;
 }
 
 .help-fab {
@@ -1935,3 +1955,286 @@ vaadin-dialog-overlay.agent-console-phone .help-message-user {
     text-decoration: line-through;
 }
 
+/* The row the "next unchecked" button went to (the turn details of the Converter use the same rows) */
+.planner-scene-current {
+    box-shadow: inset 3px 0 0 var(--lumo-primary-color);
+}
+
+
+/* the corner of the page where the windows of model runs are folded (RunCorner): bottom left, the help assistant has the right */
+.run-corner-root {
+    display: contents;
+}
+
+.run-corner {
+    position: fixed;
+    left: var(--lumo-space-l);
+    bottom: var(--lumo-space-l);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    gap: var(--lumo-space-s);
+    box-sizing: border-box;
+    width: min(320px, calc(100vw - 2 * var(--lumo-space-m)));
+    padding: var(--lumo-space-s);
+    background: var(--lumo-base-color);
+    border: 1px solid var(--lumo-contrast-10pct);
+    border-radius: var(--lumo-border-radius-l);
+    box-shadow: var(--lumo-box-shadow-m);
+}
+
+.run-corner-root > .run-corner[popover] {
+    inset: auto;
+    margin: 0;
+    left: var(--lumo-space-l);
+    bottom: var(--lumo-space-l);
+    padding: var(--lumo-space-s);
+    color: inherit;
+    pointer-events: auto;
+}
+
+.run-corner-entry {
+    display: flex;
+    flex-direction: column;
+    gap: var(--lumo-space-xs);
+}
+
+/* the label, the book, the state and the text of an entry each on a line of its own, cut to the panel's width */
+.run-corner-body {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+/* the name of an entry wraps to a second line, then ends with an ellipsis */
+.run-corner-body > .run-corner-label {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+.run-corner-label {
+    font-size: var(--lumo-font-size-s);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.run-corner-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--lumo-space-xs);
+}
+
+/* collapsed: the first run and how many more; a click opens the list */
+.run-corner-chip {
+    display: flex;
+    align-items: center;
+    gap: var(--lumo-space-xs);
+    cursor: pointer;
+    min-width: 0;
+}
+
+.run-corner-chip > .run-corner-label {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.run-corner-grip {
+    flex: 0 0 auto;
+    width: var(--lumo-icon-size-s);
+    height: var(--lumo-icon-size-s);
+    color: var(--lumo-tertiary-text-color);
+    cursor: grab;
+    touch-action: none;
+}
+
+.run-corner-bar {
+    margin: 0;
+}
+
+.run-corner-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--lumo-space-m);
+    max-height: 60vh;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.run-corner-status {
+    color: var(--lumo-secondary-text-color);
+    font-size: var(--lumo-font-size-xs);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* the end of what the model writes for the run */
+.run-corner-text {
+    box-sizing: border-box;
+    max-height: 7em;
+    overflow-y: auto;
+    padding: var(--lumo-space-xs) var(--lumo-space-s);
+    border-radius: var(--lumo-border-radius-s);
+    background: var(--lumo-contrast-5pct);
+    color: var(--lumo-secondary-text-color);
+    font-size: var(--lumo-font-size-xs);
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+/* on the phone a bar above the navigation at the bottom, the whole width */
+@media (max-width: 767px) {
+    .run-corner,
+    .run-corner-root > .run-corner[popover] {
+        left: var(--lumo-space-s);
+        right: var(--lumo-space-s);
+        width: auto;
+        bottom: calc(var(--lumo-size-xl) + var(--lumo-space-m));
+    }
+
+    .run-corner-grip {
+        display: none;
+    }
+}
+
+/* a window of the model (annotate, redraft) works on the part */
+.part-busy {
+    margin-right: var(--lumo-space-s);
+    padding: 0 var(--lumo-space-s);
+    border-radius: var(--lumo-border-radius-m);
+    background: var(--lumo-primary-color-10pct);
+    color: var(--lumo-primary-text-color);
+    font-size: var(--lumo-font-size-xs);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 40ch;
+}
+
+/* The Markdown editor (ui.widgets.MarkdownEditor, frontend/markdown-editor.tsx): the React editor fills the height the component
+   is given, and takes the colors and the font of Lumo (the variables follow the light and the dark scheme by themselves); the
+   React root is the div with data-color-mode */
+.markdown-editor {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.markdown-editor > div {
+    display: flex;
+    flex: 1 1 0;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.markdown-editor [data-color-mode] .w-md-editor {
+    flex: 1 1 0;
+    min-height: 0;
+    --md-editor-font-family: var(--lumo-font-family);
+    --md-editor-background-color: var(--lumo-base-color);
+    --md-editor-box-shadow-color: var(--lumo-contrast-20pct);
+    --color-fg-default: var(--lumo-body-text-color);
+    --color-canvas-default: var(--lumo-base-color);
+    --color-border-default: var(--lumo-contrast-20pct);
+    --color-accent-fg: var(--lumo-primary-text-color);
+    --color-neutral-muted: var(--lumo-contrast-10pct);
+    border-radius: var(--lumo-border-radius-m);
+}
+
+.markdown-editor [data-color-mode] .wmde-markdown {
+    --color-fg-default: var(--lumo-body-text-color);
+    --color-canvas-default: transparent;
+    --color-border-default: var(--lumo-contrast-20pct);
+    --color-accent-fg: var(--lumo-primary-text-color);
+    font-family: var(--lumo-font-family);
+    font-size: var(--lumo-font-size-m);
+}
+
+/* A dense window (the full-screen lorebook editor): the Lumo sizes are scaled down for everything inside, so more of the
+   entries fits on a screen; the panels of a tab dock lose their padding. */
+.compact-sizes {
+    --lumo-size-xl: 3rem;
+    --lumo-size-l: 2.25rem;
+    --lumo-size-m: 1.875rem;
+    --lumo-size-s: 1.625rem;
+    --lumo-size-xs: 1.375rem;
+    --lumo-space-xl: 1.25rem;
+    --lumo-space-l: 0.75rem;
+    --lumo-space-m: 0.5rem;
+    --lumo-space-s: 0.3125rem;
+    --lumo-space-xs: 0.1875rem;
+    --lumo-font-size-l: 1rem;
+    --lumo-font-size-m: 0.875rem;
+    --lumo-font-size-s: 0.8125rem;
+    --lumo-font-size-xs: 0.75rem;
+    --lumo-icon-size-m: 1.125rem;
+    --lumo-icon-size-s: 1rem;
+    font-size: var(--lumo-font-size-m);
+}
+
+.compact-sizes .tab-dock-panel::part(content) {
+    /* the content part is a vaadin-scroller: its padding and its overflow indicators (drawn out by the padding) both come
+       from these properties, setting only the padding would let the indicators stick out and the panel get scroll bars */
+    --vaadin-scroller-padding-block: 0px;
+    --vaadin-scroller-padding-inline: 0px;
+}
+
+/* The content of a tab is as big as the panel: its padding is inside that size, not added to it (no scroll bars). */
+.compact-sizes .tab-dock-panel > :not(vaadin-tabs) {
+    box-sizing: border-box;
+    padding: var(--lumo-space-xs) var(--lumo-space-s);
+}
+
+/* Dense rows: the cells are as high as a line of text, the icon buttons in them add nothing. */
+.compact-sizes vaadin-grid {
+    --vaadin-grid-cell-padding: 1px var(--lumo-space-s);
+}
+
+.compact-sizes vaadin-grid::part(cell) {
+    min-height: var(--lumo-size-xs);
+}
+
+.compact-sizes vaadin-grid vaadin-button {
+    height: auto;
+    min-height: 0;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+}
+
+.compact-sizes vaadin-grid vaadin-icon {
+    width: var(--lumo-icon-size-s);
+    height: var(--lumo-icon-size-s);
+}
+
+/* The fields sit close: no space above the label and little below the field. */
+.compact-sizes [has-label] {
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+.compact-sizes [has-label]::part(label) {
+    padding-top: 0;
+    padding-bottom: 0.125rem;
+}
+
+.compact-sizes vaadin-details::part(summary) {
+    min-height: var(--lumo-size-xs);
+}
+
+.compact-sizes vaadin-details::part(content) {
+    padding-top: 0;
+    padding-bottom: var(--lumo-space-xs);
+}
+
+.compact-sizes vaadin-tab {
+    min-height: var(--lumo-size-s);
+    padding-top: 0;
+    padding-bottom: 0;
+}

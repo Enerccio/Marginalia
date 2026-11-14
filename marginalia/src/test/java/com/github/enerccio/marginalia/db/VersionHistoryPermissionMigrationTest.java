@@ -7,6 +7,7 @@ import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.domain.security.permissions.PermissionType;
 import com.github.enerccio.marginalia.domain.service.EffectiveHistoryLimit;
 import com.github.enerccio.marginalia.test.MarginaliaTestBase;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -19,6 +20,11 @@ import static org.assertj.core.api.Assertions.assertThat;
  * limit.
  */
 class VersionHistoryPermissionMigrationTest extends MarginaliaTestBase {
+
+    @BeforeEach
+    void quiet() {
+        quietBackgroundWriters();
+    }
 
     @Autowired
     private ApplicationContext context;

@@ -1,7 +1,6 @@
 package com.github.enerccio.marginalia.extensions.loregenerator.ui;
 
 import com.github.enerccio.marginalia.extensions.loregenerator.model.LoreGeneratorData;
-import com.github.enerccio.marginalia.extensions.loregenerator.service.Defaults;
 import com.github.enerccio.marginalia.extensions.loregenerator.service.LoreGeneratorService;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.widgets.ResizableTextArea;
@@ -40,10 +39,10 @@ public class LoreGeneratorSettingsForm extends VerticalLayout {
 
         compactionPromptArea = new TextAreaPopoverComponent(T.localized(COMPACTION_PROMPT));
         compactionPromptArea.setWidthFull();
-        compactionPromptArea.setPlaceholder(Defaults.COMPACTION_PROMPT);
+        compactionPromptArea.setPlaceholder(T.defaults().compactionPrompt());
         ResizableTextArea.install(loc, compactionPromptArea, "160px");
         compactionPromptArea.setPopoverContent(TemplateHints.create(loc, compactionPromptArea,
-                compactionPromptArea.getPopover(), null, Defaults.COMPACTION_PROMPT));
+                compactionPromptArea.getPopover(), null, T.defaults().compactionPrompt()));
         add(compactionPromptArea);
 
         refresh();

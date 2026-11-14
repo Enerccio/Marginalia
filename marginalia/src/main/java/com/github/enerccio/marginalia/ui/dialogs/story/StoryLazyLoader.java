@@ -234,7 +234,12 @@ public class StoryLazyLoader<C extends Component & StoryCard> {
 
     private C createCard(ChatMessage message, int index, Set<Long> openedReasonings) {
         C card = cardFactory.create(message, index == window.total() - 1, index + 1);
-        card.setFrozen(frozen.getAsBoolean());
+        if (cards.getHold() != null) {
+            // a generation writes a part: the card follows what it holds
+            cards.applyHold(card);
+        } else {
+            card.setFrozen(frozen.getAsBoolean());
+        }
         card.setReasoningOpened(openedReasonings.contains(message.getId()));
         return card;
     }

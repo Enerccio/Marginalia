@@ -24,6 +24,7 @@ The toolbar has two rows, which wrap onto more lines in a narrow window: the fir
 | Tags (tags icon) | **Tag lorebooks**: puts a tag on many lorebooks at once, see [below](#tagging-many-at-once). Not shown for a lorebook that is open in a book. |
 | Description (lines icon, last of the first row) | **Edit description**: opens a window to write what the lorebook is about, see [below](#description). |
 | **Add Entry** | Adds an entry to the lorebook, see [Entries & activation](entries.md). |
+| **Full-screen editor** | Opens the entries of the lorebook in a full-screen window with tabs, see [Editing in full screen](#editing-in-full-screen). Desktop only. |
 | **Search and replace** | Changes a text in the name, text and comment of the entries of the lorebook, see [Search and replace](entries.md#search-and-replace). |
 | **Mass edit** | Opens all the entries of the lorebook and of its sub lorebooks in one table, see [Mass edit](#mass-edit). |
 | Tags (tags icon, right of **Search and replace**, second row) | **Tag entries**: puts a tag on many entries of the selected lorebook at once, see [below](#tagging-many-at-once). |
@@ -91,6 +92,77 @@ ordered by the **Order** of the entries (entries with the same order by lorebook
 The lorebook in the editor is refreshed when the window is closed after a change.
 
 ![Mass edit of a lorebook and its sub lorebooks](../../images/lorebook-mass-edit.png)
+
+## Editing in full screen
+
+**Full-screen editor** (second row of the toolbar) opens the selected lorebook in a window that fills the screen, for working
+on long entries (the expand button in the row of an entry opens the window on that entry); the *Lorebook* tab of a book's window has the same button, for the lorebook shown there. The window is titled with the name of the lorebook. It is a set of tabs like the [story editor](../books/story-editor.md)'s: drag a tab to put it beside or
+under another one, and drag the splitters between them.
+
+![The full-screen lorebook editor: the list of entries and two entries open in tabs](../../images/lorebook-fullscreen.png)
+
+- The **Entries** tab lists the entries, with the search box and the tag and status filters of the lorebook page,
+  **Add Entry**, **Mass edit**, **Tag entries**, **Preview activation** and **Refresh** (mass edit and tags show their
+  changes in the open tabs too). With **Include sub lorebooks** it lists the entries of the
+  [sub lorebooks](#sub-lorebooks) too, each with the name of its lorebook; **Add Entry** then adds the entry to the lorebook
+  picked next to it, and the tab of such an entry names its lorebook. It can't be closed. Each row has three buttons:
+  - **Open** (pen icon, also a double-click on the row) shows the entry in the entry tab you used last, or, when there is none,
+    opens one in a column right of the list;
+  - **Open in new tab** (arrow icon) adds a tab for the entry, next to the entry tab you used last;
+  - **Delete** (bin icon) deletes the entry after confirming, and closes its tab.
+
+  An entry is open in one tab at most: opening it again shows the tab it already has.
+- An **entry tab** has, from the top: the **Name**, the **Order** and **Enabled**; **Settings**, a panel you can fold,
+  with the rest of the settings of the entry (filtering mode and filter, insertion mode, activation context and parts,
+  tags and negative tags, the range of parts, the recursion check boxes and the condition, see
+  [Entries & activation](entries.md)); then the **content** in a Markdown editor (each tab keeps whether it shows the text, the
+  text and the preview, or the preview, also when the window is opened again), and the **note** beside it when
+  **Show note** is checked. The eye opens the [activation preview](entries.md#preview-activation) for this entry. The bottom line shows the estimated tokens of the content and, in red, what is wrong with its
+  template (it is saved anyway). Close a tab with its **×**.
+- **Images in entries.** Paste an image into the content, drop one on it or pick one with the image button of the toolbar
+  (PNG, JPEG, GIF or WebP, up to 10 MB). It is stored with your files (the *Resources* tab) and the content gets a
+  line like `![Map](resource:…)` where the cursor was; the preview shows the image, and the text in brackets is its caption.
+  Delete the line to take the image out of the entry. The model reads the entry without these lines. The images
+  themselves are sent only when the model's settings say *Send lore images* (see [Inference providers](../inference-providers.md)).
+  Images travel with the lorebook: a clone, a copy of a shared lorebook, an exported lorebook file and a book backup
+  with its files carry them, and the copy gets images of its own. The SillyTavern export and the book exports leave them
+  out. The story's *Lorebook* tab shows them under the text of the entry. Images do not count in the token estimates yet.
+- **Jumping between entries.** Ctrl+click (Cmd+click on a Mac) the name or a keyword of another entry in the content, in
+  the text or in the preview, to open that entry in the tab you used last; with Shift too it opens in a new tab. The
+  bottom line also lists, after **Mentioned in:**, the entries whose content names this one; click one to open it,
+  Shift+click for a new tab. An entry is named by its name and by the words of its filter (each keyword, the whole text of
+  a *Text* filter, what a regular expression matches), as whole words, upper or lower case alike. This is close to what
+  [recursion](entries.md) follows but not the same: recursion also finds a keyword inside a longer word, needs all the
+  keywords of an *AND* filter and checks the tags and the condition.
+- The Markdown editor has a toolbar (bold, italic, strikethrough, a line, headings, quote, code, code block, table and the
+  three kinds of lists) and, on the right, the views *edit*, *edit with preview* (the default) and *preview*. The usual
+  keys work (Ctrl+B, Ctrl+I...); Tab moves to the next field instead of indenting. What you type is saved when you stop
+  typing for a moment and when you leave the editor.
+- The header shows the estimated tokens of the enabled entries, **Count with subbooks** and **Search and
+  replace**, which shows the replaced text in the open tabs too.
+
+All changes are saved as you make them, so **Close** loses nothing. The window remembers how you left it, for each lorebook:
+the next time it opens with the same entries in the same tabs, arranged the same way (entries deleted since are left out). The lorebook page shows the entries again when the
+window is closed.
+
+**Changes made elsewhere.** A change in a tab is saved into the entry as it is stored at that moment, so what was changed
+somewhere else (the lorebook page, mass edit, another window) in the *other* fields of the entry stays, and the tab shows it.
+If the **content** or the **note** was changed elsewhere since the tab showed it, your text is not saved over it: the bottom
+line says so, with **Keep my text** (save yours anyway) and **Load the saved text** (drop yours). An entry deleted elsewhere
+closes its tab.
+The window also follows what is saved while it is open: when an agent or another window (another browser tab, the
+story's lorebook tab) saves or deletes an entry, the list is loaded again and the tab of that entry shows it as it is
+now (a deleted entry's tab closes). A tab whose text is waiting for **Keep my text** or **Load the saved text** is left
+as it is until you answer. A change saved in the same second you type may still cross: the bottom line then asks as above.
+
+**Agents.** The window is not offered while an agent works on a book that uses the lorebook. If a run starts while the
+window is open, the window turns read only at your next change or when you switch tabs: a bar names the agent (and says
+when your last change could not be saved). Pause or stop the run, then click **Check again**: the entries are loaded as the
+run left them and you can edit again.
+
+The [Lore Generator](../extensions/lore-generator.md) and [Lorebook VCS](../extensions/lorebook-vcs.md) extensions work here
+too: the wand is in the rows of the list and in the name row of an entry tab, the revisions panel is above the list and
+the revision bar of an entry is in its tab.
 
 ## Tagging many at once
 

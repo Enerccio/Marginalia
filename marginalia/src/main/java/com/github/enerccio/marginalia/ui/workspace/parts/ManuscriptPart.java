@@ -124,7 +124,7 @@ public class ManuscriptPart implements ManuscriptSection {
         return loc.getValue(L.LABEL_BOOKS);
     }
 
-    @PublicAPI(from = "1.7.0",
+    @PublicAPI(from = "1.8.0",
             returns = @APIReturn(type = Component.class),
             locals = {@APILocals(name = "headerLayout", type = HorizontalLayout.class),
                     @APILocals(name = "titleSpan", type = Span.class),
@@ -132,8 +132,7 @@ public class ManuscriptPart implements ManuscriptSection {
                     @APILocals(name = "manageBar", type = MenuBar.class),
                     @APILocals(name = "manageItem", type = MenuItem.class),
                     @APILocals(name = "massChangesItem", type = MenuItem.class),
-                    @APILocals(name = "importBar", type = MenuBar.class),
-                    @APILocals(name = "importItem", type = MenuItem.class),
+                    @APILocals(name = "importButton", type = Button.class),
                     @APILocals(name = "navigationLayout", type = HorizontalLayout.class),
                     @APILocals(name = "toolColumn", type = Grid.Column.class),
                     @APILocals(name = "filterRow", type = HeaderRow.class),
@@ -172,15 +171,9 @@ public class ManuscriptPart implements ManuscriptSection {
         massChangesItem.getSubMenu().addItem(loc.getValue(L.LABEL_MASS_CHANGE_LANGUAGE), _ -> openMassChangeLanguageDialog());
         massChangesItem.getSubMenu().addItem(loc.getValue(L.LABEL_MASS_RENAME), _ -> openMassRenameDialog());
         massChangesItem.getSubMenu().addItem(loc.getValue(L.LABEL_TAG_FOLDERS), _ -> openTagFoldersDialog());
-        MenuBar importBar = new MenuBar();
-        MenuItem importItem = importBar.addItem(loc.getValue(L.LABEL_IMPORT));
-        importItem.getSubMenu().addItem(loc.getValue(L.LABEL_IMPORT_FROM_ARCHIVE),
-                _ -> new NewBookAction(this::openManuscript, currentFolder).runFromArchive());
-        importItem.getSubMenu().addItem(loc.getValue(L.LABEL_IMPORT_FROM_SILLYTAVERN),
-                _ -> new NewBookAction(this::openManuscript, currentFolder).runFromSillyTavern());
-        importItem.getSubMenu().addItem(loc.getValue(L.LABEL_IMPORT_FROM_LMSTUDIO),
-                _ -> new NewBookAction(this::openManuscript, currentFolder).runFromLmStudio());
-        headerLayout.add(titleSpan, searchButton, manageBar, importBar, newFolderButton, addBookButton);
+        Button importButton = new Button(loc.getValue(L.LABEL_IMPORT), Solid.FILE_IMPORT.create(),
+                event -> new NewBookAction(this::openManuscript, currentFolder).runImport());
+        headerLayout.add(titleSpan, searchButton, manageBar, importButton, newFolderButton, addBookButton);
         headerLayout.setFlexGrow(1, titleSpan);
         headerLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
 
@@ -393,9 +386,13 @@ public class ManuscriptPart implements ManuscriptSection {
         Button editButton = new Button(Solid.PENCIL.create(), _ -> {
             try {
                 // a book an agent works on can't be changed, so there is nothing to do in its window
-                if (!new AgentLockCheck().refuses(manuscript)) {
-                    openManuscript(manuscript);
-                }
+                new BookWindows().open(manuscript, () -> {
+                    try {
+                        openManuscript(manuscript);
+                    } catch (Exception ex) {
+                        UIUtils.internalServerError(loc, ex);
+                    }
+                }, false);
             } catch (Exception e) {
                 UIUtils.internalServerError(loc, e);
             }
@@ -596,9 +593,13 @@ public class ManuscriptPart implements ManuscriptSection {
             locals = {@APILocals(name = "e", type = Exception.class)})
     private void openFound(Manuscript manuscript) {
         try {
-            if (!new AgentLockCheck().refuses(manuscript)) {
-                openManuscript(manuscript);
-            }
+            new BookWindows().open(manuscript, () -> {
+                try {
+                    openManuscript(manuscript);
+                } catch (Exception ex) {
+                    UIUtils.internalServerError(loc, ex);
+                }
+            }, false);
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
         }
@@ -738,7 +739,13 @@ public class ManuscriptPart implements ManuscriptSection {
         try {
             Manuscript manuscript = manuscriptService.findForUser(uuid);
             if (manuscript != null) {
-                openManuscript(manuscript);
+                new BookWindows().open(manuscript, () -> {
+                    try {
+                        openManuscript(manuscript);
+                    } catch (Exception ex) {
+                        UIUtils.internalServerError(loc, ex);
+                    }
+                }, false);
             }
         } catch (Exception e) {
             UIUtils.internalServerError(loc, e);
@@ -776,6 +783,15 @@ public class ManuscriptPart implements ManuscriptSection {
     @Override
     public ManuscriptWindow getOpenWindow() {
         return openDialog;
+    }
+
+    @PublicAPI(from = "1.8.0",
+            returns = @APIReturn(type = boolean.class),
+            parameters = {@APIParameter(name = "book", type = Manuscript.class),
+                    @APIParameter(name = "then", type = java.util.function.Consumer.class)})
+    @Override
+    public boolean openBook(Manuscript book, java.util.function.Consumer<ManuscriptWindow> then) {
+        return new BookWindows().openFor(getOpenWindow(), book, this::openManuscript, then);
     }
 
     @PublicAPI(from = "1.3.0",
@@ -875,8 +891,14 @@ public class ManuscriptPart implements ManuscriptSection {
             String manuscriptUuid = RestorableState.string(dialogState, "manuscript");
             if (manuscriptUuid != null && grid != null) {
                 Manuscript manuscript = manuscriptService.findForUser(manuscriptUuid);
-                if (manuscript != null && !new AgentLockCheck().refuses(manuscript)) {
-                    openManuscript(manuscript).restoreState(dialogState);
+                if (manuscript != null) {
+                    new BookWindows().open(manuscript, () -> {
+                        try {
+                            openManuscript(manuscript).restoreState(dialogState);
+                        } catch (Exception e) {
+                            UIUtils.internalServerError(loc, e);
+                        }
+                    }, true);
                 }
             }
         } catch (Exception e) {

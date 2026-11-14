@@ -41,8 +41,10 @@ public abstract class LorebookWriteSupport extends LorebookReadSupport {
             created.setEnabled(true);
             created.setAgentic(manuscript.isAgentic());
             created.setSubbooks(new ArrayList<>());
-            manuscript.setLorebook(lorebookService.save(created));
-            manuscriptService.save(manuscript);
+            Lorebook made = lorebookService.save(created);
+            manuscript.setLorebook(made);
+            // the command holds the book since it started: only the lorebook is written, not the rest of that copy
+            manuscriptService.update(manuscript, fresh -> fresh.setLorebook(made));
         }
         return new Lore(book);
     }

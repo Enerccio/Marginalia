@@ -3,9 +3,7 @@ package com.github.enerccio.marginalia.generation;
 import com.github.enerccio.marginalia.Defaults;
 import com.github.enerccio.marginalia.domain.collections.AnnotationSource;
 import com.github.enerccio.marginalia.domain.collections.AnnotationStatus;
-import com.github.enerccio.marginalia.domain.model.impl.Annotation;
-import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
-import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
+import com.github.enerccio.marginalia.domain.model.impl.*;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.RedraftService.ContextInsufficient;
@@ -47,6 +45,12 @@ class RedraftTest extends GenerationTestBase {
 
     @Autowired
     private AnnotationService annotationService;
+
+    @Autowired
+    private LorebookService lorebookService;
+
+    @Autowired
+    private LorebookEntryService lorebookEntryService;
 
     private Manuscript manuscript;
     private List<ChatMessage> story;
@@ -158,6 +162,35 @@ class RedraftTest extends GenerationTestBase {
                 .contains("Make the harbour scene longer");
         assertThat(part(3).getResponse()).isEqualTo("TEXT-3");
         assertThat(chatMessageService.getAllMessages(manuscriptService.find(manuscript.getId()))).hasSize(5);
+    }
+
+    @Test
+    void theLoreIsTheOneOfTheLorebooksNowNotTheOneThePartWasWrittenWith() throws Exception {
+        Lorebook lorebook = new Lorebook();
+        lorebook.setName("world");
+        lorebook = lorebookService.save(lorebook);
+        LorebookEntry entry = new LorebookEntry();
+        entry.setLorebook(lorebook);
+        entry.setName("dragons");
+        entry.setPayload("Dragons are small.");
+        entry = lorebookEntryService.save(entry);
+        Manuscript loaded = manuscriptService.find(manuscript.getId());
+        loaded.setLorebook(lorebook);
+        manuscript = manuscriptService.save(loaded);
+        // what the part was written with
+        messagePromptService.store(part(3), null, "Dragons are small.");
+
+        // the entry is edited afterwards
+        entry.setPayload("Dragons are huge.");
+        lorebookEntryService.save(entry);
+        llm.enqueue(MockLLMResponse.text("REDRAFTED"));
+
+        redraft(3, "Again");
+
+        String message = llm.lastCompletionRequest().getMessages().getLast().content();
+        assertThat(message).contains("Dragons are huge.").doesNotContain("Dragons are small.");
+        // nothing is stored: the part keeps the lore it was written with
+        assertThat(messagePromptService.getBackgroundLore(part(3))).isEqualTo("Dragons are small.");
     }
 
     @Test
@@ -276,7 +309,7 @@ class RedraftTest extends GenerationTestBase {
 
     @Test
     void promptComesFromTheBookThenTheUserThenTheDefault() throws Exception {
-        assertThat(manuscriptService.getRedraftPrompt(manuscript)).isEqualTo(Defaults.DEFAULT_REDRAFT_PROMPT);
+        assertThat(manuscriptService.getRedraftPrompt(manuscript)).isEqualTo(new Defaults().redraftPrompt());
 
         UserSetting settings = settingService.getOrCreate(UserSetting.class);
         settings.setDefaultRedraftPrompt("USER {{text}}");
@@ -359,6 +392,60 @@ class RedraftTest extends GenerationTestBase {
                     }
                 });
         return done.get(30, TimeUnit.SECONDS);
+    }
+
+    private Redrafted redraftLength(int n, String instructions, RedraftService.Length length) throws Exception {
+        CompletableFuture<Redrafted> done = new CompletableFuture<>();
+        redraftService.redraft(manuscriptService.find(manuscript.getId()), part(n), instructions, null,
+                com.github.enerccio.marginalia.domain.service.impl.generation.GenerationOptions.defaults(), false, null, length,
+                new RedraftService.Callback() {
+                    public void onProgress(String reasoning, String text) {
+                    }
+
+                    public void onFinished(String reasoning, String text) {
+                        done.complete(new Redrafted(reasoning, text, true));
+                    }
+
+                    public void onTerminated(String reasoning, String text) {
+                        done.complete(new Redrafted(reasoning, text, false));
+                    }
+
+                    public void onError(Throwable throwable) {
+                        done.completeExceptionally(throwable);
+                    }
+                });
+        return done.get(30, TimeUnit.SECONDS);
+    }
+
+    @Test
+    void shorterAndLongerAddTheirSnippetAfterTheInstructions() throws Exception {
+        llm.enqueue(MockLLMResponse.text("SHORT"));
+        redraftLength(3, "Keep the ending", RedraftService.Length.SHORTER);
+        String shorter = between(prompt(), "=== AUTHOR'S INSTRUCTIONS START ===", "=== AUTHOR'S INSTRUCTIONS END ===");
+        assertThat(shorter).contains("Keep the ending").contains(new Defaults().redraftShorter()).doesNotContain(new Defaults().redraftLonger());
+        assertThat(shorter.indexOf("Keep the ending")).isLessThan(shorter.indexOf(new Defaults().redraftShorter()));
+
+        llm.enqueue(MockLLMResponse.text("LONG"));
+        redraftLength(3, "", RedraftService.Length.LONGER);
+        String longer = between(prompt(), "=== AUTHOR'S INSTRUCTIONS START ===", "=== AUTHOR'S INSTRUCTIONS END ===");
+        assertThat(longer).contains(new Defaults().redraftLonger()).doesNotContain(new Defaults().redraftShorter()).doesNotContain("Write the part again");
+
+        llm.enqueue(MockLLMResponse.text("SAME"));
+        redraftLength(3, "Keep the ending", RedraftService.Length.SAME);
+        assertThat(prompt()).doesNotContain(new Defaults().redraftShorter()).doesNotContain(new Defaults().redraftLonger());
+    }
+
+    @Test
+    void theSnippetOfTheBookReplacesTheBuiltInOne() throws Exception {
+        Manuscript loaded = manuscriptService.find(manuscript.getId());
+        loaded.setRedraftShorter("CUT IT DOWN");
+        manuscriptService.save(loaded);
+        llm.enqueue(MockLLMResponse.text("SHORT"));
+
+        redraftLength(3, "", RedraftService.Length.SHORTER);
+
+        assertThat(between(prompt(), "=== AUTHOR'S INSTRUCTIONS START ===", "=== AUTHOR'S INSTRUCTIONS END ===")).contains("CUT IT DOWN")
+                .doesNotContain(new Defaults().redraftShorter());
     }
 
     @Test

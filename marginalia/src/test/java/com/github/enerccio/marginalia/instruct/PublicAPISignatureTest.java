@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.instruct;
 
+import com.github.enerccio.marginalia.instruct.PublicAPISignatures.Field;
 import com.github.enerccio.marginalia.instruct.PublicAPISignatures.Method;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.dynamic.ClassFileLocator;
@@ -15,8 +16,9 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * Every instrumented method of an {@code @Extendable} class declares the signature plugins see ({@code @PublicAPI}),
- * and the declaration is what the compiled class has. The classes are read with ByteBuddy's type pool, so nothing is
- * loaded. A failure names the method and prints the annotation to put on it.
+ * and the declaration is what the compiled class has. The fields plugins read are declared the same way (opt-in: the
+ * annotation is on the field, and it says the type). The classes are read with ByteBuddy's type pool, so nothing is
+ * loaded. A failure names the method or field and prints the annotation to put on it.
  */
 class PublicAPISignatureTest {
 
@@ -87,6 +89,55 @@ class PublicAPISignatureTest {
             }
         }
         assertNoProblems("@PublicAPI(from) that is not a version", problems);
+    }
+
+    @Test
+    void declaredFieldTypesMatchTheCompiledClasses() {
+        List<String> problems = new ArrayList<>();
+        for (TypeDescription type : PublicAPISignatures.extendableTypes(pool)) {
+            for (Field field : PublicAPISignatures.fields(type)) {
+                if (!field.actualType().equals(field.declaredType())) {
+                    problems.add(field.where() + " is " + field.actualType() + ", its @PublicAPI says " + field.declaredType()
+                            + "\n  expected annotation:\n" + PublicAPISignatures.renderField(field.from(), field.actualType()));
+                }
+            }
+        }
+        assertNoProblems("@PublicAPI that does not describe the field", problems);
+    }
+
+    @Test
+    void fieldFromIsAVersion() {
+        List<String> problems = new ArrayList<>();
+        for (TypeDescription type : PublicAPISignatures.extendableTypes(pool)) {
+            for (Field field : PublicAPISignatures.fields(type)) {
+                if (!VERSION.matcher(field.from()).matches()) {
+                    problems.add(field.where() + " has from = \"" + field.from() + "\", expected major.minor.patch");
+                }
+            }
+        }
+        assertNoProblems("@PublicAPI(from) of a field that is not a version", problems);
+    }
+
+    @Test
+    void methodsDoNotDeclareAFieldType() {
+        List<String> problems = new ArrayList<>();
+        for (TypeDescription type : PublicAPISignatures.extendableTypes(pool)) {
+            for (Method method : PublicAPISignatures.methods(type, locator)) {
+                if (method.declaredFieldType() != null && !method.declaredFieldType().equals("void")) {
+                    problems.add(method.where() + " has type = " + method.declaredFieldType() + ", that is for fields");
+                }
+            }
+        }
+        assertNoProblems("@PublicAPI on a method with a field type", problems);
+    }
+
+    @Test
+    void noFieldAnnotationOnFieldsThatAreNotReachable() {
+        List<String> problems = new ArrayList<>();
+        for (TypeDescription type : PublicAPISignatures.allTypes(pool)) {
+            problems.addAll(PublicAPISignatures.annotatedFieldsOutOfPlace(type));
+        }
+        assertNoProblems("@PublicAPI on static or synthetic fields, or in classes that are not @Extendable", problems);
     }
 
     @Test

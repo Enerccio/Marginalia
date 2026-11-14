@@ -114,6 +114,71 @@ class ConverterLogicTest {
     }
 
     @Test
+    void newTurnsKeepTheOrderTheAuthorMadeByMoving() {
+        List<TurnItem> existing = new ArrayList<>(List.of(item(1, 5, true), item(6, 10, true), item(16, 20, false)));
+        assertEquals(1, ConverterService.moveTurn(existing, 0, 1));
+        // 6-10, 1-5, 16-20: the new turn goes before the first one that is after it in the chat, nothing is sorted again
+        ConverterService.mergeTurns(existing, List.of(item(11, 15, false)), 11, 15);
+
+        assertEquals(List.of("6-10", "1-5", "11-15", "16-20"), existing.stream().map(TurnItem::messages).toList());
+    }
+
+    @Test
+    void aTurnMovesOnePlaceAndNotOverTheEnds() {
+        List<TurnItem> turns = new ArrayList<>(List.of(item(1, 5, false), item(6, 10, false), item(11, 15, false)));
+
+        assertEquals(0, ConverterService.moveTurn(turns, 1, -1));
+        assertEquals(List.of("6-10", "1-5", "11-15"), turns.stream().map(TurnItem::messages).toList());
+        assertEquals(-1, ConverterService.moveTurn(turns, 0, -1));
+        assertEquals(-1, ConverterService.moveTurn(turns, 2, 1));
+        assertEquals(-1, ConverterService.moveTurn(turns, 1, 2));
+        assertEquals(List.of("6-10", "1-5", "11-15"), turns.stream().map(TurnItem::messages).toList());
+    }
+
+    @Test
+    void twoTurnsAreJoinedIntoOneThatCoversBoth() {
+        ConverterData data = new ConverterData();
+        data.setTurns(new ArrayList<>(List.of(item(1, 5, true), item(6, 10, true), item(11, 15, false))));
+
+        TurnItem merged = ConverterService.joinTurns(data, 0, " the harbor ", "Robin", "Robin, Julia", "both things");
+
+        assertEquals(List.of("1-10", "11-15"), data.getTurns().stream().map(TurnItem::messages).toList());
+        assertEquals("the harbor", merged.getSceneSetting());
+        assertEquals("both things", merged.getInstructions());
+        // ticked because both were; with one that is not, the merged one is not
+        assertTrue(merged.isReviewed());
+        assertFalse(ConverterService.joinTurns(data, 0, "", "", "", "all").isReviewed());
+        assertEquals(List.of("1-15"), data.getTurns().stream().map(TurnItem::messages).toList());
+        // the turn details of a chat are stored as they are, nothing is kept beside them
+        assertTrue(data.getJoinedTurns().isEmpty());
+        assertThrows(IllegalArgumentException.class, () -> ConverterService.joinTurns(data, 0, "", "", "", ""));
+    }
+
+    @Test
+    void joinedTurnsOfABookReplaceThoseOfItsParts() {
+        ConverterData data = new ConverterData();
+        data.setSourceKind(ConverterData.SOURCE_BOOK);
+        data.setTurns(new ArrayList<>(List.of(item(1, 1, false), item(2, 2, false), item(3, 3, false), item(4, 4, false))));
+
+        ConverterService.joinTurns(data, 1, "", "", "", "two and three");
+        ConverterService.joinTurns(data, 1, "", "", "", "two to four");
+
+        // the second merge covers the first one, which is dropped
+        assertEquals(List.of("2-4"), data.getJoinedTurns().stream().map(TurnItem::messages).toList());
+
+        // the turns are read from the parts again when the tab opens
+        List<TurnItem> read = new ArrayList<>(List.of(item(1, 1, false), item(2, 2, false), item(3, 3, false), item(4, 4, false)));
+        ConverterService.applyJoined(read, data.getJoinedTurns());
+        assertEquals(List.of("1", "2-4"), read.stream().map(TurnItem::messages).toList());
+        assertEquals("two to four", read.get(1).getInstructions());
+
+        // a source with fewer parts than the merged turn covers: the turn is left out
+        List<TurnItem> shorter = new ArrayList<>(List.of(item(1, 1, false), item(2, 2, false)));
+        ConverterService.applyJoined(shorter, data.getJoinedTurns());
+        assertEquals(List.of("1", "2"), shorter.stream().map(TurnItem::messages).toList());
+    }
+
+    @Test
     void turnDetailsGoToTheNewTurnFormAsTypedValues() {
         TurnItem turn = new TurnItem(1, 2, "A tavern", "Robin", "Robin, Julia", "Robin orders ale");
         turn.setPovCharacter(null);

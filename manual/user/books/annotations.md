@@ -109,6 +109,9 @@ marked *not found in the text*.
 **Nothing is added to the book until you accept.** The notes the model proposes are listed with a check box each (all
 checked); uncheck the ones you do not want and choose **Add the selected annotations**.
 
+The window does not block the story on a computer, and it can be folded into the corner of the page while the model works, see
+[Working beside the window](story-editor.md#working-beside-the-redraft-and-annotation-windows).
+
 | Option | |
 |---|---|
 | **Model** | The model that reviews. Empty is the **Default model for annotating** from your [settings](../account.md#general-settings), else the model of the book. Reviewing is analysis, so this is often not the model that writes the prose. |
@@ -146,19 +149,19 @@ book review each part right after it was generated, and optionally redraft it. T
 |---|---|
 | **Model**, **Protocol** | The model that reviews. Empty is the model of the book (not the **Default model for annotating** of your settings, which the window you open yourself starts with). |
 | **What to look for** | The instructions, as in **Annotate with AI**. Empty uses what the book inherits (see [Annotate prompt](prompts.md#annotate-prompt)), else the task of the prompt; when you start with it empty, the field then shows the text that was used. |
-| **Annotate every generated part automatically** | Turns it on. After a part was generated (a new part, a swipe or a regeneration; not one that was stopped or failed) the annotation window opens and **starts at once**. |
-| **Add the annotations without asking** | When the model is done, the notes it found are added and the window closes. Without it the window stays open with the proposals, as when you start it yourself. |
-| **Then redraft the part to address the annotations** | Only with the one above. After the notes were added the [redraft](story-editor.md#redrafting-a-part) window opens and starts at once, with **Deal with the open annotations of the part** checked and no instructions of its own. It writes with the model of the book and does not offer to revalidate summaries: the part is new, no summary describes it. |
-| **Apply the redraft without asking** | Only with the redraft. When the model is done the redraft replaces the text of the part, the notes it dealt with are marked resolved and the window closes. Without it the window stays open for you to look at the result. |
+| **Annotate every generated part automatically** | Turns it on. After a part was generated (a new part, a swipe or a regeneration; not one that was stopped or failed) the model reviews it **at once**, without a window: the [panel of the runs](story-editor.md#the-panel-of-the-runs) shows it as a step of [what follows the part](story-editor.md#what-follows-a-generated-part). |
+| **Add the annotations without asking** | When the model is done, the notes it found are added. Without it the annotation window opens with the proposals (in the page you generated in; from **Review** in the panel in any page) and waits for you to choose them, as when you start it yourself. |
+| **Then redraft the part to address the annotations** | Only with the one above. After notes were added the model [redrafts](story-editor.md#redrafting-a-part) the part, with the open annotations of the part and no instructions of its own. It writes with the model of the book and does not touch summaries: the part is new, no summary describes it. A model that found nothing has nothing to redraft. |
+| **Apply the redraft without asking** | Only with the redraft. When the model is done the redraft replaces the text of the part and the notes it dealt with are marked resolved. Without it, or when you changed the part while the model wrote, the redraft window opens with the result and waits for you. |
 
-The automatic redraft window has two tabs: **Redrafted text** (the text as the model writes it, its reasoning and the differences against the part) and **Original text with annotations** (the part as it was, with the passages of the open notes marked as in the story, and the notes under it; click a mark to jump to its note, or point at either to light up both). Look at the original to see what the model was asked to deal with, and stop the redraft or close the window if it is not going the way you want; the part keeps its text.
+The redraft window that waits for you has two tabs: **Redrafted text** (the text, its reasoning and the differences against the part) and **Original text with annotations** (the part as it was, with the passages of the open notes marked as in the story, and the notes under it; click a mark to jump to its note, or point at either to light up both). Look at the original to see what the model was asked to deal with, change the text or apply it.
 
 ![The settings of the automatic annotation](../../images/annotate-auto.png)
 
-**Closing a window ends the whole run.** If you close or stop the annotation window, nothing is added and no redraft follows; if you close the
-redraft window, the part keeps its text. A model that finds nothing closes its window (with a message) and nothing follows,
-since there is nothing to redraft. A window that stays open (no automatic add, an answer that could not be read, a stopped run) waits for
-you; closing it ends the run.
+**Closing a window that waits for you, or Stop in the panel, ends what follows the part.** Nothing more is added or applied, and
+the later steps (a translation, the audio) are not run; the panel's message names them, so you can do them by hand. What was already
+added or applied stays. While the redraft runs, a new part can't be generated (it would continue from the old text); while the notes
+are being made, it can.
 
 Every generated part costs at least one more request to the model (two with the redraft). If you generate with a local server that keeps only one prompt in its cache,
 the review replaces the story in it and the next generation has to read the story again: choose another **Model** for the review, or

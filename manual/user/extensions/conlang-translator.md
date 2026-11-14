@@ -139,7 +139,7 @@ above, then the settings of your user.
 | Field | |
 |---|---|
 | **Language of the speech** | The language the book is translated into. Empty: the book is not translated. |
-| **Translate a new part by itself** | A part is translated when it is final: after a generation, after the automatic annotation and redraft if the book has them. |
+| **Translate a new part by itself** | A part is translated when it is final: after a generation, after the automatic annotation and redraft if the book has them, as a step of [what follows the part](../books/story-editor.md#what-follows-a-generated-part) (the panel of the runs shows it, its **Stop** stops it). |
 | **Model of the translation**, **Protocol of the translation** | Empty: the model and protocol of the book, else your defaults. |
 | **Readers of the published book see** | What the [viewer](#the-viewer) shows. |
 
@@ -196,22 +196,23 @@ and the **Languages** tab of the **Conlang** tab adds **other languages** from y
 - **One request for each language.** A request holds the rules and the lexicon of one language only, and only the speeches of its speakers; a part with the speech of two languages takes two requests, one after
   the other. The second one reads the part with the English of the first one's speeches and leaves those speeches translated. A part whose point of view and present characters are all outside the speakers of a
   language is not asked for that language (a part that names no character is asked for every language that has speakers).
-- **A passage knows its language.** The popover, the export and the viewer work as before; **Translate the speech** again for one language leaves the speeches of the others alone, and **Put the English back**
+- **A passage knows its language.** The popover, the export and the viewer work as before; **Translate dialogs (constructed language)** again for one language leaves the speeches of the others alone, and **Put the English back**
   can be for one language or for all.
-- **The menus ask which language** when the book has more than one: the menu of a part (*Translate the speech*: one of the languages or *All languages*) and the right click on a selected sentence (one language).
-  **Translate parts** has a *Language* field (all languages by default); *the parts that are not translated* means "not translated in that language".
+- **The menus ask which language** when the book has more than one: the menu of a part (*Translate dialogs (constructed language)*: one of the languages or *All languages*) and the right click on a selected sentence (one language).
+  **Translate parts (constructed language)** has a *Language* field (all languages by default); *the parts that are not translated* means "not translated in that language".
 - **The automatic run** translates a new part into every language whose speakers may be in it.
 
 ## Translating
 
-- **By hand:** the menu of a part has **Translate the speech**. A part that is translated already is translated again **from its English**, so this is also how you retranslate a
+- **By hand:** the menu of a part has the **Translate** sub menu (the right click on the text has one too), and in it **Translate dialogs (constructed language)** (these items and **Translate parts** are shown only in a book that has a language of this plugin). A part that is translated already is translated again **from its English**, so this is also how you retranslate a
   part after the rules or the lexicon changed. A book with more than one language asks first [which one](#more-than-one-language-in-a-book).
 - **By itself:** with **Translate a new part by itself**, a generated part is translated as soon as it is final. A *regenerate* of a part gives it new English and removes the old translation.
-- **A sentence you wrote:** select it in the text of a part, right click and choose **Translate the selection**. The model translates the selected text
+- **Speeches the model missed:** a translation sometimes leaves a speech in English. **Translate → Translate missing dialogs (constructed language)** in the menu of a part translates only the speeches that are still in English and leaves the translated ones as they are; with text selected, the right click **Translate → Translate missing dialogs in selection (constructed language)** does it for the speeches the selection touches. The model is sent the part as it is, with the translated speeches in it, and asked only for the speeches still in English, so the run is cheaper than a translation of the whole part. Nothing but speech is written, so it is not a way to translate a sentence the model does not see as speech: use *Translate selected text* for that.
+- **A sentence you wrote:** select it in the text of a part, right click and choose **Translate → Translate selected text (constructed language)**. The model translates the selected text
   (spaces and a pair of quotation marks around it are left out) with the language, the notes of the characters and the story around it; the text is replaced by the translation and
   the English is kept as the source of the speech, so a click on it shows the English like on any translated speech. The words the model had to invent are added to the lexicon as
   *new*, as for a translated part. A selection that holds a translated speech is refused (put the English back first), and so is one made in a part that changed meanwhile.
-- **A range:** **Translate parts** in the tools menu of the story opens a window that stays open beside the story.
+- **A range:** **Translate parts (constructed language)** in the tools menu of the story opens a window that stays open beside the story.
 
   ![Translate parts](../../images/plugin-conlang-range.png)
 
@@ -238,7 +239,7 @@ language; a red note says that you edited the conlang text after the translation
 **Edit the source** (a button in the popover, in your own views only; the readers of a published book do not have it) opens a small window with the translation as the story has it and the English
 the models read. Use it when a native speaker fixed the translation by hand and the English says something else now, or when the model got the English wrong. Saving gives the speech its new
 English, takes the translation as it is now as the one the English belongs to (the red note goes away) and from then on the models read the new English in its place. The text of the part is not
-changed, and *Translate the speech* again replaces both. `conlang-edit-source` does the same from the command line.
+changed, and *Translate dialogs (constructed language)* again replaces both. `conlang-edit-source` does the same from the command line.
 
 ![The window that edits the source of a speech](../../images/plugin-conlang-source.png)
 
@@ -302,7 +303,7 @@ argument of a command; an agent may leave out the optional ones.
 | `conlang-lock-word`, `conlang-unlock-word`, `conlang-retire-word`, `conlang-restore-word`, `conlang-accept-words` | The state of the words. |
 | `conlang-check-lexicon` | Repeated meanings, words without a category, compounds with parts that are not in the lexicon, and the homophones (for information). No model. |
 | `conlang-status` | The language of the book and which parts are translated. |
-| `conlang-translate-part`, `conlang-translate-range`, `conlang-translate-sentence`, `conlang-translate-text`, `conlang-revert-to-source` | Translating: one part, a range (`mode` *new* or *again*), one sentence of a part, a text that is only returned, and the English back. A range asks the user for *again*; so does the English back. With the optional `language` they are about one language of the book (all of them by default, the first for a sentence or a text). |
+| `conlang-translate-part`, `conlang-translate-range`, `conlang-translate-sentence`, `conlang-translate-text`, `conlang-revert-to-source` | Translating: one part (`missingOnly` translates only the speeches still in English, `within` quotes a passage to limit that to), a range (`mode` *new* or *again*), one sentence of a part, a text that is only returned, and the English back. A range asks the user for *again*; so does the English back. With the optional `language` they are about one language of the book (all of them by default, the first for a sentence or a text). |
 | `conlang-edit-source` | Sets the English source of one translated speech (`part`, `speech` as `conlang-list-passages` numbers it, `source`); the translation as it is now counts as the one it belongs to. Replaces the old source. |
 | `conlang-check-translation`, `conlang-get-source`, `conlang-list-passages` | Reading: the words of a translated speech that the lexicon does not have, the text of a part as the models read it (the English), and the translated speeches of a part with their English. |
 | `conlang-speakers`, `conlang-set-speakers-mode`, `conlang-set-speaker`, `conlang-remove-speaker` | Who speaks the language in the open book (`language` names one of the book's languages, the first by default); `conlang-set-speaker` also sets the level of `understands`. |

@@ -125,10 +125,50 @@ public class ResourceAudioStore implements AudioStore {
             }
             index.add("segments", stored);
             message.getAttributes().add(KEY, index);
-            messages.save(message);
+            writeIndex(messages, message, "segments", "part");
             if (!dropped.isEmpty()) {
                 resources.softDelete(dropped);
             }
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new IllegalStateException(e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Forgets all the audio of the part, the pieces and the joined audio, and deletes the files; the labels and the script of the part stay. What was
+     * made since the last flush is dropped too.
+     *
+     * @return how many files were deleted
+     */
+    public synchronized int discardAudio(String partId) {
+        pendingSegments.remove(partId);
+        pendingParts.remove(partId);
+        try {
+            ChatMessage message = messages.findForUser(partId);
+            if (message == null) {
+                return 0;
+            }
+            JsonObject index = indexOf(message);
+            List<String> dropped = new ArrayList<>();
+            if (index.has("segments") && index.get("segments").isJsonObject()) {
+                index.getAsJsonObject("segments").entrySet().forEach(e -> dropped.add(e.getValue().getAsString()));
+            }
+            if (index.has("part") && index.get("part").isJsonObject() && index.getAsJsonObject("part").has("resource")) {
+                dropped.add(index.getAsJsonObject("part").get("resource").getAsString());
+            }
+            if (dropped.isEmpty() && !index.has("segments") && !index.has("part")) {
+                return 0;
+            }
+            index.remove("segments");
+            index.remove("part");
+            message.getAttributes().add(KEY, index);
+            writeIndex(messages, message, "segments", "part");
+            if (!dropped.isEmpty()) {
+                resources.softDelete(dropped);
+            }
+            return dropped.size();
         } catch (RuntimeException e) {
             throw e;
         } catch (Exception e) {
@@ -198,6 +238,26 @@ public class ResourceAudioStore implements AudioStore {
         } catch (Exception e) {
             throw new IllegalStateException(e.getMessage(), e);
         }
+    }
+
+    /**
+     * Saves the entries {@code names} of the index of {@code changed} (a part read a moment ago and changed by the caller) into the part as it
+     * is stored now, in one write transaction: the rest of the part (its text, the data of other plugins, the other entries of the index, which
+     * the labels and the studio script keep) is left as it is stored, not as it was read.
+     */
+    static ChatMessage writeIndex(ChatMessageService messages, ChatMessage changed, String... names) throws Exception {
+        JsonObject index = indexOf(changed);
+        return messages.update(changed, fresh -> {
+            JsonObject target = indexOf(fresh);
+            for (String name : names) {
+                if (index.has(name)) {
+                    target.add(name, index.get(name));
+                } else {
+                    target.remove(name);
+                }
+            }
+            fresh.getAttributes().add(KEY, target);
+        });
     }
 
     private static JsonObject indexOf(ChatMessage message) {

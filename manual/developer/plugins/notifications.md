@@ -9,7 +9,7 @@ covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/ui/notifications/NotificationSettingsEditor.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/ui/JavascriptLibrary.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/domain/service/impl/OsgiServiceImpl.java
-verified: d163441bd
+verified: 3cbdfc044
 ---
 
 # Desktop notifications
@@ -52,6 +52,13 @@ new DesktopNotifier(ui).failed("reviewer.review", false, book.getName());     //
 - `detail` is a second line (the title of the book), `null` for none.
 - It never throws. Nothing is shown when notifications are off, the entry is not chosen, the source is not registered, the browser does not
   allow them, or the user is looking at the page.
+
+A run that may end after the page that started it is gone (the tab was closed) can let the panel of the runs say it: declare the source
+on its run of the registry, `Runs.run(...).notifies("reviewer.review", false, book.getName())`, and end the run with how it went,
+`run.end(Runs.Outcome.FINISHED)` or `FAILED`. When the run's page is gone at its end, the panel (`RunCorner`) of one live page of the same
+user sends the notification; a stopped run (`STOPPED`, also any run that was asked to `stop()`) sends nothing. The page that started it,
+when it is still there, keeps calling `DesktopNotifier` itself as above: the panel stays quiet then. See
+[the runs](../services.md#the-runs-and-what-they-hold).
 
 ## How it works
 

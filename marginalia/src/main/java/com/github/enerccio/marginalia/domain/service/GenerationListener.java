@@ -42,8 +42,29 @@ public interface GenerationListener {
     default void onWarning(String warning) {
     }
 
+    /**
+     * The request waits for a connection of the AI (see {@code AIGate}): {@code ahead} requests are before it. Told when it
+     * starts to wait and whenever the number changes, zero once when it is sent; on the thread that moved the queue.
+     */
+    default void onWaitingForModel(int ahead) {
+    }
+
     /** Display dialog */
     void askQuestion(String question, Runnable yes, Runnable no);
+
+    /**
+     * After the generation (see {@link com.github.enerccio.marginalia.domain.service.impl.generation.AfterPart}): a step changed the new
+     * part (notes added, a redraft or a translation applied), the page shows it again. On the thread of the step; the page may be gone.
+     */
+    default void onPartChanged(ChatMessage part) {
+    }
+
+    /**
+     * After the generation: the steps that change the text of the new part are over (or there were none), the part is final. Not called
+     * when they were stopped or failed. On the thread of the step; the page may be gone.
+     */
+    default void onPartFinal(ChatMessage part) {
+    }
 
     /**
      * Runs the action bound to the UI that started the generation (locked with {@code ui.access}, pushed to the browser after

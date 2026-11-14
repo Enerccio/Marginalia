@@ -33,7 +33,16 @@ The refresh button at the end of the filter row reloads the list.
 Each row has buttons: the star makes the book a [favorite](folders.md#favorites), the pen opens it, **Move to folder** puts it
 into a [folder](folders.md), the clone button makes a copy of it and the trash button deletes it. The header has **New folder**,
 the **Manage** menu (**Organise**, the window to [move and copy](folders.md#organise) books and folders, **Tag books**,
-**Statistics** and the **Mass changes** sub menu) and the **Import** menu (**Import from archive**, **Import from SillyTavern**, **Import from LM Studio**).
+**Statistics** and the **Mass changes** sub menu) and **Import**, which makes a new book of files you have (see [Importing a book](#importing-a-book)).
+
+### A book is open in one window
+
+A book can be open in one window at a time, also across your browser tabs, other browsers and your phone. When you open a book that is
+open somewhere else, Marginalia says since when and asks **Open here**: the book then opens here and its window in the other place
+closes, saying why (if a part is being generated there, the question says so and **Open here** stops the generation; what was written
+so far stays). **Cancel** leaves it where it is. When you log in and Marginalia opens the book you had open last, it does not take the
+book from another window: it leaves it closed and tells you where it is. A window in a tab that was closed or a device that went off
+does not keep the book: **Open here** takes it at once.
 
 ### Advanced search
 
@@ -134,20 +143,92 @@ changes.
 1. Click **Add Book**.
 2. Enter the name and confirm.
 
-The new book is put into the [folder](folders.md) the list shows, and so are the books you import from an archive or
-from SillyTavern. It opens right away. It starts with your **Default Model** and **Default Protocol** from the *Settings* tab
+The new book is put into the [folder](folders.md) the list shows, and so are the books you import. It opens right away. It starts with your **Default Model** and **Default Protocol** from the *Settings* tab
 (see [Account & settings](../account.md)), if you have set them; otherwise select them on the *About* tab before
 generating.
 
-To start a book from a folder of text files, use **Import → Import from archive** in the header of the list: upload a `.zip` of `.md` files and the new book, named after the archive, gets a part for each file, see
-[Importing text files](story-editor.md#importing-text-files).
+### Importing a book
+
+**Import** in the header of the list (the file button on a phone) opens one window for everything a new book can be made of.
+Pick the **Source**; the text, the accepted files and the options under the name follow it:
+
+| Source | Upload | Options |
+|---|---|---|
+| **Import from archive** | a `.zip` of `.md` files, a part for each file, see [Importing into the book](story-editor.md#importing-into-the-book) | none |
+| **Import from SillyTavern** | one or more `.jsonl` chats, see [below](#importing-from-sillytavern) | merge user and assistant messages |
+| **Import from LM Studio** | one or more conversations, see [below](#importing-from-lm-studio) | merge user and assistant messages |
+| **Import from a document** | a manuscript in one file (Word, LibreOffice, RTF, Markdown, plain text, EPUB), see [below](#importing-a-finished-manuscript) | words per part, heading level of the chapters |
+| **Import from an Obsidian vault** | the `.zip` of a vault, see [below](#from-an-obsidian-vault-or-a-scrivener-project) | the same |
+| **Import from a Scrivener project** | the `.zip` of a `.scriv` project, see [below](#from-an-obsidian-vault-or-a-scrivener-project) | the same |
+
+Upload the file, give the book a name (it is filled from the file, the title of a document, or the character of a chat; the book is
+named *New book* when you leave it empty) and click **Import**. A progress window with **Stop** shows the parts being stored;
+stopping keeps what was stored. A file the source cannot read is refused with a warning, the other uploads stay.
+
+The same window, from the settings menu (⚙) of a book, adds the parts to that book at a place you pick, see
+[Importing into the book](story-editor.md#importing-into-the-book).
+
+![The sources of the import window](../../images/import-source.png)
 
 ![Importing a zip of text files as a new book](../../images/archive-upload.png)
+
+### Importing a finished manuscript
+
+For a draft that already exists, choose **Import from a document** and upload the file: a `.docx` (Word), `.odt` (LibreOffice,
+OpenOffice), `.rtf` (Rich Text, from WordPad, TextEdit and any other program), `.md` (one Markdown file), `.txt` (plain text) or `.epub` (an e-book). The text becomes the parts of a new book, all of it marked as written by you (the import is not counted in the
+[statistics](statistics.md) as writing and the history of a part says *Import from a document*).
+
+- **Chapters.** A paragraph in a *Heading* style (a `#` heading in a Markdown file) starts a chapter, and each chapter starts with its heading (the first
+  heading of a part is its chapter title, as in the [export](export.md)). **Chapters start at heading level** says which headings
+  those are: the level you choose and the ones above it (the shallowest level the document has is chosen at first); deeper
+  headings stay in the text as smaller headings. A document without headings is one chapter. The *Title* of the document is not
+  imported as text, it names the book (in a Markdown file the `title:` of a header at the top, or a single `#` heading in front of
+  `##` chapters). A plain text file has no headings, so a line of its own that says `Chapter 12`, `Part IV: The Return`,
+  `Book two` or `Prologue` (also `Epilogue`, `Interlude`, `Preface`, `Foreword`, `Afterword`) starts a chapter; the heading
+  level choice is then not needed.
+- **Words per part.** The text is cut between paragraphs into parts of about this many words (1000 at first), at the paragraph
+  boundary nearest to the number. A part never holds the end of one chapter and the beginning of the next, and a chapter is not cut
+  for nothing: what would be left over at the end of a chapter, when it is less than half of the number, stays with the part before it,
+  so a chapter of up to one and a half times the number is one part. A paragraph longer than the number is not cut.
+- A line under the name tells how many chapters, words and parts the import will make; it changes as you change the options.
+- **Paragraphs of a text file.** Blank lines separate the paragraphs and the lines of a paragraph are joined (text wrapped at a
+  column becomes one paragraph); a file with no blank lines has a paragraph on each line. A Markdown file is kept as it is
+  written, cut at the blank lines, headings and code blocks; text in Windows-1252 instead of UTF-8 is read too.
+- **Formatting.** Italic and bold are kept (as Markdown `*italic*`, `**bold**`); the rest of the formatting (fonts, sizes,
+  alignment), images, headers and footers, footnotes, comments and deleted text of tracked changes are not imported. Tables are
+  read cell by cell.
+
+![Importing a Word document, cut into parts of about 500 words](../../images/document-import.png)
+
+An old `.doc` file has to be saved as `.docx`, `.odt` or `.rtf` first.
+
+**An EPUB** is read page by page in its reading order. The headings of the pages (`h1` to `h6`) are the chapters; a page without a
+heading that the e-book's table of contents names gets that name as its heading. The cover, the table of contents, footnotes and
+the readings of ruby text are left out, and the title of the e-book names the book. A book protected by DRM cannot be read.
+
+#### From an Obsidian vault or a Scrivener project
+
+Both are folders, so zip the folder first (on a Mac **Compress** in the Finder; the `.scriv` of Scrivener is a folder too) and upload the `.zip`. The options are the
+same as for a document.
+
+- **Obsidian vault.** Every note (`.md`) is a chapter named after the note (or the `title:` of its header), in the order of the paths with numbers
+  counted as numbers (`Chapter 2` before `Chapter 10`). A folder is a part above its notes, and the headings inside a note are below the
+  note's own. Links `[[Note|text]]` become their text; embeds (`[[file]]` with a `!` before it), comments `%%...%%`, block ids and the marker of a callout are removed; a
+  highlight `==text==` is plain text. Hidden folders (`.obsidian`, `.trash`), attachments and notes without text are skipped. If the
+  vault holds notes that are not part of the story, delete them before zipping.
+- **Scrivener project.** The manuscript (the *Draft* folder of the binder, Scrivener 2 and 3) is imported, not the research, the trash or the documents
+  that are not *included in compile*. A folder, or a document that has documents under it, is a heading (its depth in the binder is its
+  level, its title the text); the documents that are all a folder holds are its scenes, one after another with a scene break
+  between them (their titles are not used). A document directly in the manuscript or in a folder of other folders is a chapter with its title. The
+  name of the project names the book.
+
+Whatever the source, the new book is opened when the import is done (also when you stopped it), and the window [**Import finished**](story-editor.md#after-an-import) offers to write
+the summaries of the parts and to let an agent take the lore notes.
 
 ### Importing from SillyTavern
 
 To continue a roleplay or story you started in [SillyTavern](https://github.com/SillyTavern/SillyTavern), use
-**Import → Import from SillyTavern** in the header of the list. In SillyTavern, export the chat
+**Import → Import from SillyTavern**. In SillyTavern, export the chat
 (*Manage chat files*, or take the `.jsonl` files from `data/<user>/chats/<character>/`), then:
 
 1. Upload **one or more** `.jsonl` chats. A file that is not a SillyTavern chat is refused, the others stay.
@@ -168,7 +249,7 @@ skipped, and so are swipes that are empty. The reasoning and the model name of a
 
 ### Importing from LM Studio
 
-To continue a conversation you had in [LM Studio](https://lmstudio.ai), use **Import → Import from LM Studio** in the header of the list.
+To continue a conversation you had in [LM Studio](https://lmstudio.ai), use **Import → Import from LM Studio**.
 LM Studio keeps each conversation in a file `<number>.conversation.json` in the folder `.lmstudio/conversations` of your home folder (on Windows
 `%USERPROFILE%\.lmstudio\conversations`). It works like [Importing from SillyTavern](#importing-from-sillytavern):
 
@@ -220,6 +301,10 @@ A book needs a model and a protocol to generate. Without them, generating stops 
 ## Deleting a book
 
 Click the trash button in the book list and confirm. The book disappears from your list.
+
+A book is not deleted while something works on it: a part being generated, a summary batch, a translation, a redraft or annotation
+window, or the book open in another window. Marginalia then says what is in the way (*This is in use: ...*); wait until it is done or
+stop it, and delete again. The same holds for restoring a [backup](backups.md) into the book while another window or a run works on it.
 
 Deleted books are not removed from the database right away. Until an administrator removes them, with all their parts,
 using [Cleanup](../administration/cleanup.md), you can bring the book back from the [Trash](../trash.md) tab. Until then the data is still in the

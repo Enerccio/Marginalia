@@ -65,13 +65,26 @@
     align-self: flex-start;
 }
 
+/* The buttons under the items of a character: add, select; in selection mode also select all and delete selected */
+.knowledge-tracker-item-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--lumo-space-xs);
+}
+
+.knowledge-tracker-item-bar vaadin-button {
+    margin: 0;
+}
+
 .knowledge-tracker-item {
     display: flex;
     align-items: flex-start;
     gap: var(--lumo-space-xs);
 }
 
-.knowledge-tracker-item vaadin-button {
+.knowledge-tracker-item vaadin-button,
+.knowledge-tracker-item vaadin-checkbox {
     margin: 0;
 }
 
@@ -159,6 +172,11 @@
     /* the list of settings is longer than a phone screen */
     max-height: 70vh;
     overflow-y: auto;
+}
+
+/* the list scrolls: its fields keep their height (the separators would be squeezed to a line) */
+.knowledge-tracker-settings > * {
+    flex-shrink: 0;
 }
 
 .knowledge-tracker-settings-title {

@@ -22,7 +22,7 @@ covers:
   - marginalia/src/main/java/com/github/enerccio/marginalia/ui/widgets/InheritedLanguageCombo.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/ui/widgets/FolderBookProvider.java
   - marginalia/src/main/java/com/github/enerccio/marginalia/ui/main/Viewer.java
-verified: d163441bd
+verified: d3fd95f7f
 ---
 
 # Folders
@@ -59,11 +59,11 @@ the same work (see [the story layout](ui.md)).
 ## Resolving a setting
 
 A book's setting is the first non-blank of: **the book, the folders above it (nearest first), the `UserSetting`, the built-in
-default** (`Defaults`). The code is in three places:
+default** (`Defaults`, in the prompt language of the user). The code is in three places:
 
-- `PromptField` (`domain/service`) is an enum of the thirteen text settings (`MASTER_TEMPLATE`, `POV`, `TENSE`, `STYLE` and the
-  nine prompts, `ANNOTATE_INSTRUCTIONS` among them). It holds the getters of each level (`ofBook`, `ofFolder`, `ofUser`), the setters (`setOfBook`, `setOfFolder`,
-  which store a blank as null) and the built-in `fallback()`. A new inheritable setting is a new constant here plus the field on
+- `PromptField` (`domain/service`) is an enum of the fifteen text settings (`MASTER_TEMPLATE`, `POV`, `TENSE`, `STYLE` and the
+  eleven prompts, `ANNOTATE_INSTRUCTIONS`, `REDRAFT_SHORTER` and `REDRAFT_LONGER` among them). It holds the getters of each level (`ofBook`, `ofFolder`, `ofUser`), the setters (`setOfBook`, `setOfFolder`,
+  which store a blank as null) and the built-in `fallback(Defaults)` (the resolver passes `loc.getDefaults()`). A new inheritable setting is a new constant here plus the field on
   `Manuscript` and `Folder`, and nothing else in the resolver.
 - `EffectiveSetting<T>(value, origin, folder)` is what the resolver returns: the value, where it is set (`Origin` is `BOOK`,
   `FOLDER`, `USER` or `DEFAULT`) and the folder when it is `FOLDER`. `isCustom()` is true for the book and the folders.
@@ -129,8 +129,11 @@ change (`swipeAndSwitch`, `branchAndSwitch`) saves the book as it did, so it cou
 
 The dialogs keep entities for as long as they are open, and a generation held its book from start to finish, so saving such a copy
 wrote old values over a setting changed in the meantime (or undid a move to a folder). The writers that change one thing now call
-`ManuscriptService.update(book, BookChange)`, which loads the stored book and applies the change to it. Use it instead of `save`
-for a change that is yours alone.
+`ManuscriptService.update(book, BookChange)`, which loads the stored book and applies the change to it in one write transaction
+(`ChatMessageService.update(part, PartChange)` is the same for a part). Use it instead of `save` for a change that is yours alone.
+A save of a copy read before the last save of its row is reported by `StaleSaves` (a warning, an error in the tests, see
+[Extended attributes](plugins/extended-attributes.md)); a copy older only than the touch of the modification time above is not
+stale.
 
 ## The lists and windows
 

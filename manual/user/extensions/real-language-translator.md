@@ -68,7 +68,7 @@ The **Prompts** tab of the book window, under *Extension Settings*, has the fiel
 | Field | |
 |---|---|
 | **Language of the speech** | The language the book is translated into. Empty: the book is not translated. |
-| **Translate a new part by itself** | A part is translated when it is final: after a generation, after the automatic annotation and redraft if the book has them. |
+| **Translate a new part by itself** | A part is translated when it is final: after a generation, after the automatic annotation and redraft if the book has them, as a step of [what follows the part](../books/story-editor.md#what-follows-a-generated-part) (the panel of the runs shows it, its **Stop** stops it). |
 | **Model of the translation**, **Protocol of the translation** | Empty: the model and protocol of the book, else your defaults. |
 | **Readers of the published book see** | What the [viewer](#what-the-reader-sees) shows. |
 
@@ -148,16 +148,18 @@ from your library, one by one, and takes them away again.
 - **One request for each language**: the rules and the notes of one language, and only the speeches of its speakers. A part with the speech of two languages takes two requests, one after the other; the second
   reads the part with the English of the first one's speeches and leaves those speeches translated. A part whose point of view and present characters are all outside the speakers of a language is not asked for
   that language (a part that names no character is asked for every language that has speakers).
-- **A passage knows its language.** **Translate the speech** again for one language leaves the speeches of the others alone, and **Put the English back** can be for one language or for all.
+- **A passage knows its language.** **Translate dialogs (real language)** again for one language leaves the speeches of the others alone, and **Put the English back** can be for one language or for all.
 - **The menus ask which language** when the book has more than one: the menu of a part (one of the languages or *All languages*) and the right click on a selected sentence (one language).
   **Translate parts** has a *Language* field (all languages by default); *the parts that are not translated* means "not translated in that language".
 - **The automatic run** translates a new part into every language whose speakers may be in it.
 
 ## Translating
 
-- **By hand:** the menu of a part has **Translate the speech (real language)**. A part that is translated already is translated again **from its English**. A book with more than one language asks first [which one](#more-than-one-language-in-a-book).
+- **By hand:** the menu of a part has the **Translate** sub menu (the right click on the text has one too), and in it **Translate dialogs (real language)** (these items and **Translate parts (real language)** are shown only in a book that has a language of this plugin). A part that is translated already is translated again **from its English**. A book with more than one language asks first [which one](#more-than-one-language-in-a-book).
 - **By itself:** with **Translate a new part by itself**, a generated part is translated as soon as it is final. A *regenerate* of a part gives it new English and removes the old translation.
-- **A sentence you wrote:** select it in the text of a part, right click and choose **Translate the selection (real language)**. The model translates it with the story around it; the English is
+- **Following a translation.** A translation of one part (by hand, of a selection, or by itself) does not block the page: it is listed in the [panel of the runs](../books/story-editor.md#the-panel-of-the-runs) at the bottom left, with the end of the **reasoning** of the model or of its **answer** as they arrive, and a **Stop** button. The part shows *Translating the speech of the part...* meanwhile, and nothing else can translate it. **Stop** cancels the request at once and starts no further one; with several languages, the languages that were written before it stay translated. The translation of a [range](#translating) has its own window, which stays open beside the story.
+- **Speeches the model missed:** a translation sometimes leaves a speech in English. **Translate → Translate missing dialogs (real language)** in the menu of a part translates only the speeches that are still in English and leaves the translated ones as they are; with text selected, the right click **Translate → Translate missing dialogs in selection (real language)** does it for the speeches the selection touches. The model is sent the part as it is, with the translated speeches in it, and asked only for the speeches still in English, so the run is cheaper than a translation of the whole part. Nothing but speech is written, so it is not a way to translate a sentence the model does not see as speech: use *Translate selected text* for that.
+- **A sentence you wrote:** select it in the text of a part, right click and choose **Translate → Translate selected text (real language)**. The model translates it with the story around it; the English is
   kept as the source. A selection that holds a translated speech is refused.
 - **A range:** **Translate parts (real language)** in the tools menu of the story opens a window that stays open beside the story: *Translate the parts that are not translated*, *Translate the
   translated parts again* or *Put the English back*, from a part to a part, with a **Stop**.
@@ -212,7 +214,7 @@ its position on the active branch (the first part is 1).
 | `reallang-set-book-language` | The language of the open book (the **Language of the speech** field of its *Extension Settings*). |
 | `reallang-add-book-language`, `reallang-remove-book-language` | The other languages of the open book. Removing asks the user. |
 | `reallang-status` | The language of the book and which parts are translated. |
-| `reallang-translate-part`, `reallang-translate-range`, `reallang-translate-sentence`, `reallang-translate-text`, `reallang-revert-to-source` | Translating: one part, a range (`mode` *new* or *again*), one sentence of a part, a text that is only returned, and the English back. With the optional `language` they are about one language of the book (all of them by default, the first for a sentence or a text). |
+| `reallang-translate-part`, `reallang-translate-range`, `reallang-translate-sentence`, `reallang-translate-text`, `reallang-revert-to-source` | Translating: one part (`missingOnly` translates only the speeches still in English, `within` quotes a passage to limit that to), a range (`mode` *new* or *again*), one sentence of a part, a text that is only returned, and the English back. With the optional `language` they are about one language of the book (all of them by default, the first for a sentence or a text). |
 | `reallang-glossary`, `reallang-glossary-set`, `reallang-glossary-remove`, `reallang-glossary-accept`, `reallang-glossary-switch`, `reallang-glossary-move` | The [glossary](#the-glossary-of-names-and-special-words) of the open book in a language: read the merged entries with their level, add or change an entry at a `level` (`language`, `folder` with the `folder` name, `book`), remove one (asks), accept the proposals, switch a word of a higher level off or on for the book, move an entry of the book up. |
 | `reallang-extract-terms`, `reallang-extraction-set` | The [word extraction](#extracting-the-words-by-model): `reallang-extraction-set` chooses the `prompt` and writes the `specification` of the open book (what is left out stays), `reallang-extract-terms` reads the parts from..to and proposes the terms to the glossary of the book (`language` for the language). |
 | `reallang-extraction-prompts`, `reallang-extraction-prompt-set`, `reallang-extraction-prompt-remove` | The library of extraction prompts: list the built-in and your own, add or change one (naming a built-in one makes a copy), remove one (asks). |

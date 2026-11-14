@@ -16,6 +16,97 @@ public final class JavascriptLibrary {
     private JavascriptLibrary() {
     }
 
+    // --- leaving the page ---
+
+    /**
+     * Has the browser ask its own <i>Leave site?</i> before the page is closed, reloaded or left by a typed address, while {@code warn}
+     * is true (a generation runs: leaving stops it); false takes the question away again. The page cannot ask a question of its own
+     * then, browsers allow only theirs.
+     *
+     * @param element any element of the page, the question is kept on the window
+     */
+    public static void warnOnLeave(Element element, boolean warn) {
+        element.executeJs(
+                "if ($1) {"
+                        + " if (!window.__marginaliaLeave) { window.__marginaliaLeave = e => { e.preventDefault(); e.returnValue = ''; };"
+                        + " window.addEventListener('beforeunload', window.__marginaliaLeave); }"
+                        + "} else if (window.__marginaliaLeave) {"
+                        + " window.removeEventListener('beforeunload', window.__marginaliaLeave); window.__marginaliaLeave = null; }",
+                element, warn);
+    }
+
+    // --- a panel that is moved ---
+
+    /**
+     * Lets the user move a fixed panel by its handle (the panel of the runs) and keeps where it was left in the browser
+     * ({@code localStorage}, under the key). The panel is held by its nearer edge: in the lower half of the window by its bottom, so
+     * that it grows upwards there (as in its corner) when it is expanded, else by its top. It stays inside the window, also when it
+     * grows or the window is made smaller, and goes back to its place when it shrinks again. A drag is not a click on the handle's
+     * parent. While it is dragged the panel carries the attribute {@code data-dragging} ({@link #keepClearOf} waits for the drop).
+     *
+     * @param panel  the element with {@code position: fixed}
+     * @param handle the element it is dragged by
+     */
+    public static void makeDraggable(Element panel, Element handle, String storageKey) {
+        panel.executeJs("""
+                const panel = $0, handle = $1, key = $2;
+                if (panel.__draggable) return;
+                panel.__draggable = true;
+                // where the user left it: { left, top } or { left, bottom }
+                let saved = null;
+                const apply = () => {
+                  if (!saved) return;
+                  const w = panel.offsetWidth, h = panel.offsetHeight;
+                  panel.style.left = Math.max(0, Math.min(saved.left, window.innerWidth - w)) + 'px';
+                  if (typeof saved.bottom === 'number') {
+                    panel.style.bottom = Math.max(0, Math.min(saved.bottom, window.innerHeight - h)) + 'px';
+                    panel.style.top = 'auto';
+                  } else {
+                    panel.style.top = Math.max(0, Math.min(saved.top, window.innerHeight - h)) + 'px';
+                    panel.style.bottom = 'auto';
+                  }
+                };
+                const placeAt = (left, top) => {
+                  const h = panel.offsetHeight;
+                  saved = top + h / 2 > window.innerHeight / 2 ? { left, bottom: window.innerHeight - top - h } : { left, top };
+                  apply();
+                };
+                try { saved = JSON.parse(localStorage.getItem(key) || 'null'); } catch (e) { saved = null; }
+                if (!saved || typeof saved.left !== 'number') saved = null;
+                if (saved) requestAnimationFrame(apply);
+                window.addEventListener('resize', apply);
+                // expanded or folded: inside the window again, or back to where it was left
+                new ResizeObserver(apply).observe(panel);
+                let start = null, moved = false;
+                handle.addEventListener('pointerdown', e => {
+                  const box = panel.getBoundingClientRect();
+                  start = { x: e.clientX, y: e.clientY, left: box.left, top: box.top };
+                  moved = false;
+                  try { handle.setPointerCapture(e.pointerId); } catch (err) {}
+                  e.preventDefault();
+                });
+                handle.addEventListener('pointermove', e => {
+                  if (!start) return;
+                  const dx = e.clientX - start.x, dy = e.clientY - start.y;
+                  if (!moved && Math.abs(dx) + Math.abs(dy) < 4) return;
+                  if (!moved) panel.setAttribute('data-dragging', '');
+                  moved = true;
+                  placeAt(start.left + dx, start.top + dy);
+                });
+                const end = () => {
+                  if (!start) return;
+                  start = null;
+                  panel.removeAttribute('data-dragging');
+                  if (moved) {
+                    try { localStorage.setItem(key, JSON.stringify(saved)); } catch (e) {}
+                  }
+                };
+                handle.addEventListener('pointerup', end);
+                handle.addEventListener('pointercancel', end);
+                handle.addEventListener('click', e => { if (moved) { e.stopPropagation(); moved = false; } }, true);
+                """, panel, handle, storageKey);
+    }
+
     // --- clipboard ---
 
     /**
@@ -243,7 +334,10 @@ public final class JavascriptLibrary {
     /**
      * Puts the element back where the user had it after its content was replaced: at the bottom when it was stuck
      * there, otherwise at the same distance from the top, which is set again while the new content settles (its
-     * Markdown is rendered after it is in the page) until the user scrolls on their own.
+     * Markdown is rendered after it is in the page) until the user scrolls on their own. A story that is not seen when its
+     * content is replaced (another tab of the window, which hides it and loses its scroll, or another tab of the browser, which
+     * does not run animation frames or resize observers) is put back when it is seen again, from where it was when the content
+     * was replaced.
      *
      * @param element the scroll element
      * @param content the element whose size changes while the content settles
@@ -253,31 +347,59 @@ public final class JavascriptLibrary {
                 const el = $0;
                 const content = $1;
                 installSticky(el);
-                if (el._stick) {
-                  requestAnimationFrame(() => requestAnimationFrame(() => {
-                    el.scrollTop = el.scrollHeight;
-                    el._lastTop = el.scrollTop;
-                  }));
-                  return;
-                }
-                const top = el._lastTop;
                 if (el._restoreStop) el._restoreStop();
-                const apply = () => {
-                  if (Math.abs(el.scrollTop - top) > 1) el.scrollTop = top;
-                };
-                const observer = new ResizeObserver(apply);
+                // read now: the new content is shorter, the browser moves the scroll up and tells it later
+                const stick = el._stick;
+                const top = el._lastTop;
                 const events = ['wheel', 'touchstart', 'pointerdown', 'keydown'];
+                let observer = null;
+                let timer = null;
+                let waiting = null;
                 const stop = () => {
-                  observer.disconnect();
-                  clearTimeout(el._restoreTimer);
+                  if (observer) observer.disconnect();
+                  if (waiting) waiting();
+                  clearTimeout(timer);
                   events.forEach(name => el.removeEventListener(name, stop));
                   el._restoreStop = null;
                 };
                 el._restoreStop = stop;
-                events.forEach(name => el.addEventListener(name, stop, {passive: true}));
-                observer.observe(content);
-                el._restoreTimer = setTimeout(stop, 1500);
-                apply();
+                const restore = () => {
+                  if (stick) {
+                    requestAnimationFrame(() => requestAnimationFrame(() => {
+                      el.scrollTop = el.scrollHeight;
+                      el._lastTop = el.scrollTop;
+                      stop();
+                    }));
+                    return;
+                  }
+                  const apply = () => {
+                    if (Math.abs(el.scrollTop - top) > 1) el.scrollTop = top;
+                  };
+                  events.forEach(name => el.addEventListener(name, stop, {passive: true}));
+                  observer = new ResizeObserver(apply);
+                  observer.observe(content);
+                  timer = setTimeout(stop, 1500);
+                  apply();
+                };
+                const seen = () => !document.hidden && el.clientHeight > 0;
+                if (seen()) {
+                  restore();
+                  return;
+                }
+                const check = () => {
+                  if (waiting && seen()) {
+                    waiting();
+                    restore();
+                  }
+                };
+                const watcher = new ResizeObserver(check);
+                watcher.observe(el);
+                document.addEventListener('visibilitychange', check);
+                waiting = () => {
+                  watcher.disconnect();
+                  document.removeEventListener('visibilitychange', check);
+                  waiting = null;
+                };
                 """, element, content);
     }
 
@@ -639,12 +761,32 @@ public final class JavascriptLibrary {
             """;
 
     /**
+     * Part of the scripts below: paints the remembered selection with the CSS Custom Highlight API ({@code ::highlight(...)} in
+     * {@code shared-styles.css}), because the context menu takes the real selection away visually (the text is still remembered, but it
+     * would look as if it were not). {@code paintRemembered(range)} shows it, {@code clearRemembered()} removes it again; where the API
+     * does not exist they do nothing.
+     */
+    private static final String REMEMBERED_HIGHLIGHT = """
+            const HIGHLIGHT_NAME = 'marginalia-remembered-selection';
+            const clearRemembered = () => {
+              if (window.CSS && CSS.highlights) {
+                CSS.highlights.delete(HIGHLIGHT_NAME);
+              }
+            };
+            const paintRemembered = range => {
+              if (window.CSS && CSS.highlights && typeof Highlight !== 'undefined') {
+                CSS.highlights.set(HIGHLIGHT_NAME, new Highlight(range));
+              }
+            };
+            """;
+
+    /**
      * Remembers the selection of the markdown element at the moment the user opens its context menu (right click, long press), before
-     * the menu can take it away; {@link #getSelectionContext} and {@link #copySelection} use it when nothing is selected any more. A
-     * click on the text forgets it.
+     * the menu can take it away, and keeps it painted while the menu is open; {@link #getSelectionContext} and {@link #copySelection} use
+     * the memory when nothing is selected any more. A click on the text, a key press or the use of the memory forgets it.
      */
     public static void rememberSelectionOnContextMenu(Element markdown, int around) {
-        markdown.executeJs(SELECTION_SNAPSHOT + """
+        markdown.executeJs(SELECTION_SNAPSHOT + REMEMBERED_HIGHLIGHT + """
                 const el = $0;
                 if (!el._hasSelectionMemory) {
                   el._hasSelectionMemory = true;
@@ -652,6 +794,7 @@ public final class JavascriptLibrary {
                     const found = snapshot(el, $1);
                     if (found) {
                       el._rememberedSelection = found;
+                      paintRemembered(window.getSelection().getRangeAt(0).cloneRange());
                     }
                   }, true);
                   el.addEventListener('mousedown', e => {
@@ -659,6 +802,11 @@ public final class JavascriptLibrary {
                       el._rememberedSelection = null;
                     }
                   }, true);
+                  if (!window.__rememberedSelectionReset) {
+                    window.__rememberedSelectionReset = true;
+                    document.addEventListener('mousedown', clearRemembered, true);
+                    document.addEventListener('keydown', clearRemembered, true);
+                  }
                 }
                 """, markdown, around);
     }
@@ -670,13 +818,14 @@ public final class JavascriptLibrary {
      * remembered by {@link #rememberSelectionOnContextMenu}, the remembered one is given (once).
      */
     public static PendingJavaScriptResult getSelectionContext(Element markdown, int around) {
-        return markdown.executeJs(SELECTION_SNAPSHOT + """
+        return markdown.executeJs(SELECTION_SNAPSHOT + REMEMBERED_HIGHLIGHT + """
                 const el = $0;
                 let found = snapshot(el, $1);
                 if (!found && el._rememberedSelection) {
                   found = el._rememberedSelection;
                 }
                 el._rememberedSelection = null;
+                clearRemembered();
                 return found;
                 """, markdown, around);
     }
@@ -686,12 +835,13 @@ public final class JavascriptLibrary {
      * {@link #rememberSelectionOnContextMenu}) to the clipboard of the browser.
      */
     public static void copySelection(Element markdown) {
-        markdown.executeJs(SELECTION_SNAPSHOT + """
+        markdown.executeJs(SELECTION_SNAPSHOT + REMEMBERED_HIGHLIGHT + """
                 const el = $0;
                 let found = snapshot(el, 0) || el._rememberedSelection;
                 if (found) {
                   navigator.clipboard.writeText(JSON.parse(found).text);
                 }
+                clearRemembered();
                 """, markdown);
     }
 
@@ -1369,6 +1519,57 @@ public final class JavascriptLibrary {
                   }
                 });
                 """, element);
+    }
+
+    /**
+     * Moves the children of {@code root} sideways while {@code anchor} (one of them) would overlap the element that
+     * matches {@code selector}, and back when it no longer would: the shift is the custom property
+     * {@code --keep-clear-shift} of the root (a value computed at run time), which the stylesheet applies as a
+     * {@code translate} to the children. The anchor goes to the right of the other element, or to its left when there
+     * is no room on the right. Checked again when the other element is shown, hidden, moved (dragged) or resized,
+     * when the anchor changes place (a dialog puts it into another corner) and when the window is resized; not while the other
+     * element is dragged (attribute {@code data-dragging}, {@link #makeDraggable}): the anchor moves once, when it is dropped. Not on
+     * a phone's width, where the layout is different.
+     */
+    public static void keepClearOf(Element root, Element anchor, String selector) {
+        root.executeJs("""
+                const root = $0, anchor = $1, selector = $2;
+                if (root.__keepClear) return;
+                root.__keepClear = true;
+                const gap = 8;
+                let shift = 0, frame = 0, watched = null;
+                const resize = new ResizeObserver(() => schedule());
+                const update = () => {
+                  frame = 0;
+                  const other = document.querySelector(selector);
+                  if (other && other !== watched) { resize.observe(other); watched = other; }
+                  let next = 0;
+                  // the other element is being dragged: the anchor stays until it is dropped, it is not pushed along
+                  if (other && other.hasAttribute('data-dragging')) return;
+                  if (other && !other.hidden && other.getClientRects().length && anchor.getClientRects().length
+                      && window.innerWidth >= 768) {
+                    // where the anchor stands without the shift: the offsets of a fixed element ignore its translate, the bounding box would
+                    // be taken in the middle of the slide and make the shift swing back and forth
+                    const left = anchor.offsetLeft, right = left + anchor.offsetWidth;
+                    const top = anchor.offsetTop, bottom = top + anchor.offsetHeight;
+                    const o = other.getBoundingClientRect();
+                    if (left < o.right + gap && right > o.left - gap && top < o.bottom + gap && bottom > o.top - gap) {
+                      const toRight = o.right + gap - left, toLeft = o.left - gap - right;
+                      next = right + toRight <= window.innerWidth || left + toLeft < 0 ? toRight : toLeft;
+                    }
+                  }
+                  if (next !== shift) {
+                    shift = next;
+                    root.style.setProperty('--keep-clear-shift', shift + 'px');
+                  }
+                };
+                const schedule = () => { if (!frame) frame = requestAnimationFrame(update); };
+                window.addEventListener('resize', schedule);
+                // not the change of the shift itself
+                new MutationObserver(records => { if (records.some(r => r.target !== root)) schedule(); }).observe(document.body,
+                    { subtree: true, attributes: true, attributeFilter: ['style', 'hidden', 'popover', 'data-dragging'] });
+                schedule();
+                """, root, anchor, selector);
     }
 
     /**

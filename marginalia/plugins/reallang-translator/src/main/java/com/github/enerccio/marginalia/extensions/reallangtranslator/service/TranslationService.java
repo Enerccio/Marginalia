@@ -17,10 +17,7 @@ import com.github.enerccio.marginalia.extensions.translatorcommon.model.Speakers
 import com.github.enerccio.marginalia.extensions.translatorcommon.service.ModelClient;
 import com.github.enerccio.marginalia.extensions.translatorcommon.service.ModelSelection;
 import com.github.enerccio.marginalia.extensions.translatorcommon.service.TranslationWriter;
-import com.github.enerccio.marginalia.extensions.translatorcommon.translate.Reverse;
-import com.github.enerccio.marginalia.extensions.translatorcommon.translate.SelectionRange;
-import com.github.enerccio.marginalia.extensions.translatorcommon.translate.Speech;
-import com.github.enerccio.marginalia.extensions.translatorcommon.translate.TranslationPlan;
+import com.github.enerccio.marginalia.extensions.translatorcommon.translate.*;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
@@ -205,6 +202,41 @@ public class TranslationService {
      * @throws IllegalArgumentException when the book does not have the language
      */
     public Outcome translate(Manuscript manuscript, ChatMessage part, String languageId) throws Exception {
+        return translate(manuscript, part, languageId, RunScope.ALL);
+    }
+
+    /**
+     * Translates the speeches of the part that are still in English and leaves the translated ones as they are: the part the model missed some
+     * speeches of is finished, without translating each one by hand.
+     *
+     * @param languageId the language to translate into (its id in the library), null for all of the book's
+     */
+    public Outcome translateMissing(Manuscript manuscript, ChatMessage part, String languageId) throws Exception {
+        return translate(manuscript, part, languageId, RunScope.MISSING);
+    }
+
+    /**
+     * As {@link #translateMissing}, only for the speeches the range {@code [start, end)} of the part touches.
+     *
+     * @param expected the text of the part the range is in; the part must still have it
+     */
+    public Outcome translateMissingIn(Manuscript manuscript, ChatMessage part, String expected, int start, int end, String languageId) throws Exception {
+        ChatMessage current = chatMessageService.find(part);
+        if (current == null) {
+            throw new IllegalArgumentException("The part does not exist");
+        }
+        String text = StringUtils.defaultString(expected);
+        if (!text.equals(StringUtils.defaultString(current.getResponse()))) {
+            return Outcome.of(Status.CHANGED, "The part was changed after the selection was made.");
+        }
+        int[] range = SelectionRange.trim(text, start, end);
+        if (range[1] <= range[0]) {
+            return Outcome.of(Status.EMPTY, "Nothing is selected.");
+        }
+        return translate(manuscript, part, languageId, RunScope.missingIn(range[0], range[1]));
+    }
+
+    private Outcome translate(Manuscript manuscript, ChatMessage part, String languageId, RunScope scope) throws Exception {
         Manuscript book = manuscriptService.find(manuscript);
         ChatMessage current = chatMessageService.find(part);
         if (book == null || current == null) {
@@ -232,7 +264,7 @@ public class TranslationService {
             return Outcome.of(Status.NO_MODEL, "There is no model for the translation: the book has none and neither have your defaults.");
         }
         if (languages.size() == 1) {
-            return pass(book, current, settings, languages.getFirst(), model);
+            return pass(book, current, settings, languages.getFirst(), model, scope);
         }
         int translated = 0;
         int dropped = 0;
@@ -242,7 +274,7 @@ public class TranslationService {
         Outcome failure = null;
         for (BookLang language : languages) {
             // the part as the pass before it left it
-            Outcome outcome = pass(book, chatMessageService.find(part), settings, language, model);
+            Outcome outcome = pass(book, chatMessageService.find(part), settings, language, model, scope);
             translated += outcome.translated();
             dropped += outcome.dropped();
             wrong += outcome.wrongScript();
@@ -265,7 +297,7 @@ public class TranslationService {
     /**
      * One request for one language of the book, and the write of its speeches.
      */
-    private Outcome pass(Manuscript book, ChatMessage current, BookSettings settings, BookLang bookLang, ModelSelection model) throws Exception {
+    private Outcome pass(Manuscript book, ChatMessage current, BookSettings settings, BookLang bookLang, ModelSelection model, RunScope scope) throws Exception {
         RealLanguage language = bookLang.language();
         // the text the model reads: a part that is translated already is translated again from its English (the other languages too)
         Reverse.Result read = writer.readOf(current);
@@ -274,21 +306,30 @@ public class TranslationService {
             return Outcome.of(Status.EMPTY, "The part has no text.");
         }
         // the speeches of the other languages stay translated, and nothing of this answer may land on them
-        List<TranslationPlan.Accepted> carried = writer.carried(current, read, language.getId());
+        List<TranslationPlan.Accepted> carried = writer.carried(current, read, language.getId(), scope.missingOnly());
+        int[] window = scope.window(read.model());
+        // a run that writes only the missing speeches shows the model the part as it is stored: the speeches that are translated already are
+        // not asked for again (the model would translate them and the plugin would throw the answer away)
+        String shown = scope.shown(read.model());
+        boolean translated = scope.showsStored(read.model());
 
         List<GlossaryEntry> names = glossary.active(book, language);
-        TranslationPrompt.Request request = TranslationPrompt.build(language, names, bookLang.speakers(), source, scene(book, current, settings));
+        TranslationPrompt.Request request = TranslationPrompt.build(language, names, bookLang.speakers(), shown, scene(book, current, settings), translated);
         TranslationAnswer answer = TranslationAnswer.parse(modelClient.ask(model, book, request.system(), request.user()));
         if (answer == null) {
             return Outcome.of(Status.BAD_ANSWER, "The model did not answer in the expected form.");
         }
-        AnswerChecker.Checked checked = AnswerChecker.check(source, answer, language, names);
-        List<AnswerChecker.Item> usable = checked.accepted().stream().filter(item -> !TranslationWriter.overlapsAny(carried, item.start(), item.end())).toList();
-        List<TranslationPlan.Accepted> accepted = new ArrayList<>(usable.stream().map(item -> new TranslationPlan.Accepted(item.speech(), item.start(), item.end())).toList());
+        AnswerChecker.Checked checked = AnswerChecker.check(shown, answer, language, names);
+        // the ranges of the answer are in the text that was shown; the plan and the window are in the text the model reads
+        Map<AnswerChecker.Item, int[]> ranges = new IdentityHashMap<>();
+        checked.accepted().forEach(item -> ranges.put(item, scope.inModel(read.model(), item.start(), item.end())));
+        List<AnswerChecker.Item> usable = checked.accepted().stream().filter(item -> !TranslationWriter.overlapsAny(carried, ranges.get(item)[0], ranges.get(item)[1]))
+                .filter(item -> RunScope.admits(window, ranges.get(item)[0], ranges.get(item)[1])).toList();
+        List<TranslationPlan.Accepted> accepted = new ArrayList<>(usable.stream().map(item -> new TranslationPlan.Accepted(item.speech(), ranges.get(item)[0], ranges.get(item)[1])).toList());
         accepted.addAll(carried);
         TranslationPlan plan = TranslationPlan.make(source, accepted);
         int dropped = (int) checked.speeches().stream().filter(item -> !item.accepted()).count() + (checked.accepted().size() - usable.size());
-        if (plan.translatedCount() == 0) {
+        if (plan.translatedCount() == 0 || scope.missingOnly() && usable.isEmpty()) {
             return new Outcome(Status.NOTHING_TO_TRANSLATE, 0, dropped, 0, "");
         }
         Map<Speech, String> readings = new IdentityHashMap<>();
@@ -301,7 +342,7 @@ public class TranslationService {
         String note = (wrong > 0 ? wrong + " translation(s) are not in the script the language asks for. " : "")
                 + (misses > 0 ? misses + " translation(s) write a name of the glossary another way than the glossary says. " : "")
                 + (proposed > 0 ? proposed + " name(s) were added to the glossary of the book to look at." : "");
-        return new Outcome(Status.TRANSLATED, plan.translatedCount(), dropped, wrong, note.strip(), misses, proposed);
+        return new Outcome(Status.TRANSLATED, scope.missingOnly() ? usable.size() : plan.translatedCount(), dropped, wrong, note.strip(), misses, proposed);
     }
 
     /**

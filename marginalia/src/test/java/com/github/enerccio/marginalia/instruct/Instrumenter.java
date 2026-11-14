@@ -8,8 +8,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Applies {@link ExtendableMethodVisitor} to class files the same way {@link RuntimeInstrumentationInitializer} does
- * (every declared method except constructors, static and synthetic methods), without installing an agent.
+ * Applies {@link ExtendableMethodVisitor} to class files the same way {@link ExtendableWeaving} does (every declared
+ * method except constructors, static and synthetic methods) with plain ASM: no agent, no weaver, no {@link Woven} mark.
  */
 public final class Instrumenter {
 
@@ -26,7 +26,7 @@ public final class Instrumenter {
     }
 
     /**
-     * Same method filter as the agent matcher in {@link RuntimeInstrumentationInitializer}.
+     * Same method filter as {@link ExtendableWeaving#instrumentedMethods()}.
      */
     public static boolean isInstrumented(int access, String name) {
         return !name.equals("<init>") && !name.equals("<clinit>")

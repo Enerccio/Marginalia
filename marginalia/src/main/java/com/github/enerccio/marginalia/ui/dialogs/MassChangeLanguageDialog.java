@@ -407,8 +407,7 @@ public class MassChangeLanguageDialog extends Dialog implements LLMInteract {
                 if (book == null) {
                     continue;
                 }
-                book.setLanguage(language);
-                manuscriptService.save(book);
+                manuscriptService.update(book, fresh -> fresh.setLanguage(language));
                 changed++;
             }
         } catch (Exception e) {

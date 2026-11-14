@@ -3,14 +3,13 @@ package com.github.enerccio.marginalia.domain.service.impl;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.enerccio.marginalia.domain.collections.FilteringMode;
+import com.github.enerccio.marginalia.domain.collections.InsertionMode;
 import com.github.enerccio.marginalia.domain.components.LoreConditions;
-import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
-import com.github.enerccio.marginalia.domain.model.impl.Lorebook;
-import com.github.enerccio.marginalia.domain.model.impl.LorebookEntry;
+import com.github.enerccio.marginalia.domain.components.TurnInput;
+import com.github.enerccio.marginalia.domain.model.impl.*;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LorebookEntryVerdict;
-import com.github.enerccio.marginalia.domain.templates.LorebookTemplateData;
-import com.github.enerccio.marginalia.domain.templates.TemplateData;
+import com.github.enerccio.marginalia.domain.templates.*;
 import com.github.enerccio.marginalia.domain.templates.macros.MacroHelpers;
 import com.github.enerccio.marginalia.extensions.PartTextRegistry;
 import org.apache.commons.lang3.StringUtils;
@@ -44,6 +43,12 @@ public class LorebookActivationServiceImpl implements LorebookActivationService 
 
     @Autowired
     private SummaryService summaryService;
+
+    @Autowired
+    private ManuscriptService manuscriptService;
+
+    @Autowired
+    private TagRelationService tagRelationService;
 
     /**
      * Whether a condition is a valid template without names that do not exist, by its text: the same conditions are
@@ -348,13 +353,13 @@ public class LorebookActivationServiceImpl implements LorebookActivationService 
     @Override
     public Verdict evaluateInContent(LorebookEntry entry, List<String> manuscriptTags, List<LorebookEntry> sources, LoreConditions conditions) {
         Verdict all = evaluate(entry, manuscriptTags,
-                sources.stream().map(LorebookEntry::getPayload).collect(java.util.stream.Collectors.joining("\n\n")),
+                sources.stream().map(source -> LoreImages.strip(source.getPayload())).collect(java.util.stream.Collectors.joining("\n\n")),
                 StoryText.NONE, null, conditions, true);
         if (all.reason() != Reason.FILTER_MATCHED) {
             return all;
         }
         for (LorebookEntry source : sources) {
-            if (evaluate(entry, manuscriptTags, source.getPayload(), StoryText.NONE, null, conditions, true).activated()) {
+            if (evaluate(entry, manuscriptTags, LoreImages.strip(source.getPayload()), StoryText.NONE, null, conditions, true).activated()) {
                 return new Verdict(Reason.LORE_MATCHED, entry.getFiltering() + " <- " + source.getName());
             }
         }
@@ -419,7 +424,8 @@ public class LorebookActivationServiceImpl implements LorebookActivationService 
 
     @Override
     public String renderPayload(LorebookEntry entry, LorebookTemplateData data) {
-        String payload = entry.getPayload();
+        // the model reads the text without the images (they go along as attachments, when the model takes them)
+        String payload = LoreImages.strip(entry.getPayload());
         if (StringUtils.isBlank(payload)) {
             return payload;
         }
@@ -431,6 +437,73 @@ public class LorebookActivationServiceImpl implements LorebookActivationService 
             log.debug(e.getMessage(), e);
             return payload;
         }
+    }
+
+    @Override
+    public String currentBackgroundLore(Manuscript manuscript, ChatMessage part) throws Exception {
+        Lorebook root = manuscript.getLorebook() == null ? null : lorebookService.find(manuscript.getLorebook());
+        if (root == null) {
+            return null;
+        }
+        TurnInput input = new TurnInput(part.getSceneSetting(), part.getPovCharacter(), part.getPresentCharacters(), part.getInstructions());
+        TemplateContext context = new TemplateContext();
+        context.setPovCharacter(input.povCharacter());
+        context.setPresentCharacters(input.presentCharacters());
+        context.setSceneSetting(input.sceneSetting());
+        context.setInstructions(input.instructions());
+        context.setNarrativePov(manuscriptService.getPov(manuscript));
+        context.setNarrativeTense(manuscriptService.getTense(manuscript));
+        context.setStyle(manuscriptService.getStyle(manuscript));
+        context.setManuscriptName(manuscript.getName());
+        context.setManuscriptDescription(manuscript.getDescription());
+        context.setPickSeed(String.valueOf(manuscript.getId()));
+        context.setGenerationType("normal");
+        context.getVariables().loadFrom(TemplateVariables.Scope.GLOBAL, manuscript.getAttributes());
+        context.getVariables().loadFrom(TemplateVariables.Scope.LOCAL, part.getAttributes());
+
+        // what the filters are looked for in: the user prompt of the book for the turn
+        UserPromptData prompt = new UserPromptData();
+        prompt.setInstructions(input.instructions());
+        prompt.setPovCharacter(input.povCharacter());
+        prompt.setPresentCharacters(input.presentCharacters());
+        prompt.setSceneSetting(input.sceneSetting());
+        prompt.setTemplateContext(context.fork());
+        String matched;
+        try {
+            matched = StringUtils.defaultString(templateService.processTemplate(manuscriptService.getUserPrompt(manuscript), "userPrompt", prompt));
+        } catch (Exception e) {
+            log.debug("The user prompt of the book did not render: {}", e.getMessage());
+            matched = java.util.stream.Stream.of(input.instructions(), input.sceneSetting(), input.povCharacter(), input.presentCharacters())
+                    .filter(StringUtils::isNotBlank).collect(java.util.stream.Collectors.joining("\n"));
+        }
+
+        LorebookTemplateData data = new LorebookTemplateData();
+        data.setPovCharacter(input.povCharacter());
+        data.setSceneSetting(input.sceneSetting());
+        data.setPresentCharacters(input.presentCharacters());
+        data.setInstructions(input.instructions());
+        data.setNarrativePov(context.getNarrativePov());
+        data.setNarrativeTense(context.getNarrativeTense());
+        data.setStyle(context.getStyle());
+        data.setTemplateContext(context);
+
+        List<String> tags = tagRelationService.getTagsForObject(manuscript).stream().map(Tag::getValue).toList();
+        List<Lorebook> lorebooks = collectLorebooks(root);
+        List<LorebookEntry> entries = orderedEntries(lorebooks);
+        // the story in front of the part, the part itself is the turn
+        StoryText story = storyText(entries, part, true);
+        Integer position = positionNeeded(entries) ? turnPosition(part, true) : null;
+        StringBuilder block = new StringBuilder();
+        for (LorebookEntryVerdict decided : evaluateAll(root, lorebooks, tags, matched, story, position, new LoreConditions(data))) {
+            if (!decided.verdict().activated() || decided.entry().getInsertionMode() != InsertionMode.IN_LORE_BLOCK) {
+                continue;
+            }
+            String payload = renderPayload(decided.entry(), data);
+            if (StringUtils.isNotBlank(payload)) {
+                block.append(payload).append("\n\n");
+            }
+        }
+        return block.toString().trim();
     }
 
     private boolean filterMatches(LorebookEntry entry, String textToSearch) {

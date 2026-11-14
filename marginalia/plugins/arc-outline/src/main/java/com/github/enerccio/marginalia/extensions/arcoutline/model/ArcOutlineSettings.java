@@ -12,11 +12,11 @@ public class ArcOutlineSettings {
 
     public static final String KEY = "com.github.enerccio.marginalia.extensions.arcoutline.settings";
 
-    /** The template of the prompt for generating an arc, see {@code Defaults.GENERATION_PROMPT}. */
+    /** The template of the prompt for generating an arc, see {@code Defaults.generationPrompt()}. */
     private String generationPrompt;
-    /** The template of the prompt for generating the chapters of an arc, see {@code Defaults.CHAPTER_GENERATION_PROMPT}. */
+    /** The template of the prompt for generating the chapters of an arc, see {@code Defaults.chapterGenerationPrompt()}. */
     private String chapterGenerationPrompt;
-    /** The template of the prompt for importing an arc from the story, see {@code Defaults.IMPORT_PROMPT}. */
+    /** The template of the prompt for importing an arc from the story, see {@code Defaults.importPrompt()}. */
     private String importPrompt;
     /** The choices of the plot wizard (what it sends, how it helps), as the author left them. */
     private WizardOptions wizard;

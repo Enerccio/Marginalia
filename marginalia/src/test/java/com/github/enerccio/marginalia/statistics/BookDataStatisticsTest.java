@@ -5,6 +5,7 @@ import com.github.enerccio.marginalia.domain.collections.StatisticSide;
 import com.github.enerccio.marginalia.domain.components.StatisticCounts;
 import com.github.enerccio.marginalia.domain.components.StatisticFilter;
 import com.github.enerccio.marginalia.domain.model.impl.*;
+import com.github.enerccio.marginalia.domain.repository.impl.StaleSaves;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.FolderService.Transfer;
 import com.github.enerccio.marginalia.domain.service.impl.ManuscriptSizeServiceImpl;
@@ -264,8 +265,13 @@ class BookDataStatisticsTest extends AgentTestBase {
         assertThat(names(book).stream().filter(n -> n.startsWith("interval") || n.startsWith("size"))).containsExactlyInAnyOrder(
                 "interval: Second | ", "size: Second | ");
 
-        // saving it does: the stored name is the old one again, and the rows follow the stored name
-        manuscriptService.save(stale);
+        // saving it does: the stored name is the old one again, and the rows follow the stored name (a stale save on purpose)
+        StaleSaves.setMode(StaleSaves.Mode.LOG);
+        try {
+            manuscriptService.save(stale);
+        } finally {
+            StaleSaves.setMode(null);
+        }
         assertThat(names(book)).isEqualTo(expected("First", ""));
     }
 

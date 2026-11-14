@@ -53,6 +53,7 @@ public class AdvancedOptionsDialog extends Dialog {
     private Checkbox usePromptInfo;
     private Checkbox lorebookBox;
     private Checkbox summariesBox;
+    private Checkbox originalTextBox;
     private IntegerField tokenLimitField;
     private Span counter;
 
@@ -134,6 +135,16 @@ public class AdvancedOptionsDialog extends Dialog {
             }
         });
 
+        originalTextBox = new Checkbox(T.localized(SEND_ORIGINAL_TEXT), options.isOriginalText());
+        // only a translator makes the stored text differ from what a model reads
+        originalTextBox.setVisible(reviewerService.hasModelTextTransformers());
+        originalTextBox.setTooltipText(T.localized(SEND_THE_TEXT_AS_STORED));
+        originalTextBox.addValueChangeListener(event -> {
+            if (event.isFromClient()) {
+                refreshCount();
+            }
+        });
+
         tokenLimitField = new IntegerField(T.localized(TOKEN_LIMIT));
         tokenLimitField.setValue(reviewerService.getTokenLimit(setting, manuscript));
         tokenLimitField.addValueChangeListener(event -> {
@@ -142,7 +153,7 @@ public class AdvancedOptionsDialog extends Dialog {
             }
         });
 
-        optionsRow.add(lorebookBox, summariesBox, tokenLimitField);
+        optionsRow.add(lorebookBox, summariesBox, originalTextBox, tokenLimitField);
 
         layout.add(promptProfileCombo, promptArea, usePromptInfo, counter, optionsRow);
         add(layout);
@@ -188,6 +199,7 @@ public class AdvancedOptionsDialog extends Dialog {
             options.setUsePromptInfo(usePromptInfo.getValue());
             options.setLorebook(lorebookBox.getValue());
             options.setSummaries(summariesBox.getValue());
+            options.setOriginalText(originalTextBox.getValue());
             options.setTokenLimit(tokenLimitField.getValue() != null ? tokenLimitField.getValue() :
                     reviewerService.getTokenLimit(setting, manuscript));
 

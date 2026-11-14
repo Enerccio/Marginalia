@@ -6,8 +6,8 @@ icon: tools
 
 # Administration
 
-Administrators manage the Marginalia installation: user accounts, database backups, cleanup of deleted data and
-extensions. The first account, created on the [first start](../getting-started/first-start.md), is an administrator;
+Administrators manage the Marginalia installation: user accounts, database backups, cleanup of deleted data,
+updates and extensions. The first account, created on the [first start](../getting-started/first-start.md), is an administrator;
 it can make other users administrators too.
 
 Administrators are also normal users with their own books - they don't see other users' books, lorebooks or settings, only the lorebooks and protocols those users share with everybody.
@@ -26,6 +26,8 @@ narrower than 768 pixels) it is the tab **Admin** of the drawer. It opens the ad
 | **Help assistant** | The chat that answers questions from the manual: the model, the prompts and who pays for it. See [Help assistant](help-assistant.md). |
 | **Agents** | The system prompt and the compaction prompt that agents follow when neither they nor their user have one of their own. Empty is the built-in prompt; the info icon has **Insert Default Template**, which fills it in so you can edit a copy. What users may do with agents is their [permission](permissions.md). Also **Agents may send messages to the webhooks of users**: the server calls the address a user typed in their settings when an agent needs them and they have the application closed ([When you are not there](../agents.md#when-you-are-not-there)); turn it off where that is not acceptable. |
 | **Statistics** | Whether the [writing statistics](../books/statistics.md) are recorded at all, how long they are kept, and clearing the statistics of a user or of everybody. See [Statistics](statistics.md). |
+| **Jobs** | The log of everything that was asked of an external AI (who, when, which calls, how they ended), a filter that deletes old entries by hand, and the page `/jobs` with the jobs that run now. See [Jobs](jobs.md). |
+| **Update** | On a Docker server: the running version, the newest version of the branch the server follows, and the button that updates and restarts Marginalia. See [Updates](updates.md). |
 | **Extensions** | Installing and removing extensions. See [Managing extensions](extensions.md). |
 
 ![The Agents tab of the Admin page](../../images/admin-agents.png)
@@ -38,10 +40,11 @@ on the host with the [Docker setup](../getting-started/docker-server.md)):
 | Path | |
 |---|---|
 | `marginalia.sqlite` (with `-wal`, `-shm`) | The database: users, books, lorebooks, settings, everything. |
-| `secret.key` | Key that encrypts the API keys in the database. Created on the first start; without it, saved API keys can't be read. |
+| `secret.key` | Key that encrypts the API keys in the database. Created on the first start, readable by its owner only (on Linux and macOS); without it, saved API keys can't be read. If it is readable by other users of the computer, the log says so: `chmod 600 secret.key`. |
 | `db-backups/` | [Database backups](database-backups.md). |
 | `data/<login>/backups/manuscripts/<book id>/` | [Book backups](../books/backups.md) of each user. |
 | `extensions/` | Installed [extension](extensions.md) JARs. |
+| `update/` | The files Marginalia and the [update watcher](updates.md#setting-up-the-watcher) of a Docker server talk through: the status, the log of the last update, the request. |
 | `agent-workspaces/<agent id>/` | The files of an [agent](../agents.md#the-working-copy) (its notes and reports, which it keeps between runs). |
 | `agent-runs/<run id>/` | What a run of an agent keeps: the start of the book (to show you the changes, removed with the working copy), the checkpoints and the findings (removed when the run is purged by the cleanup). |
 | `desktop/logs/` | Logs of the [desktop app](../getting-started/desktop-app.md). |

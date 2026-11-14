@@ -4,6 +4,7 @@ import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.CancellationToken;
+import com.github.enerccio.marginalia.domain.service.run.Runs;
 import com.github.enerccio.marginalia.extensions.betareaders.BetaReadersExtension;
 import com.github.enerccio.marginalia.extensions.betareaders.model.*;
 import com.github.enerccio.marginalia.extensions.betareaders.service.*;
@@ -21,6 +22,7 @@ import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
 import com.github.enerccio.marginalia.ui.widgets.DesktopNotifier;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.github.enerccio.marginalia.ui.widgets.ResizableTextArea;
+import com.github.enerccio.marginalia.ui.widgets.WindowRun;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.*;
 import com.vaadin.flow.component.button.Button;
@@ -85,6 +87,8 @@ public class ChatPanel extends VerticalLayout {
     private BetaMessageCard.Turn live;
     private CancellationToken running;
     private boolean generating;
+    // the reply as a run: the panel of the runs shows it (its place in the queue of the model, a Stop), also in the other pages
+    private final WindowRun request = WindowRun.of(this, BetaReadersExtension.NOTIFY_CHAT, () -> T.localized(BETA_READERS));
     /** How many parts the last look at the story found to include; the box is ticked again when this changes. */
     private int lastAdded = -1;
 
@@ -96,6 +100,7 @@ public class ChatPanel extends VerticalLayout {
         this.chat = chat;
         this.service = service;
         this.onBusy = onBusy;
+        request.book(manuscript);
         // the story changes in the request of the user, the panel looks at it then
         attributes = ThreadCopyRequestAttributes.create();
 
@@ -322,7 +327,7 @@ public class ChatPanel extends VerticalLayout {
         }
         UI ui = UI.getCurrent();
         attributes = ThreadCopyRequestAttributes.create();
-        try {
+        try (Runs.Binding _ = request.start(this::stop)) {
             Asked asked = start.start(listener(ui));
             if (clearInput) {
                 input.clear();
@@ -335,12 +340,16 @@ public class ChatPanel extends VerticalLayout {
             refreshStatus(false);
             scrollToEnd();
         } catch (NoModelException e) {
+            request.finished();
             Notification.warning(T.localized(THERE_IS_NO_MODEL));
         } catch (IllegalArgumentException e) {
+            request.finished();
             Notification.warning(T.localized(WRITE_A_MESSAGE_OR_INCLUDE));
         } catch (UnsupportedOperationException e) {
+            request.finished();
             Notification.warning(e.getMessage());
         } catch (Exception e) {
+            request.finished();
             Notification.error(T.localized(CANT_ASK_THE_MODEL).formatted(e.getMessage() != null ? e.getMessage() : e.toString()));
         }
     }
@@ -378,6 +387,7 @@ public class ChatPanel extends VerticalLayout {
 
             @Override
             public void onFinished(ChatRunner.Outcome outcome) {
+                request.finished();
                 ui.access(() -> {
                     finished(outcome);
                     UIPushGuard.push(ui);

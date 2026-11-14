@@ -6,6 +6,7 @@ import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Protocol;
 import com.github.enerccio.marginalia.domain.model.impl.settings.UserSetting;
 import com.github.enerccio.marginalia.domain.service.*;
+import com.github.enerccio.marginalia.domain.service.run.Runs;
 import com.github.enerccio.marginalia.extensions.audiobook.AudiobookLog;
 import com.github.enerccio.marginalia.extensions.audiobook.audio.AudioKind;
 import com.github.enerccio.marginalia.extensions.audiobook.audio.Ffmpeg;
@@ -31,10 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.web.context.request.RequestAttributes;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -334,20 +332,28 @@ public class AudiobookService {
         return none.get();
     }
 
+    /**
+     * Stores the entry in the book as it is stored now (the rest of the book is not written back from the copy the caller holds) and in
+     * that copy too, so the caller reads it from there.
+     */
     private void writeBook(Manuscript manuscript, String name, Object value) {
         try {
-            JsonObject attrs = manuscript.getAttributes();
-            if (attrs == null) {
-                attrs = new JsonObject();
-                manuscript.setAttributes(attrs);
-            }
-            JsonObject book = attrs.has(BOOK_KEY) && attrs.get(BOOK_KEY).isJsonObject() ? attrs.getAsJsonObject(BOOK_KEY) : new JsonObject();
-            book.add(name, gson.toJsonTree(value));
-            attrs.add(BOOK_KEY, book);
-            manuscriptService.save(manuscript);
+            writeBookEntry(manuscript, name, value);
+            manuscriptService.update(manuscript, current -> writeBookEntry(current, name, value));
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    private void writeBookEntry(Manuscript manuscript, String name, Object value) {
+        JsonObject attrs = manuscript.getAttributes();
+        if (attrs == null) {
+            attrs = new JsonObject();
+            manuscript.setAttributes(attrs);
+        }
+        JsonObject book = attrs.has(BOOK_KEY) && attrs.get(BOOK_KEY).isJsonObject() ? attrs.getAsJsonObject(BOOK_KEY) : new JsonObject();
+        book.add(name, gson.toJsonTree(value));
+        attrs.add(BOOK_KEY, book);
     }
 
     /** The cast of the book (it is in the book, so it travels with it), an empty one when it has none. */
@@ -416,7 +422,22 @@ public class AudiobookService {
      * address (or GPU name, whatever extension) go through one {@link GpuGate}, whoever's they are.
      */
     public <T> SpeechBatch.Outcome<T> runBatch(BackendConfig config, BooleanSupplier cancelled, SpeechBatch.Work<T> work) throws BackendException {
-        return SpeechBatch.run(createBackend(config), config.gate(), config.gateMode(), before(config), after(config), cancelled, work);
+        SpeechBackend backend = new RecoveringBackend(createBackend(config), () -> restart(config), config.getRestartEveryPieces());
+        return SpeechBatch.run(backend, config.gate(), config.gateMode(), before(config), after(config), cancelled, work);
+    }
+
+    /**
+     * Stops the server and starts it again in the middle of a batch (the batch keeps its place on the GPU): the requests after a batch, all of
+     * them and whatever they answer (a dead server answers nothing), then the requests before it, the first failure of which fails the restart.
+     */
+    private void restart(BackendConfig config) throws BackendException {
+        AudiobookLog.get().info("Restarting the speech server in the middle of a batch");
+        try {
+            after(config).run();
+        } catch (BackendException e) {
+            AudiobookLog.get().warn("The request after the batch failed, the server is started anyway: {}", e.getMessage());
+        }
+        before(config).run();
     }
 
     /** The requests before a batch: in order, the first failure stops the batch. */
@@ -632,10 +653,27 @@ public class AudiobookService {
                 thread.setDaemon(true);
                 return thread;
             });
-            return new ConversionQueue(new ConversionQueue.Environment(new ResourceAudioStore(resourceService, chatMessageService),
+            ConversionQueue queue = new ConversionQueue(new ConversionQueue.Environment(new ResourceAudioStore(resourceService, chatMessageService),
                     new ClipVoices(resourceService), this::backendForModel, this::runBatch, () -> tracker != null && tracker.isRunning(id), 1000,
                     this::loudnessTarget), worker);
+            queue.setRunWatch((titles, stop) -> watchRun(id, titles, stop));
+            return queue;
         });
+    }
+
+    /**
+     * A run of the queue is a run of the registry: the panel of the runs of the user shows it on every page, also after the window that started
+     * it is closed, with Stop and what the language model writes while it labels (the requests are made on this thread, which is bound to it).
+     */
+    private ConversionQueue.Ended watchRun(Long userId, List<String> titles, Runnable stop) {
+        Runs.Run run = Runs.run(com.github.enerccio.marginalia.extensions.audiobook.ui.BatchNotifier.SOURCE,
+                        () -> T.localized(CONVERT_TO_AUDIO) + (titles.size() == 1 ? ": " + titles.getFirst() : " (" + titles.size() + ")"))
+                .owner(userId).quiet().onStop(stop).start();
+        Runs.Binding binding = run.bind();
+        return (stopped, failed) -> {
+            binding.close();
+            run.end(stopped ? Runs.Outcome.STOPPED : failed ? Runs.Outcome.FAILED : Runs.Outcome.FINISHED);
+        };
     }
 
     public Long currentUserId() {
@@ -674,6 +712,83 @@ public class AudiobookService {
         return parts;
     }
 
+    /** What a part has of audio. */
+    public enum StoredAudio {
+        /** Nothing was made, or the joined audio is gone. */
+        NONE,
+        /** Joined audio made from the text the part has now. */
+        CURRENT,
+        /** Joined audio made from an older text of the part: it is not played, and is made again. */
+        OUTDATED
+    }
+
+    /**
+     * What the Convert window shows of a part.
+     *
+     * @param number      1 based, as {@link #convertParts} counts the parts
+     * @param labelled    the language model's labels are stored with the part
+     * @param audio       the joined audio, see {@link StoredAudio}
+     * @param finalStatus the studio marks the part final: conversion and the actions of the window leave it alone
+     */
+    public record PartState(int number, String uuid, String title, boolean labelled, StoredAudio audio, boolean finalStatus) {
+    }
+
+    /** The state of a part, from what is stored with it. */
+    static PartState stateOf(int number, ChatMessage part, boolean finalStatus) {
+        PlayableParts.Ref ref = PlayableParts.ref(part);
+        StoredAudio audio = ref == null ? StoredAudio.NONE
+                : PartScript.stale(ref.sourceHash(), part.getResponse()) ? StoredAudio.OUTDATED : StoredAudio.CURRENT;
+        return new PartState(number, part.getUuid(), title(number, part), PartLabelStore.has(part), audio, finalStatus);
+    }
+
+    private static String title(int number, ChatMessage part) {
+        String text = part.getResponse() == null ? "" : part.getResponse().strip().replaceAll("\\s+", " ");
+        return "Part " + number + ": " + (text.length() > 50 ? text.substring(0, 50) + "..." : text);
+    }
+
+    /** The parts of the book with text and what each has (labels, audio, final), in order. */
+    public List<PartState> partStates(Manuscript manuscript) throws Exception {
+        List<ChatMessage> parts = speakableParts(manuscript);
+        StudioStore studio = studioStore();
+        List<PartState> states = new ArrayList<>();
+        for (int i = 0; i < parts.size(); i++) {
+            StudioScript stored = studio.find(parts.get(i).getUuid());
+            states.add(stateOf(i + 1, parts.get(i), stored != null && stored.status() == StudioScript.Status.FINAL));
+        }
+        return states;
+    }
+
+    /** The state of one part again (a job of it is over), null when the part is gone. */
+    public PartState partState(int number, String partUuid) throws Exception {
+        ChatMessage part = chatMessageService.findForUser(partUuid);
+        if (part == null) {
+            return null;
+        }
+        StudioScript stored = studioStore().find(partUuid);
+        return stateOf(number, part, stored != null && stored.status() == StudioScript.Status.FINAL);
+    }
+
+    /** True when the part waits in the queue or is being made: its audio and labels can't be taken away under the job. */
+    public boolean busy(String partUuid) {
+        return queue().jobs().stream().anyMatch(j -> j.partId().equals(partUuid) && !j.finished());
+    }
+
+    /** Deletes the audio of the part: the pieces and the joined audio (the labels and the script stay). Not for a part that is in the queue. */
+    public void deleteAudio(String partUuid) {
+        if (busy(partUuid)) {
+            throw new IllegalStateException("The part is in the queue");
+        }
+        new ResourceAudioStore(resourceService, chatMessageService).discardAudio(partUuid);
+    }
+
+    /** Forgets the labels of the part, so that the model is asked again when it is made. Not for a part that is in the queue. */
+    public void removeLabels(String partUuid) {
+        if (busy(partUuid)) {
+            throw new IllegalStateException("The part is in the queue");
+        }
+        new PartLabelStore(chatMessageService).clear(partUuid);
+    }
+
     /** The language model that labels the parts: the AI and the protocol (sampling, limits) it is asked with. */
     public record LabelOptions(AI ai, Protocol protocol) {
     }
@@ -708,12 +823,25 @@ public class AudiobookService {
      */
     public List<ConversionJob> convert(Manuscript manuscript, BackendConfig backend, int from, int to, LabelOptions labelling, ConversionJob.Mode mode)
             throws Exception {
+        if (from < 1 || to < from) {
+            throw new IllegalArgumentException("The range " + from + " to " + to + " is not in the book");
+        }
+        return convertParts(manuscript, backend, java.util.stream.IntStream.rangeClosed(from, to).boxed().toList(), labelling, mode);
+    }
+
+    /**
+     * Like {@link #convert(Manuscript, BackendConfig, int, int, LabelOptions, ConversionJob.Mode)} for chosen parts instead of a range.
+     *
+     * @param numbers the numbers (1 based, as {@link #partStates} counts them) of the parts, in the order they are wanted
+     */
+    public List<ConversionJob> convertParts(Manuscript manuscript, BackendConfig backend, List<Integer> numbers, LabelOptions labelling,
+                                            ConversionJob.Mode mode) throws Exception {
         Cast cast = castOf(manuscript);
         if (narrator(backend, cast, getSettings()::findActor) == null) {
             throw new IllegalArgumentException("There is no narrator voice, neither in the cast nor in the backend");
         }
         List<ChatMessage> parts = speakableParts(manuscript);
-        if (from < 1 || to < from || to > parts.size()) {
+        if (numbers.stream().anyMatch(n -> n < 1 || n > parts.size())) {
             throw new IllegalArgumentException("The book has " + parts.size() + " parts with text");
         }
         if (labelling != null && labelling.ai() == null) {
@@ -721,7 +849,7 @@ public class AudiobookService {
         }
         String bookId = manuscript.getUuid();
         List<ConversionQueue.Task> tasks = new ArrayList<>();
-        for (int i = from; i <= to; i++) {
+        for (int i : numbers) {
             ChatMessage part = parts.get(i - 1);
             String uuid = part.getUuid();
             StudioScript stored = studioStore().find(uuid);
@@ -780,6 +908,16 @@ public class AudiobookService {
      * @throws IllegalArgumentException when there is no narrator voice, neither in the cast nor in the backend
      */
     public AutoResult convertFinishedPart(Manuscript manuscript, ChatMessage part, Consumer<ConversionJob.Snapshot> onFinished) throws Exception {
+        return convertFinishedPart(manuscript, part, null, onFinished);
+    }
+
+    /**
+     * As {@link #convertFinishedPart(Manuscript, ChatMessage, Consumer)}, and told the id of the job when it is queued (to stop it).
+     *
+     * @param onQueued called with the id of the job before it can end; null for none
+     */
+    public AutoResult convertFinishedPart(Manuscript manuscript, ChatMessage part, Consumer<String> onQueued,
+                                          Consumer<ConversionJob.Snapshot> onFinished) throws Exception {
         AutoMode mode = autoModeOf(manuscript);
         if (mode == AutoMode.NO || part == null || part.getResponse() == null || part.getResponse().isBlank()) {
             return AutoResult.NOTHING;
@@ -803,6 +941,9 @@ public class AudiobookService {
         List<ConversionJob> jobs = convert(manuscript, backend, number, number, options, ConversionJob.Mode.PART);
         if (jobs.isEmpty()) {
             return AutoResult.NOTHING;
+        }
+        if (onQueued != null) {
+            onQueued.accept(jobs.getFirst().id());
         }
         if (onFinished != null) {
             String jobId = jobs.getFirst().id();
@@ -1064,17 +1205,37 @@ public class AudiobookService {
         List<Piece> pieces = PieceSplitter.split(text);
         SpokenForm form = spokenFormOfBook(bookId);
         StudioScript fresh;
-        if (options == null || pieces.isEmpty()) {
+        // a run without the model still reads the labels the part has for this text (made by an earlier run): plain narration would give the
+        // dialogue the voice of the narrator, and the keys of those pieces would no longer match the audio that was made
+        List<PieceLabel> kept = null;
+        if (options == null && !pieces.isEmpty()) {
+            PartLabelStore labelStore = new PartLabelStore(chatMessageService);
+            kept = labelStore.findForText(partUuid, text);
+            if (kept == null) {
+                // labels stored before the text was remembered with them: found by the key they were made under, when nothing changed since
+                kept = labelStore.find(partUuid, LabelService.cacheKey(text, labelPrompt(bookId, characters)));
+            }
+        }
+        if (pieces.isEmpty() || (options == null && kept == null)) {
             fresh = ScriptBuilder.studio(text, narrator, backend, SEED, form);
         } else {
-            String system = labelPrompt(bookId, characters);
-            LabelService.Result labels = LabelService.labels(partUuid, text, pieces, system,
-                    new LlmLabelModel(inferenceServices.forAIOrThrow(options.ai()), options.protocol()), new PartLabelStore(chatMessageService));
-            if (labels.missing() > 0) {
-                AudiobookLog.get().warn("The model left {} of {} pieces of a part without a label: the narrator reads them", labels.missing(), pieces.size());
+            Map<Integer, PieceLabel> labels = new LinkedHashMap<>();
+            if (kept != null) {
+                AudiobookLog.get().info("Labels of part {}: the stored ones are read, the model is not asked ({} pieces)", partUuid, pieces.size());
+                kept.forEach(l -> labels.putIfAbsent(l.id(), l));
+            } else {
+                String system = labelPrompt(bookId, characters);
+                LabelService.Result asked = LabelService.labels(partUuid, text, pieces, system,
+                        new LlmLabelModel(inferenceServices.forAIOrThrow(options.ai()), options.protocol()), new PartLabelStore(chatMessageService));
+                AudiobookLog.get().info("Labels of part {}: {} ({} pieces)", partUuid, asked.fromStore() ? "from the store"
+                        : "asked of the model (none stored for this text and instruction, the instruction has the characters of the book up to the part)", pieces.size());
+                if (asked.missing() > 0) {
+                    AudiobookLog.get().warn("The model left {} of {} pieces of a part without a label: the narrator reads them", asked.missing(), pieces.size());
+                }
+                labels.putAll(asked.labels());
             }
             Set<String> models = backends().stream().map(BackendConfig::getModel).collect(Collectors.toSet());
-            fresh = ScriptFromLabels.studio(text, pieces, labels.labels(), backend,
+            fresh = ScriptFromLabels.studio(text, pieces, labels, backend,
                     (speaker, delivery, language) -> cast.voice(speaker, delivery.name(), language, actors, narrator), models, SEED, form);
         }
         StudioScript merged = StudioScript.merge(stored, fresh);

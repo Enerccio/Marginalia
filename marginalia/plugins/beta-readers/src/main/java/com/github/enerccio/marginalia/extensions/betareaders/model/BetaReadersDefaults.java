@@ -8,10 +8,14 @@ import java.util.List;
  * who the personas are and how they behave; the format of the reply and the roster of the personas present are added by the plugin
  * when the request is built, so a prompt the user edits does not have to know them. {@code {{medium}}} is the prompt fragment of the
  * medium of the chat (a section, so nothing is printed without one).
+ * <p>
+ * The texts are in English, a subclass translates them; {@code BetaReadersLocalization.T.defaults()} is the one of the prompt
+ * language of the user. The ids, the names of the personas and the limits do not depend on the language and are static.
  */
-public final class BetaReadersDefaults {
+public class BetaReadersDefaults {
 
-    public static final String SINGLE_PROMPT = """
+    public String singlePrompt() {
+        return """
             You are a beta reader, talking one-on-one with the author of a work in progress. The author shows you parts of their \
             story as they write it and wants your honest, specific reactions: what works, what drags, what confuses you, what you \
             expect to happen next, and what you would change.
@@ -30,8 +34,10 @@ public final class BetaReadersDefaults {
             {{.}}
             {{/medium}}
             """;
+    }
 
-    public static final String GROUP_PROMPT = """
+    public String groupPrompt() {
+        return """
             You voice a group of beta readers who talk with the author of a work in progress and with each other. The author shows \
             the group parts of their story as they write it and wants honest, specific reactions: what works, what drags, what \
             confuses, what to expect next, and what to change.
@@ -53,14 +59,17 @@ public final class BetaReadersDefaults {
             {{.}}
             {{/medium}}
             """;
+    }
 
     /**
      * The scene of the chats when nothing sets one: an online chat. It goes into the system prompt after the prompt, unless the prompt
      * has {@code {{scene}}} in it.
      */
-    public static final String SCENE = """
+    public String scene() {
+        return """
             The conversation is an online chat: the author and the personas write to each other from wherever they are, as people do in \
             a chat room. Keep the messages short and conversational, the way people type.""";
+    }
 
     /** The id of the medium the chats use when nothing chooses one. */
     public static final String DEFAULT_MEDIUM = "book";
@@ -92,13 +101,10 @@ public final class BetaReadersDefaults {
         return maxMessages(kind, present);
     }
 
-    private BetaReadersDefaults() {
-    }
-
     /**
      * The built-in mediums; the ids are fixed, so a setting that names one keeps meaning it.
      */
-    public static List<Medium> builtInMediums() {
+    public List<Medium> builtInMediums() {
         List<Medium> mediums = new ArrayList<>();
         mediums.add(new Medium("book", "Book", "The text is a book, a work of prose fiction. React to it as readers of a novel do: "
                 + "to the prose and the voice, the characters, the pacing and the structure."));
@@ -127,7 +133,7 @@ public final class BetaReadersDefaults {
     /**
      * The personas the library starts with (new ones each time: a persona has a uuid of its own).
      */
-    public static List<Persona> starterPersonas() {
+    public List<Persona> starterPersonas() {
         List<Persona> personas = new ArrayList<>();
         personas.add(new Persona("Athena", "The Analytical Archivist. Intellectual, calm and highly objective. She focuses on the "
                 + "underlying logic of the world-building, the narrative structure and the deeper themes. Her tone is sophisticated "
@@ -152,7 +158,7 @@ public final class BetaReadersDefaults {
      * The settings of a user who has none yet: the libraries filled, the prompts, the medium, the AI and the protocol left blank
      * (the built-in ones apply).
      */
-    public static BetaReadersSettings newSettings() {
+    public BetaReadersSettings newSettings() {
         BetaReadersSettings settings = new BetaReadersSettings();
         settings.setPersonas(starterPersonas());
         settings.setMediums(builtInMediums());

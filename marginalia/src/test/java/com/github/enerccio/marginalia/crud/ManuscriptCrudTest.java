@@ -271,11 +271,11 @@ class ManuscriptCrudTest extends ExtendableCrudContract<Manuscript> {
         empty.setName("empty");
         empty = manuscriptService.save(empty);
 
-        assertThat(manuscriptService.getPov(empty)).isEqualTo(Defaults.DEFAULT_POV);
-        assertThat(manuscriptService.getTense(empty)).isEqualTo(Defaults.DEFAULT_TENSE);
-        assertThat(manuscriptService.getUserPrompt(empty)).isEqualTo(Defaults.DEFAULT_USER_PROMPT);
-        assertThat(manuscriptService.getSummaryPrompt(empty)).isEqualTo(Defaults.DEFAULT_SUMMARY_PROMPT);
-        assertThat(manuscriptService.getMasterTemplate(empty)).isEqualTo(Defaults.DEFAULT_MASTER_TEMPLATE);
+        assertThat(manuscriptService.getPov(empty)).isEqualTo(new Defaults().pov());
+        assertThat(manuscriptService.getTense(empty)).isEqualTo(new Defaults().tense());
+        assertThat(manuscriptService.getUserPrompt(empty)).isEqualTo(new Defaults().userPrompt());
+        assertThat(manuscriptService.getSummaryPrompt(empty)).isEqualTo(new Defaults().summaryPrompt());
+        assertThat(manuscriptService.getMasterTemplate(empty)).isEqualTo(new Defaults().masterTemplate());
         assertThat(manuscriptService.getBackupStrategy(empty)).isNull();
 
         UserSetting settings = settingService.getOrCreate(UserSetting.class);
@@ -287,7 +287,7 @@ class ManuscriptCrudTest extends ExtendableCrudContract<Manuscript> {
 
         assertThat(manuscriptService.getPov(empty)).isEqualTo("user pov");
         assertThat(manuscriptService.getSummaryPrompt(empty)).isEqualTo("user summary");
-        assertThat(manuscriptService.getTense(empty)).isEqualTo(Defaults.DEFAULT_TENSE);
+        assertThat(manuscriptService.getTense(empty)).isEqualTo(new Defaults().tense());
         assertThat(manuscriptService.getBackupStrategy(empty)).isEqualTo(BackupStrategy.AFTER_N_MINUTES);
         assertThat(manuscriptService.getBackupStrategyValue(empty)).isEqualTo("15");
 
@@ -311,7 +311,7 @@ class ManuscriptCrudTest extends ExtendableCrudContract<Manuscript> {
         empty = manuscriptService.save(empty);
 
         assertThat(empty.getOwner().getId()).isEqualTo(other.getId());
-        assertThat(manuscriptService.getPov(empty)).isEqualTo(Defaults.DEFAULT_POV);
+        assertThat(manuscriptService.getPov(empty)).isEqualTo(new Defaults().pov());
     }
 
     private Tag newTag(String value) throws Exception {

@@ -2,6 +2,7 @@ package com.github.enerccio.marginalia.ui.dialogs.story;
 
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.traits.*;
+import com.github.enerccio.marginalia.ui.dialogs.manuscript.GenerationHold;
 import com.vaadin.flow.component.Component;
 
 import java.util.*;
@@ -15,6 +16,8 @@ public class StoryCards<C extends Component & StoryCard> {
 
     private Map<Long, C> active = new LinkedHashMap<>();
     private C streaming;
+    // what a generation of the book holds, null when none runs
+    private GenerationHold hold;
     // how many parts of the branch are before the first card (the story loads the tail of the branch only)
     private int offset;
 
@@ -202,6 +205,50 @@ public class StoryCards<C extends Component & StoryCard> {
         if (streaming != null) {
             streaming.setFrozen(frozen);
         }
+    }
+
+    /**
+     * A generation of the book holds the story (null: none does). While it holds the whole book every card is frozen; from the
+     * inference on only the card of the part it writes is, and the others, all on the branch it continues, keep their place (their
+     * text can be edited, annotated and redrafted; delete, merge and branch are off, see {@link StoryCard#isKeptInPlace()}).
+     */
+    @PublicAPI(from = "1.8.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "hold", type = GenerationHold.class)},
+            locals = {@APILocals(name = "card", type = Component.class)})
+    public void setHold(GenerationHold hold) {
+        this.hold = hold;
+        for (C card : active.values()) {
+            applyHold(card);
+        }
+        if (streaming != null) {
+            applyHold(streaming);
+        }
+    }
+
+    @PublicAPI(from = "1.8.0",
+            returns = @APIReturn(type = GenerationHold.class))
+    public GenerationHold getHold() {
+        return hold;
+    }
+
+    /**
+     * Gives the card what the generation holds of its part (a card that is added while a generation runs).
+     */
+    @PublicAPI(from = "1.8.0",
+            returns = @APIReturn(type = void.class),
+            parameters = {@APIParameter(name = "card", type = Component.class)},
+            locals = {@APILocals(name = "id", type = Long.class)})
+    public void applyHold(C card) {
+        if (hold == null) {
+            card.setFrozen(false);
+            card.setKeptInPlace(false);
+            return;
+        }
+        Long id = card.getMessage() == null ? null : card.getMessage().getId();
+        card.setFrozen(card == streaming || id == null || hold.writes(id));
+        // the story shows the branch the generation continues: every part of it stays where it is
+        card.setKeptInPlace(true);
     }
 
 }

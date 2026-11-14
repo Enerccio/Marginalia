@@ -14,7 +14,14 @@ public final class InteractiveHelpToolsImpl extends HelpToolsImpl implements Int
      * @param uiState where the screen is read and moved through, null when the request does not come from a page
      */
     public InteractiveHelpToolsImpl(ManualService manual, UiStateSource uiState) {
-        super(manual, uiState, true);
+        this(manual, ManualPage.ENGLISH, uiState);
+    }
+
+    /**
+     * @param language code of the language of the user, the manual is read in it
+     */
+    public InteractiveHelpToolsImpl(ManualService manual, String language, UiStateSource uiState) {
+        super(manual, language, uiState, true);
     }
 
     @Override

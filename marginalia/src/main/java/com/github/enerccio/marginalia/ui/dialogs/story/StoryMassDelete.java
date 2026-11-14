@@ -1,5 +1,7 @@
 package com.github.enerccio.marginalia.ui.dialogs.story;
 
+import com.github.enerccio.marginalia.ui.widgets.Notification;
+import com.github.enerccio.marginalia.domain.service.run.Runs;
 import com.flowingcode.vaadin.addons.fontawesome.FontAwesome.Solid;
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
@@ -202,6 +204,8 @@ public class StoryMassDelete {
     private void delete() {
         Set<Long> ids = new HashSet<>(selected);
         AtomicReference<Exception> failure = new AtomicReference<>();
+        // a part a run works on (a redraft window, a translation) stays; the author is told which run has it
+        AtomicReference<Runs.Run> skipped = new AtomicReference<>();
         Manuscript start;
         try {
             start = host.refreshManuscript();
@@ -221,7 +225,12 @@ public class StoryMassDelete {
                 List<ChatMessage> branch = chatMessageService.getBranchFromLeaf(book.getActiveLeaf());
                 for (ChatMessage message : branch.reversed()) {
                     if (ids.contains(message.getId())) {
-                        book = chatMessageService.deleteNodeAndMigrateChildren(message, book, false);
+                        Runs.Run holder = Runs.holder(message, Runs.Operation.DELETE);
+                        if (holder != null) {
+                            skipped.set(holder);
+                        } else {
+                            book = chatMessageService.deleteNodeAndMigrateChildren(message, book, false);
+                        }
                         dialog.updateProgress();
                     }
                 }
@@ -232,6 +241,8 @@ public class StoryMassDelete {
         progress.setAfterAction(() -> {
             if (failure.get() != null) {
                 UIUtils.internalServerError(loc, failure.get());
+            } else if (skipped.get() != null) {
+                Notification.warning(String.format(loc.getValue(L.ERROR_HELD_BY_RUN), skipped.get().getLabel()));
             }
             deactivate();
             reload.run();

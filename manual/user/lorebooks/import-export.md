@@ -102,7 +102,7 @@ The entries are imported **disabled**: they have no filter, so enabled they woul
 for a whole book of chapters is hardly wanted. Turn on the ones you need, with a filter or [tags](entries.md#tags) -
 **Mass edit** is the quick way to do it for many entries.
 
-To put the same files into a story as parts instead, see [Importing text files](../books/story-editor.md#importing-text-files).
+To put the same files into a story as parts instead, see [Importing into the book](../books/story-editor.md#importing-into-the-book).
 
 ## Importing SillyTavern world info
 

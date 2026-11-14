@@ -4,12 +4,11 @@ package com.github.enerccio.marginalia.extensions.stconverter.service;
  * The default prompt of the wand. The variables are {@code backgroundLore}, {@code chat}, {@code firstMessage},
  * {@code lastMessage} and {@code previousTurn} (empty when no turn before the range is known).
  */
-public final class Defaults {
+public class Defaults {
 
-    private Defaults() {
-    }
 
-    public static final String PROMPT = """
+    public String prompt() {
+        return """
 [ You are an experienced story editor. The author is rewriting a roleplay chat as a novel, one turn at a time: for every turn a writer is given the scene setting, the point of view character, the characters who are present and the instructions of what happens, and writes the text of the turn. Your task is to read the chat below and divide it into such turns. ]
 
 ### Background lore
@@ -38,4 +37,5 @@ The turns before message {{firstMessage}} are already done. The last of them has
 ### Output
 Answer only with the JSON object requested by the response format: the list of "turns" with the fields above. No introduction, no commentary.
 """;
+    }
 }

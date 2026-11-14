@@ -3,7 +3,7 @@ label: Developer guide
 icon: code
 expanded: true
 order: 800
-verified: d163441bd
+verified: 8a278a19f
 covers:
   - marginalia/pom.xml
   - Dockerfile
@@ -30,10 +30,10 @@ the desktop app.
 | Persistence | Hibernate 7 (JPA), SQLite (`sqlite-jdbc`, WAL mode), Flyway migrations |
 | LLM access | [openai-java](https://github.com/openai/openai-java) against any OpenAI-compatible API, JTokkit and server tokenizers for token counts, victools and networknt json-schema-validator for structured answers |
 | Templates | Handlebars.java with SillyTavern-compatible macros |
-| Extensions | Apache Felix (OSGi), ByteBuddy agent for bytecode instrumentation of `@Extendable` classes |
+| Extensions | Apache Felix (OSGi), bytecode instrumentation of `@Extendable` classes with ByteBuddy (at build time; an agent in development runs) |
 | Server | Any Jakarta EE 11 servlet container (Servlet 6.1) - Jetty 12 in Docker and in the desktop app |
 | Tests | JUnit 6, AssertJ, Spring Test, a fake OpenAI-compatible server |
-| Manual | [Retype](https://retype.com) (sources in `manual/`, generated site in `docs/`) |
+| Manual | [Retype](https://retype.com) (sources in `manual/`, generated site in `docs/`, not in the repository) |
 
 ## Repository at a glance
 
@@ -48,8 +48,7 @@ Marginalia/
 │   ├── src/test           tests
 │   ├── libs/              code that plugins share, embedded in their bundles (`translator-common`, `http-hooks`)
 │   └── plugins/           the twenty-nine bundled extensions, each a separate Maven project
-├── manual/                this manual (Retype sources); manual/user is also packed into the WAR for the help assistant
-├── docs/                  generated manual, served by GitHub Pages
+├── manual/                this manual (Retype sources); manual/user and its translations are also packed into the WAR for the help assistant
 ├── Dockerfile, docker-compose.yml
 └── .github/workflows/     CI (desktop builds and releases)
 ```
@@ -69,10 +68,10 @@ The shortest path from a fresh clone to a running instance:
 ```sh
 git clone https://github.com/Enerccio/Marginalia.git
 cd Marginalia/marginalia
-mvn package -DskipTests                     # target/marginalia-1.7.0.war
+mvn package -DskipTests                     # target/marginalia-1.8.0.war
 ```
 
-Deploy `target/marginalia-1.7.0.war` (or the exploded `target/marginalia-1.7.0/` folder) to Tomcat 11 or Jetty 12,
+Deploy `target/marginalia-1.8.0.war` (or the exploded `target/marginalia-1.8.0/` folder) to Tomcat 11 or Jetty 12,
 or use `docker compose up --build` from the repository root. [Building from source](building.md#running-locally) has
 the details.
 

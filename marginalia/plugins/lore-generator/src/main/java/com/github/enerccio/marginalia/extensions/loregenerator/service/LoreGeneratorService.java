@@ -27,6 +27,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.github.enerccio.marginalia.extensions.loregenerator.LoreGeneratorLocalization.T;
+
 @Configurable
 public class LoreGeneratorService {
 
@@ -134,7 +136,7 @@ public class LoreGeneratorService {
             data.setGenerationPrompts(new LinkedHashMap<>());
         }
         if (data.getGenerationPrompts().isEmpty()) {
-            data.getGenerationPrompts().put(DEFAULT_GENERATION_PROMPT, Defaults.GENERATION_PROMPT);
+            data.getGenerationPrompts().put(DEFAULT_GENERATION_PROMPT, T.defaults().generationPrompt());
         }
         return data;
     }
@@ -218,11 +220,11 @@ public class LoreGeneratorService {
 
     /**
      * The prompt for compacting {@code generated}: the same lore as in the generation followed by the compaction prompt
-     * of the user ({@link Defaults#COMPACTION_PROMPT} when blank) with the generated text in it.
+     * of the user ({@link Defaults#compactionPrompt()} when blank) with the generated text in it.
      */
     public String buildCompactionPrompt(Lorebook current, LorebookEntry target, LoreScope scope, EntryLimit limit,
                                         String generated) throws Exception {
-        String prompt = StringUtils.defaultIfBlank(getData().getCompactionPrompt(), Defaults.COMPACTION_PROMPT);
+        String prompt = StringUtils.defaultIfBlank(getData().getCompactionPrompt(), T.defaults().compactionPrompt());
         // not a template: the generated text and the prompt may contain any braces
         if (prompt.contains(COMPACTION_PLACEHOLDER)) {
             prompt = StringUtils.replace(prompt, COMPACTION_PLACEHOLDER, generated);

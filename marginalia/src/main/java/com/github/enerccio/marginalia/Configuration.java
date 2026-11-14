@@ -130,15 +130,50 @@ public class Configuration implements InitializingBean {
      */
     private SecretKeySpec loadOrCreateSecretKey(File keyFile) throws IOException, GeneralSecurityException {
         if (!keyFile.exists()) {
-            Files.writeString(keyFile.toPath(), UUID.randomUUID().toString(), StandardCharsets.UTF_8);
+            createOwnerOnly(keyFile.toPath(), UUID.randomUUID().toString());
             log.info("Generated secret key {}", keyFile.getAbsolutePath());
         }
+        warnWhenReadableByOthers(keyFile.toPath());
         String key = Files.readString(keyFile.toPath(), StandardCharsets.UTF_8).trim();
         if (key.isEmpty()) {
             throw new IllegalStateException("Secret key file " + keyFile.getAbsolutePath() + " is empty");
         }
         byte[] hash = MessageDigest.getInstance("SHA-256").digest(key.getBytes(StandardCharsets.UTF_8));
         return new SecretKeySpec(hash, "AES");
+    }
+
+    /**
+     * Writes the file readable by its owner only (mode 600) from the start, so the key is never briefly readable by
+     * others. A file system without POSIX permissions (Windows) gets the plain file. The folder itself is left alone:
+     * in Docker it is a bind mount that the host user must still be able to open (backups).
+     */
+    static void createOwnerOnly(java.nio.file.Path path, String content) throws IOException {
+        try {
+            Files.createFile(path, java.nio.file.attribute.PosixFilePermissions.asFileAttribute(
+                    java.nio.file.attribute.PosixFilePermissions.fromString("rw-------")));
+        } catch (UnsupportedOperationException e) {
+            // no POSIX attributes on this file system
+        }
+        Files.writeString(path, content, StandardCharsets.UTF_8);
+    }
+
+    /**
+     * Logs a warning when the key file of an existing installation can be read by the group or everyone. Nothing is
+     * changed: the file may be shared on purpose (a bind mount read by a host user or group).
+     */
+    static boolean warnWhenReadableByOthers(java.nio.file.Path path) {
+        try {
+            Set<java.nio.file.attribute.PosixFilePermission> permissions = Files.getPosixFilePermissions(path);
+            boolean open = permissions.contains(java.nio.file.attribute.PosixFilePermission.GROUP_READ)
+                    || permissions.contains(java.nio.file.attribute.PosixFilePermission.OTHERS_READ);
+            if (open) {
+                log.warn("Secret key {} can be read by other users of this computer, it protects the API keys in the "
+                        + "database. Restrict it with: chmod 600 {}", path, path);
+            }
+            return open;
+        } catch (UnsupportedOperationException | IOException e) {
+            return false;
+        }
     }
 
     public boolean isEncrypted(String value) {

@@ -101,27 +101,34 @@ class ExtensionAIFactoryTest extends MarginaliaTestBase {
         assertThat(inferenceServices.getExtensionFactory(extensionId)).isSameAs(factory);
     }
 
+    /** The service of the factory behind the wrappers of forAI, null when there is none. */
+    private TestService plain(ExtensionAI ai) throws Exception {
+        InferenceService service = inferenceServices.forAI(ai);
+        return service == null ? null : service.unwrap(TestService.class);
+    }
+
     @Test
     void serviceComesFromTheFactoryAndIsCached() throws Exception {
         ExtensionAI ai = createExtensionAI();
 
-        InferenceService service = inferenceServices.forAI(ai);
+        // the service of the factory, behind the wrappers of forAI (the connections of the AI, the listeners)
+        TestService service = inferenceServices.forAI(ai).unwrap(TestService.class);
 
-        assertThat(service).isInstanceOf(TestService.class);
-        assertThat(((TestService) service).ai).isSameAs(ai);
-        assertThat(inferenceServices.forAI(ai)).isSameAs(service);
+        assertThat(service).isNotNull();
+        assertThat(service.ai).isSameAs(ai);
+        assertThat(inferenceServices.forAI(ai).unwrap(TestService.class)).isSameAs(service);
         assertThat(factory.created.get()).isEqualTo(1);
     }
 
     @Test
     void changingTheTypeDropsTheCachedService() throws Exception {
         ExtensionAI ai = createExtensionAI();
-        InferenceService service = inferenceServices.forAI(ai);
+        InferenceService service = plain(ai);
 
         ai.setAiType(AIType.EXTENSION);
 
         assertThat(ai.getInferenceService()).isNull();
-        assertThat(inferenceServices.forAI(ai)).isNotSameAs(service);
+        assertThat(plain(ai)).isNotSameAs(service);
     }
 
     @Test
@@ -154,14 +161,14 @@ class ExtensionAIFactoryTest extends MarginaliaTestBase {
     @Test
     void reloadedExtensionGetsANewService() throws Exception {
         ExtensionAI ai = createExtensionAI();
-        InferenceService before = inferenceServices.forAI(ai);
+        InferenceService before = plain(ai);
 
         inferenceServices.unregisterExtensionFactory(factory);
         TestFactory reloaded = new TestFactory(extensionId, "Reloaded");
         inferenceServices.registerExtensionFactory(reloaded);
         factory = reloaded;
 
-        InferenceService after = inferenceServices.forAI(ai);
+        InferenceService after = plain(ai);
 
         assertThat(after).isNotNull().isNotSameAs(before);
         assertThat(reloaded.created.get()).isEqualTo(1);
@@ -170,7 +177,7 @@ class ExtensionAIFactoryTest extends MarginaliaTestBase {
     @Test
     void serviceStaysEvenIfTheExtensionWasReloadedBetweenCalls() throws Exception {
         ExtensionAI ai = createExtensionAI();
-        InferenceService before = inferenceServices.forAI(ai);
+        InferenceService before = plain(ai);
 
         // unloaded and loaded again without anybody asking for the service in between
         inferenceServices.unregisterExtensionFactory(factory);
@@ -178,7 +185,7 @@ class ExtensionAIFactoryTest extends MarginaliaTestBase {
         inferenceServices.registerExtensionFactory(reloaded);
         factory = reloaded;
 
-        assertThat(inferenceServices.forAI(ai)).isNotSameAs(before);
+        assertThat(plain(ai)).isNotSameAs(before);
     }
 
     @Test

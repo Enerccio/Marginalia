@@ -27,6 +27,8 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.ToIntFunction;
 
+import static com.github.enerccio.marginalia.extensions.betareaders.BetaReadersLocalization.T;
+
 /**
  * Stores what the plugin keeps: its settings in the user settings and the personas (and later the chats) in the book. What is
  * stored and how it is read is {@link BetaReadersStore}; this class only loads and saves the entities.
@@ -69,7 +71,7 @@ public class BetaReadersService {
         UserSetting userSetting = settingService.getOrCreate(UserSetting.class);
         BetaReadersSettings settings = BetaReadersStore.readSettings(userSetting.getAttributes());
         if (settings == null) {
-            settings = BetaReadersDefaults.newSettings();
+            settings = T.defaults().newSettings();
             saveSettings(settings, userSetting);
             settingService.save(userSetting);
         }
@@ -83,7 +85,7 @@ public class BetaReadersService {
     public BetaReadersSettings settingsOrDefaults() {
         try {
             BetaReadersSettings settings = BetaReadersStore.readSettings(settingService.getOrCreate(UserSetting.class).getAttributes());
-            return settings != null ? settings : BetaReadersDefaults.newSettings();
+            return settings != null ? settings : T.defaults().newSettings();
         } catch (Exception e) {
             // asked from suppliers, which cannot throw a checked exception
             throw new IllegalStateException("The settings of the user can't be read", e);
@@ -133,14 +135,14 @@ public class BetaReadersService {
     }
 
     public void saveBook(Manuscript manuscript, BookData data) throws Exception {
-        Manuscript stored = manuscriptService.find(manuscript);
-        JsonObject attributes = stored.getAttributes();
-        if (attributes == null) {
-            attributes = new JsonObject();
-            stored.setAttributes(attributes);
-        }
-        BetaReadersStore.writeBook(attributes, data);
-        manuscriptService.save(stored);
+        manuscriptService.update(manuscript, stored -> {
+            JsonObject attributes = stored.getAttributes();
+            if (attributes == null) {
+                attributes = new JsonObject();
+                stored.setAttributes(attributes);
+            }
+            BetaReadersStore.writeBook(attributes, data);
+        });
     }
 
     /**
@@ -312,7 +314,7 @@ public class BetaReadersService {
      * The medium with the id: from the list of the user, else a built-in one (the user's list lost it); null when there is none.
      */
     static Medium findMedium(BetaReadersSettings settings, String id) {
-        return java.util.stream.Stream.concat(settings.getMediums().stream(), BetaReadersDefaults.builtInMediums().stream())
+        return java.util.stream.Stream.concat(settings.getMediums().stream(), T.defaults().builtInMediums().stream())
                 .filter(medium -> medium.getId().equals(id)).findFirst().orElse(null);
     }
 

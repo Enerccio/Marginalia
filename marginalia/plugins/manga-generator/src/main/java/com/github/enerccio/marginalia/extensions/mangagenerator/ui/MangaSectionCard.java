@@ -6,16 +6,17 @@ import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.CancellationToken;
 import com.github.enerccio.marginalia.domain.service.InferenceErrors;
 import com.github.enerccio.marginalia.domain.service.UsageContext;
+import com.github.enerccio.marginalia.domain.service.run.Runs;
 import com.github.enerccio.marginalia.extensions.mangagenerator.MangaGeneratorExtension;
 import com.github.enerccio.marginalia.extensions.mangagenerator.MangaGeneratorLog;
 import com.github.enerccio.marginalia.extensions.mangagenerator.model.Manga;
 import com.github.enerccio.marginalia.extensions.mangagenerator.model.MangaSection;
-import com.github.enerccio.marginalia.extensions.mangagenerator.service.Defaults;
 import com.github.enerccio.marginalia.extensions.mangagenerator.service.MangaService;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.dialogs.ConfirmDialog;
 import com.github.enerccio.marginalia.ui.dialogs.UIPushGuard;
 import com.github.enerccio.marginalia.ui.widgets.DesktopNotifier;
+import com.github.enerccio.marginalia.ui.widgets.FloatingWindow;
 import com.github.enerccio.marginalia.ui.widgets.Notification;
 import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.UI;
@@ -93,6 +94,7 @@ public class MangaSectionCard extends VerticalLayout {
     private boolean frozen;
     private boolean generatingTags;
     private CancellationToken activeToken;
+    private FloatingWindow window;
 
     public MangaSectionCard(MangaService service, Manuscript manuscript, Manga manga, MangaSection section, int number,
                             Supplier<MangaSection> previous, Runnable onChange, Consumer<Boolean> onRun, Runnable onDelete) {
@@ -114,10 +116,18 @@ public class MangaSectionCard extends VerticalLayout {
         refreshView();
     }
 
+    /**
+     * The window of the card: its run is the one the requests report to, and while it is folded into the corner (detached) the
+     * generation goes on.
+     */
+    public void setWindow(FloatingWindow window) {
+        this.window = window;
+    }
+
     @Override
     protected void onDetach(DetachEvent detachEvent) {
         super.onDetach(detachEvent);
-        if (activeToken != null) {
+        if (activeToken != null && (window == null || !window.isMinimised())) {
             // the window was closed, what came in so far is kept
             activeToken.cancel();
         }
@@ -330,11 +340,11 @@ public class MangaSectionCard extends VerticalLayout {
     // --- overrides ---
 
     private String inheritedPrompt() {
-        return StringUtils.defaultIfBlank(manga.getPromptOverride(), Defaults.DEFAULT_PROMPT);
+        return StringUtils.defaultIfBlank(manga.getPromptOverride(), T.defaults().prompt());
     }
 
     private String inheritedTagsPrompt() {
-        return StringUtils.defaultIfBlank(manga.getTagsPromptOverride(), Defaults.DEFAULT_TAGS_PROMPT);
+        return StringUtils.defaultIfBlank(manga.getTagsPromptOverride(), T.defaults().tagsPrompt());
     }
 
     private void editOverride(String title, String current, String inherited, Consumer<String> setter) {
@@ -467,7 +477,7 @@ public class MangaSectionCard extends VerticalLayout {
             }
             generatingTags = tags;
             // the tokens and the time of the request are the book's
-            try (UsageContext _ = UsageContext.open(manuscript)) {
+            try (UsageContext _ = UsageContext.open(manuscript); Runs.Binding _ = window == null ? null : window.bind()) {
                 activeToken = service.stream(request, new Streaming(ui, tags, whenDone));
             }
             onRun.accept(true);

@@ -82,7 +82,7 @@ again and again (and a server that keeps a prompt cache can reuse it). Choose wh
 
 In both it ends when you press **Stop continuous mode** (the button turns into it; what the model has written so far is kept). A failure
 of the model, a section with no text in its parts, or an empty answer stops it too, with a message. While it runs the sections cannot
-be generated or changed by hand, and the mangas cannot be changed; closing the window stops it. Each section it works on is scrolled
+be generated or changed by hand, and the mangas cannot be changed. Closing the window while it runs folds it into the [panel of the runs](../books/story-editor.md#the-panel-of-the-runs) and it goes on; closing it there stops it. Each section it works on is scrolled
 into view. To get both, run *Scripts only* first and *Tags only* after it.
 
 ## The lore and the size of the context

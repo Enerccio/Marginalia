@@ -1,6 +1,10 @@
 package com.github.enerccio.marginalia.extensions.arcoutline;
 
 import com.github.enerccio.marginalia.extensions.PluginLocalizationBundle;
+import com.github.enerccio.marginalia.extensions.arcoutline.service.*;
+import com.github.enerccio.marginalia.loc.Language;
+
+import java.util.Map;
 
 /**
  * Texts of the Arc Outline in the languages besides English; the English text is the key.
@@ -8,6 +12,18 @@ import com.github.enerccio.marginalia.extensions.PluginLocalizationBundle;
 public class ArcOutlineLocalization extends PluginLocalizationBundle {
 
     public static final ArcOutlineLocalization T = new ArcOutlineLocalization();
+
+    // the built-in prompts of the plugin, one object per prompt language
+    private final Defaults englishDefaults = new Defaults();
+    private final Map<Language, Defaults> translatedDefaults = Map.of(JA, new DefaultsJA(), ZH, new DefaultsZH(), FR, new DefaultsFR(), ES, new DefaultsES(), DE, new DefaultsDE(),
+            IT, new DefaultsIT(), KO, new DefaultsKO());
+
+    /**
+     * The built-in prompts of the plugin in the prompt language of the user.
+     */
+    public Defaults defaults() {
+        return forPromptLanguage(englishDefaults, translatedDefaults);
+    }
 
     public static final String ARCS = "Arcs";
     public static final String ARC_OUTLINE = "Arc Outline";
@@ -195,541 +211,1441 @@ public class ArcOutlineLocalization extends PluginLocalizationBundle {
     protected void loadKeys() {
         ja(ARCS, "アーク");
         zh(ARCS, "故事弧");
+        fr(ARCS, "Arcs");
+        es(ARCS, "Arcos");
+        de(ARCS, "Handlungsbögen");
+        ko(ARCS, "아크");
+        it(ARCS, "Archi");
 
         ja(ARC_OUTLINE, "アークアウトライン");
         zh(ARC_OUTLINE, "故事弧大纲");
+        fr(ARC_OUTLINE, "Plan des arcs");
+        es(ARC_OUTLINE, "Esquema de arcos");
+        de(ARC_OUTLINE, "Gliederung der Handlungsbögen");
+        ko(ARC_OUTLINE, "아크 개요");
+        it(ARC_OUTLINE, "Struttura degli archi");
 
         ja(ADD_NEW_ARC, "新しいアークを追加");
         zh(ADD_NEW_ARC, "添加新故事弧");
+        fr(ADD_NEW_ARC, "Ajouter un nouvel arc");
+        es(ADD_NEW_ARC, "Añadir arco nuevo");
+        de(ADD_NEW_ARC, "Neuen Handlungsbogen hinzufügen");
+        ko(ADD_NEW_ARC, "새 아크 추가");
+        it(ADD_NEW_ARC, "Aggiungi un nuovo arco");
 
         ja(NEW_ARC, "新しいアーク");
         zh(NEW_ARC, "新故事弧");
+        fr(NEW_ARC, "Nouvel arc");
+        es(NEW_ARC, "Arco nuevo");
+        de(NEW_ARC, "Neuer Handlungsbogen");
+        ko(NEW_ARC, "새 아크");
+        it(NEW_ARC, "Nuovo arco");
 
         ja(GENERATE_AN_ARC, "アークを生成");
         zh(GENERATE_AN_ARC, "生成故事弧");
+        fr(GENERATE_AN_ARC, "Générer un arc");
+        es(GENERATE_AN_ARC, "Generar un arco");
+        de(GENERATE_AN_ARC, "Einen Handlungsbogen generieren");
+        ko(GENERATE_AN_ARC, "아크 생성");
+        it(GENERATE_AN_ARC, "Genera un arco");
 
         ja(IMPORT_FROM_STORY, "ストーリーからインポート");
         zh(IMPORT_FROM_STORY, "从故事导入");
+        fr(IMPORT_FROM_STORY, "Importer depuis l'histoire");
+        es(IMPORT_FROM_STORY, "Importar desde la historia");
+        de(IMPORT_FROM_STORY, "Aus der Geschichte importieren");
+        ko(IMPORT_FROM_STORY, "이야기에서 가져오기");
+        it(IMPORT_FROM_STORY, "Importa dalla storia");
 
         ja(DRAFT_THE_INSTRUCTIONS, "現在の章の指示を下書き");
         zh(DRAFT_THE_INSTRUCTIONS, "起草当前章节的指令");
+        fr(DRAFT_THE_INSTRUCTIONS, "Rédiger les instructions du chapitre en cours");
+        es(DRAFT_THE_INSTRUCTIONS, "Redactar las instrucciones del capítulo actual");
+        de(DRAFT_THE_INSTRUCTIONS, "Die Anweisungen für das aktuelle Kapitel entwerfen");
+        ko(DRAFT_THE_INSTRUCTIONS, "현재 챕터의 지시문 초안 작성");
+        it(DRAFT_THE_INSTRUCTIONS, "Abbozza le istruzioni per il capitolo attuale");
 
         ja(THERE_IS_NO_CURRENT_CHAPTER, "現在の章がありません。章を「現在」にするか、「計画中」の章を残してください");
         zh(THERE_IS_NO_CURRENT_CHAPTER, "没有当前章节：请将某一章标记为当前，或保留一个计划中的章节");
+        fr(THERE_IS_NO_CURRENT_CHAPTER, "Il n'y a pas de chapitre en cours : marquez-en un comme en cours, ou laissez-en un planifié");
+        es(THERE_IS_NO_CURRENT_CHAPTER, "No hay ningún capítulo actual: marca uno como actual, o deja uno planificado");
+        de(THERE_IS_NO_CURRENT_CHAPTER, "Es gibt kein aktuelles Kapitel: Markiere eines als aktuell oder lass eines geplant");
+        ko(THERE_IS_NO_CURRENT_CHAPTER, "현재 챕터가 없습니다: 하나를 현재로 표시하거나 계획 상태로 남겨 두세요");
+        it(THERE_IS_NO_CURRENT_CHAPTER, "Non c'è un capitolo attuale: contrassegnane uno come attuale, oppure lasciane uno pianificato");
 
         ja(THE_STORY_HAS_NO_PLACE, "ストーリーに指示を入れる場所がありません");
         zh(THE_STORY_HAS_NO_PLACE, "故事中没有放置指令的位置");
+        fr(THE_STORY_HAS_NO_PLACE, "L'histoire n'a pas de place pour les instructions");
+        es(THE_STORY_HAS_NO_PLACE, "La historia no tiene dónde poner las instrucciones");
+        de(THE_STORY_HAS_NO_PLACE, "Die Geschichte hat keinen Platz für die Anweisungen");
+        ko(THE_STORY_HAS_NO_PLACE, "이야기에 지시문을 넣을 곳이 없습니다");
+        it(THE_STORY_HAS_NO_PLACE, "La storia non ha un posto per le istruzioni");
 
         ja(THE_ACTIVE_BRANCH_HAS_NO_TEXT, "アクティブなブランチにインポートするテキストがありません");
         zh(THE_ACTIVE_BRANCH_HAS_NO_TEXT, "活动分支中没有可导入的文本");
+        fr(THE_ACTIVE_BRANCH_HAS_NO_TEXT, "La branche active n'a pas de texte à importer");
+        es(THE_ACTIVE_BRANCH_HAS_NO_TEXT, "La rama activa no tiene texto que importar");
+        de(THE_ACTIVE_BRANCH_HAS_NO_TEXT, "Der aktive Zweig hat keinen Text zum Importieren");
+        ko(THE_ACTIVE_BRANCH_HAS_NO_TEXT, "활성 분기에 가져올 텍스트가 없습니다");
+        it(THE_ACTIVE_BRANCH_HAS_NO_TEXT, "Il ramo attivo non ha testo da importare");
 
         ja(THERE_ARE_NO_ARCS_YET, "アークはまだありません。");
         zh(THERE_ARE_NO_ARCS_YET, "还没有故事弧。");
+        fr(THERE_ARE_NO_ARCS_YET, "Il n'y a pas encore d'arcs.");
+        es(THERE_ARE_NO_ARCS_YET, "Todavía no hay arcos.");
+        de(THERE_ARE_NO_ARCS_YET, "Es gibt noch keine Handlungsbögen.");
+        ko(THERE_ARE_NO_ARCS_YET, "아직 아크가 없습니다.");
+        it(THERE_ARE_NO_ARCS_YET, "Non ci sono ancora archi.");
 
         ja(SHOW_CHAPTERS, "章を表示");
         zh(SHOW_CHAPTERS, "显示章节");
+        fr(SHOW_CHAPTERS, "Afficher les chapitres");
+        es(SHOW_CHAPTERS, "Mostrar capítulos");
+        de(SHOW_CHAPTERS, "Kapitel anzeigen");
+        ko(SHOW_CHAPTERS, "챕터 표시");
+        it(SHOW_CHAPTERS, "Mostra i capitoli");
 
         ja(HIDE_CHAPTERS, "章を非表示");
         zh(HIDE_CHAPTERS, "隐藏章节");
+        fr(HIDE_CHAPTERS, "Masquer les chapitres");
+        es(HIDE_CHAPTERS, "Ocultar capítulos");
+        de(HIDE_CHAPTERS, "Kapitel ausblenden");
+        ko(HIDE_CHAPTERS, "챕터 숨기기");
+        it(HIDE_CHAPTERS, "Nascondi i capitoli");
 
         ja(MOVE_ARC_UP, "アークを上へ移動");
         zh(MOVE_ARC_UP, "上移故事弧");
+        fr(MOVE_ARC_UP, "Monter l'arc");
+        es(MOVE_ARC_UP, "Subir el arco");
+        de(MOVE_ARC_UP, "Handlungsbogen nach oben");
+        ko(MOVE_ARC_UP, "아크 위로 이동");
+        it(MOVE_ARC_UP, "Sposta l'arco su");
 
         ja(MOVE_ARC_DOWN, "アークを下へ移動");
         zh(MOVE_ARC_DOWN, "下移故事弧");
+        fr(MOVE_ARC_DOWN, "Descendre l'arc");
+        es(MOVE_ARC_DOWN, "Bajar el arco");
+        de(MOVE_ARC_DOWN, "Handlungsbogen nach unten");
+        ko(MOVE_ARC_DOWN, "아크 아래로 이동");
+        it(MOVE_ARC_DOWN, "Sposta l'arco giù");
 
         ja(ADD_CHAPTER, "章を追加");
         zh(ADD_CHAPTER, "添加章节");
+        fr(ADD_CHAPTER, "Ajouter un chapitre");
+        es(ADD_CHAPTER, "Añadir capítulo");
+        de(ADD_CHAPTER, "Kapitel hinzufügen");
+        ko(ADD_CHAPTER, "챕터 추가");
+        it(ADD_CHAPTER, "Aggiungi capitolo");
 
         ja(NEW_CHAPTER, "「%s」の新しい章");
         zh(NEW_CHAPTER, "“%s”中的新章节");
+        fr(NEW_CHAPTER, "Nouveau chapitre dans %s");
+        es(NEW_CHAPTER, "Capítulo nuevo en %s");
+        de(NEW_CHAPTER, "Neues Kapitel in %s");
+        ko(NEW_CHAPTER, "%s의 새 챕터");
+        it(NEW_CHAPTER, "Nuovo capitolo in %s");
 
         ja(GENERATE_CHAPTERS, "章を生成");
         zh(GENERATE_CHAPTERS, "生成章节");
+        fr(GENERATE_CHAPTERS, "Générer des chapitres");
+        es(GENERATE_CHAPTERS, "Generar capítulos");
+        de(GENERATE_CHAPTERS, "Kapitel generieren");
+        ko(GENERATE_CHAPTERS, "챕터 생성");
+        it(GENERATE_CHAPTERS, "Genera i capitoli");
 
         ja(EDIT_ARC, "アークを編集");
         zh(EDIT_ARC, "编辑故事弧");
+        fr(EDIT_ARC, "Modifier l'arc");
+        es(EDIT_ARC, "Editar arco");
+        de(EDIT_ARC, "Handlungsbogen bearbeiten");
+        ko(EDIT_ARC, "아크 편집");
+        it(EDIT_ARC, "Modifica l'arco");
 
         ja(DELETE_ARC, "アークを削除");
         zh(DELETE_ARC, "删除故事弧");
+        fr(DELETE_ARC, "Supprimer l'arc");
+        es(DELETE_ARC, "Eliminar arco");
+        de(DELETE_ARC, "Handlungsbogen löschen");
+        ko(DELETE_ARC, "아크 삭제");
+        it(DELETE_ARC, "Elimina l'arco");
 
         ja(MOVE_CHAPTER_UP, "章を上へ移動");
         zh(MOVE_CHAPTER_UP, "上移章节");
+        fr(MOVE_CHAPTER_UP, "Monter le chapitre");
+        es(MOVE_CHAPTER_UP, "Subir el capítulo");
+        de(MOVE_CHAPTER_UP, "Kapitel nach oben");
+        ko(MOVE_CHAPTER_UP, "챕터 위로 이동");
+        it(MOVE_CHAPTER_UP, "Sposta il capitolo su");
 
         ja(MOVE_CHAPTER_DOWN, "章を下へ移動");
         zh(MOVE_CHAPTER_DOWN, "下移章节");
+        fr(MOVE_CHAPTER_DOWN, "Descendre le chapitre");
+        es(MOVE_CHAPTER_DOWN, "Bajar el capítulo");
+        de(MOVE_CHAPTER_DOWN, "Kapitel nach unten");
+        ko(MOVE_CHAPTER_DOWN, "챕터 아래로 이동");
+        it(MOVE_CHAPTER_DOWN, "Sposta il capitolo giù");
 
         ja(EDIT_CHAPTER, "章を編集");
         zh(EDIT_CHAPTER, "编辑章节");
+        fr(EDIT_CHAPTER, "Modifier le chapitre");
+        es(EDIT_CHAPTER, "Editar capítulo");
+        de(EDIT_CHAPTER, "Kapitel bearbeiten");
+        ko(EDIT_CHAPTER, "챕터 편집");
+        it(EDIT_CHAPTER, "Modifica il capitolo");
 
         ja(DELETE_CHAPTER, "章を削除");
         zh(DELETE_CHAPTER, "删除章节");
+        fr(DELETE_CHAPTER, "Supprimer le chapitre");
+        es(DELETE_CHAPTER, "Eliminar capítulo");
+        de(DELETE_CHAPTER, "Kapitel löschen");
+        ko(DELETE_CHAPTER, "챕터 삭제");
+        it(DELETE_CHAPTER, "Elimina il capitolo");
 
         ja(HIDE_THE_NOTE, "メモを隠す");
         zh(HIDE_THE_NOTE, "隐藏备注");
+        fr(HIDE_THE_NOTE, "Masquer la note");
+        es(HIDE_THE_NOTE, "Ocultar la nota");
+        de(HIDE_THE_NOTE, "Die Notiz ausblenden");
+        ko(HIDE_THE_NOTE, "메모 숨기기");
+        it(HIDE_THE_NOTE, "Nascondi la nota");
 
         ja(SHOW_THE_NOTE, "メモを表示");
         zh(SHOW_THE_NOTE, "显示备注");
+        fr(SHOW_THE_NOTE, "Afficher la note");
+        es(SHOW_THE_NOTE, "Mostrar la nota");
+        de(SHOW_THE_NOTE, "Die Notiz anzeigen");
+        ko(SHOW_THE_NOTE, "메모 표시");
+        it(SHOW_THE_NOTE, "Mostra la nota");
 
         ja(GENERATED_BY_THE_MODEL_SHOW, "モデルが生成 - 推論と回答を表示");
         zh(GENERATED_BY_THE_MODEL_SHOW, "由模型生成 - 显示推理和回答");
+        fr(GENERATED_BY_THE_MODEL_SHOW, "Généré par le modèle - afficher le raisonnement et la réponse");
+        es(GENERATED_BY_THE_MODEL_SHOW, "Generado por el modelo: mostrar el razonamiento y la respuesta");
+        de(GENERATED_BY_THE_MODEL_SHOW, "Vom Modell generiert – das Reasoning und die Antwort anzeigen");
+        ko(GENERATED_BY_THE_MODEL_SHOW, "모델이 생성함 - 추론과 응답 보기");
+        it(GENERATED_BY_THE_MODEL_SHOW, "Generato dal modello - mostra il ragionamento e la risposta");
 
         ja(REASONING, "推論");
         zh(REASONING, "推理");
+        fr(REASONING, "Raisonnement");
+        es(REASONING, "Razonamiento");
+        de(REASONING, "Reasoning");
+        ko(REASONING, "추론");
+        it(REASONING, "Ragionamento");
 
         ja(ANSWER, "回答");
         zh(ANSWER, "回答");
+        fr(ANSWER, "Réponse");
+        es(ANSWER, "Respuesta");
+        de(ANSWER, "Antwort");
+        ko(ANSWER, "응답");
+        it(ANSWER, "Risposta");
 
         ja(CHANGE_THE_STATE, "%s - 状態を変更");
         zh(CHANGE_THE_STATE, "%s - 更改状态");
+        fr(CHANGE_THE_STATE, "%s - changer l'état");
+        es(CHANGE_THE_STATE, "%s - cambiar el estado");
+        de(CHANGE_THE_STATE, "%s – den Zustand ändern");
+        ko(CHANGE_THE_STATE, "%s - 상태 변경");
+        it(CHANGE_THE_STATE, "%s - cambia lo stato");
 
         ja(PLANNED, "計画中");
         zh(PLANNED, "计划中");
+        fr(PLANNED, "Planifié");
+        es(PLANNED, "Planificado");
+        de(PLANNED, "Geplant");
+        ko(PLANNED, "계획됨");
+        it(PLANNED, "Pianificato");
 
         ja(CURRENT, "現在");
         zh(CURRENT, "当前");
+        fr(CURRENT, "En cours");
+        es(CURRENT, "Actual");
+        de(CURRENT, "Aktuell");
+        ko(CURRENT, "현재");
+        it(CURRENT, "Attuale");
 
         ja(FINISHED, "完了");
         zh(FINISHED, "已完成");
+        fr(FINISHED, "Terminé");
+        es(FINISHED, "Terminado");
+        de(FINISHED, "Abgeschlossen");
+        ko(FINISHED, "완료됨");
+        it(FINISHED, "Terminato");
 
         ja(DELETE_THE_ARC, "アーク「%s」を削除しますか？");
         zh(DELETE_THE_ARC, "要删除故事弧“%s”吗？");
+        fr(DELETE_THE_ARC, "Supprimer l'arc %s ?");
+        es(DELETE_THE_ARC, "¿Eliminar el arco %s?");
+        de(DELETE_THE_ARC, "Den Handlungsbogen %s löschen?");
+        ko(DELETE_THE_ARC, "아크 %s을(를) 삭제하시겠습니까?");
+        it(DELETE_THE_ARC, "Eliminare l'arco %s?");
 
         ja(DELETE_THE_ARC_WITH_ITS_CHAPTER, "アーク「%s」とその%d個の章を削除しますか？");
         zh(DELETE_THE_ARC_WITH_ITS_CHAPTER, "要删除故事弧“%s”及其 %d 个章节吗？");
+        fr(DELETE_THE_ARC_WITH_ITS_CHAPTER, "Supprimer l'arc %s avec son %d chapitre ?");
+        es(DELETE_THE_ARC_WITH_ITS_CHAPTER, "¿Eliminar el arco %s con su %d capítulo?");
+        de(DELETE_THE_ARC_WITH_ITS_CHAPTER, "Den Handlungsbogen %s mit seinem %d Kapitel löschen?");
+        ko(DELETE_THE_ARC_WITH_ITS_CHAPTER, "아크 %s과(와) 챕터 %d개를 삭제하시겠습니까?");
+        it(DELETE_THE_ARC_WITH_ITS_CHAPTER, "Eliminare l'arco %s con il suo %d capitolo?");
 
         ja(DELETE_THE_ARC_WITH_ITS_CHAPTERS, "アーク「%s」とその%d個の章を削除しますか？");
         zh(DELETE_THE_ARC_WITH_ITS_CHAPTERS, "要删除故事弧“%s”及其 %d 个章节吗？");
+        fr(DELETE_THE_ARC_WITH_ITS_CHAPTERS, "Supprimer l'arc %s avec ses %d chapitres ?");
+        es(DELETE_THE_ARC_WITH_ITS_CHAPTERS, "¿Eliminar el arco %s con sus %d capítulos?");
+        de(DELETE_THE_ARC_WITH_ITS_CHAPTERS, "Den Handlungsbogen %s mit seinen %d Kapiteln löschen?");
+        ko(DELETE_THE_ARC_WITH_ITS_CHAPTERS, "아크 %s과(와) 챕터 %d개를 삭제하시겠습니까?");
+        it(DELETE_THE_ARC_WITH_ITS_CHAPTERS, "Eliminare l'arco %s con i suoi %d capitoli?");
 
         ja(DELETE_THE_CHAPTER, "章「%s」を削除しますか？");
         zh(DELETE_THE_CHAPTER, "要删除章节“%s”吗？");
+        fr(DELETE_THE_CHAPTER, "Supprimer le chapitre %s ?");
+        es(DELETE_THE_CHAPTER, "¿Eliminar el capítulo %s?");
+        de(DELETE_THE_CHAPTER, "Das Kapitel %s löschen?");
+        ko(DELETE_THE_CHAPTER, "챕터 %s을(를) 삭제하시겠습니까?");
+        it(DELETE_THE_CHAPTER, "Eliminare il capitolo %s?");
 
         ja(TITLE, "タイトル");
         zh(TITLE, "标题");
+        fr(TITLE, "Titre");
+        es(TITLE, "Título");
+        de(TITLE, "Titel");
+        ko(TITLE, "제목");
+        it(TITLE, "Titolo");
 
         ja(DESCRIPTION, "説明");
         zh(DESCRIPTION, "描述");
+        fr(DESCRIPTION, "Description");
+        es(DESCRIPTION, "Descripción");
+        de(DESCRIPTION, "Beschreibung");
+        ko(DESCRIPTION, "설명");
+        it(DESCRIPTION, "Descrizione");
 
         ja(NOTE_PRIVATE, "メモ（非公開）");
         zh(NOTE_PRIVATE, "备注（私密）");
+        fr(NOTE_PRIVATE, "Note (privée)");
+        es(NOTE_PRIVATE, "Nota (privada)");
+        de(NOTE_PRIVATE, "Notiz (privat)");
+        ko(NOTE_PRIVATE, "메모 (비공개)");
+        it(NOTE_PRIVATE, "Nota (privata)");
 
         ja(STATE, "状態");
         zh(STATE, "状态");
+        fr(STATE, "État");
+        es(STATE, "Estado");
+        de(STATE, "Zustand");
+        ko(STATE, "상태");
+        it(STATE, "Stato");
 
         ja(SAVE, "保存");
         zh(SAVE, "保存");
+        fr(SAVE, "Enregistrer");
+        es(SAVE, "Guardar");
+        de(SAVE, "Speichern");
+        ko(SAVE, "저장");
+        it(SAVE, "Salva");
 
         ja(CANCEL, "キャンセル");
         zh(CANCEL, "取消");
+        fr(CANCEL, "Annuler");
+        es(CANCEL, "Cancelar");
+        de(CANCEL, "Abbrechen");
+        ko(CANCEL, "취소");
+        it(CANCEL, "Annulla");
 
         ja(THE_TITLE_IS_REQUIRED, "タイトルは必須です");
         zh(THE_TITLE_IS_REQUIRED, "标题为必填项");
+        fr(THE_TITLE_IS_REQUIRED, "Le titre est obligatoire");
+        es(THE_TITLE_IS_REQUIRED, "El título es obligatorio");
+        de(THE_TITLE_IS_REQUIRED, "Der Titel ist erforderlich");
+        ko(THE_TITLE_IS_REQUIRED, "제목은 필수입니다");
+        it(THE_TITLE_IS_REQUIRED, "Il titolo è obbligatorio");
 
         ja(ARC_GENERATION_PROMPT, "アーク生成プロンプト");
         zh(ARC_GENERATION_PROMPT, "故事弧生成提示词");
+        fr(ARC_GENERATION_PROMPT, "Prompt de génération d'arc");
+        es(ARC_GENERATION_PROMPT, "Prompt de generación de arcos");
+        de(ARC_GENERATION_PROMPT, "Prompt zur Generierung von Handlungsbögen");
+        ko(ARC_GENERATION_PROMPT, "아크 생성 프롬프트");
+        it(ARC_GENERATION_PROMPT, "Prompt di generazione dell'arco");
 
         ja(TEMPLATE_VARIABLES_BACKGROUNDLORE, "テンプレート。変数: {{backgroundLore}}, {{existingArcs}}, {{specification}}。空欄の場合はデフォルトのプロンプトを使用します。");
         zh(TEMPLATE_VARIABLES_BACKGROUNDLORE, "模板。变量：{{backgroundLore}}、{{existingArcs}}、{{specification}}。留空：使用默认提示词。");
+        fr(TEMPLATE_VARIABLES_BACKGROUNDLORE, "Modèle. Variables : {{backgroundLore}}, {{existingArcs}}, {{specification}}. Vide : le prompt par défaut.");
+        es(TEMPLATE_VARIABLES_BACKGROUNDLORE, "Plantilla. Variables: {{backgroundLore}}, {{existingArcs}}, {{specification}}. Vacío: el prompt predeterminado.");
+        de(TEMPLATE_VARIABLES_BACKGROUNDLORE, "Vorlage. Variablen: {{backgroundLore}}, {{existingArcs}}, {{specification}}. Leer: der Standardprompt.");
+        ko(TEMPLATE_VARIABLES_BACKGROUNDLORE, "템플릿. 변수: {{backgroundLore}}, {{existingArcs}}, {{specification}}. 비워 두면 기본 프롬프트.");
+        it(TEMPLATE_VARIABLES_BACKGROUNDLORE, "Template. Variabili: {{backgroundLore}}, {{existingArcs}}, {{specification}}. Vuoto: il prompt predefinito.");
 
         ja(CHAPTER_GENERATION_PROMPT, "章生成プロンプト");
         zh(CHAPTER_GENERATION_PROMPT, "章节生成提示词");
+        fr(CHAPTER_GENERATION_PROMPT, "Prompt de génération de chapitres");
+        es(CHAPTER_GENERATION_PROMPT, "Prompt de generación de capítulos");
+        de(CHAPTER_GENERATION_PROMPT, "Prompt zur Generierung von Kapiteln");
+        ko(CHAPTER_GENERATION_PROMPT, "챕터 생성 프롬프트");
+        it(CHAPTER_GENERATION_PROMPT, "Prompt di generazione dei capitoli");
 
         ja(TEMPLATE_VARIABLES_BACKGROUNDLORE_OUTLINE, "テンプレート。変数: {{backgroundLore}}, {{outline}}, {{numberOfChapters}}, {{generalSpecification}}, {{chapterSpecification}}。空欄の場合はデフォルトのプロンプトを使用します。");
         zh(TEMPLATE_VARIABLES_BACKGROUNDLORE_OUTLINE, "模板。变量：{{backgroundLore}}、{{outline}}、{{numberOfChapters}}、{{generalSpecification}}、{{chapterSpecification}}。留空：使用默认提示词。");
+        fr(TEMPLATE_VARIABLES_BACKGROUNDLORE_OUTLINE, "Modèle. Variables : {{backgroundLore}}, {{outline}}, {{numberOfChapters}}, {{generalSpecification}}, {{chapterSpecification}}. Vide : le prompt par défaut.");
+        es(TEMPLATE_VARIABLES_BACKGROUNDLORE_OUTLINE, "Plantilla. Variables: {{backgroundLore}}, {{outline}}, {{numberOfChapters}}, {{generalSpecification}}, {{chapterSpecification}}. Vacío: el prompt predeterminado.");
+        de(TEMPLATE_VARIABLES_BACKGROUNDLORE_OUTLINE, "Vorlage. Variablen: {{backgroundLore}}, {{outline}}, {{numberOfChapters}}, {{generalSpecification}}, {{chapterSpecification}}. Leer: der Standardprompt.");
+        ko(TEMPLATE_VARIABLES_BACKGROUNDLORE_OUTLINE, "템플릿. 변수: {{backgroundLore}}, {{outline}}, {{numberOfChapters}}, {{generalSpecification}}, {{chapterSpecification}}. 비워 두면 기본 프롬프트.");
+        it(TEMPLATE_VARIABLES_BACKGROUNDLORE_OUTLINE, "Template. Variabili: {{backgroundLore}}, {{outline}}, {{numberOfChapters}}, {{generalSpecification}}, {{chapterSpecification}}. Vuoto: il prompt predefinito.");
 
         ja(STORY_IMPORT_PROMPT, "ストーリーインポートプロンプト");
         zh(STORY_IMPORT_PROMPT, "故事导入提示词");
+        fr(STORY_IMPORT_PROMPT, "Prompt d'import depuis l'histoire");
+        es(STORY_IMPORT_PROMPT, "Prompt de importación de la historia");
+        de(STORY_IMPORT_PROMPT, "Prompt für den Import der Geschichte");
+        ko(STORY_IMPORT_PROMPT, "이야기 가져오기 프롬프트");
+        it(STORY_IMPORT_PROMPT, "Prompt di importazione della storia");
 
         ja(TEMPLATE_VARIABLES_BACKGROUNDLORE_EXISTINGARCS, "テンプレート。変数: {{backgroundLore}}, {{existingArcs}}, {{story}}, {{numberOfChapters}}。空欄の場合はデフォルトのプロンプトを使用します。");
         zh(TEMPLATE_VARIABLES_BACKGROUNDLORE_EXISTINGARCS, "模板。变量：{{backgroundLore}}、{{existingArcs}}、{{story}}、{{numberOfChapters}}。留空：使用默认提示词。");
+        fr(TEMPLATE_VARIABLES_BACKGROUNDLORE_EXISTINGARCS, "Modèle. Variables : {{backgroundLore}}, {{existingArcs}}, {{story}}, {{numberOfChapters}}. Vide : le prompt par défaut.");
+        es(TEMPLATE_VARIABLES_BACKGROUNDLORE_EXISTINGARCS, "Plantilla. Variables: {{backgroundLore}}, {{existingArcs}}, {{story}}, {{numberOfChapters}}. Vacío: el prompt predeterminado.");
+        de(TEMPLATE_VARIABLES_BACKGROUNDLORE_EXISTINGARCS, "Vorlage. Variablen: {{backgroundLore}}, {{existingArcs}}, {{story}}, {{numberOfChapters}}. Leer: der Standardprompt.");
+        ko(TEMPLATE_VARIABLES_BACKGROUNDLORE_EXISTINGARCS, "템플릿. 변수: {{backgroundLore}}, {{existingArcs}}, {{story}}, {{numberOfChapters}}. 비워 두면 기본 프롬프트.");
+        it(TEMPLATE_VARIABLES_BACKGROUNDLORE_EXISTINGARCS, "Template. Variabili: {{backgroundLore}}, {{existingArcs}}, {{story}}, {{numberOfChapters}}. Vuoto: il prompt predefinito.");
 
         ja(SAVE_AS_ARC, "アークとして保存");
         zh(SAVE_AS_ARC, "保存为故事弧");
+        fr(SAVE_AS_ARC, "Enregistrer comme arc");
+        es(SAVE_AS_ARC, "Guardar como arco");
+        de(SAVE_AS_ARC, "Als Handlungsbogen speichern");
+        ko(SAVE_AS_ARC, "아크로 저장");
+        it(SAVE_AS_ARC, "Salva come arco");
 
         ja(SPECIFICATION, "仕様");
         zh(SPECIFICATION, "需求说明");
+        fr(SPECIFICATION, "Spécification");
+        es(SPECIFICATION, "Especificación");
+        de(SPECIFICATION, "Vorgabe");
+        ko(SPECIFICATION, "명세");
+        it(SPECIFICATION, "Specifica");
 
         ja(WHAT_YOU_WANT_FROM_THE_ARC, "アークに求めるもの: テーマ、キャラクター、どこへ向かうか...");
         zh(WHAT_YOU_WANT_FROM_THE_ARC, "你希望故事弧具备什么：主题、角色、走向……");
+        fr(WHAT_YOU_WANT_FROM_THE_ARC, "Ce que vous attendez de l'arc : son thème, les personnages, où il doit mener...");
+        es(WHAT_YOU_WANT_FROM_THE_ARC, "Lo que quieres del arco: su tema, los personajes, adónde debe llevar...");
+        de(WHAT_YOU_WANT_FROM_THE_ARC, "Was du vom Handlungsbogen möchtest: sein Thema, die Figuren, wohin er führen soll ...");
+        ko(WHAT_YOU_WANT_FROM_THE_ARC, "아크에 바라는 것: 주제, 인물, 이끌어 갈 방향...");
+        it(WHAT_YOU_WANT_FROM_THE_ARC, "Cosa vuoi dall'arco: il suo tema, i personaggi, dove deve portare...");
 
         ja(THE_ARC_THE_MODEL_WRITES, "モデルが書いたアークがここに表示されます。");
         zh(THE_ARC_THE_MODEL_WRITES, "模型编写的故事弧会显示在这里。");
+        fr(THE_ARC_THE_MODEL_WRITES, "L'arc écrit par le modèle apparaît ici.");
+        es(THE_ARC_THE_MODEL_WRITES, "El arco que escribe el modelo aparece aquí.");
+        de(THE_ARC_THE_MODEL_WRITES, "Der Handlungsbogen, den das Modell schreibt, erscheint hier.");
+        ko(THE_ARC_THE_MODEL_WRITES, "모델이 쓰는 아크가 여기에 표시됩니다.");
+        it(THE_ARC_THE_MODEL_WRITES, "L'arco che il modello scrive compare qui.");
 
         ja(THE_ANSWER, "回答は有効なアークではありません: %s");
         zh(THE_ANSWER, "回答不是有效的故事弧：%s");
+        fr(THE_ANSWER, "La réponse n'est pas un arc valide : %s");
+        es(THE_ANSWER, "La respuesta no es un arco válido: %s");
+        de(THE_ANSWER, "Die Antwort ist kein gültiger Handlungsbogen: %s");
+        ko(THE_ANSWER, "응답이 올바른 아크가 아닙니다: %s");
+        it(THE_ANSWER, "La risposta non è un arco valido: %s");
 
         ja(THE_ANSWER_CANT_BE_READ, "回答を読み取れません: %s");
         zh(THE_ANSWER_CANT_BE_READ, "无法读取回答：%s");
+        fr(THE_ANSWER_CANT_BE_READ, "La réponse ne peut pas être lue : %s");
+        es(THE_ANSWER_CANT_BE_READ, "No se puede interpretar la respuesta: %s");
+        de(THE_ANSWER_CANT_BE_READ, "Die Antwort kann nicht gelesen werden: %s");
+        ko(THE_ANSWER_CANT_BE_READ, "응답을 읽을 수 없습니다: %s");
+        it(THE_ANSWER_CANT_BE_READ, "Non è possibile leggere la risposta: %s");
 
         ja(PROMPT, "プロンプト");
         zh(PROMPT, "提示词");
+        fr(PROMPT, "Prompt");
+        es(PROMPT, "Prompt");
+        de(PROMPT, "Prompt");
+        ko(PROMPT, "프롬프트");
+        it(PROMPT, "Prompt");
 
         ja(VARIABLES, "変数: %s");
         zh(VARIABLES, "变量：%s");
+        fr(VARIABLES, "Variables : %s");
+        es(VARIABLES, "Variables: %s");
+        de(VARIABLES, "Variablen: %s");
+        ko(VARIABLES, "변수: %s");
+        it(VARIABLES, "Variabili: %s");
 
         ja(GENERATE, "生成");
         zh(GENERATE, "生成");
+        fr(GENERATE, "Générer");
+        es(GENERATE, "Generar");
+        de(GENERATE, "Generieren");
+        ko(GENERATE, "생성");
+        it(GENERATE, "Genera");
 
         ja(EXIT, "終了");
         zh(EXIT, "退出");
+        fr(EXIT, "Quitter");
+        es(EXIT, "Salir");
+        de(EXIT, "Beenden");
+        ko(EXIT, "나가기");
+        it(EXIT, "Esci");
 
         ja(THE_PROMPT_IS_EMPTY, "プロンプトが空です");
         zh(THE_PROMPT_IS_EMPTY, "提示词为空");
+        fr(THE_PROMPT_IS_EMPTY, "Le prompt est vide");
+        es(THE_PROMPT_IS_EMPTY, "El prompt está vacío");
+        de(THE_PROMPT_IS_EMPTY, "Der Prompt ist leer");
+        ko(THE_PROMPT_IS_EMPTY, "프롬프트가 비어 있습니다");
+        it(THE_PROMPT_IS_EMPTY, "Il prompt è vuoto");
 
         ja(CHOOSE_A_MODEL, "モデルを選択してください");
         zh(CHOOSE_A_MODEL, "请选择模型");
+        fr(CHOOSE_A_MODEL, "Choisissez un modèle");
+        es(CHOOSE_A_MODEL, "Elige un modelo");
+        de(CHOOSE_A_MODEL, "Wähle ein Modell");
+        ko(CHOOSE_A_MODEL, "모델 선택");
+        it(CHOOSE_A_MODEL, "Scegli un modello");
 
         ja(CANT_GENERATE, "生成できません: %s");
         zh(CANT_GENERATE, "无法生成：%s");
+        fr(CANT_GENERATE, "Impossible de générer : %s");
+        es(CANT_GENERATE, "No se puede generar: %s");
+        de(CANT_GENERATE, "Generierung nicht möglich: %s");
+        ko(CANT_GENERATE, "생성할 수 없습니다: %s");
+        it(CANT_GENERATE, "Impossibile generare: %s");
 
         ja(THE_MODEL_DID_NOT_ANSWER, "モデルから応答がありませんでした。");
         zh(THE_MODEL_DID_NOT_ANSWER, "模型没有回答。");
+        fr(THE_MODEL_DID_NOT_ANSWER, "Le modèle n'a pas répondu.");
+        es(THE_MODEL_DID_NOT_ANSWER, "El modelo no ha respondido.");
+        de(THE_MODEL_DID_NOT_ANSWER, "Das Modell hat nicht geantwortet.");
+        ko(THE_MODEL_DID_NOT_ANSWER, "모델이 응답하지 않았습니다.");
+        it(THE_MODEL_DID_NOT_ANSWER, "Il modello non ha risposto.");
 
         ja(STOP, "停止");
         zh(STOP, "停止");
+        fr(STOP, "Arrêter");
+        es(STOP, "Detener");
+        de(STOP, "Stopp");
+        ko(STOP, "중지");
+        it(STOP, "Interrompi");
 
         ja(WHOLE_STORY_SO_FAR, "ここまでのストーリー全体");
         zh(WHOLE_STORY_SO_FAR, "到目前为止的整个故事");
+        fr(WHOLE_STORY_SO_FAR, "Toute l'histoire jusqu'ici");
+        es(WHOLE_STORY_SO_FAR, "Toda la historia hasta ahora");
+        de(WHOLE_STORY_SO_FAR, "Die gesamte bisherige Geschichte");
+        ko(WHOLE_STORY_SO_FAR, "지금까지의 전체 이야기");
+        it(WHOLE_STORY_SO_FAR, "Tutta la storia finora");
 
         ja(THE_ARCS_UP_TO_AND_INCLUDING, "このアークまでのアーク。それぞれすべての章を含みます。");
         zh(THE_ARCS_UP_TO_AND_INCLUDING, "截至并包括此故事弧的所有故事弧，各自包含全部章节。");
+        fr(THE_ARCS_UP_TO_AND_INCLUDING, "Les arcs jusqu'à celui-ci inclus, chacun avec tous ses chapitres.");
+        es(THE_ARCS_UP_TO_AND_INCLUDING, "Los arcos hasta este inclusive, cada uno con todos sus capítulos.");
+        de(THE_ARCS_UP_TO_AND_INCLUDING, "Die Handlungsbögen bis einschließlich diesem, jeder mit allen seinen Kapiteln.");
+        ko(THE_ARCS_UP_TO_AND_INCLUDING, "이 아크까지의 아크와 각각의 모든 챕터.");
+        it(THE_ARCS_UP_TO_AND_INCLUDING, "Gli archi fino a questo incluso, ciascuno con tutti i suoi capitoli.");
 
         ja(ARC_SUMMARIES_ONLY, "アークの要約のみ");
         zh(ARC_SUMMARIES_ONLY, "仅故事弧摘要");
+        fr(ARC_SUMMARIES_ONLY, "Résumés des arcs seulement");
+        es(ARC_SUMMARIES_ONLY, "Solo resúmenes de los arcos");
+        de(ARC_SUMMARIES_ONLY, "Nur Zusammenfassungen der Handlungsbögen");
+        ko(ARC_SUMMARIES_ONLY, "아크 요약만");
+        it(ARC_SUMMARIES_ONLY, "Solo i riassunti degli archi");
 
         ja(THE_ARCS_UP, "このアークまでのアーク。章は含みません。");
         zh(THE_ARCS_UP, "截至并包括此故事弧的所有故事弧，不含任何章节。");
+        fr(THE_ARCS_UP, "Les arcs jusqu'à celui-ci inclus, sans aucun chapitre.");
+        es(THE_ARCS_UP, "Los arcos hasta este inclusive, sin ningún capítulo.");
+        de(THE_ARCS_UP, "Die Handlungsbögen bis einschließlich diesem, ohne Kapitel.");
+        ko(THE_ARCS_UP, "이 아크까지의 아크, 챕터 제외.");
+        it(THE_ARCS_UP, "Gli archi fino a questo incluso, senza alcun capitolo.");
 
         ja(ARC_SUMMARIES_AND_FINISHED, "アークの要約と完了した章");
         zh(ARC_SUMMARIES_AND_FINISHED, "故事弧摘要和已完成的章节");
+        fr(ARC_SUMMARIES_AND_FINISHED, "Résumés des arcs et chapitres terminés");
+        es(ARC_SUMMARIES_AND_FINISHED, "Resúmenes de los arcos y capítulos terminados");
+        de(ARC_SUMMARIES_AND_FINISHED, "Zusammenfassungen der Handlungsbögen und abgeschlossene Kapitel");
+        ko(ARC_SUMMARIES_AND_FINISHED, "아크 요약과 완료된 챕터");
+        it(ARC_SUMMARIES_AND_FINISHED, "Riassunti degli archi e capitoli terminati");
 
         ja(THE_ARCS_UP_TO_AND_INCLUDING_THIS_ONE, "このアークまでのアーク。完了した章のみを含みます。");
         zh(THE_ARCS_UP_TO_AND_INCLUDING_THIS_ONE, "截至并包括此故事弧的所有故事弧，仅含已完成的章节。");
+        fr(THE_ARCS_UP_TO_AND_INCLUDING_THIS_ONE, "Les arcs jusqu'à celui-ci inclus, avec seulement les chapitres terminés.");
+        es(THE_ARCS_UP_TO_AND_INCLUDING_THIS_ONE, "Los arcos hasta este inclusive, con solo los capítulos que están terminados.");
+        de(THE_ARCS_UP_TO_AND_INCLUDING_THIS_ONE, "Die Handlungsbögen bis einschließlich diesem, nur mit den abgeschlossenen Kapiteln.");
+        ko(THE_ARCS_UP_TO_AND_INCLUDING_THIS_ONE, "이 아크까지의 아크와 완료된 챕터만.");
+        it(THE_ARCS_UP_TO_AND_INCLUDING_THIS_ONE, "Gli archi fino a questo incluso, con solo i capitoli terminati.");
 
         ja(FORMAT, "%s - %s");
         zh(FORMAT, "%s - %s");
+        fr(FORMAT, "%s - %s");
+        es(FORMAT, "%s - %s");
+        de(FORMAT, "%s - %s");
+        ko(FORMAT, "%s - %s");
+        it(FORMAT, "%s - %s");
 
         ja(GENERATE_CHAPTERS_S, "章を生成: %s");
         zh(GENERATE_CHAPTERS_S, "生成章节：%s");
+        fr(GENERATE_CHAPTERS_S, "Générer des chapitres : %s");
+        es(GENERATE_CHAPTERS_S, "Generar capítulos: %s");
+        de(GENERATE_CHAPTERS_S, "Kapitel generieren: %s");
+        ko(GENERATE_CHAPTERS_S, "챕터 생성: %s");
+        it(GENERATE_CHAPTERS_S, "Genera i capitoli: %s");
 
         ja(SAVE_AS_CHAPTERS, "章として保存");
         zh(SAVE_AS_CHAPTERS, "保存为章节");
+        fr(SAVE_AS_CHAPTERS, "Enregistrer comme chapitres");
+        es(SAVE_AS_CHAPTERS, "Guardar como capítulos");
+        de(SAVE_AS_CHAPTERS, "Als Kapitel speichern");
+        ko(SAVE_AS_CHAPTERS, "챕터로 저장");
+        it(SAVE_AS_CHAPTERS, "Salva come capitoli");
 
         ja(WHAT_THE_MODEL_KNOWS, "モデルが知っているストーリーの範囲");
         zh(WHAT_THE_MODEL_KNOWS, "模型所了解的故事范围");
+        fr(WHAT_THE_MODEL_KNOWS, "Ce que le modèle sait de l'histoire");
+        es(WHAT_THE_MODEL_KNOWS, "Lo que el modelo sabe de la historia");
+        de(WHAT_THE_MODEL_KNOWS, "Was das Modell von der Geschichte weiß");
+        ko(WHAT_THE_MODEL_KNOWS, "모델이 아는 이야기 내용");
+        it(WHAT_THE_MODEL_KNOWS, "Cosa sa il modello della storia");
 
         ja(WHAT_YOU_WANT, "章全体に求めるもの");
         zh(WHAT_YOU_WANT, "你对章节的总体期望");
+        fr(WHAT_YOU_WANT, "Ce que vous attendez des chapitres en général");
+        es(WHAT_YOU_WANT, "Lo que quieres de los capítulos en general");
+        de(WHAT_YOU_WANT, "Was du allgemein von den Kapiteln möchtest");
+        ko(WHAT_YOU_WANT, "챕터 전반에 바라는 것");
+        it(WHAT_YOU_WANT, "Cosa vuoi dai capitoli in generale");
 
         ja(THE_PACE_THE_TONE_WHAT, "ペース、トーン、必ず起こること、起こってはならないこと...");
         zh(THE_PACE_THE_TONE_WHAT, "节奏、基调、必须发生的事、不能发生的事……");
+        fr(THE_PACE_THE_TONE_WHAT, "Le rythme, le ton, ce qui doit arriver, ce qui ne doit pas arriver...");
+        es(THE_PACE_THE_TONE_WHAT, "El ritmo, el tono, lo que debe ocurrir, lo que no debe ocurrir...");
+        de(THE_PACE_THE_TONE_WHAT, "Das Tempo, der Ton, was geschehen muss, was nicht ...");
+        ko(THE_PACE_THE_TONE_WHAT, "속도, 어조, 반드시 일어나야 할 일, 일어나서는 안 될 일...");
+        it(THE_PACE_THE_TONE_WHAT, "Il ritmo, il tono, cosa deve accadere, cosa non deve...");
 
         ja(NUMBER_OF_CHAPTERS, "章の数");
         zh(NUMBER_OF_CHAPTERS, "章节数量");
+        fr(NUMBER_OF_CHAPTERS, "Nombre de chapitres");
+        es(NUMBER_OF_CHAPTERS, "Número de capítulos");
+        de(NUMBER_OF_CHAPTERS, "Anzahl der Kapitel");
+        ko(NUMBER_OF_CHAPTERS, "챕터 수");
+        it(NUMBER_OF_CHAPTERS, "Numero di capitoli");
 
         ja(IN_WORDS_LIKE_ABOUT_EIGHT, "言葉で、例: 8つくらい、アークに必要なだけ");
         zh(IN_WORDS_LIKE_ABOUT_EIGHT, "用文字描述，例如：大约八章、故事弧需要多少就写多少");
+        fr(IN_WORDS_LIKE_ABOUT_EIGHT, "En toutes lettres, par exemple : environ huit, autant qu'il en faut à l'arc");
+        es(IN_WORDS_LIKE_ABOUT_EIGHT, "En palabras, como: unos ocho, tantos como necesite el arco");
+        de(IN_WORDS_LIKE_ABOUT_EIGHT, "In Worten, etwa: ungefähr acht, so viele, wie der Handlungsbogen braucht");
+        ko(IN_WORDS_LIKE_ABOUT_EIGHT, "말로 입력: 여덟 개 정도, 아크에 필요한 만큼");
+        it(IN_WORDS_LIKE_ABOUT_EIGHT, "A parole, ad esempio: circa otto, quanti ne servono all'arco");
 
         ja(OR_AN_EXACT_NUMBER, "または正確な数");
         zh(OR_AN_EXACT_NUMBER, "或精确数字");
+        fr(OR_AN_EXACT_NUMBER, "ou un nombre exact");
+        es(OR_AN_EXACT_NUMBER, "o un número exacto");
+        de(OR_AN_EXACT_NUMBER, "oder eine genaue Zahl");
+        ko(OR_AN_EXACT_NUMBER, "또는 정확한 숫자");
+        it(OR_AN_EXACT_NUMBER, "oppure un numero esatto");
 
         ja(GIVES_A_FIELD_FOR_EACH, "章ごとに入力欄を表示します");
         zh(GIVES_A_FIELD_FOR_EACH, "为每一章提供一个输入框");
+        fr(GIVES_A_FIELD_FOR_EACH, "Donne un champ pour chaque chapitre");
+        es(GIVES_A_FIELD_FOR_EACH, "Da un campo para cada capítulo");
+        de(GIVES_A_FIELD_FOR_EACH, "Gibt ein Feld für jedes Kapitel");
+        ko(GIVES_A_FIELD_FOR_EACH, "챕터마다 필드를 제공합니다");
+        it(GIVES_A_FIELD_FOR_EACH, "Dà un campo per ogni capitolo");
 
         ja(CHAPTER_OPTIONAL, "第%d章（任意）");
         zh(CHAPTER_OPTIONAL, "第 %d 章（可选）");
+        fr(CHAPTER_OPTIONAL, "Chapitre %d (facultatif)");
+        es(CHAPTER_OPTIONAL, "Capítulo %d (opcional)");
+        de(CHAPTER_OPTIONAL, "Kapitel %d (optional)");
+        ko(CHAPTER_OPTIONAL, "챕터 %d (선택 사항)");
+        it(CHAPTER_OPTIONAL, "Capitolo %d (facoltativo)");
 
         ja(THE_CHAPTERS_THE_MODEL_WRITES, "モデルが書いた章が、アークの既存の章の後ろにここに表示されます。");
         zh(THE_CHAPTERS_THE_MODEL_WRITES, "模型编写的章节会显示在这里，位于故事弧已有章节之后。");
+        fr(THE_CHAPTERS_THE_MODEL_WRITES, "Les chapitres écrits par le modèle apparaissent ici, après ceux que l'arc a déjà.");
+        es(THE_CHAPTERS_THE_MODEL_WRITES, "Los capítulos que escribe el modelo aparecen aquí, después de los que ya tiene el arco.");
+        de(THE_CHAPTERS_THE_MODEL_WRITES, "Die Kapitel, die das Modell schreibt, erscheinen hier, nach denen, die der Handlungsbogen hat.");
+        ko(THE_CHAPTERS_THE_MODEL_WRITES, "모델이 쓰는 챕터가 아크에 이미 있는 챕터 뒤에 표시됩니다.");
+        it(THE_CHAPTERS_THE_MODEL_WRITES, "I capitoli che il modello scrive compaiono qui, dopo quelli che l'arco ha già.");
 
         ja(THE_ANSWER_IS_NOT_A_VALID, "回答は有効な章のリストではありません: %s");
         zh(THE_ANSWER_IS_NOT_A_VALID, "回答不是有效的章节列表：%s");
+        fr(THE_ANSWER_IS_NOT_A_VALID, "La réponse n'est pas une liste de chapitres valide : %s");
+        es(THE_ANSWER_IS_NOT_A_VALID, "La respuesta no es una lista de capítulos válida: %s");
+        de(THE_ANSWER_IS_NOT_A_VALID, "Die Antwort ist keine gültige Liste von Kapiteln: %s");
+        ko(THE_ANSWER_IS_NOT_A_VALID, "응답이 올바른 챕터 목록이 아닙니다: %s");
+        it(THE_ANSWER_IS_NOT_A_VALID, "La risposta non è un elenco valido di capitoli: %s");
 
         ja(IMPORT_AN_ARC, "ストーリーからアークをインポート");
         zh(IMPORT_AN_ARC, "从故事导入故事弧");
+        fr(IMPORT_AN_ARC, "Importer un arc depuis l'histoire");
+        es(IMPORT_AN_ARC, "Importar un arco desde la historia");
+        de(IMPORT_AN_ARC, "Einen Handlungsbogen aus der Geschichte importieren");
+        ko(IMPORT_AN_ARC, "이야기에서 아크 가져오기");
+        it(IMPORT_AN_ARC, "Importa un arco dalla storia");
 
         ja(FROM_MESSAGE, "開始メッセージ");
         zh(FROM_MESSAGE, "起始消息");
+        fr(FROM_MESSAGE, "Depuis le message");
+        es(FROM_MESSAGE, "Desde el mensaje");
+        de(FROM_MESSAGE, "Ab Nachricht");
+        ko(FROM_MESSAGE, "시작 메시지");
+        it(FROM_MESSAGE, "Dal messaggio");
 
         ja(TO_MESSAGE, "終了メッセージ");
         zh(TO_MESSAGE, "结束消息");
+        fr(TO_MESSAGE, "Jusqu'au message");
+        es(TO_MESSAGE, "Hasta el mensaje");
+        de(TO_MESSAGE, "Bis Nachricht");
+        ko(TO_MESSAGE, "끝 메시지");
+        it(TO_MESSAGE, "Al messaggio");
 
         ja(THE_MESSAGES_WITH_TEXT, "アクティブなブランチのテキストを含むメッセージ（全%d件）は、最初のものから番号が付けられます。");
         zh(THE_MESSAGES_WITH_TEXT, "活动分支中含有文本的消息（共 %d 条）从第一条开始编号。");
+        fr(THE_MESSAGES_WITH_TEXT, "Les messages avec du texte de la branche active, %d en tout, sont numérotés à partir du premier.");
+        es(THE_MESSAGES_WITH_TEXT, "Los mensajes con texto de la rama activa, %d en total, se numeran desde el primero.");
+        de(THE_MESSAGES_WITH_TEXT, "Die Nachrichten mit Text des aktiven Zweigs, insgesamt %d, sind ab der ersten nummeriert.");
+        ko(THE_MESSAGES_WITH_TEXT, "활성 분기의 텍스트가 있는 메시지는 총 %d개이며 첫 번째부터 번호가 매겨집니다.");
+        it(THE_MESSAGES_WITH_TEXT, "I messaggi con testo del ramo attivo, %d in tutto, sono numerati dal primo.");
 
         ja(NUMBER_OF_CHAPTERS_OPTIONAL, "章の数（任意）");
         zh(NUMBER_OF_CHAPTERS_OPTIONAL, "章节数量（可选）");
+        fr(NUMBER_OF_CHAPTERS_OPTIONAL, "Nombre de chapitres (facultatif)");
+        es(NUMBER_OF_CHAPTERS_OPTIONAL, "Número de capítulos (opcional)");
+        de(NUMBER_OF_CHAPTERS_OPTIONAL, "Anzahl der Kapitel (optional)");
+        ko(NUMBER_OF_CHAPTERS_OPTIONAL, "챕터 수 (선택 사항)");
+        it(NUMBER_OF_CHAPTERS_OPTIONAL, "Numero di capitoli (facoltativo)");
 
         ja(EMPTY_THE_MODEL_DIVIDES, "空欄の場合: モデルがストーリーを自然な区切りで分割します");
         zh(EMPTY_THE_MODEL_DIVIDES, "留空：由模型在故事自然的分段处划分");
+        fr(EMPTY_THE_MODEL_DIVIDES, "Vide : le modèle découpe l'histoire là où elle se découpe naturellement");
+        es(EMPTY_THE_MODEL_DIVIDES, "Vacío: el modelo divide la historia por donde se divide de forma natural");
+        de(EMPTY_THE_MODEL_DIVIDES, "Leer: Das Modell teilt die Geschichte dort, wo sie sich natürlich teilt");
+        ko(EMPTY_THE_MODEL_DIVIDES, "비워 두면 모델이 이야기가 자연스럽게 나뉘는 곳에서 나눕니다");
+        it(EMPTY_THE_MODEL_DIVIDES, "Vuoto: il modello divide la storia dove si divide naturalmente");
 
         ja(STATE_OF_THE_IMPORTED_ARC, "インポートしたアークと章の状態");
         zh(STATE_OF_THE_IMPORTED_ARC, "导入的故事弧及其章节的状态");
+        fr(STATE_OF_THE_IMPORTED_ARC, "État de l'arc importé et de ses chapitres");
+        es(STATE_OF_THE_IMPORTED_ARC, "Estado del arco importado y de sus capítulos");
+        de(STATE_OF_THE_IMPORTED_ARC, "Zustand des importierten Handlungsbogens und seiner Kapitel");
+        ko(STATE_OF_THE_IMPORTED_ARC, "가져온 아크와 그 챕터의 상태");
+        it(STATE_OF_THE_IMPORTED_ARC, "Stato dell'arco importato e dei suoi capitoli");
 
         ja(NO_SUCH_MESSAGE, "該当するメッセージがありません");
         zh(NO_SUCH_MESSAGE, "没有这条消息");
+        fr(NO_SUCH_MESSAGE, "Ce message n'existe pas");
+        es(NO_SUCH_MESSAGE, "No existe ese mensaje");
+        de(NO_SUCH_MESSAGE, "Keine solche Nachricht");
+        ko(NO_SUCH_MESSAGE, "해당 메시지가 없습니다");
+        it(NO_SUCH_MESSAGE, "Nessun messaggio simile");
 
         ja(THE_MESSAGES_ARE_NUMBERED_1, "メッセージには1から%dまでの番号が付いています。");
         zh(THE_MESSAGES_ARE_NUMBERED_1, "消息的编号为 1 到 %d。");
+        fr(THE_MESSAGES_ARE_NUMBERED_1, "Les messages sont numérotés de 1 à %d.");
+        es(THE_MESSAGES_ARE_NUMBERED_1, "Los mensajes están numerados del 1 al %d.");
+        de(THE_MESSAGES_ARE_NUMBERED_1, "Die Nachrichten sind von 1 bis %d nummeriert.");
+        ko(THE_MESSAGES_ARE_NUMBERED_1, "메시지는 1부터 %d까지 번호가 매겨져 있습니다.");
+        it(THE_MESSAGES_ARE_NUMBERED_1, "I messaggi sono numerati da 1 a %d.");
 
         ja(THE_FIRST_MESSAGE_IS_AFTER, "最初のメッセージが最後のメッセージより後ろにあります。");
         zh(THE_FIRST_MESSAGE_IS_AFTER, "起始消息位于结束消息之后。");
+        fr(THE_FIRST_MESSAGE_IS_AFTER, "Le premier message est après le dernier.");
+        es(THE_FIRST_MESSAGE_IS_AFTER, "El primer mensaje está después del último.");
+        de(THE_FIRST_MESSAGE_IS_AFTER, "Die erste Nachricht liegt nach der letzten.");
+        ko(THE_FIRST_MESSAGE_IS_AFTER, "첫 메시지가 마지막 메시지 뒤에 있습니다.");
+        it(THE_FIRST_MESSAGE_IS_AFTER, "Il primo messaggio è dopo l'ultimo.");
 
         ja(STORY_MESSAGE_ABOUT_TOKENS, "ストーリー: %d件のメッセージ、約%sトークン。");
         zh(STORY_MESSAGE_ABOUT_TOKENS, "故事：%d 条消息，约 %s 个词元。");
+        fr(STORY_MESSAGE_ABOUT_TOKENS, "Histoire : %d message, environ %s jetons.");
+        es(STORY_MESSAGE_ABOUT_TOKENS, "Historia: %d mensaje, unos %s tokens.");
+        de(STORY_MESSAGE_ABOUT_TOKENS, "Geschichte: %d Nachricht, etwa %s Tokens.");
+        ko(STORY_MESSAGE_ABOUT_TOKENS, "이야기: 메시지 %d개, 약 %s 토큰.");
+        it(STORY_MESSAGE_ABOUT_TOKENS, "Storia: %d messaggio, circa %s token.");
 
         ja(STORY_MESSAGES_ABOUT_TOKENS, "ストーリー: %d件のメッセージ、約%sトークン。");
         zh(STORY_MESSAGES_ABOUT_TOKENS, "故事：%d 条消息，约 %s 个词元。");
+        fr(STORY_MESSAGES_ABOUT_TOKENS, "Histoire : %d messages, environ %s jetons.");
+        es(STORY_MESSAGES_ABOUT_TOKENS, "Historia: %d mensajes, unos %s tokens.");
+        de(STORY_MESSAGES_ABOUT_TOKENS, "Geschichte: %d Nachrichten, etwa %s Tokens.");
+        ko(STORY_MESSAGES_ABOUT_TOKENS, "이야기: 메시지 %d개, 약 %s 토큰.");
+        it(STORY_MESSAGES_ABOUT_TOKENS, "Storia: %d messaggi, circa %s token.");
 
         ja(PROMPT_SENT_TO_THE_MODEL, "モデルに送信されるプロンプト: 約%sトークン。");
         zh(PROMPT_SENT_TO_THE_MODEL, "发送给模型的提示词：约 %s 个词元。");
+        fr(PROMPT_SENT_TO_THE_MODEL, "Prompt envoyé au modèle : environ %s jetons.");
+        es(PROMPT_SENT_TO_THE_MODEL, "Prompt enviado al modelo: unos %s tokens.");
+        de(PROMPT_SENT_TO_THE_MODEL, "An das Modell gesendeter Prompt: etwa %s Tokens.");
+        ko(PROMPT_SENT_TO_THE_MODEL, "모델에 전송되는 프롬프트: 약 %s 토큰.");
+        it(PROMPT_SENT_TO_THE_MODEL, "Prompt inviato al modello: circa %s token.");
 
         ja(PROMPT_SENT_TO_THE_MODEL_ABOUT, "モデルに送信されるプロンプト: 約%sトークン（モデルが受け付ける%s中）。");
         zh(PROMPT_SENT_TO_THE_MODEL_ABOUT, "发送给模型的提示词：约 %s 个词元（模型可接受 %s 个）。");
+        fr(PROMPT_SENT_TO_THE_MODEL_ABOUT, "Prompt envoyé au modèle : environ %s jetons sur les %s qu'accepte le modèle.");
+        es(PROMPT_SENT_TO_THE_MODEL_ABOUT, "Prompt enviado al modelo: unos %s tokens de los %s que admite el modelo.");
+        de(PROMPT_SENT_TO_THE_MODEL_ABOUT, "An das Modell gesendeter Prompt: etwa %s Tokens von %s, die das Modell aufnimmt.");
+        ko(PROMPT_SENT_TO_THE_MODEL_ABOUT, "모델에 전송되는 프롬프트: 약 %s 토큰 (모델이 받는 %s 중).");
+        it(PROMPT_SENT_TO_THE_MODEL_ABOUT, "Prompt inviato al modello: circa %s token su %s che il modello accetta.");
 
         ja(PROMPT_SENT_TO_THE_MODEL_ABOUT_TOKENS, "モデルに送信されるプロンプト: 約%sトークン（モデルが受け付ける%s中）- 収まりません。メッセージを減らしてください。");
         zh(PROMPT_SENT_TO_THE_MODEL_ABOUT_TOKENS, "发送给模型的提示词：约 %s 个词元（模型可接受 %s 个）- 放不下，请选择更少的消息。");
+        fr(PROMPT_SENT_TO_THE_MODEL_ABOUT_TOKENS, "Prompt envoyé au modèle : environ %s jetons sur les %s qu'accepte le modèle - il ne tient pas, choisissez moins de messages.");
+        es(PROMPT_SENT_TO_THE_MODEL_ABOUT_TOKENS, "Prompt enviado al modelo: unos %s tokens de los %s que admite el modelo: no cabe, elige menos mensajes.");
+        de(PROMPT_SENT_TO_THE_MODEL_ABOUT_TOKENS, "An das Modell gesendeter Prompt: etwa %s Tokens von %s, die das Modell aufnimmt – er passt nicht, wähle weniger Nachrichten.");
+        ko(PROMPT_SENT_TO_THE_MODEL_ABOUT_TOKENS, "모델에 전송되는 프롬프트: 약 %s 토큰 (모델이 받는 %s 중) - 맞지 않으므로 메시지를 더 적게 선택하세요.");
+        it(PROMPT_SENT_TO_THE_MODEL_ABOUT_TOKENS, "Prompt inviato al modello: circa %s token su %s che il modello accetta - non ci sta, scegli meno messaggi.");
 
         ja(THE_PROMPT_CANT_BE_BUILT, "プロンプトを作成できません: %s");
         zh(THE_PROMPT_CANT_BE_BUILT, "无法构建提示词：%s");
+        fr(THE_PROMPT_CANT_BE_BUILT, "Le prompt ne peut pas être construit : %s");
+        es(THE_PROMPT_CANT_BE_BUILT, "No se puede construir el prompt: %s");
+        de(THE_PROMPT_CANT_BE_BUILT, "Der Prompt kann nicht aufgebaut werden: %s");
+        ko(THE_PROMPT_CANT_BE_BUILT, "프롬프트를 만들 수 없습니다: %s");
+        it(THE_PROMPT_CANT_BE_BUILT, "Impossibile costruire il prompt: %s");
 
         ja(THE_ARC_THE_MODEL_WRITES_APPEARS, "モデルが書いたアークが、その章とともにここに表示されます。");
         zh(THE_ARC_THE_MODEL_WRITES_APPEARS, "模型编写的故事弧及其章节会显示在这里。");
+        fr(THE_ARC_THE_MODEL_WRITES_APPEARS, "L'arc écrit par le modèle apparaît ici, avec ses chapitres.");
+        es(THE_ARC_THE_MODEL_WRITES_APPEARS, "El arco que escribe el modelo aparece aquí, con sus capítulos.");
+        de(THE_ARC_THE_MODEL_WRITES_APPEARS, "Der Handlungsbogen, den das Modell schreibt, erscheint hier, mit seinen Kapiteln.");
+        ko(THE_ARC_THE_MODEL_WRITES_APPEARS, "모델이 쓰는 아크가 챕터와 함께 여기에 표시됩니다.");
+        it(THE_ARC_THE_MODEL_WRITES_APPEARS, "L'arco che il modello scrive compare qui, con i suoi capitoli.");
 
         ja(THE_ANSWER_IS_NOT_A_VALID_ARC, "回答は章を含む有効なアークではありません: %s");
         zh(THE_ANSWER_IS_NOT_A_VALID_ARC, "回答不是包含章节的有效故事弧：%s");
+        fr(THE_ANSWER_IS_NOT_A_VALID_ARC, "La réponse n'est pas un arc valide avec des chapitres : %s");
+        es(THE_ANSWER_IS_NOT_A_VALID_ARC, "La respuesta no es un arco válido con capítulos: %s");
+        de(THE_ANSWER_IS_NOT_A_VALID_ARC, "Die Antwort ist kein gültiger Handlungsbogen mit Kapiteln: %s");
+        ko(THE_ANSWER_IS_NOT_A_VALID_ARC, "응답이 챕터가 있는 올바른 아크가 아닙니다: %s");
+        it(THE_ANSWER_IS_NOT_A_VALID_ARC, "La risposta non è un arco valido con capitoli: %s");
         ja(LINK_THE_CHAPTERS, "章を物語のパートにリンクする");
         zh(LINK_THE_CHAPTERS, "将章节链接到故事的段落");
+        fr(LINK_THE_CHAPTERS, "Lier les chapitres aux parties de l'histoire");
+        es(LINK_THE_CHAPTERS, "Vincular los capítulos a las partes de la historia");
+        de(LINK_THE_CHAPTERS, "Die Kapitel mit den Abschnitten der Geschichte verknüpfen");
+        ko(LINK_THE_CHAPTERS, "챕터를 이야기의 파트에 연결");
+        it(LINK_THE_CHAPTERS, "Collega i capitoli alle parti della storia");
 
         ja(THE_MODEL_SAYS, "モデルが各章の始まるメッセージを答えます。章はその物語のパートにリンクされます（アークのタブから物語をそこへスクロールできます）");
         zh(THE_MODEL_SAYS, "模型会说明每一章从哪条消息开始；该章节会链接到故事的这一段落（“故事弧”标签页可以把故事滚动到那里）");
+        fr(THE_MODEL_SAYS, "Le modèle indique dans quel message commence chaque chapitre ; le chapitre est lié à cette partie de l'histoire (l'onglet Arcs peut faire défiler l'histoire jusqu'à elle)");
+        es(THE_MODEL_SAYS, "El modelo indica en qué mensaje empieza cada capítulo; el capítulo se vincula a esa parte de la historia (la pestaña Arcos puede desplazar la historia hasta ella)");
+        de(THE_MODEL_SAYS, "Das Modell sagt, in welcher Nachricht jedes Kapitel beginnt; das Kapitel wird mit diesem Abschnitt der Geschichte verknüpft (der Tab „Handlungsbögen“ kann die Geschichte dorthin scrollen)");
+        ko(THE_MODEL_SAYS, "모델이 각 챕터가 어느 메시지에서 시작하는지 알려 주며, 챕터는 이야기의 해당 파트에 연결됩니다 (아크 탭에서 이야기를 그곳으로 스크롤할 수 있습니다)");
+        it(THE_MODEL_SAYS, "Il modello dice in quale messaggio inizia ogni capitolo; il capitolo viene collegato a quella parte della storia (la scheda Archi può far scorrere la storia fino a essa)");
 
         ja(LINKED_PART, "リンクされたパート");
         zh(LINKED_PART, "链接的段落");
+        fr(LINKED_PART, "Partie liée");
+        es(LINKED_PART, "Parte vinculada");
+        de(LINKED_PART, "Verknüpfter Abschnitt");
+        ko(LINKED_PART, "연결된 파트");
+        it(LINKED_PART, "Parte collegata");
 
         ja(THE_PLACE_OF_THE_PART, "物語内のパートの位置（アウトラインの番号）");
         zh(THE_PLACE_OF_THE_PART, "段落在故事中的位置（与大纲的编号一致）");
+        fr(THE_PLACE_OF_THE_PART, "La place de la partie dans l'histoire, telle que le plan la numérote");
+        es(THE_PLACE_OF_THE_PART, "El lugar de la parte en la historia, tal como lo numera el esquema");
+        de(THE_PLACE_OF_THE_PART, "Die Stelle des Abschnitts in der Geschichte, so wie die Gliederung sie nummeriert");
+        ko(THE_PLACE_OF_THE_PART, "개요의 번호 기준으로 이야기에서 파트의 위치");
+        it(THE_PLACE_OF_THE_PART, "La posizione della parte nella storia, come la numera la struttura");
 
         ja(LINK_THE_PART, "物語で最もよく見えているパートをリンクする");
         zh(LINK_THE_PART, "链接故事中最显眼的段落");
+        fr(LINK_THE_PART, "Lier la partie la plus visible dans l'histoire");
+        es(LINK_THE_PART, "Vincular la parte más visible en la historia");
+        de(LINK_THE_PART, "Den Abschnitt verknüpfen, der in der Geschichte am deutlichsten sichtbar ist");
+        ko(LINK_THE_PART, "이야기에서 가장 잘 보이는 파트에 연결");
+        it(LINK_THE_PART, "Collega la parte più visibile nella storia");
 
         ja(GO_TO_THE_LINKED_PART, "リンクされたパートへ移動");
         zh(GO_TO_THE_LINKED_PART, "转到链接的段落");
+        fr(GO_TO_THE_LINKED_PART, "Aller à la partie liée");
+        es(GO_TO_THE_LINKED_PART, "Ir a la parte vinculada");
+        de(GO_TO_THE_LINKED_PART, "Zum verknüpften Abschnitt gehen");
+        ko(GO_TO_THE_LINKED_PART, "연결된 파트로 이동");
+        it(GO_TO_THE_LINKED_PART, "Vai alla parte collegata");
 
         ja(NO_PART_OF_THE_STORY, "見えている物語のパートがありません");
         zh(NO_PART_OF_THE_STORY, "故事中没有可见的段落");
+        fr(NO_PART_OF_THE_STORY, "Aucune partie de l'histoire n'est visible");
+        es(NO_PART_OF_THE_STORY, "No hay ninguna parte de la historia visible");
+        de(NO_PART_OF_THE_STORY, "Kein Abschnitt der Geschichte ist sichtbar");
+        ko(NO_PART_OF_THE_STORY, "이야기의 어떤 파트도 보이지 않습니다");
+        it(NO_PART_OF_THE_STORY, "Nessuna parte della storia è visibile");
 
         ja(NO_PART_IS_LINKED, "リンクされたパートがありません");
         zh(NO_PART_IS_LINKED, "没有链接的段落");
+        fr(NO_PART_IS_LINKED, "Aucune partie n'est liée");
+        es(NO_PART_IS_LINKED, "No hay ninguna parte vinculada");
+        de(NO_PART_IS_LINKED, "Kein Abschnitt ist verknüpft");
+        ko(NO_PART_IS_LINKED, "연결된 파트가 없습니다");
+        it(NO_PART_IS_LINKED, "Nessuna parte è collegata");
 
         ja(THE_ACTIVE_BRANCH_HAS_NO, "現在のブランチにパート %d はありません");
         zh(THE_ACTIVE_BRANCH_HAS_NO, "当前分支没有第 %d 段");
+        fr(THE_ACTIVE_BRANCH_HAS_NO, "La branche active n'a pas de partie %d");
+        es(THE_ACTIVE_BRANCH_HAS_NO, "La rama activa no tiene la parte %d");
+        de(THE_ACTIVE_BRANCH_HAS_NO, "Der aktive Zweig hat keinen Abschnitt %d");
+        ko(THE_ACTIVE_BRANCH_HAS_NO, "활성 분기에 파트 %d이(가) 없습니다");
+        it(THE_ACTIVE_BRANCH_HAS_NO, "Il ramo attivo non ha la parte %d");
 
         ja(GO_TO_PART, "物語のパート %d へ移動");
         zh(GO_TO_PART, "转到故事的第 %d 段");
+        fr(GO_TO_PART, "Aller à la partie %d de l'histoire");
+        es(GO_TO_PART, "Ir a la parte %d de la historia");
+        de(GO_TO_PART, "Zu Abschnitt %d der Geschichte gehen");
+        ko(GO_TO_PART, "이야기의 파트 %d(으)로 이동");
+        it(GO_TO_PART, "Vai alla parte %d della storia");
 
         ja(DEVELOP_THE_PLOT, "プロットを練る");
         zh(DEVELOP_THE_PLOT, "讨论情节");
+        fr(DEVELOP_THE_PLOT, "Développer l'intrigue");
+        es(DEVELOP_THE_PLOT, "Desarrollar la trama");
+        de(DEVELOP_THE_PLOT, "Die Handlung entwickeln");
+        ko(DEVELOP_THE_PLOT, "줄거리 전개");
+        it(DEVELOP_THE_PLOT, "Sviluppa la trama");
 
         ja(CHAT, "チャット");
         zh(CHAT, "对话");
+        fr(CHAT, "Discussion");
+        es(CHAT, "Chat");
+        de(CHAT, "Chat");
+        ko(CHAT, "채팅");
+        it(CHAT, "Chat");
 
         ja(NEW_CHAT, "新しいチャット");
         zh(NEW_CHAT, "新对话");
+        fr(NEW_CHAT, "Nouvelle discussion");
+        es(NEW_CHAT, "Chat nuevo");
+        de(NEW_CHAT, "Neuer Chat");
+        ko(NEW_CHAT, "새 채팅");
+        it(NEW_CHAT, "Nuova chat");
 
         ja(BRANCH_THIS_CHAT, "このチャットを分岐（コピー）");
         zh(BRANCH_THIS_CHAT, "分支此对话（复制）");
+        fr(BRANCH_THIS_CHAT, "Créer une branche de cette discussion (une copie)");
+        es(BRANCH_THIS_CHAT, "Crear una rama de este chat (una copia)");
+        de(BRANCH_THIS_CHAT, "Diesen Chat verzweigen (eine Kopie)");
+        ko(BRANCH_THIS_CHAT, "이 채팅 분기 (사본)");
+        it(BRANCH_THIS_CHAT, "Dirama questa chat (una copia)");
 
         ja(BRANCH_FROM_HERE, "ここから分岐（このメッセージまでのコピー）");
         zh(BRANCH_FROM_HERE, "从此处分支（复制到这条消息）");
+        fr(BRANCH_FROM_HERE, "Créer une branche à partir d'ici (une copie jusqu'à ce message)");
+        es(BRANCH_FROM_HERE, "Crear una rama desde aquí (una copia hasta este mensaje)");
+        de(BRANCH_FROM_HERE, "Ab hier verzweigen (eine Kopie bis zu dieser Nachricht)");
+        ko(BRANCH_FROM_HERE, "여기서 분기 (이 메시지까지의 사본)");
+        it(BRANCH_FROM_HERE, "Dirama da qui (una copia fino a questo messaggio)");
 
         ja(BRANCH_OF, "%s（分岐）");
         zh(BRANCH_OF, "%s（分支）");
+        fr(BRANCH_OF, "%s (branche)");
+        es(BRANCH_OF, "%s (rama)");
+        de(BRANCH_OF, "%s (Zweig)");
+        ko(BRANCH_OF, "%s (분기)");
+        it(BRANCH_OF, "%s (ramo)");
 
         ja(RENAME_THE_CHAT, "チャット名を変更");
         zh(RENAME_THE_CHAT, "重命名对话");
+        fr(RENAME_THE_CHAT, "Renommer la discussion");
+        es(RENAME_THE_CHAT, "Renombrar el chat");
+        de(RENAME_THE_CHAT, "Den Chat umbenennen");
+        ko(RENAME_THE_CHAT, "채팅 이름 바꾸기");
+        it(RENAME_THE_CHAT, "Rinomina la chat");
 
         ja(NAME, "名前");
         zh(NAME, "名称");
+        fr(NAME, "Nom");
+        es(NAME, "Nombre");
+        de(NAME, "Name");
+        ko(NAME, "이름");
+        it(NAME, "Nome");
 
         ja(DELETE_THE_CHAT_BUTTON, "チャットを削除");
         zh(DELETE_THE_CHAT_BUTTON, "删除对话");
+        fr(DELETE_THE_CHAT_BUTTON, "Supprimer la discussion");
+        es(DELETE_THE_CHAT_BUTTON, "Eliminar el chat");
+        de(DELETE_THE_CHAT_BUTTON, "Den Chat löschen");
+        ko(DELETE_THE_CHAT_BUTTON, "채팅 삭제");
+        it(DELETE_THE_CHAT_BUTTON, "Elimina la chat");
 
         ja(DELETE_THE_CHAT, "チャット「%s」を削除しますか？");
         zh(DELETE_THE_CHAT, "删除对话“%s”？");
+        fr(DELETE_THE_CHAT, "Supprimer la discussion %s ?");
+        es(DELETE_THE_CHAT, "¿Eliminar el chat %s?");
+        de(DELETE_THE_CHAT, "Den Chat %s löschen?");
+        ko(DELETE_THE_CHAT, "채팅 %s을(를) 삭제하시겠습니까?");
+        it(DELETE_THE_CHAT, "Eliminare la chat %s?");
 
         ja(SUMMARIZE_THE_CHAT, "チャットを要約（以降モデルには以前のメッセージの代わりに要約が渡されます）");
         zh(SUMMARIZE_THE_CHAT, "总结对话（之后模型收到的是总结，而不是之前的消息）");
+        fr(SUMMARIZE_THE_CHAT, "Résumer la discussion (le modèle reçoit alors le résumé au lieu des messages précédents)");
+        es(SUMMARIZE_THE_CHAT, "Resumir el chat (el modelo recibe entonces el resumen en lugar de los mensajes anteriores)");
+        de(SUMMARIZE_THE_CHAT, "Den Chat zusammenfassen (das Modell erhält dann die Zusammenfassung statt der früheren Nachrichten)");
+        ko(SUMMARIZE_THE_CHAT, "채팅 요약 (모델은 이전 메시지 대신 요약을 받습니다)");
+        it(SUMMARIZE_THE_CHAT, "Riassumi la chat (il modello riceve poi il riassunto invece dei messaggi precedenti)");
 
         ja(SUMMARY_OF_THE_CHAT, "チャットの要約");
         zh(SUMMARY_OF_THE_CHAT, "对话总结");
+        fr(SUMMARY_OF_THE_CHAT, "Résumé de la discussion");
+        es(SUMMARY_OF_THE_CHAT, "Resumen del chat");
+        de(SUMMARY_OF_THE_CHAT, "Zusammenfassung des Chats");
+        ko(SUMMARY_OF_THE_CHAT, "채팅 요약");
+        it(SUMMARY_OF_THE_CHAT, "Riassunto della chat");
 
         ja(THE_MODEL_GETS_THIS_SUMMARY, "モデルにはこの要約とそれ以降のメッセージが渡され、これより上のメッセージは渡されません。");
         zh(THE_MODEL_GETS_THIS_SUMMARY, "模型收到这份总结及其后的消息，不再收到上面的消息。");
+        fr(THE_MODEL_GETS_THIS_SUMMARY, "Le modèle reçoit ce résumé et les messages qui le suivent, pas ceux au-dessus.");
+        es(THE_MODEL_GETS_THIS_SUMMARY, "El modelo recibe este resumen y los mensajes posteriores, no los de arriba.");
+        de(THE_MODEL_GETS_THIS_SUMMARY, "Das Modell erhält diese Zusammenfassung und die Nachrichten danach, nicht die darüber.");
+        ko(THE_MODEL_GETS_THIS_SUMMARY, "모델은 이 요약과 그 뒤의 메시지를 받으며, 위의 메시지는 받지 않습니다.");
+        it(THE_MODEL_GETS_THIS_SUMMARY, "Il modello riceve questo riassunto e i messaggi che lo seguono, non quelli sopra.");
 
         ja(NOTHING_TO_SUMMARIZE, "まだ要約するものがありません");
         zh(NOTHING_TO_SUMMARIZE, "还没有可总结的内容");
+        fr(NOTHING_TO_SUMMARIZE, "Il n'y a encore rien à résumer");
+        es(NOTHING_TO_SUMMARIZE, "Todavía no hay nada que resumir");
+        de(NOTHING_TO_SUMMARIZE, "Es gibt noch nichts zusammenzufassen");
+        ko(NOTHING_TO_SUMMARIZE, "아직 요약할 것이 없습니다");
+        it(NOTHING_TO_SUMMARIZE, "Non c'è ancora nulla da riassumere");
 
         ja(YOU, "あなた");
         zh(YOU, "你");
+        fr(YOU, "Vous");
+        es(YOU, "Tú");
+        de(YOU, "Du");
+        ko(YOU, "나");
+        it(YOU, "Tu");
 
         ja(MODEL, "モデル");
         zh(MODEL, "模型");
+        fr(MODEL, "Modèle");
+        es(MODEL, "Modelo");
+        de(MODEL, "Modell");
+        ko(MODEL, "모델");
+        it(MODEL, "Modello");
 
         ja(SEND, "送信");
         zh(SEND, "发送");
+        fr(SEND, "Envoyer");
+        es(SEND, "Enviar");
+        de(SEND, "Senden");
+        ko(SEND, "보내기");
+        it(SEND, "Invia");
 
         ja(COPY, "コピー");
         zh(COPY, "复制");
+        fr(COPY, "Copier");
+        es(COPY, "Copiar");
+        de(COPY, "Kopieren");
+        ko(COPY, "복사");
+        it(COPY, "Copia");
 
         ja(COPIED_TO_THE_CLIPBOARD, "クリップボードにコピーしました");
         zh(COPIED_TO_THE_CLIPBOARD, "已复制到剪贴板");
+        fr(COPIED_TO_THE_CLIPBOARD, "Copié dans le presse-papiers");
+        es(COPIED_TO_THE_CLIPBOARD, "Copiado al portapapeles");
+        de(COPIED_TO_THE_CLIPBOARD, "In die Zwischenablage kopiert");
+        ko(COPIED_TO_THE_CLIPBOARD, "클립보드에 복사했습니다");
+        it(COPIED_TO_THE_CLIPBOARD, "Copiato negli appunti");
 
         ja(DELETE_THE_MESSAGE, "メッセージを削除");
         zh(DELETE_THE_MESSAGE, "删除消息");
+        fr(DELETE_THE_MESSAGE, "Supprimer le message");
+        es(DELETE_THE_MESSAGE, "Eliminar el mensaje");
+        de(DELETE_THE_MESSAGE, "Die Nachricht löschen");
+        ko(DELETE_THE_MESSAGE, "메시지 삭제");
+        it(DELETE_THE_MESSAGE, "Elimina il messaggio");
 
         ja(GENERATE_AN_ARC_FROM_THIS, "このメッセージからアークを生成");
         zh(GENERATE_AN_ARC_FROM_THIS, "根据这条消息生成故事弧");
+        fr(GENERATE_AN_ARC_FROM_THIS, "Générer un arc à partir de ce message");
+        es(GENERATE_AN_ARC_FROM_THIS, "Generar un arco a partir de este mensaje");
+        de(GENERATE_AN_ARC_FROM_THIS, "Aus dieser Nachricht einen Handlungsbogen generieren");
+        ko(GENERATE_AN_ARC_FROM_THIS, "이 메시지로 아크 생성");
+        it(GENERATE_AN_ARC_FROM_THIS, "Genera un arco da questo messaggio");
 
         ja(TALK_ABOUT_THE_PLOT, "プロットについて話しましょう…");
         zh(TALK_ABOUT_THE_PLOT, "聊聊情节……");
+        fr(TALK_ABOUT_THE_PLOT, "Parlez de l'intrigue...");
+        es(TALK_ABOUT_THE_PLOT, "Habla sobre la trama...");
+        de(TALK_ABOUT_THE_PLOT, "Über die Handlung sprechen ...");
+        ko(TALK_ABOUT_THE_PLOT, "줄거리에 대해 이야기하세요...");
+        it(TALK_ABOUT_THE_PLOT, "Parla della trama...");
 
         ja(HOW_THE_MODEL_HELPS, "モデルの手伝い方");
         zh(HOW_THE_MODEL_HELPS, "模型如何协助");
+        fr(HOW_THE_MODEL_HELPS, "Comment le modèle aide");
+        es(HOW_THE_MODEL_HELPS, "Cómo ayuda el modelo");
+        de(HOW_THE_MODEL_HELPS, "Wie das Modell hilft");
+        ko(HOW_THE_MODEL_HELPS, "모델이 돕는 방식");
+        it(HOW_THE_MODEL_HELPS, "Come aiuta il modello");
 
         ja(MODE_FREE_TALK, "自由な会話");
         zh(MODE_FREE_TALK, "自由交谈");
+        fr(MODE_FREE_TALK, "Discussion libre");
+        es(MODE_FREE_TALK, "Conversación libre");
+        de(MODE_FREE_TALK, "Freies Gespräch");
+        ko(MODE_FREE_TALK, "자유 대화");
+        it(MODE_FREE_TALK, "Conversazione libera");
 
         ja(MODE_EXPLORE_DIRECTIONS, "方向性を探る");
         zh(MODE_EXPLORE_DIRECTIONS, "探索方向");
+        fr(MODE_EXPLORE_DIRECTIONS, "Explorer des pistes");
+        es(MODE_EXPLORE_DIRECTIONS, "Explorar direcciones");
+        de(MODE_EXPLORE_DIRECTIONS, "Richtungen erkunden");
+        ko(MODE_EXPLORE_DIRECTIONS, "방향 탐색");
+        it(MODE_EXPLORE_DIRECTIONS, "Esplora direzioni");
 
         ja(MODE_FIND_THE_PROBLEMS, "問題点を探す");
         zh(MODE_FIND_THE_PROBLEMS, "找出问题");
+        fr(MODE_FIND_THE_PROBLEMS, "Trouver les problèmes");
+        es(MODE_FIND_THE_PROBLEMS, "Encontrar los problemas");
+        de(MODE_FIND_THE_PROBLEMS, "Probleme finden");
+        ko(MODE_FIND_THE_PROBLEMS, "문제점 찾기");
+        it(MODE_FIND_THE_PROBLEMS, "Trova i problemi");
 
         ja(MODE_EXPAND_AN_IDEA, "アイデアを広げる");
         zh(MODE_EXPAND_AN_IDEA, "展开想法");
+        fr(MODE_EXPAND_AN_IDEA, "Développer une idée");
+        es(MODE_EXPAND_AN_IDEA, "Desarrollar una idea");
+        de(MODE_EXPAND_AN_IDEA, "Eine Idee ausbauen");
+        ko(MODE_EXPAND_AN_IDEA, "아이디어 확장");
+        it(MODE_EXPAND_AN_IDEA, "Sviluppa un'idea");
 
         ja(SEND_THE_LOREBOOK, "ロアブックを送る");
         zh(SEND_THE_LOREBOOK, "发送设定集");
+        fr(SEND_THE_LOREBOOK, "Envoyer le lorebook");
+        es(SEND_THE_LOREBOOK, "Enviar el lorebook");
+        de(SEND_THE_LOREBOOK, "Das Lorebook senden");
+        ko(SEND_THE_LOREBOOK, "로어북 보내기");
+        it(SEND_THE_LOREBOOK, "Invia il lorebook");
 
         ja(SEND_THE_OUTLINE, "アウトラインを送る");
         zh(SEND_THE_OUTLINE, "发送大纲");
+        fr(SEND_THE_OUTLINE, "Envoyer le plan");
+        es(SEND_THE_OUTLINE, "Enviar el esquema");
+        de(SEND_THE_OUTLINE, "Die Gliederung senden");
+        ko(SEND_THE_OUTLINE, "개요 보내기");
+        it(SEND_THE_OUTLINE, "Invia la struttura");
 
         ja(NOT_SENT, "送らない");
         zh(NOT_SENT, "不发送");
+        fr(NOT_SENT, "Non envoyé");
+        es(NOT_SENT, "No enviar");
+        de(NOT_SENT, "Nicht gesendet");
+        ko(NOT_SENT, "보내지 않음");
+        it(NOT_SENT, "Non inviato");
 
         ja(DESCRIPTIONS_ONLY, "説明のみ");
         zh(DESCRIPTIONS_ONLY, "仅描述");
+        fr(DESCRIPTIONS_ONLY, "Descriptions seulement");
+        es(DESCRIPTIONS_ONLY, "Solo descripciones");
+        de(DESCRIPTIONS_ONLY, "Nur Beschreibungen");
+        ko(DESCRIPTIONS_ONLY, "설명만");
+        it(DESCRIPTIONS_ONLY, "Solo le descrizioni");
 
         ja(WITH_THE_NOTES, "メモ付き");
         zh(WITH_THE_NOTES, "含备注");
+        fr(WITH_THE_NOTES, "Avec les notes");
+        es(WITH_THE_NOTES, "Con las notas");
+        de(WITH_THE_NOTES, "Mit den Notizen");
+        ko(WITH_THE_NOTES, "메모 포함");
+        it(WITH_THE_NOTES, "Con le note");
 
         ja(SEND_THE_SUMMARIES, "物語の要約を送る");
         zh(SEND_THE_SUMMARIES, "发送故事的总结");
+        fr(SEND_THE_SUMMARIES, "Envoyer les résumés de l'histoire");
+        es(SEND_THE_SUMMARIES, "Enviar los resúmenes de la historia");
+        de(SEND_THE_SUMMARIES, "Die Zusammenfassungen der Geschichte senden");
+        ko(SEND_THE_SUMMARIES, "이야기의 요약 보내기");
+        it(SEND_THE_SUMMARIES, "Invia i riassunti della storia");
 
         ja(THE_SUMMARIES_STAND_IN, "要約は、生成時と同様に、最新の要約までの物語の代わりとして送られます。");
         zh(THE_SUMMARIES_STAND_IN, "总结代替其中最新一条之前的故事，与生成时的发送方式相同。");
+        fr(THE_SUMMARIES_STAND_IN, "Les résumés remplacent l'histoire jusqu'au plus récent d'entre eux, comme une génération les envoie.");
+        es(THE_SUMMARIES_STAND_IN, "Los resúmenes sustituyen a la historia hasta el más reciente de ellos, tal como los envía una generación.");
+        de(THE_SUMMARIES_STAND_IN, "Die Zusammenfassungen ersetzen die Geschichte bis zur neuesten davon, so wie eine Generierung sie sendet.");
+        ko(THE_SUMMARIES_STAND_IN, "요약은 생성이 보내는 방식대로, 그중 가장 새로운 것까지의 이야기를 대신합니다.");
+        it(THE_SUMMARIES_STAND_IN, "I riassunti sostituiscono la storia fino al più recente di essi, come li invia una generazione.");
 
         ja(SEND_THE_LATEST_PARTS, "物語の最新パートを送る");
         zh(SEND_THE_LATEST_PARTS, "发送故事的最新段落");
+        fr(SEND_THE_LATEST_PARTS, "Envoyer les dernières parties de l'histoire");
+        es(SEND_THE_LATEST_PARTS, "Enviar las últimas partes de la historia");
+        de(SEND_THE_LATEST_PARTS, "Die letzten Abschnitte der Geschichte senden");
+        ko(SEND_THE_LATEST_PARTS, "이야기의 최신 파트 보내기");
+        it(SEND_THE_LATEST_PARTS, "Invia le ultime parti della storia");
 
         ja(THE_NEWEST_PARTS_THAT_FIT, "最新の要約より後のパート（要約なしの場合はすべて）のうち、下の上限に収まる最新のもの。");
         zh(THE_NEWEST_PARTS_THAT_FIT, "最新总结之后的段落（不发送总结时为全部），取符合下方上限的最新几段。");
+        fr(THE_NEWEST_PARTS_THAT_FIT, "Les parties après le résumé le plus récent (toutes, sans résumés), les plus récentes qui tiennent dans la limite ci-dessous.");
+        es(THE_NEWEST_PARTS_THAT_FIT, "Las partes posteriores al resumen más reciente (todas si no hay resúmenes), las más recientes que quepan en el límite de abajo.");
+        de(THE_NEWEST_PARTS_THAT_FIT, "Die Abschnitte nach der neuesten Zusammenfassung (alle, wenn es keine Zusammenfassungen gibt), die neuesten, die in das Limit unten passen.");
+        ko(THE_NEWEST_PARTS_THAT_FIT, "가장 새로운 요약 이후의 파트 (요약이 없으면 모든 파트) 중 아래 제한에 맞는 최신 파트.");
+        it(THE_NEWEST_PARTS_THAT_FIT, "Le parti dopo il riassunto più recente (tutte se non ci sono riassunti), le più recenti che rientrano nel limite qui sotto.");
 
         ja(TOKENS_OF_THE_STORY, "物語のトークン数");
         zh(TOKENS_OF_THE_STORY, "故事的词元数");
+        fr(TOKENS_OF_THE_STORY, "Jetons de l'histoire");
+        es(TOKENS_OF_THE_STORY, "Tokens de la historia");
+        de(TOKENS_OF_THE_STORY, "Tokens der Geschichte");
+        ko(TOKENS_OF_THE_STORY, "이야기의 토큰");
+        it(TOKENS_OF_THE_STORY, "Token della storia");
 
         ja(EMPTY_A_THIRD_OF_WHAT_THE_MODEL_TAKES, "空欄: モデルが受け付ける量の3分の1");
         zh(EMPTY_A_THIRD_OF_WHAT_THE_MODEL_TAKES, "留空：模型可接受量的三分之一");
+        fr(EMPTY_A_THIRD_OF_WHAT_THE_MODEL_TAKES, "Vide : un tiers de ce qu'accepte le modèle");
+        es(EMPTY_A_THIRD_OF_WHAT_THE_MODEL_TAKES, "Vacío: un tercio de lo que admite el modelo");
+        de(EMPTY_A_THIRD_OF_WHAT_THE_MODEL_TAKES, "Leer: ein Drittel dessen, was das Modell aufnimmt");
+        ko(EMPTY_A_THIRD_OF_WHAT_THE_MODEL_TAKES, "비워 두면: 모델이 받는 양의 3분의 1");
+        it(EMPTY_A_THIRD_OF_WHAT_THE_MODEL_TAKES, "Vuoto: un terzo di ciò che il modello accetta");
 
         ja(THE_MODEL_GETS, "モデルに渡すもの: 要約%d件、物語のパート%d件。");
         zh(THE_MODEL_GETS, "模型收到：%d 条总结、%d 个故事段落。");
+        fr(THE_MODEL_GETS, "Le modèle reçoit %d résumés et %d parties de l'histoire.");
+        es(THE_MODEL_GETS, "El modelo recibe %d resúmenes y %d partes de la historia.");
+        de(THE_MODEL_GETS, "Das Modell erhält %d Zusammenfassungen und %d Abschnitte der Geschichte.");
+        ko(THE_MODEL_GETS, "모델이 요약 %d개와 이야기의 파트 %d개를 받습니다.");
+        it(THE_MODEL_GETS, "Il modello riceve %d riassunti e %d parti della storia.");
 
         ja(PROMPT_SENT_TO_THE_MODEL_DOES_NOT_FIT, "モデルに送信されるプロンプト: 約%sトークン（モデルが受け付ける%s中）- 収まりません。送る量を減らすかチャットを要約してください。");
         zh(PROMPT_SENT_TO_THE_MODEL_DOES_NOT_FIT, "发送给模型的提示词：约 %s 个词元（模型可接受 %s 个）- 放不下，请少发送一些或总结对话。");
+        fr(PROMPT_SENT_TO_THE_MODEL_DOES_NOT_FIT, "Prompt envoyé au modèle : environ %s jetons sur les %s qu'accepte le modèle - il ne tient pas, envoyez moins ou résumez la discussion.");
+        es(PROMPT_SENT_TO_THE_MODEL_DOES_NOT_FIT, "Prompt enviado al modelo: unos %s tokens de los %s que admite el modelo: no cabe, envía menos o resume el chat.");
+        de(PROMPT_SENT_TO_THE_MODEL_DOES_NOT_FIT, "An das Modell gesendeter Prompt: etwa %s Tokens von %s, die das Modell aufnimmt – er passt nicht, sende weniger oder fasse den Chat zusammen.");
+        ko(PROMPT_SENT_TO_THE_MODEL_DOES_NOT_FIT, "모델에 전송되는 프롬프트: 약 %s 토큰 (모델이 받는 %s 중) - 맞지 않으므로 더 적게 보내거나 채팅을 요약하세요.");
+        it(PROMPT_SENT_TO_THE_MODEL_DOES_NOT_FIT, "Prompt inviato al modello: circa %s token su %s che il modello accetta - non ci sta, invia meno o riassumi la chat.");
 
         ja(SUMMARIZE_THE_CHAT_TITLE, "チャットを要約");
         zh(SUMMARIZE_THE_CHAT_TITLE, "总结对话");
+        fr(SUMMARIZE_THE_CHAT_TITLE, "Résumer la discussion");
+        es(SUMMARIZE_THE_CHAT_TITLE, "Resumir el chat");
+        de(SUMMARIZE_THE_CHAT_TITLE, "Den Chat zusammenfassen");
+        ko(SUMMARIZE_THE_CHAT_TITLE, "채팅 요약");
+        it(SUMMARIZE_THE_CHAT_TITLE, "Riassumi la chat");
 
         ja(WHAT_THE_SUMMARY_SHOULD_KEEP, "要約で残す・強調すること");
         zh(WHAT_THE_SUMMARY_SHOULD_KEEP, "总结应保留或强调的内容");
+        fr(WHAT_THE_SUMMARY_SHOULD_KEEP, "Ce que le résumé doit garder ou souligner");
+        es(WHAT_THE_SUMMARY_SHOULD_KEEP, "Qué debe conservar o destacar el resumen");
+        de(WHAT_THE_SUMMARY_SHOULD_KEEP, "Was die Zusammenfassung behalten oder betonen soll");
+        ko(WHAT_THE_SUMMARY_SHOULD_KEEP, "요약이 유지하거나 강조해야 할 것");
+        it(WHAT_THE_SUMMARY_SHOULD_KEEP, "Cosa deve conservare o mettere in evidenza il riassunto");
 
         ja(THE_SUMMARY_KEEPS_PLACEHOLDER, "例: 裏切り者に関するどんでん返しと、却下した結末を残す");
         zh(THE_SUMMARY_KEEPS_PLACEHOLDER, "例如：保留关于叛徒的反转以及我们否决的结局");
+        fr(THE_SUMMARY_KEEPS_PLACEHOLDER, "Par exemple : garde le rebondissement sur le traître et la fin que nous avons rejetée");
+        es(THE_SUMMARY_KEEPS_PLACEHOLDER, "Por ejemplo: conserva el giro sobre el traidor y el final que descartamos");
+        de(THE_SUMMARY_KEEPS_PLACEHOLDER, "Zum Beispiel: den Twist um den Verräter und das Ende, das wir verworfen haben, beibehalten");
+        ko(THE_SUMMARY_KEEPS_PLACEHOLDER, "예: 배신자에 대한 반전과 우리가 거부한 결말은 유지");
+        it(THE_SUMMARY_KEEPS_PLACEHOLDER, "Ad esempio: mantieni il colpo di scena sul traditore e il finale che abbiamo scartato");
 
         ja(EMPTY_THE_MODEL_DECIDES, "任意。空欄: モデルが重要なことを判断します。");
         zh(EMPTY_THE_MODEL_DECIDES, "可选。留空：由模型判断什么重要。");
+        fr(EMPTY_THE_MODEL_DECIDES, "Facultatif. Vide : le modèle décide de ce qui compte.");
+        es(EMPTY_THE_MODEL_DECIDES, "Opcional. Vacío: el modelo decide qué importa.");
+        de(EMPTY_THE_MODEL_DECIDES, "Optional. Leer: Das Modell entscheidet, was wichtig ist.");
+        ko(EMPTY_THE_MODEL_DECIDES, "선택 사항. 비워 두면 모델이 중요한 것을 판단합니다.");
+        it(EMPTY_THE_MODEL_DECIDES, "Facoltativo. Vuoto: il modello decide cosa conta.");
 
         ja(SUMMARIZE, "要約する");
         zh(SUMMARIZE, "总结");
+        fr(SUMMARIZE, "Résumer");
+        es(SUMMARIZE, "Resumir");
+        de(SUMMARIZE, "Zusammenfassen");
+        ko(SUMMARIZE, "요약");
+        it(SUMMARIZE, "Riassumi");
 
         ja(WHAT_THE_MODEL_MAY_DO, "モデルができること");
         zh(WHAT_THE_MODEL_MAY_DO, "模型可以做什么");
+        fr(WHAT_THE_MODEL_MAY_DO, "Ce que le modèle peut faire");
+        es(WHAT_THE_MODEL_MAY_DO, "Lo que puede hacer el modelo");
+        de(WHAT_THE_MODEL_MAY_DO, "Was das Modell tun darf");
+        ko(WHAT_THE_MODEL_MAY_DO, "모델이 할 수 있는 일");
+        it(WHAT_THE_MODEL_MAY_DO, "Cosa può fare il modello");
 
         ja(TOOLS_PLANNER, "プランナー: シーンの読み取りと変更");
         zh(TOOLS_PLANNER, "规划器：读取和修改场景");
+        fr(TOOLS_PLANNER, "Planificateur : lire et modifier les scènes");
+        es(TOOLS_PLANNER, "Planificador: leer y cambiar las escenas");
+        de(TOOLS_PLANNER, "Planer: die Szenen lesen und ändern");
+        ko(TOOLS_PLANNER, "플래너: 장면 읽기 및 변경");
+        it(TOOLS_PLANNER, "Pianificatore: leggere e modificare le scene");
 
         ja(TOOLS_PLANNER_TIP, "書く予定のシーン: 一覧、追加、変更、移動、完了の設定ができます。");
         zh(TOOLS_PLANNER_TIP, "你计划要写的场景：可以列出、添加、修改、移动并标记为已完成。");
+        fr(TOOLS_PLANNER_TIP, "Les scènes que vous prévoyez d'écrire : il peut les lister, en ajouter, les modifier, les déplacer et les marquer comme faites.");
+        es(TOOLS_PLANNER_TIP, "Las escenas que planeas escribir: puede listarlas, añadirlas, cambiarlas, moverlas y marcarlas como hechas.");
+        de(TOOLS_PLANNER_TIP, "Die Szenen, die du zu schreiben planst: Es kann sie auflisten, hinzufügen, ändern, verschieben und als erledigt markieren.");
+        ko(TOOLS_PLANNER_TIP, "쓸 계획인 장면: 나열하고, 추가하고, 변경하고, 이동하고, 완료로 표시할 수 있습니다.");
+        it(TOOLS_PLANNER_TIP, "Le scene che prevedi di scrivere: può elencarle, aggiungerle, modificarle, spostarle e contrassegnarle come completate.");
 
         ja(TOOLS_LOREBOOK, "ロアブック: エントリの読み取り、追加、変更");
         zh(TOOLS_LOREBOOK, "设定集：读取、添加和修改条目");
+        fr(TOOLS_LOREBOOK, "Lorebook : lire, ajouter et modifier des entrées");
+        es(TOOLS_LOREBOOK, "Lorebook: leer, añadir y cambiar entradas");
+        de(TOOLS_LOREBOOK, "Lorebook: Einträge lesen, hinzufügen und ändern");
+        ko(TOOLS_LOREBOOK, "로어북: 항목 읽기, 추가, 변경");
+        it(TOOLS_LOREBOOK, "Lorebook: leggere, aggiungere e modificare voci");
 
         ja(TOOLS_LOREBOOK_TIP, "設定を検索・閲覧し、エントリを作成し、既存のエントリの本文を変更できます。");
         zh(TOOLS_LOREBOOK_TIP, "可以搜索和阅读设定，创建条目并修改现有条目的文本。");
+        fr(TOOLS_LOREBOOK_TIP, "Il peut rechercher et lire le lore, créer des entrées et modifier le texte de celles qui existent.");
+        es(TOOLS_LOREBOOK_TIP, "Puede buscar y leer el lore, crear entradas y cambiar el texto de las existentes.");
+        de(TOOLS_LOREBOOK_TIP, "Es kann die Lore durchsuchen und lesen, Einträge erstellen und den Text vorhandener ändern.");
+        ko(TOOLS_LOREBOOK_TIP, "로어를 검색하고 읽고, 항목을 만들고, 기존 항목의 텍스트를 변경할 수 있습니다.");
+        it(TOOLS_LOREBOOK_TIP, "Può cercare e leggere il lore, creare voci e modificare il testo di quelle esistenti.");
 
         ja(TOOLS_OUTLINE, "アウトライン: アークと章の読み取りと変更");
         zh(TOOLS_OUTLINE, "大纲：读取和修改故事弧与章节");
+        fr(TOOLS_OUTLINE, "Plan : lire et modifier les arcs et les chapitres");
+        es(TOOLS_OUTLINE, "Esquema: leer y cambiar arcos y capítulos");
+        de(TOOLS_OUTLINE, "Gliederung: Handlungsbögen und Kapitel lesen und ändern");
+        ko(TOOLS_OUTLINE, "개요: 아크와 챕터 읽기 및 변경");
+        it(TOOLS_OUTLINE, "Struttura: leggere e modificare archi e capitoli");
 
         ja(TOOLS_OUTLINE_TIP, "アウトラインを読み、アークと章の追加、変更、移動ができます。");
         zh(TOOLS_OUTLINE_TIP, "可以读取大纲，添加、修改和移动故事弧与章节。");
+        fr(TOOLS_OUTLINE_TIP, "Il peut lire le plan, ajouter des arcs et des chapitres, les modifier et les déplacer.");
+        es(TOOLS_OUTLINE_TIP, "Puede leer el esquema, añadir arcos y capítulos, cambiarlos y moverlos.");
+        de(TOOLS_OUTLINE_TIP, "Es kann die Gliederung lesen, Handlungsbögen und Kapitel hinzufügen, ändern und verschieben.");
+        ko(TOOLS_OUTLINE_TIP, "개요를 읽고, 아크와 챕터를 추가하고, 변경하고, 이동할 수 있습니다.");
+        it(TOOLS_OUTLINE_TIP, "Può leggere la struttura, aggiungere archi e capitoli, modificarli e spostarli.");
 
         ja(TOOLS_NOTES, "ノート: ページの読み取り、追加、変更");
         zh(TOOLS_NOTES, "笔记：读取、添加和修改页面");
+        fr(TOOLS_NOTES, "Notes : lire, ajouter et modifier des pages");
+        es(TOOLS_NOTES, "Notas: leer, añadir y cambiar páginas");
+        de(TOOLS_NOTES, "Notizen: Seiten lesen, hinzufügen und ändern");
+        ko(TOOLS_NOTES, "메모: 페이지 읽기, 추가, 변경");
+        it(TOOLS_NOTES, "Note: leggere, aggiungere e modificare pagine");
 
         ja(TOOLS_NOTES_TIP, "あなたのノート（ストーリーノート）を検索・閲覧し、ページの追加や追記、ページ内の文章の変更ができます。アシスタントに非公開のページには触れません。");
         zh(TOOLS_NOTES_TIP, "您的笔记（故事笔记）：可以搜索和阅读页面，添加页面或向页面追加内容，并修改页面中的文字。对助手隐藏的页面无法访问。");
+        fr(TOOLS_NOTES_TIP, "Vos notes (Story Notes) : il peut rechercher et lire les pages, ajouter une page ou compléter une page, et en modifier le texte. Les pages cachées aux assistants sont hors de portée.");
+        es(TOOLS_NOTES_TIP, "Tus notas (Notas de la historia): puede buscar y leer las páginas, añadir una página o añadir algo a una, y cambiar texto en una. Las páginas ocultas para los asistentes quedan fuera de su alcance.");
+        de(TOOLS_NOTES_TIP, "Deine Notizen (Story Notes): Es kann die Seiten durchsuchen und lesen, eine Seite hinzufügen oder zu einer hinzufügen und Text in einer ändern. Vor Assistenten verborgene Seiten sind außer Reichweite.");
+        ko(TOOLS_NOTES_TIP, "내 메모(스토리 노트): 페이지를 검색하고 읽고, 페이지를 추가하거나 덧붙이고, 텍스트를 변경할 수 있습니다. 어시스턴트에게 숨긴 페이지는 접근할 수 없습니다.");
+        it(TOOLS_NOTES_TIP, "Le tue note (Note della storia): può cercare e leggere le pagine, aggiungere una pagina o aggiungere a una esistente, e modificarne il testo. Le pagine nascoste agli assistenti sono fuori portata.");
 
         ja(SEND_THE_NOTES, "ノートを送る");
         zh(SEND_THE_NOTES, "发送笔记");
+        fr(SEND_THE_NOTES, "Envoyer les notes");
+        es(SEND_THE_NOTES, "Enviar las notas");
+        de(SEND_THE_NOTES, "Die Notizen senden");
+        ko(SEND_THE_NOTES, "메모 보내기");
+        it(SEND_THE_NOTES, "Invia le note");
 
         ja(TITLES_AND_FIRST_LINES, "タイトルと最初の行");
         zh(TITLES_AND_FIRST_LINES, "标题和首行");
+        fr(TITLES_AND_FIRST_LINES, "Titres et premières lignes");
+        es(TITLES_AND_FIRST_LINES, "Títulos y primeras líneas");
+        de(TITLES_AND_FIRST_LINES, "Titel und erste Zeilen");
+        ko(TITLES_AND_FIRST_LINES, "제목과 첫 줄");
+        it(TITLES_AND_FIRST_LINES, "Titoli e prime righe");
 
         ja(FULL_TEXT, "全文");
         zh(FULL_TEXT, "全文");
+        fr(FULL_TEXT, "Texte intégral");
+        es(FULL_TEXT, "Texto completo");
+        de(FULL_TEXT, "Volltext");
+        ko(FULL_TEXT, "전체 텍스트");
+        it(FULL_TEXT, "Testo completo");
 
         ja(TOOLS_GENERATORS, "ジェネレーター: アーク、章、設定エントリ");
         zh(TOOLS_GENERATORS, "生成器：故事弧、章节、设定条目");
+        fr(TOOLS_GENERATORS, "Générateurs : arc, chapitres, entrée de lore");
+        es(TOOLS_GENERATORS, "Generadores: arco, capítulos, entrada de lore");
+        de(TOOLS_GENERATORS, "Generatoren: Handlungsbogen, Kapitel, Lore-Eintrag");
+        ko(TOOLS_GENERATORS, "생성기: 아크, 챕터, 로어 항목");
+        it(TOOLS_GENERATORS, "Generatori: arco, capitoli, voce del lore");
 
         ja(TOOLS_GENERATORS_TIP, "アークと章のジェネレーターおよびロアジェネレーターを呼び出せます。下書きを返し、指示があったときだけ保存します。");
         zh(TOOLS_GENERATORS_TIP, "可以调用故事弧和章节生成器以及设定生成器。它们返回草稿，只有被告知时才保存。");
+        fr(TOOLS_GENERATORS_TIP, "Il peut appeler les générateurs d'arc et de chapitres et le générateur de lore. Ils renvoient un brouillon ; il n'en enregistre un que sur demande.");
+        es(TOOLS_GENERATORS_TIP, "Puede llamar a los generadores de arcos y capítulos y al Generador de lore. Devuelven un borrador; solo guarda uno cuando se le dice.");
+        de(TOOLS_GENERATORS_TIP, "Es kann die Generatoren für Handlungsbögen und Kapitel und den Lore Generator aufrufen. Sie liefern einen Entwurf; es speichert einen nur, wenn es dazu aufgefordert wird.");
+        ko(TOOLS_GENERATORS_TIP, "아크 및 챕터 생성기와 로어 생성기를 호출할 수 있습니다. 이들은 초안을 반환하며, 지시를 받았을 때만 저장합니다.");
+        it(TOOLS_GENERATORS_TIP, "Può chiamare i generatori di archi e di capitoli e il Generatore di lore. Restituiscono una bozza; ne salva una solo quando gli viene detto.");
 
         ja(ASK_BEFORE_IT_CHANGES_ANYTHING, "変更や削除の前に確認する");
         zh(ASK_BEFORE_IT_CHANGES_ANYTHING, "修改或删除前先询问我");
+        fr(ASK_BEFORE_IT_CHANGES_ANYTHING, "Me demander avant de modifier ou supprimer quoi que ce soit");
+        es(ASK_BEFORE_IT_CHANGES_ANYTHING, "Preguntarme antes de que cambie o elimine algo");
+        de(ASK_BEFORE_IT_CHANGES_ANYTHING, "Vor dem Ändern oder Löschen etwas fragen");
+        ko(ASK_BEFORE_IT_CHANGES_ANYTHING, "변경하거나 삭제하기 전에 묻기");
+        it(ASK_BEFORE_IT_CHANGES_ANYTHING, "Chiedimi prima che modifichi o elimini qualcosa");
 
         ja(ADDING_IS_NOT_ASKED, "シーン、エントリ、アークの追加は確認しません（チャットに表示され、削除できます）。既存のものの変更と削除は確認します。");
         zh(ADDING_IS_NOT_ASKED, "添加场景、条目或故事弧不会询问（会显示在对话中，可以删除）。修改和删除已有内容则会询问。");
+        fr(ADDING_IS_NOT_ASKED, "L'ajout d'une scène, d'une entrée ou d'un arc n'est pas demandé, vous le voyez dans la discussion et pouvez le supprimer. La modification et la suppression de l'existant le sont.");
+        es(ADDING_IS_NOT_ASKED, "No se pregunta al añadir una escena, una entrada o un arco: lo ves en el chat y puedes eliminarlo. Cambiar y eliminar lo que existe sí.");
+        de(ADDING_IS_NOT_ASKED, "Beim Hinzufügen einer Szene, eines Eintrags oder eines Handlungsbogens wird nicht gefragt, du siehst es im Chat und kannst es löschen. Beim Ändern und Löschen von Vorhandenem schon.");
+        ko(ADDING_IS_NOT_ASKED, "장면, 항목, 아크의 추가는 묻지 않으며 채팅에서 보고 삭제할 수 있습니다. 기존 항목의 변경과 삭제는 묻습니다.");
+        it(ADDING_IS_NOT_ASKED, "L'aggiunta di una scena, di una voce o di un arco non viene chiesta, la vedi nella chat e puoi eliminarla. La modifica e l'eliminazione di ciò che esiste sì.");
 
         ja(THE_MODEL_WANTS_TO_RUN, "モデルが %s を実行しようとしています");
         zh(THE_MODEL_WANTS_TO_RUN, "模型想要运行 %s");
+        fr(THE_MODEL_WANTS_TO_RUN, "Le modèle veut exécuter %s");
+        es(THE_MODEL_WANTS_TO_RUN, "El modelo quiere ejecutar %s");
+        de(THE_MODEL_WANTS_TO_RUN, "Das Modell möchte %s ausführen");
+        ko(THE_MODEL_WANTS_TO_RUN, "모델이 %s을(를) 실행하려고 합니다");
+        it(THE_MODEL_WANTS_TO_RUN, "Il modello vuole eseguire %s");
 
         ja(ALLOW, "許可");
         zh(ALLOW, "允许");
+        fr(ALLOW, "Autoriser");
+        es(ALLOW, "Permitir");
+        de(ALLOW, "Erlauben");
+        ko(ALLOW, "허용");
+        it(ALLOW, "Consenti");
 
         ja(REFUSE, "拒否");
         zh(REFUSE, "拒绝");
+        fr(REFUSE, "Refuser");
+        es(REFUSE, "Rechazar");
+        de(REFUSE, "Ablehnen");
+        ko(REFUSE, "거부");
+        it(REFUSE, "Rifiuta");
 
         ja(ARC_OUTLINE_GENERATE_AN_ARC, "アークアウトライン: アークを生成");
         zh(ARC_OUTLINE_GENERATE_AN_ARC, "故事弧大纲：生成故事弧");
+        fr(ARC_OUTLINE_GENERATE_AN_ARC, "Plan des arcs : générer un arc");
+        es(ARC_OUTLINE_GENERATE_AN_ARC, "Esquema de arcos: generar un arco");
+        de(ARC_OUTLINE_GENERATE_AN_ARC, "Gliederung der Handlungsbögen: einen Handlungsbogen generieren");
+        ko(ARC_OUTLINE_GENERATE_AN_ARC, "아크 개요: 아크 생성");
+        it(ARC_OUTLINE_GENERATE_AN_ARC, "Struttura degli archi: genera un arco");
 
         ja(ARC_OUTLINE_GENERATE_CHAPTERS, "アークアウトライン: 章を生成");
         zh(ARC_OUTLINE_GENERATE_CHAPTERS, "故事弧大纲：生成章节");
+        fr(ARC_OUTLINE_GENERATE_CHAPTERS, "Plan des arcs : générer des chapitres");
+        es(ARC_OUTLINE_GENERATE_CHAPTERS, "Esquema de arcos: generar capítulos");
+        de(ARC_OUTLINE_GENERATE_CHAPTERS, "Gliederung der Handlungsbögen: Kapitel generieren");
+        ko(ARC_OUTLINE_GENERATE_CHAPTERS, "아크 개요: 챕터 생성");
+        it(ARC_OUTLINE_GENERATE_CHAPTERS, "Struttura degli archi: genera i capitoli");
 
         ja(ARC_OUTLINE_IMPORT_FROM_STORY, "アークアウトライン: 物語からインポート");
         zh(ARC_OUTLINE_IMPORT_FROM_STORY, "故事弧大纲：从故事导入");
+        fr(ARC_OUTLINE_IMPORT_FROM_STORY, "Plan des arcs : importer depuis l'histoire");
+        es(ARC_OUTLINE_IMPORT_FROM_STORY, "Esquema de arcos: importar desde la historia");
+        de(ARC_OUTLINE_IMPORT_FROM_STORY, "Gliederung der Handlungsbögen: aus der Geschichte importieren");
+        ko(ARC_OUTLINE_IMPORT_FROM_STORY, "아크 개요: 이야기에서 가져오기");
+        it(ARC_OUTLINE_IMPORT_FROM_STORY, "Struttura degli archi: importa dalla storia");
 
         ja(ARC_OUTLINE_PLOT_WIZARD, "アークアウトライン: プロットウィザードの回答");
         zh(ARC_OUTLINE_PLOT_WIZARD, "故事弧大纲：情节向导的回答");
+        fr(ARC_OUTLINE_PLOT_WIZARD, "Plan des arcs : réponse de l'assistant d'intrigue");
+        es(ARC_OUTLINE_PLOT_WIZARD, "Esquema de arcos: respuesta del asistente de trama");
+        de(ARC_OUTLINE_PLOT_WIZARD, "Gliederung der Handlungsbögen: Antwort des Plot-Assistenten");
+        ko(ARC_OUTLINE_PLOT_WIZARD, "아크 개요: 줄거리 마법사 응답");
+        it(ARC_OUTLINE_PLOT_WIZARD, "Struttura degli archi: risposta della procedura guidata della trama");
     }
 }

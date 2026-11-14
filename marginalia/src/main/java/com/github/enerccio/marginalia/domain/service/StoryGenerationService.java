@@ -17,6 +17,12 @@ public interface StoryGenerationService {
     Registration addEventObserver(Events event, GenerationObserver observer);
 
     /**
+     * Binds a step to what follows a completed generation of the author ({@link AfterPart}): it runs for every such part of every user,
+     * in its stage, after the bindings made before it in the same stage. Remove it when the extension unloads.
+     */
+    Registration addAfterPartBinding(AfterPart.Binding binding);
+
+    /**
      * Spawns an asynchronous generation task.
      *
      * @param manuscript Active manuscript context.

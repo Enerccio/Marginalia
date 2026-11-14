@@ -117,6 +117,7 @@ public class SummariesDialog extends Dialog implements LLMInteract {
     private void populateMenuBar(MenuBar bar) {
         bar.addItem(loc.getValue(L.LABEL_SEARCH_AND_REPLACE), _ -> openSearchReplaceDialog());
         bar.addItem(loc.getValue(L.LABEL_REVALIDATE_ALL_SUMMARIES), _ -> revalidate(null));
+        bar.addItem(loc.getValue(L.LABEL_CREATE_SUMMARIES) + "...", _ -> new CreateSummariesDialog(manuscript, this::refresh).show());
         ResummarizeDialog.addMenuItem(bar, manuscript, loc, summaryService, this::refresh);
         SummariesImportDialog.addMenuItems(bar, manuscript, loc, summaryService, this::refresh);
     }
@@ -145,7 +146,9 @@ public class SummariesDialog extends Dialog implements LLMInteract {
         Button createMetaButton = new Button(loc.getValue(L.LABEL_CREATE_META_SUMMARY), Solid.LAYER_GROUP.create(), _ -> createMetaSummary());
         createMetaButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_SMALL);
 
-        HorizontalLayout toolbar = new HorizontalLayout(menuBar, tokensSpan, createMetaButton);
+        // the count and the meta summary stand in the header: the menu has the whole width, its items would go into the overflow
+        getHeader().add(tokensSpan, createMetaButton);
+        HorizontalLayout toolbar = new HorizontalLayout(menuBar);
         toolbar.setWidthFull();
         toolbar.setAlignItems(FlexComponent.Alignment.CENTER);
         toolbar.expand(menuBar);

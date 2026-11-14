@@ -1114,7 +1114,7 @@ class AgentConsoleDialogTest extends AgentTestBase {
     void aCommandTheAuthorRanShowsAsTheCommandAndItsResultNotAsTheNoteTheAgentReads() throws Exception {
         AgentRun run = agentRunService.start(agent, true);
         say(run, LLMChatMessage.of(LLMRole.USER, "Start."),
-                LLMChatMessage.of(LLMRole.USER, Defaults.AGENT_AUTHOR_COMMAND_NOTE + "\n\nCommand: /get-book-info\n\nResult:\nThe Book"));
+                LLMChatMessage.of(LLMRole.USER, new Defaults().agentAuthorCommandNote() + "\n\nCommand: /get-book-info\n\nResult:\nThe Book"));
         AgentConsoleDialog dialog = console();
 
         List<Component> bubbles = dialog.getTranscriptBox().getChildren().toList();

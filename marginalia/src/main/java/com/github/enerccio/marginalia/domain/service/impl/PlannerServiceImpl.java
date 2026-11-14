@@ -1,7 +1,9 @@
 package com.github.enerccio.marginalia.domain.service.impl;
 
 import com.github.enerccio.marginalia.domain.model.PlannedScene;
+import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
 import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
+import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.domain.service.PlannerService;
 import com.github.enerccio.marginalia.domain.traits.NoTx;
@@ -24,6 +26,9 @@ public class PlannerServiceImpl implements PlannerService {
 
     @Autowired
     private ManuscriptService manuscriptService;
+
+    @Autowired
+    private ChatMessageService chatMessageService;
 
     /** Who wants to know that the scenes of a book changed, by the uuid of the book. */
     private final Map<String, Set<Runnable>> listeners = new ConcurrentHashMap<>();
@@ -51,6 +56,71 @@ public class PlannerServiceImpl implements PlannerService {
             scenes.add(added);
         });
         return added.copy();
+    }
+
+    @Override
+    @NoTx
+    public PlannedScene insert(Manuscript book, String afterUuid, PlannedScene scene) throws Exception {
+        PlannedScene added = clean(scene);
+        added.setDone(false);
+        change(book, scenes -> {
+            int after = indexOf(scenes, afterUuid);
+            if (scenes.size() >= MAX_SCENES) {
+                throw new IllegalStateException("The planner has " + MAX_SCENES + " scenes already");
+            }
+            scenes.add(after + 1, added);
+        });
+        return added.copy();
+    }
+
+    @Override
+    @NoTx
+    public PlannedScene merge(Manuscript book, String firstUuid, String secondUuid, PlannedScene merged) throws Exception {
+        if (StringUtils.equals(firstUuid, secondUuid)) {
+            throw new IllegalArgumentException("A scene can't be merged with itself");
+        }
+        PlannedScene changed = clean(merged);
+        changed.setUuid(firstUuid);
+        change(book, scenes -> {
+            int first = indexOf(scenes, firstUuid);
+            int second = indexOf(scenes, secondUuid);
+            changed.setDone(scenes.get(first).isDone() && scenes.get(second).isDone());
+            scenes.set(first, changed);
+            scenes.remove(second);
+        });
+        return changed.copy();
+    }
+
+    @Override
+    @NoTx
+    public int importBranch(Manuscript book) throws Exception {
+        Manuscript current = manuscriptService.find(book);
+        List<PlannedScene> imported = new ArrayList<>();
+        if (current != null && current.getActiveLeaf() != null) {
+            for (ChatMessage part : chatMessageService.getBranchFromLeaf(current.getActiveLeaf())) {
+                String setting = cut(part.getSceneSetting());
+                String pov = cut(part.getPovCharacter());
+                String present = cut(part.getPresentCharacters());
+                String instructions = cut(part.getInstructions());
+                String named = StringUtils.firstNonBlank(instructions, setting, pov, present);
+                if (named == null) {
+                    // a part the author wrote or imported without turn details: nothing to plan
+                    continue;
+                }
+                String firstLine = named.lines().filter(StringUtils::isNotBlank).findFirst().orElse(named).strip();
+                imported.add(new PlannedScene(StringUtils.abbreviate(firstLine, "…", IMPORTED_TITLE_LENGTH), setting, pov, present, instructions));
+            }
+        }
+        if (imported.isEmpty()) {
+            return 0;
+        }
+        change(book, scenes -> {
+            if (scenes.size() + imported.size() > MAX_SCENES) {
+                throw new IllegalStateException("The planner can't have more than " + MAX_SCENES + " scenes");
+            }
+            scenes.addAll(imported);
+        });
+        return imported.size();
     }
 
     @Override
@@ -136,6 +206,11 @@ public class PlannerServiceImpl implements PlannerService {
         }
         return new PlannedScene(title,
                 text(scene.getSceneSetting()), text(scene.getPovCharacter()), text(scene.getPresentCharacters()), text(scene.getInstructions()));
+    }
+
+    /** The text stripped and cut to the longest one a scene takes. */
+    private static String cut(String text) {
+        return StringUtils.truncate(StringUtils.trimToEmpty(text), MAX_TEXT_LENGTH);
     }
 
     private static String text(String text) {

@@ -30,6 +30,8 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
+import static com.github.enerccio.marginalia.extensions.bookdescription.BookDescriptionLocalization.T;
+
 @Configurable
 public class BookDescriptionService {
 
@@ -171,13 +173,13 @@ public class BookDescriptionService {
     /** The prompt for the name and the description that applies to the book: its own, its folders', the user's, the built-in one. */
     public String descriptionPrompt(Manuscript book) throws Exception {
         return StringUtils.defaultIfBlank(manuscriptService.resolveExtension(book, BookDescriptionInherited.DESCRIPTION_PROMPT).value(),
-                Defaults.DESCRIPTION_PROMPT);
+                T.defaults().descriptionPrompt());
     }
 
     /** The prompt for the notes that applies to the book, resolved like {@link #descriptionPrompt}. */
     public String notesPrompt(Manuscript book) throws Exception {
         return StringUtils.defaultIfBlank(manuscriptService.resolveExtension(book, BookDescriptionInherited.NOTES_PROMPT).value(),
-                Defaults.NOTES_PROMPT);
+                T.defaults().notesPrompt());
     }
 
     // --- the model ---
@@ -288,7 +290,7 @@ public class BookDescriptionService {
         data.setBookName(StringUtils.defaultString(current.getName()));
         data.setBookDescription(StringUtils.defaultString(current.getDescription()));
         return templateService.processTemplate(template, "bookDescription", data).stripTrailing()
-                + "\n\n" + Defaults.outputInstructions(format);
+                + "\n\n" + T.defaults().outputInstructions(format);
     }
 
     /**

@@ -16,6 +16,7 @@ RUN mvn dependency:go-offline -B
 # Vaadin frontend build (Node.js, npm, Vite) is skipped; the WAR of this build is not used and not production-ready.
 COPY marginalia/src ./src
 COPY manual/user /build/manual/user
+COPY translations /build/translations
 COPY .git /build/.git
 RUN mvn install -DskipTests -Dvaadin.skip=true -B \
     && mvn install -N -B -f /build/pom.xml
@@ -26,11 +27,11 @@ RUN for pom in libs/*/pom.xml; do \
         (cd "$(dirname "$pom")" && mvn install -DskipTests -B) || exit 1; \
     done
 
-# Build the plugins; each one is a separate Maven project
+# Build the plugins (tests are skipped, as for the application); each one is a separate Maven project
 COPY marginalia/plugins ./plugins
 RUN mkdir /jars \
     && for pom in plugins/*/pom.xml; do \
-        (cd "$(dirname "$pom")" && mvn package -B) || exit 1; \
+        (cd "$(dirname "$pom")" && mvn package -DskipTests -B) || exit 1; \
         cp "$(dirname "$pom")"/target/*.jar /jars/ || exit 1; \
     done
 

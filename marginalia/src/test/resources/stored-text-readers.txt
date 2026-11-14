@@ -20,6 +20,8 @@ com/github/enerccio/marginalia/domain/service/impl/StoryAround.java
 com/github/enerccio/marginalia/domain/service/impl/AnnotateServiceImpl.java
 com/github/enerccio/marginalia/domain/service/impl/RedraftServiceImpl.java
 com/github/enerccio/marginalia/domain/service/impl/SummaryServiceImpl.java
+com/github/enerccio/marginalia/ui/dialogs/story/AutoAnnotateSteps.java
+com/github/enerccio/marginalia/domain/components/SummaryPlanner.java
 
 # --- the stored text and its offsets: the editor, the revisions, the annotations, the hashes, the search and replace
 com/github/enerccio/marginalia/domain/service/impl/ChatMessageServiceImpl.java
@@ -57,6 +59,8 @@ com/github/enerccio/marginalia/ui/dialogs/ExportDialog.java
 
 # --- the screens that show or edit the stored text (the cards, the history, the viewer, the search, the dialogs of annotate and redraft)
 com/github/enerccio/marginalia/ui/components/ThreadCopyRequestAttributes.java
+com/github/enerccio/marginalia/ui/dialogs/bookimport/InsertionPicker.java
+com/github/enerccio/marginalia/ui/dialogs/manuscript/CreateSummariesDialog.java
 com/github/enerccio/marginalia/ui/dialogs/manuscript/ManuscriptStoryPart.java
 com/github/enerccio/marginalia/ui/dialogs/phone/manuscript/PhoneManuscriptStoryPart.java
 com/github/enerccio/marginalia/ui/dialogs/PromptComparisonDialog.java

@@ -11,6 +11,7 @@ import com.github.enerccio.marginalia.domain.service.function.FunctionSet;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMChatMessage;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMRole;
 import com.github.enerccio.marginalia.domain.service.impl.generation.dto.LLMToolCall;
+import com.github.enerccio.marginalia.domain.service.run.Runs;
 import com.github.enerccio.marginalia.domain.service.tool.ToolSet;
 import com.github.enerccio.marginalia.extensions.arcoutline.ArcOutlineExtension;
 import com.github.enerccio.marginalia.extensions.arcoutline.model.*;
@@ -21,7 +22,6 @@ import com.github.enerccio.marginalia.extensions.arcoutline.model.WizardOptions.
 import com.github.enerccio.marginalia.extensions.arcoutline.service.ArcOutlineService;
 import com.github.enerccio.marginalia.extensions.arcoutline.service.ArcOutlineService.ModelSelection;
 import com.github.enerccio.marginalia.extensions.arcoutline.service.ArcOutlineService.WizardPrompt;
-import com.github.enerccio.marginalia.extensions.arcoutline.service.Defaults;
 import com.github.enerccio.marginalia.extensions.arcoutline.service.WizardContext;
 import com.github.enerccio.marginalia.loc.Localization;
 import com.github.enerccio.marginalia.ui.JavascriptLibrary;
@@ -119,6 +119,8 @@ public class PlotWizardDialog extends Dialog {
     private boolean running;
     private boolean updating;
     private CancellationToken token;
+    // the answer as a run: the panel of the runs shows it (its place in the queue of the model, a Stop), also in the other pages
+    private final WindowRun request = WindowRun.of(this, ArcOutlineExtension.NOTIFY_WIZARD, () -> T.localized(DEVELOP_THE_PLOT));
     /** The question the author is asked about a command of the model, null when there is none. */
     private ConfirmDialog pendingConfirm;
     private CompletableFuture<Boolean> pendingDecision;
@@ -136,6 +138,7 @@ public class PlotWizardDialog extends Dialog {
         this.manuscript = manuscript;
         this.outline = outline;
         this.onArc = onArc;
+        request.book(manuscript);
         this.options = loadOptions();
         this.data = loadData();
         this.chat = data.activeChat();
@@ -376,11 +379,11 @@ public class PlotWizardDialog extends Dialog {
         promptArea.setMinHeight("160px");
         promptArea.setMaxHeight("30vh");
         promptArea.setHelperText(T.localized(VARIABLES).formatted("{{backgroundLore}}, {{outline}}, {{summaries}}, {{story}}, {{mode}}"));
-        promptArea.setPopoverContent(TemplateHints.create(loc, promptArea, promptArea.getPopover(), null, Defaults.WIZARD_PROMPT));
+        promptArea.setPopoverContent(TemplateHints.create(loc, promptArea, promptArea.getPopover(), null, T.defaults().wizardPrompt()));
         promptArea.addValueChangeListener(e -> {
             if (e.isFromClient()) {
                 // the default is not stored, so that it can change with a new version
-                options.setPrompt(e.getValue().strip().equals(Defaults.WIZARD_PROMPT.strip()) ? null : e.getValue());
+                options.setPrompt(e.getValue().strip().equals(T.defaults().wizardPrompt().strip()) ? null : e.getValue());
                 optionsChanged();
             }
         });
@@ -828,7 +831,7 @@ public class PlotWizardDialog extends Dialog {
         WizardPrompt prompt = service.buildWizardPrompt(manuscript, outline.get(), options, promptArea.getValue(), capacity);
         String system = WizardContext.withSummary(prompt.system(), WizardContext.lastSummary(chat.getMessages()));
         if (!functions.isEmpty()) {
-            system = WizardContext.withTools(system, Defaults.WIZARD_TOOLS_PROMPT, names.hint());
+            system = WizardContext.withTools(system, T.defaults().wizardToolsPrompt(), names.hint());
         }
         List<WizardMessage> history = WizardContext.sinceSummary(chat.getMessages());
         if (capacity > 0) {
@@ -885,7 +888,7 @@ public class PlotWizardDialog extends Dialog {
                     .append(WizardContext.withCalls(message.getText(), message.getCalls()).strip()).append("\n\n");
         }
         List<LLMChatMessage> payload = new ArrayList<>();
-        payload.add(LLMChatMessage.of(LLMRole.SYSTEM, WizardContext.summaryPrompt(Defaults.WIZARD_SUMMARY_PROMPT, note)));
+        payload.add(LLMChatMessage.of(LLMRole.SYSTEM, WizardContext.summaryPrompt(T.defaults().wizardSummaryPrompt(), note)));
         payload.add(LLMChatMessage.of(LLMRole.USER, transcript.toString().stripTrailing()));
         start(payload, true, FunctionSet.empty());
     }
@@ -919,10 +922,12 @@ public class PlotWizardDialog extends Dialog {
         }));
         running = true;
         updateControls();
-        try (InferenceSession _ = InferenceSession.open("arc-outline"); UsageContext _ = UsageContext.open(manuscript)) {
+        try (InferenceSession _ = InferenceSession.open("arc-outline"); UsageContext _ = UsageContext.open(manuscript);
+             Runs.Binding _ = request.start(this::stop)) {
             token = inferenceServices.forAIOrThrow(modelPicker.getAi()).stream(payload, modelPicker.getProtocol(),
                     observed, callback(ui, answer, text, reasoning, calls, pending));
         } catch (Exception e) {
+            request.finished();
             // nothing runs, do not leave the controls frozen
             running = false;
             token = null;
@@ -1000,6 +1005,7 @@ public class PlotWizardDialog extends Dialog {
     }
 
     private void finish(UI ui, WizardMessage answer, StringBuilder text, StringBuilder reasoning, List<WizardCall> calls, Throwable error) {
+        request.finished();
         ui.access(() -> {
             running = false;
             token = null;
@@ -1082,7 +1088,15 @@ public class PlotWizardDialog extends Dialog {
                 confirm.addCancelListener(_ -> decision.complete(false));
                 pendingConfirm = confirm;
                 pendingDecision = decision;
+                // the panel of the runs says that the model waits for the author
+                Runs.Run asking = request.getRun();
+                if (asking != null) {
+                    asking.setWaitingForUser(true);
+                }
                 decision.whenComplete((_, _) -> ui.access(() -> {
+                    if (asking != null) {
+                        asking.setWaitingForUser(false);
+                    }
                     if (pendingDecision == decision) {
                         pendingConfirm = null;
                         pendingDecision = null;

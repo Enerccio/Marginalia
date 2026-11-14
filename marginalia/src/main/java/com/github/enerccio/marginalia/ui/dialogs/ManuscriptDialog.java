@@ -6,13 +6,16 @@ import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.service.AIService;
 import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
+import com.github.enerccio.marginalia.domain.service.run.Runs;
 import com.github.enerccio.marginalia.domain.traits.*;
 import com.github.enerccio.marginalia.loc.L;
 import com.github.enerccio.marginalia.loc.Localization;
+import com.github.enerccio.marginalia.ui.JavascriptLibrary;
 import com.github.enerccio.marginalia.ui.LLMInteract;
 import com.github.enerccio.marginalia.ui.LLMInteraction;
 import com.github.enerccio.marginalia.ui.RestorableState;
 import com.github.enerccio.marginalia.ui.dialogs.manuscript.*;
+import com.github.enerccio.marginalia.ui.components.RunsOnPage;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.google.gson.JsonObject;
 import com.vaadin.flow.component.Component;
@@ -24,6 +27,7 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.Tab;
+import com.vaadin.flow.shared.Registration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.vaadin.firitin.layouts.VTabSheet;
@@ -50,7 +54,11 @@ public class ManuscriptDialog extends Dialog implements ManuscriptWindow {
     private AI ai;
     private Runnable onClose;
     private Runnable onStateChange;
+    // held by freeze() from the click that starts a generation until unfreeze(); the run of the generation says what is held meanwhile
     private boolean frozen;
+    // what a generation of the book holds in the window now, null when none runs
+    private GenerationHold hold;
+    private Registration runsRegistration;
 
     private Button exitButton;
     private VTabSheet tabs;
@@ -81,6 +89,24 @@ public class ManuscriptDialog extends Dialog implements ManuscriptWindow {
 
     public ManuscriptDialog(Manuscript manuscript) {
         this.manuscript = manuscript;
+        // one window per book: opened in another page, it closes here as by its exit button
+        BookWindows.hold(this, () -> this.manuscript, () -> {
+            if (onClose != null) {
+                onClose.run();
+            }
+            close();
+        });
+        // the window follows the generation of its book, whoever started it (the story, a command, a plugin)
+        addAttachListener(event -> {
+            runsRegistration = RunsOnPage.listen(event.getUI(), this::followGeneration);
+            followGeneration();
+        });
+        addDetachListener(event -> {
+            if (runsRegistration != null) {
+                runsRegistration.remove();
+                runsRegistration = null;
+            }
+        });
     }
 
     @PublicAPI(from = "1.1.0",
@@ -135,11 +161,7 @@ public class ManuscriptDialog extends Dialog implements ManuscriptWindow {
         footerLayout.setWidthFull();
         footerLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
 
-        exitButton = new Button(loc.getValue(L.LABEL_EXIT), event -> {
-            if (onClose != null)
-                onClose.run();
-            close();
-        });
+        exitButton = new Button(loc.getValue(L.LABEL_EXIT), event -> leave());
 
         footerLayout.add(exitButton);
         getFooter().add(footerLayout);
@@ -209,34 +231,100 @@ public class ManuscriptDialog extends Dialog implements ManuscriptWindow {
         selectStoryPart();
     }
 
+    /**
+     * Holds the whole window: a generation is being started. What it holds from then on comes from its run ({@link #followGeneration}).
+     */
     @PublicAPI(from = "1.1.0",
             returns = @APIReturn(type = void.class))
     public void freeze() {
         if (!frozen) {
             this.frozen = true;
-            updateFreezeStatus();
+            followGeneration();
         }
     }
 
+    /**
+     * The generation the window started is over and shown.
+     */
     @PublicAPI(from = "1.1.0",
             returns = @APIReturn(type = void.class))
     public void unfreeze() {
         if (frozen) {
             this.frozen = false;
+            followGeneration();
+        }
+    }
+
+    /**
+     * Reads what the generation of the book holds now and gives it to the tabs when it changed.
+     */
+    @PublicAPI(from = "1.8.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "generation", type = Runs.Run.class),
+                    @APILocals(name = "next", type = GenerationHold.class)})
+    private void followGeneration() {
+        Runs.Run generation = manuscript == null ? null : Runs.generationOf(manuscript.getId());
+        GenerationHold next = generation != null ? GenerationHold.of(generation) : frozen ? GenerationHold.WHOLE : null;
+        if (!Objects.equals(next, hold)) {
+            hold = next;
             updateFreezeStatus();
         }
+    }
+
+    /**
+     * What a generation of the book holds in the window now, null when none runs.
+     */
+    @PublicAPI(from = "1.8.0",
+            returns = @APIReturn(type = GenerationHold.class))
+    public GenerationHold getHold() {
+        return hold;
     }
 
     @PublicAPI(from = "1.1.0",
             returns = @APIReturn(type = void.class),
             locals = {@APILocals(name = "part", type = ManuscriptDialogPart.class)})
     private void updateFreezeStatus() {
-        exitButton.setEnabled(!frozen);
-        for (int i=0; i<tabs.getTabCount(); i++)
-            tabs.getTabAt(i).setEnabled(!frozen);
-        for (ManuscriptDialogPart part : parts) {
-            part.setFrozen(frozen);
+        if (tabs == null) {
+            return;
         }
+        boolean whole = hold != null && hold.isWhole();
+        for (int i=0; i<tabs.getTabCount(); i++)
+            tabs.getTabAt(i).setEnabled(!whole);
+        for (ManuscriptDialogPart part : parts) {
+            part.setHold(hold);
+        }
+        // closing the tab stops the generation: the browser asks first
+        JavascriptLibrary.warnOnLeave(getElement(), hold != null);
+    }
+
+    /**
+     * The exit button: while a generation of the book runs, leaving stops it, so the author is asked first.
+     */
+    @PublicAPI(from = "1.8.0",
+            returns = @APIReturn(type = void.class),
+            locals = {@APILocals(name = "generation", type = Runs.Run.class)})
+    private void leave() {
+        Runs.Run generation = manuscript == null ? null : Runs.generationOf(manuscript.getId());
+        if (generation == null && hold == null) {
+            closeWindow();
+            return;
+        }
+        ConfirmDialog.show(loc.getValue(L.MSG_LEAVE_STOPS_GENERATION), () -> {
+            if (generation != null) {
+                // the Stop the author knows: what arrived is kept
+                generation.stop();
+            }
+            closeWindow();
+        });
+    }
+
+    @PublicAPI(from = "1.8.0",
+            returns = @APIReturn(type = void.class))
+    private void closeWindow() {
+        if (onClose != null) {
+            onClose.run();
+        }
+        close();
     }
 
     @PublicAPI(from = "1.1.0",
@@ -339,7 +427,8 @@ public class ManuscriptDialog extends Dialog implements ManuscriptWindow {
         return "The story editor of the book \"" + manuscript.getName() + "\", a full screen dialog with tabs "
                 + "(book settings, prompt, lorebook, story, tree, backup). The open tab is **"
                 + (selected == null ? "" : selected.getLabel()) + "**."
-                + (frozen ? " The book is being generated now: the tabs are locked." : "");
+                + (hold == null ? "" : hold.isWhole() ? " A part is being generated now and its prompt is prepared: the tabs are locked."
+                : " A part is being generated now: that part and the parts before it cannot be deleted, merged or moved; the rest can be edited.");
     }
 
     @PublicAPI(from = "1.3.0",

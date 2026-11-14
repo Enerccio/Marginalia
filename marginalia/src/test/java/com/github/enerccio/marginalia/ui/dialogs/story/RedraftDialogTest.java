@@ -9,11 +9,16 @@ import com.github.enerccio.marginalia.domain.model.impl.Manuscript;
 import com.github.enerccio.marginalia.domain.model.impl.Summary;
 import com.github.enerccio.marginalia.domain.service.*;
 import com.github.enerccio.marginalia.domain.service.SummaryService.BlockTexts;
+import com.github.enerccio.marginalia.domain.service.run.Runs;
 import com.github.enerccio.marginalia.test.MarginaliaTestBase;
+import com.github.enerccio.marginalia.ui.components.PageRuns;
+import com.github.enerccio.marginalia.ui.dialogs.ManuscriptWindow;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.ModalityMode;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.textfield.TextArea;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,6 +30,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * The window of the redraft of a part: nothing is stored before Apply, Apply replaces the text. (Streaming the redraft
@@ -94,6 +100,20 @@ class RedraftDialogTest extends MarginaliaTestBase {
 
         redrafted(components).setValue("  ");
         assertThat(applyButton(components).isEnabled()).isFalse();
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void theLengthStartsAsTheSameAndOffersShorterAndLonger() {
+        List<Component> components = components(RedraftDialog.create(book, part, saved -> {
+        }));
+        com.vaadin.flow.component.select.Select<RedraftService.Length> length = (com.vaadin.flow.component.select.Select<RedraftService.Length>)
+                components.stream().filter(com.vaadin.flow.component.select.Select.class::isInstance).findFirst().orElseThrow();
+
+        assertThat(length.getValue()).isEqualTo(RedraftService.Length.SAME);
+        assertThat(length.getListDataView().getItems()).containsExactly(RedraftService.Length.values());
+        assertThat(length.getItemLabelGenerator().apply(RedraftService.Length.SHORTER)).isEqualTo("Shorter");
+        assertThat(length.getItemLabelGenerator().apply(RedraftService.Length.LONGER)).isEqualTo("Longer");
     }
 
     @Test
@@ -383,5 +403,150 @@ class RedraftDialogTest extends MarginaliaTestBase {
         Checkbox inside = components(RedraftDialog.create(book, part, new RedraftService.Passage(3, 17), saved -> {
         })).stream().filter(Checkbox.class::isInstance).map(Checkbox.class::cast).findFirst().orElseThrow();
         assertThat(inside.isVisible()).isTrue();
+    }
+
+    // ---- the window beside the story (TODO.CONCURRENCY.md step 3)
+
+    @Test
+    void theWindowIsNotModalAndMarksItsPartBusyUntilItIsClosed() {
+        RedraftDialog dialog = RedraftDialog.create(book, part, saved -> {
+        });
+        assertThat(Runs.busyWith(part.getId())).isNull();
+
+        dialog.open();
+
+        assertThat(dialog.getModality()).isEqualTo(ModalityMode.MODELESS);
+        assertThat(Runs.busyWith(part.getId())).contains(book.getName());
+        dialog.close();
+        assertThat(Runs.busyWith(part.getId())).isNull();
+    }
+
+    @Test
+    void aFoldedWindowStaysWithItsPartUntilItIsClosedFromTheCorner() {
+        RedraftDialog dialog = RedraftDialog.create(book, part, saved -> {
+        });
+        dialog.open();
+
+        dialog.floatingForTest().minimise();
+
+        assertThat(dialog.isOpened()).isFalse();
+        PageRuns.Run run = PageRuns.of(ui).getRuns().getFirst();
+        assertThat(run.isMinimised()).isTrue();
+        assertThat(Runs.busyWith(part.getId())).isNotNull();
+        run.open();
+        assertThat(dialog.isOpened()).isTrue();
+        assertThat(run.isMinimised()).isFalse();
+        dialog.floatingForTest().minimise();
+        run.close();
+        assertThat(PageRuns.of(ui).getRuns()).isEmpty();
+        assertThat(Runs.busyWith(part.getId())).isNull();
+    }
+
+    @Test
+    void closingTheBookEndsAFoldedWindow() {
+        // the book window, attached and modal as the browser would have it (only a book's window ends the run, not any modal)
+        Dialog bookWindow = new BookWindow();
+        ui.addModal(bookWindow);
+        bookWindow.open();
+        RedraftDialog dialog = RedraftDialog.create(book, part, saved -> {
+        });
+        dialog.open();
+        dialog.floatingForTest().minimise();
+        assertThat(PageRuns.of(ui).getRuns()).hasSize(1);
+
+        // a closed window leaves the page (the browser is told, here it is taken away at once)
+        bookWindow.close();
+        ui.remove(bookWindow);
+
+        assertThat(PageRuns.of(ui).getRuns()).isEmpty();
+    }
+
+    @Test
+    void aFoldedAutomaticRedraftIsStillAppliedByItself() throws Exception {
+        AtomicReference<ChatMessage> applied = new AtomicReference<>();
+        RedraftDialog dialog = RedraftDialog.createAuto(book, part, true, applied::set);
+        dialog.open();
+        dialog.floatingForTest().minimise();
+
+        dialog.completedForTest("He drew his sword slowly.");
+
+        assertThat(chatMessageService.find(part.getId()).getResponse()).isEqualTo("He drew his sword slowly.");
+        assertThat(applied.get()).isNotNull();
+        assertThat(PageRuns.of(ui).getRuns()).isEmpty();
+    }
+
+    @Test
+    void aRedraftOfAPartEditedMeanwhileIsNotAppliedWithoutAsking() throws Exception {
+        AtomicReference<ChatMessage> applied = new AtomicReference<>();
+        RedraftDialog dialog = RedraftDialog.create(book, part, applied::set);
+        List<Component> components = components(dialog);
+        dialog.open();
+        redrafted(components).setValue("He drew his sword slowly.");
+        chatMessageService.update(part, p -> p.setResponse("He drew his dagger."));
+
+        dialog.applyForTest();
+
+        assertThat(chatMessageService.find(part.getId()).getResponse()).isEqualTo("He drew his dagger.");
+        assertThat(applied.get()).isNull();
+        // the author is asked (the question is a window of its own)
+        assertThat(dialog.isOpened()).isTrue();
+    }
+
+    @Test
+    void anAutomaticRedraftOfAPartEditedMeanwhileWaitsForTheAuthor() throws Exception {
+        AtomicReference<ChatMessage> applied = new AtomicReference<>();
+        RedraftDialog dialog = RedraftDialog.createAuto(book, part, true, applied::set);
+        dialog.open();
+        chatMessageService.update(part, p -> p.setResponse("He drew his dagger."));
+
+        dialog.completedForTest("He drew his sword slowly.");
+
+        assertThat(chatMessageService.find(part.getId()).getResponse()).isEqualTo("He drew his dagger.");
+        assertThat(applied.get()).isNull();
+        assertThat(dialog.isOpened()).isTrue();
+    }
+
+    @Test
+    void aRedraftOfADeletedPartWritesNothing() throws Exception {
+        AtomicReference<ChatMessage> applied = new AtomicReference<>();
+        RedraftDialog dialog = RedraftDialog.create(book, part, applied::set);
+        List<Component> components = components(dialog);
+        dialog.open();
+        redrafted(components).setValue("He drew his sword slowly.");
+        // the window holds the part: a delete is refused while it is open
+        assertThatThrownBy(() -> chatMessageService.deleteNodeAndMigrateChildren(part, manuscriptService.find(book.getId()), false))
+                .isInstanceOf(Runs.HeldException.class);
+        // what the hold can not see (a bulk statement) may still take it away
+        dialog.floatingForTest().holdForTest().end();
+        chatMessageService.deleteNodeAndMigrateChildren(part, manuscriptService.find(book.getId()), false);
+
+        dialog.applyForTest();
+
+        assertThat(applied.get()).isNull();
+        assertThat(dialog.isOpened()).isFalse();
+    }
+
+    /**
+     * A stand-in for the window of a book: the run looks for a {@link ManuscriptWindow} among the open dialogs.
+     */
+    private static class BookWindow extends Dialog implements ManuscriptWindow {
+        private Runnable onClose;
+
+        @Override public void create() {}
+        @Override public Manuscript getManuscript() { return null; }
+        @Override public com.github.enerccio.marginalia.domain.model.impl.AI getAi() { return null; }
+        @Override public void selectStoryPart() {}
+        @Override public void reload() {}
+        @Override public void showMessage(Long messageId) {}
+        @Override public Runnable getOnClose() { return onClose; }
+        @Override public void setOnClose(Runnable onClose) { this.onClose = onClose; }
+        @Override public void setOnStateChange(Runnable onStateChange) {}
+        @Override public void stateChanged() {}
+        @Override public Manuscript refreshManuscript() { return null; }
+        @Override public Manuscript save() { return null; }
+        @Override public void freeze() {}
+        @Override public void unfreeze() {}
+        @Override public com.google.gson.JsonObject storeState() { return new com.google.gson.JsonObject(); }
+        @Override public void restoreState(com.google.gson.JsonObject self) {}
     }
 }

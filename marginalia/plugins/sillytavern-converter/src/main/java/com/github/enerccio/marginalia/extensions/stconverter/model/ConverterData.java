@@ -9,7 +9,8 @@ import java.util.List;
  * ticked, the turn details made of the chat, the model chosen for the wand and the prompt of the user.
  * <p>
  * The source is a SillyTavern chat, or, when {@link #isBookSource()}, the stripped parts of another book ({@link BookSource}):
- * the messages and the turn details are then read from the resource each time, only the ticks are kept here.
+ * the messages and the turn details are then read from the resource each time, only the ticks and the turn details the
+ * author merged ({@link #getJoinedTurns()}) are kept here.
  */
 public class ConverterData {
 
@@ -34,6 +35,11 @@ public class ConverterData {
     private List<Integer> reviewedTurns = new ArrayList<>();
     /** The turn details, in the order of the chat; for the parts of a book they are read from the resource and not stored here. */
     private List<TurnItem> turns = new ArrayList<>();
+    /**
+     * For the parts of a book: the turn details the author made of several parts (merged), which take the place of those
+     * read from the resource for the parts they cover. Empty for a chat, whose turn details are all stored in {@link #turns}.
+     */
+    private List<TurnItem> joinedTurns = new ArrayList<>();
     /** The model the wand runs with, null for the model of the book. */
     private Long aiId;
     private Long protocolId;
@@ -114,6 +120,17 @@ public class ConverterData {
 
     public void setTurns(List<TurnItem> turns) {
         this.turns = turns;
+    }
+
+    public List<TurnItem> getJoinedTurns() {
+        if (joinedTurns == null) {
+            joinedTurns = new ArrayList<>();
+        }
+        return joinedTurns;
+    }
+
+    public void setJoinedTurns(List<TurnItem> joinedTurns) {
+        this.joinedTurns = joinedTurns;
     }
 
     public Long getAiId() {

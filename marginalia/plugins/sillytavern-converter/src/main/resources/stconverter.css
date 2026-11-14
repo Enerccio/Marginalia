@@ -97,3 +97,8 @@ vaadin-grid::part(stc-clickable) {
 .stc-phone .stc-tabs {
     min-height: 60vh;
 }
+
+/* The name of a field in a row of the turn details (the rows are those of the Planner, which strikes through bold text of a done one) */
+.stc-field {
+    font-weight: bold;
+}

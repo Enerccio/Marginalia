@@ -70,13 +70,16 @@ public class RedraftServiceImpl implements RedraftService {
     private TemplateService templateService;
 
     @Autowired
+    private LorebookActivationService loreActivationService;
+
+    @Autowired
     @Lazy
     private AgentRunService agentRunService;
 
     @Override
     @CommonTxReadOnly
     public CancellationToken redraft(Manuscript manuscript, ChatMessage part, String instructions, String prompt,
-                                     GenerationOptions options, boolean withAnnotations, Passage passage, Callback callback) throws Exception {
+                                     GenerationOptions options, boolean withAnnotations, Passage passage, Length length, Callback callback) throws Exception {
         if (manuscript == null || part == null || callback == null) {
             throw new IllegalArgumentException("The part does not exist");
         }
@@ -112,7 +115,7 @@ public class RedraftServiceImpl implements RedraftService {
         }
         InferenceService inferenceService = inferenceServices.forAIOrThrow(ai);
 
-        List<LLMChatMessage> payload = createPayload(book, stored, StringUtils.trimToEmpty(instructions), prompt, withAnnotations, widen(stored, passage), ai, protocol, inferenceService);
+        List<LLMChatMessage> payload = createPayload(book, stored, withLength(book, StringUtils.trimToEmpty(instructions), length), prompt, withAnnotations, widen(stored, passage), ai, protocol, inferenceService);
 
         CancellationToken cancellationToken = new CancellationToken();
         InferenceAsyncCallback inferenceCallback = new InferenceAsyncCallback() {
@@ -171,6 +174,20 @@ public class RedraftServiceImpl implements RedraftService {
         return cancellationToken;
     }
 
+    /**
+     * The instructions of the author with the snippet of the setting that asks for a shorter or longer text after them.
+     */
+    private String withLength(Manuscript book, String instructions, Length length) throws Exception {
+        if (length == null || length == Length.SAME) {
+            return instructions;
+        }
+        String snippet = StringUtils.trimToEmpty(length == Length.SHORTER ? manuscriptService.getRedraftShorter(book) : manuscriptService.getRedraftLonger(book));
+        if (snippet.isEmpty()) {
+            return instructions;
+        }
+        return instructions.isEmpty() ? snippet : instructions + "\n\n" + snippet;
+    }
+
     @Override
     public Passage widen(ChatMessage part, Passage passage) {
         if (passage == null || part == null || !partTextRegistry.isActive()) {
@@ -216,7 +233,10 @@ public class RedraftServiceImpl implements RedraftService {
         int maxTokens = TokenLimits.promptTokens(ai, protocol);
 
         RedraftTemplateData data = new RedraftTemplateData();
-        data.setBackgroundLore(StringUtils.defaultString(messagePromptService.getBackgroundLore(part)));
+        // the lore as the lorebooks are now, so a change of the lore reaches the redraft; the lore the part was written with
+        // only when the book has no lorebook to ask
+        String lore = loreActivationService.currentBackgroundLore(book, part);
+        data.setBackgroundLore(StringUtils.defaultString(lore != null ? lore : messagePromptService.getBackgroundLore(part)));
         data.setNarrativePov(manuscriptService.getPov(book));
         data.setNarrativeTense(manuscriptService.getTense(book));
         data.setStyle(manuscriptService.getStyle(book));

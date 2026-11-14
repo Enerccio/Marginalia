@@ -61,9 +61,7 @@ public final class ScriptFromLabels {
         for (int i = 0; i < pieces.size(); i++) {
             Piece piece = pieces.get(i);
             PieceLabel label = labels.get(piece.id());
-            // the model decides who says a piece: narration is the narrator unless it names somebody (a letter, a note, thoughts), the words stay the book's
-            String speaker = label != null && label.speaker() != null && !label.speaker().isBlank() && !NARRATOR.equalsIgnoreCase(label.speaker().strip())
-                    ? label.speaker().strip() : NARRATOR;
+            String speaker = speaker(piece, label);
             double intensity = label == null ? 0.5 : Math.max(0, Math.min(1, label.intensity()));
 
             String model = backend.getModel();
@@ -92,6 +90,24 @@ public final class ScriptFromLabels {
                     backend.getSpeed(), seed, backend.getChunkSize(), backend.getFormat(), pause(pieces, i)), piece.text(), delivery.name(), intensity));
         }
         return new StudioScript(entries, Hashes.sha256(text == null ? "" : text), StudioScript.Status.DRAFT);
+    }
+
+    /** A piece that starts with an italic span: {@code *...*}, {@code _..._} (also bold): the form of a thought or a letter, and of an emphasis. */
+    private static final Pattern STARTS_ITALIC = Pattern.compile("^[*_]{1,3}[^*_\\s].*?[*_]{1,3}");
+
+    /**
+     * Who says a piece. The model decides who says speech. Narration is the narrator, also when it is told from a character's point of view
+     * ("She watched as Percy..."): it is somebody else only when the model names a character <i>and</i> the piece starts in italics, which is how a
+     * thought or a letter is written. Without that mark the answer of the model is not trusted (it takes the character the narration is about).
+     */
+    static String speaker(Piece piece, PieceLabel label) {
+        if (label == null || label.speaker() == null || label.speaker().isBlank() || NARRATOR.equalsIgnoreCase(label.speaker().strip())) {
+            return NARRATOR;
+        }
+        if (piece.kind() == Piece.Kind.NARRATION && !STARTS_ITALIC.matcher(piece.text()).find()) {
+            return NARRATOR;
+        }
+        return label.speaker().strip();
     }
 
     /** The exaggeration of a piece of that intensity, for the models that have one. */

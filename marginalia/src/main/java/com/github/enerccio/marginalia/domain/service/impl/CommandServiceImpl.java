@@ -8,10 +8,10 @@ import com.github.enerccio.marginalia.domain.service.impl.commands.SearchReplace
 import com.github.enerccio.marginalia.domain.service.impl.commands.SearchReplaceLoreEntryCommand;
 import com.github.enerccio.marginalia.domain.service.impl.commands.lorebook.read.*;
 import com.github.enerccio.marginalia.domain.service.impl.commands.lorebook.write.LoreEntryWriteCommands;
-import com.github.enerccio.marginalia.domain.service.impl.commands.manuscript.write.PlannerCommands;
 import com.github.enerccio.marginalia.domain.service.impl.commands.lorebook.write.LorebookWriteCommands;
 import com.github.enerccio.marginalia.domain.service.impl.commands.manuscript.read.*;
 import com.github.enerccio.marginalia.domain.service.impl.commands.manuscript.write.*;
+import com.github.enerccio.marginalia.domain.service.run.Runs;
 import com.github.enerccio.marginalia.domain.traits.Command;
 import com.github.enerccio.marginalia.domain.traits.CommandParameter;
 import com.github.enerccio.marginalia.domain.traits.CommandParameterSignature;
@@ -212,12 +212,16 @@ public class CommandServiceImpl implements CommandService, InitializingBean, Dis
         if (meta.availableInMacros() && !meta.readOnly()) {
             throw new IllegalArgumentException("Command " + name + " in " + where + " is available in macros, so it has to be readOnly");
         }
+        if (meta.progressInStory() && !meta.async()) {
+            throw new IllegalArgumentException("Command " + name + " in " + where + " shows its progress in the story, so it has to be async");
+        }
         return new CommandDefinition(name, CommandText.of(where, "humanName", meta.humanName(), meta.humanNameText(), true),
                 CommandText.of(where, "description", meta.description(), meta.descriptionText(), false),
                 CommandText.of(where, "llmDescription", meta.llmDescription(), meta.llmDescriptionText(), false), meta.async(),
                 meta.dataSeverity(), meta.availableForAgent(), meta.readOnly(), meta.availableInMacros(), meta.batch(), linked, suite, signature.any(), List.copyOf(parameters),
                 new CommandReturnDefinition(returns.name(), returns.type(),
-                        CommandText.of(where, "description of the return value", returns.description(), returns.descriptionText(), false)));
+                        CommandText.of(where, "description of the return value", returns.description(), returns.descriptionText(), false)),
+                meta.progressInStory());
     }
 
     private static void validateOverloads(String name, List<Registered> overloads, Class<?> type) {
@@ -245,6 +249,10 @@ public class CommandServiceImpl implements CommandService, InitializingBean, Dis
             if (definition.availableForAgent() != overloads.getFirst().definition().availableForAgent()) {
                 throw new IllegalArgumentException("The overloads of command " + name + " in " + type.getName()
                         + " differ in availableForAgent");
+            }
+            if (definition.progressInStory() != overloads.getFirst().definition().progressInStory()) {
+                throw new IllegalArgumentException("The overloads of command " + name + " in " + type.getName()
+                        + " differ in progressInStory");
             }
             if (!definition.linkedCommands().equals(overloads.getFirst().definition().linkedCommands())) {
                 throw new IllegalArgumentException("The overloads of command " + name + " in " + type.getName()
@@ -436,13 +444,16 @@ public class CommandServiceImpl implements CommandService, InitializingBean, Dis
         }
 
         RequestAttributes attributes = ThreadCopyRequestAttributes.create();
+        // the run the caller is bound to (the window of the command bar): the requests of the command report to it, the panel of the runs
+        // shows what the model writes
+        Runs.Run caller = Runs.current();
         try {
             Future<?> worker = workers.submit(() -> {
                 if (result.isDone()) {
                     // stopped before it started
                     return;
                 }
-                try (InRequestScope _ = new InRequestScope(attributes)) {
+                try (InRequestScope _ = new InRequestScope(attributes); Runs.Binding _ = caller == null || caller.isEnded() ? null : caller.bind()) {
                     invoke(registered, context);
                 }
             });

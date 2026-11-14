@@ -391,7 +391,8 @@ Most are 🧩 plugin-sized; the ones that need a core hook say so.
     place for it) and the separators of the characters set per book, which the Knowledge Tracker reads (`has` splits at `,` `;` and line breaks).
 44. ✅ Partly: **Beat sheet / outline mode.** Done in core by the **Planner** tab of the story editor (`PlannerService`, `PlannedScene`, stored
     in the book's `plan` attribute, so backups and copies carry it): the scenes the author plans, reorderable, each with the turn details
-    (scene setting, POV, present characters, instructions) and a *written* flag; a click puts a scene into the new turn form. Commands
+    (scene setting, POV, present characters, instructions) and a *written* flag; a click puts a scene into the new turn form. A scene can be
+    inserted between two, two scenes merged in a form (`MergeTurnsDialog`), and the parts of the current branch imported as scenes. Commands
     `/get-planned-scenes`, `/add-planned-scene`, `/update-planned-scene`, `/set-planned-scene-done`, `/move-planned-scene` and
     `/delete-planned-scene` let agents, the command bar and the plot wizard of the Arc Outline plugin use it; on the phone it is in the
     drawer. Not done: the flag is ticked by hand ("nothing checks it for you"), the next open scene is not fed to a turn by itself, no side
@@ -578,6 +579,130 @@ Most are 🧩 plugin-sized; the ones that need a core hook say so.
 60. 🧩 **Markdown vault mirror.** Two-way sync of a lorebook (and optionally chapters) with a folder of Markdown files with
     front matter (name, tags, mode), so it can live in Obsidian or git. Complements `lorebookvcs`, which versions inside
     the database. The one-way part exists: the Obsidian vault export (67); the two-way sync is not done.
+102. **Lorebook editor (full-screen, tabbed; desktop only).** The entries are edited in the expanding rows of the
+     `LorebookView` grid (`createEntryDetailLayout`: a 160 px content area, the activation settings, the condition, the
+     note), cramped for a long entry and one entry at a time. **First version done (2026-11-12, tried in a browser 2026-11-13):**
+     `TabDock` closable tabs (`setClosable`, `close`, `setOnClose`, `setCaption`, `getCurrentId`), `LorebookEditorDialog`
+     (list tab, entry tabs, Open / Open in new tab / Delete, header tokens and search and replace), `LorebookEntryEditor`,
+     the `MarkdownEditor` wrapper (4.1.2, our toolbar, debounced value), `LorebookTokens` shared with the view, the
+     **Full-screen editor** button of `LorebookView`, the layout and the open entries kept in the lorebook
+     (`$lorebookEditor`), *Open in the full-screen editor* on the rows of the view, mass edit / tag entries / activation preview
+     (also per entry, `focus`) from the editor, opening it from the book's *Lorebook* tab (the same view) with the book for the Lore Generator, the
+     Lore Generator and Lorebook VCS hooks, per-field saves with a content/note conflict that asks, read only during an agent run,
+     open tabs and the list reloaded at once on changes of agents and other windows (`LoreChanges`, after the commit, pushed),
+     the expand buttons of the story's `LorebookPreview` (desktop; opened without origin, so the Lore Generator there has no book),
+     a dense window (`compact-sizes`: the list without tags and filter columns, icon tools, settings in two wrapping rows),
+     the mode of the Markdown editor kept per tab, a new tab placed right of the list or beside the tab used last
+     (`TabDock.place`), a reload that updates the fields in place instead of building the tab again.
+     Then: the entries of the sub lorebooks in the list (*Include sub lorebooks*, *Add Entry* into a picked lorebook), the
+     toolbar tooltips localized (`MarkdownEditor.localize`), the story's book handed to the editor for the Lore Generator.
+     Then (2026-11-13): jumping between entries (`LoreMentions`: Ctrl/Cmd+click in the content or the preview, *Mentioned in* in
+     the footer); images in entries (`LoreImages`, `![caption](resource:<uuid>)`: paste, drop and the image button of
+     `MarkdownEditor`, the preview, *Send lore images* and *Images in the system message* per AI, the lore block's images in an
+     answered user message after the system prompt, copied with clones, shared copies, lorebook files and book backups).
+     Not done yet: the images in the token count/budget (and the activation preview, the lore usage report), screenshots for the manual (before the release). A full-screen dialog, opened from the *Lorebook* view of the
+     workspace and from the book's *Lorebook* tab (`ManuscriptLorebookPart`); the phone keeps `PhoneLorebookView`.
+     - **Dock:** a detachable `TabDock` (like the story editor's). One fixed tab (not closable, not minimizable) with the
+       list of entries: text only (name, enabled, order, tags, filter; the search, `LorebookEntryFilter` and sub
+       lorebooks of the view), per row *Open*, *Open in new tab* and *Delete*, and *New entry* above the list. *Open*
+       (also a double-click) **reuses the last opened entry tab** (shows the entry there; a new tab only when none is
+       open), *Open in new tab* (also a middle-click/Ctrl+click if the grid can tell) adds a tab, so any number of entries
+       can be open, **each at most once**: opening an entry that already has a tab selects that tab (*Delete* closes it).
+       *New entry* follows *Open* (the reused tab). "Last opened" is the tab most recently opened or selected by the user,
+       kept with the open tabs. The tabs can be moved and split side by side or stacked like in the story editor.
+       Needs in `TabDock`: **closable tabs**
+       per tab, next to the existing per-tab `setMinimizable` (`setClosable(id, true)`: an ✕ instead of the minimize
+       button; closing removes the tab and its content and drops its place from the layout, unlike a minimized one;
+       an `onClose(id)` callback so the editor updates its open entries), so the editor makes the entry tabs closable and
+       nothing minimizable and the bar of minimized tabs never shows (it is hidden while empty); and a tab caption that
+       follows a rename. The dock layout and the open entries are kept per lorebook (user setting, like
+       `StoryDockLayout`), so the editor reopens as it was left.
+     - **Dialog header:** the lorebook, its token total as in the *Lorebook* view (the enabled entries, and the
+       *Count with subbooks* button and its total, `updateLorebookTokens`/`countTokensWithSubbooks`), updated when an
+       entry's content or *Enabled* changes; move that counting out of `LorebookView` into one helper both use, so the
+       numbers agree. *Search and replace* (`LorebookSearchReplaceDialog`, whose `onReplaced` the grid
+       already uses to refresh) reloading the list and every open entry tab after a replace.
+     - **Entry tab**, top to bottom: a header row with the name, *Enabled* and the order (`ordinal`); a details panel
+       (`Details`, expanded by default) with the rest of the settings of today's row (filtering mode and filter,
+       insertion mode, tags and negative tags, activation context and parts, range from/to, recursion flags, summaries,
+       the condition); then the content and the note side by side, filling the rest of the height, the note hidden
+       until a *Show note* checkbox shows it (the content takes the full width then); and a footer with the entry's
+       token estimate (`~N tokens`, `tokenizerService.countTokensApprox` of the content), updated as the content is
+       saved.
+     - **Saving is immediate**, like the grid rows (`saveEntry` on every change, `validatePayload` on the content): no
+       Save button, so no Ctrl+Enter question. To check: the content editor sends its value on a debounce, not per
+       keystroke; the entry open in the dialog and in the workspace grid (or by two users): last write wins, and the
+       other view should at least refresh when it is shown again; the agent lock (`showLocked`) covers the dialog too.
+     - **Lore Generator** (plugin `lore-generator`): today it decorates `LorebookView.create` and adds a column with the
+       wand to the grid (`addGenerateColumn`). In the editor: the wand on the list tab (a new entry) and in the header of
+       an entry tab (rewrite/extend this entry); the dialog gets `@Extendable` hooks for both and the plugin registers
+       them, the generated text lands in the open tab.
+     - ✅ (but the token count) **Images in entries:** upload or paste an image into the content; it is stored as a `Resource` (`ResourceService`,
+       `objectId`/`clazz` = the entry) and referenced in the content (a Markdown image with a resource link, shown in the
+       preview). In a generation the text goes into the prompt without the image markup, and the images (`LLMAttachment`,
+       scaled by `ImageFiles.prepare`) go to the message where the entry's text lands: `BEFORE_USER_PROMPT` and a lore
+       block rendered into the user message → that user message; a lore block in the system prompt → the system side.
+       Catch: the system side cannot carry images. The OpenAI API takes text parts only in a system message, Anthropic's
+       `system` is text only, and our `buildParams` sends a system message's `getContent()` alone and silently drops its
+       attachments. So "system" means an extra user message right after the system prompt (images only, maybe a
+       one-line caption naming the entries), and that has to be decided once for all providers (`LLMChatMessage` stays the
+       one place, the plugins `anthropic` and `google-genai` map it the same).
+       Whether to send them is an **option**, not an AI capability: nothing filters images today, the Lore Generator and
+       the agents send what the user attaches. Providers do not drop them quietly: a model without vision answers with an
+       error (llama-server without `mmproj` refuses the request, the OpenAI API rejects it), so a turn would fail because
+       of a lore entry. The option: *Send lore images* (per book or in the generation settings, off by default),
+       and maybe a per-entry *send image* flag. Also: the images in the token count/budget, the activation preview and the
+       lore usage report; the lorebook exports and backups (archive export, `.zip` backups, sharing a lorebook, cloning:
+       the resources must travel; SillyTavern export drops them). Upload in the editor: paste, drop and an image button of
+       our editor wrapper (below).
+     - **The content editor:** our own thin wrapper of `@uiw/react-md-editor` (4.2.x, MIT; a `ReactAdapterComponent`
+       plus one `.tsx`, the `nohighlight` build, `rehype-sanitize` in the preview). Spike of 2026-11-12 (source reading,
+       nothing built yet) against **FlowingCode MarkdownEditor** 2.0.3 (`markdown-editor-addon`, the last release, 2025-12-01):
+       its Java side has only content, placeholder and max length, the toolbar is the editor's default and cannot be
+       changed (hiding a button by CSS, `data-name`, keeps its shortcut; only the React `commands`/`commandsFilter`
+       drop both); the image button only types `![image](url)` (no upload); every keystroke is a server round trip and a
+       value change (no debounce: with immediate saving one save per key); it always bundles `mermaid` 11.2.1; it pins
+       the editor at 4.0.4; Tab indents instead of moving the focus; `getMaxLength()` throws when never set. What works:
+       the light/dark sync (it watches `theme` on `<html>`, which `ColorScheme.Value.DARK` still writes), the sanitized
+       preview leaves `{{macros}}` as text, React and `ReactAdapter` are in our frontend already. The wrapper:
+       - commands: bold, italic, strikethrough, hr, headings, quote, inline code, code block, table, bullet, numbered
+         and check list (plain Markdown, fine for the model), edit/split/preview modes, and our own image button; left
+         out: link (Ctrl+L), image (Ctrl+K, markup only), comment (Ctrl+/; an HTML comment would reach the model), help (a
+         link to GitHub), fullscreen (Ctrl+0, the dialog is full screen);
+       - shortcuts are not hard-coded: each command carries its own `shortcuts` string and the editor builds the key
+         map from the command list it gets, so the wrapper sets or clears them per command (`{...title1, shortcuts:
+         undefined}`). They act only while the textarea has the focus and `preventDefault` the browser's key; `ctrlcmd`
+         is Ctrl or Cmd; matching is loose (a command fires when all its keys are among those pressed: Ctrl+Shift+B is
+         bold too). Drop the heading ones (Ctrl/Cmd+1-6 switch browser tabs), keep the rest; Ctrl+Enter is free;
+       - `defaultTabEnable` (Tab moves the focus); the value sent after a pause in typing, not per key; no `mermaid`;
+       - image upload: `onPaste`/`onDrop` of the textarea and our image button call one server method (the element's
+         `$server`) that stores the `Resource` and gets the link inserted at the cursor, no `executeJs`.
+       Still to check by building it: Vite 8, the bundle size, Lumo look in a dialog. Fallback: our `TextArea` at full
+       height with the `Markdown` preview in a split. Using it for the other long text areas (book description, notes,
+       prompt templates) is not decided.
+     - **Lorebook VCS** (plugin `lorebookvcs`) binds to the editor like it does to the view: today it decorates
+       `LorebookView.create` (the *Lorebook Revisions* panel of the toolbar: export/import of the history) and
+       `createEntryDetailLayout` (the revision bar of an entry: `+`, `‹ ›`, `−`). In the editor the panel goes to the
+       list tab (or the header) and the revision bar to the entry tab (above the details); switching a revision reloads
+       that tab (the plugin's `refreshEntryRow` does it for the grid row). Also the undo of the editor: immediate save
+       has none beyond the browser's, and a revision is the way back.
+     - ✅ **Jump between entries:** Ctrl+click on the name of another entry in the content opens it (in the reused tab,
+       Ctrl+Shift in a new one), and a *Mentioned in* list in the footer (the entries whose content names this one, what
+       recursion would follow) with the same links.
+     - **Test from the tab:** *Activation preview* on the entry tab (`LorebookActivationPreviewDialog` for this entry
+       against a chosen book: why it does or does not fire, while the filter is being edited); *Mass edit* and *Tag
+       entries* on the list tab (`LorebookMassEditDialog`, `MultiTagDialog`, refreshing the open tabs).
+     - **Invalid template:** `validatePayload` flags broken Handlebars. Keep the immediate save and show the error in the
+       footer, unless the grid blocks the save today (check, and do the same in both).
+     - **Changes from elsewhere:** an agent (`/set-lore-entry-*`), the Lore Generator, search and replace, the mass edit
+       or the workspace grid can change an open entry: the tab reloads (or says *changed elsewhere* while its editor has
+       the focus), an entry deleted elsewhere closes its tab, and entries gone since the layout was stored are skipped
+       when it is restored.
+     - **Sub lorebooks:** the list can show the entries of the sub lorebooks; an entry tab of another lorebook names
+       it in its caption or header, and *New entry* goes to the lorebook selected in the list.
+     - **Open on an entry:** *Open in editor* on the rows of `LorebookView` (and later the pen of `LorebookPreview` in
+       the story) opens the dialog with that entry in a tab.
+     - `@Extendable` + `@PublicAPI` on the new classes.
 
 ### Prompt engineering
 
@@ -692,4 +817,157 @@ Most are 🧩 plugin-sized; the ones that need a core hook say so.
     inside the entity: backups and exports, copies of a book, the working copy an agent runs its commands on, soft delete and `@CleanupReference`, ownership,
     `@PublicAPI` for plugins and a Flyway migration. `StoryNotesService.read` / `update` are the only place the Story Notes touch the storage, so it can move
     there first. Measure before: the size of the plugin data of the biggest books and the time of a `Manuscript` load.
+
+---
+
+## Proposed 2026-11-10 (not reviewed by the author yet)
+
+Suggestions added in one pass over this file, `EVALUATION.MD` and the code. Each was checked with a grep to be absent,
+not with a full read; delete or renumber freely. The *Hardening* block is P1 by importance (it sits here only to keep the
+numbers of the older items stable), the rest is P3/P4.
+
+### Hardening and project health (P1; from `EVALUATION.MD` §6 and §11, none of it was tracked here)
+
+77. ~~**Password hash cost.**~~ ✅ Done — 600,000 rounds, `pbkdf2-sha256$<rounds>$<salt>$<hash>`, upgrade at login (`UserServiceImpl`, `PasswordHashTest`, `UserCrudTest`). Original text: `UserServiceImpl.ITERATIONS` is 65,536 (PBKDF2-HMAC-SHA256); the current OWASP figure for this
+    construction is 600,000. Store the count with the hash (a versioned format), verify old hashes with their own count and
+    rehash at the next successful login. Test: an old hash still logs in and is upgraded. Mind the constant-work path for
+    unknown users (it must cost the same as the new count) and the login time on a small server.
+78. ~~**`secret.key` is created with the default permissions.**~~ ✅ Done (low priority in the end: a single-user desktop gains
+    little) - the key is created mode 600 (`Configuration.createOwnerOnly`, `SecretKeyPermissionsTest`), a group/world
+    readable existing one logs a warning. The data folder is left alone on purpose: in Docker it is a bind mount that the
+    host user must open (backups). Original text: no `PosixFilePermission` anywhere in the core, so on a shared Linux host
+    the key was world-readable under the usual umask.
+79. **One outbound address guard, resolved once.** The agent webhook (`AgentWebhookService`) and the image generator (35:
+    "resolves the host twice") both check the host and then let the HTTP client resolve it again, which a DNS-rebinding
+    host passes. Resolve once and connect to that address (or a custom `InetAddressResolver` for the client), in one shared
+    class (`http-hooks` already serves plugins), with a test class for the SSRF cases: `security/` holds one test now.
+    With it: audit the `new Html(...)` call sites that rely on the caller escaping (`OutdatedSummariesDialog`, `HtmlText`).
+80. **CI: dependency updates, vulnerability scan, coverage.** No Dependabot, no OWASP Dependency-Check and no JaCoCo in the
+    poms or `.github/workflows`, while the WAR carries POI, PDFBox, OpenPDF, Jetty, Hibernate and a Node toolchain.
+    Dependabot (Maven + GitHub Actions + the `screenshots` npm), a weekly scan job that does not block a build, and JaCoCo
+    as a report only, so "well tested" is a number.
+81. **A smoke test for every plugin.** 12 of the plugins have no tests, and the plugin API is the internals of the core. One
+    shared harness that installs each built JAR into a test context (the `extensions` tests already load bundles), checks
+    that `onExtensionLoad` passes, that every decorator names a method that exists with those arguments and locals
+    (`@PublicAPI` has the data) and that unload leaves nothing registered (decorators, CSS, shortcuts, commands). It turns
+    "a refactor broke a plugin" from a runtime surprise into a red build.
+82. **A few browser flows in CI.** The UI tests run on server-side components; everything in `JavascriptLibrary` (marks,
+    selection, popovers, scroll, lazy loading) is checked by hand. The screenshot pipeline already drives the real app with
+    Playwright and a fake model: reuse it for a handful of asserting flows (log in, generate with streaming, swipe, edit and
+    save, annotate a selection, phone width) as a separate, slower workflow.
+83. **Plugin API: a promise and a generated diff.** (The tool is done: `tools/plugin_api_diff.py <tag> [<tag>]`, see
+    `extendable.md`, and it covers the fields plugins read, declared with `@PublicAPI(from, type)`; what is left is the rule.) `@PublicAPI(from = ...)` already records when a method changed. A small
+    tool that prints the API changes between two tags (methods added / changed / removed per `@Extendable` class) would
+    write the *plugin-visible changes* part of the CHANGELOG and make a rule possible: nothing is removed inside a minor
+    version without one release of deprecation. Decide the rule first (25: "not frozen").
+84. **Split `AgentRunnerImpl`** (about 3,800 lines, a `Worker` inner class of about 1,500): context building, compaction,
+    tool dispatch, approvals and sub-agents as collaborators, the agent tests as the net. No behaviour change, so no
+    CHANGELOG entry, but the class is where agent bugs will keep landing.
+85. ✅ **A plan for the day dynamic agent attach is refused.** Done: the hooks of `@Extendable` classes are woven at build
+    time (`BuildTimeWeaver`, `process-classes`, the class gets `@Woven`), the packaged application installs no agent and
+    needs no JVM option. The self-attached ByteBuddy agent stays as the fallback of development runs (classes compiled by
+    the IDE or hot-swapped), where a refused attach is only an error in the log. The decision is in `architecture.md`.
+    Not done: weaving the `@Extendable` classes of a third-party extension at its build (they need
+    `-Dmarginalia.extendable.agent=true`; no built-in plugin has such a class).
+86. **Account security for an instance on the internet.** Not in the code: TOTP as a second factor (per user, recovery
+    codes, the admin can clear it like a password), a list of the user's remember-me sessions (✅ *Log out everywhere else* in *Change Password* ends all of them and the other open sessions at once, `UserService.logoutEverywhere`; an administrator can clear a user's saved logins; what is missing is the list, to see them and end one),
+    an audit log of admin actions (extension install, user delete / unlock, backup restore, limits) in *Admin*, and login by
+    a trusted header from the reverse proxy (`trustedProxies` exists) for people who already run Authelia / Authentik,
+    which is far less work than OIDC in the app.
+
+101. ✅ **Concurrency of long operations (one model for the story, for the translators, for the annotation).** Done (the analysis,
+    the design and what was built step by step are in `TODO.CONCURRENCY.md`; the browser check passed 2026-11-12): the registry of
+    runs (`Runs`: what runs on which book and part, who started it, its Stop, what it holds), the refusals with the name of the run
+    (delete, regenerate, a second generation, merge, a part inserted after a written one), one window per book, the connections of an
+    AI as the queue of every request, the panel of the runs on every page (the live text of the model, the place in the queue, Stop,
+    Open / Review, the end notified from another page), the model windows of the core and the plugins not modal (they fold into the
+    panel and go on), the strict modal of the Real Language Translator removed, the story usable during a generation (only the written
+    part held), and what follows a part (annotate, redraft, translate, knowledge, audio) as one ordered phase on the server. Not done:
+    - **saves are not refused** under a `WRITE` hold (only deletes and a second writer are): it needs the thread scope of the work,
+      to tell the holder's own saves from someone else's;
+    - **the agent lock is not in the registry**: it stays a status in the database; starting an agent on a book that is open in a
+      window is not refused;
+    - `importTree` and search and replace do not ask the runs; the bulk statements were not looked at one by one;
+    - **no sweeper**: a run whose work never reaches its end holds until a restart (*End* in `/jobs` by hand);
+    - the panel has **no list of finished runs** (an entry goes when its run ends); only the resummary declares a notification for
+      when its page is gone;
+    - `/jobs`: the active jobs do not name their book, and have no Stop of their own (their runs have);
+    - the generation from the command bar is not held between the start of the command and the start of its generation;
+    - what follows a part: the author's generation does not go before the phase's requests at the model's queue, a parallel step is
+      not kept from writing the text of the part, the redraft by hand does not block the next generation;
+    - the merge of the part after a busy one into it is not refused, and a generation does not ask about an open redraft of the last
+      part (the changed-text check catches both);
+    - Side Query's tab name is not a run; the Knowledge Tracker keeps its own `ProgressPanel` beside the panel;
+    - not tested on a device: what a phone reports when its browser goes to the background;
+    - the developer docs flagged by `tools/check_dev_docs.py` are to be checked and stamped.
+
+### Writing workflow
+
+87. **Import a finished manuscript.** 34 covers chats; ✅ *Import from a document* (Word `.docx`, LibreOffice `.odt`, `.rtf`, a single Markdown file, plain text, EPUB) and the zips of an Obsidian vault and of a Scrivener project in the
+    one import window of the book list (`BookImportDialog`, a source selector with its own options): headings start chapters,
+    the text is cut at a word target (`PartSplitter`; a chapter's short end stays with the part before it), all marked as
+    written by the author (49 stays right); ✅ the same import into an existing book (settings menu, *Import*) at the end or before or
+    after a part; ✅ after an import (into a book or as a new book, which is opened) the window *Import finished* offers
+    *Create summaries* (by tokens, by chapters with a minimum, or by parts, only after the newest summary) and an agent that
+    takes the lore notes (a *Lore notes* agent that reads the story and writes lorebook entries, reviewed as any agent's
+    result); both are in the settings menu too. Not done: the lore suggestions of 58 (the agent is its own take on them),
+    a "do not ask again" setting for the window, and chats (SillyTavern, LM Studio) into an existing book (a tree of
+    branches: they would need a part to hang from).
+88. **"Where was I" card.** `lastOpened` is stored. When a book was not opened for N days, show a card above the story:
+    the newest summary, the next open planner scenes (44), the open annotations and the last instructions. No model call
+    in the first version; a *Write me a recap* button (summaries as the input) later. Cheap, and it uses four features
+    that already keep the data.
+89. **Structure view from data that is already stored.** Deterministic charts (`ChartJs` exists), no model: words per
+    chapter, POV per part as a strip, a grid of present characters by part (who vanished for ten parts), parts per day,
+    lore entries per part (57 records them). The Character Tracker could add its colours. Complements 47 (style), and
+    answers "is the middle sagging" at a glance.
+90. 🧩 **Spelling and grammar as annotations.** A plugin that sends a part to a LanguageTool server (self-hosted, the
+    book language is known) and posts the findings as annotations (54) of source *plugin*, with *apply suggestion* where
+    there is exactly one. Deterministic, fast, no tokens, and the names of the lorebook entries become its ignore list.
+91. 🧩 **Lore that keeps up with the story.** 58 proposes entries that are missing; nothing proposes changes to the ones
+    that exist (a character lost an arm, a city fell). After a chapter, a side query gets the chapter and the entries that
+    were active in it (57) and answers with proposed edits, shown as a diff per entry to accept (`lorebookvcs` keeps the old
+    text). With 42, an accepted change could become a second entry with a range instead of an overwrite.
+92. **A prompt bench.** 52 compares models on one live turn and 63 renders a template; neither answers "is my new
+    template / protocol / model better" over a set. Save turns as cases (book, part, instructions: the stored prompt of a
+    part has all of it), run a case set against a chosen template + protocol + AI as a job, and show the answers next to
+    the kept text, with a blind pick. Results are few samples of one model: show counts, not rates.
+
+### Providers and jobs
+
+93. **A fallback provider.** The client retries 429 / 5xx / connection errors (11) and then fails. A second AI on the
+    provider (*If this fails, use...*), tried once after the retries, matters most for unattended work: agents, automatic
+    annotation, re-summary runs, the audiobook labelling. The part records which model answered (it already keeps the
+    model), and shared-AI limits are checked for the fallback too (`AILimitService.check`).
+94. **Read the context size from the server.** The context of an AI is typed by hand, and a wrong number gives a cut
+    prompt or an overflow error. *Test Connection* could ask the server (llama.cpp `/props`, the `context_length` /
+    `max_model_len` fields that OpenRouter, vLLM and LM Studio put into `/v1/models`) and offer the value; never silently
+    overwrite, the user may want a smaller budget.
+95. **A queue and a time window for long jobs.** Jobs are logged now (`/jobs`), and `SharedGate` shares one GPU between
+    extensions, but a long run starts when it is clicked. *Run tonight* / *run when the GPU is free* for the batch jobs
+    (re-summary, annotate a range, audiobook conversion, image batches), with the order visible in the job list and one
+    notification at the end (70). Needs the batch dialogs to describe their run as data that can wait, not as an open
+    window: check which of them can before promising it.
+96. **Keep what is typed.** `WorkspaceAutosave` restores the open tabs, not text. The instructions of a new turn and an
+    unsaved edit of a part are lost on a reload, a session timeout or a server restart, and a long instruction is the
+    costly thing to lose. Keep them per book in the browser (`localStorage`, through `JavascriptLibrary`) and offer them
+    back; the phone needs it more than the desktop.
+
+### Sharing and distribution
+
+97. **Reader feedback on a published book.** The Viewer is read-only. Logged-in readers could leave a reaction or a
+    comment on a chapter or a selected passage; the author sees them as annotations of source *reader* (54 has the
+    anchoring, the panel and the statuses). Off by default per book. Goes with 66 (serial publishing) and the reading
+    position per reader.
+98. **Extension catalog in Admin → Extensions.** The plugin JARs are attached to every GitHub release. List the ones of
+    the running version with their README line, *Install* and *Update all*, behind the existing `ExtensionVerifier`; an
+    instance without internet access keeps the upload. The address of the catalog is a setting, so a fork or a private
+    set works too. It also answers "which plugins exist" without leaving the app.
+99. **Move a whole account.** Backups are per book. One archive with all books, folders, lorebooks, protocols, templates,
+    styles and settings of a user (never the API keys unless asked, then encrypted with a passphrase) and its import on
+    another instance: the path from the desktop app to a server and back, and the honest answer to "can I leave".
+100. **Accessibility pass.** Not looked at so far beyond what Vaadin gives: the story tree and the dock by keyboard,
+     `aria-live` for a streaming part (politely, not every token), names for the icon-only buttons, the contrast of the
+     marks (generated text, search hits, annotation underlines) in both themes, and `prefers-reduced-motion`. A check
+     list in `manual/developer/ui.md` keeps new widgets honest.
 

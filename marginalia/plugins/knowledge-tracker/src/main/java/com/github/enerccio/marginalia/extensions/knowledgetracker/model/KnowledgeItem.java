@@ -55,6 +55,16 @@ public class KnowledgeItem {
         return item;
     }
 
+    /**
+     * An item read from an export file. It has no part of this book behind it: an initial item stays initial, everything else is the
+     * user's (manual), so a reprocess never drops it.
+     */
+    public static KnowledgeItem imported(String text, ItemKind kind, boolean initial, boolean locked) {
+        KnowledgeItem item = initial ? initial(text, kind) : manual(text, kind);
+        item.locked = locked;
+        return item;
+    }
+
     public boolean isActive() {
         return oldReason == null;
     }

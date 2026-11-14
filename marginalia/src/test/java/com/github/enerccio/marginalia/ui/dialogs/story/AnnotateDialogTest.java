@@ -1,5 +1,6 @@
 package com.github.enerccio.marginalia.ui.dialogs.story;
 
+import com.github.enerccio.marginalia.domain.service.run.Runs;
 import com.github.enerccio.marginalia.domain.collections.AnnotationSource;
 import com.github.enerccio.marginalia.domain.model.impl.Annotation;
 import com.github.enerccio.marginalia.domain.model.impl.ChatMessage;
@@ -12,6 +13,7 @@ import com.github.enerccio.marginalia.domain.service.ChatMessageService;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.test.MarginaliaTestBase;
 import com.vaadin.flow.component.Component;
+import com.github.enerccio.marginalia.ui.components.PageRuns;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import org.junit.jupiter.api.AfterEach;
@@ -23,6 +25,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * The window that lets a model annotate a part: the notes it proposes are listed with a check box each, and only the chosen ones
@@ -386,5 +389,26 @@ class AnnotateDialogTest extends MarginaliaTestBase {
         assertThat(annotationService.listForPart(book, parts.get(1))).extracting(Annotation::getText).containsExactly("Same as before");
         assertThat(annotationService.listForPart(book, parts.get(2))).isEmpty();
         assertThat(added.get()).isEqualTo(1);
+    }
+
+    @Test
+    void theNotesOfAPartDeletedWhileTheWindowWasOpenAreNotAdded() throws Exception {
+        AtomicInteger added = new AtomicInteger();
+        AnnotateDialog dialog = AnnotateDialog.create(book, part, added::incrementAndGet);
+        dialog.open();
+        assertThat(Runs.busyWith(part.getId())).isNotNull();
+        dialog.showProposalsForTest(List.of(new Proposal("Anna", "Name?", null, 0, 4)));
+        // the window holds the part: a delete is refused while it is open
+        assertThatThrownBy(() -> chatMessageService.deleteNodeAndMigrateChildren(part, manuscriptService.find(book.getId()), false))
+                .isInstanceOf(Runs.HeldException.class);
+        // what the hold can not see (a bulk statement) may still take it away
+        dialog.floatingForTest().holdForTest().end();
+        chatMessageService.deleteNodeAndMigrateChildren(part, manuscriptService.find(book.getId()), false);
+
+        dialog.acceptForTest();
+
+        assertThat(added.get()).isZero();
+        assertThat(dialog.isOpened()).isFalse();
+        assertThat(Runs.busyWith(part.getId())).isNull();
     }
 }

@@ -9,8 +9,18 @@ package com.github.enerccio.marginalia.domain.service.manual;
  * @param heading   heading of the section, {@code Parent > Child} for a third level one
  * @param anchor    anchor of the heading in the page, empty for the introduction
  * @param text      Markdown of the section without its heading, pictures removed
+ * @param language  the code of the language the text is in, see {@link ManualPage#language()}
  */
-public record ManualSection(String pagePath, String pageTitle, String heading, String anchor, String text) {
+public record ManualSection(String pagePath, String pageTitle, String heading, String anchor, String text, String language) {
+
+    public ManualSection {
+        language = language == null || language.isBlank() ? ManualPage.ENGLISH : language;
+    }
+
+    /** A section of an English page. */
+    public ManualSection(String pagePath, String pageTitle, String heading, String anchor, String text) {
+        this(pagePath, pageTitle, heading, anchor, text, ManualPage.ENGLISH);
+    }
 
     /** Link to the section as the pages themselves write it: {@code books/story-editor.md#images}. */
     public String link() {
@@ -19,6 +29,6 @@ public record ManualSection(String pagePath, String pageTitle, String heading, S
 
     /** The address of the section in the published manual, see {@link ManualPage#url(String, String)}. */
     public String url() {
-        return ManualPage.url(pagePath, anchor);
+        return ManualPage.url(pagePath, anchor, language);
     }
 }

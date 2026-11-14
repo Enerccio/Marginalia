@@ -73,8 +73,29 @@ public class ConversionQueue implements AutoCloseable {
         byte[] level(byte[] audio, double lufs) throws BackendException;
     }
 
+    /**
+     * Tells the application that a run of the queue starts, on the worker thread (the panel of the runs shows it, with its Stop and what the
+     * language model writes while it labels); none in the tests.
+     */
+    @FunctionalInterface
+    public interface RunWatch {
+        /**
+         * @param titles the titles of the parts of the run
+         * @param stop   stops the run (as {@link #cancelAll})
+         * @return told when the run is over, on the same thread
+         */
+        Ended started(List<String> titles, Runnable stop);
+    }
+
+    /** The end of a run of the queue. */
+    @FunctionalInterface
+    public interface Ended {
+        void ended(boolean stopped, boolean failed);
+    }
+
     private final Environment env;
     private final ExecutorService worker;
+    private volatile RunWatch runWatch;
     private final List<ConversionJob> jobs = new ArrayList<>();
     private final List<Consumer<ConversionJob.Snapshot>> listeners = new CopyOnWriteArrayList<>();
     private boolean draining;
@@ -92,6 +113,11 @@ public class ConversionQueue implements AutoCloseable {
     public ConversionQueue(Environment env, ExecutorService worker) {
         this.env = env;
         this.worker = worker;
+    }
+
+    /** Who is told about the runs of the queue, null for nobody. */
+    public void setRunWatch(RunWatch runWatch) {
+        this.runWatch = runWatch;
     }
 
     /** Called (from the worker thread) with the snapshot of a job each time its state or progress changes. */
@@ -230,14 +256,31 @@ public class ConversionQueue implements AutoCloseable {
                     batch.forEach(j -> j.set(State.RUNNING, ""));
                 }
                 batch.forEach(this::fire);
-                try {
-                    run(batch);
-                } catch (RuntimeException e) {
-                    AudiobookLog.get().warn("The conversion failed: {}", e.getMessage(), e);
-                    for (ConversionJob job : batch) {
-                        if (job.state() == State.RUNNING) {
-                            finish(job, State.FAILED, String.valueOf(e.getMessage()));
+                RunWatch watch = runWatch;
+                Ended ended = watch == null ? null : watch.started(batch.stream().map(j -> j.snapshot().title()).toList(), this::cancelAll);
+                boolean failed = false;
+                // the batch is one job of the administrator's log: the labelling requests and the speech requests are its calls
+                try (com.github.enerccio.marginalia.domain.service.job.Jobs.Handle logged = com.github.enerccio.marginalia.domain.service.job.Jobs.open(
+                        "audiobook", "Conversion of " + batch.size() + (batch.size() == 1 ? " part" : " parts"),
+                        com.github.enerccio.marginalia.domain.service.job.JobCallType.AUDIO)) {
+                    try {
+                        run(batch);
+                        if (stopRun) {
+                            logged.finish(com.github.enerccio.marginalia.domain.service.job.JobStatus.CANCELLED);
                         }
+                    } catch (RuntimeException e) {
+                        failed = true;
+                        logged.fail();
+                        AudiobookLog.get().warn("The conversion failed: {}", e.getMessage(), e);
+                        for (ConversionJob job : batch) {
+                            if (job.state() == State.RUNNING) {
+                                finish(job, State.FAILED, String.valueOf(e.getMessage()));
+                            }
+                        }
+                    }
+                } finally {
+                    if (ended != null) {
+                        ended.ended(stopRun, failed);
                     }
                 }
             }
@@ -266,8 +309,13 @@ public class ConversionQueue implements AutoCloseable {
             PartScript script;
             try {
                 // making the script may ask the language model for the labels: Stop ends that request too
+                // the window shows which part is being labelled, and keeps what the model says for the user to read
                 script = com.github.enerccio.marginalia.extensions.audiobook.label.LabelCancel.during(() -> stopRun || job.cancelRequested(),
-                        () -> job.source().get());
+                        () -> com.github.enerccio.marginalia.extensions.audiobook.label.LabelWatch.during(watcher(job), () -> job.source().get()));
+                if (job.state() == State.RUNNING && job.snapshot().message().startsWith(LABELLING)) {
+                    job.set(State.RUNNING, "");
+                    fire(job);
+                }
             } catch (Exception e) {
                 if (job.cancelRequested() || stopRun) {
                     finish(job, State.CANCELLED, "");
@@ -311,6 +359,13 @@ public class ConversionQueue implements AutoCloseable {
                 }
             }
             job.progress(present, total);
+            if (present < total) {
+                // why a part that was made is made again: its script is not the stored one (another label, voice, delivery or spoken form changes the key of a piece)
+                AudiobookLog.get().info("Part {}: {} of {} pieces are not stored and will be made ({})", job.partId(), total - present, total,
+                        stored == null ? "no audio of the part yet" : stored.sourceHash().equals(script.sourceHash())
+                                ? "same text, other script: labels, voices or spoken form differ from the stored ones"
+                                : "the text of the part changed");
+            }
             fire(job);
         }
 
@@ -329,6 +384,31 @@ public class ConversionQueue implements AutoCloseable {
                 }
             }
         }
+    }
+
+    /** The start of the message of a job while the model labels its part. */
+    static final String LABELLING = "Labelling ";
+
+    private com.github.enerccio.marginalia.extensions.audiobook.label.LabelWatch.Listener watcher(ConversionJob job) {
+        return new com.github.enerccio.marginalia.extensions.audiobook.label.LabelWatch.Listener() {
+            @Override
+            public void window(int from, int to, int total) {
+                String title = "pieces " + (from + 1) + "-" + to + " of " + total;
+                job.trace().startWindow(title);
+                job.set(State.RUNNING, LABELLING + title);
+                fire(job);
+            }
+
+            @Override
+            public void chunk(boolean reasoning, String text) {
+                job.trace().append(reasoning, text);
+            }
+        };
+    }
+
+    /** What the model said while it labelled the part of the job, null when there is no such job. */
+    public synchronized LabelTrace trace(String jobId) {
+        return jobs.stream().filter(j -> j.id().equals(jobId)).map(ConversionJob::trace).findFirst().orElse(null);
     }
 
     private static int distinct(PartScript script) {
@@ -482,6 +562,10 @@ public class ConversionQueue implements AutoCloseable {
 
     private void finish(ConversionJob job, State state, String message) {
         job.set(state, message);
+        if (state == State.FAILED) {
+            // the reason is also in the window, but only until it is closed: the log is where it can be read later
+            AudiobookLog.get().warn("The conversion of part {} failed: {}", job.partId(), message);
+        }
         try {
             env.store().flush(job.partId());
         } catch (RuntimeException e) {

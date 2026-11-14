@@ -42,7 +42,7 @@ await main(async ({ page }) => {
     await fill(page, 'Search for', 'Mizuki');
     await fill(page, 'Replace with', 'Mizuko');
     await page.getByRole('button', { name: 'Search', exact: true }).click();
-    await page.getByText('Found ', { exact: false }).first().waitFor({ timeout: 30000 });
+    await page.getByText(/^Found \d+ match/).first().waitFor({ timeout: 30000 });
     await idle(page, 1200);
     await page.evaluate(() => document.activeElement && document.activeElement.blur());
     await snap(page, 'phone-search-replace');
@@ -61,7 +61,7 @@ await main(async ({ page }) => {
     await fill(page, 'Search for', 'Mizuki');
     await fill(page, 'Replace with', 'Mizuko');
     await page.getByRole('button', { name: 'Search', exact: true }).click();
-    await page.getByText('Found ', { exact: false }).first().waitFor({ timeout: 30000 });
+    await page.getByText(/^Found \d+ match/).first().waitFor({ timeout: 30000 });
     await idle(page, 1200);
     await page.evaluate(() => document.activeElement && document.activeElement.blur());
     await snap(page, 'phone-lorebook-search-replace');

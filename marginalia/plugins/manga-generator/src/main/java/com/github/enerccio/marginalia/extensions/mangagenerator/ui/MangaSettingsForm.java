@@ -2,7 +2,6 @@ package com.github.enerccio.marginalia.extensions.mangagenerator.ui;
 
 import com.github.enerccio.marginalia.CssStyles;
 import com.github.enerccio.marginalia.extensions.mangagenerator.model.MangaSettings;
-import com.github.enerccio.marginalia.extensions.mangagenerator.service.Defaults;
 import com.github.enerccio.marginalia.extensions.mangagenerator.service.MangaService;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -83,8 +82,8 @@ public class MangaSettingsForm extends VerticalLayout {
         splitCount.setValue(settings.getDefaultSplitCount());
         contextLeft.setValue(settings.getDefaultContextLeft());
         contextRight.setValue(settings.getDefaultContextRight());
-        prompt.setValue(StringUtils.defaultIfBlank(settings.getDefaultPromptOverride(), Defaults.DEFAULT_PROMPT));
-        tagsPrompt.setValue(StringUtils.defaultIfBlank(settings.getDefaultTagsPromptOverride(), Defaults.DEFAULT_TAGS_PROMPT));
+        prompt.setValue(StringUtils.defaultIfBlank(settings.getDefaultPromptOverride(), T.defaults().prompt()));
+        tagsPrompt.setValue(StringUtils.defaultIfBlank(settings.getDefaultTagsPromptOverride(), T.defaults().tagsPrompt()));
         rules.setValue(StringUtils.defaultString(settings.getDefaultAdditionalRules()));
     }
 
@@ -99,8 +98,8 @@ public class MangaSettingsForm extends VerticalLayout {
         settings.setDefaultSplitCount(valueOr(splitCount, MangaSettings.DEFAULT_SPLIT_COUNT));
         settings.setDefaultContextLeft(valueOr(contextLeft, MangaSettings.DEFAULT_CONTEXT));
         settings.setDefaultContextRight(valueOr(contextRight, MangaSettings.DEFAULT_CONTEXT));
-        settings.setDefaultPromptOverride(override(prompt, Defaults.DEFAULT_PROMPT));
-        settings.setDefaultTagsPromptOverride(override(tagsPrompt, Defaults.DEFAULT_TAGS_PROMPT));
+        settings.setDefaultPromptOverride(override(prompt, T.defaults().prompt()));
+        settings.setDefaultTagsPromptOverride(override(tagsPrompt, T.defaults().tagsPrompt()));
         settings.setDefaultAdditionalRules(StringUtils.defaultIfBlank(rules.getValue(), null));
         return settings;
     }

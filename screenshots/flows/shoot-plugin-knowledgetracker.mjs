@@ -1,6 +1,6 @@
 // Knowledge Tracker: the Knowledge tab with a tracked character, what she knows and does not know, the old knowledge
 // and the processing panel. Pictures: plugin-knowledgetracker, plugin-knowledgetracker-processing.
-// State: any step from 02-extensions on, with marginalia/plugins/knowledge-tracker/target/knowledge-tracker-1.7.0.jar in
+// State: any step from 02-extensions on, with marginalia/plugins/knowledge-tracker/target/knowledge-tracker-1.8.0.jar in
 // the extensions folder of the data folder (bin/refresh-plugins.sh only swaps the JARs that are there already: copy this
 // one in with the application stopped, the application verifies it when it starts).
 import {bookTab, dialog, fill, idle, login, main, openBook, pickSelect, sleep, snap} from '../lib/shot.mjs';

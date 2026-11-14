@@ -18,6 +18,11 @@ With the extension installed, every row of the lorebook editor gets a wand butto
 the generator for that entry. If the entry already has content, the dialog says so at the top: copying the result to
 the entry replaces the content.
 
+The [full-screen editor](../lorebooks/lorebooks.md#editing-in-full-screen) has the wand too: in every row of its list of
+entries, and as **Generate lore entry** in the name row of an entry tab. What you copy to the entry shows in its tab at once.
+Opened from a book (its *Lorebook* tab, or the lorebook tab of the story), the editor knows the book, so the book pays for
+the model as on the lorebook page.
+
 The generator starts with your **Default Model** and **Default Protocol** from *Settings*, see
 [Account & settings](../account.md). The **Model** and **Protocols** lists under the header of the dialog let you use
 another model or protocol for this generation (the choice is not saved); the protocol is optional. Without a model it

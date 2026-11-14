@@ -4,6 +4,7 @@ import com.github.enerccio.marginalia.Configuration;
 import com.github.enerccio.marginalia.domain.security.PersistedLoginInfo;
 import com.github.enerccio.marginalia.domain.security.model.User;
 import com.github.enerccio.marginalia.test.MarginaliaTestBase;
+import com.github.enerccio.marginalia.test.TestUserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -27,7 +28,7 @@ class UserCrudTest extends MarginaliaTestBase {
 
         assertThat(user.getId()).isNotNull();
         assertThat(user.getUuid()).hasSize(36);
-        assertThat(user.getPasswordHash()).doesNotContain("secret").contains(":");
+        assertThat(user.getPasswordHash()).doesNotContain("secret").startsWith("pbkdf2-sha256$600000$");
 
         User loaded = userService.findByName(login);
         assertThat(loaded.getId()).isEqualTo(user.getId());
@@ -119,6 +120,49 @@ class UserCrudTest extends MarginaliaTestBase {
         assertThat(userService.find(user.getId()).getPasswordHash()).isNotEqualTo(oldHash);
         assertThat(userService.authenticate(user.getLogin(), "new")).isTrue();
         assertThat(userService.authenticate(user.getLogin(), "old")).isFalse();
+    }
+
+    @Test
+    void hashWithFewerRoundsLogsInAndIsUpgraded() throws Exception {
+        User user = createUser(uniqueName("dave"), "old", false);
+        // a hash as it was stored before the rounds were part of it: salt:hash
+        String salt = "AAECAwQFBgcICQoLDA0ODw==";
+        user.setPasswordHash(salt + ":" + new TestUserService().hashPasswordForTest("old", salt));
+        userService.save(user);
+
+        assertThat(userService.authenticate(user.getLogin(), "wrong")).isFalse();
+        assertThat(userService.find(user.getId()).getPasswordHash()).startsWith(salt + ":");
+
+        assertThat(userService.authenticate(user.getLogin(), "old")).isTrue();
+        String upgraded = userService.find(user.getId()).getPasswordHash();
+        assertThat(upgraded).startsWith("pbkdf2-sha256$600000$").doesNotContain(salt);
+
+        assertThat(userService.authenticate(user.getLogin(), "old")).isTrue();
+        assertThat(userService.find(user.getId()).getPasswordHash()).isEqualTo(upgraded);
+        assertThat(userService.authenticate(user.getLogin(), "wrong")).isFalse();
+    }
+
+    @Test
+    void hashWithOtherRoundsIsVerifiedWithItsOwnCount() throws Exception {
+        User user = createUser(uniqueName("erin"), "pw", false);
+        String[] parts = userService.find(user.getId()).getPasswordHash().split("\\$");
+        user.setPasswordHash("pbkdf2-sha256$" + (600_000 - 1) + "$" + parts[2] + "$" + parts[3]);
+        userService.save(user);
+
+        assertThat(userService.authenticate(user.getLogin(), "pw")).isTrue();
+        assertThat(userService.find(user.getId()).getPasswordHash()).startsWith("pbkdf2-sha256$600000$");
+    }
+
+    @Test
+    void malformedHashNeverLogsIn() throws Exception {
+        for (String garbage : new String[]{"pbkdf2-sha256$abc$s$h", "pbkdf2-sha256$0$s$h", "pbkdf2-sha256$600000$s", "a:b:c"}) {
+            User user = createUser(uniqueName("frank"), "pw", false);
+            user.setPasswordHash(garbage);
+            userService.save(user);
+
+            assertThat(userService.authenticate(user.getLogin(), "pw")).as(garbage).isFalse();
+            assertThat(userService.authenticate(user.getLogin(), "")).as(garbage).isFalse();
+        }
     }
 
     @Test
@@ -322,6 +366,33 @@ class UserCrudTest extends MarginaliaTestBase {
         userService.clearSavedLogins(user);
 
         assertThat(userService.getPersistedLoginInfo(userService.find(user.getId()))).isEmpty();
+    }
+
+    @Test
+    void aUserLogsThemselvesOutEverywhere() throws Exception {
+        User user = userService.find(login().getId());
+        userService.addPersistedLoginInfo(user, userService.generateNewPersistentInfo(user));
+        userService.save(user);
+        assertThat(userService.getPersistedLoginInfo(userService.find(user.getId()))).isNotEmpty();
+
+        userService.logoutEverywhere(userService.find(user.getId()));
+
+        assertThat(userService.getPersistedLoginInfo(userService.find(user.getId()))).isEmpty();
+    }
+
+    @Test
+    void onlyTheUserOrAnAdministratorLogsAUserOutEverywhere() throws Exception {
+        User target = userService.find(createUser().getId());
+        userService.addPersistedLoginInfo(target, userService.generateNewPersistentInfo(target));
+        userService.save(target);
+        login();
+
+        assertThatThrownBy(() -> userService.logoutEverywhere(userService.find(target.getId()))).isInstanceOf(SecurityException.class);
+        assertThat(userService.getPersistedLoginInfo(userService.find(target.getId()))).isNotEmpty();
+
+        loginAdmin();
+        userService.logoutEverywhere(userService.find(target.getId()));
+        assertThat(userService.getPersistedLoginInfo(userService.find(target.getId()))).isEmpty();
     }
 
     @Test

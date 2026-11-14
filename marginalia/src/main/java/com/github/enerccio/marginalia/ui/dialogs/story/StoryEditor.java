@@ -30,9 +30,20 @@ public interface StoryEditor {
     void openSearchReplaceDialog();
 
     /**
-     * Asks for a zip archive of Markdown files to add as parts to the end of the story.
+     * Opens the import into the book: a zip archive of Markdown files, a document, an Obsidian vault or a Scrivener project, added as parts
+     * at the place the author picks in the story (the name is from the time it only took archives).
      */
     void openArchiveImportDialog();
+
+    /**
+     * Opens <i>Create summaries</i>: summaries for the story after the newest summary, cut by tokens, chapters or parts.
+     */
+    void openCreateSummariesDialog();
+
+    /**
+     * Asks whether an agent should take the lore notes of the book (read the story, write the lorebook entries it finds) and starts it.
+     */
+    void openLoreNotesDialog();
 
     /**
      * Shows the tokens the story takes in the next prompt.

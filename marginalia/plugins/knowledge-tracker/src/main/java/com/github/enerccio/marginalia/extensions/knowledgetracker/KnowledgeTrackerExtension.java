@@ -24,6 +24,8 @@ import com.github.enerccio.marginalia.extensions.knowledgetracker.service.Knowle
 import com.github.enerccio.marginalia.extensions.knowledgetracker.ui.KnowledgeSettingsForm;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.ui.KnowledgeTrackerStyles;
 import com.github.enerccio.marginalia.extensions.knowledgetracker.ui.KnowledgeTrackerView;
+import com.github.enerccio.marginalia.extensions.knowledgetracker.ui.ProgressPanel;
+import com.github.enerccio.marginalia.ui.dialogs.BookWindows;
 import com.github.enerccio.marginalia.ui.dialogs.story.StoryEditor;
 import com.github.enerccio.marginalia.ui.main.ApplicationEntryPoint;
 import com.github.enerccio.marginalia.ui.main.Main;
@@ -31,6 +33,7 @@ import com.github.enerccio.marginalia.ui.widgets.TabDock;
 import com.github.enerccio.marginalia.ui.widgets.TabDockIcon;
 import com.github.enerccio.marginalia.utils.UIUtils;
 import com.vaadin.flow.component.ComponentUtil;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.accordion.Accordion;
 import com.vaadin.flow.component.accordion.AccordionPanel;
 import org.osgi.framework.Bundle;
@@ -60,6 +63,7 @@ public class KnowledgeTrackerExtension implements MarginaliaExtension, Extension
                     + "<path d='M8 10.5c1 0 2 .6 2 1.8M16 10.5c-1 0-2 .6-2 1.8'/>");
 
     private static final String VIEW_KEY = KnowledgeState.KEY + ".view";
+    private static final String TAB_ID = "knowledge-tracker";
     private static final String USER_PART = "com.github.enerccio.marginalia.ui.workspace.parts.UserPart";
     private static final String SETTINGS_PANEL_KEY = KnowledgeState.KEY + ".settingsPanel";
     /** The source of the notification that a run the user started reads the story or waits for the review, see {@code NotificationService}. */
@@ -100,7 +104,7 @@ public class KnowledgeTrackerExtension implements MarginaliaExtension, Extension
     private ExtensionDecorator storyPartDecorator;
     private ExtensionDecorator userPartDecorator;
     private ExtensionDecorator userPartSaveDecorator;
-    private ExtensionDecorator partFinishedDecorator;
+    private Registration afterPartRegistration;
     private Registration reserveRegistration;
     private Registration payloadRegistration;
     private Registration cleanupRegistration;
@@ -168,6 +172,9 @@ public class KnowledgeTrackerExtension implements MarginaliaExtension, Extension
             };
             extensionService.registerDecorator(userPartSaveDecorator, USER_PART, "save");
 
+            // a click on a run in the panel of the runs shows it in the page of the click
+            runs.setOpener(this::openRun);
+
             // the Knowledge tab in the left sidebar of the story view (the drawer on a phone)
             storyPartDecorator = new ExtensionDecorator() {
                 @Override
@@ -183,7 +190,7 @@ public class KnowledgeTrackerExtension implements MarginaliaExtension, Extension
                         }
                         StoryEditor story = instrumented instanceof StoryEditor editor ? editor : null;
                         KnowledgeTrackerView view = new KnowledgeTrackerView(currentManuscript, story, stateService, processService, extractionService, runs);
-                        leftBar.add("knowledge-tracker", T.localized(KNOWLEDGE), KNOWLEDGE_ICON, view);
+                        leftBar.add(TAB_ID, T.localized(KNOWLEDGE), KNOWLEDGE_ICON, view);
                         ComponentUtil.setData(leftBar, VIEW_KEY, view);
                         activeTabSheets.add(leftBar);
                     }
@@ -195,21 +202,24 @@ public class KnowledgeTrackerExtension implements MarginaliaExtension, Extension
             extensionService.registerDecorator(storyPartDecorator,
                     "com.github.enerccio.marginalia.ui.dialogs.phone.manuscript.PhoneManuscriptStoryPart", "renderStoryContent");
 
-            // a generated part is final once the automatic annotation and redraft (if the book has them) are done: read it then,
-            // while the author reads it, instead of making the next generation wait
-            partFinishedDecorator = new ExtensionDecorator() {
-                @Override
-                public void onMethodEnter(Object instrumented, ExtendableMethodContext context) throws Exception {}
+            // after a generated part, once its text is final (annotation, redraft, translations): read it then, while the author reads it,
+            // instead of making the next generation wait
+            afterPartRegistration = storyGenerationService.addAfterPartBinding(new AfterPart.Binding(KnowledgeState.KEY + ".afterPart",
+                    () -> T.localized(KnowledgeTrackerLocalization.KNOWLEDGE), AfterPart.Stage.EXTRACT, AfterPart.Mode.PARALLEL,
+                    new AfterPart.Handler() {
+                        @Override
+                        public boolean appliesTo(Manuscript book) throws Exception {
+                            // the open tabs of the book show how many parts wait: they read the branch again, a new part is one more
+                            stateService.changed(book);
+                            BookSettings settings = stateService.load(book).getSettings();
+                            return settings.isAutoProcess() && settings.isExtractWithModel() && !settings.isAskBeforeApplying();
+                        }
 
-                @Override
-                public void onMethodLeave(Object instrumented, ExtendableMethodContext context, Throwable throwing) throws Exception {
-                    if (throwing == null) {
-                        readFinishedPart(context.getReflectiveFieldValue(instrumented, "manuscript", Manuscript.class));
-                    }
-                }
-            };
-            extensionService.registerDecorator(partFinishedDecorator,
-                    "com.github.enerccio.marginalia.ui.dialogs.story.AutoAnnotate", "finished");
+                        @Override
+                        public void run(AfterPart.Context context) throws Exception {
+                            readFinishedPart(context);
+                        }
+                    }));
 
             // what the characters know at a part, for the model that reviews it (Annotate with AI)
             factsProvider = new KnowledgeFactsProvider(stateService);
@@ -231,25 +241,27 @@ public class KnowledgeTrackerExtension implements MarginaliaExtension, Extension
     }
 
     /**
-     * The new part of the story is final (the automatic annotation is over, or the book has none): when the book is set to read with
-     * the model and apply at once, a run starts on a worker thread and reads it while the author reads it. Otherwise nothing happens
-     * here; the next generation reads what is left, see {@link #processBeforePrompt}. A failure never reaches the story.
+     * The step after a generated part (the book reads with the model and applies at once): a run reads what waits, on its own thread,
+     * a part of the panel's entry of what follows the part; the step waits for it. A book that is being read already reads the part
+     * with that run (it reads on from its cursor). Otherwise the next generation reads what is left, see {@link #processBeforePrompt}.
      */
-    private void readFinishedPart(Manuscript manuscript) {
+    private void readFinishedPart(AfterPart.Context context) throws Exception {
+        ExtractionRun run;
         try {
-            if (manuscript == null) {
-                return;
-            }
-            // the open tabs of the book show how many parts wait: they read the branch again, a new part is one more
-            stateService.changed(manuscript);
-            BookSettings settings = stateService.load(manuscript).getSettings();
-            if (settings.isAutoProcess() && settings.isExtractWithModel() && !settings.isAskBeforeApplying()) {
-                runs.start(manuscript, false, null);
-            }
+            run = runs.start(context.getManuscript(), false, null);
         } catch (IllegalStateException e) {
             log.debug("The story is being processed already: {}", e.getMessage());
-        } catch (Exception e) {
-            log.warn("Failed to read the finished part: {}", e.getMessage(), e);
+            context.skip();
+            return;
+        }
+        context.onStop(run::cancel);
+        context.await(run.whenFinished());
+        ExtractionRun.Status status = run.getStatus();
+        if (status.phase() == ExtractionRun.Phase.FAILED) {
+            throw new IllegalStateException(status.message());
+        }
+        if (status.phase() == ExtractionRun.Phase.CANCELLED) {
+            throw new AfterPart.Stopped();
         }
     }
 
@@ -355,8 +367,47 @@ public class KnowledgeTrackerExtension implements MarginaliaExtension, Extension
         return entryPoint instanceof Main ? KnowledgeTrackerStyles.css() : null;
     }
 
+    /**
+     * Shows a run in the page of the click on its entry in the panel of the runs: in the Knowledge tab of its book (selected, with the
+     * progress and the review that waits). A book that is not open in the page is opened first; when another book is open there, the
+     * author is told to close it and nothing else happens.
+     */
+    private void openRun(ExtractionRun run) {
+        UI ui = UI.getCurrent();
+        if (ui == null) {
+            return;
+        }
+        if (showInTab(ui, run)) {
+            return;
+        }
+        BookWindows.openHere(run.getManuscript(), _ -> {
+            if (!showInTab(ui, run)) {
+                // the window has no Knowledge tab (yet): the progress alone
+                ProgressPanel panel = new ProgressPanel(run);
+                panel.open();
+                panel.openReview();
+            }
+        });
+    }
+
+    /** Selects the Knowledge tab of the run's book in the page and shows the run there; false when the page has no such tab. */
+    private boolean showInTab(UI ui, ExtractionRun run) {
+        synchronized (activeTabSheets) {
+            for (TabDock leftBar : activeTabSheets) {
+                KnowledgeTrackerView view = (KnowledgeTrackerView) ComponentUtil.getData(leftBar, VIEW_KEY);
+                if (view != null && leftBar.getUI().orElse(null) == ui && view.isFor(run.getManuscript())) {
+                    leftBar.select(TAB_ID);
+                    view.showRun(run);
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     @Override
     public void onExtensionUnload(Bundle b, OsgiService parentService, ExtensionService extensionService) {
+        runs.setOpener(null);
         annotationFacts.unregisterAll(b.getSymbolicName());
         inheritedSettingRegistry.unregisterAll(b.getSymbolicName());
         factsProvider = null;
@@ -387,9 +438,9 @@ public class KnowledgeTrackerExtension implements MarginaliaExtension, Extension
             }
             activeAccordions.clear();
         }
-        if (partFinishedDecorator != null) {
-            extensionService.unregisterDecorator(partFinishedDecorator);
-            partFinishedDecorator = null;
+        if (afterPartRegistration != null) {
+            afterPartRegistration.unregister();
+            afterPartRegistration = null;
         }
         if (reserveRegistration != null) {
             reserveRegistration.unregister();

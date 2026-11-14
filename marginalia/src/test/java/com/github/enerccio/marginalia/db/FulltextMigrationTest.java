@@ -9,6 +9,7 @@ import com.github.enerccio.marginalia.domain.service.LorebookEntryService;
 import com.github.enerccio.marginalia.domain.service.LorebookService;
 import com.github.enerccio.marginalia.domain.service.ManuscriptService;
 import com.github.enerccio.marginalia.test.MarginaliaTestBase;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -20,6 +21,11 @@ import static org.assertj.core.api.Assertions.assertThat;
  * The app migration 2 → 3 fills {@code _fulltext} of rows saved before the column existed.
  */
 class FulltextMigrationTest extends MarginaliaTestBase {
+
+    @BeforeEach
+    void quiet() {
+        quietBackgroundWriters();
+    }
 
     @Autowired
     private ApplicationContext context;
